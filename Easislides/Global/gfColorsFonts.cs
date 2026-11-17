@@ -198,5 +198,9 @@ namespace Easislides
 		// Badge colours of the PowerPoint and Word-document list icons (white letter on this square, design D25).
 		public static readonly Color PowerPointBadge = Color.FromArgb(0xC4, 0x3E, 0x1C);
 		public static readonly Color WordBadge = Color.FromArgb(0x18, 0x5A, 0xBD);
+		// Flat surfaces (design D23): thin boundary lines, hovered and pressed toolbar / menu items.
+		public static readonly Color Border = Color.FromArgb(0xD1, 0xD1, 0xD1);
+		public static readonly Color Hover = Color.FromArgb(0xE9, 0xE9, 0xE9);
+		public static readonly Color Pressed = Color.FromArgb(0xDD, 0xDD, 0xDD);
 	}
 }

@@ -61,6 +61,10 @@ namespace Easislides
                 return;
             }
 
+            // Fonts, flat toolbars and menus, flat surfaces and buttons (design D21-D23). First, so the
+            // live status line and the toolbar measurements below see the final fonts.
+            ApplySurface();
+
             // Header rows: the title ListView fills the row, so it needs the tint too.
             ApplyHeaderTint(panel9, PreviewPanelDisplayName, ModernUiPalette.PreviewTint);
             ApplyHeaderTint(panel10, OutputPanelDisplayName, ModernUiPalette.LiveTint);
@@ -253,7 +257,7 @@ namespace Easislides
                 {
                     // High contrast switched on or off while the app runs.
                     // Each part on its own: one failure must not leave the others in the other look.
-                    foreach (Action refresh in new Action[] { RefreshShortcutTooltips, RefreshToolbarIconsForGate, RefreshModernImageListForGate, UpdateQuickFindWidth })
+                    foreach (Action refresh in new Action[] { RefreshSurfaceForGate, RefreshShortcutTooltips, RefreshToolbarIconsForGate, RefreshModernImageListForGate, UpdateQuickFindWidth })
                     {
                         try
                         {
