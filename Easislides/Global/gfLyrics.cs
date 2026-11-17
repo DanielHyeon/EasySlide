@@ -42,8 +42,8 @@ namespace Easislides
 			{
 				array[0] = ShowFontColour[0];
 				array[1] = ShowFontColour[1];
-				array2[0] = ShowFontAlign[0, 0];
-				array2[1] = ShowFontAlign[0, 1];
+				array2[0] = Folders[0].FontAlign[0];
+				array2[1] = Folders[0].FontAlign[1];
 				array3[0] = ShowFontBold[InItem.FolderNo, 0];
 				array3[1] = ShowFontBold[InItem.FolderNo, 1];
 				array4[0] = ShowFontItalic[InItem.FolderNo, 0];
@@ -737,9 +737,9 @@ namespace Easislides
 				num = GetNumeric(30);
 				ShowFontColour[1] = (((HeaderData[30] == "") | !ValidateColour(num)) ? DefaultForeColour : Color.FromArgb(Convert.ToInt32(num)));
 				num = GetNumeric(31);
-				ShowFontAlign[0, 0] = (((num < 0) | (num > 3)) ? 2 : num);
+				Folders[0].FontAlign[0] = (((num < 0) | (num > 3)) ? 2 : num);
 				num = GetNumeric(32);
-				ShowFontAlign[0, 1] = (((num < 0) | (num > 3)) ? 2 : num);
+				Folders[0].FontAlign[1] = (((num < 0) | (num > 3)) ? 2 : num);
 				num = GetNumeric(50);
 				MediaOption = ((!((num < 0) | (num > 3))) ? num : 0);
 				MediaLocation = HeaderData[51];
@@ -4258,9 +4258,9 @@ namespace Easislides
 			num3 = ExtractNumericData(InItem.Format.HeaderData[30]);
 			InItem.Format.ShowFontColour[1] = (((InItem.Format.HeaderData[30] == "") | !ValidateColour(num3)) ? ShowFontColour[1] : Color.FromArgb(Convert.ToInt32(num3))).ToArgb();
 			num3 = ExtractNumericData(InItem.Format.HeaderData[31]);
-			InItem.Format.ShowFontAlign[0] = (((num3 < 1) | (num3 > 3)) ? ShowFontAlign[0, 0] : num3);
+			InItem.Format.ShowFontAlign[0] = (((num3 < 1) | (num3 > 3)) ? Folders[0].FontAlign[0] : num3);
 			num3 = ExtractNumericData(InItem.Format.HeaderData[32]);
-			InItem.Format.ShowFontAlign[1] = (((num3 < 1) | (num3 > 3)) ? ShowFontAlign[0, 1] : num3);
+			InItem.Format.ShowFontAlign[1] = (((num3 < 1) | (num3 > 3)) ? Folders[0].FontAlign[1] : num3);
 			num3 = ExtractNumericData(InItem.Format.HeaderData[41]);
 			InItem.Format.ShowFontBold[0] = ((num3 < 0 || num3 > 127) ? ShowFontBold[0, 0] : DataUtil.GetBitValue(num3, 1));
 			InItem.Format.ShowFontItalic[0] = ((num3 < 0 || num3 > 127) ? ShowFontItalic[0, 0] : DataUtil.GetBitValue(num3, 2));

@@ -297,8 +297,8 @@ namespace Easislides
             Def_ToZero.Checked = ((Gf.ShowCapoZero == 1) ? true : false);
             Gf.AssignDropDownItem(SelectedMenuItemName: (Gf.BackgroundMode == ImageMode.Tile) ? Def_ImageTile.Name : ((Gf.BackgroundMode != ImageMode.Centre) ? Def_ImageBestFit.Name : Def_ImageCentre.Name), SelectedBtn: ref Def_ImageMode, InMenuItem1: Def_ImageTile, InMenuItem2: Def_ImageCentre, InMenuItem3: Def_ImageBestFit);
             UpdateDefaultNoImageButton();
-            Gf.AssignDropDownItem(SelectedMenuItemName: (Gf.ShowFontAlign[0, 0] == 1) ? Def_R1AlignLeft.Name : ((Gf.ShowFontAlign[0, 0] != 2) ? Def_R1AlignRight.Name : Def_R1AlignCentre.Name), SelectedBtn: ref Def_R1Align, InMenuItem1: Def_R1AlignLeft, InMenuItem2: Def_R1AlignCentre, InMenuItem3: Def_R1AlignRight);
-            Gf.AssignDropDownItem(SelectedMenuItemName: (Gf.ShowFontAlign[0, 1] == 1) ? Def_R2AlignLeft.Name : ((Gf.ShowFontAlign[0, 1] != 2) ? Def_R2AlignRight.Name : Def_R2AlignCentre.Name), SelectedBtn: ref Def_R2Align, InMenuItem1: Def_R2AlignLeft, InMenuItem2: Def_R2AlignCentre, InMenuItem3: Def_R2AlignRight);
+            Gf.AssignDropDownItem(SelectedMenuItemName: (Gf.Folders[0].FontAlign[0] == 1) ? Def_R1AlignLeft.Name : ((Gf.Folders[0].FontAlign[0] != 2) ? Def_R1AlignRight.Name : Def_R1AlignCentre.Name), SelectedBtn: ref Def_R1Align, InMenuItem1: Def_R1AlignLeft, InMenuItem2: Def_R1AlignCentre, InMenuItem3: Def_R1AlignRight);
+            Gf.AssignDropDownItem(SelectedMenuItemName: (Gf.Folders[0].FontAlign[1] == 1) ? Def_R2AlignLeft.Name : ((Gf.Folders[0].FontAlign[1] != 2) ? Def_R2AlignRight.Name : Def_R2AlignCentre.Name), SelectedBtn: ref Def_R2Align, InMenuItem1: Def_R2AlignLeft, InMenuItem2: Def_R2AlignCentre, InMenuItem3: Def_R2AlignRight);
             Def_BackColour.ForeColor = Gf.ShowScreenColour[0];
             Def_R1Colour.ForeColor = Gf.ShowFontColour[0];
             Def_R2Colour.ForeColor = Gf.ShowFontColour[1];

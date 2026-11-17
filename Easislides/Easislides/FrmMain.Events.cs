@@ -363,14 +363,14 @@ namespace Easislides
         private void Def_R1Align_DropDownItemClicked(object sender, ToolStripItemClickedEventArgs e)
         {
             Gf.AssignDropDownItem(ref Def_R1Align, e.ClickedItem.Name, Def_R1AlignLeft, Def_R1AlignCentre, Def_R1AlignRight);
-            Gf.ShowFontAlign[0, 0] = DataUtil.ObjToInt(Def_R1Align.Tag);
+            Gf.Folders[0].FontAlign[0] = DataUtil.ObjToInt(Def_R1Align.Tag);
             ApplyDefaultData(StartAtFirstSlide: false);
         }
 
         private void Def_R2Align_DropDownItemClicked(object sender, ToolStripItemClickedEventArgs e)
         {
             Gf.AssignDropDownItem(ref Def_R2Align, e.ClickedItem.Name, Def_R2AlignLeft, Def_R2AlignCentre, Def_R2AlignRight);
-            Gf.ShowFontAlign[0, 1] = DataUtil.ObjToInt(Def_R2Align.Tag);
+            Gf.Folders[0].FontAlign[1] = DataUtil.ObjToInt(Def_R2Align.Tag);
             ApplyDefaultData(StartAtFirstSlide: false);
         }
 

@@ -1688,8 +1688,8 @@ namespace Easislides
 				stringBuilder.AppendFormat("{0}={1}>", 28, ShowScreenStyle.ToString());
 				stringBuilder.AppendFormat("{0}={1}>", 29, Convert.ToString(ShowFontColour[0].ToArgb()));
 				stringBuilder.AppendFormat("{0}={1}>", 30, Convert.ToString(ShowFontColour[1].ToArgb()));
-				stringBuilder.AppendFormat("{0}={1}>", 31, ShowFontAlign[0, 0]);
-				stringBuilder.AppendFormat("{0}={1}>", 32, ShowFontAlign[0, 1]);
+				stringBuilder.AppendFormat("{0}={1}>", 31, Folders[0].FontAlign[0]);
+				stringBuilder.AppendFormat("{0}={1}>", 32, Folders[0].FontAlign[1]);
 				stringBuilder.AppendFormat("{0}={1}>", 50, MediaOption);
 				stringBuilder.AppendFormat("{0}={1}>", 51, MediaLocation);
 				stringBuilder.AppendFormat("{0}={1}>", 52, MediaVolume);
