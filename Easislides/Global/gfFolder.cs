@@ -235,10 +235,10 @@ namespace Easislides
 						}
 						Folders[num].HeadingFontBold[0] = DataUtil.GetBitValue(DataUtil.ObjToInt(text), 1);
 						Folders[num].HeadingFontItalic[0] = DataUtil.GetBitValue(DataUtil.ObjToInt(text), 2);
-						FolderHeadingFontUnderline[num, 0] = DataUtil.GetBitValue(DataUtil.ObjToInt(text), 3);
+						Folders[num].HeadingFontUnderline[0] = DataUtil.GetBitValue(DataUtil.ObjToInt(text), 3);
 						Folders[num].HeadingFontBold[1] = DataUtil.GetBitValue(DataUtil.ObjToInt(text), 4);
 						Folders[num].HeadingFontItalic[1] = DataUtil.GetBitValue(DataUtil.ObjToInt(text), 5);
-						FolderHeadingFontUnderline[num, 1] = DataUtil.GetBitValue(DataUtil.ObjToInt(text), 6);
+						Folders[num].HeadingFontUnderline[1] = DataUtil.GetBitValue(DataUtil.ObjToInt(text), 6);
 						ShowLineSpacing[num, 0] = DataUtil.GetDataDouble(dataReader, "LineSpacing");
 						if ((ShowLineSpacing[num, 0] < 0.5) | (ShowLineSpacing[num, 0] > 2.0))
 						{

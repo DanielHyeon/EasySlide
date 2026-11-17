@@ -102,7 +102,7 @@ namespace Easislides
 			int num6 = Folders[InItem.FolderNo].HeadingOption;
 			bool flag = (Folders[InItem.FolderNo].HeadingFontBold[0] > 0) ? true : false;
 			bool flag2 = (Folders[InItem.FolderNo].HeadingFontItalic[0] > 0) ? true : false;
-			bool flag3 = (FolderHeadingFontUnderline[InItem.FolderNo, 0] > 0) ? true : false;
+			bool flag3 = (Folders[InItem.FolderNo].HeadingFontUnderline[0] > 0) ? true : false;
 			bool flag4 = (Folders[InItem.FolderNo].HeadingFontItalic[1] > 0) ? true : false;
 			int num7 = num2 * buffer_LS_Width / 100;
 			int num8 = buffer_LS_Width - (num7 + num3 * buffer_LS_Width / 100);
@@ -4225,10 +4225,10 @@ namespace Easislides
 				ShowFontVPosition[0, 1] = ShowFontVPosition[folderNo, 1];
 				Folders[0].HeadingFontBold[0] = Folders[folderNo].HeadingFontBold[0];
 				Folders[0].HeadingFontItalic[0] = Folders[folderNo].HeadingFontItalic[0];
-				FolderHeadingFontUnderline[0, 0] = FolderHeadingFontUnderline[folderNo, 0];
+				Folders[0].HeadingFontUnderline[0] = Folders[folderNo].HeadingFontUnderline[0];
 				Folders[0].HeadingFontBold[1] = Folders[folderNo].HeadingFontBold[1];
 				Folders[0].HeadingFontItalic[1] = Folders[folderNo].HeadingFontItalic[1];
-				FolderHeadingFontUnderline[0, 1] = FolderHeadingFontUnderline[folderNo, 1];
+				Folders[0].HeadingFontUnderline[1] = Folders[folderNo].HeadingFontUnderline[1];
 				Folders[0].HeadingPercentSize = Folders[folderNo].HeadingPercentSize;
 				Folders[0].HeadingOption = Folders[folderNo].HeadingOption;
 				ShowLineSpacing[0, 0] = ShowLineSpacing[folderNo, 0];

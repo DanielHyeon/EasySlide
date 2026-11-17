@@ -1625,8 +1625,6 @@ namespace Easislides
 		public static string EditNotesHeading = "";
 
 
-		public static int[,] FolderHeadingFontUnderline = new int[MAXSONGSFOLDERS, 2];
-
 		public static double[,] ShowLineSpacing = new double[MAXSONGSFOLDERS, 2];
 
 		public static int UseOutlineFont = 0;
