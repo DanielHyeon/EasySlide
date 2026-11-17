@@ -135,55 +135,47 @@ namespace Easislides
 			string value = DataUtil.CJK_WordCount(Title_1);
 			string value2 = DataUtil.CJK_StrokeCount(Title_1);
 
-
-
-			(DbDataAdapter sQLiteDataAdapter, DataTable dt) = DbController.GetDataAdapter(InConnectString, "Select * from SONG");
-
-			if (dt != null)
+			// A plain INSERT; SQLite assigns SONGID (the rowid). The former DataTable insert loaded the whole SONG
+			// table and failed on every song ("SONGID does not allow nulls"): the table declares SONGID as
+			// PRIMARY KEY("SONGID"), which the provider does not report as auto-increment.
+			const string sql = "insert into SONG (Title_1, Title_2, song_number, FolderNo, Lyrics, Sequence, writer, copyright, "
+				+ "CJK_WordCount, CJK_StrokeCount, capo, Timing, [Key], msc, CATEGORY, LICENCE_ADMIN1, LICENCE_ADMIN2, "
+				+ "BOOK_REFERENCE, USER_REFERENCE, SETTINGS, FORMATDATA, LastModified) values (@Title_1, @Title_2, "
+				+ "@song_number, @FolderNo, @Lyrics, @Sequence, @writer, @copyright, @CJK_WordCount, @CJK_StrokeCount, @capo, "
+				+ "@Timing, @Key, @msc, @CATEGORY, @LICENCE_ADMIN1, @LICENCE_ADMIN2, @BOOK_REFERENCE, @USER_REFERENCE, "
+				+ "@SETTINGS, @FORMATDATA, @LastModified); select last_insert_rowid();";
+			try
 			{
-				try
-				{
-					dt.AcceptChanges();
-
-					DbCommandBuilder sqCB = new DbCommandBuilder(sQLiteDataAdapter);
-					sQLiteDataAdapter.InsertCommand = sqCB.GetInsertCommand();
-
-					DataRow dr = dt.NewRow();
-
-					dr["Title_1"] = Title_1;
-					dr["Title_2"] = Title_2;
-					dr["song_number"] = song_number;
-					dr["FolderNo"] = FolderNo;
-					dr["Lyrics"] = Lyrics;
-					dr["Sequence"] = Sequence;
-					dr["writer"] = writer;
-					dr["copyright"] = copyright;
-					dr["CJK_WordCount"] = value;
-					dr["CJK_StrokeCount"] = value2;
-					dr["capo"] = capo;
-					dr["Timing"] = Timing;
-					dr["Key"] = InKey;
-					dr["msc"] = msc;
-					dr["CATEGORY"] = CATEGORY;
-					dr["LICENCE_ADMIN1"] = LICENCE_ADMIN1;
-					dr["LICENCE_ADMIN2"] = LICENCE_ADMIN2;
-					dr["BOOK_REFERENCE"] = BOOK_REFERENCE;
-					dr["USER_REFERENCE"] = USER_REFERENCE;
-					dr["SETTINGS"] = SETTINGS;
-					dr["FORMATDATA"] = FORMATDATA;
-					dr["LastModified"] = DataUtil.ToStoredDate(DateTime.Now);
-
-					dt.Rows.Add(dr);
-
-					sQLiteDataAdapter.Update(dt);  // Its also update in database.	
-
-					return DataUtil.ObjToInt(dr["SongID"]);
-				}
-				catch (Exception ex)
-				{
-					Debug.WriteLine($"Error adding item to database: {ex.Message}");
-					MessageBox.Show("Error encountered whilst adding item to database - item NOT added");
-				}
+				using DbConnection connection = DbController.GetDbConnection(InConnectString);
+				using DbCommand command = new DbCommand(sql, connection);
+				command.Parameters.AddWithValue("@Title_1", Title_1);
+				command.Parameters.AddWithValue("@Title_2", Title_2);
+				command.Parameters.AddWithValue("@song_number", song_number);
+				command.Parameters.AddWithValue("@FolderNo", FolderNo);
+				command.Parameters.AddWithValue("@Lyrics", Lyrics);
+				command.Parameters.AddWithValue("@Sequence", Sequence);
+				command.Parameters.AddWithValue("@writer", writer);
+				command.Parameters.AddWithValue("@copyright", copyright);
+				command.Parameters.AddWithValue("@CJK_WordCount", value);
+				command.Parameters.AddWithValue("@CJK_StrokeCount", value2);
+				command.Parameters.AddWithValue("@capo", capo);
+				command.Parameters.AddWithValue("@Timing", Timing);
+				command.Parameters.AddWithValue("@Key", InKey);
+				command.Parameters.AddWithValue("@msc", msc);
+				command.Parameters.AddWithValue("@CATEGORY", CATEGORY);
+				command.Parameters.AddWithValue("@LICENCE_ADMIN1", LICENCE_ADMIN1);
+				command.Parameters.AddWithValue("@LICENCE_ADMIN2", LICENCE_ADMIN2);
+				command.Parameters.AddWithValue("@BOOK_REFERENCE", BOOK_REFERENCE);
+				command.Parameters.AddWithValue("@USER_REFERENCE", USER_REFERENCE);
+				command.Parameters.AddWithValue("@SETTINGS", SETTINGS);
+				command.Parameters.AddWithValue("@FORMATDATA", FORMATDATA);
+				command.Parameters.AddWithValue("@LastModified", DataUtil.ToStoredDate(DateTime.Now));
+				return DataUtil.ObjToInt(command.ExecuteScalar());
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine($"Error adding item to database: {ex.Message}");
+				MessageBox.Show("Error encountered whilst adding item to database - item NOT added");
 			}
 			return 0;
 		}
@@ -203,8 +195,8 @@ namespace Easislides
 			try
 			{
 
+				// GetDbConnection returns an open connection; opening it again threw, so no edit was ever saved.
 				using DbConnection connection = DbController.GetDbConnection(ConnectStringMainDB);
-				connection.Open();
 				string text = "Update SONG SET Title_1 =@Title_1,Title_2 =@Title_2,song_number =@song_number,FolderNo =@FolderNo,Lyrics =@Lyrics,Sequence =@Sequence,writer =@writer,copyright =@copyright,CJK_WordCount =@CJK_WordCount,CJK_StrokeCount =@CJK_StrokeCount,capo =@capo,Timing =@Timing,[Key] =@Key,msc =@msc,CATEGORY =@CATEGORY,LICENCE_ADMIN1 =@LICENCE_ADMIN1,LICENCE_ADMIN2 =@LICENCE_ADMIN2,BOOK_REFERENCE =@BOOK_REFERENCE,USER_REFERENCE =@USER_REFERENCE,SETTINGS =@SETTINGS,FORMATDATA =@FORMATDATA,LastModified =@LastModified where songid=" + SongID;
 				using DbCommand command = new DbCommand(text, connection);
 				command.CommandText = text;
