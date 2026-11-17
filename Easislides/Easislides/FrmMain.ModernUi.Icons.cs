@@ -201,6 +201,15 @@ namespace Easislides
             {
                 Trace.WriteLine($"ApplyToolbarIcons: format and menu icons failed: {ex.Message}");
             }
+            try
+            {
+                FitStripToCombo(toolStripFolders, panelFolders, SongFolder);
+                FitStripToCombo(toolStripPraiseBook1, panelPraiseBook1, PraiseBook);
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"ApplyToolbarIcons: fitting the sort buttons failed: {ex.Message}");
+            }
             MeasureToolbarTexts();
             // The words change the buttons' accessible name (shown: the word; hidden: the tooltip).
             // Keep the name they report without the new look in both states.
@@ -286,6 +295,7 @@ namespace Easislides
                     ModernItemIcons.SyncDropDownButtonImage(PP_ListType);
                     SyncFormatDropDownButtons();
                     RestoreEditHistoryIcons();
+                    RestoreFittedStrips();
                     if (modernDeleteSeparator != null)
                     {
                         modernDeleteSeparator.Available = false;
@@ -301,6 +311,107 @@ namespace Easislides
             {
                 toolStripMain.ResumeLayout(true);
             }
+        }
+
+        // Designer layout of each strip fitted by FitStripToCombo, recorded once, put back when the gate closes.
+        private readonly Dictionary<ToolStrip, Action> fittedStripRestores = new Dictionary<ToolStrip, Action>();
+
+        // Combos whose SizeChanged refits their strip (hooked once).
+        private readonly HashSet<ComboBox> fittedStripCombos = new HashSet<ComboBox>();
+
+        /// <summary>
+        /// The small toolbar beside a list's combo box (folder sort button; praise book buttons): its buttons were
+        /// 36 px tall next to a 28 px combo, so the checked frame of the sort button (any order but Title) and the
+        /// hover frame reached below the combo, toward the find box. The strip and its buttons get the combo's
+        /// height and top; widths stay. Designer values are put back when the gate closes.
+        /// </summary>
+        private void FitStripToCombo(ToolStrip strip, Panel panel, ComboBox combo)
+        {
+            if (strip == null || panel == null || combo == null || combo.Height <= 0)
+            {
+                return;
+            }
+            if (fittedStripCombos.Add(combo))
+            {
+                // A later font or DPI change of the combo changes its height: fit again (new look only).
+                combo.SizeChanged += (s, e) =>
+                {
+                    if (toolbarIconsApplied && IsModernUiActive)
+                    {
+                        FitStripToCombo(strip, panel, combo);
+                    }
+                };
+            }
+            int height = combo.Height;
+            if (strip.Height == height && panel.Height == height && panel.Top == combo.Top)
+            {
+                return; // already fitted
+            }
+            if (!fittedStripRestores.ContainsKey(strip))
+            {
+                // The designer layout, recorded before the first fit only.
+                int panelTop = panel.Top, panelHeight = panel.Height;
+                Point stripLocation = strip.Location;
+                int stripHeight = strip.Height;
+                var items = new List<(ToolStripItem Item, bool AutoSize, Size Size, Padding Margin)>();
+                foreach (ToolStripItem item in strip.Items)
+                {
+                    items.Add((item, item.AutoSize, item.Size, item.Margin));
+                }
+                fittedStripRestores[strip] = () =>
+                {
+                    strip.SuspendLayout();
+                    foreach (var (item, autoSize, size, margin) in items)
+                    {
+                        item.Margin = margin;
+                        item.AutoSize = autoSize;
+                        item.Size = size;
+                    }
+                    strip.Location = stripLocation;
+                    strip.Height = stripHeight;
+                    strip.ResumeLayout(true);
+                    panel.Top = panelTop;
+                    panel.Height = panelHeight;
+                };
+            }
+            strip.SuspendLayout();
+            try
+            {
+                foreach (ToolStripItem item in strip.Items)
+                {
+                    if (item is ToolStripSeparator)
+                    {
+                        continue;
+                    }
+                    item.Margin = new Padding(item.Margin.Left, 0, item.Margin.Right, 0);
+                    item.AutoSize = false;
+                    item.Size = new Size(item.Width, height);
+                }
+                strip.Location = new Point(strip.Location.X, 0);
+                strip.Height = height;
+            }
+            finally
+            {
+                strip.ResumeLayout(true);
+            }
+            panel.Top = combo.Top;
+            panel.Height = height;
+        }
+
+        private void RestoreFittedStrips()
+        {
+            foreach (Action restore in fittedStripRestores.Values)
+            {
+                try
+                {
+                    restore();
+                }
+                catch (Exception ex)
+                {
+                    Trace.WriteLine($"RestoreFittedStrips failed: {ex.Message}");
+                }
+            }
+            fittedStripRestores.Clear();
         }
 
         private void RememberToolbarItem(ToolStripItem item)
