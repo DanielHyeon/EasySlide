@@ -1,0 +1,223 @@
+# 콘텐츠 편집 및 라이브러리 이식 계획
+
+## 기준 문서
+
+- `docs/ui-ux-modernization-plan.md`: 40개 폼 일관성, 모달 남용 감소, 검색/임포트 효율
+- `docs/adr/0001-wpf-ui-framework.md`: WPF 화면 체계
+- `docs/adr/0002-fluent-icons.md`: 콘텐츠/파일 관리 아이콘 전환
+- `docs/adr/0003-pretendard-font-bundling.md`: 한글 가사/성경 가독성
+- `docs/adr/0006-senior-mode-token-scale.md`: 편집 필드와 목록 타깃 확대
+- `docs/ui/icon-migration-map.md`: `Icon.Bible`, `Icon.WorshipList`, `Icon.Action.*` 매핑
+
+## 1. 범위
+
+이 문서는 찬양/성경/아이템/폴더/검색/가져오기/내보내기 기능을 WPF로 이식하는 계획이다.
+
+대상 legacy 파일:
+
+| Legacy | 역할 | WPF 목표 |
+|---|---|---|
+| `FrmEditItem.cs` | 일반 아이템 편집 | `ItemEditorView` |
+| `FrmEditBibleItem.cs`, `FrmBibleRename.cs` | 성경 아이템 편집/이름 변경 | `BibleItemEditorView` |
+| `FrmEditNotes.cs` | 노트 편집 | `NotesEditorDialog` |
+| `FrmImport.cs`, `FrmImportFolder.cs`, `FrmImportAccessHelper.cs` | 가져오기 | `ImportWizard` |
+| `FrmExport.cs`, `FrmGenerateDoc.cs`, `FrmGenerateHtml.cs` | 내보내기/문서 생성 | `ExportWizard` |
+| `FrmFind.cs`, `FrmLookupTitles.cs`, `FrmUsages.cs` | 검색/참조 확인 | `SearchPanel`, `UsageInspector` |
+| `FrmManageItemLists.cs`, `FrmRearrangeFolderPositions.cs` | 목록/폴더 관리 | `LibraryManagementView` |
+| `FrmCopy.cs`, `FrmMove.cs`, `FrmCopyMoveExternal.cs`, `FrmUpdateFileName.cs`, `FrmRecoverDeleted.cs`, `FrmSmartMerge.cs` | 파일/목록 조작 | `LibraryCommandDialogs` |
+| `gfBible.cs`, `gfLyrics.cs`, `gfFolder.cs`, `gfDatabase.cs`, `gfFileHelpers.cs`, `gfIO.cs`, `gfUtility.cs` | 콘텐츠 도메인 로직 | service 계층으로 추출 |
+
+## 2. 목표 모델
+
+WinForms의 폼 단위 기능을 WPF에서는 다음 도메인 단위로 묶는다.
+
+| 도메인 | 주요 객체 | 주요 기능 |
+|---|---|---|
+| Worship list | `WorshipList`, `WorshipItem` | 순서 편집, 복사/이동, 삭제 복구, 사용처 확인 |
+| Song/Lyrics | `SongLyrics`, `SongFormat`, `SongSettings` | 가사 편집, 포맷 적용, 미리보기 |
+| Bible | `BibleReference`, `BibleItem` | 구절 검색, 이름 변경, 성경 아이템 편집 |
+| Import/Export | `ImportJob`, `ExportJob` | 폴더/Access/HTML/DOC 변환 |
+| Search | `SearchQuery`, `SearchResult` | 제목/본문/성경/파일명 검색 |
+
+## 3. 이식 단계
+
+### 3.0 ADR 준수 체크
+
+- 찬양/성경/미디어/문서/폴더/관리 명령은 `docs/ui/icon-migration-map.md`의 EasiDS 키를 우선 사용한다.
+- 긴 한글 가사와 성경 본문은 Pretendard 타입 토큰을 사용하고 시스템 폰트 직접 지정은 금지한다.
+- 가져오기/내보내기 wizard의 버튼과 목록은 Senior mode scale을 적용한다.
+- 기존 WinForms 모달을 그대로 복제하지 않고, 빈번한 편집은 패널/문서형 화면으로 옮긴다.
+
+### 3.1 데이터 계약 정리
+
+- `Module/SongLyrics.cs`, `SongFormat.cs`, `SongSettings.cs`를 WPF에서도 참조 가능한 순수 도메인 모델로 정리한다.
+- `gfLyrics`, `gfBible`, `gfFolder`의 public 기능을 인터페이스로 감싼다.
+- 파일 경로, DB id, 표시 제목, 정렬 순서의 canonical format을 문서화한다.
+
+필수 인터페이스:
+
+| 인터페이스 | 책임 |
+|---|---|
+| `IWorshipListRepository` | 예배 목록 조회/저장/정렬 |
+| `ISongRepository` | 찬양 가사 조회/저장 |
+| `IBibleService` | 성경 검색/구절 파싱 |
+| `IImportService` | 외부 데이터 가져오기 |
+| `IExportService` | DOC/HTML/파일 내보내기 |
+| `ISearchService` | 통합 검색 |
+
+### 3.2 라이브러리 화면 이식
+
+권장 화면:
+
+- 좌측: 폴더/목록 트리
+- 중앙: 아이템 목록
+- 우측: 선택 항목 편집/프리뷰
+- 상단: 검색, 필터, 정렬
+- 하단: 복사, 이동, 삭제, 복구, 병합 등 명령
+
+완료 조건:
+
+- 기존 목록 순서가 WPF에서 동일하게 보인다.
+- 드래그/키보드로 순서 변경 가능하다.
+- 삭제는 soft delete와 복구 경로를 보존한다.
+- 파일명 변경과 외부 복사는 충돌/중복 확인을 제공한다.
+
+### 3.3 편집 화면 이식
+
+`FrmEditItem`은 심볼 수가 많아 한 번에 옮기지 않는다.
+
+단계:
+
+1. 읽기 전용 상세 패널
+2. 제목/메모/분류 편집
+3. 가사/본문 편집
+4. 배경/폰트/포맷 미리보기
+5. 저장 전 diff/validation
+
+저장 규칙:
+
+- 저장 전 원본 백업 생성
+- validation 실패 시 파일에 쓰지 않음
+- 저장 성공 후 프리뷰와 검색 인덱스 갱신
+- 라이브 중 현재 송출 항목 편집은 명시적 확인 필요
+
+### 3.4 Import/Export 이식
+
+Import Wizard:
+
+- Step 1: 원본 유형 선택
+- Step 2: 파일/폴더/Access DB 선택
+- Step 3: 항목 preview
+- Step 4: 충돌 해결
+- Step 5: 실행 및 결과
+
+Export Wizard:
+
+- Step 1: 대상 목록 선택
+- Step 2: 형식 선택(DOC/HTML/폴더)
+- Step 3: 파일명/경로/옵션
+- Step 4: 실행
+- Step 5: 결과 열기/로그 확인
+
+완료 조건:
+
+- 기존 `FrmImport*`, `FrmExport`, `FrmGenerateDoc`, `FrmGenerateHtml`의 주요 옵션이 WPF에 존재한다.
+- 같은 입력 데이터에서 WinForms와 WPF의 결과 파일 수, 제목, 순서가 일치한다.
+- 실패 항목은 건너뛰기/재시도/로그 저장이 가능하다.
+
+## 4. 완료 여부
+
+| 항목 | 상태 | 비고 |
+|---|---|---|
+| 도메인 모델 파악 | 부분 완료 | `Module` 구조 확인 |
+| Repository/service 추출 | 부분 구현 | `IAdminDatabaseRepository`/`AdminDatabaseRepository`로 AdminDB schema inventory, `FOLDER`/`SONG` read-only folder/song summary/detail 조회, bundled AdminDB 호환성 검증, folder/song 저장 및 song 이동 write repository backup/transaction/rollback 검증 완료. `LibraryViewModel`이 명시 AdminDB 경로 또는 기존 작업 폴더의 `Admin\Database\EasiSlidesDb.db`를 읽는 UI 경계까지 연결했다. `gf*` 의존 분리와 전체 콘텐츠 CRUD service 계약은 후속 필요 |
+| Library WPF 화면 | 1차 구현 완료 | `LibraryWindow`, `LibraryViewModel` 추가. MainWindow에서 라이브러리/외부 파일/가져오기·내보내기/검색·사용처/성경 버튼으로 진입하고, AdminDB 폴더 목록, 폴더 추가/편집/삭제/복구 진입, 선택 폴더의 곡 목록, 제목/대체 제목/분류/key/가사 검색, 선택 곡 가사 프리뷰, 새 곡/편집/선택 곡 복사/이동/삭제 진입, 삭제 곡 복구, 스마트 병합 진입, 외부 InfoScreen/PowerPoint 파일 복사·이동 진입, Import/Export wizard 진입, Search/usage inspector 진입, 성경 버전/책/검색/선택 구절 ID 생성과 dual-region preview 및 예배 순서 삽입 진입, 폴더/곡 위아래 및 직접 drag gesture 순서 변경, 경로 누락/파일 누락 상태 메시지를 제공한다. 현재는 AdminDB folder add/edit/soft delete/recover/reorder와 song browse/search/edit/copy/move/soft delete/recover/reorder/smart merge, external file copy/move, import/export text/XML/ESF/Access MDB/document-folder/HTML/RTF, search/title lookup/usage report, bible browse/search/selection/dual-region preview/live queue insert 중심 |
+| Library management | 1차 구현 완료 | `FolderEditorWindow`, `FolderEditorViewModel` 추가. 기존 폴더 편집과 새 폴더 번호 산정, 이름/사용 여부 저장, `IAdminDatabaseRepository.SaveFolderAsync` 기반 backup/transaction 저장, 저장 후 폴더 reload와 선택 복원을 구현했다. 폴더 순서 변경은 `ReorderFoldersAsync`로 `FOLDER.FolderNo`와 해당 `SONG.FOLDERNO`를 함께 staging 업데이트하도록 구현했다. 폴더 삭제/복구는 `SoftDeleteFoldersAsync`/`RecoverFoldersAsync`로 `FOLDER.Use`를 `False`/`True` 전환하고 곡은 기존 `FOLDERNO`에 보존하며 backup/transaction/restore 경계를 검증했다. `LibraryViewModel.DeleteSelectedFolderCommand`/`RecoverSelectedFolderCommand`와 `LibraryWindow` 폴더 toolbar를 연결했고 비활성 폴더는 목록에서 흐리게 표시한다. |
+| Item editor | 1차 구현 완료 | `SongEditorWindow`, `SongEditorViewModel` 추가. 선택 폴더에서 새 곡 생성 또는 선택 곡 편집을 열고 제목/대체 제목/번호/분류/key/가사와 legacy writer/copyright/capo/timing/licence/book/user/sequence/notation/settings/format data를 편집한 뒤 `IAdminDatabaseRepository.SaveSongAsync`로 저장한다. 기존 곡은 `IAdminSongDetailRepository.GetSongDetailAsync`로 상세 필드를 로드해 보이지 않는 legacy metadata 손실 없이 저장한다. 저장 전 제목/AdminDB/폴더/Capo 검증, 설정 `DataBackupRoot` 또는 DB sibling `Backups` fallback, 저장 성공 후 목록 reload/선택 복원을 구현했다. 미리보기는 현재 lyrics-monitor 전경/배경 색상과 선택 preview font/size, 첫 screen lyrics, metadata, format/notation/sequence 상태를 표시한다. 라이브 송출 중 저장은 `ILiveSessionService` 상태를 감지해 `ILiveSafetyPrompt` 확인을 통과한 경우에만 repository write를 수행한다. |
+| Library command dialogs | 부분 구현 | `SongCopyWindow`/`SongCopyViewModel`, `SongMoveWindow`/`SongMoveViewModel`, `SongDeleteWindow`/`SongDeleteViewModel`, `SongRecoveryWindow`/`SongRecoveryViewModel`, `SongMergeWindow`/`SongMergeViewModel`, `SongMergeService`, `ExternalFileOperationWindow`/`ExternalFileOperationViewModel`, `ExternalFileOperationService` 추가. 복사는 대상 폴더/복사 제목/곡 번호를 편집하고 원곡 메타데이터와 가사를 `SaveSongAsync`로 새 곡 저장한다. 이동은 선택 곡과 현재 폴더를 기준으로 source 폴더를 제외한 대상 폴더를 선택하고 `MoveSongsAsync`로 backup/transaction 기반 이동을 수행한다. 삭제는 `SoftDeleteSongsAsync`로 `FOLDERNO=0`, `OldFolder=원래 폴더`, `LastModified=삭제일`을 보존하고, 복구는 `GetDeletedSongsAsync` 목록에서 선택한 곡을 `RecoverSongsAsync`로 원래 폴더에 되돌리며 `OldFolder=0`으로 정리한다. 스마트 병합은 Source A/B/Target 폴더와 기본/대체 제목 매칭 옵션을 선택해 후보를 만들고, legacy `FrmSmartMerge` 규칙에 맞춰 Source B 구간을 `[region 2]`로 삽입하며, sequence/copyright/writer/capo/key/timing/book/user/licence metadata fallback을 보존해 새 곡으로 저장한다. 외부 파일 작업은 legacy `FrmCopyMoveExternal`처럼 InfoScreen/PowerPoint 외부 폴더 목록을 만들고, 복사/이동 시 ` - Copy (n)` 충돌 파일명을 보존하며, InfoScreen 복사만 곡 폴더로 가져오기를 허용해 `.esi` XML/legacy text fallback을 `SongWriteModel`로 저장한다. 일반 이동은 legacy와 맞게 `LastModified`를 갱신하지 않고, 삭제/복구만 날짜를 갱신하도록 분리했다. AdminDB 경로/파일, 선택 곡, 대상 폴더, 병합 후보, 외부 파일/외부 폴더/곡 폴더, configured/default backup root validation을 자동 검증했다. |
+| Bible editor | 1차 구현 완료 | `BibleRepository`, `BibleViewModel`, `BibleWindow` 추가. legacy `gfBible` 구조의 `Admin\Database\EsBiblesList.db`/`HolyBibles\*.db`를 읽어 Biblefolder display order, 숨김 항목 제외, song folder/size fallback, 책 이름 행(`book=0/chapter=10`), 본문 로드, 전체/일부/구문 검색, 3000건 제한 플래그, 본문 선택 위치 기반 legacy ID string/title 생성, `FrmEditBibleItem`의 Region 1/2 버전 교체 ID/title 갱신 규칙을 자동 검증했다. `BibleViewModel`은 Region 1/2 preview 버전과 선택 ID/title을 갱신하고, `BibleWindow` Insert는 선택 구절을 `MainViewModel.AddBibleSelection`으로 현재 선택 항목 다음 예배 순서에 삽입한다. MainWindow 성경 버튼과 운영 DI 연결 완료. 실제 운영 Bible DB/예배 순서 대량 수동 비교는 후속 필요 |
+| Import/Export wizard | 1차 구현 완료 | `ImportExportService`, `ImportExportViewModel`, `ImportExportWindow` 추가. legacy `FrmImport`의 `.esn/.est` 텍스트 header/body/notation/metadata 파싱, EasiSlides XML `<Item>` import, `.esf` SQLite `FOLDER`/`SONG` import, Access MDB helper의 table/column schema 조회, title/lyrics merge/metadata 컬럼 매핑, 선택 table별 source folder preview/import, MDB 경로 변경 시 stale schema reset, `FrmImportFolder`의 `.txt/.doc/.docx` 폴더 import 경계를 구현했다. `.doc`는 `IDocumentTextExtractor`/`OfficeDocumentTextExtractor`를 통해 `OfficeLib.WordDoc` Word COM 추출 경계로 이관하고, `.docx`/`.txt`는 기존 ZIP/XML 및 text loader 경계를 유지한다. 중복 제목은 Skip/KeepExisting/ReplaceExisting 정책으로 처리하며 `SongWriteModel`과 `IAdminDatabaseRepository.SaveSongAsync`로 backup/transaction 저장한다. `FrmExport` 호환 XML/ESN/ESF export와 `FrmGenerateHtml`/`FrmGenerateDoc` 범위의 HTML index/song file 및 RTF bundle 생성을 구현했고, `PraiseBookExportOptions`로 번호/title/copyright/book/user/key/capo/timing/chord/index/page-per-song/style 옵션을 RTF/HTML 산출물에 반영한다. MainWindow I/O 버튼과 DI 등록 및 Export 탭 옵션 UI 연결 완료 |
+| Search/usage inspector | 1차 구현 완료 | `SearchUsageService`, `SearchUsageViewModel`, `SearchUsageWindow` 추가. legacy `FrmFind` 기준 제목/대체 제목/가사/곡 번호/Book/User reference/licence admin/writer/copyright 검색, 폴더 선택, key/timing, notation only, media only, 수정일 필터를 제공한다. `FrmLookupTitles`의 Title2 후보 조회와 Book/User reference 복사 후보 데이터를 제공하고, `FrmUsages`의 `EsUsage.db` 기간/세션별 사용 기록 조회, 발생 횟수 집계, 선택 record 삭제, legacy 섹션명 기반 RTF usage report 생성을 구현했다. 사용 기록 삭제는 WPF `SafetyConfirm` 기반 확인 UX를 통과한 경우에만 수행하고 성공 후 usage 목록을 다시 로드한다. MainWindow Search 버튼과 운영 DI 등록 완료. WinForms 결과와의 실제 운영 DB 대량 비교는 후속 수동 검증 필요 |
+
+## 5. 이식 후 검증 방안
+
+데이터 동등성:
+
+- 동일 작업 폴더를 WinForms와 WPF에서 열었을 때 목록 수, 항목 수, 제목, 순서가 일치한다.
+- 저장 후 파일 diff에서 의도하지 않은 메타데이터 변경이 없다.
+- 가져오기 후 새 항목 수와 중복 처리 결과가 일치한다.
+- 내보내기 결과 파일명이 기존 규칙과 호환된다.
+
+편집 안정성:
+
+- 저장 실패 시 원본 파일이 보존된다.
+- 편집 후 프리뷰가 갱신된다.
+- 라이브 중인 항목 편집 시 SafetyConfirm이 표시된다.
+- 삭제/복구/스마트 병합 후 사용처 정보가 갱신된다.
+
+UX 검증:
+
+- 검색 결과에서 키보드 Enter로 선택/편집 가능하다.
+- 긴 제목, 한글/영문 혼합, 특수문자 파일명이 잘리지 않는다.
+- Senior 모드에서 편집 필드와 버튼의 최소 높이가 유지된다.
+
+## 6. 테스트 방안
+
+자동 테스트:
+
+- Repository 테스트: 샘플 작업 폴더 fixture로 목록 읽기/저장
+- 현재 자동화: `AdminDatabaseRepositoryTests`로 임시 legacy AdminDB와 bundled `AdminDB/Database/EasiSlidesDb.db` schema/table/column inventory, `FOLDER`/`SONG` 필수 table/column 호환성 진단, read-only folder song count, folder별 song summary/detail 조회, 삭제 곡 조회, folder upsert, folder soft delete/recover `Use` 토글과 곡 `FOLDERNO` 보존, legacy SONG 필드 insert/update, update 시 `OldFolder` 보존, 일반 song 이동 시 `LastModified` 보존, song 이동 transaction rollback 및 backup restore, song soft delete/recover backup/transaction, folder reorder 시 `FOLDER.FolderNo`와 `SONG.FOLDERNO` 동시 갱신, song reorder 시 `SONG_NUMBER` 재시퀀싱과 folder boundary rollback을 검증한다. `LibraryViewModelTests`로 명시 AdminDB 경로 로드, 폴더 선택 시 곡 재조회, 제목/대체 제목/분류/가사 검색, AdminDB 경로 누락 상태 메시지, 폴더 삭제/복구 command와 reload/선택 복원, 폴더/곡 순서 변경 요청 매핑, drag/drop용 target index reorder와 reload/선택 복원을 검증한다. `FolderEditorViewModelTests`로 기존 폴더 로드/dirty state, folder save mapping, configured/default backup root, 새 폴더 번호 산정, 이름 누락 validation을 검증한다. `SongEditorViewModelTests`로 기존 곡 편집 필드 로드/dirty state, 상세 legacy metadata 로드와 저장 보존, preview title/lyrics/metadata/색상/font 상태, 라이브 중 저장 SafetyConfirm 승인/취소 경계, 저장 시 `SongWriteModel` 매핑과 configured/default backup root, 제목 누락 validation, 신규 곡 insert 후 song id 반영을 검증한다. `SongCopyViewModelTests`로 원본 폴더 포함 대상 목록, 기본 복사 제목, 대상 폴더별 곡 번호 산정, `SongWriteModel` 매핑, configured/default backup root, 제목 누락 validation을 검증한다. `SongMoveViewModelTests`로 source 폴더 제외 대상 목록, configured/default backup root, `SongMoveRequest` 매핑, 대상 폴더 누락 validation을 검증한다. `SongDeleteViewModelTests`로 삭제 대상 로드, `SongDeleteRequest` 매핑, configured/default backup root, 선택 곡 누락 validation을 검증한다. `SongRecoveryViewModelTests`로 삭제 곡 목록 로드, 선택 곡 recover request 매핑, configured/default backup root, 미선택 validation을 검증한다. `SongMergeViewModelTests`/`SongMergeServiceTests`로 제목 매칭 후보 생성, 후보 미선택 validation, 병합 저장 metadata fallback, `[region 2]` 삽입과 notation remap을 검증한다. `ExternalFileOperationServiceTests`/`ExternalFileOperationViewModelTests`로 외부 폴더 목록, copy/move 충돌 파일명, InfoScreen `.esi` 곡 폴더 import, source/destination validation, MainWindow/DI 연결을 검증한다. `ImportExportServiceTests`/`ImportExportViewModelTests`로 legacy ESN/EST preview/import, XML replace import, TXT/DOC/DOCX folder import, Word COM `.doc` 추출 seam, XML/ESN/ESF/HTML/RTF export 산출물, praise-book metadata/style/index/page 옵션, 설정 기반 경로 해석, source folder/export candidate 선택을 검증한다. `SearchUsageServiceTests`/`SearchUsageViewModelTests`로 legacy song search field/folder/key/timing/notation/date filter, Title2 lookup, usage 기간/세션 조회, occurrence summary, record delete 확인 승인/취소 경계, 삭제 후 usage refresh, RTF report, 설정 기반 경로 해석과 MainWindow/DI 연결을 검증한다. `BibleRepositoryTests`/`BibleViewModelTests`로 legacy Biblefolder/성경 DB 로드, 책 목록, 본문/검색, 선택 구절 ID/title, Region 1/2 버전 변경과 dual-region preview 갱신을 검증하고, `MainViewModelTests`로 선택 성경 구절을 현재 예배 순서 다음에 삽입하고 선택 상태/상태 메시지를 갱신하는 경계를 검증한다. `AppServiceRegistrationTests`는 Library/FolderEditor/SongEditor/SongCopy/SongMove/SongDelete/SongRecovery/SongMerge/ExternalFileOperation/ImportExport/SearchUsage/Bible ViewModel/Window 및 service 운영 DI 등록을 포함한다.
+- Access MDB helper 추가 자동화: `ImportExportServiceTests`/`ImportExportViewModelTests`가 SQLite-backed `.mdb` schema/table/column/row count 조회, suggested mapping, 기본 preview, custom title/lyrics merge/metadata import, ViewModel helper mapping 전달, MDB 경로 변경 시 stale schema reset을 검증한다.
+- Word `.doc` 폴더 가져오기 추가 자동화: `ImportExportServiceTests`가 `.doc` 파일을 `IDocumentTextExtractor`로 위임해 제목/가사를 저장하고 CRLF를 LF로 정규화하는 경계를 검증하며, `AppServiceRegistrationTests`가 운영 DI에서 `OfficeDocumentTextExtractor` 등록을 검증한다.
+- Praise-book 서식 옵션 추가 자동화: `ImportExportServiceTests`가 RTF/HTML 내보내기에서 번호, 제목, copyright/book/user reference, key/capo/timing, chord/notation, index, page-per-song, font size/bold/italic/color style token을 검증하고, `ImportExportViewModelTests`가 Export 탭 옵션을 `PraiseBookExportOptions` 요청으로 전달하는지 검증한다.
+- Parser 테스트: 성경 참조, 가사 구분자, 파일명 규칙
+- Import 테스트: 정상/중복/깨진 파일/빈 폴더
+- Export 테스트: DOC/HTML 결과 메타데이터와 파일 생성 여부
+- Editor ViewModel 테스트: validation, dirty state, save/cancel
+- Search 테스트: 제목/본문/성경 키워드 hit count
+
+2026-05-29 현재 추가 검증:
+
+- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "AdminDatabaseRepositoryTests|LibraryViewModelTests"`: 30개 통과
+- `LibraryViewModelTests`: AdminDB 경로 해석, 폴더/곡 목록 로드, 선택 폴더 재조회, 제목/대체 제목/분류/가사 검색, 경로 누락 메시지, 폴더 삭제/복구 command와 reload/선택 복원, 폴더/곡 순서 변경 요청 매핑, target index reorder와 reload/선택 복원 검증
+- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "FolderEditorViewModelTests|AppServiceRegistrationTests"`: 5개 통과
+- `FolderEditorViewModelTests`: 기존 폴더 로드/dirty state, 저장 매핑/백업 루트, 새 폴더 번호 산정, 이름 validation 검증
+- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "SongEditorViewModelTests|AppServiceRegistrationTests"`: 9개 통과
+- `SongEditorViewModelTests`: 기존 곡 로드/dirty state, 상세 legacy metadata 보존, preview 색상/font/format 상태, 라이브 중 저장 확인, 저장 매핑/백업 루트, 제목 validation, 신규 곡 id 반영 검증
+- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "SongCopyViewModelTests|AppServiceRegistrationTests"`: 5개 통과
+- `SongCopyViewModelTests`: 기본 복사 제목/대상 폴더/곡 번호 산정, 저장 매핑/백업 루트, 제목 validation, 신규 곡 id 반영 검증
+- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "SongMoveViewModelTests|AppServiceRegistrationTests"`: 5개 통과
+- `SongMoveViewModelTests`: 대상 폴더 목록, 이동 요청 매핑, 백업 루트 fallback, 대상 폴더 validation 검증
+- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "AdminDatabaseRepositoryTests|SongDeleteViewModelTests|SongRecoveryViewModelTests|AppServiceRegistrationTests"`: 28개 통과
+- `SongDeleteViewModelTests`/`SongRecoveryViewModelTests`: soft delete/recover request 매핑, 백업 루트 fallback, validation 검증
+- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "AdminDatabaseRepositoryTests|LibraryViewModelTests|SongMergeServiceTests|SongMergeViewModelTests|AppServiceRegistrationTests"`: 37개 통과
+- `SongMergeViewModelTests`/`SongMergeServiceTests`: Source A/B 제목 매칭 후보, 후보 미선택 validation, 병합 저장 metadata fallback, `[region 2]` 가사 병합과 notation remap 검증
+- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "ExternalFileOperationServiceTests|ExternalFileOperationViewModelTests|AppServiceRegistrationTests"`: 8개 통과
+- `ExternalFileOperationServiceTests`/`ExternalFileOperationViewModelTests`: legacy 외부 폴더 목록, copy/move 충돌 파일명, InfoScreen `.esi` 곡 폴더 import, source/destination validation, 완료 이벤트와 MainWindow DI 연결 검증
+- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "BibleRepositoryTests|BibleViewModelTests|MainViewModelTests|AppServiceRegistrationTests"`: 30개 통과
+- `BibleRepositoryTests`/`BibleViewModelTests`/`MainViewModelTests`: Biblefolder display order, 숨김 제외, 책 목록, 본문 로드, 전체/일부/구문 검색, 선택 구절 ID/title, Region 1/2 버전 변경, dual-region preview ID/title/summary 갱신, 성경 구절 예배 순서 삽입과 성경 창 DI 연결 검증
+- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "ImportExportServiceTests|ImportExportViewModelTests|AppServiceRegistrationTests"`: 18개 통과
+- `ImportExportServiceTests`/`ImportExportViewModelTests`: legacy ESN/EST folder preview, 중복 정책별 import, XML replace import, TXT/DOC/DOCX folder import, Word COM `.doc` 추출 seam, Access MDB schema/suggested mapping/default preview/custom lyrics merge import, MDB helper mapping 전달, MDB 경로 변경 시 schema reset, XML/ESN/ESF/HTML/RTF export 산출물, praise-book metadata/style/index/page 옵션, 설정 기반 경로 해석, source folder 선택, export candidate 선택과 MainWindow/DI 연결 검증
+- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "SearchUsageServiceTests|SearchUsageViewModelTests|AppServiceRegistrationTests"`: 12개 통과
+- `SearchUsageServiceTests`/`SearchUsageViewModelTests`: legacy song search field/folder/key/timing/notation/date filter, Title2 lookup 후보, usage 기간/세션 조회, occurrence summary, record delete 확인 승인/취소, 삭제 후 usage refresh, RTF report, 설정 기반 경로 해석과 MainWindow/DI 연결 검증
+- `dotnet test Easislides.sln -c Debug`: 375개 통과
+
+수동 테스트:
+
+1. 실제 운영 작업 폴더 복사본 준비
+2. 목록 열기
+3. 항목 5개 편집 후 저장
+4. 항목 복사/이동/삭제/복구
+5. 성경 아이템 생성/이름 변경
+6. 폴더 가져오기
+7. DOC/HTML 내보내기
+8. 검색/사용처 확인
+9. WinForms 결과와 WPF 결과 비교
+
+테스트 데이터:
+
+- 한글 제목 긴 곡
+- 영어/숫자/특수문자 제목
+- 이미지 배경 포함 항목
+- 성경 구절 범위
+- 빈 가사/깨진 파일/중복 파일명

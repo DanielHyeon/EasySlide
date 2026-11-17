@@ -1,0 +1,21 @@
+<!--
+    반경(Corner Radius) 토큰 — 계획서 §4.3
+    Fluent 2 표준. 무대 다크에서도 6px 통일(과도한 둥글기 자제).
+    ADR-0006: 반경은 ScaleFactor 적용 안 함.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+
+    <sys:Double x:Key="Radius.Small">4</sys:Double>
+    <sys:Double x:Key="Radius.Medium">6</sys:Double>
+    <sys:Double x:Key="Radius.Large">8</sys:Double>
+    <sys:Double x:Key="Radius.Xlarge">12</sys:Double>
+
+    <CornerRadius x:Key="CornerRadius.Small">4</CornerRadius>
+    <CornerRadius x:Key="CornerRadius.Medium">6</CornerRadius>
+    <CornerRadius x:Key="CornerRadius.Large">8</CornerRadius>
+    <CornerRadius x:Key="CornerRadius.Xlarge">12</CornerRadius>
+    <CornerRadius x:Key="CornerRadius.Pill">9999</CornerRadius>
+
+</ResourceDictionary>

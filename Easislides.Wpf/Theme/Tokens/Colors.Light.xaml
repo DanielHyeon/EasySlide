@@ -1,0 +1,62 @@
+<!--
+    라이트 모드 색 토큰 (사무실/준비 시간) — 계획서 §4.1
+    Q3 확정: 라이트 모드는 Mica/Acrylic 허용 (다크는 Solid 강제).
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Surface — 배경 계층 -->
+    <Color x:Key="Color.Surface.Page">#FAFAFA</Color>
+    <Color x:Key="Color.Surface.Card">#FFFFFF</Color>
+    <Color x:Key="Color.Surface.Subtle">#F3F4F6</Color>
+    <SolidColorBrush x:Key="Brush.Surface.Page" Color="{StaticResource Color.Surface.Page}" />
+    <SolidColorBrush x:Key="Brush.Surface.Card" Color="{StaticResource Color.Surface.Card}" />
+    <SolidColorBrush x:Key="Brush.Surface.Subtle" Color="{StaticResource Color.Surface.Subtle}" />
+
+    <!-- Text — 본문 (대비 ≥ 4.5:1 AA, 본 토큰은 ≥ 5.6:1 권장) -->
+    <Color x:Key="Color.Text.Primary">#0F172A</Color>
+    <Color x:Key="Color.Text.Secondary">#475569</Color>
+    <Color x:Key="Color.Text.Tertiary">#64748B</Color>
+    <Color x:Key="Color.Text.Inverse">#FFFFFF</Color>
+    <SolidColorBrush x:Key="Brush.Text.Primary" Color="{StaticResource Color.Text.Primary}" />
+    <SolidColorBrush x:Key="Brush.Text.Secondary" Color="{StaticResource Color.Text.Secondary}" />
+    <SolidColorBrush x:Key="Brush.Text.Tertiary" Color="{StaticResource Color.Text.Tertiary}" />
+    <SolidColorBrush x:Key="Brush.Text.Inverse" Color="{StaticResource Color.Text.Inverse}" />
+
+    <!-- Border -->
+    <Color x:Key="Color.Border.Default">#E5E7EB</Color>
+    <Color x:Key="Color.Border.Strong">#D1D5DB</Color>
+    <Color x:Key="Color.Border.Focus">#0078D4</Color>
+    <SolidColorBrush x:Key="Brush.Border.Default" Color="{StaticResource Color.Border.Default}" />
+    <SolidColorBrush x:Key="Brush.Border.Strong" Color="{StaticResource Color.Border.Strong}" />
+    <SolidColorBrush x:Key="Brush.Border.Focus" Color="{StaticResource Color.Border.Focus}" />
+
+    <!-- Accent — Fluent 2 기본 액센트 -->
+    <Color x:Key="Color.Accent.Primary">#0078D4</Color>
+    <Color x:Key="Color.Accent.PrimaryHover">#106EBE</Color>
+    <Color x:Key="Color.Accent.PrimaryPressed">#005A9E</Color>
+    <Color x:Key="Color.Accent.PrimaryDisabled">#CDE4F4</Color>
+    <SolidColorBrush x:Key="Brush.Accent.Primary" Color="{StaticResource Color.Accent.Primary}" />
+    <SolidColorBrush x:Key="Brush.Accent.PrimaryHover" Color="{StaticResource Color.Accent.PrimaryHover}" />
+    <SolidColorBrush x:Key="Brush.Accent.PrimaryPressed" Color="{StaticResource Color.Accent.PrimaryPressed}" />
+    <SolidColorBrush x:Key="Brush.Accent.PrimaryDisabled" Color="{StaticResource Color.Accent.PrimaryDisabled}" />
+
+    <!-- Live — 라이브 송출 전용. 다른 의미로 사용 금지 (Roslyn 분석기 검증 §9.2). -->
+    <Color x:Key="Color.Live.Active">#DC2626</Color>
+    <Color x:Key="Color.Live.Standby">#F59E0B</Color>
+    <Color x:Key="Color.Live.Hidden">#1E293B</Color>
+    <SolidColorBrush x:Key="Brush.Live.Active" Color="{StaticResource Color.Live.Active}" />
+    <SolidColorBrush x:Key="Brush.Live.Standby" Color="{StaticResource Color.Live.Standby}" />
+    <SolidColorBrush x:Key="Brush.Live.Hidden" Color="{StaticResource Color.Live.Hidden}" />
+
+    <!-- Status -->
+    <Color x:Key="Color.Status.Success">#16A34A</Color>
+    <Color x:Key="Color.Status.Warning">#D97706</Color>
+    <Color x:Key="Color.Status.Danger">#DC2626</Color>
+    <Color x:Key="Color.Status.Info">#0284C7</Color>
+    <SolidColorBrush x:Key="Brush.Status.Success" Color="{StaticResource Color.Status.Success}" />
+    <SolidColorBrush x:Key="Brush.Status.Warning" Color="{StaticResource Color.Status.Warning}" />
+    <SolidColorBrush x:Key="Brush.Status.Danger" Color="{StaticResource Color.Status.Danger}" />
+    <SolidColorBrush x:Key="Brush.Status.Info" Color="{StaticResource Color.Status.Info}" />
+
+</ResourceDictionary>

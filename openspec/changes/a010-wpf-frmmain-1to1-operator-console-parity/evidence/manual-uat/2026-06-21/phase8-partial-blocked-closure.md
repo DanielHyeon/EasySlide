@@ -1,0 +1,85 @@
+# Phase 8 PARTIAL/BLOCKED Closure
+
+작성일: 2026-06-21
+
+대상: `a010-wpf-frmmain-1to1-operator-console-parity`
+
+## 요약
+
+manual UAT에서 남은 PARTIAL 25개와 BLOCKED 12개를 다시 확인했다.
+
+| 구분 | 개수 | 판정 |
+| --- | ---: | --- |
+| PARTIAL 중 코드 보정 완료 | 3 | UAT-141, UAT-161, UAT-211 |
+| PARTIAL 중 구현/테스트 증거로 닫음 | 19 | UAT-103, UAT-104, UAT-134, UAT-135, UAT-205~208, UAT-303, UAT-402, UAT-404, UAT-411, UAT-501~507 |
+| PARTIAL 중 외부 송출 모니터 관찰 필요 | 3 | UAT-406, UAT-407, UAT-408 |
+| BLOCKED 중 source 폴더/설정/선택 상태 재검증 필요 | 12 | UAT-111, UAT-112, UAT-121~124, UAT-151, UAT-152, UAT-212, UAT-213, UAT-306, UAT-405 |
+
+결론: 코드 미구현으로 남은 PARTIAL은 없다. 현 환경에서 닫지 못한 항목은 외부 송출 모니터 직접 관찰 또는 실제 source tab 설정/선택 상태 재검증이 필요한 항목이다.
+
+## 데이터 위치 정정
+
+2026-06-21 후속 확인에서 `C:\EasiSlides` 아래 운영 데이터 루트가 존재함을 확인했다.
+
+- `C:\EasiSlides\Admin\WorshipLists`: `.esw` 35개.
+- `C:\EasiSlides\Admin\PraiseBooks`: `.esp` 2개(`PraiseBook 1`, `주일예배`).
+- `C:\EasiSlides\Images` 및 `C:\EasiSlides\Backgrounds`: 이미지 데이터 존재.
+- `C:\EasiSlides\HolyBibles`: Bible DB 2개.
+- `C:\EasiSlides\Documents`: 예배자료 바로가기 4개. 각 바로가기는 `D:\예배자료\주일예배`, `D:\예배자료\주일오후`, `D:\예배자료\찬송가`, `D:\예배자료\특별예배`를 가리킨다.
+- `D:\예배자료` 링크 대상에는 PPT/Media가 존재한다(`주일예배` PPT 21개/Media 15개, `찬송가` PPT 1187개, `특별예배` PPT 42개/Media 15개 등).
+
+따라서 기존 “PPT/Media 실제 데이터 없음” 표현은 정확하지 않다. 정확한 blocker는 `C:\EasiSlides\Powerpoint`, `C:\EasiSlides\Media`, `C:\EasiSlides\InfoScreens` 직접 source 폴더가 비어 있고, 현재 레지스트리 옵션 `UsePowerPointTab=0`, `UseMediaTab=0` 때문에 해당 source tab manual UAT가 바로 수행되지 않았다는 점이다.
+
+## 코드 보정 완료
+
+## 레지스트리 런타임 설정 재검토
+
+사용자 확인에 따라 `HKCU\Software\EasiSlides`를 재검토했다.
+
+- `config/root_directory`: `C:\EasiSlides\`
+- `config/current_session`: `1.주일예배`
+- `config/current_praisebook`: `PraiseBook 1`
+- `config/media_dir`: `C:\EasiSlides\Media\`
+- `options/UsePowerpointTab`: `0`
+- `options/UseMediaTab`: `0`
+
+WPF에는 `RegistryLegacySettingsSource`와 legacy setting map이 이미 존재했지만, `%APPDATA%\EasislidesNext\settings.json`이 있으면 bootstrap migration이 skip되어 runtime registry settings가 재반영되지 않았다. 실제 WPF 설정 파일에서는 `Data.CurrentPraiseBookName`이 빈 값이었다.
+
+Phase 9에서 이 원인을 코드로 보정했다. 기존 WPF 작업 폴더는 반복 full migration으로 덮어쓰지 않고, `current_praisebook`, `current_session`, `media_dir`, `UsePowerpointTab`, `UseMediaTab`만 시작 시 재동기화한다.
+
+| UAT | 조치 | 증거 |
+| --- | --- | --- |
+| UAT-141 Images 탭 | PowerPoint용 큰 썸네일 sizing과 분리해 `LegacyImageThumbnailSizeConverter`를 추가하고 Images 탭은 좁은 source rail에서 3열 compact thumbnail을 사용하도록 수정했다. | `wpf-phase8-images.png`, `LegacyImageThumbnailSizeConverterTests` |
+| UAT-161 Default 탭 | `Apply to All` 그룹을 FrmMain처럼 Default 첫 화면 상단으로 이동하고, Text 그룹 높이를 제한해 `Background / Transition`과 Display Panel 계열 컨트롤이 첫 화면에 더 빨리 노출되도록 수정했다. | `wpf-phase8-default-after-density-fix.png`, `MainMenuBarTests` |
+| UAT-211 Praise Book 탭 | Praise Book toolbar의 `Open`/`Refresh`를 compact 버튼으로 줄이고, status/window row가 entry list와 겹치던 Grid row 누락을 수정했다. | `wpf-phase8-praise-book-after-row-fix.png`, `MainMenuBarTests` |
+
+## 구현/테스트 증거로 닫은 PARTIAL
+
+| 그룹 | UAT | 근거 |
+| --- | --- | --- |
+| Source gesture | UAT-103, UAT-104 | `LibrarySongList`는 `MouseBinding MouseAction=LeftDoubleClick`으로 `AddSelectedLibrarySongCommand`를 실행하고, `LibrarySongList_PreviewMouseMove`는 `SongSummary` typed payload drag를 시작한다. `MainMenuBarTests`가 경로를 고정한다. |
+| Bible gesture | UAT-134, UAT-135 | `BiblePassageBox_MouseLeftButtonUpAfterTextBox`는 Shift range 선택을 처리하고, `BiblePassageBox_PreviewMouseMove`는 `BibleSelection` typed payload drag를 시작한다. `MainMenuBarTests`가 selection/add/drag 경로를 고정한다. |
+| Worship List operation | UAT-205~208 | `WorshipListPanel`은 move up/down, typed drag/drop, context menu Play/Play on Output command surface를 보유한다. `WorshipListPanelTests`와 `MainViewModelTests`가 routing/ordering을 검증한다. |
+| Preview/Output jump | UAT-303, UAT-402, UAT-404 | Preview/Output verse/slide command와 named section button surface가 XAML과 VM tests에 존재한다. manual UAT의 disabled/AutomationId 이슈는 선택 item/page 조건 문제로 재분류했다. |
+| Live message | UAT-411 | `OutputTextBoxLM`, `OutputBtnLMSend`, `OutputBtnLMClear` 및 `SendLiveMessageCommand`/`ClearLiveMessageCommand` 테스트가 존재한다. |
+| Keyboard | UAT-501~507 | Phase 6 shortcut tests가 F12/F11/F9/F3/Space/Shift+Space/number routing과 text-input blocking을 검증한다. |
+
+## 외부 조건이 필요한 항목
+
+| 구분 | UAT | 닫을 수 없는 이유 |
+| --- | --- | --- |
+| 외부 송출 모니터 | UAT-406~408 | operator surface와 renderer state는 검증됐지만, 실제 회중용 외부 모니터의 black/clear/hide/restore 시각 결과는 현재 세션에서 독립 관찰할 수 없다. |
+| InfoScreen source folder | UAT-111, UAT-112 | `C:\EasiSlides\InfoScreens` 직접 폴더 파일 수 0. 사용자 데이터 생성/삭제/변경 금지 원칙에 따라 임의 샘플을 만들지 않았다. |
+| PowerPoint source config | UAT-121~124, UAT-306, UAT-405 | 운영 PPT는 `D:\예배자료` 링크 대상에 존재하지만 현재 `UsePowerPointTab=false`, `C:\EasiSlides\Powerpoint` 직접 폴더 파일 수 0이라 source tab UAT는 재설정 후 재수행 필요. |
+| Media source config | UAT-151, UAT-152 | 운영 Media는 `D:\예배자료` 링크 대상에 존재하지만 현재 `UseMediaTab=false`, `C:\EasiSlides\Media` 직접 폴더 파일 수 0이라 source tab UAT는 재설정 후 재수행 필요. |
+| PraiseBook selection | UAT-212, UAT-213 | `C:\EasiSlides\Admin\PraiseBooks`에 `.esp` 2개가 존재한다. 현재 레지스트리 `current_praisebook=PraiseBook 1` 선택 상태가 빈/헤더 중심 책으로 보였으므로 `주일예배.esp` 선택 후 add/delete/export manual UAT를 재수행해야 한다. |
+
+## 검증
+
+- CodeGraph impact: `MainWindow` impact 확인. 영향 범위가 WPF MainWindow shell과 관련 tests 중심임을 확인했다.
+- Focused test: `dotnet test Easislides.Wpf.Tests --filter "FullyQualifiedName~LegacyImageThumbnailSizeConverterTests|FullyQualifiedName~MainMenuBarTests" -v minimal`
+  - 결과: 실패 0, 통과 137, 건너뜀 0.
+- 캡처:
+  - `evidence/screenshots/2026-06-21/phase8/wpf-phase8-images.png`
+  - `evidence/screenshots/2026-06-21/phase8/wpf-phase8-default-after-density-fix.png`
+  - `evidence/screenshots/2026-06-21/phase8/wpf-phase8-praise-book-after-row-fix.png`

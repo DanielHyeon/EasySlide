@@ -1,0 +1,59 @@
+<Window x:Class="Easislides.Wpf.Shell.WorshipSessionNotesWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="세션 메모"
+        Width="520"
+        Height="460"
+        MinWidth="420"
+        MinHeight="320"
+        Background="{DynamicResource Brush.Surface.Page}"
+        WindowStartupLocation="CenterOwner">
+
+    <Grid Margin="{StaticResource Thickness.Xl}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Margin="0,0,0,8"
+                   Style="{StaticResource Type.Caption.Style}"
+                   Foreground="{DynamicResource Brush.Text.Tertiary}"
+                   TextWrapping="Wrap">
+            <Run Text="세션 «" /><Run Text="{Binding SessionKey, Mode=OneWay}" /><Run Text="»의 진행 메모입니다(운영자 전용, 출력에는 나가지 않습니다)." />
+        </TextBlock>
+
+        <TextBox Grid.Row="1"
+                 Text="{Binding NotesText, UpdateSourceTrigger=PropertyChanged}"
+                 AcceptsReturn="True"
+                 TextWrapping="Wrap"
+                 VerticalContentAlignment="Top"
+                 VerticalScrollBarVisibility="Auto"
+                 FontSize="14"
+                 BorderBrush="{DynamicResource Brush.Border.Default}"
+                 BorderThickness="1"
+                 AutomationProperties.Name="세션 메모 입력" />
+
+        <TextBlock Grid.Row="2"
+                   Text="{Binding StatusText}"
+                   Style="{StaticResource Type.Caption.Style}"
+                   Foreground="{DynamicResource Brush.Text.Secondary}"
+                   Margin="0,8,0,0" />
+
+        <StackPanel Grid.Row="3"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Margin="0,16,0,0">
+            <Button Command="{Binding SaveCommand}"
+                    Style="{StaticResource EsButton.Primary}"
+                    Margin="0,0,8,0"
+                    Content="저장"
+                    AutomationProperties.Name="세션 메모 저장" />
+            <Button Click="Close_Click"
+                    Style="{StaticResource EsButton.Secondary}"
+                    Content="닫기"
+                    AutomationProperties.Name="닫기" />
+        </StackPanel>
+    </Grid>
+</Window>

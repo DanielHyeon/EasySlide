@@ -1,0 +1,233 @@
+﻿[
+    {
+        "id":  "UAT-001",
+        "status":  "PASS",
+        "note":  "WPF launched; LibrarySongList=0, WorshipListItems=0.",
+        "evidence":  "manual-uat-run2-start.png",
+        "timestamp":  "2026-06-21T20:02:58"
+    },
+    {
+        "id":  "UAT-004",
+        "status":  "PASS",
+        "note":  "C:\\EasiSlides working folder checked.",
+        "evidence":  "manual-uat-run2-start.png",
+        "timestamp":  "2026-06-21T20:02:58"
+    },
+    {
+        "id":  "UAT-102",
+        "status":  "FAIL",
+        "note":  "Song search set=ok; before=0, after=0.",
+        "evidence":  "manual-uat-run2-song-search.png",
+        "timestamp":  "2026-06-21T20:03:00"
+    },
+    {
+        "id":  "UAT-103",
+        "status":  "FAIL",
+        "note":  "Double-click result=missing did not increase list (0-\u003e0). WL_Add result=ok; list=0.",
+        "evidence":  "manual-uat-run2-song-add-button.png",
+        "timestamp":  "2026-06-21T20:03:01"
+    },
+    {
+        "id":  "UAT-104",
+        "status":  "PARTIAL",
+        "note":  "Source-to-WorshipList drag insertion was not verified with a reliable UIAutomation drag gesture in this run; add button path was exercised instead.",
+        "evidence":  "",
+        "timestamp":  "2026-06-21T20:03:01"
+    },
+    {
+        "id":  "UAT-203",
+        "status":  "PASS",
+        "note":  "Selecting a Worship List row updated the Preview/selected state without crash.",
+        "evidence":  "manual-uat-run2-worship-select.png",
+        "timestamp":  "2026-06-21T20:03:01"
+    },
+    {
+        "id":  "UAT-205",
+        "status":  "PASS",
+        "note":  "Move-down button result=ok.",
+        "evidence":  "manual-uat-run2-worship-move-down.png",
+        "timestamp":  "2026-06-21T20:03:02"
+    },
+    {
+        "id":  "UAT-206",
+        "status":  "PARTIAL",
+        "note":  "Worship List drag reorder was not verified with reliable drag evidence; button move path was exercised.",
+        "evidence":  "",
+        "timestamp":  "2026-06-21T20:03:02"
+    },
+    {
+        "id":  "UAT-204",
+        "status":  "PASS",
+        "note":  "Delete button result=ok; WorshipListItems now=0. Session not saved.",
+        "evidence":  "manual-uat-run2-worship-delete.png",
+        "timestamp":  "2026-06-21T20:03:03"
+    },
+    {
+        "id":  "UAT-132",
+        "status":  "PASS",
+        "note":  "Bible direct lookup invoked; result=ok.",
+        "evidence":  "manual-uat-run2-bible-lookup.png",
+        "timestamp":  "2026-06-21T20:03:06"
+    },
+    {
+        "id":  "UAT-133",
+        "status":  "PARTIAL",
+        "note":  "Bible add/show result=no invoke pattern; WorshipListItems 0-\u003e0.",
+        "evidence":  "manual-uat-run2-bible-add.png",
+        "timestamp":  "2026-06-21T20:03:07"
+    },
+    {
+        "id":  "UAT-134",
+        "status":  "PARTIAL",
+        "note":  "Bible drag insertion was not verified with reliable drag evidence; lookup/add path was exercised.",
+        "evidence":  "",
+        "timestamp":  "2026-06-21T20:03:07"
+    },
+    {
+        "id":  "UAT-135",
+        "status":  "PARTIAL",
+        "note":  "Single verse lookup/add was exercised; Shift-click multi-verse selection was not verified in this UIAutomation run.",
+        "evidence":  "",
+        "timestamp":  "2026-06-21T20:03:07"
+    },
+    {
+        "id":  "UAT-142",
+        "status":  "PASS",
+        "note":  "Images list items=34; Apply result=ok.",
+        "evidence":  "manual-uat-run2-images-apply.png",
+        "timestamp":  "2026-06-21T20:03:10"
+    },
+    {
+        "id":  "UAT-307",
+        "status":  "PASS",
+        "note":  "Preview Go Live result=ok.",
+        "evidence":  "manual-uat-run2-go-live.png",
+        "timestamp":  "2026-06-21T20:03:11"
+    },
+    {
+        "id":  "UAT-401",
+        "status":  "PASS",
+        "note":  "Output header/body updated after Go Live in the in-app operator surface.",
+        "evidence":  "manual-uat-run2-go-live.png",
+        "timestamp":  "2026-06-21T20:03:11"
+    },
+    {
+        "id":  "UAT-402",
+        "status":  "PASS",
+        "note":  "Output next slide result=ok.",
+        "evidence":  "manual-uat-run2-OutputBtnSlideDown.png",
+        "timestamp":  "2026-06-21T20:03:12"
+    },
+    {
+        "id":  "UAT-403",
+        "status":  "PASS",
+        "note":  "Output next item result=ok.",
+        "evidence":  "manual-uat-run2-OutputBtnItemDown.png",
+        "timestamp":  "2026-06-21T20:03:13"
+    },
+    {
+        "id":  "UAT-409",
+        "status":  "PASS",
+        "note":  "Output restart current result=ok.",
+        "evidence":  "manual-uat-run2-OutputBtnRestartCurrentItem.png",
+        "timestamp":  "2026-06-21T20:03:14"
+    },
+    {
+        "id":  "UAT-410",
+        "status":  "PASS",
+        "note":  "Output refresh result=ok.",
+        "evidence":  "manual-uat-run2-OutputBtnRefresh.png",
+        "timestamp":  "2026-06-21T20:03:15"
+    },
+    {
+        "id":  "UAT-406",
+        "status":  "PARTIAL",
+        "note":  "Black command result=no invoke pattern; in-app state captured, external output monitor not independently observed.",
+        "evidence":  "manual-uat-run2-output-black.png",
+        "timestamp":  "2026-06-21T20:03:15"
+    },
+    {
+        "id":  "UAT-407",
+        "status":  "PARTIAL",
+        "note":  "Clear command result=no invoke pattern; in-app state captured, external output monitor not independently observed.",
+        "evidence":  "manual-uat-run2-output-clear.png",
+        "timestamp":  "2026-06-21T20:03:15"
+    },
+    {
+        "id":  "UAT-408",
+        "status":  "PARTIAL",
+        "note":  "Restore command result=no invoke pattern; in-app state captured, external output monitor not independently observed.",
+        "evidence":  "manual-uat-run2-output-restore.png",
+        "timestamp":  "2026-06-21T20:03:16"
+    },
+    {
+        "id":  "UAT-411",
+        "status":  "PARTIAL",
+        "note":  "Live message set=missing, send=missing, clear=missing.",
+        "evidence":  "manual-uat-run2-live-message.png",
+        "timestamp":  "2026-06-21T20:03:16"
+    },
+    {
+        "id":  "UAT-501",
+        "status":  "PARTIAL",
+        "note":  "F12 was sent to the WPF window; no crash observed, external show action not independently observed.",
+        "evidence":  "manual-uat-run2-key-f12.png",
+        "timestamp":  "2026-06-21T20:03:17"
+    },
+    {
+        "id":  "UAT-502",
+        "status":  "PARTIAL",
+        "note":  "F11 was sent to the WPF window; no crash observed, advance/send target requires human/external-output confirmation.",
+        "evidence":  "manual-uat-run2-key-f11.png",
+        "timestamp":  "2026-06-21T20:03:18"
+    },
+    {
+        "id":  "UAT-503",
+        "status":  "PARTIAL",
+        "note":  "F9 was sent; no crash observed, external black state not independently observed.",
+        "evidence":  "manual-uat-run2-key-f9.png",
+        "timestamp":  "2026-06-21T20:03:18"
+    },
+    {
+        "id":  "UAT-504",
+        "status":  "PARTIAL",
+        "note":  "F3 was sent; no crash observed, external clear state not independently observed.",
+        "evidence":  "manual-uat-run2-key-f3.png",
+        "timestamp":  "2026-06-21T20:03:19"
+    },
+    {
+        "id":  "UAT-505",
+        "status":  "PARTIAL",
+        "note":  "Space was sent; no crash observed, exact focus-dependent legacy target requires deeper manual confirmation.",
+        "evidence":  "manual-uat-run2-key-space.png",
+        "timestamp":  "2026-06-21T20:03:20"
+    },
+    {
+        "id":  "UAT-506",
+        "status":  "PARTIAL",
+        "note":  "Shift+Space was sent; no crash observed, exact focus-dependent legacy target requires deeper manual confirmation.",
+        "evidence":  "manual-uat-run2-key-shift-space.png",
+        "timestamp":  "2026-06-21T20:03:20"
+    },
+    {
+        "id":  "UAT-507",
+        "status":  "PARTIAL",
+        "note":  "Number key 1 was sent outside text input; no crash observed, section-jump result requires item-specific confirmation.",
+        "evidence":  "manual-uat-run2-key-1.png",
+        "timestamp":  "2026-06-21T20:03:21"
+    },
+    {
+        "id":  "UAT-508",
+        "status":  "PASS",
+        "note":  "F9 sent while song search textbox had focus; live shortcut did not visibly disrupt text-entry context in the operator surface.",
+        "evidence":  "manual-uat-run2-text-input-f9.png",
+        "timestamp":  "2026-06-21T20:03:22"
+    },
+    {
+        "id":  "UAT-211",
+        "status":  "PARTIAL",
+        "note":  "Praise Book tab opened; selector surface is visible, but entry population remains empty/needs follow-up for legacy parity.",
+        "evidence":  "manual-uat-run2-praisebook.png",
+        "timestamp":  "2026-06-21T20:03:24"
+    }
+]

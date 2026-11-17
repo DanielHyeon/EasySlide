@@ -1,0 +1,478 @@
+<Window x:Class="Easislides.Wpf.OutputWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:Easislides.Wpf.Controls"
+        Title="EasiSlides Output"
+        Width="1280"
+        Height="720"
+        Background="{Binding SceneBackgroundBrush}"
+        Foreground="{Binding SceneForegroundBrush}"
+        WindowStartupLocation="Manual">
+    <Window.Resources>
+        <Style x:Key="PanelOutlinedTextStyle" TargetType="{x:Type controls:OutlinedTextBlock}">
+            <Setter Property="Fill" Value="{Binding PanelForegroundBrush}" />
+            <Setter Property="Stroke" Value="Black" />
+            <Setter Property="StrokeThickness" Value="{Binding PanelTextStrokeThickness}" />
+            <Setter Property="FontStyle" Value="{Binding PanelFontStyle}" />
+            <Setter Property="Underline" Value="{Binding PanelTextUnderline}" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding PanelHasShadow}" Value="True">
+                    <Setter Property="Effect">
+                        <Setter.Value>
+                            <DropShadowEffect Color="Black"
+                                              BlurRadius="8"
+                                              ShadowDepth="2"
+                                              Direction="315"
+                                              Opacity="0.85" />
+                        </Setter.Value>
+                    </Setter>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+    <Grid Background="{Binding SceneBackgroundBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- 배경 이미지(§7.3-A FormatData 61 / 전역 배경). 색 배경(Grid.Background) 위·콘텐츠 아래에 깔려,
+             이미지가 있으면 색을 가린다(이미지 우선). 표시 모드(채움/맞춤/가운데/타일)는 VM 이 만든 ImageBrush 에 담겨
+             있어, 모드별 Stretch·TileMode 가 자동 적용된다(Rectangle.Fill=BackgroundImageBrush).
+             첫 자식이라 z-order 최하단 — 가사/타이틀/오버레이는 모두 이 위에 그려진다.
+             배경 이미지가 없으면(BackgroundImageVisibility=Collapsed) 색 배경만 보인다(무회귀). -->
+        <Rectangle Grid.Row="0"
+                   Grid.RowSpan="3"
+                   Fill="{Binding BackgroundImageBrush}"
+                   Visibility="{Binding BackgroundImageVisibility}"
+                   IsHitTestVisible="False" />
+
+        <Border Grid.Row="0"
+                MinHeight="36"
+                Background="{Binding LyricsAlertBackgroundBrush}"
+                Visibility="{Binding LyricsAlertVisibility}">
+            <TextBlock Text="{Binding LyricsAlertText}"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       Style="{StaticResource Type.Caption.Style}"
+                       Foreground="{Binding LyricsAlertForegroundBrush}" />
+        </Border>
+
+        <!-- 2-레이어 전환의 뒤 레이어(옛 프레임 스냅샷). 오목 도형 전환(Cross)일 때만 코드-비하인드가 보이게 한다.
+             기본 Collapsed → 단일 레이어 전환에는 렌더되지 않아 무회귀. ContentArea 보다 먼저 선언해 뒤에 깔린다. -->
+        <Image Grid.Row="1"
+               x:Name="PreviousLayer"
+               Stretch="Fill"
+               Visibility="Collapsed"
+               IsHitTestVisible="False" />
+
+        <Grid Grid.Row="1"
+              x:Name="ContentArea"
+              ClipToBounds="True">
+            <!-- ClipToBounds: 슬라이드 전환 중 콘텐츠가 인접 행(알림/패널 밴드)으로 삐져나오지 않게 자기 행으로 마스킹.
+                 Live 콘텐츠 이미지(예: PPT 슬라이드 썸네일). Scene.ContentPlacement 좌표에 절대 배치.
+                 외부에서 SetContentAsset()으로 자산을 주입할 때만 노출. -->
+            <Canvas Visibility="{Binding ContentVisibility}"
+                    IsHitTestVisible="False">
+                <Image Source="{Binding ContentImageSource}"
+                       Canvas.Left="{Binding ContentLeft}"
+                       Canvas.Top="{Binding ContentTop}"
+                       Width="{Binding ContentWidth}"
+                       Height="{Binding ContentHeight}"
+                       Stretch="Fill" />
+            </Canvas>
+
+            <!-- GAP(User) 모드에서 로고 파일이 로딩되면 이미지를, 그 외에는 기존 타이틀 텍스트를 표시한다. -->
+            <Image Source="{Binding GapLogoSource}"
+                   Visibility="{Binding GapLogoVisibility}"
+                   Stretch="Uniform"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   MaxWidth="1100"
+                   MaxHeight="600" />
+
+            <TextBlock Text="{Binding DisplayTitle}"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       TextAlignment="Center"
+                       TextWrapping="Wrap"
+                       FontSize="72"
+                       FontWeight="SemiBold"
+                       Foreground="{Binding SceneForegroundBrush}"
+                       MaxWidth="1100"
+                       Visibility="{Binding DisplayTitleVisibility}" />
+
+            <!-- 제목 헤딩(§7.3-A): 가사 본문이 송출될 때 곡 제목을 상단 배너로 표시.
+                 설정 on + 본문 송출 중일 때만 보이며(TitleHeadingVisibility), 중앙 본문과 겹치지 않게
+                 상단(Top)에 고정한다. 본문은 BodyContentMargin 으로 헤딩 높이만큼 위를 비워 겹침을 막는다.
+                 헤딩은 1줄(NoWrap+말줄임)로 높이가 결정적이라 예약 여백과 정확히 맞물린다.
+                 중앙 DisplayTitle 과는 별개의 TextBlock. -->
+            <TextBlock Text="{Binding DisplayTitle}"
+                       HorizontalAlignment="{Binding TitleHeadingHorizontalAlignment}"
+                       VerticalAlignment="Top"
+                       TextAlignment="{Binding TitleHeadingTextAlignment}"
+                       TextWrapping="NoWrap"
+                       TextTrimming="CharacterEllipsis"
+                       Margin="24,28,24,0"
+                       FontSize="40"
+                       FontWeight="SemiBold"
+                       Foreground="{Binding SceneForegroundBrush}"
+                       MaxWidth="1160"
+                       Visibility="{Binding TitleHeadingVisibility}">
+                <!-- 본문과 동일하게 그림자 설정(BodyHasShadow) on 일 때 헤딩에도 가독성 그림자 적용(§7.3-A). -->
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding BodyHasShadow}" Value="True">
+                                <Setter Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect Color="Black"
+                                                          BlurRadius="8"
+                                                          ShadowDepth="2"
+                                                          Direction="315"
+                                                          Opacity="0.85" />
+                                    </Setter.Value>
+                                </Setter>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+
+            <!-- 절 헤딩(FrmMain Def_Head All) — 현재 절의 섹션 라벨("1절"/"후렴")을 상단에 작게 표시.
+                 제목 헤딩(위)보다 작은 캡션. 설정 on + Live + 섹션 라벨 있을 때만 보인다(라벨 없는 절은 숨김). -->
+            <TextBlock Text="{Binding VerseHeadingText}"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Top"
+                       TextAlignment="Center"
+                       TextWrapping="NoWrap"
+                       Margin="24,84,24,0"
+                       FontSize="26"
+                       FontWeight="SemiBold"
+                       Opacity="0.85"
+                       Foreground="{Binding SceneForegroundBrush}"
+                       MaxWidth="1160"
+                       Visibility="{Binding VerseHeadingVisibility}">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding BodyHasShadow}" Value="True">
+                                <Setter Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect Color="Black"
+                                                          BlurRadius="8"
+                                                          ShadowDepth="2"
+                                                          Direction="315"
+                                                          Opacity="0.85" />
+                                    </Setter.Value>
+                                </Setter>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+
+            <!-- 라이브 곡 가사 본문 영역(절 단위 페이지네이션 — PR B + 이중 언어 Region 1/2).
+                 묶음(StackPanel)이 정렬·세로배치·헤딩여백을 갖고, 안에서 Region1(일반/외곽선 상호배타) 위에
+                 Region2(이중 언어 보조, 있을 때만)를 수직으로 쌓아 두 언어를 짝지어 송출한다.
+                 단일 영역 곡은 Region2 가 Collapsed 라 묶음에 Region1 한 줄만 → 기존 레이아웃과 동일(무회귀). -->
+            <!-- BodyContentMargin = 사용자 본문 여백(좌/우/아래, FrmMain ShowLeftMargin/Right/Bottom) + 헤딩 상단 여백.
+                 주의: WPF 에서 Margin 은 아래 viewport 기반 MaxWidth/MaxHeight 바깥쪽에 적용된다 — 즉 여백은 묶음을
+                 안쪽으로 "밀어내기"만 하고 줄바꿈 폭(1160)·높이 상한을 줄이지 않는다. 그래서 모니터가 1160 보다
+                 조금만 넓을 때 큰 좌/우 여백을 주면 묶음이 ContentArea(ClipToBounds=True) 밖으로 밀려 잘릴 수 있다.
+                 기본값 0/0/0 에선 기존 레이아웃과 완전히 동일(무회귀). 일반적인 1080p/4K 출력의 0~400px 범위에선 안전. -->
+            <StackPanel HorizontalAlignment="{Binding BodyHorizontalAlignment}"
+                        VerticalAlignment="{Binding BodyVerticalAlignment}"
+                        Margin="{Binding BodyContentMargin}"
+                        MaxWidth="{Binding BodyMaxWidth}"
+                        MaxHeight="{Binding BodyMaxHeight}"><!-- 이중 언어 두 영역 합산 높이 상한은 출력 viewport 기준으로 계산한다. -->
+                <!-- 본문 세로 위치 오프셋(FrmMain Ind_Reg1TopUpDown) — 정렬을 유지한 채 본문을 위(-)/아래(+)로 N px 옮긴다.
+                     RenderTransform 이라 레이아웃 재배치 없이 시각 이동만(기본 0=무이동·무회귀). -->
+                <StackPanel.RenderTransform>
+                    <TranslateTransform Y="{Binding BodyVerticalOffset}" />
+                </StackPanel.RenderTransform>
+                <!-- Region1 일반 본문 — 외곽선 off 일 때. 정렬은 인-셸 가사 정렬 설정(§7.3-A, 기본 가운데). -->
+                <TextBlock Text="{Binding BodyText}"
+                           TextAlignment="{Binding BodyTextAlignment}"
+                           TextWrapping="Wrap"
+                           TextTrimming="CharacterEllipsis"
+                           FontSize="{Binding BodyFontSize}"
+                           FontFamily="{Binding BodyFontFamily}"
+                           FontWeight="{Binding BodyFontWeight}"
+                           FontStyle="{Binding BodyFontStyle}"
+                           TextDecorations="{Binding BodyTextDecorations}"
+                           LineHeight="{Binding BodyLineHeight}"
+                           Foreground="{Binding SceneForegroundBrush}"
+                           MaxHeight="{Binding BodyTextMaxHeight}"
+                           Visibility="{Binding BodyTextVisibility}">
+                    <!-- 그림자 효과: BodyHasShadow=true 일 때만 DropShadowEffect 적용(어두운/영상 배경 위 가독성, §7.3-A). -->
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding BodyHasShadow}" Value="True">
+                                    <Setter Property="Effect">
+                                        <Setter.Value>
+                                            <DropShadowEffect Color="Black"
+                                                              BlurRadius="8"
+                                                              ShadowDepth="2"
+                                                              Direction="315"
+                                                              Opacity="0.85" />
+                                        </Setter.Value>
+                                    </Setter>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+
+                <!-- Region1 외곽선 본문(§7.3-A Outline Font) — 외곽선 on 일 때 일반 본문 대신(상호배타).
+                     이 컨트롤은 내부에서 BodyMaxWidth 기준으로 글자를 자가정렬하므로, 정렬을 StackPanel 에 맡기지 않고
+                     기존처럼 명시 HorizontalAlignment·MaxWidth 를 유지한다(외곽선 모드 정렬 시프트 방지, code-review MAJOR 반영). -->
+                <controls:OutlinedTextBlock Text="{Binding BodyText}"
+                                            HorizontalAlignment="{Binding BodyHorizontalAlignment}"
+                                            MaxWidth="{Binding BodyMaxWidth}"
+                                            TextAlignment="{Binding BodyTextAlignment}"
+                                            FontSize="{Binding BodyFontSize}"
+                                            FontFamily="{Binding BodyFontFamily}"
+                                            FontWeight="{Binding BodyFontWeight}"
+                                            FontStyle="{Binding BodyFontStyle}"
+                                            Underline="{Binding BodyUnderline}"
+                                            LineHeight="{Binding BodyLineHeight}"
+                                            Fill="{Binding SceneForegroundBrush}"
+                                            Stroke="Black"
+                                            StrokeThickness="2"
+                                            MaxTextWidth="{Binding BodyMaxWidth}"
+                                            MaxHeight="{Binding BodyTextMaxHeight}"
+                                            Visibility="{Binding BodyOutlineVisibility}" />
+
+                <!-- Region2(이중 언어 보조 언어) — 이중 언어 곡일 때만 Region1 아래에 표시. Region2 색·정렬 독립(없으면 Region1 추종). -->
+                <TextBlock Text="{Binding BodyText2}"
+                           TextAlignment="{Binding BodyText2Alignment}"
+                           TextWrapping="Wrap"
+                           TextTrimming="CharacterEllipsis"
+                           Margin="{Binding BodyText2Margin}"
+                           FontSize="{Binding BodyFont2Size}"
+                           FontFamily="{Binding BodyFont2Family}"
+                           FontWeight="{Binding BodyFont2Weight}"
+                           FontStyle="{Binding BodyFont2Style}"
+                           TextDecorations="{Binding BodyText2Decorations}"
+                           LineHeight="{Binding BodyLineHeight}"
+                           Foreground="{Binding SceneForegroundBrush2}"
+                           MaxHeight="{Binding BodyText2MaxHeight}"
+                           Visibility="{Binding BodyText2Visibility}" />
+
+                <!-- 줄 교차(인터레이스) — on 이면 Region1·Region2 줄을 번갈아 송출(각 줄이 자기 영역 색·글꼴·효과·정렬·줄높이). 그때 위 두 밴드는 숨김.
+                     그림자는 블록 모드와 동일하게 BodyHasShadow 일 때 목록 전체에 적용(어두운/영상 배경 가독성, 레거시 UseShadowFont 보존). -->
+                <ItemsControl ItemsSource="{Binding InterlacedLines}"
+                              Visibility="{Binding InterlaceVisibility}"
+                              MaxHeight="{Binding BodyMaxHeight}">
+                    <ItemsControl.Style>
+                        <Style TargetType="ItemsControl">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding BodyHasShadow}" Value="True">
+                                    <Setter Property="Effect">
+                                        <Setter.Value>
+                                            <DropShadowEffect Color="Black"
+                                                              BlurRadius="8"
+                                                              ShadowDepth="2"
+                                                              Direction="315"
+                                                              Opacity="0.85" />
+                                        </Setter.Value>
+                                    </Setter>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ItemsControl.Style>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Text}"
+                                       TextAlignment="{Binding TextAlignment}"
+                                       TextWrapping="Wrap"
+                                       TextTrimming="CharacterEllipsis"
+                                       FontSize="{Binding FontSize}"
+                                       FontFamily="{Binding FontFamily}"
+                                       FontWeight="{Binding FontWeight}"
+                                       FontStyle="{Binding FontStyle}"
+                                       TextDecorations="{Binding TextDecorations}"
+                                       LineHeight="{Binding LineHeight}"
+                                       Foreground="{Binding Foreground}" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+
+            <!-- 미디어 출력(영상/오디오) — WpfMediaElementPlaybackBackend 가 Source/재생을 제어한다.
+                 Source 가 설정될 때만(미디어 항목 송출 시) 표시되어 가사/타이틀을 덮는다(실제 백엔드 트랙 2단계). -->
+            <MediaElement x:Name="OutputMediaElement"
+                          LoadedBehavior="Manual"
+                          UnloadedBehavior="Manual"
+                          Stretch="Uniform"
+                          IsHitTestVisible="False">
+                <MediaElement.Style>
+                    <Style TargetType="MediaElement">
+                        <Setter Property="Visibility" Value="Visible" />
+                        <Style.Triggers>
+                            <Trigger Property="Source" Value="{x:Null}">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </MediaElement.Style>
+            </MediaElement>
+
+            <!-- FrmMain OutputBtnRefAlert / ImageTransitionControl Ref overlay.
+                 현재 송출 내용은 그대로 두고 제목/구절 한 줄만 임시로 띄우는 토글 오버레이다. -->
+            <Border HorizontalAlignment="Center"
+                    VerticalAlignment="Bottom"
+                    Margin="24,0,24,54"
+                    Padding="16,5"
+                    CornerRadius="3"
+                    Background="{Binding ReferenceAlertBackgroundBrush}"
+                    ClipToBounds="True"
+                    IsHitTestVisible="False"
+                    Visibility="{Binding ReferenceAlertVisibility}">
+                <TextBlock Text="{Binding ReferenceAlertText}"
+                           FontSize="{Binding PanelPrimaryFontSize}"
+                           FontWeight="{Binding PanelPrimaryFontWeight}"
+                           FontStyle="{Binding PanelFontStyle}"
+                           TextDecorations="{Binding PanelTextDecorations}"
+                           TextTrimming="CharacterEllipsis"
+                           TextWrapping="NoWrap"
+                           MaxWidth="860"
+                           Foreground="{Binding ReferenceAlertForegroundBrush}">
+                    <TextBlock.RenderTransform>
+                        <TranslateTransform X="{Binding ReferenceAlertHorizontalOffset}" />
+                    </TextBlock.RenderTransform>
+                </TextBlock>
+            </Border>
+
+            <!-- 위치 인디케이터(절/슬라이드 "N/M") — 우측 하단 모서리. 설정 on + Live + 라벨 존재 시만 표시(§7.3-A). -->
+            <Border HorizontalAlignment="Right"
+                    VerticalAlignment="Bottom"
+                    Margin="0,0,24,16"
+                    Padding="10,3"
+                    CornerRadius="4"
+                    Background="{Binding PanelBackgroundBrush}"
+                    IsHitTestVisible="False"
+                    Visibility="{Binding PositionIndicatorVisibility}">
+                <controls:OutlinedTextBlock Text="{Binding PositionLabel}"
+                                            FontSize="{Binding PanelPrimaryFontSize}"
+                                            FontWeight="{Binding PanelPrimaryFontWeight}"
+                                            MaxTextWidth="180"
+                                            TextAlignment="Left"
+                                            Style="{StaticResource PanelOutlinedTextStyle}" />
+            </Border>
+
+            <!-- 정보 패널 곡 제목(Display Panel Def_PanelTitle) — 좌측 상단 모서리. 설정 on + Live + 제목 있을 때만 표시.
+                 상단 우측의 "다음 항목" 밴드와 같은 상단이지만 좌/우로 갈라 겹치지 않는다. 제목은 DisplayTitle 재사용.
+                 주의: 이 패널 제목과 위쪽 "제목 헤딩"(큰 배너)은 둘 다 DisplayTitle 을 쓰는 별개 기능이다. 보통은
+                 제목 헤딩이 가운데 정렬(기본)이라 좌측 패널 제목과 겹치지 않지만, 사용자가 제목 헤딩을 "왼쪽 정렬"로
+                 바꾸고 둘을 동시에 켜면 같은 제목이 좌측 상단에서 겹친다(둘 중 하나만 쓰는 것이 의도된 사용). -->
+            <Border HorizontalAlignment="Left"
+                    VerticalAlignment="Top"
+                    Margin="24,16,0,0"
+                    Padding="10,3"
+                    CornerRadius="4"
+                    Background="{Binding PanelBackgroundBrush}"
+                    IsHitTestVisible="False"
+                    Visibility="{Binding TitleOnPanelVisibility}">
+                <controls:OutlinedTextBlock Text="{Binding DisplayTitle}"
+                                            FontSize="{Binding PanelSecondaryFontSize}"
+                                            FontWeight="{Binding PanelPrimaryFontWeight}"
+                                            MaxWidth="520"
+                                            MaxTextWidth="520"
+                                            TextAlignment="Left"
+                                            Style="{StaticResource PanelOutlinedTextStyle}" />
+            </Border>
+
+            <!-- 곡 번호(Display Panel "Show Item Number") — 좌측 하단 모서리. 설정 on + Live + 번호 있을 때만 표시. -->
+            <Border HorizontalAlignment="Left"
+                    VerticalAlignment="Bottom"
+                    Margin="24,0,0,16"
+                    Padding="10,3"
+                    CornerRadius="4"
+                    Background="{Binding PanelBackgroundBrush}"
+                    IsHitTestVisible="False"
+                    Visibility="{Binding ItemNumberVisibility}">
+                <controls:OutlinedTextBlock Text="{Binding ItemNumberText}"
+                                            FontSize="{Binding PanelPrimaryFontSize}"
+                                            FontWeight="{Binding PanelPrimaryFontWeight}"
+                                            MaxTextWidth="180"
+                                            TextAlignment="Left"
+                                            Style="{StaticResource PanelOutlinedTextStyle}" />
+            </Border>
+
+            <!-- 저작권(Display Panel "Show Copyright Information") — 하단 중앙(CCLI 푸터 관례).
+                 좌측 하단(곡 번호)·우측 하단(위치 인디케이터)과 겹치지 않게 중앙에 둔다. 설정 on + Live + 저작권 있을 때만 표시. -->
+            <Border HorizontalAlignment="Center"
+                    VerticalAlignment="Bottom"
+                    Margin="0,0,0,16"
+                    Padding="10,3"
+                    CornerRadius="4"
+                    Background="{Binding PanelBackgroundBrush}"
+                    IsHitTestVisible="False"
+                    Visibility="{Binding CopyrightVisibility}">
+                <controls:OutlinedTextBlock Text="{Binding CopyrightText}"
+                                            FontSize="{Binding PanelSecondaryFontSize}"
+                                            FontWeight="{Binding PanelSecondaryFontWeight}"
+                                            TextAlignment="Center"
+                                            MaxWidth="520"
+                                            MaxTextWidth="520"
+                                            Style="{StaticResource PanelOutlinedTextStyle}" />
+            </Border>
+
+            <!-- 다음 항목(Display Panel PrevNext) — 우측 상단 모서리. 제목 헤딩 기본 정렬이 중앙이라
+                 기본 설정에선 코너가 겹치지 않는다. 단, 사용자가 제목 헤딩을 "우측 정렬"로 바꾸고
+                 다음 항목 표시도 함께 켜면 같은 상단 우측 밴드에서 겹칠 수 있다(두 설정 동시 on + 우측 정렬일 때만).
+                 설정 on + Live + 다음 항목이 있을 때만 표시("다음 ▶ ..."). -->
+            <Border HorizontalAlignment="Right"
+                    VerticalAlignment="Top"
+                    Margin="0,16,24,0"
+                    Padding="10,3"
+                    CornerRadius="4"
+                    Background="{Binding PanelBackgroundBrush}"
+                    IsHitTestVisible="False"
+                    Visibility="{Binding NextItemVisibility}">
+                <controls:OutlinedTextBlock Text="{Binding NextItemText}"
+                                            FontSize="{Binding PanelSecondaryFontSize}"
+                                            FontWeight="{Binding PanelSecondaryFontWeight}"
+                                            MaxWidth="420"
+                                            MaxTextWidth="420"
+                                            TextAlignment="Left"
+                                            Style="{StaticResource PanelOutlinedTextStyle}" />
+            </Border>
+        </Grid>
+
+        <Grid Grid.Row="2"
+              Margin="{StaticResource Thickness.Xl}"
+              Visibility="{Binding PanelOverlayVisibility}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Text="{Binding OutputMonitorName}"
+                       VerticalAlignment="Center"
+                       Style="{StaticResource Type.Caption.Style}"
+                       Foreground="{Binding SceneForegroundBrush}" />
+
+            <!-- 상태 라벨(LIVE/CLEARED/STANDBY 등) — 이 밴드 전체가 PanelOverlayVisibility 로 이미 제어된다.
+                 (과거 결함: "코드 표시" 설정값(NotationVisibility)이 이 라벨을 가리도록 잘못 묶여 있었다 →
+                  기본값(코드 표시 off)에서 LIVE 라벨이 사라지는 버그. 이름·동작 불일치 제거하고 밴드 가시성에 위임.) -->
+            <TextBlock Grid.Column="1"
+                       Text="{Binding StatusLabel}"
+                       VerticalAlignment="Center"
+                       Style="{StaticResource Type.Title3.Style}"
+                       Foreground="{DynamicResource Brush.Live.Active}" />
+        </Grid>
+
+        <!-- Blackout/Hidden 상태에서 모든 행을 덮는 검정 오버레이.
+             사용자가 지정한 배경색이나 GAP 로고가 새는 것을 막는다. -->
+        <Rectangle Grid.Row="0"
+                   Grid.RowSpan="3"
+                   Fill="Black"
+                   IsHitTestVisible="False"
+                   Visibility="{Binding BlackoutOverlayVisibility}" />
+    </Grid>
+</Window>

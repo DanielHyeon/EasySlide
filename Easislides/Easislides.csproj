@@ -100,6 +100,8 @@
     <ProjectReference Include="..\OfficeLib\OfficeLib.csproj">
       <Private>True</Private>
     </ProjectReference>
+    <!-- 공통 도메인(§9.4/B-3 Phase 1): CommonEnum 등은 Easislides.Core 로 이동. -->
+    <ProjectReference Include="..\Easislides.Core\Easislides.Core.csproj" />
   </ItemGroup>
 
 </Project>

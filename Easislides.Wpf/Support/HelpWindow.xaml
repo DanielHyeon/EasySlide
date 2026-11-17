@@ -1,0 +1,115 @@
+<Window x:Class="Easislides.Wpf.Support.HelpWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+        Title="EasiSlides 도움말"
+        Width="620"
+        Height="520"
+        MinWidth="520"
+        MinHeight="440"
+        Background="{DynamicResource Brush.Surface.Page}"
+        WindowStartupLocation="CenterOwner">
+    <Grid Margin="{StaticResource Thickness.Xl}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Margin="0,0,0,20">
+            <TextBlock Text="도움말"
+                       Style="{StaticResource Type.Title1.Style}"
+                       Foreground="{DynamicResource Brush.Text.Primary}" />
+            <TextBlock Text="예배 순서와 슬라이드 이동 단축키"
+                       Style="{StaticResource Type.Caption.Style}"
+                       Foreground="{DynamicResource Brush.Text.Secondary}"
+                       Margin="0,6,0,0" />
+        </StackPanel>
+
+        <ScrollViewer Grid.Row="1"
+                      VerticalScrollBarVisibility="Auto">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="20" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="항목 이동"
+                               Style="{StaticResource Type.Title3.Style}"
+                               Foreground="{DynamicResource Brush.Text.Primary}"
+                               Margin="0,0,0,10" />
+                    <ItemsControl ItemsSource="{Binding ItemShortcuts}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border BorderBrush="{DynamicResource Brush.Border.Default}"
+                                        BorderThickness="0,0,0,1"
+                                        Padding="0,10">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="{Binding Action}"
+                                                   Style="{StaticResource Type.Body.Style}"
+                                                   Foreground="{DynamicResource Brush.Text.Secondary}" />
+                                        <TextBlock Grid.Column="1"
+                                                   Text="{Binding Gesture}"
+                                                   Style="{StaticResource Type.BodyLarge.Style}"
+                                                   Foreground="{DynamicResource Brush.Text.Primary}" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2">
+                    <TextBlock Text="슬라이드 이동"
+                               Style="{StaticResource Type.Title3.Style}"
+                               Foreground="{DynamicResource Brush.Text.Primary}"
+                               Margin="0,0,0,10" />
+                    <ItemsControl ItemsSource="{Binding SlideShortcuts}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border BorderBrush="{DynamicResource Brush.Border.Default}"
+                                        BorderThickness="0,0,0,1"
+                                        Padding="0,10">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="{Binding Action}"
+                                                   Style="{StaticResource Type.Body.Style}"
+                                                   Foreground="{DynamicResource Brush.Text.Secondary}" />
+                                        <TextBlock Grid.Column="1"
+                                                   Text="{Binding Gesture}"
+                                                   Style="{StaticResource Type.BodyLarge.Style}"
+                                                   Foreground="{DynamicResource Brush.Text.Primary}" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Grid>
+        </ScrollViewer>
+
+        <StackPanel Grid.Row="2"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Margin="0,20,0,0">
+            <Button Style="{StaticResource EsButton.Secondary}"
+                    Click="Close_Click"
+                    ToolTip="닫기"
+                    AutomationProperties.Name="도움말 창 닫기">
+                <StackPanel Orientation="Horizontal">
+                    <ui:SymbolIcon Symbol="Dismiss24" Margin="0,0,6,0" />
+                    <TextBlock Text="닫기" />
+                </StackPanel>
+            </Button>
+        </StackPanel>
+    </Grid>
+</Window>

@@ -1,0 +1,671 @@
+<UserControl x:Class="Easislides.Wpf.Composites.WorshipListPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:conv="clr-namespace:Easislides.Wpf.Converters">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+        <!-- 항목 종류(곡/성경/PPT/미디어/공지) → Fluent 아이콘 — 목록에서 한눈에 종류 구분(현대 UI). -->
+        <conv:KindToSymbolConverter x:Key="KindToSymbol" />
+        <!-- 항목 Id == 라이브 항목 Id → LIVE 표시 가시성(지금 송출 중인 항목 표시). -->
+        <conv:LiveItemBadgeConverter x:Key="LiveBadge" />
+        <!-- 항목 종류 → 한글 라벨 — 툴팁("종류 — 제목")에 쓴다. -->
+        <conv:KindToLabelConverter x:Key="KindToLabel" />
+    </UserControl.Resources>
+
+    <!--
+        WorshipListPanel — 계획서 §5.2 재사용 컴포지트(예배 순서 목록 패널).
+        FrmMain 좌측 예배 순서 카드(제목 + 송출 큐 ListBox). 라이브 송출 경로의 일부이므로
+        동작 동등성이 최우선 — View만 분리하고 ViewModel·바인딩은 그대로 둔다.
+        DataContext 는 호스트(MainWindow)에서 상속된 MainViewModel 을 그대로 사용한다.
+    -->
+    <Border x:Name="ClassicWorshipListPanelFrame"
+            Background="{DynamicResource Brush.Surface.Card}"
+            BorderBrush="{DynamicResource Brush.Border.Default}"
+            BorderThickness="1"
+            CornerRadius="0"
+            Padding="4">
+        <DockPanel>
+            <!-- 제목 + 미저장 변경 표시 — 저장/불러오기 이후 큐를 바꾸면 "● 수정됨"이 떠 저장을 잊지 않게 한다(미저장 아니면=false 면 숨김). -->
+            <StackPanel x:Name="ClassicWorshipListCaptionStrip"
+                        DockPanel.Dock="Top"
+                        Orientation="Horizontal"
+                        Margin="0,0,0,3">
+                <TextBlock Text="예배 순서"
+                           Style="{StaticResource Type.Caption.Style}"
+                           Foreground="{DynamicResource Brush.Text.Primary}"
+                           VerticalAlignment="Center" />
+                <TextBlock Text="● 수정됨"
+                           VerticalAlignment="Center"
+                           Margin="10,0,0,0"
+                           Style="{StaticResource Type.Caption.Style}"
+                           Foreground="{DynamicResource Brush.Status.Warning}"
+                           ToolTip="저장한 이후 예배 순서가 바뀌었습니다. '저장'으로 보존하세요."
+                           AutomationProperties.Name="미저장 변경 있음"
+                           Visibility="{Binding WorshipListHasUnsavedChanges, Converter={StaticResource BoolToVis}}" />
+            </StackPanel>
+
+            <!--
+                세션 콤보(레거시 FrmMain 세션 콤보) — 저장된 예배 순서를 고르면 바로 적재한다.
+                버튼/Enter/더블클릭도 같은 로드 경로를 유지해 키보드·마우스 운영 흐름을 모두 보존한다.
+                콤보를 열 때 DropDownOpened 로 목록을 새로고침(코드비하인드 → 검증된 VM.RefreshSavedWorshipListNames).
+            -->
+            <Grid x:Name="ClassicWorshipListSessionStrip"
+                  DockPanel.Dock="Top"
+                  Margin="0,0,0,4">
+                <Grid.Resources>
+                    <Style x:Key="EsButton.Secondary" TargetType="Button" BasedOn="{StaticResource EsButton.Base}">
+                        <Setter Property="Background" Value="{DynamicResource Brush.Surface.Card}" />
+                        <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Primary}" />
+                        <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border.Strong}" />
+                        <Setter Property="BorderThickness" Value="1" />
+                        <Setter Property="MinWidth" Value="0" />
+                        <Setter Property="MinHeight" Value="0" />
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="{DynamicResource Brush.Surface.Subtle}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="{DynamicResource Brush.Surface.Subtle}" />
+                                <Setter Property="BorderBrush" Value="{DynamicResource Brush.Accent.Primary}" />
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Grid.Resources>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="1" />
+                    <ColumnDefinition Width="94" />
+                </Grid.ColumnDefinitions>
+                <ComboBox Grid.Column="0"
+                          x:Name="SessionCombo"
+                          Tag="SessionList"
+                          DropDownOpened="SessionCombo_DropDownOpened"
+                          SelectionChanged="SessionCombo_SelectionChanged"
+                          KeyDown="SessionCombo_KeyDown"
+                          MouseDoubleClick="SessionCombo_MouseDoubleClick"
+                          ItemsSource="{Binding SavedWorshipListNames}"
+                          SelectedItem="{Binding SelectedSavedWorshipList, Mode=TwoWay}"
+                          Height="28"
+                          MinWidth="60"
+                          MinHeight="0"
+                          Padding="8,2,4,2"
+                          VerticalContentAlignment="Center"
+                          ToolTip="저장된 예배 순서를 고르면 바로 불러옵니다. 콤보를 열면 목록이 새로고침됩니다."
+                          AutomationProperties.Name="저장된 예배 순서 선택" />
+                <StackPanel x:Name="ClassicWorshipListToolStrip1"
+                            Grid.Column="2"
+                            Orientation="Horizontal"
+                            Width="94"
+                            Height="33"
+                            Margin="0,-1,0,0">
+                <Button x:Name="WL_Manage"
+                        Tag="WL_Manage"
+                        Click="WL_Manage_Click"
+                        Style="{StaticResource EsButton.Secondary}"
+                        Width="29"
+                        Height="33"
+                        Padding="0"
+                        ToolTip="Manage Worship Lists"
+                        AutomationProperties.Name="Manage Worship Lists"
+                        Margin="0,0,3,0">
+                    <ui:SymbolIcon Symbol="Settings24" />
+                </Button>
+                <Button x:Name="WL_Add"
+                        Click="WL_Add_Click"
+                        Style="{StaticResource EsButton.Secondary}"
+                        Width="29"
+                        Height="33"
+                        Padding="0"
+                        ToolTip="Add to Worship List"
+                        AutomationProperties.Name="현재 소스 항목을 예배 순서에 추가"
+                        Margin="0,0,3,0">
+                    <ui:SymbolIcon Symbol="Add24" />
+                </Button>
+                <Button x:Name="WL_Open"
+                        Tag="WL_Open"
+                        Click="WL_Open_Click"
+                        Style="{StaticResource EsButton.Secondary}"
+                        Width="29"
+                        Height="33"
+                        Padding="0"
+                        ToolTip="Add External Document to Worship List"
+                        AutomationProperties.Name="외부 파일을 예배 순서에 추가"
+                        Margin="0">
+                    <ui:SymbolIcon Symbol="FolderOpen24" />
+                </Button>
+            </StackPanel>
+            </Grid>
+
+            <ScrollViewer x:Name="ClassicWorshipListToolStrip2Frame"
+                          DockPanel.Dock="Right"
+                          Width="33"
+                          Margin="4,0,0,0"
+                          HorizontalScrollBarVisibility="Disabled"
+                          VerticalScrollBarVisibility="Auto">
+                <StackPanel x:Name="ClassicWorshipListToolStrip2"
+                            Orientation="Vertical"
+                            Width="33">
+                    <StackPanel.Resources>
+                        <Style x:Key="EsButton.Secondary" TargetType="Button" BasedOn="{StaticResource EsButton.Base}">
+                            <Setter Property="Background" Value="{DynamicResource Brush.Surface.Card}" />
+                            <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Primary}" />
+                            <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border.Strong}" />
+                            <Setter Property="BorderThickness" Value="1" />
+                            <Setter Property="MinWidth" Value="0" />
+                            <Setter Property="MinHeight" Value="0" />
+                            <Setter Property="Padding" Value="0" />
+                            <Setter Property="FontSize" Value="16" />
+                            <Setter Property="HorizontalAlignment" Value="Center" />
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="{DynamicResource Brush.Surface.Subtle}" />
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter Property="Background" Value="{DynamicResource Brush.Surface.Subtle}" />
+                                    <Setter Property="BorderBrush" Value="{DynamicResource Brush.Accent.Primary}" />
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </StackPanel.Resources>
+                <Button x:Name="WL_Up"
+                        Tag="WL_Up"
+                        Command="{Binding MoveSelectedItemUpCommand}"
+                        Style="{StaticResource EsButton.Secondary}"
+                        Width="22"
+                        Height="22"
+                        Padding="0"
+                        ToolTip="선택 항목을 위로 이동 (Ctrl+Shift+↑)"
+                        AutomationProperties.Name="항목 위로 이동 (Ctrl+Shift+Up)"
+                        Margin="0,0,0,3">
+                    <ui:SymbolIcon Symbol="ArrowUp24" />
+                </Button>
+                <Button x:Name="WL_Down"
+                        Tag="WL_Down"
+                        Command="{Binding MoveSelectedItemDownCommand}"
+                        Style="{StaticResource EsButton.Secondary}"
+                        Width="22"
+                        Height="22"
+                        Padding="0"
+                        ToolTip="선택 항목을 아래로 이동 (Ctrl+Shift+↓)"
+                        AutomationProperties.Name="항목 아래로 이동 (Ctrl+Shift+Down)"
+                        Margin="0,0,0,3">
+                    <ui:SymbolIcon Symbol="ArrowDown24" />
+                </Button>
+                <Button x:Name="WL_Delete"
+                        Tag="WL_Delete"
+                        Command="{Binding RemoveSelectedItemCommand}"
+                        Style="{StaticResource EsButton.Secondary}"
+                        Width="22"
+                        Height="22"
+                        Padding="0"
+                        ToolTip="선택 항목을 예배 순서에서 제거 (Del)"
+                        AutomationProperties.Name="항목 제거 (Delete 키)"
+                        Margin="0,0,0,3">
+                    <ui:SymbolIcon Symbol="Delete24" />
+                </Button>
+                <Separator Width="30"
+                           Height="6"
+                           Margin="0,1,0,3" />
+                <Button x:Name="WL_Word"
+                        Tag="WL_Word"
+                        Click="WL_Word_Click"
+                        Style="{StaticResource EsButton.Secondary}"
+                        Width="22"
+                        Height="22"
+                        Padding="0"
+                        ToolTip="Generate RTF Document"
+                        AutomationProperties.Name="예배 순서 RTF 문서 생성"
+                        Margin="0,0,0,3">
+                    <ui:SymbolIcon Symbol="DocumentText24" />
+                </Button>
+                <Button x:Name="WL_Notes"
+                        Tag="WL_Notes"
+                        Click="WL_Notes_Click"
+                        Style="{StaticResource EsButton.Secondary}"
+                        Width="22"
+                        Height="22"
+                        Padding="0"
+                        ToolTip="세션 메모 편집"
+                        AutomationProperties.Name="세션 메모 편집"
+                        Margin="0">
+                    <ui:SymbolIcon Symbol="Edit24" />
+                </Button>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!--
+                예배 순서 검증 경고 — 문제(깨진 PPT·미디어 파일)가 있을 때만 보인다(HasWorshipListProblems).
+                StatusText 요약과 달리 전체 문제 항목을 한눈에 보여 운영자가 어느 항목이 깨졌는지 모두 확인하게 한다.
+            -->
+            <Border DockPanel.Dock="Bottom"
+                    Margin="0,12,0,0"
+                    Padding="10,8"
+                    CornerRadius="{StaticResource CornerRadius.Medium}"
+                    Background="{DynamicResource Brush.Surface.Card}"
+                    BorderBrush="{DynamicResource Brush.Live.Active}"
+                    BorderThickness="1"
+                    Visibility="{Binding HasWorshipListProblems, Converter={StaticResource BoolToVis}}">
+                <StackPanel>
+                    <TextBlock Text="{Binding WorshipListProblems.Count, StringFormat='⚠ 검증 문제 {0}건'}"
+                               Style="{StaticResource Type.Caption.Style}"
+                               Foreground="{DynamicResource Brush.Live.Active}"
+                               Margin="0,0,0,4" />
+                    <!-- 문제 한 건을 클릭하면 그 항목을 예배 순서에서 선택해(SelectWorshipProblemItemCommand) 운영자가 바로 가 고치게 한다.
+                         각 문제는 EsButton.Link(평평한 텍스트 버튼)로 보여 일반 경고처럼 보이되 누르면 강조되고 키보드 포커스도 받는다. -->
+                    <ItemsControl ItemsSource="{Binding WorshipListProblems}"
+                                  AutomationProperties.Name="예배 순서 검증 문제 목록">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Style="{StaticResource EsButton.Link}"
+                                        Command="{Binding DataContext.SelectWorshipProblemItemCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                        CommandParameter="{Binding}"
+                                        Margin="0,1,0,1"
+                                        ToolTip="클릭하면 이 항목을 예배 순서에서 선택합니다."
+                                        AutomationProperties.Name="{Binding Message}">
+                                    <TextBlock Text="{Binding Message}"
+                                               TextWrapping="Wrap"
+                                               Style="{StaticResource Type.Caption.Style}" />
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+            <!--
+                선택한 곡의 절 순서 편집(레거시 절 순서 모델) — 곡 항목을 고르면 활성화된다.
+                "1 2 C 3 C C" 처럼 가사의 [라벨] 절을 나열해 부르는 순서·반복(후렴 반복 등)을 지정한다.
+                비우면 가사를 선형으로 페이지네이션(기본). 곡이 아니면 비활성(IsEnabled=CanEditSelectedItemSequence).
+            -->
+            <StackPanel DockPanel.Dock="Bottom"
+                        Margin="0,12,0,0"
+                        IsEnabled="{Binding CanEditSelectedItemSequence}">
+                <TextBlock Text="절 순서 (예: 1 2 C 3 C C — 비우면 순서대로)"
+                           Style="{StaticResource Type.Caption.Style}"
+                           Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                <TextBox Text="{Binding SelectedItemSequenceInput, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                         Margin="0,4,0,0"
+                         ToolTip="가사에 [V1]/[C] 같은 [라벨]로 절을 정의한 뒤, 라벨을 띄어쓰기로 나열해 부르는 순서와 반복을 지정합니다. 비우면 가사 순서대로 송출합니다. 곡 항목을 선택했을 때만 입력할 수 있습니다."
+                         AutomationProperties.Name="선택한 곡의 절 순서" />
+            </StackPanel>
+
+            <!--
+                예배 순서 목록 — 버튼(↑/↓) 외에 드래그-드롭으로도 재정렬(§7.5 P1).
+                드래그 제스처는 STA 입력이라 코드비하인드에서 처리하고, 실제 순서 변경 로직은
+                MainViewModel.MoveQueueItem(참조 기반·범위 클램프)에 위임한다(자동회전 타이머와 동일 철학).
+            -->
+            <Grid>
+                <ListView x:Name="QueueList"
+                          ItemsSource="{Binding Queue}"
+                          SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                          SelectionMode="Extended"
+                          Tag="WorshipListItems"
+                          AutomationProperties.Name="예배 순서 목록"
+                          AllowDrop="True"
+                          KeyDown="QueueList_KeyDown"
+                          PreviewMouseLeftButtonDown="QueueList_PreviewMouseLeftButtonDown"
+                          PreviewMouseRightButtonDown="QueueList_PreviewMouseRightButtonDown"
+                          PreviewMouseMove="QueueList_PreviewMouseMove"
+                          DragOver="QueueList_DragOver"
+                          Drop="QueueList_Drop"
+                          BorderThickness="1"
+                          FontSize="12"
+                          HorizontalContentAlignment="Stretch"
+                          ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                    <ListView.Resources>
+                        <Style TargetType="{x:Type GridViewColumnHeader}">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                        </Style>
+                        <Style TargetType="{x:Type ListViewItem}">
+                            <Setter Property="MinHeight" Value="22" />
+                            <Setter Property="Padding" Value="2,0" />
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                        </Style>
+                    </ListView.Resources>
+                    <!-- 항목 한 줄 = [종류 아이콘] + 제목 + LIVE. FrmMain ListView Details 처럼 헤더는 숨기고 조밀한 행만 보여 준다. -->
+                    <ListView.View>
+                        <GridView AllowsColumnReorder="False">
+                            <GridViewColumn Width="28">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <ui:SymbolIcon Symbol="{Binding Kind, Converter={StaticResource KindToSymbol}}"
+                                                       FontSize="16"
+                                                       VerticalAlignment="Center"
+                                                       Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Width="260">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <!-- 행의 자동화 이름을 제목으로 고정 — 종류 아이콘은 장식이라 스크린리더가 글리프 대신 제목만 읽게 한다(a11y 무회귀). -->
+                                        <StackPanel Orientation="Horizontal"
+                                                    AutomationProperties.Name="{Binding Title}">
+                                            <!-- 마우스 올리면 "종류 — 전체 제목" 툴팁 — 아이콘 뜻 설명 + 길어서 잘린 제목 전체 보기. -->
+                                            <StackPanel.ToolTip>
+                                                <MultiBinding StringFormat="{}{0} — {1}">
+                                                    <Binding Path="Kind" Converter="{StaticResource KindToLabel}" />
+                                                    <Binding Path="Title" />
+                                                </MultiBinding>
+                                            </StackPanel.ToolTip>
+                                            <TextBlock Text="{Binding Title}"
+                                                       VerticalAlignment="Center"
+                                                       TextTrimming="CharacterEllipsis" />
+                                            <!-- LIVE 배지 — 이 항목 Id 가 라이브 항목 Id 와 같을 때만 보인다(지금 송출 중인 항목 한눈에). -->
+                                            <Border Background="{DynamicResource Brush.Live.Active}"
+                                                    CornerRadius="3"
+                                                    Padding="5,1"
+                                                    Margin="8,0,0,0"
+                                                    VerticalAlignment="Center">
+                                                <Border.Visibility>
+                                                    <MultiBinding Converter="{StaticResource LiveBadge}">
+                                                        <Binding Path="Id" />
+                                                        <Binding Path="DataContext.LiveItemId" RelativeSource="{RelativeSource AncestorType=ListView}" />
+                                                    </MultiBinding>
+                                                </Border.Visibility>
+                                                <TextBlock Text="LIVE"
+                                                           Foreground="White"
+                                                           FontSize="10"
+                                                           FontWeight="Bold"
+                                                           AutomationProperties.Name="송출 중" />
+                                            </Border>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                        </GridView>
+                    </ListView.View>
+                    <!-- 더블클릭은 FrmMain WorshipListItems_DoubleClick:
+                         media 는 파일 실행, 그 외 항목은 PreviewItemToLive 흐름으로 OutputItem 복사/송출한다. -->
+                    <ListView.InputBindings>
+                        <MouseBinding MouseAction="LeftDoubleClick"
+                                      Command="{Binding WorshipListDoubleClickCommand}" />
+                    </ListView.InputBindings>
+                    <!-- 항목 우클릭 — 개별 서식 사용 토글(레거시 Ind_checkBox). 끄면 전역 기본 서식으로 송출.
+                         ContextMenu 는 별도 트리라 PlacementTarget(QueueList) 의 DataContext(MainViewModel)로 바인딩한다. -->
+                    <ListView.ContextMenu>
+                        <ContextMenu x:Name="CMenuWorship"
+                                     Tag="CMenuWorship"
+                                     Opened="CMenuWorship_Opened">
+                            <MenuItem x:Name="CMenuWorship_SelectAll"
+                                      Header="Select All"
+                                      Tag="CMenuWorship_SelectAll"
+                                      Click="CMenuWorship_SelectAll_Click" />
+                            <MenuItem x:Name="CMenuWorship_UnselectAll"
+                                      Header="Unselect All"
+                                      Tag="CMenuWorship_UnselectAll"
+                                      Click="CMenuWorship_UnselectAll_Click" />
+                            <MenuItem x:Name="CMenuWorship_Clear"
+                                      Header="Clear Worship List"
+                                      Tag="CMenuWorship_Clear"
+                                      Command="{Binding PlacementTarget.DataContext.ClearWorshipListCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                            <Separator />
+                            <MenuItem x:Name="CMenuWorship_Edit"
+                                      Header="Edit item"
+                                      Tag="CMenuWorship_Edit"
+                                      Click="CMenuWorship_Edit_Click" />
+                            <MenuItem x:Name="CMenuWorship_Play"
+                                      Header="Play Media"
+                                      Tag="CMenuWorship_Play"
+                                      Command="{Binding PlacementTarget.DataContext.PlaySelectedWorshipMediaCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                            <MenuItem x:Name="CMenuWorship_PlayOnOutput"
+                                      Header="Play Media on Output Monitor"
+                                      Tag="CMenuWorship_PlayOnOutput"
+                                      Command="{Binding PlacementTarget.DataContext.PlaySelectedWorshipMediaOnOutputCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                            <Separator />
+                            <MenuItem x:Name="CMenuWorship_AddUsages"
+                                      Header="Add Songs to Usages"
+                                      Tag="CMenuWorship_AddUsages"
+                                      Click="CMenuWorship_AddUsages_Click" />
+                            <Separator />
+
+                            <MenuItem Header="개별 서식 사용"
+                                      IsChecked="{Binding PlacementTarget.DataContext.SelectedItem.UseIndividualFormatting, RelativeSource={RelativeSource AncestorType=ContextMenu}, Mode=OneWay}"
+                                      Command="{Binding PlacementTarget.DataContext.ToggleUseIndividualFormattingCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                            <!-- 항목별 글자색(이 항목만) — 레거시 Ind_ 색. 프리셋 색/전역기본을 한 번에. 곡·성경 항목일 때만 활성. -->
+                            <MenuItem Header="이 항목 글자색"
+                                      IsEnabled="{Binding PlacementTarget.DataContext.CanEditSelectedItemColor, RelativeSource={RelativeSource AncestorType=ContextMenu}, Mode=OneWay}">
+                                <MenuItem Header="흰색"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemTextColorCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="#FFFFFFFF" />
+                                <MenuItem Header="노랑"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemTextColorCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="#FFFFFF00" />
+                                <MenuItem Header="하늘색"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemTextColorCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="#FF00BFFF" />
+                                <MenuItem Header="연두색"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemTextColorCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="#FF7CFC00" />
+                                <MenuItem Header="주황색"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemTextColorCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="#FFFFA500" />
+                                <Separator />
+                                <MenuItem Header="전역 기본색(해제)"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemTextColorCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="" />
+                            </MenuItem>
+                            <!-- 항목별 가로 정렬(이 항목만) — 레거시 Ind_ 정렬(FormatData 코드31). 곡·성경 항목일 때만 활성. -->
+                            <MenuItem Header="이 항목 정렬"
+                                      IsEnabled="{Binding PlacementTarget.DataContext.CanEditSelectedItemColor, RelativeSource={RelativeSource AncestorType=ContextMenu}, Mode=OneWay}">
+                                <MenuItem Header="왼쪽"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemAlignmentCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="1" />
+                                <MenuItem Header="가운데"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemAlignmentCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="2" />
+                                <MenuItem Header="오른쪽"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemAlignmentCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="3" />
+                                <Separator />
+                                <MenuItem Header="전역 기본 정렬(해제)"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemAlignmentCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="0" />
+                            </MenuItem>
+                            <!-- 항목별 글자 크기(이 항목만) — 레거시 Ind_ 크기(FormatData 코드47, pt). 곡·성경 항목일 때만 활성. -->
+                            <MenuItem Header="이 항목 글자 크기"
+                                      IsEnabled="{Binding PlacementTarget.DataContext.CanEditSelectedItemColor, RelativeSource={RelativeSource AncestorType=ContextMenu}, Mode=OneWay}">
+                                <MenuItem Header="작게 (36pt)"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemFontSizeCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="36" />
+                                <MenuItem Header="보통 (54pt)"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemFontSizeCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="54" />
+                                <MenuItem Header="크게 (72pt)"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemFontSizeCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="72" />
+                                <MenuItem Header="아주 크게 (90pt)"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemFontSizeCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="90" />
+                                <Separator />
+                                <MenuItem Header="전역 기본 크기(해제)"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemFontSizeCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="0" />
+                            </MenuItem>
+                            <!-- 항목별 글꼴명(이 항목만) — 레거시 Ind_ 글꼴(FormatData 코드43). 자주 쓰는 한/영 글꼴 빠른 선택 + 해제. 곡·성경 항목일 때만 활성.
+                                 (인스펙터 전역 글꼴 콤보에는 설치 글꼴 전체가 있고, 여기선 우클릭 빠른 선택용 짧은 목록이다.) -->
+                            <MenuItem Header="이 항목 글꼴"
+                                      IsEnabled="{Binding PlacementTarget.DataContext.CanEditSelectedItemColor, RelativeSource={RelativeSource AncestorType=ContextMenu}, Mode=OneWay}">
+                                <MenuItem Header="맑은 고딕"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemFontNameCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="맑은 고딕" />
+                                <MenuItem Header="나눔고딕"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemFontNameCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="나눔고딕" />
+                                <MenuItem Header="굴림"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemFontNameCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="굴림" />
+                                <MenuItem Header="Segoe UI"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemFontNameCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="Segoe UI" />
+                                <MenuItem Header="Arial"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemFontNameCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="Arial" />
+                                <Separator />
+                                <MenuItem Header="전역 기본 글꼴(해제)"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemFontNameCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="" />
+                            </MenuItem>
+                            <!-- 항목별 배경색(이 항목만) — 레거시 Ind_ 배경(FormatData 코드26). 가사가 잘 보이도록 어두운 색 프리셋 + 해제. 곡·성경 항목일 때만 활성.
+                                 참고: 배경 이미지(전역/곡별 코드61)가 있으면 그 이미지가 배경색을 덮어 색이 안 보일 수 있다(이미지 우선). -->
+                            <MenuItem Header="이 항목 배경색"
+                                      IsEnabled="{Binding PlacementTarget.DataContext.CanEditSelectedItemColor, RelativeSource={RelativeSource AncestorType=ContextMenu}, Mode=OneWay}">
+                                <MenuItem Header="검정"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemBackgroundColorCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="#FF000000" />
+                                <MenuItem Header="진회색"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemBackgroundColorCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="#FF202020" />
+                                <MenuItem Header="네이비"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemBackgroundColorCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="#FF001A33" />
+                                <MenuItem Header="짙은 보라"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemBackgroundColorCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="#FF1A0033" />
+                                <MenuItem Header="짙은 녹색"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemBackgroundColorCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="#FF002200" />
+                                <Separator />
+                                <MenuItem Header="전역 기본 배경(해제)"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemBackgroundColorCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="" />
+                            </MenuItem>
+                            <!-- 항목별 배경 이미지(이 항목만) — 레거시 Ind_ 배경 이미지(FormatData 코드61). 파일 선택은 코드비하인드, 해제는 빈 경로 명령. 곡·성경 항목일 때만 활성. -->
+                            <MenuItem Header="이 항목 배경 이미지"
+                                      IsEnabled="{Binding PlacementTarget.DataContext.CanEditSelectedItemColor, RelativeSource={RelativeSource AncestorType=ContextMenu}, Mode=OneWay}">
+                                <MenuItem Header="이미지 선택..." Click="SelectItemBackgroundImage_Click" />
+                                <Separator />
+                                <MenuItem Header="전역 기본 배경(해제)"
+                                          Command="{Binding PlacementTarget.DataContext.SetSelectedItemBackgroundImageCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="" />
+                            </MenuItem>
+                            <!-- 항목별 강조(이 항목만) — 레거시 Ind_ 굵게/기울임/밑줄(FormatData 코드41 비트). 체크는 현재 상태(OneWay), 클릭은 토글 명령. 곡·성경 항목일 때만 활성. -->
+                            <MenuItem Header="이 항목 강조"
+                                      IsEnabled="{Binding PlacementTarget.DataContext.CanEditSelectedItemColor, RelativeSource={RelativeSource AncestorType=ContextMenu}, Mode=OneWay}">
+                                <MenuItem Header="굵게"
+                                          IsChecked="{Binding PlacementTarget.DataContext.SelectedItemBold, RelativeSource={RelativeSource AncestorType=ContextMenu}, Mode=OneWay}"
+                                          Command="{Binding PlacementTarget.DataContext.ToggleSelectedItemBoldCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                <MenuItem Header="기울임"
+                                          IsChecked="{Binding PlacementTarget.DataContext.SelectedItemItalic, RelativeSource={RelativeSource AncestorType=ContextMenu}, Mode=OneWay}"
+                                          Command="{Binding PlacementTarget.DataContext.ToggleSelectedItemItalicCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                <MenuItem Header="밑줄"
+                                          IsChecked="{Binding PlacementTarget.DataContext.SelectedItemUnderline, RelativeSource={RelativeSource AncestorType=ContextMenu}, Mode=OneWay}"
+                                          Command="{Binding PlacementTarget.DataContext.ToggleSelectedItemUnderlineCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                            </MenuItem>
+                            <!-- 이중 언어(보조 영역 Region2) 항목별 서식 — 메뉴 비대화 방지를 위해 하나의 상위 메뉴에 모은다(글자색·정렬 완료, 크기·글꼴은 앞으로 여기 추가).
+                                 Region2 서식은 [region 2] 마커가 있는 이중 언어 곡·성경(병행 번역)에서만 화면에 보인다. 곡·성경 항목일 때만 활성. -->
+                            <MenuItem Header="이중 언어(보조 영역)"
+                                      IsEnabled="{Binding PlacementTarget.DataContext.CanEditSelectedItemColor, RelativeSource={RelativeSource AncestorType=ContextMenu}, Mode=OneWay}">
+                                <MenuItem Header="글자색">
+                                    <MenuItem Header="흰색"
+                                              Command="{Binding PlacementTarget.DataContext.SetSelectedItemTextColor2Command, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                              CommandParameter="#FFFFFFFF" />
+                                    <MenuItem Header="노랑"
+                                              Command="{Binding PlacementTarget.DataContext.SetSelectedItemTextColor2Command, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                              CommandParameter="#FFFFFF00" />
+                                    <MenuItem Header="하늘색"
+                                              Command="{Binding PlacementTarget.DataContext.SetSelectedItemTextColor2Command, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                              CommandParameter="#FF00BFFF" />
+                                    <MenuItem Header="연두색"
+                                              Command="{Binding PlacementTarget.DataContext.SetSelectedItemTextColor2Command, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                              CommandParameter="#FF7CFC00" />
+                                    <MenuItem Header="주황색"
+                                              Command="{Binding PlacementTarget.DataContext.SetSelectedItemTextColor2Command, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                              CommandParameter="#FFFFA500" />
+                                    <Separator />
+                                    <MenuItem Header="본문과 동일(해제)"
+                                              Command="{Binding PlacementTarget.DataContext.SetSelectedItemTextColor2Command, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                              CommandParameter="" />
+                                </MenuItem>
+                                <MenuItem Header="정렬">
+                                    <MenuItem Header="왼쪽"
+                                              Command="{Binding PlacementTarget.DataContext.SetSelectedItemAlignment2Command, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                              CommandParameter="1" />
+                                    <MenuItem Header="가운데"
+                                              Command="{Binding PlacementTarget.DataContext.SetSelectedItemAlignment2Command, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                              CommandParameter="2" />
+                                    <MenuItem Header="오른쪽"
+                                              Command="{Binding PlacementTarget.DataContext.SetSelectedItemAlignment2Command, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                              CommandParameter="3" />
+                                    <Separator />
+                                    <MenuItem Header="본문과 동일(해제)"
+                                              Command="{Binding PlacementTarget.DataContext.SetSelectedItemAlignment2Command, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                              CommandParameter="0" />
+                                </MenuItem>
+                                <MenuItem Header="글자 크기">
+                                    <MenuItem Header="작게 (36pt)"
+                                              Command="{Binding PlacementTarget.DataContext.SetSelectedItemFontSize2Command, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                              CommandParameter="36" />
+                                    <MenuItem Header="보통 (54pt)"
+                                              Command="{Binding PlacementTarget.DataContext.SetSelectedItemFontSize2Command, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                              CommandParameter="54" />
+                                    <MenuItem Header="크게 (72pt)"
+                                              Command="{Binding PlacementTarget.DataContext.SetSelectedItemFontSize2Command, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                              CommandParameter="72" />
+                                    <Separator />
+                                    <MenuItem Header="본문과 동일(해제)"
+                                              Command="{Binding PlacementTarget.DataContext.SetSelectedItemFontSize2Command, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                              CommandParameter="0" />
+                                </MenuItem>
+                                <MenuItem Header="글꼴">
+                                    <MenuItem Header="맑은 고딕"
+                                              Command="{Binding PlacementTarget.DataContext.SetSelectedItemFontName2Command, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                              CommandParameter="맑은 고딕" />
+                                    <MenuItem Header="나눔고딕"
+                                              Command="{Binding PlacementTarget.DataContext.SetSelectedItemFontName2Command, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                              CommandParameter="나눔고딕" />
+                                    <MenuItem Header="Segoe UI"
+                                              Command="{Binding PlacementTarget.DataContext.SetSelectedItemFontName2Command, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                              CommandParameter="Segoe UI" />
+                                    <MenuItem Header="Arial"
+                                              Command="{Binding PlacementTarget.DataContext.SetSelectedItemFontName2Command, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                              CommandParameter="Arial" />
+                                    <Separator />
+                                    <MenuItem Header="본문과 동일(해제)"
+                                              Command="{Binding PlacementTarget.DataContext.SetSelectedItemFontName2Command, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                              CommandParameter="" />
+                                </MenuItem>
+                                <MenuItem Header="강조">
+                                    <MenuItem Header="굵게"
+                                              IsChecked="{Binding PlacementTarget.DataContext.SelectedItemBold2, RelativeSource={RelativeSource AncestorType=ContextMenu}, Mode=OneWay}"
+                                              Command="{Binding PlacementTarget.DataContext.ToggleSelectedItemBold2Command, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                    <MenuItem Header="기울임"
+                                              IsChecked="{Binding PlacementTarget.DataContext.SelectedItemItalic2, RelativeSource={RelativeSource AncestorType=ContextMenu}, Mode=OneWay}"
+                                              Command="{Binding PlacementTarget.DataContext.ToggleSelectedItemItalic2Command, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                    <MenuItem Header="밑줄"
+                                              IsChecked="{Binding PlacementTarget.DataContext.SelectedItemUnderline2, RelativeSource={RelativeSource AncestorType=ContextMenu}, Mode=OneWay}"
+                                              Command="{Binding PlacementTarget.DataContext.ToggleSelectedItemUnderline2Command, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                </MenuItem>
+                            </MenuItem>
+                            <Separator />
+                            <!-- 이 항목 서식 복사/붙여넣기 — 한 항목 서식을 담아 다른 항목들에 통일 적용. Command.CanExecute 로 자동 활성/비활성. -->
+                            <MenuItem Header="이 항목 서식 복사"
+                                      Command="{Binding PlacementTarget.DataContext.CopySelectedItemFormattingCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                            <MenuItem Header="이 항목에 서식 붙여넣기"
+                                      Command="{Binding PlacementTarget.DataContext.PasteSelectedItemFormattingCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                            <!-- 이 항목 서식 모두 지우기(레거시 Clear All Formatting) — 항목별 FormatData 전부 제거 → 전역 기본으로 송출. 지울 서식이 있을 때만 활성. -->
+                            <MenuItem Header="이 항목 서식 모두 지우기"
+                                      Command="{Binding PlacementTarget.DataContext.ClearSelectedItemFormattingCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                            <!-- 전 항목 서식 지우기(레거시 Clear All Formatting 전체판) — 예배 순서의 모든 곡·성경 항목 서식을 한 번에 전역 기본으로 되돌림. 지울 서식이 하나라도 있을 때만 활성. -->
+                            <MenuItem Header="전 항목 서식 지우기"
+                                      Command="{Binding PlacementTarget.DataContext.ClearAllItemsFormattingCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                        </ContextMenu>
+                    </ListView.ContextMenu>
+                </ListView>
+
+                <!-- 빈 상태 안내 — 큐가 비어 있을 때만(더미 시드 제거 후 첫 화면). 운영자에게 다음 행동을 알려 준다. -->
+                <TextBlock Text="예배 순서가 비어 있습니다.&#x0a;곡·성경·PowerPoint·미디어를 추가하거나 '최근 예배 순서'에서 불러오세요."
+                           TextAlignment="Center"
+                           TextWrapping="Wrap"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           Style="{StaticResource Type.Caption.Style}"
+                           Foreground="{DynamicResource Brush.Text.Tertiary}"
+                           IsHitTestVisible="False"
+                           Visibility="{Binding IsQueueEmpty, Converter={StaticResource BoolToVis}}" />
+            </Grid>
+        </DockPanel>
+    </Border>
+</UserControl>

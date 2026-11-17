@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- EasiDS Roslyn 분석기 단위 테스트 (계획서 §8.4, §9.2). -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>Easislides.Analyzers.Tests</RootNamespace>
+    <AssemblyName>Easislides.Analyzers.Tests</AssemblyName>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <!-- 분석기를 직접 구동(WithAnalyzers)하기 위한 Roslyn API. 분석기와 동일한 4.8.0. -->
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- 분석기 타입(EasiDsColorFontAnalyzer)에 직접 접근. -->
+    <ProjectReference Include="..\Easislides.Analyzers\Easislides.Analyzers.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,286 @@
+using Easislides.Wpf.Library;
+using Easislides.Wpf.Settings;
+using FluentAssertions;
+using Xunit;
+
+namespace Easislides.Wpf.Tests.Library;
+
+/// <summary>
+/// 레거시 v32 FormatData 디코더 검증 — 실제 운영 DB(C:\EasiSlides) 샘플로 필드-코드 매핑을 고정.
+/// 형식: "코드=값>코드=값>..." (코드별 곡-레벨 포맷). 매핑은 레거시 gfLyrics(HeaderData[n]) 권위에 따른다:
+///   29/30=글자색 region1/2, 26/27=배경색 region1/2(ARGB int), 43/44=폰트명, 47/48=크기(6~100),
+///   31/32=정렬(1~3), 41=글꼴효과 비트(r1 bit1=Bold·bit2=Italic, r2 bit4·5), 61=배경이미지, 51=미디어.
+/// </summary>
+public sealed class SongFormatDataTests
+{
+    // 실제 DB SONGID 454 "Jesus loves me" 의 FORMATDATA (이중 언어: region1 영어 / region2 한글).
+    private const string Sample454 =
+        "21=0>23=0>22=32>25=2>26=-16777056>27=-16777056>28=0>29=-16777216>30=-16744193>31=2>32=1>" +
+        "41=16>42=16>43=Microsoft Sans Serif>44=HY견고딕>45=0>46=50>47=55>48=44>50=2>51=>52=50>53=-1>" +
+        "54=2>55=1>61=C:\\EasiSlides\\Images\\성경\\bible-sermon.jpg>62=2>63=1>64=2>65=2>66=0>71=0>72=None>73=None>";
+
+    [Fact]
+    public void Parse_RealSample_DecodesColorsFontsSizesAlignmentBackground()
+    {
+        var f = SongFormatData.Parse(Sample454);
+
+        f.Should().NotBeNull();
+        f!.TextColorArgb1.Should().Be(-16777216, "29 = region1 글자색(검정)");
+        f.TextColorArgb2.Should().Be(-16744193, "30 = region2 글자색");
+        f.BackgroundColorArgb1.Should().Be(-16777056, "26 = region1 배경색");
+        f.FontName1.Should().Be("Microsoft Sans Serif", "43 = region1 폰트");
+        f.FontName2.Should().Be("HY견고딕", "44 = region2 폰트");
+        f.FontSize1.Should().Be(55, "47 = region1 크기");
+        f.FontSize2.Should().Be(44, "48 = region2 크기");
+        f.Alignment1.Should().Be(2, "31 = region1 정렬");
+        f.Alignment2.Should().Be(1, "32 = region2 정렬");
+        f.BackgroundImagePath.Should().Be(@"C:\EasiSlides\Images\성경\bible-sermon.jpg", "61 = 배경 이미지");
+        f.BackgroundImageMode.Should().Be(LyricsBackgroundMode.Fit, "62=2 = legacy BestFit");
+        f.VerticalAlignment.Should().Be(LyricsVerticalAlignment.Center, "63=1 = FrmMain Ind_VAlign centre");
+        f.BodyLeftMargin.Should().Be(2, "64 = FrmMain Ind_LeftUpDown");
+        f.BodyRightMargin.Should().Be(2, "65 = FrmMain Ind_RightUpDown");
+        f.BodyBottomMargin.Should().Be(0, "66 = FrmMain Ind_BottomUpDown");
+        f.ItemTransitionName.Should().Be("None", "72 = FrmMain item transition display text");
+        f.SlideTransitionName.Should().Be("None", "73 = FrmMain slide transition display text");
+        // 실 샘플 41=16=0b10000=bit4 → region2 Italic 만 true(0-based; 레거시 HeaderData[41] 권위).
+        f.Bold1.Should().BeFalse();
+        f.Italic1.Should().BeFalse();
+        f.Bold2.Should().BeFalse();
+        f.Italic2.Should().BeTrue("41=16 의 bit4 = region2 Italic");
+    }
+
+    [Fact]
+    public void Parse_BoldItalicBits_FromField41()
+    {
+        // 41 = 글꼴 효과 비트(레거시 HeaderData[41]): region1 bit1=Bold, bit2=Italic. 3 = Bold+Italic.
+        var f = SongFormatData.Parse("29=-1>41=3>");
+
+        f.Should().NotBeNull();
+        f!.Bold1.Should().BeTrue();
+        f.Italic1.Should().BeTrue();
+    }
+
+    [Fact]
+    public void ArgbToHex_ConvertsSignedArgbInt_ToHashHex()
+    {
+        SongFormatData.ArgbToHex(-16777216).Should().Be("#FF000000", "검정");
+        SongFormatData.ArgbToHex(-1).Should().Be("#FFFFFFFF", "흰색");
+        SongFormatData.ArgbToHex(-256).Should().Be("#FFFFFF00", "노랑");
+        SongFormatData.ArgbToHex(null).Should().BeNull();
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Parse_EmptyOrWhitespace_ReturnsNull(string? raw)
+    {
+        SongFormatData.Parse(raw).Should().BeNull();
+    }
+
+    [Fact]
+    public void Parse_GarbledOrUnknownKeys_IgnoredGracefully()
+    {
+        // 알 수 없는 키/형식은 무시하고, 인식 가능한 색만 채운다(레거시 데이터 견고성).
+        var f = SongFormatData.Parse("999=xyz>29=-1>nonsense>43=Arial>");
+
+        f.Should().NotBeNull();
+        f!.TextColorArgb1.Should().Be(-1);
+        f.FontName1.Should().Be("Arial");
+    }
+
+    [Fact]
+    public void Encode_ThenParse_RoundTripsAllFields()
+    {
+        // 인스펙터에서 만든 영역별 스타일이 인코드→디코드로 비트 동일하게 보존돼야 한다.
+        var original = new SongFormatData
+        {
+            TextColorArgb1 = -16777216,
+            TextColorArgb2 = -16744193,
+            BackgroundColorArgb1 = -16777056,
+            BackgroundColorArgb2 = 100,
+            FontName1 = "Microsoft Sans Serif",
+            FontName2 = "HY견고딕",
+            FontSize1 = 55,
+            FontSize2 = 44,
+            Alignment1 = 2,
+            Alignment2 = 1,
+            Bold1 = true,
+            Italic1 = false,
+            Underline1 = true,
+            Bold2 = false,
+            Italic2 = true,
+            Underline2 = false,
+            BackgroundImagePath = @"C:\EasiSlides\Images\성경\bible.jpg",
+            BackgroundImageMode = LyricsBackgroundMode.Center,
+            VerticalAlignment = LyricsVerticalAlignment.Bottom,
+            BodyLeftMargin = 4,
+            BodyRightMargin = 5,
+            BodyBottomMargin = 6,
+            MediaPath = "clip.mp4",
+            ItemTransitionName = "Fade",
+            SlideTransitionName = "Zoom Out",
+        };
+
+        var round = SongFormatData.Parse(original.Encode());
+
+        round.Should().Be(original);
+    }
+
+    [Theory]
+    [InlineData("62=0>", LyricsBackgroundMode.Tile)]
+    [InlineData("62=1>", LyricsBackgroundMode.Center)]
+    [InlineData("62=2>", LyricsBackgroundMode.Fit)]
+    public void Parse_BackgroundImageMode62_MapsLegacyImageMode(string raw, LyricsBackgroundMode expected)
+    {
+        SongFormatData.Parse(raw)!.BackgroundImageMode.Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData(LyricsBackgroundMode.Tile, "62=0")]
+    [InlineData(LyricsBackgroundMode.Center, "62=1")]
+    [InlineData(LyricsBackgroundMode.Fit, "62=2")]
+    public void Encode_BackgroundImageMode62_MapsToLegacyImageMode(LyricsBackgroundMode mode, string expected)
+    {
+        new SongFormatData { BackgroundImageMode = mode }.Encode().Should().Be(expected);
+    }
+
+    [Fact]
+    public void Encode_MediaPath_UsesLegacySpecificMediaCodes50And51()
+    {
+        var encoded = new SongFormatData { MediaPath = @"C:\media\clip.mp4" }.Encode();
+
+        encoded.Should().Contain("50=2", "FrmMain stores specific media mode in code 50");
+        encoded.Should().Contain(@"51=C:\media\clip.mp4", "FrmMain stores the assigned media path in code 51");
+    }
+
+    [Theory]
+    [InlineData("63=0>", LyricsVerticalAlignment.Top)]
+    [InlineData("63=1>", LyricsVerticalAlignment.Center)]
+    [InlineData("63=2>", LyricsVerticalAlignment.Bottom)]
+    public void Parse_VerticalAlignment63_MapsLegacySelectionIndex(string raw, LyricsVerticalAlignment expected)
+    {
+        SongFormatData.Parse(raw)!.VerticalAlignment.Should().Be(expected);
+    }
+
+    [Fact]
+    public void Encode_VerticalAlignmentAndMargins_UsesLegacy63To66()
+    {
+        var encoded = new SongFormatData
+        {
+            VerticalAlignment = LyricsVerticalAlignment.Top,
+            BodyLeftMargin = 40,
+            BodyRightMargin = 12,
+            BodyBottomMargin = 100,
+        }.Encode();
+
+        encoded.Should().Be("63=0>64=40>65=12>66=100");
+        var round = SongFormatData.Parse(encoded)!;
+        round.VerticalAlignment.Should().Be(LyricsVerticalAlignment.Top);
+        round.BodyLeftMargin.Should().Be(40);
+        round.BodyRightMargin.Should().Be(12);
+        round.BodyBottomMargin.Should().Be(100);
+    }
+
+    [Fact]
+    public void Parse_OutOfRangeVerticalAlignmentAndMargins_IgnoresInvalidLegacyValues()
+    {
+        var parsed = SongFormatData.Parse("63=9>64=41>65=-1>66=101>")!;
+
+        parsed.VerticalAlignment.Should().BeNull();
+        parsed.BodyLeftMargin.Should().BeNull();
+        parsed.BodyRightMargin.Should().BeNull();
+        parsed.BodyBottomMargin.Should().BeNull();
+    }
+
+    [Fact]
+    public void Encode_ItemAndSlideTransitionText_UsesLegacy72And73()
+    {
+        var encoded = new SongFormatData
+        {
+            ItemTransitionName = "Doors Open",
+            SlideTransitionName = "Reveal Left Right",
+        }.Encode();
+
+        encoded.Should().Be("72=Doors Open>73=Reveal Left Right");
+        var round = SongFormatData.Parse(encoded)!;
+        round.ItemTransitionName.Should().Be("Doors Open");
+        round.SlideTransitionName.Should().Be("Reveal Left Right");
+    }
+
+    [Fact]
+    public void Encode_OmitsEmptyFields()
+    {
+        // 비어 있는(상속) 항목은 인코드 결과에서 빠진다 — region1 글자색만 설정한 경우.
+        var encoded = new SongFormatData { TextColorArgb1 = -1 }.Encode();
+
+        encoded.Should().Be("29=-1");
+        SongFormatData.Parse(encoded)!.TextColorArgb1.Should().Be(-1);
+    }
+
+    [Fact]
+    public void Encode_BoldItalicBits_RoundTrip()
+    {
+        // 효과 비트: region1 Bold+Italic, region2 Bold → 1|2|8 = 11.
+        var encoded = new SongFormatData { Bold1 = true, Italic1 = true, Bold2 = true }.Encode();
+
+        encoded.Should().Contain("41=11");
+        var f = SongFormatData.Parse(encoded)!;
+        f.Bold1.Should().BeTrue();
+        f.Italic1.Should().BeTrue();
+        f.Bold2.Should().BeTrue();
+        f.Italic2.Should().BeFalse();
+    }
+
+    [Fact]
+    public void Encode_UnderlineBits_RoundTrip()
+    {
+        // 밑줄 비트: region1 Underline=bit2(4), region2 Underline=bit5(32) → 4|32 = 36.
+        var encoded = new SongFormatData { Underline1 = true, Underline2 = true }.Encode();
+
+        encoded.Should().Contain("41=36");
+        var f = SongFormatData.Parse(encoded)!;
+        f.Underline1.Should().BeTrue();
+        f.Underline2.Should().BeTrue();
+        f.Bold1.Should().BeFalse();
+        f.Italic2.Should().BeFalse();
+    }
+
+    [Fact]
+    public void Encode_AllRegion1Effects_PackBitsCorrectly()
+    {
+        // region1 Bold+Italic+Underline = 1|2|4 = 7(하위 3비트), region2 효과 없음.
+        var encoded = new SongFormatData { Bold1 = true, Italic1 = true, Underline1 = true }.Encode();
+
+        encoded.Should().Contain("41=7");
+        var f = SongFormatData.Parse(encoded)!;
+        f.Underline1.Should().BeTrue();
+        f.Underline2.Should().BeFalse();
+    }
+
+    [Theory]
+    [InlineData("#FF000000", -16777216)]
+    [InlineData("#FFFFFFFF", -1)]
+    [InlineData("FFFF00", -256)]     // 알파 생략 → 불투명 노랑(0xFFFFFF00).
+    [InlineData("#80FF0000", 2164195328 - 4294967296)] // 반투명 빨강(부호 변환).
+    public void HexToArgb_ParsesHashAndAlphalessHex(string hex, long expected)
+        => SongFormatData.HexToArgb(hex).Should().Be((int)expected);
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("xyz")]
+    [InlineData("#12")]
+    public void HexToArgb_InvalidOrEmpty_ReturnsNull(string? hex)
+        => SongFormatData.HexToArgb(hex).Should().BeNull();
+
+    [Theory]
+    [InlineData(null, "")]                 // null → 빈(전역 글꼴 추종)
+    [InlineData("   ", "")]                // 공백뿐 → 빈
+    [InlineData("나눔고딕", "나눔고딕")]    // 평범한 이름 그대로
+    [InlineData("  맑은 고딕  ", "맑은 고딕")] // 앞뒤 공백 다듬음(가운데 공백 보존)
+    [InlineData("나눔>고딕", "나눔고딕")]    // 구분자 '>' 제거
+    [InlineData("Arial=Bold", "ArialBold")] // 구분자 '=' 제거
+    public void SanitizeFontName_TrimsAndStripsDelimiters(string? input, string expected)
+        => SongFormatData.SanitizeFontName(input).Should().Be(expected);
+}

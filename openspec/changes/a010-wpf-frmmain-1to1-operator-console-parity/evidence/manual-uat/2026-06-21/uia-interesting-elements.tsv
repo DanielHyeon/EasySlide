@@ -1,0 +1,188 @@
+﻿"Name"	"AutomationId"	"ControlType"	"IsEnabled"	"IsOffscreen"
+"FoldersWordCount"	"Folders_WordCount"	"ControlType.Button"	"True"	"False"
+"Go Live"	""	"ControlType.Button"	"False"	"False"
+"Main_Delete Delete"	"Main_Delete"	"ControlType.Button"	"True"	"False"
+"Main_Refresh Refresh"	"Main_Refresh"	"ControlType.Button"	"True"	"False"
+"Manage Worship Lists"	"WL_Manage"	"ControlType.Button"	"True"	"False"
+"Output 검은 화면"	"cbOutputBlack"	"ControlType.Button"	"False"	"False"
+"Output 구절 알림"	"OutputBtnRefAlert"	"ControlType.Button"	"False"	"False"
+"Output 다음 슬라이드"	"OutputBtnSlideDown"	"ControlType.Button"	"False"	"False"
+"Output 다음 항목"	"OutputBtnItemDown"	"ControlType.Button"	"False"	"False"
+"Output 라이브 중지"	"OutputBtnStopLive"	"ControlType.Button"	"False"	"False"
+"Output 미디어 재생 일시정지"	"OutputBtnMedia"	"ControlType.Button"	"False"	"False"
+"Output 복귀"	"cbGoLive"	"ControlType.Button"	"False"	"False"
+"Output 새로고침"	"OutputBtnRefresh"	"ControlType.Button"	"False"	"False"
+"Output 이전 슬라이드"	"OutputBtnSlideUp"	"ControlType.Button"	"False"	"False"
+"Output 이전 항목"	"OutputBtnItemUp"	"ControlType.Button"	"False"	"False"
+"Output 하단 검은 화면"	""	"ControlType.Button"	"False"	"False"
+"Output 하단 복귀"	""	"ControlType.Button"	"False"	"False"
+"Output 하단 화면 비우기"	""	"ControlType.Button"	"False"	"False"
+"Output 현재 항목 처음으로"	"OutputBtnRestartCurrentItem"	"ControlType.Button"	"False"	"False"
+"Output 화면 비우기"	"cbOutputClear"	"ControlType.Button"	"False"	"False"
+"Output 회전 제외 항목 이동"	"OutputBtnJumpToNonRotate"	"ControlType.Button"	"False"	"False"
+"Preview Go Live"	"btnToLive"	"ControlType.Button"	"True"	"False"
+"Preview Info 모드"	"IndradioButtonInfo"	"ControlType.Button"	"True"	"False"
+"Preview Output 복사"	"btnToOutput"	"ControlType.Button"	"True"	"False"
+"Preview Output 복사 후 다음"	"btnToOutputMoveNext"	"ControlType.Button"	"True"	"False"
+"Preview Set 모드"	"IndradioButtonFormat"	"ControlType.Button"	"True"	"False"
+"Preview Text 모드"	"IndradioButtonText"	"ControlType.Button"	"True"	"False"
+"Preview 다음 슬라이드"	"PreviewBtnSlideDown"	"ControlType.Button"	"True"	"False"
+"Preview 다음 항목"	"PreviewBtnItemDown"	"ControlType.Button"	"True"	"False"
+"Preview 세션 노트"	"IndcbPreviewNotes"	"ControlType.Button"	"True"	"False"
+"Preview 이전 슬라이드"	"PreviewBtnSlideUp"	"ControlType.Button"	"True"	"False"
+"Preview 이전 항목"	"PreviewBtnItemUp"	"ControlType.Button"	"True"	"False"
+"검색 및 사용처"	""	"ControlType.Button"	"True"	"False"
+"검은 화면"	""	"ControlType.Button"	"False"	"False"
+"선택 곡을 예배 순서에 추가"	""	"ControlType.Button"	"True"	"False"
+"선택한 예배 순서 불러오기"	""	"ControlType.Button"	"True"	"False"
+"예배 순서 RTF 문서 생성"	"WL_Word"	"ControlType.Button"	"True"	"False"
+"예배 순서 검증"	""	"ControlType.Button"	"True"	"False"
+"예배 순서 관리"	""	"ControlType.Button"	"True"	"False"
+"예배 순서 되돌리기"	""	"ControlType.Button"	"False"	"False"
+"예배 순서 전체 비우기"	""	"ControlType.Button"	"True"	"False"
+"외부 파일을 예배 순서에 추가"	"WL_Open"	"ControlType.Button"	"True"	"False"
+"출력 복귀"	""	"ControlType.Button"	"False"	"False"
+"출력 새로고침"	""	"ControlType.Button"	"False"	"False"
+"항목 아래로 이동 (Ctrl+Shift+Down)"	""	"ControlType.Button"	"True"	"False"
+"항목 위로 이동 (Ctrl+Shift+Up)"	""	"ControlType.Button"	"False"	"False"
+"항목 제거 (Delete 키)"	""	"ControlType.Button"	"True"	"False"
+"현재 소스 항목을 예배 순서에 추가"	"WL_Add"	"ControlType.Button"	"True"	"False"
+"화면 비우기"	""	"ControlType.Button"	"False"	"False"
+"저장된 예배 순서 선택"	"SessionCombo"	"ControlType.ComboBox"	"True"	"False"
+"폴더 선택"	"ClassicSongFolderCombo"	"ControlType.ComboBox"	"True"	"False"
+"곡 목록"	"LibrarySongList"	"ControlType.DataGrid"	"True"	"False"
+"예배 순서 목록"	"QueueList"	"ControlType.DataGrid"	"True"	"False"
+"■산소망찬양대.txt"	""	"ControlType.DataItem"	"True"	"False"
+"■성경봉독.txt"	""	"ControlType.DataItem"	"True"	"False"
+"■예배찬송.txt"	""	"ControlType.DataItem"	"True"	"False"
+"★★★사도신경★★★.txt"	""	"ControlType.DataItem"	"True"	"False"
+"SongSummary { SongId = 8925, Title = 거룩하신우리주님128(새), AlternateTitle = , FolderNo = 2, SongNumber = 128, Category = , Key = , Lyrics = [1]
+거룩하신 우리 주님
+마구간에 나셨네
+가축들이 잠든때에
+우리 주님 나셨네
+
+천사들이 찬양하네 노엘 노엘
+기쁜소식 구주 예수 나셨네
+[2]
+목자들은 잠든양떼
+아침까지 지켰네
+영광중에 탄생하신
+기쁜 소식 들었네
+
+목자들이 감격하여 찬양 찬양
+찬송하네 구주 예수 나셨네, Copyright = , BookReference = , UserReference =  }"	""	"ControlType.DataItem"	"True"	"True"
+"SongSummary { SongId = 9350, Title = 감사하는성도여587(새), AlternateTitle = , FolderNo = 2, SongNumber = 587, Category = , Key = , Lyrics = [1]
+감사하는 성도여
+추수 찬송 부르세
+추운 겨울 오기전
+염려 없게 거뒀네
+
+하나님이 우리게
+일용 양식 주시니
+주의 전에 모여서
+추수 찬송 부르세
+[2]
+이 세상은 밭이요
+주는 씨를 뿌리네
+좋은 곡식 싹날때
+가라지도 나도다
+
+싹과 잎이 자라서
+열매 맺게 되나니
+우리들을 온전한
+알곡되게 하소서
+[3]
+우리 주님 오셔서
+곡식 거둬들이고
+밭에 있는 나쁜 것
+모두 소멸하실 때
+
+가라지는 골라서
+불에 던져 태우고
+알곡들은 곳간에
+길이 쌓아 두시리
+[4]
+주여 어서 오셔서
+우리 거둬 주소서
+죄와 슬픔 중에서
+우리 건져 주소서
+
+모든 성도 영원히
+하늘집에 이르러
+천군 천사 어울려
+추수 찬송 부르리 아멘, Copyright = , BookReference = , UserReference =  }"	""	"ControlType.DataItem"	"True"	"False"
+"SongSummary { SongId = 9357, Title = 감사하세찬양하세594(새), AlternateTitle = , FolderNo = 2, SongNumber = 594, Category = , Key = , Lyrics = [1]
+감사하세 찬양하세
+주를 믿는 성도들아
+하나님이 복을 주사
+
+가난한 우리도 풍성하네
+할렐루야 찬송하세
+창조주 하나님 감사하세
+[chorus]
+오곡 백과가 풍성하니
+하나님께 감사하세
+[2]
+감사하세 찬양하세
+속죄받은 성도들아
+하나님이 햇빛 주사
+
+삼천리 강산이 풍년일세
+주신 알곡 나눠주며
+창조주 하나님 감사하세
+[3]
+감사하세 찬양하세
+은혜받은 자녀들아
+하나님이 우리에게
+
+풍성히 거두라 복주셨네
+거둬들인 알곡 안고
+창조주 하나님 감사하세, Copyright = , BookReference = , UserReference =  }"	""	"ControlType.DataItem"	"True"	"False"
+"곡 검색"	""	"ControlType.Edit"	"True"	"False"
+"선택한 곡의 절 순서"	""	"ControlType.Edit"	"True"	"False"
+"Output 현재 송출 항목"	"ClassicOutputPanelDisplayName"	"ControlType.List"	"True"	"False"
+"Preview 선택 항목"	"ClassicPreviewPanelDisplayName"	"ControlType.List"	"True"	"False"
+"System.Windows.Controls.ListViewItem"	""	"ControlType.ListItem"	"True"	"False"
+"System.Windows.Controls.ListViewItem"	""	"ControlType.ListItem"	"True"	"False"
+"Output"	""	"ControlType.MenuItem"	"True"	"False"
+"Bibles"	""	"ControlType.TabItem"	"True"	"False"
+"Default"	""	"ControlType.TabItem"	"True"	"False"
+"Folders"	""	"ControlType.TabItem"	"True"	"False"
+"Images"	"ImagesSourceTab"	"ControlType.TabItem"	"True"	"False"
+"InfoScr source"	"InfoScreenSourceTab"	"ControlType.TabItem"	"True"	"False"
+"Praise Book"	"PraiseBookTab"	"ControlType.TabItem"	"True"	"False"
+"Worship List"	"WorshipListTab"	"ControlType.TabItem"	"True"	"False"
+"■산소망찬양대.txt"	""	"ControlType.Text"	"True"	"False"
+"■성경봉독.txt"	""	"ControlType.Text"	"True"	"False"
+"■예배찬송.txt"	""	"ControlType.Text"	"True"	"False"
+"★★★사도신경★★★.txt"	""	"ControlType.Text"	"True"	"False"
+"1개 폴더, 644개 곡 표시"	""	"ControlType.Text"	"True"	"False"
+"Bibles"	""	"ControlType.Text"	"True"	"False"
+"Default"	""	"ControlType.Text"	"True"	"False"
+"Folders"	""	"ControlType.Text"	"True"	"False"
+"Images"	""	"ControlType.Text"	"True"	"False"
+"Info"	""	"ControlType.Text"	"True"	"False"
+"InfoScr"	""	"ControlType.Text"	"True"	"False"
+"Legacy worship list loaded: 1.주일예배 (23 .esw items)"	""	"ControlType.Text"	"True"	"False"
+"LIVE"	""	"ControlType.Text"	"False"	"False"
+"Output"	""	"ControlType.Text"	"True"	"False"
+"Output"	""	"ControlType.Text"	"True"	"False"
+"Output"	""	"ControlType.Text"	"True"	"False"
+"Output 큰 화면 위치"	""	"ControlType.Text"	"True"	"False"
+"Output 현재 위치"	"ClassicOutputPositionLabel"	"ControlType.Text"	"True"	"False"
+"Praise Book"	""	"ControlType.Text"	"True"	"False"
+"Preview 큰 화면 본문"	"ClassicPreviewLargeLyricsText"	"ControlType.Text"	"True"	"False"
+"Preview 큰 화면 위치"	""	"ControlType.Text"	"True"	"False"
+"Preview 현재 위치"	"ClassicPreviewPositionLabel"	"ControlType.Text"	"True"	"False"
+"Set"	""	"ControlType.Text"	"True"	"False"
+"Text"	""	"ControlType.Text"	"True"	"False"
+"Worship List"	""	"ControlType.Text"	"True"	"False"
+"감사하세찬양하세594(새)"	""	"ControlType.Text"	"True"	"False"
+"곡"	""	"ControlType.Text"	"True"	"False"
+"예배 순서"	""	"ControlType.Text"	"True"	"False"
+"예배 순서 항목 수"	""	"ControlType.Text"	"True"	"False"
+"splitContainer2 Preview/Output 너비 조절"	""	"ControlType.Thumb"	"True"	"False"
+"splitContainerMain 소스/Preview-Output 너비 조절"	""	"ControlType.Thumb"	"True"	"False"
+"splitContainerPreview/Output 상하 패널 높이 조절"	""	"ControlType.Thumb"	"True"	"False"
+"브라우저/예배 순서 높이 조절"	""	"ControlType.Thumb"	"True"	"False"

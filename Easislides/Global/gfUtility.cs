@@ -965,8 +965,8 @@ namespace Easislides
 				}
 				else if (InItem.Type == "I" && InItem.Format.TempImageFileName == "")
 				{
-					InItem.Format.ShowScreenColour[0] = ShowScreenColour[0];
-					InItem.Format.ShowScreenColour[1] = ShowScreenColour[1];
+					InItem.Format.ShowScreenColour[0] = ShowScreenColour[0].ToArgb();
+					InItem.Format.ShowScreenColour[1] = ShowScreenColour[1].ToArgb();
 					InItem.Format.ShowScreenStyle = ShowScreenStyle;
 				}
 			}
@@ -1005,7 +1005,8 @@ namespace Easislides
 					}
 					else
 					{
-						BackPattern.Fill(ref g, InItem.Format.ShowScreenColour[0], InItem.Format.ShowScreenColour[1], InItem.Format.ShowScreenStyle, Buffer_LS_Width, Buffer_LS_Height, ref patternID);
+						// SongFormat colours are ARGB ints (main); BackPattern.Fill takes Color.
+					BackPattern.Fill(ref g, Color.FromArgb(InItem.Format.ShowScreenColour[0]), Color.FromArgb(InItem.Format.ShowScreenColour[1]), InItem.Format.ShowScreenStyle, Buffer_LS_Width, Buffer_LS_Height, ref patternID);
 					}
 				}
 				finally

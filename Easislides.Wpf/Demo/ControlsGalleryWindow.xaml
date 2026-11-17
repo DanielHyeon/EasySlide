@@ -1,0 +1,226 @@
+<Window x:Class="Easislides.Wpf.Demo.ControlsGalleryWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:Easislides.Wpf.Controls"
+        xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+        Title="EasiControls Gallery — EsTextBox · EsToggle · EsCard · EsLiveIndicator"
+        Width="980" Height="780"
+        Background="{DynamicResource Brush.Surface.Page}"
+        WindowStartupLocation="CenterOwner">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="{StaticResource Thickness.Xl}">
+        <StackPanel MaxWidth="900" HorizontalAlignment="Stretch">
+
+            <!-- Header -->
+            <TextBlock Text="EasiControls 베이스 라이브러리 — Sprint 1 Batch 2"
+                       Style="{StaticResource Type.Title1.Style}"
+                       Foreground="{DynamicResource Brush.Text.Primary}" />
+            <TextBlock Text="EsTextBox · EsToggle · EsCard · EsLiveIndicator 4개 컨트롤 시각 검증 (계획서 §5.1)"
+                       Style="{StaticResource Type.Body.Style}"
+                       Foreground="{DynamicResource Brush.Text.Secondary}"
+                       Margin="0,4,0,24" />
+
+            <!-- EsTextBox 데모 -->
+            <Border Style="{StaticResource EsCard.Flat}" Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Text="EsTextBox (3변종)" Style="{StaticResource Type.Title2.Style}"
+                               Foreground="{DynamicResource Brush.Text.Primary}" Margin="0,0,0,12" />
+
+                    <TextBlock Text="Default — 표준 텍스트 입력 (placeholder 'Sprint 2 확장 예정')"
+                               Style="{StaticResource Type.Caption.Style}"
+                               Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                    <TextBox Style="{StaticResource EsTextBox.Default}"
+                             Text="찬양곡 제목을 입력하세요"
+                             Margin="0,4,0,12" />
+
+                    <TextBlock Text="Search — 좌측 검색 아이콘"
+                               Style="{StaticResource Type.Caption.Style}"
+                               Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                    <TextBox Style="{StaticResource EsTextBox.Search}"
+                             Text="요한복음 3:16"
+                             Margin="0,4,0,12" />
+
+                    <TextBlock Text="Numeric — 등폭 폰트 + 오른쪽 정렬"
+                               Style="{StaticResource Type.Caption.Style}"
+                               Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                    <TextBox Style="{StaticResource EsTextBox.Numeric}"
+                             Text="1920"
+                             Width="180"
+                             HorizontalAlignment="Left"
+                             Margin="0,4,0,12" />
+
+                    <TextBlock Text="Disabled"
+                               Style="{StaticResource Type.Caption.Style}"
+                               Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                    <TextBox Style="{StaticResource EsTextBox.Default}"
+                             Text="비활성 입력란"
+                             IsEnabled="False"
+                             Margin="0,4,0,0" />
+                </StackPanel>
+            </Border>
+
+            <!-- EsToggle 데모 -->
+            <Border Style="{StaticResource EsCard.Flat}" Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Text="EsToggle (Switch · Checkbox · Radio)"
+                               Style="{StaticResource Type.Title2.Style}"
+                               Foreground="{DynamicResource Brush.Text.Primary}" Margin="0,0,0,12" />
+
+                    <ToggleButton Style="{StaticResource EsToggle.Switch}"
+                                  Content="다크모드 활성"
+                                  IsChecked="True"
+                                  Margin="0,0,0,8" />
+                    <ToggleButton Style="{StaticResource EsToggle.Switch}"
+                                  Content="시니어 모드"
+                                  Margin="0,0,0,8" />
+                    <ToggleButton Style="{StaticResource EsToggle.Switch}"
+                                  Content="비활성 옵션"
+                                  IsEnabled="False"
+                                  Margin="0,0,0,16" />
+
+                    <CheckBox Style="{StaticResource EsToggle.Checkbox}"
+                              Content="시작 시 마지막 예배 자동 열기"
+                              IsChecked="True"
+                              Margin="0,0,0,8" />
+                    <CheckBox Style="{StaticResource EsToggle.Checkbox}"
+                              Content="자동 백업 (매 5분)"
+                              Margin="0,0,0,16" />
+
+                    <StackPanel>
+                        <RadioButton Style="{StaticResource EsToggle.Radio}"
+                                     Content="표준 (14px / 44px)"
+                                     GroupName="InterfaceSize"
+                                     IsChecked="True"
+                                     Margin="0,0,0,4" />
+                        <RadioButton Style="{StaticResource EsToggle.Radio}"
+                                     Content="큰 글씨 (16px / 48px)"
+                                     GroupName="InterfaceSize"
+                                     Margin="0,0,0,4" />
+                        <RadioButton Style="{StaticResource EsToggle.Radio}"
+                                     Content="시니어 (20px / 52px)"
+                                     GroupName="InterfaceSize" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- EsCard 데모 -->
+            <TextBlock Text="EsCard (3변종)" Style="{StaticResource Type.Title2.Style}"
+                       Foreground="{DynamicResource Brush.Text.Primary}" Margin="0,0,0,12" />
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                <Border Style="{StaticResource EsCard.Flat}" Width="220" Margin="0,0,12,0">
+                    <StackPanel>
+                        <TextBlock Text="Flat" Style="{StaticResource Type.Title3.Style}"
+                                   Foreground="{DynamicResource Brush.Text.Primary}" />
+                        <TextBlock Text="Elevation.0, 보더만"
+                                   Style="{StaticResource Type.Body.Style}"
+                                   Foreground="{DynamicResource Brush.Text.Secondary}"
+                                   Margin="0,4,0,0" />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource EsCard.Elevated}" Width="220" Margin="0,0,12,0">
+                    <StackPanel>
+                        <TextBlock Text="Elevated" Style="{StaticResource Type.Title3.Style}"
+                                   Foreground="{DynamicResource Brush.Text.Primary}" />
+                        <TextBlock Text="DropShadow 그림자"
+                                   Style="{StaticResource Type.Body.Style}"
+                                   Foreground="{DynamicResource Brush.Text.Secondary}"
+                                   Margin="0,4,0,0" />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource EsCard.Interactive}" Width="220">
+                    <StackPanel>
+                        <TextBlock Text="Interactive" Style="{StaticResource Type.Title3.Style}"
+                                   Foreground="{DynamicResource Brush.Text.Primary}" />
+                        <TextBlock Text="hover 시 액센트 보더"
+                                   Style="{StaticResource Type.Body.Style}"
+                                   Foreground="{DynamicResource Brush.Text.Secondary}"
+                                   Margin="0,4,0,0" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <!-- EsLiveIndicator 데모 -->
+            <Border Style="{StaticResource EsCard.Flat}" Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Text="EsLiveIndicator (Q5 라이브 인디케이터 — Pulse 애니메이션)"
+                               Style="{StaticResource Type.Title2.Style}"
+                               Foreground="{DynamicResource Brush.Text.Primary}" Margin="0,0,0,12" />
+
+                    <!-- 4가지 상태 데모 -->
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <!-- 라벨 텍스트는 Brush.Text.Primary 사용 (§4.1 Brush.Live.*는 라이브 송출 의미 외 사용 금지) -->
+                        <StackPanel Grid.Column="0" HorizontalAlignment="Center">
+                            <controls:EsLiveIndicator State="Active" Diameter="20" HorizontalAlignment="Center" />
+                            <TextBlock Text="Active (Pulse)" Style="{StaticResource Type.Body.Style}"
+                                       Foreground="{DynamicResource Brush.Text.Primary}"
+                                       HorizontalAlignment="Center" Margin="0,8,0,0" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="1" HorizontalAlignment="Center">
+                            <controls:EsLiveIndicator State="Standby" Diameter="20" HorizontalAlignment="Center" />
+                            <TextBlock Text="Standby" Style="{StaticResource Type.Body.Style}"
+                                       Foreground="{DynamicResource Brush.Text.Primary}"
+                                       HorizontalAlignment="Center" Margin="0,8,0,0" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2" HorizontalAlignment="Center">
+                            <controls:EsLiveIndicator State="Hidden" Diameter="20" HorizontalAlignment="Center" />
+                            <TextBlock Text="Hidden" Style="{StaticResource Type.Body.Style}"
+                                       Foreground="{DynamicResource Brush.Text.Secondary}"
+                                       HorizontalAlignment="Center" Margin="0,8,0,0" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="3" HorizontalAlignment="Center">
+                            <Border Width="20" Height="20"
+                                    BorderBrush="{DynamicResource Brush.Border.Default}"
+                                    BorderThickness="1"
+                                    CornerRadius="10"
+                                    Background="Transparent">
+                                <controls:EsLiveIndicator State="Off" Diameter="20" />
+                            </Border>
+                            <TextBlock Text="Off (Collapsed)" Style="{StaticResource Type.Body.Style}"
+                                       Foreground="{DynamicResource Brush.Text.Tertiary}"
+                                       HorizontalAlignment="Center" Margin="0,8,0,0" />
+                        </StackPanel>
+                    </Grid>
+
+                    <TextBlock Text="↑ Active 점이 깜빡임 (Pulse 1.2초 주기, prefers-reduced-motion 끔 시 정적)"
+                               Style="{StaticResource Type.Caption.Style}"
+                               Foreground="{DynamicResource Brush.Text.Tertiary}"
+                               HorizontalAlignment="Center"
+                               Margin="0,16,0,0" />
+                </StackPanel>
+            </Border>
+
+            <!-- Pretendard 폰트 검증 -->
+            <Border Style="{StaticResource EsCard.Flat}" Margin="0,0,0,8">
+                <StackPanel>
+                    <TextBlock Text="Pretendard Variable 폰트 검증 (ADR-0003)"
+                               Style="{StaticResource Type.Title2.Style}"
+                               Foreground="{DynamicResource Brush.Text.Primary}" Margin="0,0,0,12" />
+                    <TextBlock Text="가는 글씨 100" FontFamily="{DynamicResource Font.Primary}" FontWeight="Thin" FontSize="20"
+                               Foreground="{DynamicResource Brush.Text.Primary}" Margin="0,2" />
+                    <TextBlock Text="얇은 글씨 200" FontFamily="{DynamicResource Font.Primary}" FontWeight="ExtraLight" FontSize="20"
+                               Foreground="{DynamicResource Brush.Text.Primary}" Margin="0,2" />
+                    <TextBlock Text="기본 글씨 400" FontFamily="{DynamicResource Font.Primary}" FontWeight="Normal" FontSize="20"
+                               Foreground="{DynamicResource Brush.Text.Primary}" Margin="0,2" />
+                    <TextBlock Text="세미볼드 600" FontFamily="{DynamicResource Font.Primary}" FontWeight="SemiBold" FontSize="20"
+                               Foreground="{DynamicResource Brush.Text.Primary}" Margin="0,2" />
+                    <TextBlock Text="볼드 700" FontFamily="{DynamicResource Font.Primary}" FontWeight="Bold" FontSize="20"
+                               Foreground="{DynamicResource Brush.Text.Primary}" Margin="0,2" />
+                    <TextBlock Text="블랙 900 — 무게가 다양해야 Pretendard가 정상 로드된 것"
+                               FontFamily="{DynamicResource Font.Primary}" FontWeight="Black" FontSize="20"
+                               Foreground="{DynamicResource Brush.Text.Primary}" Margin="0,2" />
+                </StackPanel>
+            </Border>
+
+        </StackPanel>
+    </ScrollViewer>
+</Window>

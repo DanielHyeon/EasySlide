@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Easislides.Core — 공통 도메인 어셈블리 (§9.4 / core-extraction-plan.md / 작업 B-3 Phase 1).
+    legacy WinForms(Easislides.exe)와 신규 WPF(EasislidesNext.exe)가 함께 참조하는 순수 도메인.
+    TFM 은 포터블 net10.0 — WinForms/System.Drawing 결합을 컴파일 단계에서 사전 차단한다.
+    Core 는 어떤 앱도 참조하지 않는다(단방향 의존).
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <!-- 어셈블리명 명시 — CoreExtractionTests 가 "Easislides.Core" 문자열에 의존하므로 못 박는다. -->
+    <AssemblyName>Easislides.Core</AssemblyName>
+    <!-- 새 파일 기본 네임스페이스를 도메인 네임스페이스로 — 휴먼에러 방지(현 enum 은 명시 네임스페이스). -->
+    <RootNamespace>Easislides.Module</RootNamespace>
+  </PropertyGroup>
+
+</Project>

@@ -1,0 +1,69 @@
+<Window x:Class="Easislides.Wpf.PreviewWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:conv="clr-namespace:Easislides.Wpf.Converters"
+        Title="EasiSlides 스테이지 모니터"
+        Width="1280"
+        Height="720"
+        Background="{Binding SceneBackgroundBrush}"
+        Foreground="{Binding SceneForegroundBrush}"
+        WindowStartupLocation="Manual">
+    <Window.Resources>
+        <!-- 본문 문자열이 있으면 표시 — 효과(외곽선/인터레이스) 게이트에 묶지 않으려고 직접 쓴다(아래 가사 밴드 참고). -->
+        <conv:StringToVisibilityConverter x:Key="StringToVis" />
+    </Window.Resources>
+    <!-- 스테이지(Preview) 모니터 — 회중용 출력과 별개로 워십 리더·밴드가 보는 확인 화면.
+         출력 창(OutputWindow)의 거대한 전환 엔진을 복제하지 않고, 같은 OutputWindowViewModel 에 바인딩해
+         핵심만 보여 준다: 가사 본문(Region1+Region2) + 시계 + 다음 항목.
+         (회중 화면이 검정/비움이어도 PreviewWindowHost 의 세션 정규화로 가사는 계속 보인다.) -->
+    <Grid Background="{Binding SceneBackgroundBrush}">
+
+        <!-- 시계(우상단) — 코드비하인드 타이머가 1초마다 ClockText 를 갱신한다. -->
+        <TextBlock x:Name="ClockText"
+                   HorizontalAlignment="Right"
+                   VerticalAlignment="Top"
+                   Margin="28"
+                   FontSize="44"
+                   Opacity="0.85"
+                   Foreground="{Binding SceneForegroundBrush}" />
+
+        <!-- 가사 본문(중앙) — 단일/이중 언어(Region1·Region2) 두 밴드. 전환·인터레이스·외곽선 등 화려한 효과는
+             스테이지에 불필요해 생략(확인용 가독성 우선). 글꼴 미오버라이드(UnsetValue)면 테마 글꼴 상속.
+             Visibility 는 출력의 BodyTextVisibility(외곽선/인터레이스 시 Collapsed)가 아니라 **본문 문자열 유무**로 건다 —
+             그래야 효과 켠 곡에서도 스테이지엔 평문 가사가 계속 보인다(효과 없이 텍스트만). 정렬은 확인용이라 가운데 고정. -->
+        <StackPanel HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Margin="56,56,56,120">
+            <TextBlock Text="{Binding BodyText}"
+                       Visibility="{Binding BodyText, Converter={StaticResource StringToVis}}"
+                       TextWrapping="Wrap"
+                       TextAlignment="Center"
+                       Foreground="{Binding SceneForegroundBrush}"
+                       FontSize="{Binding BodyFontSize}"
+                       FontFamily="{Binding BodyFontFamily}"
+                       FontWeight="{Binding BodyFontWeight}"
+                       FontStyle="{Binding BodyFontStyle}" />
+            <TextBlock Text="{Binding BodyText2}"
+                       Visibility="{Binding BodyText2, Converter={StaticResource StringToVis}}"
+                       TextWrapping="Wrap"
+                       TextAlignment="Center"
+                       Margin="0,16,0,0"
+                       Foreground="{Binding SceneForegroundBrush2}"
+                       FontSize="{Binding BodyFont2Size}"
+                       FontFamily="{Binding BodyFont2Family}"
+                       FontWeight="{Binding BodyFont2Weight}"
+                       FontStyle="{Binding BodyFont2Style}" />
+        </StackPanel>
+
+        <!-- 다음 항목(하단) — "다음 ▶ ..."(출력 "다음 항목 표시" 설정이 켜졌을 때). 리더가 다음 순서를 미리 본다. -->
+        <Border VerticalAlignment="Bottom"
+                Background="#66000000"
+                Padding="20,12"
+                Visibility="{Binding NextItemVisibility}">
+            <TextBlock Text="{Binding NextItemText}"
+                       HorizontalAlignment="Center"
+                       FontSize="30"
+                       Foreground="{Binding SceneForegroundBrush}" />
+        </Border>
+    </Grid>
+</Window>
