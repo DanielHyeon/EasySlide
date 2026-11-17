@@ -17,6 +17,7 @@ namespace Easislides.Global
         public int HeadingPercentSize;
         public int HeadingOption;
         public int[] HeadingFontBold = new int[2];
+        public int[] HeadingFontItalic = new int[2];
 
         public FolderSettings Clone()
         {
@@ -24,6 +25,7 @@ namespace Easislides.Global
             // Arrays inside are references: copy each one here when such a field is added.
             copy.LyricsHeading = (string[])LyricsHeading.Clone();
             copy.HeadingFontBold = (int[])HeadingFontBold.Clone();
+            copy.HeadingFontItalic = (int[])HeadingFontItalic.Clone();
             return copy;
         }
     }
