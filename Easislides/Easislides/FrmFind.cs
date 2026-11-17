@@ -60,7 +60,7 @@ namespace Easislides
 				if ((Gf.Folders[i].Name != "") & (Gf.Folders[i].Use > 0))
 				{
 					FolderList.Items.Add(Gf.Folders[i].Name);
-					if (Gf.FindSongsFolder[Gf.GetFolderNumber(Gf.Folders[i].Name)])
+					if (Gf.Folders[Gf.GetFolderNumber(Gf.Folders[i].Name)].FindSongs)
 					{
 						FolderList.SetItemChecked(FolderList.Items.Count - 1, value: true);
 					}

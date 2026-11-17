@@ -12,6 +12,7 @@ namespace Easislides.Global
         public int Use;
         public SortBy GroupStyle = SortBy.Alpha;
         public string RenameName;
+        public bool FindSongs;
 
         public FolderSettings Clone()
         {

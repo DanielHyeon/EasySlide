@@ -446,7 +446,7 @@ namespace Easislides
 		{
 			for (int i = 0; i < MAXSONGSFOLDERS; i++)
 			{
-				FindSongsFolder[i] = true;
+				Folders[i].FindSongs = true;
 			}
 			RootEasiSlidesDir = RegUtil.GetRegValue("config", "root_directory", "C:\\EasiSlides\\");
 			WorshipDir = $@"{RootEasiSlidesDir}Admin\WorshipLists\";

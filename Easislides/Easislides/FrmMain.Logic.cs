@@ -882,7 +882,7 @@ namespace Easislides
             {
                 for (int i = 1; i < Gf.MAXSONGSFOLDERS; i++)
                 {
-                    if (Gf.FindSongsFolder[i])
+                    if (Gf.Folders[i].FindSongs)
                     {
                         text11 = ((!(text11 == "")) ? ($"{text11} or FolderNo = {Convert.ToString(i)}") : ($" and (FolderNo = {Convert.ToString(i)}"));
                     }

@@ -1824,8 +1824,6 @@ namespace Easislides
 
 		public static string BookRefData = "";
 
-		public static bool[] FindSongsFolder = new bool[MAXSONGSFOLDERS];
-
 		public static bool AllDirOK = false;
 
 		public static bool AppCloseDown = false;

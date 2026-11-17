@@ -2044,13 +2044,13 @@ namespace Easislides
 			}
 			for (int i = 1; i < MAXSONGSFOLDERS; i++)
 			{
-				FindSongsFolder[i] = false;
+				Folders[i].FindSongs = false;
 			}
 			if (InFolderList != null)
 			{
 				for (int i = 0; i <= InFolderList.CheckedItems.Count - 1; i++)
 				{
-					FindSongsFolder[GetFolderNumber(InFolderList.CheckedItems[i].ToString())] = true;
+					Folders[GetFolderNumber(InFolderList.CheckedItems[i].ToString())].FindSongs = true;
 					text2 = ((!(text2 == "")) ? (text2 + " or FolderNo=" + GetFolderNumber(InFolderList.CheckedItems[i].ToString())) : (" and (FolderNo=" + GetFolderNumber(InFolderList.CheckedItems[i].ToString())));
 				}
 				if (text2 != "")
@@ -2064,7 +2064,7 @@ namespace Easislides
 				{
 					if (Folders[i].Use > 0)
 					{
-						FindSongsFolder[i] = true;
+						Folders[i].FindSongs = true;
 						text2 = ((!(text2 == "")) ? (text2 + " or FolderNo=" + i) : (" and (FolderNo=" + i));
 					}
 				}
