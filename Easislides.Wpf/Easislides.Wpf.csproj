@@ -65,6 +65,13 @@
     </Compile>
   </ItemGroup>
 
+  <!-- Same reading of stored dates (SONG.LastModified) in both apps, whatever the Windows regional format. -->
+  <ItemGroup>
+    <Compile Include="..\Easislides\Util\StoredDate.cs">
+      <Link>External\Util\StoredDate.cs</Link>
+    </Compile>
+  </ItemGroup>
+
   <!-- 폰트 자산 (ADR-0003 / Q4). Pretendard Variable v1.3.9 번들. OFL 1.1 라이선스 동봉 의무. -->
   <ItemGroup>
     <Resource Include="Assets\Fonts\PretendardVariable.ttf" />

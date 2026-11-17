@@ -766,7 +766,8 @@ public sealed class SearchUsageService : ISearchUsageService
             return null;
         }
 
-        return DateTime.TryParse(text, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out var value)
+        // Shared with the WinForms app: yyyy-MM-dd, or what older versions wrote in the Korean or English format.
+        return Easislides.Util.StoredDate.TryParse(text, out var value)
             ? value.Date
             : null;
     }

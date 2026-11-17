@@ -299,6 +299,8 @@ namespace Easislides
 			{
 				return false;
 			}
+			// Song dates written by older versions in a regional format become yyyy-MM-dd (no change when all are).
+			NormalizeLastModified(ConnectStringMainDB);
 
 			LoadSavedData();
 

@@ -1640,16 +1640,8 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
             return null;
         }
 
-        if (value is DateTime date)
-        {
-            return date.Date;
-        }
-
-        return DateTime.TryParse(
-            Convert.ToString(value, CultureInfo.InvariantCulture),
-            CultureInfo.InvariantCulture,
-            DateTimeStyles.AssumeLocal,
-            out var parsed)
+        // Shared with the WinForms app: yyyy-MM-dd, or what older versions wrote in the Korean or English format.
+        return Easislides.Util.StoredDate.TryParse(value, out var parsed)
             ? parsed.Date
             : null;
     }

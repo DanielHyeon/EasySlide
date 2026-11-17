@@ -43,10 +43,11 @@ namespace Easislides
 						{
 							num = 1;
 						}
-						DateTime dateTime = DataUtil.ObjToDate(dr["LastModified"]);
+						// An empty or unreadable date stays empty (it used to show today's date).
+						string deletedOn = DataUtil.TryParseStoredDate(dr["LastModified"], out DateTime dateTime) ? DataUtil.ToStoredDate(dateTime) : "";
 						listViewItem = SongsList.Items.Add(DataUtil.ObjToString(dr["Title_1"]));
 						listViewItem.SubItems.Add(Gf.Folders[num].Name);
-						listViewItem.SubItems.Add(DataUtil.ToStoredDate(dateTime));
+						listViewItem.SubItems.Add(deletedOn);
 						listViewItem.SubItems.Add(DataUtil.ObjToString(dr["SongID"]));
 						listViewItem.SubItems.Add(num.ToString());
 					}

@@ -980,6 +980,55 @@ namespace Easislides
 			return false;
 		}
 
+		/// <summary>
+		/// Rewrites SONG.LastModified values that do not start with yyyy-MM-dd (written by older versions through a
+		/// DataRow in the regional format, e.g. "11/18/2026 12:00:00 AM") as yyyy-MM-dd, so that the date conditions
+		/// (LastModifiedBetween) find them whatever format wrote them. Only rows in another form are read and changed;
+		/// values that cannot be read are left as they are. Returns the number of rows changed.
+		/// </summary>
+		public static int NormalizeLastModified(string connectString)
+		{
+			int changed = 0;
+			try
+			{
+				using DbConnection connection = DbController.GetDbConnection(connectString);
+				var updates = new List<(long SongId, string Date)>();
+				using (DbCommand select = new DbCommand("select SONGID, LastModified from SONG where LastModified is not null and LastModified <> '' "
+					+ "and LastModified not glob '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]*'", connection))
+				using (System.Data.SQLite.SQLiteDataReader reader = select.ExecuteReader())
+				{
+					while (reader.Read())
+					{
+						if (StoredDate.TryParse(reader.GetValue(1), out DateTime date))
+						{
+							updates.Add((reader.GetInt64(0), StoredDate.ToText(date)));
+						}
+					}
+				}
+				if (updates.Count == 0)
+				{
+					return 0;
+				}
+				using System.Data.SQLite.SQLiteTransaction transaction = connection.BeginTransaction();
+				using DbCommand update = new DbCommand("update SONG set LastModified = @date where SONGID = @id", connection, transaction);
+				System.Data.SQLite.SQLiteParameter dateParam = update.Parameters.Add("@date", DbType.String);
+				System.Data.SQLite.SQLiteParameter idParam = update.Parameters.Add("@id", DbType.Int64);
+				foreach ((long songId, string date) in updates)
+				{
+					dateParam.Value = date;
+					idParam.Value = songId;
+					changed += update.ExecuteNonQuery();
+				}
+				transaction.Commit();
+				Trace.WriteLine($"NormalizeLastModified: {changed} date(s) rewritten as {StoredDate.Format}");
+			}
+			catch (Exception ex)
+			{
+				Trace.WriteLine($"NormalizeLastModified ERROR : {ex.Message}");
+			}
+			return changed;
+		}
+
 		/// <summary>The quick find search: every text column of the folders in use.</summary>
 		public static string BuildItemSearchString(string searchText)
 		{
@@ -1058,10 +1107,9 @@ namespace Easislides
 		}
 
 		/// <summary>
-		/// SQL condition: SONG.LastModified between two dates (inclusive). The column is text starting with the date:
-		/// 'yyyy-MM-dd' (DataUtil.StoredDateFormat), 'yyyy-MM-dd HH:mm:ss', or 'yyyy-MM-dd 오전 12:00:00' written by older
-		/// versions under the Korean format, which date() cannot read; so the first 10 characters are compared.
-		/// (Older versions under the English (US) format wrote 'M/d/yyyy h:mm:ss tt'; such rows are not matched.)
+		/// SQL condition: SONG.LastModified between two dates (inclusive), comparing the first 10 characters, which are
+		/// yyyy-MM-dd (StoredDate.Format) for every row once NormalizeLastModified has run; date() would not do, as it
+		/// cannot read a time part with the Korean AM/PM designator that older versions wrote.
 		/// </summary>
 		public static string LastModifiedBetween(DateTime from, DateTime to)
 		{
