@@ -54,31 +54,31 @@ namespace Easislides
 						int slideTypeValue = InItem.Slide[i, 0];
 						if (slideTypeValue == (int)SlideType.Chorus)
 						{
-							builder.Append((FolderLyricsHeading[InItem.FolderNo, 1] != "") ? FolderLyricsHeading[InItem.FolderNo, 1] : "Chorus:");
+							builder.Append((Folders[InItem.FolderNo].LyricsHeading[1] != "") ? Folders[InItem.FolderNo].LyricsHeading[1] : "Chorus:");
 						}
 						else if (slideTypeValue == (int)SlideType.Chorus2)
 						{
-							builder.Append((FolderLyricsHeading[InItem.FolderNo, 1] != "") ? (FolderLyricsHeading[InItem.FolderNo, 1] + " (2)") : "Chorus 2:");
+							builder.Append((Folders[InItem.FolderNo].LyricsHeading[1] != "") ? (Folders[InItem.FolderNo].LyricsHeading[1] + " (2)") : "Chorus 2:");
 						}
 						else if (slideTypeValue == (int)SlideType.PreChorus)
 						{
-							builder.Append((FolderLyricsHeading[InItem.FolderNo, 0] != "") ? FolderLyricsHeading[InItem.FolderNo, 0] : "Prechorus:");
+							builder.Append((Folders[InItem.FolderNo].LyricsHeading[0] != "") ? Folders[InItem.FolderNo].LyricsHeading[0] : "Prechorus:");
 						}
 						else if (slideTypeValue == (int)SlideType.PreChorus2)
 						{
-							builder.Append((FolderLyricsHeading[InItem.FolderNo, 0] != "") ? (FolderLyricsHeading[InItem.FolderNo, 0] + " (2)") : "Prechorus 2:");
+							builder.Append((Folders[InItem.FolderNo].LyricsHeading[0] != "") ? (Folders[InItem.FolderNo].LyricsHeading[0] + " (2)") : "Prechorus 2:");
 						}
 						else if (slideTypeValue == (int)SlideType.Bridge)
 						{
-							builder.Append((FolderLyricsHeading[InItem.FolderNo, 2] != "") ? FolderLyricsHeading[InItem.FolderNo, 2] : "Bridge:");
+							builder.Append((Folders[InItem.FolderNo].LyricsHeading[2] != "") ? Folders[InItem.FolderNo].LyricsHeading[2] : "Bridge:");
 						}
 						else if (slideTypeValue == (int)SlideType.Bridge2)
 						{
-							builder.Append((FolderLyricsHeading[InItem.FolderNo, 2] != "") ? (FolderLyricsHeading[InItem.FolderNo, 2] + " (2)") : "Bridge 2:");
+							builder.Append((Folders[InItem.FolderNo].LyricsHeading[2] != "") ? (Folders[InItem.FolderNo].LyricsHeading[2] + " (2)") : "Bridge 2:");
 						}
 						else if (slideTypeValue == (int)SlideType.Ending)
 						{
-							builder.Append((FolderLyricsHeading[InItem.FolderNo, 3] != "") ? FolderLyricsHeading[InItem.FolderNo, 3] : "Ending:");
+							builder.Append((Folders[InItem.FolderNo].LyricsHeading[3] != "") ? Folders[InItem.FolderNo].LyricsHeading[3] : "Ending:");
 						}
 						else if (InItem.Verse2Present || (i > 1 && slideTypeValue == 1))
 						{

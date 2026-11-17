@@ -1624,8 +1624,6 @@ namespace Easislides
 
 		public static string EditNotesHeading = "";
 
-		public static string[,] FolderLyricsHeading = new string[MAXSONGSFOLDERS, 4];
-
 
 		public static int[] FolderHeadingPercentSize = new int[MAXSONGSFOLDERS];
 

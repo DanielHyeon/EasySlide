@@ -13,11 +13,13 @@ namespace Easislides.Global
         public SortBy GroupStyle = SortBy.Alpha;
         public string RenameName;
         public bool FindSongs;
+        public string[] LyricsHeading = new string[4]; // 0 PreChorus, 1 Chorus, 2 Bridge, 3 Ending
 
         public FolderSettings Clone()
         {
             FolderSettings copy = (FolderSettings)MemberwiseClone();
             // Arrays inside are references: copy each one here when such a field is added.
+            copy.LyricsHeading = (string[])LyricsHeading.Clone();
             return copy;
         }
     }

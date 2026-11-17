@@ -158,25 +158,25 @@ namespace Easislides
 			switch (slideType)
 			{
 				case 0:
-					InItem.Lyrics[2].Text = FolderLyricsHeading[InItem.FolderNo, 1];
+					InItem.Lyrics[2].Text = Folders[InItem.FolderNo].LyricsHeading[1];
 					break;
 				case 102:
-					InItem.Lyrics[2].Text = FolderLyricsHeading[InItem.FolderNo, 1] + ((FolderLyricsHeading[InItem.FolderNo, 1] != "") ? " (2)" : "");
+					InItem.Lyrics[2].Text = Folders[InItem.FolderNo].LyricsHeading[1] + ((Folders[InItem.FolderNo].LyricsHeading[1] != "") ? " (2)" : "");
 					break;
 				case 111:
-					InItem.Lyrics[2].Text = FolderLyricsHeading[InItem.FolderNo, 0];
+					InItem.Lyrics[2].Text = Folders[InItem.FolderNo].LyricsHeading[0];
 					break;
 				case 112:
-					InItem.Lyrics[2].Text = FolderLyricsHeading[InItem.FolderNo, 0] + ((FolderLyricsHeading[InItem.FolderNo, 0] != "") ? " (2)" : "");
+					InItem.Lyrics[2].Text = Folders[InItem.FolderNo].LyricsHeading[0] + ((Folders[InItem.FolderNo].LyricsHeading[0] != "") ? " (2)" : "");
 					break;
 				case 100:
-					InItem.Lyrics[2].Text = FolderLyricsHeading[InItem.FolderNo, 2];
+					InItem.Lyrics[2].Text = Folders[InItem.FolderNo].LyricsHeading[2];
 					break;
 				case 103:
-					InItem.Lyrics[2].Text = FolderLyricsHeading[InItem.FolderNo, 2] + ((FolderLyricsHeading[InItem.FolderNo, 2] != "") ? " (2)" : "");
+					InItem.Lyrics[2].Text = Folders[InItem.FolderNo].LyricsHeading[2] + ((Folders[InItem.FolderNo].LyricsHeading[2] != "") ? " (2)" : "");
 					break;
 				case 101:
-					InItem.Lyrics[2].Text = FolderLyricsHeading[InItem.FolderNo, 3];
+					InItem.Lyrics[2].Text = Folders[InItem.FolderNo].LyricsHeading[3];
 					break;
 				default:
 					if (InItem.Verse2Present || (InItem.CurSlide > 1 && slideType == 1))

@@ -508,7 +508,7 @@ namespace Easislides
 						text2 = "\\par ";
 						if (HTML_ShowHeadings[0] > 0 && !ChorusDone)
 						{
-							text2 += Gf.FolderLyricsHeading[SongFolderNo, 0];
+							text2 += Gf.Folders[SongFolderNo].LyricsHeading[0];
 							text2 = ((text2 != "") ? text2 : "");
 						}
 						if (!ChorusDone)

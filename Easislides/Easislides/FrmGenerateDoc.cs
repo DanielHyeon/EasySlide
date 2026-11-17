@@ -426,7 +426,7 @@ namespace Easislides
 											tabNum = 2;
 											if (!ChorusDone)
 											{
-												text5 = Gf.FolderLyricsHeading[DocItem.FolderNo, 1];
+												text5 = Gf.Folders[DocItem.FolderNo].LyricsHeading[1];
 												ChorusDone = true;
 											}
 											else
@@ -470,7 +470,7 @@ namespace Easislides
 										else
 										{
 											tabNum = 2;
-											text5 = Gf.FolderLyricsHeading[DocItem.FolderNo, 1] + ((Gf.FolderLyricsHeading[DocItem.FolderNo, 1] != "") ? " (2)" : "");
+											text5 = Gf.Folders[DocItem.FolderNo].LyricsHeading[1] + ((Gf.Folders[DocItem.FolderNo].LyricsHeading[1] != "") ? " (2)" : "");
 										}
 										formatOption = 4;
 										flag = true;
@@ -484,7 +484,7 @@ namespace Easislides
 										else
 										{
 											tabNum = 2;
-											text5 = Gf.FolderLyricsHeading[DocItem.FolderNo, 0];
+											text5 = Gf.Folders[DocItem.FolderNo].LyricsHeading[0];
 										}
 										formatOption = 4;
 										flag = true;
@@ -498,7 +498,7 @@ namespace Easislides
 										else
 										{
 											tabNum = 2;
-											text5 = Gf.FolderLyricsHeading[DocItem.FolderNo, 0] + ((Gf.FolderLyricsHeading[DocItem.FolderNo, 0] != "") ? " (2)" : "");
+											text5 = Gf.Folders[DocItem.FolderNo].LyricsHeading[0] + ((Gf.Folders[DocItem.FolderNo].LyricsHeading[0] != "") ? " (2)" : "");
 										}
 										formatOption = 4;
 										flag = true;
@@ -511,7 +511,7 @@ namespace Easislides
 										}
 										else
 										{
-											text5 = Gf.FolderLyricsHeading[DocItem.FolderNo, 2];
+											text5 = Gf.Folders[DocItem.FolderNo].LyricsHeading[2];
 											tabNum = 2;
 										}
 										formatOption = 4;
@@ -525,7 +525,7 @@ namespace Easislides
 										}
 										else
 										{
-											text5 = Gf.FolderLyricsHeading[DocItem.FolderNo, 2] + ((Gf.FolderLyricsHeading[DocItem.FolderNo, 2] != "") ? " (2)" : "");
+											text5 = Gf.Folders[DocItem.FolderNo].LyricsHeading[2] + ((Gf.Folders[DocItem.FolderNo].LyricsHeading[2] != "") ? " (2)" : "");
 											tabNum = 2;
 										}
 										formatOption = 4;

@@ -4101,31 +4101,31 @@ namespace Easislides
 						}
 						if (InItem.Slide[i, 0] == 0)
 						{
-							textBuilder.Append((FolderLyricsHeading[InItem.FolderNo, 1] != "") ? FolderLyricsHeading[InItem.FolderNo, 1] : "Chorus:");
+							textBuilder.Append((Folders[InItem.FolderNo].LyricsHeading[1] != "") ? Folders[InItem.FolderNo].LyricsHeading[1] : "Chorus:");
 						}
 						else if (InItem.Slide[i, 0] == 102)
 						{
-							textBuilder.Append((FolderLyricsHeading[InItem.FolderNo, 1] != "") ? (FolderLyricsHeading[InItem.FolderNo, 1] + " (2)") : "Chorus 2:");
+							textBuilder.Append((Folders[InItem.FolderNo].LyricsHeading[1] != "") ? (Folders[InItem.FolderNo].LyricsHeading[1] + " (2)") : "Chorus 2:");
 						}
 						else if (InItem.Slide[i, 0] == 111)
 						{
-							textBuilder.Append((FolderLyricsHeading[InItem.FolderNo, 0] != "") ? FolderLyricsHeading[InItem.FolderNo, 0] : "Prechorus:");
+							textBuilder.Append((Folders[InItem.FolderNo].LyricsHeading[0] != "") ? Folders[InItem.FolderNo].LyricsHeading[0] : "Prechorus:");
 						}
 						else if (InItem.Slide[i, 0] == 112)
 						{
-							textBuilder.Append((FolderLyricsHeading[InItem.FolderNo, 0] != "") ? (FolderLyricsHeading[InItem.FolderNo, 0] + " (2)") : "Prechorus 2:");
+							textBuilder.Append((Folders[InItem.FolderNo].LyricsHeading[0] != "") ? (Folders[InItem.FolderNo].LyricsHeading[0] + " (2)") : "Prechorus 2:");
 						}
 						else if (InItem.Slide[i, 0] == 100)
 						{
-							textBuilder.Append((FolderLyricsHeading[InItem.FolderNo, 2] != "") ? FolderLyricsHeading[InItem.FolderNo, 2] : "Bridge:");
+							textBuilder.Append((Folders[InItem.FolderNo].LyricsHeading[2] != "") ? Folders[InItem.FolderNo].LyricsHeading[2] : "Bridge:");
 						}
 						else if (InItem.Slide[i, 0] == 103)
 						{
-							textBuilder.Append((FolderLyricsHeading[InItem.FolderNo, 2] != "") ? (FolderLyricsHeading[InItem.FolderNo, 2] + " (2)") : "Bridge 2:");
+							textBuilder.Append((Folders[InItem.FolderNo].LyricsHeading[2] != "") ? (Folders[InItem.FolderNo].LyricsHeading[2] + " (2)") : "Bridge 2:");
 						}
 						else if (InItem.Slide[i, 0] == 101)
 						{
-							textBuilder.Append((FolderLyricsHeading[InItem.FolderNo, 3] != "") ? FolderLyricsHeading[InItem.FolderNo, 3] : "Ending:");
+							textBuilder.Append((Folders[InItem.FolderNo].LyricsHeading[3] != "") ? Folders[InItem.FolderNo].LyricsHeading[3] : "Ending:");
 						}
 						else if (InItem.Verse2Present || (i > 1 && InItem.Slide[i, 0] == 1))
 						{

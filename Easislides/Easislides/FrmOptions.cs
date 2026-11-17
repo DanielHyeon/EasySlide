@@ -115,7 +115,7 @@ namespace Easislides
                 tempShowLineSpacing[i, 1] = Gf.ShowLineSpacing[i, 1];
                 for (int j = 0; j < 4; j++)
                 {
-                    tempFolderLyricsHeading[i, j] = Gf.FolderLyricsHeading[i, j];
+                    tempFolderLyricsHeading[i, j] = Gf.Folders[i].LyricsHeading[j];
                 }
                 for (int j = 0; j <= 1; j++)
                 {
@@ -241,11 +241,11 @@ namespace Easislides
                 }
                 for (int j = 0; j < 4; j++)
                 {
-                    if (Gf.FolderLyricsHeading[i, j] != tempFolderLyricsHeading[i, j])
+                    if (Gf.Folders[i].LyricsHeading[j] != tempFolderLyricsHeading[i, j])
                     {
                         Gf.Options_FolderFormatChanged = true;
                     }
-                    Gf.FolderLyricsHeading[i, j] = tempFolderLyricsHeading[i, j];
+                    Gf.Folders[i].LyricsHeading[j] = tempFolderLyricsHeading[i, j];
                 }
                 for (int j = 0; j <= 1; j++)
                 {
