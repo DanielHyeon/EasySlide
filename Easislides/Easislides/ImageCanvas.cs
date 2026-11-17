@@ -22,13 +22,16 @@ namespace Easislides
 		private string _cachedFileName;
 		private DateTime _cachedFileTime;
 
-		// Constants for transient file-availability handling (PPT slide export → JPG flush race)
-		private const int FILE_AVAILABILITY_RETRY_COUNT = 5;
-		private const int FILE_AVAILABILITY_RETRY_DELAY_MS = 30;
-
-		// Guards a single delayed Invalidate when the source JPG is still being flushed by
-		// PowerPoint Interop. Prevents a busy repaint loop if the file never appears.
-		private bool _deferredRepaintScheduled;
+		// Retries of a picture that could not be made (JPG not there yet or still being written by the
+		// PowerPoint export, a failed export). Every repaint (hover, resize, scroll) used to try again: a
+		// PowerPoint export plus up to 150 ms of sleeping on the UI thread each time. Now a failed attempt
+		// is retried by a UI timer after 0.5 s and 2 s, then every 30 s; paints in between draw only the
+		// background. A successful load, or BuildNewImageThumbs giving the canvas a new build, clears it.
+		private static readonly int[] RetryDelaysMs = { 500, 2000 };
+		private const int FailedRetryPauseMs = 30000;
+		private int _failureCount;
+		private long _retryAtTicks; // Environment.TickCount64: no attempt before it
+		private System.Windows.Forms.Timer _retryTimer;
 
 		// Auto-properties
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
@@ -276,12 +279,61 @@ namespace Easislides
 			e.Graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
 			e.Graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
 
-			if (!IsImageReady && !CalculateImage())
+			if (!IsImageReady && (RetryPending() || !CalculateImage()))
+			{
+				// Nothing to show (yet): the background, not whatever the screen held there before.
+				e.Graphics.Clear(BackColor);
 				return;
+			}
 			if (_markersDirty && !RerenderMarkers())
+			{
+				e.Graphics.Clear(BackColor);
 				return;
+			}
 
 			DrawImage(e);
+		}
+
+		private bool RetryPending()
+		{
+			return _failureCount > 0 && Environment.TickCount64 < _retryAtTicks;
+		}
+
+		// A failed attempt: the next one waits 0.5 s, 2 s, then 30 s each time; the timer repaints then,
+		// so the thumbnail recovers without any input.
+		private void RememberFailure()
+		{
+			_failureCount++;
+			int delay = (_failureCount <= RetryDelaysMs.Length) ? RetryDelaysMs[_failureCount - 1] : FailedRetryPauseMs;
+			_retryAtTicks = Environment.TickCount64 + delay;
+			if (IsDisposed)
+			{
+				return;
+			}
+			if (_retryTimer == null)
+			{
+				_retryTimer = new System.Windows.Forms.Timer();
+				_retryTimer.Tick += RetryTimer_Tick;
+			}
+			_retryTimer.Stop();
+			_retryTimer.Interval = delay;
+			_retryTimer.Start();
+		}
+
+		private void RetryTimer_Tick(object sender, EventArgs e)
+		{
+			_retryTimer?.Stop();
+			if (!IsDisposed && IsHandleCreated && !IsImageReady)
+			{
+				Invalidate();
+			}
+		}
+
+		private void ClearFailures()
+		{
+			_failureCount = 0;
+			_retryAtTicks = 0;
+			_retryTimer?.Stop();
 		}
 
 		private void MarkMarkersDirty()
@@ -368,6 +420,8 @@ namespace Easislides
 				{
 					FileName = imagePath;
 					IsImageReady = false;
+					// A new build (new path, rebuilt file, or the listing redone): try it now, even after a failure.
+					ClearFailures();
 					BackColor = NewBackColour;
 					BorderWidthFactor = 0.04f;
 					base.Visible = true;
@@ -563,14 +617,14 @@ namespace Easislides
 					Gf.ExternalPPT.BuildOneFirstScreenDump(PowerPointSlideNumbering);
 				}
 
-				// PowerPoint Interop's Slide.Export returns before the JPG is guaranteed to be
-				// visible to File.Exists (AV scanners, FS cache flush). Retry briefly so the very
-				// first paint doesn't lose the slide. Total wait stays under ~150ms.
-				if (!WaitForFileAvailable(FileName))
+				// PowerPoint Interop's Slide.Export returns before the JPG is guaranteed to be visible
+				// (AV scanners, file system flush): a missing file is retried by the timer (RememberFailure)
+				// instead of sleeping in paint.
+				if (string.IsNullOrEmpty(FileName) || !File.Exists(FileName))
 				{
 					Console.WriteLine($"Image file not found: {FileName}");
 					IsImageReady = false;
-					ScheduleDeferredRepaint();
+					RememberFailure();
 					return false;
 				}
 
@@ -587,8 +641,11 @@ namespace Easislides
 				}
 				else
 				{
-					// Clear old cached image if filename changed or file was modified
+					// Clear old cached image if filename changed or file was modified. Forget it entirely: if the
+					// load below throws, a later visit to the old file must not take the disposed bitmap as a hit.
 					_cachedSourceImage?.Dispose();
+					_cachedSourceImage = null;
+					_cachedFileName = null;
 
 					// MSDN: Image.FromStream requires the stream to remain open for the Image's
 					// lifetime. Clone into a standalone Bitmap so the file/stream can be released
@@ -615,63 +672,26 @@ namespace Easislides
 
 				IsImageReady = true;
 				_markersDirty = false;
-				_deferredRepaintScheduled = false;
+				ClearFailures();
 				ResizeCanvas(base.Width, base.Height);
 			}
 			catch (Exception ex)
 			{
+				// Also a JPG still locked or half written by the export: retried like a missing one.
 				Console.WriteLine($"Error in CalculateImage: {ex.Message}");
 				IsImageReady = false;
+				RememberFailure();
 				return false;
 			}
 			return true;
-		}
-
-		private static bool WaitForFileAvailable(string path)
-		{
-			if (string.IsNullOrEmpty(path))
-			{
-				return false;
-			}
-			for (int attempt = 0; attempt < FILE_AVAILABILITY_RETRY_COUNT; attempt++)
-			{
-				if (File.Exists(path))
-				{
-					return true;
-				}
-				System.Threading.Thread.Sleep(FILE_AVAILABILITY_RETRY_DELAY_MS);
-			}
-			return File.Exists(path);
-		}
-
-		private void ScheduleDeferredRepaint()
-		{
-			if (_deferredRepaintScheduled || !IsHandleCreated || IsDisposed)
-			{
-				return;
-			}
-			_deferredRepaintScheduled = true;
-			try
-			{
-				BeginInvoke(new Action(() =>
-				{
-					if (!IsDisposed && base.Visible)
-					{
-						Invalidate();
-					}
-				}));
-			}
-			catch (Exception ex)
-			{
-				_deferredRepaintScheduled = false;
-				Console.WriteLine($"ScheduleDeferredRepaint failed: {ex.Message}");
-			}
 		}
 
         protected override void Dispose(bool disposing)
 		{
 			if (disposing)
 			{
+				_retryTimer?.Dispose();
+				_retryTimer = null;
 				Image?.Dispose();
 				Image = null;
 				_cachedSourceImage?.Dispose();
