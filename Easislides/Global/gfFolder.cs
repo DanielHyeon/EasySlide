@@ -6,6 +6,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
+using Easislides.Global;
 using Easislides.Module;
 using Easislides.SQLite;
 using Easislides.Util;
@@ -743,7 +744,7 @@ namespace Easislides
 			}
 		}
 
-		public static void BuildSubFolderList(string InDir, string RemovePrefix, ref string[,] InGroup, ref int InTotal)
+		public static void BuildSubFolderList(string InDir, string RemovePrefix, List<FolderGroup> InGroup)
 		{
 			Stack<string> pending = new Stack<string>();
 			pending.Push(InDir);
@@ -759,11 +760,13 @@ namespace Easislides
 				for (int i = directories.Length - 1; i >= 0; i--)
 				{
 					string text = directories[i];
-					if ((!(RemovePrefix == ImagesDir) || !(text == RootEasiSlidesDir + "Images\\Scenery")) && !(text == RootEasiSlidesDir + "Images\\Tiles") && InTotal < 255)
+					if ((!(RemovePrefix == ImagesDir) || !(text == RootEasiSlidesDir + "Images\\Scenery")) && !(text == RootEasiSlidesDir + "Images\\Tiles") && InGroup.Count < 255)
 					{
-						InGroup[InTotal, 1] = text + "\\";
-						InGroup[InTotal, 0] = "\\" + text.Replace(RemovePrefix, "");
-						InTotal++;
+						InGroup.Add(new FolderGroup
+						{
+							Path = text + "\\",
+							Name = "\\" + text.Replace(RemovePrefix, "")
+						});
 						pending.Push(text);
 					}
 				}

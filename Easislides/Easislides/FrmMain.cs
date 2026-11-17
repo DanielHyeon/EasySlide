@@ -5491,7 +5491,7 @@ namespace Easislides
             if (Gf.CopyToFolder < 0)
             {
                 num2 = -Gf.CopyToFolder - 1;
-                text = Gf.InfoScreenGroups[num2, 1];
+                text = Gf.InfoScreenGroups[num2].Path;
             }
             for (int i = 0; i <= SongsList.Items.Count - 1; i++)
             {
@@ -7457,12 +7457,12 @@ namespace Easislides
             BuildInfoScreenFolderList();
             int num = -1;
             string a = Path.GetDirectoryName(Gf.InfoScreenFileName) + "\\";
-            for (int i = 0; i < Gf.InfoScreenFolderTotal; i++)
+            for (int i = 0; i < Gf.InfoScreenGroups.Count; i++)
             {
-                if (a == Gf.InfoScreenGroups[i, 1])
+                if (a == Gf.InfoScreenGroups[i].Path)
                 {
                     num = i;
-                    i = Gf.InfoScreenFolderTotal;
+                    i = Gf.InfoScreenGroups.Count;
                 }
             }
             if (num >= 0)
@@ -8014,7 +8014,7 @@ namespace Easislides
                 ListViewItem listViewItem = new ListViewItem();
                 try
                 {
-                    string path = Gf.InfoScreenGroups[InfoScreenFolder.SelectedIndex, 1];
+                    string path = Gf.InfoScreenGroups[InfoScreenFolder.SelectedIndex].Path;
                     string[] files = Directory.GetFiles(path, "*.esi");
                     string[] array = files;
                     foreach (string text in array)
@@ -8134,7 +8134,7 @@ namespace Easislides
 
         private void InfoScreen_OpenFolder_Click(object sender, EventArgs e)
         {
-            string text = Gf.InfoScreenGroups[InfoScreenFolder.SelectedIndex, 1];
+            string text = Gf.InfoScreenGroups[InfoScreenFolder.SelectedIndex].Path;
             if (Gf.ValidateDir(text, CreateDir: true))
             {
                 Gf.RunProcess(text);
@@ -8203,10 +8203,10 @@ namespace Easislides
                     switch (InFileSymbol)
                     {
                         case "I":
-                            InFileName = Gf.CopyExternalFile(DataUtil.Mid(InListView.SelectedItems[i].SubItems[1].Text, 1), Gf.InfoScreenGroups[Gf.ExternalCopyFolder, 1]);
+                            InFileName = Gf.CopyExternalFile(DataUtil.Mid(InListView.SelectedItems[i].SubItems[1].Text, 1), Gf.InfoScreenGroups[Gf.ExternalCopyFolder].Path);
                             break;
                         case "P":
-                            InFileName = Gf.CopyExternalFile(DataUtil.Mid(InListView.SelectedItems[i].SubItems[1].Text, 1), Gf.PowerpointGroups[Gf.ExternalCopyFolder, 1]);
+                            InFileName = Gf.CopyExternalFile(DataUtil.Mid(InListView.SelectedItems[i].SubItems[1].Text, 1), Gf.PowerpointGroups[Gf.ExternalCopyFolder].Path);
                             break;
                     }
                     if (InFileName != "")
@@ -8293,10 +8293,10 @@ namespace Easislides
                 switch (InFileSymbol)
                 {
                     case "I":
-                        InFileName = Gf.MoveExternalFile(DataUtil.Mid(InListView.SelectedItems[i].SubItems[1].Text, 1), Gf.InfoScreenGroups[Gf.ExternalMoveFolder, 1]);
+                        InFileName = Gf.MoveExternalFile(DataUtil.Mid(InListView.SelectedItems[i].SubItems[1].Text, 1), Gf.InfoScreenGroups[Gf.ExternalMoveFolder].Path);
                         break;
                     case "P":
-                        InFileName = Gf.MoveExternalFile(DataUtil.Mid(InListView.SelectedItems[i].SubItems[1].Text, 1), Gf.PowerpointGroups[Gf.ExternalMoveFolder, 1]);
+                        InFileName = Gf.MoveExternalFile(DataUtil.Mid(InListView.SelectedItems[i].SubItems[1].Text, 1), Gf.PowerpointGroups[Gf.ExternalMoveFolder].Path);
                         break;
                 }
                 if (InFileName != "")
@@ -8534,7 +8534,7 @@ namespace Easislides
 
         private void PP_Btn_Click(object sender, EventArgs e)
         {
-            string text = Gf.PowerpointGroups[PowerpointFolder.SelectedIndex, 1];
+            string text = Gf.PowerpointGroups[PowerpointFolder.SelectedIndex].Path;
             if (Gf.ValidateDir(text, CreateDir: true))
             {
                 Gf.RunProcess(text);
@@ -8698,7 +8698,7 @@ namespace Easislides
                 ListViewItem listViewItem = new ListViewItem();
                 try
                 {
-                    string path = Gf.MediaGroups[MediaFolder.SelectedIndex, 1];
+                    string path = Gf.MediaGroups[MediaFolder.SelectedIndex].Path;
                     for (int i = 0; i < Gf.MediaFileExtensions.Count; i++)
                     {
                         try
@@ -8814,7 +8814,7 @@ namespace Easislides
 
         private void Media_OpenFolder_Click(object sender, EventArgs e)
         {
-            string text = Gf.MediaGroups[MediaFolder.SelectedIndex, 1];
+            string text = Gf.MediaGroups[MediaFolder.SelectedIndex].Path;
             if (Gf.ValidateDir(text, CreateDir: true))
             {
                 Gf.RunProcess(text);
@@ -8823,7 +8823,7 @@ namespace Easislides
 
         private void Image_OpenFolder_Click(object sender, EventArgs e)
         {
-            string text = Gf.PictureGroups[ImagesFolder.SelectedIndex, 1];
+            string text = Gf.PictureGroups[ImagesFolder.SelectedIndex].Path;
             if (Gf.ValidateDir(text, CreateDir: true))
             {
                 Gf.RunProcess(text);
@@ -8832,7 +8832,7 @@ namespace Easislides
 
         private void Image_Import_Click(object sender, EventArgs e)
         {
-            string str = Gf.PictureGroups[ImagesFolder.SelectedIndex, 1];
+            string str = Gf.PictureGroups[ImagesFolder.SelectedIndex].Path;
             openFileDialog1.Filter = "Images (*.jpg,*jpeg,*.bmp,*.gif,*.ico)|*.jpg;*jpeg;*.bmp;*.gif;*.ico";
             openFileDialog1.Title = "Import An Image into folder: " + ImagesFolder.Text;
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
@@ -8852,7 +8852,7 @@ namespace Easislides
 
         private void InfoScreen_Import_Click(object sender, EventArgs e)
         {
-            string str = Gf.InfoScreenGroups[InfoScreenFolder.SelectedIndex, 1];
+            string str = Gf.InfoScreenGroups[InfoScreenFolder.SelectedIndex].Path;
             openFileDialog1.Filter = "InfoScreens (*.esi)|*.esi";
             openFileDialog1.Title = "Import An InfoScreen into folder: " + InfoScreenFolder.Text;
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
@@ -8888,7 +8888,7 @@ namespace Easislides
 
         private void PP_Import_Click(object sender, EventArgs e)
         {
-            string str = Gf.PowerpointGroups[PowerpointFolder.SelectedIndex, 1];
+            string str = Gf.PowerpointGroups[PowerpointFolder.SelectedIndex].Path;
             //openFileDialog1.Filter = "Powerpoint Files (*.ppt)|*.ppt";
 
             openFileDialog1.Filter = "Powerpoint Files(*.ppt)| *.ppt | Powerpoint Files(*.pptx) | *.pptx";
@@ -8930,7 +8930,7 @@ namespace Easislides
 
         private void Media_Import_Click(object sender, EventArgs e)
         {
-            string str = Gf.MediaGroups[MediaFolder.SelectedIndex, 1];
+            string str = Gf.MediaGroups[MediaFolder.SelectedIndex].Path;
             string str2 = (Gf.MediaFileExtensions.Count > 0) ? "Media Files (" : "";
             string text = (Gf.MediaFileExtensions.Count > 0) ? ")|" : "";
             for (int i = 0; i < Gf.MediaFileExtensions.Count; i++)

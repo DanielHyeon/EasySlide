@@ -26,9 +26,9 @@ namespace Easislides
 				}
 			}
 			ExternalFilesFolder.Items.Clear();
-			for (int i = 0; i < Gf.InfoScreenFolderTotal; i++)
+			for (int i = 0; i < Gf.InfoScreenGroups.Count; i++)
 			{
-				ExternalFilesFolder.Items.Add(Gf.InfoScreenGroups[i, 0]);
+				ExternalFilesFolder.Items.Add(Gf.InfoScreenGroups[i].Name);
 			}
 		}
 

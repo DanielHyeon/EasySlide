@@ -1877,21 +1877,13 @@ namespace Easislides
 
 		public static string GenHTMLDir;
 
-		public static string[,] PictureGroups = new string[255, 3];
+		public static readonly List<FolderGroup> PictureGroups = new List<FolderGroup>();
 
-		public static string[,] InfoScreenGroups = new string[255, 3];
+		public static readonly List<FolderGroup> InfoScreenGroups = new List<FolderGroup>();
 
-		public static string[,] MediaGroups = new string[255, 3];
+		public static readonly List<FolderGroup> MediaGroups = new List<FolderGroup>();
 
-		public static string[,] PowerpointGroups = new string[255, 3];
-
-		public static int InfoScreenFolderTotal = 0;
-
-		public static int MediaFolderTotal = 0;
-
-		public static int PowerpointFolderTotal = 0;
-
-		public static int PicFolderTotal = 0;
+		public static readonly List<FolderGroup> PowerpointGroups = new List<FolderGroup>();
 
 		public static PowerPoint LivePP = new PowerPoint();
 

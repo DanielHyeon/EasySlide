@@ -15,6 +15,7 @@ using Easislides.Util;
 using System.Threading;
 using Easislides.SQLite;
 using Easislides.Module;
+using Easislides.Global;
 using MethodInvoker = System.Windows.Forms.MethodInvoker;
 using Type = System.Type;
 using System.Diagnostics;
@@ -424,13 +425,10 @@ namespace Easislides
 
         private void BuildPicturesFolderList()
         {
-            Gf.PictureGroups[0, 0] = "Scenery";
-            Gf.PictureGroups[0, 1] = Gf.RootEasiSlidesDir + "Images\\" + Gf.PictureGroups[0, 0] + "\\";
-            Gf.PictureGroups[1, 0] = "Tiles";
-            Gf.PictureGroups[1, 1] = Gf.RootEasiSlidesDir + "Images\\" + Gf.PictureGroups[1, 0] + "\\";
-            Gf.PictureGroups[2, 0] = "Images";
-            Gf.PictureGroups[2, 1] = Gf.ImagesDir;
-            Gf.PicFolderTotal = 3;
+            Gf.PictureGroups.Clear();
+            Gf.PictureGroups.Add(new FolderGroup { Name = "Scenery", Path = Gf.RootEasiSlidesDir + "Images\\" + "Scenery" + "\\" });
+            Gf.PictureGroups.Add(new FolderGroup { Name = "Tiles", Path = Gf.RootEasiSlidesDir + "Images\\" + "Tiles" + "\\" });
+            Gf.PictureGroups.Add(new FolderGroup { Name = "Images", Path = Gf.ImagesDir });
             string[] directories = Directory.GetDirectories(Gf.ImagesDir);
             if (directories.Length > 0)
             {
@@ -438,24 +436,23 @@ namespace Easislides
             }
             string text = Gf.RootEasiSlidesDir + "Images\\Scenery";
             string text2 = Gf.RootEasiSlidesDir + "Images\\Tiles";
-            Gf.BuildSubFolderList(Gf.ImagesDir, Gf.ImagesDir, ref Gf.PictureGroups, ref Gf.PicFolderTotal);
+            Gf.BuildSubFolderList(Gf.ImagesDir, Gf.ImagesDir, Gf.PictureGroups);
             ImagesFolder.Items.Clear();
-            for (int i = 0; i < Gf.PicFolderTotal; i++)
+            for (int i = 0; i < Gf.PictureGroups.Count; i++)
             {
-                ImagesFolder.Items.Add(Gf.PictureGroups[i, 0]);
+                ImagesFolder.Items.Add(Gf.PictureGroups[i].Name);
             }
         }
 
         private void BuildInfoScreenFolderList()
         {
-            Gf.InfoScreenGroups[0, 0] = "InfoScreen Items";
-            Gf.InfoScreenGroups[0, 1] = Gf.InfoScreenDir;
-            Gf.InfoScreenFolderTotal = 1;
-            Gf.BuildSubFolderList(Gf.InfoScreenDir, Gf.InfoScreenDir, ref Gf.InfoScreenGroups, ref Gf.InfoScreenFolderTotal);
+            Gf.InfoScreenGroups.Clear();
+            Gf.InfoScreenGroups.Add(new FolderGroup { Name = "InfoScreen Items", Path = Gf.InfoScreenDir });
+            Gf.BuildSubFolderList(Gf.InfoScreenDir, Gf.InfoScreenDir, Gf.InfoScreenGroups);
             InfoScreenFolder.Items.Clear();
-            for (int i = 0; i < Gf.InfoScreenFolderTotal; i++)
+            for (int i = 0; i < Gf.InfoScreenGroups.Count; i++)
             {
-                InfoScreenFolder.Items.Add(Gf.InfoScreenGroups[i, 0]);
+                InfoScreenFolder.Items.Add(Gf.InfoScreenGroups[i].Name);
             }
             if (InfoScreenFolder.Items.Count > 0)
             {
@@ -465,14 +462,13 @@ namespace Easislides
 
         private void BuildPowerpointFolderList()
         {
-            Gf.PowerpointGroups[0, 0] = "Powerpoint Items";
-            Gf.PowerpointGroups[0, 1] = Gf.PowerpointDir;
-            Gf.PowerpointFolderTotal = 1;
-            Gf.BuildSubFolderList(Gf.PowerpointDir, Gf.PowerpointDir, ref Gf.PowerpointGroups, ref Gf.PowerpointFolderTotal);
+            Gf.PowerpointGroups.Clear();
+            Gf.PowerpointGroups.Add(new FolderGroup { Name = "Powerpoint Items", Path = Gf.PowerpointDir });
+            Gf.BuildSubFolderList(Gf.PowerpointDir, Gf.PowerpointDir, Gf.PowerpointGroups);
             PowerpointFolder.Items.Clear();
-            for (int i = 0; i < Gf.PowerpointFolderTotal; i++)
+            for (int i = 0; i < Gf.PowerpointGroups.Count; i++)
             {
-                PowerpointFolder.Items.Add(Gf.PowerpointGroups[i, 0]);
+                PowerpointFolder.Items.Add(Gf.PowerpointGroups[i].Name);
             }
             if (PowerpointFolder.Items.Count > 0)
             {
@@ -482,14 +478,13 @@ namespace Easislides
 
         private void BuildMediaFolderList()
         {
-            Gf.MediaGroups[0, 0] = "Media Files";
-            Gf.MediaGroups[0, 1] = Gf.MediaDir;
-            Gf.MediaFolderTotal = 1;
-            Gf.BuildSubFolderList(Gf.MediaDir, Gf.MediaDir, ref Gf.MediaGroups, ref Gf.MediaFolderTotal);
+            Gf.MediaGroups.Clear();
+            Gf.MediaGroups.Add(new FolderGroup { Name = "Media Files", Path = Gf.MediaDir });
+            Gf.BuildSubFolderList(Gf.MediaDir, Gf.MediaDir, Gf.MediaGroups);
             MediaFolder.Items.Clear();
-            for (int i = 0; i < Gf.MediaFolderTotal; i++)
+            for (int i = 0; i < Gf.MediaGroups.Count; i++)
             {
-                MediaFolder.Items.Add(Gf.MediaGroups[i, 0]);
+                MediaFolder.Items.Add(Gf.MediaGroups[i].Name);
             }
             if (MediaFolder.Items.Count > 0)
             {
@@ -1012,7 +1007,7 @@ namespace Easislides
             {
                 return;
             }
-            BackgroundCurImagePath = Gf.PictureGroups[ImagesFolder.SelectedIndex, 1];
+            BackgroundCurImagePath = Gf.PictureGroups[ImagesFolder.SelectedIndex].Path;
             string[] array = new string[5]
             {
                 ".jpg",
@@ -1073,7 +1068,7 @@ namespace Easislides
             {
                 return;
             }
-            ExternalPPCurImagePath = Gf.PowerpointGroups[PowerpointFolder.SelectedIndex, 1];
+            ExternalPPCurImagePath = Gf.PowerpointGroups[PowerpointFolder.SelectedIndex].Path;
             for (int i = 0; i < ExternalPPImagename.Length; i++)
             {
                 ExternalPPImagename[i] = "";
