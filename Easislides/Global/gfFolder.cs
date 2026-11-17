@@ -249,11 +249,11 @@ namespace Easislides
 						{
 							Folders[num].LineSpacing[1] = 1.0;
 						}
-						ShowLeftMargin[num] = 2;
-						ShowLeftMargin[num] = DataUtil.GetDataInt(dataReader, "LMargin");
-						if ((ShowLeftMargin[num] < 0) | (ShowLeftMargin[num] > 40))
+						Folders[num].LeftMargin = 2;
+						Folders[num].LeftMargin = DataUtil.GetDataInt(dataReader, "LMargin");
+						if ((Folders[num].LeftMargin < 0) | (Folders[num].LeftMargin > 40))
 						{
-							ShowLeftMargin[num] = 2;
+							Folders[num].LeftMargin = 2;
 						}
 						ShowRightMargin[num] = 2;
 						ShowRightMargin[num] = DataUtil.GetDataInt(dataReader, "RMargin");

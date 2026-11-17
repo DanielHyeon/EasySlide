@@ -283,7 +283,7 @@ namespace Easislides
 								dr["Size1"] = Folders[i].FontSize[1];
 								dr["FontName1"] = Folders[i].FontName[1];
 								dr["Vpos1"] = Folders[i].FontVPosition[1];
-								dr["LMargin"] = ShowLeftMargin[i];
+								dr["LMargin"] = Folders[i].LeftMargin;
 								dr["RMargin"] = ShowRightMargin[i];
 								dr["BMargin"] = ShowBottomMargin[i];
 							}
@@ -346,7 +346,7 @@ namespace Easislides
 								dataTable.Rows[rowIndex]["Size1"] = Folders[i].FontSize[1];
 								dataTable.Rows[rowIndex]["FontName1"] = Folders[i].FontName[1];
 								dataTable.Rows[rowIndex]["Vpos1"] = Folders[i].FontVPosition[1];
-								dataTable.Rows[rowIndex]["LMargin"] = ShowLeftMargin[i];
+								dataTable.Rows[rowIndex]["LMargin"] = Folders[i].LeftMargin;
 								dataTable.Rows[rowIndex]["RMargin"] = ShowRightMargin[i];
 								dataTable.Rows[rowIndex]["BMargin"] = ShowBottomMargin[i];
 							}
@@ -1700,7 +1700,7 @@ namespace Easislides
 				stringBuilder.AppendFormat("{0}={1}>", 61, BackgroundPicture);
 				stringBuilder.AppendFormat("{0}={1}>", 62, Convert.ToString((int)BackgroundMode));
 				stringBuilder.AppendFormat("{0}={1}>", 63, ShowVerticalAlign);
-				stringBuilder.AppendFormat("{0}={1}>", 64, ShowLeftMargin[0]);
+				stringBuilder.AppendFormat("{0}={1}>", 64, Folders[0].LeftMargin);
 				stringBuilder.AppendFormat("{0}={1}>", 65, ShowRightMargin[0]);
 				stringBuilder.AppendFormat("{0}={1}>", 66, ShowBottomMargin[0]);
 				stringBuilder.AppendFormat("{0}={1}>", 72, GlobalImageCanvas.GetTransitionText(ShowItemTransition));

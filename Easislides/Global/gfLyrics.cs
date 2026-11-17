@@ -68,7 +68,7 @@ namespace Easislides
 				}
 				array9[0] = Folders[InItem.FolderNo].FontVPosition[0];
 				array9[1] = Folders[InItem.FolderNo].FontVPosition[1];
-				num2 = ShowLeftMargin[InItem.FolderNo];
+				num2 = Folders[InItem.FolderNo].LeftMargin;
 				num3 = ShowRightMargin[InItem.FolderNo];
 				num4 = ShowBottomMargin[InItem.FolderNo];
 				num5 = ((ShowSongHeadingsAlign == 1) ? array2[1] : ((ShowSongHeadingsAlign == 2) ? 1 : ((ShowSongHeadingsAlign == 3) ? 2 : ((ShowSongHeadingsAlign != 4) ? array2[0] : 3))));
@@ -760,7 +760,7 @@ namespace Easislides
 				num = GetNumeric(63);
 				ShowVerticalAlign = (((num < 0) | (num > 2)) ? 1 : num);
 				num = GetNumeric(64);
-				ShowLeftMargin[0] = (((num < 0) | (num > 40)) ? 2 : num);
+				Folders[0].LeftMargin = (((num < 0) | (num > 40)) ? 2 : num);
 				num = GetNumeric(65);
 				ShowRightMargin[0] = (((num < 0) | (num > 40)) ? 2 : num);
 				num = GetNumeric(66);
@@ -4219,7 +4219,7 @@ namespace Easislides
 					Folders[0].FontSize[1] = 6;
 				}
 				ShowBottomMargin[0] = ShowBottomMargin[folderNo];
-				ShowLeftMargin[0] = ShowLeftMargin[folderNo];
+				Folders[0].LeftMargin = Folders[folderNo].LeftMargin;
 				ShowRightMargin[0] = ShowRightMargin[folderNo];
 				Folders[0].FontVPosition[0] = Folders[folderNo].FontVPosition[0];
 				Folders[0].FontVPosition[1] = Folders[folderNo].FontVPosition[1];
@@ -4314,7 +4314,7 @@ namespace Easislides
 			num3 = ExtractNumericData(InItem.Format.HeaderData[63]);
 			InItem.Format.ShowVerticalAlign = (((num3 < 0) | (num3 > 2)) ? ShowVerticalAlign : num3);
 			num3 = ExtractNumericData(InItem.Format.HeaderData[64]);
-			InItem.Format.ShowLeftMargin = (((num3 < 0) | (num3 > 40)) ? ShowLeftMargin[0] : num3);
+			InItem.Format.ShowLeftMargin = (((num3 < 0) | (num3 > 40)) ? Folders[0].LeftMargin : num3);
 			num3 = ExtractNumericData(InItem.Format.HeaderData[65]);
 			InItem.Format.ShowRightMargin = (((num3 < 0) | (num3 > 40)) ? ShowRightMargin[0] : num3);
 			num3 = ExtractNumericData(InItem.Format.HeaderData[66]);
