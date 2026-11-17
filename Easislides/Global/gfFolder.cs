@@ -279,10 +279,10 @@ namespace Easislides
 						ShowFontItalic[num, 2] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU0"), 5);
 						ShowFontUnderline[num, 2] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU0"), 6);
 						ShowFontRTL[num, 0] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU0"), 7);
-						ShowFontName[num, 0] = DataUtil.GetDataString(dataReader, "FontName0");
-						if (ShowFontName[num, 0] == "")
+						Folders[num].FontName[0] = DataUtil.GetDataString(dataReader, "FontName0");
+						if (Folders[num].FontName[0] == "")
 						{
-							ShowFontName[num, 0] = "Microsoft Sans Serif";
+							Folders[num].FontName[0] = "Microsoft Sans Serif";
 						}
 						ShowFontVPosition[num, 0] = DataUtil.ObjToInt(DataUtil.GetDataString(dataReader, "Vpos0"));
 						if ((ShowFontVPosition[num, 0] < 0) | (ShowFontVPosition[num, 0] > 100))
@@ -301,10 +301,10 @@ namespace Easislides
 						ShowFontItalic[num, 3] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU1"), 5);
 						ShowFontUnderline[num, 3] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU1"), 6);
 						ShowFontRTL[num, 1] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU1"), 7);
-						ShowFontName[num, 1] = DataUtil.GetDataString(dataReader, "FontName1");
-						if (ShowFontName[num, 1] == "")
+						Folders[num].FontName[1] = DataUtil.GetDataString(dataReader, "FontName1");
+						if (Folders[num].FontName[1] == "")
 						{
-							ShowFontName[num, 1] = "Microsoft Sans Serif";
+							Folders[num].FontName[1] = "Microsoft Sans Serif";
 						}
 						ShowFontVPosition[num, 1] = DataUtil.ObjToInt(DataUtil.GetDataString(dataReader, "Vpos1"));
 						if ((ShowFontVPosition[num, 1] < ShowFontVPosition[num, 0]) | (ShowFontVPosition[num, 1] > 100))

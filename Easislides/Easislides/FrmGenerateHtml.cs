@@ -342,10 +342,10 @@ namespace Easislides
 					}
 					else if (OptOutputRTF.Checked)
 					{
-						Font mainFont = new Font(Gf.ShowFontName[SongFolderNo, 0], hTMLRTFFontSize);
-						Font mainFontR = new Font(Gf.ShowFontName[SongFolderNo, 1], hTMLRTFFontSize);
-						Font notationsFont = new Font(Gf.ShowFontName[SongFolderNo, 0], num2);
-						Font notationsFontR = new Font(Gf.ShowFontName[SongFolderNo, 1], num2);
+						Font mainFont = new Font(Gf.Folders[SongFolderNo].FontName[0], hTMLRTFFontSize);
+						Font mainFontR = new Font(Gf.Folders[SongFolderNo].FontName[1], hTMLRTFFontSize);
+						Font notationsFont = new Font(Gf.Folders[SongFolderNo].FontName[0], num2);
+						Font notationsFontR = new Font(Gf.Folders[SongFolderNo].FontName[1], num2);
 						GenerateOneRTFFile(i, text10, num, mainFont, mainFontR, notationsFont, notationsFontR);
 					}
 				}

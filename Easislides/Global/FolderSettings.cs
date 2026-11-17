@@ -19,6 +19,7 @@ namespace Easislides.Global
         public int[] HeadingFontBold = new int[2];
         public int[] HeadingFontItalic = new int[2];
         public int[] HeadingFontUnderline = new int[2];
+        public string[] FontName = new string[2];
 
         public FolderSettings Clone()
         {
@@ -28,6 +29,7 @@ namespace Easislides.Global
             copy.HeadingFontBold = (int[])HeadingFontBold.Clone();
             copy.HeadingFontItalic = (int[])HeadingFontItalic.Clone();
             copy.HeadingFontUnderline = (int[])HeadingFontUnderline.Clone();
+            copy.FontName = (string[])FontName.Clone();
             return copy;
         }
     }

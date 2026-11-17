@@ -677,7 +677,7 @@ namespace Easislides
 			{
 				FList[i] = "";
 			}
-			FList[0] = Gf.ShowFontName[1, 0];
+			FList[0] = Gf.Folders[1].FontName[0];
 			RichTextBox1.Text = "";
 			int num = 1;
 			for (int i = 1; i < Gf.MAXSONGSFOLDERS; i++)
@@ -687,11 +687,11 @@ namespace Easislides
 					RichTextBox1.Focus();
 					RichTextBox1.SelectionStart = RichTextBox1.Text.Length;
 					RichTextBox1.SelectedText = ">";
-					RichTextBox1.SelectionFont = new Font(Gf.ShowFontName[i, j], 11f, FontStyle.Regular);
+					RichTextBox1.SelectionFont = new Font(Gf.Folders[i].FontName[j], 11f, FontStyle.Regular);
 					bool flag = false;
 					for (int k = 1; k <= num; k++)
 					{
-						if (FList[k] == Gf.ShowFontName[i, j])
+						if (FList[k] == Gf.Folders[i].FontName[j])
 						{
 							flag = true;
 							FolderFNum[i, j] = k;
@@ -700,10 +700,10 @@ namespace Easislides
 					if (!flag)
 					{
 						num++;
-						FList[num] = Gf.ShowFontName[i, j];
+						FList[num] = Gf.Folders[i].FontName[j];
 						FolderFNum[i, j] = num;
 						string text2 = text;
-						text = text2 + "{\\f" + Convert.ToString(num) + "\\fnil " + Gf.ShowFontName[i, j] + ";}";
+						text = text2 + "{\\f" + Convert.ToString(num) + "\\fnil " + Gf.Folders[i].FontName[j] + ";}";
 					}
 				}
 			}

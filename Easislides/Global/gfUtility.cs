@@ -277,11 +277,11 @@ namespace Easislides
 								dr["LineSpacing2"] = ShowLineSpacing[i, 1];
 								dr["BIU0"] = ShowFontBold[i, 0] + ShowFontItalic[i, 0] * 2 + ShowFontUnderline[i, 0] * 4 + ShowFontBold[i, 2] * 8 + ShowFontItalic[i, 2] * 16 + ShowFontUnderline[i, 2] * 32 + ShowFontRTL[i, 0] * 64;
 								dr["Size0"] = ShowFontSize[i, 0];
-								dr["FontName0"] = ShowFontName[i, 0];
+								dr["FontName0"] = Folders[i].FontName[0];
 								dr["Vpos0"] = ShowFontVPosition[i, 0];
 								dr["BIU1"] = ShowFontBold[i, 1] + ShowFontItalic[i, 1] * 2 + ShowFontUnderline[i, 1] * 4 + ShowFontBold[i, 3] * 8 + ShowFontItalic[i, 3] * 16 + ShowFontUnderline[i, 3] * 32 + ShowFontRTL[i, 1] * 64;
 								dr["Size1"] = ShowFontSize[i, 1];
-								dr["FontName1"] = ShowFontName[i, 1];
+								dr["FontName1"] = Folders[i].FontName[1];
 								dr["Vpos1"] = ShowFontVPosition[i, 1];
 								dr["LMargin"] = ShowLeftMargin[i];
 								dr["RMargin"] = ShowRightMargin[i];
@@ -340,11 +340,11 @@ namespace Easislides
 								dataTable.Rows[rowIndex]["LineSpacing2"] = ShowLineSpacing[i, 1];
 								dataTable.Rows[rowIndex]["BIU0"] = ShowFontBold[i, 0] + ShowFontItalic[i, 0] * 2 + ShowFontUnderline[i, 0] * 4 + ShowFontBold[i, 2] * 8 + ShowFontItalic[i, 2] * 16 + ShowFontUnderline[i, 2] * 32 + ShowFontRTL[i, 0] * 64;
 								dataTable.Rows[rowIndex]["Size0"] = ShowFontSize[i, 0];
-								dataTable.Rows[rowIndex]["FontName0"] = ShowFontName[i, 0];
+								dataTable.Rows[rowIndex]["FontName0"] = Folders[i].FontName[0];
 								dataTable.Rows[rowIndex]["Vpos0"] = ShowFontVPosition[i, 0];
 								dataTable.Rows[rowIndex]["BIU1"] = ShowFontBold[i, 1] + ShowFontItalic[i, 1] * 2 + ShowFontUnderline[i, 1] * 4 + ShowFontBold[i, 3] * 8 + ShowFontItalic[i, 3] * 16 + ShowFontUnderline[i, 3] * 32 + ShowFontRTL[i, 1] * 64;
 								dataTable.Rows[rowIndex]["Size1"] = ShowFontSize[i, 1];
-								dataTable.Rows[rowIndex]["FontName1"] = ShowFontName[i, 1];
+								dataTable.Rows[rowIndex]["FontName1"] = Folders[i].FontName[1];
 								dataTable.Rows[rowIndex]["Vpos1"] = ShowFontVPosition[i, 1];
 								dataTable.Rows[rowIndex]["LMargin"] = ShowLeftMargin[i];
 								dataTable.Rows[rowIndex]["RMargin"] = ShowRightMargin[i];

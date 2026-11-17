@@ -54,8 +54,8 @@ namespace Easislides
 				array5[1] = ShowFontUnderline[InItem.FolderNo, 1];
 				array6[0] = ShowFontRTL[InItem.FolderNo, 0];
 				array6[1] = ShowFontRTL[InItem.FolderNo, 1];
-				array7[0] = ShowFontName[InItem.FolderNo, 0];
-				array7[1] = ShowFontName[InItem.FolderNo, 1];
+				array7[0] = Folders[InItem.FolderNo].FontName[0];
+				array7[1] = Folders[InItem.FolderNo].FontName[1];
 				if (InItem.Type == "B")
 				{
 					array8[0] = InItem.Format.ShowFontSize[0];
@@ -4206,8 +4206,8 @@ namespace Easislides
 				ShowFontItalic[0, 3] = ShowFontItalic[num, 3];
 				ShowFontUnderline[0, 2] = ShowFontUnderline[folderNo, 0];
 				ShowFontUnderline[0, 3] = ShowFontUnderline[num, num2];
-				ShowFontName[0, 0] = ShowFontName[folderNo, 0];
-				ShowFontName[0, 1] = ShowFontName[num, num2];
+				Folders[0].FontName[0] = Folders[folderNo].FontName[0];
+				Folders[0].FontName[1] = Folders[num].FontName[num2];
 				ShowFontSize[0, 0] = ShowFontSize[folderNo, 0] * InItem.FontSizeFactor / 100;
 				ShowFontSize[0, 1] = ShowFontSize[num, num2] * ((InItem.Type == "B") ? InItem.HBR2_FontSizeFactor : InItem.FontSizeFactor) / 100;
 				if (ShowFontSize[0, 0] <= 0)
@@ -4275,8 +4275,8 @@ namespace Easislides
 			InItem.Format.ShowFontBold[3] = ((num3 < 0 || num3 > 127) ? ShowFontBold[0, 3] : DataUtil.GetBitValue(num3, 4));
 			InItem.Format.ShowFontItalic[3] = ((num3 < 0 || num3 > 127) ? ShowFontItalic[0, 3] : DataUtil.GetBitValue(num3, 5));
 			InItem.Format.ShowFontUnderline[3] = ((num3 < 0 || num3 > 127) ? ShowFontUnderline[0, 3] : DataUtil.GetBitValue(num3, 6));
-			InItem.Format.ShowFontName[0] = ((InItem.Format.HeaderData[43] == "") ? ShowFontName[0, 0] : InItem.Format.HeaderData[43]);
-			InItem.Format.ShowFontName[1] = ((InItem.Format.HeaderData[44] == "") ? ShowFontName[0, 1] : InItem.Format.HeaderData[44]);
+			InItem.Format.ShowFontName[0] = ((InItem.Format.HeaderData[43] == "") ? Folders[0].FontName[0] : InItem.Format.HeaderData[43]);
+			InItem.Format.ShowFontName[1] = ((InItem.Format.HeaderData[44] == "") ? Folders[0].FontName[1] : InItem.Format.HeaderData[44]);
 			num3 = ExtractNumericData(InItem.Format.HeaderData[45]);
 			InItem.Format.ShowFontVPosition[0] = (((num3 < 0) | (num3 > 100)) ? ShowFontVPosition[0, 0] : num3);
 			num3 = ExtractNumericData(InItem.Format.HeaderData[46]);
