@@ -3725,13 +3725,13 @@ namespace Easislides
                 }
             }
             string filter = "Valid External Files (*.ppt,*.pptx,*.doc,*.docx,*.txt,*.esi,*.esw)|*.ppt;*.pptx;*.doc;*.docx;*.txt;*.esi;*.esw|Powerpoint Files (*.ppt)|*.ppt|Powerpoint Files (*.pptx)|*.pptx|Word Documents (*.doc)|*.doc|Word Documents (*.docx)|*.docx|Text Files (*.txt)|*.txt|InfoScreens (*.esi)|*.esi|Worship Lists (*.esw)|*.esw";
-            if (Gf.TotalMediaFileExt > 0)
+            if (Gf.MediaFileExtensions.Count > 0)
             {
                 string mediaLabel = "";
                 string mediaPattern = "";
-                for (int i = 0; i < Gf.TotalMediaFileExt; i++)
+                for (int i = 0; i < Gf.MediaFileExtensions.Count; i++)
                 {
-                    string ext = Gf.MediaFileExtension[i, 0].ToLower();
+                    string ext = Gf.MediaFileExtensions[i].Extension.ToLower();
                     if (i > 0)
                     {
                         mediaLabel += ",";
@@ -3842,9 +3842,9 @@ namespace Easislides
 
         private bool ValidMediaExt(string InExt)
         {
-            for (int i = 0; i < Gf.TotalMediaFileExt; i++)
+            for (int i = 0; i < Gf.MediaFileExtensions.Count; i++)
             {
-                if (InExt.ToLower() == Gf.MediaFileExtension[i, 0].ToLower())
+                if (InExt.ToLower() == Gf.MediaFileExtensions[i].Extension.ToLower())
                 {
                     return true;
                 }
@@ -8699,11 +8699,11 @@ namespace Easislides
                 try
                 {
                     string path = Gf.MediaGroups[MediaFolder.SelectedIndex, 1];
-                    for (int i = 0; i < Gf.TotalMediaFileExt; i++)
+                    for (int i = 0; i < Gf.MediaFileExtensions.Count; i++)
                     {
                         try
                         {
-                            string[] files = Directory.GetFiles(path, "*" + Gf.MediaFileExtension[i, 0]);
+                            string[] files = Directory.GetFiles(path, "*" + Gf.MediaFileExtensions[i].Extension);
                             string[] array = files;
                             foreach (string text in array)
                             {
@@ -8931,12 +8931,12 @@ namespace Easislides
         private void Media_Import_Click(object sender, EventArgs e)
         {
             string str = Gf.MediaGroups[MediaFolder.SelectedIndex, 1];
-            string str2 = (Gf.TotalMediaFileExt > 0) ? "Media Files (" : "";
-            string text = (Gf.TotalMediaFileExt > 0) ? ")|" : "";
-            for (int i = 0; i < Gf.TotalMediaFileExt; i++)
+            string str2 = (Gf.MediaFileExtensions.Count > 0) ? "Media Files (" : "";
+            string text = (Gf.MediaFileExtensions.Count > 0) ? ")|" : "";
+            for (int i = 0; i < Gf.MediaFileExtensions.Count; i++)
             {
-                str2 = str2 + ((i > 0) ? "," : "") + "*" + Gf.MediaFileExtension[i, 0].ToLower();
-                text = text + ((i > 0) ? ";" : "") + "*" + Gf.MediaFileExtension[i, 0].ToLower();
+                str2 = str2 + ((i > 0) ? "," : "") + "*" + Gf.MediaFileExtensions[i].Extension.ToLower();
+                text = text + ((i > 0) ? ";" : "") + "*" + Gf.MediaFileExtensions[i].Extension.ToLower();
             }
             string filter = str2 + text;
             openFileDialog1.Filter = filter;

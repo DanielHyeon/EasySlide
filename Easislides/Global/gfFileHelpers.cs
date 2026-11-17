@@ -123,7 +123,7 @@ namespace Easislides
 
         public static string GetOpenFileDialogMediaString(MediaBackgroundStyle InMediaType)
         {
-            if (Gf.TotalMediaFileExt == 0)
+            if (Gf.MediaFileExtensions.Count == 0)
             {
                 return "";
             }
@@ -142,9 +142,9 @@ namespace Easislides
             }
 
             bool isFirst = true;
-            for (int i = 0; i < Gf.TotalMediaFileExt; i++)
+            for (int i = 0; i < Gf.MediaFileExtensions.Count; i++)
             {
-                if (InMediaType == MediaBackgroundStyle.None || Gf.MediaFileExtension[i, 1] == InMediaType.ToString())
+                if (InMediaType == MediaBackgroundStyle.None || Gf.MediaFileExtensions[i].TypeName == InMediaType.ToString())
                 {
                     if (!isFirst)
                     {
@@ -152,7 +152,7 @@ namespace Easislides
                         extensions.Append(';');
                     }
 
-                    string ext = "*" + Gf.MediaFileExtension[i, 0];
+                    string ext = "*" + Gf.MediaFileExtensions[i].Extension;
                     displayName.Append(ext);
                     extensions.Append(ext);
                     isFirst = false;

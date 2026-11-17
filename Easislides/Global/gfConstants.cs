@@ -747,9 +747,7 @@ namespace Easislides
 		// Missing value or registry read failure = modern look; 0 or a value that is not a positive number = previous look (see LoadSavedData).
 		public static bool UseModernMainUi = true;
 
-		public static string[,] MediaFileExtension = new string[3000, 2];
-
-		public static int TotalMediaFileExt = 0;
+		public static readonly List<MediaExtension> MediaFileExtensions = new List<MediaExtension>();
 
 		public static int IndexFileVersion = 0;
 

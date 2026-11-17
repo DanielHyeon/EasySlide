@@ -897,7 +897,7 @@ namespace Easislides
 			// Missing value or registry read failure = modern look (GetRegValue falls back to the default 1).
 			// Value 0, or a value that is not a positive number, = previous look.
 			UseModernMainUi = RegUtil.GetRegValue("options", RegUtil.Reg_ModernMainUi, 1) > 0;
-			TotalMediaFileExt = 0;
+			MediaFileExtensions.Clear();
 			MediaExtensionsDatafile = RootEasiSlidesDir + "Admin\\Database\\MediaExtensions.txt";
 			AudioExtensionsDatafile = RootEasiSlidesDir + "Admin\\Database\\AudioExtensions.txt";
 			VideoExtensionsDatafile = RootEasiSlidesDir + "Admin\\Database\\VideoExtensions.txt";

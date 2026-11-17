@@ -3923,11 +3923,11 @@ namespace Easislides
 			{
 				return MediaBackgroundStyle.Audio;
 			}
-			for (int i = 0; i < TotalMediaFileExt; i++)
+			for (int i = 0; i < MediaFileExtensions.Count; i++)
 			{
-				if (MediaFileExtension[i, 0] == text)
+				if (MediaFileExtensions[i].Extension == text)
 				{
-					if (MediaFileExtension[i, 1] == MediaBackgroundStyle.Video.ToString())
+					if (MediaFileExtensions[i].TypeName == MediaBackgroundStyle.Video.ToString())
 					{
 						return MediaBackgroundStyle.Video;
 					}

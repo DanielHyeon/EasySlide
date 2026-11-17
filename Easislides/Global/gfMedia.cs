@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
+using Easislides.Global;
 using Easislides.Module;
 using Easislides.Util;
 
@@ -45,7 +46,7 @@ namespace Easislides
 
 		public static void LoadMusicExtArray()
 		{
-			TotalMediaFileExt = 0;
+			MediaFileExtensions.Clear();
 			LoadMusicExtArray("AudioExtensions.txt", MediaBackgroundStyle.Audio);
 			LoadMusicExtArray("VideoExtensions.txt", MediaBackgroundStyle.Video);
 		}
@@ -80,11 +81,13 @@ namespace Easislides
 			while ((text2 = streamReader.ReadLine()) != null)
 			{
 				text2 = DataUtil.TrimEnd(text2);
-				if (text2 != "" && TotalMediaFileExt < 3000 && ValidateMusicExt(ref text2, ShowMessage: false))
+				if (text2 != "" && MediaFileExtensions.Count < 3000 && ValidateMusicExt(ref text2, ShowMessage: false))
 				{
-					MediaFileExtension[TotalMediaFileExt, 0] = text2.ToLower();
-					MediaFileExtension[TotalMediaFileExt, 1] = InMediaType.ToString();
-					TotalMediaFileExt++;
+					MediaFileExtensions.Add(new MediaExtension
+					{
+						Extension = text2.ToLower(),
+						TypeName = InMediaType.ToString()
+					});
 				}
 			}
 		}
@@ -102,17 +105,17 @@ namespace Easislides
 				return;
 			}
 			string[] array;
-			for (int i = 0; i < TotalMediaFileExt; i++)
+			for (int i = 0; i < MediaFileExtensions.Count; i++)
 			{
 				try
 				{
-					string[] files = Directory.GetFiles(FolderPath, "*" + MediaFileExtension[i, 0]);
+					string[] files = Directory.GetFiles(FolderPath, "*" + MediaFileExtensions[i].Extension);
 					array = files;
 					foreach (string text in array)
 					{
 						string InFileName = text;
 						string fileName = GetDisplayNameOnly(ref InFileName, UpdateByRef: false);
-						string extension = MediaFileExtension[i, 0];
+						string extension = MediaFileExtensions[i].Extension;
 						int iLen = InFileName.Length - (fileName.Length + extension.Length);
 						string dirPath = DataUtil.Left(InFileName, iLen);
 
@@ -175,12 +178,12 @@ namespace Easislides
 			for (int i = 0; i <= 1; i++)
 			{
 				text = ((i == 0) ? MusicTitle1 : MusicTitle2);
-				for (int j = 0; j < TotalMediaFileExt; j++)
+				for (int j = 0; j < MediaFileExtensions.Count; j++)
 				{
 					if (StoreDirPath)
 					{
 						var mediaFile = MediaFilesList.FirstOrDefault(f =>
-							f.FileName == text && f.Extension == MediaFileExtension[j, 0]);
+							f.FileName == text && f.Extension == MediaFileExtensions[j].Extension);
 
 						if (mediaFile != null)
 						{
@@ -191,7 +194,7 @@ namespace Easislides
 					}
 					else
 					{
-						string mediaFileNameFromDir = GetMediaFileNameFromDir(MediaDir, MediaFileExtension[j, 0], text, ref DirPath, ref FileName);
+						string mediaFileNameFromDir = GetMediaFileNameFromDir(MediaDir, MediaFileExtensions[j].Extension, text, ref DirPath, ref FileName);
 						if (mediaFileNameFromDir != "")
 						{
 							return mediaFileNameFromDir;
