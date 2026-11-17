@@ -84,11 +84,17 @@
         Message
     }
 
+    /// <summary>
+    /// Sort order of a song folder, stored as a number in FOLDER.GroupStyle: the values must not change.
+    /// The praise book uses Alpha and WordCount only.
+    /// </summary>
     public enum SortBy
     {
-        Alpha,
-        WordCount,
-        SongNumber
+        Alpha = 0,
+        WordCount = 1,
+        // Song number ascending, songs without a number last (openspec change add-song-number-sort, N1).
+        // Was the unused member SongNumber with the same value.
+        Number = 2
     }
 
     public enum InfoType

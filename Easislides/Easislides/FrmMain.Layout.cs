@@ -168,6 +168,7 @@ namespace Easislides
             {
                 return false;
             }
+            BuildFolderSortMenu();
             ApplyModernUi();
             ApplyUseSongNumbers(Gf.UseSongNumbers);
             BuildFolderList();
@@ -674,19 +675,16 @@ namespace Easislides
             }
         }
 
+        /// <summary>
+        /// Makes Inmode the current folder sort order and shows it on the sort button: checked for any
+        /// order other than title, the tooltip names the order (openspec change add-song-number-sort, N3).
+        /// An unknown value is title order.
+        /// </summary>
         private void SetSortButton(SortBy Inmode)
         {
-            switch (Inmode)
-            {
-                case SortBy.Alpha:
-                    Folders_WordCount.Checked = false;
-                    CurStyle = SortBy.Alpha;
-                    break;
-                case SortBy.WordCount:
-                    Folders_WordCount.Checked = true;
-                    CurStyle = SortBy.WordCount;
-                    break;
-            }
+            CurStyle = Inmode == SortBy.WordCount || Inmode == SortBy.Number ? Inmode : SortBy.Alpha;
+            Folders_WordCount.Checked = CurStyle != SortBy.Alpha;
+            Folders_WordCount.ToolTipText = FolderSortToolTip(CurStyle);
         }
 
         private void SetPowerpointListingButton()

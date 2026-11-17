@@ -2043,16 +2043,129 @@ namespace Easislides
             }
         }
 
-        private void Folders_WordCount_MouseUp(object sender, MouseEventArgs e)
+        // ----- Folder sort menu (openspec change add-song-number-sort, design N3) -----
+
+        /// <summary>The choices of the folder sort menu, in menu order.</summary>
+        private static readonly (SortBy Mode, string Text)[] FolderSortChoices =
         {
-            SortBy curStyle = CurStyle;
-            SetSortButton(Folders_WordCount.Checked ? SortBy.WordCount : SortBy.Alpha);
-            Gf.FolderGroupStyle[Gf.GetFolderNumber(SongFolder.Text)] = CurStyle;
-            Gf.SaveConfigSettings();
-            if (CurStyle != curStyle)
+            (SortBy.Alpha, "Sort by Title"),
+            (SortBy.WordCount, "Sort by CJK Word Count"),
+            (SortBy.Number, "Sort by Song Number"),
+        };
+
+        // Opened by Folders_WordCount; built once in InitFormControls (before ApplyModernUi, so the modern
+        // look's renderer is given to it and taken back with the other context menus).
+        private ContextMenuStrip folderSortMenu;
+
+        // InMusicOnly of the last Find whose results are shown ("Search Results:"), to refill them in another order.
+        private bool searchResultsMusicOnly;
+
+        // The search statement (Gf.Find_SQLString at that time) of the shown "Search Results:".
+        private string searchResultsSql;
+
+        private static string FolderSortToolTip(SortBy mode)
+        {
+            foreach (var (choice, text) in FolderSortChoices)
             {
-                SongFolder_Change();
+                if (choice == mode)
+                {
+                    return text;
+                }
             }
+            return FolderSortChoices[0].Text;
+        }
+
+        /// <summary>
+        /// The menu of the folder sort button. The designer button stays a ToolStripButton (no designer type
+        /// change, every existing reference keeps working); it opens this menu instead of toggling.
+        /// </summary>
+        private void BuildFolderSortMenu()
+        {
+            // The button has no text: without a name, accessibility tools list it as a nameless check box.
+            Folders_WordCount.AccessibleName = "Song list sort order";
+            folderSortMenu = new ContextMenuStrip(components) { Name = "CMenuFolderSort" };
+            foreach (var (mode, text) in FolderSortChoices)
+            {
+                ToolStripMenuItem item = new ToolStripMenuItem(text)
+                {
+                    Name = "FolderSort_" + mode,
+                    Tag = mode,
+                };
+                item.Click += FolderSortMenuItem_Click;
+                folderSortMenu.Items.Add(item);
+            }
+        }
+
+        /// <summary>
+        /// Click (left mouse button, keyboard or accessibility Invoke) opens the sort menu below the button,
+        /// the current order checked. Opening it writes nothing.
+        /// </summary>
+        private void Folders_WordCount_Click(object sender, EventArgs e)
+        {
+            if (!Folders_WordCount.Enabled || folderSortMenu == null)
+            {
+                return;
+            }
+            foreach (ToolStripItem entry in folderSortMenu.Items)
+            {
+                if (entry is ToolStripMenuItem item && item.Tag is SortBy mode)
+                {
+                    item.Checked = mode == CurStyle;
+                }
+            }
+            // Bounds are relative to the strip that shows the button (the overflow drop-down when it overflows).
+            ToolStrip owner = Folders_WordCount.GetCurrentParent() ?? toolStripFolders;
+            Rectangle bounds = Folders_WordCount.Bounds;
+            folderSortMenu.Show(owner, new Point(bounds.Left, bounds.Bottom));
+        }
+
+        private void FolderSortMenuItem_Click(object sender, EventArgs e)
+        {
+            if (sender is ToolStripMenuItem { Tag: SortBy mode })
+            {
+                ChangeFolderSortStyle(mode);
+            }
+        }
+
+        /// <summary>
+        /// Makes mode the current folder's sort order: stored for that folder (FOLDER.GroupStyle) and the list
+        /// refilled. Choosing the current order does nothing. On "Search Results:" there is no folder: the
+        /// results are refilled in the new order and nothing is stored (before, folder 1 got the order).
+        /// </summary>
+        private void ChangeFolderSortStyle(SortBy mode)
+        {
+            if (mode == CurStyle)
+            {
+                return;
+            }
+            int folderNumber = Gf.GetFolderNumber(SongFolder.Text, ZeroIfInvalid: true);
+            if (folderNumber <= 0)
+            {
+                // No folder: only the shown search results can be re-sorted, and only from the query that
+                // produced them (Gf.Find_SQLString may have been cleared or replaced by the Find dialog since).
+                // Without it the list and the button stay as they are.
+                if (SongFolder.Text != SongSearchResultsFolder || string.IsNullOrEmpty(searchResultsSql))
+                {
+                    return;
+                }
+                SetSortButton(mode);
+                string findSql = Gf.Find_SQLString;
+                Gf.Find_SQLString = searchResultsSql;
+                try
+                {
+                    SongsList.Items.Clear();
+                    FillList(-1, "", searchResultsMusicOnly);
+                }
+                finally
+                {
+                    Gf.Find_SQLString = findSql;
+                }
+                return;
+            }
+            SetSortButton(mode);
+            Gf.FolderGroupStyle[folderNumber] = CurStyle;
+            Gf.SaveConfigSettings();
+            SongFolder_Change();
         }
 
         //private void Images_Btn_MouseUp(object sender, MouseEventArgs e)
@@ -6241,6 +6354,8 @@ namespace Easislides
                 SongsList.RightToLeftLayout = false;
                 statusStripMain.Items[0].Text = "";
                 statusStripMain.Items[0].ToolTipText = "";
+                searchResultsMusicOnly = InMusicOnly;
+                searchResultsSql = Gf.Find_SQLString;
                 FillList(-1, "", InMusicOnly);
             }
             else if (Gf.HB_SQLString != "")

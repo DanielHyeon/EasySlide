@@ -202,7 +202,7 @@ namespace Easislides
             var strips = new List<ToolStrip>();
             var panels = new List<ToolStripPanel>();
             CollectSurfaceStrips(this, strips, panels);
-            strips.AddRange(new ToolStrip[] { CMenuImages, CMenuBible, CMenuFiles, CMenuSongs, CMenuWorship, CMenuPraiseB });
+            strips.AddRange(new ToolStrip[] { CMenuImages, CMenuBible, CMenuFiles, CMenuSongs, CMenuWorship, CMenuPraiseB, folderSortMenu });
             foreach (ToolStrip strip in strips)
             {
                 try

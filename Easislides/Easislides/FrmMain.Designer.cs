@@ -5556,7 +5556,6 @@ namespace Easislides
             // 
             // Folders_WordCount
             // 
-            Folders_WordCount.CheckOnClick = true;
             Folders_WordCount.DisplayStyle = ToolStripItemDisplayStyle.Image;
             Folders_WordCount.Image = (System.Drawing.Image)resources.GetObject("Folders_WordCount.Image");
             Folders_WordCount.ImageTransparentColor = System.Drawing.Color.Magenta;
@@ -5564,7 +5563,7 @@ namespace Easislides
             Folders_WordCount.Size = new System.Drawing.Size(29, 36);
             Folders_WordCount.Tag = "wordcount";
             Folders_WordCount.ToolTipText = "Sort by CJK Word Count";
-            Folders_WordCount.MouseUp += Folders_WordCount_MouseUp;
+            Folders_WordCount.Click += Folders_WordCount_Click;
             // 
             // SongsList
             // 

@@ -904,8 +904,7 @@ namespace Easislides
                 parameters = new (string, object)[] { ("@title", SongFindBox.LikePattern(ListString)) };
             }
 
-            string str2 = Gf.UseSongNumbers ? " order by song_number, cjk_strokecount" : ((CurStyle != SortBy.WordCount) ? " order by cjk_strokecount" : " order by cjk_wordcount, cjk_strokecount");
-            str += str2;
+            str += SongListOrderClause(Gf.UseSongNumbers, CurStyle);
 
             string sQuery = str;
             string sQueryCount = str.Replace("*", "Count(*)");
@@ -975,6 +974,30 @@ namespace Easislides
             }
             SongsList.EndUpdate();
             ShowStatusBarSummary();
+        }
+
+        /// <summary>
+        /// The "order by" of the song list. The count query is made from the whole statement with
+        /// Replace("*", "Count(*)"), so the clause must never contain a '*'.
+        /// Number (openspec change add-song-number-sort, N2): songs with a number (1 or more) by number,
+        /// then the songs without one (0 or NULL; NULL &gt;= 1 is not true); ties and the unnumbered songs
+        /// in title order. The global "Use Song Numbering" option keeps its own order.
+        /// </summary>
+        private static string SongListOrderClause(bool useSongNumbers, SortBy style)
+        {
+            if (useSongNumbers)
+            {
+                return " order by song_number, cjk_strokecount";
+            }
+            switch (style)
+            {
+                case SortBy.WordCount:
+                    return " order by cjk_wordcount, cjk_strokecount";
+                case SortBy.Number:
+                    return " order by (case when song_number >= 1 then 0 else 1 end), (case when song_number >= 1 then song_number else 0 end), cjk_strokecount";
+                default:
+                    return " order by cjk_strokecount";
+            }
         }
 
         private void ShowPicturesFolderThumbs()

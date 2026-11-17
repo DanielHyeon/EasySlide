@@ -208,7 +208,7 @@ namespace Easislides
 						num = DataUtil.GetDataInt(dataReader, "FolderNo");
 						FolderName[num] = DataUtil.GetDataString(dataReader, "name");
 						FolderUse[num] = DataUtil.GetDataInt(dataReader, "Use");
-						FolderGroupStyle[num] = (SortBy)DataUtil.GetDataInt(dataReader, "GroupStyle");
+						FolderGroupStyle[num] = ToFolderSortBy(DataUtil.GetDataInt(dataReader, "GroupStyle"));
 						FolderLyricsHeading[num, 0] = DataUtil.GetDataString(dataReader, "PreChorusHeading");
 						FolderLyricsHeading[num, 1] = DataUtil.GetDataString(dataReader, "ChorusHeading");
 						FolderLyricsHeading[num, 2] = DataUtil.GetDataString(dataReader, "BridgeHeading");
@@ -315,6 +315,23 @@ namespace Easislides
 				}
 			}
 			RebuildFolderNameIndex();
+		}
+
+		/// <summary>
+		/// FOLDER.GroupStyle as a folder sort order: 0 title, 1 CJK word count, 2 song number; any other
+		/// value is title order (openspec change add-song-number-sort, N4).
+		/// </summary>
+		public static SortBy ToFolderSortBy(int groupStyle)
+		{
+			switch (groupStyle)
+			{
+				case (int)SortBy.WordCount:
+					return SortBy.WordCount;
+				case (int)SortBy.Number:
+					return SortBy.Number;
+				default:
+					return SortBy.Alpha;
+			}
 		}
 
 		public static int GetFolderNumber(string InName)
