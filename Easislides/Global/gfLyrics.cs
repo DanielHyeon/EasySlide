@@ -99,7 +99,7 @@ namespace Easislides
 				num4 = InItem.Format.ShowBottomMargin;
 				num5 = ((InItem.Format.ShowSongHeadingsAlign == 1) ? array2[1] : ((InItem.Format.ShowSongHeadingsAlign == 2) ? 1 : ((InItem.Format.ShowSongHeadingsAlign == 3) ? 2 : ((InItem.Format.ShowSongHeadingsAlign != 4) ? array2[0] : 3))));
 			}
-			int num6 = FolderHeadingOption[InItem.FolderNo];
+			int num6 = Folders[InItem.FolderNo].HeadingOption;
 			bool flag = (FolderHeadingFontBold[InItem.FolderNo, 0] > 0) ? true : false;
 			bool flag2 = (FolderHeadingFontItalic[InItem.FolderNo, 0] > 0) ? true : false;
 			bool flag3 = (FolderHeadingFontUnderline[InItem.FolderNo, 0] > 0) ? true : false;
@@ -4230,7 +4230,7 @@ namespace Easislides
 				FolderHeadingFontItalic[0, 1] = FolderHeadingFontItalic[folderNo, 1];
 				FolderHeadingFontUnderline[0, 1] = FolderHeadingFontUnderline[folderNo, 1];
 				Folders[0].HeadingPercentSize = Folders[folderNo].HeadingPercentSize;
-				FolderHeadingOption[0] = FolderHeadingOption[folderNo];
+				Folders[0].HeadingOption = Folders[folderNo].HeadingOption;
 				ShowLineSpacing[0, 0] = ShowLineSpacing[folderNo, 0];
 				ShowLineSpacing[0, 1] = ShowLineSpacing[folderNo, 1];
 			}

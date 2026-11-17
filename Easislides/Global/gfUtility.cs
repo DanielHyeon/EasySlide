@@ -272,7 +272,7 @@ namespace Easislides
 								dr["EndingHeading"] = Folders[i].LyricsHeading[3];
 								dr["BIUHeading"] = FolderHeadingFontBold[i, 0] + FolderHeadingFontItalic[i, 0] * 2 + FolderHeadingFontUnderline[i, 0] * 4 + FolderHeadingFontBold[i, 1] * 8 + FolderHeadingFontItalic[i, 1] * 16 + FolderHeadingFontUnderline[i, 1] * 32;
 								dr["HeadingSize"] = Folders[i].HeadingPercentSize;
-								dr["HeadingOption"] = FolderHeadingOption[i];
+								dr["HeadingOption"] = Folders[i].HeadingOption;
 								dr["LineSpacing"] = ShowLineSpacing[i, 0];
 								dr["LineSpacing2"] = ShowLineSpacing[i, 1];
 								dr["BIU0"] = ShowFontBold[i, 0] + ShowFontItalic[i, 0] * 2 + ShowFontUnderline[i, 0] * 4 + ShowFontBold[i, 2] * 8 + ShowFontItalic[i, 2] * 16 + ShowFontUnderline[i, 2] * 32 + ShowFontRTL[i, 0] * 64;
@@ -335,7 +335,7 @@ namespace Easislides
 								dataTable.Rows[rowIndex]["EndingHeading"] = Folders[i].LyricsHeading[3];
 								dataTable.Rows[rowIndex]["BIUHeading"] = FolderHeadingFontBold[i, 0] + FolderHeadingFontItalic[i, 0] * 2 + FolderHeadingFontUnderline[i, 0] * 4 + FolderHeadingFontBold[i, 1] * 8 + FolderHeadingFontItalic[i, 1] * 16 + FolderHeadingFontUnderline[i, 1] * 32;
 								dataTable.Rows[rowIndex]["HeadingSize"] = Folders[i].HeadingPercentSize;
-								dataTable.Rows[rowIndex]["HeadingOption"] = FolderHeadingOption[i];
+								dataTable.Rows[rowIndex]["HeadingOption"] = Folders[i].HeadingOption;
 								dataTable.Rows[rowIndex]["LineSpacing"] = ShowLineSpacing[i, 0];
 								dataTable.Rows[rowIndex]["LineSpacing2"] = ShowLineSpacing[i, 1];
 								dataTable.Rows[rowIndex]["BIU0"] = ShowFontBold[i, 0] + ShowFontItalic[i, 0] * 2 + ShowFontUnderline[i, 0] * 4 + ShowFontBold[i, 2] * 8 + ShowFontItalic[i, 2] * 16 + ShowFontUnderline[i, 2] * 32 + ShowFontRTL[i, 0] * 64;

@@ -223,10 +223,10 @@ namespace Easislides
 						{
 							text2 = DataUtil.ObjToString(HeadingFormat.AsRegion1Plus);
 						}
-						FolderHeadingOption[num] = DataUtil.ObjToInt(text2);
-						if ((FolderHeadingOption[num] < 0) | (FolderHeadingOption[num] > 2))
+						Folders[num].HeadingOption = DataUtil.ObjToInt(text2);
+						if ((Folders[num].HeadingOption < 0) | (Folders[num].HeadingOption > 2))
 						{
-							FolderHeadingOption[num] = DataUtil.ObjToInt(HeadingFormat.AsRegion1Plus);
+							Folders[num].HeadingOption = DataUtil.ObjToInt(HeadingFormat.AsRegion1Plus);
 						}
 						text = DataUtil.GetDataString(dataReader, "BIUHeading");
 						if (text == "")
