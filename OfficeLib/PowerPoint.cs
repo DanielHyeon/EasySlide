@@ -59,6 +59,12 @@ namespace OfficeLib
 
         public void Init()
 		{
+			using PowerPointGate gate = PowerPointGate.Enter(PowerPointCallWeight.Heavy, "attach to PowerPoint");
+			if (gate == null)
+			{
+				Console.WriteLine("Init: PowerPoint is not responding; not attached");
+				return;
+			}
 			try
 			{
 				prePowerPointApp = new Application();
@@ -70,10 +76,21 @@ namespace OfficeLib
 			}
 		}
 
+		/// <summary>
+		/// The result of Open and Run when PowerPoint was not asked because it does not respond, or their group was
+		/// given up: not a failure of the file or the copy (the pre-load does not report the file as not opened).
+		/// </summary>
+		public const string NotRespondingText = "PowerPoint is not responding";
+
 		public string Open(string InPowerpointFullPath, ref string[,] PowerpointList, ref int TotalPowerpointItems)
 		{
 			string text = "";
 			Presentation presentation = null;
+			using PowerPointGate gate = PowerPointGate.Enter(PowerPointCallWeight.Heavy, "open " + Path.GetFileName(InPowerpointFullPath));
+			if (gate == null)
+			{
+				return NotRespondingText;
+			}
 
 			try
 			{
@@ -82,7 +99,7 @@ namespace OfficeLib
 			catch (Exception ex)
 			{
 				Console.WriteLine($"Error accessing Presentations: {ex.Message}");
-				return "Error: PowerPoint application not available";
+				return PowerPointCallLimit.CurrentAbandoned ? NotRespondingText : "Error: PowerPoint application not available";
 			}
 
 			try
@@ -105,9 +122,14 @@ namespace OfficeLib
 						{
 							// The mark that tells this copy from a user's presentation with the same "PresentationN"
 							// name (names start again from 1 when PowerPoint is restarted).
-							using (Tags tags = presentation.Tags)
+							Tags tags = presentation.Tags;
+							try
 							{
 								tags.Add(ShowCopyTagName, ShowCopyMark(InPowerpointFullPath));
+							}
+							finally
+							{
+								ReleaseProxy(tags);
 							}
 							// Tags.Add marks the copy as changed: without this, closing it by hand in PowerPoint's own
 							// window asks the operator whether to save it (seen with PowerPoint 16). Presentation.Close
@@ -132,20 +154,28 @@ namespace OfficeLib
 					// 에러 발생 시 열린 presentation 정리
 					if (presentation != null)
 					{
-						try
+						if (PowerPointCallLimit.CurrentAbandoned)
 						{
-							presentation.Close();
-							presentation.Dispose();
+							// Given up: closed (then released) when PowerPoint answers again.
+							presentationsToClose.Add(presentation);
 						}
-						catch { }
+						else
+						{
+							try
+							{
+								presentation.Close();
+							}
+							catch { }
+							ReleaseProxy(presentation);
+						}
 					}
-					return "Error Loading: " + text;
+					return PowerPointCallLimit.CurrentAbandoned ? NotRespondingText : "Error Loading: " + text;
 				}
 			}
 			catch (Exception ex)
 			{
 				Console.WriteLine($"Error in Open method: {ex.Message}");
-				return "Error Loading: " + text;
+				return PowerPointCallLimit.CurrentAbandoned ? NotRespondingText : "Error Loading: " + text;
 			}
 			return "";
 		}
@@ -159,6 +189,11 @@ namespace OfficeLib
 			LastRunStarted = false;
 			currentSlideShowWindow = IntPtr.Zero;
 			ForgetRunPresentation();
+			using PowerPointGate gate = PowerPointGate.Enter(PowerPointCallWeight.Heavy, "start the slide show of " + Path.GetFileName(InPowerpointFullPath));
+			if (gate == null)
+			{
+				return NotRespondingText;
+			}
 			try
 			{
 				string version = prePowerPointApp.Version;
@@ -177,13 +212,16 @@ namespace OfficeLib
 
 				// Every proxy read through the collection is released with it at the end of the block.
 				Application app = prePowerPointApp;
-				using (Presentations presentations = app.Presentations)
+				// ReleaseProxy: kept instead of released when the group was given up (a release would wait).
+				Presentations presentations = app.Presentations;
+				try
 				{
 					int count = presentations.Count;
-					for (int i = 1; i <= count; i++)
+					for (int i = 1; i <= count && !PowerPointCallLimit.CurrentAbandoned; i++)
 					{
 						Presentation candidate = presentations[i];
 						string fullName = candidate.FullName;
+						PowerPointCallLimit.Progress();
 						text2 = text2 + i + "-" + candidate.Name + "(" + fullName + ") ";
 						if (string.Equals(fullName, text, StringComparison.OrdinalIgnoreCase))
 						{
@@ -194,23 +232,42 @@ namespace OfficeLib
 								unmarked = true;
 								continue;
 							}
-							using SlideShowSettings settings = candidate.SlideShowSettings;
-							DisablePresenterView(settings);
-							using SlideShowWindow window = settings.Run();
-							LastRunStarted = true;
-							RememberRunPresentation(fullName, i, mark, app);
-							if (KeepSlideShowOnTop)
+							SlideShowSettings settings = candidate.SlideShowSettings;
+							SlideShowWindow window = null;
+							try
 							{
-								// The slide show window's title holds FullName ("PresentationN"); Name can be
-								// another text for these untitled copies (seen with PowerPoint 16: the first
-								// slide's title).
-								currentSlideShowWindow = FindSlideShowWindow(window, () => fullName);
-								RaiseCurrentSlideShowWindow();
+								DisablePresenterView(settings);
+								window = settings.Run();
+								PowerPointCallLimit.Progress();
+								LastRunStarted = true;
+								RememberRunPresentation(fullName, i, mark, app);
+								if (KeepSlideShowOnTop)
+								{
+									// The slide show window's title holds FullName ("PresentationN"); Name can be
+									// another text for these untitled copies (seen with PowerPoint 16: the first
+									// slide's title).
+									currentSlideShowWindow = FindSlideShowWindow(window, () => fullName);
+									RaiseCurrentSlideShowWindow();
+								}
+							}
+							finally
+							{
+								ReleaseProxy(window);
+								ReleaseProxy(settings);
 							}
 
 							return "Presentation Run OK";
 						}
 					}
+				}
+				finally
+				{
+					ReleaseProxy(presentations);
+				}
+				if (PowerPointCallLimit.CurrentAbandoned)
+				{
+					// Given up before the slide show started: PowerPoint did not answer, the copy was not looked at.
+					return NotRespondingText;
 				}
 				if (unmarked)
 				{
@@ -220,6 +277,12 @@ namespace OfficeLib
 			catch (Exception ex)
 			{
 				Console.WriteLine($"Error running presentation: {ex.Message}");
+				if (PowerPointCallLimit.CurrentAbandoned)
+				{
+					LastRunStarted = false;
+					ForgetRunPresentation();
+					return NotRespondingText;
+				}
 				return "Error: " + TotalPowerpointItems + ", " + InPowerpointFullPath;
 			}
 			return "Can't find Presentations: " + text + ".  " + text2;
@@ -719,6 +782,8 @@ namespace OfficeLib
 		private const uint WM_NULL = 0x0000;
 		private const uint SMTO_ABORTIFHUNG = 0x0002;
 		private const int ERROR_TIMEOUT = 1460;
+		// LowerWindow (wait): how long a slide show window may take to answer before it is lowered synchronously.
+		private const uint LowerAnswerTimeoutMs = 300;
 
 		/// <summary>What ProbePowerPoint found.</summary>
 		public enum PowerPointAnswer
@@ -864,10 +929,17 @@ namespace OfficeLib
 			{
 				flags |= SWP_ASYNCWINDOWPOS;
 			}
-			else if (IsHungAppWindow(handle))
+			else if (IsHungAppWindow(handle)
+				|| SendMessageTimeout(handle, WM_NULL, IntPtr.Zero, IntPtr.Zero, SMTO_ABORTIFHUNG, LowerAnswerTimeoutMs, out _) == IntPtr.Zero)
 			{
+				// A sent SetWindowPos waits until the window's thread handles it; a suspended PowerPoint is not
+				// reported hung by IsHungAppWindow (measured), so the window is asked first (WM_NULL, a short wait).
+				// It does not answer: the lowering is posted (carried out when PowerPoint handles messages again, before
+				// any COM call that reaches it later, since those are queued behind it) and the window stays on the
+				// list (skipped), so a later call lowers it again.
 				skipped = true;
-				return true;
+				uint posted = flags | SWP_ASYNCWINDOWPOS;
+				return SetWindowPos(handle, HWND_NOTOPMOST, 0, 0, 0, 0, posted) && SetWindowPos(handle, HWND_BOTTOM, 0, 0, 0, 0, posted);
 			}
 			return SetWindowPos(handle, HWND_NOTOPMOST, 0, 0, 0, 0, flags) && SetWindowPos(handle, HWND_BOTTOM, 0, 0, 0, 0, flags);
 		}
@@ -921,14 +993,16 @@ namespace OfficeLib
 				{
 					continue;
 				}
-				if (!LowerWindow(handle, wait, out bool skipped))
+				bool lowered = LowerWindow(handle, wait, out bool skipped);
+				if (!lowered)
 				{
 					int code = Marshal.GetLastWin32Error();
 					error = (error == null ? "" : error + "; ") + "window 0x" + handle.ToString("X") + ": Win32 error " + code + " (" + new System.ComponentModel.Win32Exception(code).Message + ")";
 				}
-				else if (skipped)
+				if (skipped)
 				{
-					// PowerPoint is not responding: kept in the list, lowered by a later call (at the latest at show end).
+					// PowerPoint is not responding (the lowering was posted): kept in the list, lowered again by a later
+					// call (at the latest at show end).
 					lock (raisedSlideShowWindowsLock)
 					{
 						raisedSlideShowWindows.Add((handle, processId));
@@ -1077,17 +1151,25 @@ namespace OfficeLib
 				return false;
 			}
 			string mark = ShowCopyMark(path);
-			using Presentations presentations = prePowerPointApp.Presentations;
-			int count = presentations.Count;
-			for (int i = 1; i <= count; i++)
+			Presentations presentations = prePowerPointApp.Presentations;
+			try
 			{
-				Presentation candidate = presentations[i];
-				if (string.Equals(candidate.FullName, fullName, StringComparison.OrdinalIgnoreCase) && HasShowCopyMark(candidate, mark))
+				int count = presentations.Count;
+				for (int i = 1; i <= count && !PowerPointCallLimit.CurrentAbandoned; i++)
 				{
-					return true;
+					Presentation candidate = presentations[i];
+					if (string.Equals(candidate.FullName, fullName, StringComparison.OrdinalIgnoreCase) && HasShowCopyMark(candidate, mark))
+					{
+						return true;
+					}
+					PowerPointCallLimit.Progress();
 				}
+				return false;
 			}
-			return false;
+			finally
+			{
+				ReleaseProxy(presentations);
+			}
 		}
 
 		// The presentation whose slide show the last successful Run of this wrapper started, by FullName (the key
@@ -1184,6 +1266,17 @@ namespace OfficeLib
 		}
 
 		/// <summary>
+		/// The item run this wrapper made was given up after its slide show started (PowerPoint stopped answering
+		/// during the calls after Run): the run counts as not started, and nothing acts on it (fix-ppt-show-call-timeout).
+		/// The slide show window it raised stays on the list of raised windows, so it is lowered.
+		/// </summary>
+		public void ForgetAbandonedRun()
+		{
+			LastRunStarted = false;
+			ForgetRunPresentation();
+		}
+
+		/// <summary>
 		/// Looks the run's slide show up once and records the result (RunShowLost, LastCallNotRunning), without
 		/// acting on it: FOUND clears RunShowLost, GONE sets it, UNKNOWN changes nothing. Used when another
 		/// wrapper driving the same slide show found it gone, and to ask again about a slide show believed ended
@@ -1192,6 +1285,12 @@ namespace OfficeLib
 		public void RefreshRunShowState()
 		{
 			LastCallNotRunning = false;
+			using PowerPointGate gate = PowerPointGate.Enter(PowerPointCallWeight.Light, "look up the slide show");
+			if (gate == null)
+			{
+				// UNKNOWN: nothing is known, nothing changes.
+				return;
+			}
 			try
 			{
 				using RunPresentation run = FindRunSlideShow(out _);
@@ -1215,6 +1314,12 @@ namespace OfficeLib
 		public bool EnsureAttached(out bool attachFailed)
 		{
 			attachFailed = false;
+			using PowerPointGate gate = PowerPointGate.Enter(PowerPointCallWeight.Light, "check the PowerPoint reference");
+			if (gate == null)
+			{
+				// Not asked: the reference is kept, as for a busy PowerPoint.
+				return false;
+			}
 			Application app = prePowerPointApp;
 			if (app != null && !app.IsDisposed)
 			{
@@ -1303,7 +1408,8 @@ namespace OfficeLib
 				{
 					try
 					{
-						owned[i].Dispose();
+						// Kept instead of released when the group was given up (a release would wait).
+						ReleaseProxy(owned[i]);
 					}
 					catch (Exception ex)
 					{
@@ -1405,6 +1511,11 @@ namespace OfficeLib
 					{
 						continue;
 					}
+					if (PowerPointCallLimit.CurrentAbandoned)
+					{
+						// Given up: not known (UNKNOWN), and no further call.
+						throw new InvalidOperationException("The PowerPoint calls were given up (PowerPoint is not responding)");
+					}
 					Presentation candidate = presentations[i];
 					if (string.Equals(ReadCandidateName(() => candidate.FullName, ref unreadable), name, StringComparison.OrdinalIgnoreCase)
 						&& IsMarkedCandidate(candidate, ref unreadable))
@@ -1488,7 +1599,7 @@ namespace OfficeLib
 		{
 			try
 			{
-				proxy?.Dispose();
+				ReleaseProxy(proxy);
 			}
 			catch
 			{
@@ -1608,6 +1719,12 @@ namespace OfficeLib
 
 		public void First()
 		{
+			using PowerPointGate gate = PowerPointGate.Enter(PowerPointCallWeight.Light, "go to the first slide");
+			if (gate == null)
+			{
+				LastCallNotRunning = false;
+				return;
+			}
 			try
 			{
 				using RunPresentation run = FindRunSlideShow(out SlideShowWindow window);
@@ -1625,6 +1742,12 @@ namespace OfficeLib
 
 		public void Last()
 		{
+			using PowerPointGate gate = PowerPointGate.Enter(PowerPointCallWeight.Light, "go to the last slide");
+			if (gate == null)
+			{
+				LastCallNotRunning = false;
+				return;
+			}
 			try
 			{
 				using RunPresentation run = FindRunSlideShow(out SlideShowWindow window);
@@ -1649,6 +1772,12 @@ namespace OfficeLib
 				return;
 			}
 
+			using PowerPointGate gate = PowerPointGate.Enter(PowerPointCallWeight.Light, "go to slide " + StartingSlide);
+			if (gate == null)
+			{
+				LastCallNotRunning = false;
+				return;
+			}
 			try
 			{
 				using RunPresentation run = FindRunSlideShow(out SlideShowWindow window);
@@ -1669,6 +1798,12 @@ namespace OfficeLib
 		/// </summary>
 		public int Count()
 		{
+			using PowerPointGate gate = PowerPointGate.Enter(PowerPointCallWeight.Light, "read the slide count");
+			if (gate == null)
+			{
+				LastCallNotRunning = false;
+				return 0;
+			}
 			try
 			{
 				using RunPresentation run = FindRunPresentationNoted();
@@ -1718,6 +1853,11 @@ namespace OfficeLib
 
         public void SetShowWindow(float Left, float Top, float Width, float Height)
         {
+			using PowerPointGate gate = PowerPointGate.Enter(PowerPointCallWeight.Light, "place the slide show window");
+			if (gate == null)
+			{
+				return;
+			}
             try
             {
 				using RunPresentation run = FindRunSlideShow(out SlideShowWindow window);
@@ -1749,12 +1889,19 @@ namespace OfficeLib
 		/// </summary>
         public void ResSetAllShowWindows(string[,] PowerpointList, int TotalPowerpointItems)
 		{
+			using PowerPointGate gate = PowerPointGate.Enter(PowerPointCallWeight.Light, "shrink the slide show windows");
+			if (gate == null)
+			{
+				return;
+			}
+			Presentations presentations = null;
 			try
 			{
-				using Presentations presentations = prePowerPointApp.Presentations;
+				presentations = prePowerPointApp.Presentations;
 				int count = presentations.Count;
-				for (int i = 1; i <= count; i++)
+				for (int i = 1; i <= count && !PowerPointCallLimit.CurrentAbandoned; i++)
 				{
+					PowerPointCallLimit.Progress();
 					try
 					{
 						Presentation presentation = presentations[i];
@@ -1779,6 +1926,10 @@ namespace OfficeLib
             {
 				// Ignored: PowerPoint is not available.
             }
+			finally
+			{
+				ReleaseProxy(presentations);
+			}
 		}
 
 		/// <summary>
@@ -2066,6 +2217,12 @@ namespace OfficeLib
 		/// </summary>
 		public void NewApp()
 		{
+			using PowerPointGate gate = PowerPointGate.Enter(PowerPointCallWeight.Heavy, "attach to PowerPoint");
+			if (gate == null)
+			{
+				// Not attached: the old reference is kept, as when attaching fails.
+				return;
+			}
 			try
 			{
 				// Create the new reference first so a failure keeps the old, working one.
@@ -2088,6 +2245,11 @@ namespace OfficeLib
         /// </summary>
         public void SafePlayNext(int slideNumber = -1)
         {
+            using PowerPointGate gate = PowerPointGate.Enter(PowerPointCallWeight.Light, "play the next animation");
+            if (gate == null)
+            {
+                return;
+            }
             try
             {
                 // Inside the try: reading PowerPoint can throw (e.g. PowerPoint has exited).
@@ -2166,13 +2328,22 @@ namespace OfficeLib
 		public int ImplementPowerpointSlideMovement(ref int InCurSlide, int InCurMaxSlide, OfficeLibKeys InKey, int InSlideNo)
 		{
 			LastNavigationError = null;
+			if (prePowerPointApp == null)
+			{
+				LastCallNotRunning = true;
+				return 1;
+			}
+			using PowerPointGate gate = PowerPointGate.Enter(PowerPointCallWeight.Light, "move the slide show");
+			if (gate == null)
+			{
+				// Not asked: nothing moved, the slide show is not "ended" (the screen stays as it is); the caller
+				// reports the error.
+				LastNavigationError = new InvalidOperationException("PowerPoint is not responding");
+				LastCallNotRunning = false;
+				return InCurSlide;
+			}
 			try
 			{
-				if (prePowerPointApp == null)
-				{
-					LastCallNotRunning = true;
-					return 1;
-				}
 
                 // The slide show of the presentation this wrapper ran (slide show running), never the active one.
                 using RunPresentation run = FindRunSlideShow(out SlideShowWindow slideShowWindow);
@@ -2250,6 +2421,14 @@ namespace OfficeLib
 			{
 				Console.WriteLine($"Error moving the slide show: {ex.Message}");
 				// A failed lookup (UNKNOWN) is not looked up again: nothing would be learnt; the next key tries again.
+				if (PowerPointCallLimit.CurrentAbandoned)
+				{
+					// Given up: PowerPoint did not answer. Not an end of the slide show; nothing more is asked.
+					Console.WriteLine($"Moving the slide show was given up: {ex.GetBaseException().Message}");
+					LastNavigationError = new InvalidOperationException("PowerPoint is not responding");
+					LastCallNotRunning = false;
+					return InCurSlide;
+				}
 				if (!(ex is RunLookupException) && RunSlideShowEnded())
 				{
 					// The slide show ended on this move: the end of the item, as when PowerPoint reports
@@ -2291,6 +2470,11 @@ namespace OfficeLib
 		/// </summary>
         public void LoadVersesAndSlides(ref int[] SongVerses, ref int[,] Slide, string[] SequenceSymbol)
 		{
+			using PowerPointGate gate = PowerPointGate.Enter(PowerPointCallWeight.Light, "read the verse markers");
+			if (gate == null)
+			{
+				return;
+			}
 			try
 			{
 				using RunPresentation run = FindRunPresentationNoted();
@@ -2302,8 +2486,9 @@ namespace OfficeLib
 				int num = -1;
 				bool flag = false;
 				SequenceSymbol.GetUpperBound(0);
-				for (int i = 1; i <= presentation.Slides.Count; i++)
+				for (int i = 1; i <= presentation.Slides.Count && !PowerPointCallLimit.CurrentAbandoned; i++)
 				{
+					PowerPointCallLimit.Progress();
 					try
 					{
 						if (presentation.Slides[i].NotesPage.Shapes.Placeholders[NOTES_PLACEHOLDER_INDEX].PlaceholderFormat.Type == PpPlaceholderType.ppPlaceholderBody &&
@@ -2408,6 +2593,11 @@ namespace OfficeLib
 			SequenceSymbol.GetUpperBound(0);
 			for (int i = 1; i <= totalSlides; i++)
 			{
+				if (PowerPointCallLimit.CurrentAbandoned)
+				{
+					return false;
+				}
+				PowerPointCallLimit.Progress();
 				try
 				{
 					Placeholders placeholders = presentation.Slides[i].NotesPage.Shapes.Placeholders;
@@ -2553,13 +2743,19 @@ namespace OfficeLib
 			// 슬라이드 수를 가져오기 위해 프레젠테이션 열기 (필요한 경우)
 			if (TotalSlides == 0 || presentation == null)
 			{
+				using PowerPointGate gate = PowerPointGate.Enter(PowerPointCallWeight.Heavy, "read the slide count of " + Path.GetFileName(FilePath));
+				if (gate == null)
+				{
+					// Not asked: as when the file cannot be opened (not cached, so it is read again next time).
+					return false;
+				}
 				_Presentation tempPresentation = presentation;
 				bool shouldClose = false;
 				try
 				{
 					if (tempPresentation == null)
 					{
-						tempPresentation = prePowerPointApp.Presentations.Open(FilePath, MsoTriState.msoFalse, MsoTriState.msoTrue, MsoTriState.msoFalse);
+						tempPresentation = OpenTemporary(FilePath, MsoTriState.msoFalse, MsoTriState.msoTrue);
 						shouldClose = true;
 					}
 					TotalSlides = tempPresentation.Slides.Count;
@@ -2589,13 +2785,19 @@ namespace OfficeLib
 			// 슬라이드 수를 가져오기 위해 프레젠테이션 열기 (필요한 경우)
 			if (TotalSlides == 0 || presentation == null)
 			{
+				using PowerPointGate gate = PowerPointGate.Enter(PowerPointCallWeight.Heavy, "read the slide count of " + Path.GetFileName(FilePath));
+				if (gate == null)
+				{
+					// Not asked: as when the file cannot be opened (not cached, so it is read again next time).
+					return false;
+				}
 				_Presentation tempPresentation = presentation;
 				bool shouldClose = false;
 				try
 				{
 					if (tempPresentation == null)
 					{
-						tempPresentation = prePowerPointApp.Presentations.Open(FilePath, MsoTriState.msoFalse, MsoTriState.msoTrue, MsoTriState.msoFalse);
+						tempPresentation = OpenTemporary(FilePath, MsoTriState.msoFalse, MsoTriState.msoTrue);
 						shouldClose = true;
 					}
 					TotalSlides = tempPresentation.Slides.Count;
@@ -2626,13 +2828,19 @@ namespace OfficeLib
 			// 슬라이드 수를 가져오기 위해 프레젠테이션 열기 (필요한 경우)
 			if (TotalSlides == 0 || presentation == null)
 			{
+				using PowerPointGate gate = PowerPointGate.Enter(PowerPointCallWeight.Heavy, "read the slide count of " + Path.GetFileName(FilePath));
+				if (gate == null)
+				{
+					// Not asked: as when the file cannot be opened (not cached, so it is read again next time).
+					return false;
+				}
 				_Presentation tempPresentation = presentation;
 				bool shouldClose = false;
 				try
 				{
 					if (tempPresentation == null)
 					{
-						tempPresentation = prePowerPointApp.Presentations.Open(FilePath, MsoTriState.msoFalse, MsoTriState.msoTrue, MsoTriState.msoFalse);
+						tempPresentation = OpenTemporary(FilePath, MsoTriState.msoFalse, MsoTriState.msoTrue);
 						shouldClose = true;
 					}
 					TotalSlides = tempPresentation.Slides.Count;
@@ -2669,6 +2877,12 @@ namespace OfficeLib
 		public bool BuildScreenOutDumps(string FilePath, string FilePrefix, ref int TotalSlides, int MAX_VERSES, int DB_MAXSLIDES, ref int[] SongVerses, ref int[,] Slide, string[] SequenceSymbol)
 		{
 			bool result = true;
+			using PowerPointGate gate = PowerPointGate.Enter(PowerPointCallWeight.Heavy, "build the slide images of " + Path.GetFileName(FilePath));
+			if (gate == null)
+			{
+				ResetVerses(MAX_VERSES, DB_MAXSLIDES, ref SongVerses, ref Slide);
+				return false;
+			}
 			try
 			{
 				Console.WriteLine($"[BuildScreenOutDumps] FilePath='{FilePath}', FilePrefix='{FilePrefix}'");
@@ -2689,7 +2903,7 @@ namespace OfficeLib
 				Console.WriteLine($"Output preview images already exist (cache hit) for: {FilePrefix}");
 					
 					// 캐시 히트: Verse 정보 파싱을 위해서만 프레젠테이션 열기
-					presentation = prePowerPointApp.Presentations.Open(FilePath, MsoTriState.msoFalse, MsoTriState.msoTrue, MsoTriState.msoFalse);
+					presentation = OpenTemporary(FilePath, MsoTriState.msoFalse, MsoTriState.msoTrue);
 					Console.WriteLine(FilePath);
 					if (presentation != null)
 					{
@@ -2700,7 +2914,7 @@ namespace OfficeLib
 				}
 
 				// 캐시 미스: 이미지를 새로 생성해야 함
-				presentation = prePowerPointApp.Presentations.Open(FilePath, MsoTriState.msoFalse, MsoTriState.msoFalse, MsoTriState.msoFalse);
+				presentation = OpenTemporary(FilePath, MsoTriState.msoFalse, MsoTriState.msoFalse);
 				Console.WriteLine(FilePath);
 				if ((presentation == null) & (TotalSlides > 0))
 				{
@@ -2715,6 +2929,7 @@ namespace OfficeLib
 				{
 					strOutFileName = FilePrefix + Convert.ToString(i) + ".jpg";
 					presentation.Slides[i].Export(strOutFileName, "JPG", EXPORT_WIDTH, EXPORT_HEIGHT);
+					PowerPointCallLimit.Progress();
 					Console.WriteLine($"Exported slide {i} to: {strOutFileName}");
 					//Console.WriteLine("SlideID:{0}, SlideNumber: {1} ", Pres.Slides.Item(l).SlideID, Pres.Slides.Item(l).SlideNumber);
 					strPreFileName = strOutFileName.Replace("~OUTPPPreview$", "~PREPPPreview$");
@@ -2876,11 +3091,30 @@ private void UpdateImageBuildCache(string FilePath, string FilePrefix, int Total
 					return false;
 				}
 				DateTime? lastWriteBeforeRead = GetLastWriteBeforeRead(FilePath);
-				versePresentation = prePowerPointApp.Presentations.Open(FilePath, MsoTriState.msoTrue, MsoTriState.msoTrue, MsoTriState.msoFalse);
-				int slideCount = versePresentation.Slides.Count;
-				bool complete = ParseVersesFromPresentation(versePresentation, slideCount, ref SongVerses, ref Slide, SequenceSymbol);
-				StoreCachedVerses(FilePath, lastWriteBeforeRead, complete, slideCount, MAX_VERSES, SongVerses, Slide);
-				return true;
+				using PowerPointGate gate = PowerPointGate.Enter(PowerPointCallWeight.Heavy, "read the verse markers of " + Path.GetFileName(FilePath));
+				if (gate == null)
+				{
+					return false;
+				}
+				try
+				{
+					versePresentation = OpenTemporary(FilePath, MsoTriState.msoTrue, MsoTriState.msoTrue);
+					int slideCount = versePresentation.Slides.Count;
+					bool complete = ParseVersesFromPresentation(versePresentation, slideCount, ref SongVerses, ref Slide, SequenceSymbol);
+					StoreCachedVerses(FilePath, lastWriteBeforeRead, complete, slideCount, MAX_VERSES, SongVerses, Slide);
+					if (PowerPointCallLimit.CurrentAbandoned)
+					{
+						// Given up: the markers are only partly read (and not cached).
+						ResetVerses(MAX_VERSES, DB_MAXSLIDES, ref SongVerses, ref Slide);
+						return false;
+					}
+					return true;
+				}
+				finally
+				{
+					// Inside the group: closed (or kept, when it was given up) before the gate ends.
+					ClosePresentation(ref versePresentation);
+				}
 			}
 			catch (Exception ex)
 			{
@@ -2916,6 +3150,12 @@ private void UpdateImageBuildCache(string FilePath, string FilePrefix, int Total
 		public bool BuildScreenDumps(string FilePath, string FilePrefix, ref int TotalSlides, int MAX_VERSES, int DB_MAXSLIDES, ref int[] SongVerses, ref int[,] Slide, string[] SequenceSymbol)
 		{
 			bool result = true;
+			using PowerPointGate gate = PowerPointGate.Enter(PowerPointCallWeight.Heavy, "build the slide images of " + Path.GetFileName(FilePath));
+			if (gate == null)
+			{
+				ResetVerses(MAX_VERSES, DB_MAXSLIDES, ref SongVerses, ref Slide);
+				return false;
+			}
 			try
 			{
 				Console.WriteLine($"[BuildScreenDumps] FilePath='{FilePath}', FilePrefix='{FilePrefix}'");
@@ -2934,7 +3174,7 @@ private void UpdateImageBuildCache(string FilePath, string FilePrefix, int Total
 				}
 
 				DateTime? lastWriteBeforeRead = GetLastWriteBeforeRead(FilePath);
-				presentation = prePowerPointApp.Presentations.Open(FilePath, MsoTriState.msoFalse, MsoTriState.msoFalse, MsoTriState.msoFalse);
+				presentation = OpenTemporary(FilePath, MsoTriState.msoFalse, MsoTriState.msoFalse);
 				TotalSlides = presentation.Slides.Count;
 				if ((presentation == null) & (TotalSlides > 0))
 				{
@@ -2944,6 +3184,7 @@ private void UpdateImageBuildCache(string FilePath, string FilePrefix, int Total
 				for (int k = 1; k <= TotalSlides; k++)
 				{
 					presentation.Slides[k].Export(FilePrefix + Convert.ToString(k) + ".jpg", "JPG", EXPORT_WIDTH, EXPORT_HEIGHT);
+					PowerPointCallLimit.Progress();
 				}
 
 				// Verse 정보 파싱
@@ -3015,6 +3256,11 @@ private void UpdateImageBuildCache(string FilePath, string FilePrefix, int Total
 				return false;
 			}
 			bool result = true;
+			using PowerPointGate gate = PowerPointGate.Enter(PowerPointCallWeight.Heavy, "build the first slide image of " + Path.GetFileName(ScreenDumpFullPath[0, num]));
+			if (gate == null)
+			{
+				return false;
+			}
 			try
 			{
 				if (prePowerPointApp == null)
@@ -3037,14 +3283,151 @@ private void UpdateImageBuildCache(string FilePath, string FilePrefix, int Total
 			}
 		}
 
+        /// <summary>
+        /// Opens a file as a temporary, windowless presentation (slide count, slide images, verse markers). When the
+        /// open is cancelled because its group was given up and the presentation is titled (its FullName is the
+        /// path), the path is remembered: the open may still complete inside PowerPoint, and that presentation is
+        /// closed when PowerPoint answers again (CloseLeftOpenPresentations). An untitled one ("PresentationN")
+        /// cannot be told from a presentation the user made, so it is not remembered.
+        /// </summary>
+        private _Presentation OpenTemporary(string path, MsoTriState readOnly, MsoTriState untitled)
+        {
+            try
+            {
+                return prePowerPointApp.Presentations.Open(path, readOnly, untitled, MsoTriState.msoFalse);
+            }
+            catch
+            {
+                if (PowerPointCallLimit.CurrentAbandoned && untitled == MsoTriState.msoFalse)
+                {
+                    cancelledTitledOpens.Add((this, path));
+                }
+                throw;
+            }
+        }
+
+        // Temporary presentations (and a show copy whose Open failed) that a given-up group could not close: closed,
+        // then released, when PowerPoint answers again (CloseLeftOpenPresentations). UI thread only.
+        private static readonly List<_Presentation> presentationsToClose = new List<_Presentation>();
+
+        // Titled temporary opens that were cancelled with no presentation returned (see OpenTemporary).
+        private static readonly List<(PowerPoint Wrapper, string Path)> cancelledTitledOpens = new List<(PowerPoint, string)>();
+
+        /// <summary>How many presentations wait to be closed when PowerPoint answers again.</summary>
+        public static int LeftOpenCount => presentationsToClose.Count + cancelledTitledOpens.Count;
+
+        /// <summary>
+        /// PowerPoint answers again (PowerPointGate, or the show-end package after its own check): closes the
+        /// temporary presentations given-up groups left open, so a hidden PowerPoint is not kept running by them
+        /// (QuitPowerPointApp quits only when nothing is open). A cancelled titled open is closed only when a
+        /// presentation with exactly that FullName has no window (a document the user opened has one). Call inside a
+        /// limited group; whatever is not done when the group is given up stays for the next time.
+        /// </summary>
+        public static int CloseLeftOpenPresentations()
+        {
+            int closedCount = 0;
+            _Presentation[] left = presentationsToClose.ToArray();
+            presentationsToClose.Clear();
+            for (int i = 0; i < left.Length; i++)
+            {
+                if (PowerPointCallLimit.CurrentAbandoned)
+                {
+                    presentationsToClose.Add(left[i]);
+                    continue;
+                }
+                try
+                {
+                    left[i].Close();
+                    closedCount++;
+                    PowerPointCallLimit.Progress();
+                    ReleaseProxy(left[i] as IDisposable);
+                }
+                catch (Exception ex)
+                {
+                    if (PowerPointCallLimit.CurrentAbandoned)
+                    {
+                        presentationsToClose.Add(left[i]);
+                        continue;
+                    }
+                    // Gone already (closed in PowerPoint, PowerPoint exited): nothing left to close.
+                    Console.WriteLine($"Closing a presentation left open: {ex.GetBaseException().Message}");
+                    ReleaseProxy(left[i] as IDisposable);
+                }
+            }
+            (PowerPoint Wrapper, string Path)[] opens = cancelledTitledOpens.ToArray();
+            cancelledTitledOpens.Clear();
+            foreach ((PowerPoint wrapper, string path) in opens)
+            {
+                Application app = wrapper.prePowerPointApp;
+                if (PowerPointCallLimit.CurrentAbandoned)
+                {
+                    cancelledTitledOpens.Add((wrapper, path));
+                    continue;
+                }
+                if (app == null || app.IsDisposed)
+                {
+                    continue;
+                }
+                Presentations presentations = null;
+                try
+                {
+                    presentations = app.Presentations;
+                    for (int i = presentations.Count; i >= 1 && !PowerPointCallLimit.CurrentAbandoned; i--)
+                    {
+                        Presentation candidate = presentations[i];
+                        if (string.Equals(candidate.FullName, path, StringComparison.OrdinalIgnoreCase) && candidate.Windows.Count == 0)
+                        {
+                            candidate.Close();
+                            closedCount++;
+                            Console.WriteLine($"Closed a windowless presentation of {path} left by a cancelled open");
+                        }
+                        PowerPointCallLimit.Progress();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Looking for a presentation left by a cancelled open: {ex.GetBaseException().Message}");
+                }
+                finally
+                {
+                    ReleaseProxy(presentations);
+                }
+                if (PowerPointCallLimit.CurrentAbandoned)
+                {
+                    cancelledTitledOpens.Add((wrapper, path));
+                }
+            }
+            return closedCount;
+        }
+
         public void ClosePresentation(ref _Presentation presentation)
         {
             try
             {
                 if (presentation != null)
                 {
-                    presentation.Close();
-                    presentation.Dispose();  // NetOffice���� �����ϴ� Dispose() ���?
+                    if (PowerPointCallLimit.CurrentAbandoned)
+                    {
+                        // The group was given up: not closed now (the call would be cancelled) and not released (a
+                        // release would wait for PowerPoint); closed when PowerPoint answers again.
+                        presentationsToClose.Add(presentation);
+                        return;
+                    }
+                    try
+                    {
+                        presentation.Close();
+                    }
+                    catch
+                    {
+                        if (PowerPointCallLimit.CurrentAbandoned)
+                        {
+                            // Given up during the Close.
+                            presentationsToClose.Add(presentation);
+                            return;
+                        }
+                        throw;
+                    }
+                    ReleaseProxy(presentation as IDisposable);  // NetOffice���� �����ϴ� Dispose() ���?
                 }
             }
             catch (Exception e)

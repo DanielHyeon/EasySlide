@@ -30,6 +30,7 @@ namespace OfficeLib
 	public sealed class PowerPointCallLimit : IDisposable
 	{
 		private const int PumpIntervalMs = 100;
+		private const int AbandonedPumpIntervalMs = 10;
 		private const uint WM_NULL = 0;
 
 		[ComImport, Guid("00000016-0000-0000-C000-000000000046"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
@@ -97,17 +98,12 @@ namespace OfficeLib
 		private bool registered;
 		private Timer pump;
 
+		// One group per thread (the UI thread in practice).
+		[ThreadStatic]
 		private static PowerPointCallLimit current;
 
-		/// <summary>The group running on the calling thread (the UI thread), or null on any other thread.</summary>
-		public static PowerPointCallLimit Current
-		{
-			get
-			{
-				PowerPointCallLimit limit = current;
-				return (limit != null && limit.threadId == GetCurrentThreadId()) ? limit : null;
-			}
-		}
+		/// <summary>The group running on the calling thread, or null.</summary>
+		public static PowerPointCallLimit Current => current;
 
 		/// <summary>
 		/// True inside a group that was given up (a call was cancelled, or would be): the one signal the wrapper and
@@ -197,6 +193,16 @@ namespace OfficeLib
 				if (now - Interlocked.Read(ref lastProgressMs) >= stallMs || now >= capMs)
 				{
 					Abandoned = true;
+					// From now on every call of the group is cancelled at once: COM asks the filter on the next
+					// message, so the messages come every 10 ms instead of 100 ms (a loop that goes on calling after
+					// a cancelled call then ends quickly).
+					try
+					{
+						pump?.Change(AbandonedPumpIntervalMs, AbandonedPumpIntervalMs);
+					}
+					catch (ObjectDisposedException)
+					{
+					}
 				}
 			}
 			return Abandoned;

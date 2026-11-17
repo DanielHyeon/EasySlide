@@ -540,8 +540,44 @@ namespace Easislides
 			return RunPowerpointSong(ref InItem, ref InPPT, StartingSlide, ShowResult: false);
 		}
 
+		/// <summary>
+		/// The show's pre-load did not open the PowerPoint files (PowerPoint did not answer, or stopped answering):
+		/// they are opened when a PowerPoint item is run (fix-ppt-show-call-timeout P5).
+		/// </summary>
+		internal static bool PowerPointPreloadPending;
+
+		private static bool powerPointGateHooked;
+
+		/// <summary>
+		/// fix-ppt-show-call-timeout P3: every change of the gate's "not responding" state is logged and told once.
+		/// Called once at start-up (FrmMain), before the main form's PowerPoint wrapper is attached.
+		/// </summary>
+		internal static void HookPowerPointGate()
+		{
+			if (powerPointGateHooked)
+			{
+				return;
+			}
+			powerPointGateHooked = true;
+			PowerPointGate.StateChanged += (notResponding, reason) =>
+			{
+				FrmMain.WriteDebugLog("PowerPoint gate: " + (notResponding ? "PowerPoint is not responding: " : "PowerPoint answers again: ") + reason);
+				FrmMain.ReportErrorNotice(notResponding
+					? "PowerPoint is not responding: PowerPoint items cannot be shown until it answers again"
+					: "PowerPoint answers again: load a PowerPoint item again to show it");
+			};
+			PowerPointGate.Trace += text => FrmMain.WriteDebugLog(text);
+		}
+
 		public static int RunPowerpointSong(ref SongSettings InItem, ref PowerPoint InPPT, int StartingSlide, bool ShowResult)
 		{
+			if (PowerPointPreloadPending && ShowRunning)
+			{
+				// The show's files were not opened: the existing mid-show pre-load opens them now (skipped again,
+				// at once, while PowerPoint does not answer; this item then does not start).
+				FrmMain.WriteDebugLog("RunPowerpointSong: the PowerPoint files were not pre-loaded; pre-loading them now");
+				gfFileHelpers.PreLoadPowerpointFiles(ref LivePP, ref WorshipSongs);
+			}
 			ResetPowerpointVerses(ref InItem);
 			InPPT.displayName = OutputMonitorName;
 			SlideShowRunCount++;
@@ -554,7 +590,38 @@ namespace Easislides
 				SetSlideShowMonitorBounds(InPPT);
 			}
 
-			string text = InPPT.Run(InItem.Path, ref PowerpointList, ref TotalPowerpointItems);
+			// One heavy group for the whole item run (fix-ppt-show-call-timeout G4): Run, the slide placement, the
+			// window placement, the verse markers and the slide count share its limits. Given up at any point, the
+			// item takes the "not started" path below.
+			string text;
+			int count = 0;
+			bool givenUp;
+			using (PowerPointGate gate = PowerPointGate.Enter(PowerPointCallWeight.Heavy, "run the PowerPoint item " + Path.GetFileName(InItem.Path)))
+			{
+				if (gate == null)
+				{
+					// Not asked: no slide show was started, and nothing of an earlier run of this wrapper counts.
+					InPPT.ForgetAbandonedRun();
+					text = PowerPoint.NotRespondingText;
+				}
+				else
+				{
+					text = InPPT.Run(InItem.Path, ref PowerpointList, ref TotalPowerpointItems);
+					if (InPPT.LastRunStarted)
+					{
+						count = RunPowerpointSongCalls(ref InItem, InPPT, StartingSlide);
+					}
+				}
+				givenUp = PowerPointCallLimit.CurrentAbandoned;
+			}
+			if (givenUp && InPPT.LastRunStarted)
+			{
+				// Given up after the slide show started: the item counts as not started (default background, status
+				// row, notice); the wrapper does not act on that slide show any more.
+				InPPT.ForgetAbandonedRun();
+				ResetPowerpointVerses(ref InItem);
+				text = PowerPoint.NotRespondingText;
+			}
 			if (!InPPT.LastRunStarted)
 			{
 				// The slide show of this item did not start. Nothing below may run: it would act on no slide show
@@ -575,6 +642,21 @@ namespace Easislides
 				InItem.CurSlide = 1;
 				return 0;
 			}
+			// Once per item, after its last raise (Run, or SetShowWindow in custom output area mode, which may
+			// first move the slide show onto the output monitor).
+			if (InPPT.KeepSlideShowOnTop)
+			{
+				ReportSlideShowRaiseError(InPPT, InItem.Path, null);
+			}
+			return count;
+		}
+
+		/// <summary>
+		/// The calls of RunPowerpointSong after its slide show started (inside its group): the starting slide, the
+		/// window placement, the verse markers; returns the slide count.
+		/// </summary>
+		private static int RunPowerpointSongCalls(ref SongSettings InItem, PowerPoint InPPT, int StartingSlide)
+		{
 			// A new slide show runs: its end, when a later call finds it gone, is reported again.
 			showLostReportedPath = null;
 			if (StartingSlide < 2)
@@ -606,12 +688,6 @@ namespace Easislides
 				{
 					InPPT.SetShowWindow(LS_Left, LS_Top, (float)LS_Width * scalef, (float)LS_Height * scalef);
 				}
-			}
-			// Once per item, after its last raise (Run, or SetShowWindow in custom output area mode, which may
-			// first move the slide show onto the output monitor).
-			if (InPPT.KeepSlideShowOnTop)
-			{
-				ReportSlideShowRaiseError(InPPT, InItem.Path, null);
 			}
 
 			InPPT.LoadVersesAndSlides(ref InItem.SongVerses, ref InItem.Slide, SequenceSymbol);
@@ -670,7 +746,7 @@ namespace Easislides
 				{
 					releaseWork |= ppt?.prePowerPointApp != null;
 				}
-				releaseWork |= PowerPoint.HeldProxyCount > 0;
+				releaseWork |= PowerPoint.HeldProxyCount > 0 || PowerPoint.LeftOpenCount > 0;
 			}
 			if (!liveWork && !retryWork && !releaseWork)
 			{
@@ -684,6 +760,12 @@ namespace Easislides
 			}
 			using (PowerPointCallLimit limit = PowerPointCallLimit.Begin(PowerPointEndStallMs, PowerPointEndCapMs))
 			{
+				if (answer == PowerPoint.PowerPointAnswer.Answers && PowerPoint.LeftOpenCount > 0)
+				{
+					// Temporary presentations a given-up group left open (fix-ppt-show-call-timeout G3): closed first,
+					// so the quit below is not prevented by them.
+					PowerPoint.CloseLeftOpenPresentations();
+				}
 				if (retryWork && !RetryPendingCleanUpCalls(where, answer, atExit))
 				{
 					PowerPointNotAnswering(where, "PowerPoint stopped answering: the clean-up left by an earlier show end was abandoned " + LimitText(limit), atExit);
@@ -724,6 +806,9 @@ namespace Easislides
 		/// </summary>
 		private static void PowerPointNotAnswering(string where, string reason, bool atExit)
 		{
+			// The PowerPoint gate of the show (fix-ppt-show-call-timeout G9) takes the same state, so the pre-load that
+			// follows a show start is skipped at once instead of asking PowerPoint again.
+			PowerPointGate.NoteNotResponding(where + ": " + reason);
 			LivePP.DropPowerPointApp();
 			KeepShowCopiesForLater();
 			PowerPoint.ForgetShowCopyNames();
@@ -793,6 +878,7 @@ namespace Easislides
 				if (answer == PowerPoint.PowerPointAnswer.NotResponding)
 				{
 					FrmMain.WriteDebugLog(where + ": PowerPoint still does not answer (" + detail + "); the clean-up left by an earlier show end waits (" + pendingShowCopyCount + " show copy(ies))");
+					PowerPointGate.NoteNotResponding(where + ": PowerPoint still does not answer (" + detail + ")");
 					if (pendingShowCopyCount > 0)
 					{
 						FrmMain.ReportErrorNotice("PowerPoint is still not responding: the PowerPoint copy of an earlier show could not be closed");
@@ -835,6 +921,11 @@ namespace Easislides
 			bool answered = answer == PowerPoint.PowerPointAnswer.Answers;
 			if (answered)
 			{
+				PowerPoint.CloseLeftOpenPresentations();
+				if (PowerPointCallLimit.CurrentAbandoned)
+				{
+					return false;
+				}
 				PowerPoint.ReleaseHeldProxies();
 			}
 			if (pendingShowCopyCount > 0 || atExit)

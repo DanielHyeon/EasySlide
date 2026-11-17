@@ -88,6 +88,8 @@ namespace Easislides
             AddHookSlideUpDown();
 
             Gf.InitFolderFiles(Gf.EasiSlidesTempDir);
+            // The PowerPoint gate's state changes are logged and told (before any PowerPoint call of the main form).
+            Gf.HookPowerPointGate();
 
             Gf.WMP_Present = DShowPlayerPresent();
             if (WorshipListItems.Items.Count > 0)

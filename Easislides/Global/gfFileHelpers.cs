@@ -370,14 +370,53 @@ namespace Easislides
             }
         }
 
+        /// <summary>
+        /// Opens the worship list's PowerPoint files for the show (show start, and mid-show when the list changes).
+        /// One heavy group of PowerPoint calls (fix-ppt-show-call-timeout P1, P2, P5): PowerPoint is asked first and
+        /// the calls are given up when none completes for PowerPointGate.HeavyStallMs (or StartStallMs when
+        /// PowerPoint has to be started); the group may take as long as its files need. When PowerPoint does not
+        /// answer, nothing is opened and the show goes on (Gf.PowerPointPreloadPending: the files are opened when a
+        /// PowerPoint item is loaded after PowerPoint answers again).
+        /// </summary>
         public static void PreLoadPowerpointFiles(ref PowerPoint InPP, ref string[,] InSongsArray)
+        {
+            int files = 0;
+            for (int i = 0; i <= Gf.TotalWorshipListItems; i++)
+            {
+                if (InSongsArray[i, 1] == "P")
+                {
+                    files++;
+                }
+            }
+            if (files == 0)
+            {
+                Gf.PowerPointPreloadPending = false;
+                return;
+            }
+            using PowerPointGate gate = PowerPointGate.Enter(PowerPointCallWeight.Heavy, "pre-load " + files + " PowerPoint file(s)",
+                PowerPointGate.StartStallMs + files * PowerPointGate.HeavyStallMs);
+            if (gate == null)
+            {
+                Gf.PowerPointPreloadPending = true;
+                FrmMain.WriteDebugLog("PreLoadPowerpointFiles: skipped, PowerPoint is not responding; the files are opened when a PowerPoint item is loaded after it answers again");
+                return;
+            }
+            PreLoadPowerpointFileCalls(ref InPP, ref InSongsArray);
+            Gf.PowerPointPreloadPending = PowerPointCallLimit.CurrentAbandoned;
+            if (Gf.PowerPointPreloadPending)
+            {
+                FrmMain.WriteDebugLog("PreLoadPowerpointFiles: given up, PowerPoint stopped answering; the files are opened when a PowerPoint item is loaded after it answers again");
+            }
+        }
+
+        private static void PreLoadPowerpointFileCalls(ref PowerPoint InPP, ref string[,] InSongsArray)
         {
             bool flag = false;
             int failedCount = 0;
             string firstFailed = null;
             InPP.isLive = true;
             InPP.isEditable = false;
-            for (int i = 0; i <= Gf.TotalWorshipListItems; i++)
+            for (int i = 0; i <= Gf.TotalWorshipListItems && !PowerPointCallLimit.CurrentAbandoned; i++)
             {
                 try
                 {
@@ -409,7 +448,13 @@ namespace Easislides
                         }
                         string path = DataUtil.Right(InSongsArray[i, 0], InSongsArray[i, 0].Length - 1);
                         string result = InPP.Open(path, ref Gf.PowerpointList, ref Gf.TotalPowerpointItems);
-                        if (!string.IsNullOrEmpty(result))
+                        if (result == PowerPoint.NotRespondingText || PowerPointCallLimit.CurrentAbandoned)
+                        {
+                            // PowerPoint did not answer: not a failure of this file (no "could not be opened"
+                            // notice; the pre-load is retried when a PowerPoint item is loaded).
+                            FrmMain.WriteDebugLog("PreLoadPowerpointFiles: '" + path + "' not opened: PowerPoint is not responding");
+                        }
+                        else if (!string.IsNullOrEmpty(result))
                         {
                             // Not opened: the item cannot start its slide show during this show. Each file is
                             // reported once per show (a mid-show pre-load tries it again).
@@ -420,8 +465,10 @@ namespace Easislides
                                 firstFailed ??= path;
                             }
                         }
+                        PowerPointCallLimit.Progress();
                         InPP.prePowerPointApp.Activate();
                         InPP.prePowerPointApp.WindowState = NetOffice.PowerPointApi.Enums.PpWindowState.ppWindowMinimized;
+                        PowerPointCallLimit.Progress();
                     }
                 }
                 catch (Exception ex)
