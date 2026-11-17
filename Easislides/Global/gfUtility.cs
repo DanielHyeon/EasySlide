@@ -273,8 +273,8 @@ namespace Easislides
 								dr["BIUHeading"] = Folders[i].HeadingFontBold[0] + Folders[i].HeadingFontItalic[0] * 2 + Folders[i].HeadingFontUnderline[0] * 4 + Folders[i].HeadingFontBold[1] * 8 + Folders[i].HeadingFontItalic[1] * 16 + Folders[i].HeadingFontUnderline[1] * 32;
 								dr["HeadingSize"] = Folders[i].HeadingPercentSize;
 								dr["HeadingOption"] = Folders[i].HeadingOption;
-								dr["LineSpacing"] = ShowLineSpacing[i, 0];
-								dr["LineSpacing2"] = ShowLineSpacing[i, 1];
+								dr["LineSpacing"] = Folders[i].LineSpacing[0];
+								dr["LineSpacing2"] = Folders[i].LineSpacing[1];
 								dr["BIU0"] = Folders[i].FontBold[0] + Folders[i].FontItalic[0] * 2 + Folders[i].FontUnderline[0] * 4 + Folders[i].FontBold[2] * 8 + Folders[i].FontItalic[2] * 16 + Folders[i].FontUnderline[2] * 32 + Folders[i].FontRTL[0] * 64;
 								dr["Size0"] = Folders[i].FontSize[0];
 								dr["FontName0"] = Folders[i].FontName[0];
@@ -336,8 +336,8 @@ namespace Easislides
 								dataTable.Rows[rowIndex]["BIUHeading"] = Folders[i].HeadingFontBold[0] + Folders[i].HeadingFontItalic[0] * 2 + Folders[i].HeadingFontUnderline[0] * 4 + Folders[i].HeadingFontBold[1] * 8 + Folders[i].HeadingFontItalic[1] * 16 + Folders[i].HeadingFontUnderline[1] * 32;
 								dataTable.Rows[rowIndex]["HeadingSize"] = Folders[i].HeadingPercentSize;
 								dataTable.Rows[rowIndex]["HeadingOption"] = Folders[i].HeadingOption;
-								dataTable.Rows[rowIndex]["LineSpacing"] = ShowLineSpacing[i, 0];
-								dataTable.Rows[rowIndex]["LineSpacing2"] = ShowLineSpacing[i, 1];
+								dataTable.Rows[rowIndex]["LineSpacing"] = Folders[i].LineSpacing[0];
+								dataTable.Rows[rowIndex]["LineSpacing2"] = Folders[i].LineSpacing[1];
 								dataTable.Rows[rowIndex]["BIU0"] = Folders[i].FontBold[0] + Folders[i].FontItalic[0] * 2 + Folders[i].FontUnderline[0] * 4 + Folders[i].FontBold[2] * 8 + Folders[i].FontItalic[2] * 16 + Folders[i].FontUnderline[2] * 32 + Folders[i].FontRTL[0] * 64;
 								dataTable.Rows[rowIndex]["Size0"] = Folders[i].FontSize[0];
 								dataTable.Rows[rowIndex]["FontName0"] = Folders[i].FontName[0];

@@ -27,6 +27,7 @@ namespace Easislides.Global
         public int[] FontBold = new int[4];
         public int[] FontItalic = new int[4];
         public int[] FontUnderline = new int[4];
+        public double[] LineSpacing = new double[2];
 
         public FolderSettings Clone()
         {
@@ -44,6 +45,7 @@ namespace Easislides.Global
             copy.FontBold = (int[])FontBold.Clone();
             copy.FontItalic = (int[])FontItalic.Clone();
             copy.FontUnderline = (int[])FontUnderline.Clone();
+            copy.LineSpacing = (double[])LineSpacing.Clone();
             return copy;
         }
     }

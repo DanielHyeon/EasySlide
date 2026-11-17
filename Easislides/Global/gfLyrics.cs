@@ -4231,8 +4231,8 @@ namespace Easislides
 				Folders[0].HeadingFontUnderline[1] = Folders[folderNo].HeadingFontUnderline[1];
 				Folders[0].HeadingPercentSize = Folders[folderNo].HeadingPercentSize;
 				Folders[0].HeadingOption = Folders[folderNo].HeadingOption;
-				ShowLineSpacing[0, 0] = ShowLineSpacing[folderNo, 0];
-				ShowLineSpacing[0, 1] = ShowLineSpacing[folderNo, 1];
+				Folders[0].LineSpacing[0] = Folders[folderNo].LineSpacing[0];
+				Folders[0].LineSpacing[1] = Folders[folderNo].LineSpacing[1];
 			}
 			int num3 = ExtractNumericData(InItem.Format.HeaderData[21]);
 			InItem.Format.ShowSongHeadings = (((num3 < 0) | (num3 > 3)) ? ShowSongHeadings : num3);

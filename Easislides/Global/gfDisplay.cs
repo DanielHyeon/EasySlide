@@ -1691,8 +1691,8 @@ namespace Easislides
 		{
 			for (int i = 0; i < MAXSONGSFOLDERS; i++)
 			{
-				MainFontSpacingFactor[i, 0] = ShowLineSpacing[i, 0] + 0.05;
-				MainFontSpacingFactor[i, 1] = ShowLineSpacing[i, 1] + 0.05;
+				MainFontSpacingFactor[i, 0] = Folders[i].LineSpacing[0] + 0.05;
+				MainFontSpacingFactor[i, 1] = Folders[i].LineSpacing[1] + 0.05;
 			}
 		}
 

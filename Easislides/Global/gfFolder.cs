@@ -239,15 +239,15 @@ namespace Easislides
 						Folders[num].HeadingFontBold[1] = DataUtil.GetBitValue(DataUtil.ObjToInt(text), 4);
 						Folders[num].HeadingFontItalic[1] = DataUtil.GetBitValue(DataUtil.ObjToInt(text), 5);
 						Folders[num].HeadingFontUnderline[1] = DataUtil.GetBitValue(DataUtil.ObjToInt(text), 6);
-						ShowLineSpacing[num, 0] = DataUtil.GetDataDouble(dataReader, "LineSpacing");
-						if ((ShowLineSpacing[num, 0] < 0.5) | (ShowLineSpacing[num, 0] > 2.0))
+						Folders[num].LineSpacing[0] = DataUtil.GetDataDouble(dataReader, "LineSpacing");
+						if ((Folders[num].LineSpacing[0] < 0.5) | (Folders[num].LineSpacing[0] > 2.0))
 						{
-							ShowLineSpacing[num, 0] = 1.0;
+							Folders[num].LineSpacing[0] = 1.0;
 						}
-						ShowLineSpacing[num, 1] = DataUtil.GetDataDouble(dataReader, "LineSpacing2");
-						if ((ShowLineSpacing[num, 1] < 0.5) | (ShowLineSpacing[num, 1] > 2.0))
+						Folders[num].LineSpacing[1] = DataUtil.GetDataDouble(dataReader, "LineSpacing2");
+						if ((Folders[num].LineSpacing[1] < 0.5) | (Folders[num].LineSpacing[1] > 2.0))
 						{
-							ShowLineSpacing[num, 1] = 1.0;
+							Folders[num].LineSpacing[1] = 1.0;
 						}
 						ShowLeftMargin[num] = 2;
 						ShowLeftMargin[num] = DataUtil.GetDataInt(dataReader, "LMargin");

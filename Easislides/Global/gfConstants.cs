@@ -1609,8 +1609,6 @@ namespace Easislides
 		public static string EditNotesHeading = "";
 
 
-		public static double[,] ShowLineSpacing = new double[MAXSONGSFOLDERS, 2];
-
 		public static int UseOutlineFont = 0;
 
 		public static int UseShadowFont = 0;
