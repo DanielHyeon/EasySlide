@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Drawing.Imaging;
 using System.Text;
 using System.Windows.Forms;
 using Easislides.Module;
@@ -170,7 +168,7 @@ namespace Easislides
         private bool SwitchUsersToModernList()
         {
             var users = new List<Control>();
-            FindImageListUsers(this, imageListSys, users);
+            ModernItemIcons.FindImageListUsers(this, imageListSys, users);
             try
             {
                 foreach (Control control in users)
@@ -385,7 +383,7 @@ namespace Easislides
             }
             using (glyph)
             {
-                Bitmap bitmap = CenteredCell(glyph, cell);
+                Bitmap bitmap = ModernItemIcons.CenteredCell(glyph, cell);
                 if (framed)
                 {
                     // Four 2 px strips filling the cell's edges (corners included), exact on every edge.
@@ -409,40 +407,7 @@ namespace Easislides
             {
                 return null;
             }
-            return CenteredCell(glyph, cell);
-        }
-
-        private static Bitmap CenteredCell(Bitmap glyph, Size cell)
-        {
-            var bitmap = new Bitmap(cell.Width, cell.Height, PixelFormat.Format32bppArgb);
-            using (Graphics g = Graphics.FromImage(bitmap))
-            {
-                g.Clear(Color.Transparent);
-                // An exact pixel copy: source and destination rectangles of the same pixel size, nearest
-                // neighbour, pixel centres on pixel centres, and the source pixels replace the cell's (no blend).
-                g.CompositingMode = CompositingMode.SourceCopy;
-                g.InterpolationMode = InterpolationMode.NearestNeighbor;
-                g.PixelOffsetMode = PixelOffsetMode.Half;
-                g.DrawImage(glyph, new Rectangle((cell.Width - glyph.Width) / 2, (cell.Height - glyph.Height) / 2, glyph.Width, glyph.Height),
-                    0, 0, glyph.Width, glyph.Height, GraphicsUnit.Pixel);
-            }
-            return bitmap;
-        }
-
-        private static void FindImageListUsers(Control parent, ImageList images, List<Control> users)
-        {
-            foreach (Control control in parent.Controls)
-            {
-                if ((control is ButtonBase button && button.ImageList == images)
-                    || (control is ListView view && view.SmallImageList == images))
-                {
-                    users.Add(control);
-                }
-                if (control.HasChildren)
-                {
-                    FindImageListUsers(control, images, users);
-                }
-            }
+            return ModernItemIcons.CenteredCell(glyph, cell);
         }
 
         private static void SetImageList(Control control, ImageList images)

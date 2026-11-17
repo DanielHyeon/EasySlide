@@ -5828,8 +5828,14 @@ namespace Easislides
             Gf.Options_MaxHistoryListChanged = false;
             Gf.Options_PreviewAreaChanged = false;
             Gf.Options_DMChanged = false;
-            FrmOptions frmOptions = new FrmOptions();
-            if (frmOptions.ShowDialog() != DialogResult.OK)
+            // A modal form is not disposed when it closes: dispose it here. Nothing below reads the dialog itself
+            // (its results are in the Gf.Options_* flags), so only the result needs to leave the using block.
+            DialogResult optionsResult;
+            using (FrmOptions frmOptions = new FrmOptions())
+            {
+                optionsResult = frmOptions.ShowDialog();
+            }
+            if (optionsResult != DialogResult.OK)
             {
                 return;
             }

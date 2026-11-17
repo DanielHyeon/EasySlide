@@ -43,6 +43,9 @@
     <Compile Update="Easislides\FrmMain.ModernUi.Surface.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="Easislides\FrmOptions.ModernUi.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="Easislides\FrmSplashScreen.cs">
       <SubType>Form</SubType>
     </Compile>
