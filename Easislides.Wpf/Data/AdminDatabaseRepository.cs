@@ -131,11 +131,16 @@ public sealed record AdminDatabaseWriteIssue(
     AdminDatabaseIssueSeverity Severity,
     string Message);
 
+/// <summary>
+/// Folder write request. <paramref name="GroupStyle"/> is the folder sort order
+/// (0 = title, 1 = word count, 2 = song number); null leaves the stored order of an
+/// existing folder unchanged and gives a new folder 0.
+/// </summary>
 public sealed record SongFolderWriteModel(
     int FolderNo,
     string Name,
     bool IsEnabled,
-    int GroupStyle = 0);
+    int? GroupStyle = null);
 
 public sealed record SongWriteModel(
     int? SongId,
@@ -787,9 +792,12 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
         existsCommand.Parameters.AddWithValue("@folderNo", folder.FolderNo);
         var exists = Convert.ToInt32(existsCommand.ExecuteScalar(), CultureInfo.InvariantCulture) > 0;
         var hasGroupStyle = folderColumns.TryGetValue("GroupStyle", out var groupStyleColumn);
+        // An existing folder saved without a sort order keeps its stored GroupStyle:
+        // the column is left out of the UPDATE. A new folder always gets a value (0 by default).
+        var writeGroupStyle = hasGroupStyle && (!exists || folder.GroupStyle.HasValue);
         var commandText = exists
-            ? BuildFolderUpdateSql(folderColumns, hasGroupStyle, groupStyleColumn)
-            : BuildFolderInsertSql(folderColumns, hasGroupStyle, groupStyleColumn);
+            ? BuildFolderUpdateSql(folderColumns, writeGroupStyle, groupStyleColumn)
+            : BuildFolderInsertSql(folderColumns, writeGroupStyle, groupStyleColumn);
         using var command = new SQLiteCommand(
             commandText,
             connection,
@@ -797,9 +805,9 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
         command.Parameters.AddWithValue("@folderNo", folder.FolderNo);
         command.Parameters.AddWithValue("@name", Normalize(folder.Name));
         command.Parameters.AddWithValue("@use", folder.IsEnabled ? "True" : "False");
-        if (hasGroupStyle)
+        if (writeGroupStyle)
         {
-            command.Parameters.AddWithValue("@groupStyle", NormalizeLegacyFolderGroupStyle(folder.GroupStyle));
+            command.Parameters.AddWithValue("@groupStyle", NormalizeLegacyFolderGroupStyle(folder.GroupStyle ?? 0));
         }
 
         command.ExecuteNonQuery();
@@ -845,8 +853,9 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
         return $"INSERT INTO FOLDER ({string.Join(", ", columns)}) VALUES ({string.Join(", ", values)});";
     }
 
+    // 0 = title, 1 = word count, 2 = song number (WinForms SortBy); anything else is title.
     private static int NormalizeLegacyFolderGroupStyle(int groupStyle)
-        => groupStyle == 1 ? 1 : 0;
+        => groupStyle is 0 or 1 or 2 ? groupStyle : 0;
 
     private static void SoftDeleteFolders(
         SQLiteConnection connection,

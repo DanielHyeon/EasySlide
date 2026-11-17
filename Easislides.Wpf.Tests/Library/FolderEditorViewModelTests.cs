@@ -75,6 +75,26 @@ public class FolderEditorViewModelTests
         sut.IsNew.Should().BeFalse();
     }
 
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    public async Task SaveAsync_WhenExistingFolderHasSortOrder_DoesNotSendSortOrder(int groupStyle)
+    {
+        using var fixture = TempFolderEditorSettings.Create();
+        fixture.CreateAdminDatabaseFile("custom.db");
+        var repository = new FakeAdminDatabaseRepository();
+        var folder = new SongFolderSummary(3, "Evening", IsEnabled: true, SongCount: 4, GroupStyle: groupStyle);
+        var sut = new FolderEditorViewModel(fixture.Settings, repository);
+        sut.Load(fixture.AdminDatabasePath, folder, [folder]);
+        sut.Name = "Evening Revised";
+        sut.IsEnabled = false;
+
+        await sut.SaveAsync();
+
+        repository.LastFolder.Should().NotBeNull();
+        repository.LastFolder!.GroupStyle.Should().BeNull("the folder editor leaves the stored sort order as it is");
+    }
+
     [Fact]
     public async Task SaveAsync_WhenNameMissing_ShowsValidationAndDoesNotWrite()
     {

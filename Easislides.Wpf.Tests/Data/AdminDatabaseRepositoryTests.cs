@@ -5,6 +5,8 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Easislides.Wpf.Data;
+using Easislides.Wpf.Library;
+using Easislides.Wpf.Settings;
 using FluentAssertions;
 using Xunit;
 
@@ -223,6 +225,126 @@ public class AdminDatabaseRepositoryTests
         fixture.ReadFolderName(1).Should().Be("Updated Morning");
         fixture.ReadFolderUse(1).Should().Be("False");
         AdminDatabaseFixture.ReadFolderName(report.BackupPath!, 1).Should().Be("Morning");
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(2)]
+    public async Task SaveFolderAsync_WithGroupStyle_KeepsTitleWordCountAndNumberOrders(int groupStyle)
+    {
+        using var fixture = AdminDatabaseFixture.Create();
+        fixture.CreateLegacySchema();
+        fixture.AddFolderGroupStyleColumn();
+        fixture.InsertFolder(1, "Morning", use: "True");
+        var sut = new AdminDatabaseRepository();
+
+        var report = await sut.SaveFolderAsync(
+            fixture.DatabasePath,
+            fixture.BackupRoot,
+            new SongFolderWriteModel(1, "Morning", IsEnabled: true, GroupStyle: groupStyle));
+
+        report.Succeeded.Should().BeTrue();
+        fixture.ReadFolderGroupStyle(1).Should().Be(groupStyle);
+        var folders = await sut.GetSongFoldersAsync(fixture.DatabasePath);
+        folders.Single(folder => folder.FolderNo == 1).GroupStyle.Should().Be(groupStyle);
+    }
+
+    [Theory]
+    [InlineData(3)]
+    [InlineData(-1)]
+    [InlineData(99)]
+    public async Task SaveFolderAsync_WithOutOfRangeGroupStyle_StoresTitleOrder(int groupStyle)
+    {
+        using var fixture = AdminDatabaseFixture.Create();
+        fixture.CreateLegacySchema();
+        fixture.AddFolderGroupStyleColumn();
+        fixture.InsertFolder(1, "Morning", use: "True");
+        fixture.SetFolderGroupStyle(1, 1);
+        var sut = new AdminDatabaseRepository();
+
+        var report = await sut.SaveFolderAsync(
+            fixture.DatabasePath,
+            fixture.BackupRoot,
+            new SongFolderWriteModel(1, "Morning", IsEnabled: true, GroupStyle: groupStyle));
+
+        report.Succeeded.Should().BeTrue();
+        fixture.ReadFolderGroupStyle(1).Should().Be(0);
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    public async Task SaveFolderAsync_WithoutGroupStyle_LeavesStoredOrderOfExistingFolder(int storedGroupStyle)
+    {
+        using var fixture = AdminDatabaseFixture.Create();
+        fixture.CreateLegacySchema();
+        fixture.AddFolderGroupStyleColumn();
+        fixture.InsertFolder(1, "Morning", use: "True");
+        fixture.SetFolderGroupStyle(1, storedGroupStyle);
+        var sut = new AdminDatabaseRepository();
+
+        var report = await sut.SaveFolderAsync(
+            fixture.DatabasePath,
+            fixture.BackupRoot,
+            new SongFolderWriteModel(1, "Updated Morning", IsEnabled: false));
+
+        report.Succeeded.Should().BeTrue();
+        fixture.ReadFolderName(1).Should().Be("Updated Morning");
+        fixture.ReadFolderUse(1).Should().Be("False");
+        fixture.ReadFolderGroupStyle(1).Should().Be(storedGroupStyle);
+    }
+
+    [Fact]
+    public async Task SaveFolderAsync_NewFolderWithoutGroupStyle_StoresTitleOrder()
+    {
+        using var fixture = AdminDatabaseFixture.Create();
+        fixture.CreateLegacySchema();
+        // No column default: if the INSERT left GroupStyle out, the stored value would be NULL.
+        fixture.AddFolderGroupStyleColumn(withDefault: false);
+        var sut = new AdminDatabaseRepository();
+
+        var report = await sut.SaveFolderAsync(
+            fixture.DatabasePath,
+            fixture.BackupRoot,
+            new SongFolderWriteModel(5, "New Folder", IsEnabled: true));
+
+        report.Succeeded.Should().BeTrue();
+        fixture.ReadFolderName(5).Should().Be("New Folder");
+        var stored = fixture.ReadFolderGroupStyleRaw(5);
+        stored.Should().NotBeNull().And.NotBeOfType<DBNull>("the INSERT must write GroupStyle explicitly");
+        Convert.ToInt64(stored).Should().Be(0);
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    public async Task FolderEditorSave_RenameAndDisable_KeepsStoredFolderOrder(int storedGroupStyle)
+    {
+        using var fixture = AdminDatabaseFixture.Create();
+        fixture.CreateLegacySchema();
+        fixture.AddFolderGroupStyleColumn();
+        fixture.InsertFolder(1, "Morning", use: "True");
+        fixture.SetFolderGroupStyle(1, storedGroupStyle);
+        var repository = new AdminDatabaseRepository();
+        var settings = new SettingsService(new SettingsServiceOptions(
+            Path.Combine(fixture.Root, "settings.json"),
+            Path.Combine(fixture.Root, "SettingsBackups")));
+        settings.Set(EasiSettingKeys.DataBackupRoot, fixture.BackupRoot);
+        var folder = (await repository.GetSongFoldersAsync(fixture.DatabasePath)).Single(item => item.FolderNo == 1);
+        folder.GroupStyle.Should().Be(storedGroupStyle);
+        var editor = new FolderEditorViewModel(settings, repository);
+        editor.Load(fixture.DatabasePath, folder, [folder]);
+
+        editor.Name = "Morning Revised";
+        await editor.SaveAsync();
+        editor.IsEnabled = false;
+        await editor.SaveAsync();
+
+        editor.StatusMessage.Should().Be("저장되었습니다.");
+        fixture.ReadFolderName(1).Should().Be("Morning Revised");
+        fixture.ReadFolderUse(1).Should().Be("False");
+        fixture.ReadFolderGroupStyle(1).Should().Be(storedGroupStyle);
     }
 
     [Fact]
@@ -746,6 +868,40 @@ public class AdminDatabaseRepositoryTests
             command.Parameters.AddWithValue("@oldFolder", oldFolder);
             command.Parameters.AddWithValue("@lastModified", lastModified ?? DateTime.MinValue.Date);
             command.ExecuteNonQuery();
+        }
+
+        public void AddFolderGroupStyleColumn(bool withDefault = true)
+        {
+            using var connection = Open();
+            Execute(connection, withDefault
+                ? "ALTER TABLE FOLDER ADD COLUMN GroupStyle INTEGER DEFAULT 0;"
+                : "ALTER TABLE FOLDER ADD COLUMN GroupStyle INTEGER;");
+        }
+
+        // Raw stored value, so a NULL (column left out of the write) is not read as 0.
+        public object? ReadFolderGroupStyleRaw(int folderNo)
+        {
+            using var connection = Open();
+            using var command = new SQLiteCommand("SELECT GroupStyle FROM FOLDER WHERE FolderNo = @folderNo;", connection);
+            command.Parameters.AddWithValue("@folderNo", folderNo);
+            return command.ExecuteScalar();
+        }
+
+        public void SetFolderGroupStyle(int folderNo, int groupStyle)
+        {
+            using var connection = Open();
+            using var command = new SQLiteCommand("UPDATE FOLDER SET GroupStyle = @groupStyle WHERE FolderNo = @folderNo;", connection);
+            command.Parameters.AddWithValue("@groupStyle", groupStyle);
+            command.Parameters.AddWithValue("@folderNo", folderNo);
+            command.ExecuteNonQuery();
+        }
+
+        public int ReadFolderGroupStyle(int folderNo)
+        {
+            using var connection = Open();
+            using var command = new SQLiteCommand("SELECT GroupStyle FROM FOLDER WHERE FolderNo = @folderNo;", connection);
+            command.Parameters.AddWithValue("@folderNo", folderNo);
+            return Convert.ToInt32(command.ExecuteScalar());
         }
 
         public string ReadFolderName(int folderNo) => ReadFolderText(DatabasePath, folderNo, "Name");

@@ -608,8 +608,14 @@ public sealed partial class LibraryViewModel : ObservableObject
         }
     }
 
+    // Folder GroupStyle follows WinForms SortBy: 1 = word count, 2 = song number, anything else = title.
     private static LibrarySortMode ResolveFolderGroupStyleSortMode(SongFolderSummary? folder)
-        => folder?.GroupStyle == 1 ? LibrarySortMode.WordCount : LibrarySortMode.StrokeCount;
+        => folder?.GroupStyle switch
+        {
+            1 => LibrarySortMode.WordCount,
+            2 => LibrarySortMode.Number,
+            _ => LibrarySortMode.StrokeCount,
+        };
 
     private SongFolderSummary? ResolveInitialSelectedFolder()
     {

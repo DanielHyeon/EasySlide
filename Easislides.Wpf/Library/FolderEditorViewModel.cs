@@ -96,6 +96,8 @@ public sealed partial class FolderEditorViewModel : ObservableObject
         try
         {
             var backupRoot = ResolveBackupRoot();
+            // GroupStyle is left unset on purpose: the editor does not change the folder's sort order,
+            // so an existing folder keeps its stored GroupStyle and a new folder gets 0.
             var folder = new SongFolderWriteModel(FolderNo, Name.Trim(), IsEnabled);
             var report = await _adminDatabase
                 .SaveFolderAsync(DatabasePath, backupRoot, folder)
