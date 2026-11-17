@@ -254,17 +254,38 @@ namespace Easislides
 		{
 			if (InItem.OutputStyleScreen)
 			{
-				DrawText(ref InItem, ref OPictureBox, LyricsAndNotationsList, InItem.Format.UseShadowFont, InItem.Format.UseOutlineFont, InItem.Format.ShowNotations, InItem.Format.ShowInterlace, InItem.Format.ShowVerticalAlign, InItem.Format.HideDisplayPanel, (ImageTransitionControl.TransitionAction)InItem.Format.ShowSlideTransition, DoActiveIndicator: false, ClearAll: false);
+				DrawText(ref InItem, ref OPictureBox, LyricsAndNotationsList, InItem.Format.UseShadowFont, InItem.Format.UseOutlineFont, InItem.Format.ShowNotations, InItem.Format.ShowInterlace, InItem.Format.ShowVerticalAlign, InItem.Format.HideDisplayPanel, StoredSlideTransitionAction(InItem), DoActiveIndicator: false, ClearAll: false);
 			}
 			else
 			{
-				DrawText(ref InItem, ref PPictureBox, LyricsAndNotationsList, InItem.Format.UseShadowFont, InItem.Format.UseOutlineFont, InItem.Format.ShowNotations, InItem.Format.ShowInterlace, InItem.Format.ShowVerticalAlign, InItem.Format.HideDisplayPanel, (ImageTransitionControl.TransitionAction)InItem.Format.ShowSlideTransition, DoActiveIndicator: false, ClearAll: false);
+				DrawText(ref InItem, ref PPictureBox, LyricsAndNotationsList, InItem.Format.UseShadowFont, InItem.Format.UseOutlineFont, InItem.Format.ShowNotations, InItem.Format.ShowInterlace, InItem.Format.ShowVerticalAlign, InItem.Format.HideDisplayPanel, StoredSlideTransitionAction(InItem), DoActiveIndicator: false, ClearAll: false);
 			}
 		}
 
 		public static void DrawText(ref SongSettings InItem, ref ImageTransitionControl InPictureBox, ListView LyricsAndNotationsList, bool DoActiveIndicator, bool ClearAll)
 		{
-			DrawText(ref InItem, ref InPictureBox, LyricsAndNotationsList, InItem.Format.UseShadowFont, InItem.Format.UseOutlineFont, InItem.Format.ShowNotations, InItem.Format.ShowInterlace, InItem.Format.ShowVerticalAlign, InItem.Format.HideDisplayPanel, (ImageTransitionControl.TransitionAction)InItem.Format.ShowSlideTransition, DoActiveIndicator, ClearAll);
+			DrawText(ref InItem, ref InPictureBox, LyricsAndNotationsList, InItem.Format.UseShadowFont, InItem.Format.UseOutlineFont, InItem.Format.ShowNotations, InItem.Format.ShowInterlace, InItem.Format.ShowVerticalAlign, InItem.Format.HideDisplayPanel, StoredSlideTransitionAction(InItem, ClearAll), DoActiveIndicator, ClearAll);
+		}
+
+		/// <summary>
+		/// The action for showing the item's stored transition. The format stores transitions as TransitionTypes
+		/// indexes (0 = None, 1 = Ascend, ...); they used to be cast to TransitionAction (None, AsStored,
+		/// AsStoredItem, AsStoredSlide, AsFade), so Ascend, Away and Blinds Vertical were played as an old
+		/// transition, the item transition and Fade. The transition that ComputeTransition will take (the item's
+		/// on the first showing, else the slide's) being None keeps the None path (no transition run).
+		/// clearAll: a reset (ResetPictureBox) asks for no transition by zeroing the slide transition only, so
+		/// then the slide value decides, also on a first showing.
+		/// </summary>
+		internal static ImageTransitionControl.TransitionAction StoredSlideTransitionAction(SongSettings item, bool clearAll = false)
+		{
+			int stored = (item.FirstShowing && !clearAll) ? item.Format.ShowItemTransition : item.Format.ShowSlideTransition;
+			return (stored == 0) ? ImageTransitionControl.TransitionAction.None : ImageTransitionControl.TransitionAction.AsStoredSlide;
+		}
+
+		/// <summary>As StoredSlideTransitionAction, for showing an item from its start: the item transition.</summary>
+		internal static ImageTransitionControl.TransitionAction StoredItemTransitionAction(SongSettings item)
+		{
+			return (item.Format.ShowItemTransition == 0) ? ImageTransitionControl.TransitionAction.None : ImageTransitionControl.TransitionAction.AsStoredItem;
 		}
 
 		public static void DrawText(ref SongSettings InItem, ref ImageTransitionControl InPictureBox, ListView LyricsAndNotationsList, int InUseShadowFont, int InUseOutlineFont, int InShowNotations, int InShowInterlace, int InShowVerticalAlign, int InHideDisplayPanel, ImageTransitionControl.TransitionAction TransitionAction, bool DoActiveIndicator, bool ClearAll)

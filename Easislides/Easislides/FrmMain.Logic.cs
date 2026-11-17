@@ -3277,7 +3277,8 @@ namespace Easislides
         {
             if (TransitionAction == ImageTransitionControl.TransitionAction.AsStored)
             {
-                TransitionAction = (ImageTransitionControl.TransitionAction)InItem.Format.ShowItemTransition;
+                // The stored value is a TransitionTypes index, not a TransitionAction (see Gf.StoredItemTransitionAction).
+                TransitionAction = Gf.StoredItemTransitionAction(InItem);
             }
             InItem.CurSlide = StartingSlide;
             RefreshSlidesFonts(ref InItem, TransitionAction);
