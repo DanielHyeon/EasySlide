@@ -9,6 +9,7 @@ using Easislides.Util;
 //using System.Data.SQLite;
 using Easislides.SQLite;
 using Easislides.Module;
+using Easislides.Global;
 using System.Collections.Generic;
 
 #if SQLite
@@ -39,49 +40,15 @@ namespace Easislides
 
         private float SampleSplitterHorizontalIncrement = 1.4f;
 
-        private string[,] tempFolderLyricsHeading = new string[Gf.MAXSONGSFOLDERS, 4];
-
-        private string[] tempFolderName = new string[Gf.MAXSONGSFOLDERS];
-
-        private int[] tempFolderGroupStyle = new int[Gf.MAXSONGSFOLDERS];
-
-        private bool[] tempFolderUse = new bool[Gf.MAXSONGSFOLDERS];
-
-        private int[,] tempShowFontVPosition = new int[Gf.MAXSONGSFOLDERS, 2];
-
-        private int[,] tempShowFontSize = new int[Gf.MAXSONGSFOLDERS, 2];
+        // Working copies of Gf.Folders, edited on the Folders tab and written back by SaveVariables (OK). Entries 1-40 are
+        // replaced by copies in FrmOptions_Load; entry 0 is never copied (as element 0 of the arrays this replaced was not)
+        // and keeps their defaults, a null Name included. The flags that were bool copies here (Use, FontBold, FontItalic,
+        // FontUnderline, FontRTL, HeadingFontBold, HeadingFontItalic, HeadingFontUnderline) only ever hold 1 or 0.
+        private FolderSettings[] tempFolders = CreateTempFolders();
 
         private int[,] tempShowFontVPositionMax = new int[Gf.MAXSONGSFOLDERS, 2];
 
         private int[,] tempShowFontVPositionMin = new int[Gf.MAXSONGSFOLDERS, 2];
-
-        private int[] tempLeftMargin = new int[Gf.MAXSONGSFOLDERS];
-
-        private int[] tempRightMargin = new int[Gf.MAXSONGSFOLDERS];
-
-        private int[] tempBottomMargin = new int[Gf.MAXSONGSFOLDERS];
-
-        private string[,] tempShowFontName = new string[Gf.MAXSONGSFOLDERS, 2];
-
-        private bool[,] tempShowFontBold = new bool[Gf.MAXSONGSFOLDERS, 4];
-
-        private bool[,] tempShowFontItalic = new bool[Gf.MAXSONGSFOLDERS, 4];
-
-        private bool[,] tempShowFontUnderline = new bool[Gf.MAXSONGSFOLDERS, 4];
-
-        private bool[,] tempShowFontRTL = new bool[Gf.MAXSONGSFOLDERS, 2];
-
-        public int[] tempFolderHeadingPercentSize = new int[Gf.MAXSONGSFOLDERS];
-
-        public int[] tempFolderHeadingOption = new int[Gf.MAXSONGSFOLDERS];
-
-        public bool[,] tempFolderHeadingFontBold = new bool[Gf.MAXSONGSFOLDERS, 2];
-
-        public bool[,] tempFolderHeadingFontItalic = new bool[Gf.MAXSONGSFOLDERS, 2];
-
-        public bool[,] tempFolderHeadingFontUnderline = new bool[Gf.MAXSONGSFOLDERS, 2];
-
-        public double[,] tempShowLineSpacing = new double[Gf.MAXSONGSFOLDERS, 2];
 
         private bool LoadTempPos = false;
 
@@ -93,42 +60,40 @@ namespace Easislides
             InitModernUi();
         }
 
+        private static FolderSettings[] CreateTempFolders()
+        {
+            FolderSettings[] folders = new FolderSettings[Gf.MAXSONGSFOLDERS];
+            for (int i = 0; i < folders.Length; i++)
+            {
+                folders[i] = new FolderSettings { Name = null };
+            }
+            return folders;
+        }
+
         private void FrmOptions_Load(object sender, EventArgs e)
         {
             for (int i = 1; i < Gf.MAXSONGSFOLDERS; i++)
             {
-                tempFolderName[i] = Gf.Folders[i].Name;
-                tempFolderGroupStyle[i] = (int)Gf.Folders[i].GroupStyle;
-                tempFolderUse[i] = ((Gf.Folders[i].Use > 0) ? true : false);
-                tempLeftMargin[i] = Gf.Folders[i].LeftMargin;
-                tempRightMargin[i] = Gf.Folders[i].RightMargin;
-                tempBottomMargin[i] = Gf.Folders[i].BottomMargin;
-                tempFolderHeadingPercentSize[i] = Gf.Folders[i].HeadingPercentSize;
-                tempFolderHeadingOption[i] = Gf.Folders[i].HeadingOption;
-                tempFolderHeadingFontBold[i, 0] = ((Gf.Folders[i].HeadingFontBold[0] > 0) ? true : false);
-                tempFolderHeadingFontItalic[i, 0] = ((Gf.Folders[i].HeadingFontItalic[0] > 0) ? true : false);
-                tempFolderHeadingFontUnderline[i, 0] = ((Gf.Folders[i].HeadingFontUnderline[0] > 0) ? true : false);
-                tempFolderHeadingFontBold[i, 1] = ((Gf.Folders[i].HeadingFontBold[1] > 0) ? true : false);
-                tempFolderHeadingFontItalic[i, 1] = ((Gf.Folders[i].HeadingFontItalic[1] > 0) ? true : false);
-                tempFolderHeadingFontUnderline[i, 1] = ((Gf.Folders[i].HeadingFontUnderline[1] > 0) ? true : false);
-                tempShowLineSpacing[i, 0] = Gf.Folders[i].LineSpacing[0];
-                tempShowLineSpacing[i, 1] = Gf.Folders[i].LineSpacing[1];
-                for (int j = 0; j < 4; j++)
-                {
-                    tempFolderLyricsHeading[i, j] = Gf.Folders[i].LyricsHeading[j];
-                }
+                // Name, GroupStyle, margins, heading size and option, line spacing, headings, font names, sizes and
+                // positions are copied as they are. The flags are reduced to 1 or 0 (> 0 gives 1), as the bool copies
+                // were, so a stored 2 or -1 is written back as 1 or 0 on OK, as before.
+                tempFolders[i] = Gf.Folders[i].Clone();
+                tempFolders[i].Use = ((Gf.Folders[i].Use > 0) ? 1 : 0);
+                tempFolders[i].HeadingFontBold[0] = ((Gf.Folders[i].HeadingFontBold[0] > 0) ? 1 : 0);
+                tempFolders[i].HeadingFontItalic[0] = ((Gf.Folders[i].HeadingFontItalic[0] > 0) ? 1 : 0);
+                tempFolders[i].HeadingFontUnderline[0] = ((Gf.Folders[i].HeadingFontUnderline[0] > 0) ? 1 : 0);
+                tempFolders[i].HeadingFontBold[1] = ((Gf.Folders[i].HeadingFontBold[1] > 0) ? 1 : 0);
+                tempFolders[i].HeadingFontItalic[1] = ((Gf.Folders[i].HeadingFontItalic[1] > 0) ? 1 : 0);
+                tempFolders[i].HeadingFontUnderline[1] = ((Gf.Folders[i].HeadingFontUnderline[1] > 0) ? 1 : 0);
                 for (int j = 0; j <= 1; j++)
                 {
-                    tempShowFontSize[i, j] = Gf.Folders[i].FontSize[j];
-                    tempShowFontBold[i, j] = ((Gf.Folders[i].FontBold[j] > 0) ? true : false);
-                    tempShowFontItalic[i, j] = ((Gf.Folders[i].FontItalic[j] > 0) ? true : false);
-                    tempShowFontUnderline[i, j] = ((Gf.Folders[i].FontUnderline[j] > 0) ? true : false);
-                    tempShowFontRTL[i, j] = ((Gf.Folders[i].FontRTL[j] > 0) ? true : false);
-                    tempShowFontBold[i, j + 2] = ((Gf.Folders[i].FontBold[j + 2] > 0) ? true : false);
-                    tempShowFontItalic[i, j + 2] = ((Gf.Folders[i].FontItalic[j + 2] > 0) ? true : false);
-                    tempShowFontUnderline[i, j + 2] = ((Gf.Folders[i].FontUnderline[j + 2] > 0) ? true : false);
-                    tempShowFontName[i, j] = Gf.Folders[i].FontName[j];
-                    tempShowFontVPosition[i, j] = Gf.Folders[i].FontVPosition[j];
+                    tempFolders[i].FontBold[j] = ((Gf.Folders[i].FontBold[j] > 0) ? 1 : 0);
+                    tempFolders[i].FontItalic[j] = ((Gf.Folders[i].FontItalic[j] > 0) ? 1 : 0);
+                    tempFolders[i].FontUnderline[j] = ((Gf.Folders[i].FontUnderline[j] > 0) ? 1 : 0);
+                    tempFolders[i].FontRTL[j] = ((Gf.Folders[i].FontRTL[j] > 0) ? 1 : 0);
+                    tempFolders[i].FontBold[j + 2] = ((Gf.Folders[i].FontBold[j + 2] > 0) ? 1 : 0);
+                    tempFolders[i].FontItalic[j + 2] = ((Gf.Folders[i].FontItalic[j + 2] > 0) ? 1 : 0);
+                    tempFolders[i].FontUnderline[j + 2] = ((Gf.Folders[i].FontUnderline[j + 2] > 0) ? 1 : 0);
                 }
                 tempShowFontVPositionMax[i, 0] = Gf.Folders[i].FontVPosition[1];
                 tempShowFontVPositionMin[i, 1] = Gf.Folders[i].FontVPosition[0];
@@ -215,54 +180,54 @@ namespace Easislides
         {
             for (int i = 1; i < Gf.MAXSONGSFOLDERS; i++)
             {
-                if ((Gf.Folders[i].Name != tempFolderName[i]) | (Gf.Folders[i].GroupStyle != (SortBy)tempFolderGroupStyle[i]) | (Gf.Folders[i].Use != (tempFolderUse[i] ? 1 : 0)))
+                if ((Gf.Folders[i].Name != tempFolders[i].Name) | (Gf.Folders[i].GroupStyle != tempFolders[i].GroupStyle) | (Gf.Folders[i].Use != tempFolders[i].Use))
                 {
                     Gf.Options_FolderListChanged = true;
                 }
-                Gf.Folders[i].Name = tempFolderName[i];
-                Gf.Folders[i].GroupStyle = (SortBy)tempFolderGroupStyle[i];
-                Gf.Folders[i].Use = (tempFolderUse[i] ? 1 : 0);
-                if (Gf.Folders[i].LeftMargin != tempLeftMargin[i] || Gf.Folders[i].RightMargin != tempRightMargin[i] || Gf.Folders[i].BottomMargin != tempBottomMargin[i] || Gf.Folders[i].LineSpacing[0] != tempShowLineSpacing[i, 0] || Gf.Folders[i].LineSpacing[1] != tempShowLineSpacing[i, 1] || Gf.Folders[i].HeadingPercentSize != tempFolderHeadingPercentSize[i] || Gf.Folders[i].HeadingOption != tempFolderHeadingOption[i] || Gf.Folders[i].HeadingFontBold[0] != (tempFolderHeadingFontBold[i, 0] ? 1 : 0) || Gf.Folders[i].HeadingFontItalic[0] != (tempFolderHeadingFontItalic[i, 0] ? 1 : 0) || Gf.Folders[i].HeadingFontUnderline[0] != (tempFolderHeadingFontUnderline[i, 0] ? 1 : 0) || Gf.Folders[i].HeadingFontBold[1] != (tempFolderHeadingFontBold[i, 1] ? 1 : 0) || Gf.Folders[i].HeadingFontItalic[1] != (tempFolderHeadingFontItalic[i, 1] ? 1 : 0) || Gf.Folders[i].HeadingFontUnderline[1] != (tempFolderHeadingFontUnderline[i, 1] ? 1 : 0))
+                Gf.Folders[i].Name = tempFolders[i].Name;
+                Gf.Folders[i].GroupStyle = tempFolders[i].GroupStyle;
+                Gf.Folders[i].Use = tempFolders[i].Use;
+                if (Gf.Folders[i].LeftMargin != tempFolders[i].LeftMargin || Gf.Folders[i].RightMargin != tempFolders[i].RightMargin || Gf.Folders[i].BottomMargin != tempFolders[i].BottomMargin || Gf.Folders[i].LineSpacing[0] != tempFolders[i].LineSpacing[0] || Gf.Folders[i].LineSpacing[1] != tempFolders[i].LineSpacing[1] || Gf.Folders[i].HeadingPercentSize != tempFolders[i].HeadingPercentSize || Gf.Folders[i].HeadingOption != tempFolders[i].HeadingOption || Gf.Folders[i].HeadingFontBold[0] != tempFolders[i].HeadingFontBold[0] || Gf.Folders[i].HeadingFontItalic[0] != tempFolders[i].HeadingFontItalic[0] || Gf.Folders[i].HeadingFontUnderline[0] != tempFolders[i].HeadingFontUnderline[0] || Gf.Folders[i].HeadingFontBold[1] != tempFolders[i].HeadingFontBold[1] || Gf.Folders[i].HeadingFontItalic[1] != tempFolders[i].HeadingFontItalic[1] || Gf.Folders[i].HeadingFontUnderline[1] != tempFolders[i].HeadingFontUnderline[1])
                 {
-                    Gf.Folders[i].LeftMargin = tempLeftMargin[i];
-                    Gf.Folders[i].RightMargin = tempRightMargin[i];
-                    Gf.Folders[i].BottomMargin = tempBottomMargin[i];
-                    Gf.Folders[i].LineSpacing[0] = tempShowLineSpacing[i, 0];
-                    Gf.Folders[i].LineSpacing[1] = tempShowLineSpacing[i, 1];
-                    Gf.Folders[i].HeadingPercentSize = tempFolderHeadingPercentSize[i];
-                    Gf.Folders[i].HeadingOption = tempFolderHeadingOption[i];
-                    Gf.Folders[i].HeadingFontBold[0] = (tempFolderHeadingFontBold[i, 0] ? 1 : 0);
-                    Gf.Folders[i].HeadingFontItalic[0] = (tempFolderHeadingFontItalic[i, 0] ? 1 : 0);
-                    Gf.Folders[i].HeadingFontUnderline[0] = (tempFolderHeadingFontUnderline[i, 0] ? 1 : 0);
-                    Gf.Folders[i].HeadingFontBold[1] = (tempFolderHeadingFontBold[i, 1] ? 1 : 0);
-                    Gf.Folders[i].HeadingFontItalic[1] = (tempFolderHeadingFontItalic[i, 1] ? 1 : 0);
-                    Gf.Folders[i].HeadingFontUnderline[1] = (tempFolderHeadingFontUnderline[i, 1] ? 1 : 0);
+                    Gf.Folders[i].LeftMargin = tempFolders[i].LeftMargin;
+                    Gf.Folders[i].RightMargin = tempFolders[i].RightMargin;
+                    Gf.Folders[i].BottomMargin = tempFolders[i].BottomMargin;
+                    Gf.Folders[i].LineSpacing[0] = tempFolders[i].LineSpacing[0];
+                    Gf.Folders[i].LineSpacing[1] = tempFolders[i].LineSpacing[1];
+                    Gf.Folders[i].HeadingPercentSize = tempFolders[i].HeadingPercentSize;
+                    Gf.Folders[i].HeadingOption = tempFolders[i].HeadingOption;
+                    Gf.Folders[i].HeadingFontBold[0] = tempFolders[i].HeadingFontBold[0];
+                    Gf.Folders[i].HeadingFontItalic[0] = tempFolders[i].HeadingFontItalic[0];
+                    Gf.Folders[i].HeadingFontUnderline[0] = tempFolders[i].HeadingFontUnderline[0];
+                    Gf.Folders[i].HeadingFontBold[1] = tempFolders[i].HeadingFontBold[1];
+                    Gf.Folders[i].HeadingFontItalic[1] = tempFolders[i].HeadingFontItalic[1];
+                    Gf.Folders[i].HeadingFontUnderline[1] = tempFolders[i].HeadingFontUnderline[1];
                     Gf.Options_FolderFormatChanged = true;
                 }
                 for (int j = 0; j < 4; j++)
                 {
-                    if (Gf.Folders[i].LyricsHeading[j] != tempFolderLyricsHeading[i, j])
+                    if (Gf.Folders[i].LyricsHeading[j] != tempFolders[i].LyricsHeading[j])
                     {
                         Gf.Options_FolderFormatChanged = true;
                     }
-                    Gf.Folders[i].LyricsHeading[j] = tempFolderLyricsHeading[i, j];
+                    Gf.Folders[i].LyricsHeading[j] = tempFolders[i].LyricsHeading[j];
                 }
                 for (int j = 0; j <= 1; j++)
                 {
-                    if (Gf.Folders[i].FontSize[j] != tempShowFontSize[i, j] || Gf.Folders[i].FontBold[j] != (tempShowFontBold[i, j] ? 1 : 0) || Gf.Folders[i].FontItalic[j] != (tempShowFontItalic[i, j] ? 1 : 0) || Gf.Folders[i].FontUnderline[j] != (tempShowFontUnderline[i, j] ? 1 : 0) || Gf.Folders[i].FontRTL[j] != (tempShowFontRTL[i, j] ? 1 : 0) || Gf.Folders[i].FontBold[j + 2] != (tempShowFontBold[i, j + 2] ? 1 : 0) || Gf.Folders[i].FontItalic[j + 2] != (tempShowFontItalic[i, j + 2] ? 1 : 0) || Gf.Folders[i].FontUnderline[j + 2] != (tempShowFontUnderline[i, j + 2] ? 1 : 0) || Gf.Folders[i].FontName[j] != tempShowFontName[i, j] || Gf.Folders[i].FontVPosition[j] != tempShowFontVPosition[i, j])
+                    if (Gf.Folders[i].FontSize[j] != tempFolders[i].FontSize[j] || Gf.Folders[i].FontBold[j] != tempFolders[i].FontBold[j] || Gf.Folders[i].FontItalic[j] != tempFolders[i].FontItalic[j] || Gf.Folders[i].FontUnderline[j] != tempFolders[i].FontUnderline[j] || Gf.Folders[i].FontRTL[j] != tempFolders[i].FontRTL[j] || Gf.Folders[i].FontBold[j + 2] != tempFolders[i].FontBold[j + 2] || Gf.Folders[i].FontItalic[j + 2] != tempFolders[i].FontItalic[j + 2] || Gf.Folders[i].FontUnderline[j + 2] != tempFolders[i].FontUnderline[j + 2] || Gf.Folders[i].FontName[j] != tempFolders[i].FontName[j] || Gf.Folders[i].FontVPosition[j] != tempFolders[i].FontVPosition[j])
                     {
                         Gf.Options_FolderFormatChanged = true;
                     }
-                    Gf.Folders[i].FontSize[j] = tempShowFontSize[i, j];
-                    Gf.Folders[i].FontBold[j] = (tempShowFontBold[i, j] ? 1 : 0);
-                    Gf.Folders[i].FontItalic[j] = (tempShowFontItalic[i, j] ? 1 : 0);
-                    Gf.Folders[i].FontUnderline[j] = (tempShowFontUnderline[i, j] ? 1 : 0);
-                    Gf.Folders[i].FontRTL[j] = (tempShowFontRTL[i, j] ? 1 : 0);
-                    Gf.Folders[i].FontBold[j + 2] = (tempShowFontBold[i, j + 2] ? 1 : 0);
-                    Gf.Folders[i].FontItalic[j + 2] = (tempShowFontItalic[i, j + 2] ? 1 : 0);
-                    Gf.Folders[i].FontUnderline[j + 2] = (tempShowFontUnderline[i, j + 2] ? 1 : 0);
-                    Gf.Folders[i].FontName[j] = tempShowFontName[i, j];
-                    Gf.Folders[i].FontVPosition[j] = tempShowFontVPosition[i, j];
+                    Gf.Folders[i].FontSize[j] = tempFolders[i].FontSize[j];
+                    Gf.Folders[i].FontBold[j] = tempFolders[i].FontBold[j];
+                    Gf.Folders[i].FontItalic[j] = tempFolders[i].FontItalic[j];
+                    Gf.Folders[i].FontUnderline[j] = tempFolders[i].FontUnderline[j];
+                    Gf.Folders[i].FontRTL[j] = tempFolders[i].FontRTL[j];
+                    Gf.Folders[i].FontBold[j + 2] = tempFolders[i].FontBold[j + 2];
+                    Gf.Folders[i].FontItalic[j + 2] = tempFolders[i].FontItalic[j + 2];
+                    Gf.Folders[i].FontUnderline[j + 2] = tempFolders[i].FontUnderline[j + 2];
+                    Gf.Folders[i].FontName[j] = tempFolders[i].FontName[j];
+                    Gf.Folders[i].FontVPosition[j] = tempFolders[i].FontVPosition[j];
                 }
             }
             Gf.ComputeShowLineSpacing();
@@ -571,8 +536,8 @@ namespace Easislides
             toolStripJumpC.Items.Clear();
             for (int i = 1; i < Gf.MAXSONGSFOLDERS; i++)
             {
-                listViewItem = SongFolder.Items.Add(tempFolderName[i]);
-                if (tempFolderUse[i])
+                listViewItem = SongFolder.Items.Add(tempFolders[i].Name);
+                if (tempFolders[i].Use > 0)
                 {
                     listViewItem.ImageIndex = 25;
                 }
@@ -580,9 +545,9 @@ namespace Easislides
                 {
                     listViewItem.ImageIndex = 26;
                 }
-                toolStripJumpA.Items.Add(tempFolderName[i]);
-                toolStripJumpB.Items.Add(tempFolderName[i]);
-                toolStripJumpC.Items.Add(tempFolderName[i]);
+                toolStripJumpA.Items.Add(tempFolders[i].Name);
+                toolStripJumpB.Items.Add(tempFolders[i].Name);
+                toolStripJumpC.Items.Add(tempFolders[i].Name);
             }
         }
 
@@ -616,13 +581,13 @@ namespace Easislides
         private void SongFolderIndexChanged()
         {
             CurFolder = Gf.GetSelectedIndex(SongFolder) + 1;
-            cbFolderUse.Checked = tempFolderUse[CurFolder];
+            cbFolderUse.Checked = tempFolders[CurFolder].Use > 0;
             ApplySettings();
         }
 
         private void Apply_FolderUse()
         {
-            tempFolderUse[CurFolder] = cbFolderUse.Checked;
+            tempFolders[CurFolder].Use = (cbFolderUse.Checked ? 1 : 0);
             ApplySettings();
         }
 
@@ -636,13 +601,13 @@ namespace Easislides
                 UpdateHeadingFormatting();
                 UpdateFontsFields();
                 UpdateFontDisplay();
-                SongFolder.Items[CurFolder - 1].ImageIndex = (tempFolderUse[CurFolder] ? 25 : 26);
-                ShowLineSpacingMaxUpDown.Value = (decimal)(((tempShowLineSpacing[CurFolder, 0] >= 0.5) & (tempShowLineSpacing[CurFolder, 0] <= 3.0)) ? tempShowLineSpacing[CurFolder, 0] : 1.0);
-                ShowLineSpacing2MaxUpDown.Value = (decimal)(((tempShowLineSpacing[CurFolder, 1] >= 0.5) & (tempShowLineSpacing[CurFolder, 1] <= 3.0)) ? tempShowLineSpacing[CurFolder, 1] : 1.0);
-                tbLyricsHeading0.Text = tempFolderLyricsHeading[CurFolder, 0];
-                tbLyricsHeading1.Text = tempFolderLyricsHeading[CurFolder, 1];
-                tbLyricsHeading2.Text = tempFolderLyricsHeading[CurFolder, 2];
-                tbLyricsHeading3.Text = tempFolderLyricsHeading[CurFolder, 3];
+                SongFolder.Items[CurFolder - 1].ImageIndex = ((tempFolders[CurFolder].Use > 0) ? 25 : 26);
+                ShowLineSpacingMaxUpDown.Value = (decimal)(((tempFolders[CurFolder].LineSpacing[0] >= 0.5) & (tempFolders[CurFolder].LineSpacing[0] <= 3.0)) ? tempFolders[CurFolder].LineSpacing[0] : 1.0);
+                ShowLineSpacing2MaxUpDown.Value = (decimal)(((tempFolders[CurFolder].LineSpacing[1] >= 0.5) & (tempFolders[CurFolder].LineSpacing[1] <= 3.0)) ? tempFolders[CurFolder].LineSpacing[1] : 1.0);
+                tbLyricsHeading0.Text = tempFolders[CurFolder].LyricsHeading[0];
+                tbLyricsHeading1.Text = tempFolders[CurFolder].LyricsHeading[1];
+                tbLyricsHeading2.Text = tempFolders[CurFolder].LyricsHeading[2];
+                tbLyricsHeading3.Text = tempFolders[CurFolder].LyricsHeading[3];
                 bool @checked = cbFolderUse.Checked;
                 SelectedFolderGroupBox.Enabled = @checked;
                 GroupBoxFont0.Enabled = @checked;
@@ -656,7 +621,7 @@ namespace Easislides
         {
             if (CurFolder > 0)
             {
-                SelectedFolderGroupBox.Text = "Settings for the " + tempFolderName[CurFolder] + " Folder";
+                SelectedFolderGroupBox.Text = "Settings for the " + tempFolders[CurFolder].Name + " Folder";
             }
             else
             {
@@ -669,9 +634,9 @@ namespace Easislides
             try
             {
                 LoadTempPos = true;
-                Gf.UpdatePosUpDowns(ref FontPositionUpDown0, ref FontPositionUpDown1, ref FontPositionUpDownBottom, ref tempShowFontVPosition[CurFolder, 0], ref tempShowFontVPosition[CurFolder, 1], tempBottomMargin[CurFolder]);
-                LeftMarginUpDown.Value = tempLeftMargin[CurFolder];
-                RightMarginUpDown.Value = tempRightMargin[CurFolder];
+                Gf.UpdatePosUpDowns(ref FontPositionUpDown0, ref FontPositionUpDown1, ref FontPositionUpDownBottom, ref tempFolders[CurFolder].FontVPosition[0], ref tempFolders[CurFolder].FontVPosition[1], tempFolders[CurFolder].BottomMargin);
+                LeftMarginUpDown.Value = tempFolders[CurFolder].LeftMargin;
+                RightMarginUpDown.Value = tempFolders[CurFolder].RightMargin;
                 SamplePanel_Top.Height = (int)((float)FontPositionUpDown0.Value * SampleSplitterVerticalIncrement);
                 SamplePanel_Region1.Height = (int)(((float)FontPositionUpDown1.Value - (float)FontPositionUpDown0.Value) * SampleSplitterVerticalIncrement);
                 SamplePanel_Region2.Height = (int)(((float)FontPositionUpDown1.Maximum - (float)FontPositionUpDown1.Value) * SampleSplitterVerticalIncrement);
@@ -686,12 +651,12 @@ namespace Easislides
 
         private void UpdateHeadingFormatting()
         {
-            ShowHeadingsPercentSizeUpDown.Value = (((tempFolderHeadingPercentSize[CurFolder] >= 0) & (tempFolderHeadingPercentSize[CurFolder] <= 150)) ? tempFolderHeadingPercentSize[CurFolder] : 100);
-            if (tempFolderHeadingOption[CurFolder] == 2)
+            ShowHeadingsPercentSizeUpDown.Value = (((tempFolders[CurFolder].HeadingPercentSize >= 0) & (tempFolders[CurFolder].HeadingPercentSize <= 150)) ? tempFolders[CurFolder].HeadingPercentSize : 100);
+            if (tempFolders[CurFolder].HeadingOption == 2)
             {
                 ComboLyricsHeading.SelectedIndex = 0;
             }
-            else if (tempFolderHeadingOption[CurFolder] == 1)
+            else if (tempFolders[CurFolder].HeadingOption == 1)
             {
                 ComboLyricsHeading.SelectedIndex = 1;
             }
@@ -699,32 +664,32 @@ namespace Easislides
             {
                 ComboLyricsHeading.SelectedIndex = 2;
             }
-            HeadingsFont_Bold.Checked = tempFolderHeadingFontBold[CurFolder, 0];
-            Gf.AssignDropDownItem(SelectedMenuItemName: (tempFolderHeadingFontItalic[CurFolder, 0] && tempFolderHeadingFontItalic[CurFolder, 1]) ? HeadingsFont_Italics1.Name : ((!tempFolderHeadingFontItalic[CurFolder, 1]) ? HeadingsFont_Italics0.Name : HeadingsFont_Italics2.Name), SelectedBtn: ref HeadingsFont_Italics, InMenuItem1: HeadingsFont_Italics0, InMenuItem2: HeadingsFont_Italics1, InMenuItem3: HeadingsFont_Italics2);
-            HeadingsFont_Underline.Checked = tempFolderHeadingFontUnderline[CurFolder, 0];
+            HeadingsFont_Bold.Checked = tempFolders[CurFolder].HeadingFontBold[0] > 0;
+            Gf.AssignDropDownItem(SelectedMenuItemName: ((tempFolders[CurFolder].HeadingFontItalic[0] > 0) && (tempFolders[CurFolder].HeadingFontItalic[1] > 0)) ? HeadingsFont_Italics1.Name : ((!(tempFolders[CurFolder].HeadingFontItalic[1] > 0)) ? HeadingsFont_Italics0.Name : HeadingsFont_Italics2.Name), SelectedBtn: ref HeadingsFont_Italics, InMenuItem1: HeadingsFont_Italics0, InMenuItem2: HeadingsFont_Italics1, InMenuItem3: HeadingsFont_Italics2);
+            HeadingsFont_Underline.Checked = tempFolders[CurFolder].HeadingFontUnderline[0] > 0;
         }
 
         private void UpdateFontsFields()
         {
-            ComboFontName0.Text = tempShowFontName[CurFolder, 0];
-            ComboFontName1.Text = tempShowFontName[CurFolder, 1];
-            FontSizeUpDown0.Value = tempShowFontSize[CurFolder, 0];
-            FontSizeUpDown1.Value = tempShowFontSize[CurFolder, 1];
-            ToolBarFont_R1Bold.Checked = tempShowFontBold[CurFolder, 0];
-            Gf.AssignDropDownItem(SelectedMenuItemName: (tempShowFontItalic[CurFolder, 0] && tempShowFontItalic[CurFolder, 2]) ? ToolBarFont_R1Italics1.Name : ((!tempShowFontItalic[CurFolder, 2]) ? ToolBarFont_R1Italics0.Name : ToolBarFont_R1Italics2.Name), SelectedBtn: ref ToolBarFont_R1Italics, InMenuItem1: ToolBarFont_R1Italics0, InMenuItem2: ToolBarFont_R1Italics1, InMenuItem3: ToolBarFont_R1Italics2);
-            ToolBarFont_R1Underline.Checked = tempShowFontUnderline[CurFolder, 0];
-            ToolBarFont_R1RTL.Checked = tempShowFontRTL[CurFolder, 0];
-            ToolBarFont_R2Bold.Checked = tempShowFontBold[CurFolder, 1];
-            Gf.AssignDropDownItem(SelectedMenuItemName: (tempShowFontItalic[CurFolder, 1] && tempShowFontItalic[CurFolder, 3]) ? ToolBarFont_R2Italics1.Name : ((!tempShowFontItalic[CurFolder, 3]) ? ToolBarFont_R2Italics0.Name : ToolBarFont_R2Italics2.Name), SelectedBtn: ref ToolBarFont_R2Italics, InMenuItem1: ToolBarFont_R2Italics0, InMenuItem2: ToolBarFont_R2Italics1, InMenuItem3: ToolBarFont_R2Italics2);
-            ToolBarFont_R2Underline.Checked = tempShowFontUnderline[CurFolder, 1];
-            ToolBarFont_R2RTL.Checked = tempShowFontRTL[CurFolder, 1];
+            ComboFontName0.Text = tempFolders[CurFolder].FontName[0];
+            ComboFontName1.Text = tempFolders[CurFolder].FontName[1];
+            FontSizeUpDown0.Value = tempFolders[CurFolder].FontSize[0];
+            FontSizeUpDown1.Value = tempFolders[CurFolder].FontSize[1];
+            ToolBarFont_R1Bold.Checked = tempFolders[CurFolder].FontBold[0] > 0;
+            Gf.AssignDropDownItem(SelectedMenuItemName: ((tempFolders[CurFolder].FontItalic[0] > 0) && (tempFolders[CurFolder].FontItalic[2] > 0)) ? ToolBarFont_R1Italics1.Name : ((!(tempFolders[CurFolder].FontItalic[2] > 0)) ? ToolBarFont_R1Italics0.Name : ToolBarFont_R1Italics2.Name), SelectedBtn: ref ToolBarFont_R1Italics, InMenuItem1: ToolBarFont_R1Italics0, InMenuItem2: ToolBarFont_R1Italics1, InMenuItem3: ToolBarFont_R1Italics2);
+            ToolBarFont_R1Underline.Checked = tempFolders[CurFolder].FontUnderline[0] > 0;
+            ToolBarFont_R1RTL.Checked = tempFolders[CurFolder].FontRTL[0] > 0;
+            ToolBarFont_R2Bold.Checked = tempFolders[CurFolder].FontBold[1] > 0;
+            Gf.AssignDropDownItem(SelectedMenuItemName: ((tempFolders[CurFolder].FontItalic[1] > 0) && (tempFolders[CurFolder].FontItalic[3] > 0)) ? ToolBarFont_R2Italics1.Name : ((!(tempFolders[CurFolder].FontItalic[3] > 0)) ? ToolBarFont_R2Italics0.Name : ToolBarFont_R2Italics2.Name), SelectedBtn: ref ToolBarFont_R2Italics, InMenuItem1: ToolBarFont_R2Italics0, InMenuItem2: ToolBarFont_R2Italics1, InMenuItem3: ToolBarFont_R2Italics2);
+            ToolBarFont_R2Underline.Checked = tempFolders[CurFolder].FontUnderline[1] > 0;
+            ToolBarFont_R2RTL.Checked = tempFolders[CurFolder].FontRTL[1] > 0;
             UpdateFontDisplay();
         }
 
         private void HeadingsFont_Click(object sender, EventArgs e)
         {
-            tempFolderHeadingFontBold[CurFolder, 0] = HeadingsFont_Bold.Checked;
-            tempFolderHeadingFontUnderline[CurFolder, 0] = HeadingsFont_Underline.Checked;
+            tempFolders[CurFolder].HeadingFontBold[0] = (HeadingsFont_Bold.Checked ? 1 : 0);
+            tempFolders[CurFolder].HeadingFontUnderline[0] = (HeadingsFont_Underline.Checked ? 1 : 0);
         }
 
         private void HeadingsFont_Italics_DropDownItemClicked(object sender, ToolStripItemClickedEventArgs e)
@@ -734,25 +699,25 @@ namespace Easislides
             int num2 = num;
             if (num2 == 2)
             {
-                tempFolderHeadingFontItalic[CurFolder, 0] = false;
-                tempFolderHeadingFontItalic[CurFolder, 1] = true;
+                tempFolders[CurFolder].HeadingFontItalic[0] = 0;
+                tempFolders[CurFolder].HeadingFontItalic[1] = 1;
             }
             else
             {
-                tempFolderHeadingFontItalic[CurFolder, 0] = ((num > 0) ? true : false);
-                tempFolderHeadingFontItalic[CurFolder, 1] = ((num > 0) ? true : false);
+                tempFolders[CurFolder].HeadingFontItalic[0] = ((num > 0) ? 1 : 0);
+                tempFolders[CurFolder].HeadingFontItalic[1] = ((num > 0) ? 1 : 0);
             }
         }
 
         private void ComboFontName0_SelectedIndexChanged(object sender, EventArgs e)
         {
-            tempShowFontName[CurFolder, 0] = ComboFontName0.Text;
+            tempFolders[CurFolder].FontName[0] = ComboFontName0.Text;
             UpdateFontDisplay();
         }
 
         private void ComboFontName1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            tempShowFontName[CurFolder, 1] = ComboFontName1.Text;
+            tempFolders[CurFolder].FontName[1] = ComboFontName1.Text;
             UpdateFontDisplay();
         }
 
@@ -760,10 +725,10 @@ namespace Easislides
         {
             if (!InitFormLoad)
             {
-                tempFolderLyricsHeading[CurFolder, 0] = tbLyricsHeading0.Text;
-                tempFolderLyricsHeading[CurFolder, 1] = tbLyricsHeading1.Text;
-                tempFolderLyricsHeading[CurFolder, 2] = tbLyricsHeading2.Text;
-                tempFolderLyricsHeading[CurFolder, 3] = tbLyricsHeading3.Text;
+                tempFolders[CurFolder].LyricsHeading[0] = tbLyricsHeading0.Text;
+                tempFolders[CurFolder].LyricsHeading[1] = tbLyricsHeading1.Text;
+                tempFolders[CurFolder].LyricsHeading[2] = tbLyricsHeading2.Text;
+                tempFolders[CurFolder].LyricsHeading[3] = tbLyricsHeading3.Text;
             }
         }
 
@@ -773,15 +738,15 @@ namespace Easislides
             {
                 if (ComboLyricsHeading.SelectedIndex == 0)
                 {
-                    tempFolderHeadingOption[CurFolder] = 0;
+                    tempFolders[CurFolder].HeadingOption = 0;
                 }
                 else if (ComboLyricsHeading.SelectedIndex == 1)
                 {
-                    tempFolderHeadingOption[CurFolder] = 1;
+                    tempFolders[CurFolder].HeadingOption = 1;
                 }
                 else if (ComboLyricsHeading.SelectedIndex == 2)
                 {
-                    tempFolderHeadingOption[CurFolder] = 2;
+                    tempFolders[CurFolder].HeadingOption = 2;
                 }
             }
         }
@@ -806,7 +771,7 @@ namespace Easislides
         {
             if (!LoadTempPos)
             {
-                tempBottomMargin[CurFolder] = (int)FontPositionUpDownBottom.Value;
+                tempFolders[CurFolder].BottomMargin = (int)FontPositionUpDownBottom.Value;
                 ApplySettings();
             }
         }
@@ -815,8 +780,8 @@ namespace Easislides
         {
             if (!LoadTempPos)
             {
-                tempLeftMargin[CurFolder] = (int)LeftMarginUpDown.Value;
-                tempRightMargin[CurFolder] = (int)RightMarginUpDown.Value;
+                tempFolders[CurFolder].LeftMargin = (int)LeftMarginUpDown.Value;
+                tempFolders[CurFolder].RightMargin = (int)RightMarginUpDown.Value;
                 ApplySettings();
             }
         }
@@ -827,9 +792,9 @@ namespace Easislides
             {
                 FontPositionUpDown1.Value = FontPositionUpDown0.Value;
             }
-            tempShowFontVPosition[CurFolder, 0] = (int)FontPositionUpDown0.Value;
+            tempFolders[CurFolder].FontVPosition[0] = (int)FontPositionUpDown0.Value;
             tempShowFontVPositionMax[CurFolder, 0] = (int)FontPositionUpDown1.Value;
-            tempShowFontVPosition[CurFolder, 1] = (int)FontPositionUpDown1.Value;
+            tempFolders[CurFolder].FontVPosition[1] = (int)FontPositionUpDown1.Value;
             tempShowFontVPositionMin[CurFolder, 0] = (int)FontPositionUpDown0.Value;
             ApplySettings();
         }
@@ -841,12 +806,12 @@ namespace Easislides
 
         private void FontSizeUpDown0_ValueChanged(object sender, EventArgs e)
         {
-            tempShowFontSize[CurFolder, 0] = (int)FontSizeUpDown0.Value;
+            tempFolders[CurFolder].FontSize[0] = (int)FontSizeUpDown0.Value;
         }
 
         private void FontSizeUpDown1_ValueChanged(object sender, EventArgs e)
         {
-            tempShowFontSize[CurFolder, 1] = (int)FontSizeUpDown1.Value;
+            tempFolders[CurFolder].FontSize[1] = (int)FontSizeUpDown1.Value;
         }
 
         private void ToolBarFont_R1_Click(object sender, EventArgs e)
@@ -856,15 +821,15 @@ namespace Easislides
             string name = toolStripButton.Name;
             if (name == "ToolBarFont_R1Bold")
             {
-                tempShowFontBold[CurFolder, 0] = @checked;
+                tempFolders[CurFolder].FontBold[0] = (@checked ? 1 : 0);
             }
             else if (name == "ToolBarFont_R1Underline")
             {
-                tempShowFontUnderline[CurFolder, 0] = @checked;
+                tempFolders[CurFolder].FontUnderline[0] = (@checked ? 1 : 0);
             }
             else if (name == "ToolBarFont_R1RTL")
             {
-                tempShowFontRTL[CurFolder, 0] = @checked;
+                tempFolders[CurFolder].FontRTL[0] = (@checked ? 1 : 0);
             }
             UpdateFontDisplay();
         }
@@ -876,13 +841,13 @@ namespace Easislides
             int num2 = num;
             if (num2 == 2)
             {
-                tempShowFontItalic[CurFolder, 0] = false;
-                tempShowFontItalic[CurFolder, 2] = true;
+                tempFolders[CurFolder].FontItalic[0] = 0;
+                tempFolders[CurFolder].FontItalic[2] = 1;
             }
             else
             {
-                tempShowFontItalic[CurFolder, 0] = ((num > 0) ? true : false);
-                tempShowFontItalic[CurFolder, 2] = ((num > 0) ? true : false);
+                tempFolders[CurFolder].FontItalic[0] = ((num > 0) ? 1 : 0);
+                tempFolders[CurFolder].FontItalic[2] = ((num > 0) ? 1 : 0);
             }
             UpdateFontDisplay();
         }
@@ -894,15 +859,15 @@ namespace Easislides
             string name = toolStripButton.Name;
             if (name == "ToolBarFont_R2Bold")
             {
-                tempShowFontBold[CurFolder, 1] = @checked;
+                tempFolders[CurFolder].FontBold[1] = (@checked ? 1 : 0);
             }
             else if (name == "ToolBarFont_R2Underline")
             {
-                tempShowFontUnderline[CurFolder, 1] = @checked;
+                tempFolders[CurFolder].FontUnderline[1] = (@checked ? 1 : 0);
             }
             else if (name == "ToolBarFont_R2RTL")
             {
-                tempShowFontRTL[CurFolder, 1] = @checked;
+                tempFolders[CurFolder].FontRTL[1] = (@checked ? 1 : 0);
             }
             UpdateFontDisplay();
         }
@@ -914,13 +879,13 @@ namespace Easislides
             int num2 = num;
             if (num2 == 2)
             {
-                tempShowFontItalic[CurFolder, 1] = false;
-                tempShowFontItalic[CurFolder, 3] = true;
+                tempFolders[CurFolder].FontItalic[1] = 0;
+                tempFolders[CurFolder].FontItalic[3] = 1;
             }
             else
             {
-                tempShowFontItalic[CurFolder, 1] = ((num > 0) ? true : false);
-                tempShowFontItalic[CurFolder, 3] = ((num > 0) ? true : false);
+                tempFolders[CurFolder].FontItalic[1] = ((num > 0) ? 1 : 0);
+                tempFolders[CurFolder].FontItalic[3] = ((num > 0) ? 1 : 0);
             }
             UpdateFontDisplay();
         }
@@ -930,33 +895,33 @@ namespace Easislides
             try
             {
                 FontStyle fontStyle = FontStyle.Regular;
-                if (tempShowFontBold[CurFolder, 0])
+                if (tempFolders[CurFolder].FontBold[0] > 0)
                 {
                     fontStyle |= FontStyle.Bold;
                 }
-                if (tempShowFontItalic[CurFolder, 0] || tempShowFontItalic[CurFolder, 2])
+                if ((tempFolders[CurFolder].FontItalic[0] > 0) || (tempFolders[CurFolder].FontItalic[2] > 0))
                 {
                     fontStyle |= FontStyle.Italic;
                 }
-                if (tempShowFontUnderline[CurFolder, 0])
+                if (tempFolders[CurFolder].FontUnderline[0] > 0)
                 {
                     fontStyle |= FontStyle.Underline;
                 }
-                labelPreviewCentreTop.Font = new Font(tempShowFontName[CurFolder, 0], 11f, fontStyle);
+                labelPreviewCentreTop.Font = new Font(tempFolders[CurFolder].FontName[0], 11f, fontStyle);
                 fontStyle = FontStyle.Regular;
-                if (tempShowFontBold[CurFolder, 1])
+                if (tempFolders[CurFolder].FontBold[1] > 0)
                 {
                     fontStyle |= FontStyle.Bold;
                 }
-                if (tempShowFontItalic[CurFolder, 1] || tempShowFontItalic[CurFolder, 3])
+                if ((tempFolders[CurFolder].FontItalic[1] > 0) || (tempFolders[CurFolder].FontItalic[3] > 0))
                 {
                     fontStyle |= FontStyle.Italic;
                 }
-                if (tempShowFontUnderline[CurFolder, 1])
+                if (tempFolders[CurFolder].FontUnderline[1] > 0)
                 {
                     fontStyle |= FontStyle.Underline;
                 }
-                labelPreviewCentreBottom.Font = new Font(tempShowFontName[CurFolder, 1], 11f, fontStyle);
+                labelPreviewCentreBottom.Font = new Font(tempFolders[CurFolder].FontName[1], 11f, fontStyle);
             }
             catch
             {
@@ -965,12 +930,12 @@ namespace Easislides
 
         private void ShowLineSpacingMaxUpDown_ValueChanged(object sender, EventArgs e)
         {
-            tempShowLineSpacing[CurFolder, 0] = (double)ShowLineSpacingMaxUpDown.Value;
+            tempFolders[CurFolder].LineSpacing[0] = (double)ShowLineSpacingMaxUpDown.Value;
         }
 
         private void ShowLineSpacing2MaxUpDown_ValueChanged(object sender, EventArgs e)
         {
-            tempShowLineSpacing[CurFolder, 1] = (double)ShowLineSpacing2MaxUpDown.Value;
+            tempFolders[CurFolder].LineSpacing[1] = (double)ShowLineSpacing2MaxUpDown.Value;
         }
 
         private bool ValidateFolderRename(string NewFolderName, int SelectedItem)
@@ -1018,7 +983,7 @@ namespace Easislides
             {
                 if (ValidateFolderRename(label, selectedIndex))
                 {
-                    tempFolderName[selectedIndex + 1] = label;
+                    tempFolders[selectedIndex + 1].Name = label;
                     ApplySettings();
                 }
                 else
@@ -1092,7 +1057,7 @@ namespace Easislides
             BibleAssociatedFolder.Items.Clear();
             for (int i = 1; i < Gf.MAXSONGSFOLDERS; i++)
             {
-                BibleAssociatedFolder.Items.Add(tempFolderName[i]);
+                BibleAssociatedFolder.Items.Add(tempFolders[i].Name);
             }
             if (BibleAssociatedFolder.Items.Count > 0)
             {
@@ -1418,7 +1383,7 @@ namespace Easislides
             if (selectedIndex >= 0)
             {
                 InitFormLoad = true;
-                BibleAssociatedFolder.Text = tempFolderName[Convert.ToInt32(BibleList.Items[selectedIndex].SubItems[4].Text)];
+                BibleAssociatedFolder.Text = tempFolders[Convert.ToInt32(BibleList.Items[selectedIndex].SubItems[4].Text)].Name;
                 int num = Convert.ToInt32(BibleList.Items[selectedIndex].SubItems[5].Text);
                 BibleFontSizeUpDown.Value = (((num < 5) | (num > 200)) ? 80 : num);
                 InitFormLoad = false;
@@ -1924,7 +1889,7 @@ namespace Easislides
 
         private void ShowHeadingsPercentSizeUpDown_ValueChanged(object sender, EventArgs e)
         {
-            tempFolderHeadingPercentSize[CurFolder] = (int)ShowHeadingsPercentSizeUpDown.Value;
+            tempFolders[CurFolder].HeadingPercentSize = (int)ShowHeadingsPercentSizeUpDown.Value;
         }
 
         private void rbHeadingFontSettings_CheckedChanged(object sender, EventArgs e)
@@ -1932,15 +1897,15 @@ namespace Easislides
             Control control = (Control)sender;
             if (Convert.ToInt32(control.Tag) == 0)
             {
-                tempFolderHeadingOption[CurFolder] = 0;
+                tempFolders[CurFolder].HeadingOption = 0;
             }
             else if (Convert.ToInt32(control.Tag) == 1)
             {
-                tempFolderHeadingOption[CurFolder] = 1;
+                tempFolders[CurFolder].HeadingOption = 1;
             }
             else if (Convert.ToInt32(control.Tag) == 2)
             {
-                tempFolderHeadingOption[CurFolder] = 2;
+                tempFolders[CurFolder].HeadingOption = 2;
             }
         }
 
