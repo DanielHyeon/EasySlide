@@ -160,23 +160,23 @@ namespace Easislides
 			RichTextBox1.Top = 0;
 		}
 
-		private void UpdateFontFields(ref ToolStrip InToolBar, ref NumericUpDown InUpDown, ref Panel InPanel, int b, int i, int u, int fsize, Color InColour)
+		private void UpdateFontFields(ref ToolStrip InToolBar, ref NumericUpDown InUpDown, ref Panel InPanel, int bold, int italic, int underline, int fontSize, Color InColour)
 		{
-			((ToolStripButton)InToolBar.Items[0]).Checked = ((b == 1) ? true : false);
-			((ToolStripButton)InToolBar.Items[1]).Checked = ((i == 1) ? true : false);
-			((ToolStripButton)InToolBar.Items[2]).Checked = ((u == 1) ? true : false);
+			((ToolStripButton)InToolBar.Items[0]).Checked = ((bold == 1) ? true : false);
+			((ToolStripButton)InToolBar.Items[1]).Checked = ((italic == 1) ? true : false);
+			((ToolStripButton)InToolBar.Items[2]).Checked = ((underline == 1) ? true : false);
 			InUpDown.Minimum = 4m;
 			InUpDown.Maximum = 72m;
-			InUpDown.Value = fsize;
+			InUpDown.Value = fontSize;
 			InPanel.BackColor = InColour;
 		}
 
-		private void UpdateFontInfo(ToolStrip InToolBar, NumericUpDown InUpDown, Panel InPanel, ref int b, ref int i, ref int u, ref int fsize, ref Color InColour)
+		private void UpdateFontInfo(ToolStrip InToolBar, NumericUpDown InUpDown, Panel InPanel, ref int bold, ref int italic, ref int underline, ref int fontSize, ref Color InColour)
 		{
-			b = (((ToolStripButton)InToolBar.Items[0]).Checked ? 1 : 0);
-			i = (((ToolStripButton)InToolBar.Items[1]).Checked ? 1 : 0);
-			u = (((ToolStripButton)InToolBar.Items[2]).Checked ? 1 : 0);
-			fsize = (int)InUpDown.Value;
+			bold = (((ToolStripButton)InToolBar.Items[0]).Checked ? 1 : 0);
+			italic = (((ToolStripButton)InToolBar.Items[1]).Checked ? 1 : 0);
+			underline = (((ToolStripButton)InToolBar.Items[2]).Checked ? 1 : 0);
+			fontSize = (int)InUpDown.Value;
 			InColour = InPanel.BackColor;
 		}
 
@@ -303,11 +303,11 @@ namespace Easislides
 					ProgressBar1.Value = 0;
 					ProgressBar1.Invalidate();
 					int formatOption = 0;
-					int num = 0;
-					string text = "";
-					int num2 = 0;
-					string text2 = "";
-					int num3 = 0;
+					int chorusScreenCount = 0;
+					string songNumber = "";
+					int progressPercent = 0;
+					string musicKey = "";
+					int capo = 0;
 					Gf.RTFLineSpacing = "";
 					RTFLineandNotationsSpacing = "";
 					for (int i = 0; i <= Gf.PB_Spacing[0]; i++)
@@ -320,63 +320,63 @@ namespace Easislides
 					{
 						for (int i = 0; i < Gf.TotalPraiseBookItems; i++)
 						{
-							num2 = (i + 1) * 100 / Gf.TotalPraiseBookItems;
-							ProgressBar1.Value = ((num2 > 100) ? 100 : num2);
+							progressPercent = (i + 1) * 100 / Gf.TotalPraiseBookItems;
+							ProgressBar1.Value = ((progressPercent > 100) ? 100 : progressPercent);
 							Invalidate();
 							CurrentSong = i + 1;
 							LoadItem(ref DocItem);
 							SongFolderLog[i] = DocItem.FolderNo;
-							string text3 = "";
+							string titleLine = "";
 							if (Gf.PB_ShowWords[0] > 0)
 							{
-								text = DataUtil.ExtractOneInfo(ref Gf.DocumentSongs[CurrentSong].NumberAndInfo, '>', RemoveExtract: false, MinusOneIfBlank: false);
-								text3 = ((!(text == "")) ? text : Convert.ToString(i + 1));
+								songNumber = DataUtil.ExtractOneInfo(ref Gf.DocumentSongs[CurrentSong].NumberAndInfo, '>', RemoveExtract: false, MinusOneIfBlank: false);
+								titleLine = ((songNumber != "") ? songNumber : Convert.ToString(i + 1));
 							}
 							if (Gf.PB_ShowWords[1] > 0)
 							{
-								text3 = ((Gf.PB_ShowWords[0] <= 0) ? (Gf.FormatMode(1) + DocItem.Title) : ($"{text3}.{Gf.FormatMode(1)} {DocItem.Title}"));
+								titleLine = ((Gf.PB_ShowWords[0] <= 0) ? (Gf.FormatMode(1) + DocItem.Title) : ($"{titleLine}.{Gf.FormatMode(1)} {DocItem.Title}"));
 							}
-							if ((Gf.PB_ShowWords[2] > 0) | (Gf.PB_ShowWords[6] > 0) | (Gf.PB_ShowWords[7] > 0))
+							if ((Gf.PB_ShowWords[2] > 0) || (Gf.PB_ShowWords[6] > 0) || (Gf.PB_ShowWords[7] > 0))
 							{
-								if ((Gf.PB_ShowWords[0] > 0) & (Gf.PB_ShowWords[1] > 0))
+								if ((Gf.PB_ShowWords[0] > 0) && (Gf.PB_ShowWords[1] > 0))
 								{
-									streamWriter.Write(AddtoRTF(text3, 0, 0, 4, 0, 0));
+									streamWriter.Write(AddtoRTF(titleLine, 0, 0, 4, 0, 0));
 								}
-								else if ((Gf.PB_ShowWords[0] < 1) & (Gf.PB_ShowWords[1] > 0))
+								else if ((Gf.PB_ShowWords[0] < 1) && (Gf.PB_ShowWords[1] > 0))
 								{
-									streamWriter.Write(AddtoRTF(text3, 0, 0, 4, 0, 0));
+									streamWriter.Write(AddtoRTF(titleLine, 0, 0, 4, 0, 0));
 								}
-								else if ((Gf.PB_ShowWords[0] > 0) & (Gf.PB_ShowWords[1] < 1))
+								else if ((Gf.PB_ShowWords[0] > 0) && (Gf.PB_ShowWords[1] < 1))
 								{
-									text3 = $"{text3}.{Gf.FormatMode(2)} {DocItem.Copyright} {DocItem.Book_Reference} {DocItem.User_Reference}";
-									streamWriter.Write(AddtoRTF(text3, 0, 0, 4, 0, 0));
+									titleLine = $"{titleLine}.{Gf.FormatMode(2)} {DocItem.Copyright} {DocItem.Book_Reference} {DocItem.User_Reference}";
+									streamWriter.Write(AddtoRTF(titleLine, 0, 0, 4, 0, 0));
 								}
-								if ((Gf.PB_ShowWords[2] > 0) & (DocItem.Copyright != ""))
+								if ((Gf.PB_ShowWords[2] > 0) && (DocItem.Copyright != ""))
 								{
 									streamWriter.Write(AddtoRTF(DocItem.Copyright, 0, 2, 0, 0, 0));
 								}
-								if ((Gf.PB_ShowWords[6] > 0) & (DocItem.Book_Reference != ""))
+								if ((Gf.PB_ShowWords[6] > 0) && (DocItem.Book_Reference != ""))
 								{
 									streamWriter.Write(AddtoRTF(DocItem.Book_Reference, 0, 2, 0, 0, 0));
 								}
-								if ((Gf.PB_ShowWords[7] > 0) & (DocItem.User_Reference != ""))
+								if ((Gf.PB_ShowWords[7] > 0) && (DocItem.User_Reference != ""))
 								{
 									streamWriter.Write(AddtoRTF(DocItem.User_Reference, 0, 2, 0, 0, 0));
 								}
 							}
-							else if (text3.Length > 0)
+							else if (titleLine.Length > 0)
 							{
-								streamWriter.Write(AddtoRTF(text3, 0, 0, 4, 0, 0));
+								streamWriter.Write(AddtoRTF(titleLine, 0, 0, 4, 0, 0));
 							}
-							num3 = DocItem.Capo;
-							text2 = DocItem.MusicKey;
+							capo = DocItem.Capo;
+							musicKey = DocItem.MusicKey;
 							InTransposeOffset = 0;
 							if (Gf.PB_CapoZero > 0)
 							{
-								if (DocItem.MusicKey != "" && num3 >= 0)
+								if (DocItem.MusicKey != "" && capo >= 0)
 								{
-									text2 = DocItem.MusicKey;
-									Gf.TransposeKey(ref text2, Gf.IncrementChord(ref num3, 0));
+									musicKey = DocItem.MusicKey;
+									Gf.TransposeKey(ref musicKey, Gf.IncrementChord(ref capo, 0));
 								}
 							}
 							else
@@ -391,34 +391,34 @@ namespace Easislides
 									Gf.TransposeKey(ref InKey, Gf.IncrementChord(ref CurPos, InTransposeOffset));
 								}
 							}
-							string text4 = ((Gf.PB_ShowKey != 1) ? "" : ((text2 != "") ? ("Key: " + text2 + " ") : "")) + ((!((Gf.PB_ShowCapo == 1) & (Gf.PB_CapoZero < 1))) ? "" : ((num3 > 0) ? ("Capo " + Convert.ToString(num3) + " ") : "")) + ((Gf.PB_ShowTiming != 1) ? "" : ((DocItem.Timing != "") ? ("(" + DocItem.Timing + ")") : ""));
-							if (text4 != "")
+							string keyLine = ((Gf.PB_ShowKey != 1) ? "" : ((musicKey != "") ? ("Key: " + musicKey + " ") : "")) + (((Gf.PB_ShowCapo == 1) && (Gf.PB_CapoZero < 1)) ? ((capo > 0) ? ("Capo " + Convert.ToString(capo) + " ") : "") : "") + ((Gf.PB_ShowTiming != 1) ? "" : ((DocItem.Timing != "") ? ("(" + DocItem.Timing + ")") : ""));
+							if (keyLine != "")
 							{
-								streamWriter.Write(AddtoRTF(text4, 0, 3, 0, 0, 0));
+								streamWriter.Write(AddtoRTF(keyLine, 0, 3, 0, 0, 0));
 							}
 							if (GenType == DocGenType.Complete)
 							{
-								int num4 = 0;
+								int chorusSlide = 0;
 								for (int j = 1; j <= DocItem.TotalSlides; j++)
 								{
 									if (DocItem.Slide[j, 0] == 0)
 									{
-										num4 = j;
-										num = 1;
+										chorusSlide = j;
+										chorusScreenCount = 1;
 									}
-									if ((num4 > 0) & (DocItem.Slide[j, 0] < 0))
+									if ((chorusSlide > 0) && (DocItem.Slide[j, 0] < 0))
 									{
-										num++;
+										chorusScreenCount++;
 									}
 								}
 								int tabNum = 0;
 								ChorusDone = false;
-								for (num4 = 1; num4 <= DocItem.TotalSlides; num4++)
+								for (int slideNo = 1; slideNo <= DocItem.TotalSlides; slideNo++)
 								{
-									bool flag = false;
+									bool isSectionStart = false;
 									ShowFirstLineOnly = false;
-									CurSlide = num4;
-									string text5 = "";
+									CurSlide = slideNo;
+									string headingText = "";
 									if (DocItem.Slide[CurSlide, 0] == 0)
 									{
 										if (Gf.PB_ShowHeadings[1] > 0)
@@ -426,7 +426,7 @@ namespace Easislides
 											tabNum = 2;
 											if (!ChorusDone)
 											{
-												text5 = Gf.Folders[DocItem.FolderNo].LyricsHeading[1];
+												headingText = Gf.Folders[DocItem.FolderNo].LyricsHeading[1];
 												ChorusDone = true;
 											}
 											else
@@ -436,7 +436,7 @@ namespace Easislides
 										}
 										else if (Gf.PB_ShowHeadings[0] > 0)
 										{
-											tabNum = ((!((Gf.PB_ShowHeadings[0] > 0) & DocItem.VersePresent[2])) ? 1 : 2);
+											tabNum = ((!((Gf.PB_ShowHeadings[0] > 0) && DocItem.VersePresent[2])) ? 1 : 2);
 											if (!ChorusDone)
 											{
 												ChorusDone = true;
@@ -459,85 +459,85 @@ namespace Easislides
 											}
 										}
 										formatOption = 4;
-										flag = true;
+										isSectionStart = true;
 									}
 									else if (DocItem.Slide[CurSlide, 0] == 102)
 									{
 										if (Gf.PB_ShowHeadings[1] <= 0)
 										{
-											tabNum = ((Gf.PB_ShowHeadings[0] <= 0) ? 1 : ((!((Gf.PB_ShowHeadings[0] > 0) & DocItem.VersePresent[2])) ? 1 : 2));
+											tabNum = ((Gf.PB_ShowHeadings[0] <= 0) ? 1 : ((!((Gf.PB_ShowHeadings[0] > 0) && DocItem.VersePresent[2])) ? 1 : 2));
 										}
 										else
 										{
 											tabNum = 2;
-											text5 = Gf.Folders[DocItem.FolderNo].LyricsHeading[1] + ((Gf.Folders[DocItem.FolderNo].LyricsHeading[1] != "") ? " (2)" : "");
+											headingText = Gf.Folders[DocItem.FolderNo].LyricsHeading[1] + ((Gf.Folders[DocItem.FolderNo].LyricsHeading[1] != "") ? " (2)" : "");
 										}
 										formatOption = 4;
-										flag = true;
+										isSectionStart = true;
 									}
 									else if (DocItem.Slide[CurSlide, 0] == 111)
 									{
 										if (Gf.PB_ShowHeadings[3] <= 0)
 										{
-											tabNum = ((Gf.PB_ShowHeadings[0] <= 0) ? 1 : ((!((Gf.PB_ShowHeadings[0] > 0) & DocItem.VersePresent[2])) ? 1 : 2));
+											tabNum = ((Gf.PB_ShowHeadings[0] <= 0) ? 1 : ((!((Gf.PB_ShowHeadings[0] > 0) && DocItem.VersePresent[2])) ? 1 : 2));
 										}
 										else
 										{
 											tabNum = 2;
-											text5 = Gf.Folders[DocItem.FolderNo].LyricsHeading[0];
+											headingText = Gf.Folders[DocItem.FolderNo].LyricsHeading[0];
 										}
 										formatOption = 4;
-										flag = true;
+										isSectionStart = true;
 									}
 									else if (DocItem.Slide[CurSlide, 0] == 112)
 									{
 										if (Gf.PB_ShowHeadings[3] <= 0)
 										{
-											tabNum = ((Gf.PB_ShowHeadings[0] <= 0) ? 1 : ((!((Gf.PB_ShowHeadings[0] > 0) & DocItem.VersePresent[2])) ? 1 : 2));
+											tabNum = ((Gf.PB_ShowHeadings[0] <= 0) ? 1 : ((!((Gf.PB_ShowHeadings[0] > 0) && DocItem.VersePresent[2])) ? 1 : 2));
 										}
 										else
 										{
 											tabNum = 2;
-											text5 = Gf.Folders[DocItem.FolderNo].LyricsHeading[0] + ((Gf.Folders[DocItem.FolderNo].LyricsHeading[0] != "") ? " (2)" : "");
+											headingText = Gf.Folders[DocItem.FolderNo].LyricsHeading[0] + ((Gf.Folders[DocItem.FolderNo].LyricsHeading[0] != "") ? " (2)" : "");
 										}
 										formatOption = 4;
-										flag = true;
+										isSectionStart = true;
 									}
 									else if (DocItem.Slide[CurSlide, 0] == 100)
 									{
 										if (Gf.PB_ShowHeadings[2] <= 0)
 										{
-											tabNum = ((Gf.PB_ShowHeadings[0] <= 0) ? 1 : ((!((Gf.PB_ShowHeadings[0] > 0) & DocItem.VersePresent[2])) ? 1 : 2));
+											tabNum = ((Gf.PB_ShowHeadings[0] <= 0) ? 1 : ((!((Gf.PB_ShowHeadings[0] > 0) && DocItem.VersePresent[2])) ? 1 : 2));
 										}
 										else
 										{
-											text5 = Gf.Folders[DocItem.FolderNo].LyricsHeading[2];
+											headingText = Gf.Folders[DocItem.FolderNo].LyricsHeading[2];
 											tabNum = 2;
 										}
 										formatOption = 4;
-										flag = true;
+										isSectionStart = true;
 									}
 									else if (DocItem.Slide[CurSlide, 0] == 103)
 									{
 										if (Gf.PB_ShowHeadings[2] <= 0)
 										{
-											tabNum = ((Gf.PB_ShowHeadings[0] <= 0) ? 1 : ((!((Gf.PB_ShowHeadings[0] > 0) & DocItem.VersePresent[2])) ? 1 : 2));
+											tabNum = ((Gf.PB_ShowHeadings[0] <= 0) ? 1 : ((!((Gf.PB_ShowHeadings[0] > 0) && DocItem.VersePresent[2])) ? 1 : 2));
 										}
 										else
 										{
-											text5 = Gf.Folders[DocItem.FolderNo].LyricsHeading[2] + ((Gf.Folders[DocItem.FolderNo].LyricsHeading[2] != "") ? " (2)" : "");
+											headingText = Gf.Folders[DocItem.FolderNo].LyricsHeading[2] + ((Gf.Folders[DocItem.FolderNo].LyricsHeading[2] != "") ? " (2)" : "");
 											tabNum = 2;
 										}
 										formatOption = 4;
-										flag = true;
+										isSectionStart = true;
 									}
 									else if (DocItem.Slide[CurSlide, 0] > 0)
 									{
-										if ((Gf.PB_ShowHeadings[0] > 0) & DocItem.VersePresent[2])
+										if ((Gf.PB_ShowHeadings[0] > 0) && DocItem.VersePresent[2])
 										{
 											if (DocItem.Slide[CurSlide, 0] != 101)
 											{
-												text5 = Gf.VerseTitle[DocItem.Slide[CurSlide, 0]];
+												headingText = Gf.VerseTitle[DocItem.Slide[CurSlide, 0]];
 											}
 											tabNum = 1;
 										}
@@ -546,13 +546,13 @@ namespace Easislides
 											tabNum = 0;
 										}
 										formatOption = 3;
-										flag = true;
+										isSectionStart = true;
 									}
-									if (flag)
+									if (isSectionStart)
 									{
-										if (text5.Length > 0)
+										if (headingText.Length > 0)
 										{
-											text5 += "\t";
+											headingText += "\t";
 										}
 										if (!ShowFirstLineOnly)
 										{
@@ -567,32 +567,32 @@ namespace Easislides
 									{
 										if (DocItem.Slide[CurSlide, 2] >= 0)
 										{
-											streamWriter.Write(AddtoRTF(text5, 0, formatOption, tabNum, text5.Length, Gf.PB_Spacing[0], DocItem.Slide[CurSlide, 1], DocItem.Slide[CurSlide, 2]));
+											streamWriter.Write(AddtoRTF(headingText, 0, formatOption, tabNum, headingText.Length, Gf.PB_Spacing[0], DocItem.Slide[CurSlide, 1], DocItem.Slide[CurSlide, 2]));
 										}
 									}
 									else if (Gf.PB_ShowSection == 1)
 									{
 										if (DocItem.Slide[CurSlide, 4] >= 0)
 										{
-											streamWriter.Write(AddtoRTF(text5, 0, formatOption, tabNum, text5.Length, Gf.PB_Spacing[0], DocItem.Slide[CurSlide, 3], DocItem.Slide[CurSlide, 4]));
+											streamWriter.Write(AddtoRTF(headingText, 0, formatOption, tabNum, headingText.Length, Gf.PB_Spacing[0], DocItem.Slide[CurSlide, 3], DocItem.Slide[CurSlide, 4]));
 										}
 									}
 									else if (Gf.PB_ShowSection == 2)
 									{
-										bool flag2 = false;
+										bool region1Written = false;
 										if (DocItem.Slide[CurSlide, 2] >= 0)
 										{
-											streamWriter.Write(AddtoRTF(text5, 0, formatOption, tabNum, text5.Length, Gf.PB_Spacing[0], DocItem.Slide[CurSlide, 1], DocItem.Slide[CurSlide, 2]));
-											flag2 = true;
+											streamWriter.Write(AddtoRTF(headingText, 0, formatOption, tabNum, headingText.Length, Gf.PB_Spacing[0], DocItem.Slide[CurSlide, 1], DocItem.Slide[CurSlide, 2]));
+											region1Written = true;
 										}
 										if (DocItem.Slide[CurSlide, 4] >= 0)
 										{
-											streamWriter.Write(AddtoRTF((!flag2) ? text5 : "", 1, formatOption, tabNum, (!flag2) ? text5.Length : 0, Gf.PB_Spacing[0], DocItem.Slide[CurSlide, 3], DocItem.Slide[CurSlide, 4]));
+											streamWriter.Write(AddtoRTF((!region1Written) ? headingText : "", 1, formatOption, tabNum, (!region1Written) ? headingText.Length : 0, Gf.PB_Spacing[0], DocItem.Slide[CurSlide, 3], DocItem.Slide[CurSlide, 4]));
 										}
 									}
 									if (ShowFirstLineOnly)
 									{
-										num4 += num - 1;
+										slideNo += chorusScreenCount - 1;
 									}
 								}
 							}
@@ -668,18 +668,18 @@ namespace Easislides
 
 		private string BuildRTFHeader()
 		{
-			string str = OptPageSize0.Checked ? "\\pgwsxn11906\\pghsxn16838" : "\\pgwsxn12240\\pghsxn15840";
-			string str2 = "{\\rtf1\\ansi" + str + "\\ansicpg1252\\deff0\\deflang1033{\\fonttbl{\\f0\\fnil\\fcharset0 Microsoft Sans Serif;}";
-			string text = "";
-			string str3 = "{\\colortbl ;";
-			string str4 = "\\viewkind1\\uc1\\pard\\f0\\fs17 ";
+			string pageSize = OptPageSize0.Checked ? "\\pgwsxn11906\\pghsxn16838" : "\\pgwsxn12240\\pghsxn15840";
+			string rtfStart = "{\\rtf1\\ansi" + pageSize + "\\ansicpg1252\\deff0\\deflang1033{\\fonttbl{\\f0\\fnil\\fcharset0 Microsoft Sans Serif;}";
+			string fontTable = "";
+			string colourTable = "{\\colortbl ;";
+			string viewSettings = "\\viewkind1\\uc1\\pard\\f0\\fs17 ";
 			for (int i = 1; i <= 81; i++)
 			{
 				FList[i] = "";
 			}
 			FList[0] = Gf.Folders[1].FontName[0];
 			RichTextBox1.Text = "";
-			int num = 1;
+			int fontCount = 1;
 			for (int i = 1; i < Gf.MAXSONGSFOLDERS; i++)
 			{
 				for (int j = 0; j <= 1; j++)
@@ -688,40 +688,39 @@ namespace Easislides
 					RichTextBox1.SelectionStart = RichTextBox1.Text.Length;
 					RichTextBox1.SelectedText = ">";
 					RichTextBox1.SelectionFont = new Font(Gf.Folders[i].FontName[j], 11f, FontStyle.Regular);
-					bool flag = false;
-					for (int k = 1; k <= num; k++)
+					bool fontFound = false;
+					for (int k = 1; k <= fontCount; k++)
 					{
 						if (FList[k] == Gf.Folders[i].FontName[j])
 						{
-							flag = true;
+							fontFound = true;
 							FolderFNum[i, j] = k;
 						}
 					}
-					if (!flag)
+					if (!fontFound)
 					{
-						num++;
-						FList[num] = Gf.Folders[i].FontName[j];
-						FolderFNum[i, j] = num;
-						string text2 = text;
-						text = text2 + "{\\f" + Convert.ToString(num) + "\\fnil " + Gf.Folders[i].FontName[j] + ";}";
+						fontCount++;
+						FList[fontCount] = Gf.Folders[i].FontName[j];
+						FolderFNum[i, j] = fontCount;
+						fontTable = fontTable + "{\\f" + Convert.ToString(fontCount) + "\\fnil " + Gf.Folders[i].FontName[j] + ";}";
 					}
 				}
 			}
-			text += "}";
+			fontTable += "}";
 			for (int l = 0; l < 6; l++)
 			{
-				str3 = str3 + "\\red" + Gf.PB_WordsColour[l].R;
-				str3 = str3 + "\\green" + Gf.PB_WordsColour[l].G;
-				str3 = str3 + "\\blue" + Gf.PB_WordsColour[l].B + ";";
+				colourTable = colourTable + "\\red" + Gf.PB_WordsColour[l].R;
+				colourTable = colourTable + "\\green" + Gf.PB_WordsColour[l].G;
+				colourTable = colourTable + "\\blue" + Gf.PB_WordsColour[l].B + ";";
 			}
-			str3 += "}";
-			string str5 = str2 + text + str3 + str4;
-			string str6 = "{\\footer\\fs16\\sectd\\footery400\\pard\\qr {\\i " + Gf.PB_DocumentName + "\\par Document Generated by EasiSlides}{\\par }}";
+			colourTable += "}";
+			string header = rtfStart + fontTable + colourTable + viewSettings;
+			string footer = "{\\footer\\fs16\\sectd\\footery400\\pard\\qr {\\i " + Gf.PB_DocumentName + "\\par Document Generated by EasiSlides}{\\par }}";
 			if (Gf.PB_ShowColumns == 1)
 			{
-				return str5 + str6 + "\\margr900\\margl1300\\margt900\\margb1000";
+				return header + footer + "\\margr900\\margl1300\\margt900\\margb1000";
 			}
-			return str5 + str6 + "\\margr900\\margl1300\\margt900\\margb1000\\cols2\\colno1\\colw4500\\colsr750\\colno2\\colw4500";
+			return header + footer + "\\margr900\\margl1300\\margt900\\margb1000\\cols2\\colno1\\colw4500\\colsr750\\colno2\\colw4500";
 		}
 
 		private string AddtoRTF(string InString, int Section, int FormatOption, int TabNum, int HeadingText, int PreLineSpacing)
@@ -736,33 +735,33 @@ namespace Easislides
 
 		private string AddtoRTF(string InString, int Section, int FormatOption, int TabNum, int HeadingText, int PreLineSpacing, int StartLoc, int EndLoc)
 		{
-			int num = DocItem.FolderNo;
+			int folderNo = DocItem.FolderNo;
 			if (BibleItem && Section == 1)
 			{
-				num = 0;
+				folderNo = 0;
 				Section = 0;
 			}
-			string text = "";
-			string text3 = "";
-			string text4 = "";
-			string text5 = "";
-			string text6 = "";
-			string text7 = "";
-			string text8 = "";
-			string text9 = "";
-			string text10 = "";
+			string currentChar = "";
+			string tabPrefix = "";
+			string rtfBody = "";
+			string rtfPrefix = "";
+			string lineFormat = "";
+			string indent = "";
+			string notations = "";
+			string lyricLine = "";
+			string lineSuffix = "";
 			if (InString == null)
 			{
 				InString = "";
 			}
-			text7 = Gf.RTFIndent[TabNum];
+			indent = Gf.RTFIndent[TabNum];
 			if (TabNum > 0 && TabNum < 4)
 			{
-				text3 = Gf.RTFTab;
+				tabPrefix = Gf.RTFTab;
 			}
 			else if (TabNum == 5)
 			{
-				text3 = Gf.RTFTab;
+				tabPrefix = Gf.RTFTab;
 			}
 			FontStyle fontStyle = FontStyle.Regular;
 			if (Gf.PB_WordsBold[FormatOption] > 0)
@@ -777,13 +776,13 @@ namespace Easislides
 			{
 				fontStyle |= FontStyle.Underline;
 			}
-			int num2 = Gf.PB_WordsSize[5];
+			int notationsFontSize = Gf.PB_WordsSize[5];
 			FontStyle style = fontStyle | FontStyle.Italic;
-			Font mainFont = new Font(FList[FolderFNum[num, Section]], Gf.PB_WordsSize[FormatOption], fontStyle);
-			Font notationsFont = new Font(FList[FolderFNum[num, Section]], num2, style);
-			text5 = "\\f" + Convert.ToString(FolderFNum[num, Section]);
-			string text11 = "\\fs" + Convert.ToString(num2 * 2) + Gf.FormatMode(5);
-			bool flag = (Gf.FormatMode(5).IndexOf("\\ul ") >= 0) ? true : false;
+			Font mainFont = new Font(FList[FolderFNum[folderNo, Section]], Gf.PB_WordsSize[FormatOption], fontStyle);
+			Font notationsFont = new Font(FList[FolderFNum[folderNo, Section]], notationsFontSize, style);
+			rtfPrefix = "\\f" + Convert.ToString(FolderFNum[folderNo, Section]);
+			string notationsFormat = "\\fs" + Convert.ToString(notationsFontSize * 2) + Gf.FormatMode(5);
+			bool underlineNotations = Gf.FormatMode(5).IndexOf("\\ul ") >= 0;
 			int transposeTo = 0;
 			if (DocItem.Capo > 0)
 			{
@@ -793,181 +792,177 @@ namespace Easislides
 			{
 				for (int i = 1; i <= PreLineSpacing; i++)
 				{
-					text5 += Gf.RTFNewLine;
+					rtfPrefix += Gf.RTFNewLine;
 				}
 			}
 			if (HeadingText == 0)
 			{
-				text5 += text3;
+				rtfPrefix += tabPrefix;
 			}
-			text6 = Gf.RTFIndent[TabNum];
-			text6 += Gf.FormatMode(FormatOption);
-			text4 = "";
-			text8 = "";
-			string text12 = "";
+			lineFormat = Gf.RTFIndent[TabNum];
+			lineFormat += Gf.FormatMode(FormatOption);
+			rtfBody = "";
+			notations = "";
+			string notationLine = "";
 			if (StartLoc >= 0 && EndLoc >= 0)
 			{
 				if (ShowFirstLineOnly)
 				{
 					EndLoc = StartLoc;
 				}
-				bool flag2 = false;
+				bool hasNotations = false;
 				for (int j = StartLoc; j <= EndLoc; j++)
 				{
 					if (DocItem.LyricsAndNotationsList.Items[j].SubItems[3].Text != "")
 					{
-						flag2 = true;
+						hasNotations = true;
 						j = EndLoc;
 					}
 				}
 				for (int j = StartLoc; j <= EndLoc; j++)
 				{
-					text9 = DocItem.LyricsAndNotationsList.Items[j].SubItems[2].Text + (ShowFirstLineOnly ? " ..." : "");
-					Gf.SubstituteDashes(ref text9, Gf.PB_ShowNotations);
+					lyricLine = DocItem.LyricsAndNotationsList.Items[j].SubItems[2].Text + (ShowFirstLineOnly ? " ..." : "");
+					Gf.SubstituteDashes(ref lyricLine, Gf.PB_ShowNotations);
 					if (Gf.PB_ShowNotations == 1)
 					{
-						text8 = DocItem.LyricsAndNotationsList.Items[j].SubItems[3].Text;
-						if (flag2 & !ShowFirstLineOnly)
+						notations = DocItem.LyricsAndNotationsList.Items[j].SubItems[3].Text;
+						if (hasNotations && !ShowFirstLineOnly)
 						{
 							if (Gf.PB_CapoZero == 1)
 							{
-								text8 = Gf.TransposeOneNotationString(text8, transposeTo, -1);
+								notations = Gf.TransposeOneNotationString(notations, transposeTo, -1);
 							}
 							else if (InTransposeOffset > 0)
 							{
-								text8 = Gf.TransposeOneNotationString(text8, InTransposeOffset, -1);
+								notations = Gf.TransposeOneNotationString(notations, InTransposeOffset, -1);
 							}
-							Gf.SubDivideTextAndNotations(text9, text8, mainFont, notationsFont, ref SubDivideList, MaxTextWidth - 400 - 200);
+							Gf.SubDivideTextAndNotations(lyricLine, notations, mainFont, notationsFont, ref SubDivideList, MaxTextWidth - 400 - 200);
 							InString += Gf.FormatMode(FormatOption);
 							for (int k = 0; k < SubDivideList.Items.Count; k++)
 							{
-								text12 = SubDivideList.Items[k].SubItems[1].Text;
-								if (flag)
+								notationLine = SubDivideList.Items[k].SubItems[1].Text;
+								if (underlineNotations)
 								{
-									string text13 = "";
-									for (int l = 0; l < text12.Length; l++)
+									string underlinedLine = "";
+									for (int l = 0; l < notationLine.Length; l++)
 									{
-										if (text12[l] == ' ')
+										if (notationLine[l] == ' ')
 										{
-											if (l < 1 || text12[l - 1] != ' ')
+											if (l < 1 || notationLine[l - 1] != ' ')
 											{
-												text13 += "\\ulnone ";
+												underlinedLine += "\\ulnone ";
 											}
 										}
-										else if (l > 0 && text12[l - 1] == ' ')
+										else if (l > 0 && notationLine[l - 1] == ' ')
 										{
-											text13 += "\\ul ";
+											underlinedLine += "\\ul ";
 										}
-										text13 += text12[l];
+										underlinedLine += notationLine[l];
 									}
-									text12 = text13;
+									notationLine = underlinedLine;
 								}
-								string text14 = InString;
-								InString = text14 + text11 + text12 + "\n" + DummyNotationSym + Gf.FormatMode(FormatOption) + SubDivideList.Items[k].SubItems[0].Text + text10 + "\n";
+								InString = InString + notationsFormat + notationLine + "\n" + DummyNotationSym + Gf.FormatMode(FormatOption) + SubDivideList.Items[k].SubItems[0].Text + lineSuffix + "\n";
 							}
 							if (DataUtil.Right(InString, 1) == "\n")
 							{
 								InString = DataUtil.Left(InString, InString.Length - 1);
 							}
-							InString = InString + text10 + "\n";
+							InString = InString + lineSuffix + "\n";
 						}
 						else
 						{
-							string text14 = InString;
-							InString = text14 + Gf.FormatMode(FormatOption) + text9 + text10 + "\n";
+							InString = InString + Gf.FormatMode(FormatOption) + lyricLine + lineSuffix + "\n";
 						}
 					}
 					else
 					{
-						string text14 = InString;
-						InString = text14 + ((text8 != "") ? (text8 + "\n") : "") + Gf.FormatMode(FormatOption) + text9 + text10 + "\n";
+						InString = InString + ((notations != "") ? (notations + "\n") : "") + Gf.FormatMode(FormatOption) + lyricLine + lineSuffix + "\n";
 					}
 				}
 				InString = DataUtil.TrimEnd(InString).Replace("\n", "\r\n");
 			}
 			for (int i = 0; i < InString.Length; i++)
 			{
-				text = DataUtil.Mid(InString, i, 1);
-				if ((text != "\r") & (text != "\n"))
+				currentChar = DataUtil.Mid(InString, i, 1);
+				if ((currentChar != "\r") && (currentChar != "\n"))
 				{
-					int num3 = (!(text == "")) ? text[0] : '\0';
-					if (num3 < 0)
+					int charCode = (currentChar != "") ? currentChar[0] : '\0';
+					if (charCode < 0)
 					{
-						num3 += 65536;
+						charCode += 65536;
 					}
-					text4 = ((num3 <= 255) ? (text4 + text) : (text4 + "\\u" + num3.ToString("00000") + "?"));
+					rtfBody = ((charCode <= 255) ? (rtfBody + currentChar) : (rtfBody + "\\u" + charCode.ToString("00000") + "?"));
 				}
 				else
 				{
-					text4 += text;
+					rtfBody += currentChar;
 				}
 			}
-			InString = text4;
-			text4 = text6;
+			InString = rtfBody;
+			rtfBody = lineFormat;
 			for (int i = 0; i < InString.Length; i++)
 			{
-				text = DataUtil.Mid(InString, i, 1);
-				if (text == "\r")
+				currentChar = DataUtil.Mid(InString, i, 1);
+				if (currentChar == "\r")
 				{
 					if (ShowFirstLineOnly)
 					{
-						text4 = text4 + "\r\n" + text6;
+						rtfBody = rtfBody + "\r\n" + lineFormat;
 						i = InString.Length;
 					}
 					else if (i == InString.Length - 1)
 					{
-						text4 = text4 + "\r\n" + Gf.RTFLineSpacing + text6;
+						rtfBody = rtfBody + "\r\n" + Gf.RTFLineSpacing + lineFormat;
 					}
 					else
 					{
-						string text15 = (DataUtil.Mid(InString, i + 2, 1) == DummyNotationSym) ? Gf.RTFNewLine : Gf.RTFLineSpacing;
-						string text14 = text4;
-						text4 = text14 + "\r\n" + text15 + text3 + text6;
+						string lineSpacing = (DataUtil.Mid(InString, i + 2, 1) == DummyNotationSym) ? Gf.RTFNewLine : Gf.RTFLineSpacing;
+						rtfBody = rtfBody + "\r\n" + lineSpacing + tabPrefix + lineFormat;
 					}
 				}
-				else if ((text != "\n") & (text != DummyNotationSym))
+				else if ((currentChar != "\n") && (currentChar != DummyNotationSym))
 				{
-					text4 += text;
+					rtfBody += currentChar;
 				}
 			}
-			return text5 + text4 + "\r\n" + Gf.RTFNewLine;
+			return rtfPrefix + rtfBody + "\r\n" + Gf.RTFNewLine;
 		}
 
 		private void LoadItem(ref SongSettings InItem)
 		{
-			string text = Gf.DocumentSongs[CurrentSong].Type;
+			string itemType = Gf.DocumentSongs[CurrentSong].Type;
 			string inIDString = Gf.DocumentSongs[CurrentSong].IdString;
 			BibleItem = false;
 			Gf.InitialiseIndividualData(ref InItem);
-			if (text == "P")
+			if (itemType == "P")
 			{
-				InItem.Type = text;
+				InItem.Type = itemType;
 				InItem.Title = Gf.RTFCheck(Gf.DocumentSongs[CurrentSong].Title);
 				InItem.CompleteLyrics = "(Powerpoint File)";
 			}
-			else if (text == "D")
+			else if (itemType == "D")
 			{
 				Gf.LoadIndividualData(ref InItem, inIDString, "", 0);
 			}
-			else if (text == "B")
+			else if (itemType == "B")
 			{
 				string InTitle = Gf.DocumentSongs[CurrentSong].Title;
 				BibleItem = true;
 				Gf.LoadIndividualData(ref InItem, inIDString, "", 0, ref InTitle);
 				InItem.CompleteLyrics = InItem.CompleteLyrics.Replace('\u0098'.ToString(), " ");
 			}
-			else if (text == "T")
+			else if (itemType == "T")
 			{
 				string InTitle = Gf.DocumentSongs[CurrentSong].Title;
 				Gf.LoadIndividualData(ref InItem, inIDString, "", 0, ref InTitle);
 			}
-			else if (text == "I")
+			else if (itemType == "I")
 			{
 				string InTitle = Gf.DocumentSongs[CurrentSong].Title;
 				Gf.LoadIndividualData(ref InItem, inIDString, "", 0, ref InTitle);
 				InItem.Title = InTitle;
 			}
-			else if (text == "W")
+			else if (itemType == "W")
 			{
 				string InTitle = Gf.DocumentSongs[CurrentSong].Title;
 				Gf.LoadIndividualData(ref InItem, inIDString, "", 0, ref InTitle);
@@ -975,63 +970,61 @@ namespace Easislides
 			InItem.Title = Gf.RTFCheck(InItem.Title);
 			InItem.Title2 = Gf.RTFCheck(InItem.Title);
 			InItem.CompleteLyrics = Gf.RTFCheck(InItem.CompleteLyrics);
-			InItem.Copyright = Gf.RTFCheck(InItem.Writer + (((InItem.Writer != "") & (InItem.Copyright != "")) ? "; " : "") + InItem.Copyright);
-			SongSettings obj = InItem;
-			string copyright = obj.Copyright;
-			obj.Copyright = copyright + ((InItem.Copyright == "") ? "" : " ") + InItem.Show_LicAdminInfo1 + ((InItem.Show_LicAdminInfo1 == "") ? "" : " ") + InItem.Show_LicAdminInfo2;
+			InItem.Copyright = Gf.RTFCheck(InItem.Writer + (((InItem.Writer != "") && (InItem.Copyright != "")) ? "; " : "") + InItem.Copyright);
+			InItem.Copyright = InItem.Copyright + ((InItem.Copyright == "") ? "" : " ") + InItem.Show_LicAdminInfo1 + ((InItem.Show_LicAdminInfo1 == "") ? "" : " ") + InItem.Show_LicAdminInfo2;
 			Gf.FormatDisplayLyrics(ref InItem, PrepareSlides: true, (Gf.PB_LyricsPattern > 0) ? true : false);
 		}
 
 		private string FormatNotationString(string InString, string InNotation, Font MainFont, Font NotationsFont)
 		{
 			Graphics graphics = CreateGraphics();
-			string text = "";
-			int num2 = 0;
-			string text2 = "i";
-			int num3 = (int)graphics.MeasureString(text2, NotationsFont, 1000, StringFormat.GenericTypographic).Width;
-			string text3 = text2;
-			string text4 = "";
-			int num4 = 0;
-			string text5 = DataUtil.ExtractOneInfo(ref InNotation, ';');
-			string text6 = DataUtil.ExtractOneInfo(ref InNotation, ';');
-			while ((text5 != "-1") & (text6 != "-1"))
+			string lyricPrefix = "";
+			int prefixWidth = 0;
+			string marker = "i";
+			int markerWidth = (int)graphics.MeasureString(marker, NotationsFont, 1000, StringFormat.GenericTypographic).Width;
+			string notationLine = marker;
+			string spacedNotationLine = "";
+			int padCount = 0;
+			string chord = DataUtil.ExtractOneInfo(ref InNotation, ';');
+			string chordPosition = DataUtil.ExtractOneInfo(ref InNotation, ';');
+			while ((chord != "-1") && (chordPosition != "-1"))
 			{
-				text = DataUtil.Left(InString, Convert.ToInt32(text6));
-				if (DataUtil.Right(text, 1) == " ")
+				lyricPrefix = DataUtil.Left(InString, Convert.ToInt32(chordPosition));
+				if (DataUtil.Right(lyricPrefix, 1) == " ")
 				{
-					text = DataUtil.Left(text, text.Length - 1) + text2;
+					lyricPrefix = DataUtil.Left(lyricPrefix, lyricPrefix.Length - 1) + marker;
 				}
-				num2 = (int)graphics.MeasureString(text, MainFont, 32000, StringFormat.GenericDefault).Width;
-				while (graphics.MeasureString(text3, NotationsFont, 32000, StringFormat.GenericDefault).Width < (float)(num2 + num3))
+				prefixWidth = (int)graphics.MeasureString(lyricPrefix, MainFont, 32000, StringFormat.GenericDefault).Width;
+				while (graphics.MeasureString(notationLine, NotationsFont, 32000, StringFormat.GenericDefault).Width < (float)(prefixWidth + markerWidth))
 				{
-					text3 = DataUtil.Left(text3, text3.Length - 1) + " " + text2;
-					num4++;
+					notationLine = DataUtil.Left(notationLine, notationLine.Length - 1) + " " + marker;
+					padCount++;
 				}
-				text3 = DataUtil.Left(text3, text3.Length - 1) + text5 + text2;
+				notationLine = DataUtil.Left(notationLine, notationLine.Length - 1) + chord + marker;
 				if (Gf.PB_PrinterSpaces > 0)
 				{
-					int num5 = num4 / 12;
-					for (int i = 1; i <= num4 + num5; i++)
+					int extraSpaces = padCount / 12;
+					for (int i = 1; i <= padCount + extraSpaces; i++)
 					{
-						text4 += " ";
+						spacedNotationLine += " ";
 					}
-					text4 += text5;
+					spacedNotationLine += chord;
 				}
-				num4 = 0;
-				text5 = DataUtil.ExtractOneInfo(ref InNotation, ';');
-				text6 = DataUtil.ExtractOneInfo(ref InNotation, ';');
+				padCount = 0;
+				chord = DataUtil.ExtractOneInfo(ref InNotation, ';');
+				chordPosition = DataUtil.ExtractOneInfo(ref InNotation, ';');
 			}
-			if (DataUtil.Right(text3, 1) == text2)
+			if (DataUtil.Right(notationLine, 1) == marker)
 			{
-				text3 = DataUtil.Left(text3, text3.Length - 1);
+				notationLine = DataUtil.Left(notationLine, notationLine.Length - 1);
 			}
-			if (text3 != "")
+			if (notationLine != "")
 			{
 				if (Gf.PB_PrinterSpaces > 0)
 				{
-					return text4;
+					return spacedNotationLine;
 				}
-				return text3;
+				return notationLine;
 			}
 			return " ";
 		}
