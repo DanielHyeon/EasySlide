@@ -1697,7 +1697,6 @@ namespace Easislides
 				OffsetLeft += labelWidth;
 			}
 			startLeft = OffsetLeft - startLeft;
-			OffsetLeft += (int)g.MeasureString("A", tempFont, 10000).Width;
 			return startLeft;
 		}
 
