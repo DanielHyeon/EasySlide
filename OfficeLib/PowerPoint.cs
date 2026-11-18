@@ -51,11 +51,6 @@ namespace OfficeLib
 		//������Ʈ���� ���?�Ǵ� Screen Device Name
 		public string displayName = "None";
 
-		// ✅ 캐싱: 파일 체크 결과 저장 (성능 최적화)
-		private Dictionary<string, (bool Exists, DateTime LastCheck, int TotalSlides)> _fileCheckCache = new Dictionary<string, (bool, DateTime, int)>();
-		private readonly TimeSpan _cacheExpiration = TimeSpan.FromMinutes(5);
-		private readonly Dictionary<string, string> _fileHashCache = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-		private readonly object _fileHashCacheLock = new object();
 
 		/// <summary>
 		/// Attaches this wrapper to PowerPoint when it is not attached yet. A wrapper that already holds a live
@@ -2686,338 +2681,149 @@ namespace OfficeLib
 			}
 		}
 
-		public bool IsFileChanged(string FilePath)
-		{
-			if (string.IsNullOrEmpty(FilePath) || !File.Exists(FilePath))
-			{
-				return true;
-			}
-
-			string currentHash = PowerPoint.GetMD5(FilePath);
-
-			lock (_fileHashCacheLock)
-			{
-				if (_fileHashCache.TryGetValue(FilePath, out var previousHash) &&
-					string.Equals(previousHash, currentHash, StringComparison.OrdinalIgnoreCase))
-				{
-					return false;
-				}
-
-				_fileHashCache[FilePath] = currentHash;
-			}
-
-			return true;
-		}
-
-
 		/// <summary>
-		/// JPG 파일이 이미 빌드되었는지 확인
+		/// True when the slide images under FilePrefix are a complete export of the current version of FilePath
+		/// (see SlideImageManifest); TotalSlides is then their number. Reads only the build record and checks
+		/// that the image files exist: PowerPoint is never opened. Never throws.
 		/// </summary>
-		/// <param name="FilePath">PowerPoint 파일 경로</param>
-		/// <param name="FilePrefix">JPG 파일 접두사</param>
-		/// <param name="TotalSlides">총 슬라이드 수 (출력)</param>
-		/// <returns>true: 이미 빌드됨(재빌드 불필요), false: 재빌드 필요</returns>
-		public bool IsBuildedFileCheck(string FilePath, string FilePrefix, ref int TotalSlides, _Presentation presentation = null)
-	{
-		if (string.IsNullOrEmpty(FilePath))
+		public bool IsBuildedFileCheck(string FilePath, string FilePrefix, ref int TotalSlides)
 		{
-			Console.WriteLine($"FilePath is null or empty (FilePrefix='{FilePrefix}')");
-			return false;
-		}
-
-		var pptFileInfo = new FileInfo(FilePath);
-		if (!pptFileInfo.Exists)
-		{
-			Console.WriteLine($"PPT file not found: {FilePath}");
-			return false;
-		}
-
-		Console.WriteLine($"[DEBUG] PPT LastWriteTimeUtc: {pptFileInfo.LastWriteTimeUtc} ({pptFileInfo.LastWriteTimeUtc.Ticks})");
-
-		// ✅ 캐싱: 파일 수정 시간을 포함한 캐시 키 생성
-		string cacheKey = FilePath + "|" + FilePrefix + "|" + pptFileInfo.LastWriteTimeUtc.Ticks;
-		if (_fileCheckCache.ContainsKey(cacheKey))
-		{
-			var cached = _fileCheckCache[cacheKey];
-			if (DateTime.Now - cached.LastCheck < _cacheExpiration)
+			if (string.IsNullOrEmpty(FilePath) || string.IsNullOrEmpty(FilePrefix))
 			{
-				TotalSlides = cached.TotalSlides;
-				Console.WriteLine($"[Cache Hit] File check: {Path.GetFileName(FilePath)}, Slides: {TotalSlides}");
-				return cached.Exists;
+				return false;
 			}
-		}
-
-		// 이전 캐시 키 패턴과 일치하는 항목 제거 (파일이 수정되었으므로)
-		var oldCacheKeys = _fileCheckCache.Keys.Where(k => k.StartsWith(FilePath + "|" + FilePrefix + "|")).ToList();
-		foreach (var oldKey in oldCacheKeys)
-		{
-			if (oldKey != cacheKey)
+			if (!SlideImageManifest.TryMatch(FilePrefix, FilePath, out int slideCount))
 			{
-				_fileCheckCache.Remove(oldKey);
+				return false;
 			}
-		}
-
-		FileInfo jpgFileInfo = new FileInfo(FilePrefix + Convert.ToString(1) + ".jpg");
-		Console.WriteLine($"Checking JPG: {jpgFileInfo.FullName}");
-
-		// JPG 파일이 없으면 재빌드 필요
-		if (!jpgFileInfo.Exists)
-		{
-			Console.WriteLine("JPG file not found - rebuild required");
-			
-			// 슬라이드 수를 가져오기 위해 프레젠테이션 열기 (필요한 경우)
-			if (TotalSlides == 0 || presentation == null)
-			{
-				using PowerPointGate gate = PowerPointGate.Enter(PowerPointCallWeight.Heavy, "read the slide count of " + Path.GetFileName(FilePath));
-				if (gate == null)
-				{
-					// Not asked: as when the file cannot be opened (not cached, so it is read again next time).
-					return false;
-				}
-				_Presentation tempPresentation = presentation;
-				bool shouldClose = false;
-				try
-				{
-					if (tempPresentation == null)
-					{
-						tempPresentation = OpenTemporary(FilePath, MsoTriState.msoFalse, MsoTriState.msoTrue);
-						shouldClose = true;
-					}
-					TotalSlides = tempPresentation.Slides.Count;
-					Console.WriteLine($"Presentation opened for slide count: {Path.GetFileName(FilePath)}, Slides: {TotalSlides}");
-				}
-				catch (Exception ex)
-				{
-					Console.WriteLine($"Error opening presentation to get slide count: {ex.Message}");
-				}
-				finally
-				{
-					if (shouldClose && tempPresentation != null)
-						ClosePresentation(ref tempPresentation);
-				}
-			}
-			
-			_fileCheckCache[cacheKey] = (false, DateTime.Now, TotalSlides);
-			return false;
-		}
-
-		// JPG가 PPT보다 최신이거나 같으면 이미 빌드됨
-		Console.WriteLine($"[DEBUG] Comparing times - JPG: {jpgFileInfo.LastWriteTimeUtc} ({jpgFileInfo.LastWriteTimeUtc.Ticks}), PPT: {pptFileInfo.LastWriteTimeUtc} ({pptFileInfo.LastWriteTimeUtc.Ticks})");
-		if (jpgFileInfo.LastWriteTimeUtc >= pptFileInfo.LastWriteTimeUtc)
-		{
-			Console.WriteLine($"JPG is newer than or equal to PPT - already built (PPT: {pptFileInfo.LastWriteTimeUtc}, JPG: {jpgFileInfo.LastWriteTimeUtc})");
-			
-			// 슬라이드 수를 가져오기 위해 프레젠테이션 열기 (필요한 경우)
-			if (TotalSlides == 0 || presentation == null)
-			{
-				using PowerPointGate gate = PowerPointGate.Enter(PowerPointCallWeight.Heavy, "read the slide count of " + Path.GetFileName(FilePath));
-				if (gate == null)
-				{
-					// Not asked: as when the file cannot be opened (not cached, so it is read again next time).
-					return false;
-				}
-				_Presentation tempPresentation = presentation;
-				bool shouldClose = false;
-				try
-				{
-					if (tempPresentation == null)
-					{
-						tempPresentation = OpenTemporary(FilePath, MsoTriState.msoFalse, MsoTriState.msoTrue);
-						shouldClose = true;
-					}
-					TotalSlides = tempPresentation.Slides.Count;
-					Console.WriteLine($"Presentation opened for slide count: {Path.GetFileName(FilePath)}, Slides: {TotalSlides}");
-				}
-				catch (Exception ex)
-				{
-					Console.WriteLine($"Error opening presentation to get slide count: {ex.Message}");
-					_fileCheckCache[cacheKey] = (false, DateTime.Now, TotalSlides);
-					return false;
-				}
-				finally
-				{
-					if (shouldClose && tempPresentation != null)
-						ClosePresentation(ref tempPresentation);
-				}
-			}
-			
-			_fileCheckCache[cacheKey] = (true, DateTime.Now, TotalSlides);
-			Console.WriteLine($"[Cache Store] Already built: {Path.GetFileName(FilePath)}, Slides: {TotalSlides}");
+			TotalSlides = slideCount;
 			return true;
-		}
-		else
-		{
-			// PPT가 JPG보다 최신이면 재빌드 필요
-			Console.WriteLine($"PPT is newer than JPG - rebuild required (PPT: {pptFileInfo.LastWriteTimeUtc}, JPG: {jpgFileInfo.LastWriteTimeUtc})");
-			
-			// 슬라이드 수를 가져오기 위해 프레젠테이션 열기 (필요한 경우)
-			if (TotalSlides == 0 || presentation == null)
-			{
-				using PowerPointGate gate = PowerPointGate.Enter(PowerPointCallWeight.Heavy, "read the slide count of " + Path.GetFileName(FilePath));
-				if (gate == null)
-				{
-					// Not asked: as when the file cannot be opened (not cached, so it is read again next time).
-					return false;
-				}
-				_Presentation tempPresentation = presentation;
-				bool shouldClose = false;
-				try
-				{
-					if (tempPresentation == null)
-					{
-						tempPresentation = OpenTemporary(FilePath, MsoTriState.msoFalse, MsoTriState.msoTrue);
-						shouldClose = true;
-					}
-					TotalSlides = tempPresentation.Slides.Count;
-					Console.WriteLine($"Presentation opened for slide count: {Path.GetFileName(FilePath)}, Slides: {TotalSlides}");
-				}
-				catch (Exception ex)
-				{
-					Console.WriteLine($"Error opening presentation to get slide count: {ex.Message}");
-				}
-				finally
-				{
-					if (shouldClose && tempPresentation != null)
-						ClosePresentation(ref tempPresentation);
-				}
-			}
-			
-			_fileCheckCache[cacheKey] = (false, DateTime.Now, TotalSlides);
-			return false;
-		}
-	}
-
-
-
-		private static string GetMD5(string path)
-		{
-			using (var fs = File.OpenRead(path))
-			using (var md5 = new MD5CryptoServiceProvider())
-				return string.Join("", md5.ComputeHash(fs).ToArray().Select(i => i.ToString("X2")));
 		}
 
 		/// <summary>
-		/// 비동기 버전의 BuildScreenPreDumps - UI 블로킹 방지
+		/// Builds the output slide images of FilePath under FilePrefix and copies them under the matching preview
+		/// prefix, unless a complete export of this version exists; then fills the verse data. Returns false when
+		/// PowerPoint was not asked (not attached, not responding) or the build failed.
 		/// </summary>
 		public bool BuildScreenOutDumps(string FilePath, string FilePrefix, ref int TotalSlides, int MAX_VERSES, int DB_MAXSLIDES, ref int[] SongVerses, ref int[,] Slide, string[] SequenceSymbol)
 		{
-			bool result = true;
+			return BuildSlideImages(FilePath, FilePrefix, copyToPreview: true, ref TotalSlides, MAX_VERSES, DB_MAXSLIDES, ref SongVerses, ref Slide, SequenceSymbol);
+		}
+
+		private const string OutputImagePrefixMarker = "~OUTPPPreview$";
+		private const string PreviewImagePrefixMarker = "~PREPPPreview$";
+
+		/// <summary>
+		/// The one export routine of the slide images (output and preview).
+		/// - Reuses the images when their build record matches this version of the file (no PowerPoint call
+		///   except reading the verse markers, which the session cache usually answers).
+		/// - Otherwise removes the record first, exports every slide, and writes the record only when all slides
+		///   were exported: an interrupted export is rebuilt next time instead of showing stale slides.
+		/// - Works on a local presentation, never the shared field: a COM call pumps messages, so another flow
+		///   could otherwise close or replace it meanwhile.
+		/// </summary>
+		private bool BuildSlideImages(string FilePath, string FilePrefix, bool copyToPreview, ref int TotalSlides, int MAX_VERSES, int DB_MAXSLIDES, ref int[] SongVerses, ref int[,] Slide, string[] SequenceSymbol)
+		{
 			using PowerPointGate gate = PowerPointGate.Enter(PowerPointCallWeight.Heavy, "build the slide images of " + Path.GetFileName(FilePath));
 			if (gate == null)
 			{
 				ResetVerses(MAX_VERSES, DB_MAXSLIDES, ref SongVerses, ref Slide);
 				return false;
 			}
+			_Presentation working = null;
 			try
 			{
-				Console.WriteLine($"[BuildScreenOutDumps] FilePath='{FilePath}', FilePrefix='{FilePrefix}'");
 				ResetVerses(MAX_VERSES, DB_MAXSLIDES, ref SongVerses, ref Slide);
 				if (prePowerPointApp == null)
 				{
-					Console.WriteLine("[BuildScreenOutDumps] prePowerPointApp is null");
-					return result;
+					Console.WriteLine("[BuildSlideImages] PowerPoint is not attached");
+					return false;
 				}
+				string previewPrefix = copyToPreview && FilePrefix.Contains(OutputImagePrefixMarker)
+					? FilePrefix.Replace(OutputImagePrefixMarker, PreviewImagePrefixMarker)
+					: null;
+				if (IsBuildedFileCheck(FilePath, FilePrefix, ref TotalSlides)
+					&& (previewPrefix == null || SlideImageManifest.TryMatch(previewPrefix, FilePath, out _)))
+				{
+					Console.WriteLine($"[BuildSlideImages] Reusing {TotalSlides} slide images: {FilePrefix}");
+					LoadVerses(FilePath, MAX_VERSES, DB_MAXSLIDES, ref SongVerses, ref Slide, SequenceSymbol);
+					return true;
+				}
+
+				// Read before the file is opened: a save during the export leaves the record older than the file.
+				SlideImageManifest.SourceVersion source = SlideImageManifest.ReadSource(FilePath);
 				DateTime? lastWriteBeforeRead = GetLastWriteBeforeRead(FilePath);
-
-				// ✅ 먼저 캐시 체크 (프레젠테이션을 열기 전에)
-			Console.WriteLine($"[DEBUG BuildScreenOutDumps] Calling IsBuildedFileCheck...");
-			bool isBuilt = IsBuildedFileCheck(FilePath, FilePrefix, ref TotalSlides);
-			Console.WriteLine($"[DEBUG BuildScreenOutDumps] IsBuildedFileCheck returned: {isBuilt}");
-			if (isBuilt)
-			{
-				Console.WriteLine($"Output preview images already exist (cache hit) for: {FilePrefix}");
-					
-					// 캐시 히트: Verse 정보 파싱을 위해서만 프레젠테이션 열기
-					presentation = OpenTemporary(FilePath, MsoTriState.msoFalse, MsoTriState.msoTrue);
-					Console.WriteLine(FilePath);
-					if (presentation != null)
-					{
-						bool complete = ParseVersesFromPresentation(presentation, TotalSlides, ref SongVerses, ref Slide, SequenceSymbol);
-						StoreCachedVerses(FilePath, lastWriteBeforeRead, complete, TotalSlides, MAX_VERSES, SongVerses, Slide);
-					}
-					return result;
+				SlideImageManifest.Invalidate(FilePrefix);
+				if (previewPrefix != null)
+				{
+					SlideImageManifest.Invalidate(previewPrefix);
 				}
 
-				// 캐시 미스: 이미지를 새로 생성해야 함
-				presentation = OpenTemporary(FilePath, MsoTriState.msoFalse, MsoTriState.msoFalse);
-				Console.WriteLine(FilePath);
-				if ((presentation == null) & (TotalSlides > 0))
+				// Read-only and titled (a cancelled open can be closed later, see OpenTemporary): the user's file is
+				// never locked for writing.
+				working = OpenTemporary(FilePath, MsoTriState.msoTrue, MsoTriState.msoFalse);
+				int slideCount = working.Slides.Count;
+				TotalSlides = slideCount;
+				Console.WriteLine($"[BuildSlideImages] Exporting {slideCount} slides to: {FilePrefix}");
+				bool previewComplete = previewPrefix != null;
+				for (int i = 1; i <= slideCount; i++)
 				{
-					return result;
-				}
-				TotalSlides = presentation.Slides.Count;
-				String strPreFileName = "";
-				String strOutFileName = "";
-
-				Console.WriteLine($"Building {TotalSlides} output preview images to: {FilePrefix}");
-				for (int i = 1; i <= TotalSlides; i++)
-				{
-					strOutFileName = FilePrefix + Convert.ToString(i) + ".jpg";
-					presentation.Slides[i].Export(strOutFileName, "JPG", EXPORT_WIDTH, EXPORT_HEIGHT);
+					string imagePath = SlideImageManifest.ImagePath(FilePrefix, i);
+					working.Slides[i].Export(imagePath, "JPG", EXPORT_WIDTH, EXPORT_HEIGHT);
 					PowerPointCallLimit.Progress();
-					Console.WriteLine($"Exported slide {i} to: {strOutFileName}");
-					//Console.WriteLine("SlideID:{0}, SlideNumber: {1} ", Pres.Slides.Item(l).SlideID, Pres.Slides.Item(l).SlideNumber);
-					strPreFileName = strOutFileName.Replace("~OUTPPPreview$", "~PREPPPreview$");
-
-					// 파일 복사 재시도 (파일이 다른 프로세스에 의해 잠겨있을 수 있음)
-					int retryCount = 0;
-					bool copySucceeded = false;
-					while (retryCount < 3 && !copySucceeded)
+					if (previewPrefix != null && !CopySlideImage(imagePath, SlideImageManifest.ImagePath(previewPrefix, i)))
 					{
-						try
-						{
-							File.Copy(strOutFileName, strPreFileName, true);
-							Console.WriteLine($"Copied to preview: {strPreFileName}");
-							copySucceeded = true;
-						}
-						catch (IOException ex)
-						{
-							retryCount++;
-							if (retryCount < 3)
-							{
-								Console.WriteLine($"File copy retry {retryCount}/3: {ex.Message}");
-								System.Threading.Thread.Sleep(100);
-							}
-							else
-							{
-								Console.WriteLine($"File copy failed after 3 attempts: {ex.Message}");
-								// 복사 실패시에도 계속 진행 (다음 슬라이드 처리)
-							}
-						}
+						previewComplete = false;
 					}
 				}
-				Console.WriteLine($"Completed building {TotalSlides} output preview images");
+				if (PowerPointCallLimit.CurrentAbandoned)
+				{
+					return false;
+				}
+				SlideImageManifest.Commit(FilePrefix, source, slideCount);
+				if (previewComplete)
+				{
+					SlideImageManifest.Commit(previewPrefix, source, slideCount);
+				}
 
-			// ✅ 이미지 생성 완료 후 캐시 업데이트
-			UpdateImageBuildCache(FilePath, FilePrefix, TotalSlides);
-
-			// Verse 정보 파싱
-				bool versesComplete = ParseVersesFromPresentation(presentation, TotalSlides, ref SongVerses, ref Slide, SequenceSymbol);
-				StoreCachedVerses(FilePath, lastWriteBeforeRead, versesComplete, TotalSlides, MAX_VERSES, SongVerses, Slide);
-
-				return result;
+				bool complete = ParseVersesFromPresentation(working, slideCount, ref SongVerses, ref Slide, SequenceSymbol);
+				StoreCachedVerses(FilePath, lastWriteBeforeRead, complete, slideCount, MAX_VERSES, SongVerses, Slide);
+				return true;
 			}
-			catch (Exception e)
+			catch (Exception ex)
 			{
-				Console.WriteLine(e.Message);
-				Console.WriteLine(e.StackTrace);
+				Console.WriteLine($"Error building the slide images of '{FilePath}': {ex.Message}");
 				return false;
 			}
 			finally
 			{
-				ClosePresentation(ref presentation);
+				ClosePresentation(ref working);
 			}
 		}
 
-
-// ✅ 이미지 생성 완료 후 캐시 업데이트 헬퍼 메서드
-private void UpdateImageBuildCache(string FilePath, string FilePrefix, int TotalSlides)
-{
-	var pptFileInfo = new FileInfo(FilePath);
-	string cacheKey = FilePath + "|" + FilePrefix + "|" + pptFileInfo.LastWriteTimeUtc.Ticks;
-	_fileCheckCache[cacheKey] = (true, DateTime.Now, TotalSlides);
-	Console.WriteLine($"[Cache Store] Images built successfully: {Path.GetFileName(FilePath)}, Slides: {TotalSlides}");
-}
+		// Copies an exported slide image to the preview prefix. One retry for a file briefly held by another
+		// process (a virus scanner, a thumbnail reader). False when it could not be copied: that preview set then
+		// gets no build record and is exported again next time.
+		private static bool CopySlideImage(string from, string to)
+		{
+			for (int attempt = 1; ; attempt++)
+			{
+				try
+				{
+					File.Copy(from, to, true);
+					return true;
+				}
+				catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
+				{
+					if (attempt >= 2)
+					{
+						Console.WriteLine($"Copying '{from}' to the preview failed: {ex.Message}");
+						return false;
+					}
+					Thread.Sleep(50);
+				}
+			}
+		}
 
 		/// <summary>
 		/// Clears all verse data (same range as BuildScreenDumps) so nothing from a previously loaded item survives.
@@ -3161,90 +2967,12 @@ private void UpdateImageBuildCache(string FilePath, string FilePrefix, int Total
 		}
 
 		/// <summary>
-		/// daniel
+		/// Builds the preview slide images of FilePath under FilePrefix, unless a complete export of this version
+		/// exists; then fills the verse data (see BuildSlideImages).
 		/// </summary>
-		/// <param name="FilePath"></param>
-		/// <param name="FilePrefix"></param>
-		/// <param name="TotalSlides"></param>
-		/// <param name="MAX_VERSES"></param>
-		/// <param name="DB_MAXSLIDES"></param>
-		/// <param name="SongVerses"></param>
-		/// <param name="Slide"></param>
-		/// <param name="SequenceSymbol"></param>
-		/// <returns></returns>
 		public bool BuildScreenDumps(string FilePath, string FilePrefix, ref int TotalSlides, int MAX_VERSES, int DB_MAXSLIDES, ref int[] SongVerses, ref int[,] Slide, string[] SequenceSymbol)
 		{
-			bool result = true;
-			using PowerPointGate gate = PowerPointGate.Enter(PowerPointCallWeight.Heavy, "build the slide images of " + Path.GetFileName(FilePath));
-			if (gate == null)
-			{
-				ResetVerses(MAX_VERSES, DB_MAXSLIDES, ref SongVerses, ref Slide);
-				return false;
-			}
-			try
-			{
-				Console.WriteLine($"[BuildScreenDumps] FilePath='{FilePath}', FilePrefix='{FilePrefix}'");
-				for (int i = 1; i < DB_MAXSLIDES; i++)
-				{
-					Slide[i, 0] = -1;
-				}
-				for (int j = 0; j <= MAX_VERSES; j++)
-				{
-					SongVerses[j] = 0;
-				}
-				if (prePowerPointApp == null)
-				{
-					Console.WriteLine("[BuildScreenDumps] prePowerPointApp is null");
-					return result;
-				}
-
-				DateTime? lastWriteBeforeRead = GetLastWriteBeforeRead(FilePath);
-				presentation = OpenTemporary(FilePath, MsoTriState.msoFalse, MsoTriState.msoFalse);
-				TotalSlides = presentation.Slides.Count;
-				if ((presentation == null) & (TotalSlides > 0))
-				{
-					return result;
-				}
-
-				for (int k = 1; k <= TotalSlides; k++)
-				{
-					presentation.Slides[k].Export(FilePrefix + Convert.ToString(k) + ".jpg", "JPG", EXPORT_WIDTH, EXPORT_HEIGHT);
-					PowerPointCallLimit.Progress();
-				}
-
-				// Verse 정보 파싱
-				bool complete = ParseVersesFromPresentation(presentation, TotalSlides, ref SongVerses, ref Slide, SequenceSymbol);
-				StoreCachedVerses(FilePath, lastWriteBeforeRead, complete, TotalSlides, MAX_VERSES, SongVerses, Slide);
-
-				return result;
-			}
-			catch (Exception ex)
-			{
-				Console.WriteLine($"Error in BuildScreenDumps: {ex.Message}");
-				return false;
-			}
-			finally
-			{
-				ClosePresentation(ref presentation);
-			}
-		}
-
-		public int StringToInt(string InValue)
-		{
-			bool minus1IfBlank = false;
-			return StringToInt(InValue, minus1IfBlank);
-		}
-
-		public int StringToInt(string InValue, bool Minus1IfBlank)
-		{
-			try
-			{
-				return Convert.ToInt32(InValue);
-			}
-			catch
-			{
-				return Minus1IfBlank ? (-1) : 0;
-			}
+			return BuildSlideImages(FilePath, FilePrefix, copyToPreview: false, ref TotalSlides, MAX_VERSES, DB_MAXSLIDES, ref SongVerses, ref Slide, SequenceSymbol);
 		}
 
 		// The cache folder of the last BuildFirstScreenDump (see ExternalPreviewCache).

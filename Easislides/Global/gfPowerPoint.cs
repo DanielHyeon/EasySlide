@@ -84,7 +84,9 @@ namespace Easislides
 
 			if (useTitlePrefix)
 			{
-				string prefixItemName = InvalidFileNameCharsRegex.Replace(InItem.Title, "");
+				// The title keeps the names readable; the path key keeps two items with the same title but
+				// different files from sharing (and showing each other's) slide images.
+				string prefixItemName = InvalidFileNameCharsRegex.Replace(InItem.Title, "") + "$" + OfficeLib.SlideImageManifest.PrefixKey(InItem.Path);
 
 				if (InItem.OutputStyleScreen)
 				{

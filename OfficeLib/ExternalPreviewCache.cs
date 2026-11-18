@@ -266,7 +266,7 @@ namespace OfficeLib
 			return deleted;
 		}
 
-		private static string KeyOf(string fullPath)
+		internal static string KeyOf(string fullPath)
 		{
 			byte[] hash = SHA256.HashData(Encoding.UTF8.GetBytes(fullPath.ToUpperInvariant()));
 			return Convert.ToHexString(hash, 0, KeyHexLength / 2).ToLowerInvariant();
