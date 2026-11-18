@@ -21,6 +21,7 @@ namespace Easislides
 
         // Width of the border drawn round a checked hide-text / black-screen button.
         private const int LiveToggleCheckedBorder = 2;
+        private const int HeaderTitleMinimumWidth = 32;
 
         /// <summary>
         /// Single gate for the new look: revert switch on (design D3) and no
@@ -70,6 +71,8 @@ namespace Easislides
             ApplyHeaderTint(panel10, OutputPanelDisplayName, ModernUiPalette.LiveTint);
 
             ApplyLiveHeaderButtons();
+            ApplyHeaderMinimumWidths(this, splitContainerMain, splitContainer2, panel9, panel10,
+                SizeFromClientSize(Size.Empty).Width);
             CreateLiveStatusRow();
             CaptureShortcutTooltipBases();
             RefreshShortcutTooltips();
@@ -123,6 +126,69 @@ namespace Easislides
         }
 
         private static void HeaderFrame_SizeChanged(object sender, EventArgs e) => ((Panel)sender).Invalidate();
+
+        private static void ApplyHeaderMinimumWidths(Form form, SplitContainer main, SplitContainer panes,
+            Panel preview, Panel output, int windowFrameWidth)
+        {
+            int previewWidth = HeaderMinimumWidth(preview);
+            int outputWidth = HeaderMinimumWidth(output);
+            int panesWidth = previewWidth + panes.SplitterWidth + outputWidth;
+            int mainWidth = main.Panel1MinSize + main.SplitterWidth + panesWidth;
+            Rectangle restoredBounds = form.WindowState == FormWindowState.Normal ? form.Bounds : form.RestoreBounds;
+            form.MinimumSize = new Size(Math.Max(form.MinimumSize.Width, mainWidth + windowFrameWidth),
+                form.MinimumSize.Height);
+
+            if (restoredBounds.Width < form.MinimumSize.Width)
+            {
+                // The saved position was fitted to the screen using the old, narrower width.
+                Rectangle screen = Screen.FromRectangle(restoredBounds).Bounds;
+                int left = Math.Clamp(restoredBounds.Left, screen.Left, Math.Max(screen.Left,
+                    screen.Right - form.MinimumSize.Width));
+                if (left != restoredBounds.Left)
+                {
+                    form.Left = left;
+                }
+            }
+
+            // Clamp the restored positions from the outside in before raising the panel limits.
+            SetSplitterMinimumWidths(main, main.Panel1MinSize, panesWidth);
+            SetSplitterMinimumWidths(panes, previewWidth, outputWidth);
+        }
+
+        private static int HeaderMinimumWidth(Panel header)
+        {
+            int width = header.Padding.Horizontal + header.LogicalToDeviceUnits(HeaderTitleMinimumWidth);
+            foreach (Control control in header.Controls)
+            {
+                if (control.Dock == DockStyle.Right)
+                {
+                    width += control.Width;
+                }
+            }
+            return width;
+        }
+
+        private static void SetSplitterMinimumWidths(SplitContainer split, int left, int right)
+        {
+            if (split.Width < left + split.SplitterWidth + right)
+            {
+                // A transient layout or a smaller working area can delay fitting the requested widths.
+                split.SizeChanged += ApplyWhenWideEnough;
+                return;
+            }
+            split.SplitterDistance = Math.Clamp(split.SplitterDistance, left, split.Width - split.SplitterWidth - right);
+            split.Panel1MinSize = left;
+            split.Panel2MinSize = right;
+
+            void ApplyWhenWideEnough(object sender, EventArgs e)
+            {
+                if (split.Width >= left + split.SplitterWidth + right)
+                {
+                    split.SizeChanged -= ApplyWhenWideEnough;
+                    SetSplitterMinimumWidths(split, left, right);
+                }
+            }
+        }
 
         /// <summary>
         /// Show button apart from hide-text / black-screen, and filled when checked (design D11).
