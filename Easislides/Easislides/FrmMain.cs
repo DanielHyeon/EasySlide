@@ -342,7 +342,8 @@ namespace Easislides
             {
                 heightPercent = 6;
             }
-            Def_PanelHeight.Value = (int)(Gf.BottomBorderFactor * 100.0);
+            // The clamped value, kept within the control's own range (setting Value out of range throws).
+            Def_PanelHeight.Value = Math.Max(Def_PanelHeight.Minimum, Math.Min(Def_PanelHeight.Maximum, heightPercent));
             Def_PanelFontOutline.Checked = ((Gf.ShowDataDisplayFontOutline > 0) ? true : false);
             Def_PanelTextColour.ForeColor = Gf.PanelTextColour;
             Def_PanelBackColour.ForeColor = Gf.PanelBackColour;
