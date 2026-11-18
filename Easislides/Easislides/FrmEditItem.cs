@@ -465,7 +465,7 @@ namespace Easislides
 				else
 				{
 					string strExt = Path.GetExtension(fileNames[0]).ToLower();
-					if (strExt != ".doc" && strExt != ".rtf" && strExt != ".txt")
+					if (strExt != ".doc" && strExt != ".docx" && strExt != ".txt")
 					{
 						acceptDrop = false;
 					}
