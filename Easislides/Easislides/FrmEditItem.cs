@@ -1969,7 +1969,7 @@ namespace Easislides
 					{
 						listViewItem = VersesList.Items.Add(Gf.VerseTitle[i]);
 						listViewItem.SubItems.Add(i.ToString());
-						listViewItem.SubItems.Add(VersePresentNewScreenCount[0].ToString());
+						listViewItem.SubItems.Add(VersePresentNewScreenCount[i].ToString());
 					}
 					prevVersePresent[i] = VersePresent[i];
 				}
