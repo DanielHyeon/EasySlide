@@ -78,6 +78,11 @@ namespace Easislides.Util
 
         public void SetPowerPointDisplayMonitor(string DisplayName)
         {
+            // "None" (no output monitor) is not a monitor: leave PowerPoint's own setting as it is.
+            if (string.IsNullOrWhiteSpace(DisplayName) || string.Equals(DisplayName, "None", StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
             string versionFromReg = GetVersionNumberFromRegistry();
             string versionInstalled = LatestVersions[versionFromReg];
             string bit32or64 = "64 bit"; 

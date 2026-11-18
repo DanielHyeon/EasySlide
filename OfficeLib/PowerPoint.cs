@@ -218,7 +218,12 @@ namespace OfficeLib
 			{
 				string version = prePowerPointApp.Version;
 
-				SaveRegValue(version, @"PowerPoint\Options", "DisplayMonitor", displayName);
+				// The output monitor for PowerPoint's slide show. "None" (no output monitor configured) is not a monitor:
+				// writing it would only overwrite the user's own PowerPoint setting.
+				if (!string.IsNullOrWhiteSpace(displayName) && !string.Equals(displayName, "None", StringComparison.OrdinalIgnoreCase))
+				{
+					SaveRegValue(version, @"PowerPoint\Options", "DisplayMonitor", displayName);
+				}
 
 				int entry = FindListedEntry(InPowerpointFullPath, PowerpointList);
 				text = (entry > 0) ? PowerpointList[entry].CopyName : "";
@@ -3192,6 +3197,13 @@ namespace OfficeLib
         /// </summary>
         private _Presentation OpenTemporary(string path, MsoTriState readOnly, MsoTriState untitled)
         {
+            if (untitled == MsoTriState.msoFalse && IsFileOpenInPowerPoint(path))
+            {
+                // The file is open in PowerPoint already (the user's own window, most likely). A titled open could
+                // hand back that very presentation, and the caller closes what it opened: the user's document would
+                // be closed without a save prompt. An untitled copy is always a new presentation.
+                untitled = MsoTriState.msoTrue;
+            }
             try
             {
                 return prePowerPointApp.Presentations.Open(path, readOnly, untitled, MsoTriState.msoFalse);
@@ -3203,6 +3215,55 @@ namespace OfficeLib
                     cancelledTitledOpens.Add((this, path));
                 }
                 throw;
+            }
+        }
+
+        /// <summary>
+        /// True when a presentation whose FullName is path is open in this wrapper's PowerPoint, or when that cannot
+        /// be told (a presentation could not be read): the safe answer for OpenTemporary.
+        /// </summary>
+        private bool IsFileOpenInPowerPoint(string path)
+        {
+            string fullPath;
+            try
+            {
+                fullPath = Path.GetFullPath(path);
+            }
+            catch (Exception)
+            {
+                return true;
+            }
+            Presentations presentations = null;
+            try
+            {
+                presentations = prePowerPointApp.Presentations;
+                int count = presentations.Count;
+                for (int i = 1; i <= count; i++)
+                {
+                    Presentation open = null;
+                    try
+                    {
+                        open = presentations[i];
+                        if (string.Equals(open.FullName, fullPath, StringComparison.OrdinalIgnoreCase))
+                        {
+                            return true;
+                        }
+                    }
+                    finally
+                    {
+                        ReleaseProxy(open);
+                    }
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Could not check whether '{path}' is open in PowerPoint: {ex.Message}");
+                return true;
+            }
+            finally
+            {
+                ReleaseProxy(presentations);
             }
         }
 
@@ -3347,8 +3408,12 @@ namespace OfficeLib
 				if (prePowerPointApp != null && !prePowerPointApp.IsDisposed)
 				{
 					// PowerPoint is single-instance, so this may be the user's own PowerPoint.
-					// Quit closes every open presentation without asking to save, so only quit when none is open.
-					if (GetOpenPresentationCount(prePowerPointApp) == 0 && !PowerPointCallLimit.CurrentAbandoned)
+					// Quit closes every open presentation without asking to save, so only quit when none is open,
+					// no file is open in Protected View (those are not in Presentations), and the process was not
+					// already running before EasiSlides started (the user's PowerPoint, perhaps on its start screen).
+					if (GetOpenPresentationCount(prePowerPointApp) == 0 && !PowerPointCallLimit.CurrentAbandoned
+						&& GetProtectedViewWindowCount(prePowerPointApp) == 0 && !PowerPointCallLimit.CurrentAbandoned
+						&& !IsUsersOwnPowerPoint(prePowerPointApp))
 					{
 						try
 						{
@@ -3385,6 +3450,61 @@ namespace OfficeLib
 
 		[DllImport("user32.dll")]
 		private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+
+		/// <summary>
+		/// The number of files open in Protected View in the given PowerPoint (they are not in Presentations), or -1
+		/// when it cannot be read: then PowerPoint is not quit.
+		/// </summary>
+		private static int GetProtectedViewWindowCount(Application app)
+		{
+			ProtectedViewWindows windows = null;
+			try
+			{
+				windows = app.ProtectedViewWindows;
+				int count = windows.Count;
+				PowerPointCallLimit.Progress();
+				return count;
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"Error reading Protected View windows: {ex.Message}");
+				return -1;
+			}
+			finally
+			{
+				ReleaseProxy(windows);
+			}
+		}
+
+		/// <summary>
+		/// True when the PowerPoint behind app is the user's own: its process was already running when this app
+		/// started and it is visible (e.g. on its start screen). EasiSlides must never quit it. False when it started
+		/// later (EasiSlides started it), when it is hidden (a PowerPoint left behind by an earlier run of the app),
+		/// or when that cannot be told (then the presentation checks alone decide, as before).
+		/// </summary>
+		private static bool IsUsersOwnPowerPoint(Application app)
+		{
+			try
+			{
+				if (app.Visible != MsoTriState.msoTrue)
+				{
+					return false;
+				}
+				IntPtr hwnd = new IntPtr(app.HWND);
+				if (hwnd == IntPtr.Zero || GetWindowThreadProcessId(hwnd, out uint processId) == 0 || processId == 0)
+				{
+					return false;
+				}
+				using Process powerPoint = Process.GetProcessById((int)processId);
+				using Process self = Process.GetCurrentProcess();
+				return powerPoint.StartTime < self.StartTime;
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"Could not tell when PowerPoint was started: {ex.Message}");
+				return false;
+			}
+		}
 
 		public void ClosePresentation_Old(ref _Presentation presentation)
 		{
