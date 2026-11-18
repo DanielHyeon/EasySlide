@@ -6315,6 +6315,7 @@ namespace Easislides
             {
                 if (Gf.HB_TotalVersions < 1)
                 {
+                    Cursor = Cursors.Default;
                     return;
                 }
                 Gf.FindBibleVerses = true;
