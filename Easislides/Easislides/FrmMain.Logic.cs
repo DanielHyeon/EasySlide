@@ -800,7 +800,6 @@ namespace Easislides
         private void BuildFolderList()
         {
             ImplementFolderChange = false;
-            int selectedFolderIndex = 0;
             int firstFolderIndex = 0;
             string selectedFolderName = "";
             string firstFolderName = "";
@@ -811,7 +810,8 @@ namespace Easislides
                 {
                     SongFolder.SelectedIndex = 0;
                 }
-                previousFolderNumber = Gf.GetFolderNumber(SongFolder.SelectedText);
+                // The selected folder's name (SelectedText is the highlighted edit text, always "" in a DropDownList).
+                previousFolderNumber = Gf.GetFolderNumber(SongFolder.Items[SongFolder.SelectedIndex].ToString());
             }
             else
             {
@@ -825,7 +825,6 @@ namespace Easislides
                     SongFolder.Items.Add(Gf.Folders[i].Name);
                     if (Gf.GetFolderNumber(Gf.Folders[i].Name) == previousFolderNumber)
                     {
-                        selectedFolderIndex = i;
                         selectedFolderName = Gf.Folders[i].Name;
                     }
                     if (firstFolderIndex == 0)
