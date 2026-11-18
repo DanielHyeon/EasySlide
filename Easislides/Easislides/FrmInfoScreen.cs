@@ -833,12 +833,12 @@ namespace Easislides
 		{
 			if (!InitFontsLists)
 			{
-				Gf.InfoMainFontSize = Convert.ToInt32(ComboMainFontSize.Text);
+				Gf.InfoMainFontSize = DataUtil.StringToInt(ComboMainFontSize.Text);
 				if ((Gf.InfoMainFontSize < 6) || (Gf.InfoMainFontSize > 20))
 				{
 					Gf.InfoMainFontSize = 12;
 				}
-				Gf.InfoNotationFontSize = Convert.ToInt32(ComboNotationFontSize.Text);
+				Gf.InfoNotationFontSize = DataUtil.StringToInt(ComboNotationFontSize.Text);
 				if ((Gf.InfoNotationFontSize < 6) || (Gf.InfoNotationFontSize > 20))
 				{
 					Gf.InfoNotationFontSize = 10;
@@ -850,9 +850,9 @@ namespace Easislides
 				tbWorkspace.Font = MainFont;
 				tbTempSpace.Font = MainFont;
 				NotationFont = Gf.GetNewFont(Gf.InfoMainFontName, Gf.InfoNotationFontSize, InBold: false, InItalic: false, InUnderline: false, ShowErrorMsg: false);
-				RegUtil.SaveRegValue("options", "EditMainFontName", Gf.InfoMainFontName);
-				RegUtil.SaveRegValue("options", "EditMainFontSize", Gf.InfoMainFontSize);
-				RegUtil.SaveRegValue("options", "EditNotationFontSize", Gf.InfoNotationFontSize);
+				RegUtil.SaveRegValue("options", "InfoMainFontName", Gf.InfoMainFontName);
+				RegUtil.SaveRegValue("options", "InfoMainFontSize", Gf.InfoMainFontSize);
+				// The InfoScreen notation font size has no registry key that is read back, so it is not saved.
 			}
 		}
 
