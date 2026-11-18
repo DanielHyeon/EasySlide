@@ -624,7 +624,6 @@ namespace Easislides
 			}
 			InItem.Lyrics[RegNum].FS_TopOffset = topPosition;
 			RectangleF regionRect = new RectangleF(regionLeft, topPosition, regionWidth, regionHeight);
-			RectangleF shadowRect = new RectangleF(regionRect.Left + MainFont.Size / FontThresholdDivisor + 1f, regionRect.Top + MainFont.Size / FontThresholdDivisor + 1f, regionRect.Width, regionRect.Height);
 			if (lineStartIndex <= lineEndIndex)
 			{
 				for (int i = lineStartIndex; i <= lineEndIndex; i++)
@@ -1536,7 +1535,6 @@ namespace Easislides
 				float measureScale = DisplayPanelMeasureScale;
 				int prevNextAreaWidth = (int)((float)panelWidth * 0.15f);
 				int maxTitleWidth = (int)((float)panelWidth * ((InItem.TotalSlides > 20) ? 0.15f : 0.25f));
-				int indicatorsWidth = (int)((float)panelWidth * (0.34f + (float)(ShowDataDisplayIndicatorsFontSize - 8) * 0.032f));
 				int textAreaWidth = panelWidth;
 				fontSize = DisplayFontSize(11, Buffer_LS_Width, 3, 1);
 				inFont = GetCachedFont(songLyrics.FS_Font.Name, fontSize, songLyrics.FS_Font.Style);
@@ -1648,7 +1646,6 @@ namespace Easislides
 			string slideLabel = "";
 			string symbolLabel = "";
 			Color color = In_TextColour;
-			int cappedTotal = (totalSlides <= 10) ? totalSlides : 11;
 			int firstShown = (curSlide - 1) / 10 * 10 + 1;
 			int lastShown = (totalSlides > firstShown + 9) ? (firstShown + 9) : totalSlides;
 			int shownCount = lastShown - firstShown + 1;
@@ -1681,10 +1678,6 @@ namespace Easislides
 						{
 							g.DrawRectangle(framePen, OffsetLeft + 1, RectOffsetTop, labelWidth + 1, rect_slidesinfo.Height * 2f / 5f);
 						}
-					}
-					else
-					{
-						color = Color.White;
 					}
 					color = (isCurrent ? Color.Red : In_TextColour);
 					OutputOneLineToScreen(InItem, symbolLabel, tempFont, g, color, StringAlignment.Near, ShowDataDisplayFontShadow, ShowDataDisplayFontOutline, OffsetLeft, VersesSymOffsetTop, OffsetLeft + labelWidth, 0);
