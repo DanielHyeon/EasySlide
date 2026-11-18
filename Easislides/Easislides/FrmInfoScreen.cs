@@ -1319,7 +1319,7 @@ namespace Easislides
 					Gf.InfoScreenEditHistoryList[i].Id = "";
 					Gf.InfoScreenEditHistoryList[i].Title = "";
 				}
-				for (int i = 1; i <= Gf.AbsoluteMaxHitoryItems; i++)
+				for (int i = 1; i < Gf.AbsoluteMaxHitoryItems; i++)
 				{
 					Menu_EditHistoryList.DropDownItems[i - 1].Text = i + " " + Gf.InfoScreenEditHistoryList[i].Title;
 					Menu_EditHistoryList.DropDownItems[i - 1].Visible = i <= Gf.TotalInfoScreenEditHistory;
