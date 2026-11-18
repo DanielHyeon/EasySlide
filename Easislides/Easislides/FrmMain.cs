@@ -6330,7 +6330,8 @@ namespace Easislides
                     Main_QuickFind.Items.Insert(0, Main_QuickFind.Text);
                     if (Main_QuickFind.Items.Count > 20)
                     {
-                        for (int index = Main_QuickFind.Items.Count; index >= 21; index--)
+                        // Keep the 20 most recent entries (indexes 0..19).
+                        for (int index = Main_QuickFind.Items.Count - 1; index >= 20; index--)
                         {
                             Main_QuickFind.Items.RemoveAt(index);
                         }
