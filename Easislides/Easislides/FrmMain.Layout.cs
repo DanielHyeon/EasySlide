@@ -44,85 +44,84 @@ namespace Easislides
     {
         private void ApplySplitterValues()
         {
-            int num = 0;
-            num = RegUtil.GetRegValue("settings", Splitter_FolderWidth, 230);
-            if (num < 25 || num > 1500)
+            int splitterDistance = 0;
+            splitterDistance = RegUtil.GetRegValue("settings", Splitter_FolderWidth, 230);
+            if (splitterDistance < 25 || splitterDistance > 1500)
             {
-                num = 230;
+                splitterDistance = 230;
             }
-            splitContainerMain.SplitterDistance = num;
-            num = RegUtil.GetRegValue("settings", Splitter_OutputWidth, 250);
-            if (num < 25 || num > 1500)
+            splitContainerMain.SplitterDistance = splitterDistance;
+            splitterDistance = RegUtil.GetRegValue("settings", Splitter_OutputWidth, 250);
+            if (splitterDistance < 25 || splitterDistance > 1500)
             {
-                num = 250;
+                splitterDistance = 250;
             }
-            splitContainer2.SplitterDistance = num;
-            num = RegUtil.GetRegValue("settings", Splitter_FolderHeight, 250);
-            if (num < 25 || num > 1500)
+            splitContainer2.SplitterDistance = splitterDistance;
+            splitterDistance = RegUtil.GetRegValue("settings", Splitter_FolderHeight, 250);
+            if (splitterDistance < 25 || splitterDistance > 1500)
             {
-                num = 250;
+                splitterDistance = 250;
             }
-            splitContainer1.SplitterDistance = num;
-            num = RegUtil.GetRegValue("settings", Splitter_PreviewLyricsHeight, 250);
-            if (num < 25 || num > 1500)
+            splitContainer1.SplitterDistance = splitterDistance;
+            splitterDistance = RegUtil.GetRegValue("settings", Splitter_PreviewLyricsHeight, 250);
+            if (splitterDistance < 25 || splitterDistance > 1500)
             {
-                num = 250;
+                splitterDistance = 250;
             }
-            splitContainerPreview.SplitterDistance = num;
-            num = RegUtil.GetRegValue("settings", Splitter_outputLyricsHeight, 250);
-            if (num < 25 || num > 1500)
+            splitContainerPreview.SplitterDistance = splitterDistance;
+            splitterDistance = RegUtil.GetRegValue("settings", Splitter_outputLyricsHeight, 250);
+            if (splitterDistance < 25 || splitterDistance > 1500)
             {
-                num = 250;
+                splitterDistance = 250;
             }
-            splitContainerOutput.SplitterDistance = num;
+            splitContainerOutput.SplitterDistance = splitterDistance;
         }
 
         /// <summary>
-        /// daniel 
-        /// ????????????? ????  ??.
+        /// Restores the main window position and splitters, sets up the panels and loads the lists.
+        /// Returns false when the application data could not be initialised.
         /// </summary>
-        /// <returns></returns>
         private bool InitFormControls()
         {
             Gf.isScreenWideMode = ((DataUtil.ObjToInt(RegUtil.GetRegValue("monitors", "IsMonitorWide", 0)) > 0) ? true : false);
 
             Gf.ShowTaskBar();
-            int num = RegUtil.GetRegValue("settings", "MainLeft", -1);
-            int num2 = RegUtil.GetRegValue("settings", "MainTop", -1);
-            int num3 = RegUtil.GetRegValue("settings", "MainWidth", 720);
-            int num4 = RegUtil.GetRegValue("settings", "MainHeight", 560);
-            if (num3 > Screen.PrimaryScreen.Bounds.Width)
+            int mainLeft = RegUtil.GetRegValue("settings", "MainLeft", -1);
+            int mainTop = RegUtil.GetRegValue("settings", "MainTop", -1);
+            int mainWidth = RegUtil.GetRegValue("settings", "MainWidth", 720);
+            int mainHeight = RegUtil.GetRegValue("settings", "MainHeight", 560);
+            if (mainWidth > Screen.PrimaryScreen.Bounds.Width)
             {
-                num3 = Screen.PrimaryScreen.Bounds.Width - 20;
+                mainWidth = Screen.PrimaryScreen.Bounds.Width - 20;
             }
-            if (num4 > Screen.PrimaryScreen.Bounds.Height)
+            if (mainHeight > Screen.PrimaryScreen.Bounds.Height)
             {
-                num4 = Screen.PrimaryScreen.Bounds.Height - 30;
+                mainHeight = Screen.PrimaryScreen.Bounds.Height - 30;
             }
-            if (num < 0)
+            if (mainLeft < 0)
             {
-                num = 0;
+                mainLeft = 0;
             }
-            if (num2 < 0)
+            if (mainTop < 0)
             {
-                num2 = 0;
+                mainTop = 0;
             }
-            if (num + num3 > Screen.PrimaryScreen.Bounds.Width)
+            if (mainLeft + mainWidth > Screen.PrimaryScreen.Bounds.Width)
             {
-                num = Screen.PrimaryScreen.Bounds.Width - num3;
+                mainLeft = Screen.PrimaryScreen.Bounds.Width - mainWidth;
             }
-            if (num2 + num4 > Screen.PrimaryScreen.Bounds.Height)
+            if (mainTop + mainHeight > Screen.PrimaryScreen.Bounds.Height)
             {
-                num2 = Screen.PrimaryScreen.Bounds.Height - num4;
+                mainTop = Screen.PrimaryScreen.Bounds.Height - mainHeight;
             }
-            base.Left = num;
-            base.Top = num2;
-            base.Height = num4;
-            base.Width = num3;
-            frmLeft = num;
-            frmTop = num2;
-            frmHeight = num4;
-            frmWidth = num3;
+            base.Left = mainLeft;
+            base.Top = mainTop;
+            base.Height = mainHeight;
+            base.Width = mainWidth;
+            frmLeft = mainLeft;
+            frmTop = mainTop;
+            frmHeight = mainHeight;
+            frmWidth = mainWidth;
             if (RegUtil.GetRegValue("settings", "MainMax", 0) > 0)
             {
                 base.WindowState = FormWindowState.Maximized;
@@ -230,60 +229,59 @@ namespace Easislides
 
         private void ResizeSampleScreen(Panel InPanelContainer, Panel InHolder, Panel InBack, bool AdjustForIndicator)
         {
-            int num = InPanelContainer.Width;
-            if (num < 0)
+            int containerWidth = InPanelContainer.Width;
+            if (containerWidth < 0)
             {
-                num = 0;
+                containerWidth = 0;
             }
-            int num2 = 0;
-            int num3 = AdjustForIndicator ? panelOutputLM1.Height : 0;
-            int num4 = 15;
-            int num5 = num * 18 / 20;
+            int topOffset = 0;
+            int indicatorHeight = AdjustForIndicator ? panelOutputLM1.Height : 0;
+            int bottomMargin = 15;
+            int holderWidth = containerWidth * 18 / 20;
 
-            //int num6 = ((num5 <= 0) ? 1 : num5) * 3 / 4;
+            //int holderHeight = ((holderWidth <= 0) ? 1 : holderWidth) * 3 / 4;
 
-            int num6 = 0;
+            int holderHeight = 0;
 
-            // Daniel Park ?? 2023??12??24??
+            // Daniel Park, 2023-12-24
             //int newHeight = 0;
             if (!Gf.isScreenWideMode)
             {
-                num6 = ((num5 <= 0) ? 1 : num5) * 3 / 4;
+                holderHeight = ((holderWidth <= 0) ? 1 : holderWidth) * 3 / 4;
             }
             else
             {
-                num6 = ((num5 <= 0) ? 1 : num5) * 3 / 4;
+                holderHeight = ((holderWidth <= 0) ? 1 : holderWidth) * 3 / 4;
             }
 
 
 
-            if (num6 > InPanelContainer.Height - (num2 + num3 + num4))
+            if (holderHeight > InPanelContainer.Height - (topOffset + indicatorHeight + bottomMargin))
             {
-                num6 = InPanelContainer.Height - (num2 + num3 + num4);
-                num6 = ((num6 <= 0) ? 1 : num6);
+                holderHeight = InPanelContainer.Height - (topOffset + indicatorHeight + bottomMargin);
+                holderHeight = ((holderHeight <= 0) ? 1 : holderHeight);
                 // daniel
-                // ? ????????????
-                // num5 = num6 * 4 / 3;
+                // holderWidth = holderHeight * 4 / 3;
 
                 //if (Gf.isScreenWideMode)
-                //    num5 = num6 * 5 / 3;
+                //    holderWidth = holderHeight * 5 / 3;
                 //else
-                num5 = num6 * 4 / 3;
+                holderWidth = holderHeight * 4 / 3;
             }
-            InHolder.Left = (InPanelContainer.Width - num5 - num6 / 40) / 2;
-            InHolder.Height = num6;
-            InHolder.Width = num5;
-            InHolder.Top = (InPanelContainer.Height - (num3 + num6)) / 2;
-            if (InHolder.Top < num2 + 2 && num2 > 0)
+            InHolder.Left = (InPanelContainer.Width - holderWidth - holderHeight / 40) / 2;
+            InHolder.Height = holderHeight;
+            InHolder.Width = holderWidth;
+            InHolder.Top = (InPanelContainer.Height - (indicatorHeight + holderHeight)) / 2;
+            if (InHolder.Top < topOffset + 2 && topOffset > 0)
             {
-                InHolder.Top = num2 + 2;
+                InHolder.Top = topOffset + 2;
             }
-            if (num6 > 0)
+            if (holderHeight > 0)
             {
-                InBack.Left = InHolder.Left + num6 / 40 + 1;
-                InBack.Top = InHolder.Top + num6 / 40 + 1;
-                InBack.Height = num6;
-                InBack.Width = num5;
+                InBack.Left = InHolder.Left + holderHeight / 40 + 1;
+                InBack.Top = InHolder.Top + holderHeight / 40 + 1;
+                InBack.Height = holderHeight;
+                InBack.Width = holderWidth;
             }
             else
             {
@@ -294,51 +292,46 @@ namespace Easislides
         }
 
         /// <summary>
-        /// ????ResizeSampleScreen version 1
+        /// Earlier ResizeSampleScreen (version 1, no wide-screen branch).
         /// </summary>
-        /// <param name="InPanelContainer"></param>
-        /// <param name="InHolder"></param>
-        /// <param name="InBack"></param>
-        /// <param name="AdjustForIndicator"></param>
         private void ResizeSampleScreen_v1(Panel InPanelContainer, Panel InHolder, Panel InBack, bool AdjustForIndicator)
         {
-            int num = InPanelContainer.Width;
-            if (num < 0)
+            int containerWidth = InPanelContainer.Width;
+            if (containerWidth < 0)
             {
-                num = 0;
+                containerWidth = 0;
             }
-            int num2 = 0;
-            int num3 = AdjustForIndicator ? panelOutputLM1.Height : 0;
-            int num4 = 15;
-            int num5 = num * 18 / 20;
-            int num6 = ((num5 <= 0) ? 1 : num5) * 3 / 4;
-            if (num6 > InPanelContainer.Height - (num2 + num3 + num4))
+            int topOffset = 0;
+            int indicatorHeight = AdjustForIndicator ? panelOutputLM1.Height : 0;
+            int bottomMargin = 15;
+            int holderWidth = containerWidth * 18 / 20;
+            int holderHeight = ((holderWidth <= 0) ? 1 : holderWidth) * 3 / 4;
+            if (holderHeight > InPanelContainer.Height - (topOffset + indicatorHeight + bottomMargin))
             {
-                num6 = InPanelContainer.Height - (num2 + num3 + num4);
-                num6 = ((num6 <= 0) ? 1 : num6);
+                holderHeight = InPanelContainer.Height - (topOffset + indicatorHeight + bottomMargin);
+                holderHeight = ((holderHeight <= 0) ? 1 : holderHeight);
                 // daniel
-                // ? ????????????
-                // num5 = num6 * 4 / 3;
+                // holderWidth = holderHeight * 4 / 3;
 
                 //if (Gf.isScreenWideMode)
-                //    num5 = num6 * 5 / 3;
+                //    holderWidth = holderHeight * 5 / 3;
                 //else
-                num5 = num6 * 4 / 3;
+                holderWidth = holderHeight * 4 / 3;
             }
-            InHolder.Left = (InPanelContainer.Width - num5 - num6 / 40) / 2;
-            InHolder.Height = num6;
-            InHolder.Width = num5;
-            InHolder.Top = (InPanelContainer.Height - (num3 + num6)) / 2;
-            if (InHolder.Top < num2 + 2 && num2 > 0)
+            InHolder.Left = (InPanelContainer.Width - holderWidth - holderHeight / 40) / 2;
+            InHolder.Height = holderHeight;
+            InHolder.Width = holderWidth;
+            InHolder.Top = (InPanelContainer.Height - (indicatorHeight + holderHeight)) / 2;
+            if (InHolder.Top < topOffset + 2 && topOffset > 0)
             {
-                InHolder.Top = num2 + 2;
+                InHolder.Top = topOffset + 2;
             }
-            if (num6 > 0)
+            if (holderHeight > 0)
             {
-                InBack.Left = InHolder.Left + num6 / 40 + 1;
-                InBack.Top = InHolder.Top + num6 / 40 + 1;
-                InBack.Height = num6;
-                InBack.Width = num5;
+                InBack.Left = InHolder.Left + holderHeight / 40 + 1;
+                InBack.Top = InHolder.Top + holderHeight / 40 + 1;
+                InBack.Height = holderHeight;
+                InBack.Width = holderWidth;
             }
             else
             {
@@ -349,37 +342,33 @@ namespace Easislides
         }
 
         /// <summary>
-        /// ?? ResizeSampleScreen
+        /// Original ResizeSampleScreen (version 0, sized from the panel height).
         /// </summary>
-        /// <param name="InPanelContainer"></param>
-        /// <param name="InHolder"></param>
-        /// <param name="InBack"></param>
-        /// <param name="AdjustForIndicator"></param>
         private void ResizeSampleScreen_v0(Panel InPanelContainer, Panel InHolder, Panel InBack, bool AdjustForIndicator)
         {
-            int num = InPanelContainer.Height - (AdjustForIndicator ? labelBlackScreen.Height : 0);
-            if (num < 0)
+            int availableHeight = InPanelContainer.Height - (AdjustForIndicator ? labelBlackScreen.Height : 0);
+            if (availableHeight < 0)
             {
-                num = 0;
+                availableHeight = 0;
             }
-            int num2 = num * 18 / 20;
-            int num3 = ((num2 <= 0) ? 1 : num2) * 4 / 3;
-            if (num3 > InPanelContainer.Width - 40)
+            int holderHeight = availableHeight * 18 / 20;
+            int holderWidth = ((holderHeight <= 0) ? 1 : holderHeight) * 4 / 3;
+            if (holderWidth > InPanelContainer.Width - 40)
             {
-                num3 = InPanelContainer.Width - 40;
-                num3 = ((num3 <= 0) ? 1 : num3);
-                num2 = num3 * 3 / 4;
+                holderWidth = InPanelContainer.Width - 40;
+                holderWidth = ((holderWidth <= 0) ? 1 : holderWidth);
+                holderHeight = holderWidth * 3 / 4;
             }
-            InHolder.Left = (InPanelContainer.Width - num3 - num2 / 40) / 2;
-            InHolder.Height = num2;
-            InHolder.Width = num3;
-            InHolder.Top = (AdjustForIndicator ? labelBlackScreen.Height : 0) + (int)((double)(num - InHolder.Height) / 2.5) + num / 60;
-            if (num2 > 0)
+            InHolder.Left = (InPanelContainer.Width - holderWidth - holderHeight / 40) / 2;
+            InHolder.Height = holderHeight;
+            InHolder.Width = holderWidth;
+            InHolder.Top = (AdjustForIndicator ? labelBlackScreen.Height : 0) + (int)((double)(availableHeight - InHolder.Height) / 2.5) + availableHeight / 60;
+            if (holderHeight > 0)
             {
-                InBack.Left = InHolder.Left + num2 / 40 + 1;
-                InBack.Top = InHolder.Top + num2 / 40 + 1;
-                InBack.Height = num2;
-                InBack.Width = num3;
+                InBack.Left = InHolder.Left + holderHeight / 40 + 1;
+                InBack.Top = InHolder.Top + holderHeight / 40 + 1;
+                InBack.Height = holderHeight;
+                InBack.Width = holderWidth;
             }
             else
             {
@@ -436,10 +425,10 @@ namespace Easislides
             else
             {
                 Ind_checkBox.Enabled = false;
-                Gf.PreviewItem.UseDefaultFormat = ((!(Gf.PreviewItem.Type == "P")) ? true : false);
+                Gf.PreviewItem.UseDefaultFormat = Gf.PreviewItem.Type != "P";
             }
             Ind_checkBox.Checked = BoxChecked;
-            IndgroupBox1.Enabled = (BoxChecked & Ind_checkBox.Enabled);
+            IndgroupBox1.Enabled = BoxChecked && Ind_checkBox.Enabled;
             IndgroupBox2.Enabled = IndgroupBox1.Enabled;
             IndgroupBox3.Enabled = IndgroupBox1.Enabled;
             IndgroupBox4.Enabled = IndgroupBox1.Enabled;
@@ -447,11 +436,8 @@ namespace Easislides
         }
 
         /// <summary>
-        /// daniel
+        /// Adds output PowerPoint thumbnail <paramref name="index"/> to its panel, creating it when needed.
         /// </summary>
-        /// <param name="InCanvas"></param>
-        /// <param name="InPanel"></param>
-        /// <param name="InTotalScreens"></param>
         public void FormatPowerPointThumbContainers2(int index)
         {
             FormatPowerPointThumbContainers3(ref Powerpoint_OutputCanvas, ref flowLayoutOutputPowerPoint, index);
@@ -459,7 +445,7 @@ namespace Easislides
 
         private void FormatPowerPointThumbContainers3(ref ImageCanvas[] InCanvas, ref FlowLayoutPanel InPanel, int index)
         {
-            string text = (InPanel.Name == "flowLayoutPreviewPowerPoint") ? "PP_Preview" : "PP_Output";
+            string canvasName = (InPanel.Name == "flowLayoutPreviewPowerPoint") ? "PP_Preview" : "PP_Output";
             if (index == 0)
             {
                 Gf.ThumbImagesPerRow = 3;
@@ -470,7 +456,7 @@ namespace Easislides
                 if (InCanvas[index] == null)
                 {
                     InCanvas[index] = new ImageCanvas();
-                    InCanvas[index].Name = text;
+                    InCanvas[index].Name = canvasName;
                     InCanvas[index].Tag = index.ToString();
                     InCanvas[index].SlideNumber = index + 1;
                     InCanvas[index].MouseUp += PowerPointImage_MouseUp;
@@ -495,16 +481,16 @@ namespace Easislides
         private void FormatPowerPointThumbContainers(ref ImageCanvas[] InCanvas, ref FlowLayoutPanel InPanel, int InTotalScreens)
         {
             Console.WriteLine($"[ThumbPreview] FormatPowerPointThumbContainers: Panel={InPanel?.Name}, TotalScreens={InTotalScreens}");
-            string text = "";
+            string canvasName = "";
             Gf.ThumbImagesPerRow = 3;
             if (InPanel.Name == "flowLayoutPreviewPowerPoint")
             {
-                text = "PP_Preview";
+                canvasName = "PP_Preview";
                 flowLayoutPreviewPowerPoint.Controls.Clear();
             }
             else
             {
-                text = "PP_Output";
+                canvasName = "PP_Output";
                 flowLayoutOutputPowerPoint.Controls.Clear();
             }
 
@@ -513,7 +499,7 @@ namespace Easislides
                 if (InCanvas[i] == null)
                 {
                     InCanvas[i] = new ImageCanvas();
-                    InCanvas[i].Name = text;
+                    InCanvas[i].Name = canvasName;
                     InCanvas[i].Tag = i.ToString();
                     InCanvas[i].SlideNumber = i + 1;
                     InCanvas[i].MouseUp += PowerPointImage_MouseUp;
@@ -536,24 +522,21 @@ namespace Easislides
         }
 
         /// <summary>
-        /// daniel SUN 11/24 2019
+        /// Earlier FormatPowerPointThumbContainers (2019-11-24) that reuses the existing canvases.
         /// </summary>
-        /// <param name="InCanvas"></param>
-        /// <param name="InPanel"></param>
-        /// <param name="InTotalScreens"></param>
         private void FormatPowerPointThumbContainers1(ref ImageCanvas[] InCanvas, ref FlowLayoutPanel InPanel, int InTotalScreens)
         {
-            string text = "";
+            string canvasName = "";
 
             Gf.ThumbImagesPerRow = 3;
             if (InPanel.Name == "flowLayoutPreviewPowerPoint")
             {
-                text = "PP_Preview";
+                canvasName = "PP_Preview";
                 flowLayoutPreviewPowerPoint.Controls.Clear();
             }
             else
             {
-                text = "PP_Output";
+                canvasName = "PP_Output";
                 flowLayoutOutputPowerPoint.Controls.Clear();
             }
 
@@ -573,7 +556,7 @@ namespace Easislides
                 if (InCanvas[i] == null)
                 {
                     InCanvas[i] = new ImageCanvas();
-                    InCanvas[i].Name = text;
+                    InCanvas[i].Name = canvasName;
                     InCanvas[i].Tag = i.ToString();
                     InCanvas[i].SlideNumber = i + 1;
                     InCanvas[i].MouseUp += PowerPointImage_MouseUp;
@@ -582,7 +565,7 @@ namespace Easislides
                     InCanvas[i].PowerPoint = true;
                     ApplyModernThumbStyle(InCanvas[i], InPanel);
 
-                    ///daniel
+                    // Only a new canvas is added to its panel.
                     if (InPanel.Name == "flowLayoutPreviewPowerPoint")
                     {
                         flowLayoutPreviewPowerPoint.Controls.Add(InCanvas[i]);
@@ -591,11 +574,10 @@ namespace Easislides
                     {
                         flowLayoutOutputPowerPoint.Controls.Add(InCanvas[i]);
                     }
-                    ///
                 }
                 else
                 {
-                    InCanvas[i].Name = text;
+                    InCanvas[i].Name = canvasName;
                     InCanvas[i].Tag = i.ToString();
                     InCanvas[i].SlideNumber = i + 1;
                     //InCanvas[i].MouseUp += PowerPointImage_MouseUp;
@@ -620,10 +602,10 @@ namespace Easislides
         {
             try
             {
-                // 더블클릭 플래그 설정
+                // Set the double-click flag
                 pptDoubleClickInProgress = true;
 
-                // KeyboardActionHandler를 통해 처리
+                // Handled through KeyboardActionHandler
                 _keyboardHandler.HandlePowerPointThumbnailDoubleClick((Control)sender);
             }
             catch (Exception ex)
@@ -632,7 +614,7 @@ namespace Easislides
             }
             finally
             {
-                // 더블클릭 플래그 해제 (다음 클릭 허용)
+                // Clear the double-click flag (allows the next click)
                 System.Threading.Tasks.Task.Delay(100).ContinueWith(_ =>
                 {
                     this.BeginInvoke(new Action(() =>
@@ -723,7 +705,7 @@ namespace Easislides
             btnToOutputMoveNext.Enabled = EnableWorshipMode;
             IndradioButtonText.Checked = true;
             SetPreviewAreas();
-            Menu_WorshipSessions.Enabled = ((EnableWorshipMode & !Gf.ShowRunning) ? true : false);
+            Menu_WorshipSessions.Enabled = EnableWorshipMode && !Gf.ShowRunning;
             splitContainerPreview.Panel2Collapsed = !EnableWorshipMode;
             Menu_PraiseBookTemplates.Enabled = !EnableWorshipMode;
         }
@@ -966,73 +948,73 @@ namespace Easislides
 
         internal void ShowStatusBarSummary()
         {
-            string text = "";
+            string paneText = "";
             if (!IsSelectedTab(tabControlSource, "tabBibles"))
             {
-                text = (IsSelectedTab(tabControlSource, "tabFiles") ? ("InfoScreen: " + InfoScreenList.Items.Count + " Listed. / ") : ((!IsSelectedTab(tabControlSource, "tabMedia")) ? ("Folder: " + SongFolderCountText()) : ("Media: " + MediaList.Items.Count + " Listed. / ")));
+                paneText = (IsSelectedTab(tabControlSource, "tabFiles") ? ("InfoScreen: " + InfoScreenList.Items.Count + " Listed. / ") : ((!IsSelectedTab(tabControlSource, "tabMedia")) ? ("Folder: " + SongFolderCountText()) : ("Media: " + MediaList.Items.Count + " Listed. / ")));
             }
             else if (BibleText.Text != "")
             {
-                text = "Verses listed: " + Gf.HB_VersesLocation[0].Version + " / ";
+                paneText = "Verses listed: " + Gf.HB_VersesLocation[0].Version + " / ";
             }
             else if (Gf.HB_TotalVersions > 0)
             {
-                text = "Verses listed: 0 / ";
+                paneText = "Verses listed: 0 / ";
             }
             if (Gf.EasiSlidesMode == UsageMode.Worship)
             {
-                text = text + "Worship: " + WorshipListItems.Items.Count + ((WorshipListItems.Items.Count < 1) ? " item." : " items. ");
+                paneText = paneText + "Worship: " + WorshipListItems.Items.Count + ((WorshipListItems.Items.Count < 1) ? " item." : " items. ");
             }
             else if (Gf.EasiSlidesMode == UsageMode.PraiseBook)
             {
-                text = text + "PraiseBook: " + PraiseBookItems.Items.Count + ((PraiseBookItems.Items.Count < 1) ? " item." : " items. ");
+                paneText = paneText + "PraiseBook: " + PraiseBookItems.Items.Count + ((PraiseBookItems.Items.Count < 1) ? " item." : " items. ");
             }
-            statusStripMain.Items[0].Text = text;
-            text = "";
+            statusStripMain.Items[0].Text = paneText;
+            paneText = "";
             if (Gf.PreviewItem.Source == ItemSource.SongsList)
             {
                 if (Gf.PreviewItem.Type == "D" && Gf.PreviewItem.FolderNo > 0)
                 {
-                    text = text + " " + Gf.Folders[Gf.PreviewItem.FolderNo].Name;
+                    paneText = paneText + " " + Gf.Folders[Gf.PreviewItem.FolderNo].Name;
                 }
             }
             else if (Gf.PreviewItem.Source == ItemSource.ExternalFileInfoScreen)
             {
-                text += InfoScreenFolder.Text;
+                paneText += InfoScreenFolder.Text;
             }
             else if (Gf.PreviewItem.Source == ItemSource.ExternalFileMedia)
             {
-                text += MediaFolder.Text;
+                paneText += MediaFolder.Text;
             }
             else if (Gf.PreviewItem.Source == ItemSource.ExternalFilePowerpoint)
             {
-                text += PowerpointFolder.Text;
+                paneText += PowerpointFolder.Text;
             }
             else if (Gf.PreviewItem.Source == ItemSource.HolyBible)
             {
-                text += "Holy Bible";
+                paneText += "Holy Bible";
             }
             else if (Gf.PreviewItem.Source == ItemSource.WorshipList)
             {
-                text += "Worship";
+                paneText += "Worship";
                 if (Gf.PreviewItem.Type == "D" && Gf.PreviewItem.FolderNo > 0)
                 {
-                    text = text + " (" + Gf.Folders[Gf.PreviewItem.FolderNo].Name + ")";
+                    paneText = paneText + " (" + Gf.Folders[Gf.PreviewItem.FolderNo].Name + ")";
                 }
             }
             else if (Gf.PreviewItem.Source == ItemSource.PraiseBook)
             {
-                text += "PraiseBook";
+                paneText += "PraiseBook";
                 if (Gf.PreviewItem.Type == "D" && Gf.PreviewItem.FolderNo > 0)
                 {
-                    text = text + " (" + Gf.Folders[Gf.PreviewItem.FolderNo].Name + ")";
+                    paneText = paneText + " (" + Gf.Folders[Gf.PreviewItem.FolderNo].Name + ")";
                 }
             }
             else
             {
-                text = (text ?? "");
+                paneText = (paneText ?? "");
             }
-            statusStripMain.Items[1].Text = text + ((Gf.PreviewItem.User_Reference != "") ? (" [" + Gf.PreviewItem.User_Reference + "]") : "") + ((Gf.PreviewItem.Book_Reference != "") ? (" [" + Gf.PreviewItem.Book_Reference + "]") : "") + " " + KeyCapoText;
+            statusStripMain.Items[1].Text = paneText + ((Gf.PreviewItem.User_Reference != "") ? (" [" + Gf.PreviewItem.User_Reference + "]") : "") + ((Gf.PreviewItem.Book_Reference != "") ? (" [" + Gf.PreviewItem.Book_Reference + "]") : "") + " " + KeyCapoText;
             statusStripMain.Items[1].ToolTipText = statusStripMain.Items[1].Text;
             StatusBarOutputPaneMess = ShowStatusBarOutputArea();
             SetStatusBarMediaTimings();
@@ -1041,29 +1023,28 @@ namespace Easislides
 
         private string ShowStatusBarOutputArea()
         {
-            string text = "";
+            string outputText = "";
             if (Gf.OutputItem.CurItemNo < 1)
             {
                 if (Gf.OutputItem.ItemID != "")
                 {
-                    string text2 = text;
-                    text = $"{text2}{Gf.OutputItem.CurSlide}/{Gf.OutputItem.TotalSlides} [Ad-hoc]";
+                    string previousText = outputText;
+                    outputText = $"{previousText}{Gf.OutputItem.CurSlide}/{Gf.OutputItem.TotalSlides} [Ad-hoc]";
                 }
                 else
                 {
-                    text = (text ?? "");
+                    outputText = (outputText ?? "");
                 }
             }
             else
             {
-                // 22/04/01 03:39 daniel
-                // ??  ? ?? ?????????????? ??
-                string text2 = text;
-                text = $"[{Convert.ToString(Gf.OutputItem.CurItemNo)}/{WorshipListItems.Items.Count}] {Gf.OutputItem.Title} {text2}{Gf.OutputItem.CurSlide}/{Gf.OutputItem.TotalSlides} ";
+                // Worship list item: its position in the list, its title and the slide (daniel, 2022-04-01).
+                string previousText = outputText;
+                outputText = $"[{Convert.ToString(Gf.OutputItem.CurItemNo)}/{WorshipListItems.Items.Count}] {Gf.OutputItem.Title} {previousText}{Gf.OutputItem.CurSlide}/{Gf.OutputItem.TotalSlides} ";
             }
-            text += ((Gf.GapItemOption > GapType.None) ? (((text == "") ? "" : " ") + "(" + Gf.GapItemOption.ToString() + " Gap)") : "");
+            outputText += ((Gf.GapItemOption > GapType.None) ? (((outputText == "") ? "" : " ") + "(" + Gf.GapItemOption.ToString() + " Gap)") : "");
             statusStripMain.Items[2].Image = (Gf.DualMonitorMode ? DualMonIcon : SingleMonIcon);
-            statusStripMain.Items[2].Text = text;
+            statusStripMain.Items[2].Text = outputText;
             statusStripMain.Items[2].ToolTipText = Gf.OutputMonitorText;
             if (Gf.KeyBoardOption == 1)
             {
@@ -1075,17 +1056,17 @@ namespace Easislides
                 statusStripMain.Items[3].Image = null;
                 statusStripMain.Items[3].ToolTipText = "";
             }
-            return text;
+            return outputText;
         }
 
         private void SetStatusBarMediaTimings()
         {
             if (Gf.ShowRunning)
             {
-                string text = RemoteControlLiveShow(LiveShowAction.Remote_GetMediaTimings);
-                if (text != "")
+                string mediaTimings = RemoteControlLiveShow(LiveShowAction.Remote_GetMediaTimings);
+                if (mediaTimings != "")
                 {
-                    statusStripMain.Items[2].Text = StatusBarOutputPaneMess + " - " + text;
+                    statusStripMain.Items[2].Text = StatusBarOutputPaneMess + " - " + mediaTimings;
                 }
                 else
                 {
@@ -1135,10 +1116,10 @@ namespace Easislides
                 }
                 noticeWidth = Math.Max(0, wanted - Math.Max(shortage, 0));
                 errorNoticeLabel.Width = noticeWidth;
-                string text = FitErrorNoticeText(noticeWidth);
-                if (errorNoticeLabel.Text != text)
+                string noticeText = FitErrorNoticeText(noticeWidth);
+                if (errorNoticeLabel.Text != noticeText)
                 {
-                    errorNoticeLabel.Text = text;
+                    errorNoticeLabel.Text = noticeText;
                 }
             }
             statusStripMain.Items[0].Width = summaryWidth;
@@ -1177,24 +1158,16 @@ namespace Easislides
         }
 
         /// <summary>
-        /// daniel out ???? ?????ü???? ? ??
+        /// Loads the output thumbnails: all of them on the first load, afterwards only the newly and the
+        /// previously selected slide.
         /// </summary>
-        /// <param name="InFlowPanel"></param>
-        /// <param name="InCanvas"></param>
-        /// <param name="ImageName"></param>
-        /// <param name="TotalImagesCount"></param>
-        /// <param name="PanelWidth"></param>
-        /// <param name="InPrefix"></param>
-        /// <param name="CurSelectedSlide"></param>
-        /// <param name="InToolTip"></param>
-        /// <param name="ExternalPP"></param>
         private void LoadThumbOutImages(FlowLayoutPanel InFlowPanel, ref ImageCanvas[] InCanvas, string[] ImageName, int TotalImagesCount, int PanelWidth, string InPrefix, int CurSelectedSlide, ToolTip InToolTip, bool ExternalPP)
         {
             if (InCanvas != null && CurSelectedSlide > 0)
             {
                 Color backColor = InFlowPanel.BackColor;
-                int num = (PanelWidth - 35) / 3;
-                int newHeight = num * 3 / 4;
+                int thumbWidth = (PanelWidth - 35) / 3;
+                int newHeight = thumbWidth * 3 / 4;
 
                 try
                 {
@@ -1202,7 +1175,7 @@ namespace Easislides
                     {
                         for (int i = 0; i < TotalImagesCount; i++)
                         {
-                            InCanvas[i].BuildNewImageThumbs(i, num, newHeight, ref ImageName, TotalImagesCount, InPrefix, CurSelectedSlide, backColor, InToolTip, ExternalPP);
+                            InCanvas[i].BuildNewImageThumbs(i, thumbWidth, newHeight, ref ImageName, TotalImagesCount, InPrefix, CurSelectedSlide, backColor, InToolTip, ExternalPP);
                         }
                         Console.WriteLine($"[ThumbPreview] LoadThumbPreviewImages first-load done: Count={TotalImagesCount}");
                     }
@@ -1210,10 +1183,10 @@ namespace Easislides
                     {
                         if (previousOutSelectedSlide != CurSelectedSlide)
                         {
-                            InCanvas[CurSelectedSlide - 1].BuildNewImageThumbs(CurSelectedSlide - 1, num, newHeight, ref ImageName, TotalImagesCount, InPrefix, CurSelectedSlide, backColor, InToolTip, ExternalPP);
+                            InCanvas[CurSelectedSlide - 1].BuildNewImageThumbs(CurSelectedSlide - 1, thumbWidth, newHeight, ref ImageName, TotalImagesCount, InPrefix, CurSelectedSlide, backColor, InToolTip, ExternalPP);
                             if (previousOutSelectedSlide > 0 && previousOutSelectedSlide <= TotalImagesCount)
                             {
-                                InCanvas[previousOutSelectedSlide - 1].BuildNewImageThumbs(previousOutSelectedSlide - 1, num, newHeight, ref ImageName, TotalImagesCount, InPrefix, CurSelectedSlide, backColor, InToolTip, ExternalPP);
+                                InCanvas[previousOutSelectedSlide - 1].BuildNewImageThumbs(previousOutSelectedSlide - 1, thumbWidth, newHeight, ref ImageName, TotalImagesCount, InPrefix, CurSelectedSlide, backColor, InToolTip, ExternalPP);
                             }
                         }
                     }
@@ -1234,17 +1207,9 @@ namespace Easislides
         }
 
         /// <summary>
-        /// daniel 4265 ?? ????
+        /// Loads the preview thumbnails: all of them on the first load, afterwards only the slides around
+        /// the new and the previous selection.
         /// </summary>
-        /// <param name="InFlowPanel"></param>
-        /// <param name="InCanvas"></param>
-        /// <param name="ImageName"></param>
-        /// <param name="TotalImagesCount"></param>
-        /// <param name="PanelWidth"></param>
-        /// <param name="InPrefix"></param>
-        /// <param name="CurSelectedSlide"></param>
-        /// <param name="InToolTip"></param>
-        /// <param name="ExternalPP"></param>
         private void LoadThumbPreviewImages(FlowLayoutPanel InFlowPanel, ref ImageCanvas[] InCanvas, string[] ImageName, int TotalImagesCount, int PanelWidth, string InPrefix, int CurSelectedSlide, ToolTip InToolTip, bool ExternalPP)
         {
             Console.WriteLine($"[ThumbPreview] LoadThumbPreviewImages: Panel={InFlowPanel?.Name}, TotalImagesCount={TotalImagesCount}, CurSelectedSlide={CurSelectedSlide}, PanelWidth={PanelWidth}, CanvasNull={InCanvas == null}");
@@ -1255,40 +1220,40 @@ namespace Easislides
                     CurSelectedSlide = 1;
                 }
                 Color backColor = InFlowPanel.BackColor;
-                int num = (PanelWidth - 35) / 3;
-                int newHeight = num * 3 / 4;
+                int thumbWidth = (PanelWidth - 35) / 3;
+                int newHeight = thumbWidth * 3 / 4;
 
                 try
                 {
 
                     if (LoadThumbPreviewlockkey == 0)
                     {
-                        // ✅ 첫 로드: 모든 썸네일 로드
+                        // First load: load every thumbnail
                         for (int i = 0; i < TotalImagesCount; i++)
                         {
-                            InCanvas[i].BuildNewImageThumbs(i, num, newHeight, ref ImageName, TotalImagesCount, InPrefix, CurSelectedSlide, backColor, InToolTip, ExternalPP);
+                            InCanvas[i].BuildNewImageThumbs(i, thumbWidth, newHeight, ref ImageName, TotalImagesCount, InPrefix, CurSelectedSlide, backColor, InToolTip, ExternalPP);
                         }
                     }
                     else
                     {
                         if (previousPreviewSelectedSlide != CurSelectedSlide)
                         {
-                            // ✅ 최적화: 현재 + 이전 슬라이드만 업데이트
-                            InCanvas[CurSelectedSlide - 1].BuildNewImageThumbs(CurSelectedSlide - 1, num, newHeight, ref ImageName, TotalImagesCount, InPrefix, CurSelectedSlide, backColor, InToolTip, ExternalPP);
+                            // Update only the current and the previous slide
+                            InCanvas[CurSelectedSlide - 1].BuildNewImageThumbs(CurSelectedSlide - 1, thumbWidth, newHeight, ref ImageName, TotalImagesCount, InPrefix, CurSelectedSlide, backColor, InToolTip, ExternalPP);
 
                             if (previousPreviewSelectedSlide > 0 && previousPreviewSelectedSlide <= TotalImagesCount)
                             {
-                                InCanvas[previousPreviewSelectedSlide - 1].BuildNewImageThumbs(previousPreviewSelectedSlide - 1, num, newHeight, ref ImageName, TotalImagesCount, InPrefix, CurSelectedSlide, backColor, InToolTip, ExternalPP);
+                                InCanvas[previousPreviewSelectedSlide - 1].BuildNewImageThumbs(previousPreviewSelectedSlide - 1, thumbWidth, newHeight, ref ImageName, TotalImagesCount, InPrefix, CurSelectedSlide, backColor, InToolTip, ExternalPP);
                             }
 
-                            // ✅ 추가 최적화: 주변 슬라이드도 미리 로드 (다음 선택 대비)
+                            // Also load the neighbouring slides ahead of the next selection
                             if (CurSelectedSlide < TotalImagesCount)
                             {
-                                InCanvas[CurSelectedSlide].BuildNewImageThumbs(CurSelectedSlide, num, newHeight, ref ImageName, TotalImagesCount, InPrefix, CurSelectedSlide, backColor, InToolTip, ExternalPP);
+                                InCanvas[CurSelectedSlide].BuildNewImageThumbs(CurSelectedSlide, thumbWidth, newHeight, ref ImageName, TotalImagesCount, InPrefix, CurSelectedSlide, backColor, InToolTip, ExternalPP);
                             }
                             if (CurSelectedSlide > 1)
                             {
-                                InCanvas[CurSelectedSlide - 2].BuildNewImageThumbs(CurSelectedSlide - 2, num, newHeight, ref ImageName, TotalImagesCount, InPrefix, CurSelectedSlide, backColor, InToolTip, ExternalPP);
+                                InCanvas[CurSelectedSlide - 2].BuildNewImageThumbs(CurSelectedSlide - 2, thumbWidth, newHeight, ref ImageName, TotalImagesCount, InPrefix, CurSelectedSlide, backColor, InToolTip, ExternalPP);
                             }
                             Console.WriteLine($"[ThumbPreview] LoadThumbPreviewImages incremental update: CurSelectedSlide={CurSelectedSlide}, PrevSelectedSlide={previousPreviewSelectedSlide}");
                         }
@@ -1329,12 +1294,12 @@ namespace Easislides
             {
                 Color backColor = InFlowPanel.BackColor;
 
-                int num = (PanelWidth - 35) / 3;
-                int newHeight = num * 3 / 4;
+                int thumbWidth = (PanelWidth - 35) / 3;
+                int newHeight = thumbWidth * 3 / 4;
 
                 for (int i = 0; i < TotalImagesCount; i++)
                 {
-                    InCanvas[i].BuildNewImageThumbs(i, num, newHeight, ref ImageName, TotalImagesCount, InPrefix, CurSelectedSlide, backColor, InToolTip, ExternalPP);
+                    InCanvas[i].BuildNewImageThumbs(i, thumbWidth, newHeight, ref ImageName, TotalImagesCount, InPrefix, CurSelectedSlide, backColor, InToolTip, ExternalPP);
                 }
                 try
                 {
@@ -1437,69 +1402,69 @@ namespace Easislides
             OutputBtnVerse7.Visible = ((Gf.OutputItem.SongVerses[7] > 0) ? true : false);
             OutputBtnVerse8.Visible = ((Gf.OutputItem.SongVerses[8] > 0) ? true : false);
             OutputBtnVerse9.Visible = ((Gf.OutputItem.SongVerses[9] > 0) ? true : false);
-            bool flag = false;
-            bool flag2 = false;
-            bool flag3 = false;
-            bool flag4 = false;
-            bool flag5 = false;
-            bool flag6 = false;
-            bool flag7 = false;
+            bool hasChorus = false;
+            bool hasBridge = false;
+            bool hasBridge2 = false;
+            bool hasChorus2 = false;
+            bool hasEnding = false;
+            bool hasPreChorus = false;
+            bool hasPreChorus2 = false;
             for (int i = 1; i <= Gf.OutputItem.TotalSlides; i++)
             {
                 if (Gf.OutputItem.Slide[i, 0] == 111)
                 {
-                    flag6 = true;
+                    hasPreChorus = true;
                 }
                 if (Gf.OutputItem.Slide[i, 0] == 112)
                 {
-                    flag7 = true;
+                    hasPreChorus2 = true;
                 }
                 if (Gf.OutputItem.Slide[i, 0] == 0)
                 {
-                    flag = true;
+                    hasChorus = true;
                 }
                 if (Gf.OutputItem.Slide[i, 0] == 102)
                 {
-                    flag4 = true;
+                    hasChorus2 = true;
                 }
                 if (Gf.OutputItem.Slide[i, 0] == 100)
                 {
-                    flag2 = true;
+                    hasBridge = true;
                 }
                 if (Gf.OutputItem.Slide[i, 0] == 103)
                 {
-                    flag3 = true;
+                    hasBridge2 = true;
                 }
                 if (Gf.OutputItem.Slide[i, 0] == 101)
                 {
-                    flag5 = true;
+                    hasEnding = true;
                 }
             }
-            if (flag6)
+            if (hasPreChorus)
             {
                 OutputBtnVersePreChorus.Visible = true;
             }
-            if (flag7)
+            if (hasPreChorus2)
             {
                 OutputBtnVersePreChorus2.Visible = true;
             }
-            if (flag)
+            if (hasChorus)
             {
                 OutputBtnVerseChorus.Visible = true;
             }
-            if (flag4)
+            if (hasChorus2)
             {
                 OutputBtnVerseChorus2.Visible = true;
             }
-            if (flag2)
+            if (hasBridge)
             {
                 OutputBtnVerseBridge.Visible = true;
             }
-            if (flag3)
+            if (hasBridge2)
             {
                 OutputBtnVerseBridge2.Visible = true;
             }
-            if (flag5)
+            if (hasEnding)
             {
                 OutputBtnVerseEnding.Visible = true;
             }
@@ -1541,69 +1506,69 @@ namespace Easislides
             PreviewBtnVerse7.Visible = ((Gf.PreviewItem.SongVerses[7] > 0) ? true : false);
             PreviewBtnVerse8.Visible = ((Gf.PreviewItem.SongVerses[8] > 0) ? true : false);
             PreviewBtnVerse9.Visible = ((Gf.PreviewItem.SongVerses[9] > 0) ? true : false);
-            bool flag = false;
-            bool flag2 = false;
-            bool flag3 = false;
-            bool flag4 = false;
-            bool flag5 = false;
-            bool flag6 = false;
-            bool flag7 = false;
+            bool hasChorus = false;
+            bool hasBridge = false;
+            bool hasBridge2 = false;
+            bool hasChorus2 = false;
+            bool hasEnding = false;
+            bool hasPreChorus = false;
+            bool hasPreChorus2 = false;
             for (int i = 1; i <= Gf.PreviewItem.TotalSlides; i++)
             {
                 if (Gf.PreviewItem.Slide[i, 0] == 111)
                 {
-                    flag6 = true;
+                    hasPreChorus = true;
                 }
                 if (Gf.PreviewItem.Slide[i, 0] == 112)
                 {
-                    flag7 = true;
+                    hasPreChorus2 = true;
                 }
                 if (Gf.PreviewItem.Slide[i, 0] == 0)
                 {
-                    flag = true;
+                    hasChorus = true;
                 }
                 if (Gf.PreviewItem.Slide[i, 0] == 102)
                 {
-                    flag4 = true;
+                    hasChorus2 = true;
                 }
                 if (Gf.PreviewItem.Slide[i, 0] == 100)
                 {
-                    flag2 = true;
+                    hasBridge = true;
                 }
                 if (Gf.PreviewItem.Slide[i, 0] == 103)
                 {
-                    flag3 = true;
+                    hasBridge2 = true;
                 }
                 if (Gf.PreviewItem.Slide[i, 0] == 101)
                 {
-                    flag5 = true;
+                    hasEnding = true;
                 }
             }
-            if (flag6)
+            if (hasPreChorus)
             {
                 PreviewBtnVersePreChorus.Visible = true;
             }
-            if (flag7)
+            if (hasPreChorus2)
             {
                 PreviewBtnVersePreChorus2.Visible = true;
             }
-            if (flag)
+            if (hasChorus)
             {
                 PreviewBtnVerseChorus.Visible = true;
             }
-            if (flag4)
+            if (hasChorus2)
             {
                 PreviewBtnVerseChorus2.Visible = true;
             }
-            if (flag2)
+            if (hasBridge)
             {
                 PreviewBtnVerseBridge.Visible = true;
             }
-            if (flag3)
+            if (hasBridge2)
             {
                 PreviewBtnVerseBridge2.Visible = true;
             }
-            if (flag5)
+            if (hasEnding)
             {
                 PreviewBtnVerseEnding.Visible = true;
             }
@@ -1634,7 +1599,6 @@ namespace Easislides
                     return;
                 }
                 WorshipListItems.Items[selectedIndex].SubItems[2].Text = Gf.PreviewItem.Format.FormatString;
-                //  ?? ???? 
                 Gf.SaveFormatStringToDatabase(Gf.PreviewItem.ItemID, Gf.PreviewItem.Format.FormatString);
                 SaveWorshipList();
             }
@@ -1692,16 +1656,16 @@ namespace Easislides
 
         private string GetNewFormatString()
         {
-            int num = Gf.PreviewItem.Format.ShowFontBold[0] + Gf.PreviewItem.Format.ShowFontItalic[0] * 2 + Gf.PreviewItem.Format.ShowFontUnderline[0] * 4 + Gf.PreviewItem.Format.ShowFontBold[2] * 8 + Gf.PreviewItem.Format.ShowFontItalic[2] * 16 + Gf.PreviewItem.Format.ShowFontUnderline[2] * 32;
-            int num2 = Gf.PreviewItem.Format.ShowFontBold[1] + Gf.PreviewItem.Format.ShowFontItalic[1] * 2 + Gf.PreviewItem.Format.ShowFontUnderline[1] * 4 + Gf.PreviewItem.Format.ShowFontBold[3] * 8 + Gf.PreviewItem.Format.ShowFontItalic[3] * 16 + Gf.PreviewItem.Format.ShowFontUnderline[3] * 32;
-            int num3 = Gf.PreviewItem.Format.MediaMute + Gf.PreviewItem.Format.MediaRepeat * 2 + Gf.PreviewItem.Format.MediaWidescreen * 4;
-            int num4 = Gf.PreviewItem.Format.UseShadowFont * 2 + Gf.PreviewItem.Format.ShowNotations * 4 + Gf.PreviewItem.Format.ShowInterlace * 16 + Gf.PreviewItem.Format.UseOutlineFont * 32 + Gf.PreviewItem.Format.HideDisplayPanel * 64;
+            int region1FontStyle = Gf.PreviewItem.Format.ShowFontBold[0] + Gf.PreviewItem.Format.ShowFontItalic[0] * 2 + Gf.PreviewItem.Format.ShowFontUnderline[0] * 4 + Gf.PreviewItem.Format.ShowFontBold[2] * 8 + Gf.PreviewItem.Format.ShowFontItalic[2] * 16 + Gf.PreviewItem.Format.ShowFontUnderline[2] * 32;
+            int region2FontStyle = Gf.PreviewItem.Format.ShowFontBold[1] + Gf.PreviewItem.Format.ShowFontItalic[1] * 2 + Gf.PreviewItem.Format.ShowFontUnderline[1] * 4 + Gf.PreviewItem.Format.ShowFontBold[3] * 8 + Gf.PreviewItem.Format.ShowFontItalic[3] * 16 + Gf.PreviewItem.Format.ShowFontUnderline[3] * 32;
+            int mediaFlags = Gf.PreviewItem.Format.MediaMute + Gf.PreviewItem.Format.MediaRepeat * 2 + Gf.PreviewItem.Format.MediaWidescreen * 4;
+            int displayFlags = Gf.PreviewItem.Format.UseShadowFont * 2 + Gf.PreviewItem.Format.ShowNotations * 4 + Gf.PreviewItem.Format.ShowInterlace * 16 + Gf.PreviewItem.Format.UseOutlineFont * 32 + Gf.PreviewItem.Format.HideDisplayPanel * 64;
             StringBuilder stringBuilder = new StringBuilder();
             stringBuilder.Append(Convert.ToString(21) + "=" + Convert.ToString(Gf.PreviewItem.Format.ShowSongHeadings) + '>');
             stringBuilder.Append(Convert.ToString(23) + "=" + Convert.ToString(Gf.PreviewItem.Format.ShowSongHeadingsAlign) + '>');
-            stringBuilder.Append(Convert.ToString(22) + "=" + num4.ToString() + '>');
+            stringBuilder.Append(Convert.ToString(22) + "=" + displayFlags.ToString() + '>');
             stringBuilder.Append(Convert.ToString(25) + "=" + Convert.ToString(Gf.PreviewItem.Format.ShowLyrics) + '>');
-            // SongFormat 색상은 이미 ARGB int 라 그대로 직렬화(과거 .ToArgb() 와 동일 값).
+            // SongFormat colours are already ARGB ints and are written as they are (the same values .ToArgb() gave before).
             stringBuilder.Append(Convert.ToString(26) + "=" + Convert.ToString(Gf.PreviewItem.Format.ShowScreenColour[0]) + '>');
             stringBuilder.Append(Convert.ToString(27) + "=" + Convert.ToString(Gf.PreviewItem.Format.ShowScreenColour[1]) + '>');
             stringBuilder.Append(Convert.ToString(28) + "=" + Gf.PreviewItem.Format.ShowScreenStyle.ToString() + '>');
@@ -1709,8 +1673,8 @@ namespace Easislides
             stringBuilder.Append(Convert.ToString(30) + "=" + Convert.ToString(Gf.PreviewItem.Format.ShowFontColour[1]) + '>');
             stringBuilder.Append(Convert.ToString(31) + "=" + Convert.ToString(Gf.PreviewItem.Format.ShowFontAlign[0]) + '>');
             stringBuilder.Append(Convert.ToString(32) + "=" + Convert.ToString(Gf.PreviewItem.Format.ShowFontAlign[1]) + '>');
-            stringBuilder.Append(Convert.ToString(41) + "=" + num.ToString() + '>');
-            stringBuilder.Append(Convert.ToString(42) + "=" + num2.ToString() + '>');
+            stringBuilder.Append(Convert.ToString(41) + "=" + region1FontStyle.ToString() + '>');
+            stringBuilder.Append(Convert.ToString(42) + "=" + region2FontStyle.ToString() + '>');
             stringBuilder.Append(Convert.ToString(43) + "=" + Gf.PreviewItem.Format.ShowFontName[0] + '>');
             stringBuilder.Append(Convert.ToString(44) + "=" + Gf.PreviewItem.Format.ShowFontName[1] + '>');
             stringBuilder.Append(Convert.ToString(45) + "=" + Convert.ToString(Gf.PreviewItem.Format.ShowFontVPosition[0]) + '>');
@@ -1721,7 +1685,7 @@ namespace Easislides
             stringBuilder.Append(Convert.ToString(51) + "=" + Gf.PreviewItem.Format.MediaLocation + '>');
             stringBuilder.Append(Convert.ToString(52) + "=" + Convert.ToString(Gf.PreviewItem.Format.MediaVolume) + '>');
             stringBuilder.Append(Convert.ToString(53) + "=" + Convert.ToString(Gf.PreviewItem.Format.MediaBalance) + '>');
-            stringBuilder.Append(Convert.ToString(54) + "=" + num3.ToString() + '>');
+            stringBuilder.Append(Convert.ToString(54) + "=" + mediaFlags.ToString() + '>');
             stringBuilder.Append(Convert.ToString(55) + "=" + Convert.ToString(Gf.PreviewItem.Format.MediaCaptureDeviceNumber) + '>');
             stringBuilder.Append(Convert.ToString(56) + "=" + Gf.PreviewItem.Format.MediaOutputMonitorName + '>');
             stringBuilder.Append(Convert.ToString(61) + "=" + Gf.PreviewItem.Format.BackgroundPicture + '>');
@@ -1742,7 +1706,7 @@ namespace Easislides
             UpdatingFormatFields = true;
             try
             {
-                string text = "";
+                string alignItemName = "";
                 Gf.AssignDropDownItem(SelectedMenuItemName: (Gf.PreviewItem.Format.ShowSongHeadings == 0) ? Ind_HeadNoTitles.Name : ((Gf.PreviewItem.Format.ShowSongHeadings != 1) ? Ind_HeadFirstScreen.Name : Ind_HeadAllTitles.Name), SelectedBtn: ref Ind_Head, InMenuItem1: Ind_HeadNoTitles, InMenuItem2: Ind_HeadAllTitles, InMenuItem3: Ind_HeadFirstScreen);
                 Gf.AssignDropDownItem(SelectedMenuItemName: (Gf.PreviewItem.Format.ShowSongHeadingsAlign == 1) ? Ind_HeadAlignAsR2.Name : ((Gf.PreviewItem.Format.ShowSongHeadingsAlign == 2) ? Ind_HeadAlignLeft.Name : ((Gf.PreviewItem.Format.ShowSongHeadingsAlign == 3) ? Ind_HeadAlignCentre.Name : ((Gf.PreviewItem.Format.ShowSongHeadingsAlign != 4) ? Ind_HeadAlignAsR1.Name : Ind_HeadAlignRight.Name))), SelectedBtn: ref Ind_HeadAlign, InMenuItem1: Ind_HeadAlignAsR1, InMenuItem2: Ind_HeadAlignAsR2, InMenuItem3: Ind_HeadAlignLeft, InMenuItem4: Ind_HeadAlignCentre, InMenuItem5: Ind_HeadAlignRight);
                 Ind_Shadow.Checked = ((Gf.PreviewItem.Format.UseShadowFont == 1) ? true : false);
@@ -1761,17 +1725,17 @@ namespace Easislides
                 Ind_R1Bold.Checked = ((Gf.PreviewItem.Format.ShowFontBold[0] > 0) ? true : false);
                 Gf.AssignDropDownItem(SelectedMenuItemName: (Gf.PreviewItem.Format.ShowFontItalic[0] > 0 && Gf.PreviewItem.Format.ShowFontItalic[2] > 0) ? Ind_R1Italics1.Name : ((Gf.PreviewItem.Format.ShowFontItalic[2] <= 0) ? Ind_R1Italics0.Name : Ind_R1Italics2.Name), SelectedBtn: ref Ind_R1Italics, InMenuItem1: Ind_R1Italics0, InMenuItem2: Ind_R1Italics1, InMenuItem3: Ind_R1Italics2);
                 Ind_R1Underline.Checked = ((Gf.PreviewItem.Format.ShowFontUnderline[0] > 0) ? true : false);
-                text = ((Gf.PreviewItem.Format.ShowFontAlign[0] == 1) ? Ind_R1AlignLeft.Name : ((Gf.PreviewItem.Format.ShowFontAlign[0] != 2) ? Ind_R1AlignRight.Name : Ind_R1AlignCentre.Name));
+                alignItemName = ((Gf.PreviewItem.Format.ShowFontAlign[0] == 1) ? Ind_R1AlignLeft.Name : ((Gf.PreviewItem.Format.ShowFontAlign[0] != 2) ? Ind_R1AlignRight.Name : Ind_R1AlignCentre.Name));
                 Ind_R1Colour.ForeColor = Color.FromArgb(Gf.PreviewItem.Format.ShowFontColour[0]);
-                Gf.AssignDropDownItem(ref Ind_R1Align, text, Ind_R1AlignLeft, Ind_R1AlignCentre, Ind_R1AlignRight);
+                Gf.AssignDropDownItem(ref Ind_R1Align, alignItemName, Ind_R1AlignLeft, Ind_R1AlignCentre, Ind_R1AlignRight);
                 Ind_Reg1FontsList.Text = Gf.PreviewItem.Format.ShowFontName[0];
                 Ind_Reg1SizeUpDown.Value = Gf.PreviewItem.Format.ShowFontSize[0];
                 Ind_R2Bold.Checked = ((Gf.PreviewItem.Format.ShowFontBold[1] > 0) ? true : false);
                 Gf.AssignDropDownItem(SelectedMenuItemName: (Gf.PreviewItem.Format.ShowFontItalic[1] > 0 && Gf.PreviewItem.Format.ShowFontItalic[3] > 0) ? Ind_R2Italics1.Name : ((Gf.PreviewItem.Format.ShowFontItalic[3] <= 0) ? Ind_R2Italics0.Name : Ind_R2Italics2.Name), SelectedBtn: ref Ind_R2Italics, InMenuItem1: Ind_R2Italics0, InMenuItem2: Ind_R2Italics1, InMenuItem3: Ind_R2Italics2);
                 Ind_R2Underline.Checked = ((Gf.PreviewItem.Format.ShowFontUnderline[1] > 0) ? true : false);
-                text = ((Gf.PreviewItem.Format.ShowFontAlign[1] == 1) ? Ind_R2AlignLeft.Name : ((Gf.PreviewItem.Format.ShowFontAlign[1] != 2) ? Ind_R2AlignRight.Name : Ind_R2AlignCentre.Name));
+                alignItemName = ((Gf.PreviewItem.Format.ShowFontAlign[1] == 1) ? Ind_R2AlignLeft.Name : ((Gf.PreviewItem.Format.ShowFontAlign[1] != 2) ? Ind_R2AlignRight.Name : Ind_R2AlignCentre.Name));
                 Ind_R2Colour.ForeColor = Color.FromArgb(Gf.PreviewItem.Format.ShowFontColour[1]);
-                Gf.AssignDropDownItem(ref Ind_R2Align, text, Ind_R2AlignLeft, Ind_R2AlignCentre, Ind_R2AlignRight);
+                Gf.AssignDropDownItem(ref Ind_R2Align, alignItemName, Ind_R2AlignLeft, Ind_R2AlignCentre, Ind_R2AlignRight);
                 Ind_Reg2FontsList.Text = Gf.PreviewItem.Format.ShowFontName[1];
                 Ind_Reg2SizeUpDown.Value = Gf.PreviewItem.Format.ShowFontSize[1];
                 Ind_TransItem.SelectedIndex = Gf.PreviewItem.Format.ShowItemTransition;
@@ -1800,48 +1764,48 @@ namespace Easislides
             {
                 return;
             }
-            string text = "";
+            string imageModeItemName = "";
             if (InMode == 1 || InMode == 2)
             {
-                text = "";
+                imageModeItemName = "";
                 if (!Ind_checkBox.Checked)
                 {
                     if (BackgroundImageMode.ToString() == Ind_ImageTile.Tag.ToString())
                     {
-                        text = "Ind_ImageTile";
+                        imageModeItemName = "Ind_ImageTile";
                     }
                     else if (BackgroundImageMode.ToString() == Ind_ImageCentre.Tag.ToString())
                     {
-                        text = "Ind_ImageCentre";
+                        imageModeItemName = "Ind_ImageCentre";
                     }
                     else if (BackgroundImageMode.ToString() == Ind_ImageBestFit.Tag.ToString())
                     {
-                        text = "Ind_ImageBestFit";
+                        imageModeItemName = "Ind_ImageBestFit";
                     }
-                    if (text != "")
+                    if (imageModeItemName != "")
                     {
-                        Gf.AssignDropDownItem(ref Ind_ImageMode, text, Ind_ImageTile, Ind_ImageCentre, Ind_ImageBestFit);
+                        Gf.AssignDropDownItem(ref Ind_ImageMode, imageModeItemName, Ind_ImageTile, Ind_ImageCentre, Ind_ImageBestFit);
                     }
                 }
             }
             if (InMode == 0 || InMode == 2)
             {
-                text = "";
+                imageModeItemName = "";
                 if (BackgroundImageMode.ToString() == Def_ImageTile.Tag.ToString())
                 {
-                    text = "Def_ImageTile";
+                    imageModeItemName = "Def_ImageTile";
                 }
                 else if (BackgroundImageMode.ToString() == Def_ImageCentre.Tag.ToString())
                 {
-                    text = "Def_ImageCentre";
+                    imageModeItemName = "Def_ImageCentre";
                 }
                 else if (BackgroundImageMode.ToString() == Def_ImageBestFit.Tag.ToString())
                 {
-                    text = "Def_ImageBestFit";
+                    imageModeItemName = "Def_ImageBestFit";
                 }
-                if (text != "")
+                if (imageModeItemName != "")
                 {
-                    Gf.AssignDropDownItem(ref Def_ImageMode, text, Def_ImageTile, Def_ImageCentre, Def_ImageBestFit);
+                    Gf.AssignDropDownItem(ref Def_ImageMode, imageModeItemName, Def_ImageTile, Def_ImageCentre, Def_ImageBestFit);
                 }
             }
             UpdateDefaultNoImageButton();
