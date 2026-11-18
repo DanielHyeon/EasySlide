@@ -788,11 +788,11 @@ namespace Easislides
 			ReferenceAlertPickName = RegUtil.GetRegValue("options", "ReferenceAlertPickName", "");
 			ReferenceAlertPickSubstitute = RegUtil.GetRegValue("options", "ReferenceAlertPickSubstitute", "");
 			ReferenceAlertPickSeparator = RegUtil.GetRegValue("options", "ReferenceAlertPickSeparator", ",");
-			UpdateV4RegDM();
-			DMAlwaysUseSecondaryMonitor = ((DataUtil.ObjToInt(RegUtil.GetRegValue("monitors", "AlwaysTryDualMonitor", 1)) > 0) ? true : false);
+			MonitorRegistrySettings.MigrateLegacyDualMonitorValues(RegUtil.Settings);
+			DMAlwaysUseSecondaryMonitor = MonitorRegistrySettings.ReadDualMonitorValue(RegUtil.Settings, RegUtil.Reg_DMAlwaysUse, 1) > 0;
 			isScreenWideMode = ((DataUtil.ObjToInt(RegUtil.GetRegValue("monitors", "IsMonitorWide", 0)) > 0) ? true : false);
 
-			DualMonitorSelectAutoOption = DataUtil.ObjToInt(RegUtil.GetRegValue("monitors", "DualMonitorOption", 0));
+			DualMonitorSelectAutoOption = MonitorRegistrySettings.ReadDualMonitorValue(RegUtil.Settings, RegUtil.Reg_DMOption, 0);
 			if ((DualMonitorSelectAutoOption < 0) | (DualMonitorSelectAutoOption > 1))
 			{
 				/// 모니???�택 ?�션
@@ -800,17 +800,17 @@ namespace Easislides
 				/// 1??경우 ?�용?��? 커스?�?�로 모니???�치�??�동?�로 ?�력?�다.
 				DualMonitorSelectAutoOption = 0;
 			}
-			DMOption1Left = DataUtil.ObjToInt(RegUtil.GetRegValue("monitors", "DualMonitorOptionCustomLeft", 0));
+			DMOption1Left = MonitorRegistrySettings.ReadDualMonitorValue(RegUtil.Settings, RegUtil.Reg_DMOptionCusLeft, 0);
 			if ((DMOption1Left < -9999) | (DMOption1Left > 9999))
 			{
 				DMOption1Left = 0;
 			}
-			DMOption1Top = DataUtil.ObjToInt(RegUtil.GetRegValue("monitors", "DualMonitorOptionCustomTop", 0));
+			DMOption1Top = MonitorRegistrySettings.ReadDualMonitorValue(RegUtil.Settings, RegUtil.Reg_DMOptionCusTop, 0);
 			if ((DMOption1Top < -9999) | (DMOption1Top > 9999))
 			{
 				DMOption1Top = 0;
 			}
-			DMOption1Width = DataUtil.ObjToInt(RegUtil.GetRegValue("monitors", "DualMonitorOptionCustomWidth", 1));
+			DMOption1Width = MonitorRegistrySettings.ReadDualMonitorValue(RegUtil.Settings, RegUtil.Reg_DMOptionCusWidth, 1);
 			if ((DMOption1Width < 1) | (DMOption1Width > 9999))
 			{
 				DMOption1Width = 100;
@@ -876,11 +876,7 @@ namespace Easislides
 			{
 				LMMainFontSize = 20;
 			}
-			LMNotationsFontSize = DataUtil.ObjToInt(RegUtil.GetRegValue("options", "LyricsMonitorNotationsFontSize", 22));
-			if ((LMNotationsFontSize < 8) | (LMNotationsFontSize > 40))
-			{
-				LMNotationsFontSize = 20;
-			}
+			LMNotationsFontSize = MonitorRegistrySettings.ReadNotationsFontSize(RegUtil.Settings);
 			LMFontFormat = DataUtil.ObjToInt(RegUtil.GetRegValue("options", "LyricsMonitorFontFormat", 0));
 			if ((LMFontFormat < 0) | (LMFontFormat > 7))
 			{

@@ -165,28 +165,6 @@ namespace Easislides
 			SelectedBtn.ToolTipText = text2;
 		}
 
-		public static void UpdateV4RegDM()
-		{
-			if (DataUtil.ObjToInt(RegUtil.GetRegValue("options", "AlwaysTryDualMonitor", -1)) >= 0)
-			{
-				DMAlwaysUseSecondaryMonitor = ((DataUtil.ObjToInt(RegUtil.GetRegValue("options", "AlwaysTryDualMonitor", 1)) > 0) ? true : false);
-				DualMonitorSelectAutoOption = DataUtil.ObjToInt(RegUtil.GetRegValue("options", "DualMonitorOption", 0));
-				DMOption1Left = DataUtil.ObjToInt(RegUtil.GetRegValue("options", "DualMonitorOptionCustomLeft", 0));
-				DMOption1Top = DataUtil.ObjToInt(RegUtil.GetRegValue("options", "DualMonitorOptionCustomTop", 0));
-				DMOption1Width = DataUtil.ObjToInt(RegUtil.GetRegValue("options", "DualMonitorOptionCustomWidth", 1));
-				RegUtil.SaveRegValue("monitors", "AlwaysTryDualMonitor", DMAlwaysUseSecondaryMonitor ? 1 : 0);
-				RegUtil.SaveRegValue("monitors", "DualMonitorOption", DualMonitorSelectAutoOption);
-				RegUtil.SaveRegValue("monitors", "DualMonitorOptionCustomLeft", DMOption1Left);
-				RegUtil.SaveRegValue("monitors", "DualMonitorOptionCustomTop", DMOption1Top);
-				RegUtil.SaveRegValue("monitors", "DualMonitorOptionCustomWidth", DMOption1Width);
-				RegUtil.DeleteRegKey("options", "AlwaysTryDualMonitor");
-				RegUtil.DeleteRegKey("options", "DualMonitorOption");
-				RegUtil.DeleteRegKey("options", "DualMonitorOptionCustomLeft");
-				RegUtil.DeleteRegKey("options", "DualMonitorOptionCustomTop");
-				RegUtil.DeleteRegKey("options", "DualMonitorOptionCustomWidth");
-			}
-		}
-
 	
 		public static void LoadLicAdminDetails()
 		{
@@ -493,7 +471,7 @@ namespace Easislides
 			RegUtil.SaveRegValue("monitors", "LyricsMonitorBackColour", LMBackColour.ToArgb());
 			RegUtil.SaveRegValue("monitors", "LyricsMonitorShowNotations", LMShowNotations ? 1 : 0);
 			RegUtil.SaveRegValue("monitors", "LyricsMonitorFontSize", LMMainFontSize);
-			RegUtil.SaveRegValue("monitors", "LyricsMonitorNotationsFontSize", LMNotationsFontSize);
+			MonitorRegistrySettings.SaveNotationsFontSize(RegUtil.Settings, LMNotationsFontSize);
 			RegUtil.SaveRegValue("options", "LyricsMonitorFontFormat", LMFontFormat);
 			RegUtil.SaveRegValue("monitors", "LiveCamNumber", LiveCamNumber);
 			RegUtil.SaveRegValue("monitors", "LiveCamVolume", LiveCamVolume);

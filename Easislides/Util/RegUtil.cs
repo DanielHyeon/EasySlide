@@ -6,6 +6,9 @@ namespace Easislides.Util
     {
 		private const string RegistryBasePath = "Software\\EasiSlides\\";
 
+		internal static RegistrySettings Settings { get; } =
+			new RegistrySettings(new WindowsRegistrySettingsStore(Registry.CurrentUser, RegistryBasePath), FrmMain.WriteDebugLog);
+
 		public const string Reg_RootEasiSlidesDir = "root_directory";
 
 		public const string Reg_CurSession = "current_session";
@@ -304,16 +307,7 @@ namespace Easislides.Util
 
 		private static void SaveRegValueInternal(string Section, string Name, object Value, RegistryValueKind valueKind)
 		{
-			try
-			{
-				using (RegistryKey registryKey = Registry.CurrentUser.CreateSubKey(RegistryBasePath + Section))
-				{
-					registryKey?.SetValue(Name, Value, valueKind);
-				}
-			}
-			catch
-			{
-			}
+			Settings.TryWriteValue(Section, Name, Value, valueKind);
 		}
 
 		public static string GetRegValue(string Section, string Name, string defaultValue)
@@ -338,31 +332,12 @@ namespace Easislides.Util
 
 		public static object GetRegValue(string Section, string Name, object defaultValue)
 		{
-			try
-			{
-				using (RegistryKey registryKey = Registry.CurrentUser.CreateSubKey(RegistryBasePath + Section))
-				{
-					return registryKey?.GetValue(Name, defaultValue);
-				}
-			}
-			catch
-			{
-				return null;
-			}
+			return Settings.TryReadValue(Section, Name, out object value) ? value ?? defaultValue : null;
 		}
 
 		public static void DeleteRegKey(string Section, string Name)
 		{
-			try
-			{
-				using (RegistryKey registryKey = Registry.CurrentUser.OpenSubKey(RegistryBasePath + Section, writable: true))
-				{
-					registryKey?.DeleteValue(Name);
-				}
-			}
-			catch
-			{
-			}
+			Settings.TryDeleteValue(Section, Name);
 		}
 
 		// Obsolete: Use DeleteRegKey instead

@@ -21,9 +21,20 @@ namespace Easislides.Util
         private static UIntPtr HKEY_CURRENT_USER = new UIntPtr(0x80000001u);
 
         private Dictionary<string, string> LatestVersions = new Dictionary<string, string>();
+        private readonly Func<string, string, string> readOfficeValue;
+        private readonly Action<string, object, RegistryValueKind> writePowerPointOption;
 
         public OfficeVersion()
+            : this((key, name) => Reg64(HKEY_LOCAL_MACHINE, key, name), SaveRegValueInternal)
         {
+        }
+
+        internal OfficeVersion(
+            Func<string, string, string> readOfficeValue,
+            Action<string, object, RegistryValueKind> writePowerPointOption)
+        {
+            this.readOfficeValue = readOfficeValue;
+            this.writePowerPointOption = writePowerPointOption;
             LatestVersions.Add("12.0", "Office2007");
             LatestVersions.Add("14.0", "Office2010");
             LatestVersions.Add("15.0", "Office2013");
@@ -45,8 +56,8 @@ namespace Easislides.Util
             string version = null;
             foreach (string VerNo in LatestVersions.Keys)
             {
-                string offPath = Reg64(HKEY_LOCAL_MACHINE, key + VerNo + "\\PowerPoint\\InstallRoot", "Path");
-                if (offPath != null)
+                string offPath = readOfficeValue(key + VerNo + "\\PowerPoint\\InstallRoot", "Path");
+                if (!string.IsNullOrWhiteSpace(offPath))
                 {
                     version = VerNo;
                     break;
@@ -57,6 +68,8 @@ namespace Easislides.Util
         public string GetVersion()
         {
             string versionFromReg = GetVersionNumberFromRegistry();
+            if (versionFromReg == null)
+                return null;
             string versionInstalled = LatestVersions[versionFromReg];
 
             bool? Office64BitFromReg = Off64Bit("SOFTWARE\\Microsoft\\Office\\", versionFromReg);
@@ -84,48 +97,20 @@ namespace Easislides.Util
                 return;
             }
             string versionFromReg = GetVersionNumberFromRegistry();
-            string versionInstalled = LatestVersions[versionFromReg];
-            string bit32or64 = "64 bit"; 
+            if (versionFromReg == null)
+                return;
 
             bool? Office64BitFromReg = Off64Bit("SOFTWARE\\Microsoft\\Office\\", versionFromReg);
 
             if (Office64BitFromReg == null)
                 Office64BitFromReg = Off64Bit("SOFTWARE\\Wow6432Node\\Microsoft\\Office\\", versionFromReg);
 
-            if (Office64BitFromReg.HasValue && Office64BitFromReg.Value)
-            {
-                versionInstalled += " (64 bit)";
-                bit32or64 = "64 bit";
-            }
-            else if (Office64BitFromReg.HasValue && !Office64BitFromReg.Value)
-            {
-                versionInstalled += " (32 bit)";
-                bit32or64 = "32 bit";
-            }
-            else
-            {
-                versionInstalled += " (Unknown bit)";
-                bit32or64 = "Unknown bit";
-            }
+            if (Office64BitFromReg == false)
+                return;
 
-            if (bit32or64== "64 bit")
-            {
-                SaveRegValue("DisplayMonitor", DisplayName);
-                SaveRegValue("UseAutoMonSelection", 0);
-                SaveRegValue("UseMonMgr", 0);                
-            }
-            else if(bit32or64=="32 bit")
-            {
-
-            }
-            else
-            {
-                //daniel
-                //Office365일 경우 Unknown bit
-                SaveRegValue("DisplayMonitor", DisplayName);
-                SaveRegValue("UseAutoMonSelection", 0);
-                SaveRegValue("UseMonMgr", 0);
-            }
+            writePowerPointOption("DisplayMonitor", DisplayName, RegistryValueKind.String);
+            writePowerPointOption("UseAutoMonSelection", 0, RegistryValueKind.DWord);
+            writePowerPointOption("UseMonMgr", 0, RegistryValueKind.DWord);
         }
 
         private bool? Off64Bit(string key, string version)
@@ -133,7 +118,7 @@ namespace Easislides.Util
             bool? Office64BitFromReg = null;
             string OfficeVersionKey = $@"{key}{version}\PowerPoint";
 
-            string Bitness = Reg64(HKEY_LOCAL_MACHINE, OfficeVersionKey, "Bitness");
+            string Bitness = readOfficeValue(OfficeVersionKey, "Bitness");
             if (Bitness == "x86")
                 Office64BitFromReg = false;
             else if ((Bitness == "x64"))
@@ -141,7 +126,7 @@ namespace Easislides.Util
             return Office64BitFromReg;
         }
 
-        private string Reg64(UIntPtr parent, string key, string prop)
+        private static string Reg64(UIntPtr parent, string key, string prop)
         {
             int ikey = 0;
             int bit36_64 = 0x0100;
@@ -163,32 +148,22 @@ namespace Easislides.Util
             }
         }
 
-        public static void SaveRegValue(string Name, string Value)
+        public static void SaveRegValue(string Name, string Value) =>
+            SaveRegValueInternal(Name, Value, RegistryValueKind.String);
+
+        public static void SaveRegValue(string Name, int Value) =>
+            SaveRegValueInternal(Name, Value, RegistryValueKind.DWord);
+
+        private static void SaveRegValueInternal(string name, object value, RegistryValueKind kind)
         {
             try
             {
-                using (RegistryKey registryKey = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Office\16.0\PowerPoint\Options", true))
-                {
-                    registryKey.SetValue(Name, Value, RegistryValueKind.String);
-                }
+                using var key = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Office\16.0\PowerPoint\Options", writable: true);
+                key?.SetValue(name, value, kind);
             }
-            catch
+            catch (Exception ex)
             {
-            }
-
-        }
-
-        public static void SaveRegValue(string Name, int Value)
-        {
-            try
-            {
-                using (RegistryKey registryKey = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Office\16.0\PowerPoint\Options", true))
-                {
-                    registryKey.SetValue(Name, Value, RegistryValueKind.DWord);
-                }
-            }
-            catch
-            {
+                FrmMain.WriteDebugLog($"PowerPoint registry write Options\\{name} failed ({ex.GetType().Name}).");
             }
         }
     }
