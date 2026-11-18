@@ -1039,8 +1039,10 @@ namespace Easislides
                 }
             }
             listBox.Sorted = true;
-            BackgroundTotalImagesCount = listBox.Items.Count;
-            for (int i = 0; i < ((BackgroundTotalImagesCount < 1024) ? BackgroundTotalImagesCount : 1023); i++)
+            // At most one entry per thumbnail canvas and file name slot (both 1024): FormatBackgroundThumbContainers
+            // and LoadThumbImages index them up to this count.
+            BackgroundTotalImagesCount = Math.Min(listBox.Items.Count, Math.Min(BackgroundImagesCanvas.Length, BackgroundImagename.Length));
+            for (int i = 0; i < BackgroundTotalImagesCount; i++)
             {
                 BackgroundImagename[i] = listBox.Items[i].ToString();
             }
