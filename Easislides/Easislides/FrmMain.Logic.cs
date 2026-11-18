@@ -1061,6 +1061,7 @@ namespace Easislides
             PowerpointList.Items.Clear();
             if (PowerpointFolder.Items.Count <= 0)
             {
+                Cursor = Cursors.Default;
                 return;
             }
             ExternalPPCurImagePath = Gf.PowerpointGroups[PowerpointFolder.SelectedIndex].Path;
