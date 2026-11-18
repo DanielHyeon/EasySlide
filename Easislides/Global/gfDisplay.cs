@@ -539,12 +539,10 @@ namespace Easislides
 			if (InItem.FirstShowing)
 			{
 				InPictureBox.TransitionTime = ((ShowRunning && InItem.OutputStyleScreen && !InItem.AtLiveScreen) ? 0.7f : 1.5f);
-				InPictureBox.ItemChanged = true;
 			}
 			else
 			{
 				InPictureBox.TransitionTime = ((ShowRunning && InItem.OutputStyleScreen && !InItem.AtLiveScreen) ? 0.1f : 0.6f);
-				InPictureBox.ItemChanged = false;
 			}
 			if (!clearAll)
 			{

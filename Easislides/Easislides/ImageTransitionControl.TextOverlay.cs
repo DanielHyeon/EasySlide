@@ -19,8 +19,8 @@ namespace Easislides
 		/// while it runs (Paint). The two kinds share all of it; where they differ (see OverlayKind) the
 		/// code says so.
 		/// Threading: Tick runs on a thread-pool thread (System.Threading.Timer). It only writes the two
-		/// percentages (the alert's also expires its start time when no alert is live, as StopAlert does)
-		/// and asks for a repaint through InvalidateFromTimer. Everything else runs on the UI thread, the
+		/// percentages (the alert's also expires its start time when no alert is live, as StopAlert does),
+		/// stops its own timer once the time is over, and asks for a repaint through InvalidateFromTimer. Everything else runs on the UI thread, the
 		/// thread that paints, so paint never sees a bitmap being replaced or disposed.
 		/// The bitmaps are this overlay's own: made by Build, disposed by ReleaseImages (called by StartAlert /
 		/// LoadRef before a new setup and after a failed one, and by Build itself so it never overwrites live
@@ -82,11 +82,13 @@ namespace Easislides
 
 			private bool _running = false;
 
-			private DateTime _startTime;
+			// Monotonic timestamps (see ImageTransitionControl.Timestamp): a wall-clock step back no longer
+			// makes the progress negative.
+			private long _startTimestamp;
 
-			private DateTime _messageStartTime;
+			private long _messageStartTimestamp;
 
-			private DateTime _gapStartTime;
+			private long _gapStartTimestamp;
 
 			// Written by Tick (thread-pool thread), read by paint.
 			private float _overallPercentage = 100f;
@@ -94,6 +96,18 @@ namespace Easislides
 			private float _messagePercentage = 100f;
 
 			private System.Threading.Timer _timer;
+
+			// Guards the percentages and start times between Tick (thread pool) and Start / Stop (UI thread).
+			private readonly object _tickLock = new object();
+
+			// Bumped by Start and Stop: a Tick of an earlier box (already running when the timer was replaced)
+			// writes nothing, so it can no longer mark a new box as finished or expire it.
+			private int _generation;
+
+			private sealed class OverlayTickState : TimerHandle
+			{
+				public int Generation;
+			}
 
 			private TimeSpan _transitionTime = new TimeSpan(0, 0, 0, 1, 0);
 
@@ -361,37 +375,59 @@ namespace Easislides
 			/// <summary>Shows the box from the start and starts its timer. UI thread only.</summary>
 			public void Start()
 			{
-				_overallPercentage = 0f;
-				_messagePercentage = 0f;
-				// From the first pass: no gap or flashing left over from an earlier showing (RefGo restarts
-				// the same reference at each first showing without building it again).
-				_gapRunning = false;
-				_flashCount = 0;
-				_running = true;
-				_startTime = DateTime.Now;
-				_messageStartTime = DateTime.Now;
 				// Dispose previous timer to prevent multiple timers running
 				_timer?.Dispose();
-				_timer = new System.Threading.Timer(Tick, null, 150, 150);
+				var handle = new OverlayTickState();
+				lock (_tickLock)
+				{
+					handle.Generation = ++_generation;
+					_overallPercentage = 0f;
+					_messagePercentage = 0f;
+					// From the first pass: no gap or flashing left over from an earlier showing (RefGo restarts
+					// the same reference at each first showing without building it again).
+					_gapRunning = false;
+					_flashCount = 0;
+					_running = true;
+					_startTimestamp = Timestamp();
+					_messageStartTimestamp = Timestamp();
+				}
+				// Created stopped and started only once its callback can see it (handle.Timer).
+				_timer = new System.Threading.Timer(Tick, handle, System.Threading.Timeout.Infinite, System.Threading.Timeout.Infinite);
+				handle.Timer = _timer;
+				_timer.Change(150, 150);
 			}
 
 			private void Tick(object state)
 			{
-				if (_kind == OverlayKind.Alert && (!Gf.ParentalAlertLive & !Gf.MessageAlertLive))
+				bool complete;
+				lock (_tickLock)
 				{
-					Expire();
+					// A Tick of an earlier box writes nothing (see _generation).
+					if (!(state is OverlayTickState tickState) || tickState.Generation != _generation)
+					{
+						return;
+					}
+					if (_kind == OverlayKind.Alert && (!Gf.ParentalAlertLive & !Gf.MessageAlertLive))
+					{
+						Expire();
+					}
+					_overallPercentage = Convert.ToSingle(100.0 / _transitionTime.TotalSeconds * SecondsSince(_startTimestamp));
+					if (_overallPercentage > 100f)
+					{
+						_overallPercentage = 100f;
+					}
+					_messagePercentage = Convert.ToSingle(100.0 / _messageTransitionTime.TotalSeconds * SecondsSince(_messageStartTimestamp));
+					if (_messagePercentage > 100f)
+					{
+						_messagePercentage = 100f;
+					}
+					complete = _overallPercentage >= 100f;
 				}
-				TimeSpan timeSpan = DateTime.Now.Subtract(_startTime);
-				_overallPercentage = Convert.ToSingle(100.0 / _transitionTime.TotalSeconds * timeSpan.TotalSeconds);
-				if (_overallPercentage > 100f)
+				if (complete)
 				{
-					_overallPercentage = 100f;
-				}
-				TimeSpan timeSpan2 = DateTime.Now.Subtract(_messageStartTime);
-				_messagePercentage = Convert.ToSingle(100.0 / _messageTransitionTime.TotalSeconds * timeSpan2.TotalSeconds);
-				if (_messagePercentage > 100f)
-				{
-					_messagePercentage = 100f;
+					// Time is over: the next paint ends the box (EndIfComplete) and disposes this timer. Until
+					// then (a hidden screen may not paint for a long time) it no longer ticks.
+					StopTicking(state as TimerHandle);
 				}
 				_owner.InvalidateFromTimer();
 			}
@@ -399,14 +435,18 @@ namespace Easislides
 			/// <summary>Makes the next Tick find the box's time over (StopAlert).</summary>
 			public void Expire()
 			{
-				_startTime = new DateTime(2005, 1, 1);
+				_startTimestamp = ExpiredTimestamp;
 			}
 
 			/// <summary>Ends the box now: not drawn any more, timer stopped. The bitmaps are kept.</summary>
 			public void Stop()
 			{
-				Expire();
-				_running = false;
+				lock (_tickLock)
+				{
+					_generation++; // a Tick still running for this box writes nothing now
+					Expire();
+					_running = false;
+				}
 				DisposeTimer();
 			}
 
@@ -469,12 +509,12 @@ namespace Easislides
 					}
 					e.Graphics.DrawImage(_background, backgroundRect, _overallBackGroundRect, GraphicsUnit.Pixel);
 					DrawMessage(e, _message, _messageBackGroundRect.Width, scaleX, scaleY, messageHeight);
-					if (DateTime.Now.Subtract(_gapStartTime).TotalSeconds >= (double)GapDuration)
+					if (SecondsSince(_gapStartTimestamp) >= (double)GapDuration)
 					{
 						if (_occurrences > 1)
 						{
 							_occurrences--;
-							_messageStartTime = DateTime.Now;
+							_messageStartTimestamp = Timestamp();
 							_messagePercentage = 0f;
 						}
 						_gapRunning = false;
@@ -488,7 +528,7 @@ namespace Easislides
 					{
 						_flashCount = _flashCountMax;
 					}
-					_gapStartTime = DateTime.Now;
+					_gapStartTimestamp = Timestamp();
 					_gapRunning = true;
 				}
 			}
