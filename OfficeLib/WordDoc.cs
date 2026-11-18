@@ -1,77 +1,76 @@
- using System;
-using System.Runtime.InteropServices;
-//using Microsoft.Office.Core;
-//using Microsoft.Office.Interop.Word;
-//using Application = Microsoft.Office.Interop.Word.Application;
-using NetOffice.OfficeApi;
+using System;
 using NetOffice.WordApi;
+using NetOffice.WordApi.Enums;
 
 namespace OfficeLib
 {
 	public class WordDoc
 	{
-		private const string vbLf = "\n";
-
-		private const string vbCr = "\r";
-
-		private const string vbCrLf = "\r\n";
-
-		private Application application = null;
-
 		/// <summary>
-		/// daniel
+		/// Reads the plain text of a Word document through a hidden Word instance of its own, with line breaks
+		/// as "\n". Returns "" when the file cannot be read. The document is opened read-only, without
+		/// conversion prompts and without being added to the user's recent files, and Word shows no alerts,
+		/// so a locked or converted file cannot leave an invisible dialog waiting.
 		/// </summary>
-		/// <param name="InFileName"></param>
-		/// <returns></returns>
 		public string GetContents(string InFileName)
 		{
+			Application application = null;
 			Document document = null;
 			object missing = Type.Missing;
 			try
 			{
 				application = new Application();
-				application.Options.ShowControlCharacters = false;
+				application.DisplayAlerts = WdAlertLevel.wdAlertsNone;
 				application.Visible = false;
-				object FileName = InFileName;
-				object ConfirmConversions = Type.Missing;
-				document = application.Documents.Open(FileName, ConfirmConversions, ConfirmConversions, ConfirmConversions, ConfirmConversions, ConfirmConversions, ConfirmConversions, ConfirmConversions, ConfirmConversions, ConfirmConversions, ConfirmConversions, ConfirmConversions);
-				string text = document.Content.Text;
-				text = text.Replace("\r\n", "\n"[0].ToString());
-				text = text.Replace("\r"[0], "\n"[0]);
-				return text;
+				application.Options.ShowControlCharacters = false;
+				document = application.Documents.Open(
+					InFileName,
+					false,  // ConfirmConversions
+					true,   // ReadOnly
+					false,  // AddToRecentFiles
+					missing, missing, missing, missing, missing, missing, missing,
+					false); // Visible
+				string text = document.Content.Text ?? "";
+				return text.Replace("\r\n", "\n").Replace('\r', '\n');
 			}
-			catch
+			catch (Exception ex)
 			{
+				Console.WriteLine($"Error reading Word document '{InFileName}': {ex.Message}");
 				return "";
 			}
 			finally
-            {
+			{
+				// NetOffice wrappers are released with Dispose, not Marshal.ReleaseComObject (which throws for
+				// them: they are managed objects, not __ComObject). Each step runs on its own so a failure in
+				// one cannot leave Word running.
 				if (document != null)
 				{
 					try
 					{
-						document.Close(missing, missing, missing);
+						document.Close(WdSaveOptions.wdDoNotSaveChanges, missing, missing);
 					}
 					catch
 					{
 					}
-					Marshal.ReleaseComObject(document);
-					document = null;
 				}
-
 				if (application != null)
 				{
 					try
 					{
-						application.Quit(missing, missing, missing);
+						application.Quit(WdSaveOptions.wdDoNotSaveChanges, missing, missing);
 					}
 					catch
 					{
 					}
-					Marshal.ReleaseComObject(application);
-					application = null;
+					try
+					{
+						// Disposes the Application proxy and every proxy created from it (document included).
+						application.Dispose();
+					}
+					catch
+					{
+					}
 				}
-
 			}
 		}
 	}
