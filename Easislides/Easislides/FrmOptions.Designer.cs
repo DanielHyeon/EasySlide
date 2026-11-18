@@ -2416,7 +2416,7 @@ private void InitializeComponent()
             LM_AlwaysUse.Name = "LM_AlwaysUse";
             LM_AlwaysUse.Size = new Size(264, 24);
             LM_AlwaysUse.TabIndex = 1;
-            LM_AlwaysUse.Text = "Always attempt Secondary Monitor";
+            LM_AlwaysUse.Text = "Use another monitor if unavailable";
             //
             // LMUpDownFontSize
             //
@@ -2674,6 +2674,7 @@ private void InitializeComponent()
             //
             // DM1UpDownHeight
             //
+            DM1UpDownHeight.Enabled = false;
             DM1UpDownHeight.Location = new Point(255, 180);
             DM1UpDownHeight.Margin = new Padding(5, 4, 5, 4);
             DM1UpDownHeight.Maximum = new decimal(new int[] { 9999, 0, 0, 0 });
@@ -2828,7 +2829,7 @@ private void InitializeComponent()
             DM_AlwaysUseSecondaryMonitor.Name = "DM_AlwaysUseSecondaryMonitor";
             DM_AlwaysUseSecondaryMonitor.Size = new Size(264, 24);
             DM_AlwaysUseSecondaryMonitor.TabIndex = 0;
-            DM_AlwaysUseSecondaryMonitor.Text = "Always attempt Secondary Monitor";
+            DM_AlwaysUseSecondaryMonitor.Text = "Prefer a secondary monitor";
             //
             // label46
             //

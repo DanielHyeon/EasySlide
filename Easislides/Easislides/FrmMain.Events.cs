@@ -208,6 +208,45 @@ namespace Easislides
             base.WndProc(ref m);
         }
 
+        private void OnMonitorSettingsChanged(object sender, EventArgs e)
+        {
+            if (MainFormClosing || !IsHandleCreated)
+                return;
+            try
+            {
+                BeginInvoke(RefreshMonitorLayout);
+            }
+            catch (InvalidOperationException) when (MainFormClosing || !IsHandleCreated)
+            {
+                // The main window was destroyed before the callback could be queued.
+            }
+        }
+
+        private void RefreshMonitorLayout()
+        {
+            if (MainFormClosing || DisplayInfo.Output.Bounds.Width <= 0)
+                return;
+
+            var updated = DisplayInfo.ResolveLaunchDisplays();
+            bool outputChanged = updated.Output != DisplayInfo.Output;
+            bool lyricsChanged = updated.Lyrics != DisplayInfo.Lyrics;
+            if (!outputChanged && !lyricsChanged)
+                return;
+
+            LiveShow?.CloseLyricsMonitor();
+            if (outputChanged)
+            {
+                StopRunningShowSafely("Output monitor changed");
+                if (_mediaPlayerWindow is { IsDisposed: false, Visible: true })
+                    TryStep("Stop media after monitor change", StopMediaPlayer);
+            }
+
+            DisplayInfo.ApplyLaunchDisplays(updated);
+            if (Gf.ShowRunning && LiveShow is { IsDisposed: false, Visible: true })
+                LiveShow.OpenLyricsMonitor();
+            SetStatusbarSize();
+        }
+
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             // Cancelled already (validation, an owned window): the form stays open, so nothing is closed.

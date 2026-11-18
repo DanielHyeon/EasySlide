@@ -920,7 +920,7 @@ namespace Easislides
 
         public static bool GlobalHookKey_CtrlArrow = false;
 
-        public static string OutputMonitorName = "None";
+        public static string OutputMonitorName = MonitorLayout.Auto;
 
 		public static string LyricsMonitorName = "None";
 

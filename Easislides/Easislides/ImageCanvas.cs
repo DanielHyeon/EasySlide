@@ -399,9 +399,6 @@ namespace Easislides
 				string extension = Path.GetExtension(NewImageArray[NewCanvasIndex]).ToLower();
 				string imagePath = NewImageArray[NewCanvasIndex];
 
-				base.Width = NewWidth;
-				base.Height = NewHeight;
-
 				IsExternalPowerPoint = NewExternalPowerPoint;
 				CurrentSelectedSlide = NewCurSelectedSlide;
 
@@ -431,6 +428,11 @@ namespace Easislides
 				                   && !string.IsNullOrEmpty(imagePath)
 				                   && File.Exists(imagePath)
 				                   && new FileInfo(imagePath).LastWriteTimeUtc != _cachedFileTime;
+				int width = Math.Max(1, NewWidth);
+				int height = UsesSlideAspect && _cachedSourceImage != null && _cachedFileName == imagePath
+					? HeightForSlideImage(width, _cachedSourceImage)
+					: Math.Max(1, NewHeight);
+				Size = new Size(width, height);
 				if (pathChanged || fileTouched || IsExternalPowerPoint)
 				{
 					FileName = imagePath;
@@ -455,6 +457,11 @@ namespace Easislides
 					// ResizeCanvas는 CalculateImage에서 이미지 로드 후 호출됨
 					// ResizeCanvas(base.Width, base.Height);
 
+					Invalidate();
+				}
+				else if (IsImageReady)
+				{
+					ResizeCanvas(width, height);
 					Invalidate();
 				}
 			}
@@ -483,7 +490,8 @@ namespace Easislides
 		private void DrawBorder(Graphics graphics, Rectangle rect, float fontSize)
 		{
 			bool isSelected = IsDrawnSelected;
-			Color borderColor = isSelected ? SelectedBorderColor : base.Parent.BackColor;
+			Color surround = Parent?.BackColor ?? BackColor;
+			Color borderColor = isSelected ? SelectedBorderColor : surround;
 			using (Pen pen = new Pen(borderColor, fontSize))
 			{
 				graphics.DrawRectangle(pen, rect);
@@ -499,7 +507,7 @@ namespace Easislides
 			float band = fontSize / 2f;
 			if (isSelected && ThinSelectedBorder)
 			{
-				using (Pen backPen = new Pen(base.Parent.BackColor, fontSize))
+				using (Pen backPen = new Pen(surround, fontSize))
 				{
 					graphics.DrawRectangle(backPen, rect);
 				}
@@ -542,6 +550,11 @@ namespace Easislides
 		{
 			return IsPowerPoint || IsExternalPowerPoint;
 		}
+
+		private bool UsesSlideAspect => IsPowerPoint || _isExternalPresentationPreview;
+
+		private static int HeightForSlideImage(int width, Image source) =>
+			Math.Max(1, (int)Math.Round((double)width * source.Height / source.Width));
 
 		private void ConfigureGraphics(Graphics graphics)
 		{
@@ -598,6 +611,13 @@ namespace Easislides
 			{
 				float fontSize = storedImageWidth / FONT_SIZE_RATIO;
 				int margin = CalculateBorderMargin(storedImageWidth, storedImageHeight);
+				if (UsesSlideAspect)
+				{
+					graphics.DrawImage(sourceImage, fullRect);
+					DrawBorder(graphics, fullRect, fontSize);
+					DrawSlideNumber(graphics, storedImageWidth, storedImageHeight, margin);
+					return renderedImage;
+				}
 				int maxMargin = (Math.Min(storedImageWidth, storedImageHeight) - 1) / 2;
 				if (maxMargin < 0)
 				{
@@ -708,6 +728,9 @@ namespace Easislides
 					sourceImage = _cachedSourceImage;
 					Console.WriteLine($"[ImageCanvas Cache Miss] Loaded new image: {Path.GetFileName(FileName)} (Modified: {currentFileTime})");
 				}
+
+				if (UsesSlideAspect)
+					Height = HeightForSlideImage(Width, sourceImage);
 
 				if (!TryCalculateTargetSizes(sourceImage, out int storedImageWidth, out int storedImageHeight))
 				{

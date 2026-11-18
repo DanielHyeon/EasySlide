@@ -581,7 +581,7 @@ namespace Easislides
 				gfFileHelpers.PreLoadPowerpointFiles(ref LivePP, ref WorshipSongs);
 			}
 			ResetPowerpointVerses(ref InItem);
-			InPPT.displayName = OutputMonitorName;
+			InPPT.displayName = DisplayInfo.ActiveOutputMonitorName;
 			SlideShowRunCount++;
 			// Dual monitor show only: there the show window is transparent over a PowerPoint item, so the
 			// slide show must sit above other applications' windows on the output monitor. In single monitor

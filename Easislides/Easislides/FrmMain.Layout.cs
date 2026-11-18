@@ -229,65 +229,14 @@ namespace Easislides
 
         private void ResizeSampleScreen(Panel InPanelContainer, Panel InHolder, Panel InBack, bool AdjustForIndicator)
         {
-            int containerWidth = InPanelContainer.Width;
-            if (containerWidth < 0)
-            {
-                containerWidth = 0;
-            }
-            int topOffset = 0;
             int indicatorHeight = AdjustForIndicator ? panelOutputLM1.Height : 0;
-            int bottomMargin = 15;
-            int holderWidth = containerWidth * 18 / 20;
-
-            //int holderHeight = ((holderWidth <= 0) ? 1 : holderWidth) * 3 / 4;
-
-            int holderHeight = 0;
-
-            // Daniel Park, 2023-12-24
-            //int newHeight = 0;
-            if (!Gf.isScreenWideMode)
-            {
-                holderHeight = ((holderWidth <= 0) ? 1 : holderWidth) * 3 / 4;
-            }
-            else
-            {
-                holderHeight = ((holderWidth <= 0) ? 1 : holderWidth) * 3 / 4;
-            }
-
-
-
-            if (holderHeight > InPanelContainer.Height - (topOffset + indicatorHeight + bottomMargin))
-            {
-                holderHeight = InPanelContainer.Height - (topOffset + indicatorHeight + bottomMargin);
-                holderHeight = ((holderHeight <= 0) ? 1 : holderHeight);
-                // daniel
-                // holderWidth = holderHeight * 4 / 3;
-
-                //if (Gf.isScreenWideMode)
-                //    holderWidth = holderHeight * 5 / 3;
-                //else
-                holderWidth = holderHeight * 4 / 3;
-            }
-            InHolder.Left = (InPanelContainer.Width - holderWidth - holderHeight / 40) / 2;
-            InHolder.Height = holderHeight;
-            InHolder.Width = holderWidth;
-            InHolder.Top = (InPanelContainer.Height - (indicatorHeight + holderHeight)) / 2;
-            if (InHolder.Top < topOffset + 2 && topOffset > 0)
-            {
-                InHolder.Top = topOffset + 2;
-            }
-            if (holderHeight > 0)
-            {
-                InBack.Left = InHolder.Left + holderHeight / 40 + 1;
-                InBack.Top = InHolder.Top + holderHeight / 40 + 1;
-                InBack.Height = holderHeight;
-                InBack.Width = holderWidth;
-            }
-            else
-            {
-                InBack.Height = 0;
-                InBack.Width = 0;
-            }
+            var available = new Rectangle(0, 0, InPanelContainer.Width * 18 / 20,
+                Math.Max(0, InPanelContainer.Height - indicatorHeight - 15));
+            Size size = MonitorLayout.Fit(available, Gf.isScreenWideMode).Size;
+            int shade = size.Height / 40;
+            InHolder.SetBounds((InPanelContainer.Width - size.Width - shade) / 2,
+                (InPanelContainer.Height - indicatorHeight - size.Height) / 2, size.Width, size.Height);
+            InBack.SetBounds(InHolder.Left + shade + 1, InHolder.Top + shade + 1, size.Width, size.Height);
             SetStatusbarSize();
         }
 

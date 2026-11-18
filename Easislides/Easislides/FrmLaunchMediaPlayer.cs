@@ -21,6 +21,7 @@ namespace Easislides
 		private Cursor LiveCursor;
 
 		private Thread timerThread;
+		private Rectangle? outputBounds;
 
 		private DShowLib DShowPlayer = new DShowLib();
 
@@ -44,7 +45,7 @@ namespace Easislides
 
 		private void InitForm()
 		{
-			SetShowWindow();
+			Bounds = outputBounds ?? new Rectangle(Gf.LS_Left, Gf.LS_Top, Gf.LS_Width, Gf.LS_Height);
 			BackColor = Color.Black;
 			if (Gf.WMP_Present)
 			{
@@ -63,46 +64,16 @@ namespace Easislides
 				DShowPlayer.Parent = this;
 				DShowPlayer.Location = new Point(0, 0);
 				DShowPlayer.Dock = DockStyle.None;
-				ApplyPlayerBounds(Gf.LS_Width, Gf.LS_Height);
+				ApplyPlayerBounds(ClientSize.Width, ClientSize.Height);
 				DShowPlayer.ForeColorChanged += DShowPlayer_ForeColorChanged;
 			}
 		}
 
-		public void ApplyOutputMonitor(string monitorName)
+		internal void ApplyOutputMonitor(MonitorPlacement placement)
 		{
-			Screen targetScreen = null;
-			if (!string.IsNullOrEmpty(monitorName))
-			{
-				foreach (Screen screen in Screen.AllScreens)
-				{
-					if (string.Equals(screen.DeviceName, monitorName, StringComparison.OrdinalIgnoreCase))
-					{
-						targetScreen = screen;
-						break;
-					}
-				}
-			}
-			if (targetScreen == null && !string.IsNullOrEmpty(Gf.OutputMonitorName))
-			{
-				foreach (Screen screen in Screen.AllScreens)
-				{
-					if (string.Equals(screen.DeviceName, Gf.OutputMonitorName, StringComparison.OrdinalIgnoreCase))
-					{
-						targetScreen = screen;
-						break;
-					}
-				}
-			}
-			if (targetScreen == null)
-			{
-				targetScreen = Screen.PrimaryScreen;
-			}
-			if (targetScreen == null)
-			{
-				return;
-			}
-			Gf.CurrentMediaOutputMonitorName = targetScreen.DeviceName;
-			SetShowWindow(targetScreen.Bounds);
+			outputBounds = placement.Bounds;
+			Gf.CurrentMediaOutputMonitorName = placement.DeviceName;
+			SetShowWindow(placement.Bounds);
 		}
 
 		private void SetShowWindow(Rectangle bounds)
@@ -400,14 +371,6 @@ namespace Easislides
 			{
 				Gf.MediaPlayedLapseTime = DateTime.Now.Subtract(Gf.MediaLiveItemStartTime);
 			}
-		}
-
-		private void SetShowWindow()
-		{
-			base.Left = Gf.LS_Left;
-			base.Top = Gf.LS_Top;
-			base.Height = Gf.LS_Height;
-			base.Width = Gf.LS_Width;
 		}
 
 		private void FrmLaunchMediaPlayer_FormClosing(object sender, FormClosingEventArgs e)

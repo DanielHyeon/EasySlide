@@ -643,7 +643,7 @@ namespace Easislides
 				EditOpenDocumentDir = DocumentsDir;
 			}
 
-			OutputMonitorName = RegUtil.GetRegValue("options", "OutputmonitorName", "None");
+			OutputMonitorName = RegUtil.GetRegValue("options", "OutputmonitorName", MonitorLayout.Auto);
 			LyricsMonitorName = RegUtil.GetRegValue("options", "LyricsMonitorName", "None");
 
 			BibleText_FontSize = DataUtil.ObjToInt(RegUtil.GetRegValue("options", "BibleTextFontSize", 8));
@@ -816,16 +816,7 @@ namespace Easislides
 				DMOption1Width = 100;
 			}
 
-			//if (!Gf.isScreenWideMode)
-			//	DMOption1Height = DMOption1Width * 3 / 4;
-			//else
-			//	DMOption1Height = DMOption1Height;
-
-			DMOption1Height = DMOption1Width * 3 / 4;
-			if (DMOption1Height < 1)
-			{
-				DMOption1Height = 1;
-			}
+			DMOption1Height = MonitorLayout.HeightForWidth(DMOption1Width, isScreenWideMode);
 			DMOption1AsSingleMonitor = ((DataUtil.ObjToInt(RegUtil.GetRegValue("monitors", "DualMonitorOptionCustomAsSingle", 0)) > 0) ? true : false);
 			DisableSreenSaver = ((DataUtil.ObjToInt(RegUtil.GetRegValue("monitors", "DisableSreenSaver", 1)) > 0) ? true : false);
 			VideoSize = DataUtil.ObjToInt(RegUtil.GetRegValue("monitors", "VideoSize", 100));
@@ -860,13 +851,7 @@ namespace Easislides
 				LMOption1Width = 100;
 			}
 
-			if (!Gf.isScreenWideMode)
-				LMOption1Height = LMOption1Width * 3 / 4;
-
-			if (LMOption1Height < 1)
-			{
-				LMOption1Height = 1;
-			}
+			LMOption1Height = MonitorLayout.HeightForWidth(LMOption1Width, isScreenWideMode);
 			LMTextColour = Color.FromArgb(DataUtil.ObjToInt(RegUtil.GetRegValue("monitors", "LyricsMonitorTextColour", LMTextColour.ToArgb())));
 			LMHighlightColour = Color.FromArgb(DataUtil.ObjToInt(RegUtil.GetRegValue("monitors", "LyricsMonitorHighlightColour", LMHighlightColour.ToArgb())));
 			LMBackColour = Color.FromArgb(DataUtil.ObjToInt(RegUtil.GetRegValue("monitors", "LyricsMonitorBackColour", LMBackColour.ToArgb())));

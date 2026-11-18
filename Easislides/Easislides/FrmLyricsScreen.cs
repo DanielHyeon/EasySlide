@@ -1,9 +1,9 @@
 using Easislides.Module;
 using Easislides.Util;
+using Microsoft.Win32;
 using System;
 using System.ComponentModel;
 using System.Drawing;
-using System.Threading;
 using System.Windows.Forms;
 
 namespace Easislides
@@ -11,8 +11,6 @@ namespace Easislides
     public partial class FrmLyricsScreen : Form
 	{
 		public delegate void Message(int MsgCode, string MsgString);
-
-		private bool FormFirstLoad = true;
 
 		private int ScreenFontSize = 22;
 
@@ -22,7 +20,8 @@ namespace Easislides
 
 		private bool LoadNextItem = false;
 
-		private Thread timerThread;
+		private readonly Timer updateTimer;
+		private readonly RegistrySettings layoutSettings;
 
 		public bool WorshipListChanged = false;
 
@@ -53,42 +52,28 @@ namespace Easislides
 		public event Message OnMessage;
 
 		public FrmLyricsScreen()
+			: this(DisplayInfo.Lyrics)
+		{
+		}
+
+		internal FrmLyricsScreen(MonitorPlacement placement, RegistrySettings settings = null)
 		{
 			InitializeComponent();
+			layoutSettings = settings ?? RegUtil.Settings;
+			StartPosition = FormStartPosition.Manual;
+			if (placement.Enabled)
+				Bounds = placement.Bounds;
+			updateTimer = new Timer(components) { Interval = 250 };
+			updateTimer.Tick += (_, _) => UpdateProgress();
 		}
 
-		private void FrmLyricsScreen_Load(object sender, EventArgs e)
-		{
-			InitForm();
-			timerThread = new Thread(ThreadProc);
-			timerThread.IsBackground = true;
-			timerThread.Start();
-		}
+		protected override bool ShowWithoutActivation => true;
 
-		private void InitForm()
+		internal void PrepareLayout()
 		{
 			SetShowWindow();
 			Gf.LyricsItem.Initialise();
 			UpdateWorshipList();
-		}
-
-		public void ThreadProc()
-		{
-			try
-			{
-				MethodInvoker method = UpdateProgress;
-				while (true)
-				{
-					BeginInvoke(method);
-					Thread.Sleep(500);
-				}
-			}
-			catch (ThreadInterruptedException)
-			{
-			}
-			catch (Exception)
-			{
-			}
 		}
 
 		private void UpdateProgress()
@@ -142,23 +127,6 @@ namespace Easislides
 		private void SetShowWindow()
 		{
 			InitFormLoad = true;
-			//if ((Gf.LyricsMonitorNumber > 0 || Gf.LMSelectAutoOption > 0) && Gf.LMSelectAutoOption != 2)
-			if ((Gf.LyricsMonitorName == DisplayInfo.getSecondryDisplayName() || Gf.LMSelectAutoOption > 0) && Gf.LMSelectAutoOption != 2)
-			{
-				base.Left = Gf.LM_Left;
-				base.Top = Gf.LM_Top;
-				base.Height = Gf.LM_Height;
-				base.Width = Gf.LM_Width;
-				base.Visible = true;
-			}
-			else
-			{
-				base.Left = 0;
-				base.Top = 0;
-				base.Height = 1;
-				base.Width = 1;
-				base.Visible = false;
-			}
 			splitContainer1.Dock = DockStyle.Fill;
 			splitContainer2.Dock = DockStyle.Fill;
 			splitContainer3.Dock = DockStyle.Fill;
@@ -251,8 +219,12 @@ namespace Easislides
 
 		private void Apply_NotationsChanged()
 		{
-			string InTitle = Gf.WorshipSongs[Gf.LyricsItem.CurItemNo, 2];
-			LoadItem(ref Gf.LyricsItem, Gf.WorshipSongs[Gf.LyricsItem.CurItemNo, 0], Gf.WorshipSongs[Gf.LyricsItem.CurItemNo, 4], ref InTitle);
+			int index = Gf.LyricsItem.CurItemNo;
+			if (index < 1 || index > Gf.TotalWorshipListItems)
+				return;
+			var item = Gf.WorshipSongs[index];
+			string title = item.Title;
+			LoadItem(ref Gf.LyricsItem, item.IdString, item.FormatString, ref title);
 		}
 
 		public void Remote_ItemChanged()
@@ -316,8 +288,9 @@ namespace Easislides
 			string text = "";
 			for (int i = 0; i < Gf.TotalWorshipListItems; i++)
 			{
-				listViewItem = WorshipListItems.Items.Add(Gf.WorshipSongs[i + 1, 2]);
-				text = Gf.WorshipSongs[i + 1, 1];
+				var item = Gf.WorshipSongs[i + 1];
+				listViewItem = WorshipListItems.Items.Add(item.Title);
+				text = item.Type;
 				if (text == "D")
 				{
 					listViewItem.ImageIndex = 0;
@@ -346,8 +319,8 @@ namespace Easislides
 				{
 					listViewItem.ImageIndex = 10;
 				}
-				listViewItem.SubItems.Add(Gf.WorshipSongs[i + 1, 0]);
-				listViewItem.SubItems.Add(Gf.WorshipSongs[i + 1, 4]);
+				listViewItem.SubItems.Add(item.IdString);
+				listViewItem.SubItems.Add(item.FormatString);
 				listViewItem.SubItems.Add("");
 				listViewItem.SubItems.Add("");
 				listViewItem.SubItems.Add("");
@@ -360,7 +333,7 @@ namespace Easislides
 
 		private void HighlightStartPresAtItem()
 		{
-			if (Gf.StartPresAt > 0 && Gf.StartPresAt <= Gf.TotalWorshipListItems)
+			if (Gf.StartPresAt > 0 && Gf.StartPresAt <= WorshipListItems.Items.Count)
 			{
 				WorshipListItems.Items[Gf.StartPresAt - 1].Selected = true;
 				WorshipListItems.Items[Gf.StartPresAt - 1].EnsureVisible();
@@ -369,14 +342,16 @@ namespace Easislides
 
 		private void LoadNextItemLyrics()
 		{
-			string text = "";
-			if (Gf.StartPresAt > 0)
+			if (Gf.StartPresAt > 0 && Gf.StartPresAt < Gf.TotalWorshipListItems)
 			{
-				int num = (Gf.StartPresAt < Gf.TotalWorshipListItems - 1) ? (Gf.StartPresAt + 1) : Gf.TotalWorshipListItems;
-				string InTitle = Gf.WorshipSongs[num, 2];
-				LoadItem(ref Gf.LyricsItem, Gf.WorshipSongs[num, 0], Gf.WorshipSongs[num, 4], ref InTitle);
-				Gf.LyricsItem.CurItemNo = num;
+				int index = Gf.StartPresAt + 1;
+				var item = Gf.WorshipSongs[index];
+				string title = item.Title;
+				LoadItem(ref Gf.LyricsItem, item.IdString, item.FormatString, ref title);
+				Gf.LyricsItem.CurItemNo = index;
 			}
+			else
+				PreviewLyrics.Clear();
 			LoadNextItem = false;
 		}
 
@@ -416,17 +391,8 @@ namespace Easislides
 
 		private void FrmLyricsScreen_VisibleChanged(object sender, EventArgs e)
 		{
-			if (base.Visible)
-			{
-				if (FormFirstLoad)
-				{
-					FormFirstLoad = false;
-				}
-				else
-				{
-					InitForm();
-				}
-			}
+			if (updateTimer != null)
+				updateTimer.Enabled = Visible;
 		}
 
 		private void timerLyricsAlert_Tick(object sender, EventArgs e)
@@ -451,40 +417,53 @@ namespace Easislides
 
 		private void FrmLyricsScreen_FormClosing(object sender, FormClosingEventArgs e)
 		{
+			updateTimer.Stop();
+			timerLyricsAlert.Stop();
 		}
 
 		private void LoadPositions()
 		{
-			LMSplitOutput = DataUtil.ObjToInt(RegUtil.GetRegValue("monitors", Reg_OutputSplit, 300));
+			LMSplitOutput = ReadSplitterSetting(Reg_OutputSplit, 300);
 			LMSplitOutput = ((LMSplitOutput < 1 || LMSplitOutput > 1000) ? 300 : LMSplitOutput);
 			LMSplitOutput = splitContainer1.Width * LMSplitOutput / 1000;
 			LMSplitOutput = ((LMSplitOutput < 30) ? 30 : LMSplitOutput);
-			LMSplitNextItem = DataUtil.ObjToInt(RegUtil.GetRegValue("monitors", Reg_NextItemSplit, 350));
+			LMSplitNextItem = ReadSplitterSetting(Reg_NextItemSplit, 350);
 			LMSplitNextItem = ((LMSplitNextItem < 1 || LMSplitNextItem > 1000) ? 350 : LMSplitNextItem);
 			LMSplitNextItem = splitContainer2.Height * LMSplitNextItem / 1000;
 			LMSplitNextItem = ((LMSplitNextItem < 30) ? 30 : LMSplitNextItem);
-			LMSplitAlert = DataUtil.ObjToInt(RegUtil.GetRegValue("monitors", Reg_AlertSplit, 600));
+			LMSplitAlert = ReadSplitterSetting(Reg_AlertSplit, 600);
 			LMSplitAlert = ((LMSplitAlert < 1 || LMSplitAlert > 1000) ? 600 : LMSplitAlert);
 			LMSplitAlert = splitContainer3.Height * LMSplitAlert / 1000;
 			LMSplitAlert = ((LMSplitAlert < 30) ? 30 : LMSplitAlert);
-			if (base.Width > 100)
-			{
-				splitContainer1.SplitterDistance = LMSplitOutput;
-				splitContainer3.SplitterDistance = LMSplitAlert;
-				splitContainer2.SplitterDistance = LMSplitNextItem;
-			}
+			SetSplitterDistance(splitContainer1, LMSplitOutput);
+			SetSplitterDistance(splitContainer3, LMSplitAlert);
+			SetSplitterDistance(splitContainer2, LMSplitNextItem);
+		}
+
+		private int ReadSplitterSetting(string name, int fallback)
+		{
+			layoutSettings.TryReadValue("monitors", name, out object value);
+			return value != null ? DataUtil.ObjToInt(value) : fallback;
+		}
+
+		private static void SetSplitterDistance(SplitContainer splitter, int distance)
+		{
+			int size = splitter.Orientation == Orientation.Vertical ? splitter.Width : splitter.Height;
+			int maximum = size - splitter.SplitterWidth - splitter.Panel2MinSize;
+			if (maximum >= splitter.Panel1MinSize)
+				splitter.SplitterDistance = Math.Clamp(distance, splitter.Panel1MinSize, maximum);
 		}
 
 		private void SavePositions()
 		{
-			if (!InitFormLoad)
+			if (!InitFormLoad && Visible && splitContainer1.Width > 0 && splitContainer2.Height > 0 && splitContainer3.Height > 0)
 			{
 				int value = splitContainer1.SplitterDistance * 1000 / splitContainer1.Width;
-				RegUtil.SaveRegValue("monitors", Reg_OutputSplit, value);
+				layoutSettings.TryWriteValue("monitors", Reg_OutputSplit, value, RegistryValueKind.DWord);
 				value = splitContainer2.SplitterDistance * 1000 / splitContainer2.Height;
-				RegUtil.SaveRegValue("monitors", Reg_NextItemSplit, value);
+				layoutSettings.TryWriteValue("monitors", Reg_NextItemSplit, value, RegistryValueKind.DWord);
 				value = splitContainer3.SplitterDistance * 1000 / splitContainer3.Height;
-				RegUtil.SaveRegValue("monitors", Reg_AlertSplit, value);
+				layoutSettings.TryWriteValue("monitors", Reg_AlertSplit, value, RegistryValueKind.DWord);
 			}
 		}
 

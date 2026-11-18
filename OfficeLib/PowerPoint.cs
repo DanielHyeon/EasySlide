@@ -22,8 +22,7 @@ namespace OfficeLib
 	{
 		// Constants
 		private const int NOTES_PLACEHOLDER_INDEX = 2;
-		private const int EXPORT_WIDTH = 640;
-		private const int EXPORT_HEIGHT = 480;
+		private const int SlideImageMaxDimension = 640;
 		private const int MAX_VERSE_NUMBER = 12;
 		private const int VERSE_CHORUS = 0;
 		private const int VERSE_BRIDGE = 100;
@@ -2080,13 +2079,14 @@ namespace OfficeLib
 				// never locked for writing.
 				working = OpenTemporary(FilePath, MsoTriState.msoTrue, MsoTriState.msoFalse);
 				int slideCount = working.Slides.Count;
+				var exportSize = GetSlideExportSize(working);
 				TotalSlides = slideCount;
 				Console.WriteLine($"[BuildSlideImages] Exporting {slideCount} slides to: {FilePrefix}");
 				bool previewComplete = previewPrefix != null;
 				for (int i = 1; i <= slideCount; i++)
 				{
 					string imagePath = SlideImageManifest.ImagePath(FilePrefix, i);
-					working.Slides[i].Export(imagePath, "JPG", EXPORT_WIDTH, EXPORT_HEIGHT);
+					working.Slides[i].Export(imagePath, "JPG", exportSize.Width, exportSize.Height);
 					PowerPointCallLimit.Progress();
 					if (previewPrefix != null && !CopySlideImage(imagePath, SlideImageManifest.ImagePath(previewPrefix, i)))
 					{
@@ -2116,6 +2116,31 @@ namespace OfficeLib
 			{
 				ClosePresentation(ref working);
 			}
+		}
+
+		private static System.Drawing.Size GetSlideExportSize(_Presentation presentation)
+		{
+			PageSetup page = null;
+			try
+			{
+				page = presentation.PageSetup;
+				return GetSlideExportSize(page.SlideWidth, page.SlideHeight);
+			}
+			finally
+			{
+				ReleaseProxy(page);
+			}
+		}
+
+		internal static System.Drawing.Size GetSlideExportSize(double width, double height)
+		{
+			if (!double.IsFinite(width) || !double.IsFinite(height) || width <= 0 || height <= 0)
+				return new System.Drawing.Size(SlideImageMaxDimension, SlideImageMaxDimension * 3 / 4);
+
+			double longest = Math.Max(width, height);
+			return new System.Drawing.Size(
+				Math.Max(1, (int)Math.Round(width / longest * SlideImageMaxDimension)),
+				Math.Max(1, (int)Math.Round(height / longest * SlideImageMaxDimension)));
 		}
 
 		// Copies an exported slide image to the preview prefix. One retry for a file briefly held by another
@@ -2424,7 +2449,8 @@ namespace OfficeLib
 					tempPresentation = OpenTemporary(presentationPath, MsoTriState.msoTrue, MsoTriState.msoFalse);
 					slides = tempPresentation.Slides;
 					slide = slides[1];
-					slide.Export(tempPath, "JPG", EXPORT_WIDTH, EXPORT_HEIGHT);
+					var exportSize = GetSlideExportSize(tempPresentation);
+					slide.Export(tempPath, "JPG", exportSize.Width, exportSize.Height);
 
 					return ExternalPreviewCache.CommitExport(tempPath, previewPath);
 				}

@@ -12,8 +12,8 @@ namespace OfficeLib
 	/// First-slide pictures of the external presentations listed in the PowerPoint tab (thumbnail listing style).
 	/// A picture is exported once per version of a presentation and reused by later listings.
 	///
-	/// - Name: {key}_{ticks}_{length}.jpg, where key is the first 16 bytes (hex) of SHA-256 over the full path
-	///   (upper-cased, UTF-8), ticks is the presentation's LastWriteTimeUtc and length its size in bytes (hex).
+	/// - Name: {key}_{ticks}_{length}.jpg, where key hashes the export format and full path (upper-cased, UTF-8).
+	///   Ticks is the presentation's LastWriteTimeUtc and length its size in bytes (hex).
 	///   Only [0-9a-f_.] characters, about 70 characters long, so any file name (Korean, long paths) and two files
 	///   with the same name in different folders map to distinct, safe names. An edited presentation gets a new
 	///   name and is exported again.
@@ -37,6 +37,7 @@ namespace OfficeLib
 		public const int OrphanTempMinutes = 10;
 
 		private const int KeyHexLength = 32;
+		private const string PreviewFormat = "slide-aspect/2";
 
 		private static readonly Regex PreviewName = new Regex(
 			"^(?<key>[0-9a-f]{32})_[0-9a-f]{1,16}_[0-9a-f]{1,16}\\.jpg$",
@@ -64,7 +65,7 @@ namespace OfficeLib
 				{
 					return null;
 				}
-				string name = KeyOf(fullPath) + "_" + info.LastWriteTimeUtc.Ticks.ToString("x") + "_" + info.Length.ToString("x") + ".jpg";
+				string name = KeyOf(PreviewFormat + "\n" + fullPath) + "_" + info.LastWriteTimeUtc.Ticks.ToString("x") + "_" + info.Length.ToString("x") + ".jpg";
 				return Path.Combine(cacheFolder, name);
 			}
 			catch (Exception ex)

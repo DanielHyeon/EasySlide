@@ -238,7 +238,6 @@ private void InitializeComponent()
 			base.ShowIcon = false;
 			base.ShowInTaskbar = false;
 			Text = "Lyrics Monitor";
-			base.Load += new System.EventHandler(FrmLyricsScreen_Load);
 			base.VisibleChanged += new System.EventHandler(FrmLyricsScreen_VisibleChanged);
 			base.FormClosing += new System.Windows.Forms.FormClosingEventHandler(FrmLyricsScreen_FormClosing);
 			splitContainer1.Panel1.ResumeLayout(false);

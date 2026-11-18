@@ -183,7 +183,7 @@ public class RegistrySettingsTests
             write => Assert.Equal(("UseMonMgr", (object)0, RegistryValueKind.DWord), write));
     }
 
-    private sealed class MemoryStore : IRegistrySettingsStore
+    internal sealed class MemoryStore : IRegistrySettingsStore
     {
         internal Dictionary<(string Section, string Name), object> Values { get; } = new();
         internal (string, string)? DeniedRead { get; set; }

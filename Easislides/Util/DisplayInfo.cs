@@ -1,43 +1,48 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace Easislides.Util
 {
     internal class DisplayInfo
     {
-        public static void SizeLaunchDisplay()
+        internal static MonitorPlacement Output { get; private set; }
+        internal static MonitorPlacement Lyrics { get; private set; }
+        internal static string ActiveOutputMonitorName => Output.DeviceName ?? MonitorLayout.None;
+
+        internal static MonitorDevice[] GetDisplays() => Screen.AllScreens
+            .Where(screen => screen.Bounds.Width > 0 && screen.Bounds.Height > 0)
+            .Select(screen => new MonitorDevice(screen.DeviceName, screen.Bounds, screen.Primary))
+            .ToArray();
+
+        internal static (MonitorPlacement Output, MonitorPlacement Lyrics) ResolveLaunchDisplays()
         {
-            if ((Gf.OutputMonitorName == getPrimaryDisplayName()) && Gf.DMAlwaysUseSecondaryMonitor)
-            {
-                Gf.OutputMonitorName = getSecondryDisplayName();
-            }
+            var displays = GetDisplays();
+            bool custom = Gf.DualMonitorSelectAutoOption == 1;
+            bool wide = Gf.isScreenWideMode;
+            Point? outputOrigin = custom ? new Point(Gf.DMOption1Left, Gf.DMOption1Top) : null;
+            var output = MonitorLayout.ResolveOutput(displays, Gf.OutputMonitorName, Gf.DMAlwaysUseSecondaryMonitor, wide,
+                outputOrigin, Gf.DMOption1Width, Gf.DMOption1AsSingleMonitor);
+            Point? lyricsOrigin = Gf.LMSelectAutoOption == 1 ? new Point(Gf.LMOption1Left, Gf.LMOption1Top) : null;
+            var lyrics = MonitorLayout.ResolveLyrics(displays, Gf.LyricsMonitorName, Gf.LMAlwaysUseSecondaryMonitor, wide,
+                output, lyricsOrigin, Gf.LMOption1Width);
+            return (output, lyrics);
+        }
 
-            GetDisplayName(ref Gf.OutputMonitorName, ref Gf.LS_Top, ref Gf.LS_Left, ref Gf.LS_Width, ref Gf.LS_Height, "None");
+        public static void SizeLaunchDisplay() => ApplyLaunchDisplays(ResolveLaunchDisplays());
 
-            if (Gf.DualMonitorSelectAutoOption == 0)
-            {
-                if (Gf.OutputMonitorName != "None")
-                {
-                    Gf.DualMonitorMode = true;
-                    Gf.OutputMonitorText = "Dual Monitor Mode";
-                }
-                else
-                {
-                    Gf.DualMonitorMode = false;
-                    Gf.OutputMonitorText = "Single Monitor Mode";
-                }
-            }
-            else
-            {
-                Gf.LS_Top = Gf.DMOption1Top;
-                Gf.LS_Left = Gf.DMOption1Left;
-                Gf.LS_Width = Gf.DMOption1Width;
-                Gf.LS_Height = Gf.DMOption1Height;
-                Gf.DualMonitorMode = ((!Gf.DMOption1AsSingleMonitor) ? true : false);
-                Gf.OutputMonitorText = "Custom Monitor Mode";
-            }
+        internal static void ApplyLaunchDisplays((MonitorPlacement Output, MonitorPlacement Lyrics) placement)
+        {
+            (Output, Lyrics) = placement;
+            Gf.LS_Left = Output.Bounds.Left;
+            Gf.LS_Top = Output.Bounds.Top;
+            Gf.LS_Width = Output.Bounds.Width;
+            Gf.LS_Height = Output.Bounds.Height;
+            Gf.DualMonitorMode = Output.IsDual;
+            Gf.OutputMonitorText = !Output.Enabled ? "No Output Monitor" : Gf.DualMonitorSelectAutoOption == 1 ? "Custom Monitor Mode"
+                : Output.IsDual ? "Dual Monitor Mode" : "Single Monitor Mode";
 
             if (Gf.LS_Height >= 768)
             {
@@ -54,20 +59,10 @@ namespace Easislides.Util
             Gf.ShowBottomBorderSize = (int)((double)Gf.Buffer_LS_Height * Gf.BottomBorderFactor);
             Gf.AdjustedOutlineThreshold = Gf.OutlineFontSizeThreshold * Gf.Buffer_LS_Width / 960;
 
-            if (Gf.LMAlwaysUseSecondaryMonitor && (Gf.LyricsMonitorName == getPrimaryDisplayName()))
-            {
-                Gf.LyricsMonitorName = getSecondryDisplayName();
-            }
-
-            GetDisplayName(ref Gf.LyricsMonitorName, ref Gf.LM_Top, ref Gf.LM_Left, ref Gf.LM_Width, ref Gf.LM_Height, (Gf.DualMonitorSelectAutoOption == 0) ? Gf.OutputMonitorName : "None", Gf.LMAlwaysUseSecondaryMonitor);
-
-            if (Gf.LMSelectAutoOption == 1)
-            {
-                Gf.LM_Top = Gf.LMOption1Top;
-                Gf.LM_Left = Gf.LMOption1Left;
-                Gf.LM_Width = Gf.LMOption1Width;
-                Gf.LM_Height = Gf.LMOption1Height;
-            }
+            Gf.LM_Left = Lyrics.Bounds.Left;
+            Gf.LM_Top = Lyrics.Bounds.Top;
+            Gf.LM_Width = Lyrics.Bounds.Width;
+            Gf.LM_Height = Lyrics.Bounds.Height;
         }
 
         public static Screen getPrimaryDisplay()

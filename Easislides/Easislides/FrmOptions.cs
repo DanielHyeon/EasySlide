@@ -284,100 +284,39 @@ namespace Easislides
             Gf.PreviewArea_ShowNotations = cbPreviewShowNotations.Checked;
             Gf.PreviewArea_LineBetweenScreens = cbLineBetweenScreens.Checked;
             Gf.PreviewArea_FontSize = (int)PreviewFontUpDown.Value;
-            //Gf.OutputMonitorNumber = DualMonitorList.SelectedIndex;
-            if (DualMonitorList.SelectedItem != null)
-            {
-                Gf.OutputMonitorName = DualMonitorList.SelectedItem.ToString();
-            }
+            string outputName = DualMonitorList.SelectedItem as string ?? Gf.OutputMonitorName;
+            string lyricsName = LyricsMonitorList.SelectedItem as string ?? Gf.LyricsMonitorName;
+            int outputMode = optDM0.Checked ? 0 : 1;
+            int lyricsMode = optLM0.Checked ? 0 : 1;
+            bool wide = optWide.Checked;
 
+            Gf.Options_DMChanged = Gf.Options_DMChanged || Gf.isScreenWideMode != wide ||
+                Gf.OutputMonitorName != outputName || Gf.LyricsMonitorName != lyricsName ||
+                Gf.DMAlwaysUseSecondaryMonitor != DM_AlwaysUseSecondaryMonitor.Checked ||
+                Gf.LMAlwaysUseSecondaryMonitor != LM_AlwaysUse.Checked ||
+                Gf.DualMonitorSelectAutoOption != outputMode || Gf.LMSelectAutoOption != lyricsMode ||
+                Gf.DMOption1Top != (int)DM1UpDownTop.Value || Gf.DMOption1Left != (int)DM1UpDownLeft.Value ||
+                Gf.DMOption1Width != (int)DM1UpDownWidth.Value || Gf.DMOption1AsSingleMonitor != DM_CustomAsSingleMonitor.Checked ||
+                Gf.LMOption1Top != (int)LM1UpDownTop.Value || Gf.LMOption1Left != (int)LM1UpDownLeft.Value ||
+                Gf.LMOption1Width != (int)LM1UpDownWidth.Value;
+
+            Gf.isScreenWideMode = wide;
+            Gf.OutputMonitorName = outputName;
             Gf.DMAlwaysUseSecondaryMonitor = DM_AlwaysUseSecondaryMonitor.Checked;
-
-            //if (Gf.DMAlwaysUseSecondaryMonitor & (Gf.OutputMonitorNumber == 0) & (DualMonitorList.Items.Count > 0))
-            //{
-            //    Gf.OutputMonitorNumber = 1;
-            //    Gf.GetScreenNumber(ref Gf.OutputMonitorNumber, -1);
-            //}
-
-            // UseSecondaryMonitor 모드 인 경우
-            if (Gf.DMAlwaysUseSecondaryMonitor & (DualMonitorList.Items.Count > 0))
-            {
-                //Gf.OutputMonitorNumber = Gf.GetSecondryMonitorIndex();
-
-                Gf.OutputMonitorName = DisplayInfo.getSecondryDisplayName();
-            }
-
-            // daniel 추가 2024년 04월 07일
-            // 다중 모니터일 경우 파워포인트 슬라이드 쇼의 디스플레이를 설정
-
-            new OfficeVersion().SetPowerPointDisplayMonitor(Gf.OutputMonitorName);
-
-            if (Gf.DualMonitorSelectAutoOption != ((!optDM0.Checked) ? 1 : 0) || (int)DM1UpDownTop.Value != Gf.DMOption1Top || (int)DM1UpDownLeft.Value != Gf.DMOption1Left || (int)DM1UpDownWidth.Value != Gf.DMOption1Width || DM_CustomAsSingleMonitor.Checked != Gf.DMOption1AsSingleMonitor)
-            {
-                Gf.Options_DMChanged = true;
-            }
-
-            // daniel
-            // 스크린 비율 설정 추가
-            Gf.isScreenWideMode = optWide.Checked;
-
-            Gf.DualMonitorSelectAutoOption = ((!optDM0.Checked) ? 1 : 0);
-
+            Gf.DualMonitorSelectAutoOption = outputMode;
             Gf.DMOption1Top = (int)DM1UpDownTop.Value;
             Gf.DMOption1Left = (int)DM1UpDownLeft.Value;
             Gf.DMOption1Width = (int)DM1UpDownWidth.Value;
-            //Gf.LMOption1Height = (int)LM1UpDownWidth.Value * 3 / 4;
-            //if (Gf.LMOption1Height < 1)
-            //{
-            //	Gf.LMOption1Height = 1;
-            //}
-            //wide mode가 아닐 경우
-
-            if (!Gf.isScreenWideMode)
-                Gf.DMOption1Height = (int)DM1UpDownWidth.Value * 3 / 4;
-            else
-                Gf.DMOption1Height = (int)DM1UpDownWidth.Value;
-
+            Gf.DMOption1Height = MonitorLayout.HeightForWidth(Gf.DMOption1Width, wide);
             Gf.DMOption1AsSingleMonitor = DM_CustomAsSingleMonitor.Checked;
 
-            //Gf.LyricsMonitorNumber = LyricsMonitorList.SelectedIndex;
-
-            if (LyricsMonitorList?.SelectedItem?.ToString() != null)
-                Gf.LyricsMonitorName = LyricsMonitorList.SelectedItem.ToString();
-
+            Gf.LyricsMonitorName = lyricsName;
             Gf.LMAlwaysUseSecondaryMonitor = LM_AlwaysUse.Checked;
-            //if (Gf.LMAlwaysUseSecondaryMonitor & (Gf.LyricsMonitorNumber == 0) & (DualMonitorList.Items.Count > 0))
-            //{
-            //    Gf.LyricsMonitorNumber = 1;
-            //    Gf.GetScreenNumber(ref Gf.LyricsMonitorNumber, (Gf.DualMonitorSelectAutoOption == 0) ? Gf.OutputMonitorNumber : (-1));
-            //}
-
-            if (Gf.LMAlwaysUseSecondaryMonitor & (DualMonitorList.Items.Count > 0))
-            {
-                DisplayInfo.GetDisplayName(ref Gf.LyricsMonitorName, (Gf.DualMonitorSelectAutoOption == 0) ? Gf.OutputMonitorName : "None");
-            }
-
-            if (Gf.LMSelectAutoOption != ((!optLM0.Checked) ? 1 : 0) || (int)LM1UpDownTop.Value != Gf.LMOption1Top || (int)LM1UpDownLeft.Value != Gf.LMOption1Left || (int)LM1UpDownWidth.Value != Gf.LMOption1Width)
-            {
-                Gf.Options_DMChanged = true;
-            }
-            Gf.LMSelectAutoOption = ((!optLM0.Checked) ? 1 : 0);
+            Gf.LMSelectAutoOption = lyricsMode;
             Gf.LMOption1Top = (int)LM1UpDownTop.Value;
             Gf.LMOption1Left = (int)LM1UpDownLeft.Value;
             Gf.LMOption1Width = (int)LM1UpDownWidth.Value;
-            //Gf.LMOption1Height = (int)LM1UpDownWidth.Value * 3 / 4;
-            //if (Gf.LMOption1Height < 1)
-            //{
-            //	Gf.LMOption1Height = 1;
-            //}
-            // Daniel Park 수정 2023년 12월 24일
-            if (!Gf.isScreenWideMode)
-                Gf.DMOption1Height = (int)DM1UpDownWidth.Value * 3 / 4;
-            else
-            {
-                Gf.DMOption1Height = (int)DM1UpDownHeight.Value * 5 / 3;
-            }
-            //Gf.DMOption1Height = (int)DM1UpDownHeight.Value;
-
+            Gf.LMOption1Height = MonitorLayout.HeightForWidth(Gf.LMOption1Width, wide);
             Gf.LMTextColour = btnLMTextColour.ForeColor;
             Gf.LMHighlightColour = btnLMHighlightColour.ForeColor;
             Gf.LMBackColour = btnLMBackColour.ForeColor;
@@ -525,8 +464,9 @@ namespace Easislides
 
             Gf.SaveConfigSettings();
             DisplayInfo.SizeLaunchDisplay();
+            if (Gf.Options_DMChanged && DisplayInfo.Output.Enabled)
+                new OfficeVersion().SetPowerPointDisplayMonitor(DisplayInfo.ActiveOutputMonitorName);
         }
-
         private void BuildFolderList()
         {
             ListViewItem listViewItem = new ListViewItem();
@@ -1481,18 +1421,8 @@ namespace Easislides
             DM1UpDownTop.Value = Gf.DMOption1Top;
             DM1UpDownLeft.Value = Gf.DMOption1Left;
             DM1UpDownWidth.Value = (Gf.DMOption1Width < 1) ? 1 : Gf.DMOption1Width;
-            DM1UpDownHeight.Value = (Gf.DMOption1Height < 1) ? 1 : Gf.DMOption1Height;
-
-            //DM1UpDownHeight.Value = Gf.DMOption1Height;
-
             DM_CustomAsSingleMonitor.Checked = Gf.DMOption1AsSingleMonitor;
-
-            DisplayInfo.GetDisplayName(ref Gf.OutputMonitorName, "None");
-
-            int outputMonitorIndex = DualMonitorList.FindString(Gf.OutputMonitorName);
-
-            DualMonitorList.SelectedIndex = outputMonitorIndex;
-
+            DualMonitorList.SelectedIndex = DualMonitorList.FindStringExact(Gf.OutputMonitorName);
             LM_AlwaysUse.Checked = Gf.LMAlwaysUseSecondaryMonitor;
             if (Gf.LMSelectAutoOption == 1)
             {
@@ -1505,19 +1435,8 @@ namespace Easislides
             LM1UpDownTop.Value = Gf.LMOption1Top;
             LM1UpDownLeft.Value = Gf.LMOption1Left;
             LM1UpDownWidth.Value = ((Gf.LMOption1Width < 1) ? 1 : Gf.LMOption1Width);
-            LM1UpDownHeight.Value = ((Gf.LMOption1Height < 1) ? 1 : Gf.LMOption1Height);
-            /// Gf.DualMonitorSelectAutoOption :
-            //Gf.GetScreenNumber(ref Gf.LyricsMonitorNumber, (Gf.DualMonitorSelectAutoOption == 0) ? Gf.OutputMonitorNumber : (-1));
-
-            if (Gf.LyricsMonitorName != "None")
-            {
-                DisplayInfo.GetDisplayName(ref Gf.LyricsMonitorName, (Gf.DualMonitorSelectAutoOption == 0) ? Gf.OutputMonitorName : "None");
-            }
-
-            int lyricsMonitorIndex = LyricsMonitorList.FindString(Gf.LyricsMonitorName);
-
-            LyricsMonitorList.SelectedIndex = lyricsMonitorIndex;
-
+            UpdateCustomMonitorHeights();
+            LyricsMonitorList.SelectedIndex = LyricsMonitorList.FindStringExact(Gf.LyricsMonitorName);
             btnLMTextColour.ForeColor = Gf.LMTextColour;
             btnLMHighlightColour.ForeColor = Gf.LMHighlightColour;
             btnLMBackColour.ForeColor = Gf.LMBackColour;
@@ -1709,25 +1628,15 @@ namespace Easislides
             }
         }
 
-        private void DM1UpDownWidth_ValueChanged(object sender, EventArgs e)
-        {
-            //wide mode가 아닐 경우
-            if (!Gf.isScreenWideMode)
-                Gf.DMOption1Height = (int)DM1UpDownWidth.Value * 3 / 4;
-        }
+        private void DM1UpDownWidth_ValueChanged(object sender, EventArgs e) => UpdateCustomMonitorHeights();
 
-        private void LM1UpDownWidth_ValueChanged(object sender, EventArgs e)
-        {
-            if (LM1UpDownWidth.Value > 1m)
-            {
-                LM1UpDownHeight.Value = (int)LM1UpDownWidth.Value * 3 / 4;
-            }
-            else
-            {
-                LM1UpDownHeight.Value = 1m;
-            }
-        }
+        private void LM1UpDownWidth_ValueChanged(object sender, EventArgs e) => UpdateCustomMonitorHeights();
 
+        private void UpdateCustomMonitorHeights()
+        {
+            DM1UpDownHeight.Value = MonitorLayout.HeightForWidth((int)DM1UpDownWidth.Value, optWide.Checked);
+            LM1UpDownHeight.Value = MonitorLayout.HeightForWidth((int)LM1UpDownWidth.Value, optWide.Checked);
+        }
         private void btnLMTextColour_Click(object sender, EventArgs e)
         {
             Color ColourSymbol = btnLMTextColour.ForeColor;
@@ -1752,57 +1661,52 @@ namespace Easislides
             DualMonitorList.Items.Clear();
             LyricsMonitorList.Items.Clear();
 
-            // DisplayInfo의 static 메서드를 사용하여 모니터 리스트 가져오기
-            List<string> allMonitors = DisplayInfo.GetAllMonitorsList();
-            List<string> nonPrimaryMonitors = DisplayInfo.GetNonPrimaryMonitorsList();
-
-            // DualMonitorList에 모든 모니터 추가
-            foreach (string monitor in allMonitors)
+            DualMonitorList.Items.Add(MonitorLayout.Auto);
+            foreach (var display in DisplayInfo.GetDisplays())
             {
-                DualMonitorList.Items.Add(monitor);
+                DualMonitorList.Items.Add(display.Name);
+                if (!display.IsPrimary)
+                    LyricsMonitorList.Items.Add(display.Name);
             }
+            DualMonitorList.Items.Add(MonitorLayout.None);
+            LyricsMonitorList.Items.Add(MonitorLayout.None);
 
-            // LyricsMonitorList에 Primary가 아닌 모니터들과 "None" 추가
-            foreach (string monitor in nonPrimaryMonitors)
-            {
-                LyricsMonitorList.Items.Add(monitor);
-            }
+            // 연결이 끊긴 설정도 보존하여 다시 연결되면 사용한다.
+            AddSavedMonitor(DualMonitorList, Gf.OutputMonitorName);
+            AddSavedMonitor(LyricsMonitorList, Gf.LyricsMonitorName);
+        }
+
+        private static void AddSavedMonitor(ToolStripComboBox list, string name)
+        {
+            if (!string.IsNullOrWhiteSpace(name) && list.FindStringExact(name) < 0)
+                list.Items.Add(name);
         }
 
         private void Monitor_Info_Click(object sender, EventArgs e)
         {
-            if (DualMonitorList.Items.Count > 0)
-            {
-                int OutTop = 0;
-                int OutLeft = 0;
-                int OutWidth = 0;
-                int OutHeight = 0;
-                DisplayInfo.GetDisplayInfo(DualMonitorList.SelectedItem.ToString(), ref OutTop, ref OutLeft, ref OutWidth, ref OutHeight);
-
-                MessageBox.Show(DualMonitorList.Text + " Setup: \nTop:\t" + Convert.ToString(OutTop) + "\nLeft:\t" + Convert.ToString(OutLeft) + "\nWidth:\t" + Convert.ToString(OutWidth) + "\nHeight:\t" + Convert.ToString(OutHeight));
-            }
+            var displays = DisplayInfo.GetDisplays();
+            string name = DualMonitorList.SelectedItem as string;
+            if (name == MonitorLayout.Auto)
+                name = MonitorLayout.ResolveOutput(displays, name, DM_AlwaysUseSecondaryMonitor.Checked, optWide.Checked).DeviceName;
+            ShowMonitorInfo(MonitorLayout.FindDisplay(displays, name), "No Output Monitor");
         }
 
         private void LyricsMonitor_Info_Click(object sender, EventArgs e)
         {
-            if (LyricsMonitorList.Items.Count > 0)
-            {
-                int OutTop = 0;
-                int OutLeft = 0;
-                int OutWidth = 0;
-                int OutHeight = 0;
-                Screen[] screens = Screen.AllScreens;
-                if (screens[LyricsMonitorList.SelectedIndex].Primary)
-                {
-                    MessageBox.Show("No Lyrics Monitor");
-                    return;
-                }
-                DisplayInfo.GetDisplayInfo(LyricsMonitorList.SelectedItem.ToString(), ref OutTop, ref OutLeft, ref OutWidth, ref OutHeight);
-                //Gf.GetScreenInfo(LyricsMonitorList.SelectedIndex, ref OutTop, ref OutLeft, ref OutWidth, ref OutHeight);
-                MessageBox.Show(LyricsMonitorList.Text + " Setup: \nTop:\t" + Convert.ToString(OutTop) + "\nLeft:\t" + Convert.ToString(OutLeft) + "\nWidth:\t" + Convert.ToString(OutWidth) + "\nHeight:\t" + Convert.ToString(OutHeight));
-            }
+            var display = MonitorLayout.FindDisplay(DisplayInfo.GetDisplays(), LyricsMonitorList.SelectedItem as string);
+            ShowMonitorInfo(display is { IsPrimary: false } ? display : null, "No Lyrics Monitor");
         }
 
+        private static void ShowMonitorInfo(MonitorDevice display, string missingMessage)
+        {
+            if (display == null)
+            {
+                MessageBox.Show(missingMessage);
+                return;
+            }
+            Rectangle bounds = display.Bounds;
+            MessageBox.Show($"{display.Name} Setup:\nTop:\t{bounds.Top}\nLeft:\t{bounds.Left}\nWidth:\t{bounds.Width}\nHeight:\t{bounds.Height}");
+        }
         private void btnTextRegionChangeColour_Click(object sender, EventArgs e)
         {
             Color ColourSymbol = btnTextRegionChangeColour.ForeColor;
@@ -2049,10 +1953,7 @@ namespace Easislides
 
         }
 
-        private void optWide_CheckedChanged(object sender, EventArgs e)
-        {
-
-        }
+        private void optWide_CheckedChanged(object sender, EventArgs e) => UpdateCustomMonitorHeights();
 
         private void ChkGlobalHookArrow_CheckedChanged(object sender, EventArgs e)
         {

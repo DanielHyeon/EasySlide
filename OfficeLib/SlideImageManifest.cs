@@ -19,7 +19,7 @@ namespace OfficeLib
 	public static class SlideImageManifest
 	{
 		private const string RecordName = "build.txt";
-		private const string FormatTag = "EasiSlidesSlideImages/1";
+		private const string FormatTag = "EasiSlidesSlideImages/2";
 		private const int PrefixKeyLength = 12;
 
 		/// <summary>A source file's identity read before it is opened; null when it cannot be read.</summary>

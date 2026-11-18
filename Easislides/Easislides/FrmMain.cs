@@ -102,6 +102,8 @@ namespace Easislides
             Gf.MainFormPPT = MainPPT;
             TimerToFront.Start();
             Gf.SplashScreenCanClose = true;
+            Microsoft.Win32.SystemEvents.DisplaySettingsChanged += OnMonitorSettingsChanged;
+            Disposed += (_, _) => Microsoft.Win32.SystemEvents.DisplaySettingsChanged -= OnMonitorSettingsChanged;
 
             // Test resource extraction (25.12.26)
             //string outputDir = @"E:\WorkSpace\wp - ms\dev\EasiSlides_v2.5.9\frmMainResource";
@@ -3013,19 +3015,22 @@ namespace Easislides
         /// one, and the closing goes on.
         /// </summary>
         private void EndShowBeforeClosing(CloseReason reason)
+            => StopRunningShowSafely($"Main form closing ({reason})");
+
+        private void StopRunningShowSafely(string context)
         {
             if (!Gf.ShowRunning)
             {
                 return;
             }
-            WriteDebugLog("Main form closing (" + reason + ") with the show running: ending the show first");
+            WriteDebugLog(context + ": ending the running show");
             try
             {
                 GoLive(InStatus: false);
             }
             catch (Exception ex)
             {
-                WriteDebugLogThrottled("Form closing: end show", ex);
+                WriteDebugLogThrottled(context + ": end show", ex);
                 Gf.ShowRunning = false;
                 TryStep("RestoreScreenSaverSettings", Gf.RestoreScreenSaverSettings);
                 TryStep("ClearUpPowerpointWindows", Gf.ClearUpPowerpointWindows);
@@ -4619,6 +4624,15 @@ namespace Easislides
 
         private void Start_Presentation()
         {
+            DisplayInfo.SizeLaunchDisplay();
+            if (!DisplayInfo.Output.Enabled)
+            {
+                Menu_StartShow.Checked = false;
+                cbGoLive.Checked = false;
+                SetStatusbarSize();
+                return;
+            }
+
             if (Gf.OutputItem.ItemID == "")
             {
                 Gf.StartPresAt = 1;
@@ -4639,12 +4653,14 @@ namespace Easislides
                 UpdateWorshipShowIcons();
                 Gf.SaveShowOptions = false;
                 Gf.OutputItem.GapItemOnDisplay = false;
-                DisplayInfo.SizeLaunchDisplay();
                 // Slide shows a crashed or killed run left topmost (they are not closed).
                 Gf.LowerLeftoverSlideShowWindows("Start_Presentation");
                 // The clean-up an earlier show end skipped because PowerPoint did not answer, before this show's
                 // pre-load opens its own copies (fix-ppt-show-end-timeout T3).
                 Gf.RetryPowerPointCleanUp("Start_Presentation");
+                if (MainFormClosing || !Gf.ShowRunning)
+                    return;
+
                 FormWindowState formWindowState;
                 if (Gf.DualMonitorMode)
                 {
@@ -4652,6 +4668,9 @@ namespace Easislides
                     formWindowState = (base.WindowState = base.WindowState);
 
                     gfFileHelpers.PreLoadPowerpointFiles(ref Gf.LivePP, ref Gf.WorshipSongs);
+                    if (MainFormClosing || !Gf.ShowRunning)
+                        return;
+
                     bool started = false;
                     try
                     {
@@ -4691,6 +4710,14 @@ namespace Easislides
                 formWindowState = base.WindowState;
                 base.WindowState = FormWindowState.Minimized;
                 gfFileHelpers.PreLoadPowerpointFiles(ref Gf.LivePP, ref Gf.WorshipSongs);
+                if (MainFormClosing)
+                    return;
+                if (!Gf.ShowRunning)
+                {
+                    base.WindowState = formWindowState;
+                    return;
+                }
+
                 EnsureLiveShowWindow();
                 try
                 {
@@ -5879,6 +5906,8 @@ namespace Easislides
             }
             if (Gf.Options_DMChanged)
             {
+                ResizePreviewBottomPanel();
+                ResizeOutputBottomPanel();
                 SetMainDefaultBackScreen();
                 LoadItem(ref Gf.PreviewItem, Gf.PreviewItem.Type + Gf.PreviewItem.ItemID, Gf.PreviewItem.Format.FormatString, Gf.PreviewItem.CurSlide);
                 LoadItem(ref Gf.OutputItem, Gf.OutputItem.Type + Gf.OutputItem.ItemID, Gf.OutputItem.Format.FormatString, Gf.OutputItem.CurSlide);
@@ -6746,10 +6775,8 @@ namespace Easislides
 
         private void PlayMediaOnOutputMonitor(string mediaFilePath)
         {
-            // Check the output monitor setting
-            string outputMonitorName = Gf.OutputMonitorName;
-
-            if (string.IsNullOrEmpty(outputMonitorName) || outputMonitorName == "None")
+            var output = DisplayInfo.ResolveLaunchDisplays().Output;
+            if (!output.Enabled)
             {
                 MessageBox.Show("Please configure Output Monitor in Options first.");
                 return;
@@ -6779,7 +6806,7 @@ namespace Easislides
                 AddHookMediaPlayer();
 
                 // Apply the output monitor
-                _mediaPlayerWindow.ApplyOutputMonitor(outputMonitorName);
+                _mediaPlayerWindow.ApplyOutputMonitor(output);
 
                 // Set the media file path
                 Gf.LiveItem.Format.MediaOption = 2; // 2 = path given directly

@@ -84,7 +84,7 @@ namespace Easislides
 
 		//private FrmLaunchMediaPlayer MediaPlayerWindow = new FrmLaunchMediaPlayer();
 
-		//private FrmLyricsScreen LyricsWindow = new FrmLyricsScreen();
+		private FrmLyricsScreen lyricsWindow;
 
 		public event Message OnMessage;
 
@@ -127,7 +127,7 @@ namespace Easislides
 				graphics.Dispose();
 			}
 			FirstLoadCompleted = true;
-			StartInitCompleted = true;
+			StartInitCompleted = Gf.ShowRunning;
 		}
 
 		/// <summary>
@@ -158,6 +158,7 @@ namespace Easislides
 			TimerMouseDown.Interval = Gf.AlertGap;
 			TimerOpacity.Interval = Gf.AlertGap;
 			Gf.LiveItem.Initialise();
+			Gf.tbLyricsMonitorSpace.Clear();
 			Gf.RestartItemActioned = true;
 			Gf.SetDefaultBackScreen(ref LiveScreen);
 
@@ -199,6 +200,11 @@ namespace Easislides
 			{
 				LoadWorshipListItemToLive((!Gf.AdHocItemPresent) ? Gf.StartPresAt : 0, Gf.OutputItem.CurSlide, ImageTransitionControl.TransitionAction.AsStored);
 			}
+			if (!Gf.ShowRunning)
+			{
+				FirstItemBeingProcessed = false;
+				return;
+			}
 			if (Gf.MessageAlertRequested)
 			{
 				Remote_MessageAlertRequested();
@@ -208,6 +214,7 @@ namespace Easislides
 				Remote_ParentalAlertRequested();
 			}
 			FirstItemBeingProcessed = false;
+			OpenLyricsMonitor();
 			//if (Gf.ShowLiveCam)
 			//{
 			//	Remote_LiveCamStartStop();
@@ -284,7 +291,7 @@ namespace Easislides
 
 		public void Remote_WorshipListChanged()
 		{
-			//RemoteControlLyricsWindow(LyricsWindowAction.Remote_WorshipListChanged);
+			lyricsWindow?.Remote_WorshipListChanged();
 		}
 
 		//public void Remote_LiveCamStartStop()
@@ -328,6 +335,39 @@ namespace Easislides
 		//	}
 		//}
 
+		internal void OpenLyricsMonitor()
+		{
+			if (!Gf.ShowRunning || !DisplayInfo.Lyrics.Enabled)
+				return;
+
+			try
+			{
+				lyricsWindow = new FrmLyricsScreen(DisplayInfo.Lyrics);
+				lyricsWindow.PrepareLayout();
+				lyricsWindow.Show(this);
+				lyricsWindow.Remote_ItemChanged();
+				lyricsWindow.Remote_LyricsAlertChanged();
+			}
+			catch (Exception ex)
+			{
+				FrmMain.WriteDebugLog("Opening lyrics monitor failed: " + ex.Message);
+				CloseLyricsMonitor();
+			}
+		}
+
+		internal void CloseLyricsMonitor()
+		{
+			var window = lyricsWindow;
+			lyricsWindow = null;
+			try
+			{
+				window?.Dispose();
+			}
+			catch (Exception ex)
+			{
+				FrmMain.WriteDebugLog("Closing lyrics monitor failed: " + ex.Message);
+			}
+		}
 		private void SetShowWindow(bool max)
 		{
 			if (max)
@@ -355,7 +395,7 @@ namespace Easislides
 			{
 				return Gf.MediaOutputMonitorName;
 			}
-			return Gf.OutputMonitorName;
+			return DisplayInfo.ActiveOutputMonitorName;
 		}
 
 		/// <summary>
@@ -615,6 +655,7 @@ namespace Easislides
 
 		private void FormClosingCleanup()
 		{
+			CloseLyricsMonitor();
 			Gf.ResetShowRunningSettings();
 			Gf.MessageAlertLive = false;
 			Gf.ParentalAlertLive = false;
@@ -811,7 +852,7 @@ namespace Easislides
 		public void Remote_LyricsAlertRequested()
 		{
 			Gf.LyricsAlertRequested = false;
-			//RemoteControlLyricsWindow(LyricsWindowAction.Remote_LyricsAlertChanged);
+			lyricsWindow?.Remote_LyricsAlertChanged();
 		}
 
 		public void Remote_RotateOnOffChanged()
@@ -1221,7 +1262,7 @@ namespace Easislides
 		{
 			Gf.ShowRunning_ShowNotations = ((Gf.ShowRunning_ShowNotations <= 0) ? 1 : 0);
 			ShowSong(ref Gf.LiveItem, 1, ImageTransitionControl.TransitionAction.None);
-			//RemoteControlLyricsWindow(LyricsWindowAction.Remote_ItemChanged);
+			lyricsWindow?.Remote_ItemChanged();
 		}
 
 		private void ToggleInterlace()
@@ -1370,7 +1411,7 @@ namespace Easislides
 					Gf.SetTransparentBackground(InItem, ref LiveScreen);
 				}
 				Gf.DrawText(ref InItem, ref LiveScreen, InItem.LyricsAndNotationsList, DoActiveIndicator: false, ClearAll: false);
-				//RemoteControlLyricsWindow(LyricsWindowAction.Remote_LyricsChanged);
+				lyricsWindow?.Remote_LyricsChanged();
 				return true;
 			}
 			if (TransitionAction == ImageTransitionControl.TransitionAction.AsStored)
@@ -1390,7 +1431,7 @@ namespace Easislides
 			{
 				Gf.ResetPictureBox(ref InItem, ref LiveScreen, GapType.Default, TransitionAction);
 			}
-			//RemoteControlLyricsWindow(LyricsWindowAction.Remote_LyricsChanged);
+			lyricsWindow?.Remote_LyricsChanged();
 			return flag;
 		}
 
@@ -1716,7 +1757,7 @@ namespace Easislides
 				ShowSlide(ref Gf.LiveItem, ImageTransitionControl.TransitionAction.None, DoActiveIndicator: false, RedoBackground: true);
 				RemoteControlMediaPlayerWindow(MediaPlayerWindowAction.Remote_ClearScreen);
 				Gf.tbLyricsMonitorSpace.Text = "";
-				//RemoteControlLyricsWindow(LyricsWindowAction.Remote_ItemChanged);
+				lyricsWindow?.Remote_ItemChanged();
 				SetScreenOnTop(StartTimer: true);
 				return;
 			}
@@ -1798,7 +1839,7 @@ namespace Easislides
 			{
 				ShowSlide(ref InItem, TransitionAction, DoActiveIndicator: false, RedoBackground: true);
 			}
-			//RemoteControlLyricsWindow(LyricsWindowAction.Remote_ItemChanged);
+			lyricsWindow?.Remote_ItemChanged();
 			if (InItem.Format.MediaTransparent)
 			{
 				Gf.MinimizePowerPointWindows(ref Gf.LivePP);
@@ -1875,7 +1916,7 @@ namespace Easislides
 				}
 				if (inMediaOutputMonitorName == "")
 				{
-					inMediaOutputMonitorName = Gf.OutputMonitorName;
+					inMediaOutputMonitorName = DisplayInfo.ActiveOutputMonitorName;
 				}
 				string mediaLocation = Gf.GetMediaLocation(inMediaOption, inTitle, Title, inUseDefaultFormat, text, inMediaLocation, inMediaCaptureDeviceNumber);
 				if (Gf.CurrentMediaLocation == mediaLocation)
@@ -2228,9 +2269,10 @@ namespace Easislides
 					// A later show of the same window: Load does not run again, this is its initialisation.
 					StartInitCompleted = false;
 					InitForm();
-					StartInitCompleted = true;
+					StartInitCompleted = Gf.ShowRunning;
 				}
-				Activate();
+				if (Gf.ShowRunning)
+					Activate();
 			}
 		}
 
