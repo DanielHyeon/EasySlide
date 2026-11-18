@@ -545,8 +545,8 @@ namespace Easislides
 		{
 			BitsArraySet.Clear();
 			TotalBitsArraySet = 0;
-			int num = (_activeTransitionType == TransitionTypes.Dissolve) ? 90000 : 20000;
-			DissolveSize = base.Height * base.Width / num + 1;
+			int sizeDivisor = (_activeTransitionType == TransitionTypes.Dissolve) ? 90000 : 20000;
+			DissolveSize = base.Height * base.Width / sizeDivisor + 1;
 			DissolveCountX = base.Width / DissolveSize + 1;
 			DissolveCountY = base.Height / DissolveSize + 1;
 			DissolveTotal = DissolveCountX * DissolveCountY;
@@ -709,7 +709,7 @@ namespace Easislides
 
 		public void Go(TransitionAction TransitionAction, bool InFirstShowing, bool ClearAll, bool DoActiveIndicator, bool LiveCamOnShow)
 		{
-			ItemFirstShowing = ((InFirstShowing || DoActiveIndicator) ? true : false);
+			ItemFirstShowing = InFirstShowing || DoActiveIndicator;
 			// Composed into a local bitmap first: if composing throws, the bitmap is disposed here and
 			// neither Newbmp nor any picture of this control refers to it.
 			Bitmap composed = new Bitmap(NewBackgroundPicture.Width, NewBackgroundPicture.Height, PixelFormat.Format32bppPArgb);
@@ -1068,10 +1068,10 @@ namespace Easislides
 		private readonly List<IDisposable> _frameObjects = new List<IDisposable>();
 
 		/// <summary>Registers an object made for the frame being painted (see _frameObjects) and returns it.</summary>
-		private T FrameObject<T>(T obj) where T : IDisposable
+		private T FrameObject<T>(T disposable) where T : IDisposable
 		{
-			_frameObjects.Add(obj);
-			return obj;
+			_frameObjects.Add(disposable);
+			return disposable;
 		}
 
 		/// <summary>
@@ -1157,62 +1157,62 @@ namespace Easislides
 				{
 					// Reusing cached ImageAttributes
 					// Reusing cached ColorMatrix
-					float num = 0f;
-					int num2 = 0;
-					float num3 = 0f;
+					float slideDistance = 0f;
+					int offsetY = 0;
+					float alpha = 0f;
 					if (TransitBackPictureAction == BackPicturesTransition.None)
 					{
 						DrawImageToOutput(e, _currentBackgroundPicture, base.ClientRectangle, new Rectangle(0, 0, _currentBackgroundPicture.Width, _currentBackgroundPicture.Height), null);
-						num3 = 0.003921569f * (255f * (1f - _framePercentage / 60f));
-						num3 = (_cachedColorMatrix.Matrix33 = ((num3 > 1f) ? 1f : ((num3 < 0f) ? 0f : num3)));
+						alpha = 0.003921569f * (255f * (1f - _framePercentage / 60f));
+						alpha = (_cachedColorMatrix.Matrix33 = ((alpha > 1f) ? 1f : ((alpha < 0f) ? 0f : alpha)));
 						_cachedImageAttributes.SetColorMatrix(_cachedColorMatrix);
 						DrawImageToOutput(e, _currentTextImage, base.ClientRectangle, new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), _cachedImageAttributes, PanelType.Current);
-						num3 = 0.003921569f * (510f * _framePercentage / 100f);
-						num3 = (_cachedColorMatrix.Matrix33 = ((num3 > 1f) ? 1f : ((num3 < 0f) ? 0f : num3)));
+						alpha = 0.003921569f * (510f * _framePercentage / 100f);
+						alpha = (_cachedColorMatrix.Matrix33 = ((alpha > 1f) ? 1f : ((alpha < 0f) ? 0f : alpha)));
 						_cachedImageAttributes.SetColorMatrix(_cachedColorMatrix);
-						num = 0.15f * (float)_newCombinedImage.Height;
-						num2 = (int)(num * _framePercentage / 100f - num);
-						DrawImageToOutput(e, _newTextImage, base.ClientRectangle, new Rectangle(0, num2, _newCombinedImage.Width, _newCombinedImage.Height), _cachedImageAttributes, PanelType.New);
+						slideDistance = 0.15f * (float)_newCombinedImage.Height;
+						offsetY = (int)(slideDistance * _framePercentage / 100f - slideDistance);
+						DrawImageToOutput(e, _newTextImage, base.ClientRectangle, new Rectangle(0, offsetY, _newCombinedImage.Width, _newCombinedImage.Height), _cachedImageAttributes, PanelType.New);
 					}
 					else
 					{
 						Draw_CurrentImage(e);
 						_cachedColorMatrix.Matrix33 = 0.003921569f * (255f * _framePercentage / 100f);
 						_cachedImageAttributes.SetColorMatrix(_cachedColorMatrix);
-						num = 0.15f * (float)_newCombinedImage.Height;
-						num2 = (int)(num * _framePercentage / 100f - num);
-						DrawImageToOutput(e, _newCombinedImage, base.ClientRectangle, new Rectangle(0, num2, _newCombinedImage.Width, _newCombinedImage.Height), _cachedImageAttributes);
+						slideDistance = 0.15f * (float)_newCombinedImage.Height;
+						offsetY = (int)(slideDistance * _framePercentage / 100f - slideDistance);
+						DrawImageToOutput(e, _newCombinedImage, base.ClientRectangle, new Rectangle(0, offsetY, _newCombinedImage.Width, _newCombinedImage.Height), _cachedImageAttributes);
 					}
 				}
 				else if (_activeTransitionType == TransitionTypes.Descend)
 				{
 					// Reusing cached ImageAttributes
 					// Reusing cached ColorMatrix
-					float num = 0f;
-					int num2 = 0;
-					float num3 = 0f;
+					float slideDistance = 0f;
+					int offsetY = 0;
+					float alpha = 0f;
 					if (TransitBackPictureAction == BackPicturesTransition.None)
 					{
 						DrawImageToOutput(e, _currentBackgroundPicture, base.ClientRectangle, new Rectangle(0, 0, _currentBackgroundPicture.Width, _currentBackgroundPicture.Height), null);
-						num3 = 0.003921569f * (255f * (1f - _framePercentage / 60f));
-						num3 = (_cachedColorMatrix.Matrix33 = ((num3 > 1f) ? 1f : ((num3 < 0f) ? 0f : num3)));
+						alpha = 0.003921569f * (255f * (1f - _framePercentage / 60f));
+						alpha = (_cachedColorMatrix.Matrix33 = ((alpha > 1f) ? 1f : ((alpha < 0f) ? 0f : alpha)));
 						_cachedImageAttributes.SetColorMatrix(_cachedColorMatrix);
 						DrawImageToOutput(e, _currentTextImage, base.ClientRectangle, new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), _cachedImageAttributes, PanelType.Current);
-						num3 = 0.003921569f * (510f * _framePercentage / 100f);
-						num3 = (_cachedColorMatrix.Matrix33 = ((num3 > 1f) ? 1f : ((num3 < 0f) ? 0f : num3)));
+						alpha = 0.003921569f * (510f * _framePercentage / 100f);
+						alpha = (_cachedColorMatrix.Matrix33 = ((alpha > 1f) ? 1f : ((alpha < 0f) ? 0f : alpha)));
 						_cachedImageAttributes.SetColorMatrix(_cachedColorMatrix);
-						num = 0.15f * (float)_newCombinedImage.Height;
-						num2 = (int)(num - num * _framePercentage / 100f);
-						DrawImageToOutput(e, _newTextImage, base.ClientRectangle, new Rectangle(0, num2, _newCombinedImage.Width, _newCombinedImage.Height), _cachedImageAttributes, PanelType.New);
+						slideDistance = 0.15f * (float)_newCombinedImage.Height;
+						offsetY = (int)(slideDistance - slideDistance * _framePercentage / 100f);
+						DrawImageToOutput(e, _newTextImage, base.ClientRectangle, new Rectangle(0, offsetY, _newCombinedImage.Width, _newCombinedImage.Height), _cachedImageAttributes, PanelType.New);
 					}
 					else
 					{
 						Draw_CurrentImage(e);
 						_cachedColorMatrix.Matrix33 = 0.003921569f * (255f * _framePercentage / 100f);
 						_cachedImageAttributes.SetColorMatrix(_cachedColorMatrix);
-						num = 0.15f * (float)_newCombinedImage.Height;
-						num2 = (int)(num - num * _framePercentage / 100f);
-						DrawImageToOutput(e, _newCombinedImage, base.ClientRectangle, new Rectangle(0, num2, _newCombinedImage.Width, _newCombinedImage.Height), _cachedImageAttributes);
+						slideDistance = 0.15f * (float)_newCombinedImage.Height;
+						offsetY = (int)(slideDistance - slideDistance * _framePercentage / 100f);
+						DrawImageToOutput(e, _newCombinedImage, base.ClientRectangle, new Rectangle(0, offsetY, _newCombinedImage.Width, _newCombinedImage.Height), _cachedImageAttributes);
 					}
 				}
 				else if (_activeTransitionType == TransitionTypes.DoorsOpen)
@@ -1220,30 +1220,30 @@ namespace Easislides
 					CreateFrameWorkSpace(_newBackgroundPicture.Width, _newBackgroundPicture.Height);
 					try
 					{
-						int srcX = 0;
-						int srcY = 0;
-						int srcWidth = Convert.ToInt32(_newBackgroundPicture.Width / 2);
-						int height = _newBackgroundPicture.Height;
-						Rectangle destRect = new Rectangle(0, 0, Convert.ToInt32((float)(_newBackgroundPicture.Width / 2) - (float)_newBackgroundPicture.Width * _framePercentage / 200f), _newBackgroundPicture.Height);
-						int srcX2 = Convert.ToInt32(_newBackgroundPicture.Width / 2);
-						int srcY2 = 0;
-						int srcWidth2 = Convert.ToInt32(_newBackgroundPicture.Width / 2);
-						int height2 = _newBackgroundPicture.Height;
-						Rectangle destRect2 = new Rectangle(Convert.ToInt32((float)(_newBackgroundPicture.Width / 2) + (float)_newBackgroundPicture.Width * _framePercentage / 200f), 0, Convert.ToInt32((float)(_newBackgroundPicture.Width / 2) - (float)_newBackgroundPicture.Width * _framePercentage / 200f), _newBackgroundPicture.Height);
+						int leftSrcX = 0;
+						int leftSrcY = 0;
+						int leftSrcWidth = Convert.ToInt32(_newBackgroundPicture.Width / 2);
+						int leftSrcHeight = _newBackgroundPicture.Height;
+						Rectangle leftDestRect = new Rectangle(0, 0, Convert.ToInt32((float)(_newBackgroundPicture.Width / 2) - (float)_newBackgroundPicture.Width * _framePercentage / 200f), _newBackgroundPicture.Height);
+						int rightSrcX = Convert.ToInt32(_newBackgroundPicture.Width / 2);
+						int rightSrcY = 0;
+						int rightSrcWidth = Convert.ToInt32(_newBackgroundPicture.Width / 2);
+						int rightSrcHeight = _newBackgroundPicture.Height;
+						Rectangle rightDestRect = new Rectangle(Convert.ToInt32((float)(_newBackgroundPicture.Width / 2) + (float)_newBackgroundPicture.Width * _framePercentage / 200f), 0, Convert.ToInt32((float)(_newBackgroundPicture.Width / 2) - (float)_newBackgroundPicture.Width * _framePercentage / 200f), _newBackgroundPicture.Height);
 						if (TransitBackPictureAction == BackPicturesTransition.None)
 						{
 							Draw_NewImage(e);
-							wsg.DrawImage(_newBackgroundPicture, destRect, destRect.X, destRect.Y, destRect.Width, destRect.Height, GraphicsUnit.Pixel);
-							wsg.DrawImage(_newBackgroundPicture, destRect2, destRect2.X, destRect2.Y, destRect2.Width, destRect2.Height, GraphicsUnit.Pixel);
-							wsg.DrawImage(_currentTextImage, destRect, srcX, srcY, srcWidth, height, GraphicsUnit.Pixel);
-							wsg.DrawImage(_currentTextImage, destRect2, srcX2, srcY2, srcWidth2, height2, GraphicsUnit.Pixel);
+							wsg.DrawImage(_newBackgroundPicture, leftDestRect, leftDestRect.X, leftDestRect.Y, leftDestRect.Width, leftDestRect.Height, GraphicsUnit.Pixel);
+							wsg.DrawImage(_newBackgroundPicture, rightDestRect, rightDestRect.X, rightDestRect.Y, rightDestRect.Width, rightDestRect.Height, GraphicsUnit.Pixel);
+							wsg.DrawImage(_currentTextImage, leftDestRect, leftSrcX, leftSrcY, leftSrcWidth, leftSrcHeight, GraphicsUnit.Pixel);
+							wsg.DrawImage(_currentTextImage, rightDestRect, rightSrcX, rightSrcY, rightSrcWidth, rightSrcHeight, GraphicsUnit.Pixel);
 							DrawImageToOutput(e, _workSpace, base.ClientRectangle, new Rectangle(0, 0, _workSpace.Width, _workSpace.Height), null, PanelType.Current);
 						}
 						else
 						{
 							Draw_NewImage(e);
-							wsg.DrawImage(_currentCombinedImage, destRect, srcX, srcY, srcWidth, height, GraphicsUnit.Pixel);
-							wsg.DrawImage(_currentCombinedImage, destRect2, srcX2, srcY2, srcWidth2, height2, GraphicsUnit.Pixel);
+							wsg.DrawImage(_currentCombinedImage, leftDestRect, leftSrcX, leftSrcY, leftSrcWidth, leftSrcHeight, GraphicsUnit.Pixel);
+							wsg.DrawImage(_currentCombinedImage, rightDestRect, rightSrcX, rightSrcY, rightSrcWidth, rightSrcHeight, GraphicsUnit.Pixel);
 							DrawImageToOutput(e, _workSpace, base.ClientRectangle, new Rectangle(0, 0, _workSpace.Width, _workSpace.Height), null);
 						}
 					}
@@ -1258,30 +1258,30 @@ namespace Easislides
 					CreateFrameWorkSpace(_newBackgroundPicture.Width, _newBackgroundPicture.Height);
 					try
 					{
-						int srcX = 0;
-						int srcY = 0;
-						int srcWidth = Convert.ToInt32(_newBackgroundPicture.Width / 2);
-						int height = _newBackgroundPicture.Height;
-						Rectangle destRect = new Rectangle(0, 0, Convert.ToInt32((float)_newBackgroundPicture.Width * _framePercentage / 200f), _newBackgroundPicture.Height);
-						int srcX2 = Convert.ToInt32(_newBackgroundPicture.Width / 2);
-						int srcY2 = 0;
-						int srcWidth2 = Convert.ToInt32(_newBackgroundPicture.Width / 2);
-						int height2 = _newBackgroundPicture.Height;
-						Rectangle destRect2 = new Rectangle(Convert.ToInt32((float)_newBackgroundPicture.Width - (float)_newBackgroundPicture.Width * _framePercentage / 200f), 0, Convert.ToInt32((float)_newBackgroundPicture.Width * _framePercentage / 200f), _newBackgroundPicture.Height);
+						int leftSrcX = 0;
+						int leftSrcY = 0;
+						int leftSrcWidth = Convert.ToInt32(_newBackgroundPicture.Width / 2);
+						int leftSrcHeight = _newBackgroundPicture.Height;
+						Rectangle leftDestRect = new Rectangle(0, 0, Convert.ToInt32((float)_newBackgroundPicture.Width * _framePercentage / 200f), _newBackgroundPicture.Height);
+						int rightSrcX = Convert.ToInt32(_newBackgroundPicture.Width / 2);
+						int rightSrcY = 0;
+						int rightSrcWidth = Convert.ToInt32(_newBackgroundPicture.Width / 2);
+						int rightSrcHeight = _newBackgroundPicture.Height;
+						Rectangle rightDestRect = new Rectangle(Convert.ToInt32((float)_newBackgroundPicture.Width - (float)_newBackgroundPicture.Width * _framePercentage / 200f), 0, Convert.ToInt32((float)_newBackgroundPicture.Width * _framePercentage / 200f), _newBackgroundPicture.Height);
 						if (TransitBackPictureAction == BackPicturesTransition.None)
 						{
 							Draw_CurrentImage(e);
-							wsg.DrawImage(_newBackgroundPicture, destRect, destRect.X, destRect.Y, destRect.Width, destRect.Height, GraphicsUnit.Pixel);
-							wsg.DrawImage(_newBackgroundPicture, destRect2, destRect2.X, destRect2.Y, destRect2.Width, destRect2.Height, GraphicsUnit.Pixel);
-							wsg.DrawImage(_newTextImage, destRect, srcX, srcY, srcWidth, height, GraphicsUnit.Pixel);
-							wsg.DrawImage(_newTextImage, destRect2, srcX2, srcY2, srcWidth2, height2, GraphicsUnit.Pixel);
+							wsg.DrawImage(_newBackgroundPicture, leftDestRect, leftDestRect.X, leftDestRect.Y, leftDestRect.Width, leftDestRect.Height, GraphicsUnit.Pixel);
+							wsg.DrawImage(_newBackgroundPicture, rightDestRect, rightDestRect.X, rightDestRect.Y, rightDestRect.Width, rightDestRect.Height, GraphicsUnit.Pixel);
+							wsg.DrawImage(_newTextImage, leftDestRect, leftSrcX, leftSrcY, leftSrcWidth, leftSrcHeight, GraphicsUnit.Pixel);
+							wsg.DrawImage(_newTextImage, rightDestRect, rightSrcX, rightSrcY, rightSrcWidth, rightSrcHeight, GraphicsUnit.Pixel);
 							DrawImageToOutput(e, _workSpace, base.ClientRectangle, new Rectangle(0, 0, _workSpace.Width, _workSpace.Height), null, PanelType.New);
 						}
 						else
 						{
 							Draw_CurrentImage(e);
-							wsg.DrawImage(_newCombinedImage, destRect, srcX, srcY, srcWidth, height, GraphicsUnit.Pixel);
-							wsg.DrawImage(_newCombinedImage, destRect2, srcX2, srcY2, srcWidth2, height2, GraphicsUnit.Pixel);
+							wsg.DrawImage(_newCombinedImage, leftDestRect, leftSrcX, leftSrcY, leftSrcWidth, leftSrcHeight, GraphicsUnit.Pixel);
+							wsg.DrawImage(_newCombinedImage, rightDestRect, rightSrcX, rightSrcY, rightSrcWidth, rightSrcHeight, GraphicsUnit.Pixel);
 							DrawImageToOutput(e, _workSpace, base.ClientRectangle, new Rectangle(0, 0, _workSpace.Width, _workSpace.Height), null);
 						}
 					}
@@ -1311,9 +1311,9 @@ namespace Easislides
 				{
 					Draw_CurrentImage(e);
 					graphicsPath = FrameObject(new GraphicsPath());
-					int num8 = Convert.ToInt32((float)base.Width * _framePercentage / 200f);
-					int num9 = Convert.ToInt32((float)base.Height * _framePercentage / 200f);
-					graphicsPath.AddRectangle(new Rectangle(Convert.ToInt32(base.Width / 2 - num8), Convert.ToInt32(base.Height / 2 - num9), Convert.ToInt32(2 * num8), Convert.ToInt32(2 * num9)));
+					int halfWidth = Convert.ToInt32((float)base.Width * _framePercentage / 200f);
+					int halfHeight = Convert.ToInt32((float)base.Height * _framePercentage / 200f);
+					graphicsPath.AddRectangle(new Rectangle(Convert.ToInt32(base.Width / 2 - halfWidth), Convert.ToInt32(base.Height / 2 - halfHeight), Convert.ToInt32(2 * halfWidth), Convert.ToInt32(2 * halfHeight)));
 					e.Graphics.SetClip(graphicsPath, CombineMode.Replace);
 					Draw_NewImage(e);
 					graphicsPath.Dispose();
@@ -1328,9 +1328,9 @@ namespace Easislides
 					graphicsPath = FrameObject(new GraphicsPath());
 					// Measured from the edges inwards, so the first frame's rectangle is exactly the client
 					// area (also for an odd width or height).
-					int num8 = Convert.ToInt32((float)base.Width * _framePercentage / 200f);
-					int num9 = Convert.ToInt32((float)base.Height * _framePercentage / 200f);
-					graphicsPath.AddRectangle(new Rectangle(num8, num9, Math.Max(0, base.Width - 2 * num8), Math.Max(0, base.Height - 2 * num9)));
+					int insetX = Convert.ToInt32((float)base.Width * _framePercentage / 200f);
+					int insetY = Convert.ToInt32((float)base.Height * _framePercentage / 200f);
+					graphicsPath.AddRectangle(new Rectangle(insetX, insetY, Math.Max(0, base.Width - 2 * insetX), Math.Max(0, base.Height - 2 * insetY)));
 					e.Graphics.SetClip(base.ClientRectangle, CombineMode.Replace);
 					e.Graphics.SetClip(graphicsPath, CombineMode.Exclude);
 					Draw_NewImage(e);
@@ -1340,28 +1340,28 @@ namespace Easislides
 				{
 					Draw_CurrentImage(e);
 					graphicsPath = FrameObject(new GraphicsPath());
-					int width = Convert.ToInt32((float)base.Width * _framePercentage / 100f) / _nHDivs;
+					int cellWidth = Convert.ToInt32((float)base.Width * _framePercentage / 100f) / _nHDivs;
 					// At least 1 px: on a screen smaller than the divisions the steps were 0 and the loops never ended.
-					int num10 = Math.Max(1, base.Height / _nVDivs);
+					int cellHeight = Math.Max(1, base.Height / _nVDivs);
 					int stepX = Math.Max(1, base.Width / _nHDivs);
-					int num11 = 0;
-					for (int i = 0; i <= base.Height; i += num10)
+					int rowIndex = 0;
+					for (int i = 0; i <= base.Height; i += cellHeight)
 					{
 						for (int j = 0; j <= base.Width; j += stepX)
 						{
-							Rectangle rect = new Rectangle(j, i, width, num10);
-							if ((num11 & 1) == 1)
+							Rectangle rect = new Rectangle(j, i, cellWidth, cellHeight);
+							if ((rowIndex & 1) == 1)
 							{
 								rect.Offset(base.Width / (2 * _nVDivs), 0);
 							}
 							graphicsPath.AddRectangle(rect);
-							if (_framePercentage >= 50f && (num11 & 1) == 1 && j == 0)
+							if (_framePercentage >= 50f && (rowIndex & 1) == 1 && j == 0)
 							{
 								rect.Offset(-(base.Width / _nHDivs), 0);
 								graphicsPath.AddRectangle(rect);
 							}
 						}
-						num11++;
+						rowIndex++;
 					}
 					Region region = FrameObject(new Region(graphicsPath));
 					e.Graphics.SetClip(region, CombineMode.Replace);
@@ -1373,8 +1373,8 @@ namespace Easislides
 				{
 					Draw_CurrentImage(e);
 					graphicsPath = FrameObject(new GraphicsPath());
-					int num8 = Convert.ToInt32((float)base.Width * 1.414f * _framePercentage / 200f);
-					graphicsPath.AddEllipse(Convert.ToInt32(base.Width / 2 - num8), Convert.ToInt32(base.Height / 2 - num8), Convert.ToInt32(2 * num8), Convert.ToInt32(2 * num8));
+					int radius = Convert.ToInt32((float)base.Width * 1.414f * _framePercentage / 200f);
+					graphicsPath.AddEllipse(Convert.ToInt32(base.Width / 2 - radius), Convert.ToInt32(base.Height / 2 - radius), Convert.ToInt32(2 * radius), Convert.ToInt32(2 * radius));
 					e.Graphics.SetClip(graphicsPath, CombineMode.Replace);
 					Draw_NewImage(e);
 					graphicsPath.Dispose();
@@ -1384,11 +1384,11 @@ namespace Easislides
 					Draw_CurrentImage(e);
 					graphicsPath = FrameObject(new GraphicsPath());
 					graphicsPath2 = FrameObject(new GraphicsPath());
-					int num8 = Convert.ToInt32((float)base.Width * _framePercentage / 200f);
-					int num9 = Convert.ToInt32((float)base.Height * _framePercentage / 40f);
-					graphicsPath.AddRectangle(new Rectangle(Convert.ToInt32(base.Width / 2 - num9), Convert.ToInt32(base.Height / 2 - num8), Convert.ToInt32(2 * num9), Convert.ToInt32(2 * num8)));
+					int armHalfLength = Convert.ToInt32((float)base.Width * _framePercentage / 200f);
+					int armHalfWidth = Convert.ToInt32((float)base.Height * _framePercentage / 40f);
+					graphicsPath.AddRectangle(new Rectangle(Convert.ToInt32(base.Width / 2 - armHalfWidth), Convert.ToInt32(base.Height / 2 - armHalfLength), Convert.ToInt32(2 * armHalfWidth), Convert.ToInt32(2 * armHalfLength)));
 					e.Graphics.SetClip(graphicsPath, CombineMode.Replace);
-					graphicsPath.AddRectangle(new Rectangle(Convert.ToInt32(base.Width / 2 - num8), Convert.ToInt32(base.Height / 2 - num9), Convert.ToInt32(2 * num8), Convert.ToInt32(2 * num9)));
+					graphicsPath.AddRectangle(new Rectangle(Convert.ToInt32(base.Width / 2 - armHalfLength), Convert.ToInt32(base.Height / 2 - armHalfWidth), Convert.ToInt32(2 * armHalfLength), Convert.ToInt32(2 * armHalfWidth)));
 					e.Graphics.SetClip(graphicsPath, CombineMode.Union);
 					Draw_NewImage(e);
 					graphicsPath.Dispose();
@@ -1396,17 +1396,17 @@ namespace Easislides
 				else if (_activeTransitionType == TransitionTypes.Diamond)
 				{
 					Draw_CurrentImage(e);
-					int num8 = Convert.ToInt32((float)base.Width * _framePercentage / 100f);
-					int num9 = Convert.ToInt32((float)base.Height * _framePercentage / 100f);
-					int num12 = Convert.ToInt32(base.Width / 2);
-					int num13 = Convert.ToInt32(base.Height / 2);
+					int halfWidth = Convert.ToInt32((float)base.Width * _framePercentage / 100f);
+					int halfHeight = Convert.ToInt32((float)base.Height * _framePercentage / 100f);
+					int centerX = Convert.ToInt32(base.Width / 2);
+					int centerY = Convert.ToInt32(base.Height / 2);
 					graphicsPath = FrameObject(new GraphicsPath());
 					graphicsPath.AddPolygon(new Point[4]
 					{
-						new Point(num12, num13 - num9),
-						new Point(num12 - num8, num13),
-						new Point(num12, num13 + num9),
-						new Point(num12 + num8, num13)
+						new Point(centerX, centerY - halfHeight),
+						new Point(centerX - halfWidth, centerY),
+						new Point(centerX, centerY + halfHeight),
+						new Point(centerX + halfWidth, centerY)
 					});
 					e.Graphics.SetClip(graphicsPath, CombineMode.Replace);
 					Draw_NewImage(e);
@@ -1439,33 +1439,33 @@ namespace Easislides
 					else
 					{
 						CreateFrameWorkSpace(_newBackgroundPicture.Width, _newBackgroundPicture.Height);
-						int srcX3 = 0;
-						int srcY3 = 0;
-						int width2 = _currentCombinedImage.Width;
-						int height3 = _currentCombinedImage.Height;
-						int x = 0;
-						int num14 = 0;
-						int width3 = _currentCombinedImage.Width;
-						int num15 = 0;
+						int srcX = 0;
+						int srcY = 0;
+						int srcWidth = _currentCombinedImage.Width;
+						int srcHeight = _currentCombinedImage.Height;
+						int destX = 0;
+						int destY = 0;
+						int destWidth = _currentCombinedImage.Width;
+						int destHeight = 0;
 						switch (TransitBackPictureAction)
 						{
 							case BackPicturesTransition.CurrentOnly:
 								DrawBackPatternOnWorkSpace(ref wsg, BackgroundImage);
 								if (_framePercentage < 50f)
 								{
-									num14 = Convert.ToInt32((float)_currentCombinedImage.Height * _framePercentage / 100f);
-									num15 = Convert.ToInt32((float)_currentCombinedImage.Height - (float)_currentCombinedImage.Height * _framePercentage / 50f);
-									Rectangle destRect3 = new Rectangle(x, num14, width3, num15);
-									wsg.DrawImage(_currentCombinedImage, destRect3, srcX3, srcY3, width2, height3, GraphicsUnit.Pixel);
+									destY = Convert.ToInt32((float)_currentCombinedImage.Height * _framePercentage / 100f);
+									destHeight = Convert.ToInt32((float)_currentCombinedImage.Height - (float)_currentCombinedImage.Height * _framePercentage / 50f);
+									Rectangle destRect = new Rectangle(destX, destY, destWidth, destHeight);
+									wsg.DrawImage(_currentCombinedImage, destRect, srcX, srcY, srcWidth, srcHeight, GraphicsUnit.Pixel);
 									DrawImageToOutput(e, _workSpace, base.ClientRectangle, new Rectangle(0, 0, _workSpace.Width, _workSpace.Height), null);
 								}
 								else
 								{
-									num14 = Convert.ToInt32((float)_currentCombinedImage.Height - (float)_currentCombinedImage.Height * _framePercentage / 100f);
-									num15 = Convert.ToInt32((float)_currentCombinedImage.Height * (_framePercentage - 50f) / 50f);
-									Rectangle destRect3 = new Rectangle(x, num14, width3, num15);
-									wsg.DrawImage(_newTextImage, destRect3, srcX3, srcY3, width2, height3, GraphicsUnit.Pixel);
-									wsg.DrawImage(_newPanelImage, destRect3, srcX3, srcY3, width2, height3, GraphicsUnit.Pixel);
+									destY = Convert.ToInt32((float)_currentCombinedImage.Height - (float)_currentCombinedImage.Height * _framePercentage / 100f);
+									destHeight = Convert.ToInt32((float)_currentCombinedImage.Height * (_framePercentage - 50f) / 50f);
+									Rectangle destRect = new Rectangle(destX, destY, destWidth, destHeight);
+									wsg.DrawImage(_newTextImage, destRect, srcX, srcY, srcWidth, srcHeight, GraphicsUnit.Pixel);
+									wsg.DrawImage(_newPanelImage, destRect, srcX, srcY, srcWidth, srcHeight, GraphicsUnit.Pixel);
 									DrawImageToOutput(e, _workSpace, base.ClientRectangle, new Rectangle(0, 0, _workSpace.Width, _workSpace.Height), null);
 								}
 								break;
@@ -1473,19 +1473,19 @@ namespace Easislides
 								DrawBackPatternOnWorkSpace(ref wsg, BackgroundImage);
 								if (_framePercentage < 50f)
 								{
-									num14 = Convert.ToInt32((float)_currentCombinedImage.Height * _framePercentage / 100f);
-									num15 = Convert.ToInt32((float)_currentCombinedImage.Height - (float)_currentCombinedImage.Height * _framePercentage / 50f);
-									Rectangle destRect3 = new Rectangle(x, num14, width3, num15);
-									wsg.DrawImage(_currentTextImage, destRect3, srcX3, srcY3, width2, height3, GraphicsUnit.Pixel);
-									wsg.DrawImage(_currentPanelImage, destRect3, srcX3, srcY3, width2, height3, GraphicsUnit.Pixel);
+									destY = Convert.ToInt32((float)_currentCombinedImage.Height * _framePercentage / 100f);
+									destHeight = Convert.ToInt32((float)_currentCombinedImage.Height - (float)_currentCombinedImage.Height * _framePercentage / 50f);
+									Rectangle destRect = new Rectangle(destX, destY, destWidth, destHeight);
+									wsg.DrawImage(_currentTextImage, destRect, srcX, srcY, srcWidth, srcHeight, GraphicsUnit.Pixel);
+									wsg.DrawImage(_currentPanelImage, destRect, srcX, srcY, srcWidth, srcHeight, GraphicsUnit.Pixel);
 									DrawImageToOutput(e, _workSpace, base.ClientRectangle, new Rectangle(0, 0, _workSpace.Width, _workSpace.Height), null);
 								}
 								else
 								{
-									num14 = Convert.ToInt32((float)_currentCombinedImage.Height - (float)_currentCombinedImage.Height * _framePercentage / 100f);
-									num15 = Convert.ToInt32((float)_currentCombinedImage.Height * (_framePercentage - 50f) / 50f);
-									Rectangle destRect3 = new Rectangle(x, num14, width3, num15);
-									wsg.DrawImage(_newCombinedImage, destRect3, srcX3, srcY3, width2, height3, GraphicsUnit.Pixel);
+									destY = Convert.ToInt32((float)_currentCombinedImage.Height - (float)_currentCombinedImage.Height * _framePercentage / 100f);
+									destHeight = Convert.ToInt32((float)_currentCombinedImage.Height * (_framePercentage - 50f) / 50f);
+									Rectangle destRect = new Rectangle(destX, destY, destWidth, destHeight);
+									wsg.DrawImage(_newCombinedImage, destRect, srcX, srcY, srcWidth, srcHeight, GraphicsUnit.Pixel);
 									DrawImageToOutput(e, _workSpace, base.ClientRectangle, new Rectangle(0, 0, _workSpace.Width, _workSpace.Height), null);
 								}
 								break;
@@ -1493,18 +1493,18 @@ namespace Easislides
 								DrawBackPatternOnWorkSpace(ref wsg, CurrentBackgroundPicture);
 								if (_framePercentage < 50f)
 								{
-									num14 = Convert.ToInt32((float)_currentCombinedImage.Height * _framePercentage / 100f);
-									num15 = Convert.ToInt32((float)_currentCombinedImage.Height - (float)_currentCombinedImage.Height * _framePercentage / 50f);
-									Rectangle destRect3 = new Rectangle(x, num14, width3, num15);
-									wsg.DrawImage(_currentTextImage, destRect3, srcX3, srcY3, width2, height3, GraphicsUnit.Pixel);
+									destY = Convert.ToInt32((float)_currentCombinedImage.Height * _framePercentage / 100f);
+									destHeight = Convert.ToInt32((float)_currentCombinedImage.Height - (float)_currentCombinedImage.Height * _framePercentage / 50f);
+									Rectangle destRect = new Rectangle(destX, destY, destWidth, destHeight);
+									wsg.DrawImage(_currentTextImage, destRect, srcX, srcY, srcWidth, srcHeight, GraphicsUnit.Pixel);
 									DrawImageToOutput(e, _workSpace, base.ClientRectangle, new Rectangle(0, 0, _workSpace.Width, _workSpace.Height), null, PanelType.Current);
 								}
 								else
 								{
-									num14 = Convert.ToInt32((float)_currentCombinedImage.Height - (float)_currentCombinedImage.Height * _framePercentage / 100f);
-									num15 = Convert.ToInt32((float)_currentCombinedImage.Height * (_framePercentage - 50f) / 50f);
-									Rectangle destRect3 = new Rectangle(x, num14, width3, num15);
-									wsg.DrawImage(_newTextImage, destRect3, srcX3, srcY3, width2, height3, GraphicsUnit.Pixel);
+									destY = Convert.ToInt32((float)_currentCombinedImage.Height - (float)_currentCombinedImage.Height * _framePercentage / 100f);
+									destHeight = Convert.ToInt32((float)_currentCombinedImage.Height * (_framePercentage - 50f) / 50f);
+									Rectangle destRect = new Rectangle(destX, destY, destWidth, destHeight);
+									wsg.DrawImage(_newTextImage, destRect, srcX, srcY, srcWidth, srcHeight, GraphicsUnit.Pixel);
 									DrawImageToOutput(e, _workSpace, base.ClientRectangle, new Rectangle(0, 0, _workSpace.Width, _workSpace.Height), null, PanelType.New);
 								}
 								break;
@@ -1531,33 +1531,33 @@ namespace Easislides
 					else
 					{
 						CreateFrameWorkSpace(_newBackgroundPicture.Width, _newBackgroundPicture.Height);
-						int srcX3 = 0;
-						int srcY3 = 0;
-						int width2 = _currentCombinedImage.Width;
-						int height3 = _currentCombinedImage.Height;
-						int x = 0;
-						int num14 = 0;
-						int width3 = 0;
-						int num15 = _currentCombinedImage.Height;
+						int srcX = 0;
+						int srcY = 0;
+						int srcWidth = _currentCombinedImage.Width;
+						int srcHeight = _currentCombinedImage.Height;
+						int destX = 0;
+						int destY = 0;
+						int destWidth = 0;
+						int destHeight = _currentCombinedImage.Height;
 						switch (TransitBackPictureAction)
 						{
 							case BackPicturesTransition.CurrentOnly:
 								DrawBackPatternOnWorkSpace(ref wsg, BackgroundImage);
 								if (_framePercentage < 50f)
 								{
-									x = Convert.ToInt32((float)_currentCombinedImage.Width * _framePercentage / 100f);
-									width3 = Convert.ToInt32((float)_currentCombinedImage.Width - (float)_currentCombinedImage.Width * _framePercentage / 50f);
-									Rectangle destRect3 = new Rectangle(x, num14, width3, num15);
-									wsg.DrawImage(_currentCombinedImage, destRect3, srcX3, srcY3, width2, height3, GraphicsUnit.Pixel);
+									destX = Convert.ToInt32((float)_currentCombinedImage.Width * _framePercentage / 100f);
+									destWidth = Convert.ToInt32((float)_currentCombinedImage.Width - (float)_currentCombinedImage.Width * _framePercentage / 50f);
+									Rectangle destRect = new Rectangle(destX, destY, destWidth, destHeight);
+									wsg.DrawImage(_currentCombinedImage, destRect, srcX, srcY, srcWidth, srcHeight, GraphicsUnit.Pixel);
 									DrawImageToOutput(e, _workSpace, base.ClientRectangle, new Rectangle(0, 0, _workSpace.Width, _workSpace.Height), null);
 								}
 								else
 								{
-									x = Convert.ToInt32((float)_currentCombinedImage.Width - (float)_currentCombinedImage.Width * _framePercentage / 100f);
-									width3 = Convert.ToInt32((float)_currentCombinedImage.Width * (_framePercentage - 50f) / 50f);
-									Rectangle destRect3 = new Rectangle(x, num14, width3, num15);
-									wsg.DrawImage(_newTextImage, destRect3, srcX3, srcY3, width2, height3, GraphicsUnit.Pixel);
-									wsg.DrawImage(_newPanelImage, destRect3, srcX3, srcY3, width2, height3, GraphicsUnit.Pixel);
+									destX = Convert.ToInt32((float)_currentCombinedImage.Width - (float)_currentCombinedImage.Width * _framePercentage / 100f);
+									destWidth = Convert.ToInt32((float)_currentCombinedImage.Width * (_framePercentage - 50f) / 50f);
+									Rectangle destRect = new Rectangle(destX, destY, destWidth, destHeight);
+									wsg.DrawImage(_newTextImage, destRect, srcX, srcY, srcWidth, srcHeight, GraphicsUnit.Pixel);
+									wsg.DrawImage(_newPanelImage, destRect, srcX, srcY, srcWidth, srcHeight, GraphicsUnit.Pixel);
 									DrawImageToOutput(e, _workSpace, base.ClientRectangle, new Rectangle(0, 0, _workSpace.Width, _workSpace.Height), null);
 								}
 								break;
@@ -1565,18 +1565,18 @@ namespace Easislides
 								DrawBackPatternOnWorkSpace(ref wsg, BackgroundImage);
 								if (_framePercentage < 50f)
 								{
-									x = Convert.ToInt32((float)_currentCombinedImage.Width * _framePercentage / 100f);
-									width3 = Convert.ToInt32((float)_currentCombinedImage.Width - (float)_currentCombinedImage.Width * _framePercentage / 50f);
-									Rectangle destRect3 = new Rectangle(x, num14, width3, num15);
-									wsg.DrawImage(_currentTextImage, destRect3, srcX3, srcY3, width2, height3, GraphicsUnit.Pixel);
+									destX = Convert.ToInt32((float)_currentCombinedImage.Width * _framePercentage / 100f);
+									destWidth = Convert.ToInt32((float)_currentCombinedImage.Width - (float)_currentCombinedImage.Width * _framePercentage / 50f);
+									Rectangle destRect = new Rectangle(destX, destY, destWidth, destHeight);
+									wsg.DrawImage(_currentTextImage, destRect, srcX, srcY, srcWidth, srcHeight, GraphicsUnit.Pixel);
 									DrawImageToOutput(e, _workSpace, base.ClientRectangle, new Rectangle(0, 0, _workSpace.Width, _workSpace.Height), null, PanelType.CurrentWithTrans);
 								}
 								else
 								{
-									x = Convert.ToInt32((float)_currentCombinedImage.Width - (float)_currentCombinedImage.Width * _framePercentage / 100f);
-									width3 = Convert.ToInt32((float)_currentCombinedImage.Width * (_framePercentage - 50f) / 50f);
-									Rectangle destRect3 = new Rectangle(x, num14, width3, num15);
-									wsg.DrawImage(_newCombinedImage, destRect3, srcX3, srcY3, width2, height3, GraphicsUnit.Pixel);
+									destX = Convert.ToInt32((float)_currentCombinedImage.Width - (float)_currentCombinedImage.Width * _framePercentage / 100f);
+									destWidth = Convert.ToInt32((float)_currentCombinedImage.Width * (_framePercentage - 50f) / 50f);
+									Rectangle destRect = new Rectangle(destX, destY, destWidth, destHeight);
+									wsg.DrawImage(_newCombinedImage, destRect, srcX, srcY, srcWidth, srcHeight, GraphicsUnit.Pixel);
 									DrawImageToOutput(e, _workSpace, base.ClientRectangle, new Rectangle(0, 0, _workSpace.Width, _workSpace.Height), null);
 								}
 								break;
@@ -1584,18 +1584,18 @@ namespace Easislides
 								DrawBackPatternOnWorkSpace(ref wsg, CurrentBackgroundPicture);
 								if (_framePercentage < 50f)
 								{
-									x = Convert.ToInt32((float)_currentCombinedImage.Width * _framePercentage / 100f);
-									width3 = Convert.ToInt32((float)_currentCombinedImage.Width - (float)_currentCombinedImage.Width * _framePercentage / 50f);
-									Rectangle destRect3 = new Rectangle(x, num14, width3, num15);
-									wsg.DrawImage(_currentTextImage, destRect3, srcX3, srcY3, width2, height3, GraphicsUnit.Pixel);
+									destX = Convert.ToInt32((float)_currentCombinedImage.Width * _framePercentage / 100f);
+									destWidth = Convert.ToInt32((float)_currentCombinedImage.Width - (float)_currentCombinedImage.Width * _framePercentage / 50f);
+									Rectangle destRect = new Rectangle(destX, destY, destWidth, destHeight);
+									wsg.DrawImage(_currentTextImage, destRect, srcX, srcY, srcWidth, srcHeight, GraphicsUnit.Pixel);
 									DrawImageToOutput(e, _workSpace, base.ClientRectangle, new Rectangle(0, 0, _workSpace.Width, _workSpace.Height), null, PanelType.Current);
 								}
 								else
 								{
-									x = Convert.ToInt32((float)_currentCombinedImage.Width - (float)_currentCombinedImage.Width * _framePercentage / 100f);
-									width3 = Convert.ToInt32((float)_currentCombinedImage.Width * (_framePercentage - 50f) / 50f);
-									Rectangle destRect3 = new Rectangle(x, num14, width3, num15);
-									wsg.DrawImage(_newTextImage, destRect3, srcX3, srcY3, width2, height3, GraphicsUnit.Pixel);
+									destX = Convert.ToInt32((float)_currentCombinedImage.Width - (float)_currentCombinedImage.Width * _framePercentage / 100f);
+									destWidth = Convert.ToInt32((float)_currentCombinedImage.Width * (_framePercentage - 50f) / 50f);
+									Rectangle destRect = new Rectangle(destX, destY, destWidth, destHeight);
+									wsg.DrawImage(_newTextImage, destRect, srcX, srcY, srcWidth, srcHeight, GraphicsUnit.Pixel);
 									DrawImageToOutput(e, _workSpace, base.ClientRectangle, new Rectangle(0, 0, _workSpace.Width, _workSpace.Height), null, PanelType.New);
 								}
 								break;
@@ -1605,68 +1605,68 @@ namespace Easislides
 				}
 				else if (_activeTransitionType == TransitionTypes.Gentle_Zoom)
 				{
-					float num16 = 0f;
+					float zoom = 0f;
 					if (TransitBackPictureAction == BackPicturesTransition.None)
 					{
-						num16 = 0.85f + 0.15f * _framePercentage / 100f;
-						if (num16 < 0f)
+						zoom = 0.85f + 0.15f * _framePercentage / 100f;
+						if (zoom < 0f)
 						{
-							num16 = 0.85f;
+							zoom = 0.85f;
 						}
-						else if (num16 > 1f)
+						else if (zoom > 1f)
 						{
-							num16 = 1f;
+							zoom = 1f;
 						}
 						Draw_CurrentImage(e);
 						float dx = _newBackgroundPicture.Width / 2;
 						float dy = _newBackgroundPicture.Height / 2;
 						CreateFrameWorkSpace(_newBackgroundPicture.Width, _newBackgroundPicture.Height);
-						Rectangle destRect4 = new Rectangle(-_newBackgroundPicture.Width / 2, -1 - _newBackgroundPicture.Height / 2, _newBackgroundPicture.Width, _newBackgroundPicture.Height);
-						Rectangle rectangle = new Rectangle(destRect4.Width / 2 - (int)(num16 * (float)destRect4.Width / 2f), destRect4.Height / 2 - (int)(num16 * (float)destRect4.Height / 2f), (int)(num16 * (float)destRect4.Width), (int)(num16 * (float)destRect4.Height));
+						Rectangle destRect = new Rectangle(-_newBackgroundPicture.Width / 2, -1 - _newBackgroundPicture.Height / 2, _newBackgroundPicture.Width, _newBackgroundPicture.Height);
+						Rectangle rectangle = new Rectangle(destRect.Width / 2 - (int)(zoom * (float)destRect.Width / 2f), destRect.Height / 2 - (int)(zoom * (float)destRect.Height / 2f), (int)(zoom * (float)destRect.Width), (int)(zoom * (float)destRect.Height));
 						wsg.DrawImage(_newBackgroundPicture, rectangle, rectangle, GraphicsUnit.Pixel);
-						Matrix matrix = FrameObject(new Matrix(num16, 0f, 0f, num16, dx, dy));
+						Matrix matrix = FrameObject(new Matrix(zoom, 0f, 0f, zoom, dx, dy));
 						wsg.Transform = matrix;
-						wsg.DrawImage(_newTextImage, destRect4, 0, 0, _newBackgroundPicture.Width, _newBackgroundPicture.Height, GraphicsUnit.Pixel);
+						wsg.DrawImage(_newTextImage, destRect, 0, 0, _newBackgroundPicture.Width, _newBackgroundPicture.Height, GraphicsUnit.Pixel);
 						DrawImageToOutput(e, _workSpace, base.ClientRectangle, new Rectangle(0, 0, _workSpace.Width, _workSpace.Height), null, PanelType.New);
 						matrix.Dispose();
 						wsg.Dispose();
 					}
 					else
 					{
-						num16 = 0.8f + 0.2f * _framePercentage / 100f;
-						if (num16 < 0f)
+						zoom = 0.8f + 0.2f * _framePercentage / 100f;
+						if (zoom < 0f)
 						{
-							num16 = 0.8f;
+							zoom = 0.8f;
 						}
-						else if (num16 > 1f)
+						else if (zoom > 1f)
 						{
-							num16 = 1f;
+							zoom = 1f;
 						}
 						// Reusing cached ImageAttributes
 						// Reusing cached ColorMatrix
-						float num3 = 0f;
-						num3 = 0.003921569f * (255f * (1f - _framePercentage / 60f));
-						num3 = (_cachedColorMatrix.Matrix33 = ((num3 > 1f) ? 1f : ((num3 < 0f) ? 0f : num3)));
+						float alpha = 0f;
+						alpha = 0.003921569f * (255f * (1f - _framePercentage / 60f));
+						alpha = (_cachedColorMatrix.Matrix33 = ((alpha > 1f) ? 1f : ((alpha < 0f) ? 0f : alpha)));
 						_cachedImageAttributes.SetColorMatrix(_cachedColorMatrix);
 						DrawImageToOutput(e, _currentCombinedImage, base.ClientRectangle, new Rectangle(0, 0, _currentBackgroundPicture.Width, _currentBackgroundPicture.Height), _cachedImageAttributes);
-						num3 = 0.003921569f * (510f * _framePercentage / 100f);
-						num3 = (_cachedColorMatrix.Matrix33 = ((num3 > 1f) ? 1f : ((num3 < 0f) ? 0f : num3)));
+						alpha = 0.003921569f * (510f * _framePercentage / 100f);
+						alpha = (_cachedColorMatrix.Matrix33 = ((alpha > 1f) ? 1f : ((alpha < 0f) ? 0f : alpha)));
 						_cachedImageAttributes.SetColorMatrix(_cachedColorMatrix);
 						float dx = base.Width / 2;
 						float dy = base.Height / 2;
-						Matrix matrix2 = FrameObject(new Matrix(num16, 0f, 0f, num16, dx, dy));
-						e.Graphics.Transform = matrix2;
+						Matrix matrix = FrameObject(new Matrix(zoom, 0f, 0f, zoom, dx, dy));
+						e.Graphics.Transform = matrix;
 						DrawImageToOutput(e, _newCombinedImage, new Rectangle(-base.Width / 2, -1 - base.Height / 2, base.Width, base.Height), new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), _cachedImageAttributes);
-						matrix2.Dispose();
+						matrix.Dispose();
 					}
 				}
 				else if (_activeTransitionType == TransitionTypes.Oval)
 				{
 					Draw_CurrentImage(e);
 					graphicsPath = FrameObject(new GraphicsPath());
-					int num8 = Convert.ToInt32((float)base.Width * 1.414f * _framePercentage / 200f);
-					int num9 = Convert.ToInt32((float)base.Height * 1.2f * _framePercentage / 200f);
-					graphicsPath.AddEllipse(Convert.ToInt32(base.Width / 2 - num8), Convert.ToInt32(base.Height / 2 - num9), Convert.ToInt32(2 * num8), Convert.ToInt32(2 * num9));
+					int radiusX = Convert.ToInt32((float)base.Width * 1.414f * _framePercentage / 200f);
+					int radiusY = Convert.ToInt32((float)base.Height * 1.2f * _framePercentage / 200f);
+					graphicsPath.AddEllipse(Convert.ToInt32(base.Width / 2 - radiusX), Convert.ToInt32(base.Height / 2 - radiusY), Convert.ToInt32(2 * radiusX), Convert.ToInt32(2 * radiusY));
 					e.Graphics.SetClip(graphicsPath, CombineMode.Replace);
 					Draw_NewImage(e);
 					graphicsPath.Dispose();
@@ -1674,31 +1674,31 @@ namespace Easislides
 				else if (_activeTransitionType == TransitionTypes.Mesh)
 				{
 					Draw_CurrentImage(e);
-					int num19 = _nHDivs * 5;
-					int num20 = _nVDivs * 8;
+					int columnCount = _nHDivs * 5;
+					int rowCount = _nVDivs * 8;
 					graphicsPath = FrameObject(new GraphicsPath());
-					int width = Convert.ToInt32((float)base.Width * _framePercentage / 100f) / num19;
+					int cellWidth = Convert.ToInt32((float)base.Width * _framePercentage / 100f) / columnCount;
 					// At least 1 px: on a screen under 64 px high (or 50 px wide) the steps were 0 and the loops never ended.
-					int num10 = Math.Max(1, base.Height / num20);
-					int stepX = Math.Max(1, base.Width / num19);
-					int num11 = 0;
-					for (int i = 0; i <= base.Height; i += num10)
+					int cellHeight = Math.Max(1, base.Height / rowCount);
+					int stepX = Math.Max(1, base.Width / columnCount);
+					int rowIndex = 0;
+					for (int i = 0; i <= base.Height; i += cellHeight)
 					{
 						for (int j = 0; j <= base.Width; j += stepX)
 						{
-							Rectangle rect = new Rectangle(j, i, width, num10);
-							if ((num11 & 1) == 1)
+							Rectangle rect = new Rectangle(j, i, cellWidth, cellHeight);
+							if ((rowIndex & 1) == 1)
 							{
-								rect.Offset(base.Width / (2 * num20), 0);
+								rect.Offset(base.Width / (2 * rowCount), 0);
 							}
 							graphicsPath.AddRectangle(rect);
-							if (_framePercentage >= 50f && (num11 & 1) == 1 && j == 0)
+							if (_framePercentage >= 50f && (rowIndex & 1) == 1 && j == 0)
 							{
-								rect.Offset(-(base.Width / num19), 0);
+								rect.Offset(-(base.Width / columnCount), 0);
 								graphicsPath.AddRectangle(rect);
 							}
 						}
-						num11++;
+						rowIndex++;
 					}
 					Region region = FrameObject(new Region(graphicsPath));
 					e.Graphics.SetClip(region, CombineMode.Replace);
@@ -1788,28 +1788,28 @@ namespace Easislides
 				}
 				else if (_activeTransitionType == TransitionTypes.Scroll)
 				{
-					int num2 = (int)((float)_newCombinedImage.Height * _framePercentage / 100f);
+					int offsetY = (int)((float)_newCombinedImage.Height * _framePercentage / 100f);
 					if (TransitBackPictureAction == BackPicturesTransition.None)
 					{
 						DrawImageToOutput(e, _currentBackgroundPicture, base.ClientRectangle, new Rectangle(0, 0, _currentBackgroundPicture.Width, _currentBackgroundPicture.Height), null);
-						DrawImageToOutput(e, _currentTextImage, base.ClientRectangle, new Rectangle(0, num2, _currentBackgroundPicture.Width, _currentBackgroundPicture.Height), null, PanelType.Current);
-						DrawImageToOutput(e, _newTextImage, base.ClientRectangle, new Rectangle(0, num2 - _newCombinedImage.Height, _newCombinedImage.Width, _newCombinedImage.Height), null);
+						DrawImageToOutput(e, _currentTextImage, base.ClientRectangle, new Rectangle(0, offsetY, _currentBackgroundPicture.Width, _currentBackgroundPicture.Height), null, PanelType.Current);
+						DrawImageToOutput(e, _newTextImage, base.ClientRectangle, new Rectangle(0, offsetY - _newCombinedImage.Height, _newCombinedImage.Width, _newCombinedImage.Height), null);
 					}
 					else
 					{
-						DrawImageToOutput(e, _currentCombinedImage, base.ClientRectangle, new Rectangle(0, num2, _currentBackgroundPicture.Width, _currentBackgroundPicture.Height), null);
-						DrawImageToOutput(e, _newCombinedImage, base.ClientRectangle, new Rectangle(0, num2 - _newCombinedImage.Height, _newCombinedImage.Width, _newCombinedImage.Height), null);
+						DrawImageToOutput(e, _currentCombinedImage, base.ClientRectangle, new Rectangle(0, offsetY, _currentBackgroundPicture.Width, _currentBackgroundPicture.Height), null);
+						DrawImageToOutput(e, _newCombinedImage, base.ClientRectangle, new Rectangle(0, offsetY - _newCombinedImage.Height, _newCombinedImage.Width, _newCombinedImage.Height), null);
 					}
 				}
 				else if (_activeTransitionType == TransitionTypes.Spin)
 				{
 					float angle = 360f * _framePercentage / 100f;
-					float dx2 = base.Width / 2;
-					float dy2 = base.Height / 2;
-					float num16 = 1f * _framePercentage / 100f;
-					if (num16 == 0f)
+					float dx = base.Width / 2;
+					float dy = base.Height / 2;
+					float scale = 1f * _framePercentage / 100f;
+					if (scale == 0f)
 					{
-						num16 = 0.01f;
+						scale = 0.01f;
 					}
 					if (TransitBackPictureAction == BackPicturesTransition.None)
 					{
@@ -1820,7 +1820,7 @@ namespace Easislides
 						_cachedImageAttributes.SetColorMatrix(_cachedColorMatrix);
 						DrawImageToOutput(e, _currentTextImage, base.ClientRectangle, new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), _cachedImageAttributes, PanelType.Current);
 						DrawImageToOutput(e, _currentPanelImage, base.ClientRectangle, new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), null, PanelType.Current);
-						Matrix matrix = FrameObject(new Matrix(num16, 0f, 0f, num16, dx2, dy2));
+						Matrix matrix = FrameObject(new Matrix(scale, 0f, 0f, scale, dx, dy));
 						matrix.Rotate(angle, MatrixOrder.Prepend);
 						e.Graphics.Transform = matrix;
 						DrawImageToOutput(e, _newTextImage, new Rectangle(-base.Width / 2, -base.Height / 2, base.Width, base.Height), new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), null);
@@ -1829,38 +1829,38 @@ namespace Easislides
 					else
 					{
 						Draw_CurrentImage(e);
-						Matrix matrix2 = FrameObject(new Matrix(num16, 0f, 0f, num16, dx2, dy2));
-						matrix2.Rotate(angle, MatrixOrder.Prepend);
-						e.Graphics.Transform = matrix2;
+						Matrix matrix = FrameObject(new Matrix(scale, 0f, 0f, scale, dx, dy));
+						matrix.Rotate(angle, MatrixOrder.Prepend);
+						e.Graphics.Transform = matrix;
 						DrawImageToOutput(e, _newCombinedImage, new Rectangle(-base.Width / 2, -base.Height / 2, base.Width, base.Height), new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), null);
-						matrix2.Dispose();
+						matrix.Dispose();
 					}
 				}
 				else if (_activeTransitionType == TransitionTypes.Spiral)
 				{
-					double num21 = Math.PI / 100.0;
-					double num22 = Math.Max(base.Width * 2 / 3, base.Height * 2 / 3) / 100;
-					float num23 = (float)base.Width * 0.59f;
-					float num24 = (float)base.Height * 0.1475f;
-					double num25 = _framePercentage - 100f;
-					double num26 = _framePercentage;
-					if (num25 < 0.0)
+					double angleStep = Math.PI / 100.0;
+					double radiusStep = Math.Max(base.Width * 2 / 3, base.Height * 2 / 3) / 100;
+					float centerX = (float)base.Width * 0.59f;
+					float centerY = (float)base.Height * 0.1475f;
+					double spiralPos = _framePercentage - 100f;
+					double spiralEnd = _framePercentage;
+					if (spiralPos < 0.0)
 					{
-						num25 = 0.0;
+						spiralPos = 0.0;
 					}
-					double num27 = num21 * num26;
-					PointF pointF = new PointF(Convert.ToSingle((double)num23 + num25 * num22 * Math.Cos(num27)), Convert.ToSingle((double)num24 + num25 * num22 * Math.Sin(num27)));
-					num27 = num21 * num25;
-					while (num25 <= num26)
+					double spiralAngle = angleStep * spiralEnd;
+					PointF position = new PointF(Convert.ToSingle((double)centerX + spiralPos * radiusStep * Math.Cos(spiralAngle)), Convert.ToSingle((double)centerY + spiralPos * radiusStep * Math.Sin(spiralAngle)));
+					spiralAngle = angleStep * spiralPos;
+					while (spiralPos <= spiralEnd)
 					{
-						PointF pointF2 = new PointF(Convert.ToSingle((double)num23 + num25 * num22 * Math.Cos(num27)), Convert.ToSingle((double)num24 + num25 * num22 * Math.Sin(num27)));
-						pointF = pointF2;
-						num25 += 0.1;
-						num27 += num21 / 10.0;
+						PointF nextPoint = new PointF(Convert.ToSingle((double)centerX + spiralPos * radiusStep * Math.Cos(spiralAngle)), Convert.ToSingle((double)centerY + spiralPos * radiusStep * Math.Sin(spiralAngle)));
+						position = nextPoint;
+						spiralPos += 0.1;
+						spiralAngle += angleStep / 10.0;
 					}
-					int width4 = (int)(_framePercentage * (float)base.ClientRectangle.Width / 100f);
-					int height4 = (int)(_framePercentage * (float)base.ClientRectangle.Height / 100f);
-					Rectangle destinationRectangle3 = new Rectangle((int)pointF.X, (int)pointF.Y, width4, height4);
+					int destWidth = (int)(_framePercentage * (float)base.ClientRectangle.Width / 100f);
+					int destHeight = (int)(_framePercentage * (float)base.ClientRectangle.Height / 100f);
+					Rectangle destinationRect = new Rectangle((int)position.X, (int)position.Y, destWidth, destHeight);
 					if (TransitBackPictureAction == BackPicturesTransition.None)
 					{
 						// Reusing cached ImageAttributes
@@ -1870,35 +1870,35 @@ namespace Easislides
 						DrawImageToOutput(e, _currentBackgroundPicture, base.ClientRectangle, new Rectangle(0, 0, _currentBackgroundPicture.Width, _currentBackgroundPicture.Height), null);
 						DrawImageToOutput(e, _currentTextImage, base.ClientRectangle, new Rectangle(0, 0, _currentTextImage.Width, _currentTextImage.Height), _cachedImageAttributes, PanelType.Current);
 						DrawImageToOutput(e, _currentPanelImage, base.ClientRectangle, new Rectangle(0, 0, _currentTextImage.Width, _currentTextImage.Height), null, PanelType.Current);
-						DrawImageToOutput(e, _newTextImage, destinationRectangle3, new Rectangle(0, 0, _newTextImage.Width, _newTextImage.Height), null, PanelType.NewWithTrans);
+						DrawImageToOutput(e, _newTextImage, destinationRect, new Rectangle(0, 0, _newTextImage.Width, _newTextImage.Height), null, PanelType.NewWithTrans);
 					}
 					else
 					{
 						Draw_CurrentImage(e);
-						DrawImageToOutput(e, _newCombinedImage, destinationRectangle3, new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), null);
+						DrawImageToOutput(e, _newCombinedImage, destinationRect, new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), null);
 					}
 				}
 				else if (_activeTransitionType == TransitionTypes.Star)
 				{
 					Draw_CurrentImage(e);
-					PointF[] array = new PointF[11];
-					float num28 = Convert.ToInt32((float)base.Width * _framePercentage / 130f);
-					float num29 = Convert.ToInt32(base.Width / 2);
-					float num30 = Convert.ToInt32(base.Height / 2);
-					float num31 = 0f;
-					bool flag = false;
-					int num32 = 0;
-					while ((double)num31 <= Math.PI * 2.0)
+					PointF[] starPoints = new PointF[11];
+					float starSize = Convert.ToInt32((float)base.Width * _framePercentage / 130f);
+					float centerX = Convert.ToInt32(base.Width / 2);
+					float centerY = Convert.ToInt32(base.Height / 2);
+					float angle = 0f;
+					bool isInnerPoint = false;
+					int pointIndex = 0;
+					while ((double)angle <= Math.PI * 2.0)
 					{
-						float num33 = num28 * 0.65f + num28 * (float)((!flag) ? 1 : 0);
-						array[num32] = new PointF(num29 + (float)Math.Cos((double)num31 - Math.PI / 2.0) * num33, num30 + (float)Math.Sin((double)num31 - Math.PI / 2.0) * num33);
-						num31 += (float)Math.PI / 5f;
-						flag = !flag;
-						num32++;
+						float radius = starSize * 0.65f + starSize * (float)((!isInnerPoint) ? 1 : 0);
+						starPoints[pointIndex] = new PointF(centerX + (float)Math.Cos((double)angle - Math.PI / 2.0) * radius, centerY + (float)Math.Sin((double)angle - Math.PI / 2.0) * radius);
+						angle += (float)Math.PI / 5f;
+						isInnerPoint = !isInnerPoint;
+						pointIndex++;
 					}
-					array[num32] = array[0];
+					starPoints[pointIndex] = starPoints[0];
 					graphicsPath = FrameObject(new GraphicsPath());
-					graphicsPath.AddPolygon(array);
+					graphicsPath.AddPolygon(starPoints);
 					e.Graphics.SetClip(graphicsPath, CombineMode.Replace);
 					Draw_NewImage(e);
 					graphicsPath.Dispose();
@@ -1906,22 +1906,22 @@ namespace Easislides
 				else if (_activeTransitionType == TransitionTypes.Heart)
 				{
 					Draw_CurrentImage(e);
-					int num9 = Convert.ToInt32((float)base.Height * _framePercentage / 100f);
-					int num12 = Convert.ToInt32(base.Width / 2);
-					int num13 = Convert.ToInt32(base.Height * 3 / 5);
-					int num34 = (int)Math.Sqrt(num9 * num9 * 2);
-					int num35 = (num34 - num9) / 2;
+					int halfSize = Convert.ToInt32((float)base.Height * _framePercentage / 100f);
+					int centerX = Convert.ToInt32(base.Width / 2);
+					int centerY = Convert.ToInt32(base.Height * 3 / 5);
+					int lobeSize = (int)Math.Sqrt(halfSize * halfSize * 2);
+					int lobeOffset = (lobeSize - halfSize) / 2;
 					graphicsPath = FrameObject(new GraphicsPath());
-					graphicsPath.AddEllipse(new Rectangle(num12 - num34 + num35, num13 - num34 + num35, num34, num34));
+					graphicsPath.AddEllipse(new Rectangle(centerX - lobeSize + lobeOffset, centerY - lobeSize + lobeOffset, lobeSize, lobeSize));
 					e.Graphics.SetClip(graphicsPath, CombineMode.Replace);
-					graphicsPath.AddEllipse(new Rectangle(num12 - num35, num13 - num34 + num35, num34, num34));
+					graphicsPath.AddEllipse(new Rectangle(centerX - lobeOffset, centerY - lobeSize + lobeOffset, lobeSize, lobeSize));
 					e.Graphics.SetClip(graphicsPath, CombineMode.Replace);
 					graphicsPath.AddPolygon(new Point[4]
 					{
-						new Point(num12, num13 - num9),
-						new Point(num12 - num9, num13),
-						new Point(num12, num13 + num9),
-						new Point(num12 + num9, num13)
+						new Point(centerX, centerY - halfSize),
+						new Point(centerX - halfSize, centerY),
+						new Point(centerX, centerY + halfSize),
+						new Point(centerX + halfSize, centerY)
 					});
 					e.Graphics.SetClip(graphicsPath, CombineMode.Union);
 					Draw_NewImage(e);
@@ -1932,14 +1932,14 @@ namespace Easislides
 					Draw_CurrentImage(e);
 					if (TransitBackPictureAction == BackPicturesTransition.None)
 					{
-						int x = Convert.ToInt32(((float)_newBackgroundPicture.Width - (float)_newBackgroundPicture.Width * _framePercentage / 100f) / 2f);
-						int num14 = 0;
-						int width3 = Convert.ToInt32((float)_newBackgroundPicture.Width * _framePercentage / 100f);
-						int num15 = _newBackgroundPicture.Height;
-						Rectangle destRect4 = new Rectangle(x, num14, width3, num15);
+						int destX = Convert.ToInt32(((float)_newBackgroundPicture.Width - (float)_newBackgroundPicture.Width * _framePercentage / 100f) / 2f);
+						int destY = 0;
+						int destWidth = Convert.ToInt32((float)_newBackgroundPicture.Width * _framePercentage / 100f);
+						int destHeight = _newBackgroundPicture.Height;
+						Rectangle destRect = new Rectangle(destX, destY, destWidth, destHeight);
 						CreateFrameWorkSpace(_newBackgroundPicture.Width, _newBackgroundPicture.Height);
-						wsg.DrawImage(_newBackgroundPicture, destRect4, destRect4, GraphicsUnit.Pixel);
-						wsg.DrawImage(_newTextImage, destRect4, 0, 0, _newBackgroundPicture.Width, _newBackgroundPicture.Height, GraphicsUnit.Pixel);
+						wsg.DrawImage(_newBackgroundPicture, destRect, destRect, GraphicsUnit.Pixel);
+						wsg.DrawImage(_newTextImage, destRect, 0, 0, _newBackgroundPicture.Width, _newBackgroundPicture.Height, GraphicsUnit.Pixel);
 						DrawImageToOutput(e, _workSpace, base.ClientRectangle, new Rectangle(0, 0, _workSpace.Width, _workSpace.Height), null, PanelType.New);
 						wsg.Dispose();
 					}
@@ -1953,15 +1953,15 @@ namespace Easislides
 					Draw_CurrentImage(e);
 					if (TransitBackPictureAction == BackPicturesTransition.None)
 					{
-						int x = 0;
-						int num14 = Convert.ToInt32(((float)_newBackgroundPicture.Height - (float)_newBackgroundPicture.Height * _framePercentage / 100f) / 2f);
-						int width3 = _newBackgroundPicture.Width;
-						int num15 = Convert.ToInt32((float)_newBackgroundPicture.Height * _framePercentage / 100f);
-						Rectangle destRect4 = new Rectangle(x, num14, width3, num15);
+						int destX = 0;
+						int destY = Convert.ToInt32(((float)_newBackgroundPicture.Height - (float)_newBackgroundPicture.Height * _framePercentage / 100f) / 2f);
+						int destWidth = _newBackgroundPicture.Width;
+						int destHeight = Convert.ToInt32((float)_newBackgroundPicture.Height * _framePercentage / 100f);
+						Rectangle destRect = new Rectangle(destX, destY, destWidth, destHeight);
 						
 						CreateFrameWorkSpace(_newBackgroundPicture.Width, _newBackgroundPicture.Height);
-						wsg.DrawImage(_newBackgroundPicture, destRect4, destRect4, GraphicsUnit.Pixel);
-						wsg.DrawImage(_newTextImage, destRect4, 0, 0, _newBackgroundPicture.Width, _newBackgroundPicture.Height, GraphicsUnit.Pixel);
+						wsg.DrawImage(_newBackgroundPicture, destRect, destRect, GraphicsUnit.Pixel);
+						wsg.DrawImage(_newTextImage, destRect, 0, 0, _newBackgroundPicture.Width, _newBackgroundPicture.Height, GraphicsUnit.Pixel);
 						DrawImageToOutput(e, _workSpace, base.ClientRectangle, new Rectangle(0, 0, _workSpace.Width, _workSpace.Height), null, PanelType.New);
 						wsg.Dispose();
 					}
@@ -1977,19 +1977,19 @@ namespace Easislides
 						DrawImageToOutput(e, _newCombinedImage, base.ClientRectangle, new Rectangle(0, 0, _newBackgroundPicture.Width, _newBackgroundPicture.Height), null);
 						float dx = 0f;
 						float dy = 0f;
-						float num16 = 1f;
+						float scale = 1f;
 						// Reusing cached ImageAttributes
 						// Reusing cached ColorMatrix
 						_cachedColorMatrix.Matrix33 = 0.003921569f * (255f * (1f - _framePercentage / 100f));
 						_cachedImageAttributes.SetColorMatrix(_cachedColorMatrix);
 						dx = base.Width / 2;
 						dy = base.Height;
-						num16 = 1f - 1f * _framePercentage / 100f;
-						if (num16 == 0f)
+						scale = 1f - 1f * _framePercentage / 100f;
+						if (scale == 0f)
 						{
-							num16 = 0.01f;
+							scale = 0.01f;
 						}
-						Matrix matrix = FrameObject(new Matrix(num16, 0f, 0f, num16, dx, (float)base.Height * (1f - num16)));
+						Matrix matrix = FrameObject(new Matrix(scale, 0f, 0f, scale, dx, (float)base.Height * (1f - scale)));
 						e.Graphics.Transform = matrix;
 						DrawImageToOutput(e, _currentTextImage, new Rectangle(-base.Width / 2, 0, base.Width, base.Height), new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), _cachedImageAttributes, PanelType.CurrentWithTrans);
 						matrix.Dispose();
@@ -1997,15 +1997,15 @@ namespace Easislides
 					else
 					{
 						Draw_NewImage(e);
-						float num16 = 1f - 1f * _framePercentage / 100f;
-						if (num16 == 0f)
+						float scale = 1f - 1f * _framePercentage / 100f;
+						if (scale == 0f)
 						{
-							num16 = 0.01f;
+							scale = 0.01f;
 						}
 						float dx = base.Width / 2;
 						float dy = base.Height;
-						Matrix matrix2 = FrameObject(new Matrix(num16, 0f, 0f, num16, dx, dy * (1f - num16)));
-						e.Graphics.Transform = matrix2;
+						Matrix matrix = FrameObject(new Matrix(scale, 0f, 0f, scale, dx, dy * (1f - scale)));
+						e.Graphics.Transform = matrix;
 						if (TransitBackPictureAction == BackPicturesTransition.NewOnly)
 						{
 							DrawImageToOutput(e, _currentTextImage, new Rectangle(-base.Width / 2, -1 - base.Height / 20, base.Width, base.Height), new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), null, PanelType.CurrentWithTrans);
@@ -2014,7 +2014,7 @@ namespace Easislides
 						{
 							DrawImageToOutput(e, _currentCombinedImage, new Rectangle(-base.Width / 2, -1 - base.Height / 20, base.Width, base.Height), new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), null);
 						}
-						matrix2.Dispose();
+						matrix.Dispose();
 					}
 				}
 				else if (_activeTransitionType == TransitionTypes.Zoom_Away)
@@ -2030,23 +2030,23 @@ namespace Easislides
 						_cachedImageAttributes.SetColorMatrix(_cachedColorMatrix);
 						dx = base.Width / 2;
 						dy = base.Height;
-						float num16 = 1f;
-						num16 = 1f - 1f * _framePercentage / 100f;
-						if (num16 == 0f)
+						float scale = 1f;
+						scale = 1f - 1f * _framePercentage / 100f;
+						if (scale == 0f)
 						{
-							num16 = 0.01f;
+							scale = 0.01f;
 						}
-						Matrix matrix = FrameObject(new Matrix(num16, 0f, 0f, num16, dx, (float)base.Height * (1f - num16)));
+						Matrix matrix = FrameObject(new Matrix(scale, 0f, 0f, scale, dx, (float)base.Height * (1f - scale)));
 						e.Graphics.Transform = matrix;
 						DrawImageToOutput(e, _currentTextImage, new Rectangle(-base.Width / 2, 0, base.Width, base.Height), new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), _cachedImageAttributes, PanelType.Current);
 						dx = base.Width / 2;
 						dy = base.Height / 3;
-						num16 = 0.2f + 0.8f * _framePercentage / 100f;
-						if (num16 == 0f)
+						scale = 0.2f + 0.8f * _framePercentage / 100f;
+						if (scale == 0f)
 						{
-							num16 = 0.01f;
+							scale = 0.01f;
 						}
-						matrix = FrameObject(new Matrix(num16, 0f, 0f, num16, dx, dy));
+						matrix = FrameObject(new Matrix(scale, 0f, 0f, scale, dx, dy));
 						e.Graphics.Transform = matrix;
 						DrawImageToOutput(e, _newTextImage, new Rectangle(-base.Width / 2, -1 - base.Height / 3, base.Width, base.Height), new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), null, PanelType.New);
 						matrix.Dispose();
@@ -2056,13 +2056,13 @@ namespace Easislides
 						DrawDefaultBackPattern(e);
 						float dx = base.Width / 2;
 						float dy = base.Height / 3;
-						float num16 = 0.2f + 0.8f * _framePercentage / 100f;
-						if (num16 == 0f)
+						float scale = 0.2f + 0.8f * _framePercentage / 100f;
+						if (scale == 0f)
 						{
-							num16 = 0.01f;
+							scale = 0.01f;
 						}
-						Matrix matrix2 = FrameObject(new Matrix(num16, 0f, 0f, num16, dx, dy));
-						e.Graphics.Transform = matrix2;
+						Matrix matrix = FrameObject(new Matrix(scale, 0f, 0f, scale, dx, dy));
+						e.Graphics.Transform = matrix;
 						if (TransitBackPictureAction == BackPicturesTransition.CurrentOnly)
 						{
 							DrawImageToOutput(e, _newTextImage, new Rectangle(-base.Width / 2, -1 - base.Height / 3, base.Width, base.Height), new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), null);
@@ -2071,15 +2071,15 @@ namespace Easislides
 						{
 							DrawImageToOutput(e, _newCombinedImage, new Rectangle(-base.Width / 2, -1 - base.Height / 3, base.Width, base.Height), new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), null);
 						}
-						num16 = 1f - 1f * _framePercentage / 100f;
-						if (num16 == 0f)
+						scale = 1f - 1f * _framePercentage / 100f;
+						if (scale == 0f)
 						{
-							num16 = 0.01f;
+							scale = 0.01f;
 						}
 						dx = base.Width / 2;
 						dy = base.Height;
-						matrix2 = FrameObject(new Matrix(num16, 0f, 0f, num16, dx, dy * (1f - num16)));
-						e.Graphics.Transform = matrix2;
+						matrix = FrameObject(new Matrix(scale, 0f, 0f, scale, dx, dy * (1f - scale)));
+						e.Graphics.Transform = matrix;
 						if (TransitBackPictureAction == BackPicturesTransition.NewOnly)
 						{
 							DrawImageToOutput(e, _currentTextImage, new Rectangle(-base.Width / 2, -1 - base.Height / 20, base.Width, base.Height), new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), null, PanelType.Current);
@@ -2088,16 +2088,16 @@ namespace Easislides
 						{
 							DrawImageToOutput(e, _currentCombinedImage, new Rectangle(-base.Width / 2, -1 - base.Height / 20, base.Width, base.Height), new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), null);
 						}
-						matrix2.Dispose();
+						matrix.Dispose();
 					}
 				}
 				else if (_activeTransitionType == TransitionTypes.CircularWipe)
 				{
 					Draw_CurrentImage(e);
 					float angle = 360f * _framePercentage / 100f;
-					float num36 = (float)base.Width * 1.414f;
+					float diameter = (float)base.Width * 1.414f;
 					graphicsPath = FrameObject(new GraphicsPath());
-					graphicsPath.AddPie(((float)base.Width - num36) / 2f, ((float)base.Height - num36) / 2f, num36, num36, 180f, angle);
+					graphicsPath.AddPie(((float)base.Width - diameter) / 2f, ((float)base.Height - diameter) / 2f, diameter, diameter, 180f, angle);
 					e.Graphics.SetClip(graphicsPath, CombineMode.Replace);
 					Draw_NewImage(e);
 					graphicsPath.Dispose();
@@ -2106,9 +2106,9 @@ namespace Easislides
 				{
 					Draw_CurrentImage(e);
 					float angle = 360f * _framePercentage / 100f;
-					float num36 = (float)base.Width * 1.414f;
+					float diameter = (float)base.Width * 1.414f;
 					graphicsPath = FrameObject(new GraphicsPath());
-					graphicsPath.AddPie(((float)base.Width - num36) / 2f, ((float)base.Height - num36) / 2f, num36, num36, 270f - angle / 2f, angle);
+					graphicsPath.AddPie(((float)base.Width - diameter) / 2f, ((float)base.Height - diameter) / 2f, diameter, diameter, 270f - angle / 2f, angle);
 					e.Graphics.SetClip(graphicsPath, CombineMode.Replace);
 					Draw_NewImage(e);
 					graphicsPath.Dispose();
@@ -2117,10 +2117,10 @@ namespace Easislides
 				{
 					Draw_CurrentImage(e);
 					float angle = 180f * _framePercentage / 100f;
-					float num36 = (float)base.Width * 1.414f;
+					float diameter = (float)base.Width * 1.414f;
 					graphicsPath = FrameObject(new GraphicsPath());
-					graphicsPath.AddPie(((float)base.Width - num36) / 2f, ((float)base.Height - num36) / 2f, num36, num36, 270f - angle / 2f, angle);
-					graphicsPath.AddPie(((float)base.Width - num36) / 2f, ((float)base.Height - num36) / 2f, num36, num36, 90f - angle / 2f, angle);
+					graphicsPath.AddPie(((float)base.Width - diameter) / 2f, ((float)base.Height - diameter) / 2f, diameter, diameter, 270f - angle / 2f, angle);
+					graphicsPath.AddPie(((float)base.Width - diameter) / 2f, ((float)base.Height - diameter) / 2f, diameter, diameter, 90f - angle / 2f, angle);
 					e.Graphics.SetClip(graphicsPath, CombineMode.Replace);
 					Draw_NewImage(e);
 					graphicsPath.Dispose();
@@ -2129,9 +2129,9 @@ namespace Easislides
 				{
 					Draw_CurrentImage(e);
 					float angle = 150f * _framePercentage / 100f;
-					float num36 = (float)base.Width * 1.7f * 1.414f;
+					float diameter = (float)base.Width * 1.7f * 1.414f;
 					graphicsPath = FrameObject(new GraphicsPath());
-					graphicsPath.AddPie(((float)base.Width - num36) / 2f, (float)base.Height - num36 * 0.9f, num36, num36, 90f - angle / 2f, angle);
+					graphicsPath.AddPie(((float)base.Width - diameter) / 2f, (float)base.Height - diameter * 0.9f, diameter, diameter, 90f - angle / 2f, angle);
 					e.Graphics.SetClip(graphicsPath, CombineMode.Replace);
 					Draw_NewImage(e);
 					graphicsPath.Dispose();
@@ -2140,12 +2140,12 @@ namespace Easislides
 				{
 					Draw_CurrentImage(e);
 					float angle = 90f * _framePercentage / 100f;
-					float num36 = (float)base.Width * 1.414f;
+					float diameter = (float)base.Width * 1.414f;
 					graphicsPath = FrameObject(new GraphicsPath());
-					graphicsPath.AddPie(((float)base.Width - num36) / 2f, ((float)base.Height - num36) / 2f, num36, num36, 270f, angle);
-					graphicsPath.AddPie(((float)base.Width - num36) / 2f, ((float)base.Height - num36) / 2f, num36, num36, 0f, angle);
-					graphicsPath.AddPie(((float)base.Width - num36) / 2f, ((float)base.Height - num36) / 2f, num36, num36, 90f, angle);
-					graphicsPath.AddPie(((float)base.Width - num36) / 2f, ((float)base.Height - num36) / 2f, num36, num36, 180f, angle);
+					graphicsPath.AddPie(((float)base.Width - diameter) / 2f, ((float)base.Height - diameter) / 2f, diameter, diameter, 270f, angle);
+					graphicsPath.AddPie(((float)base.Width - diameter) / 2f, ((float)base.Height - diameter) / 2f, diameter, diameter, 0f, angle);
+					graphicsPath.AddPie(((float)base.Width - diameter) / 2f, ((float)base.Height - diameter) / 2f, diameter, diameter, 90f, angle);
+					graphicsPath.AddPie(((float)base.Width - diameter) / 2f, ((float)base.Height - diameter) / 2f, diameter, diameter, 180f, angle);
 					e.Graphics.SetClip(graphicsPath, CombineMode.Replace);
 					Draw_NewImage(e);
 					graphicsPath.Dispose();
@@ -2155,39 +2155,39 @@ namespace Easislides
 					Draw_CurrentImage(e);
 					graphicsPath = FrameObject(new GraphicsPath());
 					// Using static _random field instead
-					int num37 = 0;
-					int num38 = base.Height / 2 + 1;
-					int num39 = (int)((float)num38 * _framePercentage / 100f) - TotalBitsArraySet;
-					// Bars 0..num38-1 are drawn; the walk wrapped only past Height, adding bars that are never drawn,
+					int barIndex = 0;
+					int barCount = base.Height / 2 + 1;
+					int barsToAdd = (int)((float)barCount * _framePercentage / 100f) - TotalBitsArraySet;
+					// Bars 0..barCount-1 are drawn; the walk wrapped only past Height, adding bars that are never drawn,
 					// and one bar fewer than due was added per frame (the reveal lagged and snapped at 100 %).
-					for (int k = 0; k < num39; k++)
+					for (int k = 0; k < barsToAdd; k++)
 					{
-						num37 = _random.Next(num38);
+						barIndex = _random.Next(barCount);
 						// At most one full lap: ends even if the set already holds every bar (e.g. indices left
 						// from another transition type after a failed draw).
 						int steps = 0;
-						while (BitsArraySet.Contains(num37) && steps++ < num38)
+						while (BitsArraySet.Contains(barIndex) && steps++ < barCount)
 						{
-							num37++;
-							if (num37 >= num38)
+							barIndex++;
+							if (barIndex >= barCount)
 							{
-								num37 = 0;
+								barIndex = 0;
 							}
 						}
-						if (steps > num38)
+						if (steps > barCount)
 						{
 							break;
 						}
-						BitsArraySet.Add(num37);
+						BitsArraySet.Add(barIndex);
 					}
 					TotalBitsArraySet = 0;
-					int width5 = base.Width;
-					for (int k = 0; k <= num38; k++)
+					int barWidth = base.Width;
+					for (int k = 0; k <= barCount; k++)
 					{
 						if (BitsArraySet.Contains(k))
 						{
 							TotalBitsArraySet++;
-							graphicsPath.AddRectangle(new Rectangle(0, k * 2, width5, 2));
+							graphicsPath.AddRectangle(new Rectangle(0, k * 2, barWidth, 2));
 						}
 					}
 					e.Graphics.SetClip(graphicsPath, CombineMode.Replace);
@@ -2199,24 +2199,24 @@ namespace Easislides
 					Draw_CurrentImage(e);
 					graphicsPath = FrameObject(new GraphicsPath());
 					// Using static _random field instead
-					int num40 = 0;
-					int num41 = (int)((float)DissolveTotal * _framePercentage / 100f) - TotalBitsArraySet;
-					for (int k = 0; k < num41; k++)
+					int cellIndex = 0;
+					int cellsToAdd = (int)((float)DissolveTotal * _framePercentage / 100f) - TotalBitsArraySet;
+					for (int k = 0; k < cellsToAdd; k++)
 					{
-						num40 = _random.Next(DissolveTotal);
-						BitsArraySet.Add(num40);
+						cellIndex = _random.Next(DissolveTotal);
+						BitsArraySet.Add(cellIndex);
 					}
 					TotalBitsArraySet = 0;
-					int num42 = 0;
-					int num43 = 0;
+					int cellRow = 0;
+					int cellColumn = 0;
 					for (int k = 0; k < DissolveTotal; k++)
 					{
 						if (BitsArraySet.Contains(k))
 						{
-							num42 = k / DissolveCountX;
-							num43 = k - num42 * DissolveCountX; // column 0..DissolveCountX-1 (was shifted one cell left)
+							cellRow = k / DissolveCountX;
+							cellColumn = k - cellRow * DissolveCountX; // column 0..DissolveCountX-1 (was shifted one cell left)
 							TotalBitsArraySet++;
-							graphicsPath.AddRectangle(new Rectangle(num43 * DissolveSize, num42 * DissolveSize, DissolveSize, DissolveSize));
+							graphicsPath.AddRectangle(new Rectangle(cellColumn * DissolveSize, cellRow * DissolveSize, DissolveSize, DissolveSize));
 						}
 					}
 					e.Graphics.SetClip(graphicsPath, CombineMode.Replace);
@@ -2228,38 +2228,38 @@ namespace Easislides
 					Draw_CurrentImage(e);
 					graphicsPath = FrameObject(new GraphicsPath());
 					// Using static _random field instead
-					int num40 = 0;
-					int num41 = (int)((float)DissolveTotal * _framePercentage / 100f) - TotalBitsArraySet;
-					for (int k = 0; k < num41; k++)
+					int cellIndex = 0;
+					int cellsToAdd = (int)((float)DissolveTotal * _framePercentage / 100f) - TotalBitsArraySet;
+					for (int k = 0; k < cellsToAdd; k++)
 					{
-						num40 = _random.Next(DissolveTotal);
+						cellIndex = _random.Next(DissolveTotal);
 						// At most one full lap (see RandomBars).
 						int steps = 0;
-						while (BitsArraySet.Contains(num40) && steps++ < DissolveTotal)
+						while (BitsArraySet.Contains(cellIndex) && steps++ < DissolveTotal)
 						{
-							num40++;
-							if (num40 >= DissolveTotal)
+							cellIndex++;
+							if (cellIndex >= DissolveTotal)
 							{
-								num40 = 0;
+								cellIndex = 0;
 							}
 						}
 						if (steps > DissolveTotal)
 						{
 							break;
 						}
-						BitsArraySet.Add(num40);
+						BitsArraySet.Add(cellIndex);
 					}
 					TotalBitsArraySet = 0;
-					int num42 = 0;
-					int num43 = 0;
+					int cellRow = 0;
+					int cellColumn = 0;
 					for (int k = 0; k < DissolveTotal; k++)
 					{
 						if (BitsArraySet.Contains(k))
 						{
-							num42 = k / DissolveCountX;
-							num43 = k - num42 * DissolveCountX; // column 0..DissolveCountX-1 (was shifted one cell left)
+							cellRow = k / DissolveCountX;
+							cellColumn = k - cellRow * DissolveCountX; // column 0..DissolveCountX-1 (was shifted one cell left)
 							TotalBitsArraySet++;
-							graphicsPath.AddRectangle(new Rectangle(num43 * DissolveSize, num42 * DissolveSize, DissolveSize, DissolveSize));
+							graphicsPath.AddRectangle(new Rectangle(cellColumn * DissolveSize, cellRow * DissolveSize, DissolveSize, DissolveSize));
 						}
 					}
 					e.Graphics.SetClip(graphicsPath, CombineMode.Replace);
@@ -2269,32 +2269,32 @@ namespace Easislides
 				else if (_activeTransitionType == TransitionTypes.Zoom_In)
 				{
 					Draw_CurrentImage(e);
-					float num16 = 0.2f + 0.8f * _framePercentage / 100f;
-					if (num16 == 0f)
+					float scale = 0.2f + 0.8f * _framePercentage / 100f;
+					if (scale == 0f)
 					{
-						num16 = 0.01f;
+						scale = 0.01f;
 					}
 					if (TransitBackPictureAction == BackPicturesTransition.None)
 					{
-						num16 = (_framePercentage + 20f) / 100f;
-						if (num16 == 0f)
+						scale = (_framePercentage + 20f) / 100f;
+						if (scale == 0f)
 						{
-							num16 = 0.01f;
+							scale = 0.01f;
 						}
-						else if (num16 > 1f)
+						else if (scale > 1f)
 						{
-							num16 = 1f;
+							scale = 1f;
 						}
 						float dx = _newBackgroundPicture.Width / 2;
 						float dy = _newBackgroundPicture.Height / 2;
 						
 						CreateFrameWorkSpace(_newBackgroundPicture.Width, _newBackgroundPicture.Height);
-						Rectangle destRect4 = new Rectangle(-_newBackgroundPicture.Width / 2, -1 - _newBackgroundPicture.Height / 2, _newBackgroundPicture.Width, _newBackgroundPicture.Height);
-						Rectangle rectangle = new Rectangle(destRect4.Width / 2 - (int)(num16 * (float)destRect4.Width / 2f), destRect4.Height / 2 - (int)(num16 * (float)destRect4.Height / 2f), (int)(num16 * (float)destRect4.Width), (int)(num16 * (float)destRect4.Height));
+						Rectangle destRect = new Rectangle(-_newBackgroundPicture.Width / 2, -1 - _newBackgroundPicture.Height / 2, _newBackgroundPicture.Width, _newBackgroundPicture.Height);
+						Rectangle rectangle = new Rectangle(destRect.Width / 2 - (int)(scale * (float)destRect.Width / 2f), destRect.Height / 2 - (int)(scale * (float)destRect.Height / 2f), (int)(scale * (float)destRect.Width), (int)(scale * (float)destRect.Height));
 						wsg.DrawImage(_newBackgroundPicture, rectangle, rectangle, GraphicsUnit.Pixel);
-						Matrix matrix = FrameObject(new Matrix(num16, 0f, 0f, num16, dx, dy));
+						Matrix matrix = FrameObject(new Matrix(scale, 0f, 0f, scale, dx, dy));
 						wsg.Transform = matrix;
-						wsg.DrawImage(_newTextImage, destRect4, 0, 0, _newBackgroundPicture.Width, _newBackgroundPicture.Height, GraphicsUnit.Pixel);
+						wsg.DrawImage(_newTextImage, destRect, 0, 0, _newBackgroundPicture.Width, _newBackgroundPicture.Height, GraphicsUnit.Pixel);
 						DrawImageToOutput(e, _workSpace, base.ClientRectangle, new Rectangle(0, 0, _workSpace.Width, _workSpace.Height), null, PanelType.New);
 						matrix.Dispose();
 						wsg.Dispose();
@@ -2303,25 +2303,25 @@ namespace Easislides
 					{
 						float dx = base.Width / 2;
 						float dy = base.Height / 2;
-						Matrix matrix2 = FrameObject(new Matrix(num16, 0f, 0f, num16, dx, dy));
-						e.Graphics.Transform = matrix2;
+						Matrix matrix = FrameObject(new Matrix(scale, 0f, 0f, scale, dx, dy));
+						e.Graphics.Transform = matrix;
 						DrawImageToOutput(e, _newCombinedImage, new Rectangle(-base.Width / 2, -1 - base.Height / 2, base.Width, base.Height), new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), null);
-						matrix2.Dispose();
+						matrix.Dispose();
 					}
 				}
 				else if (_activeTransitionType == TransitionTypes.Zoom_Out)
 				{
-					float num16 = 2f - _framePercentage / 100f;
-					if (num16 == 0f)
+					float scale = 2f - _framePercentage / 100f;
+					if (scale == 0f)
 					{
-						num16 = 0.01f;
+						scale = 0.01f;
 					}
 					if (TransitBackPictureAction == BackPicturesTransition.None)
 					{
 						DrawImageToOutput(e, _newBackgroundPicture, base.ClientRectangle, new Rectangle(0, 0, _newBackgroundPicture.Width, _newBackgroundPicture.Height), null);
 						float dx = base.Width / 2;
 						float dy = base.Height / 2;
-						Matrix matrix = FrameObject(new Matrix(num16, 0f, 0f, num16, dx, dy * num16));
+						Matrix matrix = FrameObject(new Matrix(scale, 0f, 0f, scale, dx, dy * scale));
 						e.Graphics.Transform = matrix;
 						DrawImageToOutput(e, _newTextImage, new Rectangle(-base.Width / 2, -1 - base.Height / 2, base.Width, base.Height), new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), null, PanelType.New);
 						matrix.Dispose();
@@ -2330,10 +2330,10 @@ namespace Easislides
 					{
 						float dx = base.Width / 2;
 						float dy = base.Height / 2;
-						Matrix matrix2 = FrameObject(new Matrix(num16, 0f, 0f, num16, dx, dy * num16));
-						e.Graphics.Transform = matrix2;
+						Matrix matrix = FrameObject(new Matrix(scale, 0f, 0f, scale, dx, dy * scale));
+						e.Graphics.Transform = matrix;
 						DrawImageToOutput(e, _newCombinedImage, new Rectangle(-base.Width / 2, -1 - base.Height / 2, base.Width, base.Height), new Rectangle(0, 0, _newCombinedImage.Width, _newCombinedImage.Height), null);
-						matrix2.Dispose();
+						matrix.Dispose();
 					}
 				}
 				if (_alert.OverallPercentage < 100f)
@@ -2455,61 +2455,61 @@ namespace Easislides
 
 		private void Draw_TranSlideIn(PaintEventArgs e, TransitionTypes InTransType)
 		{
-			float num = 0f;
-			float num2 = 0f;
+			float offsetY = 0f;
+			float offsetX = 0f;
 			// Replaced by every case below; only an unknown type would keep it (its 1 px shift down is as it was).
 			Matrix transform = FrameObject(new Matrix(1f, 0f, 0f, 1f, 0f, 1f));
 			switch (InTransType)
 			{
 			case TransitionTypes.InLeft:
-				num2 = (float)_newBackgroundPicture.Width * _framePercentage / 100f - (float)_newBackgroundPicture.Width;
-				transform = FrameObject(new Matrix(1f, 0f, 0f, 1f, num2, 0f));
+				offsetX = (float)_newBackgroundPicture.Width * _framePercentage / 100f - (float)_newBackgroundPicture.Width;
+				transform = FrameObject(new Matrix(1f, 0f, 0f, 1f, offsetX, 0f));
 				break;
 			case TransitionTypes.InTop:
-				num = (float)_newBackgroundPicture.Height * _framePercentage / 100f - (float)_newBackgroundPicture.Height;
-				transform = FrameObject(new Matrix(1f, 0f, 0f, 1f, 0f, num));
+				offsetY = (float)_newBackgroundPicture.Height * _framePercentage / 100f - (float)_newBackgroundPicture.Height;
+				transform = FrameObject(new Matrix(1f, 0f, 0f, 1f, 0f, offsetY));
 				break;
 			case TransitionTypes.InRight:
-				num2 = (float)_newBackgroundPicture.Width - (float)_newBackgroundPicture.Width * _framePercentage / 100f;
-				transform = FrameObject(new Matrix(1f, 0f, 0f, 1f, num2, 0f));
+				offsetX = (float)_newBackgroundPicture.Width - (float)_newBackgroundPicture.Width * _framePercentage / 100f;
+				transform = FrameObject(new Matrix(1f, 0f, 0f, 1f, offsetX, 0f));
 				break;
 			case TransitionTypes.InBottom:
-				num = (float)_newBackgroundPicture.Height - (float)_newBackgroundPicture.Height * _framePercentage / 100f;
-				transform = FrameObject(new Matrix(1f, 0f, 0f, 1f, 0f, num));
+				offsetY = (float)_newBackgroundPicture.Height - (float)_newBackgroundPicture.Height * _framePercentage / 100f;
+				transform = FrameObject(new Matrix(1f, 0f, 0f, 1f, 0f, offsetY));
 				break;
 			case TransitionTypes.InTopLeft:
-				num = (float)_newBackgroundPicture.Height * _framePercentage / 100f - (float)_newBackgroundPicture.Height;
-				num2 = (float)_newBackgroundPicture.Width * _framePercentage / 100f - (float)_newBackgroundPicture.Width;
-				transform = FrameObject(new Matrix(1f, 0f, 0f, 1f, num2, num));
+				offsetY = (float)_newBackgroundPicture.Height * _framePercentage / 100f - (float)_newBackgroundPicture.Height;
+				offsetX = (float)_newBackgroundPicture.Width * _framePercentage / 100f - (float)_newBackgroundPicture.Width;
+				transform = FrameObject(new Matrix(1f, 0f, 0f, 1f, offsetX, offsetY));
 				break;
 			case TransitionTypes.InTopRight:
-				num = (float)_newBackgroundPicture.Height * _framePercentage / 100f - (float)_newBackgroundPicture.Height;
-				num2 = (float)_newBackgroundPicture.Width - (float)_newBackgroundPicture.Width * _framePercentage / 100f;
-				transform = FrameObject(new Matrix(1f, 0f, 0f, 1f, num2, num));
+				offsetY = (float)_newBackgroundPicture.Height * _framePercentage / 100f - (float)_newBackgroundPicture.Height;
+				offsetX = (float)_newBackgroundPicture.Width - (float)_newBackgroundPicture.Width * _framePercentage / 100f;
+				transform = FrameObject(new Matrix(1f, 0f, 0f, 1f, offsetX, offsetY));
 				break;
 			case TransitionTypes.InBottomLeft:
-				num = (float)_newBackgroundPicture.Height - (float)_newBackgroundPicture.Height * _framePercentage / 100f;
-				num2 = (float)_newBackgroundPicture.Width * _framePercentage / 100f - (float)_newBackgroundPicture.Width;
-				transform = FrameObject(new Matrix(1f, 0f, 0f, 1f, num2, num));
+				offsetY = (float)_newBackgroundPicture.Height - (float)_newBackgroundPicture.Height * _framePercentage / 100f;
+				offsetX = (float)_newBackgroundPicture.Width * _framePercentage / 100f - (float)_newBackgroundPicture.Width;
+				transform = FrameObject(new Matrix(1f, 0f, 0f, 1f, offsetX, offsetY));
 				break;
 			case TransitionTypes.InBottomRight:
-				num = (float)_newBackgroundPicture.Height - (float)_newBackgroundPicture.Height * _framePercentage / 100f;
-				num2 = (float)_newBackgroundPicture.Width - (float)_newBackgroundPicture.Width * _framePercentage / 100f;
-				transform = FrameObject(new Matrix(1f, 0f, 0f, 1f, num2, num));
+				offsetY = (float)_newBackgroundPicture.Height - (float)_newBackgroundPicture.Height * _framePercentage / 100f;
+				offsetX = (float)_newBackgroundPicture.Width - (float)_newBackgroundPicture.Width * _framePercentage / 100f;
+				transform = FrameObject(new Matrix(1f, 0f, 0f, 1f, offsetX, offsetY));
 				break;
 			}
 			if (TransitBackPictureAction == BackPicturesTransition.None)
 			{
-				int x = (num2 >= 0f) ? ((int)num2) : 0;
-				int y = (num >= 0f) ? ((int)num) : 0;
-				int width = (num2 >= 0f) ? (_newBackgroundPicture.Width - (int)num2) : (_newBackgroundPicture.Width + (int)num2);
-				int height = (num >= 0f) ? (_newBackgroundPicture.Height - (int)num) : (_newBackgroundPicture.Height + (int)num);
+				int x = (offsetX >= 0f) ? ((int)offsetX) : 0;
+				int y = (offsetY >= 0f) ? ((int)offsetY) : 0;
+				int width = (offsetX >= 0f) ? (_newBackgroundPicture.Width - (int)offsetX) : (_newBackgroundPicture.Width + (int)offsetX);
+				int height = (offsetY >= 0f) ? (_newBackgroundPicture.Height - (int)offsetY) : (_newBackgroundPicture.Height + (int)offsetY);
 				Rectangle rectangle = new Rectangle(x, y, width, height);
 				// Only this branch uses the work space (it was made, and cleared, in the other one too).
 				CreateFrameWorkSpace(_newBackgroundPicture.Width, _newBackgroundPicture.Height);
 				wsg.DrawImage(_currentCombinedImage, new Rectangle(0, 0, _newBackgroundPicture.Width, _newBackgroundPicture.Height), 0, 0, _newBackgroundPicture.Width, _newBackgroundPicture.Height, GraphicsUnit.Pixel);
 				wsg.DrawImage(_newBackgroundPicture, rectangle, rectangle, GraphicsUnit.Pixel);
-				wsg.DrawImage(_newTextImage, new Rectangle((int)num2, (int)num, _newBackgroundPicture.Width, _newBackgroundPicture.Height), 0, 0, _newBackgroundPicture.Width, _newBackgroundPicture.Height, GraphicsUnit.Pixel);
+				wsg.DrawImage(_newTextImage, new Rectangle((int)offsetX, (int)offsetY, _newBackgroundPicture.Width, _newBackgroundPicture.Height), 0, 0, _newBackgroundPicture.Width, _newBackgroundPicture.Height, GraphicsUnit.Pixel);
 				DrawImageToOutput(e, _workSpace, base.ClientRectangle, new Rectangle(0, 0, _workSpace.Width, _workSpace.Height), null, PanelType.New);
 				wsg.Dispose();
 			}
@@ -2523,61 +2523,61 @@ namespace Easislides
 
 		private void Draw_TranSlideOut(PaintEventArgs e, TransitionTypes InTransType)
 		{
-			float num = 0f;
-			float num2 = 0f;
+			float offsetY = 0f;
+			float offsetX = 0f;
 			// Replaced by every case below; only an unknown type would keep it (its 1 px shift down is as it was).
 			Matrix transform = FrameObject(new Matrix(1f, 0f, 0f, 1f, 0f, 1f));
 			switch (InTransType)
 			{
 			case TransitionTypes.OutLeft:
-				num2 = (float)(-_newBackgroundPicture.Width) * _framePercentage / 100f;
-				transform = FrameObject(new Matrix(1f, 0f, 0f, 1f, num2, 0f));
+				offsetX = (float)(-_newBackgroundPicture.Width) * _framePercentage / 100f;
+				transform = FrameObject(new Matrix(1f, 0f, 0f, 1f, offsetX, 0f));
 				break;
 			case TransitionTypes.OutTop:
-				num = (float)(-_newBackgroundPicture.Height) * _framePercentage / 100f;
-				transform = FrameObject(new Matrix(1f, 0f, 0f, 1f, 0f, num));
+				offsetY = (float)(-_newBackgroundPicture.Height) * _framePercentage / 100f;
+				transform = FrameObject(new Matrix(1f, 0f, 0f, 1f, 0f, offsetY));
 				break;
 			case TransitionTypes.OutRight:
-				num2 = (float)_newBackgroundPicture.Width * _framePercentage / 100f;
-				transform = FrameObject(new Matrix(1f, 0f, 0f, 1f, num2, 0f));
+				offsetX = (float)_newBackgroundPicture.Width * _framePercentage / 100f;
+				transform = FrameObject(new Matrix(1f, 0f, 0f, 1f, offsetX, 0f));
 				break;
 			case TransitionTypes.OutBottom:
-				num = (float)_newBackgroundPicture.Height * _framePercentage / 100f;
-				transform = FrameObject(new Matrix(1f, 0f, 0f, 1f, 0f, num));
+				offsetY = (float)_newBackgroundPicture.Height * _framePercentage / 100f;
+				transform = FrameObject(new Matrix(1f, 0f, 0f, 1f, 0f, offsetY));
 				break;
 			case TransitionTypes.OutTopLeft:
-				num = (float)(-_newBackgroundPicture.Height) * _framePercentage / 100f;
-				num2 = (float)(-_newBackgroundPicture.Width) * _framePercentage / 100f;
-				transform = FrameObject(new Matrix(1f, 0f, 0f, 1f, num2, num));
+				offsetY = (float)(-_newBackgroundPicture.Height) * _framePercentage / 100f;
+				offsetX = (float)(-_newBackgroundPicture.Width) * _framePercentage / 100f;
+				transform = FrameObject(new Matrix(1f, 0f, 0f, 1f, offsetX, offsetY));
 				break;
 			case TransitionTypes.OutTopRight:
-				num = (float)(-_newBackgroundPicture.Height) * _framePercentage / 100f;
-				num2 = (float)_newBackgroundPicture.Width * _framePercentage / 100f;
-				transform = FrameObject(new Matrix(1f, 0f, 0f, 1f, num2, num));
+				offsetY = (float)(-_newBackgroundPicture.Height) * _framePercentage / 100f;
+				offsetX = (float)_newBackgroundPicture.Width * _framePercentage / 100f;
+				transform = FrameObject(new Matrix(1f, 0f, 0f, 1f, offsetX, offsetY));
 				break;
 			case TransitionTypes.OutBottomLeft:
-				num = (float)_newBackgroundPicture.Height * _framePercentage / 100f;
-				num2 = (float)(-_newBackgroundPicture.Width) * _framePercentage / 100f;
-				transform = FrameObject(new Matrix(1f, 0f, 0f, 1f, num2, num));
+				offsetY = (float)_newBackgroundPicture.Height * _framePercentage / 100f;
+				offsetX = (float)(-_newBackgroundPicture.Width) * _framePercentage / 100f;
+				transform = FrameObject(new Matrix(1f, 0f, 0f, 1f, offsetX, offsetY));
 				break;
 			case TransitionTypes.OutBottomRight:
-				num = (float)_newBackgroundPicture.Height * _framePercentage / 100f;
-				num2 = (float)_newBackgroundPicture.Width * _framePercentage / 100f;
-				transform = FrameObject(new Matrix(1f, 0f, 0f, 1f, num2, num));
+				offsetY = (float)_newBackgroundPicture.Height * _framePercentage / 100f;
+				offsetX = (float)_newBackgroundPicture.Width * _framePercentage / 100f;
+				transform = FrameObject(new Matrix(1f, 0f, 0f, 1f, offsetX, offsetY));
 				break;
 			}
 			if (TransitBackPictureAction == BackPicturesTransition.None)
 			{
-				int x = (num2 >= 0f) ? ((int)num2) : 0;
-				int y = (num >= 0f) ? ((int)num) : 0;
-				int width = (num2 >= 0f) ? (_newBackgroundPicture.Width - (int)num2) : (_newBackgroundPicture.Width + (int)num2);
-				int height = (num >= 0f) ? (_newBackgroundPicture.Height - (int)num) : (_newBackgroundPicture.Height + (int)num);
+				int x = (offsetX >= 0f) ? ((int)offsetX) : 0;
+				int y = (offsetY >= 0f) ? ((int)offsetY) : 0;
+				int width = (offsetX >= 0f) ? (_newBackgroundPicture.Width - (int)offsetX) : (_newBackgroundPicture.Width + (int)offsetX);
+				int height = (offsetY >= 0f) ? (_newBackgroundPicture.Height - (int)offsetY) : (_newBackgroundPicture.Height + (int)offsetY);
 				Rectangle rectangle = new Rectangle(x, y, width, height);
 				// Only this branch uses the work space (it was made, and cleared, in the other one too).
 				CreateFrameWorkSpace(_newBackgroundPicture.Width, _newBackgroundPicture.Height);
 				wsg.DrawImage(NewCombinedImage, new Rectangle(0, 0, _newBackgroundPicture.Width, _newBackgroundPicture.Height), 0, 0, _newBackgroundPicture.Width, _newBackgroundPicture.Height, GraphicsUnit.Pixel);
 				wsg.DrawImage(_newBackgroundPicture, rectangle, rectangle, GraphicsUnit.Pixel);
-				wsg.DrawImage(_currentTextImage, new Rectangle((int)num2, (int)num, _newBackgroundPicture.Width, _newBackgroundPicture.Height), 0, 0, _newBackgroundPicture.Width, _newBackgroundPicture.Height, GraphicsUnit.Pixel);
+				wsg.DrawImage(_currentTextImage, new Rectangle((int)offsetX, (int)offsetY, _newBackgroundPicture.Width, _newBackgroundPicture.Height), 0, 0, _newBackgroundPicture.Width, _newBackgroundPicture.Height, GraphicsUnit.Pixel);
 				DrawImageToOutput(e, _workSpace, base.ClientRectangle, new Rectangle(0, 0, _workSpace.Width, _workSpace.Height), null, PanelType.Current);
 				wsg.Dispose();
 			}
@@ -2593,29 +2593,29 @@ namespace Easislides
 		{
 			CreateFrameWorkSpace(NewCombinedImage.Width, NewCombinedImage.Height);
 			wsg.DrawImage(NewCombinedImage, new Rectangle(0, 0, NewCombinedImage.Width, NewCombinedImage.Height), 0, 0, NewCombinedImage.Width, NewCombinedImage.Height, GraphicsUnit.Pixel);
-			int num = 0;
-			int num2 = 0;
+			int visibleX = 0;
+			int visibleY = 0;
 			int width = NewCombinedImage.Width;
 			int height = NewCombinedImage.Height;
-			float num3 = 1f * _framePercentage / 100f;
+			float progress = 1f * _framePercentage / 100f;
 			switch (InTransType)
 			{
 			case TransitionTypes.RevealLeftRight:
-				num = (int)((float)_currentCombinedImage.Width * num3);
-				width = _currentCombinedImage.Width - num;
+				visibleX = (int)((float)_currentCombinedImage.Width * progress);
+				width = _currentCombinedImage.Width - visibleX;
 				break;
 			case TransitionTypes.RevealTopDown:
-				num2 = (int)((float)_currentCombinedImage.Height * num3);
-				height = _currentCombinedImage.Height - num2;
+				visibleY = (int)((float)_currentCombinedImage.Height * progress);
+				height = _currentCombinedImage.Height - visibleY;
 				break;
 			case TransitionTypes.RevealRightLeft:
-				width = (int)((float)_currentCombinedImage.Width * (1f - num3));
+				width = (int)((float)_currentCombinedImage.Width * (1f - progress));
 				break;
 			case TransitionTypes.RevealDownUp:
-				height = (int)((float)_currentCombinedImage.Height * (1f - num3));
+				height = (int)((float)_currentCombinedImage.Height * (1f - progress));
 				break;
 			}
-			Rectangle rectangle = new Rectangle(num, num2, width, height);
+			Rectangle rectangle = new Rectangle(visibleX, visibleY, width, height);
 			wsg.DrawImage(_currentCombinedImage, rectangle, rectangle, GraphicsUnit.Pixel);
 			DrawImageToOutput(e, _workSpace, base.ClientRectangle, new Rectangle(0, 0, _workSpace.Width, _workSpace.Height), null);
 			wsg.Dispose();
