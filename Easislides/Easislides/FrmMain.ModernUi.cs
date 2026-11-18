@@ -94,10 +94,35 @@ namespace Easislides
 
         private static void ApplyHeaderTint(Panel header, ListView title, Color tint)
         {
-            header.BackColor = tint;
-            title.BackColor = tint;
-            title.ForeColor = ModernUiPalette.TextPrimary;
+            header.SuspendLayout();
+            try
+            {
+                header.BackColor = tint;
+                header.Padding = new Padding(1);
+                title.BackColor = tint;
+                title.ForeColor = ModernUiPalette.TextPrimary;
+                title.BorderStyle = BorderStyle.None;
+                // Right-docked buttons reserve their space before the title fills the remainder.
+                header.Controls.SetChildIndex(title, 0);
+                header.Paint -= PaintHeaderFrame;
+                header.Paint += PaintHeaderFrame;
+                header.SizeChanged -= HeaderFrame_SizeChanged;
+                header.SizeChanged += HeaderFrame_SizeChanged;
+            }
+            finally
+            {
+                header.ResumeLayout(performLayout: true);
+            }
+            header.Invalidate();
         }
+
+        private static void PaintHeaderFrame(object sender, PaintEventArgs e)
+        {
+            var header = (Panel)sender;
+            ControlPaint.DrawBorder(e.Graphics, header.ClientRectangle, ModernUiPalette.Border, ButtonBorderStyle.Solid);
+        }
+
+        private static void HeaderFrame_SizeChanged(object sender, EventArgs e) => ((Panel)sender).Invalidate();
 
         /// <summary>
         /// Show button apart from hide-text / black-screen, and filled when checked (design D11).
@@ -106,9 +131,7 @@ namespace Easislides
         {
             // Docking runs from the highest child index down. With the spacer placed at the index
             // just below cbGoLive the order is: cbGoLive takes the right edge, the spacer docks to
-            // its left, the title (Dock Fill) takes the rest, and cbOutputClear then cbOutputBlack
-            // dock right inside that same rest, over the right end of the title. So from the right:
-            // cbGoLive, spacer, cbOutputClear, cbOutputBlack. Docking keeps it at every window size.
+            // its left, then cbOutputClear and cbOutputBlack. The title fills the remaining space.
             Panel spacer = new Panel
             {
                 Name = "panelLiveShowButtonGap",
