@@ -960,10 +960,6 @@ namespace Easislides
 					}
 					graphicsPath.Reset();
 				}
-				if (InUseOutlineFont > 0)
-				{
-					g.DrawPath(pen, graphicsPath);
-				}
 				if (h == 0)
 				{
 					return pathLeft;
