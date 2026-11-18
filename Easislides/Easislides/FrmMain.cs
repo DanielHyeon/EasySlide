@@ -79,7 +79,7 @@ namespace Easislides
         {
 
             Gf.formLoaded = true;
-            /// Keyboard Hooking ??��
+            // Keyboard hooking
             RemoveHookBlackScreen();
             AddHookBlackScreen();
             UpdateBlackScreenShortcut();
@@ -103,8 +103,7 @@ namespace Easislides
             TimerToFront.Start();
             Gf.SplashScreenCanClose = true;
 
-            /// Daniel 25.12.26
-            /// Test Resource Extraction
+            // Test resource extraction (25.12.26)
             //string outputDir = @"E:\WorkSpace\wp - ms\dev\EasiSlides_v2.5.9\frmMainResource";
             //string resxPath = @"E:\WorkSpace\wp-ms\dev\EasiSlides_v2.5.9\Easislides\Easislides\FrmMain.resx";
             //Extract(resxPath, outputDir);
@@ -169,24 +168,24 @@ namespace Easislides
             {
                 Gf.TabSourceExternalFilesChanged = true;
             }
-            int num = tabControlSource.Width * 7 / 12;
-            num = ((num < 60) ? 60 : num);
-            BookLookup.Width = num;
+            int lookupWidth = tabControlSource.Width * 7 / 12;
+            lookupWidth = ((lookupWidth < 60) ? 60 : lookupWidth);
+            BookLookup.Width = lookupWidth;
             BibleUserLookup.Left = BookLookup.Left + BookLookup.Width + 2;
-            num = tabControlSource.Width - (BibleUserLookup.Left + 12);
-            if (num > 0)
+            lookupWidth = tabControlSource.Width - (BibleUserLookup.Left + 12);
+            if (lookupWidth > 0)
             {
-                if (num < 40)
+                if (lookupWidth < 40)
                 {
-                    BibleUserLookup.Width = num;
+                    BibleUserLookup.Width = lookupWidth;
                 }
-                else if (num < 40 + panelBible2.Width)
+                else if (lookupWidth < 40 + panelBible2.Width)
                 {
                     BibleUserLookup.Width = 40;
                 }
                 else
                 {
-                    BibleUserLookup.Width = num - panelBible2.Width;
+                    BibleUserLookup.Width = lookupWidth - panelBible2.Width;
                 }
             }
             else
@@ -199,13 +198,13 @@ namespace Easislides
             TabBibleVersions.Left = BibleText.Left;
             TabBibleVersions.Top = BibleText.Top + BibleText.Height;
             TabBibleVersions.Width = BibleText.Width;
-            int num2 = tabControlSource.Width - DefgroupBox1.Width;
-            num2 = ((num2 > 0) ? (num2 / 2) : 0);
-            DefApplyDefaultsBtn.Left = num2;
+            int groupBoxLeft = tabControlSource.Width - DefgroupBox1.Width;
+            groupBoxLeft = ((groupBoxLeft > 0) ? (groupBoxLeft / 2) : 0);
+            DefApplyDefaultsBtn.Left = groupBoxLeft;
             panelDefTemplate.Left = DefApplyDefaultsBtn.Left + DefApplyDefaultsBtn.Width;
-            DefgroupBox1.Left = num2;
-            DefgroupBox2.Left = num2;
-            DefgroupBox3.Left = num2;
+            DefgroupBox1.Left = groupBoxLeft;
+            DefgroupBox2.Left = groupBoxLeft;
+            DefgroupBox3.Left = groupBoxLeft;
         }
 
         private void SetSongListColWidth()
@@ -338,10 +337,10 @@ namespace Easislides
             Def_PanelFontUnderline.Checked = ((Gf.ShowDataDisplayFontUnderline > 0) ? true : false);
             Def_PanelFontShadow.Checked = ((Gf.ShowDataDisplayFontShadow > 0) ? true : false);
             Def_PanelFontOutline.Checked = ((Gf.ShowDataDisplayFontOutline > 0) ? true : false);
-            int num = (int)(Gf.BottomBorderFactor * 100.0);
-            if (num < 6 || num > 20)
+            int heightPercent = (int)(Gf.BottomBorderFactor * 100.0);
+            if (heightPercent < 6 || heightPercent > 20)
             {
-                num = 6;
+                heightPercent = 6;
             }
             Def_PanelHeight.Value = (int)(Gf.BottomBorderFactor * 100.0);
             Def_PanelFontOutline.Checked = ((Gf.ShowDataDisplayFontOutline > 0) ? true : false);
@@ -421,7 +420,7 @@ namespace Easislides
             {
                 ResetMainPictureBox(ref Gf.PreviewItem);
             }
-            if (!Gf.OutputItem.UseDefaultFormat || !(Gf.OutputItem.ItemID != ""))
+            if (!Gf.OutputItem.UseDefaultFormat || Gf.OutputItem.ItemID == "")
             {
                 return;
             }
@@ -710,8 +709,8 @@ namespace Easislides
             try
             {
                 ToolStripMenuItem toolStripMenuItem = (ToolStripMenuItem)sender;
-                int num = DataUtil.ObjToInt(toolStripMenuItem.Tag) + 1;
-                Edit_Item(Gf.MainEditHistoryList[num].Id);
+                int historyIndex = DataUtil.ObjToInt(toolStripMenuItem.Tag) + 1;
+                Edit_Item(Gf.MainEditHistoryList[historyIndex].Id);
             }
             catch
             {
@@ -746,12 +745,12 @@ namespace Easislides
             else if (Gf.PreviewItem.Type == "B")
             {
                 string inIDString = "B" + Gf.PreviewItem.ItemID;
-                string text = Edit_Item(inIDString, ref Gf.PreviewItem.Title);
-                if (text != "")
+                string editedIdString = Edit_Item(inIDString, ref Gf.PreviewItem.Title);
+                if (editedIdString != "")
                 {
                     if (Gf.PreviewItem.Source == ItemSource.HolyBible)
                     {
-                        HB_CurSelectedPassages = DataUtil.Right(text, text.Length - 1);
+                        HB_CurSelectedPassages = DataUtil.Right(editedIdString, editedIdString.Length - 1);
                         HB_CurSelectedTitle = Gf.PreviewItem.Title;
                         HB_SelectedPassagesChanged(HB_CurSelectedPassages, ref HB_CurSelectedTitle);
                     }
@@ -759,7 +758,7 @@ namespace Easislides
                     {
                         int selectedIndex = Gf.GetSelectedIndex(WorshipListItems);
                         WorshipListItems.Items[selectedIndex].SubItems[0].Text = Gf.PreviewItem.Title;
-                        WorshipListItems.Items[selectedIndex].SubItems[1].Text = text;
+                        WorshipListItems.Items[selectedIndex].SubItems[1].Text = editedIdString;
                         WorshipListIndexChanged();
                     }
                 }
@@ -813,12 +812,12 @@ namespace Easislides
             if (e.Button == MouseButtons.Left)
             {
                 Gf.PreviewItem.Source = ItemSource.ExternalFilePowerpoint;
-                string text = PowerpointCurPreview = "P" + ExternalPPImagename[ThumbImageClicked];
+                string itemIdString = PowerpointCurPreview = "P" + ExternalPPImagename[ThumbImageClicked];
                 string InTitle = Path.GetFileNameWithoutExtension(ExternalPPImagename[ThumbImageClicked]);
                 Gf.PreviewItem.InMainItemText = InTitle;
-                Gf.PreviewItem.InSubItemItem1Text = text;
+                Gf.PreviewItem.InSubItemItem1Text = itemIdString;
                 Gf.PreviewItem.CurItemNo = 0;
-                LoadItem(ref Gf.PreviewItem, text, "", 1, ref InTitle, ScrollToCaret: false);
+                LoadItem(ref Gf.PreviewItem, itemIdString, "", 1, ref InTitle, ScrollToCaret: false);
                 LoadExternalPowerpointThumbImages(ThumbImageClicked + 1);
                 UpdateDisplayPanelFields();
             }
@@ -949,7 +948,7 @@ namespace Easislides
 
         private void Ind_FontsList_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (!(UpdatingFormatFields | InitFormLoad))
+            if (!(UpdatingFormatFields || InitFormLoad))
             {
                 Gf.PreviewItem.Format.ShowFontName[0] = Ind_Reg1FontsList.Text;
                 Gf.PreviewItem.Format.ShowFontName[1] = Ind_Reg2FontsList.Text;
@@ -959,7 +958,7 @@ namespace Easislides
 
         private void Ind_TransSelectedIndexChanged(object sender, EventArgs e)
         {
-            if (!(UpdatingFormatFields | InitFormLoad))
+            if (!(UpdatingFormatFields || InitFormLoad))
             {
                 ToolStripComboBox toolStripComboBox = (ToolStripComboBox)sender;
                 ImageTransitionControl.TransitionAction transitionAction = (toolStripComboBox.Name == "Ind_TransItem") ? ImageTransitionControl.TransitionAction.AsStoredItem : ImageTransitionControl.TransitionAction.AsStoredSlide;
@@ -1054,7 +1053,7 @@ namespace Easislides
         {
             if (IsSelectedTab(tabControlSource, "tabImages"))
             {
-                if ((ImagesFolder.Items.Count > 0) & (ImagesFolder.Text == ""))
+                if (ImagesFolder.Items.Count > 0 && ImagesFolder.Text == "")
                 {
                     ImagesFolder.SelectedIndex = 0;
                     Gf.TabSourceImagesChanged = false;
@@ -1067,7 +1066,7 @@ namespace Easislides
             }
             else if (IsSelectedTab(tabControlSource, "tabFiles"))
             {
-                if ((InfoScreenFolder.Items.Count > 0) & (InfoScreenFolder.Text == ""))
+                if (InfoScreenFolder.Items.Count > 0 && InfoScreenFolder.Text == "")
                 {
                     InfoScreenFolder.SelectedIndex = 0;
                     Gf.TabSourceExternalFilesChanged = false;
@@ -1078,7 +1077,7 @@ namespace Easislides
             }
             else if (IsSelectedTab(tabControlSource, "tabMedia"))
             {
-                if ((MediaFolder.Items.Count > 0) & (MediaFolder.Text == ""))
+                if (MediaFolder.Items.Count > 0 && MediaFolder.Text == "")
                 {
                     MediaFolder.SelectedIndex = 0;
                     Gf.TabSourceMediaFolderFilesChanged = false;
@@ -1089,7 +1088,7 @@ namespace Easislides
             }
             else if (IsSelectedTab(tabControlSource, "tabPowerpoint"))
             {
-                if ((PowerpointFolder.Items.Count > 0) & (PowerpointFolder.Text == ""))
+                if (PowerpointFolder.Items.Count > 0 && PowerpointFolder.Text == "")
                 {
                     PowerpointFolder.SelectedIndex = 0;
                     Gf.TabSourceExternalFilesChanged = false;
@@ -1222,15 +1221,15 @@ namespace Easislides
                     break;
             }
             string FirstCharSym = "";
-            string text2 = "000000";
+            string songNumber = "000000";
             Cursor = Cursors.WaitCursor;
             if (Gf.UseSongNumbers)
             {
                 for (int i = 0; i <= PraiseBookItems.Items.Count - 1; i++)
                 {
                     string inTitle = Gf.RemoveMusicSym(PraiseBookItems.Items[i].SubItems[2].Text);
-                    text2 = DataUtil.Format6(PraiseBookItems.Items[i].SubItems[5].Text);
-                    PraiseBookItems.Items[i].SubItems[0].Text = text2 + DataUtil.GetCJKTitle(inTitle, Gf.PB_CJKGroupStyle, ref FirstCharSym);
+                    songNumber = DataUtil.Format6(PraiseBookItems.Items[i].SubItems[5].Text);
+                    PraiseBookItems.Items[i].SubItems[0].Text = songNumber + DataUtil.GetCJKTitle(inTitle, Gf.PB_CJKGroupStyle, ref FirstCharSym);
                     PraiseBookItems.Items[i].SubItems[4].Text = FirstCharSym;
                 }
             }
@@ -1249,7 +1248,7 @@ namespace Easislides
 
         private void SavePraiseBook()
         {
-            if (!(DataUtil.Trim(PraiseBook.Text) == ""))
+            if (DataUtil.Trim(PraiseBook.Text) != "")
             {
                 Gf.CurPraiseBook = PraiseBook.Text;
                 Gf.PB_ShowWords[3] = 1;
@@ -1374,7 +1373,7 @@ namespace Easislides
         }
 
         /// <summary>
-        /// ListView 공통 키 이벤트 처리 헬퍼 메서드
+        /// Shared key event handling for the list views.
         /// </summary>
         private void HandleListViewKeyEvent(KeyEventArgs e, Action selectAllAction, Action deleteAction, Action indexChangedAction, Control focusControl, Action copyAction = null)
         {
@@ -1403,7 +1402,6 @@ namespace Easislides
         }
 
         //static String prePreviewItemID = "";
-        //??�� ��????????���� ü?
 
         private void WorshipListItems_DoubleClick(object sender, EventArgs e)
         {
@@ -1561,11 +1559,11 @@ namespace Easislides
             int selectedIndex = Gf.GetSelectedIndex(PraiseBookItems);
             if (selectedIndex >= 0)
             {
-                string text = PraiseBookItems.Items[selectedIndex].SubItems[3].Text;
+                string idString = PraiseBookItems.Items[selectedIndex].SubItems[3].Text;
                 Gf.PreviewItem.CurItemNo = selectedIndex + 1;
                 Gf.PreviewItem.TotalItems = PraiseBookItems.Items.Count;
                 Gf.PreviewItem.Source = ItemSource.PraiseBook;
-                LoadItem(ref Gf.PreviewItem, text);
+                LoadItem(ref Gf.PreviewItem, idString);
             }
             else
             {
@@ -1590,8 +1588,8 @@ namespace Easislides
             int selectedIndex = Gf.GetSelectedIndex(PraiseBookItems, ref OutString);
             if (selectedIndex >= 0)
             {
-                string text = PraiseBookItems.Items[selectedIndex].SubItems[3].Text;
-                Edit_Item(text);
+                string idString = PraiseBookItems.Items[selectedIndex].SubItems[3].Text;
+                Edit_Item(idString);
             }
         }
 
@@ -1662,13 +1660,13 @@ namespace Easislides
                 return false;
             }
             ListViewItem listViewItem = new ListViewItem();
-            string text = "";
+            string formatData = "";
             Cursor = Cursors.WaitCursor;
             if (AddToLocation < 0 || AddToLocation > WorshipListItems.Items.Count)
             {
                 AddToLocation = WorshipListItems.Items.Count;
             }
-            int num = 0;
+            int addedCount = 0;
             Gf.TotalMusicFiles = -1;
             try
             {
@@ -1680,26 +1678,26 @@ namespace Easislides
 
                 for (int i = 0; i < SongsList.SelectedItems.Count; i++)
                 {
-                    string text2 = SongsList.SelectedItems[i].SubItems[1].Text;
-                    string text3 = DataUtil.Mid(text2, 1, text2.Length - 1);
-                    long num2 = DataUtil.StringToInt(text3);
-                    string text4 = DataUtil.Left(text2, 0);
+                    string idString = SongsList.SelectedItems[i].SubItems[1].Text;
+                    string songId = DataUtil.Mid(idString, 1, idString.Length - 1);
+                    long songIdNumber = DataUtil.StringToInt(songId);
+                    string idPrefix = DataUtil.Left(idString, 0);
                     try
                     {
-                        DataRow dr = dt.Rows.Find(text3);
+                        DataRow dr = dt.Rows.Find(songId);
                         if (dr != null)
                         {
-                            string text5 = DataUtil.GetDataString(dr, "Title_1");
+                            string title = DataUtil.GetDataString(dr, "Title_1");
                             string dataString = DataUtil.GetDataString(dr, "Title_2");
-                            if (Gf.MusicFound(text5, dataString))
+                            if (Gf.MusicFound(title, dataString))
                             {
-                                text5 += " <#>";
+                                title += " <#>";
                             }
-                            text = DataUtil.GetDataString(dr, "FORMATDATA");
-                            listViewItem = WorshipListItems.Items.Insert(AddToLocation, text5);
+                            formatData = DataUtil.GetDataString(dr, "FORMATDATA");
+                            listViewItem = WorshipListItems.Items.Insert(AddToLocation, title);
                             listViewItem.ImageIndex = 0;
                             listViewItem.SubItems.Add(SongsList.SelectedItems[i].SubItems[1].Text);
-                            listViewItem.SubItems.Add(text);
+                            listViewItem.SubItems.Add(formatData);
                             listViewItem.SubItems.Add(SongsList.SelectedItems[i].SubItems[4].Text);
                             listViewItem.SubItems.Add(SongsList.SelectedItems[i].SubItems[5].Text);
                             listViewItem.SubItems.Add(SongsList.SelectedItems[i].SubItems[6].Text);
@@ -1708,7 +1706,7 @@ namespace Easislides
                             int folderNo = DataUtil.GetDataInt(dr, "FolderNo");
                             listViewItem.SubItems.Add(folderNo > 0 && folderNo < Gf.Folders.Length ? Gf.Folders[folderNo].Name : SongFolder.Text);
                             AddToLocation++;
-                            num++;
+                            addedCount++;
                         }
                     }
                     catch
@@ -1720,13 +1718,13 @@ namespace Easislides
             {
             }
             SetWorshipPraiseListColWidth();
-            if (num == 0)
+            if (addedCount == 0)
             {
                 Cursor = Cursors.Default;
                 return false;
             }
             ShowStatusBarSummary();
-            SelectWorshipListItem(AddToLocation - num, num);
+            SelectWorshipListItem(AddToLocation - addedCount, addedCount);
             SaveWorshipList();
             UpdateOutputCurItemNo();
             Cursor = Cursors.Default;
@@ -1771,15 +1769,15 @@ namespace Easislides
                 {
                     AddToLocation = WorshipListItems.Items.Count;
                 }
-                int num = 0;
+                int addedCount = 0;
                 for (int i = 0; i < InfoScreenList.SelectedItems.Count; i++)
                 {
-                    AddExternalFileToWorshipList(DataUtil.Mid(InfoScreenList.SelectedItems[i].SubItems[1].Text, 1), AddToLocation + num);
-                    num++;
+                    AddExternalFileToWorshipList(DataUtil.Mid(InfoScreenList.SelectedItems[i].SubItems[1].Text, 1), AddToLocation + addedCount);
+                    addedCount++;
                 }
                 if (InfoScreenList.SelectedItems.Count > 0)
                 {
-                    SelectWorshipListItem(AddToLocation, num);
+                    SelectWorshipListItem(AddToLocation, addedCount);
                 }
                 return true;
             }
@@ -1799,15 +1797,15 @@ namespace Easislides
                 {
                     AddToLocation = WorshipListItems.Items.Count;
                 }
-                int num = 0;
+                int addedCount = 0;
                 for (int i = 0; i < MediaList.SelectedItems.Count; i++)
                 {
-                    AddExternalFileToWorshipList(DataUtil.Mid(MediaList.SelectedItems[i].SubItems[1].Text, 1), AddToLocation + num);
-                    num++;
+                    AddExternalFileToWorshipList(DataUtil.Mid(MediaList.SelectedItems[i].SubItems[1].Text, 1), AddToLocation + addedCount);
+                    addedCount++;
                 }
                 if (MediaList.SelectedItems.Count > 0)
                 {
-                    SelectWorshipListItem(AddToLocation, num);
+                    SelectWorshipListItem(AddToLocation, addedCount);
                 }
                 return true;
             }
@@ -1829,18 +1827,18 @@ namespace Easislides
                     {
                         AddToLocation = WorshipListItems.Items.Count;
                     }
-                    int num = 0;
+                    int addedCount = 0;
                     for (int i = 0; i < PowerpointList.SelectedItems.Count; i++)
                     {
-                        if (!AddExternalFileToWorshipList(DataUtil.Mid(PowerpointList.SelectedItems[i].SubItems[1].Text, 1), AddToLocation + num))
+                        if (!AddExternalFileToWorshipList(DataUtil.Mid(PowerpointList.SelectedItems[i].SubItems[1].Text, 1), AddToLocation + addedCount))
                         {
                             return false;
                         }
-                        num++;
+                        addedCount++;
                     }
                     if (PowerpointList.SelectedItems.Count > 0)
                     {
-                        SelectWorshipListItem(AddToLocation, num);
+                        SelectWorshipListItem(AddToLocation, addedCount);
                     }
                     return true;
                 }
@@ -1855,30 +1853,30 @@ namespace Easislides
 
         private void AddToPraiseBookList()
         {
-            if (!(DataUtil.Trim(PraiseBook.Text) == "") && SongsList.SelectedItems.Count >= 1)
+            if (DataUtil.Trim(PraiseBook.Text) != "" && SongsList.SelectedItems.Count >= 1)
             {
                 string FirstCharSym = "";
                 ListViewItem listViewItem = new ListViewItem();
-                string text2 = "000000";
+                string songNumber = "000000";
                 Cursor = Cursors.WaitCursor;
                 PraiseBookItems.Sorting = SortOrder.None;
-                ListViewItem[] array = new ListViewItem[SongsList.SelectedItems.Count];
+                ListViewItem[] newItems = new ListViewItem[SongsList.SelectedItems.Count];
                 PraiseBookItems.BeginUpdate();
                 for (int i = 0; i < SongsList.SelectedItems.Count; i++)
                 {
-                    string text3 = Gf.RemoveMusicSym(SongsList.SelectedItems[i].Text);
-                    text2 = (Gf.UseSongNumbers ? DataUtil.Format6(SongsList.SelectedItems[i].SubItems[4].Text) : "");
-                    array[i] = new ListViewItem(new string[6]
+                    string title = Gf.RemoveMusicSym(SongsList.SelectedItems[i].Text);
+                    songNumber = (Gf.UseSongNumbers ? DataUtil.Format6(SongsList.SelectedItems[i].SubItems[4].Text) : "");
+                    newItems[i] = new ListViewItem(new string[6]
                     {
-                        text2 + DataUtil.GetCJKTitle(text3, Gf.PB_CJKGroupStyle, ref FirstCharSym),
+                        songNumber + DataUtil.GetCJKTitle(title, Gf.PB_CJKGroupStyle, ref FirstCharSym),
                         " ",
-                        text3,
+                        title,
                         SongsList.SelectedItems[i].SubItems[1].Text,
                         FirstCharSym,
                         SongsList.SelectedItems[i].SubItems[4].Text
                     });
                 }
-                PraiseBookItems.Items.AddRange(array);
+                PraiseBookItems.Items.AddRange(newItems);
                 SortPraiseBookList();
                 PraiseBookItems.EndUpdate();
                 Cursor = Cursors.Default;
@@ -1893,18 +1891,18 @@ namespace Easislides
             }
             string FirstCharSym = "";
             ListViewItem listViewItem = new ListViewItem();
-            string text2 = "000000";
+            string songNumber = "000000";
             Cursor = Cursors.WaitCursor;
             PraiseBookItems.Sorting = SortOrder.None;
             if (Gf.UseSongNumbers)
             {
                 for (int i = 0; i < SongsList.SelectedItems.Count; i++)
                 {
-                    string text3 = Gf.RemoveMusicSym(SongsList.SelectedItems[i].Text);
-                    text2 = DataUtil.Format6(SongsList.SelectedItems[i].SubItems[4].Text);
-                    listViewItem = PraiseBookItems.Items.Add(text2 + DataUtil.GetCJKTitle(text3, Gf.PB_CJKGroupStyle, ref FirstCharSym));
+                    string title = Gf.RemoveMusicSym(SongsList.SelectedItems[i].Text);
+                    songNumber = DataUtil.Format6(SongsList.SelectedItems[i].SubItems[4].Text);
+                    listViewItem = PraiseBookItems.Items.Add(songNumber + DataUtil.GetCJKTitle(title, Gf.PB_CJKGroupStyle, ref FirstCharSym));
                     listViewItem.SubItems.Add(" ");
-                    listViewItem.SubItems.Add(text3);
+                    listViewItem.SubItems.Add(title);
                     listViewItem.SubItems.Add(SongsList.SelectedItems[i].SubItems[1].Text);
                     listViewItem.SubItems.Add(FirstCharSym);
                     listViewItem.SubItems.Add(SongsList.SelectedItems[i].SubItems[4].Text);
@@ -1914,10 +1912,10 @@ namespace Easislides
             {
                 for (int i = 0; i < SongsList.SelectedItems.Count; i++)
                 {
-                    string text3 = Gf.RemoveMusicSym(SongsList.SelectedItems[i].Text);
-                    listViewItem = PraiseBookItems.Items.Add(DataUtil.GetCJKTitle(text3, Gf.PB_CJKGroupStyle, ref FirstCharSym));
+                    string title = Gf.RemoveMusicSym(SongsList.SelectedItems[i].Text);
+                    listViewItem = PraiseBookItems.Items.Add(DataUtil.GetCJKTitle(title, Gf.PB_CJKGroupStyle, ref FirstCharSym));
                     listViewItem.SubItems.Add(" ");
-                    listViewItem.SubItems.Add(text3);
+                    listViewItem.SubItems.Add(title);
                     listViewItem.SubItems.Add(SongsList.SelectedItems[i].SubItems[1].Text);
                     listViewItem.SubItems.Add(FirstCharSym);
                     listViewItem.SubItems.Add(SongsList.SelectedItems[i].SubItems[4].Text);
@@ -2065,11 +2063,11 @@ namespace Easislides
 
         private static string FolderSortToolTip(SortBy mode)
         {
-            foreach (var (choice, text) in FolderSortChoices)
+            foreach (var (choice, toolTip) in FolderSortChoices)
             {
                 if (choice == mode)
                 {
-                    return text;
+                    return toolTip;
                 }
             }
             return FolderSortChoices[0].Text;
@@ -2084,9 +2082,9 @@ namespace Easislides
             // The button has no text: without a name, accessibility tools list it as a nameless check box.
             Folders_WordCount.AccessibleName = "Song list sort order";
             folderSortMenu = new ContextMenuStrip(components) { Name = "CMenuFolderSort" };
-            foreach (var (mode, text) in FolderSortChoices)
+            foreach (var (mode, label) in FolderSortChoices)
             {
-                ToolStripMenuItem item = new ToolStripMenuItem(text)
+                ToolStripMenuItem item = new ToolStripMenuItem(label)
                 {
                     Name = "FolderSort_" + mode,
                     Tag = mode,
@@ -2252,11 +2250,11 @@ namespace Easislides
 
         private bool AddFromHolyBible(int AddToLocation)
         {
-            if ((BibleText.Text == "") | (BibleText.SelectionLength < 1))
+            if (BibleText.Text == "" || BibleText.SelectionLength < 1)
             {
                 return false;
             }
-            if ((Gf.PreviewItem.Type != "B") | (Gf.PreviewItem.Source != ItemSource.HolyBible))
+            if (Gf.PreviewItem.Type != "B" || Gf.PreviewItem.Source != ItemSource.HolyBible)
             {
                 HB_SelectedPassagesChanged(HB_CurSelectedPassages, ref HB_CurSelectedTitle);
             }
@@ -2294,22 +2292,22 @@ namespace Easislides
                 Gf.StartPresAt = 0;
                 return;
             }
-            int num = 0;
+            int rowIndex = 0;
             while (true)
             {
-                if (num <= WorshipListItems.Items.Count - 1)
+                if (rowIndex <= WorshipListItems.Items.Count - 1)
                 {
-                    if (WorshipListItems.Items[num].SubItems[6].Text == "O")
+                    if (WorshipListItems.Items[rowIndex].SubItems[6].Text == "O")
                     {
-                        Gf.StartPresAt = num + 1;
+                        Gf.StartPresAt = rowIndex + 1;
                         if (Gf.OutputItem.CurItemNo != 0)
                         {
                             Gf.OutputItem.CurItemNo = Gf.StartPresAt;
                         }
-                        WorshipListItems.Items[num].EnsureVisible();
+                        WorshipListItems.Items[rowIndex].EnsureVisible();
                         break;
                     }
-                    num++;
+                    rowIndex++;
                     continue;
                 }
                 if (WorshipListItems.Items.Count <= 0)
@@ -2345,12 +2343,12 @@ namespace Easislides
             Gf.PreviewItem.Source = ItemSource.HolyBible;
             if (InBibleString != "")
             {
-                string text = "B" + InBibleString;
+                string idString = "B" + InBibleString;
                 Gf.PreviewItem.InMainItemText = InTitle;
-                Gf.PreviewItem.InSubItemItem1Text = text;
+                Gf.PreviewItem.InSubItemItem1Text = idString;
                 Gf.PreviewItem.CurItemNo = 0;
                 Gf.PreviewItem.Type = "B";
-                LoadItem(ref Gf.PreviewItem, text, "", 1, ref InTitle, ScrollToCaret: true);
+                LoadItem(ref Gf.PreviewItem, idString, "", 1, ref InTitle, ScrollToCaret: true);
                 UpdateDisplayPanelFields();
             }
             else
@@ -2402,7 +2400,7 @@ namespace Easislides
                     Point point = default(Point);
                     point = BibleText.PointToClient(Cursor.Position);
                     int charIndexFromPosition = BibleText.GetCharIndexFromPosition(point);
-                    if (!((charIndexFromPosition < BibleText.SelectionStart) | (charIndexFromPosition > BibleText.SelectionStart + BibleText.SelectionLength - 1)))
+                    if (!(charIndexFromPosition < BibleText.SelectionStart || charIndexFromPosition > BibleText.SelectionStart + BibleText.SelectionLength - 1))
                     {
                         string data = "";
                         BibleText.DoDragDrop(new DataObject(DragDropSource.BiblePassage.ToString(), data), DragDropEffects.Link);
@@ -2455,33 +2453,33 @@ namespace Easislides
             int StartVerseNo = 0;
             int EndChapterNo = 0;
             int EndVerseNo = 0;
-            bool flag = BibleUserLookupValidation(ref InText, ref StartChapterNo, ref StartVerseNo, ref EndChapterNo, ref EndVerseNo);
+            bool isValid = BibleUserLookupValidation(ref InText, ref StartChapterNo, ref StartVerseNo, ref EndChapterNo, ref EndVerseNo);
             BibleUserLookup.Text = InText;
-            if (flag)
+            if (isValid)
             {
-                int num = 0;
-                int num2 = 0;
+                int startIndex = 0;
+                int endIndex = 0;
                 for (int i = 1; i <= Gf.HB_VersesLocation[0].Version; i++)
                 {
-                    if ((StartChapterNo == Gf.HB_VersesLocation[i].Chapter) & (StartVerseNo == Gf.HB_VersesLocation[i].Verse))
+                    if (StartChapterNo == Gf.HB_VersesLocation[i].Chapter && StartVerseNo == Gf.HB_VersesLocation[i].Verse)
                     {
-                        num = i;
+                        startIndex = i;
                     }
                 }
-                if (num > 0)
+                if (startIndex > 0)
                 {
-                    for (int i = num; i <= Gf.HB_VersesLocation[0].Version; i++)
+                    for (int i = startIndex; i <= Gf.HB_VersesLocation[0].Version; i++)
                     {
-                        if ((EndChapterNo >= Gf.HB_VersesLocation[i].Chapter) & (EndVerseNo >= Gf.HB_VersesLocation[i].Verse))
+                        if (EndChapterNo >= Gf.HB_VersesLocation[i].Chapter && EndVerseNo >= Gf.HB_VersesLocation[i].Verse)
                         {
-                            num2 = i;
+                            endIndex = i;
                         }
                     }
-                    if (num2 > 0)
+                    if (endIndex > 0)
                     {
-                        EndVerseNo = Gf.HB_VersesLocation[num2].Verse;
+                        EndVerseNo = Gf.HB_VersesLocation[endIndex].Verse;
                         BibleText.SelectionLength = 0;
-                        BibleText.SelectionStart = Gf.HB_VersesLocation[num].Start;
+                        BibleText.SelectionStart = Gf.HB_VersesLocation[startIndex].Start;
                         BibleText.ScrollToCaret();
                         if (EndChapterNo < 1)
                         {
@@ -2493,7 +2491,7 @@ namespace Easislides
                         }
                         else if (EndVerseNo > 0)
                         {
-                            BibleText.SelectionLength = Gf.HB_VersesLocation[num2].Start - Gf.HB_VersesLocation[num].Start + Gf.HB_VersesLocation[num2].Length - 2;
+                            BibleText.SelectionLength = Gf.HB_VersesLocation[endIndex].Start - Gf.HB_VersesLocation[startIndex].Start + Gf.HB_VersesLocation[endIndex].Length - 2;
                             HB_StartBuildStringProcess();
                             BibleUserLookup.Focus();
                         }
@@ -2505,67 +2503,67 @@ namespace Easislides
 
         private bool BibleUserLookupValidation(ref string InText, ref int StartChapterNo, ref int StartVerseNo, ref int EndChapterNo, ref int EndVerseNo)
         {
-            if ((BookLookup.Text == "") | (BookLookup.SelectedIndex == 66) | (DataUtil.Trim(InText) == ""))
+            if (BookLookup.Text == "" || BookLookup.SelectedIndex == 66 || DataUtil.Trim(InText) == "")
             {
                 return false;
             }
-            string text = DataUtil.Trim(InText);
-            if (text.IndexOf("  ") >= 0)
+            string reference = DataUtil.Trim(InText);
+            if (reference.IndexOf("  ") >= 0)
             {
                 return false;
             }
-            text = text.Replace('.', ':');
-            text = text.Replace('v', ':');
-            text = text.Replace('V', ':');
-            string text2 = text;
-            string text3 = "";
-            bool flag = true;
-            if (text.IndexOf('-') < 0)
+            reference = reference.Replace('.', ':');
+            reference = reference.Replace('v', ':');
+            reference = reference.Replace('V', ':');
+            string startPart = reference;
+            string endPart = "";
+            bool chapterOnly = true;
+            if (reference.IndexOf('-') < 0)
             {
-                int num = text.IndexOf(' ');
-                if (num >= 0)
+                int spaceIndex = reference.IndexOf(' ');
+                if (spaceIndex >= 0)
                 {
-                    int num2 = text.IndexOf(':');
-                    if (num2 >= 0 && num2 < num)
+                    int colonIndex = reference.IndexOf(':');
+                    if (colonIndex >= 0 && colonIndex < spaceIndex)
                     {
-                        text = text.Insert(num, "-");
-                        text = text.Remove(num + 1, 1);
+                        reference = reference.Insert(spaceIndex, "-");
+                        reference = reference.Remove(spaceIndex + 1, 1);
                     }
                     else
                     {
-                        num = text.IndexOf(' ', num + 1);
-                        if (num >= 0)
+                        spaceIndex = reference.IndexOf(' ', spaceIndex + 1);
+                        if (spaceIndex >= 0)
                         {
-                            text = text.Insert(num, "-");
-                            text = text.Remove(num + 1, 1);
+                            reference = reference.Insert(spaceIndex, "-");
+                            reference = reference.Remove(spaceIndex + 1, 1);
                         }
                         else
                         {
-                            text = text.Replace(" ", "-");
+                            reference = reference.Replace(" ", "-");
                         }
                     }
                 }
             }
-            if (text.IndexOf('-') >= 0)
+            if (reference.IndexOf('-') >= 0)
             {
-                sArray = text.Split('-');
-                text2 = DataUtil.Trim(sArray[0]);
-                text3 = DataUtil.Trim(sArray[1]);
+                sArray = reference.Split('-');
+                startPart = DataUtil.Trim(sArray[0]);
+                endPart = DataUtil.Trim(sArray[1]);
             }
-            else if (text.IndexOf(' ') >= 0)
+            else if (reference.IndexOf(' ') >= 0)
             {
-                sArray = text.Split('-');
-                text2 = DataUtil.Trim(sArray[0]);
-                text3 = DataUtil.Trim(sArray[1]);
+                sArray = reference.Split('-');
+                startPart = DataUtil.Trim(sArray[0]);
+                endPart = DataUtil.Trim(sArray[1]);
             }
-            text2 = text2.Replace(' ', ':');
-            text3 = text3.Replace(' ', ':');
-            InText = text2 + ((text3 != "") ? ("-" + text3) : "");
+            startPart = startPart.Replace(' ', ':');
+            endPart = endPart.Replace(' ', ':');
+            InText = startPart + ((endPart != "") ? ("-" + endPart) : "");
             StartChapterNo = 1;
             StartVerseNo = 1;
             EndChapterNo = 1;
             EndVerseNo = 1;
-            sArray = text2.Split(':');
+            sArray = startPart.Split(':');
             StartChapterNo = DataUtil.StringToInt(sArray[0]);
             if (StartChapterNo <= 0)
             {
@@ -2578,17 +2576,17 @@ namespace Easislides
             else
             {
                 StartVerseNo = 1;
-                int num3 = DataUtil.StringToInt(sArray[1]);
-                if (num3 > 0)
+                int startVerse = DataUtil.StringToInt(sArray[1]);
+                if (startVerse > 0)
                 {
-                    StartVerseNo = num3;
+                    StartVerseNo = startVerse;
                 }
-                flag = false;
+                chapterOnly = false;
             }
-            if (text3 == "")
+            if (endPart == "")
             {
                 EndChapterNo = StartChapterNo;
-                if (flag)
+                if (chapterOnly)
                 {
                     EndVerseNo = 200;
                 }
@@ -2599,10 +2597,10 @@ namespace Easislides
             }
             else
             {
-                sArray = text3.Split(':');
+                sArray = endPart.Split(':');
                 if (sArray.GetUpperBound(0) < 1)
                 {
-                    if (flag)
+                    if (chapterOnly)
                     {
                         EndChapterNo = DataUtil.StringToInt(sArray[0]);
                         EndVerseNo = 200;
@@ -2636,9 +2634,9 @@ namespace Easislides
                 TimerFlasher.Stop();
                 for (int i = 0; i <= 7; i++)
                 {
-                    string text = WorshipListItems.Items[selectedIndex].SubItems[i].Text;
+                    string cellText = WorshipListItems.Items[selectedIndex].SubItems[i].Text;
                     WorshipListItems.Items[selectedIndex].SubItems[i].Text = WorshipListItems.Items[selectedIndex - 1].SubItems[i].Text;
-                    WorshipListItems.Items[selectedIndex - 1].SubItems[i].Text = text;
+                    WorshipListItems.Items[selectedIndex - 1].SubItems[i].Text = cellText;
                 }
                 int imageIndex = WorshipListItems.Items[selectedIndex].ImageIndex;
                 WorshipListItems.Items[selectedIndex].ImageIndex = WorshipListItems.Items[selectedIndex - 1].ImageIndex;
@@ -2662,14 +2660,14 @@ namespace Easislides
                 return;
             }
             int selectedIndex = Gf.GetSelectedIndex(WorshipListItems);
-            if (!((selectedIndex < 0) | (selectedIndex == count - 1)))
+            if (!(selectedIndex < 0 || selectedIndex == count - 1))
             {
                 TimerFlasher.Stop();
                 for (int i = 0; i <= 7; i++)
                 {
-                    string text = WorshipListItems.Items[selectedIndex].SubItems[i].Text;
+                    string cellText = WorshipListItems.Items[selectedIndex].SubItems[i].Text;
                     WorshipListItems.Items[selectedIndex].SubItems[i].Text = WorshipListItems.Items[selectedIndex + 1].SubItems[i].Text;
-                    WorshipListItems.Items[selectedIndex + 1].SubItems[i].Text = text;
+                    WorshipListItems.Items[selectedIndex + 1].SubItems[i].Text = cellText;
                 }
                 int imageIndex = WorshipListItems.Items[selectedIndex].ImageIndex;
                 WorshipListItems.Items[selectedIndex].ImageIndex = WorshipListItems.Items[selectedIndex + 1].ImageIndex;
@@ -2693,20 +2691,20 @@ namespace Easislides
         private bool RemoveWorshipListSong(bool UpdateCurItemNo)
         {
             WriteDebugLog($"RemoveWorshipListSong() called - Current count: {WorshipListItems.Items.Count}");
-            bool flag = false;
-            int num = -1;
+            bool removedOutputItem = false;
+            int lastRemovedIndex = -1;
             if (WorshipListItems.Items.Count == 0)
             {
                 WriteDebugLog("RemoveWorshipListSong() - No items to remove");
                 return false;
             }
             int removedCount = 0;
-            for (int num2 = WorshipListItems.Items.Count - 1; num2 >= 0; num2--)
+            for (int i = WorshipListItems.Items.Count - 1; i >= 0; i--)
             {
-                if (WorshipListItems.Items[num2].Selected)
+                if (WorshipListItems.Items[i].Selected)
                 {
-                    WorshipListItems.Items[num2].Remove();
-                    num = num2;
+                    WorshipListItems.Items[i].Remove();
+                    lastRemovedIndex = i;
                     removedCount++;
                 }
             }
@@ -2715,22 +2713,22 @@ namespace Easislides
             {
                 return false;
             }
-            if (Gf.OutputItem.CurItemNo == num + 1)
+            if (Gf.OutputItem.CurItemNo == lastRemovedIndex + 1)
             {
-                flag = true;
+                removedOutputItem = true;
             }
-            if (WorshipListItems.Items.Count > num)
+            if (WorshipListItems.Items.Count > lastRemovedIndex)
             {
-                if (num >= 0)
+                if (lastRemovedIndex >= 0)
                 {
-                    WorshipListItems.Items[num].Selected = true;
+                    WorshipListItems.Items[lastRemovedIndex].Selected = true;
                 }
             }
             else if (WorshipListItems.Items.Count > 0)
             {
-                if (num - 1 >= 0 && num <= WorshipListItems.Items.Count)
+                if (lastRemovedIndex - 1 >= 0 && lastRemovedIndex <= WorshipListItems.Items.Count)
                 {
-                    WorshipListItems.Items[num - 1].Selected = true;
+                    WorshipListItems.Items[lastRemovedIndex - 1].Selected = true;
                 }
                 else
                 {
@@ -2740,7 +2738,7 @@ namespace Easislides
             ShowStatusBarSummary();
             WorshipListIndexChanged();
             UpdateOutputCurItemNo();
-            if (flag)
+            if (removedOutputItem)
             {
                 CopyPreviewToOutput();
             }
@@ -2784,8 +2782,8 @@ namespace Easislides
         {
             if (WorshipListItems.Items.Count > 0)
             {
-                int num = ValidateWorshipListItems(ShowErrorMessage: true);
-                if (num >= 0)
+                int invalidIndex = ValidateWorshipListItems(ShowErrorMessage: true);
+                if (invalidIndex >= 0)
                 {
                     return false;
                 }
@@ -2817,29 +2815,29 @@ namespace Easislides
 
         private void RemovePraiseBookListSong()
         {
-            int num = -1;
+            int lastRemovedIndex = -1;
             if (PraiseBookItems.Items.Count == 0)
             {
                 return;
             }
-            for (int num2 = PraiseBookItems.Items.Count - 1; num2 >= 0; num2--)
+            for (int i = PraiseBookItems.Items.Count - 1; i >= 0; i--)
             {
-                if (PraiseBookItems.Items[num2].Selected)
+                if (PraiseBookItems.Items[i].Selected)
                 {
-                    PraiseBookItems.Items[num2].Remove();
-                    num = num2;
+                    PraiseBookItems.Items[i].Remove();
+                    lastRemovedIndex = i;
                 }
             }
             SavePraiseBook();
-            if (PraiseBookItems.Items.Count > num)
+            if (PraiseBookItems.Items.Count > lastRemovedIndex)
             {
-                PraiseBookItems.Items[num].Selected = true;
+                PraiseBookItems.Items[lastRemovedIndex].Selected = true;
             }
             else if (PraiseBookItems.Items.Count > 0)
             {
-                if (num - 1 >= 0 && num <= PraiseBookItems.Items.Count)
+                if (lastRemovedIndex - 1 >= 0 && lastRemovedIndex <= PraiseBookItems.Items.Count)
                 {
-                    PraiseBookItems.Items[num - 1].Selected = true;
+                    PraiseBookItems.Items[lastRemovedIndex - 1].Selected = true;
                 }
                 else
                 {
@@ -2849,16 +2847,16 @@ namespace Easislides
             PraiseBookListIndexChanged();
             if (Gf.UseSongNumbers)
             {
-                for (int num2 = 0; num2 <= PraiseBookItems.Items.Count - 1; num2++)
+                for (int i = 0; i <= PraiseBookItems.Items.Count - 1; i++)
                 {
-                    PraiseBookItems.Items[num2].SubItems[1].Text = PraiseBookItems.Items[num2].SubItems[5].Text;
+                    PraiseBookItems.Items[i].SubItems[1].Text = PraiseBookItems.Items[i].SubItems[5].Text;
                 }
             }
             else
             {
-                for (int num2 = 0; num2 <= PraiseBookItems.Items.Count - 1; num2++)
+                for (int i = 0; i <= PraiseBookItems.Items.Count - 1; i++)
                 {
-                    PraiseBookItems.Items[num2].SubItems[1].Text = Convert.ToString(num2 + 1);
+                    PraiseBookItems.Items[i].SubItems[1].Text = Convert.ToString(i + 1);
                 }
             }
             ShowStatusBarSummary();
@@ -2885,7 +2883,7 @@ namespace Easislides
             //}
             if (Gf.ShowRunning)
             {
-                if (Gf.DualMonitorMode & Gf.LaunchShowUpdateDone)
+                if (Gf.DualMonitorMode && Gf.LaunchShowUpdateDone)
                 {
                     Focus();
                     Gf.LaunchShowUpdateDone = false;
@@ -3069,37 +3067,37 @@ namespace Easislides
 
         private void ItemKeyPressed(SongSettings InItem, Keys KeyCode, bool ShiftKey)
         {
-            // PraiseBook 모드이거나 Tab 키는 처리하지 않음
+            // Ignored in PraiseBook mode and for the Tab key
             if (Gf.EasiSlidesMode == UsageMode.PraiseBook || KeyCode == Keys.Tab)
             {
                 return;
             }
 
-            // 키보드 재매핑
+            // Keyboard remapping
             Gf.ReMapKeyBoard(ref KeyCode);
 
-            // 네비게이션 키 처리
+            // Navigation keys
             if (KeyboardMapping.IsNavigationKey(KeyCode))
             {
                 _keyboardHandler.HandleNavigationKey(InItem, KeyCode);
                 return;
             }
 
-            // 찬양 구절 점프 키 처리
+            // Song verse jump keys
             if (KeyboardMapping.IsVerseJumpKey(KeyCode, ShiftKey))
             {
                 _keyboardHandler.HandleVerseJumpKey(InItem, KeyCode, ShiftKey);
                 return;
             }
 
-            // 숫자 키 처리 (C 키 포함)
+            // Numeric keys (including C)
             if (KeyboardMapping.IsNumericKey(KeyCode) || KeyCode == Keys.C)
             {
                 _keyboardHandler.HandleNumericKey(InItem, KeyCode);
                 return;
             }
 
-            // 기능 키 처리
+            // Function keys
             if (KeyboardMapping.IsFunctionKey(KeyCode))
             {
                 _keyboardHandler.HandleFunctionKey(InItem, KeyCode);
@@ -3108,21 +3106,21 @@ namespace Easislides
 
         internal void JumpToVerseType(SongSettings InItem, int InOtherVerse)
         {
-            int num = 1;
+            int slideNo = 1;
             while (true)
             {
-                if (num <= InItem.TotalSlides)
+                if (slideNo <= InItem.TotalSlides)
                 {
-                    if (InItem.Slide[num, 0] == InOtherVerse)
+                    if (InItem.Slide[slideNo, 0] == InOtherVerse)
                     {
                         break;
                     }
-                    num++;
+                    slideNo++;
                     continue;
                 }
                 return;
             }
-            InItem.CurSlide = num;
+            InItem.CurSlide = slideNo;
             MoveToSlide(InItem, KeyDirection.Refresh);
         }
 
@@ -3169,7 +3167,7 @@ namespace Easislides
                     LoadWorshipListItemToOutput(1, SlideNo, NotifyLiveShow: false);
                     break;
                 case KeyDirection.PrevOne:
-                    LoadWorshipListItemToOutput(((InItem.CurItemNo > 0) & InItem.OutputStyleScreen) ? (Gf.StartPresAt - ((!(InItem.Type == "G")) ? 1 : 0)) : Gf.StartPresAt, SlideNo, NotifyLiveShow: false);
+                    LoadWorshipListItemToOutput((InItem.CurItemNo > 0 && InItem.OutputStyleScreen) ? (Gf.StartPresAt - ((InItem.Type != "G") ? 1 : 0)) : Gf.StartPresAt, SlideNo, NotifyLiveShow: false);
                     break;
                 case KeyDirection.NextOne:
                     if (Gf.GapItemOption == GapType.None)
@@ -3291,13 +3289,13 @@ namespace Easislides
                 }
                 else if (InDirection == KeyDirection.NextOne && InItem.CurItemNo < WorshipListItems.Items.Count && InItem.CurSlide >= InItem.TotalSlides)
                 {
-                    if (Gf.ShowRunning & (InItem.Type == "P"))
+                    if (Gf.ShowRunning && InItem.Type == "P")
                     {
-                        int num = MainPptFor(InItem).ImplementPowerpointSlideMovement(ref InItem.CurSlide, InItem.TotalSlides, (OfficeLibKeys)Gf.ReMapKeyDirectionToPowerpoint(InDirection));
+                        int pptResult = MainPptFor(InItem).ImplementPowerpointSlideMovement(ref InItem.CurSlide, InItem.TotalSlides, (OfficeLibKeys)Gf.ReMapKeyDirectionToPowerpoint(InDirection));
                         // The end of the item, so the next item: PowerPoint reached the end of the show (-1, also
                         // when the show ended on this move), or there is no slide show to move (not started, or
                         // ended earlier). A navigation error or a busy PowerPoint is not an end: the item stays.
-                        bool itemEnded = num <= 0 || (MainPPT.LastCallNotRunning && MainPPT.LastNavigationError == null);
+                        bool itemEnded = pptResult <= 0 || (MainPPT.LastCallNotRunning && MainPPT.LastNavigationError == null);
                         if (!itemEnded)
                         {
                             Gf.ReportPowerpointNavigation(MainPPT, InItem);
@@ -3315,7 +3313,7 @@ namespace Easislides
                     return;
                 }
             }
-            if (Gf.ShowRunning & (InItem.Type == "P"))
+            if (Gf.ShowRunning && InItem.Type == "P")
             {
                 MainPptFor(InItem).ImplementPowerpointSlideMovement(ref InItem.CurSlide, InItem.TotalSlides, (OfficeLibKeys)Gf.ReMapKeyDirectionToPowerpoint(InDirection));
                 Gf.ReportPowerpointNavigation(MainPPT, InItem);
@@ -3421,8 +3419,8 @@ namespace Easislides
         }
 
         /// <summary>
-        /// PowerPoint 애니메이션/비디오 재생 트리거
-        /// KeyboardActionHandler에서 호출됨
+        /// Triggers the next PowerPoint animation or video on the given slide.
+        /// Called from KeyboardActionHandler.
         /// </summary>
         internal void PlayPowerPointAnimation(int slideNumber)
         {
@@ -3566,14 +3564,14 @@ namespace Easislides
                 Selecteditem = WorshipListItems.Items.Count;
             }
             Selecteditem--;
-            string text = WorshipListItems.Items[Selecteditem].SubItems[1].Text;
-            string text2 = WorshipListItems.Items[Selecteditem].SubItems[2].Text;
+            string idString = WorshipListItems.Items[Selecteditem].SubItems[1].Text;
+            string formatData = WorshipListItems.Items[Selecteditem].SubItems[2].Text;
             string InTitle = WorshipListItems.Items[Selecteditem].SubItems[0].Text;
             Gf.OutputItem.CurItemNo = Selecteditem + 1;
             Gf.StartPresAt = Gf.OutputItem.CurItemNo;
             Gf.OutputItem.Source = ItemSource.WorshipList;
             Gf.OutputItem.OutputStyleScreen = true;
-            LoadItem(ref Gf.OutputItem, text, text2, SlideNo, ref InTitle, ScrollToCaret: true);
+            LoadItem(ref Gf.OutputItem, idString, formatData, SlideNo, ref InTitle, ScrollToCaret: true);
             if (Gf.ShowRunning && NotifyLiveShow)
             {
                 Gf.MainAction_SongChanged_Transaction = ImageTransitionControl.TransitionAction.AsStored;
@@ -3653,16 +3651,16 @@ namespace Easislides
         private void PreviewBtnVerse_Click(object sender, EventArgs e)
         {
             Button button = (Button)sender;
-            int num = DataUtil.ObjToInt(button.Tag);
-            if (num < 10)
+            int verseCode = DataUtil.ObjToInt(button.Tag);
+            if (verseCode < 10)
             {
-                Gf.PreviewItem.CurSlide = Gf.PreviewItem.SongVerses[num];
+                Gf.PreviewItem.CurSlide = Gf.PreviewItem.SongVerses[verseCode];
             }
             else
             {
                 for (int i = 1; i <= Gf.PreviewItem.TotalSlides; i++)
                 {
-                    if (Gf.PreviewItem.Slide[i, 0] == num)
+                    if (Gf.PreviewItem.Slide[i, 0] == verseCode)
                     {
                         Gf.PreviewItem.CurSlide = i;
                         i = Gf.PreviewItem.TotalSlides;
@@ -3676,16 +3674,16 @@ namespace Easislides
         private void OutputBtnVerse_Click(object sender, EventArgs e)
         {
             Button button = (Button)sender;
-            int num = DataUtil.ObjToInt(button.Tag);
-            if (num < 10)
+            int verseCode = DataUtil.ObjToInt(button.Tag);
+            if (verseCode < 10)
             {
-                Gf.OutputItem.CurSlide = Gf.OutputItem.SongVerses[num];
+                Gf.OutputItem.CurSlide = Gf.OutputItem.SongVerses[verseCode];
             }
             else
             {
                 for (int i = 1; i <= Gf.OutputItem.TotalSlides; i++)
                 {
-                    if (Gf.OutputItem.Slide[i, 0] == num)
+                    if (Gf.OutputItem.Slide[i, 0] == verseCode)
                     {
                         Gf.OutputItem.CurSlide = i;
                         i = Gf.OutputItem.TotalSlides;
@@ -3711,17 +3709,17 @@ namespace Easislides
         }
 
         /// <summary>
-        /// daniel
-        /// ??��??docx ��??
+        /// Lets the operator pick an external file (PowerPoint, Word, text, InfoScreen, worship list or
+        /// media) and adds it to the worship list.
         /// </summary>
         private void LocateFileWorshipList()
         {
-            int num = 0;
+            int powerpointCount = 0;
             for (int i = 0; i <= WorshipListItems.Items.Count - 1; i++)
             {
                 if (DataUtil.Left(WorshipListItems.Items[i].SubItems[1].Text, 1) == "P")
                 {
-                    num++;
+                    powerpointCount++;
                 }
             }
             string filter = "Valid External Files (*.ppt,*.pptx,*.doc,*.docx,*.txt,*.esi,*.esw)|*.ppt;*.pptx;*.doc;*.docx;*.txt;*.esi;*.esw|Powerpoint Files (*.ppt)|*.ppt|Powerpoint Files (*.pptx)|*.pptx|Word Documents (*.doc)|*.doc|Word Documents (*.docx)|*.docx|Text Files (*.txt)|*.txt|InfoScreens (*.esi)|*.esi|Worship Lists (*.esw)|*.esw";
@@ -3757,77 +3755,77 @@ namespace Easislides
         }
 
         /// <summary>
-        /// daniel
-        /// ??��??docx ��??
+        /// Adds an external file (PowerPoint, Word, text, InfoScreen, media, or the items of a worship
+        /// list file) to the worship list.
         /// </summary>
-        /// <param name="FullPathFileName"></param>
-        /// <param name="AddToLocation"></param>
-        /// <returns></returns>
+        /// <param name="FullPathFileName">Full path of the file to add.</param>
+        /// <param name="AddToLocation">Worship list index to insert at (appended when out of range).</param>
+        /// <returns>False only when the items of a worship list file could not be inserted.</returns>
         private bool AddExternalFileToWorshipList(string FullPathFileName, int AddToLocation)
         {
             ListViewItem listViewItem = new ListViewItem();
-            string text = Gf.GetDisplayNameOnly(ref FullPathFileName, UpdateByRef: false);
-            string musicTitle = text;
+            string displayName = Gf.GetDisplayNameOnly(ref FullPathFileName, UpdateByRef: false);
+            string musicTitle = displayName;
             string musicTitle2 = "";
-            string text2 = "";
+            string typeSymbol = "";
             int imageIndex = 0;
-            string text3 = Path.GetExtension(FullPathFileName).ToLower();//daniel DataUtil.Right(FullPathFileName, 4);
+            string extension = Path.GetExtension(FullPathFileName).ToLower();//daniel DataUtil.Right(FullPathFileName, 4);
             bool preloadPowerpoint = false;
             if (AddToLocation < 0 || AddToLocation > WorshipListItems.Items.Count)
             {
                 AddToLocation = WorshipListItems.Items.Count;
             }
-            if (text3 == ".ppt" || text3 == ".pptx")
+            if (extension == ".ppt" || extension == ".pptx")
             {
-                text2 = "P";
+                typeSymbol = "P";
                 imageIndex = 2;
                 if (Gf.ShowRunning)
                 {
                     preloadPowerpoint = true;
                 }
             }
-            else if (text3 == ".txt")
+            else if (extension == ".txt")
             {
-                text2 = "T";
+                typeSymbol = "T";
                 imageIndex = 6;
             }
-            else if (text3 == ".doc" || text3 == ".docx")
+            else if (extension == ".doc" || extension == ".docx")
             {
-                text2 = "W";
+                typeSymbol = "W";
                 imageIndex = 10;
             }
-            else if (text3 == ".esi")
+            else if (extension == ".esi")
             {
-                text2 = "I";
+                typeSymbol = "I";
                 imageIndex = 8;
                 string InTitle = "";
-                Gf.LoadIndividualData(ref Gf.TempItem1, text2 + FullPathFileName, "", 1, ref InTitle);
+                Gf.LoadIndividualData(ref Gf.TempItem1, typeSymbol + FullPathFileName, "", 1, ref InTitle);
                 musicTitle = Gf.TempItem1.Title;
                 musicTitle2 = Gf.TempItem1.Title2;
             }
-            else if (ValidMediaExt(text3))
+            else if (ValidMediaExt(extension))
             {
-                text2 = "M";
+                typeSymbol = "M";
                 imageIndex = 28;
             }
-            else if (text3 == ".esw")
+            else if (extension == ".esw")
             {
-                bool flag = InsertIndexFileItems(FullPathFileName, ref WorshipListItems, AddToLocation, ref Gf.CurSessionNotes);
-                if (flag)
+                bool inserted = InsertIndexFileItems(FullPathFileName, ref WorshipListItems, AddToLocation, ref Gf.CurSessionNotes);
+                if (inserted)
                 {
                     SaveWorshipList(preloadPowerpoint);
                 }
-                return flag;
+                return inserted;
             }
-            if (text2 != "")
+            if (typeSymbol != "")
             {
                 if (Gf.MusicFound(musicTitle, musicTitle2))
                 {
-                    text += " <#>";
+                    displayName += " <#>";
                 }
-                listViewItem = WorshipListItems.Items.Insert(AddToLocation, text);
+                listViewItem = WorshipListItems.Items.Insert(AddToLocation, displayName);
                 listViewItem.ImageIndex = imageIndex;
-                listViewItem.SubItems.Add(text2 + FullPathFileName);
+                listViewItem.SubItems.Add(typeSymbol + FullPathFileName);
                 listViewItem.SubItems.Add("");
                 listViewItem.SubItems.Add("");
                 listViewItem.SubItems.Add("");
@@ -3893,9 +3891,9 @@ namespace Easislides
         }
 
         /// <summary>
-        /// daniel
+        /// Shows the slide thumbnails of the preview PowerPoint item.
         /// </summary>
-        /// <param name="GotoSlide"></param>
+        /// <param name="GotoSlide">The slide to scroll to; below 0 means the last slide.</param>
         private void SetPreviewPPThumbImages1(int GotoSlide)
         {
             if (Gf.PreviewItem.Type == "P")
@@ -3938,8 +3936,8 @@ namespace Easislides
             {
                 try
                 {
-                    int num = (InItem.CurSlide < 0) ? InItem.TotalSlides : InItem.CurSlide;
-                    InItem.Format.BackgroundPicture = (InItem.OutputStyleScreen ? Gf.OUTPPFullPath : Gf.PREPPFullPath) + num + ".jpg";
+                    int slideNo = (InItem.CurSlide < 0) ? InItem.TotalSlides : InItem.CurSlide;
+                    InItem.Format.BackgroundPicture = (InItem.OutputStyleScreen ? Gf.OUTPPFullPath : Gf.PREPPFullPath) + slideNo + ".jpg";
                     InItem.UseDefaultFormat = false;
                     InItem.Format.BackgroundMode = ImageMode.BestFit;
                     Gf.DrawText(ref InItem, ref PreviewScreen, ref OutputScreen, InItem.LyricsAndNotationsList);
@@ -3967,9 +3965,10 @@ namespace Easislides
         string previousOutputPPImageName = "";
 
         /// <summary>
-        /// daniel
+        /// Shows the slide thumbnails of the output PowerPoint item; the image name list is rebuilt only when
+        /// the item's first image name changed.
         /// </summary>
-        /// <param name="GotoSlide"></param>
+        /// <param name="GotoSlide">The slide to scroll to; below 0 means the last slide.</param>
         private void ShowOutputPPThumbs(int GotoSlide)
         {
             bool isCurrentOutputPPImageSame = false;
@@ -4083,8 +4082,8 @@ namespace Easislides
 
         private string DragDropItemType(DragEventArgs e)
         {
-            int num = e.Data.GetFormats().Length - 1;
-            for (int i = 0; i <= num; i++)
+            int lastFormatIndex = e.Data.GetFormats().Length - 1;
+            for (int i = 0; i <= lastFormatIndex; i++)
             {
                 if (e.Data.GetFormats()[i].Equals("System.Windows.Forms.ListView+SelectedListViewItemCollection"))
                 {
@@ -4190,11 +4189,11 @@ namespace Easislides
         }
 
         /// <summary>
-        /// daniel
-        /// ??��??docx ��??
+        /// A drag enters the worship list: no row is marked yet, and the drop effect is offered for the
+        /// dragged data (list items, Bible passages and supported files, including .docx).
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
+        /// <param name="sender">The worship list.</param>
+        /// <param name="e">The drag data.</param>
         private void WorshipList_DragEnter(object sender, DragEventArgs e)
         {
             // A new drag over the list: no row is marked yet.
@@ -4208,36 +4207,36 @@ namespace Easislides
         /// </summary>
         private DragDropEffects WorshipListDropEffect(DragEventArgs e)
         {
-            string a = DragDropItemType(e);
-            if (a == DragDropSource.WorshipList.ToString())
+            string dragType = DragDropItemType(e);
+            if (dragType == DragDropSource.WorshipList.ToString())
             {
                 return DragDropEffects.Link;
             }
-            else if (a == DragDropSource.SongsList.ToString())
+            else if (dragType == DragDropSource.SongsList.ToString())
             {
                 return DragDropEffects.Link;
             }
-            else if (a == DragDropSource.InfoScreenList.ToString())
+            else if (dragType == DragDropSource.InfoScreenList.ToString())
             {
                 return DragDropEffects.Link;
             }
-            else if (a == DragDropSource.PowerpointList.ToString())
+            else if (dragType == DragDropSource.PowerpointList.ToString())
             {
                 return DragDropEffects.Link;
             }
-            else if (a == DragDropSource.MediaList.ToString())
+            else if (dragType == DragDropSource.MediaList.ToString())
             {
                 return DragDropEffects.Link;
             }
-            else if (a == DataFormats.FileDrop)
+            else if (dragType == DataFormats.FileDrop)
             {
-                bool flag = true;
-                string[] array = (string[])e.Data.GetData(DataFormats.FileDrop);
-                if (!Gf.SupportedImageFormat(array[0]))
+                bool allSupported = true;
+                string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+                if (!Gf.SupportedImageFormat(files[0]))
                 {
-                    for (int i = 0; i <= array.Length - 1; i++)
+                    for (int i = 0; i <= files.Length - 1; i++)
                     {
-                        string strExt = Path.GetExtension(array[i]).ToLower();
+                        string strExt = Path.GetExtension(files[i]).ToLower();
                         bool isPowerpoint = strExt == ".ppt" || strExt == ".pptx";
                         bool isDoc = strExt == ".doc" || strExt == ".docx";
                         bool isText = strExt == ".txt";
@@ -4246,13 +4245,13 @@ namespace Easislides
                         bool isMedia = ValidMediaExt(strExt);
                         if ((!isPowerpoint && !isDoc && !isText && !isInfo && !isWorship && !isMedia) || (isPowerpoint && Gf.ShowRunning))
                         {
-                            flag = false;
+                            allSupported = false;
                         }
                     }
                 }
-                return (flag ? DragDropEffects.Link : DragDropEffects.None);
+                return (allSupported ? DragDropEffects.Link : DragDropEffects.None);
             }
-            else if (a == DragDropSource.BiblePassage.ToString())
+            else if (dragType == DragDropSource.BiblePassage.ToString())
             {
                 return DragDropEffects.Link;
             }
@@ -4368,8 +4367,8 @@ namespace Easislides
             // have run at all (a click the list control took for the start of a drag) or may be stale.
             int dropAt = WorshipListDropIndex(e.X, e.Y);
             WorshipListInsertAt = -1;
-            string a = DragDropItemType(e);
-            if (a == DragDropSource.WorshipList.ToString())
+            string dragType = DragDropItemType(e);
+            if (dragType == DragDropSource.WorshipList.ToString())
             {
                 e.Effect = DragDropEffects.Link;
                 // A drop that leaves the order as it is (on the dragged row itself, on the row right after
@@ -4382,7 +4381,7 @@ namespace Easislides
             }
             // From the other lists, files and Bible passages: inserted before the row under the drop point
             // (at the end below the last row); where no place can be told (dropAt -1) nothing is inserted.
-            else if (a == DragDropSource.SongsList.ToString())
+            else if (dragType == DragDropSource.SongsList.ToString())
             {
                 e.Effect = DragDropEffects.Copy;
                 if (dropAt >= 0)
@@ -4390,7 +4389,7 @@ namespace Easislides
                     AddFromSongsList(dropAt);
                 }
             }
-            else if (a == DragDropSource.InfoScreenList.ToString())
+            else if (dragType == DragDropSource.InfoScreenList.ToString())
             {
                 e.Effect = DragDropEffects.Copy;
                 if (dropAt >= 0)
@@ -4398,7 +4397,7 @@ namespace Easislides
                     AddFromInfoScreensList(dropAt);
                 }
             }
-            else if (a == DragDropSource.PowerpointList.ToString())
+            else if (dragType == DragDropSource.PowerpointList.ToString())
             {
                 e.Effect = DragDropEffects.Copy;
                 if (dropAt >= 0)
@@ -4406,7 +4405,7 @@ namespace Easislides
                     AddFromPowerpointList(dropAt);
                 }
             }
-            else if (a == DragDropSource.MediaList.ToString())
+            else if (dragType == DragDropSource.MediaList.ToString())
             {
                 e.Effect = DragDropEffects.Copy;
                 if (dropAt >= 0)
@@ -4414,10 +4413,10 @@ namespace Easislides
                     AddFromMediaFilesList(dropAt);
                 }
             }
-            else if (a == DataFormats.FileDrop)
+            else if (dragType == DataFormats.FileDrop)
             {
-                string[] array = (string[])e.Data.GetData(DataFormats.FileDrop);
-                if (Gf.SupportedImageFormat(array[0]))
+                string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+                if (Gf.SupportedImageFormat(files[0]))
                 {
                     // An image is not inserted: it becomes the background of the row it is dropped on (that
                     // row alone: ApplyBackground writes the preview item's format into every selected row),
@@ -4426,29 +4425,29 @@ namespace Easislides
                     if (dropAt >= WorshipListItems.Items.Count)
                     {
                         WorshipList_UnselectAll();
-                        ApplyBackground(array[0]);
+                        ApplyBackground(files[0]);
                     }
                     else if (dropAt >= 0)
                     {
                         SelectWorshipListItem(dropAt, 1);
-                        ApplyBackground(array[0]);
+                        ApplyBackground(files[0]);
                     }
                 }
                 else if (dropAt >= 0)
                 {
-                    int num2 = 0;
-                    for (int i = 0; i <= array.Length - 1; i++)
+                    int addedCount = 0;
+                    for (int i = 0; i <= files.Length - 1; i++)
                     {
-                        AddExternalFileToWorshipList(array[i], dropAt + num2);
-                        num2++;
+                        AddExternalFileToWorshipList(files[i], dropAt + addedCount);
+                        addedCount++;
                     }
-                    if (array.Length > 0)
+                    if (files.Length > 0)
                     {
-                        SelectWorshipListItem(dropAt, num2);
+                        SelectWorshipListItem(dropAt, addedCount);
                     }
                 }
             }
-            else if (a == DragDropSource.BiblePassage.ToString())
+            else if (dragType == DragDropSource.BiblePassage.ToString())
             {
                 if (dropAt >= 0)
                 {
@@ -4468,17 +4467,17 @@ namespace Easislides
         /// </summary>
         private void MoveSelectedWorshipListRows(int InsertAt)
         {
-            int num = InsertAt;
-            int num2 = WorshipListItems.SelectedItems.Count;
-            int num3 = 0;
-            for (int i = 0; i < num; i++)
+            int insertAt = InsertAt;
+            int selectedCount = WorshipListItems.SelectedItems.Count;
+            int selectedBefore = 0;
+            for (int i = 0; i < insertAt; i++)
             {
                 if (WorshipListItems.Items[i].Selected)
                 {
-                    num3++;
+                    selectedBefore++;
                 }
             }
-            ListViewItem[] selectedRows = new ListViewItem[num2];
+            ListViewItem[] selectedRows = new ListViewItem[selectedCount];
             WorshipListItems.SelectedItems.CopyTo(selectedRows, 0);
             var inserted = new System.Collections.Generic.List<ListViewItem>();
             try
@@ -4486,7 +4485,7 @@ namespace Easislides
                 foreach (ListViewItem selectedItem in selectedRows)
                 {
                     ListViewItem copy = (ListViewItem)selectedItem.Clone();
-                    WorshipListItems.Items.Insert(num + inserted.Count, copy);
+                    WorshipListItems.Items.Insert(insertAt + inserted.Count, copy);
                     inserted.Add(copy);
                 }
             }
@@ -4507,9 +4506,9 @@ namespace Easislides
                 return;
             }
             RemoveWorshipListSong(UpdateCurItemNo: false);
-            num -= num3;
-            // Rows moved to the top (num 0) are selected as well.
-            for (int i = num; i < num2 + num && i < WorshipListItems.Items.Count; i++)
+            insertAt -= selectedBefore;
+            // Rows moved to the top (insertAt 0) are selected as well.
+            for (int i = insertAt; i < selectedCount + insertAt && i < WorshipListItems.Items.Count; i++)
             {
                 WorshipListItems.Items[i].Selected = true;
             }
@@ -4524,8 +4523,8 @@ namespace Easislides
 
         private void PraiseBookItems_DragEnter(object sender, DragEventArgs e)
         {
-            string a = DragDropItemType(e);
-            if (a == "SongsList")
+            string dragType = DragDropItemType(e);
+            if (dragType == "SongsList")
             {
                 e.Effect = DragDropEffects.Link;
             }
@@ -4537,8 +4536,8 @@ namespace Easislides
 
         private void PraiseBookItems_DragDrop(object sender, DragEventArgs e)
         {
-            string a = DragDropItemType(e);
-            if (a == "SongsList")
+            string dragType = DragDropItemType(e);
+            if (dragType == "SongsList")
             {
                 e.Effect = DragDropEffects.Link;
                 AddToPraiseBookList();
@@ -4954,85 +4953,85 @@ namespace Easislides
         }
 
         /// <summary>
-        /// daniel
+        /// Checks every worship list item (and an ad hoc output item) and fills Gf.WorshipSongs from them.
         /// </summary>
-        /// <param name="ShowErrorMessage"></param>
-        /// <returns></returns>
+        /// <param name="ShowErrorMessage">Whether a problem is shown in a message box.</param>
+        /// <returns>-1 when all items are valid; else the index of the first invalid item (1 when there are more PowerPoint files than permitted).</returns>
         private int ValidateWorshipListItems(bool ShowErrorMessage)
         {
-            bool flag = false;
-            string text = "";
-            int num = 0;
+            bool powerpointChecked = false;
+            string typeSymbol = "";
+            int powerpointCount = 0;
 
             using DbConnection connection = DbController.GetDbConnection(Gf.ConnectStringMainDB);
 
             Gf.AdHocItemPresent = ((Gf.OutputItem.Source != ItemSource.WorshipList) ? true : false);
             for (int i = 0; i <= WorshipListItems.Items.Count - ((!Gf.AdHocItemPresent) ? 1 : 0); i++)
             {
-                string text2;
-                string text3;
+                string title;
+                string idString;
                 string inString;
-                int num2;
-                if (Gf.AdHocItemPresent & (i == WorshipListItems.Items.Count))
+                int songIndex;
+                if (Gf.AdHocItemPresent && i == WorshipListItems.Items.Count)
                 {
-                    text2 = Gf.OutputItem.InMainItemText;
-                    text3 = Gf.OutputItem.InSubItemItem1Text;
+                    title = Gf.OutputItem.InMainItemText;
+                    idString = Gf.OutputItem.InSubItemItem1Text;
                     inString = Gf.OutputItem.Format.FormatString;
-                    num2 = 0;
+                    songIndex = 0;
                 }
                 else
                 {
-                    text2 = WorshipListItems.Items[i].Text;
-                    text3 = WorshipListItems.Items[i].SubItems[1].Text;
+                    title = WorshipListItems.Items[i].Text;
+                    idString = WorshipListItems.Items[i].SubItems[1].Text;
                     inString = WorshipListItems.Items[i].SubItems[2].Text;
-                    num2 = i + 1;
+                    songIndex = i + 1;
                 }
-                text = DataUtil.Left(text3, 1);
-                string text4 = DataUtil.Right(text3, text3.Length - 1);
-                if (text == "D")
+                typeSymbol = DataUtil.Left(idString, 1);
+                string idValue = DataUtil.Right(idString, idString.Length - 1);
+                if (typeSymbol == "D")
                 {
-                    bool flag3 = false;
-                    int num3 = 0;
+                    bool songFound = false;
+                    int folderNo = 0;
                     try
                     {
-                        using DbCommand comm = new DbCommand($"Select FolderNo From SONG Where SONGID={text4}", connection);
+                        using DbCommand comm = new DbCommand($"Select FolderNo From SONG Where SONGID={idValue}", connection);
 
                         object objValue = comm.ExecuteScalar();
 
                         if (objValue != null)
                         {
-                            Gf.WorshipSongs[num2].IdString = text3;
-                            Gf.WorshipSongs[num2].Type = "D";
-                            Gf.WorshipSongs[num2].Title = Gf.RemoveMusicSym(text2);
-                            Gf.WorshipSongs[num2].Flag = " ";
-                            Gf.WorshipSongs[num2].FormatString = DataUtil.Trim(inString);
-                            num3 = DataUtil.ObjToInt(objValue);
-                            flag3 = true;
+                            Gf.WorshipSongs[songIndex].IdString = idString;
+                            Gf.WorshipSongs[songIndex].Type = "D";
+                            Gf.WorshipSongs[songIndex].Title = Gf.RemoveMusicSym(title);
+                            Gf.WorshipSongs[songIndex].Flag = " ";
+                            Gf.WorshipSongs[songIndex].FormatString = DataUtil.Trim(inString);
+                            folderNo = DataUtil.ObjToInt(objValue);
+                            songFound = true;
                         }
                     }
                     catch
                     {
                     }
-                    if (!flag3)
+                    if (!songFound)
                     {
                         if (ShowErrorMessage)
                         {
-                            MessageBox.Show(this, "Sorry - Can't find the song '" + Gf.RemoveMusicSym(text2) + "' in the Database!");
+                            MessageBox.Show(this, "Sorry - Can't find the song '" + Gf.RemoveMusicSym(title) + "' in the Database!");
                         }
                         return i;
                     }
-                    if (num3 == 0)
+                    if (folderNo == 0)
                     {
                         if (ShowErrorMessage)
                         {
-                            MessageBox.Show(this, "Sorry - Can't show the Database song '" + Gf.RemoveMusicSym(text2) + "' because it has been deleted!");
+                            MessageBox.Show(this, "Sorry - Can't show the Database song '" + Gf.RemoveMusicSym(title) + "' because it has been deleted!");
                         }
                         return i;
                     }
                 }
-                else if (text == "P")
+                else if (typeSymbol == "P")
                 {
-                    if (!flag)
+                    if (!powerpointChecked)
                     {
                         if (!Gf.PowerpointPresent())
                         {
@@ -5042,70 +5041,70 @@ namespace Easislides
                             }
                             return i;
                         }
-                        flag = true;
+                        powerpointChecked = true;
                     }
-                    string text5 = text4;
-                    if (!File.Exists(text5))
+                    string powerpointPath = idValue;
+                    if (!File.Exists(powerpointPath))
                     {
                         if (ShowErrorMessage)
                         {
-                            MessageBox.Show(this, "Sorry - Can't find the Powerpoint File '" + Gf.RemoveMusicSym(text2) + "'");
+                            MessageBox.Show(this, "Sorry - Can't find the Powerpoint File '" + Gf.RemoveMusicSym(title) + "'");
                         }
                         return i;
                     }
-                    num++;
-                    Gf.WorshipSongs[num2].IdString = "P" + text5;
-                    Gf.WorshipSongs[num2].Type = "P";
-                    Gf.WorshipSongs[num2].Title = Gf.RemoveMusicSym(text2);
-                    Gf.WorshipSongs[num2].Flag = " ";
-                    Gf.WorshipSongs[num2].FormatString = "";
+                    powerpointCount++;
+                    Gf.WorshipSongs[songIndex].IdString = "P" + powerpointPath;
+                    Gf.WorshipSongs[songIndex].Type = "P";
+                    Gf.WorshipSongs[songIndex].Title = Gf.RemoveMusicSym(title);
+                    Gf.WorshipSongs[songIndex].Flag = " ";
+                    Gf.WorshipSongs[songIndex].FormatString = "";
                 }
-                else if (text == "B")
+                else if (typeSymbol == "B")
                 {
-                    Gf.WorshipSongs[num2].IdString = text3;
-                    Gf.WorshipSongs[num2].Type = "B";
-                    Gf.WorshipSongs[num2].Title = text2;
-                    Gf.WorshipSongs[num2].Flag = " ";
-                    Gf.WorshipSongs[num2].FormatString = DataUtil.Trim(inString);
+                    Gf.WorshipSongs[songIndex].IdString = idString;
+                    Gf.WorshipSongs[songIndex].Type = "B";
+                    Gf.WorshipSongs[songIndex].Title = title;
+                    Gf.WorshipSongs[songIndex].Flag = " ";
+                    Gf.WorshipSongs[songIndex].FormatString = DataUtil.Trim(inString);
                 }
-                else if (text == "T")
+                else if (typeSymbol == "T")
                 {
-                    Gf.WorshipSongs[num2].IdString = text3;
-                    Gf.WorshipSongs[num2].Type = "T";
-                    Gf.WorshipSongs[num2].Title = text2;
-                    Gf.WorshipSongs[num2].Flag = " ";
-                    Gf.WorshipSongs[num2].FormatString = DataUtil.Trim(inString);
+                    Gf.WorshipSongs[songIndex].IdString = idString;
+                    Gf.WorshipSongs[songIndex].Type = "T";
+                    Gf.WorshipSongs[songIndex].Title = title;
+                    Gf.WorshipSongs[songIndex].Flag = " ";
+                    Gf.WorshipSongs[songIndex].FormatString = DataUtil.Trim(inString);
                 }
-                else if (text == "I")
+                else if (typeSymbol == "I")
                 {
-                    Gf.WorshipSongs[num2].IdString = text3;
-                    Gf.WorshipSongs[num2].Type = "I";
-                    Gf.WorshipSongs[num2].Title = text2;
-                    Gf.WorshipSongs[num2].Flag = " ";
-                    Gf.WorshipSongs[num2].FormatString = DataUtil.Trim(inString);
+                    Gf.WorshipSongs[songIndex].IdString = idString;
+                    Gf.WorshipSongs[songIndex].Type = "I";
+                    Gf.WorshipSongs[songIndex].Title = title;
+                    Gf.WorshipSongs[songIndex].Flag = " ";
+                    Gf.WorshipSongs[songIndex].FormatString = DataUtil.Trim(inString);
                 }
-                else if (text == "W")
+                else if (typeSymbol == "W")
                 {
-                    Gf.WorshipSongs[num2].IdString = text3;
-                    Gf.WorshipSongs[num2].Type = "W";
-                    Gf.WorshipSongs[num2].Title = text2;
-                    Gf.WorshipSongs[num2].Flag = " ";
-                    Gf.WorshipSongs[num2].FormatString = DataUtil.Trim(inString);
+                    Gf.WorshipSongs[songIndex].IdString = idString;
+                    Gf.WorshipSongs[songIndex].Type = "W";
+                    Gf.WorshipSongs[songIndex].Title = title;
+                    Gf.WorshipSongs[songIndex].Flag = " ";
+                    Gf.WorshipSongs[songIndex].FormatString = DataUtil.Trim(inString);
                 }
-                else if (text == "M")
+                else if (typeSymbol == "M")
                 {
-                    Gf.WorshipSongs[num2].IdString = text3;
-                    Gf.WorshipSongs[num2].Type = "M";
-                    Gf.WorshipSongs[num2].Title = text2;
-                    Gf.WorshipSongs[num2].Flag = " ";
-                    Gf.WorshipSongs[num2].FormatString = DataUtil.Trim(inString);
+                    Gf.WorshipSongs[songIndex].IdString = idString;
+                    Gf.WorshipSongs[songIndex].Type = "M";
+                    Gf.WorshipSongs[songIndex].Title = title;
+                    Gf.WorshipSongs[songIndex].Flag = " ";
+                    Gf.WorshipSongs[songIndex].FormatString = DataUtil.Trim(inString);
                 }
             }
 
             Gf.TotalWorshipListItems = WorshipListItems.Items.Count;
-            if (num > Gf.PP_MaxFiles)
+            if (powerpointCount > Gf.PP_MaxFiles)
             {
-                string maxFilesMessage = "Error - There are " + num + " Powerpoint files on the Worship List but you are only permitted to have " + Gf.PP_MaxFiles + ".";
+                string maxFilesMessage = "Error - There are " + powerpointCount + " Powerpoint files on the Worship List but you are only permitted to have " + Gf.PP_MaxFiles + ".";
                 if (ShowErrorMessage)
                 {
                     MessageBox.Show(this, maxFilesMessage);
@@ -5292,12 +5291,12 @@ namespace Easislides
 
         private void OutputChineseSwitch()
         {
-            if (!(Gf.OutputItem.CompleteLyrics == ""))
+            if (Gf.OutputItem.CompleteLyrics != "")
             {
-                int num = Gf.SwitchChinese(ref Gf.OutputItem.CompleteLyrics);
-                Gf.SwitchChineseLyricsNotationListView(ref Gf.OutputItem, num);
+                int switchResult = Gf.SwitchChinese(ref Gf.OutputItem.CompleteLyrics);
+                Gf.SwitchChineseLyricsNotationListView(ref Gf.OutputItem, switchResult);
                 DisplayLyrics(Gf.OutputItem, Gf.OutputItem.CurSlide, ScrollToCaret: true, 2, ImageTransitionControl.TransitionAction.None);
-                if (Gf.ShowRunning && num >= 0)
+                if (Gf.ShowRunning && switchResult >= 0)
                 {
                     RemoteControlLiveShow(LiveShowAction.Remote_ChineseChanged);
                 }
@@ -5480,18 +5479,18 @@ namespace Easislides
             {
                 return;
             }
-            int num = 0;
+            int newSongId = 0;
             int[] RefileSongs = new int[30000];
             RefileSongs[0] = 0;
-            string[] array = new string[30000];
-            array[0] = "0";
+            string[] copiedFiles = new string[30000];
+            copiedFiles[0] = "0";
             string[] inHeaderData = new string[255];
-            int num2 = 0;
-            string text = "";
+            int infoScreenGroupIndex = 0;
+            string infoScreenDir = "";
             if (Gf.CopyToFolder < 0)
             {
-                num2 = -Gf.CopyToFolder - 1;
-                text = Gf.InfoScreenGroups[num2].Path;
+                infoScreenGroupIndex = -Gf.CopyToFolder - 1;
+                infoScreenDir = Gf.InfoScreenGroups[infoScreenGroupIndex].Path;
             }
             for (int i = 0; i <= SongsList.Items.Count - 1; i++)
             {
@@ -5499,9 +5498,9 @@ namespace Easislides
                 {
                     try
                     {
-                        string text2 = SongsList.Items[i].SubItems[1].Text;
-                        string str = DataUtil.Right(text2, text2.Length - 1);
-                        string fullSearchString = "select * from SONG where songid=" + str;
+                        string idString = SongsList.Items[i].SubItems[1].Text;
+                        string songId = DataUtil.Right(idString, idString.Length - 1);
+                        string fullSearchString = "select * from SONG where songid=" + songId;
 
                         using DataTable datatable = DbController.GetDataTable(Gf.ConnectStringMainDB, fullSearchString);
 
@@ -5511,11 +5510,11 @@ namespace Easislides
                                 DataRow dr = datatable.Rows[0];
                                 if (Gf.CopyToFolder > 0)
                                 {
-                                    num = Gf.InsertItemIntoDatabase(Gf.ConnectStringMainDB, dr["Title_1"], dr["Title_2"], dr["song_number"], Gf.CopyToFolder, dr["Lyrics"], dr["Sequence"], dr["writer"], dr["copyright"], dr["capo"], dr["Timing"], dr["Key"], dr["msc"], dr["CATEGORY"], dr["LICENCE_ADMIN1"], dr["LICENCE_ADMIN2"], dr["BOOK_REFERENCE"], dr["USER_REFERENCE"], dr["SETTINGS"], dr["FORMATDATA"]);
-                                    if (num > 0)
+                                    newSongId = Gf.InsertItemIntoDatabase(Gf.ConnectStringMainDB, dr["Title_1"], dr["Title_2"], dr["song_number"], Gf.CopyToFolder, dr["Lyrics"], dr["Sequence"], dr["writer"], dr["copyright"], dr["capo"], dr["Timing"], dr["Key"], dr["msc"], dr["CATEGORY"], dr["LICENCE_ADMIN1"], dr["LICENCE_ADMIN2"], dr["BOOK_REFERENCE"], dr["USER_REFERENCE"], dr["SETTINGS"], dr["FORMATDATA"]);
+                                    if (newSongId > 0)
                                     {
                                         RefileSongs[0]++;
-                                        RefileSongs[RefileSongs[0]] = num;
+                                        RefileSongs[RefileSongs[0]] = newSongId;
                                     }
                                 }
                                 else
@@ -5539,17 +5538,17 @@ namespace Easislides
                                     Gf.TempItem1.User_Reference = DataUtil.ObjToString(dr["USER_REFERENCE"]);
                                     Gf.TempItem1.RotateString = "";
                                     Gf.TempItem1.Settings = DataUtil.ObjToString(dr["SETTINGS"]);
-                                    string InFileName = text + Gf.TempItem1.Title + ".esi";
-                                    int num3 = 0;
+                                    string InFileName = infoScreenDir + Gf.TempItem1.Title + ".esi";
+                                    int copyNo = 0;
                                     while (File.Exists(InFileName))
                                     {
-                                        num3++;
-                                        InFileName = text + Gf.TempItem1.Title + " - Copy (" + num3 + ").esi";
+                                        copyNo++;
+                                        InFileName = infoScreenDir + Gf.TempItem1.Title + " - Copy (" + copyNo + ").esi";
                                     }
                                     if (Gf.SaveXMLInfoScreen(Gf.TempItem1, InFileName, inHeaderData, ReloadImageData: false, UseOriginalNotations: false))
                                     {
-                                        array[0] = Convert.ToString(DataUtil.StringToInt(array[0]) + 1);
-                                        array[DataUtil.StringToInt(array[0])] = Gf.GetDisplayNameOnly(ref InFileName, UpdateByRef: false);
+                                        copiedFiles[0] = Convert.ToString(DataUtil.StringToInt(copiedFiles[0]) + 1);
+                                        copiedFiles[DataUtil.StringToInt(copiedFiles[0])] = Gf.GetDisplayNameOnly(ref InFileName, UpdateByRef: false);
                                     }
                                 }
                             }
@@ -5566,7 +5565,7 @@ namespace Easislides
             }
             else
             {
-                HighlightCopyMoveExternalItems(InfoScreenList, num2, array, "I");
+                HighlightCopyMoveExternalItems(InfoScreenList, infoScreenGroupIndex, copiedFiles, "I");
             }
         }
 
@@ -5597,10 +5596,10 @@ namespace Easislides
         private void RemoveSongsListSong()
         {
             Gf.SelectedItemsCount = SongsList.SelectedItems.Count;
-            string text = "";
+            string prompt = "";
             if (Gf.SelectedItemsCount == 1)
             {
-                text = "Are you really sure you want to delete the selected song?";
+                prompt = "Are you really sure you want to delete the selected song?";
             }
             else
             {
@@ -5608,34 +5607,34 @@ namespace Easislides
                 {
                     return;
                 }
-                text = "Are you really sure you want to delete the " + Convert.ToString(Gf.SelectedItemsCount) + " songs you have selected?";
+                prompt = "Are you really sure you want to delete the " + Convert.ToString(Gf.SelectedItemsCount) + " songs you have selected?";
             }
-            if (MessageBox.Show(text, "Delete Selected Song(s)", MessageBoxButtons.YesNo) != DialogResult.Yes)
+            if (MessageBox.Show(prompt, "Delete Selected Song(s)", MessageBoxButtons.YesNo) != DialogResult.Yes)
             {
                 return;
             }
             Cursor = Cursors.WaitCursor;
             int folderNumber = Gf.GetFolderNumber(SongFolder.Text);
             int[] RefileSongs = new int[30000];
-            int num = 0;
-            for (int num2 = SongsList.Items.Count - 1; num2 >= 0; num2--)
+            int firstSelectedIndex = 0;
+            for (int i = SongsList.Items.Count - 1; i >= 0; i--)
             {
-                if (SongsList.Items[num2].Selected)
+                if (SongsList.Items[i].Selected)
                 {
-                    num = num2;
+                    firstSelectedIndex = i;
                 }
             }
             Gf.ReFileSelectedSongs(ref SongsList, folderNumber, 0, ref RefileSongs, UpdateModifiedDate: true);
-            if (SongsList.Items.Count > num)
+            if (SongsList.Items.Count > firstSelectedIndex)
             {
-                if (num >= 0)
+                if (firstSelectedIndex >= 0)
                 {
-                    SongsList.Items[num].Selected = true;
+                    SongsList.Items[firstSelectedIndex].Selected = true;
                 }
             }
-            else if (SongsList.Items.Count > 0 && ((num - 1 >= 0) & (SongsList.Items.Count >= num - 1)))
+            else if (SongsList.Items.Count > 0 && firstSelectedIndex - 1 >= 0 && SongsList.Items.Count >= firstSelectedIndex - 1)
             {
-                SongsList.Items[num - 1].Selected = true;
+                SongsList.Items[firstSelectedIndex - 1].Selected = true;
             }
             SongsListIndexChanged();
             ShowStatusBarSummary();
@@ -5644,12 +5643,12 @@ namespace Easislides
         }
 
         /// <summary>
-        /// daniel 
-        /// cross thread execption error fix
+        /// Whether the named tab page is selected. Safe to call from another thread (it invokes on the UI
+        /// thread when needed, which fixed a cross-thread exception).
         /// </summary>
-        /// <param name="InTab"></param>
-        /// <param name="InName"></param>
-        /// <returns></returns>
+        /// <param name="InTab">The tab control.</param>
+        /// <param name="InName">The tab page name (compared case-insensitively).</param>
+        /// <returns>True when that tab page is selected.</returns>
         private bool IsSelectedTab(TabControl InTab, string InName)
         {
             bool result = false;
@@ -5708,27 +5707,27 @@ namespace Easislides
             {
                 SongFolder.Text = Gf.Folders[InFolderNo].Name;
             }
-            int num = -1;
-            int num2 = RefileSongs[0];
+            int firstIndex = -1;
+            int remainingCount = RefileSongs[0];
             for (int i = 0; i < SongsList.Items.Count; i++)
             {
                 if (CompareRefileSongsList(DataUtil.StringToInt(DataUtil.Mid(SongsList.Items[i].SubItems[1].Text, 1)), ref RefileSongs))
                 {
                     SongsList.Items[i].Selected = true;
-                    if (num < 0)
+                    if (firstIndex < 0)
                     {
-                        num2--;
-                        num = i;
+                        remainingCount--;
+                        firstIndex = i;
                     }
-                    if (num2 == 0)
+                    if (remainingCount == 0)
                     {
                         break;
                     }
                 }
             }
-            if (num >= 0)
+            if (firstIndex >= 0)
             {
-                SongsList.EnsureVisible(num);
+                SongsList.EnsureVisible(firstIndex);
             }
             SongsListIndexChanged();
         }
@@ -5767,8 +5766,8 @@ namespace Easislides
 
         private void HighlightCopyMoveExternalItems(ListView InListView, int SelectedFolderIndex, string[] RefileSongs, string InFileSymbol)
         {
-            int num = DataUtil.StringToInt(RefileSongs[0]);
-            if (num < 1)
+            int remainingCount = DataUtil.StringToInt(RefileSongs[0]);
+            if (remainingCount < 1)
             {
                 return;
             }
@@ -5786,26 +5785,26 @@ namespace Easislides
                 PowerpointFolder.SelectedIndex = SelectedFolderIndex;
                 ShowPowerpointFolderContents(ShowThumbs: false);
             }
-            int num2 = -1;
+            int firstIndex = -1;
             for (int i = 0; i < InListView.Items.Count; i++)
             {
                 if (CompareRefileSongsList(InListView.Items[i].SubItems[0].Text, ref RefileSongs))
                 {
                     InListView.Items[i].Selected = true;
-                    if (num2 < 0)
+                    if (firstIndex < 0)
                     {
-                        num--;
-                        num2 = i;
+                        remainingCount--;
+                        firstIndex = i;
                     }
-                    if (num == 0)
+                    if (remainingCount == 0)
                     {
                         break;
                     }
                 }
             }
-            if (num2 >= 0)
+            if (firstIndex >= 0)
             {
-                InListView.EnsureVisible(num2);
+                InListView.EnsureVisible(firstIndex);
             }
             if (InFileSymbol == "I")
             {
@@ -5839,7 +5838,7 @@ namespace Easislides
             {
                 return;
             }
-            if (Gf.Options_FolderListChanged | Gf.Options_MediaDirChanged)
+            if (Gf.Options_FolderListChanged || Gf.Options_MediaDirChanged)
             {
                 Refresh();
                 BuildFolderList();
@@ -5894,45 +5893,45 @@ namespace Easislides
 
         private void SetJumpToolTips()
         {
-            int iLen = 15;
-            string text = "FOLDER ";
-            string value = "FOLDER";
-            string text2 = Gf.Folders[Gf.JumpToA]?.Name ?? "";
-            string text3 = Gf.Folders[Gf.JumpToB]?.Name ?? "";
-            string text4 = Gf.Folders[Gf.JumpToC]?.Name ?? "";
-            string text5 = DataUtil.Trim(DataUtil.Left(text2, iLen));
-            string text6 = DataUtil.Trim(DataUtil.Left(text3, iLen));
-            string text7 = DataUtil.Trim(DataUtil.Left(text4, iLen));
-            if (DataUtil.Left(Gf.Folders[Gf.JumpToA].Name ??= "".ToUpper(), text.Length) == text)
+            int labelLength = 15;
+            string folderPrefix = "FOLDER ";
+            string folderWord = "FOLDER";
+            string toolTipA = Gf.Folders[Gf.JumpToA]?.Name ?? "";
+            string toolTipB = Gf.Folders[Gf.JumpToB]?.Name ?? "";
+            string toolTipC = Gf.Folders[Gf.JumpToC]?.Name ?? "";
+            string labelA = DataUtil.Trim(DataUtil.Left(toolTipA, labelLength));
+            string labelB = DataUtil.Trim(DataUtil.Left(toolTipB, labelLength));
+            string labelC = DataUtil.Trim(DataUtil.Left(toolTipC, labelLength));
+            if (DataUtil.Left(Gf.Folders[Gf.JumpToA].Name ??= "".ToUpper(), folderPrefix.Length) == folderPrefix)
             {
-                text5 = DataUtil.Mid(text2, text.Length, iLen);
+                labelA = DataUtil.Mid(toolTipA, folderPrefix.Length, labelLength);
             }
-            if (DataUtil.Left(Gf.Folders[Gf.JumpToB].Name ??= "".ToUpper(), text.Length) == text)
+            if (DataUtil.Left(Gf.Folders[Gf.JumpToB].Name ??= "".ToUpper(), folderPrefix.Length) == folderPrefix)
             {
-                text6 = DataUtil.Mid(text3, text.Length, iLen);
+                labelB = DataUtil.Mid(toolTipB, folderPrefix.Length, labelLength);
             }
-            if (DataUtil.Left(Gf.Folders[Gf.JumpToC].Name ??= "".ToUpper(), text.Length) == text)
+            if (DataUtil.Left(Gf.Folders[Gf.JumpToC].Name ??= "".ToUpper(), folderPrefix.Length) == folderPrefix)
             {
-                text7 = DataUtil.Mid(text4, text.Length, iLen);
+                labelC = DataUtil.Mid(toolTipC, folderPrefix.Length, labelLength);
             }
-            if (text2.ToUpper().IndexOf(value) < 0)
+            if (toolTipA.ToUpper().IndexOf(folderWord) < 0)
             {
-                text2 = Gf.Folders[Gf.JumpToA]?.Name ?? "" + " Folder";
+                toolTipA = Gf.Folders[Gf.JumpToA]?.Name ?? "" + " Folder";
             }
-            if (text3.ToUpper().IndexOf(value) < 0)
+            if (toolTipB.ToUpper().IndexOf(folderWord) < 0)
             {
-                text3 = Gf.Folders[Gf.JumpToB]?.Name ?? "" + " Folder";
+                toolTipB = Gf.Folders[Gf.JumpToB]?.Name ?? "" + " Folder";
             }
-            if (text4.ToUpper().IndexOf(value) < 0)
+            if (toolTipC.ToUpper().IndexOf(folderWord) < 0)
             {
-                text4 = Gf.Folders[Gf.JumpToC]?.Name ?? "" + " Folder";
+                toolTipC = Gf.Folders[Gf.JumpToC]?.Name ?? "" + " Folder";
             }
-            Main_JumpA.Text = text5;
-            Main_JumpA.ToolTipText = text2;
-            Main_JumpB.Text = text6;
-            Main_JumpB.ToolTipText = text3;
-            Main_JumpC.Text = text7;
-            Main_JumpC.ToolTipText = text4;
+            Main_JumpA.Text = labelA;
+            Main_JumpA.ToolTipText = toolTipA;
+            Main_JumpB.Text = labelB;
+            Main_JumpB.ToolTipText = toolTipB;
+            Main_JumpC.Text = labelC;
+            Main_JumpC.ToolTipText = toolTipC;
         }
 
         private void ShowAlertForm()
@@ -6118,9 +6117,9 @@ namespace Easislides
 
         private void SongsListPlay()
         {
-            string text = "";
+            string songTitle = "";
             string title = "";
-            int num = 0;
+            int selectedCount = 0;
             int index = 0;
             switch (tabControlSource.SelectedTab.Name)
             {
@@ -6134,41 +6133,41 @@ namespace Easislides
                         {
                             if (SongsList.Items[i].Selected)
                             {
-                                num++;
+                                selectedCount++;
                                 index = i;
-                                if (num > 1)
+                                if (selectedCount > 1)
                                 {
                                     i = SongsList.Items.Count - 1;
                                 }
                             }
                         }
-                        if (num != 1)
+                        if (selectedCount != 1)
                         {
                             MessageBox.Show("Please select ONE item from the Songs List to play");
                             break;
                         }
-                        text = Gf.RemoveMusicSym(SongsList.Items[index].Text);
-                        string text3 = SongsList.Items[index].SubItems[1].Text;
-                        string inString = DataUtil.Right(text3, text3.Length - 1);
-                        int inKey = DataUtil.StringToInt(inString);
-                        if (DataUtil.Left(text3, 1) == "D")
+                        songTitle = Gf.RemoveMusicSym(SongsList.Items[index].Text);
+                        string songIdString = SongsList.Items[index].SubItems[1].Text;
+                        string idValue = DataUtil.Right(songIdString, songIdString.Length - 1);
+                        int songId = DataUtil.StringToInt(idValue);
+                        if (DataUtil.Left(songIdString, 1) == "D")
                         {
-                            title = Gf.LookupDBTitle2(inKey);
+                            title = Gf.LookupDBTitle2(songId);
                         }
-                        Gf.Play_Media(text, title);
+                        Gf.Play_Media(songTitle, title);
                         break;
                     }
                 case "tabFiles":
                     if (InfoScreenList.SelectedItems.Count > 0)
                     {
-                        string text2 = InfoScreenList.SelectedItems[0].SubItems[1].Text;
-                        if (DataUtil.Left(text2, 1) == "I")
+                        string idString = InfoScreenList.SelectedItems[0].SubItems[1].Text;
+                        if (DataUtil.Left(idString, 1) == "I")
                         {
                             string InTitle = "";
-                            Gf.LoadIndividualData(ref Gf.TempItem1, text2, "", 1, ref InTitle);
-                            text = Gf.TempItem1.Title;
+                            Gf.LoadIndividualData(ref Gf.TempItem1, idString, "", 1, ref InTitle);
+                            songTitle = Gf.TempItem1.Title;
                             title = Gf.TempItem1.Title2;
-                            Gf.Play_Media(text, title);
+                            Gf.Play_Media(songTitle, title);
                         }
                     }
                     break;
@@ -6227,24 +6226,24 @@ namespace Easislides
             ToolStripButton toolStripButton = (ToolStripButton)sender;
             string name = toolStripButton.Name;
             tabControlSource.SelectedIndex = 0;
-            int num = SongFolder.SelectedIndex;
+            int folderNo = SongFolder.SelectedIndex;
             if (name == "Main_JumpA")
             {
-                num = Gf.JumpToA;
+                folderNo = Gf.JumpToA;
             }
             else if (name == "Main_JumpB")
             {
-                num = Gf.JumpToB;
+                folderNo = Gf.JumpToB;
             }
             else if (name == "Main_JumpC")
             {
-                num = Gf.JumpToC;
+                folderNo = Gf.JumpToC;
             }
-            if (num > 0 && num < Gf.MAXSONGSFOLDERS && Gf.Folders[num].Use > 0)
+            if (folderNo > 0 && folderNo < Gf.MAXSONGSFOLDERS && Gf.Folders[folderNo].Use > 0)
             {
                 try
                 {
-                    SongFolder.Text = Gf.Folders[num].Name;
+                    SongFolder.Text = Gf.Folders[folderNo].Name;
                 }
                 catch
                 {
@@ -6294,7 +6293,7 @@ namespace Easislides
 
         private void Main_QuickFind_KeyUp(object sender, KeyEventArgs e)
         {
-            if (!((e.KeyCode == Keys.Return) | (e.KeyCode == Keys.Return)))
+            if (e.KeyCode != Keys.Return)
             {
                 return;
             }
@@ -6329,9 +6328,9 @@ namespace Easislides
                     Main_QuickFind.Items.Insert(0, Main_QuickFind.Text);
                     if (Main_QuickFind.Items.Count > 20)
                     {
-                        for (int num = Main_QuickFind.Items.Count; num >= 21; num--)
+                        for (int index = Main_QuickFind.Items.Count; index >= 21; index--)
                         {
-                            Main_QuickFind.Items.RemoveAt(num);
+                            Main_QuickFind.Items.RemoveAt(index);
                         }
                     }
                 }
@@ -6501,7 +6500,7 @@ namespace Easislides
 
         private void CMenuImages_Opening(object sender, CancelEventArgs e)
         {
-            CMenuImages_AddItem.Enabled = ((!(Gf.PreviewItem.ItemID == "")) ? true : false);
+            CMenuImages_AddItem.Enabled = ((Gf.PreviewItem.ItemID != "") ? true : false);
         }
 
         private void CMenuWorship_SelectAll_Click(object sender, EventArgs e)
@@ -6592,21 +6591,21 @@ namespace Easislides
             {
                 return;
             }
-            string text = WorshipListItems.Items[selectedIndex].SubItems[1].Text;
-            if (DataUtil.Left(text, 1) == "B")
+            string idString = WorshipListItems.Items[selectedIndex].SubItems[1].Text;
+            if (DataUtil.Left(idString, 1) == "B")
             {
                 string InTitle = WorshipListItems.Items[selectedIndex].SubItems[0].Text;
-                string text2 = Edit_Item(text, ref InTitle);
+                string editedIdString = Edit_Item(idString, ref InTitle);
                 WorshipListItems.Items[selectedIndex].SubItems[0].Text = InTitle;
-                if (text2 != "")
+                if (editedIdString != "")
                 {
-                    WorshipListItems.Items[selectedIndex].SubItems[1].Text = text2;
+                    WorshipListItems.Items[selectedIndex].SubItems[1].Text = editedIdString;
                     WorshipListIndexChanged();
                 }
             }
             else
             {
-                Edit_Item(text);
+                Edit_Item(idString);
             }
         }
 
@@ -6618,7 +6617,7 @@ namespace Easislides
         private void WorshipListPlay()
         {
             string title = "";
-            int num = 0;
+            int selectedCount = 0;
             int index = 0;
             if (WorshipListItems.Items.Count <= 0)
             {
@@ -6628,42 +6627,42 @@ namespace Easislides
             {
                 if (WorshipListItems.Items[i].Selected)
                 {
-                    num++;
+                    selectedCount++;
                     index = i;
-                    if (num > 1)
+                    if (selectedCount > 1)
                     {
                         i = WorshipListItems.Items.Count - 1;
                     }
                 }
             }
-            if (num != 1)
+            if (selectedCount != 1)
             {
                 MessageBox.Show("Please select ONE item from the Worship List to play");
                 return;
             }
-            string title2 = Gf.RemoveMusicSym(WorshipListItems.Items[index].Text);
-            string text = WorshipListItems.Items[index].SubItems[1].Text;
-            string itemType = DataUtil.Left(text, 1);
-            string inString = DataUtil.Right(text, text.Length - 1);
+            string songTitle = Gf.RemoveMusicSym(WorshipListItems.Items[index].Text);
+            string idString = WorshipListItems.Items[index].SubItems[1].Text;
+            string itemType = DataUtil.Left(idString, 1);
+            string idValue = DataUtil.Right(idString, idString.Length - 1);
             if (itemType == "M")
             {
-                if (string.IsNullOrWhiteSpace(inString) || !File.Exists(inString))
+                if (string.IsNullOrWhiteSpace(idValue) || !File.Exists(idValue))
                 {
-                    MessageBox.Show("Sorry, cannot find the media file '" + inString + "'.");
+                    MessageBox.Show("Sorry, cannot find the media file '" + idValue + "'.");
                     return;
                 }
-                if (!Gf.RunProcess(inString))
+                if (!Gf.RunProcess(idValue))
                 {
-                    MessageBox.Show("Sorry, cannot open the media file '" + inString + "'.");
+                    MessageBox.Show("Sorry, cannot open the media file '" + idValue + "'.");
                 }
                 return;
             }
-            int inKey = DataUtil.StringToInt(inString);
+            int songId = DataUtil.StringToInt(idValue);
             if (itemType == "D")
             {
-                title = Gf.LookupDBTitle2(inKey);
+                title = Gf.LookupDBTitle2(songId);
             }
-            Gf.Play_Media(title2, title);
+            Gf.Play_Media(songTitle, title);
         }
 
         private void CMenuWorship_PlayOnOutput_Click(object sender, EventArgs e)
@@ -6674,7 +6673,7 @@ namespace Easislides
         private void WorshipListPlayOnOutputMonitor()
         {
             string title = "";
-            int num = 0;
+            int selectedCount = 0;
             int index = 0;
 
             if (WorshipListItems.Items.Count <= 0)
@@ -6682,59 +6681,59 @@ namespace Easislides
                 return;
             }
 
-            // 선택된 항목 확인
+            // Find the selected item
             for (int i = 0; i <= WorshipListItems.Items.Count - 1; i++)
             {
                 if (WorshipListItems.Items[i].Selected)
                 {
-                    num++;
+                    selectedCount++;
                     index = i;
-                    if (num > 1)
+                    if (selectedCount > 1)
                     {
                         i = WorshipListItems.Items.Count - 1;
                     }
                 }
             }
 
-            if (num != 1)
+            if (selectedCount != 1)
             {
                 MessageBox.Show("Please select ONE item from the Worship List to play");
                 return;
             }
 
-            string title2 = Gf.RemoveMusicSym(WorshipListItems.Items[index].Text);
-            string text = WorshipListItems.Items[index].SubItems[1].Text;
-            string itemType = DataUtil.Left(text, 1);
-            string inString = DataUtil.Right(text, text.Length - 1);
+            string songTitle = Gf.RemoveMusicSym(WorshipListItems.Items[index].Text);
+            string idString = WorshipListItems.Items[index].SubItems[1].Text;
+            string itemType = DataUtil.Left(idString, 1);
+            string idValue = DataUtil.Right(idString, idString.Length - 1);
 
             if (itemType == "M")
             {
-                if (string.IsNullOrWhiteSpace(inString) || !File.Exists(inString))
+                if (string.IsNullOrWhiteSpace(idValue) || !File.Exists(idValue))
                 {
-                    MessageBox.Show("Sorry, cannot find the media file '" + inString + "'.");
+                    MessageBox.Show("Sorry, cannot find the media file '" + idValue + "'.");
                     return;
                 }
 
-                // Output Monitor에서 재생
-                PlayMediaOnOutputMonitor(inString);
+                // Play on the output monitor
+                PlayMediaOnOutputMonitor(idValue);
                 return;
             }
 
-            int inKey = DataUtil.StringToInt(inString);
+            int songId = DataUtil.StringToInt(idValue);
             if (itemType == "D")
             {
-                title = Gf.LookupDBTitle2(inKey);
+                title = Gf.LookupDBTitle2(songId);
             }
 
-            // 미디어 파일 검색 후 재생
-            string mediaFile = Gf.GetMediaFileName(title2, title);
+            // Look up the media file, then play it
+            string mediaFile = Gf.GetMediaFileName(songTitle, title);
             if (!string.IsNullOrEmpty(mediaFile) && File.Exists(mediaFile))
             {
                 PlayMediaOnOutputMonitor(mediaFile);
             }
             else
             {
-                MessageBox.Show("Sorry, cannot find any media file for '" + title2 + "'");
+                MessageBox.Show("Sorry, cannot find any media file for '" + songTitle + "'");
             }
         }
 
@@ -6744,7 +6743,7 @@ namespace Easislides
 
         private void PlayMediaOnOutputMonitor(string mediaFilePath)
         {
-            // Output Monitor 설정 확인
+            // Check the output monitor setting
             string outputMonitorName = Gf.OutputMonitorName;
 
             if (string.IsNullOrEmpty(outputMonitorName) || outputMonitorName == "None")
@@ -6755,53 +6754,53 @@ namespace Easislides
 
             try
             {
-                // FrmLaunchMediaPlayer 인스턴스 생성 또는 재사용
+                // Create the FrmLaunchMediaPlayer instance, or reuse it
                 if (_mediaPlayerWindow == null || _mediaPlayerWindow.IsDisposed)
                 {
                     _mediaPlayerWindow = new FrmLaunchMediaPlayer();
 
-                    // 더블클릭으로 닫기 기능 추가
+                    // Double click closes it
                     _mediaPlayerWindow.DoubleClick += (s, e) =>
                     {
                         StopMediaPlayer();
                     };
 
-                    // 창이 닫힐 때 글로벌 후킹 해제
+                    // Remove the global keyboard hook when the window closes
                     _mediaPlayerWindow.FormClosed += (s, e) =>
                     {
                         RemoveHookMediaPlayer();
                     };
                 }
 
-                // 미디어 플레이어용 글로벌 키보드 후킹 시작
+                // Start the global keyboard hook for the media player
                 AddHookMediaPlayer();
 
-                // Output Monitor 적용
+                // Apply the output monitor
                 _mediaPlayerWindow.ApplyOutputMonitor(outputMonitorName);
 
-                // 미디어 파일 경로 설정
-                Gf.LiveItem.Format.MediaOption = 2; // 2 = 직접 경로 지정
+                // Set the media file path
+                Gf.LiveItem.Format.MediaOption = 2; // 2 = path given directly
                 Gf.LiveItem.Format.MediaLocation = mediaFilePath;
                 Gf.LiveItem.Format.MediaVolume = 100;
                 Gf.LiveItem.Format.MediaMute = 0;
                 Gf.LiveItem.Format.MediaWidescreen = 0;
                 Gf.LiveItem.Format.MediaRepeat = 0;
                 Gf.LiveItem.RotateTotal = 0;
-                Gf.LiveItem.Type = "M"; // M = Media 타입
+                Gf.LiveItem.Type = "M"; // M = media type
 
-                // 미디어 플레이어 창 표시
+                // Show the media player window
                 if (!_mediaPlayerWindow.Visible)
                 {
                     _mediaPlayerWindow.Show();
                 }
 
-                // 창을 최상위로 가져오기 (Win32 API 사용)
+                // Bring the window to the top (Win32 API)
                 IntPtr handle = _mediaPlayerWindow.Handle;
 
-                // TopMost 설정
+                // Make it topmost
                 SetWindowPos(handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
 
-                // Foreground로 가져오기
+                // Bring it to the foreground
                 SetForegroundWindow(handle);
                 _mediaPlayerWindow.BringToFront();
                 _mediaPlayerWindow.Activate();
@@ -6816,7 +6815,7 @@ namespace Easislides
                 }
                 else
                 {
-                    // 재생 시작 후에도 최상위 유지
+                    // Keep it on top after playback starts
                     SetWindowPos(handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
                     SetForegroundWindow(handle);
                     _mediaPlayerWindow.BringToFront();
@@ -6828,7 +6827,7 @@ namespace Easislides
             }
         }
 
-        // 미디어 플레이어 창 닫기 메서드
+        // Closes the media player window
         public void CloseMediaPlayer()
         {
             if (_mediaPlayerWindow != null && !_mediaPlayerWindow.IsDisposed)
@@ -6839,7 +6838,7 @@ namespace Easislides
         }
 
         /// <summary>
-        /// 미디어 플레이어용 글로벌 키보드 후킹 추가
+        /// Adds the global keyboard hook for the media player.
         /// </summary>
         public void AddHookMediaPlayer()
         {
@@ -6858,7 +6857,7 @@ namespace Easislides
         }
 
         /// <summary>
-        /// 미디어 플레이어용 글로벌 키보드 후킹 제거
+        /// Removes the global keyboard hook for the media player.
         /// </summary>
         public void RemoveHookMediaPlayer()
         {
@@ -6877,17 +6876,17 @@ namespace Easislides
         }
 
         /// <summary>
-        /// 미디어 플레이어 전용 글로벌 키보드 이벤트 핸들러
+        /// Global keyboard event handler used only by the media player.
         /// </summary>
         private void HookManager_MediaPlayer_KeyDown(object sender, KeyEventArgs e)
         {
-            // 미디어 플레이어가 활성 상태일 때만 동작
+            // Acts only while the media player is shown
             if (_mediaPlayerWindow == null || _mediaPlayerWindow.IsDisposed || !_mediaPlayerWindow.Visible)
             {
                 return;
             }
 
-            // UI 스레드에서 실행되도록 보장
+            // Make sure it runs on the UI thread
             frmMain.BeginInvoke(new Action(() =>
             {
                 HandleMediaPlayerKey(e.KeyCode);
@@ -6895,7 +6894,7 @@ namespace Easislides
         }
 
         /// <summary>
-        /// 미디어 플레이어 키 처리
+        /// Handles a key for the media player.
         /// </summary>
         private void HandleMediaPlayerKey(Keys key)
         {
@@ -6905,34 +6904,34 @@ namespace Easislides
             switch (key)
             {
                 case Keys.Escape:
-                    // ESC: 미디어 중지 및 숨김
+                    // ESC: stop the media and hide the window
                     StopMediaPlayer();
                     break;
 
                 case Keys.Space:
-                    // Space: 일시정지/재생 토글
+                    // Space: toggle pause/play
                     _mediaPlayerWindow.Remote_PausePlayItem();
                     break;
 
                 case Keys.Enter:
-                    // Enter: 재생 재시작
+                    // Enter: restart playback
                     _mediaPlayerWindow.Remote_ResumeItemFromStart();
                     break;
 
                 case Keys.S:
-                    // S: 중지
+                    // S: stop
                     _mediaPlayerWindow.Remote_StopItem();
                     break;
 
                 case Keys.M:
-                    // M: 음소거 토글
+                    // M: toggle mute
                     ToggleMediaMute();
                     break;
             }
         }
 
         /// <summary>
-        /// 미디어 플레이어 중지
+        /// Stops the media player.
         /// </summary>
         private void StopMediaPlayer()
         {
@@ -6945,14 +6944,14 @@ namespace Easislides
         }
 
         /// <summary>
-        /// 미디어 음소거 토글
+        /// Toggles media mute.
         /// </summary>
         private void ToggleMediaMute()
         {
             if (Gf.LiveItem != null && Gf.LiveItem.Format != null)
             {
                 Gf.LiveItem.Format.MediaMute = Gf.LiveItem.Format.MediaMute == 0 ? 1 : 0;
-                // 음소거 상태 적용 (필요시 Remote_LoadItem 재호출)
+                // To apply the mute state, call Remote_LoadItem again if needed
             }
         }
 
@@ -7001,9 +7000,9 @@ namespace Easislides
                 MessageBox.Show("There are no items on the current Worship List");
                 return;
             }
-            int num = 0;
-            bool flag = false;
-            int num2 = 0;
+            int addedCount = 0;
+            bool insertAttempted = false;
+            int itemNo = 0;
             if (!Gf.ValidateDB(DatabaseType.Usages))
             {
                 return;
@@ -7011,16 +7010,16 @@ namespace Easislides
             try
             {
                 using DbConnection connection = DbController.GetDbConnection(Gf.ConnectStringUsageDB);
-               string text = "";
+               string sql = "";
                 for (int i = 0; i < WorshipListItems.Items.Count; i++)
                 {
                     if (DataUtil.Left(WorshipListItems.Items[i].SubItems[1].Text, 1) == "D")
                     {
-                        num2 = i + 1;
-                        text = "Insert into [USAGE] (WORSHIP_DATE,WORSHIP_LIST,SONG_TITLE,SONG_NUMBER,SONG_ID,ADMIN_1,ADMIN_2) Values (?,?,?,?,?,?,?)";
-                        using DbCommand command = new DbCommand(text, connection);
-                        flag = true;
-                        command.CommandText = text;
+                        itemNo = i + 1;
+                        sql = "Insert into [USAGE] (WORSHIP_DATE,WORSHIP_LIST,SONG_TITLE,SONG_NUMBER,SONG_ID,ADMIN_1,ADMIN_2) Values (?,?,?,?,?,?,?)";
+                        using DbCommand command = new DbCommand(sql, connection);
+                        insertAttempted = true;
+                        command.CommandText = sql;
                         command.Parameters.AddWithValue("@WORSHIP_DATE", DateTime.Now.Date);
                         command.Parameters.AddWithValue("@WORSHIP_LIST", DataUtil.Left(SessionList.Text, 50));
                         command.Parameters.AddWithValue("@SONG_TITLE", Gf.RemoveMusicSym(DataUtil.Left(WorshipListItems.Items[i].SubItems[0].Text, 100)));
@@ -7029,7 +7028,7 @@ namespace Easislides
                         command.Parameters.AddWithValue("@ADMIN_1", DataUtil.Left(WorshipListItems.Items[i].SubItems[4].Text, 50));
                         command.Parameters.AddWithValue("@ADMIN_2", DataUtil.Left(WorshipListItems.Items[i].SubItems[5].Text, 50));
                         command.ExecuteNonQuery();
-                        num++;
+                        addedCount++;
                     }
                 }
             }
@@ -7038,29 +7037,29 @@ namespace Easislides
                 Console.WriteLine(ex.Message);
                 Console.WriteLine(ex.ToString());
 
-                flag = true;
-                if (num2 < 1)
+                insertAttempted = true;
+                if (itemNo < 1)
                 {
                     MessageBox.Show("Error writing usages details to the Usages Database. Please re-start EasiSlides and try again.");
                 }
                 else
                 {
-                    MessageBox.Show("Error writing Item " + num2 + " to Usages Database.");
+                    MessageBox.Show("Error writing Item " + itemNo + " to Usages Database.");
                 }
             }
-            switch (num)
+            switch (addedCount)
             {
                 case 0:
-                    if (!flag)
+                    if (!insertAttempted)
                     {
                         MessageBox.Show("There are no Database Items on the Worship List!");
                     }
                     break;
                 case 1:
-                    MessageBox.Show("Done. Detail of " + Convert.ToString(num) + " Database Item was added to Usages record.");
+                    MessageBox.Show("Done. Detail of " + Convert.ToString(addedCount) + " Database Item was added to Usages record.");
                     break;
                 default:
-                    MessageBox.Show("Done. Details of " + Convert.ToString(num) + " Database Items were added to the Usages record.");
+                    MessageBox.Show("Done. Details of " + Convert.ToString(addedCount) + " Database Items were added to the Usages record.");
                     break;
             }
         }
@@ -7129,8 +7128,8 @@ namespace Easislides
             int selectedIndex = Gf.GetSelectedIndex(SongsList, ref OutString);
             if (selectedIndex >= 0)
             {
-                string text = SongsList.Items[selectedIndex].SubItems[1].Text;
-                Edit_Item(text);
+                string idString = SongsList.Items[selectedIndex].SubItems[1].Text;
+                Edit_Item(idString);
             }
         }
 
@@ -7149,21 +7148,21 @@ namespace Easislides
         }
 
         /// <summary>
-        /// daniel
-        /// ??��??.docx ��??
+        /// Opens the right editor for the item (database song, PowerPoint, Bible passage, text, InfoScreen,
+        /// Word document or media).
         /// </summary>
-        /// <param name="InIDString"></param>
-        /// <param name="InTitle"></param>
-        /// <returns></returns>
+        /// <param name="InIDString">Item ID: the type symbol followed by the song ID or the file path.</param>
+        /// <param name="InTitle">The item title; updated when a Bible passage is edited.</param>
+        /// <returns>The edited ID string of a Bible passage; otherwise an empty string.</returns>
         private string UseCorrectEditor(string InIDString, ref string InTitle)
         {
             AddToEditHistory(InIDString);
-            string a = DataUtil.Left(InIDString, 1);
-            string text = DataUtil.Right(InIDString, InIDString.Length - 1);
-            string strExt = Path.GetExtension(text).ToLower();
-            if (a == "D")
+            string typeSymbol = DataUtil.Left(InIDString, 1);
+            string idValue = DataUtil.Right(InIDString, InIDString.Length - 1);
+            string strExt = Path.GetExtension(idValue).ToLower();
+            if (typeSymbol == "D")
             {
-                Gf.DB_CurSongID = DataUtil.StringToInt(text);
+                Gf.DB_CurSongID = DataUtil.StringToInt(idValue);
                 if (Gf.ValidSongID(Gf.DB_CurSongID))
                 {
                     if (Gf.FormInUse("Edit Database Item"))
@@ -7177,11 +7176,11 @@ namespace Easislides
                 }
                 return "";
             }
-            if (a == "P")
+            if (typeSymbol == "P")
             {
-                if (File.Exists(text))
+                if (File.Exists(idValue))
                 {
-                    if (!Gf.RunProcess(text))
+                    if (!Gf.RunProcess(idValue))
                     {
                         MessageBox.Show("Cannot edit Powerpoint document!  It appears Powerpoint is not installed on this machine.");
                     }
@@ -7192,7 +7191,7 @@ namespace Easislides
                 }
                 return "";
             }
-            if (a == "B")
+            if (typeSymbol == "B")
             {
                 Gf.EditBible_IDString = InIDString;
                 Gf.EditBible_Title = InTitle;
@@ -7203,15 +7202,15 @@ namespace Easislides
                 }
                 return Gf.EditBible_IDString;
             }
-            if (a == "T")
+            if (typeSymbol == "T")
             {
                 if (strExt != ".txt")
                 {
                     return "";
                 }
-                if (File.Exists(text))
+                if (File.Exists(idValue))
                 {
-                    if (!Gf.RunProcess(text))
+                    if (!Gf.RunProcess(idValue))
                     {
                         MessageBox.Show("Cannot edit text file! Please set a default text editor and try again.");
                     }
@@ -7221,23 +7220,23 @@ namespace Easislides
                     MessageBox.Show("The Text File is missing!");
                 }
             }
-            else if (a == "I")
+            else if (typeSymbol == "I")
             {
                 if (strExt != ".esi")
                 {
                     return "";
                 }
-                ShowInfoScreen(text);
+                ShowInfoScreen(idValue);
             }
-            else if (a == "W")
+            else if (typeSymbol == "W")
             {
                 if (strExt != ".doc" || strExt != ".docx")
                 {
                     return "";
                 }
-                if (File.Exists(text))
+                if (File.Exists(idValue))
                 {
-                    if (!Gf.RunProcess(text))
+                    if (!Gf.RunProcess(idValue))
                     {
                         MessageBox.Show("Cannot edit Word document!  It appears Microsoft Word is not installed on this machine.");
                     }
@@ -7247,7 +7246,7 @@ namespace Easislides
                     MessageBox.Show("The Word Document is missing!");
                 }
             }
-            else if (a == "M")
+            else if (typeSymbol == "M")
             {
                 Ind_checkBox.Checked = true;
                 Ind_checkBox_Action();
@@ -7326,20 +7325,20 @@ namespace Easislides
         {
             if (BibleText.Text != "")
             {
-                string text = Gf.PreviewItem.CompleteLyrics.Replace('\u0098'.ToString(), "");
-                if (text != "")
+                string lyrics = Gf.PreviewItem.CompleteLyrics.Replace('\u0098'.ToString(), "");
+                if (lyrics != "")
                 {
-                    Clipboard.SetDataObject(text);
-                    string text2 = "";
+                    Clipboard.SetDataObject(lyrics);
+                    string infoScreenId = "";
                     try
                     {
-                        text2 = "*NEW*" + '>' + Gf.HB_Versions[TabBibleVersions.SelectedIndex, 5] + '>' + Gf.PreviewItem.Title;
+                        infoScreenId = "*NEW*" + '>' + Gf.HB_Versions[TabBibleVersions.SelectedIndex, 5] + '>' + Gf.PreviewItem.Title;
                     }
                     catch
                     {
-                        text2 = "*NEW*" + '>' + Gf.PreviewItem.FolderNo.ToString() + '>' + Gf.PreviewItem.Title;
+                        infoScreenId = "*NEW*" + '>' + Gf.PreviewItem.FolderNo.ToString() + '>' + Gf.PreviewItem.Title;
                     }
-                    ShowInfoScreen(text2);
+                    ShowInfoScreen(infoScreenId);
                 }
             }
         }
@@ -7421,7 +7420,7 @@ namespace Easislides
                 }
                 Gf.EditorLoadItem = false;
                 AddToEditHistory("D" + Gf.EditorItemID);
-                if (Gf.EditorItemNew | Gf.EditorItemFolderChanged | Gf.EditorItemTitleChanged)
+                if (Gf.EditorItemNew || Gf.EditorItemFolderChanged || Gf.EditorItemTitleChanged)
                 {
                     HighlightNewFolderItem();
                 }
@@ -7450,19 +7449,19 @@ namespace Easislides
         private void HighlightNewInfoScreenItem()
         {
             BuildInfoScreenFolderList();
-            int num = -1;
-            string a = Path.GetDirectoryName(Gf.InfoScreenFileName) + "\\";
+            int groupIndex = -1;
+            string folderPath = Path.GetDirectoryName(Gf.InfoScreenFileName) + "\\";
             for (int i = 0; i < Gf.InfoScreenGroups.Count; i++)
             {
-                if (a == Gf.InfoScreenGroups[i].Path)
+                if (folderPath == Gf.InfoScreenGroups[i].Path)
                 {
-                    num = i;
+                    groupIndex = i;
                     i = Gf.InfoScreenGroups.Count;
                 }
             }
-            if (num >= 0)
+            if (groupIndex >= 0)
             {
-                InfoScreenFolder.SelectedIndex = num;
+                InfoScreenFolder.SelectedIndex = groupIndex;
                 string displayNameOnly = Gf.GetDisplayNameOnly(ref Gf.InfoScreenFileName, UpdateByRef: false);
                 try
                 {
@@ -7487,7 +7486,7 @@ namespace Easislides
 
         private void HighlightNewFolderItem()
         {
-            if (Gf.EditorItemNew | Gf.EditorItemFolderChanged | (SongFolder.Text != Gf.Folders[Gf.EditorItemNewFolder].Name))
+            if (Gf.EditorItemNew || Gf.EditorItemFolderChanged || SongFolder.Text != Gf.Folders[Gf.EditorItemNewFolder].Name)
             {
                 ImplementFolderChange = true;
                 if (SongFolder.Text == Gf.Folders[Gf.EditorItemNewFolder].Name)
@@ -7707,16 +7706,16 @@ namespace Easislides
             {
                 GenerateListingDir = Gf.RootEasiSlidesDir + "Documents\\";
             }
-            string text = SaveListingOfFolder(ref GenerateListingFileName, ref GenerateListingDir);
-            if (Path.GetExtension(text) == ".rtf")
+            string fileName = SaveListingOfFolder(ref GenerateListingFileName, ref GenerateListingDir);
+            if (Path.GetExtension(fileName) == ".rtf")
             {
-                GenerateIndexReportRTF(text);
+                GenerateIndexReportRTF(fileName);
             }
-            else if (Path.GetExtension(text) == ".txt")
+            else if (Path.GetExtension(fileName) == ".txt")
             {
-                GenerateIndexReportTabText(text);
+                GenerateIndexReportTabText(fileName);
             }
-            else if (text != "")
+            else if (fileName != "")
             {
                 MessageBox.Show("You haven't specified a supported Listing File Type.  Please retry and select a proper file type");
             }
@@ -7734,13 +7733,12 @@ namespace Easislides
 
                     Gf.RTFNewLine = "\\b0\\i0\\ulnone\\par ";
                     Gf.RTFIndent[0] = "\\pard\\tx1200\\tx3500\\tx8200\\tx9000 ";
-                    string value = "{\\rtf1\\ansi\\ansicpg1252\\deff0\\deflang1033{\\fonttbl{\\f0\\fnil\\fcharset0 Microsoft Sans Serif;}}\\viewkind1\\uc1\\pard\\f0\\fs24\\margr600\\margl1000\\margt900\\margb1000\\cols2\\colno1\\colw4650\\colsr750\\colno2\\colw4650 ";
+                    string rtfHeader = "{\\rtf1\\ansi\\ansicpg1252\\deff0\\deflang1033{\\fonttbl{\\f0\\fnil\\fcharset0 Microsoft Sans Serif;}}\\viewkind1\\uc1\\pard\\f0\\fs24\\margr600\\margl1000\\margt900\\margb1000\\cols2\\colno1\\colw4650\\colsr750\\colno2\\colw4650 ";
 
-                    /// daniel  ??��??�� ���� ??��??????
                     //Recordset tableRecordSet = DbDaoController.GetTableRecordSet(Gf.ConnectStringMainDB, "SONG");
                     //tableRecordSet.Index = "PrimaryKey";
 
-                    streamWriter.Write(value);
+                    streamWriter.Write(rtfHeader);
                     streamWriter.Write(DataUtil.UnicodeToAscii_RTF("\\b1\\ul " + SongFolder.Text + "\\b0\\ulnone " + Gf.RTFNewLine));
                     streamWriter.Write(DataUtil.UnicodeToAscii_RTF(Gf.RTFNewLine));
                     for (int i = 0; i < SongsList.Items.Count; i++)
@@ -7774,66 +7772,66 @@ namespace Easislides
             StringBuilder stringBuilder = new StringBuilder();
             try
             {
-                string text = "";
-                string text2 = "";
-                string text3 = "";
-                string text4 = "";
-                string text5 = "";
-                int num = -1;
+                string bookReference = "";
+                string referenceNumber = "";
+                string columns = "";
+                string songId = "";
+                string writer = "";
+                int codeIndex = -1;
 
                 using DbConnection connection = DbController.GetDbConnection(Gf.ConnectStringMainDB);
                 stringBuilder.Append("Song Title\tWriter\tMP\tSF\tTS\r\n");
 
                 for (int i = 0; i < SongsList.Items.Count; i++)
                 {
-                    text4 = DataUtil.Mid(SongsList.Items[i].SubItems[1].Text, 1);
-                    text = "";
-                    text3 = "";
-                    text5 = "";
+                    songId = DataUtil.Mid(SongsList.Items[i].SubItems[1].Text, 1);
+                    bookReference = "";
+                    columns = "";
+                    writer = "";
 
-                    DataRow dataRow = DbController.GetDataRowScalar(connection, $"Select FolderNo From SONG Where SONGID={text4}");
+                    DataRow dataRow = DbController.GetDataRowScalar(connection, $"Select FolderNo From SONG Where SONGID={songId}");
 
                     if (dataRow != null)
                     {
-                        text = DataUtil.GetDataString(dataRow, "BOOK_REFERENCE");
-                        text5 = DataUtil.GetDataString(dataRow, "Writer");
-                        text2 = "";
-                        text3 = "\t" + text5;
-                        num = text.IndexOf("MP");
-                        if (num >= 0)
+                        bookReference = DataUtil.GetDataString(dataRow, "BOOK_REFERENCE");
+                        writer = DataUtil.GetDataString(dataRow, "Writer");
+                        referenceNumber = "";
+                        columns = "\t" + writer;
+                        codeIndex = bookReference.IndexOf("MP");
+                        if (codeIndex >= 0)
                         {
-                            int num2 = num + 2;
-                            int num3 = text.IndexOfAny(Gf.ReferenceAlertPickSeparator.ToCharArray(), num2);
-                            num3 = ((num3 >= 0) ? num3 : text.Length);
-                            text2 = DataUtil.Mid(text, num2, num3 - num2);
+                            int numberStart = codeIndex + 2;
+                            int numberEnd = bookReference.IndexOfAny(Gf.ReferenceAlertPickSeparator.ToCharArray(), numberStart);
+                            numberEnd = ((numberEnd >= 0) ? numberEnd : bookReference.Length);
+                            referenceNumber = DataUtil.Mid(bookReference, numberStart, numberEnd - numberStart);
                         }
-                        text3 = text3 + "\t" + text2;
-                        text2 = "";
-                        num = text.IndexOf("SF");
-                        if (num >= 0)
+                        columns = columns + "\t" + referenceNumber;
+                        referenceNumber = "";
+                        codeIndex = bookReference.IndexOf("SF");
+                        if (codeIndex >= 0)
                         {
-                            int num2 = num + 2;
-                            int num3 = text.IndexOfAny(Gf.ReferenceAlertPickSeparator.ToCharArray(), num2);
-                            num3 = ((num3 >= 0) ? num3 : text.Length);
-                            text2 = DataUtil.Mid(text, num2, num3 - num2);
+                            int numberStart = codeIndex + 2;
+                            int numberEnd = bookReference.IndexOfAny(Gf.ReferenceAlertPickSeparator.ToCharArray(), numberStart);
+                            numberEnd = ((numberEnd >= 0) ? numberEnd : bookReference.Length);
+                            referenceNumber = DataUtil.Mid(bookReference, numberStart, numberEnd - numberStart);
                         }
-                        text3 = text3 + "\t" + text2;
-                        text2 = "";
-                        num = text.IndexOf("TS");
-                        if (num >= 0)
+                        columns = columns + "\t" + referenceNumber;
+                        referenceNumber = "";
+                        codeIndex = bookReference.IndexOf("TS");
+                        if (codeIndex >= 0)
                         {
-                            int num2 = num + 2;
-                            int num3 = text.IndexOfAny(Gf.ReferenceAlertPickSeparator.ToCharArray(), num2);
-                            num3 = ((num3 >= 0) ? num3 : text.Length);
-                            text2 = DataUtil.Mid(text, num2, num3 - num2);
+                            int numberStart = codeIndex + 2;
+                            int numberEnd = bookReference.IndexOfAny(Gf.ReferenceAlertPickSeparator.ToCharArray(), numberStart);
+                            numberEnd = ((numberEnd >= 0) ? numberEnd : bookReference.Length);
+                            referenceNumber = DataUtil.Mid(bookReference, numberStart, numberEnd - numberStart);
                         }
-                        text3 = text3 + "\t" + text2;
+                        columns = columns + "\t" + referenceNumber;
                     }
                     else
                     {
-                        text3 = "\t\t\t\t";
+                        columns = "\t\t\t\t";
                     }
-                    stringBuilder.Append(Gf.RemoveMusicSym(SongsList.Items[i].SubItems[0].Text) + text3 + "\r\n");
+                    stringBuilder.Append(Gf.RemoveMusicSym(SongsList.Items[i].SubItems[0].Text) + columns + "\r\n");
                 }
                 FileUtil.CreateNewFile(OutputFileName, FileUtil.FileContentsType.DoubleByte, stringBuilder.ToString());
                 Gf.RunProcess(OutputFileName);
@@ -8015,12 +8013,12 @@ namespace Easislides
                 {
                     string path = Gf.InfoScreenGroups[InfoScreenFolder.SelectedIndex].Path;
                     string[] files = Directory.GetFiles(path, "*.esi");
-                    string[] array = files;
-                    foreach (string text in array)
+                    string[] esiFiles = files;
+                    foreach (string filePath in esiFiles)
                     {
-                        if (text != "")
+                        if (filePath != "")
                         {
-                            listBox.Items.Add(text);
+                            listBox.Items.Add(filePath);
                         }
                     }
                 }
@@ -8029,11 +8027,11 @@ namespace Easislides
                 }
                 listBox.Sorted = true;
                 InfoScreenList.Items.Clear();
-                string text2 = "";
+                string fileName = "";
                 for (int j = 0; j < listBox.Items.Count; j++)
                 {
-                    text2 = listBox.Items[j].ToString();
-                    listViewItem = InfoScreenList.Items.Add(Gf.GetDisplayNameOnly(ref text2, UpdateByRef: false, KeepExt: false));
+                    fileName = listBox.Items[j].ToString();
+                    listViewItem = InfoScreenList.Items.Add(Gf.GetDisplayNameOnly(ref fileName, UpdateByRef: false, KeepExt: false));
                     listViewItem.SubItems.Add("I" + listBox.Items[j]);
                 }
                 SetInfoScreenListColWidth();
@@ -8108,12 +8106,12 @@ namespace Easislides
             if (selectedIndex >= 0)
             {
                 Gf.PreviewItem.Source = ItemSource.ExternalFileInfoScreen;
-                string text = InfoScreenList.Items[selectedIndex].SubItems[1].Text;
+                string idString = InfoScreenList.Items[selectedIndex].SubItems[1].Text;
                 string InTitle = InfoScreenList.Items[selectedIndex].SubItems[0].Text;
                 Gf.PreviewItem.InMainItemText = InTitle;
-                Gf.PreviewItem.InSubItemItem1Text = text;
+                Gf.PreviewItem.InSubItemItem1Text = idString;
                 Gf.PreviewItem.CurItemNo = 0;
-                LoadItem(ref Gf.PreviewItem, text, "", StartingSlide, ref InTitle, ScrollToCaret);
+                LoadItem(ref Gf.PreviewItem, idString, "", StartingSlide, ref InTitle, ScrollToCaret);
                 UpdateDisplayPanelFields();
             }
             else
@@ -8133,10 +8131,10 @@ namespace Easislides
 
         private void InfoScreen_OpenFolder_Click(object sender, EventArgs e)
         {
-            string text = Gf.InfoScreenGroups[InfoScreenFolder.SelectedIndex].Path;
-            if (Gf.ValidateDir(text, CreateDir: true))
+            string folderPath = Gf.InfoScreenGroups[InfoScreenFolder.SelectedIndex].Path;
+            if (Gf.ValidateDir(folderPath, CreateDir: true))
             {
-                Gf.RunProcess(text);
+                Gf.RunProcess(folderPath);
             }
         }
 
@@ -8192,8 +8190,8 @@ namespace Easislides
             }
             if (Gf.ExternalCopyFolder >= 0)
             {
-                string[] array = new string[30000];
-                array[0] = "0";
+                string[] copiedFiles = new string[30000];
+                copiedFiles[0] = "0";
                 ListView listView = new ListView();
                 ListViewItem listViewItem = new ListViewItem();
                 string InFileName = "";
@@ -8211,22 +8209,22 @@ namespace Easislides
                     if (InFileName != "")
                     {
                         listViewItem = listView.Items.Add(Gf.GetDisplayNameOnly(ref InFileName, UpdateByRef: false));
-                        array[0] = Convert.ToString(DataUtil.StringToInt(array[0]) + 1);
-                        array[DataUtil.StringToInt(array[0])] = Gf.GetDisplayNameOnly(ref InFileName, UpdateByRef: false);
+                        copiedFiles[0] = Convert.ToString(DataUtil.StringToInt(copiedFiles[0]) + 1);
+                        copiedFiles[DataUtil.StringToInt(copiedFiles[0])] = Gf.GetDisplayNameOnly(ref InFileName, UpdateByRef: false);
                     }
                 }
                 if (InFileSymbol == "I")
                 {
-                    HighlightCopyMoveExternalItems(InfoScreenList, Gf.ExternalCopyFolder, array, InFileSymbol);
+                    HighlightCopyMoveExternalItems(InfoScreenList, Gf.ExternalCopyFolder, copiedFiles, InFileSymbol);
                 }
                 else
                 {
-                    HighlightCopyMoveExternalItems(PowerpointList, Gf.ExternalCopyFolder, array, InFileSymbol);
+                    HighlightCopyMoveExternalItems(PowerpointList, Gf.ExternalCopyFolder, copiedFiles, InFileSymbol);
                 }
             }
             else
             {
-                if (!(InFileSymbol == "I"))
+                if (InFileSymbol != "I")
                 {
                     return;
                 }
@@ -8252,11 +8250,11 @@ namespace Easislides
                             Gf.TempItem1.Title = Gf.GetDisplayNameOnly(ref InFileName, UpdateByRef: false);
                         }
                         Gf.TempItem1.FolderNo = Gf.ExternalCopyFolder;
-                        int num = Gf.InsertItemIntoDatabase(Gf.ConnectStringMainDB, Gf.TempItem1);
-                        if (num > 0)
+                        int newSongId = Gf.InsertItemIntoDatabase(Gf.ConnectStringMainDB, Gf.TempItem1);
+                        if (newSongId > 0)
                         {
                             RefileSongs[0]++;
-                            RefileSongs[RefileSongs[0]] = num;
+                            RefileSongs[RefileSongs[0]] = newSongId;
                         }
                     }
                 }
@@ -8282,8 +8280,8 @@ namespace Easislides
             {
                 return;
             }
-            string[] array = new string[30000];
-            array[0] = "0";
+            string[] movedFiles = new string[30000];
+            movedFiles[0] = "0";
             ListView listView = new ListView();
             ListViewItem listViewItem = new ListViewItem();
             string InFileName = "";
@@ -8301,17 +8299,17 @@ namespace Easislides
                 if (InFileName != "")
                 {
                     listViewItem = listView.Items.Add(Gf.GetDisplayNameOnly(ref InFileName, UpdateByRef: false));
-                    array[0] = Convert.ToString(DataUtil.StringToInt(array[0]) + 1);
-                    array[DataUtil.StringToInt(array[0])] = Gf.GetDisplayNameOnly(ref InFileName, UpdateByRef: false);
+                    movedFiles[0] = Convert.ToString(DataUtil.StringToInt(movedFiles[0]) + 1);
+                    movedFiles[DataUtil.StringToInt(movedFiles[0])] = Gf.GetDisplayNameOnly(ref InFileName, UpdateByRef: false);
                 }
             }
             if (InFileSymbol == "I")
             {
-                HighlightCopyMoveExternalItems(InfoScreenList, Gf.ExternalMoveFolder, array, InFileSymbol);
+                HighlightCopyMoveExternalItems(InfoScreenList, Gf.ExternalMoveFolder, movedFiles, InFileSymbol);
             }
             else
             {
-                HighlightCopyMoveExternalItems(PowerpointList, Gf.ExternalMoveFolder, array, InFileSymbol);
+                HighlightCopyMoveExternalItems(PowerpointList, Gf.ExternalMoveFolder, movedFiles, InFileSymbol);
             }
         }
 
@@ -8321,20 +8319,20 @@ namespace Easislides
             {
                 return;
             }
-            string text = "";
+            string itemKind = "";
             if (InFileSymbol == "I")
             {
-                text = "InfoScreen(s)";
+                itemKind = "InfoScreen(s)";
             }
             else
             {
-                if (!(InFileSymbol == "P"))
+                if (InFileSymbol != "P")
                 {
                     return;
                 }
-                text = "Powerpint File(s)";
+                itemKind = "Powerpint File(s)";
             }
-            if (MessageBox.Show("Delete Selected " + text + " to Windows Recycle Bin?", "Delete " + text, MessageBoxButtons.YesNo) != DialogResult.Yes)
+            if (MessageBox.Show("Delete Selected " + itemKind + " to Windows Recycle Bin?", "Delete " + itemKind, MessageBoxButtons.YesNo) != DialogResult.Yes)
             {
                 return;
             }
@@ -8346,15 +8344,15 @@ namespace Easislides
             }
             ListView.SelectedListViewItemCollection selectedItems = InListView.SelectedItems;
             int index = selectedItems[selectedItems.Count - 1].Index;
-            for (int num = selectedItems.Count - 1; num >= 0; num--)
+            for (int i = selectedItems.Count - 1; i >= 0; i--)
             {
-                if (selectedItems[num].Text != InFileName)
+                if (selectedItems[i].Text != InFileName)
                 {
                     try
                     {
-                        if (Gf.RecycleBin(DataUtil.Mid(selectedItems[num].SubItems[1].Text, 1)))
+                        if (Gf.RecycleBin(DataUtil.Mid(selectedItems[i].SubItems[1].Text, 1)))
                         {
-                            selectedItems[num].Remove();
+                            selectedItems[i].Remove();
                         }
                     }
                     catch
@@ -8439,12 +8437,12 @@ namespace Easislides
             if (selectedIndex >= 0)
             {
                 Gf.PreviewItem.Source = ItemSource.ExternalFilePowerpoint;
-                string text = PowerpointList.Items[selectedIndex].SubItems[1].Text;
-                string InTitle = Path.GetFileNameWithoutExtension(DataUtil.Right(text, text.Length - 1));
+                string idString = PowerpointList.Items[selectedIndex].SubItems[1].Text;
+                string InTitle = Path.GetFileNameWithoutExtension(DataUtil.Right(idString, idString.Length - 1));
                 Gf.PreviewItem.InMainItemText = InTitle;
-                Gf.PreviewItem.InSubItemItem1Text = text;
+                Gf.PreviewItem.InSubItemItem1Text = idString;
                 Gf.PreviewItem.CurItemNo = 0;
-                LoadItem(ref Gf.PreviewItem, text, "", 1, ref InTitle, ScrollToCaret: false);
+                LoadItem(ref Gf.PreviewItem, idString, "", 1, ref InTitle, ScrollToCaret: false);
                 UpdateDisplayPanelFields();
             }
             else
@@ -8533,10 +8531,10 @@ namespace Easislides
 
         private void PP_Btn_Click(object sender, EventArgs e)
         {
-            string text = Gf.PowerpointGroups[PowerpointFolder.SelectedIndex].Path;
-            if (Gf.ValidateDir(text, CreateDir: true))
+            string folderPath = Gf.PowerpointGroups[PowerpointFolder.SelectedIndex].Path;
+            if (Gf.ValidateDir(folderPath, CreateDir: true))
             {
-                Gf.RunProcess(text);
+                Gf.RunProcess(folderPath);
             }
         }
 
@@ -8703,12 +8701,12 @@ namespace Easislides
                         try
                         {
                             string[] files = Directory.GetFiles(path, "*" + Gf.MediaFileExtensions[i].Extension);
-                            string[] array = files;
-                            foreach (string text in array)
+                            string[] mediaFiles = files;
+                            foreach (string filePath in mediaFiles)
                             {
-                                if (text != "")
+                                if (filePath != "")
                                 {
-                                    listBox.Items.Add(text);
+                                    listBox.Items.Add(filePath);
                                 }
                             }
                         }
@@ -8722,11 +8720,11 @@ namespace Easislides
                 }
                 listBox.Sorted = true;
                 MediaList.Items.Clear();
-                string text2 = "";
+                string fileName = "";
                 for (int i = 0; i < listBox.Items.Count; i++)
                 {
-                    text2 = listBox.Items[i].ToString();
-                    listViewItem = MediaList.Items.Add(Gf.GetDisplayNameOnly(ref text2, UpdateByRef: false, KeepExt: true));
+                    fileName = listBox.Items[i].ToString();
+                    listViewItem = MediaList.Items.Add(Gf.GetDisplayNameOnly(ref fileName, UpdateByRef: false, KeepExt: true));
                     listViewItem.SubItems.Add("M" + listBox.Items[i]);
                 }
                 SetMediaListColWidth();
@@ -8741,13 +8739,13 @@ namespace Easislides
             if (selectedIndex >= 0)
             {
                 Gf.PreviewItem.Source = ItemSource.ExternalFileMedia;
-                string text = MediaList.Items[selectedIndex].SubItems[1].Text;
+                string idString = MediaList.Items[selectedIndex].SubItems[1].Text;
                 string InFileName = MediaList.Items[selectedIndex].SubItems[0].Text;
                 Gf.GetDisplayNameOnly(ref InFileName, UpdateByRef: true);
                 Gf.PreviewItem.InMainItemText = InFileName;
-                Gf.PreviewItem.InSubItemItem1Text = text;
+                Gf.PreviewItem.InSubItemItem1Text = idString;
                 Gf.PreviewItem.CurItemNo = 0;
-                LoadItem(ref Gf.PreviewItem, text, "", 1, ref InFileName, ScrollToCaret: false);
+                LoadItem(ref Gf.PreviewItem, idString, "", 1, ref InFileName, ScrollToCaret: false);
                 UpdateDisplayPanelFields();
             }
             else
@@ -8813,25 +8811,25 @@ namespace Easislides
 
         private void Media_OpenFolder_Click(object sender, EventArgs e)
         {
-            string text = Gf.MediaGroups[MediaFolder.SelectedIndex].Path;
-            if (Gf.ValidateDir(text, CreateDir: true))
+            string folderPath = Gf.MediaGroups[MediaFolder.SelectedIndex].Path;
+            if (Gf.ValidateDir(folderPath, CreateDir: true))
             {
-                Gf.RunProcess(text);
+                Gf.RunProcess(folderPath);
             }
         }
 
         private void Image_OpenFolder_Click(object sender, EventArgs e)
         {
-            string text = Gf.PictureGroups[ImagesFolder.SelectedIndex].Path;
-            if (Gf.ValidateDir(text, CreateDir: true))
+            string folderPath = Gf.PictureGroups[ImagesFolder.SelectedIndex].Path;
+            if (Gf.ValidateDir(folderPath, CreateDir: true))
             {
-                Gf.RunProcess(text);
+                Gf.RunProcess(folderPath);
             }
         }
 
         private void Image_Import_Click(object sender, EventArgs e)
         {
-            string str = Gf.PictureGroups[ImagesFolder.SelectedIndex].Path;
+            string folderPath = Gf.PictureGroups[ImagesFolder.SelectedIndex].Path;
             openFileDialog1.Filter = "Images (*.jpg,*jpeg,*.bmp,*.gif,*.ico)|*.jpg;*jpeg;*.bmp;*.gif;*.ico";
             openFileDialog1.Title = "Import An Image into folder: " + ImagesFolder.Text;
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
@@ -8839,7 +8837,7 @@ namespace Easislides
                 string fileName = openFileDialog1.FileName;
                 try
                 {
-                    File.Copy(fileName, str + Path.GetFileName(fileName));
+                    File.Copy(fileName, folderPath + Path.GetFileName(fileName));
                     ShowPicturesFolderThumbs();
                 }
                 catch
@@ -8851,7 +8849,7 @@ namespace Easislides
 
         private void InfoScreen_Import_Click(object sender, EventArgs e)
         {
-            string str = Gf.InfoScreenGroups[InfoScreenFolder.SelectedIndex].Path;
+            string folderPath = Gf.InfoScreenGroups[InfoScreenFolder.SelectedIndex].Path;
             openFileDialog1.Filter = "InfoScreens (*.esi)|*.esi";
             openFileDialog1.Title = "Import An InfoScreen into folder: " + InfoScreenFolder.Text;
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
@@ -8859,23 +8857,23 @@ namespace Easislides
                 string fileName = openFileDialog1.FileName;
                 try
                 {
-                    File.Copy(fileName, str + Path.GetFileName(fileName));
+                    File.Copy(fileName, folderPath + Path.GetFileName(fileName));
                     ShowInfoScreenFolderContents();
-                    int num = 0;
+                    int index = 0;
                     while (true)
                     {
-                        if (num >= InfoScreenList.Items.Count)
+                        if (index >= InfoScreenList.Items.Count)
                         {
                             return;
                         }
-                        if (DataUtil.Mid(InfoScreenList.Items[num].SubItems[1].Text, 1) == str + Path.GetFileName(fileName))
+                        if (DataUtil.Mid(InfoScreenList.Items[index].SubItems[1].Text, 1) == folderPath + Path.GetFileName(fileName))
                         {
                             break;
                         }
-                        num++;
+                        index++;
                     }
-                    InfoScreenList.Items[num].Selected = true;
-                    InfoScreenList.Items[num].EnsureVisible();
+                    InfoScreenList.Items[index].Selected = true;
+                    InfoScreenList.Items[index].EnsureVisible();
                     InfoScreenListIndexChanged();
                 }
                 catch
@@ -8887,7 +8885,7 @@ namespace Easislides
 
         private void PP_Import_Click(object sender, EventArgs e)
         {
-            string str = Gf.PowerpointGroups[PowerpointFolder.SelectedIndex].Path;
+            string folderPath = Gf.PowerpointGroups[PowerpointFolder.SelectedIndex].Path;
             //openFileDialog1.Filter = "Powerpoint Files (*.ppt)|*.ppt";
 
             openFileDialog1.Filter = "Powerpoint Files(*.ppt)| *.ppt | Powerpoint Files(*.pptx) | *.pptx";
@@ -8897,26 +8895,26 @@ namespace Easislides
                 string fileName = openFileDialog1.FileName;
                 try
                 {
-                    File.Copy(fileName, str + Path.GetFileName(fileName));
+                    File.Copy(fileName, folderPath + Path.GetFileName(fileName));
                     ShowPowerpointFolderContents((Gf.PowerpointListingStyle == 1) ? true : false);
                     if (Gf.PowerpointListingStyle == 0)
                     {
                         ShowPowerpointFolderContents(ShowThumbs: false);
-                        int num = 0;
+                        int index = 0;
                         while (true)
                         {
-                            if (num >= PowerpointList.Items.Count)
+                            if (index >= PowerpointList.Items.Count)
                             {
                                 return;
                             }
-                            if (DataUtil.Mid(PowerpointList.Items[num].SubItems[1].Text, 1) == str + Path.GetFileName(fileName))
+                            if (DataUtil.Mid(PowerpointList.Items[index].SubItems[1].Text, 1) == folderPath + Path.GetFileName(fileName))
                             {
                                 break;
                             }
-                            num++;
+                            index++;
                         }
-                        PowerpointList.Items[num].Selected = true;
-                        PowerpointList.Items[num].EnsureVisible();
+                        PowerpointList.Items[index].Selected = true;
+                        PowerpointList.Items[index].EnsureVisible();
                         PowerpointListIndexChanged();
                     }
                 }
@@ -8929,15 +8927,15 @@ namespace Easislides
 
         private void Media_Import_Click(object sender, EventArgs e)
         {
-            string str = Gf.MediaGroups[MediaFolder.SelectedIndex].Path;
-            string str2 = (Gf.MediaFileExtensions.Count > 0) ? "Media Files (" : "";
-            string text = (Gf.MediaFileExtensions.Count > 0) ? ")|" : "";
+            string folderPath = Gf.MediaGroups[MediaFolder.SelectedIndex].Path;
+            string filterLabel = (Gf.MediaFileExtensions.Count > 0) ? "Media Files (" : "";
+            string filterPattern = (Gf.MediaFileExtensions.Count > 0) ? ")|" : "";
             for (int i = 0; i < Gf.MediaFileExtensions.Count; i++)
             {
-                str2 = str2 + ((i > 0) ? "," : "") + "*" + Gf.MediaFileExtensions[i].Extension.ToLower();
-                text = text + ((i > 0) ? ";" : "") + "*" + Gf.MediaFileExtensions[i].Extension.ToLower();
+                filterLabel = filterLabel + ((i > 0) ? "," : "") + "*" + Gf.MediaFileExtensions[i].Extension.ToLower();
+                filterPattern = filterPattern + ((i > 0) ? ";" : "") + "*" + Gf.MediaFileExtensions[i].Extension.ToLower();
             }
-            string filter = str2 + text;
+            string filter = filterLabel + filterPattern;
             openFileDialog1.Filter = filter;
             openFileDialog1.Title = "Import A Media File into folder: " + ImagesFolder.Text;
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
@@ -8945,7 +8943,7 @@ namespace Easislides
                 string fileName = openFileDialog1.FileName;
                 try
                 {
-                    File.Copy(fileName, str + Path.GetFileName(fileName));
+                    File.Copy(fileName, folderPath + Path.GetFileName(fileName));
                     ShowMediaFolderContents();
                     int i = 0;
                     while (true)
@@ -8954,7 +8952,7 @@ namespace Easislides
                         {
                             return;
                         }
-                        if (DataUtil.Mid(MediaList.Items[i].SubItems[1].Text, 1) == str + Path.GetFileName(fileName))
+                        if (DataUtil.Mid(MediaList.Items[i].SubItems[1].Text, 1) == folderPath + Path.GetFileName(fileName))
                         {
                             break;
                         }
@@ -8973,7 +8971,7 @@ namespace Easislides
 
         private void Btn_Popup_Click(object sender, EventArgs e)
         {
-            Point p = new Point(0, 0);
+            Point popupPoint = new Point(0, 0);
             Button button = (Button)sender;
             PopupBtnPressed = button.Name;
             string popupBtnPressed = PopupBtnPressed;
@@ -8981,10 +8979,10 @@ namespace Easislides
             {
                 Gf.popUpText = PreviewNotes.Text;
                 Gf.popUpTextMaxLength = PreviewNotes.MaxLength;
-                p = new Point(splitContainerMain.Left + splitContainerMain.Panel1.Width + splitContainerMain.SplitterWidth, menuStripMain.Top + toolStripMain.Height + splitContainerPreview.Panel1.Height + panel1.Height + 20);
+                popupPoint = new Point(splitContainerMain.Left + splitContainerMain.Panel1.Width + splitContainerMain.SplitterWidth, menuStripMain.Top + toolStripMain.Height + splitContainerPreview.Panel1.Height + panel1.Height + 20);
             }
             FrmPopupText popup = new FrmPopupText();
-            Point location = PointToScreen(p);
+            Point location = PointToScreen(popupPoint);
             popupHelper.ShowPopup(this, popup, location);
         }
 
@@ -9030,9 +9028,9 @@ namespace Easislides
             InPanel.Controls.Clear();
 
             InPanel.AutoScroll = true;
-            int num = Reset ? 1 : InItem.TotalSlides;
+            int boxCount = Reset ? 1 : InItem.TotalSlides;
             Font lyricsFont = GetLyricsFont(InPanel, InRichTextBox);
-            for (int i = 1; i <= num; i++)
+            for (int i = 1; i <= boxCount; i++)
             {
                 if (InRichTextBox[i] == null)
                 {
@@ -9068,7 +9066,7 @@ namespace Easislides
             }
             GetLyricsSelectionColours(InPanel, out Color selectedText, out Color selectedBack);
             Gf.DisplayRichTextBoxSeries(ref InItem, ref InPanel, ref InRichTextBox, ScrollToCaret: true, Gf.PreviewArea_ShowNotations, selectedText, selectedBack);
-            for (int i = 1; i <= num; i++)
+            for (int i = 1; i <= boxCount; i++)
             {
                 InRichTextBox[i].BorderStyle = (Gf.PreviewArea_LineBetweenScreens ? BorderStyle.FixedSingle : BorderStyle.None);
             }
@@ -9112,24 +9110,24 @@ namespace Easislides
         private void LyricsRichTextBox_MouseWheel(object sender, MouseEventArgs e)
         {
             RichTextBox richTextBox = (RichTextBox)sender;
-            int num = -(e.Delta / 3);
+            int scrollY = -(e.Delta / 3);
             if (richTextBox.Name == "Output")
             {
-                num -= flowLayoutOutputLyrics.AutoScrollPosition.Y;
-                if (num < 0)
+                scrollY -= flowLayoutOutputLyrics.AutoScrollPosition.Y;
+                if (scrollY < 0)
                 {
-                    num = 0;
+                    scrollY = 0;
                 }
-                flowLayoutOutputLyrics.AutoScrollPosition = new Point(0, num);
+                flowLayoutOutputLyrics.AutoScrollPosition = new Point(0, scrollY);
             }
             else
             {
-                num -= flowLayoutPreviewLyrics.AutoScrollPosition.Y;
-                if (num < 0)
+                scrollY -= flowLayoutPreviewLyrics.AutoScrollPosition.Y;
+                if (scrollY < 0)
                 {
-                    num = 0;
+                    scrollY = 0;
                 }
-                flowLayoutPreviewLyrics.AutoScrollPosition = new Point(0, num);
+                flowLayoutPreviewLyrics.AutoScrollPosition = new Point(0, scrollY);
             }
         }
 
@@ -9249,7 +9247,7 @@ namespace Easislides
 
         private void OutputTextBoxLM_KeyUp(object sender, KeyEventArgs e)
         {
-            if ((e.KeyCode == Keys.Return) | (e.KeyCode == Keys.Return))
+            if (e.KeyCode == Keys.Return)
             {
                 SendLyricsMonitorMessage();
             }
@@ -9308,7 +9306,7 @@ namespace Easislides
         {
             SaveWorshipList();
             int nextNonRotateItem = Gf.GetNextNonRotateItem((InItem.Type == "G") ? true : false);
-            bool flag = false;
+            bool loadGapItem = false;
             if (Gf.GapItemOption == GapType.None)
             {
                 if (nextNonRotateItem != Gf.StartPresAt)
@@ -9320,14 +9318,14 @@ namespace Easislides
             {
                 if (InItem.Type != "G")
                 {
-                    flag = true;
+                    loadGapItem = true;
                 }
             }
             else if (nextNonRotateItem > 1)
             {
-                flag = true;
+                loadGapItem = true;
             }
-            if (flag)
+            if (loadGapItem)
             {
                 Gf.StartPresAt = nextNonRotateItem;
                 InItem.CurItemNo = Gf.StartPresAt;
@@ -9346,7 +9344,7 @@ namespace Easislides
 
         private void SaveInfoFilePreview(bool ReloadImageData)
         {
-            if (!(Gf.PreviewItem.Type == "I"))
+            if (Gf.PreviewItem.Type != "I")
             {
                 return;
             }
@@ -9481,7 +9479,6 @@ namespace Easislides
         }
 
         #region Event handlers of particular events. They will be activated when an appropriate checkbox is checked.
-        //daniel ??�� 2024??
         private void HookManager_KeyDown(object sender, KeyEventArgs e)
         {
             frmMain.BeginInvoke(new Action(() =>
