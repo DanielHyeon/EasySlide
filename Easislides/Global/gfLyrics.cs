@@ -4148,7 +4148,7 @@ namespace Easislides
 			InTextBox.Text = textBuilder.ToString();
 			for (int i = 1; i <= InItem.TotalSlides; i++)
 			{
-				if (InItem.Slide[InItem.CurSlide, 7] > 0)
+				if (InItem.Slide[i, 7] > 0)
 				{
 					InTextBox.Select(InItem.Slide[i, 5], InItem.Slide[i, 7]);
 					InTextBox.SelectionFont = new Font(InTextBox.Font, FontStyle.Regular);
