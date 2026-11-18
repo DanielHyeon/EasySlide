@@ -8892,7 +8892,7 @@ namespace Easislides
             //openFileDialog1.Filter = "Powerpoint Files (*.ppt)|*.ppt";
 
             openFileDialog1.Filter = "Powerpoint Files(*.ppt)| *.ppt | Powerpoint Files(*.pptx) | *.pptx";
-            openFileDialog1.Title = "Import a Powerpoint File into folder: " + ImagesFolder.Text;
+            openFileDialog1.Title = "Import a Powerpoint File into folder: " + PowerpointFolder.Text;
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
                 string fileName = openFileDialog1.FileName;
@@ -8940,7 +8940,7 @@ namespace Easislides
             }
             string filter = filterLabel + filterPattern;
             openFileDialog1.Filter = filter;
-            openFileDialog1.Title = "Import A Media File into folder: " + ImagesFolder.Text;
+            openFileDialog1.Title = "Import A Media File into folder: " + MediaFolder.Text;
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
                 string fileName = openFileDialog1.FileName;
