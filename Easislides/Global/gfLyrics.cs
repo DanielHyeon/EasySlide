@@ -3096,7 +3096,6 @@ namespace Easislides
 			string verseIndicator = "";
 			string currentVerse = "";
 			bool pastStart = false;
-			InLyrics.Text.Replace("\r\n", "\n");
 			InLyrics.Text = DataUtil.TrimStart(InLyrics.Text);
 			InScreenBreak.Items.Clear();
 			InLyrics.Focus();
