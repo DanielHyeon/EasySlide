@@ -2565,7 +2565,6 @@ namespace Easislides
                         Console.WriteLine($"[PPTInit] Output init failed: {ex.Message}");
                     }
                 }
-                Gf.OutputPPT.preViewEvent = new OfficeLib.PreviewEvent(FormatPowerPointThumbContainers2);
 
                 // ✅ 중복 호출 방지: 같은 ItemID면 캐시 확인
                 if (OutputItem != InItem.ItemID)
@@ -2605,7 +2604,6 @@ namespace Easislides
                         Console.WriteLine($"[PPTInit] Preview init failed: {ex.Message}");
                     }
                 }
-                Gf.PreviewPPT.preViewEvent = new OfficeLib.PreviewEvent(FormatPowerPointThumbContainers2);
 
                 // ✅ 중복 호출 방지: 같은 ItemID면 캐시 확인
                 if (previwItem != InItem.ItemID)
@@ -2632,7 +2630,7 @@ namespace Easislides
 
             if (InItem.OutputStyleScreen)
             {
-                bool outBuilt = Gf.OutputPPT.BuildScreenOutDumps(InItem.Path, filePrefix, ref InItem.TotalSlides, 9, 1000, ref InItem.SongVerses, ref InItem.Slide, Gf.SequenceSymbol);
+                bool outBuilt = Gf.OutputPPT.BuildScreenOutDumps(InItem.Path, filePrefix, ref InItem.TotalSlides, Gf.MAX_VERSES, Gf.DB_MAXSLIDES, ref InItem.SongVerses, ref InItem.Slide, Gf.SequenceSymbol);
                 Console.WriteLine($"[PPTBuild] BuildScreenOutDumps result={outBuilt}, TotalSlides={InItem.TotalSlides}");
                 if (outBuilt)
                 {
@@ -2645,7 +2643,7 @@ namespace Easislides
             {
                 // ✅ 동기 방식 유지 (PowerPoint COM 객체는 STA 스레드에서만 안전)
                 // 캐싱 및 이미지 최적화로 성능 개선
-                bool preBuilt = Gf.PreviewPPT.BuildScreenDumps(InItem.Path, filePrefix, ref InItem.TotalSlides, 9, 1000, ref InItem.SongVerses, ref InItem.Slide, Gf.SequenceSymbol);
+                bool preBuilt = Gf.PreviewPPT.BuildScreenDumps(InItem.Path, filePrefix, ref InItem.TotalSlides, Gf.MAX_VERSES, Gf.DB_MAXSLIDES, ref InItem.SongVerses, ref InItem.Slide, Gf.SequenceSymbol);
                 Console.WriteLine($"[PPTBuild] BuildScreenDumps result={preBuilt}, TotalSlides={InItem.TotalSlides}");
                 if (preBuilt)
                 {

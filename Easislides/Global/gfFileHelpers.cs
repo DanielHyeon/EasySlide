@@ -415,8 +415,6 @@ namespace Easislides
             bool flag = false;
             int failedCount = 0;
             string firstFailed = null;
-            InPP.isLive = true;
-            InPP.isEditable = false;
             for (int i = 0; i <= Gf.TotalWorshipListItems && !PowerPointCallLimit.CurrentAbandoned; i++)
             {
                 try

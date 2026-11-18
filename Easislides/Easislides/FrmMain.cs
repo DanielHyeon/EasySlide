@@ -7181,9 +7181,6 @@ namespace Easislides
             {
                 if (File.Exists(text))
                 {
-
-                    Gf.LivePP.isLive = false;
-                    Gf.LivePP.isEditable = true;
                     if (!Gf.RunProcess(text))
                     {
                         MessageBox.Show("Cannot edit Powerpoint document!  It appears Powerpoint is not installed on this machine.");
