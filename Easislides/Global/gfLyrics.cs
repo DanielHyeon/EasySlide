@@ -2167,7 +2167,7 @@ namespace Easislides
 			Point caretPoint = InTextBox.GetPositionFromCharIndex(insertPos);
 			int lineFromCharIndex = InTextBox.GetLineFromCharIndex(insertPos);
 			bool needChordLine = false;
-			int markerPos = InTextBox.Text.IndexOf("Â»", insertPos);
+			int markerPos = InTextBox.Text.IndexOf("»", insertPos);
 			if (InTextBox.GetLineFromCharIndex(markerPos) != lineFromCharIndex)
 			{
 				markerPos = -1;
@@ -2187,7 +2187,7 @@ namespace Easislides
 				else
 				{
 					string textFromPreviousLine = GetTextFromPreviousLine(InTextBox.Text, curPos);
-					if (textFromPreviousLine.IndexOf("Â»") < 0)
+					if (textFromPreviousLine.IndexOf("»") < 0)
 					{
 						needChordLine = true;
 					}
@@ -2210,7 +2210,7 @@ namespace Easislides
 			GetCurPosInLine(InTextBox.Text, ref insertPos);
 			int lineStartPos = insertPos;
 			InTextBox.SelectionStart = insertPos;
-			markerPos = InTextBox.Text.IndexOf("Â»", insertPos);
+			markerPos = InTextBox.Text.IndexOf("»", insertPos);
 			if (markerPos < 0)
 			{
 				return;
@@ -3373,7 +3373,7 @@ namespace Easislides
 				int foundPos;
 				try
 				{
-					foundPos = InTextBox.Text.IndexOf("Â»", StartPos);
+					foundPos = InTextBox.Text.IndexOf("»", StartPos);
 				}
 				catch
 				{
@@ -3386,7 +3386,7 @@ namespace Easislides
 					MoveToPosInLine(InTextBox.Text, ref lineStartPos, 0);
 					MoveToPosInLine(InTextBox.Text, ref lineEndPos, 1);
 					MarkSelectedRTB(ref InTextBox, lineStartPos, lineEndPos - lineStartPos + 1, 2, MainFont, NotationFont);
-					foundPos = InTextBox.Text.IndexOf("Â»", foundPos + 1);
+					foundPos = InTextBox.Text.IndexOf("»", foundPos + 1);
 				}
 			}
 			InTextBox.SelectionStart = selectionStart;
@@ -3732,7 +3732,8 @@ namespace Easislides
 			string InString = InItem.RotateString;
 			string InString2 = "";
 			string sequenceText = "";
-			string[] parts = InString.Split("Â»"[0]);
+			// The rotate timings follow a '»' separator; also accept the mis-encoded "Â»" form.
+			string[] parts = InString.Replace("Â»", "»").Split('»');
 			if (parts.GetUpperBound(0) >= 0)
 			{
 				InString = parts[0];
