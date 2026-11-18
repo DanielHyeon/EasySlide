@@ -5903,29 +5903,29 @@ namespace Easislides
             string labelA = DataUtil.Trim(DataUtil.Left(toolTipA, labelLength));
             string labelB = DataUtil.Trim(DataUtil.Left(toolTipB, labelLength));
             string labelC = DataUtil.Trim(DataUtil.Left(toolTipC, labelLength));
-            if (DataUtil.Left(Gf.Folders[Gf.JumpToA].Name ??= "".ToUpper(), folderPrefix.Length) == folderPrefix)
+            if (toolTipA.StartsWith(folderPrefix, StringComparison.OrdinalIgnoreCase))
             {
                 labelA = DataUtil.Mid(toolTipA, folderPrefix.Length, labelLength);
             }
-            if (DataUtil.Left(Gf.Folders[Gf.JumpToB].Name ??= "".ToUpper(), folderPrefix.Length) == folderPrefix)
+            if (toolTipB.StartsWith(folderPrefix, StringComparison.OrdinalIgnoreCase))
             {
                 labelB = DataUtil.Mid(toolTipB, folderPrefix.Length, labelLength);
             }
-            if (DataUtil.Left(Gf.Folders[Gf.JumpToC].Name ??= "".ToUpper(), folderPrefix.Length) == folderPrefix)
+            if (toolTipC.StartsWith(folderPrefix, StringComparison.OrdinalIgnoreCase))
             {
                 labelC = DataUtil.Mid(toolTipC, folderPrefix.Length, labelLength);
             }
             if (toolTipA.ToUpper().IndexOf(folderWord) < 0)
             {
-                toolTipA = Gf.Folders[Gf.JumpToA]?.Name ?? "" + " Folder";
+                toolTipA = (Gf.Folders[Gf.JumpToA]?.Name ?? "") + " Folder";
             }
             if (toolTipB.ToUpper().IndexOf(folderWord) < 0)
             {
-                toolTipB = Gf.Folders[Gf.JumpToB]?.Name ?? "" + " Folder";
+                toolTipB = (Gf.Folders[Gf.JumpToB]?.Name ?? "") + " Folder";
             }
             if (toolTipC.ToUpper().IndexOf(folderWord) < 0)
             {
-                toolTipC = Gf.Folders[Gf.JumpToC]?.Name ?? "" + " Folder";
+                toolTipC = (Gf.Folders[Gf.JumpToC]?.Name ?? "") + " Folder";
             }
             Main_JumpA.Text = labelA;
             Main_JumpA.ToolTipText = toolTipA;
