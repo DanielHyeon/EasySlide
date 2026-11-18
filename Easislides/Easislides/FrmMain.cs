@@ -1634,7 +1634,7 @@ namespace Easislides
             {
                 return AddFromInfoScreensList(AddToLocation);
             }
-            if (Gf.PreviewItem.Source == ItemSource.ExternalFileInfoScreen)
+            if (Gf.PreviewItem.Source == ItemSource.ExternalFileMedia)
             {
                 return AddFromMediaFilesList(AddToLocation);
             }
