@@ -607,7 +607,8 @@ namespace Easislides
                 int entryEnd = InContents.IndexOf(">");
                 try
                 {
-                    DbConnection connection = DbController.GetDbConnection(Gf.ConnectStringMainDB);
+                    // GetDbConnection opens a new connection for each call: it is closed when this block ends.
+                    using DbConnection connection = DbController.GetDbConnection(Gf.ConnectStringMainDB);
 
                     while (entryEnd >= 0)
                     {
@@ -1512,7 +1513,8 @@ namespace Easislides
                                         {
                                             InNotes = xmlTextReader.ReadElementContentAsString();
                                         }
-                                        DbConnection connection = DbController.GetDbConnection(Gf.ConnectStringMainDB);
+                                        // GetDbConnection opens a new connection for each call: it is closed when this block ends.
+                                        using DbConnection connection = DbController.GetDbConnection(Gf.ConnectStringMainDB);
                                         while (xmlTextReader.Read())
                                         {
                                             switch (xmlTextReader.NodeType)
@@ -1622,7 +1624,8 @@ namespace Easislides
             try
             {
 
-                DbConnection connection = DbController.GetDbConnection(Gf.ConnectStringMainDB);
+                // GetDbConnection opens a new connection for each call: it is closed when this block ends.
+                using DbConnection connection = DbController.GetDbConnection(Gf.ConnectStringMainDB);
                 while (entryEnd >= 0)
                 {
                     string entry = DataUtil.Trim(DataUtil.Mid(InContents, entryStart, entryEnd - entryStart));
@@ -1772,7 +1775,8 @@ namespace Easislides
                                         {
                                             InNotes += xmlTextReader.ReadElementContentAsString();
                                         }
-                                        DbConnection connection = DbController.GetDbConnection(Gf.ConnectStringMainDB);
+                                        // GetDbConnection opens a new connection for each call: it is closed when this block ends.
+                                        using DbConnection connection = DbController.GetDbConnection(Gf.ConnectStringMainDB);
 
                                         while (xmlTextReader.Read())
                                         {
