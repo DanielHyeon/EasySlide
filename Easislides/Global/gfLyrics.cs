@@ -3511,6 +3511,7 @@ namespace Easislides
 			//fileStream.Close();
 			xtw.WriteStartElement(InElementString);
 			xtw.WriteBase64(fileBytes, 0, fileBytes.Length);
+			xtw.WriteEndElement();
 		}
 
 		public static string ConvertSequenceToTextString(string InSequence)
