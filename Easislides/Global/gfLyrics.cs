@@ -3459,7 +3459,7 @@ namespace Easislides
 				{
 					if (InHeaderData[i] != "" && InHeaderData[i] != null)
 					{
-						formatData = formatData + (char)i + "=" + InHeaderData[i] + ">";
+						formatData = formatData + i + "=" + InHeaderData[i] + ">";
 					}
 				}
 			}
