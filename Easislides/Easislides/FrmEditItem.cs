@@ -3512,7 +3512,7 @@ namespace Easislides
 			InContextMenu.Items.Clear();
 			ToolStripMenuItem toolStripMenuItem = new ToolStripMenuItem();
 			toolStripMenuItem = new ToolStripMenuItem();
-			toolStripMenuItem.Name = string.Concat(InContextMenu, "_Copy");
+			toolStripMenuItem.Name = InContextMenu.Name + "_Copy";
 			toolStripMenuItem.Text = "Copy";
 			InContextMenu.Items.Add(toolStripMenuItem);
 			if (InRegion == 1)
@@ -3524,7 +3524,7 @@ namespace Easislides
 				toolStripMenuItem.Click += new EventHandler(CMRegion2_Copy_Click).Invoke;
 			}
 			toolStripMenuItem = new ToolStripMenuItem();
-			toolStripMenuItem.Name = string.Concat(InContextMenu, "_Paste");
+			toolStripMenuItem.Name = InContextMenu.Name + "_Paste";
 			toolStripMenuItem.Text = "Paste";
 			InContextMenu.Items.Add(toolStripMenuItem);
 			if (InRegion == 1)
