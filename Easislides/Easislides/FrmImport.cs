@@ -418,7 +418,8 @@ namespace Easislides
 
 				//DataTable dt = DbController.GetDataTable(connection, fullSearchString);
 
-				DbConnection connection = DbController.GetDbConnection(Gf.ConnectStringMainDB);
+				// GetDbConnection opens a new connection for each call, so this method owns it.
+				using DbConnection connection = DbController.GetDbConnection(Gf.ConnectStringMainDB);
 				//Database daoDb = DbDaoController.GetDaoDb(Gf.ConnectStringMainDB);
 
 				foreach (DataRow row in dataTable.Rows)
