@@ -3319,9 +3319,9 @@ namespace Easislides
 			{
 				if (StartPos > EndPos)
 				{
-					int swapTemp = EndPos;
+					int swapTemp = StartPos;
 					StartPos = EndPos;
-					EndPos = StartPos;
+					EndPos = swapTemp;
 				}
 				MoveToPosInLine(InTextBox.Text, ref StartPos, 0);
 				MoveToPosInLine(InTextBox.Text, ref EndPos, 1);
