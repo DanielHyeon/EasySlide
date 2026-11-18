@@ -7474,7 +7474,7 @@ namespace Easislides
                         {
                             InfoScreenList.Items[i].Selected = true;
                             InfoScreenListIndexChanged();
-                            SongsList.EnsureVisible(i);
+                            InfoScreenList.EnsureVisible(i);
                             i = InfoScreenList.Items.Count;
                         }
                     }
