@@ -421,11 +421,10 @@ namespace Easislides
 				DbConnection connection = DbController.GetDbConnection(Gf.ConnectStringMainDB);
 				//Database daoDb = DbDaoController.GetDaoDb(Gf.ConnectStringMainDB);
 
-				DataRow existingSong = null;
-
 				foreach (DataRow row in dataTable.Rows)
 				{
 					bool songRequired = false;
+					DataRow existingSong = null;
 					rowNo++;
 					progressPercent = rowNo * 100 / totalRows;
 					ProgressBar1.Value = ((progressPercent > 100) ? 100 : progressPercent);
