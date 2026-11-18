@@ -7792,7 +7792,7 @@ namespace Easislides
                     columns = "";
                     writer = "";
 
-                    DataRow dataRow = DbController.GetDataRowScalar(connection, $"Select FolderNo From SONG Where SONGID={songId}");
+                    DataRow dataRow = DbController.GetDataRowScalar(connection, $"Select BOOK_REFERENCE, writer From SONG Where SONGID={songId}");
 
                     if (dataRow != null)
                     {
