@@ -7233,7 +7233,7 @@ namespace Easislides
             }
             else if (typeSymbol == "W")
             {
-                if (strExt != ".doc" || strExt != ".docx")
+                if (strExt != ".doc" && strExt != ".docx")
                 {
                     return "";
                 }
