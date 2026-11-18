@@ -1000,11 +1000,11 @@ namespace Easislides
 			int folderNumber = Gf.GetFolderNumber(SongFolder.SelectedItems[0].Text);
 
 			using DbConnection connection = DbController.GetDbConnection(Gf.ConnectStringMainDB);
-			DataTable existingSongs = null;
 
 			foreach (DataRow dr in dataTable.Rows)
 			{
 				songRequired = false;
+				DataTable existingSongs = null;
 				rowNo++;
 				progressPercent = rowNo * 100 / totalRows;
 				ProgressBar1.Value = ((progressPercent > 100) ? 100 : progressPercent);
@@ -1022,8 +1022,13 @@ namespace Easislides
 					ImportItem.FolderNo = folderNumber;
 					existingSongs = DbController.GetDataTable(connection, fullSearchString);
 				}
+				else
+				{
+					// The row could not be read (e.g. a mapped column is missing): skip it.
+					continue;
+				}
 
-				if (existingSongs.Rows.Count > 0)
+				if (existingSongs != null && existingSongs.Rows.Count > 0)
 				{
 					CurSongID = DataUtil.GetDataInt(existingSongs.Rows[0], "SongID");
 					if (OptImport0.Checked)
