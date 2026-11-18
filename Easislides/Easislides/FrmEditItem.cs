@@ -805,7 +805,7 @@ namespace Easislides
 		/// </summary>
 		private void ExternalDocumentBtnPressed()
 		{
-			OpenFileDialog1.Filter = "Word Documents and Text Files (*.doc;*.docx;*.txt) | *.doc;*docx;*.txt|Word Documents (*.doc;*.docx)|*.doc;*.docx|Text Files (*.txt)|*.txt";
+			OpenFileDialog1.Filter = "Word Documents and Text Files (*.doc;*.docx;*.txt) | *.doc;*.docx;*.txt|Word Documents (*.doc;*.docx)|*.doc;*.docx|Text Files (*.txt)|*.txt";
 			OpenFileDialog1.InitialDirectory = Gf.EditOpenDocumentDir;
 			OpenFileDialog1.FileName = "";
 			if (OpenFileDialog1.ShowDialog() == DialogResult.OK)
