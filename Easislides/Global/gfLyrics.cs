@@ -617,7 +617,15 @@ namespace Easislides
 
 		public static string ExtractHeaderInfo(string InString, int Index, char Separator)
 		{
-			int valueStart = InString.IndexOf(Index + "=");
+			// A key counts only at the start of the string or right after a separator (as LoadHeaderData reads
+			// them): "1=" must not match the end of "21=", which gave keys 1..9 the value of 11..99 when those
+			// came first.
+			string key = Index + "=";
+			int valueStart = InString.IndexOf(key);
+			while (valueStart > 0 && InString[valueStart - 1] != Separator)
+			{
+				valueStart = InString.IndexOf(key, valueStart + 1);
+			}
 			if (valueStart >= 0)
 			{
 				valueStart += Index.ToString().Length + 1;
