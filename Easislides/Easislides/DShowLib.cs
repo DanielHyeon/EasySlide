@@ -848,15 +848,16 @@ namespace Easislides
         public IBaseFilter FindCaptureDevice(int InDeviceNumber)
 		{
 			DsDevice captureDevice = GetCaptureDevice(InDeviceNumber);
+			if (captureDevice == null || captureDevice.Mon == null)
+			{
+				throw new InvalidOperationException("No video capture device is available.");
+			}
 			Guid riidResult = typeof(IBaseFilter).GUID;
-
-            IMoniker[] moniker = new IMoniker[1];
-
-            //daniel change 19/11/10
-            //captureDevice.Mon.BindToObject(null, null, ref riidResult, out object ppvResult);
-            moniker[0].BindToObject(null, null, ref riidResult, out object ppvResult);
-
-            return (IBaseFilter)ppvResult;
+			// Bind the device's own moniker. The previous code bound an element of a
+			// freshly allocated, empty IMoniker array, which was always null, so every
+			// live camera start failed with a NullReferenceException.
+			captureDevice.Mon.BindToObject(null, null, ref riidResult, out object ppvResult);
+			return (IBaseFilter)ppvResult;
 		}
 
 		public DsDevice GetCaptureDevice(int InDeviceNumber)

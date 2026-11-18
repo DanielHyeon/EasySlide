@@ -7573,7 +7573,11 @@ namespace Easislides
 
         private bool DShowPlayerPresent()
         {
-            return File.Exists(Path.Combine(Environment.SystemDirectory, "dpnhpast.dll"));
+            // quartz.dll is the DirectShow runtime. The old check looked for
+            // dpnhpast.dll (the legacy DirectPlay NAT helper), which is missing on
+            // Windows installs without the optional DirectPlay feature and silently
+            // disabled all video playback there.
+            return File.Exists(Path.Combine(Environment.SystemDirectory, "quartz.dll"));
         }
 
         private void ApplyPreviewArea_Setup(int InMode)
