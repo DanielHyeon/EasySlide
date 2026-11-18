@@ -8891,7 +8891,7 @@ namespace Easislides
             string folderPath = Gf.PowerpointGroups[PowerpointFolder.SelectedIndex].Path;
             //openFileDialog1.Filter = "Powerpoint Files (*.ppt)|*.ppt";
 
-            openFileDialog1.Filter = "Powerpoint Files(*.ppt)| *.ppt | Powerpoint Files(*.pptx) | *.pptx";
+            openFileDialog1.Filter = "Powerpoint Files (*.ppt)|*.ppt|Powerpoint Files (*.pptx)|*.pptx";
             openFileDialog1.Title = "Import a Powerpoint File into folder: " + PowerpointFolder.Text;
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
