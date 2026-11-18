@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -1278,7 +1279,7 @@ namespace Easislides
 
 		public static void BuildSlides(SongSettings InItem, ListView LyricsLists, ref string SongSequence, ref int CurSongMaxSlides, ref int[] SongVerses, ref int[] ChorusSlides, ref int[,] Slide, int InShowNotations)
 		{
-			int[,] Reg1SubLoc = new int[10000, 4];
+			List<(int Start, int End)> splitRanges = InItem?.SplitScreens == true ? [] : null;
 			int folderNo = 1;
 			for (int i = 0; i <= 9; i++)
 			{
@@ -1320,16 +1321,17 @@ namespace Easislides
 									Slide[CurSongMaxSlides, 2] = GetVerseScreenEndLoc(LyricsLists, verseScreenLoc, InItem.VerseLineLoc[verseIndex, 2]);
 									Slide[CurSongMaxSlides, 3] = -1;
 									Slide[CurSongMaxSlides, 4] = -1;
-									Reg1SubLoc[0, 0] = 1;
-									Reg1SubLoc[1, 1] = Slide[CurSongMaxSlides, 1];
-									Reg1SubLoc[1, 2] = Slide[CurSongMaxSlides, 2];
-									if (InItem != null && Slide[CurSongMaxSlides, 2] >= 0 && InItem.SplitScreens && GetScreensRequired(InItem, InItem.Lyrics[0], ref LyricsLists, Slide[CurSongMaxSlides, 1], Slide[CurSongMaxSlides, 2], ref Reg1SubLoc, InItem.VersePresent[150], 0, folderNo, InShowNotations) > 1)
+									int endLine = Slide[CurSongMaxSlides, 2];
+									int screenCount = endLine >= 0 && splitRanges != null
+										? GetScreensRequired(InItem, InItem.Lyrics[0], ref LyricsLists, verseScreenLoc, endLine, splitRanges, InItem.VersePresent[150], 0, folderNo, InShowNotations)
+										: 1;
+									if (screenCount > 1)
 									{
 										CurSongMaxSlides--;
-										for (int k = 1; k <= Reg1SubLoc[0, 0]; k++)
+										for (int k = 0; k < screenCount; k++)
 										{
 											CurSongMaxSlides++;
-											if (j == 1 && k == 1)
+											if (j == 1 && k == 0)
 											{
 												Slide[CurSongMaxSlides, 0] = verseIndex;
 											}
@@ -1337,8 +1339,7 @@ namespace Easislides
 											{
 												Slide[CurSongMaxSlides, 0] = -1;
 											}
-											Slide[CurSongMaxSlides, 1] = Reg1SubLoc[k, 1];
-											Slide[CurSongMaxSlides, 2] = Reg1SubLoc[k, 2];
+											(Slide[CurSongMaxSlides, 1], Slide[CurSongMaxSlides, 2]) = splitRanges[k];
 											Slide[CurSongMaxSlides, 3] = -1;
 											Slide[CurSongMaxSlides, 4] = -1;
 										}
@@ -1350,7 +1351,7 @@ namespace Easislides
 										{
 											lastSubScreen = true;
 										}
-										BuildSlidesReg2(LyricsLists, InItem.VerseLineLoc[verseIndex, 3], InItem.VerseLineLoc[verseIndex, 4], ref Slide, ref CurSongMaxSlides, Reg1SubLoc, j, lastSubScreen);
+										BuildSlidesReg2(LyricsLists, InItem.VerseLineLoc[verseIndex, 3], InItem.VerseLineLoc[verseIndex, 4], ref Slide, ref CurSongMaxSlides, screenCount, j, lastSubScreen);
 									}
 								}
 							}
@@ -1383,16 +1384,14 @@ namespace Easislides
 									Slide[CurSongMaxSlides, 2] = -1;
 									Slide[CurSongMaxSlides, 3] = verseScreenLoc;
 									Slide[CurSongMaxSlides, 4] = GetVerseScreenEndLoc(LyricsLists, verseScreenLoc, InItem.VerseLineLoc[verseIndex, 4]);
-									Reg1SubLoc[0, 0] = 1;
-									Reg1SubLoc[1, 1] = Slide[CurSongMaxSlides, 3];
-									Reg1SubLoc[1, 2] = Slide[CurSongMaxSlides, 4];
-									if (InItem != null && Slide[CurSongMaxSlides, 4] >= 0 && InItem.SplitScreens && GetScreensRequired(InItem, InItem.Lyrics[1], ref LyricsLists, Slide[CurSongMaxSlides, 3], Slide[CurSongMaxSlides, 4], ref Reg1SubLoc, Region2Present: true, 1, folderNo, InShowNotations) > 1)
+									int endLine = Slide[CurSongMaxSlides, 4];
+									if (endLine >= 0 && splitRanges != null && GetScreensRequired(InItem, InItem.Lyrics[1], ref LyricsLists, verseScreenLoc, endLine, splitRanges, Region2Present: true, 1, folderNo, InShowNotations) > 1)
 									{
 										CurSongMaxSlides--;
-										for (int k = 1; k <= Reg1SubLoc[0, 0]; k++)
+										for (int k = 0; k < splitRanges.Count; k++)
 										{
 											CurSongMaxSlides++;
-											if (k == 1)
+											if (k == 0)
 											{
 												Slide[CurSongMaxSlides, 0] = verseIndex;
 											}
@@ -1402,8 +1401,7 @@ namespace Easislides
 											}
 											Slide[CurSongMaxSlides, 1] = -1;
 											Slide[CurSongMaxSlides, 2] = -1;
-											Slide[CurSongMaxSlides, 3] = Reg1SubLoc[k, 1];
-											Slide[CurSongMaxSlides, 4] = Reg1SubLoc[k, 2];
+											(Slide[CurSongMaxSlides, 3], Slide[CurSongMaxSlides, 4]) = splitRanges[k];
 										}
 									}
 								}
@@ -1514,9 +1512,9 @@ namespace Easislides
 			return EndLoc;
 		}
 
-		public static void BuildSlidesReg2(ListView LyricsLists, int StartLoc, int EndLoc, ref int[,] Slide, ref int CurSlideNumber, int[,] Reg1SubLoc, int InScreenNumber, bool LastSubScreen)
+		private static void BuildSlidesReg2(ListView LyricsLists, int StartLoc, int EndLoc, ref int[,] Slide, ref int CurSlideNumber, int region1ScreenCount, int InScreenNumber, bool LastSubScreen)
 		{
-			if (StartLoc > EndLoc || Reg1SubLoc[0, 0] < 1)
+			if (StartLoc > EndLoc || region1ScreenCount < 1)
 			{
 				return;
 			}
@@ -1529,9 +1527,9 @@ namespace Easislides
 			}
 			screenEnd = GetVerseScreenEndLoc(LyricsLists, screenStart, EndLoc);
 			int nextLine = screenStart;
-			for (int i = 1; i <= Reg1SubLoc[0, 0]; i++)
+			for (int i = 1; i <= region1ScreenCount; i++)
 			{
-				int slideIndex = CurSlideNumber - Reg1SubLoc[0, 0] + i;
+				int slideIndex = CurSlideNumber - region1ScreenCount + i;
 				int region1LineCount = Slide[slideIndex, 2] - Slide[slideIndex, 1] + 1;
 				if (region1LineCount <= 0 || nextLine < 0)
 				{
@@ -1544,7 +1542,7 @@ namespace Easislides
 				}
 				if (screenEnd - nextLine + 1 >= region1LineCount)
 				{
-					if (i == Reg1SubLoc[0, 0])
+					if (i == region1ScreenCount)
 					{
 						Slide[slideIndex, 4] = screenEnd;
 						nextLine = -1;
@@ -1584,25 +1582,19 @@ namespace Easislides
 
 		// ========== GetScreensRequired (Line 2309) ==========
 
-		public static int GetScreensRequired(SongSettings InItem, SongLyrics InLyricsFormat, ref ListView LyricsLists, int StartLoc, int EndLoc, ref int[,] Reg1SubLoc, bool Region2Present, int RegionNumber, int FolderNo, int InShowNotations)
+		private static int GetScreensRequired(SongSettings InItem, SongLyrics InLyricsFormat, ref ListView LyricsLists, int StartLoc, int EndLoc, List<(int Start, int End)> splitRanges, bool Region2Present, int RegionNumber, int FolderNo, int InShowNotations)
 		{
-			Graphics g = LyricsLists.CreateGraphics();
-			int screenCount = 0;
-			Reg1SubLoc[0, 0] = screenCount;
-			ListViewItem listViewItem = new ListViewItem();
+			using Graphics g = LyricsLists.CreateGraphics();
+			splitRanges.Clear();
 			int startLine = StartLoc;
 			int endline = EndLoc;
 			while (GetOneScreen(InItem, InLyricsFormat, ref LyricsLists, g, startLine, ref endline, EndLoc, Region2Present, RegionNumber, FolderNo, InShowNotations) > 0)
 			{
-				screenCount++;
-				Reg1SubLoc[screenCount, 1] = startLine;
-				Reg1SubLoc[screenCount, 2] = endline;
-				Reg1SubLoc[screenCount, 3] = endline - startLine + 1;
-				Reg1SubLoc[0, 0] = screenCount;
+				splitRanges.Add((startLine, endline));
 				startLine = endline + 1;
 				endline = EndLoc;
 			}
-			return screenCount;
+			return splitRanges.Count;
 		}
 
 		public static int GetOneScreen(SongSettings InItem, SongLyrics InLyricsFormat, ref ListView LyricsLists, Graphics g, int startline, ref int endline, int EndLoc, bool Region2Present, int RegionNumber, int FolderNo, int InShowNotations)
@@ -1616,23 +1608,21 @@ namespace Easislides
 			{
 				return 0;
 			}
-			Font MainFont = new Font(InLyricsFormat.Font.Name, InLyricsFormat.Font.Size, InLyricsFormat.Font.Style);
+			using var initialFont = new Font(InLyricsFormat.Font.Name, InLyricsFormat.Font.Size, InLyricsFormat.Font.Style);
+			Font MainFont = initialFont;
 			SizeF layoutArea = new SizeF(InLyricsFormat.FS_Width, 32000f);
-			string leadingBreak = (RegionNumber == 0) ? "\n" : "";
 			double lineSpacingFactor = Folders[FolderNo].FontSpacingFactor[0] + ((InShowNotations > 0) ? NotationFontFactor : 0.0);
 			int availableHeight = (int)((double)(Region2Present ? InLyricsFormat.FS_Height_R2Bound : InLyricsFormat.FS_Height) / lineSpacingFactor);
-			string screenText = "";
-			for (int i = startline; i <= endline; i++)
-			{
-				screenText = screenText + LyricsLists.Items[i].SubItems[2].Text + "\n";
-			}
-			if (screenText.Length > 1)
-			{
-				screenText = DataUtil.Left(screenText, screenText.Length - 1);
-			}
 			if ((!AutoTextOverflow || InItem.RotateStyle == 2) && InItem.Type != "B")
 			{
-				ReduceFontToFit(g, screenText, ref MainFont, InLyricsFormat.FS_Width, availableHeight, MultiLine: true);
+				var screenText = new StringBuilder();
+				for (int i = startline; i <= endline; i++)
+				{
+					screenText.Append(LyricsLists.Items[i].SubItems[2].Text).Append('\n');
+				}
+				if (screenText.Length > 1)
+					screenText.Length--;
+				ReduceFontToFit(g, screenText.ToString(), ref MainFont, InLyricsFormat.FS_Width, availableHeight, MultiLine: true);
 			}
 			int lineHeight = (int)g.MeasureString("A", InLyricsFormat.FS_Font, layoutArea).Height;
 			int usedHeight = 0;
@@ -1655,21 +1645,26 @@ namespace Easislides
 
 		public static string ActionWordWrapSpacesAtStart(ref string InString)
 		{
-			string spacePositions = "";
-			if (WordWrapIgnoreStartSpaces > 0 && InString.Length > WordWrapIgnoreStartSpaces)
+			int prefixLength = WordWrapIgnoreStartSpaces;
+			if (prefixLength <= 0 || InString.Length <= prefixLength)
+				return "";
+
+			ReadOnlySpan<char> prefix = InString.AsSpan(0, prefixLength);
+			if (!prefix.Contains(' '))
+				return "";
+
+			var spacePositions = new StringBuilder();
+			for (int i = 0; i < prefix.Length; i++)
 			{
-				string leadingPart = DataUtil.Left(InString, WordWrapIgnoreStartSpaces);
-				for (int i = 0; i < leadingPart.Length; i++)
-				{
-					if (leadingPart[i].ToString() == " ")
-					{
-						spacePositions = spacePositions + i.ToString() + ';';
-					}
-				}
-				leadingPart = leadingPart.Replace(" ", "_");
-				InString = leadingPart + DataUtil.Mid(InString, WordWrapIgnoreStartSpaces);
+				if (prefix[i] == ' ')
+					spacePositions.Append(i).Append(';');
 			}
-			return spacePositions;
+			InString = string.Create(InString.Length, (InString, prefixLength), static (chars, state) =>
+			{
+				state.InString.CopyTo(chars);
+				chars[..state.prefixLength].Replace(' ', '_');
+			});
+			return spacePositions.ToString();
 		}
 
 		public static void ActionUndoWordWrapSpacesAtStart(ref string ExtractedText, ref string ReplacedLog)
@@ -1711,38 +1706,24 @@ namespace Easislides
 			bool hasSpace = false;
 			int previousBreak = 1;
 			int breakCount = 0;
-			LyricsLists.Items[LyricsIndex].SubItems[4].Text = "";
+			StringBuilder breaks = new();
 			for (int i = 1; i <= length; i++)
 			{
-				if (DataUtil.Mid(InString, i, 1) == " ")
+				if (i < length && InString[i] == ' ')
 				{
 					lastSpacePos = i;
 					hasSpace = true;
 				}
-				else if (g.MeasureString(DataUtil.Mid(InString, lineStart, i - lineStart + 1), MainFont).Width > InWidth)
+				else if (g.MeasureString(InString.AsSpan(lineStart, Math.Min(i + 1, length) - lineStart), MainFont).Width > InWidth)
 				{
-					if (hasSpace)
-					{
-						breakCount++;
-						lineStart = lastSpacePos + 1;
-						ListViewItem.ListViewSubItem listViewSubItem = LyricsLists.Items[LyricsIndex].SubItems[4];
-						listViewSubItem.Text = listViewSubItem.Text + Convert.ToString(lineStart - previousBreak) + '>';
-						previousBreak = lineStart;
-						hasSpace = false;
-					}
-					else
-					{
-						breakCount++;
-						lineStart = i;
-						ListViewItem.ListViewSubItem listViewSubItem2 = LyricsLists.Items[LyricsIndex].SubItems[4];
-						listViewSubItem2.Text = listViewSubItem2.Text + Convert.ToString(lineStart - previousBreak) + '>';
-						previousBreak = lineStart;
-					}
+					breakCount++;
+					lineStart = hasSpace ? lastSpacePos + 1 : i;
+					breaks.Append(lineStart - previousBreak).Append('>');
+					previousBreak = lineStart;
+					hasSpace = false;
 				}
 			}
-			ListViewItem.ListViewSubItem listViewSubItem3 = LyricsLists.Items[LyricsIndex].SubItems[4];
-			listViewSubItem3.Text = listViewSubItem3.Text + Convert.ToString(length - previousBreak + 1) + '>';
-			LyricsLists.Items[LyricsIndex].SubItems[4].Text = Convert.ToString(breakCount + 1) + '>' + Convert.ToString(MainFont.Size) + '>' + LyricsLists.Items[LyricsIndex].SubItems[4].Text;
+			LyricsLists.Items[LyricsIndex].SubItems[4].Text = $"{breakCount + 1}>{MainFont.Size}>{breaks}{length - previousBreak + 1}>";
 			return breakCount + 1;
 		}
 

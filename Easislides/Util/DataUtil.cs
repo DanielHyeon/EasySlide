@@ -1,6 +1,5 @@
 using System;
 using System.Data;
-using System.Linq;
 using System.Text;
 using Easislides.Module;
 using DbDataReader = System.Data.SQLite.SQLiteDataReader;
@@ -481,103 +480,50 @@ namespace Easislides.Util
 				: InString.PadLeft(6, '0');
 		}
 
-		public static string UnicodeToAscii_RTF(string InString)
-		{
-			StringBuilder stringBuilder = new StringBuilder();
-			string text = "";
-			int num = 0;
-			for (int i = 0; i < InString.Length; i++)
-			{
-				text = DataUtil.Mid(InString, i, 1);
-				if ((text != "\r") & (text != "\n") & (text != "\t"))
-				{
-					num = text[0];
-					if (num < 0)
-					{
-						num += 65536;
-					}
-					if (num > 255)
-					{
-						stringBuilder.Append("\\u" + num.ToString("00000") + "?");
-					}
-					else
-					{
-						stringBuilder.Append(text);
-					}
-				}
-				else
-				{
-					stringBuilder.Append(text);
-				}
-			}
-			return stringBuilder.ToString();
-		}
+		public static string UnicodeToAscii_RTF(string InString) => EscapeDocumentText(InString, @"\u", '?');
 
-		public static string UnicodeToAscii_HTML(string InString)
+		public static string UnicodeToAscii_HTML(string InString) => EscapeDocumentText(InString, "&#", ';');
+
+		// The file formats encode UTF-16 code units individually, including surrogate pairs.
+		private static string EscapeDocumentText(string text, string prefix, char suffix)
 		{
-			StringBuilder stringBuilder = new StringBuilder();
-			string text = "";
-			int num = 0;
-			for (int i = 0; i < InString.Length; i++)
+			ArgumentNullException.ThrowIfNull(text);
+			int firstEscape = text.AsSpan().IndexOfAnyInRange('\u0100', char.MaxValue);
+			if (firstEscape < 0)
+				return text;
+
+			var result = new StringBuilder(text.Length);
+			result.Append(text.AsSpan(0, firstEscape));
+			foreach (char c in text.AsSpan(firstEscape))
 			{
-				text = DataUtil.Mid(InString, i, 1);
-				if ((text != "\r") & (text != "\n") & (text != "\t"))
-				{
-					num = text[0];
-					if (num < 0)
-					{
-						num += 65536;
-					}
-					if (num > 255)
-					{
-						stringBuilder.Append("&#" + num.ToString("00000") + ";");
-					}
-					else
-					{
-						stringBuilder.Append(text);
-					}
-				}
+				if (c > '\u00ff')
+					result.Append($"{prefix}{(int)c:D5}{suffix}");
 				else
-				{
-					stringBuilder.Append(text);
-				}
+					result.Append(c);
 			}
-			return stringBuilder.ToString();
+			return result.ToString();
 		}
 
 		public static string HexString(string InString)
 		{
-			StringBuilder stringBuilder = new StringBuilder();
-			string text = "";
-			int num = 0;
-			for (int i = 0; i < InString.Length; i++)
+			ArgumentNullException.ThrowIfNull(InString);
+			int firstEscape = InString.AsSpan().IndexOfAnyInRange('\u0080', char.MaxValue);
+			if (firstEscape < 0)
+				return InString;
+
+			var result = new StringBuilder(InString.Length);
+			result.Append(InString.AsSpan(0, firstEscape));
+			foreach (char c in InString.AsSpan(firstEscape))
 			{
-				text = DataUtil.Mid(InString, i, 1);
-				num = text[0];
-				if (num < 0)
-				{
-					num += 65536;
-				}
-				if (num > 127)
-				{
-					stringBuilder.Append(num.ToString("x"));
-				}
+				if (char.IsAscii(c))
+					result.Append(c);
 				else
-				{
-					stringBuilder.Append(text);
-				}
+					result.Append($"{(int)c:x}");
 			}
-			return stringBuilder.ToString();
+			return result.ToString();
 		}
 
-		public static int CountLf(string InText)
-		{
-			if (string.IsNullOrEmpty(InText))
-			{
-				return 0;
-			}
-			return InText.Count(c => c == '\n');
-		}
+		public static int CountLf(string InText) => InText.AsSpan().Count('\n');
 
 		public static int Convertv32FormatString(ref string InFormatString, char InSeparator)
 		{
