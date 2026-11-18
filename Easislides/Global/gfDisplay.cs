@@ -1681,7 +1681,10 @@ namespace Easislides
 				{
 					if (isCurrent)
 					{
-						g.DrawRectangle(new Pen(In_TextColour), OffsetLeft + 1, RectOffsetTop, labelWidth + 1, rect_slidesinfo.Height * 2f / 5f);
+						using (Pen framePen = new Pen(In_TextColour))
+						{
+							g.DrawRectangle(framePen, OffsetLeft + 1, RectOffsetTop, labelWidth + 1, rect_slidesinfo.Height * 2f / 5f);
+						}
 					}
 					else
 					{
@@ -1748,7 +1751,9 @@ namespace Easislides
 			{
 				fontStyle |= FontStyle.Italic;
 			}
-			tempFont = new Font(tempFont.Name, tempFont.Size, fontStyle);
+			// The caller's font is cached and stays the caller's; this styled copy is made for this call only.
+			using Font styledFont = new Font(tempFont.Name, tempFont.Size, fontStyle);
+			tempFont = styledFont;
 			int lineHeight = (int)g.MeasureString("1", tempFont, 10000).Height;
 			int topRowY = (int)(rect_slidesinfo.Top + rect_slidesinfo.Height / 20f);
 			int bottomRowY = (int)(rect_slidesinfo.Top + rect_slidesinfo.Height / 2f);
@@ -1774,7 +1779,10 @@ namespace Easislides
 				indicatorsLeft -= totalTextWidth;
 				OutputOneLineToScreen(InItem, itemText, tempFont, g, color, stringFormat.Alignment, ShowDataDisplayFontShadow, ShowDataDisplayFontOutline, indicatorsLeft + (totalTextWidth - itemTextWidth) / 2, topRowY, indicatorsLeft + totalTextWidth, 0);
 				OutputOneLineToScreen(InItem, totalText, tempFont, g, color, stringFormat.Alignment, ShowDataDisplayFontShadow, ShowDataDisplayFontOutline, indicatorsLeft, bottomRowY, indicatorsLeft + totalTextWidth, 0);
-				g.DrawLine(new Pen(color), indicatorsLeft, separatorY, indicatorsLeft + totalTextWidth, separatorY);
+				using (Pen separatorPen = new Pen(color))
+				{
+					g.DrawLine(separatorPen, indicatorsLeft, separatorY, indicatorsLeft + totalTextWidth, separatorY);
+				}
 			}
 			return indicatorsLeft;
 		}
