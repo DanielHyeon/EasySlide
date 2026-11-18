@@ -778,6 +778,13 @@ namespace Easislides
 					if (!PowerPointCallLimit.CurrentAbandoned)
 					{
 						ReportShowEndCloseFailures(text);
+						if (PowerpointList.Count > 0)
+						{
+							// Copies that may still be open (Close failed, or not every presentation could be read):
+							// tried again at the next show start and at app exit instead of being forgotten.
+							KeepShowCopiesForLater();
+							powerPointCleanUpPending = true;
+						}
 						if (text == "")
 						{
 							LivePP.QuitPowerPointApp(LivePP.prePowerPointApp);
@@ -973,8 +980,9 @@ namespace Easislides
 					FrmMain.WriteDebugLog(where + ": PowerPoint answers again; the quit left by an earlier show end was done (only when nothing is open in it)");
 				}
 			}
-			// Proxies not released because PowerPoint could not be asked (NoWindow) keep the clean-up pending.
-			powerPointCleanUpPending = !answered && PowerPoint.HeldProxyCount > 0;
+			// Copies still not closed (ClearUpPowerpointWindows leaves them listed), and proxies not released because
+			// PowerPoint could not be asked (NoWindow), keep the clean-up pending.
+			powerPointCleanUpPending = pendingShowCopies.Count > 0 || (!answered && PowerPoint.HeldProxyCount > 0);
 			return true;
 		}
 

@@ -1986,6 +1986,8 @@ namespace OfficeLib
 			int unreadable = 0;
 			string firstUnreadableError = null;
 			bool flag = false;
+			HashSet<string> closedNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+			HashSet<string> failedNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 			// The presentations of this show are closed now: no wrapper may act on a name it remembered from it.
 			ForgetShowCopyNames();
 			ForgetRunPresentation();
@@ -2040,6 +2042,7 @@ namespace OfficeLib
 						{
 							openPresentation.Close();
 							num3++;
+							closedNames.Add(fullName);
 							PowerPointCallLimit.Progress();
 						}
 						catch (Exception ex)
@@ -2051,6 +2054,7 @@ namespace OfficeLib
 							}
 							LastCloseFailedCount++;
 							LastCloseFailedName ??= fullName;
+							failedNames.Add(fullName);
 							Console.WriteLine($"Error closing presentation '{fullName}': {ex.Message}");
 						}
 					}
@@ -2077,7 +2081,10 @@ namespace OfficeLib
 			{
 				LastCloseError = unreadable + " open presentation(s) could not be read: " + firstUnreadableError;
 			}
-			PowerpointList.Clear();
+			// Only rows that may still be open stay listed, for the caller to try again later: copies whose Close
+			// failed, and, when some presentations (or the collection) could not be read, every copy not closed
+			// (it may be one of those). A copy that is positively gone or closed is dropped.
+			KeepUnclosedRows(PowerpointList, failedNames, closedNames, keepAllNotClosed: unreadable > 0 || flag);
 
 			//daniel PowerPoint App ����
 			if (quitWhenEmpty)
@@ -2086,6 +2093,28 @@ namespace OfficeLib
 			}
 
 			return "Opened PP=" + num2 + ", Total On List=" + num + ", Numbers Closed=" + num3 + (flag ? ". Error When Closing" : ". No Error");
+		}
+
+		private static void KeepUnclosedRows(ShowCopyList list, HashSet<string> failedNames, HashSet<string> closedNames, bool keepAllNotClosed)
+		{
+			List<ShowCopy> keep = new List<ShowCopy>();
+			for (int i = 1; i <= list.Count; i++)
+			{
+				ShowCopy row = list[i];
+				if (string.IsNullOrEmpty(row.CopyName) || string.IsNullOrEmpty(row.SourcePath))
+				{
+					continue;
+				}
+				if (failedNames.Contains(row.CopyName) || (keepAllNotClosed && !closedNames.Contains(row.CopyName)))
+				{
+					keep.Add(row);
+				}
+			}
+			list.Clear();
+			foreach (ShowCopy row in keep)
+			{
+				list.Add(row.SourcePath, row.CopyName);
+			}
 		}
 
 		/// <summary>
@@ -2268,6 +2297,8 @@ namespace OfficeLib
             using PowerPointGate gate = PowerPointGate.Enter(PowerPointCallWeight.Light, "play the next animation");
             if (gate == null)
             {
+                // Not asked: nothing is known about the slide show (see LastCallNotRunning).
+                LastCallNotRunning = false;
                 return;
             }
             try
@@ -2276,44 +2307,43 @@ namespace OfficeLib
                 using RunPresentation run = FindRunSlideShow(out SlideShowWindow slideShowWindow);
                 if (run == null) return;
 
-                // 1. Debounce (kept).
+                // Debounce repeated key presses.
                 if ((DateTime.Now - lastClickTime).TotalMilliseconds < 500) return;
                 lastClickTime = DateTime.Now;
 
                 var view = slideShowWindow.View;
 
-                // [핵심 수정 사항] 
-                // 입력된 번호가 유효하고(>0), '현재 보고 있는 슬라이드'와 '다를 때만' 이동합니다.
-                // 같을 때 이동하면 애니메이션이 리셋되기 때문입니다.
+                // Move only when a different slide is asked for: going to the current slide resets its animations.
                 if (slideNumber > 0 && view.Slide.SlideIndex != slideNumber)
                 {
-                    // 다른 슬라이드로 이동할 때만 실행
                     view.GotoSlide(slideNumber, MsoTriState.msoTrue);
                 }
 
                 slideShowWindow.Activate();
 
-                // 현재 상태 다시 조회 (GotoSlide를 했을 수도 있으므로 여기서 조회)
-                int totalClicks = view.Slide.TimeLine.MainSequence.Count;
+                // Read after a possible GotoSlide. Clicks, not effects: MainSequence.Count also counts
+                // "With/After Previous" effects, so a slide with only automatic effects looked unfinished and
+                // Next() moved the show to the next slide.
+                int totalClicks = view.GetClickCount();
                 int currentIndex = view.GetClickIndex();
 
-                // 2. 애니메이션 실행 로직
                 if (currentIndex < totalClicks)
                 {
                     view.Next();
                     System.Diagnostics.Debug.WriteLine($"Playing animation {currentIndex + 1} of {totalClicks}");
                 }
-                else
+                else if (totalClicks > 0)
                 {
-                    // 3. 애니메이션 끝난 후 처리
-                    System.Diagnostics.Debug.WriteLine("Animation finished. Resetting loop.");
-
-                    // 만약 '다음 슬라이드'로 자동으로 넘어가길 원하시면:
-                    // view.Next(); 
-
-                    // 현재 로직 유지 (반복 재생):
+                    // Every click played: start the slide's animations again from the first click.
+                    System.Diagnostics.Debug.WriteLine("Animation finished. Replaying from the first click.");
                     view.GotoClick(0);
                     view.Next();
+                }
+                else
+                {
+                    // No click effects: Next() would leave the slide. Replay its automatic animations instead.
+                    System.Diagnostics.Debug.WriteLine("No click animations. Replaying the slide.");
+                    view.GotoSlide(view.Slide.SlideIndex, MsoTriState.msoTrue);
                 }
             }
             catch (Exception ex)
