@@ -180,7 +180,7 @@ namespace Easislides
 					if (fontUnderlines[formatIndex] > 0)
 					{
 						fontStyle |= FontStyle.Underline;
-						chorusFontStyle |= FontStyle.Bold;
+						chorusFontStyle |= FontStyle.Underline;
 					}
 					if (fontItalics[formatIndex] > 0 || fontItalics[formatIndex + 2] > 0)
 					{
