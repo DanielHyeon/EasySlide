@@ -341,8 +341,6 @@ namespace Easislides
 
 		public const int MaxMusicFileExtensions = 3000;
 
-		public const int MaxRefileSongs = 30000;
-
 		public const int DefaultShowLeftMargin = 2;
 
 		public const int DefaultShowRightMargin = 2;
@@ -1847,8 +1845,6 @@ namespace Easislides
 		public static string[] ShowInput = new string[60];
 
 		public static string[] HeaderData = new string[255];
-
-		public static string[] tempHeaderData = new string[255];
 
 		public static bool SaveShowOptions;
 

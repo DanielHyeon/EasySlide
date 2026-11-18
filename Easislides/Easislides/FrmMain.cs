@@ -22,6 +22,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Resources;
 using System.Collections;
+using System.Collections.Generic;
 using System.Drawing.Imaging;
 
 using System.ComponentModel.Design;
@@ -5498,7 +5499,7 @@ namespace Easislides
         private void Copy_Song()
         {
             Gf.SelectedItemsCount = SongsList.SelectedItems.Count;
-            if (SongsList.SelectedItems.Count == 0 || Gf.SelectedItemsCount == 0)
+            if (Gf.SelectedItemsCount == 0)
             {
                 return;
             }
@@ -5507,12 +5508,6 @@ namespace Easislides
             {
                 return;
             }
-            int newSongId = 0;
-            int[] RefileSongs = new int[30000];
-            RefileSongs[0] = 0;
-            string[] copiedFiles = new string[30000];
-            copiedFiles[0] = "0";
-            string[] inHeaderData = new string[255];
             int infoScreenGroupIndex = 0;
             string infoScreenDir = "";
             if (Gf.CopyToFolder < 0)
@@ -5520,81 +5515,51 @@ namespace Easislides
                 infoScreenGroupIndex = -Gf.CopyToFolder - 1;
                 infoScreenDir = Gf.InfoScreenGroups[infoScreenGroupIndex].Path;
             }
-            for (int i = 0; i <= SongsList.Items.Count - 1; i++)
+            var (songIds, fileKeys) = CopySelectedSongs(SongsList, Gf.CopyToFolder, infoScreenDir, Gf.ConnectStringMainDB);
+            if (Gf.CopyToFolder > 0)
+                HighlightCopyMoveItems(Gf.CopyToFolder, songIds);
+            else
+                HighlightCopyMoveExternalItems(InfoScreenList, infoScreenGroupIndex, fileKeys, "I");
+        }
+
+        internal static (HashSet<int> SongIds, HashSet<string> FileKeys) CopySelectedSongs(ListView songs, int folder, string infoScreenDir, string connectionString)
+        {
+            HashSet<int> copiedIds = [];
+            HashSet<string> fileKeys = new(StringComparer.OrdinalIgnoreCase);
+            foreach (string key in SelectedItemKeys(songs))
             {
-                if (SongsList.Items[i].Selected)
+                try
                 {
-                    try
+                    if (key.Length < 2 || !int.TryParse(key.AsSpan(1), out int songId))
+                        continue;
+
+                    using DataTable table = DbController.GetDataTable(connectionString, $"select * from SONG where songid={songId}");
+                    if (table == null || table.Rows.Count == 0)
+                        continue;
+
+                    DataRow row = table.Rows[0];
+                    if (folder > 0)
                     {
-                        string idString = SongsList.Items[i].SubItems[1].Text;
-                        string songId = DataUtil.Right(idString, idString.Length - 1);
-                        string fullSearchString = "select * from SONG where songid=" + songId;
-
-                        using DataTable datatable = DbController.GetDataTable(Gf.ConnectStringMainDB, fullSearchString);
-
-                        {
-                            if (datatable.Rows.Count > 0)
-                            {
-                                DataRow dr = datatable.Rows[0];
-                                if (Gf.CopyToFolder > 0)
-                                {
-                                    newSongId = Gf.InsertItemIntoDatabase(Gf.ConnectStringMainDB, dr["Title_1"], dr["Title_2"], dr["song_number"], Gf.CopyToFolder, dr["Lyrics"], dr["Sequence"], dr["writer"], dr["copyright"], dr["capo"], dr["Timing"], dr["Key"], dr["msc"], dr["CATEGORY"], dr["LICENCE_ADMIN1"], dr["LICENCE_ADMIN2"], dr["BOOK_REFERENCE"], dr["USER_REFERENCE"], dr["SETTINGS"], dr["FORMATDATA"]);
-                                    if (newSongId > 0)
-                                    {
-                                        RefileSongs[0]++;
-                                        RefileSongs[RefileSongs[0]] = newSongId;
-                                    }
-                                }
-                                else
-                                {
-                                    Gf.TempItem1.Title = DataUtil.ObjToString(dr["Title_1"]);
-                                    Gf.TempItem1.FolderNo = DataUtil.ObjToInt(dr["FolderNo"]);
-                                    Gf.TempItem1.Title2 = DataUtil.ObjToString(dr["Title_2"]);
-                                    Gf.TempItem1.SongNumber = DataUtil.ObjToInt(dr["song_number"]);
-                                    Gf.TempItem1.CompleteLyrics = DataUtil.ObjToString(dr["Lyrics"]);
-                                    Gf.TempItem1.Notations = DataUtil.ObjToString(dr["msc"]);
-                                    Gf.TempItem1.SongSequence = DataUtil.ObjToString(dr["Sequence"]);
-                                    Gf.TempItem1.Writer = DataUtil.ObjToString(dr["writer"]);
-                                    Gf.TempItem1.Copyright = DataUtil.ObjToString(dr["copyright"]);
-                                    Gf.TempItem1.Category = "";
-                                    Gf.TempItem1.Timing = DataUtil.ObjToString(dr["Timing"]);
-                                    Gf.TempItem1.MusicKey = DataUtil.ObjToString(dr["Key"]);
-                                    Gf.TempItem1.Capo = DataUtil.ObjToInt(dr["capo"]);
-                                    Gf.TempItem1.Show_LicAdminInfo1 = DataUtil.ObjToString(dr["LICENCE_ADMIN1"]);
-                                    Gf.TempItem1.Show_LicAdminInfo2 = DataUtil.ObjToString(dr["LICENCE_ADMIN2"]);
-                                    Gf.TempItem1.Book_Reference = DataUtil.ObjToString(dr["BOOK_REFERENCE"]);
-                                    Gf.TempItem1.User_Reference = DataUtil.ObjToString(dr["USER_REFERENCE"]);
-                                    Gf.TempItem1.RotateString = "";
-                                    Gf.TempItem1.Settings = DataUtil.ObjToString(dr["SETTINGS"]);
-                                    string InFileName = infoScreenDir + Gf.TempItem1.Title + ".esi";
-                                    int copyNo = 0;
-                                    while (File.Exists(InFileName))
-                                    {
-                                        copyNo++;
-                                        InFileName = infoScreenDir + Gf.TempItem1.Title + " - Copy (" + copyNo + ").esi";
-                                    }
-                                    if (Gf.SaveXMLInfoScreen(Gf.TempItem1, InFileName, inHeaderData, ReloadImageData: false, UseOriginalNotations: false))
-                                    {
-                                        copiedFiles[0] = Convert.ToString(DataUtil.StringToInt(copiedFiles[0]) + 1);
-                                        copiedFiles[DataUtil.StringToInt(copiedFiles[0])] = Gf.GetDisplayNameOnly(ref InFileName, UpdateByRef: false);
-                                    }
-                                }
-                            }
-                        }
+                        int newId = Gf.InsertItemIntoDatabase(connectionString, row["Title_1"], row["Title_2"], row["song_number"],
+                            folder, row["Lyrics"], row["Sequence"], row["writer"], row["copyright"], row["capo"], row["Timing"],
+                            row["Key"], row["msc"], row["CATEGORY"], row["LICENCE_ADMIN1"], row["LICENCE_ADMIN2"],
+                            row["BOOK_REFERENCE"], row["USER_REFERENCE"], row["SETTINGS"], row["FORMATDATA"]);
+                        if (newId > 0)
+                            copiedIds.Add(newId);
                     }
-                    catch
+                    else if (Gf.LoadDataIntoItem(ref Gf.TempItem1, row))
                     {
+                        string path = Gf.SaveInfoScreenCopy(Gf.TempItem1, infoScreenDir);
+                        if (path.Length > 0)
+                            fileKeys.Add("I" + path);
                     }
                 }
+                catch (Exception ex)
+                {
+                    Trace.WriteLine($"CopySelectedSongs failed: {ex}");
+                }
             }
-            if (Gf.CopyToFolder > 0)
-            {
-                HighlightCopyMoveItems(Gf.CopyToFolder, ref RefileSongs);
-            }
-            else
-            {
-                HighlightCopyMoveExternalItems(InfoScreenList, infoScreenGroupIndex, copiedFiles, "I");
-            }
+            return (copiedIds, fileKeys);
         }
 
         private void Move_Song()
@@ -5610,14 +5575,10 @@ namespace Easislides
                 return;
             }
             int folderNumber = Gf.GetFolderNumber(SongFolder.Text);
-            int[] RefileSongs = new int[30000];
             if (Gf.MoveToFolder > 0)
             {
-                RefileSongs[0] = 0;
-                if (Gf.ReFileSelectedSongs(ref SongsList, folderNumber, Gf.MoveToFolder, ref RefileSongs, UpdateModifiedDate: false) > 0)
-                {
-                    HighlightCopyMoveItems(Gf.MoveToFolder, ref RefileSongs);
-                }
+                var movedIds = Gf.ReFileSelectedSongs(SongsList, folderNumber, Gf.MoveToFolder, false, Gf.ConnectStringMainDB);
+                HighlightCopyMoveItems(Gf.MoveToFolder, movedIds);
             }
         }
 
@@ -5643,7 +5604,6 @@ namespace Easislides
             }
             Cursor = Cursors.WaitCursor;
             int folderNumber = Gf.GetFolderNumber(SongFolder.Text);
-            int[] RefileSongs = new int[30000];
             int firstSelectedIndex = 0;
             for (int i = SongsList.Items.Count - 1; i >= 0; i--)
             {
@@ -5652,7 +5612,7 @@ namespace Easislides
                     firstSelectedIndex = i;
                 }
             }
-            Gf.ReFileSelectedSongs(ref SongsList, folderNumber, 0, ref RefileSongs, UpdateModifiedDate: true);
+            Gf.ReFileSelectedSongs(SongsList, folderNumber, 0, true, Gf.ConnectStringMainDB);
             if (SongsList.Items.Count > firstSelectedIndex)
             {
                 if (firstSelectedIndex >= 0)
@@ -5717,9 +5677,9 @@ namespace Easislides
             return 0;
         }
 
-        private void HighlightCopyMoveItems(int InFolderNo, ref int[] RefileSongs)
+        private void HighlightCopyMoveItems(int InFolderNo, HashSet<int> songIds)
         {
-            if (RefileSongs[0] == 0)
+            if (songIds.Count == 0)
             {
                 return;
             }
@@ -5735,67 +5695,29 @@ namespace Easislides
             {
                 SongFolder.Text = Gf.Folders[InFolderNo].Name;
             }
-            int firstIndex = -1;
-            int remainingCount = RefileSongs[0];
-            for (int i = 0; i < SongsList.Items.Count; i++)
-            {
-                if (CompareRefileSongsList(DataUtil.StringToInt(DataUtil.Mid(SongsList.Items[i].SubItems[1].Text, 1)), ref RefileSongs))
-                {
-                    SongsList.Items[i].Selected = true;
-                    if (firstIndex < 0)
-                    {
-                        remainingCount--;
-                        firstIndex = i;
-                    }
-                    if (remainingCount == 0)
-                    {
-                        break;
-                    }
-                }
-            }
-            if (firstIndex >= 0)
-            {
-                SongsList.EnsureVisible(firstIndex);
-            }
+            SelectTransferredItems(SongsList, key => key.Length > 1 && int.TryParse(key.AsSpan(1), out int id) && songIds.Contains(id));
             SongsListIndexChanged();
         }
 
-        private bool CompareRefileSongsList(int inID, ref int[] RefileSongs)
+        internal static void SelectTransferredItems(ListView destination, Predicate<string> matches)
         {
-            if (RefileSongs[0] == 0)
+            ListViewItem firstMatch = null;
+            destination.SelectedIndices.Clear();
+            for (int i = 0; i < destination.Items.Count; i++)
             {
-                return false;
-            }
-            for (int i = 1; i <= RefileSongs[0]; i++)
-            {
-                if (inID == RefileSongs[i])
+                var row = destination.Items[i];
+                if (matches(row.SubItems[1].Text))
                 {
-                    return true;
+                    row.Selected = true;
+                    firstMatch ??= row;
                 }
             }
-            return false;
+            firstMatch?.EnsureVisible();
         }
 
-        private bool CompareRefileSongsList(string inID, ref string[] RefileSongs)
+        private void HighlightCopyMoveExternalItems(ListView InListView, int SelectedFolderIndex, HashSet<string> fileKeys, string InFileSymbol)
         {
-            if (DataUtil.StringToInt(RefileSongs[0]) == 0)
-            {
-                return false;
-            }
-            for (int i = 1; i <= DataUtil.StringToInt(RefileSongs[0]); i++)
-            {
-                if (inID == RefileSongs[i])
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        private void HighlightCopyMoveExternalItems(ListView InListView, int SelectedFolderIndex, string[] RefileSongs, string InFileSymbol)
-        {
-            int remainingCount = DataUtil.StringToInt(RefileSongs[0]);
-            if (remainingCount < 1)
+            if (fileKeys.Count == 0)
             {
                 return;
             }
@@ -5813,27 +5735,7 @@ namespace Easislides
                 PowerpointFolder.SelectedIndex = SelectedFolderIndex;
                 ShowPowerpointFolderContents(ShowThumbs: false);
             }
-            int firstIndex = -1;
-            for (int i = 0; i < InListView.Items.Count; i++)
-            {
-                if (CompareRefileSongsList(InListView.Items[i].SubItems[0].Text, ref RefileSongs))
-                {
-                    InListView.Items[i].Selected = true;
-                    if (firstIndex < 0)
-                    {
-                        remainingCount--;
-                        firstIndex = i;
-                    }
-                    if (remainingCount == 0)
-                    {
-                        break;
-                    }
-                }
-            }
-            if (firstIndex >= 0)
-            {
-                InListView.EnsureVisible(firstIndex);
-            }
+            SelectTransferredItems(InListView, fileKeys.Contains);
             if (InFileSymbol == "I")
             {
                 InfoScreenListIndexChanged();
@@ -8220,37 +8122,9 @@ namespace Easislides
             }
             if (Gf.ExternalCopyFolder >= 0)
             {
-                string[] copiedFiles = new string[30000];
-                copiedFiles[0] = "0";
-                ListView listView = new ListView();
-                ListViewItem listViewItem = new ListViewItem();
-                string InFileName = "";
-                for (int i = 0; i < InListView.SelectedItems.Count; i++)
-                {
-                    switch (InFileSymbol)
-                    {
-                        case "I":
-                            InFileName = Gf.CopyExternalFile(DataUtil.Mid(InListView.SelectedItems[i].SubItems[1].Text, 1), Gf.InfoScreenGroups[Gf.ExternalCopyFolder].Path);
-                            break;
-                        case "P":
-                            InFileName = Gf.CopyExternalFile(DataUtil.Mid(InListView.SelectedItems[i].SubItems[1].Text, 1), Gf.PowerpointGroups[Gf.ExternalCopyFolder].Path);
-                            break;
-                    }
-                    if (InFileName != "")
-                    {
-                        listViewItem = listView.Items.Add(Gf.GetDisplayNameOnly(ref InFileName, UpdateByRef: false));
-                        copiedFiles[0] = Convert.ToString(DataUtil.StringToInt(copiedFiles[0]) + 1);
-                        copiedFiles[DataUtil.StringToInt(copiedFiles[0])] = Gf.GetDisplayNameOnly(ref InFileName, UpdateByRef: false);
-                    }
-                }
-                if (InFileSymbol == "I")
-                {
-                    HighlightCopyMoveExternalItems(InfoScreenList, Gf.ExternalCopyFolder, copiedFiles, InFileSymbol);
-                }
-                else
-                {
-                    HighlightCopyMoveExternalItems(PowerpointList, Gf.ExternalCopyFolder, copiedFiles, InFileSymbol);
-                }
+                string folder = InFileSymbol == "I" ? Gf.InfoScreenGroups[Gf.ExternalCopyFolder].Path : Gf.PowerpointGroups[Gf.ExternalCopyFolder].Path;
+                var fileKeys = TransferFiles(SelectedItemKeys(InListView), folder, Gf.CopyExternalFile);
+                HighlightCopyMoveExternalItems(InListView, Gf.ExternalCopyFolder, fileKeys, InFileSymbol);
             }
             else
             {
@@ -8263,36 +8137,52 @@ namespace Easislides
                 {
                     Gf.ExternalCopyFolder = 1;
                 }
-                int[] RefileSongs = new int[30000];
-                RefileSongs[0] = 0;
-                ListView listView = new ListView();
-                ListViewItem listViewItem = new ListViewItem();
-                string InFileName = "";
-                string[] ThisHeaderData = new string[255];
-                for (int i = 0; i < InListView.SelectedItems.Count; i++)
-                {
-                    InFileName = DataUtil.Mid(InListView.SelectedItems[i].SubItems[1].Text, 1);
-                    if (InFileName != "")
-                    {
-                        gfFileHelpers.LoadInfoFile(InFileName, ref Gf.TempItem1, ref ThisHeaderData);
-                        if (DataUtil.Trim(Gf.TempItem1.Title) == "")
-                        {
-                            Gf.TempItem1.Title = Gf.GetDisplayNameOnly(ref InFileName, UpdateByRef: false);
-                        }
-                        Gf.TempItem1.FolderNo = Gf.ExternalCopyFolder;
-                        int newSongId = Gf.InsertItemIntoDatabase(Gf.ConnectStringMainDB, Gf.TempItem1);
-                        if (newSongId > 0)
-                        {
-                            RefileSongs[0]++;
-                            RefileSongs[RefileSongs[0]] = newSongId;
-                        }
-                    }
-                }
-                if (RefileSongs[0] > 0)
-                {
-                    HighlightCopyMoveItems(Gf.ExternalCopyFolder, ref RefileSongs);
-                }
+                var copiedIds = CopyInfoScreensToSongFolder(InListView, Gf.ExternalCopyFolder, Gf.ConnectStringMainDB);
+                HighlightCopyMoveItems(Gf.ExternalCopyFolder, copiedIds);
             }
+        }
+
+        internal static HashSet<int> CopyInfoScreensToSongFolder(ListView source, int folder, string connectionString)
+        {
+            HashSet<int> copiedIds = [];
+            foreach (string key in SelectedItemKeys(source))
+            {
+                if (key.Length < 2)
+                    continue;
+                string fileName = key[1..];
+                Gf.InitialiseIndividualData(ref Gf.TempItem1);
+                Gf.TempItem1.Settings = "";
+                if (!gfFileHelpers.LoadInfoFile(fileName, ref Gf.TempItem1))
+                    continue;
+
+                if (string.IsNullOrWhiteSpace(Gf.TempItem1.Title))
+                    Gf.TempItem1.Title = Path.GetFileNameWithoutExtension(fileName);
+                Gf.TempItem1.FolderNo = folder;
+                int newSongId = Gf.InsertItemIntoDatabase(connectionString, Gf.TempItem1);
+                if (newSongId > 0)
+                    copiedIds.Add(newSongId);
+            }
+            return copiedIds;
+        }
+
+        internal static IEnumerable<string> SelectedItemKeys(ListView source)
+        {
+            foreach (ListViewItem item in source.SelectedItems)
+                yield return item.SubItems[1].Text;
+        }
+
+        internal static HashSet<string> TransferFiles(IEnumerable<string> itemKeys, string folder, Func<string, string, string> transfer)
+        {
+            HashSet<string> fileKeys = new(StringComparer.OrdinalIgnoreCase);
+            foreach (string key in itemKeys)
+            {
+                if (key.Length < 2)
+                    continue;
+                string destination = transfer(key[1..], folder);
+                if (destination.Length > 0)
+                    fileKeys.Add(key[0] + destination);
+            }
+            return fileKeys;
         }
 
         private void MoveExternalItems(ListView InListView, string InFileSymbol)
@@ -8306,41 +8196,14 @@ namespace Easislides
             Gf.ExternalCopyFolder = -1;
             Gf.ExternalMoveCopyType = InFileSymbol;
             FrmCopyMoveExternal frmCopyMoveExternal = new FrmCopyMoveExternal();
-            if (frmCopyMoveExternal.ShowDialog() != DialogResult.OK || Gf.ExternalMoveFolder == InfoScreenFolder.SelectedIndex || Gf.ExternalMoveFolder < 0 || Gf.ExternalMoveFolder == InfoScreenFolder.SelectedIndex)
+            int sourceFolder = InFileSymbol == "I" ? InfoScreenFolder.SelectedIndex : PowerpointFolder.SelectedIndex;
+            if (frmCopyMoveExternal.ShowDialog() != DialogResult.OK || Gf.ExternalMoveFolder < 0 || Gf.ExternalMoveFolder == sourceFolder)
             {
                 return;
             }
-            string[] movedFiles = new string[30000];
-            movedFiles[0] = "0";
-            ListView listView = new ListView();
-            ListViewItem listViewItem = new ListViewItem();
-            string InFileName = "";
-            for (int i = 0; i < InListView.SelectedItems.Count; i++)
-            {
-                switch (InFileSymbol)
-                {
-                    case "I":
-                        InFileName = Gf.MoveExternalFile(DataUtil.Mid(InListView.SelectedItems[i].SubItems[1].Text, 1), Gf.InfoScreenGroups[Gf.ExternalMoveFolder].Path);
-                        break;
-                    case "P":
-                        InFileName = Gf.MoveExternalFile(DataUtil.Mid(InListView.SelectedItems[i].SubItems[1].Text, 1), Gf.PowerpointGroups[Gf.ExternalMoveFolder].Path);
-                        break;
-                }
-                if (InFileName != "")
-                {
-                    listViewItem = listView.Items.Add(Gf.GetDisplayNameOnly(ref InFileName, UpdateByRef: false));
-                    movedFiles[0] = Convert.ToString(DataUtil.StringToInt(movedFiles[0]) + 1);
-                    movedFiles[DataUtil.StringToInt(movedFiles[0])] = Gf.GetDisplayNameOnly(ref InFileName, UpdateByRef: false);
-                }
-            }
-            if (InFileSymbol == "I")
-            {
-                HighlightCopyMoveExternalItems(InfoScreenList, Gf.ExternalMoveFolder, movedFiles, InFileSymbol);
-            }
-            else
-            {
-                HighlightCopyMoveExternalItems(PowerpointList, Gf.ExternalMoveFolder, movedFiles, InFileSymbol);
-            }
+            string folder = InFileSymbol == "I" ? Gf.InfoScreenGroups[Gf.ExternalMoveFolder].Path : Gf.PowerpointGroups[Gf.ExternalMoveFolder].Path;
+            var fileKeys = TransferFiles(SelectedItemKeys(InListView), folder, Gf.MoveExternalFile);
+            HighlightCopyMoveExternalItems(InListView, Gf.ExternalMoveFolder, fileKeys, InFileSymbol);
         }
 
         private void RemoveExternalItems(ListView InListView, string InFileSymbol)

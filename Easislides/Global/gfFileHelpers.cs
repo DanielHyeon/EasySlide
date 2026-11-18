@@ -307,7 +307,7 @@ namespace Easislides
             }
         }
 
-        public static void Load32InfoFile(string InFileName, ref SongSettings InItem, ref string[] ThisHeaderData)
+        private static bool Load32InfoFile(string InFileName, ref SongSettings InItem)
         {
             try
             {
@@ -333,6 +333,7 @@ namespace Easislides
                             InItem.FolderNo = 1;
                         }
                         InItem.RotateString = InfoRotate;
+                        return true;
                     }
                 }
             }
@@ -341,9 +342,10 @@ namespace Easislides
                 Trace.WriteLine($"Load32InfoFile failed: {ex.Message}");
                 Trace.WriteLine(ex.StackTrace);
             }
+            return false;
         }
 
-        public static void LoadInfoFile(string InFileName, ref SongSettings InItem, ref string[] ThisHeaderData)
+        public static bool LoadInfoFile(string InFileName, ref SongSettings InItem)
         {
             XmlTextReader reader = null;
             try
@@ -352,18 +354,20 @@ namespace Easislides
                 if (Gf.ValidateEasiSlidesXML(ref reader))
                 {
                     string itemID = InItem.ItemID;
-                    Gf.ExtractEasiSlidesXMLItem(ref reader, ref InItem);
+                    bool loaded = Gf.ExtractEasiSlidesXMLItem(ref reader, ref InItem);
                     InItem.ItemID = itemID;
+                    return loaded;
                 }
                 else
                 {
-                    Load32InfoFile(InFileName, ref InItem, ref ThisHeaderData);
+                    return Load32InfoFile(InFileName, ref InItem);
                 }
             }
             catch (Exception ex)
             {
                 Trace.WriteLine($"LoadInfoFile failed: {ex.Message}");
                 Trace.WriteLine(ex.StackTrace);
+                return false;
             }
             finally
             {

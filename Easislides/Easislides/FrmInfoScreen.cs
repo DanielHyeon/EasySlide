@@ -1562,7 +1562,7 @@ namespace Easislides
 			string OutText = "";
 			string OutText2 = "";
 			Title2IgnoreChange = true;
-            gfFileHelpers.LoadInfoFile(InFileName, ref Gf.InfoItem1, ref Info_HeaderData);
+            gfFileHelpers.LoadInfoFile(InFileName, ref Gf.InfoItem1);
 			Gf.InfoItem1.Show_LicAdminInfo1 = Gf.InfoItem1.In_LicAdminInfo1;
 			Gf.InfoItem1.Show_LicAdminInfo2 = Gf.InfoItem1.In_LicAdminInfo2;
 			ThisItemFileName = Gf.GetDisplayNameOnly(ref InFileName, UpdateByRef: false);

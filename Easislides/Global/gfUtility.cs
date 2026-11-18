@@ -784,8 +784,7 @@ namespace Easislides
 			else if (a == "I")
 			{
 				InItem.Type = "I";
-				string[] ThisHeaderData = new string[255];
-				gfFileHelpers.LoadInfoFile(InFileName, ref InItem, ref ThisHeaderData);
+				gfFileHelpers.LoadInfoFile(InFileName, ref InItem);
 				InItem.CurSlide = StartingSlide;
 				InItem.Path = DataUtil.Mid(InIDString, 1);
 			}
@@ -1726,35 +1725,28 @@ namespace Easislides
 
 		public static bool ExtractEasiSlidesXMLItem(ref XmlTextReader reader, ref SongSettings InItem)
 		{
-			string text = "";
-			string text2 = "";
-			bool flag = false;
+			bool hasFields = false;
 			InItem.Type = "I";
-			if (MoveToXMLItemElement(ref reader))
+			if (!MoveToXMLItemElement(ref reader) || reader.IsEmptyElement || !reader.Read())
+				return false;
+			while (!reader.EOF)
 			{
-				while (reader.Read())
+				if (reader.NodeType == XmlNodeType.Element)
 				{
-					text2 = "";
-					switch (reader.NodeType)
-					{
-						case XmlNodeType.Element:
-							text = reader.Name;
-							text2 = reader.ReadElementContentAsObject().ToString();
-							AssignElementToItem(ref InItem, text, text2);
-							flag = true;
-							break;
-						case XmlNodeType.EndElement:
-							text = reader.Name;
-							if (reader.Name == "Item")
-							{
-								InItem.In_LicAdminInfo1 = InItem.Show_LicAdminInfo1;
-								InItem.In_LicAdminInfo2 = InItem.Show_LicAdminInfo2;
-								LoadLicAdminDisplayInfo(ref InItem.Show_LicAdminInfo1, ref InItem.Show_LicAdminInfo2);
-								return flag ? true : false;
-							}
-							break;
-					}
+					string name = reader.Name;
+					string value = reader.ReadElementContentAsString();
+					AssignElementToItem(ref InItem, name, value);
+					hasFields = true;
+					continue; // ReadElementContentAsString already advanced to the next node.
 				}
+				if (reader.NodeType == XmlNodeType.EndElement && reader.Name == "Item")
+				{
+					InItem.In_LicAdminInfo1 = InItem.Show_LicAdminInfo1;
+					InItem.In_LicAdminInfo2 = InItem.Show_LicAdminInfo2;
+					LoadLicAdminDisplayInfo(ref InItem.Show_LicAdminInfo1, ref InItem.Show_LicAdminInfo2);
+					return hasFields;
+				}
+				reader.Read();
 			}
 			return false;
 		}
@@ -1762,7 +1754,7 @@ namespace Easislides
 		public static void GetTitle2AndFormatFromInfoFile(string InFileName, ref string Title2, ref string FormatString)
 		{
 			InitialiseIndividualData(ref TempItem1);
-			gfFileHelpers.LoadInfoFile(InFileName, ref TempItem1, ref tempHeaderData);
+			gfFileHelpers.LoadInfoFile(InFileName, ref TempItem1);
 			Title2 = TempItem1.Title2;
 			FormatString = TempItem1.Format.FormatString;
 		}

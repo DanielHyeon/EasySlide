@@ -1006,7 +1006,6 @@ namespace Easislides
 		{
 			try
 			{
-				reader.Read();
 				while (reader.Read())
 				{
 					if ((reader.NodeType == XmlNodeType.Element) & (reader.Name == XMLNode_EasiSlides))

@@ -15,7 +15,6 @@ using DbCommandBuilder = System.Data.SQLite.SQLiteCommandBuilder;
 using DbConnection = System.Data.SQLite.SQLiteConnection;
 using DbDataAdapter = System.Data.SQLite.SQLiteDataAdapter;
 using DbDataReader = System.Data.SQLite.SQLiteDataReader;
-using DbParameter = System.Data.SQLite.SQLiteParameter;
 using DbTransaction = System.Data.SQLite.SQLiteTransaction;
 
 namespace Easislides
@@ -388,103 +387,56 @@ namespace Easislides
 			return false;
 		}
 
-		public static int ReFileSelectedSongs(ref ListView InListView, int CurFolder, int NewFolder, ref int[] RefileSongs, bool UpdateModifiedDate)
+		public static HashSet<int> ReFileSelectedSongs(ListView songs, int currentFolder, int newFolder, bool updateModifiedDate, string connectionString)
 		{
-			RefileSongs[0] = 0;
+			HashSet<int> movedIds = [];
+			if (songs.SelectedItems.Count == 0)
+				return movedIds;
+
+			List<ListViewItem> movedRows = [];
 			try
 			{
-				List<SongRefileUpdate> updates = new List<SongRefileUpdate>();
-				HashSet<int> songIds = new HashSet<int>();
+				using DbConnection connection = DbController.GetDbConnection(connectionString);
+				using DbTransaction transaction = connection.BeginTransaction();
+				string sql = updateModifiedDate
+					? "UPDATE SONG SET OldFolder = @old, FolderNo = @folder, LastModified = @date WHERE SongID = @id"
+					: "UPDATE SONG SET OldFolder = @old, FolderNo = @folder WHERE SongID = @id";
+				using DbCommand command = new(sql, connection, transaction);
+				command.Parameters.Add("@old", DbType.Int32).Value = currentFolder;
+				var folder = command.Parameters.Add("@folder", DbType.Int32);
+				var id = command.Parameters.Add("@id", DbType.Int32);
+				if (updateModifiedDate)
+					command.Parameters.Add("@date", DbType.String).Value = DataUtil.ToStoredDate(DateTime.Now);
 
-				for (int num = InListView.Items.Count - 1; num >= 0; num--)
+				foreach (ListViewItem item in songs.SelectedItems)
 				{
-					if (InListView.Items[num].Selected)
-					{
-						string songIdText;
-						int targetFolder;
-						if (CurFolder == 0)
-						{
-							songIdText = InListView.Items[num].SubItems[3].Text;
-							targetFolder = DataUtil.StringToInt(InListView.Items[num].SubItems[1].Text);
-						}
-						else
-						{
-							string text3 = InListView.Items[num].SubItems[1].Text;
-							songIdText = DataUtil.Right(text3, text3.Length - 1);
-							targetFolder = NewFolder;
-						}
+					string key = item.SubItems[1].Text;
+					if (key.Length == 0)
+						continue;
+					ReadOnlySpan<char> idText = currentFolder == 0 ? item.SubItems[3].Text : key.AsSpan(1);
+					if (!int.TryParse(idText, out int songId))
+						continue;
 
-						int songId = DataUtil.StringToInt(songIdText);
-						songIds.Add(songId);
-						updates.Add(new SongRefileUpdate
-						{
-							SongId = songId,
-							NewFolder = targetFolder,
-							OldFolder = CurFolder,
-							Item = InListView.Items[num]
-						});
+					folder.Value = currentFolder == 0 ? DataUtil.StringToInt(key) : newFolder;
+					id.Value = songId;
+					if (command.ExecuteNonQuery() > 0)
+					{
+						movedRows.Add(item);
+						movedIds.Add(songId);
 					}
 				}
-
-				if (updates.Count == 0)
-				{
-					return 0;
-				}
-
-				StringBuilder idBuilder = new StringBuilder();
-				foreach (int id in songIds)
-				{
-					if (idBuilder.Length > 0)
-					{
-						idBuilder.Append(",");
-					}
-					idBuilder.Append(id);
-				}
-
-				string sQuery = "select * from SONG where SONGID in (" + idBuilder + ")";
-
-				using DbConnection connection = DbController.GetDbConnection(ConnectStringMainDB);
-				using DataTable dataTable = DbController.GetDataTable(connection, sQuery);
-
-				if (dataTable == null || dataTable.Rows.Count == 0)
-				{
-					return 0;
-				}
-
-				DataColumn[] primarykey = new DataColumn[] { dataTable.Columns["SONGID"] };
-				dataTable.PrimaryKey = primarykey;
-
-				foreach (SongRefileUpdate update in updates)
-				{
-					try
-					{
-						DataRow dr = dataTable.Rows.Find(update.SongId);
-						if (dr != null)
-						{
-							dr["OldFolder"] = update.OldFolder;
-							dr["FolderNo"] = update.NewFolder;
-							if (UpdateModifiedDate)
-							{
-								dr["LastModified"] = DataUtil.ToStoredDate(DateTime.Now);
-							}
-							update.Item.Remove();
-							RefileSongs[0]++;
-							RefileSongs[RefileSongs[0]] = update.SongId;
-						}
-					}
-					catch (Exception ex)
-					{
-						Trace.WriteLine($"ERROR : {ex.Message}, {ex.StackTrace}");
-					}
-				}
-
-				DbController.UpdateTable(connection, sQuery, dataTable);
+				transaction.Commit();
 			}
 			catch (Exception ex)
 			{
-				Trace.WriteLine($"ERROR : {ex.Message}, {ex.StackTrace}");
+				Trace.WriteLine($"ReFileSelectedSongs failed: {ex}");
+				return [];
 			}
-			return RefileSongs[0];
+
+			// Keep the source selection intact if the transaction rolls back.
+			for (int i = movedRows.Count - 1; i >= 0; i--)
+				movedRows[i].Remove();
+			return movedIds;
 		}
 
 		public static int ReFileSelectedSongs(ref ListView InListView)
@@ -564,72 +516,6 @@ namespace Easislides
 				Trace.WriteLine($"ERROR : {ex.Message}, {ex.StackTrace}");
 			}
 			return InListView.CheckedItems.Count;
-		}
-
-		public static int ReFileSelectedSongsADO(ref ListView.SelectedListViewItemCollection SongItems, int CurFolder, int NewFolder, ref int[] RefileSongs, bool UpdateModifiedDate)
-		{
-			RefileSongs[0] = 0;
-			try
-			{
-				using (DbConnection connection = DbController.GetDbConnection(ConnectStringMainDB))
-				{
-					using DbTransaction transaction = connection.BeginTransaction();
-					string text = UpdateModifiedDate
-						? "Update SONG SET OldFolder = @OldFolder, FolderNo = @FolderNo, LastModified = @LastModified where songid = @SongId"
-						: "Update SONG SET OldFolder = @OldFolder, FolderNo = @FolderNo where songid = @SongId";
-					using DbCommand command = new DbCommand(text, connection, transaction);
-					DbParameter oldFolderParam = command.Parameters.Add("@OldFolder", DbType.Int32);
-					DbParameter folderNoParam = command.Parameters.Add("@FolderNo", DbType.Int32);
-					DbParameter songIdParam = command.Parameters.Add("@SongId", DbType.Int32);
-					DbParameter lastModifiedParam = null;
-					if (UpdateModifiedDate)
-					{
-						lastModifiedParam = command.Parameters.Add("@LastModified", DbType.String);
-					}
-					for (int num = SongItems.Count - 1; num >= 0; num--)
-					{
-						try
-						{
-							string songIdText;
-							int targetFolder;
-							if (CurFolder == 0)
-							{
-								songIdText = SongItems[num].SubItems[3].Text;
-								targetFolder = DataUtil.StringToInt(SongItems[num].SubItems[1].Text);
-							}
-							else
-							{
-								string text3 = SongItems[num].SubItems[1].Text;
-								songIdText = DataUtil.Right(text3, text3.Length - 1);
-								targetFolder = NewFolder;
-							}
-
-							int songId = DataUtil.StringToInt(songIdText);
-							oldFolderParam.Value = CurFolder;
-							folderNoParam.Value = targetFolder;
-							songIdParam.Value = songId;
-							if (UpdateModifiedDate && lastModifiedParam != null)
-							{
-								lastModifiedParam.Value = DataUtil.ToStoredDate(DateTime.Now);
-							}
-							command.ExecuteNonQuery();
-							SongItems[num].Remove();
-							RefileSongs[0]++;
-							RefileSongs[RefileSongs[0]] = songId;
-						}
-						catch (Exception e)
-						{
-							Trace.WriteLine($"ERROR : {e.Message}, {e.StackTrace}");
-						}
-					}
-					transaction.Commit();
-				}
-			}
-			catch (Exception ex)
-			{
-				Trace.WriteLine($"ERROR : {ex.Message}, {ex.StackTrace}");
-			}
-			return RefileSongs[0];
 		}
 
 		public static bool SwapFolderNumbers(ListView InFolderOrder)

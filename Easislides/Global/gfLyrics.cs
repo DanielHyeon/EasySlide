@@ -3412,26 +3412,58 @@ namespace Easislides
 
 		public static bool SaveXMLInfoScreen(SongSettings InItem, string InFileName, string[] InHeaderData, bool ReloadImageData, bool UseOriginalNotations)
 		{
-			XmlTextWriter xtw = null;
-
 			try
 			{
-				xtw = new XmlTextWriter(InFileName, Encoding.UTF8);
-				xtw.Formatting = Formatting.Indented;
-				xtw.WriteStartDocument();
-				xtw.WriteStartElement("EasiSlides");
-				WriteXMLOneItem(ref xtw, InItem, InHeaderData, ReloadImageData, UseOriginalNotations);
-				xtw.WriteEndDocument();
-				xtw.Flush();
-				xtw.Dispose();
-				return true;
+				using var writer = new XmlTextWriter(InFileName, Encoding.UTF8);
+				return WriteInfoScreenDocument(writer, InItem, InHeaderData, ReloadImageData, UseOriginalNotations);
 			}
 			catch
 			{
-				if (xtw != null)
-					xtw.Dispose();
 				return false;
 			}
+		}
+
+		internal static string SaveInfoScreenCopy(SongSettings song, string directory)
+		{
+			string title = MakeTitleValidFileName(song.Title);
+			string temp = Path.Combine(directory, Path.GetRandomFileName());
+			var stream = new FileStream(temp, FileMode.CreateNew, FileAccess.Write, FileShare.None);
+			try
+			{
+				using (stream)
+				using (var writer = new XmlTextWriter(stream, Encoding.UTF8))
+				{
+					if (!WriteInfoScreenDocument(writer, song, null, false, false))
+						return "";
+				}
+
+				for (int copy = 0; ; copy++)
+				{
+					string name = copy == 0 ? title : $"{title} - Copy ({copy})";
+					string path = Path.Combine(directory, name + ".esi");
+					try
+					{
+						File.Move(temp, path);
+						return path;
+					}
+					catch (IOException) when (File.Exists(path)) { }
+				}
+			}
+			finally
+			{
+				File.Delete(temp);
+			}
+		}
+
+		private static bool WriteInfoScreenDocument(XmlTextWriter writer, SongSettings song, string[] header, bool reloadImage, bool originalNotations)
+		{
+			writer.Formatting = Formatting.Indented;
+			writer.WriteStartDocument();
+			writer.WriteStartElement("EasiSlides");
+			if (!WriteXMLOneItem(ref writer, song, header, reloadImage, originalNotations))
+				return false;
+			writer.WriteEndDocument();
+			return true;
 		}
 
 		public static void WriteXMLOneItem(ref XmlTextWriter xtw, SongSettings InItem, string[] InHeaderData, bool ReloadImageData)
@@ -3439,7 +3471,7 @@ namespace Easislides
 			WriteXMLOneItem(ref xtw, InItem, InHeaderData, ReloadImageData, UseOriginalNotations: true);
 		}
 
-		public static void WriteXMLOneItem(ref XmlTextWriter xtw, SongSettings InItem, string[] InHeaderData, bool ReloadImageData, bool UseOriginalNotations)
+		private static bool WriteXMLOneItem(ref XmlTextWriter xtw, SongSettings InItem, string[] InHeaderData, bool ReloadImageData, bool UseOriginalNotations)
 		{
 			string formatData = InItem.Format.FormatString;
 			if (InHeaderData != null)
@@ -3485,9 +3517,11 @@ namespace Easislides
 					xtw.WriteElementString("Image", InItem.Format.ImageString);
 				}
 				xtw.WriteEndElement();
+				return true;
 			}
 			catch
 			{
+				return false;
 			}
 		}
 
