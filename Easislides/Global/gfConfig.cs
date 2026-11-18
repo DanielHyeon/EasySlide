@@ -314,17 +314,31 @@ namespace Easislides
 			InitializeItemInstances();
 			SetListViewColumns(ListViewNotations, 5);
 			
-			var task1 = Task.Run(() =>
+			// Each wrapper attaches on its own: one failure (PowerPoint slow to start) must not leave the others
+			// unattached. Wrappers that stay unattached attach lazily on the UI thread when first needed.
+			_ = Task.Run(() =>
 			{
-				LivePP.Init();
-				PreviewPPT.Init();
-				OutputPPT.Init();
-				ExternalPPT.Init();
+				AttachAtStartup(LivePP, nameof(LivePP));
+				AttachAtStartup(PreviewPPT, nameof(PreviewPPT));
+				AttachAtStartup(OutputPPT, nameof(OutputPPT));
+				AttachAtStartup(ExternalPPT, nameof(ExternalPPT));
 			});
 
 			SetPatternPeriod();
 
 			return true;
+		}
+
+		private static void AttachAtStartup(OfficeLib.PowerPoint wrapper, string name)
+		{
+			try
+			{
+				wrapper.Init();
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"[PPTInit] Start-up attach of {name} failed: {ex.Message}");
+			}
 		}
 
 		public static void ValidateID()

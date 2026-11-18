@@ -57,22 +57,47 @@ namespace OfficeLib
 		private readonly Dictionary<string, string> _fileHashCache = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 		private readonly object _fileHashCacheLock = new object();
 
+		/// <summary>
+		/// Attaches this wrapper to PowerPoint when it is not attached yet. A wrapper that already holds a live
+		/// reference keeps it (EnsureAttached replaces one that no longer answers). The start-up attach runs on a
+		/// worker thread while the UI thread may attach the same wrapper lazily: the first reference stored wins
+		/// and the other is released, so no reference is orphaned (an orphaned one keeps PowerPoint alive after
+		/// the app exits). Throws when PowerPoint cannot be started.
+		/// </summary>
         public void Init()
 		{
+			Application existing = prePowerPointApp;
+			if (existing != null && !existing.IsDisposed)
+			{
+				return;
+			}
 			using PowerPointGate gate = PowerPointGate.Enter(PowerPointCallWeight.Heavy, "attach to PowerPoint");
 			if (gate == null)
 			{
 				Console.WriteLine("Init: PowerPoint is not responding; not attached");
 				return;
 			}
+			Application created;
 			try
 			{
-				prePowerPointApp = new Application();
+				created = new Application();
 			}
 			catch (Exception ex)
 			{
 				Console.WriteLine($"Error initializing PowerPoint Application: {ex.Message}");
 				throw;
+			}
+			if (!ReferenceEquals(Interlocked.CompareExchange(ref prePowerPointApp, created, existing), existing))
+			{
+				// Another thread attached this wrapper meanwhile: keep its reference, release this one.
+				try
+				{
+					created.Dispose();
+				}
+				catch (Exception ex)
+				{
+					Console.WriteLine($"Error releasing a duplicate PowerPoint reference: {ex.Message}");
+				}
 			}
 		}
 
@@ -1328,7 +1353,9 @@ namespace OfficeLib
 				}
 				catch (Exception ex)
 				{
-					if (IsPowerPointBusy(ex))
+					// Busy, or the call was cancelled by the time limit: PowerPoint is still there, so the reference
+					// and the run are kept (re-attaching now would also fail: the group is given up).
+					if (IsPowerPointBusy(ex) || HasHResult(ex, RPC_E_CALL_CANCELED) || PowerPointCallLimit.CurrentAbandoned)
 					{
 						return false;
 					}
@@ -1430,6 +1457,7 @@ namespace OfficeLib
 		}
 
 		private const int RPC_E_CALL_REJECTED = unchecked((int)0x80010001);
+		private const int RPC_E_CALL_CANCELED = unchecked((int)0x80010002);
 		private const int RPC_E_SERVERCALL_RETRYLATER = unchecked((int)0x8001010A);
 		private const int RPC_E_DISCONNECTED = unchecked((int)0x80010108);
 		private const int RPC_S_SERVER_UNAVAILABLE = unchecked((int)0x800706BA);
@@ -3311,13 +3339,29 @@ private void UpdateImageBuildCache(string FilePath, string FilePrefix, int Total
 			{
 				return true; // this version was exported before (or an earlier export finished late)
 			}
-			if (failedFirstScreenDumps.Contains(previewPath) || prePowerPointApp == null || firstScreenDumpRunning)
+			if (failedFirstScreenDumps.Contains(previewPath) || firstScreenDumpRunning)
 			{
 				return false;
 			}
 			firstScreenDumpRunning = true;
 			try
 			{
+				if (prePowerPointApp == null)
+				{
+					// Not attached at start-up (PowerPoint failed to start then): attach now, on the UI thread.
+					try
+					{
+						Init();
+					}
+					catch (Exception ex)
+					{
+						Console.WriteLine($"BuildOneFirstScreenDump: attaching to PowerPoint failed: {ex.Message}");
+					}
+					if (prePowerPointApp == null)
+					{
+						return false;
+					}
+				}
 				using PowerPointGate gate = PowerPointGate.Enter(PowerPointCallWeight.Heavy, "build the first slide image of " + Path.GetFileName(presentationPath));
 				if (gate == null)
 				{
