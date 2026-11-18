@@ -832,7 +832,7 @@ namespace Easislides
 			switch (strExt)
 			{
 				case ".doc":
-				case "*.docx":
+				case ".docx":
 					inLyrics = Gf.GetOfficeDocContents(InFileName);
 					contentsLoaded = true;
 					break;
