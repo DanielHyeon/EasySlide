@@ -174,10 +174,12 @@ namespace Easislides
 						DsError.ThrowExceptionForHR(num);
 						num = videoWindow.put_WindowStyle(WindowStyle.Child | WindowStyle.ClipSiblings | WindowStyle.ClipChildren);
 						DsError.ThrowExceptionForHR(num);
+						// Position the video window before showing it, so it never
+						// appears at its default size and then jumps into place.
+						int sizeResult = InitVideoWindow();
 						num = videoWindow.put_Visible(OABool.True);
 						DsError.ThrowExceptionForHR(num);
-						num = InitVideoWindow();
-						DsError.ThrowExceptionForHR(num);
+						DsError.ThrowExceptionForHR(sizeResult);
 						GetFrameStepInterface();
 					}
 					catch
@@ -348,8 +350,10 @@ namespace Easislides
 			Media_Width = pWidth;
 			Media_Height = pHeight;
 			DebugMessage("Final Media Size: " + Media_Width + " " + Media_Height);
+			// Setting Dock lays the control out synchronously. Application.DoEvents()
+			// used to follow here; it let queued input (e.g. the media hot keys) re-enter
+			// OpenClip/CloseClip while the graph was still being built.
 			Dock = DockStyle.Fill;
-			Application.DoEvents();
 			num = videoWindow.SetWindowPosition(left, top, num6, num7);
 			OABool hideCursor = OABool.True;
 			videoWindow.HideCursor(hideCursor);
@@ -633,9 +637,54 @@ namespace Easislides
 
 		public void ResumeFromStart()
 		{
-			StopClip();
 			ResumeFromPreviousPosition = false;
+			if (TryRestartLoadedClip())
+			{
+				return;
+			}
+			StopClip();
 			OpenClip();
+		}
+
+		/// <summary>
+		/// Rewinds the clip that is already loaded and runs it again. Going through
+		/// OpenClip instead would close the graph, hide the video window and render
+		/// the file again, which blanks the output for a moment.
+		/// </summary>
+		private bool TryRestartLoadedClip()
+		{
+			if (mediaControl == null || mediaSeeking == null)
+			{
+				return false;
+			}
+			if (newFilename == string.Empty || newFilename != curFilename || IsCaptureSource(newFilename))
+			{
+				return false;
+			}
+			try
+			{
+				mediaControl.Stop();
+				DsLong start = new DsLong(0L);
+				if (mediaSeeking.SetPositions(start, AMSeekingSeekingFlags.AbsolutePositioning, null, AMSeekingSeekingFlags.NoPositioning) < 0)
+				{
+					return false;
+				}
+				if (mediaControl.Run() < 0)
+				{
+					return false;
+				}
+			}
+			catch
+			{
+				return false;
+			}
+			SetPlayState(PlayState.Running);
+			return true;
+		}
+
+		private static bool IsCaptureSource(string fileName)
+		{
+			return DataUtil.Left(fileName, "<<Capture>>".Length) == "<<Capture>>";
 		}
 
 		public int GetCurrentPosition()
@@ -781,10 +830,10 @@ namespace Easislides
 				DsError.ThrowExceptionForHR(num);
 				num = videoWindow.put_WindowStyle(WindowStyle.Child | WindowStyle.ClipSiblings | WindowStyle.ClipChildren);
 				DsError.ThrowExceptionForHR(num);
+				int sizeResult = InitVideoWindow();
 				num = videoWindow.put_Visible(OABool.True);
 				DsError.ThrowExceptionForHR(num);
-				num = InitVideoWindow();
-				DsError.ThrowExceptionForHR(num);
+				DsError.ThrowExceptionForHR(sizeResult);
 				GetFrameStepInterface();
 				num = mediaControl.Run();
 				DsError.ThrowExceptionForHR(num);

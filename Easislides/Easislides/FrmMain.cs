@@ -6806,18 +6806,16 @@ namespace Easislides
                 _mediaPlayerWindow.BringToFront();
                 _mediaPlayerWindow.Activate();
 
-                // 미디어 로드 및 재생
-                int result = _mediaPlayerWindow.Remote_LoadItem();
+                // Load and play in one go. Loading paused and then calling
+                // Remote_ResumeItemFromStart tore the graph down and rebuilt it,
+                // which blanked the output once before the video started.
+                int result = _mediaPlayerWindow.Remote_PlayItem();
                 if (result == 0)
                 {
                     MessageBox.Show("Failed to load media file: " + mediaFilePath + "\n\nPlease check if DirectShow is installed and the file format is supported.");
                 }
                 else
                 {
-                    // 재생 시작
-                    System.Threading.Thread.Sleep(500);
-                    _mediaPlayerWindow.Remote_ResumeItemFromStart();
-
                     // 재생 시작 후에도 최상위 유지
                     SetWindowPos(handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
                     SetForegroundWindow(handle);

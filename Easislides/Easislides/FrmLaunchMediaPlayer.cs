@@ -239,6 +239,20 @@ namespace Easislides
 			return 0;
 		}
 
+		/// <summary>
+		/// Loads the live item's media and leaves it running. Unlike Remote_LoadItem,
+		/// which pauses on the first frame so the item can be started later, this
+		/// builds the DirectShow graph once and plays it straight away.
+		/// </summary>
+		public int Remote_PlayItem()
+		{
+			if (Gf.WMP_Present)
+			{
+				return LoadMedia(ResumeFromPreviousPosition: false, FirstLoad: false);
+			}
+			return 0;
+		}
+
 		public int Remote_ResumeItem()
 		{
 			if (Gf.WMP_Present)
