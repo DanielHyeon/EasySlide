@@ -384,11 +384,12 @@ namespace Easislides
 								string InString = Gf.DocumentSongs[CurrentSong].NumberAndInfo;
 								DataUtil.ExtractOneInfo(ref InString, '>');
 								InTransposeOffset = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref InString, '>', RemoveExtract: false, MinusOneIfBlank: false), Minus1IfBlank: false);
-								if (InTransposeOffset != 0)
+								// Same condition and offset as the chord transposition in AddtoRTF, so the
+								// printed key always matches the printed chords.
+								if (InTransposeOffset > 0)
 								{
 									int CurPos = 0;
-									string InKey = DocItem.MusicKey;
-									Gf.TransposeKey(ref InKey, Gf.IncrementChord(ref CurPos, InTransposeOffset));
+									Gf.TransposeKey(ref musicKey, Gf.IncrementChord(ref CurPos, InTransposeOffset));
 								}
 							}
 							string keyLine = ((Gf.PB_ShowKey != 1) ? "" : ((musicKey != "") ? ("Key: " + musicKey + " ") : "")) + (((Gf.PB_ShowCapo == 1) && (Gf.PB_CapoZero < 1)) ? ((capo > 0) ? ("Capo " + Convert.ToString(capo) + " ") : "") : "") + ((Gf.PB_ShowTiming != 1) ? "" : ((DocItem.Timing != "") ? ("(" + DocItem.Timing + ")") : ""));
