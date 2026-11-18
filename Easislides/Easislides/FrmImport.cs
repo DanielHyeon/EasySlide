@@ -1368,7 +1368,7 @@ namespace Easislides
 					}
 				}
 			}
-			Gf.InitialiseIndividualData(ref ImportItem);
+			Gf.InitialiseIndividualData(ref InItem);
 			if (songNo <= 0)
 			{
 				return;
