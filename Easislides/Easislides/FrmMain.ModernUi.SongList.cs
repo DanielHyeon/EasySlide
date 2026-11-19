@@ -263,13 +263,12 @@ namespace Easislides
         /// <summary>Songs of the folder, counted as FillList lists them without a filter; -1 when unknown.</summary>
         private static int CountSongFolderRows(int folderNumber)
         {
-            string folder = " and FolderNo=" + Convert.ToString(folderNumber);
-            string query = $"select Count(*) from SONG where (lower(Title_1) like \"%\" {folder}) or (lower(Title_2) like \"%\" {folder})";
+            const string query = "select count(*) from SONG where FolderNo=@folder and (Title_1 is not null or Title_2 is not null)";
             try
             {
                 DbConnection connection;
                 DbDataReader reader;
-                (connection, reader) = DbController.GetDataReader(Gf.ConnectStringMainDB, query);
+                (connection, reader) = DbController.GetDataReader(Gf.ConnectStringMainDB, query, ("@folder", folderNumber));
                 using (connection)
                 using (reader)
                 {

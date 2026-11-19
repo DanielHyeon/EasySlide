@@ -37,7 +37,7 @@ public partial class ImportExportWindow : Window
 
         var dialog = new OpenFileDialog
         {
-            Filter = "EasiSlides/XML (*.esf;*.est;*.esn;*.xml)|*.esf;*.est;*.esn;*.xml|Access Database (*.mdb)|*.mdb|All files (*.*)|*.*",
+            Filter = "EasiSlides (*.esf;*.est;*.esn;*.xml;*.json)|*.esf;*.est;*.esn;*.xml;*.json|Access Database (*.mdb)|*.mdb|All files (*.*)|*.*",
             InitialDirectory = ResolveInitialDirectory(viewModel.ImportSourcePath, viewModel.WorkingFolder),
             CheckFileExists = true,
         };
@@ -131,6 +131,7 @@ public partial class ImportExportWindow : Window
     private static string GetExportFilter(ExportFormat format)
         => format switch
         {
+            ExportFormat.Json => "EasiSlides JSON (*.json)|*.json",
             ExportFormat.EasiSlidesText => "EasiSlides Text (*.esn)|*.esn",
             ExportFormat.EasiSlidesDatabase => "EasiSlides Database (*.esf)|*.esf",
             ExportFormat.Rtf => "Rich Text (*.rtf)|*.rtf",
@@ -140,6 +141,7 @@ public partial class ImportExportWindow : Window
     private static string GetExportExtension(ExportFormat format)
         => format switch
         {
+            ExportFormat.Json => ".json",
             ExportFormat.EasiSlidesText => ".esn",
             ExportFormat.EasiSlidesDatabase => ".esf",
             ExportFormat.Rtf => ".rtf",

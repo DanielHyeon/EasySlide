@@ -2062,8 +2062,8 @@ namespace Easislides
         // InMusicOnly of the last Find whose results are shown ("Search Results:"), to refill them in another order.
         private bool searchResultsMusicOnly;
 
-        // The search statement (Gf.Find_SQLString at that time) of the shown "Search Results:".
-        private string searchResultsSql;
+        // The search statement (Gf.FindSongQuery at that time) of the shown "Search Results:".
+        private BoundQuery searchResultsSql;
 
         private static string FolderSortToolTip(SortBy mode)
         {
@@ -2144,15 +2144,15 @@ namespace Easislides
             if (folderNumber <= 0)
             {
                 // No folder: only the shown search results can be re-sorted, and only from the query that
-                // produced them (Gf.Find_SQLString may have been cleared or replaced by the Find dialog since).
+                // produced them (Gf.FindSongQuery may have been cleared or replaced by the Find dialog since).
                 // Without it the list and the button stay as they are.
-                if (SongFolder.Text != SongSearchResultsFolder || string.IsNullOrEmpty(searchResultsSql))
+                if (SongFolder.Text != SongSearchResultsFolder || searchResultsSql == null)
                 {
                     return;
                 }
                 SetSortButton(mode);
-                string findSql = Gf.Find_SQLString;
-                Gf.Find_SQLString = searchResultsSql;
+                var findSql = Gf.FindSongQuery;
+                Gf.FindSongQuery = searchResultsSql;
                 try
                 {
                     SongsList.Items.Clear();
@@ -2160,7 +2160,7 @@ namespace Easislides
                 }
                 finally
                 {
-                    Gf.Find_SQLString = findSql;
+                    Gf.FindSongQuery = findSql;
                 }
                 return;
             }
@@ -2233,7 +2233,7 @@ namespace Easislides
                 }
                 Gf.FindBibleVerses = true;
                 Gf.FindFolderItems = false;
-                Gf.HB_SQLString = Gf.BuildBibleSearchString(inText, TabBibleVersions.SelectedIndex);
+                Gf.BibleSearchQuery = Gf.BuildBibleSearchQuery(inText, TabBibleVersions.SelectedIndex);
                 BibleVerseSearch();
             }
         }
@@ -4867,7 +4867,7 @@ namespace Easislides
                     int folderNo = 0;
                     try
                     {
-                        using DbCommand comm = new DbCommand($"Select FolderNo From SONG Where SONGID={idValue}", connection);
+                        using DbCommand comm = DbController.CreateCommand(connection, "Select FolderNo From SONG Where SONGID=@id", ("@id", idValue));
 
                         object objValue = comm.ExecuteScalar();
 
@@ -5377,7 +5377,7 @@ namespace Easislides
                     if (key.Length < 2 || !int.TryParse(key.AsSpan(1), out int songId))
                         continue;
 
-                    using DataTable table = DbController.GetDataTable(connectionString, $"select * from SONG where songid={songId}");
+                    using DataTable table = DbController.GetDataTable(connectionString, "select * from SONG where songid=@id", ("@id", songId));
                     if (table == null || table.Rows.Count == 0)
                         continue;
 
@@ -6083,7 +6083,7 @@ namespace Easislides
             {
                 Gf.FindFolderItems = true;
                 Gf.FindBibleVerses = false;
-                Gf.Find_SQLString = Gf.BuildItemSearchString(Main_QuickFind.Text) + " and folderno > 0";
+                Gf.FindSongQuery = Gf.BuildItemSearchQuery(Main_QuickFind.Text, activeFoldersOnly: true);
                 Do_Find(InMusicOnly: false);
             }
             else if (IsSelectedTab(tabControlSource, "tabBibles"))
@@ -6095,7 +6095,7 @@ namespace Easislides
                 }
                 Gf.FindBibleVerses = true;
                 Gf.FindFolderItems = false;
-                Gf.HB_SQLString = Gf.BuildBibleSearchString(Main_QuickFind.Text, TabBibleVersions.SelectedIndex);
+                Gf.BibleSearchQuery = Gf.BuildBibleSearchQuery(Main_QuickFind.Text, TabBibleVersions.SelectedIndex);
                 BibleVerseSearch();
             }
             if (Main_QuickFind.Items.Count == 0 || Main_QuickFind.Text != Main_QuickFind.Items[0].ToString())
@@ -6138,10 +6138,10 @@ namespace Easislides
                 statusStripMain.Items[0].Text = "";
                 statusStripMain.Items[0].ToolTipText = "";
                 searchResultsMusicOnly = InMusicOnly;
-                searchResultsSql = Gf.Find_SQLString;
+                searchResultsSql = Gf.FindSongQuery;
                 FillList(-1, "", InMusicOnly);
             }
-            else if (Gf.HB_SQLString != "")
+            else if (Gf.BibleSearchQuery != null)
             {
                 BibleVerseSearch();
             }
@@ -6157,8 +6157,8 @@ namespace Easislides
             BibleText.Text = "";
             HB_CurSelectedPassages = "";
             HB_CurSelectedTitle = "";
-            Gf.SearchBiblePassages(TabBibleVersions.SelectedIndex, ref BookLookup, Gf.HB_SQLString, ref BibleText, Gf.HB_ShowVerses);
-            Gf.HB_SQLString = "";
+            Gf.SearchBiblePassages(TabBibleVersions.SelectedIndex, ref BookLookup, Gf.BibleSearchQuery, ref BibleText, Gf.HB_ShowVerses);
+            Gf.BibleSearchQuery = null;
             Gf.HB_SequentialListing = false;
             HB_SearchInProgress = false;
             ShowStatusBarSummary();
@@ -7486,7 +7486,7 @@ namespace Easislides
                     columns = "";
                     writer = "";
 
-                    DataRow dataRow = DbController.GetDataRowScalar(connection, $"Select BOOK_REFERENCE, writer From SONG Where SONGID={songId}");
+                    DataRow dataRow = DbController.GetDataRowScalar(connection, "Select BOOK_REFERENCE, writer From SONG Where SONGID=@id", ("@id", songId));
 
                     if (dataRow != null)
                     {

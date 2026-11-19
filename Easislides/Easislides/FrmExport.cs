@@ -73,7 +73,7 @@ namespace Easislides
 		private string ValidateExportExtension(string InExtension)
 		{
 			InExtension = InExtension.ToLower();
-			return (InExtension == ".esn" || InExtension == ".xml") ? InExtension : ".xml";
+			return (InExtension == ".esn" || InExtension == ".json" || InExtension == ".xml") ? InExtension : ".xml";
 		}
 
 		private void CreateExportList()
@@ -84,28 +84,18 @@ namespace Easislides
 			if (FolderList.CheckedItems.Count >= 1)
 			{
 				ListViewItem listViewItem = new ListViewItem();
-				string dateFilter;
-				if (OptExport1.Checked)
-				{
-					// Was Access syntax (#MM-dd-yyyy#), a syntax error in SQLite: the list stayed empty.
-					dateFilter = " and " + Gf.LastModifiedBetween(CalendarFrom.Value, CalendarTo.Value);
-				}
-				else
-				{
-					dateFilter = "";
-				}
-				string exportQuery = "";
-				for (int i = 0; i < FolderList.CheckedItems.Count; i++)
-				{
-					exportQuery = ((!(exportQuery == "")) ? (exportQuery + " or FolderNo=" + Convert.ToString(Gf.GetFolderNumber(FolderList.CheckedItems[i].ToString()))) : ("select * from SONG where (FolderNo=" + Convert.ToString(Gf.GetFolderNumber(FolderList.CheckedItems[i].ToString()))));
-				}
-				exportQuery = exportQuery + ") " + dateFilter + " order by cjk_strokecount";
+				var folders = new List<int>();
+				foreach (object item in FolderList.CheckedItems)
+					folders.Add(Gf.GetFolderNumber(item.ToString()));
+				var dates = OptExport1.Checked ? Gf.LastModifiedBetween(CalendarFrom.Value, CalendarTo.Value) : null;
+				string exportQuery = $"select * from SONG where FolderNo in ({string.Join(",", folders)})"
+					+ (dates == null ? "" : " and " + dates.Text) + " order by cjk_strokecount";
 				int folderNumber = 0;
 				try
 				{
 					Cursor = Cursors.WaitCursor;
 
-					using DataTable datatable = DbController.GetDataTable(Gf.ConnectStringMainDB, exportQuery);
+					using DataTable datatable = DbController.GetDataTable(Gf.ConnectStringMainDB, exportQuery, dates?.Parameters ?? []);
 
 					if (datatable.Rows.Count > 0)
 					{
@@ -274,7 +264,7 @@ namespace Easislides
 
 		private void Export_FileName_Click(object sender, EventArgs e)
 		{
-			saveFileDialog1.Filter = "EasiSlides XML File (*.xml)|*.xml|EasiSlides Database File (*.esf)|*.esf|EasiSlides Text File (*.esn)|*.esn";
+			saveFileDialog1.Filter = "EasiSlides XML File (*.xml)|*.xml|EasiSlides Database File (*.esf)|*.esf|EasiSlides Text File (*.esn)|*.esn|EasiSlides JSON File (*.json)|*.json";
 			saveFileDialog1.InitialDirectory = Gf.ExportToDir;
 			string InFileName = tbExportTo.Text;
 			saveFileDialog1.FileName = Gf.GetDisplayNameOnly(ref InFileName, UpdateByRef: false, KeepExt: false);
@@ -319,6 +309,11 @@ namespace Easislides
 			string outputPath = tbExportTo.Text;
 			if (File.Exists(outputPath))
 			{
+				if (Gf.IsMainDatabaseFile(outputPath))
+				{
+					MessageBox.Show("Choose an export file other than the active song database.");
+					return;
+				}
 				if (MessageBox.Show("This will overwrite the existing document '" + outputPath + "' - OK to Continue?", "Overwrite", MessageBoxButtons.OKCancel) != DialogResult.OK)
 				{
 					MessageBox.Show("Export file NOT produced.");
@@ -326,7 +321,7 @@ namespace Easislides
 				}
 				try
 				{
-					File.Delete(outputPath);
+					if (!SongExchangeFile.IsJson(outputPath)) File.Delete(outputPath);
 				}
 				catch
 				{
@@ -342,6 +337,9 @@ namespace Easislides
 				case ".esf":
 					Export_DatabaseFormat(outputPath);
 					break;
+				case ".json":
+					ExportJson(outputPath);
+					break;
 				case ".esn":
 					Export_TextFormat(outputPath);
 					break;
@@ -354,6 +352,7 @@ namespace Easislides
 
 		private void Export_DatabaseFormat(string ExportFileName)
 		{
+			string exportConnectionString = DbController.ConnectionStringForFile(ExportFileName);
 			int progressPercent = 0;
 			string databaseTemplatePath = Application.StartupPath + "\\Sys\\Defdb.dat";
 			if (File.Exists(databaseTemplatePath))
@@ -368,18 +367,18 @@ namespace Easislides
 				ProgressBar1.Visible = true;
 				ProgressBar1.Value = 0;
 				int exportedSongId = 0;
-				if (Gf.DeleteAllFolders(Gf.ConnectStringDef + ExportFileName))
+				if (Gf.DeleteAllFolders(exportConnectionString))
 				{
 					for (int i = 0; i < FolderList.CheckedItems.Count; i++)
 					{
-						Gf.ResetFolder(Gf.GetFolderNumber(FolderList.CheckedItems[i].ToString()), FolderList.CheckedItems[i].ToString(), Gf.ConnectSQLiteDef + ExportFileName);
+						Gf.ResetFolder(Gf.GetFolderNumber(FolderList.CheckedItems[i].ToString()), FolderList.CheckedItems[i].ToString(), exportConnectionString);
 					}
 					for (int i = 0; i < checkedItems.Count; i++)
 					{
 						int songId = DataUtil.StringToInt(checkedItems[i].SubItems[1].Text);
 						if (rowMap.TryGetValue(songId, out DataRow row) && Gf.LoadDataIntoItem(ref ExportItem, row))
 						{
-							exportedSongId = Gf.InsertItemIntoDatabase(Gf.ConnectStringDef + ExportFileName, ExportItem);
+							exportedSongId = Gf.InsertItemIntoDatabase(exportConnectionString, ExportItem);
 						}
 						Update();
 						progressPercent = (i + 1) * 100 / TotSongsSel;
@@ -511,8 +510,7 @@ namespace Easislides
 					string str = "[~" + ExportItem.Notations + "]";
 					stringBuilder.Append("\r\n" + str);
 				}
-				ExportItem.CompleteLyrics.Replace("\r\n", "\n");
-				stringBuilder.Append("\r\n" + ExportItem.CompleteLyrics.Replace("\n", "\r\n"));
+				AppendLegacyTextLyrics(stringBuilder, ExportItem.CompleteLyrics);
 				exportedSongCount++;
 				Update();
 				progressPercent = (i + 1) * 100 / TotSongsSel;
@@ -530,6 +528,59 @@ namespace Easislides
 			}
 			Cursor = Cursors.Default;
 			ProgressBar1.Visible = false;
+		}
+
+		internal static void AppendLegacyTextLyrics(StringBuilder output, string lyrics)
+		{
+			output.Append("\r\n");
+			ReadOnlySpan<char> remaining = lyrics.AsSpan();
+			int lineEnd;
+			while ((lineEnd = remaining.IndexOfAny('\r', '\n')) >= 0)
+			{
+				output.Append(remaining[..lineEnd]).Append("\r\n");
+				int next = lineEnd + 1;
+				if (remaining[lineEnd] == '\r' && next < remaining.Length && remaining[next] == '\n')
+					next++;
+				remaining = remaining[next..];
+			}
+			output.Append(remaining);
+		}
+
+		private void ExportJson(string path)
+		{
+			Cursor = Cursors.WaitCursor;
+			ProgressBar1.Value = 0;
+			ProgressBar1.Visible = true;
+			try
+			{
+				Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(path)));
+				var checkedItems = GetCheckedSongItems();
+				using var table = GetSongsForExport(checkedItems);
+				var rows = BuildSongRowMap(table);
+				int exported = 0;
+				IEnumerable<ExchangeSong> SelectedSongs()
+				{
+					foreach (var item in checkedItems)
+					{
+						int id = DataUtil.StringToInt(item.SubItems[1].Text);
+						if (!rows.TryGetValue(id, out var row) || !Gf.LoadDataIntoItem(ref ExportItem, row))
+							throw new InvalidDataException("Could not read selected song " + id);
+						yield return Gf.ToExchangeSong(ExportItem, Gf.Folders[ExportItem.FolderNo].Name);
+						ProgressBar1.Value = (int)(++exported * 100L / checkedItems.Count);
+					}
+				}
+				SongExchangeFile.WriteJson(path, SelectedSongs());
+				MessageBox.Show($"Exported {exported} songs to {path}");
+			}
+			catch (Exception ex) when (SongExchangeFile.IsReadError(ex))
+			{
+				MessageBox.Show("Could not export the song file. " + ex.Message);
+			}
+			finally
+			{
+				ProgressBar1.Visible = false;
+				Cursor = Cursors.Default;
+			}
 		}
 
 		private void Export_XMLFormat(string ExportFileName)

@@ -3,7 +3,7 @@ using System;
 namespace Easislides.Global
 {
     /// <summary>
-    /// Options of the item search (Find dialog) used by Gf.BuildItemSearchString.
+    /// Options of the item search (Find dialog) used by Gf.BuildItemSearchQuery.
     /// The defaults are those of the quick find box: search every text column, no filters.
     /// </summary>
     public sealed class ItemSearchOptions

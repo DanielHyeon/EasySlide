@@ -200,9 +200,10 @@ namespace Easislides
 
 				// GetDbConnection returns an open connection; opening it again threw, so no edit was ever saved.
 				using DbConnection connection = DbController.GetDbConnection(ConnectStringMainDB);
-				string updateSongSql = "Update SONG SET Title_1 =@Title_1,Title_2 =@Title_2,song_number =@song_number,FolderNo =@FolderNo,Lyrics =@Lyrics,Sequence =@Sequence,writer =@writer,copyright =@copyright,CJK_WordCount =@CJK_WordCount,CJK_StrokeCount =@CJK_StrokeCount,capo =@capo,Timing =@Timing,[Key] =@Key,msc =@msc,CATEGORY =@CATEGORY,LICENCE_ADMIN1 =@LICENCE_ADMIN1,LICENCE_ADMIN2 =@LICENCE_ADMIN2,BOOK_REFERENCE =@BOOK_REFERENCE,USER_REFERENCE =@USER_REFERENCE,SETTINGS =@SETTINGS,FORMATDATA =@FORMATDATA,LastModified =@LastModified where songid=" + SongID;
+				string updateSongSql = "Update SONG SET Title_1 =@Title_1,Title_2 =@Title_2,song_number =@song_number,FolderNo =@FolderNo,Lyrics =@Lyrics,Sequence =@Sequence,writer =@writer,copyright =@copyright,CJK_WordCount =@CJK_WordCount,CJK_StrokeCount =@CJK_StrokeCount,capo =@capo,Timing =@Timing,[Key] =@Key,msc =@msc,CATEGORY =@CATEGORY,LICENCE_ADMIN1 =@LICENCE_ADMIN1,LICENCE_ADMIN2 =@LICENCE_ADMIN2,BOOK_REFERENCE =@BOOK_REFERENCE,USER_REFERENCE =@USER_REFERENCE,SETTINGS =@SETTINGS,FORMATDATA =@FORMATDATA,LastModified =@LastModified where songid=@songId";
 				using DbCommand command = new DbCommand(updateSongSql, connection);
 				command.CommandText = updateSongSql;
+				command.Parameters.AddWithValue("@songId", SongID);
 				command.Parameters.AddWithValue("@Title_1", Title_1);
 				command.Parameters.AddWithValue("@Title_2", Title_2);
 				command.Parameters.AddWithValue("@song_number", song_number);
@@ -342,14 +343,23 @@ namespace Easislides
 			return false;
 		}
 
+		internal static bool IsMainDatabaseFile(string path)
+		{
+			if (string.IsNullOrWhiteSpace(ConnectStringMainDB)) return false;
+			string main = new System.Data.SQLite.SQLiteConnectionStringBuilder(ConnectStringMainDB).DataSource;
+			return string.Equals(Path.GetFullPath(path), Path.GetFullPath(main), StringComparison.OrdinalIgnoreCase);
+		}
+
 		public static bool DeleteAllFolders(string InConnectString)
 		{
-			if (InConnectString == "" || InConnectString == ConnectStringMainDB)
+			if (string.IsNullOrWhiteSpace(InConnectString))
 			{
 				return false;
 			}
 			try
 			{
+				string target = new System.Data.SQLite.SQLiteConnectionStringBuilder(InConnectString).DataSource;
+				if (IsMainDatabaseFile(target)) return false;
 				using DbConnection connection = DbController.GetDbConnection(InConnectString);
 				using var transaction = connection.BeginTransaction();
 				using DbCommand command = new DbCommand("DELETE FROM Folder", connection, transaction);
@@ -375,69 +385,22 @@ namespace Easislides
 
 			try
 			{
-				bool isFolderEnabled = false;
-				string cmdText = $@"select count(*) from FOLDER where FolderNo={DataUtil.ObjToString(FNumber)}";
-
-				DbCommand command = new DbCommand(cmdText, connection);
-
-				if (DataUtil.ObjToInt(command.ExecuteScalar()) == 0)
-				{
-					string value;
-					if (InFolderName == "")
-					{
-						if (FNumber > 0)
-						{
-							value = $@"Folder {DataUtil.ObjToString(FNumber)}";
-							isFolderEnabled = ((FNumber < 4) ? true : false);
-						}
-						else
-						{
-							value = "Recycle Folder";
-							isFolderEnabled = false;
-						}
-					}
-					else
-					{
-						value = InFolderName;
-						isFolderEnabled = true;
-					}
-					cmdText = (command.CommandText = "Insert into Folder (FolderNo,name,Use,GroupStyle,PreChorusHeading,ChorusHeading, BridgeHeading,EndingHeading,BIUHeading,HeadingSize,HeadingOption,BIU0,Size0,Bold0,Align0,FontName0,Vpos0,BIU1,Size1,Bold1,Align1,FontName1,Vpos1)  Values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
-					command.Parameters.AddWithValue("@FolderNo", FNumber);
-					command.Parameters.AddWithValue("@Name", value);
-					command.Parameters.AddWithValue("@Use", isFolderEnabled);
-					command.Parameters.AddWithValue("@GroupStyle", SortBy.Alpha);
-					command.Parameters.AddWithValue("@PreChorusHeading", "");
-					command.Parameters.AddWithValue("@ChorusHeading", "Chorus:");
-					command.Parameters.AddWithValue("@BridgeHeading", "");
-					command.Parameters.AddWithValue("@EndingHeading", "");
-					command.Parameters.AddWithValue("@BIUHeading", 4);
-					command.Parameters.AddWithValue("@HeadingSize", 100);
-					command.Parameters.AddWithValue("@HeadingOption", HeadingFormat.AsRegion1Plus);
-					command.Parameters.AddWithValue("@BIU0", 0);
-					command.Parameters.AddWithValue("@Size0", 40);
-					command.Parameters.AddWithValue("@Bold0", false);
-					command.Parameters.AddWithValue("@Align0", 2);
-					command.Parameters.AddWithValue("@FontName0", "Microsoft Sans Serif");
-					command.Parameters.AddWithValue("@Vpos0", 0);
-					command.Parameters.AddWithValue("@BIU1", 0);
-					command.Parameters.AddWithValue("@Size1", 40);
-					command.Parameters.AddWithValue("@Bold1", false);
-					command.Parameters.AddWithValue("@Align1", 2);
-					command.Parameters.AddWithValue("@FontName1", "Microsoft Sans Serif");
-					command.Parameters.AddWithValue("@Vpos1", 50);
-					command.ExecuteNonQuery();
-				}
+				bool named = InFolderName != "";
+				string folderName = named ? InFolderName : FNumber > 0 ? $"Folder {FNumber}" : "Recycle Folder";
+				using var command = DbController.CreateCommand(connection, """
+					INSERT INTO Folder (FolderNo, name, [Use], GroupStyle, PreChorusHeading, ChorusHeading, BridgeHeading,
+					    EndingHeading, BIUHeading, HeadingSize, HeadingOption, BIU0, Size0, Bold0, Align0, FontName0,
+					    Vpos0, BIU1, Size1, Bold1, Align1, FontName1, Vpos1)
+					SELECT @folder, @name, @enabled, @style, '', 'Chorus:', '', '', 4, 100, @heading,
+					    0, 40, 0, 2, 'Microsoft Sans Serif', 0, 0, 40, 0, 2, 'Microsoft Sans Serif', 50
+					WHERE NOT EXISTS (SELECT 1 FROM Folder WHERE FolderNo=@folder)
+					""", ("@folder", FNumber), ("@name", folderName), ("@enabled", named || FNumber is > 0 and < 4),
+					("@style", (int)SortBy.Alpha), ("@heading", (int)HeadingFormat.AsRegion1Plus));
+				command.ExecuteNonQuery();
 			}
 			catch (Exception ex)
 			{
 				Debug.WriteLine($"Failed to reset folder {FNumber}: {ex.Message}");
-			}
-			finally
-			{
-				if (connection.State == ConnectionState.Open)
-				{
-					connection.Close();
-				}
 			}
 		}
 
@@ -950,9 +913,7 @@ namespace Easislides
 		{
 			try
 			{
-				string fullSearchString = "select * from SONG where songid=" + InSongID;
-
-				using DataTable datatable = DbController.GetDataTable(ConnectStringMainDB, fullSearchString);
+				using DataTable datatable = DbController.GetDataTable(ConnectStringMainDB, "select FolderNo from SONG where songid=@id", ("@id", InSongID));
 
 				if (datatable.Rows.Count > 0)
 				{
@@ -1090,10 +1051,12 @@ namespace Easislides
 			return ids;
 		}
 
+		internal const string SongListSelect = "select SONGID, Title_1, Title_2, song_number, LICENCE_ADMIN1, LICENCE_ADMIN2 from SONG";
+
 		/// <summary>The quick find search: every text column of the folders in use.</summary>
-		public static string BuildItemSearchString(string searchText)
+		public static BoundQuery BuildItemSearchQuery(string searchText, bool activeFoldersOnly = false)
 		{
-			return BuildItemSearchString(searchText, new ItemSearchOptions(), folderList: null);
+			return BuildItemSearchQuery(searchText, new ItemSearchOptions(), folderList: null, activeFoldersOnly);
 		}
 
 		/// <summary>
@@ -1101,9 +1064,9 @@ namespace Easislides
 		/// and every chosen filter (folders, notations, key, timing, dates) holds. Also marks the searched
 		/// folders in Folders[i].FindSongs. folderList null means every folder in use.
 		/// </summary>
-		public static string BuildItemSearchString(string searchText, ItemSearchOptions options, CheckedListBox folderList)
+		public static BoundQuery BuildItemSearchQuery(string searchText, ItemSearchOptions options, CheckedListBox folderList, bool activeFoldersOnly = false)
 		{
-			string pattern = SqlText(LikePattern(searchText));
+			var parameters = new List<(string Name, object Value)>();
 
 			var textMatches = new List<string>();
 			void AddLike(bool enabled, params string[] columns)
@@ -1114,7 +1077,7 @@ namespace Easislides
 				}
 				foreach (string column in columns)
 				{
-					textMatches.Add($"lower({column}) like {pattern}");
+					textMatches.Add($"lower({column}) like @phrase");
 				}
 			}
 			AddLike(options.InTitle, "Title_1", "Title_2");
@@ -1124,9 +1087,12 @@ namespace Easislides
 			AddLike(options.InLicAdmin, "licence_admin1", "licence_admin2");
 			AddLike(options.InWriter, "writer");
 			AddLike(options.InCopyright, "copyright");
-			if (options.InSongNumber && SongNumberCondition(searchText) is string numberMatch)
+			if (textMatches.Count > 0)
+				parameters.Add(("@phrase", LikePattern(searchText)));
+			if (options.InSongNumber && int.TryParse(searchText.Trim(), NumberStyles.None, CultureInfo.InvariantCulture, out int number) && number > 0)
 			{
-				textMatches.Add(numberMatch);
+				textMatches.Add("song_number = @number");
+				parameters.Add(("@number", number));
 			}
 
 			bool anyTextColumn = options.InTitle || options.InContents || options.InSongNumber || options.InBookRef
@@ -1153,18 +1119,24 @@ namespace Easislides
 			}
 			if (!string.IsNullOrEmpty(options.Key))
 			{
-				conditions.Add("key = " + SqlText(options.Key));
+				conditions.Add("[key] = @key");
+				parameters.Add(("@key", options.Key));
 			}
 			if (!string.IsNullOrEmpty(options.Timing))
 			{
-				conditions.Add("timing = " + SqlText(options.Timing));
+				conditions.Add("timing = @timing");
+				parameters.Add(("@timing", options.Timing));
 			}
 			if (options.UseDates)
 			{
-				conditions.Add(LastModifiedBetween(options.DateFrom, options.DateTo));
+				var dates = LastModifiedBetween(options.DateFrom, options.DateTo);
+				conditions.Add(dates.Text);
+				parameters.AddRange(dates.Parameters);
 			}
 
-			return "select * from SONG where " + string.Join(" and ", conditions);
+			if (activeFoldersOnly)
+				conditions.Add("FolderNo > 0");
+			return new BoundQuery(SongListSelect + " where " + string.Join(" and ", conditions), parameters.ToArray());
 		}
 
 		/// <summary>
@@ -1172,9 +1144,10 @@ namespace Easislides
 		/// yyyy-MM-dd (StoredDate.Format) for every row once NormalizeLastModified has run; date() would not do, as it
 		/// cannot read a time part with the Korean AM/PM designator that older versions wrote.
 		/// </summary>
-		public static string LastModifiedBetween(DateTime from, DateTime to)
+		public static BoundQuery LastModifiedBetween(DateTime from, DateTime to)
 		{
-			return $"substr(LastModified, 1, 10) between '{DataUtil.ToStoredDate(from)}' and '{DataUtil.ToStoredDate(to)}'";
+			return new BoundQuery("substr(LastModified, 1, 10) between @dateFrom and @dateTo",
+				("@dateFrom", DataUtil.ToStoredDate(from)), ("@dateTo", DataUtil.ToStoredDate(to)));
 		}
 
 		// "%text%": the text matches anywhere; a '%' typed by the user stays a wildcard.
@@ -1191,27 +1164,11 @@ namespace Easislides
 			return text.ToLower();
 		}
 
-		// A string literal for SQL: single quotes, with quotes inside doubled.
-		private static string SqlText(string value)
-		{
-			return "'" + value.Replace("'", "''") + "'";
-		}
-
-		// A positive number finds that song number; any other text (also "0") adds no song number condition.
-		private static string SongNumberCondition(string text)
-		{
-			if (!int.TryParse(text.Trim(), NumberStyles.None, CultureInfo.InvariantCulture, out int number) || number <= 0)
-			{
-				return null;
-			}
-			return $"song_number = {number}";
-		}
-
 		// Marks the folders to search (Folders[i].FindSongs, read back by the Find dialog and the folder list)
 		// and returns "FolderNo in (...)", or "" when there is none.
 		private static string BuildFolderFilter(CheckedListBox folderList)
 		{
-			var numbers = new List<int>();
+			var numbers = new HashSet<int>();
 			if (folderList != null)
 			{
 				foreach (object item in folderList.CheckedItems)

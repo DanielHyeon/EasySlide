@@ -247,9 +247,9 @@ namespace Easislides
 			tempDBFileName = RootEasiSlidesDir + DefaultDBDir + "~tempEasiSlidesDb.db";
 			tempUsageFileName = RootEasiSlidesDir + DefaultDBDir + "~tempEsUsage.db";
 			tempBiblesListFileName = RootEasiSlidesDir + DefaultDBDir + "~tempEsBiblesList.db";
-			ConnectStringMainDB = ConnectStringDef + DBFileName;
-			ConnectStringUsageDB = ConnectStringDef + UsageFileName;
-			ConnectStringBibleDB = ConnectStringDef + BiblesListFileName;
+			ConnectStringMainDB = DbController.ConnectionStringForFile(DBFileName);
+			ConnectStringUsageDB = DbController.ConnectionStringForFile(UsageFileName);
+			ConnectStringBibleDB = DbController.ConnectionStringForFile(BiblesListFileName);
 		}
 
 		/// <summary>
@@ -461,22 +461,7 @@ namespace Easislides
 			var columns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 			try
 			{
-				using DataTable dbSchemaTable = connection.GetSchema("Columns", new string[4]
-				{
-					null,
-					null,
-					tableName,
-					null
-				});
-
-				foreach (DataRow row in dbSchemaTable.Rows)
-				{
-					string columnName = DataUtil.ObjToString(row["COLUMN_NAME"]);
-					if (!string.IsNullOrEmpty(columnName))
-					{
-						columns.Add(columnName.ToUpper());
-					}
-				}
+				columns.UnionWith(DbController.GetColumnNames(connection, tableName));
 			}
 			catch (Exception ex)
 			{
@@ -499,8 +484,7 @@ namespace Easislides
 
 			foreach (var fieldDef in fieldDefinitions)
 			{
-				string fieldNameUpper = fieldDef.Name.ToUpper();
-				if (!existingColumns.Contains(fieldNameUpper))
+				if (!existingColumns.Contains(fieldDef.Name))
 				{
 					try
 					{
@@ -518,72 +502,6 @@ namespace Easislides
 						Trace.WriteLine($"ERROR creating field {fieldDef.Name} in table {tableName}: {ex.Message}, {ex.StackTrace}");
 					}
 				}
-			}
-		}
-
-		/// <summary>
-		/// Validates and updates field sizes if needed
-		/// </summary>
-		private static void ValidateFieldSizes(DbConnection connection, string tableName, Dictionary<string, int> fieldSizes)
-		{
-			if (connection == null || connection.State != ConnectionState.Open)
-			{
-				return;
-			}
-
-			try
-			{
-				using DataTable dbSchemaTable = connection.GetSchema("Columns", new string[4]
-				{
-					null,
-					null,
-					tableName,
-					null
-				});
-
-				foreach (DataRow row in dbSchemaTable.Rows)
-				{
-					string columnName = DataUtil.ObjToString(row["COLUMN_NAME"]).ToUpper();
-					if (fieldSizes.ContainsKey(columnName))
-					{
-						int currentSize = DataUtil.ObjToInt(row["CHARACTER_MAXIMUM_LENGTH"]);
-						int requiredSize = fieldSizes[columnName];
-
-						if (currentSize > 1 && currentSize < requiredSize)
-						{
-							try
-							{
-								string alterQuery = "";
-								if (columnName == DBField_BOOK_REFERENCE.ToUpper())
-								{
-									alterQuery = $"ALTER TABLE {tableName} ALTER COLUMN {DBField_BOOK_REFERENCE} TEXT ({requiredSize})";
-								}
-								else if (columnName == DBField_SEQUENCE.ToUpper())
-								{
-									alterQuery = $"ALTER TABLE {tableName} MODIFY {DBField_SEQUENCE} varchar({requiredSize})";
-								}
-								else if (columnName == DBField_USER_REFERENCE.ToUpper())
-								{
-									alterQuery = $"ALTER TABLE {tableName} MODIFY {DBField_USER_REFERENCE} varchar({requiredSize})";
-								}
-
-								if (!string.IsNullOrEmpty(alterQuery))
-								{
-									using DbCommand command = new DbCommand(alterQuery, connection);
-									command.ExecuteNonQuery();
-								}
-							}
-							catch (Exception ex)
-							{
-								Trace.WriteLine($"ERROR altering field size for {columnName}: {ex.Message}, {ex.StackTrace}");
-							}
-						}
-					}
-				}
-			}
-			catch (Exception ex)
-			{
-				Trace.WriteLine($"ERROR validating field sizes for table {tableName}: {ex.Message}, {ex.StackTrace}");
 			}
 		}
 
@@ -628,47 +546,7 @@ namespace Easislides
 		{
 			try
 			{
-				// First, validate field sizes for existing fields
-				var fieldSizes = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase)
-				{
-					{ DBField_BOOK_REFERENCE, DBFieldSize_BookReference },
-					{ DBField_SEQUENCE, DBFieldSize_Sequence },
-					{ DBField_USER_REFERENCE, DBFieldSize_UserReference }
-				};
-
-				ValidateFieldSizes(connection, DBTable_Song, fieldSizes);
-
-				// Get existing columns to check USER_REFERENCE size
-				HashSet<string> existingColumns = GetTableColumns(connection, DBTable_Song);
-				int userReferenceSize = 0;
-				if (existingColumns.Contains(DBField_USER_REFERENCE.ToUpper()))
-				{
-					try
-					{
-						using DataTable dbSchemaTable = connection.GetSchema("Columns", new string[4]
-						{
-							null,
-							null,
-							DBTable_Song,
-							null
-						});
-
-						foreach (DataRow row in dbSchemaTable.Rows)
-						{
-							string columnName = DataUtil.ObjToString(row["COLUMN_NAME"]).ToUpper();
-							if (columnName == DBField_USER_REFERENCE.ToUpper())
-							{
-								userReferenceSize = DataUtil.ObjToInt(row["CHARACTER_MAXIMUM_LENGTH"]);
-								break;
-							}
-						}
-					}
-					catch (Exception ex)
-					{
-						Trace.WriteLine($"ERROR getting USER_REFERENCE size: {ex.Message}, {ex.StackTrace}");
-					}
-				}
-
+				// SQLite stores the full TEXT value irrespective of VARCHAR(n) declarations.
 				// Validate and create missing fields
 				FieldDefinition[] songFields = new FieldDefinition[]
 				{
@@ -684,20 +562,6 @@ namespace Easislides
 				};
 
 				ValidateAndCreateFields(connection, DBTable_Song, songFields);
-
-				// Update USER_REFERENCE size if needed
-				if (userReferenceSize > 0 && userReferenceSize < DBFieldSize_UserReference)
-				{
-					try
-					{
-						using DbCommand command = new DbCommand($"ALTER TABLE {DBTable_Song} MODIFY {DBField_USER_REFERENCE} varchar({DBFieldSize_UserReference})", connection);
-						command.ExecuteNonQuery();
-					}
-					catch (Exception ex)
-					{
-						Trace.WriteLine($"ERROR updating USER_REFERENCE size: {ex.Message}, {ex.StackTrace}");
-					}
-				}
 
 				return true;
 			}

@@ -228,6 +228,8 @@ namespace Easislides
             var updated = DisplayInfo.ResolveLaunchDisplays();
             bool outputChanged = updated.Output != DisplayInfo.Output;
             bool lyricsChanged = updated.Lyrics != DisplayInfo.Lyrics;
+            if (!outputChanged && Gf.ShowRunning)
+                LiveShow?.RefreshLiveMediaMonitor();
             if (!outputChanged && !lyricsChanged)
                 return;
 

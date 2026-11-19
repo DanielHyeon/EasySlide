@@ -630,15 +630,23 @@ public class LyricsProcessingTests
     }
 
     [Theory]
-    [InlineData(0, " and  ")]
-    [InlineData(1, " or  ")]
-    public void WholeWordBibleSearchPreservesEmptyTermsQuotedTextAndBookFilter(int matchMode, string join)
+    [InlineData(0, 1)]
+    [InlineData(1, 2)]
+    [InlineData(2, 1)]
+    public void WholeWordBibleSearchMatchesBoundTermsAtVerseEdgesAndPunctuation(int matchMode, int expectedRows)
     {
-        const string prefix = "lower(bibletext) like ";
-        string query = Gf.BuildBibleSearchString("  DAVID'S  시  ", -1, 2, matchMode);
-        Assert.StartsWith("select * from Bible where book=2 AND ( (", query);
-        Assert.EndsWith($" OR ({prefix}'david''s'{join}{prefix}''{join}{prefix}'시') ) order by Book, chapter, verse ", query);
-        Assert.Contains("'*[ -/:-@]david''s[ -/:-@]*'", query);
+        using var connection = new System.Data.SQLite.SQLiteConnection("Data Source=:memory:");
+        connection.Open();
+        using var setup = connection.CreateCommand();
+        setup.CommandText = """
+            CREATE TABLE Bible(book INTEGER, chapter INTEGER, verse INTEGER, bibletext TEXT);
+            INSERT INTO Bible VALUES (2,1,1,'David''s  시!'), (2,1,2,'[시]'), (2,1,3,'시작'), (1,1,1,'시');
+            """;
+        setup.ExecuteNonQuery();
+        var query = Gf.BuildBibleSearchQuery("  DAVID'S  시  ", -1, 2, matchMode);
+        Assert.DoesNotContain("david", query.Text);
+        using var matches = Easislides.SQLite.DbController.GetDataTable(connection, query.Text, query.Parameters);
+        Assert.Equal(expectedRows, matches.Rows.Count);
     }
 
     [Theory]

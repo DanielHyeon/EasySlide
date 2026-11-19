@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Media;
@@ -169,6 +170,105 @@ public class PowerPointPreviewViewModelTests
         target.Thumbnails.Should().HaveCount(3);
     }
 
+    [Fact]
+    public async Task RepeatedStripRequestsShareWorkAndOnlyRetryMissingOrLowResolutionSlides()
+    {
+        var render = new StubRenderService(success: true);
+        var gate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        render.BeforeRender = request => request.SlideNumber == 2 ? gate.Task : Task.CompletedTask;
+        var vm = new PowerPointPreviewViewModel(render, _ => DummyImage);
+        var first = vm.LoadThumbnailsAsync("deck.pptx", 3, 200, 112);
+        var repeated = vm.LoadThumbnailsAsync("DECK.pptx", 3, 640, 480);
+        Assert.Same(first, repeated);
+        Assert.Single(vm.Thumbnails);
+        gate.SetResult();
+        await first;
+        await vm.LoadThumbnailsAsync("deck.pptx", 3, 640, 480);
+        Assert.Equal(new[] { 1, 2, 3 }, render.Requests.Select(r => r.SlideNumber));
+
+        vm.Thumbnails.RemoveAt(0);
+        vm.Thumbnails[1] = new(3, DummyImage, 640, 479);
+        await vm.LoadThumbnailsAsync("deck.pptx", 3, 640, 480);
+        Assert.Equal(new[] { 1, 2, 3, 1, 3 }, render.Requests.Select(r => r.SlideNumber));
+        Assert.Equal(new[] { 1, 2, 3 }, vm.Thumbnails.Select(t => t.SlideNumber));
+    }
+
+    [Fact]
+    public async Task ReplacingDeckOrChangingSizeSupersedesOldLoadAndClearRejectsLateResults()
+    {
+        var path = Path.GetTempFileName();
+        try
+        {
+            var render = new StubRenderService(success: true);
+            var gate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            render.BeforeRender = _ => gate.Task;
+            var vm = new PowerPointPreviewViewModel(render, _ => DummyImage);
+            var obsolete = vm.LoadThumbnailsAsync(path, 2, 640, 480);
+            render.BeforeRender = null;
+            File.AppendAllText(path, "updated");
+            await vm.LoadThumbnailsAsync(path, 2, 640, 480);
+            gate.SetResult();
+            await obsolete;
+            Assert.Equal(2, vm.Thumbnails.Count);
+            await vm.LoadThumbnailsAsync(path, 2, 800, 600);
+            Assert.All(vm.Thumbnails, t => Assert.Equal(800, t.PixelWidth));
+            File.AppendAllText(path, "another version");
+            await vm.LoadThumbnailsAsync(path, 2, 800, 600);
+            Assert.Equal(7, render.Requests.Count);
+
+            gate = new(TaskCreationOptions.RunContinuationsAsynchronously);
+            render.BeforeRender = _ => gate.Task;
+            var pending = vm.LoadThumbnailsAsync(path, 1, 800, 600);
+            vm.Clear();
+            gate.SetResult();
+            await pending;
+            Assert.Empty(vm.Thumbnails);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public async Task OlderPreviewCompletionCannotSwitchBackTheDeckAndRestartItsThumbnails()
+    {
+        var gate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var render = new StubRenderService(success: true) { BeforeRender = r =>
+            r.FilePath == "old.pptx" ? gate.Task : Task.CompletedTask };
+        var vm = new PowerPointPreviewViewModel(render, _ => DummyImage);
+        var old = vm.LoadAsync("old.pptx", 1, 800, 600);
+        await vm.LoadAsync("new.pptx", 2, 800, 600);
+        gate.SetResult();
+        await old;
+        Assert.Equal("new.pptx", vm.LoadedContentPath);
+        Assert.Equal(2, vm.SlideNumber);
+    }
+
+    [Fact]
+    public async Task CopyFromDiscardsObsoleteOutputWorkAndResumesPartialStripIndependently()
+    {
+        var gate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var previewRender = new StubRenderService(success: true) { BeforeRender = r =>
+            r.SlideNumber == 2 ? gate.Task : Task.CompletedTask };
+        var outputRender = new StubRenderService(success: true) { BeforeRender = _ => gate.Task };
+        var preview = new PowerPointPreviewViewModel(previewRender, _ => DummyImage);
+        var output = new PowerPointPreviewViewModel(outputRender, _ => DummyImage);
+        var pendingPreview = preview.LoadThumbnailsAsync("new.pptx", 3, 640, 480);
+        var obsolete = output.LoadThumbnailsAsync("old.pptx", 3, 640, 480);
+        output.CopyFrom(preview);
+        var pendingOutput = output.LoadThumbnailsAsync("new.pptx", 3, 640, 480);
+        output.CopyFrom(preview);
+        Assert.Same(pendingOutput, output.LoadThumbnailsAsync("new.pptx", 3, 640, 480));
+        Assert.NotSame(preview.Thumbnails[0], output.Thumbnails[0]);
+        preview.Clear();
+        gate.SetResult();
+        await Task.WhenAll(pendingPreview, pendingOutput, obsolete);
+        Assert.Empty(preview.Thumbnails);
+        Assert.Equal(new[] { 1, 2, 3 }, output.Thumbnails.Select(t => t.SlideNumber));
+        Assert.Equal(new[] { 2, 3 }, outputRender.Requests.Where(r => r.FilePath == "new.pptx").Select(r => r.SlideNumber));
+    }
+
     private static ImageSource CreateDummyImage()
     {
         var image = new DrawingImage();
@@ -184,13 +284,17 @@ public class PowerPointPreviewViewModelTests
 
         public List<PowerPointRenderRequest> Requests { get; } = new();
 
-        public Task<PowerPointRenderResult> RenderSlideAsync(PowerPointRenderRequest request, CancellationToken cancellationToken = default)
+        public Func<PowerPointRenderRequest, Task>? BeforeRender { get; set; }
+
+        public async Task<PowerPointRenderResult> RenderSlideAsync(PowerPointRenderRequest request, CancellationToken cancellationToken = default)
         {
             Requests.Add(request);
+            if (BeforeRender != null)
+                await BeforeRender(request);
             if (!_success)
             {
-                return Task.FromResult(new PowerPointRenderResult(
-                    PowerPointRenderErrorKind.MissingOffice, Slide: null, ErrorMessage: "no office", FromCache: false, Elapsed: TimeSpan.Zero));
+                return new PowerPointRenderResult(
+                    PowerPointRenderErrorKind.MissingOffice, Slide: null, ErrorMessage: "no office", FromCache: false, Elapsed: TimeSpan.Zero);
             }
 
             var slide = new PowerPointSlideSnapshot(
@@ -203,8 +307,8 @@ public class PowerPointPreviewViewModelTests
                 ContentType: "image/png",
                 GeneratedAtUtc: DateTimeOffset.UnixEpoch);
 
-            return Task.FromResult(new PowerPointRenderResult(
-                PowerPointRenderErrorKind.None, slide, ErrorMessage: null, FromCache: false, Elapsed: TimeSpan.Zero));
+            return new PowerPointRenderResult(
+                PowerPointRenderErrorKind.None, slide, ErrorMessage: null, FromCache: false, Elapsed: TimeSpan.Zero);
         }
 
         public void ClearCache()

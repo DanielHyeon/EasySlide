@@ -1414,9 +1414,9 @@ namespace Easislides
 
         public static BibleVerseLocationList HB_VersesLocation = new BibleVerseLocationList();
 
-        public static string Find_SQLString = "";
+        public static SQLite.BoundQuery FindSongQuery;
 
-		public static string HB_SQLString = "";
+		public static SQLite.BoundQuery BibleSearchQuery;
 
 		public static bool HB_UsingSearch = false;
 
@@ -1737,13 +1737,6 @@ namespace Easislides
 		public static string UsageFileName = "";
 
 		public static string DBFileName = "";
-
-		public static string ConnectStringDef = "Data Source=";
-
-
-		public static string ConnectStringSQLiteDef = "Data Source=";
-
-		public static string ConnectSQLiteDef = "Data Source=";
 
 		public static string ConnectStringMainDB = "";
 

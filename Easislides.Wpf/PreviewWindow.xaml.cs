@@ -31,24 +31,13 @@ public partial class PreviewWindow : Window, IOutputSurface
     // 선택한 모니터에 맞춘다 — 풀스크린(!IsWindowed)이면 테두리 없는 top-most, 창모드면 일반 창(출력 창과 동일 규칙).
     public void ApplyPlacement(OutputWindowPlacement placement)
     {
-        Left = placement.Left;
-        Top = placement.Top;
-        Width = placement.Width;
-        Height = placement.Height;
-
-        if (placement.IsWindowed)
-        {
-            WindowStyle = WindowStyle.SingleBorderWindow;
-            ResizeMode = ResizeMode.CanResize;
-            Topmost = false;
-            ShowInTaskbar = true;
-            return;
-        }
-
-        WindowStyle = WindowStyle.None;
-        ResizeMode = ResizeMode.NoResize;
-        Topmost = true;
-        ShowInTaskbar = false;
+        WindowStartupLocation = WindowStartupLocation.Manual;
+        WindowState = WindowState.Normal;
+        WindowStyle = placement.IsWindowed ? WindowStyle.SingleBorderWindow : WindowStyle.None;
+        ResizeMode = placement.IsWindowed ? ResizeMode.CanResize : ResizeMode.NoResize;
+        Topmost = !placement.IsWindowed;
+        ShowInTaskbar = placement.IsWindowed;
+        Platform.DesktopWindowPlacement.Apply(this, placement);
     }
 
     public new void Show()

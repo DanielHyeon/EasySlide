@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.IO;
-using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using Easislides.Global;
@@ -24,14 +23,6 @@ namespace Easislides
 	{
 		private static readonly SearchValues<char> InvalidDirNameChars = SearchValues.Create("\\/:*?\"<>|");
 		private static Dictionary<string, int> FolderNameIndex;
-
-		private struct SongRefileUpdate
-		{
-			public int SongId;
-			public int NewFolder;
-			public int OldFolder;
-			public ListViewItem Item;
-		}
 
 		private static void RebuildFolderNameIndex()
 		{
@@ -354,7 +345,7 @@ namespace Easislides
 			{
 				using (DbConnection connection = DbController.GetDbConnection(ConnectStringMainDB))
 				{
-					DbCommand command = new DbCommand("Delete * from Song where FolderNo = 0", connection);
+					using DbCommand command = new DbCommand("DELETE FROM Song WHERE FolderNo = 0", connection);
 					command.ExecuteNonQuery();
 				}
 				return true;
@@ -420,80 +411,37 @@ namespace Easislides
 
 		public static int ReFileSelectedSongs(ref ListView InListView)
 		{
+			var recovered = new List<ListViewItem>();
 			try
 			{
-				List<SongRefileUpdate> updates = new List<SongRefileUpdate>();
-				HashSet<int> songIds = new HashSet<int>();
-
-				for (int itemIndex = InListView.Items.Count - 1; itemIndex >= 0; itemIndex--)
+				using var connection = DbController.GetDbConnection(ConnectStringMainDB);
+				using var transaction = connection.BeginTransaction();
+				using var command = new DbCommand("""
+					UPDATE SONG SET OldFolder=0, FolderNo=@folder, LastModified=@date
+					WHERE SongID=@id AND FolderNo=0
+					""", connection, transaction);
+				var folder = command.Parameters.Add("@folder", DbType.Int32);
+				var id = command.Parameters.Add("@id", DbType.Int32);
+				command.Parameters.AddWithValue("@date", DataUtil.ToStoredDate(DateTime.Now));
+				foreach (ListViewItem item in InListView.CheckedItems)
 				{
-					if (InListView.Items[itemIndex].Checked)
-					{
-						int songId = DataUtil.StringToInt(InListView.Items[itemIndex].SubItems[3].Text);
-						songIds.Add(songId);
-						updates.Add(new SongRefileUpdate
-						{
-							SongId = songId,
-							NewFolder = DataUtil.StringToInt(InListView.Items[itemIndex].SubItems[4].Text),
-							OldFolder = 0,
-							Item = InListView.Items[itemIndex]
-						});
-					}
+					if (!int.TryParse(item.SubItems[3].Text, out int songId)
+						|| !int.TryParse(item.SubItems[4].Text, out int originalFolder))
+						continue;
+					id.Value = songId;
+					folder.Value = originalFolder;
+					if (command.ExecuteNonQuery() > 0)
+						recovered.Add(item);
 				}
-
-				if (updates.Count == 0)
-				{
-					return 0;
-				}
-
-				StringBuilder idBuilder = new StringBuilder();
-				foreach (int id in songIds)
-				{
-					if (idBuilder.Length > 0)
-					{
-						idBuilder.Append(",");
-					}
-					idBuilder.Append(id);
-				}
-
-				string sQuery = "select * from SONG where SONGID in (" + idBuilder + ")";
-
-				using DbConnection connection = DbController.GetDbConnection(ConnectStringMainDB);
-				using DataTable dataTable = DbController.GetDataTable(connection, sQuery);
-
-				if (dataTable == null || dataTable.Rows.Count == 0)
-				{
-					return 0;
-				}
-
-				DataColumn[] primarykey = new DataColumn[] { dataTable.Columns["SONGID"] };
-				dataTable.PrimaryKey = primarykey;
-
-				foreach (SongRefileUpdate update in updates)
-				{
-					try
-					{
-						DataRow dr = dataTable.Rows.Find(update.SongId);
-						if (dr != null)
-						{
-							dr["OldFolder"] = update.OldFolder;
-							dr["FolderNo"] = update.NewFolder;
-							dr["LastModified"] = DataUtil.ToStoredDate(DateTime.Now);
-							update.Item.Remove();
-						}
-					}
-					catch (Exception ex)
-					{
-						Trace.WriteLine($"ERROR : {ex.Message}, {ex.StackTrace}");
-					}
-				}
-
-				DbController.UpdateTable(connection, sQuery, dataTable);
+				transaction.Commit();
 			}
 			catch (Exception ex)
 			{
-				Trace.WriteLine($"ERROR : {ex.Message}, {ex.StackTrace}");
+				Trace.WriteLine($"Song recovery failed: {ex}");
+				return InListView.CheckedItems.Count;
 			}
+			foreach (var item in recovered)
+				item.Remove();
 			return InListView.CheckedItems.Count;
 		}
 

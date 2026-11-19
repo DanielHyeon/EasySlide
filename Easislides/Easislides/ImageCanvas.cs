@@ -17,8 +17,11 @@ namespace Easislides
 		private const int SINGLE_DIGIT_OFFSET = 5;
 		private const int MULTI_DIGIT_OFFSET = 12;
 
-		// Private fields for caching
-		private Image _cachedSourceImage;
+		// Content scaled for this thumbnail, without selection markers or the slide number.
+		private Bitmap _thumbnailContent;
+		private Size _sourceSize;
+		private Rectangle _contentBounds;
+		private long _cachedFileLength;
 		private string _cachedFileName;
 		private DateTime _cachedFileTime;
 
@@ -240,14 +243,14 @@ namespace Easislides
 				if (canvasRatio < ImageRatio)
 				{
 					PosWidth = base.Width;
-					PosHeight = (int)Math.Round(PosWidth / ImageRatio);
+					PosHeight = Math.Max(1, (int)Math.Round(PosWidth / ImageRatio));
 					PosLeft = 0;
 					PosTop = (base.Height - PosHeight) / 2;
 				}
 				else
 				{
 					PosHeight = base.Height;
-					PosWidth = (int)Math.Round(PosHeight * ImageRatio);
+					PosWidth = Math.Max(1, (int)Math.Round(PosHeight * ImageRatio));
 					PosTop = 0;
 					PosLeft = (base.Width - PosWidth) / 2;
 				}
@@ -354,33 +357,23 @@ namespace Easislides
 			}
 		}
 
-		// Re-renders the thumbnail from the cached source image so only the border changes.
-		// No file access and no PowerPoint export. Falls back to a full reload when the cache
-		// does not belong to the current file.
-		// Returns false when there is nothing to draw.
 		private bool RerenderMarkers()
 		{
-			_markersDirty = false;
-			if (_cachedSourceImage == null || _cachedFileName != FileName)
-			{
-				IsImageReady = false;
+			if (_thumbnailContent == null || _cachedFileName != FileName)
 				return CalculateImage();
-			}
 			try
 			{
-				if (TryCalculateTargetSizes(_cachedSourceImage, out int storedImageWidth, out int storedImageHeight))
-				{
-					Bitmap rendered = RenderImage(_cachedSourceImage, storedImageWidth, storedImageHeight);
-					Image?.Dispose();
-					Image = rendered;
-					ResizeCanvas(base.Width, base.Height);
-				}
+				DrawThumbnail();
+				_markersDirty = false;
+				return true;
 			}
 			catch (Exception ex)
 			{
-				Console.WriteLine($"Error in RerenderMarkers: {ex.Message}");
+				System.Diagnostics.Debug.WriteLine($"Thumbnail marker redraw failed: {ex.Message}");
+				IsImageReady = false;
+				RememberFailure();
+				return false;
 			}
-			return Image != null;
 		}
 
 		private void DrawImage(PaintEventArgs e)
@@ -435,10 +428,10 @@ namespace Easislides
 				bool fileTouched = !pathChanged
 				                   && !string.IsNullOrEmpty(imagePath)
 				                   && File.Exists(imagePath)
-				                   && new FileInfo(imagePath).LastWriteTimeUtc != _cachedFileTime;
+				                   && !MatchesCachedVersion(new FileInfo(imagePath));
 				int width = Math.Max(1, requestedWidth);
-				int height = UsesSlideAspect && _cachedSourceImage != null && _cachedFileName == imagePath
-					? HeightForSlideImage(width, _cachedSourceImage)
+				int height = UsesSlideAspect && _thumbnailContent != null && _cachedFileName == imagePath
+					? HeightForSlideImage(width, _sourceSize)
 					: Math.Max(1, requestedHeight);
 				Size = new Size(width, height);
 				if (pathChanged || fileTouched || IsExternalPowerPoint)
@@ -561,7 +554,7 @@ namespace Easislides
 
 		private bool UsesSlideAspect => IsPowerPoint || _isExternalPresentationPreview;
 
-		private static int HeightForSlideImage(int width, Image source) =>
+		private static int HeightForSlideImage(int width, Size source) =>
 			Math.Max(1, (int)Math.Round((double)width * source.Height / source.Width));
 
 		private void ConfigureGraphics(Graphics graphics)
@@ -577,85 +570,135 @@ namespace Easislides
 			return (int)(baseSize * BorderWidthFactor);
 		}
 
-		private bool TryCalculateTargetSizes(System.Drawing.Image sourceImage, out int storedImageWidth, out int storedImageHeight)
+		private bool TryGetThumbnailSize(Size source, out Size size)
 		{
-			int newImageWidth = 0;
-			int newImageHeight = 0;
-			storedImageWidth = 0;
-			storedImageHeight = 0;
-
-			SetImageRatio(sourceImage.Width, sourceImage.Height);
-			Gf.CalcImageToFit(ImageRatio, base.Width, base.Height, ref newImageWidth, ref newImageHeight, true, ref storedImageWidth, ref storedImageHeight);
-
-			if (newImageWidth <= 0 || newImageHeight <= 0)
-			{
+			size = Size.Empty;
+			if (UsesSlideAspect)
+				Height = HeightForSlideImage(Width, source);
+			if (Width <= 0 || Height <= 0)
 				return false;
+
+			SetImageRatio(source.Width, source.Height);
+			int fittedWidth = 0, fittedHeight = 0, storedWidth = 0, storedHeight = 0;
+			Gf.CalcImageToFit(ImageRatio, Width, Height, ref fittedWidth, ref fittedHeight, true,
+				ref storedWidth, ref storedHeight);
+			storedWidth = Math.Max(1, (int)(storedWidth * RESOLUTION_MULTIPLIER));
+			storedHeight = Math.Max(1, (int)(storedHeight * RESOLUTION_MULTIPLIER));
+
+			// A panorama can exceed the normal cache size even when its short edge fits.
+			const int maximumEdge = 1024;
+			int longestEdge = Math.Max(storedWidth, storedHeight);
+			if (longestEdge > maximumEdge)
+			{
+				storedWidth = Math.Max(1, (int)((long)storedWidth * maximumEdge / longestEdge));
+				storedHeight = Math.Max(1, (int)((long)storedHeight * maximumEdge / longestEdge));
 			}
-
-			storedImageWidth = (int)(storedImageWidth * RESOLUTION_MULTIPLIER);
-			storedImageHeight = (int)(storedImageHeight * RESOLUTION_MULTIPLIER);
-
-			return storedImageWidth > 0 && storedImageHeight > 0;
+			size = new Size(storedWidth, storedHeight);
+			return true;
 		}
 
-		/// <summary>
-		/// margin 클램프와 inner size guard만 유지
-		/// </summary>
-		/// <param name="sourceImage"></param>
-		/// <param name="storedImageWidth"></param>
-		/// <param name="storedImageHeight"></param>
-		/// <returns></returns> <summary>
+		private bool MatchesCachedVersion(FileInfo file) =>
+			_cachedFileName == FileName && _cachedFileTime == file.LastWriteTimeUtc && _cachedFileLength == file.Length;
 
-		private Bitmap RenderImage(System.Drawing.Image sourceImage, int storedImageWidth, int storedImageHeight)
+		private Rectangle ContentBounds(Size size)
 		{
-			Bitmap renderedImage = new(storedImageWidth, storedImageHeight, PixelFormat.Format24bppRgb);
-			using Graphics graphics = Graphics.FromImage(renderedImage);
-
-			ConfigureGraphics(graphics);
-
-			Rectangle fullRect = new(0, 0, storedImageWidth, storedImageHeight);
-
-			if (ShouldDrawPowerPointOverlay())
+			var bounds = new Rectangle(Point.Empty, size);
+			if (ShouldDrawPowerPointOverlay() && !UsesSlideAspect)
 			{
-				float fontSize = storedImageWidth / FONT_SIZE_RATIO;
-				int margin = CalculateBorderMargin(storedImageWidth, storedImageHeight);
-				if (UsesSlideAspect)
-				{
-					graphics.DrawImage(sourceImage, fullRect);
-					DrawBorder(graphics, fullRect, fontSize);
-					DrawSlideNumber(graphics, storedImageWidth, storedImageHeight, margin);
-					return renderedImage;
-				}
-				int maxMargin = (Math.Min(storedImageWidth, storedImageHeight) - 1) / 2;
-				if (maxMargin < 0)
-				{
-					maxMargin = 0;
-				}
-				if (margin > maxMargin)
-				{
-					margin = maxMargin;
-				}
-
-				int innerWidth = storedImageWidth - 2 * margin;
-				int innerHeight = storedImageHeight - 2 * margin;
-				if (innerWidth <= 0 || innerHeight <= 0)
-				{
-					graphics.DrawImage(sourceImage, fullRect);
-					return renderedImage;
-				}
-
-				DrawBorder(graphics, fullRect, fontSize);
-				Rectangle imageRect = new(margin, margin, innerWidth, innerHeight);
-				graphics.DrawImage(sourceImage, imageRect);
-
-				DrawSlideNumber(graphics, storedImageWidth, storedImageHeight, margin);
+				int margin = Math.Clamp(CalculateBorderMargin(size.Width, size.Height), 0,
+					(Math.Min(size.Width, size.Height) - 1) / 2);
+				bounds.Inflate(-margin, -margin);
 			}
-			else
+			return bounds;
+		}
+
+		private void DrawThumbnail()
+		{
+			Size size = _thumbnailContent.Size;
+			bool replace = Image?.Size != size;
+			Image target = replace ? new Bitmap(size.Width, size.Height, PixelFormat.Format24bppRgb) : Image;
+			try
 			{
-				graphics.DrawImage(sourceImage, fullRect);
+				using Graphics graphics = Graphics.FromImage(target);
+				ConfigureGraphics(graphics);
+				graphics.Clear(Color.Black);
+				bool overlay = ShouldDrawPowerPointOverlay();
+				var full = new Rectangle(Point.Empty, size);
+				float borderWidth = size.Width / FONT_SIZE_RATIO;
+				if (overlay && !UsesSlideAspect)
+					DrawBorder(graphics, full, borderWidth);
+				graphics.DrawImageUnscaled(_thumbnailContent, 0, 0);
+				if (overlay)
+				{
+					if (UsesSlideAspect)
+						DrawBorder(graphics, full, borderWidth);
+					int margin = UsesSlideAspect ? CalculateBorderMargin(size.Width, size.Height) : _contentBounds.X;
+					DrawSlideNumber(graphics, size.Width, size.Height, margin);
+				}
 			}
+			catch
+			{
+				if (replace) target.Dispose();
+				throw;
+			}
+			if (replace)
+			{
+				Image?.Dispose();
+				Image = target;
+			}
+		}
 
-			return renderedImage;
+		private Image DecodeThumbnail(Stream stream)
+		{
+			try
+			{
+				return System.Drawing.Image.FromStream(stream);
+			}
+			catch (Exception ex) when (_isExternalPresentationPreview && ex is (ArgumentException or OutOfMemoryException))
+			{
+				// Retry by exporting a fresh copy if the cached export cannot be decoded.
+				Gf.ExternalPPT.DiscardFirstScreenDump(FileName);
+				throw;
+			}
+		}
+
+		private bool PrepareThumbnail(FileInfo file)
+		{
+			bool cached = _thumbnailContent != null && MatchesCachedVersion(file);
+			if (cached && TryGetThumbnailSize(_sourceSize, out Size cachedSize)
+				&& _thumbnailContent.Size == cachedSize && _contentBounds == ContentBounds(cachedSize))
+				return true;
+
+			using var stream = new FileStream(file.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+			using var source = DecodeThumbnail(stream);
+			Size sourceSize = source.Size;
+			if (!TryGetThumbnailSize(sourceSize, out Size size))
+				return false;
+			Rectangle bounds = ContentBounds(size);
+			var raster = new Bitmap(size.Width, size.Height, PixelFormat.Format32bppPArgb);
+			try
+			{
+				using Graphics graphics = Graphics.FromImage(raster);
+				ConfigureGraphics(graphics);
+				// GDI+ normalizes translucent channels when it detaches a decoded image.
+				// Preserve those values before bicubic scaling, without retaining the full-size bitmap.
+				using Bitmap normalized = (source.Flags & (int)ImageFlags.HasAlpha) != 0
+					? new Bitmap(source) : null;
+				graphics.DrawImage(normalized ?? source, bounds);
+			}
+			catch
+			{
+				raster.Dispose();
+				throw;
+			}
+			_thumbnailContent?.Dispose();
+			_thumbnailContent = raster;
+			_sourceSize = sourceSize;
+			_contentBounds = bounds;
+			_cachedFileName = FileName;
+			_cachedFileTime = file.LastWriteTimeUtc;
+			_cachedFileLength = file.Length;
+			return true;
 		}
 
         public bool CalculateImage()
@@ -694,61 +737,9 @@ namespace Easislides
 					return false;
 				}
 
-				// Get file modification time
-				var fileInfo = new FileInfo(FileName);
-				var currentFileTime = fileInfo.LastWriteTimeUtc;
-
-				// Check if we can use cached source image (same file name AND same modification time)
-				System.Drawing.Image sourceImage;
-				if (_cachedFileName == FileName && _cachedFileTime == currentFileTime && _cachedSourceImage != null)
-				{
-					sourceImage = _cachedSourceImage;
-					Console.WriteLine($"[ImageCanvas Cache Hit] Using cached image: {Path.GetFileName(FileName)}");
-				}
-				else
-				{
-					// Clear old cached image if filename changed or file was modified. Forget it entirely: if the
-					// load below throws, a later visit to the old file must not take the disposed bitmap as a hit.
-					_cachedSourceImage?.Dispose();
-					_cachedSourceImage = null;
-					_cachedFileName = null;
-
-					// MSDN: Image.FromStream requires the stream to remain open for the Image's
-					// lifetime. Clone into a standalone Bitmap so the file/stream can be released
-					// safely and DrawImage cannot fail with GDI+ generic errors on lazy pixel reads.
-					try
-					{
-						using (var stream = new FileStream(FileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-						using (var tempImage = System.Drawing.Image.FromStream(stream))
-						{
-							_cachedSourceImage = new Bitmap(tempImage);
-						}
-					}
-					catch (Exception ex) when (_isExternalPresentationPreview && (ex is ArgumentException || ex is OutOfMemoryException))
-					{
-						// GDI+ could not decode the cached picture: delete it so the retry exports it again
-						// instead of loading the same broken file forever.
-						Gf.ExternalPPT.DiscardFirstScreenDump(FileName);
-						throw;
-					}
-					_cachedFileName = FileName;
-					_cachedFileTime = currentFileTime;
-					sourceImage = _cachedSourceImage;
-					Console.WriteLine($"[ImageCanvas Cache Miss] Loaded new image: {Path.GetFileName(FileName)} (Modified: {currentFileTime})");
-				}
-
-				if (UsesSlideAspect)
-					Height = HeightForSlideImage(Width, sourceImage);
-
-				if (!TryCalculateTargetSizes(sourceImage, out int storedImageWidth, out int storedImageHeight))
-				{
+				if (!PrepareThumbnail(new FileInfo(FileName)))
 					return false;
-				}
-
-				// Render the thumbnail and assign directly (no Clone needed)
-				Image?.Dispose(); // Dispose old image
-				Image = RenderImage(sourceImage, storedImageWidth, storedImageHeight);
-
+				DrawThumbnail();
 				IsImageReady = true;
 				_markersDirty = false;
 				ClearFailures();
@@ -773,8 +764,8 @@ namespace Easislides
 				_retryTimer = null;
 				Image?.Dispose();
 				Image = null;
-				_cachedSourceImage?.Dispose();
-				_cachedSourceImage = null;
+				_thumbnailContent?.Dispose();
+				_thumbnailContent = null;
 				_cachedFileName = null;
 			}
 			base.Dispose(disposing);

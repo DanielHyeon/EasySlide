@@ -226,62 +226,25 @@ namespace Easislides
 			ListViewItem listViewItem = new ListViewItem();
 			SongsList.Items.Clear();
 			TempSongsList.Items.Clear();
-			string targetTitleColumn;
-			if (OptionSourceATitle1.Checked)
-			{
-				targetTitleColumn = "Title_1";
-			}
-			else
-			{
-				targetTitleColumn = "Title_2";
-			}
-			string inName = SongFolderA.Items[SongFolderA.SelectedIndex].ToString();
-			inName = "select * from SONG where Folderno=" + Gf.GetFolderNumber(inName);
-			targetTitleColumn = ((!OptionSourceBTitle1.Checked) ? "Title_2" : "Title_1");
-			int matchIndex = 0;
+			int sourceFolder = Gf.GetFolderNumber(SongFolderA.Text);
+			int targetFolder = Gf.GetFolderNumber(SongFolderB.Text);
 
 			try
 			{
 				using DbConnection connection = DbController.GetDbConnection(Gf.ConnectStringMainDB);
-				using DataTable dataTable = DbController.GetDataTable(connection, inName);
-
-				if (dataTable.Rows.Count > 0)
+				var pairs = SongQueries.FindMergePairs(connection, sourceFolder, OptionSourceATitle1.Checked,
+					targetFolder, OptionSourceBTitle1.Checked);
+				foreach (var pair in pairs)
 				{
-					foreach (DataRow dr in dataTable.Rows)
-					{
-						SongID1 = DataUtil.ObjToInt(dr["SongID"]);
-						string sourceMatchTitle = (!OptionSourceATitle1.Checked) ? DataUtil.ObjToString(dr["Title_2"]) : DataUtil.ObjToString(dr["Title_1"]);
-						if (DataUtil.Trim(sourceMatchTitle) != "")
-						{
-							string sourceTitle = DataUtil.ObjToString(dr["Title_1"]);
-							string inName2 = SongFolderB.Items[SongFolderB.SelectedIndex].ToString();
-							inName2 = "select * from SONG where Folderno=" + Gf.GetFolderNumber(inName2) + " and LCase(" + targetTitleColumn + ") like LCase(\"" + sourceMatchTitle + "\") ";
-							try
-							{
-								using DataTable dataTable1 = DbController.GetDataTable(connection, inName2);
-								if (dataTable1.Rows.Count > 0)
-								{
-									foreach (DataRow dr1 in dataTable1.Rows)
-									{
-										SongID2 = DataUtil.ObjToInt(dr1["SongID"]);
-										string initTitle = GetInitTitle(DataUtil.ObjToString(dr1["Title_1"]));
-										string mergedTitle = sourceTitle + (OptionNewTitleA.Checked ? (" (" + initTitle + ")") : "");
-										listViewItem = TempSongsList.Items.Add(DataUtil.GetCJKTitle(mergedTitle, SortBy.Alpha));
-										listViewItem.SubItems.Add(mergedTitle);
-										listViewItem.SubItems.Add(SongID1.ToString());
-										listViewItem.SubItems.Add(SongID2.ToString());
-										listViewItem.SubItems.Add(sourceTitle);
-										listViewItem.SubItems.Add(initTitle);
-									}
-								}
-							}
-							catch (Exception e)
-							{
-								Console.WriteLine(e.Message);
-								Console.WriteLine(e.StackTrace);
-							}
-						}
-					}
+					string sourceTitle = pair.SourceTitle;
+					string targetTitle = GetInitTitle(pair.TargetTitle);
+					string mergedTitle = sourceTitle + (OptionNewTitleA.Checked ? (" (" + targetTitle + ")") : "");
+					listViewItem = TempSongsList.Items.Add(DataUtil.GetCJKTitle(mergedTitle, SortBy.Alpha));
+					listViewItem.SubItems.Add(mergedTitle);
+					listViewItem.SubItems.Add(pair.SourceId.ToString());
+					listViewItem.SubItems.Add(pair.TargetId.ToString());
+					listViewItem.SubItems.Add(sourceTitle);
+					listViewItem.SubItems.Add(targetTitle);
 				}
 			}
 			catch (Exception ex)
@@ -294,7 +257,7 @@ namespace Easislides
 			TempSongsList.Sort();
 			if (TempSongsList.Items.Count > 0)
 			{
-				for (matchIndex = 0; matchIndex < TempSongsList.Items.Count; matchIndex++)
+				for (int matchIndex = 0; matchIndex < TempSongsList.Items.Count; matchIndex++)
 				{
 					listViewItem = SongsList.Items.Add(TempSongsList.Items[matchIndex].SubItems[1].Text);
 					listViewItem.SubItems.Add(TempSongsList.Items[matchIndex].SubItems[2].Text);
@@ -392,9 +355,9 @@ namespace Easislides
 			}
 			try
 			{
-				string fullSearchString = "select * from SONG where songid=" + InID;
+				const string fullSearchString = "select * from SONG where songid=@id";
 
-				using DataTable datatable = DbController.GetDataTable(Gf.ConnectStringMainDB, fullSearchString);
+				using DataTable datatable = DbController.GetDataTable(Gf.ConnectStringMainDB, fullSearchString, ("@id", InID));
 
 				if (datatable.Rows.Count>0)
 				{

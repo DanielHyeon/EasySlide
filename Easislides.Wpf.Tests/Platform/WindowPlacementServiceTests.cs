@@ -1,5 +1,8 @@
 using System;
 using System.IO;
+using System.Runtime.InteropServices;
+using System.Windows;
+using System.Windows.Interop;
 using Easislides.Wpf.Platform;
 using Easislides.Wpf.Settings;
 using Easislides.Wpf.Shell;
@@ -98,6 +101,40 @@ public class WindowPlacementServiceTests
         placement.Top.Should().Be(50);
         placement.IsWindowed.Should().BeTrue();
     }
+
+    [Fact]
+    public void NativeWindowUsesDesktopPixelBoundsBeforeAndAfterFirstShow()
+    {
+        StaHelper.RunOnSta(() =>
+        {
+            var window = new Window { Width = 1280, Height = 720, WindowStyle = WindowStyle.None, ResizeMode = ResizeMode.NoResize,
+                WindowStartupLocation = WindowStartupLocation.Manual, ShowActivated = false, ShowInTaskbar = false, Opacity = 0 };
+            try
+            {
+                var placement = new OutputWindowPlacement(120, 140, 320, 200, false);
+                DesktopWindowPlacement.Apply(window, placement);
+                window.Show();
+                AssertNativePlacement(window, placement);
+                var moved = new OutputWindowPlacement(-400, 50, 360, 220, false);
+                DesktopWindowPlacement.Apply(window, moved);
+                AssertNativePlacement(window, moved);
+            }
+            finally { window.Close(); }
+        });
+    }
+
+    private static void AssertNativePlacement(Window window, OutputWindowPlacement placement)
+    {
+        GetWindowRect(new WindowInteropHelper(window).Handle, out var rect).Should().BeTrue();
+        (rect.Left, rect.Top, rect.Right - rect.Left, rect.Bottom - rect.Top)
+            .Should().Be(((int)placement.Left, (int)placement.Top, (int)placement.Width, (int)placement.Height));
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct NativeRect { public int Left, Top, Right, Bottom; }
+
+    [DllImport("user32.dll")]
+    private static extern bool GetWindowRect(IntPtr hwnd, out NativeRect rect);
 
     private sealed class TempSettingsFolder : IDisposable
     {

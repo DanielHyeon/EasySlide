@@ -1420,8 +1420,8 @@ namespace Easislides
 				try
 				{
 
-					string fullSearchString = "select * from SONG where lower(Title_1) like '" + SongTitle2.Text.ToLower().Replace("'", "''") + "'";
-					using DataTable datatable = DbController.GetDataTable(Gf.ConnectStringMainDB, fullSearchString);
+					using DataTable datatable = DbController.GetDataTable(Gf.ConnectStringMainDB,
+						"select Title_1 from SONG where lower(Title_1) like @title limit 1", ("@title", SongTitle2.Text.ToLower()));
 
 					if (datatable.Rows.Count>0)
 					{

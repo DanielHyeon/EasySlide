@@ -2,11 +2,12 @@
 using Easislides.Properties;
 using System;
 using System.ComponentModel;
+using System.Collections.Generic;
+using System.Linq;
 using System.Drawing;
 using System.IO;
 using System.Text;
 using System.Windows.Forms;
-using System.Xml;
 using System.Data;
 using Easislides.Util;
 
@@ -141,7 +142,7 @@ namespace Easislides
 			if (File.Exists(importPath))
 			{
 				ImportFolderList.Items.Clear();
-				switch (DataUtil.Right(importPath, 4).ToLower())
+				switch (Path.GetExtension(importPath).ToLowerInvariant())
 				{
 				case ".esf":
 					BuildImportFolderList_Database(importPath);
@@ -153,7 +154,8 @@ namespace Easislides
 					BuildImportFolderList_ESTextFile(importPath);
 					break;
 				case ".xml":
-					BuildImportFolderList_ESXML(importPath);
+				case ".json":
+					BuildExchangeFolderList(importPath);
 					break;
 				}
 			}
@@ -163,22 +165,15 @@ namespace Easislides
 		{
 			ImportFolderList.Items.Clear();
 
-			using DbConnection connection = DbController.GetDbConnection(Gf.ConnectSQLiteDef + ImportFileName);
+			using DbConnection connection = DbController.GetDbConnection(DbController.ConnectionStringForFile(ImportFileName, readOnly: true));
 
 			for (int i = 0; i < Gf.MAXSONGSFOLDERS; i++)
 			{
 				EsfFolderNames[i] = "";
 			}
 
-			bool hasUserReferenceColumn = false;
-
-			foreach (DataColumn field in connection.GetSchema("Song").Columns)
-			{
-				if (field.ColumnName == "USER_REFERENCE")
-				{
-					hasUserReferenceColumn = true;
-				}
-			}
+			bool hasUserReferenceColumn = DbController.GetColumnNames(connection, "SONG")
+				.Exists(name => name.Equals("USER_REFERENCE", StringComparison.OrdinalIgnoreCase));
 			string fullSearchString = "select * from Folder where FolderNo > 0 order by folderno ";
 
 			using DataTable dt = DbController.GetDataTable(connection, fullSearchString);
@@ -280,46 +275,28 @@ namespace Easislides
 			}
 		}
 
-		private void BuildImportFolderList_ESXML(string ImportFileName)
+		private void BuildExchangeFolderList(string path)
 		{
-			bool alreadyListed = false;
-			FolderLookupSongsCount = 0;
 			ImportFolderList.Items.Clear();
-			string folderName = "";
-			ListViewItem listViewItem = new ListViewItem();
+			FolderLookupSongsCount = 0;
 			try
 			{
-				XmlTextReader reader = new XmlTextReader(ImportFileName);
-				if (Gf.ValidateEasiSlidesXML(ref reader))
-				{
-					while (Gf.ExtractEasiSlidesXMLItem(ref reader, ref ImportItem))
-					{
-						folderName = ((ImportItem.FolderName == "") ? "Default Folder" : ImportItem.FolderName);
-						FolderLookupSongsCount++;
-						alreadyListed = false;
-						for (int i = 0; i < ImportFolderList.Items.Count; i++)
-						{
-							if (ImportFolderList.Items[i].ToString() == folderName)
-							{
-								alreadyListed = true;
-							}
-						}
-						if (!alreadyListed)
-						{
-							ImportFolderList.Items.Add(folderName);
-						}
-					}
-				}
-				reader?.Close();
+				var folders = SongExchangeFile.CountFolders(path, StringComparer.Ordinal);
+				FolderLookupSongsCount = folders.Values.Sum();
+				ImportFolderList.Items.AddRange(folders.Keys.ToArray());
 			}
-			catch
+			catch (Exception ex) when (SongExchangeFile.IsReadError(ex))
 			{
+				MessageBox.Show("Could not read the song file. " + ex.Message);
 			}
 		}
 
+		private HashSet<string> GetSelectedImportFolders() =>
+			ImportFolderList.CheckedItems.Cast<string>().ToHashSet(StringComparer.Ordinal);
+
 		private void LocationBtn_Click(object sender, EventArgs e)
 		{
-			OpenFileDialog1.Filter = "EasiSlides/XML Files (*.esf,*.esn,*.xml)|*.esf;*.est;*.esn;*.xml|Access Database (*.mdb)|*.mdb";
+			OpenFileDialog1.Filter = "EasiSlides Files (*.esf,*.est,*.esn,*.xml,*.json)|*.esf;*.est;*.esn;*.xml;*.json|Access Database (*.mdb)|*.mdb";
 			OpenFileDialog1.InitialDirectory = Gf.ImportFromDir;
 			OpenFileDialog1.AddExtension = true;
 			OpenFileDialog1.DefaultExt = "*.xml";
@@ -371,7 +348,8 @@ namespace Easislides
 						Import_TextFormat(importPath);
 						break;
 					case ".xml":
-						Import_XMLFormat(importPath);
+					case ".json":
+						ImportExchangeFile(importPath);
 						break;
 					case ".mdb":
 						AccessHelper(importPath);
@@ -396,15 +374,14 @@ namespace Easislides
 			ProgressBar1.Value = 0;
 			if (ImportFolderList.CheckedItems.Count > 0)
 			{
-				for (int i = 0; i < ImportFolderList.CheckedItems.Count; i++)
-				{
-					folderFilter = ((folderFilter != "") ? (folderFilter + " or FolderNo=" + GetImportFolderNumber(ImportFolderList.CheckedItems[i].ToString())) : (" where (FolderNo=" + GetImportFolderNumber(ImportFolderList.CheckedItems[i].ToString())));
-				}
-				folderFilter += ") ";
+				var folders = new System.Collections.Generic.List<int>();
+				foreach (object item in ImportFolderList.CheckedItems)
+					folders.Add(GetImportFolderNumber(item.ToString()));
+				folderFilter = $" where FolderNo in ({string.Join(",", folders)})";
 			}
 			int totalRows = 0;
 
-			using DataTable dataTable = DbController.GetDataTable(Gf.ConnectStringDef + ImportFileName, "select * from SONG " + folderFilter);
+			using DataTable dataTable = DbController.GetDataTable(DbController.ConnectionStringForFile(ImportFileName, readOnly: true), "select * from SONG " + folderFilter);
 
 			totalRows = dataTable.Rows.Count;
 
@@ -425,7 +402,7 @@ namespace Easislides
 				foreach (DataRow row in dataTable.Rows)
 				{
 					bool songRequired = false;
-					DataRow existingSong = null;
+					int? existingId = null;
 					rowNo++;
 					progressPercent = rowNo * 100 / totalRows;
 					ProgressBar1.Value = ((progressPercent > 100) ? 100 : progressPercent);
@@ -435,14 +412,14 @@ namespace Easislides
 					{
 						listViewItem = SongsList.Items.Add(Convert.ToString(rowNo));
 						listViewItem.SubItems.Add(ImportItem.Title);
-						string fullSearchString = "select * from SONG where Folderno=" + InFolderNo + " and Title_1 = \"" + EscapeSqlLiteral(ImportItem.Title) + "\"";
+
 						songRequired = true;
 						ImportItem.FolderNo = InFolderNo;
-						existingSong = DbController.GetDataRowScalar(connection, fullSearchString);
+						existingId = SongQueries.FindImportSongId(connection, InFolderNo, ImportItem.Title);
 					}
-					if (existingSong != null)
+					if (existingId.HasValue)
 					{
-						CurSongID = DataUtil.GetDataInt(existingSong, "SongID");
+						CurSongID = existingId.Value;
 						if (OptImport0.Checked)
 						{
 							songRequired = false;
@@ -472,112 +449,68 @@ namespace Easislides
 
 		}
 
-		private void Import_XMLFormat(string ImportFileName)
+		internal static IEnumerable<(ExchangeSong Song, string Sequence)> ReadSelectedExchangeSongs(
+			FileStream input, bool json, HashSet<string> selectedFolders)
 		{
-			int itemNo = 0;
-			ListViewItem listViewItem = new ListViewItem();
+			foreach (var song in SongExchangeFile.ReadSongs(input, json))
+			{
+				if (selectedFolders.Contains(song.SourceFolder))
+					yield return (song, json ? SongExchangeSequence.ToLegacy(song) : Gf.ConvertTextStringToSequence(song.Sequence));
+			}
+		}
 
+		private void ImportExchangeFile(string path)
+		{
 			SongsUpdated = 0;
 			SongsNew = 0;
 			SongsList.Items.Clear();
-
-			using DbConnection connection = DbController.GetDbConnection(Gf.ConnectStringMainDB);
-
-			listViewItem = SongsList.Items.Add("");
-			listViewItem.SubItems.Add("Starting Import...");
-			int folderNumber = Gf.GetFolderNumber(SongFolder.SelectedItems[0].Text);
-			int progressPercent = 0;
-			int matchedCount = 0;
-			string folderName = "";
-			string selectedFolders = "";
-			for (int i = 0; i < ImportFolderList.CheckedItems.Count; i++)
-			{
-				selectedFolders = selectedFolders + ImportFolderList.CheckedItems[i].ToString() + ";";
-			}
 			try
 			{
-				XmlTextReader reader = new XmlTextReader(ImportFileName);
-				if (Gf.ValidateEasiSlidesXML(ref reader))
+				Cursor = Cursors.WaitCursor;
+				bool isJson = SongExchangeFile.IsJson(path);
+				using var input = File.OpenRead(path);
+				var songs = ReadSelectedExchangeSongs(input, isJson, GetSelectedImportFolders());
+				// Validate the entire file before the first database write. Rewind the same read-locked file.
+				int total = songs.Count();
+				input.Position = 0;
+				int destination = Gf.GetFolderNumber(SongFolder.SelectedItems[0].Text);
+				using var connection = DbController.GetDbConnection(Gf.ConnectStringMainDB);
+				ProgressBar1.Value = 0;
+				ProgressBar1.Visible = true;
+				int processed = 0;
+				foreach (var (song, sequence) in songs)
 				{
-					Cursor = Cursors.WaitCursor;
-					ProgressBar1.Visible = true;
-					ProgressBar1.Value = 0;
-					if (FolderLookupSongsCount < 1)
+					processed++;
+					var row = SongsList.Items.Add(processed.ToString());
+					row.SubItems.Add(song.Title1);
+					ProgressBar1.Value = (int)(processed * 100L / total);
+					if (string.IsNullOrWhiteSpace(song.Title1))
 					{
-						FolderLookupSongsCount = 1;
+						row.SubItems.Add("Item has No Title - Not Imported");
+						continue;
 					}
-					while (Gf.ExtractEasiSlidesXMLItem(ref reader, ref ImportItem))
+					Gf.ApplyExchangeSong(song, ref ImportItem, sequence);
+					ImportItem.FolderNo = destination;
+					if (!isJson)
 					{
-						folderName = ((ImportItem.FolderName == "") ? "Default Folder" : ImportItem.FolderName);
-						itemNo++;
-						progressPercent = itemNo * 100 / FolderLookupSongsCount;
-						ProgressBar1.Value = ((progressPercent > 100) ? 100 : progressPercent);
-						Invalidate();
-						ProgressBar1.Invalidate();
-						if (selectedFolders.IndexOf(folderName + ";") >= 0)
-						{
-							matchedCount++;
-							listViewItem = SongsList.Items.Add(matchedCount.ToString());
-							listViewItem.SubItems.Add(ImportItem.Title);
-							string fullSearchString = "select * from SONG where Folderno=" + Convert.ToString(folderNumber) + " and Title_1 = \"" + EscapeSqlLiteral(ImportItem.Title) + "\"";
-							bool songRequired = true;
-
-							using DataTable dataTable = DbController.GetDataTable(connection, fullSearchString);
-
-							if (dataTable.Rows.Count > 0)
-							{
-								//recordset.MoveFirst();
-								CurSongID = DataUtil.GetDataInt(dataTable.Rows[0], "SongID");
-								if (OptImport0.Checked)
-								{
-									songRequired = false;
-								}
-								else if (OptImport1.Checked)
-								{
-									CurSongID = -1;
-								}
-							}
-							else
-							{
-								CurSongID = -1;
-							}
-
-							if (songRequired)
-							{
-								if (ImportItem.Title != "")
-								{
-									ImportItem.CompleteLyrics = ImportItem.CompleteLyrics.TrimStart('\n', '\r');
-									ImportItem.CompleteLyrics = ImportItem.CompleteLyrics.Replace("\r\n", "\n");
-									ImportItem.FolderNo = folderNumber;
-									SaveSong(songRequired, CurSongID, ImportItem, ref listViewItem, ref SongsNew, ref SongsUpdated);
-								}
-								else
-								{
-									listViewItem.SubItems.Add("Item has No Title - Not Imported");
-								}
-							}
-							else
-							{
-								listViewItem.SubItems.Add("Song exists in Database - NOT Imported");
-							}
-						}
-						SongsList.Items[SongsList.Items.Count - 1].EnsureVisible();
-						SongsList.Update();
+						Gf.LoadLicAdminDisplayInfo(ref ImportItem.Show_LicAdminInfo1, ref ImportItem.Show_LicAdminInfo2);
+						ImportItem.CompleteLyrics = ImportItem.CompleteLyrics.TrimStart('\n', '\r').Replace("\r\n", "\n");
 					}
-					Cursor = Cursors.Default;
-					ProgressBar1.Value = 100;
-					Show_Import_Result();
+					int? existingId = SongQueries.FindImportSongId(connection, destination, song.Title1);
+					CurSongID = OptImport1.Checked ? -1 : existingId ?? -1;
+					SaveSong(!existingId.HasValue || !OptImport0.Checked, CurSongID, ImportItem, ref row, ref SongsNew, ref SongsUpdated);
 				}
-				else
-				{
-					MessageBox.Show("Selected XML File is not formatted correctly for EasiSlides use. Import NOT Done");
-				}
-				reader?.Close();
+				Show_Import_Result();
 			}
-			catch
+			catch (Exception ex) when (SongExchangeFile.IsReadError(ex))
 			{
+				MessageBox.Show("Could not import the song file. " + ex.Message);
 			}
-			Cursor = Cursors.Default;
+			finally
+			{
+				Cursor = Cursors.Default;
+				ProgressBar1.Visible = false;
+			}
 		}
 
 		private void Show_Import_Result()
@@ -617,31 +550,39 @@ namespace Easislides
 			}
 		}
 
-		private string GetImportFolderNumber(string InFolderName)
+		private int GetImportFolderNumber(string InFolderName)
 		{
 			for (int i = 1; i < Gf.MAXSONGSFOLDERS; i++)
 			{
 				if (EsfFolderNames[i] == InFolderName)
 				{
-					return i.ToString();
+					return i;
 				}
 			}
-			return "0";
+			return 0;
 		}
 
 		private void SaveSong(bool SongRequired, int InSongID, SongSettings InItem, ref ListViewItem listItem, ref int SongsNew, ref int SongsUpdated)
 		{
 			if (SongRequired)
 			{
-				if (CurSongID < 1)
+				if (InSongID < 1)
 				{
-					Gf.InsertItemIntoDatabase(Gf.ConnectStringMainDB, InItem);
+					if (Gf.InsertItemIntoDatabase(Gf.ConnectStringMainDB, InItem) <= 0)
+					{
+						listItem.SubItems.Add("Insert failed");
+						return;
+					}
 					listItem.SubItems.Add("++ Imported as a New Item ++");
 					SongsNew++;
 				}
 				else
 				{
-					Gf.UpdateDatabaseItem(Gf.ConnectStringMainDB, InItem, CurSongID);
+					if (!Gf.UpdateDatabaseItem(Gf.ConnectStringMainDB, InItem, InSongID))
+					{
+						listItem.SubItems.Add("Update failed");
+						return;
+					}
 					listItem.SubItems.Add("** Existing Item in Database Replaced **");
 					SongsUpdated++;
 				}
@@ -716,11 +657,7 @@ namespace Easislides
 			int progressPercent = 0;
 			ListViewItem listViewItem = new ListViewItem();
 			string[] songBlocks = InString.Split('\u0001');
-			string selectedFolders = "";
-			for (int i = 0; i < ImportFolderList.CheckedItems.Count; i++)
-			{
-				selectedFolders = selectedFolders + ImportFolderList.CheckedItems[i].ToString() + ";";
-			}
+			var selectedFolders = GetSelectedImportFolders();
 
 			using DbConnection connection = DbController.GetDbConnection(Gf.ConnectStringMainDB);
 
@@ -764,7 +701,7 @@ namespace Easislides
 						ProgressBar1.Value = ((progressPercent > 100) ? 100 : progressPercent);
 						Invalidate();
 						ProgressBar1.Invalidate();
-						if (selectedFolders.IndexOf(folderName + ";") >= 0)
+						if (selectedFolders.Contains(folderName))
 						{
 							Gf.InitialiseIndividualData(ref ImportItem);
 							LoadTextFileHeaderToItem(ref ImportItem, header);
@@ -787,13 +724,13 @@ namespace Easislides
 							matchedCount++;
 							listViewItem = SongsList.Items.Add(matchedCount.ToString());
 							listViewItem.SubItems.Add(ImportItem.Title);
-							string fullSearchString = "select * from SONG where Folderno=" + Convert.ToString(folderNumber) + " and Title_1 = \"" + EscapeSqlLiteral(ImportItem.Title) + "\"";
+
 							bool songRequired = true;
 
-							using DataTable dataTable = DbController.GetDataTable(connection, fullSearchString);
-							if (dataTable.Rows.Count > 0)
+							int? existingId = SongQueries.FindImportSongId(connection, folderNumber, ImportItem.Title);
+							if (existingId.HasValue)
 							{
-								CurSongID = DataUtil.GetDataInt(dataTable.Rows[0], "SongID");
+								CurSongID = existingId.Value;
 								if (OptImport0.Checked)
 								{
 									songRequired = false;
@@ -987,7 +924,7 @@ namespace Easislides
 			ProgressBar1.Value = 0;
 			int totalRows = 0;
 
-			using DataTable dataTable = DbController.GetDataTable(Gf.ConnectSQLiteDef + ImportFileName, "select * from " + Gf.Import_TableName);
+			using DataTable dataTable = DbController.GetDataTable(DbController.ConnectionStringForFile(ImportFileName, readOnly: true), "select * from " + DbController.QuoteIdentifier(Gf.Import_TableName));
 			if (dataTable.Rows.Count <= 0)
 			{
 				return;
@@ -1004,7 +941,7 @@ namespace Easislides
 			foreach (DataRow dr in dataTable.Rows)
 			{
 				songRequired = false;
-				DataTable existingSongs = null;
+				int? existingId = null;
 				rowNo++;
 				progressPercent = rowNo * 100 / totalRows;
 				ProgressBar1.Value = ((progressPercent > 100) ? 100 : progressPercent);
@@ -1017,10 +954,10 @@ namespace Easislides
 				{
 					listViewItem = SongsList.Items.Add(Convert.ToString(rowNo));
 					listViewItem.SubItems.Add(ImportItem.Title);
-					string fullSearchString = "select * from SONG where Folderno=" + folderNumber + " and Title_1 = \"" + EscapeSqlLiteral(ImportItem.Title) + "\"";
+
 					songRequired = true;
 					ImportItem.FolderNo = folderNumber;
-					existingSongs = DbController.GetDataTable(connection, fullSearchString);
+					existingId = SongQueries.FindImportSongId(connection, folderNumber, ImportItem.Title);
 				}
 				else
 				{
@@ -1028,9 +965,9 @@ namespace Easislides
 					continue;
 				}
 
-				if (existingSongs != null && existingSongs.Rows.Count > 0)
+				if (existingId.HasValue)
 				{
-					CurSongID = DataUtil.GetDataInt(existingSongs.Rows[0], "SongID");
+					CurSongID = existingId.Value;
 					if (OptImport0.Checked)
 					{
 						songRequired = false;
@@ -1045,8 +982,6 @@ namespace Easislides
 					CurSongID = -1;
 				}
 
-				if (existingSongs != null)
-					existingSongs.Dispose();
 
 				SaveSong(songRequired, CurSongID, ImportItem, ref listViewItem, ref SongsNew, ref SongsUpdated);
 
@@ -1164,7 +1099,7 @@ namespace Easislides
 			string[] SourceCDSongTitle = new string[2600];
 			if (DoSourceCDIndexExtract(ref SourceCDSongTitle))
 			{
-				string fullSearchString2 = "select * from SONG where Folderno > 0 and upper(book_reference) like \"%" + ImportItem.Book_Reference + "%\"";
+
 				using DbConnection connection = DbController.GetDbConnection(Gf.ConnectStringMainDB);
 				try
 				{
@@ -1191,14 +1126,14 @@ namespace Easislides
 						ExtractOneSourceCDHTMLIntoItem(ref ImportItem, importFileName, ref SourceCDSongTitle);
 						listViewItem = SongsList.Items.Add(fileNo.ToString());
 						listViewItem.SubItems.Add(ImportItem.Title);
-						string fullSearchString = "select * from SONG where Folderno=" + Convert.ToString(folderNumber) + " and Title_1 = \"" + EscapeSqlLiteral(ImportItem.Title) + "\"";
+
 						songRequired = true;
 
-						using DataTable dataTable = DbController.GetDataTable(connection, fullSearchString);
-						if (dataTable.Rows.Count > 0)
+						int? existingId = SongQueries.FindImportSongId(connection, folderNumber, ImportItem.Title);
+						if (existingId.HasValue)
 						{
 							//recordset.MoveFirst();
-							CurSongID = DataUtil.GetDataInt(dataTable.Rows[0], "SongID");
+							CurSongID = existingId.Value;
 							if (OptImport0.Checked)
 							{
 								songRequired = false;
@@ -1218,9 +1153,9 @@ namespace Easislides
 							if (ImportItem.Title != "")
 							{
 								ImportItem.FolderNo = folderNumber;
-								string bookRefSearchString = "select * from SONG where Folderno > 0 and upper(book_reference) like \"%" + ImportItem.Book_Reference + "%\"";
-
-								using DataTable bookRefTable = DbController.GetDataTable(connection, bookRefSearchString);
+								using DataTable bookRefTable = DbController.GetDataTable(connection,
+									"select book_reference from SONG where Folderno > 0 and upper(book_reference) like @reference",
+									("@reference", "%" + ImportItem.Book_Reference + "%"));
 								if (bookRefTable.Rows.Count > 0)
 								{
 									bool bookRefFound = false;
@@ -1508,9 +1443,5 @@ namespace Easislides
 			return plainText.Trim();
 		}
 
-		private static string EscapeSqlLiteral(string value)
-		{
-			return string.IsNullOrEmpty(value) ? "" : value.Replace("\"", "\"\"");
-		}
 	}
 }

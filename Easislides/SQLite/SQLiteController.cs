@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
+using System.Collections.Generic;
 using System.Diagnostics;
-using System.Threading;
 using Easislides.Util;
 using DbCommand = System.Data.SQLite.SQLiteCommand;
 using DbCommandBuilder = System.Data.SQLite.SQLiteCommandBuilder;
@@ -16,164 +15,42 @@ namespace Easislides.SQLite
 {
 	class DbController
 	{
-		static readonly object DefaultDblocker = new object();
-		static bool lockDefalutDbTaken = false;
+		internal static string ConnectionStringForFile(string path, bool readOnly = false) =>
+			new System.Data.SQLite.SQLiteConnectionStringBuilder { DataSource = path, ReadOnly = readOnly, FailIfMissing = readOnly }.ConnectionString;
 
-		private static int IsTableExist(string tableName, ref DbConnection connection)
+		internal static string QuoteIdentifier(string identifier)
 		{
-			int result = 0;
-			try
-			{
-				string query = "SELECT COUNT(*) FROM sqlite_master WHERE Name = @tableName";
-				using (DbCommand command = new DbCommand(query, connection))
-				{
-					command.Parameters.AddWithValue("@tableName", tableName);
-					result = Convert.ToInt32(command.ExecuteScalar());
-				}
-			}
-			catch (Exception ex)
-			{
-				Trace.WriteLine($"ERROR : {ex.Message}, {ex.StackTrace}");
-				result = 0;
-			}
-
-			return result;
+			ArgumentException.ThrowIfNullOrWhiteSpace(identifier);
+			if (identifier.Contains('\0'))
+				throw new ArgumentException("SQLite identifiers cannot contain NUL.", nameof(identifier));
+			return "\"" + identifier.Replace("\"", "\"\"") + "\"";
 		}
 
-		public static void DropTable(ref DbConnection connection, string tableName)
+		internal static List<string> GetColumnNames(DbConnection connection, string table)
 		{
-			try
-			{
-				bool tableExists = false;
-				DataTable dbSchemaTable = connection.GetSchema("Tables", new string[4]
-				{
-					null,
-					null,
-					tableName,
-					"TABLE"
-				});
-
-				foreach (DataRow row in dbSchemaTable.Rows)
-				{
-					if (tableName.ToUpper() == DataUtil.ObjToString(row["TABLE_NAME"]).ToUpper())
-					{
-						tableExists = true;
-					}
-				}
-
-				if (tableExists)
-				{
-					using (DbCommand command = new DbCommand("DROP TABLE " + tableName, connection))
-					{
-						command.ExecuteNonQuery();
-					}
-				}
-			}
-			catch (Exception ex)
-			{
-				Trace.WriteLine($"ERROR : {ex.Message}, {ex.StackTrace}");
-			}
+			using var command = CreateCommand(connection, "SELECT name FROM pragma_table_info(@table) ORDER BY cid", ("@table", table));
+			using var reader = command.ExecuteReader();
+			var columns = new List<string>();
+			while (reader.Read())
+				columns.Add(reader.GetString(0));
+			return columns;
 		}
 
-		private string SqlQueryCreatTableCommand(ref DbConnection connection, string dbFileName, bool onlyNotExistId, bool columnId, string tableName, KeyValuePair<string, string>[] fields)
+		internal static DbCommand CreateCommand(DbConnection connection, string sql,
+			params (string Name, object Value)[] parameters)
 		{
-			string sqlQueryCreatTable = "";
-
+			var command = new DbCommand(sql, connection);
 			try
 			{
-				int result = IsTableExist(tableName, ref connection);
-
-				if (result == 0)
-				{
-					string ifnotexists = "IF NOT EXISTS", id = "'Id' INTEGER PRIMARY KEY AUTOINCREMENT";
-					sqlQueryCreatTable = $"CREATE TABLE {(onlyNotExistId ? ifnotexists : "")} '{tableName}'({id}";
-
-					for (int i = 0; i < fields.Length; i++)
-						sqlQueryCreatTable += $", '{fields[i].Key}' {fields[i].Value}";
-
-					sqlQueryCreatTable += ");";
-				}
+				foreach (var (name, value) in parameters)
+					command.Parameters.AddWithValue(name, value ?? DBNull.Value);
+				return command;
 			}
-			catch (Exception ex)
+			catch
 			{
-				Trace.WriteLine($"ERROR : {ex.Message}, {ex.StackTrace}");
+				command.Dispose();
+				throw;
 			}
-
-			return sqlQueryCreatTable;
-		}
-
-		private KeyValuePair<string, string> CreateField(string name, string typenetc)
-		{
-			return new KeyValuePair<string, string>(name, typenetc);
-		}
-
-		public static int SqliteAlterColumn(ref DbConnection connection, string tableName, string alterQuery)
-		{
-			int result = 0;
-			try
-			{
-				using DbTransaction dbTransaction = connection.BeginTransaction();
-
-				using DbCommand pragmaWritableCommand = new DbCommand("pragma writable_schema=1;", connection, dbTransaction);
-				pragmaWritableCommand.ExecuteNonQuery();
-
-				using DbCommand command = new DbCommand(alterQuery, connection, dbTransaction);
-				result = command.ExecuteNonQuery();
-
-				dbTransaction.Commit();
-			}
-			catch (Exception ex)
-			{
-				Trace.WriteLine($"ERROR : {ex.Message}, {ex.StackTrace}");
-			}
-			return result;
-		}
-
-		public static int SqliteAlterColumn(ref DbConnection connection, string tableName, string[] alterQuerys)
-		{
-			int result = 0;
-			try
-			{
-				using DbTransaction dbTransaction = connection.BeginTransaction();
-
-				using DbCommand pragmaWritableCommand = new DbCommand("pragma writable_schema=1;", connection, dbTransaction);
-				pragmaWritableCommand.ExecuteNonQuery();
-
-				foreach (string alterQuery in alterQuerys)
-				{
-					using DbCommand command = new DbCommand(alterQuery, connection, dbTransaction);
-					result = command.ExecuteNonQuery();
-				}
-
-				dbTransaction.Commit();
-			}
-			catch (Exception ex)
-			{
-				Trace.WriteLine($"ERROR : {ex.Message}, {ex.StackTrace}");
-			}
-			return result;
-		}
-
-		public static int SqliteAlterColumn(ref DbConnection connection, string tableName, string oldvalue, string newvalue)
-		{
-			int result = 0;
-			try
-			{
-				using DbTransaction dbTransaction = connection.BeginTransaction();
-
-				using DbCommand pragmaWritableCommand = new DbCommand("pragma writable_schema=1;", connection, dbTransaction);
-				pragmaWritableCommand.ExecuteNonQuery();
-
-				using DbCommand command = new DbCommand($"UPDATE SQLITE_MASTER SET SQL = replace(SQL, '{oldvalue}', '{newvalue}') WHERE NAME = '{tableName}'", connection, dbTransaction);
-				result = command.ExecuteNonQuery();
-
-				dbTransaction.Commit();
-			}
-			catch (Exception ex)
-			{
-				Trace.WriteLine($"ERROR : {ex.Message}, {ex.StackTrace}");
-			}
-			return result;
 		}
 
 		public static void CreateField(ref DbConnection connection, string tableName, string fieldName, int fieldType)
@@ -189,19 +66,19 @@ namespace Easislides.SQLite
 				switch (fieldType)
 				{
 					case 0:
-						alterTableSql = $"ALTER TABLE {tableName} ADD COLUMN {fieldName} TEXT({DataUtil.ObjToString(fieldSize)}) NULL";
+						alterTableSql = $"ALTER TABLE {QuoteIdentifier(tableName)} ADD COLUMN {QuoteIdentifier(fieldName)} TEXT({DataUtil.ObjToString(fieldSize)}) NULL";
 						break;
 					case 1:
-						alterTableSql = $"ALTER TABLE {tableName} ADD COLUMN {fieldName} INT";
+						alterTableSql = $"ALTER TABLE {QuoteIdentifier(tableName)} ADD COLUMN {QuoteIdentifier(fieldName)} INT";
 						break;
 					case 2:
-						alterTableSql = $"ALTER TABLE {tableName} ADD COLUMN {fieldName} DATE";
+						alterTableSql = $"ALTER TABLE {QuoteIdentifier(tableName)} ADD COLUMN {QuoteIdentifier(fieldName)} DATE";
 						break;
 					case 4:
-						alterTableSql = $"ALTER TABLE {tableName} ADD COLUMN {fieldName} FLOAT";
+						alterTableSql = $"ALTER TABLE {QuoteIdentifier(tableName)} ADD COLUMN {QuoteIdentifier(fieldName)} FLOAT";
 						break;
 					case 5:
-						alterTableSql = $"ALTER TABLE {tableName} ADD COLUMN {fieldName} TEXT";
+						alterTableSql = $"ALTER TABLE {QuoteIdentifier(tableName)} ADD COLUMN {QuoteIdentifier(fieldName)} TEXT";
 						break;
 				}
 				if (!(alterTableSql == ""))
@@ -218,7 +95,7 @@ namespace Easislides.SQLite
 						if (fieldName.ToUpper() == "TIMING".ToUpper())
 						{
 							fieldName = "MSC";
-							alterTableSql = $"ALTER TABLE {tableName} ADD COLUMN {fieldName}";
+							alterTableSql = $"ALTER TABLE {QuoteIdentifier(tableName)} ADD COLUMN {QuoteIdentifier(fieldName)}";
 							using DbCommand dbCommand1 = new DbCommand(alterTableSql, connection);
 							dbCommand1.ExecuteNonQuery();
 						}
@@ -235,106 +112,22 @@ namespace Easislides.SQLite
 
 		public static DbConnection GetDbConnection(string ConnectString)
 		{
+			DbConnection connection = null;
 			try
 			{
-				Monitor.Enter(DefaultDblocker);
-
-				while (lockDefalutDbTaken)
-					Monitor.Wait(DefaultDblocker);
-
-				lockDefalutDbTaken = true;
-
-				DbConnection connection = new DbConnection(ConnectString);
+				connection = new DbConnection(ConnectString);
 				connection.Open();
-
 				return connection;
 			}
-			catch (Exception e)
-			{
-				Trace.WriteLine($"ERROR : {e.Message}, {e.StackTrace}");
-				return null;
-			}
-			finally
-			{
-				lockDefalutDbTaken = false;
-				Monitor.Pulse(DefaultDblocker);
-				Monitor.Exit(DefaultDblocker);
-			}
-		}
-
-		public static DataTable GetRecordSet(DbConnection connection, string FullSearchString)
-		{
-			try
-			{
-				DataTable dt = new DataTable();
-				using (DbCommand command = new DbCommand(FullSearchString, connection))
-				using (DbDataReader dataReader = command.ExecuteReader())
-				{
-					dt.Load(dataReader);
-				}
-				return dt;
-			}
 			catch (Exception ex)
 			{
+				connection?.Dispose();
 				Trace.WriteLine($"ERROR : {ex.Message}, {ex.StackTrace}");
 				return null;
 			}
 		}
 
-		public static DataTable GetTableRecordSet(string ConnectString, string FullSearchString)
-		{
-			try
-			{
-				DataTable dt = new DataTable();
-				using (DbConnection connection = GetDbConnection(ConnectString))
-				using (DbCommand command = new DbCommand(FullSearchString, connection))
-				using (DbDataReader dataReader = command.ExecuteReader(CommandBehavior.CloseConnection))
-				{
-					dt.Load(dataReader);
-				}
-				return dt;
-			}
-			catch (Exception e)
-			{
-				Trace.WriteLine($"ERROR : {e.Message}, {e.StackTrace}");
-				return null;
-			}
-		}
-
-		public static DataTable GetTableRecordSet(DbConnection connection, string TableName)
-		{
-			try
-			{
-				DataTable dt = new DataTable();
-				string query = "select * from " + TableName;
-				using (DbCommand command = new DbCommand(query, connection))
-				using (DbDataReader dataReader = command.ExecuteReader())
-				{
-					dt.Load(dataReader);
-				}
-				return dt;
-			}
-			catch (Exception ex)
-			{
-				Trace.WriteLine($"ERROR : {ex.Message}, {ex.StackTrace}");
-			}
-			return null;
-		}
-
-
-		public static (DbDataAdapter, DataTable) GetDataAdapter(string ConnectString, string FullSearchString)
-		{
-			try
-			{
-				DbConnection connection = GetDbConnection(ConnectString);
-				return GetDataAdapter(connection, FullSearchString);
-			}
-			catch (Exception ex)
-			{
-				Trace.WriteLine($"ERROR : {ex.Message}, {ex.StackTrace}");
-				return (null, null);
-			}
-		}
+		public static DataTable GetRecordSet(DbConnection connection, string sql) => GetDataTable(connection, sql);
 
 		// Obsolete: Use GetDataAdapter instead
 		[System.Obsolete("Use GetDataAdapter with PascalCase naming.")]
@@ -364,52 +157,15 @@ namespace Easislides.SQLite
 			}
 		}
 
-		public static DataTable GetDataTable(DbConnection connection, string FullSearchString)
+		public static DataTable GetDataTable(DbConnection connection, string sql, params (string Name, object Value)[] parameters)
 		{
 			try
 			{
-				DataTable dt = new DataTable();
-				using (DbCommand command = new DbCommand(FullSearchString, connection))
-				using (DbDataReader dataReader = command.ExecuteReader())
-				{
-					dt.Load(dataReader);
-				}
-				return dt;
-			}
-			catch (Exception e)
-			{
-				Trace.WriteLine($"ERROR : {e.Message}, {e.StackTrace}");
-				return null;
-			}
-		}
-
-		public static DataTable GetDataTable(string ConnectString, string FullSearchString)
-		{
-			try
-			{
-				DataTable dt = new DataTable();
-				using (DbConnection connection = GetDbConnection(ConnectString))
-				using (DbCommand command = new DbCommand(FullSearchString, connection))
-				using (DbDataReader dataReader = command.ExecuteReader(CommandBehavior.CloseConnection))
-				{
-					dt.Load(dataReader);
-				}
-				return dt;
-			}
-			catch (Exception e)
-			{
-				Trace.WriteLine($"ERROR : {e.Message}, {e.StackTrace}");
-				return null;
-			}
-		}
-
-		public static DbDataReader GetDataReader(DbConnection connection, string FullSearchString)
-		{
-			try
-			{
-				DbCommand command = new DbCommand(FullSearchString, connection);
-				DbDataReader dataReader = command.ExecuteReader();
-				return dataReader;
+				using var command = CreateCommand(connection, sql, parameters);
+				using var reader = command.ExecuteReader();
+				var table = new DataTable();
+				table.Load(reader);
+				return table;
 			}
 			catch (Exception ex)
 			{
@@ -418,103 +174,42 @@ namespace Easislides.SQLite
 			}
 		}
 
-		public static (DbConnection, DbDataReader) GetDataReader(string ConnectString, string FullSearchString)
+		public static DataTable GetDataTable(string connectionString, string sql, params (string Name, object Value)[] parameters)
 		{
-			try
-			{
-				//------------------------------------------------------------------
-				DbConnection connection = GetDbConnection(ConnectString);
-				using DbCommand command = new DbCommand(FullSearchString, connection);
-
-				DbDataReader dataReader = command.ExecuteReader();
-
-				return (connection, dataReader);
-			}
-			catch (Exception e)
-			{
-				Console.WriteLine(e.Message);
-				Console.WriteLine(e.StackTrace);
-				return (null, null);
-			}
+			using var connection = GetDbConnection(connectionString);
+			return GetDataTable(connection, sql, parameters);
 		}
 
-		/// <summary>
-		/// As GetDataReader(ConnectString, FullSearchString), with bound parameters (name, value), so text
-		/// typed by the user never becomes part of the SQL string. A parameter is bound to every statement
-		/// of a multi-statement query that uses its name.
-		/// </summary>
-		public static (DbConnection, DbDataReader) GetDataReader(string ConnectString, string FullSearchString, params (string Name, object Value)[] parameters)
-		{
-			DbConnection connection = null;
-			try
-			{
-				connection = GetDbConnection(ConnectString);
-				using DbCommand command = new DbCommand(FullSearchString, connection);
-				foreach (var (name, value) in parameters)
-				{
-					command.Parameters.AddWithValue(name, value);
-				}
-
-				DbDataReader dataReader = command.ExecuteReader();
-
-				return (connection, dataReader);
-			}
-			catch (Exception e)
-			{
-				Trace.WriteLine($"ERROR : {e.Message}, {e.StackTrace}");
-				connection?.Dispose();
-				return (null, null);
-			}
-		}
-
-		public static DataRow GetDataRowScalar(DbConnection connection, string FullSearchString)
+		public static DbDataReader GetDataReader(DbConnection connection, string sql, params (string Name, object Value)[] parameters)
 		{
 			try
 			{
-				using DataTable dt = new DataTable();
-				DataRow dataRow = null;
-
-				using DbCommand command = new DbCommand(FullSearchString, connection);
-				using DbDataReader dataReader = command.ExecuteReader();
-
-				dt.Load(dataReader);
-
-				if (dt != null && dt.Rows.Count > 0)
-					dataRow = dt.Rows[0];
-
-				return dataRow;
+				using var command = CreateCommand(connection, sql, parameters);
+				return command.ExecuteReader();
 			}
-			catch (Exception e)
+			catch (Exception ex)
 			{
-				Trace.WriteLine($"ERROR : {e.Message}, {e.StackTrace}");
+				Trace.WriteLine($"ERROR : {ex.Message}, {ex.StackTrace}");
 				return null;
 			}
 		}
 
-		public static (DbConnection, DataRow) GetDataRowScalar(string ConnectString, string FullSearchString)
+		public static (DbConnection, DbDataReader) GetDataReader(string connectionString, string sql,
+			params (string Name, object Value)[] parameters)
 		{
-			try
-			{
-				using DataTable dt = new DataTable();
-				DataRow dataRow = null;
+			var connection = GetDbConnection(connectionString);
+			var reader = GetDataReader(connection, sql, parameters);
+			if (reader != null)
+				return (connection, reader);
 
-				DbConnection connection = GetDbConnection(ConnectString);
+			connection?.Dispose();
+			return (null, null);
+		}
 
-				using DbCommand command = new DbCommand(FullSearchString, connection);
-				using DbDataReader dataReader = command.ExecuteReader();
-
-				dt.Load(dataReader);
-
-				if (dt != null && dt.Rows.Count > 0)
-					dataRow = dt.Rows[0];
-
-				return (connection, dataRow);
-			}
-			catch (Exception e)
-			{
-				Trace.WriteLine($"ERROR : {e.Message}, {e.StackTrace}");
-				return (null, null);
-			}
+		public static DataRow GetDataRowScalar(DbConnection connection, string sql, params (string Name, object Value)[] parameters)
+		{
+			using var table = GetDataTable(connection, sql, parameters);
+			return table?.Rows.Count > 0 ? table.Rows[0] : null;
 		}
 
 		public static void UpdateTable(DbConnection connection, string selectQuery, DataTable dataTable)

@@ -15,6 +15,43 @@ namespace Easislides.Wpf.Tests.Data;
 public class AdminDatabaseRepositoryTests
 {
     [Fact]
+    public async Task JsonSongExchange_RoundTripsMetadataAndOnlyTheSelectedFolderInSqlite()
+    {
+        using var fixture = AdminDatabaseFixture.Create();
+        fixture.CreateLegacySchema();
+        fixture.InsertFolder(1, "Youth Choir", "True");
+        fixture.InsertFolder(2, "Choir", "True");
+        fixture.InsertFolder(3, "Destination", "True");
+        fixture.InsertSong(10, "찬양 & \"빛\"", 1, 7, "Alt", "Praise", "D", "첫 줄\r\n둘째 줄\n",
+            "1,c,12", "Writer", "Copyright", 2, "Slow", "G;2;", "Admin A", "Admin B", "Ps 1", "Ref", "settings", "format");
+        fixture.InsertSong(11, "Other", 2, 8);
+
+        var db = new AdminDatabaseRepository();
+        var service = new ImportExportService(db, db);
+        var path = service.GetDefaultExportPath(fixture.Root, new DateOnly(2026, 1, 1), ExportFormat.Json);
+        Path.GetExtension(path).Should().Be(".json");
+        var export = await service.ExportAsync(new ExportRequest(fixture.DatabasePath, path, ExportFormat.Json, [11, 10], [1, 2]));
+        export.Succeeded.Should().BeTrue();
+        var preview = await service.PreviewImportAsync(path);
+        preview.Kind.Should().Be(ImportSourceKind.EasiSlidesJson);
+        preview.TotalSongs.Should().Be(2);
+        preview.Folders.Should().Equal(new ImportSourceFolder("Choir", 1), new ImportSourceFolder("Youth Choir", 1));
+        using var json = System.Text.Json.JsonDocument.Parse(File.ReadAllBytes(path));
+        json.RootElement[0].GetProperty("Title1").GetString().Should().Be("Other");
+        json.RootElement[1].GetProperty("SongNumber").GetInt32().Should().Be(7);
+
+        var request = new ImportRequest(fixture.DatabasePath, fixture.BackupRoot, path, 3, ["Youth Choir"], ImportDuplicatePolicy.SkipExisting);
+        var imported = await service.ImportAsync(request);
+        imported.Succeeded.Should().BeTrue();
+        imported.ImportedNew.Should().Be(1);
+        var saved = (await db.GetSongsAsync(fixture.DatabasePath, 3)).Single();
+        var original = await db.GetSongDetailAsync(fixture.DatabasePath, 10);
+        (await db.GetSongDetailAsync(fixture.DatabasePath, saved.SongId))
+            .Should().Be(original! with { SongId = saved.SongId, FolderNo = 3 });
+        (await service.ImportAsync(request)).Skipped.Should().Be(1);
+    }
+
+    [Fact]
     public async Task AnalyzeSchemaAsync_WhenLegacyAdminDatabaseExists_ReturnsTablesColumnsAndCompatibility()
     {
         using var fixture = AdminDatabaseFixture.Create();

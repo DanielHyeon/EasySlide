@@ -29,8 +29,8 @@ namespace Easislides
 			try
 			{
 				ListViewItem listViewItem = new ListViewItem();
-				string fullSearchString = "select * from SONG where title_1 like \"" + Gf.Lookup_NameSelected + "\" and folderno > 0 order by cjk_strokecount";
-				using DataTable datatable = DbController.GetDataTable(Gf.ConnectStringMainDB, fullSearchString);
+				using DataTable datatable = DbController.GetDataTable(Gf.ConnectStringMainDB,
+					"select Title_1, SongID, FolderNo, Book_Reference, User_Reference from SONG where title_1 like @title and folderno > 0 order by cjk_strokecount", ("@title", Gf.Lookup_NameSelected));
 				if (datatable.Rows.Count>0)
 				{
 					//recordSet.MoveFirst();

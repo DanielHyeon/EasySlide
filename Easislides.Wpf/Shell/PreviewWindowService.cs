@@ -72,7 +72,7 @@ public sealed class PreviewWindowService : IPreviewWindowService
         return new PreviewWindowState(
             IsOpen: true,
             display,
-            _placement.CreateOutputPlacement(display, windowed));
+            _placement.CreateStagePlacement(display, windowed));
     }
 
     private void Update(PreviewWindowState state)

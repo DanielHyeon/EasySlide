@@ -602,9 +602,7 @@ namespace Easislides
 		{
 			try
 			{
-				string fullSearchString = "select * from SONG where songid=" + InItem.ItemID;
-
-				using DataTable datatable = DbController.GetDataTable(ConnectStringMainDB, fullSearchString);
+				using DataTable datatable = DbController.GetDataTable(ConnectStringMainDB, "select FORMATDATA from SONG where songid=@id", ("@id", InItem.ItemID));
 
 				if (datatable.Rows.Count > 0)
 				{
@@ -633,9 +631,7 @@ namespace Easislides
 				InItem.Type = "D";
 				try
 				{
-					string fullSearchString = "select * from SONG where songid=" + InItem.ItemID;
-
-					using DataTable datatable = DbController.GetDataTable(ConnectStringMainDB, fullSearchString);
+					using DataTable datatable = DbController.GetDataTable(ConnectStringMainDB, "select * from SONG where songid=@id", ("@id", InItem.ItemID));
 
 					if (datatable.Rows.Count > 0)
 					{
@@ -1066,142 +1062,70 @@ namespace Easislides
 
 		public static void SetImageFormat(ref ImageTransitionControl InPic, string File_Name, ImageMode PicMode, bool SetTransparent)
 		{
-			Image image = new Bitmap(Buffer_LS_Width, Buffer_LS_Height);
-			using UnstoredImageGuard imageGuard = new UnstoredImageGuard(image);
-			using Graphics graphics = Graphics.FromImage(image);
+			if (InPic.Width <= 0 || InPic.Height <= 0)
+				return;
 
-			if (InPic.BackgroundID != "")
+			var file = new FileInfo(File_Name);
+			var size = new Size(Buffer_LS_Width, Buffer_LS_Height);
+			var key = new ImageTransitionControl.BackgroundFileKey(file.FullName, file.LastWriteTimeUtc,
+				file.Length, PicMode, size, InPic.Size);
+			if (InPic.RenderedBackground == key && InPic.BackgroundID == "")
 			{
-				if (InPic.BackgroundID == DefaultBackgroundID)
-				{
-					InPic.TransitBackPictureAction = ImageTransitionControl.BackPicturesTransition.NewOnly;
-				}
-				else
-				{
-					InPic.TransitBackPictureAction = ImageTransitionControl.BackPicturesTransition.BothBackgrounds;
-				}
-			}
-			else if ((InPic.ImageFileName == File_Name) & (InPic.PicMode == (int)PicMode))
-			{
+				InPic.CurrentBackgroundPicture = InPic.NewBackgroundPicture;
 				InPic.TransitBackPictureAction = ImageTransitionControl.BackPicturesTransition.None;
+				return;
+			}
+
+			Image image = new Bitmap(size.Width, size.Height);
+			using var imageGuard = new UnstoredImageGuard(image);
+			using (var stream = new FileStream(file.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
+			using (var decoded = Image.FromStream(stream))
+			using (var source = new Bitmap(decoded))
+			using (var graphics = Graphics.FromImage(image))
+				DrawFileBackground(graphics, source, size, InPic.Size, PicMode);
+
+			InPic.TransitBackPictureAction = InPic.BackgroundID != "" && InPic.BackgroundID == DefaultBackgroundID
+				? ImageTransitionControl.BackPicturesTransition.NewOnly
+				: ImageTransitionControl.BackPicturesTransition.BothBackgrounds;
+			InPic.BackgroundID = "";
+			InPic.ImageFileName = File_Name;
+			InPic.PicMode = (int)PicMode;
+			InPic.CurrentBackgroundPicture = InPic.NewBackgroundPicture ?? image;
+			InPic.NewBackgroundPicture = InPic.AdoptImage(image);
+			imageGuard.Stored = true;
+			InPic.RenderedBackground = key;
+		}
+
+		private static void DrawFileBackground(Graphics graphics, Image source, Size size, Size viewport, ImageMode mode)
+		{
+			var destination = new Rectangle(Point.Empty, size);
+			if (mode == ImageMode.Tile)
+			{
+				using var tiles = new TextureBrush(source, System.Drawing.Drawing2D.WrapMode.Tile);
+				graphics.FillRectangle(tiles, destination);
+				return;
+			}
+
+			double sourceRatio = (double)source.Width / source.Height;
+			double viewportRatio = (double)viewport.Width / viewport.Height;
+			var crop = new Rectangle(Point.Empty, source.Size);
+			if (mode == ImageMode.Centre)
+			{
+				if (viewportRatio < sourceRatio)
+					destination.Height = (int)(size.Width / sourceRatio);
+				else
+					destination.Width = (int)(size.Height * sourceRatio);
+				destination.Offset((size.Width - destination.Width) / 2, (size.Height - destination.Height) / 2);
 			}
 			else
 			{
-				InPic.TransitBackPictureAction = ImageTransitionControl.BackPicturesTransition.BothBackgrounds;
-			}
-			InPic.BackgroundID = "";
-
-			// Load image as a standalone Bitmap: Image.FromStream binds to its source stream,
-			// and image2 lives long enough (through the entire switch/finally below) that the
-			// closed stream would otherwise cause intermittent GDI+ failures on DrawImage.
-			Image image2;
-			using (var stream = new FileStream(File_Name, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-			using (var tempImage = Image.FromStream(stream))
-			{
-				image2 = new Bitmap(tempImage);
-			}
-
-			try
-			{
-				InPic.ImageFileName = File_Name;
-				InPic.PicMode = (int)PicMode;
-				double sourceAspectRatio = (double)image2.Width / (double)image2.Height;
-				if ((InPic.Width <= 0) | (InPic.Height <= 0))
-				{
-					return;
-				}
-				double canvasAspectRatio = (double)InPic.Width / (double)InPic.Height;
-				switch (PicMode)
-				{
-					case ImageMode.Centre:
-						{
-							int x2 = 0;
-							int y2 = 0;
-							int sourceWidth = image2.Width;
-							int sourceHeight = image2.Height;
-							int x;
-							int width;
-							int height;
-							int y;
-							if (canvasAspectRatio < sourceAspectRatio)
-							{
-								x = 0;
-								width = image.Width;
-								height = (int)((double)width / sourceAspectRatio);
-								y = (image.Height - height) / 2;
-							}
-							else
-							{
-								y = 0;
-								height = image.Height;
-								width = (int)((double)height * sourceAspectRatio);
-								x = (image.Width - width) / 2;
-							}
-							graphics.DrawImage(image2, new Rectangle(x, y, width, height), new Rectangle(x2, y2, sourceWidth, sourceHeight), GraphicsUnit.Pixel);
-							break;
-						}
-					case ImageMode.Tile:
-						{
-							int tileWidth = image2.Width;
-							int tileHeight = image2.Height;
-							for (int x2 = 0; x2 <= image.Width / tileWidth; x2++)
-							{
-								for (int y2 = 0; y2 <= image.Height / tileHeight; y2++)
-								{
-									int x = x2 * tileWidth;
-									int y = y2 * tileHeight;
-									graphics.DrawImage(image2, new Rectangle(x, y, tileWidth, tileHeight), new Rectangle(0, 0, tileWidth, tileHeight), GraphicsUnit.Pixel);
-								}
-							}
-							break;
-						}
-					default:
-						{
-							int x = 0;
-							int y = 0;
-							int width = image.Width;
-							int height = image.Height;
-							int y2;
-							int cropHeight;
-							int cropWidth;
-							int x2;
-							if (canvasAspectRatio < sourceAspectRatio)
-							{
-								y2 = 0;
-								cropHeight = image2.Height;
-								cropWidth = (int)((double)cropHeight * canvasAspectRatio);
-								x2 = (image2.Width - cropWidth) / 2;
-							}
-							else
-							{
-								x2 = 0;
-								cropWidth = image2.Width;
-								cropHeight = (int)((double)cropWidth / canvasAspectRatio);
-								y2 = (image2.Height - cropHeight) / 2;
-							}
-							graphics.DrawImage(image2, new Rectangle(x, y, width, height), new Rectangle(x2, y2, cropWidth, cropHeight), GraphicsUnit.Pixel);
-							break;
-						}
-				}
-				// The picture becomes InPic's own (see SetColoursFormat); the previous NewBackgroundPicture
-				// itself becomes CurrentBackgroundPicture, without a copy.
-				InPic.AdoptImage(image);
-				imageGuard.Stored = true;
-				if (InPic.NewBackgroundPicture != null)
-				{
-					InPic.CurrentBackgroundPicture = InPic.NewBackgroundPicture;
-				}
+				if (viewportRatio < sourceRatio)
+					crop.Width = (int)(source.Height * viewportRatio);
 				else
-				{
-					InPic.CurrentBackgroundPicture = image;
-				}
-				InPic.NewBackgroundPicture = image;
+					crop.Height = (int)(source.Width / viewportRatio);
+				crop.Offset((source.Width - crop.Width) / 2, (source.Height - crop.Height) / 2);
 			}
-			finally
-			{
-				// Clean up loaded image
-				image2?.Dispose();
-			}
+			graphics.DrawImage(source, destination, crop, GraphicsUnit.Pixel);
 		}
 
 		/// <summary>
@@ -1439,9 +1363,7 @@ namespace Easislides
 			{
 				try
 				{
-					string fullSearchString = "select * from SONG where songid=" + itemIdOrPath;
-
-					using DataTable datatable = DbController.GetDataTable(ConnectStringMainDB, fullSearchString);
+					using DataTable datatable = DbController.GetDataTable(ConnectStringMainDB, "select * from SONG where songid=@id", ("@id", itemIdOrPath));
 
 					if (datatable.Rows.Count > 0 && DataUtil.GetDataInt(datatable.Rows[0], "FolderNo") > 0 && Folders[DataUtil.GetDataInt(datatable.Rows[0], "FolderNo")].Use > 0)
 					{
@@ -1680,33 +1602,73 @@ namespace Easislides
 			return false;
 		}
 
-		public static bool ExtractEasiSlidesXMLItem(ref XmlTextReader reader, ref SongSettings InItem)
+		public static bool ExtractEasiSlidesXMLItem(ref XmlTextReader reader, ref SongSettings item)
 		{
-			bool hasFields = false;
-			InItem.Type = "I";
-			if (!MoveToXMLItemElement(ref reader) || reader.IsEmptyElement || !reader.Read())
-				return false;
-			while (!reader.EOF)
+			while (MoveToXMLItemElement(ref reader))
 			{
-				if (reader.NodeType == XmlNodeType.Element)
-				{
-					string name = reader.Name;
-					string value = reader.ReadElementContentAsString();
-					AssignElementToItem(ref InItem, name, value);
-					hasFields = true;
-					continue; // ReadElementContentAsString already advanced to the next node.
-				}
-				if (reader.NodeType == XmlNodeType.EndElement && reader.Name == "Item")
-				{
-					InItem.In_LicAdminInfo1 = InItem.Show_LicAdminInfo1;
-					InItem.In_LicAdminInfo2 = InItem.Show_LicAdminInfo2;
-					LoadLicAdminDisplayInfo(ref InItem.Show_LicAdminInfo1, ref InItem.Show_LicAdminInfo2);
-					return hasFields;
-				}
-				reader.Read();
+				using var subtree = reader.ReadSubtree();
+				var song = ExchangeSong.ReadXmlItem(subtree);
+				if (song == null) continue;
+				ApplyExchangeSong(song, ref item, ConvertTextStringToSequence(song.Sequence));
+				LoadLicAdminDisplayInfo(ref item.Show_LicAdminInfo1, ref item.Show_LicAdminInfo2);
+				return true;
 			}
 			return false;
 		}
+
+		internal static void ApplyExchangeSong(ExchangeSong song, ref SongSettings item, string decodedSequence)
+		{
+			item.Type = "I";
+			item.FolderName = song.Folder;
+			item.FolderNo = GetFolderNumber(song.Folder);
+			item.SongNumber = song.SongNumber;
+			item.Capo = song.Capo;
+			item.Title = song.Title1;
+			item.Title2 = song.Title2;
+			item.CompleteLyrics = song.Contents;
+			item.Notations = song.Notations;
+			item.OriginalNotations = song.Notations;
+			item.Writer = song.Writer;
+			item.Copyright = song.Copyright;
+			item.Category = song.Category;
+			item.Timing = song.Timing;
+			item.MusicKey = song.MusicKey;
+			item.Show_LicAdminInfo1 = song.LicenceAdmin1;
+			item.Show_LicAdminInfo2 = song.LicenceAdmin2;
+			item.Book_Reference = song.BookReference;
+			item.User_Reference = song.UserReference;
+			item.Format.FormatString = song.FormatData;
+			item.Settings = song.Settings;
+			item.SongSequence = decodedSequence;
+			item.SongOriginalLoadedSequence = item.SongSequence;
+			item.In_LicAdminInfo1 = song.LicenceAdmin1;
+			item.In_LicAdminInfo2 = song.LicenceAdmin2;
+			item.Format.ImageString = song.Image ?? "";
+			item.RotateString = ExtractSettings(song.Settings, SettingsCategory.RotateString);
+			GetRotationStyle(ref item);
+		}
+
+		internal static ExchangeSong ToExchangeSong(SongSettings item, string folder) =>
+			new ExchangeSong
+			{
+				Folder = folder, SongNumber = item.SongNumber, Capo = item.Capo,
+				Sequence = SongExchangeSequence.FromLegacy(item.SongSequence),
+				Title1 = item.Title,
+				Title2 = item.Title2,
+				Contents = item.CompleteLyrics,
+				Notations = item.Notations,
+				Writer = item.Writer,
+				Copyright = item.Copyright,
+				Category = item.Category,
+				Timing = item.Timing,
+				MusicKey = item.MusicKey,
+				LicenceAdmin1 = item.Show_LicAdminInfo1,
+				LicenceAdmin2 = item.Show_LicAdminInfo2,
+				BookReference = item.Book_Reference,
+				UserReference = item.User_Reference,
+				FormatData = item.Format.FormatString,
+				Settings = item.Settings,
+			};
 
 		public static void GetTitle2AndFormatFromInfoFile(string InFileName, ref string Title2, ref string FormatString)
 		{
@@ -1714,77 +1676,6 @@ namespace Easislides
 			gfFileHelpers.LoadInfoFile(InFileName, ref TempItem1);
 			Title2 = TempItem1.Title2;
 			FormatString = TempItem1.Format.FormatString;
-		}
-
-		public static void AssignElementToItem(ref SongSettings InItem, string ElementName, string ElementValue)
-		{
-			switch (ElementName)
-			{
-				case "Title1":
-					InItem.Title = ElementValue;
-					break;
-				case "Title2":
-					InItem.Title2 = ElementValue;
-					break;
-				case "Folder":
-					InItem.FolderName = ElementValue;
-					InItem.FolderNo = GetFolderNumber(ElementValue);
-					break;
-				case "SongNumber":
-					InItem.SongNumber = DataUtil.StringToInt(ElementValue);
-					break;
-				case "Contents":
-					InItem.CompleteLyrics = ElementValue;
-					break;
-				case "Notations":
-					InItem.Notations = ElementValue;
-					break;
-				case "Sequence":
-					InItem.SongSequence = ConvertTextStringToSequence(ElementValue);
-					InItem.SongOriginalLoadedSequence = InItem.SongSequence;
-					break;
-				case "Writer":
-					InItem.Writer = ElementValue;
-					break;
-				case "Copyright":
-					InItem.Copyright = ElementValue;
-					break;
-				case "Category":
-					InItem.Category = ElementValue;
-					break;
-				case "Timing":
-					InItem.Timing = ElementValue;
-					break;
-				case "MusicKey":
-					InItem.MusicKey = ElementValue;
-					break;
-				case "Capo":
-					InItem.Capo = DataUtil.StringToInt(ElementValue, Minus1IfBlank: true);
-					break;
-				case "LicenceAdmin1":
-					InItem.Show_LicAdminInfo1 = ElementValue;
-					break;
-				case "LicenceAdmin2":
-					InItem.Show_LicAdminInfo2 = ElementValue;
-					break;
-				case "BookReference":
-					InItem.Book_Reference = ElementValue;
-					break;
-				case "UserReference":
-					InItem.User_Reference = ElementValue;
-					break;
-				case "FormatData":
-					InItem.Format.FormatString = ElementValue;
-					break;
-				case "Settings":
-					InItem.Settings = ElementValue;
-					InItem.RotateString = ExtractSettings(ElementValue, SettingsCategory.RotateString);
-					GetRotationStyle(ref InItem);
-					break;
-				case "Image":
-					InItem.Format.ImageString = ElementValue;
-					break;
-			}
 		}
 
 		public static string ExtractSettings(string InSettingsString, SettingsCategory settingsCategory)
@@ -1915,18 +1806,12 @@ namespace Easislides
 
 			if (!result) return;
 
-			string sQuery = $"select * from SONG where songid={intSongID}";
 			try
 			{
-				using DbConnection connection = DbController.GetDbConnection(ConnectStringMainDB);
-				using DataTable dataTable = DbController.GetDataTable(ConnectStringMainDB, sQuery);
-
-				DataRow dr = dataTable.Rows.Find($"{SongID}");
-				if (dr != null)
-				{
-					dr["FormatData"] = FormatString;
-				}
-				DbController.UpdateTable(connection, sQuery, dataTable);
+				using var connection = DbController.GetDbConnection(ConnectStringMainDB);
+				using var command = DbController.CreateCommand(connection, "UPDATE SONG SET FormatData=@format WHERE SongID=@id",
+					("@format", FormatString), ("@id", intSongID));
+				command.ExecuteNonQuery();
 			}
 			catch (Exception ex)
 			{
@@ -1961,9 +1846,7 @@ namespace Easislides
 		{
 			try
 			{
-				string fullSearchString = "select * from SONG where songid=" + Convert.ToString(InKey);
-
-				using DataTable datatable = DbController.GetDataTable(ConnectStringMainDB, fullSearchString);
+				using DataTable datatable = DbController.GetDataTable(ConnectStringMainDB, "select Title_2 from SONG where songid=@id", ("@id", Convert.ToString(InKey)));
 
 				if (datatable.Rows.Count > 0)
 				{

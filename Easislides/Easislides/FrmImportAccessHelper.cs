@@ -57,7 +57,7 @@ namespace Easislides
 		private bool LoadTables()
 		{
 
-			using DbConnection connection = DbController.GetDbConnection(Gf.ConnectStringSQLiteDef + Gf.Import_AccessFileName);
+			using DbConnection connection = DbController.GetDbConnection(DbController.ConnectionStringForFile(Gf.Import_AccessFileName, readOnly: true));
 
 			TablesList.Items.Clear();
 			try
@@ -91,19 +91,6 @@ namespace Easislides
 			return false;
 		}
 
-		public bool TableNameExists(DbConnection connection, string TableName)
-		{
-			try
-			{
-				DataTable tableDef = connection.GetSchema(TableName);
-				return true;
-			}
-			catch
-			{
-				return false;
-			}
-		}
-
 		private void LoadColumns()
 		{
 			string selectedTable = TablesList.Text;
@@ -113,18 +100,28 @@ namespace Easislides
 				return;
 			}
 
-			using DbConnection connection = DbController.GetDbConnection(Gf.ConnectStringSQLiteDef + Gf.Import_AccessFileName);
+			using DbConnection connection = DbController.GetDbConnection(DbController.ConnectionStringForFile(Gf.Import_AccessFileName, readOnly: true));
 
-			if (!TableNameExists(connection, selectedTable))
+			System.Collections.Generic.List<string> columns;
+			try
+			{
+				columns = DbController.GetColumnNames(connection, selectedTable);
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show("Could not read the selected table: " + ex.Message);
+				return;
+			}
+			if (columns.Count == 0)
 			{
 				MessageBox.Show("Error Encountered - Cannot find the table " + selectedTable + " in the Access Database");
 				return;
 			}
 			ClearColumns();
 			AssignedTitle.Items.Add("");
-			foreach (DataColumn field in connection.GetSchema(selectedTable).Columns)
+			foreach (string name in columns)
 			{
-				AssignedTitle.Items.Add(field.ColumnName);
+				AssignedTitle.Items.Add(name);
 			}
 
 			if (AssignedTitle.Items.Count != 0)
@@ -182,9 +179,9 @@ namespace Easislides
 			}
 			ListViewItem listViewItem = new ListViewItem();
 			Cursor = Cursors.WaitCursor;
-			string fullSearchString = "select * from [" + TablesList.Text + "]";
+			string fullSearchString = "select * from " + DbController.QuoteIdentifier(TablesList.Text);
 
-			using DataTable datatable = DbController.GetDataTable(Gf.ConnectSQLiteDef + Gf.Import_AccessFileName, fullSearchString);
+			using DataTable datatable = DbController.GetDataTable(DbController.ConnectionStringForFile(Gf.Import_AccessFileName, readOnly: true), fullSearchString);
 
 			int displayedRowCount = 0;
 			if (datatable.Rows.Count > 0)

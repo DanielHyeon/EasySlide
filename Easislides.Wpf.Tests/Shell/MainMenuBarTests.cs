@@ -711,13 +711,6 @@ public class MainMenuBarTests
             "Preview/Output thumbnail source images should use FrmMain's 640x480 PowerPoint export contract");
         mainViewModel.Should().Contain("private const int PptThumbnailHeight = Rendering.LegacyPowerPointImageSize.Height",
             "Preview/Output thumbnail source images should match FrmMain's 4:3 PowerPoint canvas");
-        mainViewModel.Should().Contain("HasLowResolutionPowerPointThumbnails(viewModel)",
-            "same-deck thumbnail strips should still reload if an older low-resolution render is present");
-        mainViewModel.Should().Contain("thumbnail.PixelWidth < PptThumbnailWidth",
-            "thumbnail reload decisions should inspect the rendered source width, not only slide count");
-        mainViewModel.Should().Contain("thumbnail.PixelHeight < PptThumbnailHeight",
-            "thumbnail reload decisions should inspect the rendered source height, not only slide count");
-
         var previewPowerPointPane = SectionBetween(
             xaml,
             "x:Name=\"ClassicPreviewPowerPointSurface\"",

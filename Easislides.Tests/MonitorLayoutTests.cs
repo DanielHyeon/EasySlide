@@ -10,6 +10,39 @@ public class MonitorLayoutTests
     private static readonly MonitorDevice Secondary = new("SECONDARY", new Rectangle(3440, 0, 2560, 1440), false);
     private static readonly MonitorDevice Third = new("THIRD", new Rectangle(-1920, 0, 1920, 1080), false);
 
+    [Theory]
+    [InlineData(3600, 80)]
+    [InlineData(-1800, 120)]
+    [InlineData(100, -1000)]
+    public void OperatorWindowRestoresOnTheSavedScreen(int x, int y)
+    {
+        Rectangle saved = new(x, y, 720, 520);
+        var screens = new[] { Primary.Bounds, Secondary.Bounds, Third.Bounds, new Rectangle(0, -1080, 1920, 1080) };
+        Assert.Equal(saved, MonitorLayout.RestoreOperatorBounds(saved, screens, Primary.Bounds));
+        Assert.True(Primary.Bounds.Contains(MonitorLayout.RestoreOperatorBounds(saved, [Primary.Bounds], Primary.Bounds)));
+    }
+
+    [Fact]
+    public void LiveMediaUsesItemThenSessionThenCustomAudienceBounds()
+    {
+        MonitorDevice[] devices = [Primary, Secondary, Third];
+        var audience = new MonitorPlacement(Secondary.Name, new Rectangle(3500, 50, 960, 540), true, true);
+        Assert.Equal(Third.Name, MonitorLayout.ResolveMedia(devices, "third", Primary.Name, audience, true).DeviceName);
+        Assert.Equal(Primary.Name, MonitorLayout.ResolveMedia(devices, "missing", Primary.Name, audience, true).DeviceName);
+        Assert.Equal(audience, MonitorLayout.ResolveMedia(devices, null, null, audience, true));
+        Assert.Equal(audience, MonitorLayout.ResolveMedia(devices, Secondary.Name, null, audience, true));
+    }
+
+    [Theory]
+    [InlineData(960, 160, 96, 720, 120, 960, 540)]
+    [InlineData(-1920, -120, 96, -1440, -90, 960, 540)]
+    [InlineData(-1920, -120, 144, -960, -60, 640, 360)]
+    public void CustomPowerPointOriginAndSizeUsePoints(int x, int y, float dpi, int left, int top, int width, int height)
+    {
+        Assert.Equal(new RectangleF(left, top, width, height),
+            Gf.PowerPointWindowPoints(new Rectangle(x, y, 1280, 720), dpi));
+    }
+
     [Fact]
     public void ResolvesSelectionAgainAfterDisconnectAndReconnect()
     {

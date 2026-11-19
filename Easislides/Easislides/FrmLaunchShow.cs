@@ -14,21 +14,13 @@ namespace Easislides
 
 		private enum MediaPlayerWindowAction
 		{
-			Show,
-			SendToBack,
 			Remote_StopShow,
 			Remote_ClearScreen,
 			Remote_LoadItem,
 			Remote_ResumeItem,
-			Remote_RepeatItem,
 			Remote_StopItem,
 			Remote_ResumeItemFromStart,
-			Remote_PauseItem,
-			Remote_PausePlayItem,
-			Remote_LoadLiveCam,
-			Remote_UpdateLiveCam,
 			Remote_RefreshMediaWindow,
-			Remote_SendScreenToBack,
 			Remote_GetMediaTimings,
 			Remote_ItemPlayingStatus
 		}
@@ -76,13 +68,15 @@ namespace Easislides
 
 		private int intLiveMediaDuration = 0;
 
+		private int intLiveMediaPosition;
 		private bool CurMediaPlayingStatus = false;
 
 		private int LoadRepaintCount = 0;
 
 		private Cursor LiveCursor;
 
-		//private FrmLaunchMediaPlayer MediaPlayerWindow = new FrmLaunchMediaPlayer();
+		private FrmLaunchMediaPlayer liveMediaWindow;
+		private MonitorPlacement liveMediaPlacement;
 
 		private FrmLyricsScreen lyricsWindow;
 
@@ -105,6 +99,7 @@ namespace Easislides
 		public FrmLaunchShow()
 		{
 			InitializeComponent();
+			Disposed += (_, _) => CloseLiveMediaWindow();
 		}
 
 		private void FrmLaunchShow_Load(object sender, EventArgs e)
@@ -120,7 +115,6 @@ namespace Easislides
 				InitForm();
 				LiveScreen.MouseUp += FrmLiveShow_MouseUp;
 				LiveScreen.MouseDown += FrmLiveShow_MouseDown;
-				//MediaPlayerWindow.OnMessage += MediaPlayerWindow_OnMessage;
 				//LyricsWindow.OnMessage += LyricsWindow_OnMessage;
 				LiveScreen.Cursor = LiveCursor;
 				bitmap.Dispose();
@@ -188,7 +182,6 @@ namespace Easislides
 
 			Gf.MediaResetStartTime = true;
 			ResetMediaSettings();
-			InitMediaWindow();
 			FirstItemBeingProcessed = true;
 			if (Gf.OutputItem.Type == "G")
 			{
@@ -226,21 +219,6 @@ namespace Easislides
 			}
 			Gf.HideTaskBar();
 			SetScreenOnTop(StartTimer: true);
-		}
-
-		private void InitMediaWindow()
-		{
-			if (Gf.WMP_Present)
-			{
-				try
-				{
-					RemoteControlMediaPlayerWindow(MediaPlayerWindowAction.Show);
-					RemoteControlMediaPlayerWindow(MediaPlayerWindowAction.SendToBack);
-				}
-				catch
-				{
-				}
-			}
 		}
 
 		private void MediaPlayerWindow_OnMessage(int MsgCode, string MsgString)
@@ -385,17 +363,30 @@ namespace Easislides
 				base.Width = 0;
 			}
 		}
-		private string GetMediaOutputMonitorName(SongSettings item)
+		private MonitorPlacement ResolveLiveMedia(string itemMonitor) =>
+			MonitorLayout.ResolveMedia(DisplayInfo.GetDisplays(), itemMonitor, Gf.MediaOutputMonitorName,
+				DisplayInfo.Output, Gf.isScreenWideMode);
+
+		private bool MediaOnAudience => liveMediaPlacement.Enabled &&
+			liveMediaPlacement.Bounds.IntersectsWith(DisplayInfo.Output.Bounds);
+
+		internal void RefreshLiveMediaMonitor()
 		{
-			if (item != null && item.Format != null && !string.IsNullOrEmpty(item.Format.MediaOutputMonitorName))
+			if (liveMediaWindow == null || liveMediaWindow.IsDisposed)
+				return;
+			var placement = ResolveLiveMedia(Gf.LiveItem.Format.MediaOutputMonitorName);
+			if (placement == liveMediaPlacement)
+				return;
+			bool wasOnAudience = MediaOnAudience;
+			liveMediaPlacement = placement;
+			liveMediaWindow.ApplyOutputMonitor(placement);
+			if (liveMediaWindow.Visible && wasOnAudience != MediaOnAudience)
 			{
-				return item.Format.MediaOutputMonitorName;
+				Gf.LiveItem.Format.MediaTransparent = MediaOnAudience;
+				ShowSlide(ref Gf.LiveItem, ImageTransitionControl.TransitionAction.None, false, true);
+				if (MediaOnAudience)
+					BringToFront();
 			}
-			if (!string.IsNullOrEmpty(Gf.MediaOutputMonitorName))
-			{
-				return Gf.MediaOutputMonitorName;
-			}
-			return DisplayInfo.ActiveOutputMonitorName;
 		}
 
 		/// <summary>
@@ -655,6 +646,7 @@ namespace Easislides
 
 		private void FormClosingCleanup()
 		{
+			CloseLiveMediaWindow();
 			CloseLyricsMonitor();
 			Gf.ResetShowRunningSettings();
 			Gf.MessageAlertLive = false;
@@ -1417,7 +1409,7 @@ namespace Easislides
 			if (TransitionAction == ImageTransitionControl.TransitionAction.AsStored)
 			{
 			}
-			if ((Gf.DualMonitorMode && Gf.NoMediaPanelOverlay && InItem.Type == "M") || (Gf.DualMonitorMode && Gf.LiveCamNoPanelOverlay && Gf.ShowLiveCam))
+			if ((Gf.DualMonitorMode && Gf.NoMediaPanelOverlay && InItem.Type == "M" && MediaOnAudience) || (Gf.DualMonitorMode && Gf.LiveCamNoPanelOverlay && Gf.ShowLiveCam))
 			{
 				SetShowWindow(max: false);
 			}
@@ -1714,7 +1706,7 @@ namespace Easislides
 				if (Gf.GetMediaLocation(InItem) != Gf.CurrentMediaLocation || Gf.CurrentMediaLocation == "")
 				{
 					Gf.CurrentMediaLocation = "";
-			Gf.CurrentMediaOutputMonitorName = "";
+					Gf.CurrentMediaOutputMonitorName = "";
 				}
 				if (itemTypeCode == "P")
 				{
@@ -1792,40 +1784,38 @@ namespace Easislides
 			{
 				return;
 			}
-			MediaBackgroundStyle mediaBackgroundStyle2 = MediaBackgroundStyle.None;
+			MediaBackgroundStyle playingMedia = MediaBackgroundStyle.None;
 			switch (mediaBackgroundStyle)
 			{
 			case MediaBackgroundStyle.Audio:
-				mediaBackgroundStyle2 = RemoteControlMediaPlayerWindow(MediaPlayerWindowAction.Remote_LoadItem);
-				break;
 			case MediaBackgroundStyle.Video:
-				mediaBackgroundStyle2 = RemoteControlMediaPlayerWindow(MediaPlayerWindowAction.Remote_LoadItem);
+				playingMedia = RemoteControlMediaPlayerWindow(MediaPlayerWindowAction.Remote_LoadItem);
 				break;
 			case MediaBackgroundStyle.SameAsPrevious:
-				mediaBackgroundStyle2 = ((!Gf.MediaCurrentItemIsVideo) ? MediaBackgroundStyle.Audio : MediaBackgroundStyle.Video);
+				RefreshLiveMediaMonitor();
+				playingMedia = ((!Gf.MediaCurrentItemIsVideo) ? MediaBackgroundStyle.Audio : MediaBackgroundStyle.Video);
 				RemoteControlMediaPlayerWindow(MediaPlayerWindowAction.Remote_ItemPlayingStatus);
 				if (!CurMediaPlayingStatus)
 				{
-					RemoteControlMediaPlayerWindow(MediaPlayerWindowAction.Remote_LoadItem);
+					playingMedia = RemoteControlMediaPlayerWindow(MediaPlayerWindowAction.Remote_LoadItem);
 				}
 				break;
 			default:
 				ResetMediaSettings();
 				RemoteControlMediaPlayerWindow(MediaPlayerWindowAction.Remote_StopItem);
-				mediaBackgroundStyle2 = MediaBackgroundStyle.None;
+				playingMedia = MediaBackgroundStyle.None;
 				break;
 			}
-			MediaBackgroundStyle mediaBackgroundStyle3 = mediaBackgroundStyle2;
 			bool itemHasExplicitMedia = InItem.Type == "M" ||
 				!string.IsNullOrEmpty(InItem.Format.HeaderData[50]) ||
 				!string.IsNullOrEmpty(InItem.Format.HeaderData[51]) ||
 				!string.IsNullOrEmpty(InItem.Format.HeaderData[55]) ||
 				!string.IsNullOrEmpty(InItem.Format.HeaderData[56]);
-			if (mediaBackgroundStyle3 == MediaBackgroundStyle.Video && itemHasExplicitMedia)
+			if (playingMedia == MediaBackgroundStyle.Video && itemHasExplicitMedia)
 			{
-                Gf.MediaCurrentItemIsVideo = true;
-                InItem.Format.MediaTransparent = true;
-            }
+				Gf.MediaCurrentItemIsVideo = true;
+				InItem.Format.MediaTransparent = MediaOnAudience;
+			}
             else
 			{
 				Gf.MediaCurrentItemIsVideo = false;
@@ -1849,11 +1839,11 @@ namespace Easislides
 				LowerSlideShowsWhenItemShown();
 			}
 			tempRotateTimings = "";
-			if (Gf.AutoRotateOn)
+			if (Gf.AutoRotateOn && playingMedia != MediaBackgroundStyle.None)
 			{
 				RemoteControlMediaPlayerWindow(MediaPlayerWindowAction.Remote_ResumeItem);
 			}
-			else if (Gf.RestartCurrentItem && mediaBackgroundStyle2 != 0)
+			else if (Gf.RestartCurrentItem && playingMedia != 0)
 			{
 				RemoteControlMediaPlayerWindow(MediaPlayerWindowAction.Remote_ResumeItemFromStart);
 			}
@@ -1862,7 +1852,7 @@ namespace Easislides
 			{
 				if (InItem.RotateGap > 0)
 				{
-					Start_ItemRotate(InItem.RotateGap, "", mediaBackgroundStyle2);
+					Start_ItemRotate(InItem.RotateGap, "", playingMedia);
 				}
 				else
 				{
@@ -1871,7 +1861,7 @@ namespace Easislides
 			}
 			else if (InItem.RotateTimings != "" || InItem.RotateTotal >= 0)
 			{
-				Start_ItemRotate(InItem.RotateGap, InItem.RotateTimings, mediaBackgroundStyle2);
+				Start_ItemRotate(InItem.RotateGap, InItem.RotateTimings, playingMedia);
 			}
 			else
 			{
@@ -1910,20 +1900,9 @@ namespace Easislides
 				string inMediaLocation = Gf.ExtractHeaderInfo(FormatString, 51, '>');
 				int inMediaCaptureDeviceNumber = DataUtil.StringToInt(Gf.ExtractHeaderInfo(FormatString, 55, '>'));
 				string inMediaOutputMonitorName = Gf.ExtractHeaderInfo(FormatString, 56, '>');
-				if (inMediaOutputMonitorName == "" && Gf.MediaOutputMonitorName != "")
-				{
-					inMediaOutputMonitorName = Gf.MediaOutputMonitorName;
-				}
-				if (inMediaOutputMonitorName == "")
-				{
-					inMediaOutputMonitorName = DisplayInfo.ActiveOutputMonitorName;
-				}
 				string mediaLocation = Gf.GetMediaLocation(inMediaOption, inTitle, Title, inUseDefaultFormat, nextItemType, inMediaLocation, inMediaCaptureDeviceNumber);
-				if (Gf.CurrentMediaLocation == mediaLocation)
-				{
-					return true;
-				}
-				return false;
+				return Gf.CurrentMediaLocation == mediaLocation &&
+					ResolveLiveMedia(inMediaOutputMonitorName).DeviceName == liveMediaPlacement.DeviceName;
 			}
 			catch
 			{
@@ -2276,84 +2255,96 @@ namespace Easislides
 			}
 		}
 
-		private MediaBackgroundStyle RemoteControlMediaPlayerWindow(MediaPlayerWindowAction InAction)
+		private void CloseLiveMediaWindow()
 		{
-			MediaBackgroundStyle result = MediaBackgroundStyle.None;
+			var window = liveMediaWindow;
+			liveMediaWindow = null;
+			liveMediaPlacement = default;
+			CurMediaPlayingStatus = false;
+			if (window == null || window.IsDisposed)
+				return;
 			try
 			{
-				switch (InAction)
-				{
-				case MediaPlayerWindowAction.Show:
-					//MediaPlayerWindow.Show();
-					break;
-				case MediaPlayerWindowAction.SendToBack:
-					//MediaPlayerWindow.SendToBack();
-					break;
-				case MediaPlayerWindowAction.Remote_StopShow:
-					//MediaPlayerWindow.Remote_StopShow();
-					break;
-				case MediaPlayerWindowAction.Remote_ClearScreen:
-					//MediaPlayerWindow.Remote_ClearScreen();
-					break;
-				case MediaPlayerWindowAction.Remote_LoadItem:
-					//MediaPlayerWindow.ApplyOutputMonitor(GetMediaOutputMonitorName(Gf.LiveItem));
-					//result = (MediaBackgroundStyle)MediaPlayerWindow.Remote_LoadItem();
-					break;
-				case MediaPlayerWindowAction.Remote_ResumeItem:
-					//MediaPlayerWindow.ApplyOutputMonitor(GetMediaOutputMonitorName(Gf.LiveItem));
-					//result = (MediaBackgroundStyle)MediaPlayerWindow.Remote_ResumeItem();
-					break;
-				case MediaPlayerWindowAction.Remote_RepeatItem:
-					//MediaPlayerWindow.ApplyOutputMonitor(GetMediaOutputMonitorName(Gf.LiveItem));
-					//result = (MediaBackgroundStyle)MediaPlayerWindow.Remote_RepeatItem();
-					break;
-				case MediaPlayerWindowAction.Remote_ResumeItemFromStart:
-					//MediaPlayerWindow.Remote_ResumeItemFromStart();
-					break;
-				case MediaPlayerWindowAction.Remote_PauseItem:
-					//MediaPlayerWindow.Remote_PauseItem();
-					break;
-				case MediaPlayerWindowAction.Remote_StopItem:
-					//MediaPlayerWindow.Remote_StopItem();
-					break;
-				case MediaPlayerWindowAction.Remote_LoadLiveCam:
-					//MediaPlayerWindow.ApplyOutputMonitor(GetMediaOutputMonitorName(Gf.LiveItem));
-					//result = (MediaBackgroundStyle)MediaPlayerWindow.Remote_LoadLiveCam();
-					break;
-				case MediaPlayerWindowAction.Remote_UpdateLiveCam:
-					//MediaPlayerWindow.ApplyOutputMonitor(GetMediaOutputMonitorName(Gf.LiveItem));
-					//result = (MediaBackgroundStyle)MediaPlayerWindow.Remote_UpdateLiveCam();
-					break;
-				case MediaPlayerWindowAction.Remote_RefreshMediaWindow:
-					//MediaPlayerWindow.Remote_RefreshMediaWindow();
-					break;
-				case MediaPlayerWindowAction.Remote_SendScreenToBack:
-					//MediaPlayerWindow.Remote_SendScreenToBack();
-					break;
-				case MediaPlayerWindowAction.Remote_GetMediaTimings:
-					//MediaPlayerWindow.Remote_GetMediaTimings(ref LiveMediaDuration, ref LiveMediaPosition, ref intLiveMediaDuration, ref intLiveMediaPosition);
-					break;
-				case MediaPlayerWindowAction.Remote_ItemPlayingStatus:
-					//CurMediaPlayingStatus = MediaPlayerWindow.Remote_ItemPlayingStatus();
-					break;
-				case MediaPlayerWindowAction.Remote_PausePlayItem:
-					//MediaPlayerWindow.Remote_PausePlayItem();
-					break;
-				}
+				window.Remote_StopItem();
+				window.Close();
 			}
-			catch
+			finally
 			{
-				try
+				window.Dispose();
+			}
+		}
+
+		private MediaBackgroundStyle PlayLiveMedia()
+		{
+			var placement = ResolveLiveMedia(Gf.LiveItem.Format.MediaOutputMonitorName);
+			if (!placement.Enabled)
+			{
+				CloseLiveMediaWindow();
+				return MediaBackgroundStyle.None;
+			}
+			if (liveMediaWindow == null || liveMediaWindow.IsDisposed)
+			{
+				liveMediaWindow = new FrmLaunchMediaPlayer();
+				liveMediaWindow.OnMessage += MediaPlayerWindow_OnMessage;
+			}
+			liveMediaPlacement = placement;
+			liveMediaWindow.ApplyOutputMonitor(placement);
+			liveMediaWindow.PreparePlayer();
+			var style = (MediaBackgroundStyle)liveMediaWindow.Remote_PlayItem();
+			if (style == MediaBackgroundStyle.Video)
+			{
+				liveMediaWindow.TopMost = true;
+				liveMediaWindow.Show();
+				if (MediaOnAudience && Visible)
+					BringToFront();
+			}
+			else
+				liveMediaWindow.Hide();
+			return style;
+		}
+
+		private MediaBackgroundStyle RemoteControlMediaPlayerWindow(MediaPlayerWindowAction action)
+		{
+			if (!Gf.WMP_Present)
+				return MediaBackgroundStyle.None;
+			try
+			{
+				if (action == MediaPlayerWindowAction.Remote_LoadItem)
+					return PlayLiveMedia();
+				if (liveMediaWindow == null || liveMediaWindow.IsDisposed)
+					return MediaBackgroundStyle.None;
+				switch (action)
 				{
-					//MediaPlayerWindow = new FrmLaunchMediaPlayer();
-					//MediaPlayerWindow.OnMessage += MediaPlayerWindow_OnMessage;
-					result = RemoteControlMediaPlayerWindow(InAction);
-				}
-				catch
-				{
+					case MediaPlayerWindowAction.Remote_StopShow:
+					case MediaPlayerWindowAction.Remote_StopItem:
+					case MediaPlayerWindowAction.Remote_ClearScreen:
+						CloseLiveMediaWindow();
+						break;
+					case MediaPlayerWindowAction.Remote_ResumeItem:
+						if (!liveMediaWindow.Remote_ItemPlayingStatus())
+							return (MediaBackgroundStyle)liveMediaWindow.Remote_ResumeItem();
+						break;
+					case MediaPlayerWindowAction.Remote_ResumeItemFromStart:
+						liveMediaWindow.Remote_ResumeItemFromStart();
+						break;
+					case MediaPlayerWindowAction.Remote_ItemPlayingStatus:
+						CurMediaPlayingStatus = liveMediaWindow.Remote_ItemPlayingStatus();
+						break;
+					case MediaPlayerWindowAction.Remote_GetMediaTimings:
+						liveMediaWindow.Remote_GetMediaTimings(ref LiveMediaDuration, ref LiveMediaPosition,
+							ref intLiveMediaDuration, ref intLiveMediaPosition);
+						break;
+					case MediaPlayerWindowAction.Remote_RefreshMediaWindow:
+						liveMediaWindow.Remote_RefreshMediaWindow();
+						break;
 				}
 			}
-			return result;
+			catch (Exception ex)
+			{
+				FrmMain.WriteDebugLog("Live media " + action + ": " + ex.Message);
+				CloseLiveMediaWindow();
+			}
+			return MediaBackgroundStyle.None;
 		}
 
 		//private void RemoteControlLyricsWindow(LyricsWindowAction InAction)

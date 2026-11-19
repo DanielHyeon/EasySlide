@@ -568,11 +568,12 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
                 {SelectColumn(columns, "BOOK_REFERENCE", "BOOK_REFERENCE")},
                 {SelectColumn(columns, "USER_REFERENCE", "USER_REFERENCE")}
             FROM SONG
-            WHERE (@folderNo IS NULL OR {QuoteIdentifier(columns["FOLDERNO"])} = @folderNo)
+            {(folderNo.HasValue ? $"WHERE {QuoteIdentifier(columns["FOLDERNO"])} = @folderNo" : "")}
             ORDER BY {QuoteIdentifier(columns["FOLDERNO"])}, {QuoteIdentifier(columns["SONG_NUMBER"])}, {QuoteIdentifier(columns["TITLE_1"])}, {QuoteIdentifier(columns["SONGID"])};
             """,
             connection);
-        command.Parameters.AddWithValue("@folderNo", folderNo is null ? DBNull.Value : folderNo.Value);
+        if (folderNo.HasValue)
+            command.Parameters.AddWithValue("@folderNo", folderNo.Value);
         using var reader = command.ExecuteReader();
         var songs = new List<SongSummary>();
         while (reader.Read())

@@ -789,28 +789,11 @@ public partial class OutputWindow : Window, IOutputSurface
     {
         WindowStartupLocation = WindowStartupLocation.Manual;
         WindowState = WindowState.Normal;
-
-        if (placement.IsWindowed)
-        {
-            WindowStyle = WindowStyle.SingleBorderWindow;
-            ResizeMode = ResizeMode.CanResize;
-            Topmost = false;
-            ShowInTaskbar = true;
-            Left = placement.Left;
-            Top = placement.Top;
-            Width = placement.Width;
-            Height = placement.Height;
-            return;
-        }
-
-        WindowStyle = WindowStyle.None;
-        ResizeMode = ResizeMode.NoResize;
-        Topmost = true;
-        ShowInTaskbar = false;
-        Left = placement.Left;
-        Top = placement.Top;
-        Width = placement.Width;
-        Height = placement.Height;
+        WindowStyle = placement.IsWindowed ? WindowStyle.SingleBorderWindow : WindowStyle.None;
+        ResizeMode = placement.IsWindowed ? ResizeMode.CanResize : ResizeMode.NoResize;
+        Topmost = !placement.IsWindowed;
+        ShowInTaskbar = placement.IsWindowed;
+        Platform.DesktopWindowPlacement.Apply(this, placement);
     }
 
     public new void Show()

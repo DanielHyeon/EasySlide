@@ -3,7 +3,6 @@ using Easislides.Util;
 using System;
 using System.ComponentModel;
 using System.Drawing;
-using System.Threading;
 using System.Windows.Forms;
 
 namespace Easislides
@@ -12,15 +11,10 @@ namespace Easislides
 	{
 		public delegate void Message(int MsgCode, string MsgString);
 
-		private bool FormFirstLoad = true;
-
 		private string PreviousItemLocation = "";
 
 		private bool ItemFirstPlay = false;
 
-		private Cursor LiveCursor;
-
-		private Thread timerThread;
 		private Rectangle? outputBounds;
 
 		private DShowLib DShowPlayer = new DShowLib();
@@ -30,44 +24,30 @@ namespace Easislides
 		public FrmLaunchMediaPlayer()
 		{
 			InitializeComponent();
+			StartPosition = FormStartPosition.Manual;
+			TimerRefresh.Tick += (_, _) => UpdateProgress();
+		}
+
+		// Live audio can play with the form hidden. Initialize the DirectShow control once
+		// for both the hidden player and the standalone output window.
+		internal void PreparePlayer()
+		{
+			if (!Gf.WMP_Present || DShowPlayer.Parent != null)
+				return;
+			DShowPlayer.Parent = this;
+			DShowPlayer.Location = Point.Empty;
+			ApplyPlayerBounds(ClientSize.Width, ClientSize.Height);
+			DShowPlayer.ForeColorChanged += DShowPlayer_ForeColorChanged;
+			TimerRefresh.Start();
 		}
 
 		private void FrmLaunchMediaPlayer_Load(object sender, EventArgs e)
 		{
-			Bitmap bitmap = new Bitmap(55, 25);
-			//Graphics graphics = Graphics.FromImage(bitmap);
-			IntPtr hicon = bitmap.GetHicon();
-			LiveCursor = new Cursor(hicon);
-			InitForm();
-			//bitmap.Dispose();
-			//graphics.Dispose();
-		}
-
-		private void InitForm()
-		{
 			Bounds = outputBounds ?? new Rectangle(Gf.LS_Left, Gf.LS_Top, Gf.LS_Width, Gf.LS_Height);
-			BackColor = Color.Black;
-			if (Gf.WMP_Present)
-			{
-				InitMediaPlayer();
-				timerThread = new Thread(ThreadProc);
-				timerThread.IsBackground = true;
-				timerThread.Start();
-			}
-			Remote_SendScreenToBack();
+			PreparePlayer();
 		}
 
-		private void InitMediaPlayer()
-		{
-			if (Gf.WMP_Present)
-			{
-				DShowPlayer.Parent = this;
-				DShowPlayer.Location = new Point(0, 0);
-				DShowPlayer.Dock = DockStyle.None;
-				ApplyPlayerBounds(ClientSize.Width, ClientSize.Height);
-				DShowPlayer.ForeColorChanged += DShowPlayer_ForeColorChanged;
-			}
-		}
+		protected override bool ShowWithoutActivation => true;
 
 		internal void ApplyOutputMonitor(MonitorPlacement placement)
 		{
@@ -78,13 +58,12 @@ namespace Easislides
 
 		private void SetShowWindow(Rectangle bounds)
 		{
-			base.Left = bounds.Left;
-			base.Top = bounds.Top;
-			base.Width = bounds.Width;
-			base.Height = bounds.Height;
+			Bounds = bounds;
 			if (Gf.WMP_Present)
 			{
 				ApplyPlayerBounds(bounds.Width, bounds.Height);
+				if (DShowPlayer.isVideo)
+					DShowPlayer.InitVideoWindow();
 			}
 		}
 
@@ -106,11 +85,11 @@ namespace Easislides
 				{
 					if (DShowPlayer.MouseBtnPressed == MouseButtons.Left)
 					{
-						this.OnMessage(11, "");
+						OnMessage?.Invoke(11, "");
 					}
 					else if (DShowPlayer.MouseBtnPressed == MouseButtons.Right)
 					{
-						this.OnMessage(12, "");
+						OnMessage?.Invoke(12, "");
 					}
 				}
 				return;
@@ -119,7 +98,7 @@ namespace Easislides
 			{
 				if (Gf.ShowRunning)
 				{
-					this.OnMessage(13, "");
+					OnMessage?.Invoke(13, "");
 				}
 				return;
 			}
@@ -330,25 +309,6 @@ namespace Easislides
 			return false;
 		}
 
-		public void ThreadProc()
-		{
-			try
-			{
-				MethodInvoker method = UpdateProgress;
-				while (true)
-				{
-					BeginInvoke(method);
-					Thread.Sleep(750);
-				}
-			}
-			catch (ThreadInterruptedException)
-			{
-			}
-			catch (Exception)
-			{
-			}
-		}
-
 		private void UpdateProgress()
 		{
 			if (DShowPlayer.currentState != PlayState.Running || Gf.ShowLiveCam)
@@ -452,25 +412,6 @@ namespace Easislides
 				return (!DShowPlayer.isVideo) ? 1 : 2;
 			}
 			return 0;
-		}
-
-		private void FrmLaunchMediaPlayer_VisibleChanged(object sender, EventArgs e)
-		{
-			if (base.Visible)
-			{
-				if (FormFirstLoad)
-				{
-					FormFirstLoad = false;
-				}
-				else
-				{
-					InitForm();
-				}
-			}
-		}
-
-		private void TimerRefresh_Tick(object sender, EventArgs e)
-		{
 		}
 
 		public bool Remote_GetMediaTimings(ref string Duration, ref string Position, ref int intDuration, ref int intPosition)

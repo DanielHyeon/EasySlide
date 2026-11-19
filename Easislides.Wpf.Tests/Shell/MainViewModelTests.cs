@@ -10830,6 +10830,34 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task RepeatedVerseCardsReusePreparedTextAndFollowTranspose()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        settings.Set(EasiSettingKeys.AdvanceNextItem, false);
+        settings.Set(EasiSettingKeys.LyricsMonitorShowNotations, true);
+        var sut = CreateSut(settings: settings);
+        var song = new LiveQueueItem("song:repeat", "은혜", LiveItemKinds.Song)
+        {
+            Lyrics = "[1]\n가사 » C\n[C]\n후렴 » G",
+            Sequence = "1 C C",
+        };
+        sut.LoadQueue([song]);
+        sut.OpenOutputCommand.Execute(null);
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        sut.PreviewLyricsPages.Select(card => card.BodyText).Should().Equal("C\n가사", "G\n후렴", "G\n후렴");
+        Assert.Same(sut.PreviewLyricsPages[1].BodyText, sut.PreviewLyricsPages[2].BodyText);
+        Assert.Same(sut.OutputLyricsPages[1].BodyText, sut.OutputLyricsPages[2].BodyText);
+
+        sut.GoToPreviewLyricsPageCommand.Execute(2);
+        sut.TransposeLiveUpCommand.Execute(null);
+        sut.PreviewLyricsPages[2].IsCurrent.Should().BeTrue();
+        sut.PreviewLyricsPages[2].BodyText.Should().Be("G#\n후렴");
+        sut.OutputLyricsPages[1].BodyText.Should().Be("G#\n후렴");
+    }
+
+    [Fact]
     public void GoToPreviewLyricsPageCommand_UpdatesPreviewPageCardsOnly()
     {
         var sut = CreateSut();
@@ -12225,6 +12253,82 @@ public class MainViewModelTests
         settings.Get(EasiSettingKeys.PreviewMonitorId).Should().Be("p2", "분리된 모니터 선호는 보존돼야 함");
     }
 
+    [Fact]
+    public void StageUsesFreeSecondaryAndIgnoresCustomAudienceBounds()
+    {
+        var op = new OutputDisplay("operator", "Operator", 0, 0, 1920, 1080, 1, true);
+        var audience = new OutputDisplay("audience", "Audience", 1920, 0, 1920, 1080, 1);
+        var stage = new OutputDisplay("stage", "Stage", -1920, 0, 1920, 1080, 1.5);
+        var settings = TempSettingsFolder.CreateDetachedSettings();
+        settings.Set(EasiSettingKeys.DisplayCustomLeft, 1920);
+        settings.Set(EasiSettingKeys.DisplayCustomWidth, 1280);
+        var screens = new FixedDisplayService(op, audience, stage);
+        var placement = new WindowPlacementService(settings, screens);
+        var preview = new PreviewWindowService(placement);
+        var output = new OutputWindowService(placement);
+        using var vm = CreateSut(display: screens, settings: settings,
+            output: output, preview: preview, seedSampleQueue: false);
+
+        vm.OpenOutputCommand.Execute(null);
+        vm.OpenStageMonitorCommand.Execute(null);
+
+        output.Current.Display.Should().Be(audience);
+        preview.Current.Display.Should().Be(stage);
+        preview.Current.Placement.Should().Be(new OutputWindowPlacement(-1920, 0, 1920, 1080, false));
+        settings.Get(EasiSettingKeys.PreviewMonitorId).Should().BeEmpty();
+
+        screens.SetDisplays(op, stage);
+        vm.RefreshDisplays();
+        output.Current.Placement.Left.Should().BeLessThan(0);
+        preview.Current.Display.Should().Be(op);
+        screens.SetDisplays(op, audience, stage);
+        vm.RefreshDisplays();
+        output.Current.Placement.Left.Should().BeGreaterThanOrEqualTo(1920);
+        preview.Current.Display.Should().Be(stage);
+    }
+
+    [Fact]
+    public void MonitorDisconnectAndReconnectRestoresThePreferredDevices()
+    {
+        var op = new OutputDisplay("operator", "Operator", 0, 0, 1920, 1080, 1, true);
+        var audience = new OutputDisplay("audience", "Audience", 1920, 0, 1920, 1080, 1);
+        var stage = new OutputDisplay("stage", "Stage", -1920, 0, 1920, 1080, 1.5);
+        var screens = new FixedDisplayService(op, audience, stage);
+        var preview = new PreviewWindowService();
+        var output = new OutputWindowService();
+        var settings = TempSettingsFolder.CreateDetachedSettings();
+        settings.Set(EasiSettingKeys.DefaultOutputMonitorId, audience.Id);
+        settings.Set(EasiSettingKeys.PreviewMonitorId, stage.Id);
+        using var vm = CreateSut(display: screens, settings: settings, output: output, preview: preview, seedSampleQueue: false);
+        vm.OpenOutputCommand.Execute(null);
+        vm.OpenStageMonitorCommand.Execute(null);
+
+        screens.SetDisplays(op, audience);
+        vm.RefreshDisplays();
+        preview.Current.Display.Should().Be(op);
+        screens.SetDisplays(op);
+        vm.OpenStageMonitorCommand.Execute(null);
+        output.Current.Display.Should().Be(op);
+        preview.Current.IsOpen.Should().BeFalse();
+        settings.Get(EasiSettingKeys.PreviewMonitorId).Should().Be(stage.Id);
+
+        var movedStage = stage with { Y = -300, DpiScale = 1.25 };
+        screens.SetDisplays(movedStage, op, audience);
+        vm.RefreshDisplays();
+        output.Current.Display.Should().Be(audience);
+        vm.SelectedPreviewDisplay.Should().Be(movedStage);
+        preview.Current.IsOpen.Should().BeTrue();
+        preview.Current.Placement.Top.Should().Be(-300);
+
+        screens.SetDisplays(op);
+        vm.RefreshDisplays();
+        vm.CloseStageMonitorCommand.CanExecute(null).Should().BeTrue();
+        vm.CloseStageMonitorCommand.Execute(null);
+        screens.SetDisplays(op, audience, stage);
+        vm.RefreshDisplays();
+        preview.Current.IsOpen.Should().BeFalse();
+    }
+
     private static MainViewModel CreateSut(
         ILiveSafetyPrompt? prompt = null,
         IDisplayService? display = null,
@@ -12674,7 +12778,9 @@ public class MainViewModelTests
 
     private sealed class FixedDisplayService : IDisplayService
     {
-        private readonly IReadOnlyList<OutputDisplay> _displays;
+        private IReadOnlyList<OutputDisplay> _displays;
+
+        public void SetDisplays(params OutputDisplay[] displays) => _displays = displays;
 
         public FixedDisplayService(params OutputDisplay[] displays) => _displays = displays;
 

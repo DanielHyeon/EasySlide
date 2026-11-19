@@ -25,6 +25,37 @@ internal static class MonitorLayout
         return new Rectangle(area.Left + (area.Width - width) / 2, area.Top + (area.Height - height) / 2, width, height);
     }
 
+    internal static Rectangle RestoreOperatorBounds(Rectangle saved, IEnumerable<Rectangle> workingAreas, Rectangle primary)
+    {
+        var target = primary;
+        long largest = 0;
+        foreach (var area in workingAreas)
+        {
+            var intersection = Rectangle.Intersect(area, saved);
+            long overlap = (long)intersection.Width * intersection.Height;
+            if (overlap > largest)
+            {
+                target = area;
+                largest = overlap;
+            }
+        }
+        int width = Math.Clamp(saved.Width, 1, target.Width);
+        int height = Math.Clamp(saved.Height, 1, target.Height);
+        return new Rectangle(Math.Clamp(saved.X, target.Left, target.Right - width),
+            Math.Clamp(saved.Y, target.Top, target.Bottom - height), width, height);
+    }
+
+    internal static MonitorPlacement ResolveMedia(IReadOnlyList<MonitorDevice> displays, string itemName,
+        string sessionName, MonitorPlacement audience, bool wide)
+    {
+        if (!audience.Enabled)
+            return audience;
+        var selected = FindDisplay(displays, itemName) ?? FindDisplay(displays, sessionName);
+        return selected == null || string.Equals(selected.Name, audience.DeviceName, StringComparison.OrdinalIgnoreCase)
+            ? audience
+            : new MonitorPlacement(selected.Name, Fit(selected.Bounds, wide), true, audience.IsDual);
+    }
+
     internal static int HeightForWidth(int width, bool wide)
     {
         var (aspectWidth, aspectHeight) = Aspect(wide);

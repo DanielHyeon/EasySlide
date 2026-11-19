@@ -69,7 +69,7 @@ public sealed class BibleVersionCatalogTests
                 db.Open();
                 using var command = new SQLiteCommand("""
                     CREATE TABLE Bible(book INTEGER, chapter INTEGER, verse INTEGER, bibletext TEXT);
-                    INSERT INTO Bible VALUES(0,10,2,'Exodus'), (0,10,1,'Genesis'), (0,10,67,'skip');
+                    INSERT INTO Bible VALUES(0,10,2,'Exodus'), (0,10,1,'Genesis'), (0,10,67,'skip'), (1,1,2,'Second verse');
                     """, db);
                 command.ExecuteNonQuery();
             }
@@ -78,6 +78,14 @@ public sealed class BibleVersionCatalogTests
             Assert.Equal("Search Results:", books.SelectedItem);
             Assert.True(Gf.LoadBibleBooksList(0, ref books, false, false));
             Assert.Equal("Genesis", books.SelectedItem);
+            Gf.HB_VersesLocation[1].Book = 1;
+            Gf.HB_VersesLocation[1].Chapter = 1;
+            Gf.HB_VersesLocation[1].Verse = 2;
+            using var controlText = new RichTextBox();
+            var verses = controlText;
+            Assert.True(Gf.RefreshBiblePassages(0, books, ref verses));
+            Assert.Equal("Genesis 1:2 Second verse", verses.Text);
+
             Assert.False(Gf.LoadBibleBooksList(1, ref books, false, false));
             Assert.False(File.Exists(Gf.GetBibleFileName(1)));
             Gf.LoadBibleVersions(ref tabs);

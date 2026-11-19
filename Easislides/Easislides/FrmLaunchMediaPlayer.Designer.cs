@@ -31,9 +31,7 @@ private void InitializeComponent()
 			TimerAttemptConnect = new System.Windows.Forms.Timer(components);
 			TimerRefresh = new System.Windows.Forms.Timer(components);
 			SuspendLayout();
-			TimerRefresh.Enabled = true;
-			TimerRefresh.Interval = 500;
-			//TimerRefresh.Tick += new System.EventHandler(TimerRefresh_Tick);
+			TimerRefresh.Interval = 750;
 			base.AutoScaleDimensions = new System.Drawing.SizeF(6f, 13f);
 			base.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			BackColor = System.Drawing.Color.Black;
@@ -41,7 +39,6 @@ private void InitializeComponent()
 			base.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
 			base.Name = "FrmLaunchMediaPlayer";
 			base.ShowInTaskbar = false;
-			base.VisibleChanged += new System.EventHandler(FrmLaunchMediaPlayer_VisibleChanged);
 			base.FormClosing += new System.Windows.Forms.FormClosingEventHandler(FrmLaunchMediaPlayer_FormClosing);
 			base.Load += new System.EventHandler(FrmLaunchMediaPlayer_Load);
 			ResumeLayout(false);

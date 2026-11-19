@@ -841,11 +841,7 @@ public sealed class BibleRepository : IBibleRepository
     }
 
     private static SQLiteConnection OpenConnection(string databasePath)
-    {
-        var connection = new SQLiteConnection($"Data Source={databasePath}");
-        connection.Open();
-        return connection;
-    }
+        => SqliteFile.Open(databasePath);
 
     private static string GetString(SQLiteDataReader reader, string column)
     {

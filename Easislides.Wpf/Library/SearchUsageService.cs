@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
+using System.Data;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -179,15 +180,26 @@ public sealed class SearchUsageService : ISearchUsageService
         var phrase = request.Phrase.Trim();
         var results = new List<SongSearchResult>();
 
+        if (allowedFolders.Count == 0)
+            return results;
+
         using var connection = OpenReadOnly(request.DatabasePath);
-        using var command = new SQLiteCommand(
-            """
-            SELECT *
-            FROM SONG
-            WHERE FOLDERNO > 0
-            ORDER BY FOLDERNO, SONG_NUMBER, TITLE_1, SONGID;
-            """,
-            connection);
+        using var command = connection.CreateCommand();
+        // Keep large, externally supplied folder selections within SQLite's variable limit.
+        // Folder membership is checked below for that fallback as well.
+        string folderFilter = "FOLDERNO > 0";
+        if (allowedFolders.Count <= 500)
+        {
+            var names = new List<string>(allowedFolders.Count);
+            foreach (int folder in allowedFolders)
+            {
+                string name = "@folder" + names.Count;
+                names.Add(name);
+                command.Parameters.AddWithValue(name, folder);
+            }
+            folderFilter += $" AND FOLDERNO IN ({string.Join(",", names)})";
+        }
+        command.CommandText = $"SELECT * FROM SONG WHERE {folderFilter} ORDER BY FOLDERNO, SONG_NUMBER, TITLE_1, SONGID;";
         using var reader = command.ExecuteReader();
         var columns = GetReaderColumns(reader);
         while (reader.Read())
@@ -255,20 +267,14 @@ public sealed class SearchUsageService : ISearchUsageService
         var candidates = new List<LookupTitleCandidate>();
         while (reader.Read())
         {
-            var row = SongSearchRow.From(reader, columns);
-            if (!Contains(row.Title, pattern))
-            {
+            string title = GetString(reader, columns, "TITLE_1");
+            if (!Contains(title, pattern))
                 continue;
-            }
-
+            int folder = GetInt(reader, columns, "FOLDERNO");
             candidates.Add(new LookupTitleCandidate(
-                row.SongId,
-                row.Title,
-                row.AlternateTitle,
-                row.FolderNo,
-                folderNames.GetValueOrDefault(row.FolderNo, $"Folder {row.FolderNo}"),
-                row.BookReference,
-                row.UserReference));
+                GetInt(reader, columns, "SONGID"), title, GetString(reader, columns, "TITLE_2"), folder,
+                folderNames.GetValueOrDefault(folder, $"Folder {folder}"),
+                GetString(reader, columns, "BOOK_REFERENCE"), GetString(reader, columns, "USER_REFERENCE")));
         }
 
         return candidates;
@@ -379,14 +385,14 @@ public sealed class SearchUsageService : ISearchUsageService
 
         try
         {
-            using var connection = new SQLiteConnection($"Data Source={Path.GetFullPath(databasePath)};Version=3;");
-            connection.Open();
+            using var connection = SqliteFile.Open(Path.GetFullPath(databasePath));
             using var transaction = connection.BeginTransaction();
             var deleted = 0;
+            using var command = new SQLiteCommand("DELETE FROM USAGE WHERE REC_ID = @recordId;", connection, transaction);
+            var idParameter = command.Parameters.Add("@recordId", DbType.Int64);
             foreach (var recordId in recordIds.Distinct())
             {
-                using var command = new SQLiteCommand("DELETE FROM USAGE WHERE REC_ID = @recordId;", connection, transaction);
-                command.Parameters.AddWithValue("@recordId", recordId);
+                idParameter.Value = recordId;
                 deleted += command.ExecuteNonQuery();
             }
 
@@ -422,26 +428,32 @@ public sealed class SearchUsageService : ISearchUsageService
 
         try
         {
-            using var connection = new SQLiteConnection($"Data Source={Path.GetFullPath(request.DatabasePath)};Version=3;");
-            connection.Open();
+            using var connection = SqliteFile.Open(Path.GetFullPath(request.DatabasePath));
             using var transaction = connection.BeginTransaction();
             var added = 0;
+            using var command = new SQLiteCommand(
+                """
+                INSERT INTO USAGE (WORSHIP_DATE, WORSHIP_LIST, SONG_TITLE, SONG_NUMBER, SONG_ID, ADMIN_1, ADMIN_2)
+                VALUES (@date, @worshipList, @songTitle, @songNumber, @songId, @admin1, @admin2);
+                """,
+                connection,
+                transaction);
+            var date = command.Parameters.Add("@date", DbType.String);
+            var worshipList = command.Parameters.Add("@worshipList", DbType.String);
+            var songTitle = command.Parameters.Add("@songTitle", DbType.String);
+            var songNumber = command.Parameters.Add("@songNumber", DbType.Int32);
+            var songId = command.Parameters.Add("@songId", DbType.Int32);
+            var admin1 = command.Parameters.Add("@admin1", DbType.String);
+            var admin2 = command.Parameters.Add("@admin2", DbType.String);
             foreach (var record in request.Records)
             {
-                using var command = new SQLiteCommand(
-                    """
-                    INSERT INTO USAGE (WORSHIP_DATE, WORSHIP_LIST, SONG_TITLE, SONG_NUMBER, SONG_ID, ADMIN_1, ADMIN_2)
-                    VALUES (@date, @worshipList, @songTitle, @songNumber, @songId, @admin1, @admin2);
-                    """,
-                    connection,
-                    transaction);
-                command.Parameters.AddWithValue("@date", record.WorshipDate.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
-                command.Parameters.AddWithValue("@worshipList", Truncate(record.WorshipList, 50));
-                command.Parameters.AddWithValue("@songTitle", RemoveMusicSymbol(Truncate(record.SongTitle, 100)));
-                command.Parameters.AddWithValue("@songNumber", record.SongNumber);
-                command.Parameters.AddWithValue("@songId", record.SongId);
-                command.Parameters.AddWithValue("@admin1", Truncate(record.Admin1, 50));
-                command.Parameters.AddWithValue("@admin2", Truncate(record.Admin2, 50));
+                date.Value = record.WorshipDate.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+                worshipList.Value = Truncate(record.WorshipList, 50);
+                songTitle.Value = RemoveMusicSymbol(Truncate(record.SongTitle, 100));
+                songNumber.Value = record.SongNumber;
+                songId.Value = record.SongId;
+                admin1.Value = Truncate(record.Admin1, 50);
+                admin2.Value = Truncate(record.Admin2, 50);
                 added += command.ExecuteNonQuery();
             }
 
@@ -495,11 +507,7 @@ public sealed class SearchUsageService : ISearchUsageService
             : Path.GetFullPath(Path.Combine(workingFolder, UsageRelativePath));
 
     private static SQLiteConnection OpenReadOnly(string path)
-    {
-        var connection = new SQLiteConnection($"Data Source={Path.GetFullPath(path)};Version=3;Read Only=True;");
-        connection.Open();
-        return connection;
-    }
+        => SqliteFile.Open(Path.GetFullPath(path), readOnly: true);
 
     private static Dictionary<string, int> GetReaderColumns(SQLiteDataReader reader)
     {

@@ -9,6 +9,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using Easislides.Module;
 using Easislides.Wpf.Data;
 using OfficeLib;
 
@@ -22,6 +23,7 @@ public enum ImportSourceKind
     EasiSlidesDatabase,
     DocumentFolder,
     AccessDatabase,
+    EasiSlidesJson,
 }
 
 public enum ImportDuplicatePolicy
@@ -53,6 +55,7 @@ public enum ExportFormat
     EasiSlidesDatabase,
     Html,
     Rtf,
+    Json,
 }
 
 public sealed record ImportExportIssue(ImportExportIssueSeverity Severity, string Message);
@@ -257,8 +260,7 @@ public sealed class ImportExportService : IImportExportService
 
         try
         {
-            using var connection = new SQLiteConnection($"Data Source={fullPath};Version=3;");
-            connection.Open();
+            using var connection = SqliteFile.Open(fullPath, readOnly: true);
             return Task.FromResult(ReadAccessSchema(connection, fullPath));
         }
         catch (Exception ex) when (ex is SQLiteException or InvalidOperationException or IOException or UnauthorizedAccessException)
@@ -274,6 +276,22 @@ public sealed class ImportExportService : IImportExportService
 
     public Task<ImportPreview> PreviewImportAsync(string sourcePath, AccessImportMapping? accessMapping = null)
     {
+        if (File.Exists(sourcePath) && GetExchangeKind(sourcePath) is { } kind)
+        {
+            try
+            {
+                var counts = SongExchangeFile.CountFolders(sourcePath, StringComparer.OrdinalIgnoreCase);
+                var summary = counts.OrderBy(p => p.Key, StringComparer.OrdinalIgnoreCase)
+                    .Select(p => new ImportSourceFolder(p.Key, p.Value)).ToArray();
+                return Task.FromResult(new ImportPreview(true, sourcePath, kind, counts.Values.Sum(), summary, []));
+            }
+            catch (Exception ex) when (SongExchangeFile.IsReadError(ex))
+            {
+                return Task.FromResult(new ImportPreview(false, sourcePath, kind, 0, [],
+                    [new ImportExportIssue(ImportExportIssueSeverity.Error, ex.Message)]));
+            }
+        }
+
         var loaded = LoadImportSongs(sourcePath, accessMapping);
         var folders = loaded.Songs
             .GroupBy(song => song.SourceFolder, StringComparer.OrdinalIgnoreCase)
@@ -341,7 +359,7 @@ public sealed class ImportExportService : IImportExportService
             {
                 SongId = songId,
                 FolderNo = request.TargetFolderNo,
-                Lyrics = NormalizeLineEndings(source.Song.Lyrics).TrimStart('\n'),
+                Lyrics = source.Kind == ImportSourceKind.EasiSlidesJson ? source.Song.Lyrics : NormalizeLineEndings(source.Song.Lyrics).TrimStart('\n'),
             };
 
             var report = await _adminDatabase
@@ -461,6 +479,9 @@ public sealed class ImportExportService : IImportExportService
         {
             switch (request.Format)
             {
+                case ExportFormat.Json:
+                    SongExchangeFile.WriteJson(request.OutputPath, exportItems.Select(ToExchangeSong));
+                    break;
                 case ExportFormat.EasiSlidesText:
                     WriteLegacyText(request.OutputPath, exportItems);
                     break;
@@ -478,7 +499,7 @@ public sealed class ImportExportService : IImportExportService
                     break;
             }
         }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or SQLiteException or InvalidOperationException)
+        catch (Exception ex) when (SongExchangeFile.IsReadError(ex) || ex is SQLiteException or InvalidOperationException)
         {
             issues.Add(new ImportExportIssue(ImportExportIssueSeverity.Error, ex.Message));
             return new ExportReport(false, request.OutputPath, request.Format, 0, issues);
@@ -494,6 +515,7 @@ public sealed class ImportExportService : IImportExportService
             : Path.Combine(Path.GetFullPath(workingFolder), "Documents");
         var extension = format switch
         {
+            ExportFormat.Json => ".json",
             ExportFormat.EasiSlidesText => ".esn",
             ExportFormat.EasiSlidesDatabase => ".esf",
             ExportFormat.Rtf => ".rtf",
@@ -530,10 +552,11 @@ public sealed class ImportExportService : IImportExportService
             return Failed(ImportSourceKind.Unknown, fullPath, "Source file does not exist.");
         }
 
+        if (GetExchangeKind(fullPath) is { } kind) return LoadExchange(fullPath, kind);
+
         return Path.GetExtension(fullPath).ToLowerInvariant() switch
         {
             ".esn" or ".est" => LoadLegacyText(fullPath),
-            ".xml" => LoadXml(fullPath),
             ".esf" => LoadDatabase(fullPath),
             ".mdb" => LoadAccessDatabase(fullPath, accessMapping),
             _ => Failed(ImportSourceKind.Unknown, fullPath, "Unsupported import source format."),
@@ -630,53 +653,60 @@ public sealed class ImportExportService : IImportExportService
             FormatData: Value(values, separator, "q")));
     }
 
-    private static LoadedImportSongs LoadXml(string path)
-    {
-        var document = XDocument.Load(path);
-        if (!string.Equals(document.Root?.Name.LocalName, "EasiSlides", StringComparison.Ordinal))
+    private static ImportSourceKind? GetExchangeKind(string path) =>
+        Path.GetExtension(path).ToLowerInvariant() switch
         {
-            return Failed(ImportSourceKind.EasiSlidesXml, path, "XML root is not EasiSlides.");
+            ".xml" => ImportSourceKind.EasiSlidesXml,
+            ".json" => ImportSourceKind.EasiSlidesJson,
+            _ => null
+        };
+
+    private static LoadedImportSongs LoadExchange(string path, ImportSourceKind kind)
+    {
+        try
+        {
+            var songs = SongExchangeFile.ReadSongs(path).Select(entry => new ImportSong(kind, entry.SourceFolder,
+                new SongWriteModel(null, entry.Title1, entry.Title2, 0, entry.SongNumber,
+                    kind == ImportSourceKind.EasiSlidesJson ? entry.Contents : NormalizeLineEndings(entry.Contents).TrimEnd('\n', '\r'),
+                    Sequence: entry.Sequence, Writer: entry.Writer, Copyright: entry.Copyright, Capo: entry.Capo,
+                    Timing: entry.Timing, Key: entry.MusicKey, Notations: entry.Notations, Category: entry.Category,
+                    LicenceAdmin1: entry.LicenceAdmin1, LicenceAdmin2: entry.LicenceAdmin2, BookReference: entry.BookReference,
+                    UserReference: entry.UserReference, Settings: entry.Settings, FormatData: entry.FormatData))).ToArray();
+            return new LoadedImportSongs(true, kind, songs, []);
         }
-
-        var songs = document.Root!
-            .Elements("Item")
-            .Select(element =>
-            {
-                var folder = Text(element, "Folder", DefaultSourceFolder);
-                var song = new SongWriteModel(
-                    SongId: null,
-                    Title: Text(element, "Title1"),
-                    AlternateTitle: Text(element, "Title2"),
-                    FolderNo: 0,
-                    SongNumber: ToInt(Text(element, "SongNumber")),
-                    Lyrics: NormalizeLineEndings(Text(element, "Contents")).TrimEnd('\n', '\r'),
-                    Sequence: Text(element, "Sequence"),
-                    Writer: Text(element, "Writer"),
-                    Copyright: Text(element, "Copyright"),
-                    Capo: ToInt(Text(element, "Capo"), defaultValue: -1),
-                    Timing: Text(element, "Timing"),
-                    Key: Text(element, "MusicKey"),
-                    Notations: Text(element, "Notations"),
-                    Category: Text(element, "Category"),
-                    LicenceAdmin1: Text(element, "LicenceAdmin1"),
-                    LicenceAdmin2: Text(element, "LicenceAdmin2"),
-                    BookReference: Text(element, "BookReference"),
-                    UserReference: Text(element, "UserReference"),
-                    Settings: Text(element, "Settings"),
-                    FormatData: Text(element, "FormatData"));
-                return new ImportSong(ImportSourceKind.EasiSlidesXml, folder, song);
-            })
-            .ToArray();
-
-        return new LoadedImportSongs(true, ImportSourceKind.EasiSlidesXml, songs, []);
+        catch (Exception ex) when (SongExchangeFile.IsReadError(ex))
+        {
+            return Failed(kind, path, ex.Message);
+        }
     }
+
+    private static ExchangeSong ToExchangeSong(ExportSong song) =>
+        new ExchangeSong
+        {
+            Folder = song.FolderName, SongNumber = song.Detail.SongNumber, Capo = song.Detail.Capo,
+            Title1 = song.Detail.Title,
+            Title2 = song.Detail.AlternateTitle,
+            Contents = song.Detail.Lyrics,
+            Notations = song.Detail.Notations,
+            Sequence = SongExchangeSequence.FromWpfDatabase(song.Detail.Sequence),
+            Writer = song.Detail.Writer,
+            Copyright = song.Detail.Copyright,
+            Category = song.Detail.Category,
+            Timing = song.Detail.Timing,
+            MusicKey = song.Detail.Key,
+            LicenceAdmin1 = song.Detail.LicenceAdmin1,
+            LicenceAdmin2 = song.Detail.LicenceAdmin2,
+            BookReference = song.Detail.BookReference,
+            UserReference = song.Detail.UserReference,
+            FormatData = song.Detail.FormatData,
+            Settings = song.Detail.Settings,
+        };
 
     private static LoadedImportSongs LoadDatabase(string path)
     {
         var songs = new List<ImportSong>();
         var folderNames = new Dictionary<int, string>();
-        using var connection = new SQLiteConnection($"Data Source={path};Version=3;");
-        connection.Open();
+        using var connection = SqliteFile.Open(path, readOnly: true);
 
         using (var command = new SQLiteCommand("SELECT FolderNo, Name FROM FOLDER WHERE FolderNo > 0 ORDER BY FolderNo;", connection))
         using (var reader = command.ExecuteReader())
@@ -728,8 +758,7 @@ public sealed class ImportExportService : IImportExportService
     {
         try
         {
-            using var connection = new SQLiteConnection($"Data Source={path};Version=3;");
-            connection.Open();
+            using var connection = SqliteFile.Open(path, readOnly: true);
             var schema = ReadAccessSchema(connection, path);
             if (!schema.Succeeded)
             {
@@ -1034,8 +1063,7 @@ public sealed class ImportExportService : IImportExportService
             File.Delete(outputPath);
         }
 
-        using var connection = new SQLiteConnection($"Data Source={outputPath};Version=3;");
-        connection.Open();
+        using var connection = SqliteFile.Open(outputPath);
         Execute(connection, "CREATE TABLE FOLDER (FolderNo INTEGER PRIMARY KEY, Name TEXT, Use INTEGER);");
         Execute(connection, """
             CREATE TABLE SONG (
@@ -1529,9 +1557,6 @@ public sealed class ImportExportService : IImportExportService
 
     private static string Value(IReadOnlyDictionary<string, string> values, char separator, string key, string fallback = "")
         => values.TryGetValue(separator + key, out var value) ? value : fallback;
-
-    private static string Text(XElement element, string name, string fallback = "")
-        => element.Element(name)?.Value ?? fallback;
 
     private static int ToInt(string value, int defaultValue = 0)
         => int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed) ? parsed : defaultValue;

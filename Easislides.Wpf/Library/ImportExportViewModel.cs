@@ -130,6 +130,7 @@ public sealed partial class ImportExportViewModel : ObservableObject
     public IReadOnlyList<ExportFormat> ExportFormats { get; } =
     [
         ExportFormat.Xml,
+        ExportFormat.Json,
         ExportFormat.EasiSlidesText,
         ExportFormat.EasiSlidesDatabase,
         ExportFormat.Html,

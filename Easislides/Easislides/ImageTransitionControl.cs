@@ -123,9 +123,14 @@ namespace Easislides
 
 		private int DissolveTotal = 0;
 
-		private Graphics Newg;
+		// Published frames may both be visible during a transition. Compose into a third
+		// slot only while both are in use. Ordinary instant updates alternate two slots.
+		private readonly Bitmap[] _compositeBuffers = new Bitmap[3];
 
-		private Image Newbmp;
+		internal readonly record struct BackgroundFileKey(string Path, DateTime ModifiedUtc,
+			long Length, ImageMode Mode, Size Buffer, Size Viewport);
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		internal BackgroundFileKey? RenderedBackground { get; set; }
 
 		// What callers set (TransitionType); the control never changes it.
 		private TransitionTypes _transitionType = TransitionTypes.None;
@@ -308,6 +313,8 @@ namespace Easislides
 			set
 			{
 				Image replaced = _newBackgroundPicture;
+				if (!ReferenceEquals(replaced, value))
+					RenderedBackground = null;
 				_newBackgroundPicture = value;
 				ReleaseOwnedImage(replaced);
 			}
@@ -628,11 +635,8 @@ namespace Easislides
 		private readonly object _transitionLock = new object();
 		// Bumped whenever a transition starts or is ended early; a Tick carries the value it was started with.
 		private int _transitionGeneration;
-		// Pictures this screen owns: the combined images Go makes, and the background pictures and copies Gf
-		// makes for this screen only, the default background picture included (AdoptImage). Only these are
-		// disposed: when no field of this screen refers to them any more (ReleaseOwnedImage, called by the
-		// picture setters, Go and SetDefaultBackgroundPicture) and when the screen is disposed.
-		// Pictures of another owner and this screen's draw buffers are never in it.
+		// Adopted backgrounds, copies and overflow composites are released after the last
+		// picture field drops them. Reusable buffers have their own lifetime on this control.
 		private readonly HashSet<Image> _ownImages = new HashSet<Image>();
 
 		/// <summary>
@@ -707,42 +711,56 @@ namespace Easislides
 		/// </summary>
 		internal bool TransitionPending => t != null;
 
+		private Bitmap GetCompositeBuffer(Size size)
+		{
+			int available = -1;
+			Bitmap reusable = null;
+			for (int i = 0; i < _compositeBuffers.Length; i++)
+			{
+				Bitmap buffer = _compositeBuffers[i];
+				if (buffer != null && IsReferenced(buffer))
+					continue;
+				if (buffer?.Size == size)
+					reusable ??= buffer;
+				else
+				{
+					buffer?.Dispose();
+					_compositeBuffers[i] = null;
+					available = i;
+				}
+			}
+			if (reusable != null)
+				return reusable;
+			if (available >= 0)
+				return _compositeBuffers[available] = new Bitmap(size.Width, size.Height, PixelFormat.Format32bppPArgb);
+
+			// A caller may have assigned past composites to additional picture fields.
+			return (Bitmap)AdoptImage(new Bitmap(size.Width, size.Height, PixelFormat.Format32bppPArgb));
+		}
+
 		public void Go(TransitionAction TransitionAction, bool InFirstShowing, bool ClearAll, bool DoActiveIndicator, bool LiveCamOnShow)
 		{
 			ItemFirstShowing = InFirstShowing || DoActiveIndicator;
-			// Composed into a local bitmap first: if composing throws, the bitmap is disposed here and
-			// neither Newbmp nor any picture of this control refers to it.
-			Bitmap composed = new Bitmap(NewBackgroundPicture.Width, NewBackgroundPicture.Height, PixelFormat.Format32bppPArgb);
+			Bitmap composed = GetCompositeBuffer(NewBackgroundPicture.Size);
 			try
 			{
-				Newg = Graphics.FromImage(composed);
-				try
+				using Graphics graphics = Graphics.FromImage(composed);
+				if (LiveCamOnShow)
+					graphics.Clear(Gf.TransparentColour);
+				else
 				{
-					if (LiveCamOnShow)
-					{
-						Newg.Clear(Gf.TransparentColour);
-					}
-					else
-					{
-						Newg.DrawImageUnscaled(NewBackgroundPicture, 0, 0);
-						Newg.DrawImageUnscaled(NewTextImage, 0, 0);
-						Newg.DrawImageUnscaled(NewPanelImage, 0, 0);
-					}
-				}
-				finally
-				{
-					Newg.Dispose();
-					Newg = null;
+					graphics.CompositingMode = CompositingMode.SourceCopy;
+					graphics.DrawImageUnscaled(NewBackgroundPicture, 0, 0);
+					graphics.CompositingMode = CompositingMode.SourceOver;
+					graphics.DrawImageUnscaled(NewTextImage, 0, 0);
+					graphics.DrawImageUnscaled(NewPanelImage, 0, 0);
 				}
 			}
 			catch
 			{
-				composed.Dispose();
+				ReleaseOwnedImage(composed);
 				throw;
 			}
-			Newbmp = composed;
-
-			_ownImages.Add(Newbmp);
 
 			if (TransitionAction == TransitionAction.None)
 			{
@@ -760,19 +778,15 @@ namespace Easislides
 				{
 					StopRef();
 				}
-				Image replacedNew = NewCombinedImage;
-				NewCombinedImage = Newbmp;
-				ReleaseOwnedImage(replacedNew);
+				NewCombinedImage = composed;
 				Invalidate();
 				return;
 			}
-			Image replacedCurrent = CurrentCombinedImage;
 			if (NewCombinedImage != null)
 			{
 				CurrentCombinedImage = NewCombinedImage;
 			}
-			NewCombinedImage = Newbmp;
-			ReleaseOwnedImage(replacedCurrent);
+			NewCombinedImage = composed;
 			// Dispose previous timer to prevent multiple timers running
 			t?.Dispose();
 			var tickState = new TransitionTickState();
@@ -2742,12 +2756,10 @@ namespace Easislides
 
 				// Graphics objects.
 				wsg?.Dispose();
-				Newg?.Dispose();
+				foreach (var buffer in _compositeBuffers)
+					buffer?.Dispose();
 
-				// Images. Disposed here: the pictures this screen owns (_ownImages: the combined images Go made,
-				// Newbmp among them, the default background picture, and the background pictures and copies Gf
-				// made for this screen), this screen's own layer buffers and the work space. Not disposed:
-				// pictures of another owner the picture fields may point at.
+				// Dispose images adopted by this control. Borrowed picture fields have other owners.
 				foreach (Image owned in _ownImages)
 				{
 					owned.Dispose();

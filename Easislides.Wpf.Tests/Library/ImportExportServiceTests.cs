@@ -16,6 +16,49 @@ namespace Easislides.Wpf.Tests.Library;
 
 public class ImportExportServiceTests
 {
+    [Theory]
+    [InlineData(".xml", "<EasiSlides><Item/><Item><Folder>A</Folder></Item></EasiSlides>garbage")]
+    [InlineData(".xml", "<WrongRoot/>")]
+    [InlineData(".json", "null")]
+    [InlineData(".json", """[{"Title1":"First","Folder":"A"},null]""")]
+    [InlineData(".json", """[{"Title1":"First","Folder":"A"}""")]
+    [InlineData(".json", """{"items":[]}""")]
+    public async Task MalformedSongExchange_DoesNotReturnPartialCountsOrSaveSongs(string extension, string input)
+    {
+        using var fixture = new ImportExportFixture();
+        var path = Path.Combine(fixture.Root, "broken" + extension);
+        File.WriteAllText(path, input, Encoding.UTF8);
+        var service = fixture.CreateService();
+        var preview = await service.PreviewImportAsync(path);
+        preview.Succeeded.Should().BeFalse();
+        preview.TotalSongs.Should().Be(0);
+        var report = await service.ImportAsync(new ImportRequest(fixture.AdminDatabasePath, fixture.BackupRoot,
+            path, 1, [], ImportDuplicatePolicy.SkipExisting));
+        report.Succeeded.Should().BeFalse();
+        fixture.Repository.SavedSongs.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task XmlSongExchange_PreviewsOnlyItemFoldersAndClearsMissingFieldsOnImport()
+    {
+        using var fixture = new ImportExportFixture();
+        var path = fixture.WriteXml(
+            new XElement("Item", new XElement("Title1", "First"), new XElement("Folder", "A"),
+                new XElement("Contents", new string('x', 128_000)), new XElement("Image", new string('A', 256_000))),
+            new XElement("Item"), new XElement("Item", "  "),
+            new XElement("Item", new XElement("Title1", "Second"), new XElement("Other", new XElement("Folder", "nested"))));
+        var service = fixture.CreateService();
+        var preview = await service.PreviewImportAsync(path);
+        preview.TotalSongs.Should().Be(2);
+        preview.Folders.Should().Equal(new ImportSourceFolder("A", 1), new ImportSourceFolder("Default Folder", 1));
+        var report = await service.ImportAsync(new ImportRequest(fixture.AdminDatabasePath, fixture.BackupRoot,
+            path, 1, ["Default Folder"], ImportDuplicatePolicy.SkipExisting));
+        report.Succeeded.Should().BeTrue();
+        var saved = fixture.Repository.SavedSongs.Single();
+        saved.Title.Should().Be("Second");
+        saved.Lyrics.Should().BeEmpty();
+    }
+
     [Fact]
     public async Task PreviewImportAsync_WhenLegacyText_ReturnsDistinctFoldersAndSongCount()
     {

@@ -90,38 +90,13 @@ namespace Easislides
             int mainTop = RegUtil.GetRegValue("settings", "MainTop", -1);
             int mainWidth = RegUtil.GetRegValue("settings", "MainWidth", 720);
             int mainHeight = RegUtil.GetRegValue("settings", "MainHeight", 560);
-            if (mainWidth > Screen.PrimaryScreen.Bounds.Width)
-            {
-                mainWidth = Screen.PrimaryScreen.Bounds.Width - 20;
-            }
-            if (mainHeight > Screen.PrimaryScreen.Bounds.Height)
-            {
-                mainHeight = Screen.PrimaryScreen.Bounds.Height - 30;
-            }
-            if (mainLeft < 0)
-            {
-                mainLeft = 0;
-            }
-            if (mainTop < 0)
-            {
-                mainTop = 0;
-            }
-            if (mainLeft + mainWidth > Screen.PrimaryScreen.Bounds.Width)
-            {
-                mainLeft = Screen.PrimaryScreen.Bounds.Width - mainWidth;
-            }
-            if (mainTop + mainHeight > Screen.PrimaryScreen.Bounds.Height)
-            {
-                mainTop = Screen.PrimaryScreen.Bounds.Height - mainHeight;
-            }
-            base.Left = mainLeft;
-            base.Top = mainTop;
-            base.Height = mainHeight;
-            base.Width = mainWidth;
-            frmLeft = mainLeft;
-            frmTop = mainTop;
-            frmHeight = mainHeight;
-            frmWidth = mainWidth;
+            var saved = new Rectangle(mainLeft, mainTop, mainWidth > 0 ? mainWidth : 720, mainHeight > 0 ? mainHeight : 560);
+            Bounds = MonitorLayout.RestoreOperatorBounds(saved, Screen.AllScreens.Select(screen => screen.WorkingArea),
+                Screen.PrimaryScreen.WorkingArea);
+            frmLeft = Left;
+            frmTop = Top;
+            frmHeight = Height;
+            frmWidth = Width;
             if (RegUtil.GetRegValue("settings", "MainMax", 0) > 0)
             {
                 base.WindowState = FormWindowState.Maximized;

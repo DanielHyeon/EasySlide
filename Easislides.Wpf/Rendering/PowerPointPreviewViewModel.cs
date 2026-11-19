@@ -57,6 +57,28 @@ public sealed partial class PowerPointPreviewViewModel : ObservableObject
     private readonly IPowerPointRenderService _render;
     private readonly Func<byte[], ImageSource> _decode;
     private CancellationTokenSource? _thumbnailCts;
+    private Task? _thumbnailTask;
+    private StripKey? _stripKey;
+    private long _previewGeneration;
+
+    private sealed record StripKey(string Path, long LastWriteTicks, long Length, int Count, int Width, int Height)
+    {
+        public static StripKey? TryCreate(string path, int count, int width, int height)
+        {
+            try
+            {
+                var file = new FileInfo(path);
+                bool exists = file.Exists;
+                return new(ThumbnailCacheKey.NormalizePath(path), exists ? file.LastWriteTimeUtc.Ticks : 0,
+                    exists ? file.Length : -1, count, Math.Max(MinimumThumbnailPixelWidth, width),
+                    Math.Max(MinimumThumbnailPixelHeight, height));
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException or NotSupportedException)
+            {
+                return null;
+            }
+        }
+    }
 
     [ObservableProperty] private ImageSource? _previewImage;
     [ObservableProperty] private PowerPointPreviewState _state = PowerPointPreviewState.Idle;
@@ -88,7 +110,10 @@ public sealed partial class PowerPointPreviewViewModel : ObservableObject
     {
         ArgumentNullException.ThrowIfNull(source);
 
-        _thumbnailCts?.Cancel();
+        if (ReferenceEquals(source, this))
+            return;
+
+        _previewGeneration++;
         PreviewImage = source.PreviewImage;
         State = source.State;
         StatusText = source.StatusText;
@@ -96,6 +121,12 @@ public sealed partial class PowerPointPreviewViewModel : ObservableObject
         SlideCount = source.SlideCount;
         LoadedContentPath = source.LoadedContentPath;
 
+        if (_stripKey is { } key && key == source._stripKey &&
+            (_thumbnailTask is not null || HasCompleteStrip(key)))
+            return;
+
+        InvalidateThumbnailLoad();
+        _stripKey = source._stripKey;
         Thumbnails.Clear();
         foreach (var thumbnail in source.Thumbnails)
         {
@@ -121,12 +152,20 @@ public sealed partial class PowerPointPreviewViewModel : ObservableObject
         int pixelHeight,
         CancellationToken cancellationToken = default)
     {
+        long generation = ++_previewGeneration;
+        if (_stripKey is { } strip && strip != StripKey.TryCreate(filePath, strip.Count, strip.Width, strip.Height))
+        {
+            InvalidateThumbnailLoad();
+            Thumbnails.Clear();
+        }
         State = PowerPointPreviewState.Rendering;
         StatusText = "렌더링 중…";
 
         var result = await _render.RenderSlideAsync(
             new PowerPointRenderRequest(filePath, slideNumber, pixelWidth, pixelHeight, TimeSpan.FromSeconds(60)),
             cancellationToken).ConfigureAwait(true);
+
+        if (generation != _previewGeneration) return;
 
         if (result.Succeeded && result.Slide is { } slide)
         {
@@ -158,34 +197,85 @@ public sealed partial class PowerPointPreviewViewModel : ObservableObject
 
     /// <summary>
     /// 덱 전체 슬라이드 썸네일을 백그라운드로 채운다(덱이 바뀔 때 호출). FrmMain처럼 고해상도 4:3 이미지로 렌더한 뒤 UI에서 축소하며,
-    /// 새 호출이 오면 이전 로딩은 취소한다(빠른 덱 전환 대비). 슬라이드 수가 많으면 순차로 채워진다.
+    /// 같은 요청은 진행 중인 로딩을 공유하고 파일 버전이나 크기가 바뀌면 이전 로딩을 취소한다. 슬라이드 수가 많으면 순차로 채워진다.
     /// </summary>
-    public async Task LoadThumbnailsAsync(string filePath, int slideCount, int thumbnailWidth, int thumbnailHeight)
+    public Task LoadThumbnailsAsync(string filePath, int slideCount, int thumbnailWidth, int thumbnailHeight)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
+        var key = StripKey.TryCreate(filePath, slideCount, thumbnailWidth, thumbnailHeight);
+        if (key == null)
+        {
+            InvalidateThumbnailLoad();
+            Thumbnails.Clear();
+            return Task.CompletedTask;
+        }
 
-        var renderWidth = Math.Max(MinimumThumbnailPixelWidth, thumbnailWidth);
-        var renderHeight = Math.Max(MinimumThumbnailPixelHeight, thumbnailHeight);
-        _thumbnailCts?.Cancel();
+        bool sameStrip = key == _stripKey;
+        if (sameStrip && _thumbnailTask != null)
+            return _thumbnailTask;
+        if (sameStrip && HasCompleteStrip(key))
+            return Task.CompletedTask;
+
+        InvalidateThumbnailLoad();
         var cts = new CancellationTokenSource();
+        var completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         _thumbnailCts = cts;
+        _thumbnailTask = completion.Task;
+        _stripKey = key;
+        _ = PopulateThumbnailsAsync(filePath, key, sameStrip, cts, completion);
+        return completion.Task;
+    }
+
+    private bool HasCompleteStrip(StripKey key)
+    {
+        if (Thumbnails.Count != key.Count)
+            return false;
+        for (int index = 0; index < Thumbnails.Count; index++)
+            if (!MatchesSlide(Thumbnails[index], index + 1, key))
+                return false;
+        return true;
+    }
+
+    private static bool MatchesSlide(PowerPointSlideThumbnail thumbnail, int slide, StripKey key) =>
+        thumbnail.SlideNumber == slide && thumbnail.PixelWidth >= key.Width && thumbnail.PixelHeight >= key.Height;
+
+    private void InvalidateThumbnailLoad()
+    {
+        var previous = _thumbnailCts;
+        _thumbnailCts = null;
+        _thumbnailTask = null;
+        _stripKey = null;
+        previous?.Cancel();
+    }
+
+    private async Task PopulateThumbnailsAsync(string filePath, StripKey key, bool sameStrip,
+        CancellationTokenSource cts, TaskCompletionSource completion)
+    {
         var token = cts.Token;
-
-        Thumbnails.Clear();
-
         // 썸네일은 best-effort 장식이라, fire-and-forget 로 호출돼도(MainViewModel) 어떤 실패든
         // 앱을 죽이지 않도록 전체를 봉인한다(메인 미리보기는 별개 경로라 영향 없음).
         try
         {
-            for (var slide = 1; slide <= slideCount; slide++)
+            if (!sameStrip)
+                Thumbnails.Clear();
+            int index = 0;
+            for (var slide = 1; slide <= key.Count; slide++)
             {
                 if (token.IsCancellationRequested)
                 {
                     return;
                 }
 
+                if (index < Thumbnails.Count && MatchesSlide(Thumbnails[index], slide, key))
+                {
+                    index++;
+                    continue;
+                }
+                if (index < Thumbnails.Count && Thumbnails[index].SlideNumber == slide)
+                    Thumbnails.RemoveAt(index);
+
                 var result = await _render.RenderSlideAsync(
-                    new PowerPointRenderRequest(filePath, slide, renderWidth, renderHeight, TimeSpan.FromSeconds(60)),
+                    new PowerPointRenderRequest(filePath, slide, key.Width, key.Height, TimeSpan.FromSeconds(60)),
                     token).ConfigureAwait(true);
 
                 if (token.IsCancellationRequested)
@@ -206,7 +296,10 @@ public sealed partial class PowerPointPreviewViewModel : ObservableObject
                         continue; // 한 장 디코드 실패는 건너뛰고 나머지 썸네일을 계속 채운다.
                     }
 
-                    Thumbnails.Add(new PowerPointSlideThumbnail(
+                    if (token.IsCancellationRequested)
+                        return;
+
+                    Thumbnails.Insert(index++, new PowerPointSlideThumbnail(
                         slide,
                         image,
                         slideSnapshot.PixelWidth,
@@ -224,6 +317,16 @@ public sealed partial class PowerPointPreviewViewModel : ObservableObject
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"[PPT] 썸네일 로드 실패(무시): {ex.Message}");
+        }
+        finally
+        {
+            if (ReferenceEquals(cts, _thumbnailCts))
+            {
+                _thumbnailTask = null;
+                _thumbnailCts = null;
+            }
+            cts.Dispose();
+            completion.TrySetResult();
         }
     }
 
@@ -249,7 +352,8 @@ public sealed partial class PowerPointPreviewViewModel : ObservableObject
     /// <summary>미리보기를 비우고 초기 상태로(다른 종류 항목 선택 시).</summary>
     public void Clear()
     {
-        _thumbnailCts?.Cancel();
+        _previewGeneration++;
+        InvalidateThumbnailLoad();
         PreviewImage = null;
         State = PowerPointPreviewState.Idle;
         StatusText = "PPT 없음";

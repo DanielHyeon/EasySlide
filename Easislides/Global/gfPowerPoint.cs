@@ -29,7 +29,12 @@ namespace Easislides
 		private const int ForegroundDelayMs = 200;
 		private const int WindowBoundsSlack = 100;
 		private const int WindowTitleBufferSize = 256;
-		private const float PowerpointShowWindowScale = 0.75f;
+		internal static RectangleF PowerPointWindowPoints(Rectangle bounds, float systemDpi)
+		{
+			float pointsPerLogicalPixel = 72f / systemDpi;
+			return new RectangleF(bounds.X * pointsPerLogicalPixel, bounds.Y * pointsPerLogicalPixel,
+				bounds.Width * pointsPerLogicalPixel, bounds.Height * pointsPerLogicalPixel);
+		}
 
 		private static readonly string[] MediaPlayerWindowKeywords =
 		{
@@ -673,17 +678,10 @@ namespace Easislides
 
 			if (!ShowLiveCam && Gf.DualMonitorSelectAutoOption == 1)
 			{
-				float scalef = PowerpointShowWindowScale;
-
-
-				if (DualMonitorMode)
-				{
-					InPPT.SetShowWindow((float)LS_Left * scalef, (float)LS_Top * scalef, (float)LS_Width * scalef, (float)LS_Height * scalef);
-				}
-				else
-				{
-					InPPT.SetShowWindow(LS_Left, LS_Top, (float)LS_Width * scalef, (float)LS_Height * scalef);
-				}
+				// WinForms runs system-DPI aware. Its desktop coordinates use the system DPI.
+				using var desktop = Graphics.FromHwnd(IntPtr.Zero);
+				var bounds = PowerPointWindowPoints(new Rectangle(LS_Left, LS_Top, LS_Width, LS_Height), desktop.DpiX);
+				InPPT.SetShowWindow(bounds.Left, bounds.Top, bounds.Width, bounds.Height);
 			}
 
 			InPPT.LoadVersesAndSlides(ref InItem.SongVerses, ref InItem.Slide, SequenceSymbol);

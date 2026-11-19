@@ -71,9 +71,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private readonly Data.IAdminSongDetailRepository _songDetail;
     // 명령 팔레트 실행에 쓰는 단축키 레지스트리 — BindShortcuts(앱 시작)에서 주입된다. 그 전엔 null.
     private ShortcutRegistry? _shortcutRegistry;
-    // 스테이지 모니터 목록 갱신(RefreshPreviewDisplays) 중인가 — 그때의 선택 변경은 사용자 입력이 아니므로
-    // PreviewMonitorId 를 영속화하지 않는다(분리된 모니터 fallback 으로 저장된 선호를 덮어쓰지 않게).
-    private bool _suppressPreviewMonitorPersist;
+    private bool _refreshingDisplays;
+    private string? _sessionOutputMonitorId;
+    private bool _stageWaitingForDisplay;
 
     [ObservableProperty] private LiveQueueItem? _selectedItem;
     [ObservableProperty]
@@ -984,7 +984,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OpenOutputCommand = new RelayCommand(OpenOutput);
         CloseOutputCommand = new AsyncRelayCommand(CloseOutputAsync, () => _output.Current.IsOpen);
         OpenStageMonitorCommand = new RelayCommand(OpenStageMonitor);
-        CloseStageMonitorCommand = new RelayCommand(CloseStageMonitor, () => IsStageMonitorOpen);
+        CloseStageMonitorCommand = new RelayCommand(CloseStageMonitor, () => IsStageMonitorOpen || _stageWaitingForDisplay);
         CopyPreviewToOutputCommand = new RelayCommand(CopyPreviewToOutput, CanCopyPreviewToOutput);
         CopyPreviewToOutputAndNextCommand = new RelayCommand(CopyPreviewToOutputAndNext, CanCopyPreviewToOutput);
         CopyPreviewToOutputShortcutCommand = new RelayCommand(CopyPreviewToOutputShortcut, CanCopyPreviewToOutput);
@@ -1215,8 +1215,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ApplyOperationalSettings(updateStatus: false);
         // 시작 시 큐는 비어 있다 — 과거의 더미 3항목 시드(SeedPlaceholderQueue)를 제거(§7 P0).
         // 운영자가 곡·성경·파일을 직접 추가하거나 "최근 예배 순서"로 불러온다. 좌측 패널이 빈 상태 안내를 보여 준다.
-        RefreshOutputDisplays();
-        RefreshPreviewDisplays();
+        RefreshDisplays();
         IsStageMonitorOpen = _preview.Current.IsOpen;
         RefreshAppearanceTemplateNames();
     }
@@ -3386,108 +3385,123 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         BindGated(MainCommandIds.WorshipSelectLiveItem, SelectLiveItemCommand);
     }
 
-    public void RefreshOutputDisplays()
+    public void RefreshOutputDisplays() => RefreshDisplays();
+    public void RefreshPreviewDisplays() => RefreshDisplays();
+
+    public void RefreshDisplays()
     {
-        var preferredId = SelectedOutputDisplay?.Id;
-        if (string.IsNullOrWhiteSpace(preferredId))
-        {
-            preferredId = _settings.Get(EasiSettingKeys.DefaultOutputMonitorId);
-        }
-
-        var displays = _display.GetDisplays();
-
-        OutputDisplays.Clear();
-        foreach (var display in displays)
-        {
-            OutputDisplays.Add(display);
-        }
-
-        var selected = GetPreferredOutputDisplay(preferredId, displays);
-        var matching = OutputDisplays.FirstOrDefault(display =>
-            string.Equals(display.Id, selected.Id, StringComparison.OrdinalIgnoreCase)) ?? selected;
-        if (!OutputDisplays.Contains(matching))
-        {
-            OutputDisplays.Add(matching);
-        }
-
-        SelectedOutputDisplay = matching;
-    }
-
-    // 출력 모니터 선택이 바뀌면 — 출력 창이 이미 열려 있을 때 그 모니터로 즉시 창을 옮긴다(레거시 런타임 MoveTo 배선).
-    // 닫혀 있으면 다음 Open 때 반영되므로 아무것도 안 한다.
-    // 이미 같은 모니터(레코드 값 전체 동일 — Id·위치·크기·DPI)면 이동 불필요. OpenOutput 이 Open 직후
-    // SelectedOutputDisplay 를 같은 모니터로 세팅해도 값이 같아 재이동하지 않는다(무한 이동 방지).
-    // 값 전체로 비교하므로 같은 Id 라도 해상도/위치가 바뀐 경우(모니터 재구성)엔 정상적으로 다시 이동한다.
-    partial void OnSelectedOutputDisplayChanged(OutputDisplay? value)
-    {
-        if (value is null || !_output.Current.IsOpen)
-        {
+        if (_refreshingDisplays)
             return;
-        }
-
-        if (_output.Current.Display is { } current && current == value)
-        {
-            return;
-        }
-
-        _output.MoveTo(value, windowed: _session.Current.State != LiveState.Active);
-        LiveBar.OutputMonitorName = value.Name;
-        StatusText = $"출력 모니터 이동: {value.Name}";
-    }
-
-    // 스테이지(Preview) 모니터 선택 후보 목록을 채운다 — 출력 모니터 목록(RefreshOutputDisplays)과 같은 방식.
-    // 기본 선택은 저장된 PreviewMonitorId(있으면) → 없으면 선호 모니터 규칙(GetPreferredOutputDisplay).
-    public void RefreshPreviewDisplays()
-    {
-        var preferredId = SelectedPreviewDisplay?.Id;
-        if (string.IsNullOrWhiteSpace(preferredId))
-        {
-            // 저장된 스테이지 모니터(있으면)를 기본 선택으로 — 다음 실행에도 같은 모니터를 고른다(출력 RefreshOutputDisplays 와 같은 취지).
-            preferredId = _settings.Get(EasiSettingKeys.PreviewMonitorId);
-        }
-
-        var displays = _display.GetDisplays();
-
-        PreviewDisplays.Clear();
-        foreach (var display in displays)
-        {
-            PreviewDisplays.Add(display);
-        }
-
-        var selected = GetPreferredOutputDisplay(preferredId, displays);
-        var matching = PreviewDisplays.FirstOrDefault(display =>
-            string.Equals(display.Id, selected.Id, StringComparison.OrdinalIgnoreCase)) ?? selected;
-        if (!PreviewDisplays.Contains(matching))
-        {
-            PreviewDisplays.Add(matching);
-        }
-
-        // 목록 갱신으로 인한 선택 변경은 사용자 입력이 아니므로 영속화하지 않는다 — 저장된 모니터가 분리돼
-        // fallback 이 들어와도 저장된 선호(PreviewMonitorId)를 덮어쓰지 않게(재연결 시 복원되도록).
-        _suppressPreviewMonitorPersist = true;
+        _refreshingDisplays = true;
         try
         {
-            SelectedPreviewDisplay = matching;
+            var available = _display.GetDisplays();
+            var preferred = _sessionOutputMonitorId ?? _settings.Get(EasiSettingKeys.DefaultOutputMonitorId);
+            var audience = GetPreferredOutputDisplay(preferred, available);
+            UpdateDisplayList(OutputDisplays, available);
+            SelectedOutputDisplay = audience;
+            if (_output.Current.IsOpen)
+            {
+                _output.MoveTo(audience, _output.Current.Placement.IsWindowed);
+                LiveBar.OutputMonitorName = audience.Name;
+            }
+
+            RefreshStageSelection(available, audience);
         }
         finally
         {
-            _suppressPreviewMonitorPersist = false;
+            _refreshingDisplays = false;
         }
     }
 
-    // 스테이지 모니터를 선택한 디스플레이에 풀스크린(windowed:false)으로 띄운다 — 회중 출력 창과 별개의 창이다.
+    private void RefreshStageSelection(IReadOnlyList<OutputDisplay> available, OutputDisplay audience)
+    {
+        bool previous = _refreshingDisplays;
+        _refreshingDisplays = true;
+        try
+        {
+            var savedStage = _settings.Get(EasiSettingKeys.PreviewMonitorId);
+            var candidates = available.Where(display => !OverlapsOpenOutput(display)).ToArray();
+            var stage = candidates.FirstOrDefault(display => string.Equals(display.Id, savedStage, StringComparison.OrdinalIgnoreCase))
+                ?? candidates.FirstOrDefault(display => !display.IsPrimary && !string.Equals(display.Id, audience.Id, StringComparison.OrdinalIgnoreCase))
+                ?? candidates.FirstOrDefault(display => !string.Equals(display.Id, audience.Id, StringComparison.OrdinalIgnoreCase))
+                ?? candidates.FirstOrDefault();
+            UpdateDisplayList(PreviewDisplays, candidates);
+            SelectedPreviewDisplay = stage;
+            if (stage == null && _preview.Current.IsOpen)
+            {
+                _stageWaitingForDisplay = true;
+                _preview.Close();
+            }
+            else if (stage != null && _stageWaitingForDisplay)
+            {
+                _stageWaitingForDisplay = false;
+                _preview.Open(stage, windowed: false);
+            }
+            else if (stage != null && _preview.Current.IsOpen)
+            {
+                _preview.MoveTo(stage, windowed: false);
+            }
+        }
+        finally
+        {
+            _refreshingDisplays = previous;
+        }
+    }
+
+    private bool OverlapsOpenOutput(OutputDisplay display)
+    {
+        if (!_output.Current.IsOpen)
+            return false;
+        var area = _output.Current.Placement;
+        return display.X < area.Left + area.Width && display.X + display.Width > area.Left
+            && display.Y < area.Top + area.Height && display.Y + display.Height > area.Top;
+    }
+
+    private static void UpdateDisplayList(ObservableCollection<OutputDisplay> list, IReadOnlyList<OutputDisplay> displays)
+    {
+        if (list.SequenceEqual(displays))
+            return;
+        list.Clear();
+        foreach (var display in displays)
+            list.Add(display);
+    }
+
+    partial void OnSelectedOutputDisplayChanged(OutputDisplay? value)
+    {
+        if (_refreshingDisplays || value == null)
+            return;
+        _sessionOutputMonitorId = value.Id;
+        if (_output.Current.IsOpen)
+        {
+            _output.MoveTo(value, _output.Current.Placement.IsWindowed);
+            LiveBar.OutputMonitorName = value.Name;
+            StatusText = $"출력 모니터 이동: {value.Name}";
+        }
+        else
+        {
+            RefreshStageSelection(OutputDisplays, value);
+        }
+    }
+
     private void OpenStageMonitor()
     {
-        var display = SelectedPreviewDisplay ?? GetPreferredOutputDisplay(null);
-        _preview.Open(display, windowed: false);
-        SelectedPreviewDisplay = display;
-        StatusText = $"스테이지 모니터 열림: {display.Name}";
+        RefreshDisplays();
+        if (SelectedPreviewDisplay is not { } stage)
+        {
+            StatusText = "스테이지 모니터로 사용할 별도 화면이 없습니다.";
+            return;
+        }
+        _preview.Open(stage, windowed: false);
+        StatusText = $"스테이지 모니터 열림: {stage.Name}";
     }
 
     // 스테이지 모니터를 닫는다 — 회중 출력과 무관(송출 안 함)하므로 출력 닫기(CloseOutputAsync)와 달리 라이브 안전 확인이 필요 없다.
     private void CloseStageMonitor()
     {
+        _stageWaitingForDisplay = false;
         _preview.Close();
+        CloseStageMonitorCommand.NotifyCanExecuteChanged();
         StatusText = "스테이지 모니터 닫힘";
     }
 
@@ -3511,9 +3525,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         // 사용자가 콤보에서 직접 고른 경우에만 영속화한다 — 목록 갱신(RefreshPreviewDisplays)의 프로그램적 선택은 제외해
         // 분리된 모니터 fallback 으로 저장된 선호를 덮어쓰지 않게. 출력은 설정 창에서 저장하지만 스테이지는 설정 창 UI 가
         // 없어 여기(콤보 선택)서 바로 영속화한다(다음 실행에도 같은 모니터를 기본 선택).
-        if (!_suppressPreviewMonitorPersist)
+        if (_refreshingDisplays)
+            return;
+        _settings.Set(EasiSettingKeys.PreviewMonitorId, value.Id);
+        if (OverlapsOpenOutput(value))
         {
-            _settings.Set(EasiSettingKeys.PreviewMonitorId, value.Id);
+            RefreshDisplays();
+            return;
         }
 
         // 창이 이미 열려 있으면 그 모니터로 즉시 옮긴다(닫혀 있으면 다음 열기 때 반영). 같은 모니터(값 전체 동일)면 재이동 안 함(무한 이동 방지).
@@ -3545,26 +3563,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ".mp3", ".wav", ".wma", ".m4a", ".aac", ".flac", ".ogg"
     ];
 
-    // 현재 Preview 썸네일 스트립이 채워진 덱 파일 경로(같은 덱은 재로드 안 함).
-    private string? _thumbnailDeckPath;
-    // 현재 Output 썸네일 스트립이 가리키는 덱. Preview 선택 변경과 독립적으로 보존한다.
-    private string? _outputThumbnailDeckPath;
     private LiveQueueItem? _sourcePreviewItem;
-
-    private static bool ShouldReloadPowerPointThumbnails(
-        Rendering.PowerPointPreviewViewModel viewModel,
-        string? currentDeckPath,
-        string filePath,
-        int slideCount)
-        => slideCount > 0
-           && (!string.Equals(currentDeckPath, filePath, StringComparison.OrdinalIgnoreCase)
-               || viewModel.Thumbnails.Count != slideCount
-               || HasLowResolutionPowerPointThumbnails(viewModel));
-
-    private static bool HasLowResolutionPowerPointThumbnails(Rendering.PowerPointPreviewViewModel viewModel)
-        => viewModel.Thumbnails.Any(thumbnail =>
-            thumbnail.PixelWidth < PptThumbnailWidth ||
-            thumbnail.PixelHeight < PptThumbnailHeight);
 
     private LiveQueueItem? PreviewItem => _sourcePreviewItem ?? SelectedItem;
 
@@ -4005,6 +4004,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         var clamped = Math.Clamp(currentPage, 0, pageModel.Count - 1);
+        var textAt = PrepareLyricsPageText(item);
         var cards = new List<OperatorLyricsPageCard>(pageModel.Count);
         for (var index = 0; index < pageModel.Count; index++)
         {
@@ -4015,7 +4015,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 index,
                 label,
                 $"{index + 1}/{pageModel.Count}",
-                BuildOutputSurfaceText(item with { LyricsPageIndex = index }),
+                textAt(index),
                 index == clamped));
         }
 
@@ -4415,11 +4415,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             var (renderWidth, renderHeight) = ResolvePptRenderSize();
             await PowerPoint.LoadAsync(filePath, 1, renderWidth, renderHeight).ConfigureAwait(true);
-            if (PowerPoint.State == Rendering.PowerPointPreviewState.Ready)
-            {
-                _thumbnailDeckPath = filePath;
-                _ = PowerPoint.LoadThumbnailsAsync(filePath, PowerPoint.SlideCount, PptThumbnailWidth, PptThumbnailHeight);
-            }
+            EnsurePowerPointThumbnails(PowerPoint, filePath);
 
             StatusText = $"Preview PowerPoint: {item.Title}";
         }
@@ -4459,18 +4455,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 var (renderWidth, renderHeight) = ResolvePptRenderSize();
                 await PowerPoint.LoadAsync(pptPath, slide, renderWidth, renderHeight).ConfigureAwait(true);
 
-                // 덱이 바뀌었으면 썸네일 스트립을 백그라운드로 채운다(같은 덱 슬라이드 이동/재렌더 시엔 재로드 안 함).
-                if (PowerPoint.State == Rendering.PowerPointPreviewState.Ready
-                    && ShouldReloadPowerPointThumbnails(PowerPoint, _thumbnailDeckPath, pptPath, PowerPoint.SlideCount))
-                {
-                    _thumbnailDeckPath = pptPath;
-                    _ = PowerPoint.LoadThumbnailsAsync(pptPath, PowerPoint.SlideCount, PptThumbnailWidth, PptThumbnailHeight);
-                }
+                EnsurePowerPointThumbnails(PowerPoint, pptPath);
             }
             else
             {
                 PowerPoint.Clear();
-                _thumbnailDeckPath = null;
             }
 
             if (item is { Kind: LiveItemKinds.Media, ContentPath: { Length: > 0 } mediaPath })
@@ -4956,6 +4945,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private void OnOutputChanged(object? sender, OutputWindowChangedEventArgs e)
     {
+        if (!_refreshingDisplays && (e.State.Display ?? SelectedOutputDisplay) is { } audience)
+            RefreshStageSelection(OutputDisplays, audience);
         NotifyCommandStates();
 
         // 출력 창이 열리면 현재 선택된 PPT 를 그 해상도로 다시 렌더한다 — 항목을 먼저 고르고
@@ -5027,6 +5018,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         var (width, height) = ResolvePptRenderSize();
         await PowerPoint.LoadAsync(path, target, width, height).ConfigureAwait(true);
+        EnsurePowerPointThumbnails(PowerPoint, path);
 
         NotifyCommandStates();
     }
@@ -5048,6 +5040,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         var (width, height) = ResolvePptRenderSize();
         await PowerPoint.LoadAsync(path, target, width, height).ConfigureAwait(true);
+        EnsurePowerPointThumbnails(PowerPoint, path);
         await TriggerPowerPointSlideShowNextAsync(
             path,
             target,
@@ -5135,7 +5128,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         var (width, height) = ResolvePptRenderSize();
         await OutputPowerPoint.LoadAsync(path, target, width, height).ConfigureAwait(true);
-        EnsureOutputPowerPointThumbnails(path, OutputPowerPoint.SlideCount);
+        EnsurePowerPointThumbnails(OutputPowerPoint, path);
 
         if (_session.Current.State == LiveState.Active)
         {
@@ -5415,65 +5408,52 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private string BuildOutputSurfaceText(LiveQueueItem item)
     {
-        if (IsExternalTextFileItem(item))
+        if (IsLyricsPaginated(item))
         {
-            return TextOrTitle(
-                LyricsDisplayFormatter.GetVersePage(item.Lyrics, item.LyricsPageIndex, item.Sequence),
-                item.Title);
+            var textAt = PrepareLyricsPageText(item);
+            return textAt(item.LyricsPageIndex);
         }
 
-        if (LiveItemKindMatcher.IsNotice(item.Kind))
+        if (IsExternalTextFileItem(item) || LiveItemKindMatcher.IsNotice(item.Kind) || LiveItemKindMatcher.IsBible(item.Kind))
         {
             return TextOrTitle(item.Lyrics, item.Title);
         }
 
-        if (LiveItemKindMatcher.IsBible(item.Kind) && string.IsNullOrWhiteSpace(item.Lyrics))
+        return item.Lyrics ?? string.Empty;
+    }
+
+    // Prepare the displayed content once. The card list and the live surface use the same index and fallback rules.
+    private Func<int, string> PrepareLyricsPageText(LiveQueueItem item)
+    {
+        if (IsExternalTextFileItem(item))
         {
-            return item.Title;
+            var pages = LyricsDisplayFormatter.ToVersePages(item.Lyrics, item.Sequence);
+            return index => TextOrTitle(PageAt(pages, index), item.Title);
         }
 
-        if (!IsLyricsPaginated(item))
-        {
-            return item.Lyrics ?? string.Empty;
-        }
+        bool bible = LiveItemKindMatcher.IsBible(item.Kind);
+        string lyrics = bible
+            ? LyricsDisplayFormatter.GuardLiteralNotation(LyricsDisplayFormatter.NormalizeText(item.Lyrics ?? string.Empty))
+            : LyricsDisplayFormatter.ExpandNotations(item.Lyrics, _settings.Get(EasiSettingKeys.LyricsMonitorShowNotations), LiveTransposeSemitones);
 
-        var projected = item with
-        {
-            ShowNotations = _settings.Get(EasiSettingKeys.LyricsMonitorShowNotations),
-            TransposeSemitones = LiveTransposeSemitones,
-        };
+        string DisplayText(string? text) => bible
+            ? TextOrTitle(LyricsDisplayFormatter.UnguardLiteralNotation(text), item.Title)
+            : text ?? string.Empty;
 
-        if (LiveItemKindMatcher.IsBible(projected.Kind))
-        {
-            var body = LyricsDisplayFormatter.NormalizeText(projected.Lyrics ?? string.Empty);
-            var guarded = LyricsDisplayFormatter.GuardLiteralNotation(body);
-            if (LyricsDisplayFormatter.HasRegion2(guarded))
-            {
-                var page = LyricsDisplayFormatter.GetRegionPage(guarded, projected.LyricsPageIndex, projected.Sequence);
-                return TextOrTitle(JoinOutputBodyText(
-                    LyricsDisplayFormatter.UnguardLiteralNotation(page.Region1),
-                    LyricsDisplayFormatter.UnguardLiteralNotation(page.Region2)),
-                    projected.Title);
-            }
-
-            return TextOrTitle(
-                LyricsDisplayFormatter.UnguardLiteralNotation(
-                    LyricsDisplayFormatter.GetVersePage(guarded, projected.LyricsPageIndex, projected.Sequence)),
-                projected.Title);
-        }
-
-        var lyrics = LyricsDisplayFormatter.ExpandNotations(
-            projected.Lyrics,
-            projected.ShowNotations,
-            projected.TransposeSemitones);
         if (LyricsDisplayFormatter.HasRegion2(lyrics))
         {
-            var page = LyricsDisplayFormatter.GetRegionPage(lyrics, projected.LyricsPageIndex, projected.Sequence);
-            return JoinOutputBodyText(page.Region1, page.Region2);
+            var pages = LyricsDisplayFormatter.GetRegionPages(lyrics, item.Sequence);
+            return index => PageAt(pages, index) is { } page
+                ? DisplayText(JoinOutputBodyText(page.Region1, page.Region2))
+                : DisplayText(null);
         }
 
-        return LyricsDisplayFormatter.GetVersePage(lyrics, projected.LyricsPageIndex, projected.Sequence);
+        var verses = LyricsDisplayFormatter.ToVersePages(lyrics, item.Sequence);
+        return index => DisplayText(PageAt(verses, index));
     }
+
+    private static T? PageAt<T>(IReadOnlyList<T> pages, int index) where T : class
+        => pages.Count == 0 ? null : pages[Math.Clamp(index, 0, pages.Count - 1)];
 
     private static string TextOrTitle(string? text, string title)
         => string.IsNullOrWhiteSpace(text) ? title : text;
@@ -5552,6 +5532,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private void OpenOutput()
     {
+        RefreshDisplays();
         var display = SelectedOutputDisplay ?? GetPreferredOutputDisplay(null);
         _output.Open(display, windowed: true);
         SelectedOutputDisplay = display;
@@ -5609,7 +5590,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         SetLiveItemId(null);
         OutputItem = null;
         OutputPowerPoint.Clear();
-        _outputThumbnailDeckPath = null;
         LiveBar.OutputMonitorName = string.Empty;
         StatusText = "출력 창 닫힘";
         _telemetry.Record(MainCommandIds.OutputClose, succeeded: true, StatusText);
@@ -5926,7 +5906,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _session.Stop();
         SetLiveItemId(null);
         OutputPowerPoint.Clear();
-        _outputThumbnailDeckPath = null;
         StatusText = powerPointStopError is null
             ? "라이브 중지"
             : $"라이브 중지 (PowerPoint 종료 실패: {powerPointStopError})";
@@ -6127,6 +6106,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private OutputDisplay EnsureLiveOutputDisplay()
     {
+        RefreshDisplays();
         var display = SelectedOutputDisplay
             ?? _output.Current.Display
             ?? GetPreferredOutputDisplay(null);
@@ -6331,7 +6311,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (!IsPowerPointItem(item) || string.IsNullOrEmpty(item.ContentPath))
         {
             OutputPowerPoint.Clear();
-            _outputThumbnailDeckPath = null;
             return;
         }
 
@@ -6339,7 +6318,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             && string.Equals(PowerPoint.LoadedContentPath, item.ContentPath, StringComparison.OrdinalIgnoreCase))
         {
             OutputPowerPoint.CopyFrom(PowerPoint);
-            EnsureOutputPowerPointThumbnails(item.ContentPath, OutputPowerPoint.SlideCount);
+            EnsurePowerPointThumbnails(OutputPowerPoint, item.ContentPath);
             return;
         }
 
@@ -6348,7 +6327,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         await OutputPowerPoint.LoadAsync(item.ContentPath, slide, width, height).ConfigureAwait(true);
         if (OutputPowerPoint.State == Rendering.PowerPointPreviewState.Ready)
         {
-            EnsureOutputPowerPointThumbnails(item.ContentPath, OutputPowerPoint.SlideCount);
+            EnsurePowerPointThumbnails(OutputPowerPoint, item.ContentPath);
         }
     }
 
@@ -6887,23 +6866,18 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             && string.Equals(PowerPoint.LoadedContentPath, item.ContentPath, StringComparison.OrdinalIgnoreCase))
         {
             OutputPowerPoint.CopyFrom(PowerPoint);
-            EnsureOutputPowerPointThumbnails(item.ContentPath, OutputPowerPoint.SlideCount);
+            EnsurePowerPointThumbnails(OutputPowerPoint, item.ContentPath);
             return;
         }
 
         OutputPowerPoint.Clear();
-        _outputThumbnailDeckPath = null;
     }
 
-    private void EnsureOutputPowerPointThumbnails(string filePath, int slideCount)
+    private static void EnsurePowerPointThumbnails(Rendering.PowerPointPreviewViewModel preview, string requestedPath)
     {
-        if (!ShouldReloadPowerPointThumbnails(OutputPowerPoint, _outputThumbnailDeckPath, filePath, slideCount))
-        {
-            return;
-        }
-
-        _outputThumbnailDeckPath = filePath;
-        _ = OutputPowerPoint.LoadThumbnailsAsync(filePath, slideCount, PptThumbnailWidth, PptThumbnailHeight);
+        if (preview.State == Rendering.PowerPointPreviewState.Ready && preview.SlideCount > 0
+            && string.Equals(preview.LoadedContentPath, requestedPath, StringComparison.OrdinalIgnoreCase))
+            _ = preview.LoadThumbnailsAsync(requestedPath, preview.SlideCount, PptThumbnailWidth, PptThumbnailHeight);
     }
 
     // 출력 송출 항목 결정 — PPT 항목이고 지정한 PPT VM(Preview/Output)의 슬라이드 렌더가 준비됐으면
@@ -7993,6 +7967,15 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private void OnSettingsChanged(object? sender, SettingsChangedEventArgs args)
     {
+        bool newAudiencePreference = ContainsKey(args.ChangedKeys, EasiSettingKeys.DefaultOutputMonitorId.Id);
+        if (newAudiencePreference)
+            _sessionOutputMonitorId = null;
+        if (newAudiencePreference || ContainsKey(args.ChangedKeys, EasiSettingKeys.DisplayAlwaysUseSecondaryMonitor.Id)
+            || ContainsKey(args.ChangedKeys, EasiSettingKeys.DisplayCustomTop.Id)
+            || ContainsKey(args.ChangedKeys, EasiSettingKeys.DisplayCustomLeft.Id)
+            || ContainsKey(args.ChangedKeys, EasiSettingKeys.DisplayCustomWidth.Id))
+            RefreshDisplays();
+
         if (ContainsOperationalSetting(args.ChangedKeys))
         {
             ApplyOperationalSettings(updateStatus: true);
@@ -9055,7 +9038,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         SetLiveItemId(LiveItemKinds.NoticeLiveId);
         OutputItem = notice;
         OutputPowerPoint.Clear();
-        _outputThumbnailDeckPath = null;
         // 공지는 가사가 없어 조옮김과 무관하다. 라이브 조옮김 초기화는 곡 송출 진입점인 PublishSelectedItem 한 곳이
         // 책임진다(여기서 건드리지 않음) — 공지 중 조옮김을 눌러도 RepublishLiveSongForBodyChange 가 센티넬을
         // 큐에서 못 찾아 무시하므로 안전하다.
@@ -9914,6 +9896,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _disposed = true;
         CancelReferenceAlertAutoHide();
         _settings.SettingsChanged -= OnSettingsChanged;
+        _output.OutputChanged -= OnOutputChanged;
+        _preview.PreviewChanged -= OnPreviewChanged;
         PowerPoint.PropertyChanged -= OnPowerPointPropertyChanged;
         OutputPowerPoint.PropertyChanged -= OnOutputPowerPointPropertyChanged;
         Media.PropertyChanged -= OnMediaPropertyChanged;

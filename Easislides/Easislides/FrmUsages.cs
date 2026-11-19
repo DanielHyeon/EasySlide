@@ -29,7 +29,6 @@ namespace Easislides
 
 		private string SelectedSession = "";
 
-		private string CompleteQuery;
 
 		private int sortColumnUsages = -1;
 
@@ -105,19 +104,10 @@ namespace Easislides
 				//using (OleDbConnection daoDb = DatabaseController.GetOleDbConnection(Gf.ConnectStringUsageDB))
 
 				using DbConnection connection = DbController.GetDbConnection(Gf.ConnectStringUsageDB);
-				CompleteQuery = "SELECT * FROM [USAGE] WHERE WORSHIP_DATE >= @WORSHIP_DATE_FROM and WORSHIP_DATE <= @WORSHIP_DATE_TO order by WORSHIP_DATE";
-
-				DbCommand command = new DbCommand(CompleteQuery, connection);
-				command.Parameters.AddWithValue("@WORSHIP_DATE_FROM", CalendarFrom.SelectionStart.Date);
-				command.Parameters.AddWithValue("@WORSHIP_DATE_TO", CalendarTo.SelectionStart.Date);
-				command.CommandText = CompleteQuery;
-
-				using DbDataAdapter sQLiteDataAdapter = new DbDataAdapter(command);
-
-				using DataTable dataTable = new DataTable();
-				sQLiteDataAdapter.Fill(dataTable);
-
-				using DataTableReader dataTableReader = dataTable.CreateDataReader();
+				using var command = DbController.CreateCommand(connection,
+					"SELECT WORSHIP_DATE, WORSHIP_LIST, SONG_TITLE, SONG_NUMBER, ADMIN_1, ADMIN_2, SONG_ID, REC_ID FROM [USAGE] WHERE WORSHIP_DATE >= @from AND WORSHIP_DATE <= @to ORDER BY WORSHIP_DATE",
+					("@from", CalendarFrom.SelectionStart.Date), ("@to", CalendarTo.SelectionStart.Date));
+				using var dataTableReader = command.ExecuteReader();
 
 				while (dataTableReader.Read())
 				{
@@ -284,13 +274,17 @@ namespace Easislides
 				{
 					if (MessageBox.Show("This will permanently delete the selected usages records. Please Yes to confirm the delete.", "Deleted Selected Usages", MessageBoxButtons.YesNo) == DialogResult.Yes)
 					{
-						for (int selectedIndex = UsageDetails.SelectedItems.Count - 1; selectedIndex >= 0; selectedIndex--)
+						var rows = new System.Collections.Generic.List<ListViewItem>();
+						var ids = new System.Collections.Generic.List<long>();
+						foreach (ListViewItem row in UsageDetails.SelectedItems)
 						{
-							using DbConnection connection = DbController.GetDbConnection(Gf.ConnectStringUsageDB);
-							DbCommand command = new DbCommand("Delete * FROM [USAGE] WHERE REC_ID = " + UsageDetails.SelectedItems[selectedIndex].SubItems[7].Text, connection);
-							command.ExecuteNonQuery();
-							UsageDetails.SelectedItems[selectedIndex].Remove();
+							ids.Add(long.Parse(row.SubItems[7].Text));
+							rows.Add(row);
 						}
+						using var connection = DbController.GetDbConnection(Gf.ConnectStringUsageDB);
+						DeleteUsageRecords(connection, ids);
+						foreach (var row in rows)
+							row.Remove();
 					}
 				}
 				catch (Exception ex)
@@ -300,6 +294,19 @@ namespace Easislides
 				}
 				LoadSummary();
 			}
+		}
+
+		internal static void DeleteUsageRecords(DbConnection connection, System.Collections.Generic.IEnumerable<long> ids)
+		{
+			using var transaction = connection.BeginTransaction();
+			using var command = new DbCommand("DELETE FROM [USAGE] WHERE REC_ID=@id", connection, transaction);
+			var idParameter = command.Parameters.Add("@id", DbType.Int64);
+			foreach (long id in ids)
+			{
+				idParameter.Value = id;
+				command.ExecuteNonQuery();
+			}
+			transaction.Commit();
 		}
 
 		private void BtnUsages_CheckedChanged(object sender, EventArgs e)

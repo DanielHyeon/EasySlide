@@ -9,6 +9,7 @@ using System.Text;
 using System.Windows.Forms;
 using System.Xml;
 using System.Linq;
+using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
 using Easislides.Util;
@@ -650,10 +651,7 @@ namespace Easislides
                     bool found = false;
                     try
                     {
-                        //string fullSearchString = (!Gf.WorshipListIDOK) ? ("select * from SONG where lower(Title_1) like \"" + DisplayName1.ToLower() + "\"  AND FolderNo = " + Gf.GetFolderNumber(FolderName)) : ("select * from SONG where songid = " + FNum_ID + " AND FolderNo > 0 ");
-                        string fullSearchString = (!Gf.WorshipListIDOK) ? ($"select * from SONG where lower(Title_1) like \"{DisplayName1.ToLower()}\"  AND FolderNo = {Gf.GetFolderNumber(FolderName)}") : ($"select * from SONG where songid = {FNum_ID} AND FolderNo > 0 ");
-
-                        DataRow dr = DbController.GetDataRowScalar(connection, fullSearchString);
+                        DataRow dr = SongQueries.FindListEntry(connection, Gf.WorshipListIDOK, FNum_ID, DisplayName1, Gf.WorshipListIDOK ? 0 : Gf.GetFolderNumber(FolderName));
                         if (dr != null)
                         {
                             if (DataUtil.GetDataInt(dr, "FolderNo") > 0 && Gf.Folders[DataUtil.GetDataInt(dr, "FolderNo")].Use > 0)
@@ -858,118 +856,68 @@ namespace Easislides
         /// same folder on every keystroke burst; the media marker does not change in between).</param>
         private void FillList(int FNumber, string ListString, bool InItemMusicOnly, bool rescanMedia)
         {
-            string licenceAdmin1 = "";
-            string licenceAdmin2 = "";
-            int songNumber = 0;
-            string titlePattern = "%";
-
             if (rescanMedia)
             {
                 Gf.TotalMusicFiles = -1;
             }
-            string folderCondition = "";
-            if (FNumber == 0)
+            BoundQuery songs;
+            if (FNumber < 0)
             {
-                for (int i = 1; i < Gf.MAXSONGSFOLDERS; i++)
-                {
-                    if (Gf.Folders[i].FindSongs)
-                    {
-                        folderCondition = ((folderCondition != "") ? ($"{folderCondition} or FolderNo = {Convert.ToString(i)}") : ($" and (FolderNo = {Convert.ToString(i)}"));
-                    }
-                }
-                folderCondition += ")";
+                songs = Gf.FindSongQuery;
+                if (songs == null) return;
+            }
+            else if (FNumber == 0)
+            {
+                var folders = Enumerable.Range(1, Gf.MAXSONGSFOLDERS - 1).Where(i => Gf.Folders[i].FindSongs);
+                songs = new BoundQuery($"{Gf.SongListSelect} where FolderNo in ({string.Join(",", folders)}) and (Title_1 is not null or Title_2 is not null)");
+            }
+            else if (!string.IsNullOrEmpty(ListString))
+            {
+                songs = new BoundQuery($"{Gf.SongListSelect} where FolderNo=@folder and {SongFindBox.TitleCondition}",
+                    ("@folder", FNumber), ("@title", SongFindBox.LikePattern(ListString)));
             }
             else
             {
-                folderCondition = " and FolderNo=" + Convert.ToString(FNumber);
-            }
-            //string songQuery = (FNumber < 0) ? Gf.Find_SQLString : ("select * from SONG where (lower(Title_1) like \"" + titlePattern.ToLower() + "\" " + folderCondition + ") or (lower(Title_2) like \"" + titlePattern.ToLower() + "\" " + folderCondition + ")");
-            string songQuery = (FNumber < 0) ? Gf.Find_SQLString : ($"select * from SONG where (lower(Title_1) like \"{titlePattern.ToLower()}\" {folderCondition}) or (lower(Title_2) like \"{titlePattern.ToLower()}\" {folderCondition})");
-            (string Name, object Value)[] parameters = Array.Empty<(string, object)>();
-            if (FNumber > 0 && !string.IsNullOrEmpty(ListString))
-            {
-                // Find in this folder (design D26): the displayed title only, the typed text bound as a parameter.
-                // The count query built below from this string gets the same condition.
-                songQuery = $"select * from SONG where ({SongFindBox.TitleCondition} {folderCondition})";
-                parameters = new (string, object)[] { ("@title", SongFindBox.LikePattern(ListString)) };
+                songs = new BoundQuery(Gf.SongListSelect + " where FolderNo=@folder and (Title_1 is not null or Title_2 is not null)", ("@folder", FNumber));
             }
 
-            songQuery += SongListOrderClause(Gf.UseSongNumbers, CurStyle);
-
-            string sQuery = songQuery;
-            // Count the rows of the same query. (Replace("*", "Count(*)") also changed a '*' in the search text.)
-            string sQueryCount = $"select count(*) from ({songQuery})";
-
-            string sMultiQuery = $"{sQueryCount};{sQuery}";
-
-            ListViewItem listViewItem = new ListViewItem();
             SongsList.BeginUpdate();
             try
             {
-                DbConnection connection = null;
-                DbDataReader dataReader = null;
-
-                (connection, dataReader) = parameters.Length == 0
-                    ? DbController.GetDataReader(Gf.ConnectStringMainDB, sMultiQuery)
-                    : DbController.GetDataReader(Gf.ConnectStringMainDB, sMultiQuery, parameters);
-
+                var (connection, reader) = DbController.GetDataReader(Gf.ConnectStringMainDB,
+                    songs.Text + SongListOrderClause(Gf.UseSongNumbers, CurStyle), songs.Parameters);
                 using (connection)
+                using (reader)
                 {
-                    using (dataReader)
+                    var rows = new List<ListViewItem>();
+                    while (reader != null && reader.Read())
                     {
-                        if (dataReader != null && dataReader.HasRows)
+                        string title = DataUtil.ObjToString(reader["Title_1"]);
+                        bool hasMusic = Gf.MusicFound(title, DataUtil.ObjToString(reader["Title_2"]));
+                        if (InItemMusicOnly && !hasMusic) continue;
+                        rows.Add(new ListViewItem(new[]
                         {
-                            dataReader.Read();
-
-                            ListViewItem[] listItems = new ListViewItem[DataUtil.ObjToInt(dataReader[0])];
-                            int itemCount = 0;
-                            dataReader.NextResult();
-
-                            while (dataReader.Read())
-                            {
-                                string musicTitle = DataUtil.ObjToString(dataReader["Title_2"]);
-                                songNumber = DataUtil.ObjToInt(dataReader["song_number"]);
-                                bool hasMusic = Gf.MusicFound(DataUtil.ObjToString(dataReader["Title_1"]), musicTitle);
-                                licenceAdmin1 = DataUtil.ObjToString(dataReader["LICENCE_ADMIN1"]);
-                                licenceAdmin2 = DataUtil.ObjToString(dataReader["LICENCE_ADMIN2"]);
-                                if ((InItemMusicOnly && hasMusic) || !InItemMusicOnly)
-                                {
-                                    listItems[itemCount] = new ListViewItem(new string[7]
-                                    {
-                                DataUtil.ObjToString(dataReader["Title_1"]) + (hasMusic ? " <#>" : ""),
-                                "D" + DataUtil.ObjToString(dataReader["SongID"]),
-                                "",
-                                "",
-                                songNumber.ToString(),
-                                licenceAdmin1,
-                                licenceAdmin2
-                                    });
-                                    itemCount++;
-                                }
-                            }
-                            // With InItemMusicOnly fewer rows than counted are kept: no empty slots (AddRange
-                            // throws on a null item, which left the whole list empty).
-                            if (itemCount < listItems.Length)
-                            {
-                                Array.Resize(ref listItems, itemCount);
-                            }
-                            SongsList.Items.AddRange(listItems);
-                        }
+                            title + (hasMusic ? " <#>" : ""), "D" + DataUtil.ObjToString(reader["SongID"]), "", "",
+                            DataUtil.ObjToInt(reader["song_number"]).ToString(),
+                            DataUtil.ObjToString(reader["LICENCE_ADMIN1"]), DataUtil.ObjToString(reader["LICENCE_ADMIN2"])
+                        }));
                     }
+                    SongsList.Items.AddRange(rows.ToArray());
                 }
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Console.WriteLine(e.Message);
-                Console.WriteLine(e.StackTrace);
+                System.Diagnostics.Trace.WriteLine(ex);
             }
-            SongsList.EndUpdate();
+            finally
+            {
+                SongsList.EndUpdate();
+            }
             ShowStatusBarSummary();
         }
 
         /// <summary>
-        /// The "order by" of the song list. The count query wraps the whole statement in
-        /// "select count(*) from (...)".
+        /// Sort order shared by folder listings and saved searches.
         /// Number (openspec change add-song-number-sort, N2): songs with a number (1 or more) by number,
         /// then the songs without one (0 or NULL; NULL &gt;= 1 is not true); ties and the unnumbered songs
         /// in title order. The global "Use Song Numbering" option keeps its own order.
@@ -1185,7 +1133,7 @@ namespace Easislides
             if (Gf.LoadBibleBooksList(TabBibleVersions, ref BookLookup, HB_SearchInProgress, null))
             {
                 Gf.HB_CurVersionTabIndex = TabBibleVersions.SelectedIndex;
-                if (BookLookup.SelectedIndex == 66 && Gf.HB_SQLString == "")
+                if (BookLookup.SelectedIndex == 66 && Gf.BibleSearchQuery == null)
                 {
                     Cursor = Cursors.WaitCursor;
                     Gf.RefreshBiblePassages(Gf.HB_CurVersionTabIndex, BookLookup, ref BibleText, Gf.HB_ShowVerses);
@@ -1857,11 +1805,7 @@ namespace Easislides
                 bool found = false;
                 try
                 {
-                    // SQLite: LCase() -> lower(), UCase() -> upper()
-                    //string fullSearchString = (!Gf.WorshipListIDOK) ? ("select * from SONG where LCase(Title_1) like \"" + DisplayName1.ToLower() + "\"  AND FolderNo = " + Gf.GetFolderNumber(FolderName)) : ("select * from SONG where songid = " + FNum_ID + " AND FolderNo > 0 ");
-                    string fullSearchString = (!Gf.WorshipListIDOK) ? ("select * from SONG where lower(Title_1) like \"" + DisplayName1.ToLower() + "\"  AND FolderNo = " + Gf.GetFolderNumber(FolderName)) : ("select * from SONG where songid = " + FNum_ID + " AND FolderNo > 0 ");
-
-                    DataRow dr = DbController.GetDataRowScalar(connection, fullSearchString);
+                    DataRow dr = SongQueries.FindListEntry(connection, Gf.WorshipListIDOK, FNum_ID, DisplayName1, Gf.WorshipListIDOK ? 0 : Gf.GetFolderNumber(FolderName));
                     if (dr != null)
                     {
                         if (DataUtil.GetDataInt(dr, "FolderNo") > 0 && Gf.Folders[DataUtil.GetDataInt(dr, "FolderNo")].Use > 0)

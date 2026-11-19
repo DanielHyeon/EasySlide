@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using Easislides.Wpf.Shell;
 
@@ -80,7 +81,6 @@ public sealed class SystemDisplayReader : IDisplayReader
 {
     public IReadOnlyList<OutputDisplay> ReadDisplays()
     {
-        var dpiScale = GetSystemDpiScale();
         return Screen.AllScreens
             .Select(screen => new OutputDisplay(
                 screen.DeviceName,
@@ -89,7 +89,7 @@ public sealed class SystemDisplayReader : IDisplayReader
                 screen.Bounds.Y,
                 screen.Bounds.Width,
                 screen.Bounds.Height,
-                dpiScale,
+                GetDpiScale(screen.Bounds),
                 screen.Primary))
             .ToArray();
     }
@@ -100,16 +100,25 @@ public sealed class SystemDisplayReader : IDisplayReader
         return $"{role} {screen.DeviceName} ({screen.Bounds.Width}x{screen.Bounds.Height})";
     }
 
-    private static double GetSystemDpiScale()
+    private static double GetDpiScale(Rectangle bounds)
     {
+        var center = new Point(bounds.Left + bounds.Width / 2, bounds.Top + bounds.Height / 2);
+        var monitor = MonitorFromPoint(center, 2);
         try
         {
-            using var graphics = Graphics.FromHwnd(IntPtr.Zero);
-            return Math.Round(graphics.DpiX / 96d, 2);
+            if (GetDpiForMonitor(monitor, 0, out uint dpi, out _) == 0 && dpi != 0)
+                return dpi / 96d;
         }
-        catch
-        {
-            return 1.0;
-        }
+        catch (DllNotFoundException) { }
+        catch (EntryPointNotFoundException) { }
+        using var graphics = Graphics.FromHwnd(IntPtr.Zero);
+        return graphics.DpiX / 96d;
     }
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr MonitorFromPoint(Point point, uint flags);
+
+    [DllImport("shcore.dll")]
+    private static extern int GetDpiForMonitor(IntPtr monitor, int type, out uint x, out uint y);
+
 }

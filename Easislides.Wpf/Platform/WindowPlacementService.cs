@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Easislides.Wpf.Settings;
 using Easislides.Wpf.Shell;
 
@@ -7,6 +8,8 @@ namespace Easislides.Wpf.Platform;
 public interface IWindowPlacementService
 {
     OutputWindowPlacement CreateOutputPlacement(OutputDisplay display, bool windowed);
+    OutputWindowPlacement CreateStagePlacement(OutputDisplay display, bool windowed) =>
+        WindowPlacementService.PlaceOnDisplay(display, windowed);
 }
 
 public sealed class WindowPlacementService : IWindowPlacementService
@@ -17,53 +20,69 @@ public sealed class WindowPlacementService : IWindowPlacementService
     private const double LegacyCustomAspectRatio = 4d / 3d;
 
     private readonly ISettingsService? _settings;
+    private readonly IDisplayService? _displays;
 
     public WindowPlacementService()
     {
     }
 
-    public WindowPlacementService(ISettingsService settings)
+    public WindowPlacementService(ISettingsService settings, IDisplayService? displays = null)
     {
         _settings = settings ?? throw new ArgumentNullException(nameof(settings));
+        _displays = displays;
     }
 
     public OutputWindowPlacement CreateOutputPlacement(OutputDisplay display, bool windowed)
     {
         ArgumentNullException.ThrowIfNull(display);
         var bounds = CreatePlacementBounds(display);
+        return Place(bounds.Left, bounds.Top, bounds.Width, bounds.Height, windowed);
+    }
 
+    internal static OutputWindowPlacement PlaceOnDisplay(OutputDisplay display, bool windowed)
+    {
+        ArgumentNullException.ThrowIfNull(display);
+        return Place(display.X, display.Y, display.Width, display.Height, windowed);
+    }
+
+    // Virtual desktop bounds and the resulting placement are in physical pixels.
+    private static OutputWindowPlacement Place(double x, double y, double screenWidth, double screenHeight, bool windowed)
+    {
         if (!windowed)
         {
             return new OutputWindowPlacement(
-                bounds.Left,
-                bounds.Top,
-                bounds.Width,
-                bounds.Height,
+                x,
+                y,
+                screenWidth,
+                screenHeight,
                 IsWindowed: false);
         }
 
-        var width = Math.Min(PreferredWindowedWidth, bounds.Width);
+        var width = Math.Min(PreferredWindowedWidth, screenWidth);
         var height = width / AspectRatio;
 
-        if (height > bounds.Height)
+        if (height > screenHeight)
         {
-            height = bounds.Height;
+            height = screenHeight;
             width = height * AspectRatio;
         }
 
-        var left = bounds.Left + (bounds.Width - width) / 2;
-        var top = bounds.Top + (bounds.Height - height) / 2;
+        var left = x + (screenWidth - width) / 2;
+        var top = y + (screenHeight - height) / 2;
         return new OutputWindowPlacement(left, top, width, height, IsWindowed: true);
     }
 
     private DisplayBounds CreatePlacementBounds(OutputDisplay display)
     {
-        if (!TryGetCustomBounds(out var left, out var top, out var width))
+        if (TryGetCustomBounds(out int left, out int top, out int width))
         {
-            return new DisplayBounds(display.X, display.Y, display.Width, display.Height);
+            var height = width / LegacyCustomAspectRatio;
+            if (_displays == null || _displays.GetDisplays().Any(screen =>
+                left < screen.X + screen.Width && left + (double)width > screen.X &&
+                top < screen.Y + screen.Height && top + height > screen.Y))
+                return new DisplayBounds(left, top, width, height);
         }
-
-        return new DisplayBounds(left, top, width, width / LegacyCustomAspectRatio);
+        return new DisplayBounds(display.X, display.Y, display.Width, display.Height);
     }
 
     private bool TryGetCustomBounds(out int left, out int top, out int width)

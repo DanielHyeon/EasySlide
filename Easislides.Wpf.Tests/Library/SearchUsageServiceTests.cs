@@ -195,6 +195,26 @@ public class SearchUsageServiceTests
         File.ReadAllText(outputPath).Should().Contain("Usage Details").And.Contain("Occurrences").And.Contain("Amazing Grace");
     }
 
+    [Fact]
+    public async Task UsageBatchKeepsQuotedPathsAndIndependentParameterValues()
+    {
+        using var fixture = new SearchUsageFixture();
+        string copy = Path.Combine(fixture.Root, "Choir; June.db");
+        File.Copy(fixture.UsageDatabasePath, copy);
+        var service = fixture.CreateService();
+        var date = new DateTime(2026, 6, 5);
+        var added = await service.AddUsageRecordsAsync(new UsageAddRequest(copy,
+        [
+            new UsageAddRecord(date, "First", "O'Brien", 7, 1, "A", ""),
+            new UsageAddRecord(date, "Second", "은혜", 9, 2, "", "B")
+        ]));
+        Assert.True(added.Succeeded);
+        var report = await service.GetUsageAsync(new UsageRequest(copy, date, date, ""));
+        Assert.Equal(new[] { "O'Brien", "은혜" }, report.Records.OrderBy(r => r.SongId).Select(r => r.SongTitle));
+        var original = await service.GetUsageAsync(new UsageRequest(fixture.UsageDatabasePath, date, date, ""));
+        Assert.Empty(original.Records);
+    }
+
     private sealed class SearchUsageFixture : IDisposable
     {
         public SearchUsageFixture()

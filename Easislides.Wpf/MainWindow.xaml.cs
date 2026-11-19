@@ -109,6 +109,12 @@ public partial class MainWindow : Window
         Bind(MainCommandIds.ImportLegacyWorshipList, ImportLegacyWorshipList_Click);
     }
 
+    private void OnDisplaySettingsChanged(object? sender, EventArgs e)
+    {
+        if (!Dispatcher.HasShutdownStarted)
+            Dispatcher.BeginInvoke(new Action(() => { if (IsLoaded) _viewModel.RefreshDisplays(); }));
+    }
+
     private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
         await EnsureLibraryLoadedOnceAsync().ConfigureAwait(true);
@@ -4377,6 +4383,8 @@ public partial class MainWindow : Window
     protected override void OnSourceInitialized(EventArgs e)
     {
         base.OnSourceInitialized(e);
+        Microsoft.Win32.SystemEvents.DisplaySettingsChanged += OnDisplaySettingsChanged;
+        _viewModel.RefreshDisplays();
         RestoreWindowPlacement();
         RestoreBrowserSplit();
     }
@@ -4530,6 +4538,7 @@ public partial class MainWindow : Window
 
     protected override void OnClosed(EventArgs e)
     {
+        Microsoft.Win32.SystemEvents.DisplaySettingsChanged -= OnDisplaySettingsChanged;
         _autoRotateTimer.Stop();
         _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
 
