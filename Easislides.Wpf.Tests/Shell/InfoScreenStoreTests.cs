@@ -16,6 +16,35 @@ public sealed class InfoScreenStoreTests : IDisposable
     private readonly string _dir = Path.Combine(Path.GetTempPath(), $"EasiSlides_IS_{Guid.NewGuid():N}");
 
     [Fact]
+    public async Task NestedInfoScreenEditsAndDeleteAddressTheSameLogicalFile()
+    {
+        var root = Path.Combine(_dir, "working");
+        var settings = new SettingsService(new SettingsServiceOptions(Path.Combine(_dir, "settings.json"), _dir));
+        settings.Set(EasiSettingKeys.WorkingFolder, root);
+        var store = new InfoScreenStore(Path.Combine(_dir, "saved"), settings);
+        var name = Path.Combine("A", "안내");
+        var legacy = Path.Combine(root, "InfoScreens", name + ".esi");
+        Directory.CreateDirectory(Path.GetDirectoryName(legacy)!);
+        await File.WriteAllTextAsync(legacy, "원본");
+        await store.SaveAsync(name, new InfoScreenDto("편집"));
+        Assert.Equal("편집", (await store.LoadAsync(name))!.Text);
+        Assert.Contains(name, store.ListNames());
+        Assert.True(store.Delete(name));
+        Assert.Null(await store.LoadAsync(name));
+        Assert.False(File.Exists(legacy));
+    }
+
+    [Fact]
+    public void EditingLegacyNoticeMediaKeepsUnknownFieldsAndSecondLanguageFormatting()
+    {
+        var options = new NoticeOptions(FontSizePt: 32, Bold: true, MediaPath: "new.mp4",
+            LegacyFormatData: "41=10>47=28>50=2>51=old.mp4>52=34>999=future>");
+        var saved = MainViewModel.BuildNoticeFormatData(options)!;
+        saved.Should().Contain("41=9>").And.Contain("47=32>").And.Contain("50=2>51=new.mp4>")
+            .And.Contain("52=34>").And.Contain("999=future>").And.NotContain("old.mp4");
+    }
+
+    [Fact]
     public async Task Save_Then_Load_RoundTripsTextAndFontSize()
     {
         var store = new InfoScreenStore(_dir);

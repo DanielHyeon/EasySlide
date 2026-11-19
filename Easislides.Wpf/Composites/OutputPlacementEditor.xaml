@@ -13,7 +13,9 @@
                   Content="보조 모니터 우선 사용"
                   AutomationProperties.Name="보조 모니터 우선 사용"
                   MinHeight="{DynamicResource Spacing.TargetMin}" />
-        <Grid Margin="0,4,0,16">
+        <CheckBox Content="와이드스크린 (16:9, 해제 시 4:3)" IsChecked="{Binding IsMonitorWide, Mode=TwoWay}" />
+        <CheckBox Content="사용자 지정 송출 위치" IsChecked="{Binding UseCustomOutputBounds, Mode=TwoWay}" />
+        <Grid Margin="0,4,0,16" IsEnabled="{Binding UseCustomOutputBounds}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />

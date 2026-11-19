@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -52,14 +53,35 @@ public sealed partial class InfoScreenSourceViewModel : ObservableObject
         DeleteSelectedCommand.NotifyCanExecuteChanged();
     }
 
+    public sealed record FolderChoice(string? RelativePath, string Label);
+    public ObservableCollection<FolderChoice> Folders { get; } = new();
+    [ObservableProperty] private FolderChoice? _selectedFolder;
+    private IReadOnlyList<string> _names = [];
+    partial void OnSelectedFolderChanged(FolderChoice? value) => FilterFolder();
+
     public void Load()
     {
-        Screens.Clear();
-        foreach (var name in _store.ListNames())
-        {
-            Screens.Add(new InfoScreenSourceItem(name));
-        }
+        _names = _store.ListNames();
+        string? previous = SelectedFolder?.RelativePath;
+        Folders.Clear();
+        Folders.Add(new(null, "모든 정보 화면"));
+        Folders.Add(new("", "기본 폴더"));
+        foreach (var folder in _names.Select(Path.GetDirectoryName).Where(path => !string.IsNullOrEmpty(path))
+            .Distinct(StringComparer.OrdinalIgnoreCase).Order(StringComparer.OrdinalIgnoreCase))
+            Folders.Add(new(folder, folder!));
+        SelectedFolder = Folders.FirstOrDefault(folder => folder.RelativePath == previous) ?? Folders[0];
+        FilterFolder();
+    }
 
+    private void FilterFolder()
+    {
+        string? filter = SelectedFolder?.RelativePath;
+        Screens.Clear();
+        foreach (string name in _names)
+        {
+            if (filter is null || string.Equals(Path.GetDirectoryName(name) ?? "", filter, StringComparison.OrdinalIgnoreCase))
+                Screens.Add(new InfoScreenSourceItem(name));
+        }
         if (Screens.Count == 0)
         {
             SelectedScreen = null;
@@ -109,7 +131,7 @@ public sealed partial class InfoScreenSourceViewModel : ObservableObject
             dto.Bold,
             dto.Italic,
             dto.Underline,
-            dto.FontName);
+            dto.FontName, dto.MediaPath, dto.LegacyFormatData);
 
     private bool CanAddSelected() => SelectedScreen is not null;
 

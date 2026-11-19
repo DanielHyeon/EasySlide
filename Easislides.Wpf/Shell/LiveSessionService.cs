@@ -8,6 +8,8 @@ using Easislides.Wpf.Settings;
 
 namespace Easislides.Wpf.Shell;
 
+public sealed record OutputAlert(string Text, bool Flash, bool Scroll, bool Transparent);
+
 public sealed record LiveSessionSnapshot(
     LiveState State,
     string CurrentItemTitle,
@@ -92,7 +94,11 @@ public sealed record LiveSessionSnapshot(
     LyricsVerticalAlignment? OverrideVerticalAlignment = null,
     int? OverrideBodyLeftMargin = null,
     int? OverrideBodyRightMargin = null,
-    int? OverrideBodyBottomMargin = null)
+    int? OverrideBodyBottomMargin = null,
+    bool IsExternalTextPage = false,
+    OutputAlert? MessageAlert = null,
+    OutputAlert? ParentalAlert = null,
+    Library.ItemDisplayFormat? ItemDisplay = null)
 {
     public static LiveSessionSnapshot Off { get; } = new(
         LiveState.Off,
@@ -121,6 +127,7 @@ public interface ILiveSessionService
     void Restore();
     void Refresh();
     void SetLyricsAlertMessage(string text);
+    void SetAudienceAlert(bool parental, OutputAlert? alert);
     void SetReferenceAlert(bool visible, string text);
     void Stop();
 }
@@ -159,7 +166,7 @@ public sealed class LiveSessionService : ILiveSessionService
             Current.IsCleared));
     }
 
-    private static LiveSessionSnapshot CreateSnapshot(
+    private LiveSessionSnapshot CreateSnapshot(
         LiveQueueItem item,
         string outputMonitorName,
         LiveState state,
@@ -227,7 +234,11 @@ public sealed class LiveSessionService : ILiveSessionService
             CurrentPageIsChorus: ComputeCurrentPageIsChorus(item),
             CurrentSectionLabel: ComputeCurrentSectionLabel(item),
             // 항목 식별자 — 출력 VM 의 "항목 전환 vs 슬라이드 전환" 판별 근거(같은 곡 안 절 이동은 같은 Id 로 재송출됨).
+            MessageAlert: Current.MessageAlert,
+            ParentalAlert: Current.ParentalAlert,
+            ItemDisplay: item.UseIndividualFormatting ? Library.ItemDisplayFormat.Read(item.FormatData) : null,
             CurrentItemId: item.Id,
+            IsExternalTextPage: IsExternalTextFileItem(item),
             OverrideVerticalAlignment: format?.VerticalAlignment,
             OverrideBodyLeftMargin: format?.BodyLeftMargin,
             OverrideBodyRightMargin: format?.BodyRightMargin,
@@ -264,7 +275,7 @@ public sealed class LiveSessionService : ILiveSessionService
     {
         if (IsExternalTextFileItem(item))
         {
-            return TextOrTitle(
+            return item.ProjectedTextPage ?? TextOrTitle(
                 LyricsDisplayFormatter.GetVersePage(item.Lyrics, item.LyricsPageIndex, item.Sequence),
                 item.Title);
         }
@@ -477,6 +488,12 @@ public sealed class LiveSessionService : ILiveSessionService
         {
             LyricsAlertMessage = NormalizeLyricsAlertMessage(text),
         });
+    }
+
+    public void SetAudienceAlert(bool parental, OutputAlert? alert)
+    {
+        if (Current.State != LiveState.Active && alert is not null) return;
+        Update(parental ? Current with { ParentalAlert = alert } : Current with { MessageAlert = alert });
     }
 
     public void SetReferenceAlert(bool visible, string text)

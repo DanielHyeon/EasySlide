@@ -40,7 +40,11 @@ public sealed record PowerPointSlideSnapshot(
     int PixelHeight,
     byte[] ImageBytes,
     string ContentType,
-    DateTimeOffset GeneratedAtUtc);
+    DateTimeOffset GeneratedAtUtc)
+{
+    // The Office export can be shorter or narrower than its requested box to retain the slide aspect.
+    internal (int Width, int Height)? RenderBounds { get; init; }
+}
 
 public sealed record PowerPointRenderResult(
     PowerPointRenderErrorKind ErrorKind,
@@ -387,11 +391,11 @@ public sealed class OfficePowerPointRenderBackend : IPowerPointRenderBackend, ID
             request.FilePath,
             request.SlideNumber,
             export.SlideCount,
-            request.PixelWidth,
-            request.PixelHeight,
+            export.PixelWidth,
+            export.PixelHeight,
             export.ImageBytes,
             export.ContentType,
-            DateTimeOffset.UtcNow);
+            DateTimeOffset.UtcNow) { RenderBounds = (request.PixelWidth, request.PixelHeight) };
     }
 
     public void Dispose()

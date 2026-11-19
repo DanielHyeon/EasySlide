@@ -15,6 +15,8 @@ public partial class SearchUsageWindow : Window
         DataContext = viewModel;
     }
 
+    internal void SelectUsage() => UsageTab.IsSelected = true;
+
     private async void Window_Loaded(object sender, RoutedEventArgs e)
     {
         if (_loadedOnce || DataContext is not SearchUsageViewModel viewModel)
@@ -24,6 +26,7 @@ public partial class SearchUsageWindow : Window
 
         _loadedOnce = true;
         await viewModel.LoadAsync().ConfigureAwait(true);
+        if (UsageTab.IsSelected) await viewModel.RefreshUsageAsync().ConfigureAwait(true);
     }
 
     private void BrowseUsageReport_Click(object sender, RoutedEventArgs e)

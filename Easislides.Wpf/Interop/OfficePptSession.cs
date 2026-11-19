@@ -13,7 +13,11 @@ namespace Easislides.Wpf.Interop;
 public sealed record OfficePptSlideExport(
     int SlideCount,
     byte[] ImageBytes,
-    string ContentType);
+    string ContentType)
+{
+    public int PixelWidth { get; init; }
+    public int PixelHeight { get; init; }
+}
 
 /// <summary>
 /// PowerPoint COM 세션 래퍼 — 계획서 §10.3 STA 스레드 모델 리스크 대응.
@@ -93,6 +97,14 @@ public sealed class OfficePptSession : IDisposable
         return _ppt.Presentations.Count;
     });
 
+    internal static (int Width, int Height) FitSlideSize(double slideWidth, double slideHeight, int width, int height)
+    {
+        if (!double.IsFinite(slideWidth) || !double.IsFinite(slideHeight) || slideWidth <= 0 || slideHeight <= 0)
+            return (width, height);
+        double factor = Math.Min(width / slideWidth, height / slideHeight);
+        return (Math.Max(1, (int)Math.Round(slideWidth * factor)), Math.Max(1, (int)Math.Round(slideHeight * factor)));
+    }
+
     public Task<OfficePptSlideExport> ExportSlideAsync(string filePath, int slideNumber, int width, int height)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
@@ -117,8 +129,16 @@ public sealed class OfficePptSession : IDisposable
                     throw new ArgumentOutOfRangeException(nameof(slideNumber), slideNumber, $"Slide number exceeds slide count {slideCount}.");
                 }
 
-                presentation.Slides[slideNumber].Export(tempFile, "PNG", width, height);
-                return new OfficePptSlideExport(slideCount, File.ReadAllBytes(tempFile), "image/png");
+                using var page = presentation.PageSetup;
+                var size = FitSlideSize(page.SlideWidth, page.SlideHeight, width, height);
+                using var slides = presentation.Slides;
+                using var slide = slides[slideNumber];
+                slide.Export(tempFile, "PNG", size.Width, size.Height);
+                return new OfficePptSlideExport(slideCount, File.ReadAllBytes(tempFile), "image/png")
+                {
+                    PixelWidth = size.Width,
+                    PixelHeight = size.Height
+                };
             }
             finally
             {

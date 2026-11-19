@@ -7,87 +7,27 @@ namespace Easislides
 {
     public static partial class HookManager
     {
-        /// <summary>
-        /// The CallWndProc hook procedure is an application-defined or library-defined callback 
-        /// function used with the SetWindowsHookEx function. The HOOKPROC type defines a pointer 
-        /// to this callback function. CallWndProc is a placeholder for the application-defined 
-        /// or library-defined function name.
-        /// </summary>
-        /// <param name="nCode">
-        /// [in] Specifies whether the hook procedure must process the message. 
-        /// If nCode is HC_ACTION, the hook procedure must process the message. 
-        /// If nCode is less than zero, the hook procedure must pass the message to the 
-        /// CallNextHookEx function without further processing and must return the 
-        /// value returned by CallNextHookEx.
-        /// </param>
-        /// <param name="wParam">
-        /// [in] Specifies whether the message was sent by the current thread. 
-        /// If the message was sent by the current thread, it is nonzero; otherwise, it is zero. 
-        /// </param>
-        /// <param name="lParam">
-        /// [in] Pointer to a CWPSTRUCT structure that contains details about the message. 
-        /// </param>
-        /// <returns>
-        /// If nCode is less than zero, the hook procedure must return the value returned by CallNextHookEx. 
-        /// If nCode is greater than or equal to zero, it is highly recommended that you call CallNextHookEx 
-        /// and return the value it returns; otherwise, other applications that have installed WH_CALLWNDPROC 
-        /// hooks will not receive hook notifications and may behave incorrectly as a result. If the hook 
-        /// procedure does not call CallNextHookEx, the return value should be zero. 
-        /// </returns>
-        /// <remarks>
-        /// http://msdn.microsoft.com/library/default.asp?url=/library/en-us/winui/winui/windowsuserinterface/windowing/hooks/hookreference/hookfunctions/callwndproc.asp
-        /// </remarks>
-        private delegate int HookProc(int nCode, int wParam, IntPtr lParam);
+        internal delegate nint HookProc(int nCode, nuint wParam, nint lParam);
 
-        //##############################################################################
-        #region Mouse hook processing
-
-        /// <summary>
-        /// This field is not objectively needed but we need to keep a reference on a delegate which will be 
-        /// passed to unmanaged code. To avoid GC to clean it up.
-        /// When passing delegates to unmanaged code, they must be kept alive by the managed application 
-        /// until it is guaranteed that they will never be called.
-        /// </summary>
-        private static HookProc s_MouseDelegate;
-
-        /// <summary>
-        /// Stores the handle to the mouse hook procedure.
-        /// </summary>
-        private static int s_MouseHookHandle;
+        // Windows can still reference a callback when unhooking fails.
+        private static readonly HookProc s_MouseDelegate = MouseHookProc;
+        private static readonly HookProc s_KeyboardDelegate = KeyboardHookProc;
+        private static nint s_MouseHookHandle;
+        private static nint s_KeyboardHookHandle;
 
         private static int m_OldX;
         private static int m_OldY;
 
-        /// <summary>
-        /// A callback function which will be called every Time a mouse activity detected.
-        /// </summary>
-        /// <param name="nCode">
-        /// [in] Specifies whether the hook procedure must process the message. 
-        /// If nCode is HC_ACTION, the hook procedure must process the message. 
-        /// If nCode is less than zero, the hook procedure must pass the message to the 
-        /// CallNextHookEx function without further processing and must return the 
-        /// value returned by CallNextHookEx.
-        /// </param>
-        /// <param name="wParam">
-        /// [in] Specifies whether the message was sent by the current thread. 
-        /// If the message was sent by the current thread, it is nonzero; otherwise, it is zero. 
-        /// </param>
-        /// <param name="lParam">
-        /// [in] Pointer to a CWPSTRUCT structure that contains details about the message. 
-        /// </param>
-        /// <returns>
-        /// If nCode is less than zero, the hook procedure must return the value returned by CallNextHookEx. 
-        /// If nCode is greater than or equal to zero, it is highly recommended that you call CallNextHookEx 
-        /// and return the value it returns; otherwise, other applications that have installed WH_CALLWNDPROC 
-        /// hooks will not receive hook notifications and may behave incorrectly as a result. If the hook 
-        /// procedure does not call CallNextHookEx, the return value should be zero. 
-        /// </returns>
-        private static int MouseHookProc(int nCode, int wParam, IntPtr lParam)
+        private static nint MouseHookProc(int nCode, nuint wParam, nint lParam)
         {
             if (nCode >= 0)
             {
                 //Marshall the data from callback.
-                MouseLLHookStruct mouseHookStruct = (MouseLLHookStruct)Marshal.PtrToStructure(lParam, typeof(MouseLLHookStruct));
+                MouseLLHookStruct mouseHookStruct = Marshal.PtrToStructure<MouseLLHookStruct>(lParam);
+
+                if (wParam == WM_MOUSEMOVE && ((s_MouseMove == null && s_MouseMoveExt == null)
+                    || (m_OldX == mouseHookStruct.Point.X && m_OldY == mouseHookStruct.Point.Y)))
+                    return Platform.Next(nCode, wParam, lParam);
 
                 //detect button clicked
                 MouseButtons button = MouseButtons.None;
@@ -161,13 +101,13 @@ namespace Easislides
                 }
 
                 //If someone listens to click and a click is heppened
-                if (s_MouseClick != null && clickCount>0)
+                if (s_MouseClick != null && mouseUp)
                 {
                     s_MouseClick.Invoke(null, e);
                 }
 
                 //If someone listens to click and a click is heppened
-                if (s_MouseClickExt != null && clickCount > 0)
+                if (s_MouseClickExt != null && mouseUp)
                 {
                     s_MouseClickExt.Invoke(null, e);
                 }
@@ -207,33 +147,30 @@ namespace Easislides
             }
 
             //call next hook
-            return CallNextHookEx(s_MouseHookHandle, nCode, wParam, lParam);
+            return Platform.Next(nCode, wParam, lParam);
         }
 
-        private static void EnsureSubscribedToGlobalMouseEvents()
-        {
-            // install Mouse hook only if it is not installed and must be installed
-            if (s_MouseHookHandle == 0)
-            {
-                //See comment of this field. To avoid GC to clean it up.
-                s_MouseDelegate = MouseHookProc;
-                //install hook
-                s_MouseHookHandle = SetWindowsHookEx(
-                    WH_MOUSE_LL,
-                    s_MouseDelegate,
-                    (IntPtr)null,
-                    0);
-                //If SetWindowsHookEx fails.
-                if (s_MouseHookHandle == 0)
-                {
-                    //Returns the error code returned by the last unmanaged function called using platform invoke that has the DllImportAttribute.SetLastError flag set. 
-                    int errorCode = Marshal.GetLastWin32Error();
-                    //do cleanup
+        private static void EnsureSubscribedToGlobalMouseEvents() =>
+            EnsureInstalled(ref s_MouseHookHandle, WH_MOUSE_LL, s_MouseDelegate);
 
-                    //Initializes and throws a new instance of the Win32Exception class with the specified error. 
-                    throw new Win32Exception(errorCode);
-                }
+        private static void EnsureInstalled(ref nint handle, int type, HookProc callback)
+        {
+            if (handle != 0) return;
+            handle = Platform.Install(type, callback);
+            if (handle == 0) throw new Win32Exception(Marshal.GetLastPInvokeError());
+        }
+
+        private static void ReleaseHook(ref nint handle)
+        {
+            if (handle == 0) return;
+            if (!Platform.Uninstall(handle))
+            {
+                int error = Marshal.GetLastPInvokeError();
+                // Windows may already have removed a timed-out hook.
+                const int ErrorInvalidHookHandle = 1404;
+                if (error != ErrorInvalidHookHandle) throw new Win32Exception(error);
             }
+            handle = 0;
         }
 
         private static void TryUnsubscribeFromGlobalMouseEvents()
@@ -247,153 +184,82 @@ namespace Easislides
                 s_MouseMoveExt == null &&
                 s_MouseWheel == null)
             {
-                ForceUnsunscribeFromGlobalMouseEvents();
+                ReleaseHook(ref s_MouseHookHandle);
             }
         }
-
-        private static void ForceUnsunscribeFromGlobalMouseEvents()
-        {
-            if (s_MouseHookHandle != 0)
-            {
-                //uninstall hook
-                int result = UnhookWindowsHookEx(s_MouseHookHandle);
-                //reset invalid handle
-                s_MouseHookHandle = 0;
-                //Free up for GC
-                s_MouseDelegate = null;
-                //if failed and exception must be thrown
-                if (result == 0)
-                {
-                    //Returns the error code returned by the last unmanaged function called using platform invoke that has the DllImportAttribute.SetLastError flag set. 
-                    int errorCode = Marshal.GetLastWin32Error();
-                    //Initializes and throws a new instance of the Win32Exception class with the specified error. 
-                    throw new Win32Exception(errorCode);
-                }
-            }
-        }
-        
-        #endregion
-
-        //##############################################################################
-        #region Keyboard hook processing
-
-        /// <summary>
-        /// This field is not objectively needed but we need to keep a reference on a delegate which will be 
-        /// passed to unmanaged code. To avoid GC to clean it up.
-        /// When passing delegates to unmanaged code, they must be kept alive by the managed application 
-        /// until it is guaranteed that they will never be called.
-        /// </summary>
-        private static HookProc s_KeyboardDelegate;
-
-        /// <summary>
-        /// Stores the handle to the Keyboard hook procedure.
-        /// </summary>
-        private static int s_KeyboardHookHandle;
 
         public static bool Shift { get; private set; }
         public static bool Control { get; private set; }
         public static bool Alt { get; private set; }
 
-        /// <summary>
-        /// A callback function which will be called every Time a keyboard activity detected.
-        /// </summary>
-        /// <param name="nCode">
-        /// [in] Specifies whether the hook procedure must process the message. 
-        /// If nCode is HC_ACTION, the hook procedure must process the message. 
-        /// If nCode is less than zero, the hook procedure must pass the message to the 
-        /// CallNextHookEx function without further processing and must return the 
-        /// value returned by CallNextHookEx.
-        /// </param>
-        /// <param name="wParam">
-        /// [in] Specifies whether the message was sent by the current thread. 
-        /// If the message was sent by the current thread, it is nonzero; otherwise, it is zero. 
-        /// </param>
-        /// <param name="lParam">
-        /// [in] Pointer to a CWPSTRUCT structure that contains details about the message. 
-        /// </param>
-        /// <returns>
-        /// If nCode is less than zero, the hook procedure must return the value returned by CallNextHookEx. 
-        /// If nCode is greater than or equal to zero, it is highly recommended that you call CallNextHookEx 
-        /// and return the value it returns; otherwise, other applications that have installed WH_CALLWNDPROC 
-        /// hooks will not receive hook notifications and may behave incorrectly as a result. If the hook 
-        /// procedure does not call CallNextHookEx, the return value should be zero. 
-        /// </returns>
-        private static int KeyboardHookProc(int nCode, Int32 wParam, IntPtr lParam)
+        // The transitioning key still has its previous asynchronous state inside a
+        // low-level hook. Use its event and consult the opposite side on release.
+        private static bool ModifierDown(Keys current, bool down, Keys combined, Keys left, Keys right)
         {
-            //indicates if any of underlaing events set e.Handled flag
-            bool handled = false;
+            if (current == left) return down || Platform.AsyncState(right) < 0;
+            if (current == right) return down || Platform.AsyncState(left) < 0;
+            return Platform.AsyncState(combined) < 0;
+        }
 
+        private static Keys ReadModifiers(KeyboardHookStruct input, bool down)
+        {
+            bool extended = (input.Flags & 1) != 0;
+            Keys current = (Keys)input.VirtualKeyCode switch
+            {
+                Keys.ControlKey => extended ? Keys.RControlKey : Keys.LControlKey,
+                Keys.Menu => extended ? Keys.RMenu : Keys.LMenu,
+                Keys.ShiftKey => input.ScanCode == 0x36 ? Keys.RShiftKey : Keys.LShiftKey,
+                var key => key
+            };
+            Control = ModifierDown(current, down, Keys.ControlKey, Keys.LControlKey, Keys.RControlKey);
+            Alt = ModifierDown(current, down, Keys.Menu, Keys.LMenu, Keys.RMenu);
+            Shift = ModifierDown(current, down, Keys.ShiftKey, Keys.LShiftKey, Keys.RShiftKey);
+            return (Control ? Keys.Control : Keys.None) | (Alt ? Keys.Alt : Keys.None) | (Shift ? Keys.Shift : Keys.None);
+        }
+
+        private static nint KeyboardHookProc(int nCode, nuint wParam, nint lParam)
+        {
+            bool handled = false;
             if (nCode >= 0)
             {
-                //read structure KeyboardHookStruct at lParam
-                KeyboardHookStruct MyKeyboardHookStruct = (KeyboardHookStruct)Marshal.PtrToStructure(lParam, typeof(KeyboardHookStruct));
-                //raise KeyDown
-                if (s_KeyDown != null && (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN))
+                bool down = wParam is WM_KEYDOWN or WM_SYSKEYDOWN;
+                bool up = wParam is WM_KEYUP or WM_SYSKEYUP;
+                var handler = down ? s_KeyDown : up ? s_KeyUp : null;
+                bool keyPress = s_KeyPress != null && wParam == WM_KEYDOWN;
+                if (handler == null && !keyPress)
+                    return Platform.Next(nCode, wParam, lParam);
+
+                var input = Marshal.PtrToStructure<KeyboardHookStruct>(lParam);
+                Keys modifiers = ReadModifiers(input, down);
+                if (handler != null)
                 {
-                    Keys keyData = (Keys)MyKeyboardHookStruct.VirtualKeyCode;
-                    /////////////////////////////////////////////////////////
-
-                    if ((GetKeyState(VK_CONTROL) & 0x80) != 0)
-                    {
-                        keyData |= Keys.Control;                        
-                        Control = true;
-                    }
-                    else
-                        Control = false;
-
-                    if ((GetKeyState(VK_MENU) & 0x80) != 0)
-                    {
-                        keyData |= Keys.Alt;
-                        Alt = true;
-                    }
-                    else
-                        Alt = false;
-
-                    if ((GetKeyState(VK_SHIFT) & 0x80) != 0)
-                    {
-                        keyData |= Keys.Shift;
-                        Shift = true;
-                    }
-                    else
-                        Shift = false;
-                    ////////////////////////////////////////////////////////
-
-                    KeyEventArgs e = new KeyEventArgs(keyData);
-                    s_KeyDown.Invoke(null, e);
-                    handled = e.Handled;
+                    var args = new KeyEventArgs((Keys)input.VirtualKeyCode | modifiers);
+                    handler(null, args);
+                    handled = args.Handled;
                 }
 
                 // raise KeyPress
-                if (s_KeyPress != null && wParam == WM_KEYDOWN)
+                if (keyPress)
                 {
-                    bool isDownShift = ((GetKeyState(VK_SHIFT) & 0x80) == 0x80 ? true : false);
+                    bool isDownShift = (modifiers & Keys.Shift) != 0;
 
-                    bool isDownCapslock = (GetKeyState(VK_CAPITAL) != 0 ? true : false);
+                    bool isDownCapslock = (GetKeyState(VK_CAPITAL) & 1) != 0;
 
                     byte[] keyState = new byte[256];
                     GetKeyboardState(keyState);
                     byte[] inBuffer = new byte[2];
-                    if (ToAscii(MyKeyboardHookStruct.VirtualKeyCode,
-                              MyKeyboardHookStruct.ScanCode,
+                    if (ToAscii(input.VirtualKeyCode,
+                              input.ScanCode,
                               keyState,
                               inBuffer,
-                              MyKeyboardHookStruct.Flags) == 1)
+                              input.Flags) == 1)
                     {
                         char key = (char)inBuffer[0];
                         if ((isDownCapslock ^ isDownShift) && Char.IsLetter(key)) key = Char.ToUpper(key);
                         KeyPressEventArgs e = new KeyPressEventArgs(key);
-                        s_KeyPress.Invoke(null, e);
+                        s_KeyPress?.Invoke(null, e);
                         handled = handled || e.Handled;
                     }
-                }
-
-                // raise KeyUp
-                if (s_KeyUp != null && (wParam == WM_KEYUP || wParam == WM_SYSKEYUP))
-                {
-                    Keys keyData = (Keys)MyKeyboardHookStruct.VirtualKeyCode;
-                    KeyEventArgs e = new KeyEventArgs(keyData);
-                    s_KeyUp.Invoke(null, e);
-                    handled = handled || e.Handled;
                 }
 
             }
@@ -403,34 +269,11 @@ namespace Easislides
                 return -1;
 
             //forward to other application
-            return CallNextHookEx(s_KeyboardHookHandle, nCode, wParam, lParam);
+            return Platform.Next(nCode, wParam, lParam);
         }
 
-        private static void EnsureSubscribedToGlobalKeyboardEvents()
-        {
-            // install Keyboard hook only if it is not installed and must be installed
-            if (s_KeyboardHookHandle == 0)
-            {
-                //See comment of this field. To avoid GC to clean it up.
-                s_KeyboardDelegate = KeyboardHookProc;
-                //install hook
-                s_KeyboardHookHandle = SetWindowsHookEx(
-                    WH_KEYBOARD_LL,
-                    s_KeyboardDelegate,
-                    (IntPtr)null,
-                    0);
-                //If SetWindowsHookEx fails.
-                if (s_KeyboardHookHandle == 0)
-                {
-                    //Returns the error code returned by the last unmanaged function called using platform invoke that has the DllImportAttribute.SetLastError flag set. 
-                    int errorCode = Marshal.GetLastWin32Error();
-                    //do cleanup
-
-                    //Initializes and throws a new instance of the Win32Exception class with the specified error. 
-                    throw new Win32Exception(errorCode);
-                }
-            }
-        }
+        private static void EnsureSubscribedToGlobalKeyboardEvents() =>
+            EnsureInstalled(ref s_KeyboardHookHandle, WH_KEYBOARD_LL, s_KeyboardDelegate);
 
         private static void TryUnsubscribeFromGlobalKeyboardEvents()
         {
@@ -439,32 +282,9 @@ namespace Easislides
                 s_KeyUp == null &&
                 s_KeyPress == null)
             {
-                ForceUnsunscribeFromGlobalKeyboardEvents();
+                ReleaseHook(ref s_KeyboardHookHandle);
             }
         }
-
-        private static void ForceUnsunscribeFromGlobalKeyboardEvents()
-        {
-            if (s_KeyboardHookHandle != 0)
-            {
-                //uninstall hook
-                int result = UnhookWindowsHookEx(s_KeyboardHookHandle);
-                //reset invalid handle
-                s_KeyboardHookHandle = 0;
-                //Free up for GC
-                s_KeyboardDelegate = null;
-                //if failed and exception must be thrown
-                if (result == 0)
-                {
-                    //Returns the error code returned by the last unmanaged function called using platform invoke that has the DllImportAttribute.SetLastError flag set. 
-                    int errorCode = Marshal.GetLastWin32Error();
-                    //Initializes and throws a new instance of the Win32Exception class with the specified error. 
-                    throw new Win32Exception(errorCode);
-                }
-            }
-        }
-
-        #endregion
 
     }
 }

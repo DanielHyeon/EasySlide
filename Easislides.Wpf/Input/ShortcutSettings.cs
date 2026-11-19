@@ -98,14 +98,18 @@ public static class ShortcutSettings
         ArgumentNullException.ThrowIfNull(defaults);
         ArgumentNullException.ThrowIfNull(overrides);
 
-        return defaults.Select(shortcut =>
+        var effective = new List<Shortcut>();
+        var overriddenSlots = new HashSet<string>(Comparer);
+        foreach (var shortcut in defaults)
         {
-            var slotId = GetSlotId(shortcut);
-            return overrides.TryGetValue(slotId, out var gesture) &&
-                   TryApplyGesture(shortcut, gesture, out var updated, out _)
-                ? updated
-                : shortcut;
-        }).ToArray();
+            var slot = GetSlotId(shortcut);
+            if (overrides.TryGetValue(slot, out var gesture) && TryApplyGesture(shortcut, gesture, out var updated, out _))
+            {
+                if (overriddenSlots.Add(slot)) effective.Add(updated);
+            }
+            else if (shortcut.Key != Key.None) effective.Add(shortcut);
+        }
+        return effective;
     }
 
     private static bool IsModifier(string part, out ModifierKeys modifier)

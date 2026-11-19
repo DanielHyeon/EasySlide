@@ -434,8 +434,8 @@ public class SettingsWindowViewModelTests
         sut.ShortcutItems.Should().Contain(item =>
             item.CommandId == MainCommandIds.LiveNext &&
             item.IsGlobal &&
-            item.DefaultGesture == "F5" &&
-            item.EffectiveGesture == "F5");
+            item.DefaultGesture == "None" &&
+            item.EffectiveGesture == "None");
     }
 
     [Fact]
@@ -483,7 +483,7 @@ public class SettingsWindowViewModelTests
 
         result.Succeeded.Should().BeTrue();
         item.CustomGesture.Should().BeEmpty();
-        item.EffectiveGesture.Should().Be("F5");
+        item.EffectiveGesture.Should().Be("None");
         fixture.Settings.Current.Shortcuts.Should().NotContainKey(item.SlotId);
     }
 

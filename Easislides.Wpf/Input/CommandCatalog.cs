@@ -106,7 +106,7 @@ public sealed class CommandCatalog : ICommandCatalog
             "라이브 중에는 현재 Output 슬라이드/절을 넘기고, 끝에서는 자동 다음 항목 설정에 따라 다음 Output 항목으로 이동합니다.",
             isDangerous: false,
             new Shortcut(Key.Space, ModifierKeys.None, MainCommandIds.LiveNext, IsGlobal: false, "다음 슬라이드/절"),
-            new Shortcut(Key.F5, ModifierKeys.None, MainCommandIds.LiveNext, IsGlobal: true, "다음 슬라이드/절")),
+            new Shortcut(Key.None, ModifierKeys.None, MainCommandIds.LiveNext, IsGlobal: true, "다음 슬라이드/절")),
         Command(
             MainCommandIds.LivePrevious,
             "Live",
@@ -148,7 +148,7 @@ public sealed class CommandCatalog : ICommandCatalog
             "처음으로",
             "현재 라이브 항목을 처음(첫 절/첫 슬라이드)으로 되돌려 재송출합니다.",
             isDangerous: false,
-            // 현대 단축키(니모닉 R=Restart). 레거시 F5=Restart 는 WPF 에서 "다음 항목"으로 재배정됐으므로 충돌 없는 Ctrl+R 사용.
+            new Shortcut(Key.F5, ModifierKeys.None, MainCommandIds.LiveRestart, IsGlobal: false, "처음으로"),
             new Shortcut(Key.R, ModifierKeys.Control, MainCommandIds.LiveRestart, IsGlobal: false, "처음으로")),
         Command(
             MainCommandIds.LiveRefresh,
@@ -245,7 +245,8 @@ public sealed class CommandCatalog : ICommandCatalog
             "창",
             "검색·사용처",
             "곡 검색 및 사용처 보고 창을 엽니다.",
-            isDangerous: false),
+            isDangerous: false,
+            new Shortcut(Key.F, ModifierKeys.Control, MainCommandIds.WindowSearch, IsGlobal: false, "찾기")),
         Command(
             MainCommandIds.WindowImportExport,
             "창",

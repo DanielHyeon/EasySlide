@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
+using System.Windows.Forms;
 
 namespace Easislides
 {
@@ -153,10 +154,10 @@ namespace Easislides
         /// </remarks>
         [DllImport("user32.dll", CharSet = CharSet.Auto,
             CallingConvention = CallingConvention.StdCall)]
-        private static extern int CallNextHookEx(
-            int idHook,
+        private static extern nint CallNextHookEx(
+            nint handle,
             int nCode,
-            int wParam,
+            nuint wParam,
             IntPtr lParam);
 
 
@@ -192,7 +193,7 @@ namespace Easislides
         /// </remarks>
         [DllImport("user32.dll", CharSet = CharSet.Auto,
             CallingConvention = CallingConvention.StdCall, SetLastError = true)]
-        private static extern int SetWindowsHookEx(
+        private static extern nint SetWindowsHookEx(
             int idHook,
             HookProc lpfn,
             IntPtr hMod,
@@ -213,7 +214,7 @@ namespace Easislides
         /// </remarks>
         [DllImport("user32.dll", CharSet = CharSet.Auto,
             CallingConvention = CallingConvention.StdCall, SetLastError = true)]
-        private static extern int UnhookWindowsHookEx(int idHook);
+        private static extern int UnhookWindowsHookEx(nint handle);
 
         /// <summary>
         /// The GetDoubleClickTime function retrieves the current double-click time for the mouse. A double-click is a series of two clicks of the 
@@ -308,6 +309,19 @@ namespace Easislides
         [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall)]
         private static extern short GetKeyState(int vKey);
 
+        [DllImport("user32.dll")]
+        private static extern short GetAsyncKeyState(int virtualKey);
+
+        // The desktop hook is replaced by a deterministic adapter in regression tests.
+        internal class HookApi
+        {
+            internal virtual nint Install(int type, HookProc callback) => SetWindowsHookEx(type, callback, 0, 0);
+            internal virtual bool Uninstall(nint handle) => UnhookWindowsHookEx(handle) != 0;
+            internal virtual nint Next(int code, nuint message, nint data) => CallNextHookEx(0, code, message, data);
+            internal virtual short AsyncState(Keys key) => GetAsyncKeyState((int)key);
+        }
+
+        internal static HookApi Platform { get; set; } = new();
         #endregion
     }
 }

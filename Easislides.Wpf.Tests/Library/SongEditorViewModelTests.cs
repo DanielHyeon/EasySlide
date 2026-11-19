@@ -738,6 +738,8 @@ public class SongEditorViewModelTests
         public void Refresh()
             => SessionChanged?.Invoke(this, new LiveSessionChangedEventArgs(Current));
 
+        public void SetAudienceAlert(bool parental, OutputAlert? alert) { }
+
         public void SetLyricsAlertMessage(string text)
         {
             Current = Current with { LyricsAlertMessage = text.Trim() };

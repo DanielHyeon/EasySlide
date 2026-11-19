@@ -97,12 +97,12 @@ public partial class MainWindow : Window
         Bind(MainCommandIds.WindowLibrary, OpenLibrary_Click);
         Bind(MainCommandIds.WindowBible, OpenBible_Click);
         Bind(MainCommandIds.WindowManageBibleVersions, OpenBibleVersionManager_Click);
-        Bind(MainCommandIds.WindowSearch, OpenSearchUsage_Click);
+        Bind(MainCommandIds.WindowSearch, Main_Find_Click);
         Bind(MainCommandIds.WindowImportExport, OpenImportExport_Click);
         Bind(MainCommandIds.WindowExternalFiles, OpenExternalFiles_Click);
         Bind(MainCommandIds.WindowManageLists, OpenManageWorshipLists_Click);
         Bind(MainCommandIds.WindowSettings, OpenSettings_Click);
-        Bind(MainCommandIds.WindowHelp, OpenHelp_Click);
+        Bind(MainCommandIds.WindowHelp, HelpContents_Click);
         Bind(MainCommandIds.WindowRegistration, OpenRegistration_Click);
         Bind(MainCommandIds.WindowAbout, OpenAbout_Click);
         Bind(MainCommandIds.AddExternalFile, AddExternalFile_Click);
@@ -1127,6 +1127,9 @@ public partial class MainWindow : Window
             SearchSourceTab.Visibility = Visibility.Collapsed;
         }
 
+        bool songsOrInfo = tab.Tag is "Folders" or "InfoScreenSource";
+        Main_New.IsEnabled = songsOrInfo;
+        Main_Edit.IsEnabled = Main_Copy.IsEnabled = Main_Move.IsEnabled = Main_Delete.IsEnabled = songsOrInfo || Equals(tab.Tag, "PowerPointSource");
         switch (tab.Tag)
         {
             case "Folders":
@@ -1151,6 +1154,55 @@ public partial class MainWindow : Window
                 await EnsureSearchLoadedOnceAsync(viewModel).ConfigureAwait(true);
                 break;
         }
+    }
+
+    private async void Main_SourceEdit_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement { Tag: string action } || LeftBrowserTabs.SelectedItem is not TabItem { Tag: string source }) return;
+        switch (source, action)
+        {
+            case ("Folders", "Main_New"): Main_New_Click(sender, e); break;
+            case ("Folders", "Main_Edit"): await OpenSelectedLibrarySongEditorAsync(_viewModel); break;
+            case ("Folders", "Main_Copy"): SongCopy_Click(sender, e); break;
+            case ("Folders", "Main_Move"): SongMove_Click(sender, e); break;
+            case ("Folders", "Main_Delete"): SongDelete_Click(sender, e); break;
+            case ("InfoScreenSource", "Main_New"): OpenNoticeScreen(null); break;
+            case ("InfoScreenSource", "Main_Edit"): CMenuInfoScreenFiles_Edit_Click(sender, e); break;
+            case ("InfoScreenSource", "Main_Copy"): CMenuInfoScreenFiles_Copy_Click(sender, e); break;
+            case ("InfoScreenSource", "Main_Delete"): DeleteInlineInfoScreenSelection(); break;
+            case ("InfoScreenSource", "Main_Move"): await MoveInfoScreensAsync(); break;
+            case ("PowerPointSource", "Main_Edit"): CMenuPowerPointFiles_Edit_Click(sender, e); break;
+            case ("PowerPointSource", "Main_Copy"): CMenuPowerPointFiles_Copy_Click(sender, e); break;
+            case ("PowerPointSource", "Main_Delete"): DeleteInlinePowerPointSelection(); break;
+            case ("PowerPointSource", "Main_Move"):
+                var files = GetInlinePowerPointSelection(GetActivePowerPointList());
+                if (files.Count > 0 && OpenExternalFileOperationWindow(ExternalFileItemKind.PowerPoint,
+                    ExternalFileOperationKind.Move, files.Select(file => file.FilePath))) CMenuPowerPointFiles_Refresh_Click(sender, e);
+                break;
+        }
+    }
+
+    private async Task MoveInfoScreensAsync()
+    {
+        var screens = GetInlineInfoScreenSelection();
+        if (screens.Count == 0) return;
+        var picker = new Microsoft.Win32.OpenFolderDialog { Title = "정보 화면을 이동할 폴더" };
+        if (picker.ShowDialog(this) != true) return;
+        var store = _services.GetRequiredService<IInfoScreenStore>();
+        try
+        {
+            foreach (var screen in screens)
+            {
+                string? file = await store.PrepareCopySourceFileAsync(screen.Name, Path.Combine(Path.GetTempPath(), "EasislidesNext", "InfoScreenCopy"));
+                if (file is null) continue;
+                string target = Path.Combine(picker.FolderName, Path.GetFileName(file));
+                File.Copy(file, target, overwrite: false);
+                if (!store.Delete(screen.Name)) { _viewModel.StatusText = $"복사 후 원본을 이동하지 못했습니다: {screen.Name}"; break; }
+            }
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException)
+        { _viewModel.StatusText = ex.Message; }
+        finally { _inlineInfoScreens?.LoadCommand.Execute(null); }
     }
 
     private async void Main_New_Click(object sender, RoutedEventArgs e)
@@ -1189,6 +1241,7 @@ public partial class MainWindow : Window
         {
             return;
         }
+        RecordSongEdit(editorViewModel);
 
         await library.LoadAsync().ConfigureAwait(true);
         if (library.SelectFolderByNo(editorViewModel.FolderNo))
@@ -1285,11 +1338,74 @@ public partial class MainWindow : Window
         }
     }
 
-    private void Main_Alerts_Click(object sender, RoutedEventArgs e)
-        => OpenSessionNotes_Click(sender, e);
+    private void LibrarySongList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (sender is ListBox { SelectedItem: SongSummary song } list && list.IsLoaded
+            && (list.IsKeyboardFocusWithin || list.IsMouseOver)) _viewModel.PreviewLibrarySong(song);
+    }
 
-    private async void Main_Find_Click(object sender, RoutedEventArgs e)
-        => await ExecuteMainQuickFindAsync().ConfigureAwait(true);
+    private async void Main_Media_Click(object sender, RoutedEventArgs e)
+    {
+        var source = (LeftBrowserTabs.SelectedItem as TabItem)?.Tag as string;
+        var song = source == "Folders" && LibrarySongList.SelectedItems.Count == 1 ? _viewModel.Library.SelectedSong : null;
+        var info = source == "InfoScreenSource" ? GetInlineInfoScreenSelection().FirstOrDefault() : null;
+        var store = _services.GetRequiredService<IInfoScreenStore>();
+        try
+        {
+            var screen = info == null ? null : await store.LoadAsync(info.Name);
+            if (info != null && screen == null) { _viewModel.StatusText = "정보 화면을 찾을 수 없습니다."; return; }
+            string? format = song != null ? song.FormatData : screen != null ? screen.LegacyFormatData : _viewModel.DefaultMediaFormat;
+            var options = Media.ItemMediaOptions.Read(format);
+            string path = song != null ? options.FileName : screen != null ? screen.MediaPath ?? "" : _viewModel.DefaultMediaPath;
+            if (options.Mode < 0 && path.Length > 0) options = options with { Mode = 2, FileName = path };
+            var window = new Media.MediaAssignmentWindow(song?.Title ?? info?.Name ?? "기본 미디어 설정",
+                options, ResolveMediaInitialFolder(), _viewModel.OutputDisplays) { Owner = this };
+            if (window.ShowDialog() != true || options == window.Options) return;
+            var savedOptions = window.Options;
+            if (song != null)
+            {
+                if (await _viewModel.Library.SaveSongMediaAsync(song, savedOptions.FileName, savedOptions) && _viewModel.Library.SelectedSong is { } saved)
+                    _viewModel.PreviewLibrarySong(saved);
+                else _viewModel.StatusText = _viewModel.Library.StatusMessage;
+            }
+            else if (screen != null) await store.SaveAsync(info!.Name, screen with
+            { MediaPath = savedOptions.FileName, LegacyFormatData = savedOptions.ApplyTo(screen.LegacyFormatData) });
+            else _viewModel.SetDefaultMedia(savedOptions.FileName, savedOptions);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException or System.Data.Common.DbException)
+        { _viewModel.StatusText = ex.Message; }
+    }
+
+    private OutputAlertsWindow? _alertsWindow;
+
+    private void Main_Alerts_Click(object sender, RoutedEventArgs e)
+    {
+        if (_alertsWindow is null)
+        {
+            _alertsWindow = new OutputAlertsWindow(_viewModel, _services.GetRequiredService<ISettingsService>().Current.General.WorkingFolder) { Owner = this };
+            _alertsWindow.Closed += (_, _) => _alertsWindow = null;
+            _alertsWindow.Show();
+        }
+        else
+        {
+            if (_alertsWindow.WindowState == WindowState.Minimized) _alertsWindow.WindowState = WindowState.Normal;
+            _alertsWindow.Activate();
+        }
+    }
+
+    private void Main_Find_Click(object sender, RoutedEventArgs e)
+    {
+        if (Equals((LeftBrowserTabs.SelectedItem as TabItem)?.Tag, "Bibles")) OpenBible_Click(sender, e);
+        else OpenSearchUsage_Click(sender, e);
+    }
+
+    private void FolderJump_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { DataContext: SongFolderSummary folder }) return;
+        LeftBrowserTabs.SelectedItem = LeftBrowserTabs.Items.OfType<TabItem>().First(tab => Equals(tab.Tag, "Folders"));
+        _viewModel.Library.SelectedFolder = folder;
+        LibrarySongList.Focus();
+    }
 
     private async void Main_QuickFind_PreviewKeyDown(object sender, KeyEventArgs e)
     {
@@ -1474,6 +1590,7 @@ public partial class MainWindow : Window
         {
             return;
         }
+        RecordSongEdit(editorViewModel);
 
         var updatedSong = new SongSummary(
             editorViewModel.SongId ?? song.SongId,
@@ -2030,6 +2147,7 @@ public partial class MainWindow : Window
         {
             return;
         }
+        RecordSongEdit(editorViewModel);
 
         var songId = editorViewModel.SongId;
         await library.LoadAsync().ConfigureAwait(true);
@@ -2524,6 +2642,8 @@ public partial class MainWindow : Window
             {
                 UseShellExecute = true
             });
+            if (IsEditableExternalMedia(filePath))
+                _recentEdits.Record(new(ResolveSongEditorDatabasePath(_viewModel), "file", filePath, Path.GetFileName(filePath)));
             _viewModel.StatusText = $"{sourceName} edit opened: {Path.GetFileName(filePath)}";
             return true;
         }
@@ -3546,6 +3666,8 @@ public partial class MainWindow : Window
 
         var window = new NoticeScreenWindow(noticeViewModel) { Owner = this };
         window.ShowDialog();
+        if (noticeViewModel.SelectedScreen is { Length: > 0 } name)
+            _recentEdits.Record(new(ResolveSongEditorDatabasePath(viewModel), "info", name, name));
 
         if (_inlineInfoScreens?.LoadCommand.CanExecute(null) == true)
         {
@@ -3994,6 +4116,7 @@ public partial class MainWindow : Window
         {
             return;
         }
+        RecordSongEdit(editorViewModel);
 
         await viewModel.Library.LoadAsync().ConfigureAwait(true);
         if (viewModel.Library.SelectFolderByNo(editorViewModel.FolderNo))
@@ -4412,7 +4535,7 @@ public partial class MainWindow : Window
         try
         {
             var percent = _settings.Get(EasiSettingKeys.MainBrowserSplitPercent);
-            // 저장된 적 없음(0)이거나 안전 범위 밖이면 XAML 기본 비율(반반)을 그대로 둔다(무회귀).
+            // 저장된 적 없음(0)이거나 안전 범위 밖이면 XAML 기본 비율을 그대로 둔다(무회귀).
             if (percent < BrowserSplitMinPercent || percent > BrowserSplitMaxPercent)
             {
                 return;

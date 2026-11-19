@@ -119,6 +119,10 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
     private bool _displayAlwaysUseSecondaryMonitor;
     private int _displayCustomTop;
     private int _displayCustomLeft;
+    private bool _useCustomOutputBounds;
+    private bool _isMonitorWide;
+    private bool _fitTextFileParagraphs;
+    private bool _autoTextOverflow;
     private int _displayCustomWidth;
     private int _lyricsMonitorTextColorArgb;
     private int _lyricsMonitorBackgroundColorArgb;
@@ -320,6 +324,34 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
     {
         get => _displayCustomLeft;
         set => SetAndPersist(ref _displayCustomLeft, value, EasiSettingKeys.DisplayCustomLeft);
+    }
+
+    public bool UseCustomOutputBounds
+    {
+        get => _useCustomOutputBounds;
+        set
+        {
+            if (SetProperty(ref _useCustomOutputBounds, value) && !_isRefreshing)
+                _settings.Set(EasiSettingKeys.OutputPlacementMode, value ? 1 : 0);
+        }
+    }
+
+    public bool IsMonitorWide
+    {
+        get => _isMonitorWide;
+        set => SetAndPersist(ref _isMonitorWide, value, EasiSettingKeys.IsMonitorWide);
+    }
+
+    public bool FitTextFileParagraphs
+    {
+        get => _fitTextFileParagraphs;
+        set => SetAndPersist(ref _fitTextFileParagraphs, value, EasiSettingKeys.FitTextFileParagraphs);
+    }
+
+    public bool AutoTextOverflow
+    {
+        get => _autoTextOverflow;
+        set => SetAndPersist(ref _autoTextOverflow, value, EasiSettingKeys.AutoTextOverflow);
     }
 
     public int DisplayCustomWidth
@@ -714,6 +746,10 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
             DisplayAlwaysUseSecondaryMonitor = current.LiveOutput.DisplayAlwaysUseSecondaryMonitor;
             DisplayCustomTop = current.LiveOutput.DisplayCustomTop;
             DisplayCustomLeft = current.LiveOutput.DisplayCustomLeft;
+            UseCustomOutputBounds = Platform.WindowPlacementService.UsesCustomBounds(current.LiveOutput);
+            IsMonitorWide = current.LiveOutput.IsMonitorWide;
+            FitTextFileParagraphs = current.LiveOutput.FitTextFileParagraphs;
+            AutoTextOverflow = current.LiveOutput.AutoTextOverflow;
             DisplayCustomWidth = current.LiveOutput.DisplayCustomWidth;
             LyricsMonitorTextColorArgb = current.LiveOutput.LyricsMonitorTextColorArgb;
             LyricsMonitorBackgroundColorArgb = current.LiveOutput.LyricsMonitorBackgroundColorArgb;

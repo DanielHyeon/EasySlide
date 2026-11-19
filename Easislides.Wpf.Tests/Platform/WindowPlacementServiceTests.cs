@@ -14,6 +14,21 @@ namespace Easislides.Wpf.Tests.Platform;
 public class WindowPlacementServiceTests
 {
     [Fact]
+    public void ChangingAspectUpdatesTheCustomAudienceBoundsAtNegativeCoordinates()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        settings.Set(EasiSettingKeys.DisplayCustomLeft, -1600);
+        settings.Set(EasiSettingKeys.DisplayCustomWidth, 1600);
+        var service = new WindowPlacementService(settings);
+        var display = new OutputDisplay("left", "Left", -1600, 0, 1600, 900, 1.5);
+        service.CreateOutputPlacement(display, false).Height.Should().Be(1200);
+        settings.Set(EasiSettingKeys.IsMonitorWide, true);
+        service.CreateOutputPlacement(display, false).Should().Be(new OutputWindowPlacement(-1600, 0, 1600, 900, false));
+        ((IWindowPlacementService)service).CreateStagePlacement(display, false).Height.Should().Be(900);
+    }
+
+    [Fact]
     public void CreateOutputPlacement_Fullscreen_UsesDisplayBounds()
     {
         var sut = new WindowPlacementService();
@@ -33,7 +48,7 @@ public class WindowPlacementServiceTests
 
         var placement = sut.CreateOutputPlacement(display, windowed: false);
 
-        placement.Should().Be(new OutputWindowPlacement(-1920, 120, 1920, 1080, IsWindowed: false));
+        placement.Should().Be(new OutputWindowPlacement(-1680, 120, 1440, 1080, IsWindowed: false));
     }
 
     [Fact]
@@ -66,9 +81,9 @@ public class WindowPlacementServiceTests
         var placement = sut.CreateOutputPlacement(display, windowed: true);
 
         placement.Width.Should().Be(1280);
-        placement.Height.Should().Be(720);
+        placement.Height.Should().Be(960);
         placement.Left.Should().Be(360);
-        placement.Top.Should().Be(340);
+        placement.Top.Should().Be(220);
         placement.IsWindowed.Should().BeTrue();
     }
 

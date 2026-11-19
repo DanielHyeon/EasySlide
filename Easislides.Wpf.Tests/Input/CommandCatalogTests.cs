@@ -68,7 +68,7 @@ public class CommandCatalogTests
     // FrmMain 라이브 항목 이동 파리티: Space/Shift+Space 는 로컬 UI 키, F5/F4 는 라이브 운용용 글로벌 키로 유지.
     [InlineData(Key.Space, ModifierKeys.None, MainCommandIds.LiveNext, false)]
     [InlineData(Key.Space, ModifierKeys.Shift, MainCommandIds.LivePrevious, false)]
-    [InlineData(Key.F5, ModifierKeys.None, MainCommandIds.LiveNext, true)]
+    [InlineData(Key.F5, ModifierKeys.None, MainCommandIds.LiveRestart, false)]
     [InlineData(Key.F4, ModifierKeys.None, MainCommandIds.LivePrevious, true)]
     public void GetDefaultShortcuts_IncludesFrmMainNavigationKeys(
         Key key,
@@ -102,14 +102,14 @@ public class CommandCatalogTests
     }
 
     [Fact]
-    public void CtrlF5_DoesNotCollideWithGlobalF5Next()
+    public void CtrlF5RefreshAndLocalF5RestartDoNotCollide()
     {
         // Ctrl+F5(출력 새로고침)와 F5(다음 항목, 전역)는 수식 키가 달라 서로 다른 단축키다(충돌 아님).
         var sut = new CommandCatalog();
         var shortcuts = sut.GetDefaultShortcuts();
 
         shortcuts.Should().Contain(s => s.Key == Key.F5 && s.Modifiers == ModifierKeys.Control && s.CommandName == MainCommandIds.LiveRefresh);
-        shortcuts.Should().Contain(s => s.Key == Key.F5 && s.Modifiers == ModifierKeys.None && s.CommandName == MainCommandIds.LiveNext);
+        shortcuts.Should().Contain(s => s.Key == Key.F5 && s.Modifiers == ModifierKeys.None && !s.IsGlobal && s.CommandName == MainCommandIds.LiveRestart);
     }
 
     [Fact]

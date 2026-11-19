@@ -17,6 +17,10 @@ public partial class ImportExportWindow : Window
         DataContext = viewModel;
     }
 
+    internal void SelectExport() => OperationTabs.SelectedIndex = 1;
+
+    internal void StartFolderImport() => ContentRendered += (_, _) => BrowseImportFolder_Click(this, new RoutedEventArgs());
+
     private async void Window_Loaded(object sender, RoutedEventArgs e)
     {
         if (_loadedOnce || DataContext is not ImportExportViewModel viewModel)

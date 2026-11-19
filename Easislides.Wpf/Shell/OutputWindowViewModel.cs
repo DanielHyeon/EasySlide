@@ -603,6 +603,9 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     private const double PanelSecondaryBaseFontSize = 16.0;
 
     /// <summary>위치 인디케이터·곡 번호 글자 크기(기본 20 × 패널 비율). FrmMain Def_PanelFont 크기.</summary>
+    public object PanelFontFamily => _settings?.Get(EasiSettingKeys.PanelFontFamily) is { Length: > 0 } name ? new FontFamily(name) : BodyFontFamily;
+    public double PanelBandHeight => GetViewportHeight(_output) * (_settings?.Get(EasiSettingKeys.PanelHeightPercent) ?? 0) / 100d;
+
     public double PanelPrimaryFontSize
     {
         get => _panelPrimaryFontSize;
@@ -776,6 +779,12 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>WinForms launch display buffer width equivalent for the live body block.</summary>
+    public OutputAlert? MessageAlert => _session.State == LiveState.Active ? _session.MessageAlert : null;
+    public OutputAlert? ParentalAlert => _session.State == LiveState.Active ? _session.ParentalAlert : null;
+    public bool FitExternalText => _session.IsExternalTextPage;
+    public double BodyLayoutHeight => FitExternalText ? double.PositiveInfinity : BodyMaxHeight;
+    public double RegionOneLayoutHeight => FitExternalText ? double.PositiveInfinity : BodyTextMaxHeight;
+
     public double BodyMaxWidth
     {
         get => _bodyMaxWidth;
@@ -924,6 +933,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         // 같은 항목 안에서 절·슬라이드만 바뀌면 슬라이드 전환(FrmMain 항목 vs 슬라이드 전환 분리).
         UpdateContentTransitionKindForChange(snapshot);
         _session = snapshot;
+        OnPropertyChanged(nameof(MessageAlert));
+        OnPropertyChanged(nameof(ParentalAlert));
         State = snapshot.State;
         CurrentItemTitle = snapshot.CurrentItemTitle;
         // 라이브 큐 항목이 들고 있던 미리보기 자산을 그대로 송출 콘텐츠 슬롯에 주입.
@@ -1004,6 +1015,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         PanelBackgroundBrush = scene.LyricsMonitorPanelTransparent ? Brushes.Transparent : CreateBrush(scene.LyricsMonitorPanelColorArgb);
         // Display Panel 정보 텍스트 글자 크기 — 기본 크기(주 20 / 보조 16)에 설정 비율(%)을 곱한다. 100%=기존 크기(무회귀).
         var panelScale = scene.LyricsMonitorPanelFontScalePercent / 100.0;
+        OnPropertyChanged(nameof(PanelFontFamily));
+        OnPropertyChanged(nameof(PanelBandHeight));
         PanelPrimaryFontSize = PanelPrimaryBaseFontSize * panelScale;   // 위치 인디케이터·곡 번호
         PanelSecondaryFontSize = PanelSecondaryBaseFontSize * panelScale; // 저작권·다음 항목
         PanelForegroundBrush = CreateBrush(scene.LyricsMonitorPanelTextColorArgb);
@@ -1125,13 +1138,18 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         {
             BodyTextMaxHeight = maxHeight;
             BodyText2MaxHeight = 0;
-            return;
         }
 
-        var regionGap = Math.Max(0, scene.LyricsMonitorRegionGapPx);
-        var availableTextHeight = Math.Max(0, maxHeight - regionGap);
-        BodyTextMaxHeight = availableTextHeight * 0.67;
-        BodyText2MaxHeight = Math.Max(0, availableTextHeight - BodyTextMaxHeight);
+        else
+        {
+            var regionGap = Math.Max(0, scene.LyricsMonitorRegionGapPx);
+            var availableTextHeight = Math.Max(0, maxHeight - regionGap);
+            BodyTextMaxHeight = availableTextHeight * 0.67;
+            BodyText2MaxHeight = Math.Max(0, availableTextHeight - BodyTextMaxHeight);
+        }
+        OnPropertyChanged(nameof(FitExternalText));
+        OnPropertyChanged(nameof(BodyLayoutHeight));
+        OnPropertyChanged(nameof(RegionOneLayoutHeight));
     }
 
     // 줄 교차(인터레이스) 줄 목록을 다시 만든다 — Region1·Region2 본문을 줄 단위로 번갈아 쌓는다.
@@ -1765,6 +1783,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
                 // Display Panel 밴드 색 변경도 라이브 출력에 즉시 반영(Def_PanelColour).
                 string.Equals(key, EasiSettingKeys.LyricsMonitorPanelColorArgb.Id, StringComparison.OrdinalIgnoreCase) ||
                 // Display Panel 글자 크기 비율 변경도 라이브 출력에 즉시 반영(Def_PanelFont 크기).
+                string.Equals(key, EasiSettingKeys.PanelFontFamily.Id, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(key, EasiSettingKeys.PanelHeightPercent.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.LyricsMonitorPanelFontScalePercent.Id, StringComparison.OrdinalIgnoreCase) ||
                 // Display Panel 글자색/효과도 라이브 출력에 즉시 반영(Def_PanelAsR1/TextColour/Font B-I-U).
                 string.Equals(key, EasiSettingKeys.LyricsMonitorPanelTextColorFollowRegion1.Id, StringComparison.OrdinalIgnoreCase) ||

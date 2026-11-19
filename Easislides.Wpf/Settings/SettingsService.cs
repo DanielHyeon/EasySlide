@@ -218,6 +218,9 @@ public static class EasiSettingKeys
     // 우측 출력 모양 인스펙터 펼침/접힘 상태 저장(레거시 FrmMain 패널 상태). 기본 true=펼침(무회귀). 접어 두면 다음 실행에도 접힌 채 시작.
     public static readonly SettingKey<bool> MainInspectorExpanded = new("general.mainInspectorExpanded", true);
     // 좌측 브라우저/예배순서 패널의 높이 비율(위 브라우저 패널 %, 레거시 splitter 위치 저장). 0=저장된 적 없음 → XAML 기본(반반).
+    public static readonly SettingKey<int> JumpToA = new("general.jumpToA", 1);
+    public static readonly SettingKey<int> JumpToB = new("general.jumpToB", 2);
+    public static readonly SettingKey<int> JumpToC = new("general.jumpToC", 3);
     public static readonly SettingKey<int> MainBrowserSplitPercent = new("general.mainBrowserSplitPercent", 0);
 
     public static readonly SettingKey<ColorTheme> Theme = new("appearance.theme", ColorTheme.Light);
@@ -248,9 +251,14 @@ public static class EasiSettingKeys
     public static readonly SettingKey<string> GapItemLogoFile = new("liveOutput.gapItemLogoFile", "");
     public static readonly SettingKey<bool> GapItemUseFade = new("liveOutput.gapItemUseFade", true);
     public static readonly SettingKey<bool> DisplayAlwaysUseSecondaryMonitor = new("liveOutput.displayAlwaysUseSecondaryMonitor", true);
+    public static readonly SettingKey<bool> IsMonitorWide = new("liveOutput.isMonitorWide", false);
+    public static readonly SettingKey<bool> FitTextFileParagraphs = new("liveOutput.fitTextFileParagraphs", true);
+    public static readonly SettingKey<bool> PreviewAreaShowNotations = new("liveOutput.previewAreaShowNotations", false);
+    public static readonly SettingKey<bool> AutoTextOverflow = new("liveOutput.autoTextOverflow", true);
     public static readonly SettingKey<int> DisplayCustomTop = new("liveOutput.displayCustomTop", 0);
     public static readonly SettingKey<int> DisplayCustomLeft = new("liveOutput.displayCustomLeft", 0);
     public static readonly SettingKey<int> DisplayCustomWidth = new("liveOutput.displayCustomWidth", 100);
+    public static readonly SettingKey<int> OutputPlacementMode = new("liveOutput.outputPlacementMode", -1);
     public static readonly SettingKey<int> LyricsMonitorTextColorArgb = new("liveOutput.lyricsMonitorTextColorArgb", -16777216);
     public static readonly SettingKey<int> LyricsMonitorHighlightColorArgb = new("liveOutput.lyricsMonitorHighlightColorArgb", -65536);
     // 보조 영역(Region2) 전역 글자색(ARGB). 0(투명)=본문(Region1) 색 추종(무회귀, 글꼴2·크기2 의 "0=자동"과 동일 개념).
@@ -318,6 +326,8 @@ public static class EasiSettingKeys
         new("liveOutput.lyricsMonitorPanelColorArgb", unchecked((int)0x66000000));
     // Display Panel 정보 텍스트(곡번호·저작권·다음항목·위치) 글자 크기 비율(%, FrmMain Def_PanelFont 크기 대응).
     // 기본 100 = 기존 크기 보존(무회귀). 큰 장소·가독성 위해 확대/축소. 범위 50~200.
+    public static readonly SettingKey<string> PanelFontFamily = new("liveOutput.panelFontFamily", "");
+    public static readonly SettingKey<int> PanelHeightPercent = new("liveOutput.panelHeightPercent", 0);
     public static readonly SettingKey<int> LyricsMonitorPanelFontScalePercent =
         new("liveOutput.lyricsMonitorPanelFontScalePercent", 100);
     // Display Panel 글자색이 Region1(본문) 글자색을 따를지 여부(레거시 Def_PanelAsR1). 기본 true=기존 본문색 추종.
@@ -415,6 +425,7 @@ public static class EasiSettingKeys
     public static readonly SettingKey<bool> UseMediaTab = new("media.useMediaTab", false);
     public static readonly SettingKey<bool> NoMediaPanelOverlay = new("media.noPanelOverlay", false);
     public static readonly SettingKey<string> MediaDirectory = new("media.directory", "");
+    public static readonly SettingKey<string> DefaultMediaFormat = new("media.defaultMediaFormat", "");
     public static readonly SettingKey<string> DefaultMediaPath = new("media.defaultMediaPath", "");
     public static readonly SettingKey<double> MediaVolume = new("media.volume", 0.8);
     public static readonly SettingKey<double> MediaBalance = new("media.balance", 0.0);
@@ -441,6 +452,9 @@ public static class EasiSettingKeys
         MainWindowHeight,
         MainWindowMaximized,
         MainInspectorExpanded,
+        JumpToA,
+        JumpToB,
+        JumpToC,
         MainBrowserSplitPercent,
         Theme,
         InterfaceSize,
@@ -463,9 +477,14 @@ public static class EasiSettingKeys
         GapItemLogoFile,
         GapItemUseFade,
         DisplayAlwaysUseSecondaryMonitor,
+        IsMonitorWide,
+        FitTextFileParagraphs,
+        PreviewAreaShowNotations,
+        AutoTextOverflow,
         DisplayCustomTop,
         DisplayCustomLeft,
         DisplayCustomWidth,
+        OutputPlacementMode,
         LyricsMonitorTextColorArgb,
         LyricsMonitorHighlightColorArgb,
         LyricsMonitorTextColor2Argb,
@@ -493,6 +512,8 @@ public static class EasiSettingKeys
         LyricsMonitorPanelTransparent,
         LyricsMonitorPanelColorArgb,
         LyricsMonitorPanelFontScalePercent,
+        PanelFontFamily,
+        PanelHeightPercent,
         LyricsMonitorPanelTextColorFollowRegion1,
         LyricsMonitorPanelTextColorArgb,
         LyricsMonitorPanelBold,
@@ -544,6 +565,7 @@ public static class EasiSettingKeys
         NoMediaPanelOverlay,
         MediaDirectory,
         DefaultMediaPath,
+        DefaultMediaFormat,
         MediaVolume,
         MediaBalance,
         MediaMuted,
@@ -582,6 +604,9 @@ public sealed record GeneralSettings
 
     public bool MainInspectorExpanded { get; init; } = EasiSettingKeys.MainInspectorExpanded.DefaultValue;
 
+    public int JumpToA { get; init; } = EasiSettingKeys.JumpToA.DefaultValue;
+    public int JumpToB { get; init; } = EasiSettingKeys.JumpToB.DefaultValue;
+    public int JumpToC { get; init; } = EasiSettingKeys.JumpToC.DefaultValue;
     public int MainBrowserSplitPercent { get; init; } = EasiSettingKeys.MainBrowserSplitPercent.DefaultValue;
 }
 
@@ -634,11 +659,16 @@ public sealed record LiveOutputSettings
     public bool DisplayAlwaysUseSecondaryMonitor { get; init; } =
         EasiSettingKeys.DisplayAlwaysUseSecondaryMonitor.DefaultValue;
 
+    public bool IsMonitorWide { get; init; } = EasiSettingKeys.IsMonitorWide.DefaultValue;
+    public bool FitTextFileParagraphs { get; init; } = EasiSettingKeys.FitTextFileParagraphs.DefaultValue;
+    public bool PreviewAreaShowNotations { get; init; } = EasiSettingKeys.PreviewAreaShowNotations.DefaultValue;
+    public bool AutoTextOverflow { get; init; } = EasiSettingKeys.AutoTextOverflow.DefaultValue;
     public int DisplayCustomTop { get; init; } = EasiSettingKeys.DisplayCustomTop.DefaultValue;
 
     public int DisplayCustomLeft { get; init; } = EasiSettingKeys.DisplayCustomLeft.DefaultValue;
 
     public int DisplayCustomWidth { get; init; } = EasiSettingKeys.DisplayCustomWidth.DefaultValue;
+    public int OutputPlacementMode { get; init; } = EasiSettingKeys.OutputPlacementMode.DefaultValue;
 
     public int LyricsMonitorTextColorArgb { get; init; } = EasiSettingKeys.LyricsMonitorTextColorArgb.DefaultValue;
 
@@ -697,6 +727,8 @@ public sealed record LiveOutputSettings
 
     public int LyricsMonitorPanelColorArgb { get; init; } = EasiSettingKeys.LyricsMonitorPanelColorArgb.DefaultValue;
 
+    public string PanelFontFamily { get; init; } = "";
+    public int PanelHeightPercent { get; init; }
     public int LyricsMonitorPanelFontScalePercent { get; init; } = EasiSettingKeys.LyricsMonitorPanelFontScalePercent.DefaultValue;
 
     public bool LyricsMonitorPanelTextColorFollowRegion1 { get; init; } =
@@ -802,6 +834,7 @@ public sealed record MediaSettings
 
     public string Directory { get; init; } = EasiSettingKeys.MediaDirectory.DefaultValue;
 
+    public string DefaultMediaFormat { get; init; } = "";
     public string DefaultMediaPath { get; init; } = EasiSettingKeys.DefaultMediaPath.DefaultValue;
 
     public double Volume { get; init; } = EasiSettingKeys.MediaVolume.DefaultValue;
@@ -883,6 +916,8 @@ public interface ISettingsService
 
     SettingsResult Set<T>(SettingKey<T> key, T value, SettingsChangeSource source = SettingsChangeSource.User);
 
+    SettingsResult SetValues(IReadOnlyDictionary<string, object> values);
+
     SettingsResult Validate(EasiSettingsSnapshot snapshot);
 
     SettingsResult RestoreDefaults();
@@ -939,6 +974,14 @@ public sealed class SettingsService : ISettingsService
         ArgumentNullException.ThrowIfNull(key);
         var next = SetValue(Current, key.Id, value);
         return ApplySnapshot(next, source, backupPath: null);
+    }
+
+    public SettingsResult SetValues(IReadOnlyDictionary<string, object> values)
+    {
+        ArgumentNullException.ThrowIfNull(values);
+        var snapshot = Current;
+        foreach (var (key, value) in values) snapshot = SetValue(snapshot, key, value);
+        return ApplySnapshot(snapshot, SettingsChangeSource.User, backupPath: null);
     }
 
     public SettingsResult SetShortcutOverride(
@@ -1235,6 +1278,8 @@ public sealed class SettingsService : ISettingsService
             EasiSettingKeys.PowerPointSourceListingStyle.Id,
             issues);
         ValidatePath(candidate.Media.Directory, EasiSettingKeys.MediaDirectory.Id, issues, allowEmpty: true);
+        if (candidate.LiveOutput.PanelHeightPercent is < 0 or > 20)
+            issues.Add(Error(EasiSettingKeys.PanelHeightPercent.Id, "Panel height must be between 0 and 20 percent."));
         ValidatePath(candidate.Media.DefaultMediaPath, EasiSettingKeys.DefaultMediaPath.Id, issues, allowEmpty: true);
         RequireRange(candidate.Media.Volume, min: 0.0, max: 1.0, EasiSettingKeys.MediaVolume.Id, issues);
         RequireRange(candidate.Media.Balance, min: -1.0, max: 1.0, EasiSettingKeys.MediaBalance.Id, issues);
@@ -1340,6 +1385,18 @@ public sealed class SettingsService : ISettingsService
         {
             General = next.General with { OnboardingCompleted = value },
         });
+        next = ApplyLegacyInt(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.JumpToA.Id), next, issues, value => next with
+        {
+            General = next.General with { JumpToA = value is > 0 and < 41 ? value : EasiSettingKeys.JumpToA.DefaultValue },
+        });
+        next = ApplyLegacyInt(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.JumpToB.Id), next, issues, value => next with
+        {
+            General = next.General with { JumpToB = value is > 0 and < 41 ? value : EasiSettingKeys.JumpToB.DefaultValue },
+        });
+        next = ApplyLegacyInt(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.JumpToC.Id), next, issues, value => next with
+        {
+            General = next.General with { JumpToC = value is > 0 and < 41 ? value : EasiSettingKeys.JumpToC.DefaultValue },
+        });
         next = ApplyLegacyBool(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.UseSongNumbering.Id), next, issues, value => next with
         {
             General = next.General with { UseSongNumbering = value },
@@ -1429,6 +1486,22 @@ public sealed class SettingsService : ISettingsService
         {
             LiveOutput = next.LiveOutput with { DisplayAlwaysUseSecondaryMonitor = value },
         });
+        next = ApplyLegacyBool(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.IsMonitorWide.Id), next, issues, value => next with
+        {
+            LiveOutput = next.LiveOutput with { IsMonitorWide = value },
+        });
+        next = ApplyLegacyBool(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.FitTextFileParagraphs.Id), next, issues, value => next with
+        {
+            LiveOutput = next.LiveOutput with { FitTextFileParagraphs = value },
+        });
+        next = ApplyLegacyBool(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.PreviewAreaShowNotations.Id), next, issues, value => next with
+        {
+            LiveOutput = next.LiveOutput with { PreviewAreaShowNotations = value },
+        });
+        next = ApplyLegacyBool(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.AutoTextOverflow.Id), next, issues, value => next with
+        {
+            LiveOutput = next.LiveOutput with { AutoTextOverflow = value },
+        });
         next = ApplyLegacyInt(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.DisplayCustomTop.Id), next, issues, value => next with
         {
             LiveOutput = next.LiveOutput with { DisplayCustomTop = value },
@@ -1440,6 +1513,10 @@ public sealed class SettingsService : ISettingsService
         next = ApplyLegacyInt(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.DisplayCustomWidth.Id), next, issues, value => next with
         {
             LiveOutput = next.LiveOutput with { DisplayCustomWidth = value },
+        });
+        next = ApplyLegacyInt(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.OutputPlacementMode.Id), next, issues, value => next with
+        {
+            LiveOutput = next.LiveOutput with { OutputPlacementMode = value == 1 ? 1 : 0 },
         });
         next = ApplyLegacyInt(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.LyricsMonitorTextColorArgb.Id), next, issues, value => next with
         {
@@ -1790,6 +1867,9 @@ public sealed class SettingsService : ISettingsService
             "general.mainWindowHeight" => snapshot.General.MainWindowHeight,
             "general.mainWindowMaximized" => snapshot.General.MainWindowMaximized,
             "general.mainInspectorExpanded" => snapshot.General.MainInspectorExpanded,
+            "general.jumpToA" => snapshot.General.JumpToA,
+            "general.jumpToB" => snapshot.General.JumpToB,
+            "general.jumpToC" => snapshot.General.JumpToC,
             "general.mainBrowserSplitPercent" => snapshot.General.MainBrowserSplitPercent,
             "appearance.theme" => snapshot.Appearance.Theme,
             "appearance.interfaceSize" => snapshot.Appearance.InterfaceSize,
@@ -1812,9 +1892,14 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.gapItemLogoFile" => snapshot.LiveOutput.GapItemLogoFile,
             "liveOutput.gapItemUseFade" => snapshot.LiveOutput.GapItemUseFade,
             "liveOutput.displayAlwaysUseSecondaryMonitor" => snapshot.LiveOutput.DisplayAlwaysUseSecondaryMonitor,
+            "liveOutput.isMonitorWide" => snapshot.LiveOutput.IsMonitorWide,
+            "liveOutput.fitTextFileParagraphs" => snapshot.LiveOutput.FitTextFileParagraphs,
+            "liveOutput.previewAreaShowNotations" => snapshot.LiveOutput.PreviewAreaShowNotations,
+            "liveOutput.autoTextOverflow" => snapshot.LiveOutput.AutoTextOverflow,
             "liveOutput.displayCustomTop" => snapshot.LiveOutput.DisplayCustomTop,
             "liveOutput.displayCustomLeft" => snapshot.LiveOutput.DisplayCustomLeft,
             "liveOutput.displayCustomWidth" => snapshot.LiveOutput.DisplayCustomWidth,
+            "liveOutput.outputPlacementMode" => snapshot.LiveOutput.OutputPlacementMode,
             "liveOutput.lyricsMonitorTextColorArgb" => snapshot.LiveOutput.LyricsMonitorTextColorArgb,
             "liveOutput.lyricsMonitorHighlightColorArgb" => snapshot.LiveOutput.LyricsMonitorHighlightColorArgb,
             "liveOutput.lyricsMonitorTextColor2Argb" => snapshot.LiveOutput.LyricsMonitorTextColor2Argb,
@@ -1841,6 +1926,8 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorShowDisplayPanel" => snapshot.LiveOutput.LyricsMonitorShowDisplayPanel,
             "liveOutput.lyricsMonitorPanelTransparent" => snapshot.LiveOutput.LyricsMonitorPanelTransparent,
             "liveOutput.lyricsMonitorPanelColorArgb" => snapshot.LiveOutput.LyricsMonitorPanelColorArgb,
+            "liveOutput.panelFontFamily" => snapshot.LiveOutput.PanelFontFamily,
+            "liveOutput.panelHeightPercent" => snapshot.LiveOutput.PanelHeightPercent,
             "liveOutput.lyricsMonitorPanelFontScalePercent" => snapshot.LiveOutput.LyricsMonitorPanelFontScalePercent,
             "liveOutput.lyricsMonitorPanelTextColorFollowRegion1" => snapshot.LiveOutput.LyricsMonitorPanelTextColorFollowRegion1,
             "liveOutput.lyricsMonitorPanelTextColorArgb" => snapshot.LiveOutput.LyricsMonitorPanelTextColorArgb,
@@ -1889,6 +1976,7 @@ public sealed class SettingsService : ISettingsService
             "media.noPanelOverlay" => snapshot.Media.NoPanelOverlay,
             "media.directory" => snapshot.Media.Directory,
             "media.defaultMediaPath" => snapshot.Media.DefaultMediaPath,
+            "media.defaultMediaFormat" => snapshot.Media.DefaultMediaFormat,
             "media.volume" => snapshot.Media.Volume,
             "media.balance" => snapshot.Media.Balance,
             "media.muted" => snapshot.Media.Muted,
@@ -1950,6 +2038,9 @@ public sealed class SettingsService : ISettingsService
             {
                 General = snapshot.General with { MainInspectorExpanded = Cast<bool>(keyId, value) },
             },
+            "general.jumpToA" => snapshot with { General = snapshot.General with { JumpToA = Cast<int>(keyId, value) } },
+            "general.jumpToB" => snapshot with { General = snapshot.General with { JumpToB = Cast<int>(keyId, value) } },
+            "general.jumpToC" => snapshot with { General = snapshot.General with { JumpToC = Cast<int>(keyId, value) } },
             "general.mainBrowserSplitPercent" => snapshot with
             {
                 General = snapshot.General with { MainBrowserSplitPercent = Cast<int>(keyId, value) },
@@ -2038,6 +2129,10 @@ public sealed class SettingsService : ISettingsService
             {
                 LiveOutput = snapshot.LiveOutput with { DisplayAlwaysUseSecondaryMonitor = Cast<bool>(keyId, value) },
             },
+            "liveOutput.isMonitorWide" => snapshot with { LiveOutput = snapshot.LiveOutput with { IsMonitorWide = Cast<bool>(keyId, value) } },
+            "liveOutput.fitTextFileParagraphs" => snapshot with { LiveOutput = snapshot.LiveOutput with { FitTextFileParagraphs = Cast<bool>(keyId, value) } },
+            "liveOutput.previewAreaShowNotations" => snapshot with { LiveOutput = snapshot.LiveOutput with { PreviewAreaShowNotations = Cast<bool>(keyId, value) } },
+            "liveOutput.autoTextOverflow" => snapshot with { LiveOutput = snapshot.LiveOutput with { AutoTextOverflow = Cast<bool>(keyId, value) } },
             "liveOutput.displayCustomTop" => snapshot with
             {
                 LiveOutput = snapshot.LiveOutput with { DisplayCustomTop = Cast<int>(keyId, value) },
@@ -2046,6 +2141,7 @@ public sealed class SettingsService : ISettingsService
             {
                 LiveOutput = snapshot.LiveOutput with { DisplayCustomLeft = Cast<int>(keyId, value) },
             },
+            "liveOutput.outputPlacementMode" => snapshot with { LiveOutput = snapshot.LiveOutput with { OutputPlacementMode = Cast<int>(keyId, value) } },
             "liveOutput.displayCustomWidth" => snapshot with
             {
                 LiveOutput = snapshot.LiveOutput with { DisplayCustomWidth = Cast<int>(keyId, value) },
@@ -2154,6 +2250,8 @@ public sealed class SettingsService : ISettingsService
             {
                 LiveOutput = snapshot.LiveOutput with { LyricsMonitorPanelColorArgb = Cast<int>(keyId, value) },
             },
+            "liveOutput.panelFontFamily" => snapshot with { LiveOutput = snapshot.LiveOutput with { PanelFontFamily = Cast<string>(keyId, value) } },
+            "liveOutput.panelHeightPercent" => snapshot with { LiveOutput = snapshot.LiveOutput with { PanelHeightPercent = Cast<int>(keyId, value) } },
             "liveOutput.lyricsMonitorPanelFontScalePercent" => snapshot with
             {
                 LiveOutput = snapshot.LiveOutput with { LyricsMonitorPanelFontScalePercent = Cast<int>(keyId, value) },
@@ -2342,6 +2440,7 @@ public sealed class SettingsService : ISettingsService
             {
                 Media = snapshot.Media with { Directory = Cast<string>(keyId, value) },
             },
+            "media.defaultMediaFormat" => snapshot with { Media = snapshot.Media with { DefaultMediaFormat = Cast<string>(keyId, value) } },
             "media.defaultMediaPath" => snapshot with
             {
                 Media = snapshot.Media with { DefaultMediaPath = Cast<string>(keyId, value) },

@@ -160,7 +160,7 @@ public class MainMenuBarTests
             "FrmMain Main_NoRotate is checked when auto-rotate is off, not when it is running");
         operatorBar.Should().Contain("x:Name=\"Main_RotateStyle\"", "FrmMain top toolbar uses Main_RotateStyle for the rotate-style dropdown");
         operatorBar.Should().Contain("Tag=\"Main_RotateStyle\"", "the WPF dropdown should preserve the legacy toolbar role");
-        operatorBar.Should().Contain("DisplayMemberPath=\"Text\"", "the dropdown should display the legacy menu text");
+        operatorBar.Should().Contain("Text=\"{Binding Text}\"", "the dropdown should display the legacy menu text");
         operatorBar.Should().Contain("Tag\" Value=\"{Binding LegacyTag}\"", "Main_Rotate0..3 legacy tags should be preserved on dropdown items");
         operatorBar.Should().Contain("AutomationProperties.Name\" Value=\"{Binding Name}\"",
             "dropdown items should expose Main_Rotate0..3 names for parity tests and accessibility");
@@ -217,14 +217,13 @@ public class MainMenuBarTests
             toolStrip.Should().Contain($"Tag=\"{controlName}\"", $"{controlName} should keep its legacy role tag");
         }
 
-        toolStrip.Should().Contain("Click=\"Main_New_Click\"", "Main_New should open the inline song editor path from the shell");
-        toolStrip.Should().Contain("Click=\"Main_Edit_Click\"", "Main_Edit should edit the selected source or Worship List item");
+        toolStrip.Should().Contain("Click=\"Main_SourceEdit_Click\"", "editing must operate on the active source tab");
         toolStrip.Should().Contain("Click=\"Main_Refresh_Click\"", "Main_Refresh should reload the active left source");
         toolStrip.Should().Contain("Click=\"Main_Find_Click\"", "Main_Find should execute the top QuickFind search");
         toolStrip.Should().Contain("IsEditable=\"True\"", "FrmMain Main_QuickFind is a typed phrase box");
         toolStrip.Should().Contain("Text=\"{Binding Search.SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}\"",
             "QuickFind should use the existing SearchUsageViewModel phrase");
-        toolStrip.Should().Contain("Width=\"130\"", "FrmMain Main_QuickFind uses a compact 130px toolbar width");
+        toolStrip.Should().Contain("controls:FrmMainToolBar.IsPhraseBox=\"True\"", "Main_QuickFind receives spare toolbar width");
         toolStrip.Should().Contain("PreviewKeyDown=\"Main_QuickFind_PreviewKeyDown\"",
             "pressing Enter in QuickFind should run the search without opening a modal");
         xaml.Should().Contain("x:Name=\"SearchSourceTab\"", "QuickFind should be able to switch to the inline Search source tab");
@@ -240,7 +239,7 @@ public class MainMenuBarTests
         var toolStrip = ToolStripMainXaml;
         var operatorBar = OperatorBarXaml;
 
-        toolStrip.TrimStart().Should().StartWith("<StackPanel", "toolStripMain should use a non-wrapping one-row panel like FrmMain");
+        toolStrip.TrimStart().Should().StartWith("<controls:FrmMainToolBar", "toolStripMain should use a non-wrapping one-row panel like FrmMain");
         topToolbarArea.Should().Contain("x:Name=\"toolStripMain\"");
         topToolbarArea.Should().Contain("x:Name=\"ClassicOperatorBar\"");
         operatorBar.Should().Contain("Visibility=\"Collapsed\"",
@@ -314,8 +313,8 @@ public class MainMenuBarTests
 
         xaml.Should().Contain("x:Name=\"ClassicSourceColumn\"", "left source/list column should be explicit for FrmMain 1:1 mapping");
         xaml.Should().Contain("x:Name=\"ClassicRightColumn\"", "right Preview/Output splitContainer2 column should be explicit");
-        xaml.Should().Contain("Width=\"0.75*\"", "left column should scale like the legacy splitter instead of staying a narrow fixed rail");
-        xaml.Should().Contain("MinWidth=\"320\"", "left column should keep the source browser usable at smaller sizes");
+        xaml.Should().Contain("Width=\"33*\"", "left column should scale like the legacy splitter instead of staying a narrow fixed rail");
+        xaml.Should().Contain("MinWidth=\"205\"", "left column should keep the source browser usable at smaller sizes");
         xaml.Should().Contain("Tag=\"splitContainer1\"", "left source/list pane should keep the FrmMain splitContainer1 role");
         xaml.Should().Contain("Tag=\"tabControlSource\"", "upper-left source tabs should keep the FrmMain tabControlSource role");
         xaml.Should().Contain("Tag=\"tabControlLists\"", "lower-left list tabs should keep the FrmMain tabControlLists role");
@@ -510,7 +509,7 @@ public class MainMenuBarTests
     }
 
     [Fact]
-    public void ClassicPreviewAndOutputLargeScreens_UseFrmMainFourByThreeSampleScreenSizing()
+    public void ClassicPreviewAndOutputLargeScreens_UseConfiguredMonitorAspect()
     {
         var xaml = Xaml;
 
@@ -524,7 +523,7 @@ public class MainMenuBarTests
         preview.Should().Contain("ConverterParameter=\"Height\"",
             "Preview screen height should use the FrmMain 4:3 sample-screen formula");
         preview.Should().Contain("Width=\"960\"", "Preview screen should keep a 4:3 design surface");
-        preview.Should().Contain("Height=\"720\"", "Preview screen should keep a 4:3 design surface");
+        preview.Should().Contain("Height=\"{Binding SampleScreenHeight}\"", "Preview screen should follow the monitor aspect");
         preview.Should().Contain("x:Name=\"ClassicPreviewBack\"", "Preview background should stay inside the fixed frame like FrmMain PreviewBack");
         preview.Should().Contain("x:Name=\"ClassicPreviewLargeLyricsText\"", "non-PPT Preview lyrics should render in the lower preview frame");
         preview.Should().Contain("Text=\"{Binding PreviewLyricsText}\"", "the lower Preview frame should follow the selected Preview page text");
@@ -555,7 +554,7 @@ public class MainMenuBarTests
         output.Should().Contain("ConverterParameter=\"Height\"",
             "Output screen height should use the FrmMain 4:3 sample-screen formula");
         output.Should().Contain("Width=\"960\"", "Output screen should keep a 4:3 design surface");
-        output.Should().Contain("Height=\"720\"", "Output screen should keep a 4:3 design surface");
+        output.Should().Contain("Height=\"{Binding SampleScreenHeight}\"", "Output screen should follow the monitor aspect");
         output.Should().Contain("x:Name=\"ClassicOutputBack\"", "the output background stays inside the fixed frame");
         output.Should().Contain("x:Name=\"ClassicOutputLargeLyricsText\"", "non-PPT Output lyrics should render in the lower live preview frame");
         output.Should().Contain("Text=\"{Binding OutputLyricsText}\"", "the lower Output frame should follow OutputItem/live lyrics, not selected Preview lyrics");
@@ -726,10 +725,10 @@ public class MainMenuBarTests
                 "thumbnail size should react to the current flow panel width like FrmMain");
             pane.Should().Contain("Converter={StaticResource LegacyPowerPointThumbnailSize}",
                 "thumbnail width should use the legacy (panelWidth - 35) / 3 formula");
-            pane.Should().Contain("ConverterParameter=Height",
-                "thumbnail height should use the legacy 4:3 canvas height");
+            pane.Should().NotContain("ConverterParameter=Height",
+                "thumbnail height should follow the intrinsic slide aspect");
             pane.Should().Contain("Stretch=\"Uniform\"",
-                "the exported slide image should fit inside the legacy 4:3 thumbnail canvas");
+                "the complete exported slide should fit inside the selection frame");
             pane.Should().Contain("RenderOptions.BitmapScalingMode=\"HighQuality\"",
                 "WPF should scale FrmMain-sized PPT exports cleanly instead of nearest-neighbor blurring");
             pane.Should().Contain("SnapsToDevicePixels=\"True\"",
@@ -962,7 +961,7 @@ public class MainMenuBarTests
         tabs.Should().Contain("x:Key=\"EsTabView.FrmMainBottomItem\"", "FrmMain tabs need compact item chrome");
         tabs.Should().Contain("<Setter Property=\"FontSize\" Value=\"11\" />",
             "FrmMain bottom tabs need WinForms-density labels so all source roles, including Default, fit in the left pane");
-        tabs.Should().Contain("<Setter Property=\"Padding\" Value=\"4,1\" />",
+        tabs.Should().Contain("<Setter Property=\"Padding\" Value=\"3,1\" />",
             "FrmMain bottom tabs should not carry WPF padding that pushes Default out of the visible strip");
         tabs.Should().Contain("PART_SelectedContentHost", "the FrmMain tab template should render selected content separately from the bottom tab strip");
         tabs.Should().Contain("Grid.Row=\"1\"", "the FrmMain tab template should dock the header strip below selected content");
@@ -1773,11 +1772,11 @@ public class MainMenuBarTests
         xaml.Should().Contain("{Binding CopyPreviewToOutputCommand}", "FrmMain btnToOutput should copy Preview into Output without starting live");
         xaml.Should().Contain("{Binding CopyPreviewToOutputAndNextCommand}", "FrmMain btnToOutputMoveNext should copy Output and advance Preview without starting live");
         xaml.Should().Contain("{Binding PreviewToLiveCommand}", "FrmMain btnToLive should use PreviewItem->OutputItem live semantics, separate from the fixed operator GoLive command");
-        xaml.Should().MatchRegex(@"(?s)<Button\s+x:Name=""btnToLive""[^>]*>\s*<ui:SymbolIcon",
+        xaml.Should().MatchRegex(@"(?s)<Button\s+x:Name=""btnToLive""[^>]*>\s*<controls:FrmIcon",
             "FrmMain Preview top command strip uses compact icon buttons rather than text-only toolbar labels");
-        xaml.Should().MatchRegex(@"(?s)<Button\s+x:Name=""btnToOutputMoveNext""[^>]*>\s*<ui:SymbolIcon",
+        xaml.Should().MatchRegex(@"(?s)<Button\s+x:Name=""btnToOutputMoveNext""[^>]*>\s*<controls:FrmIcon",
             "FrmMain Preview copy-and-next command should remain a compact icon button");
-        xaml.Should().MatchRegex(@"(?s)<Button\s+x:Name=""btnToOutput""[^>]*>\s*<ui:SymbolIcon",
+        xaml.Should().MatchRegex(@"(?s)<Button\s+x:Name=""btnToOutput""[^>]*>\s*<controls:FrmIcon",
             "FrmMain Preview copy-to-Output command should remain a compact icon button");
         OperatorBarXaml.Should().Contain("{Binding SendToOutputAndNextCommand}", "fixed operator bar keeps F11 live send-and-next");
         xaml.Should().Contain("Text=\"{Binding DataContext.OutputPanelTitleText, RelativeSource={RelativeSource AncestorType=ListView}}\"",
@@ -1805,10 +1804,10 @@ public class MainMenuBarTests
             "ClassicOutputPane",
         })
         {
-            var section = SectionBetween(xaml, $"x:Name=\"{pane}\"", "Padding=\"4\">");
+            var section = SectionBetween(xaml, $"x:Name=\"{pane}\"", "Padding=\"0\">");
             section.Should().Contain("Background=\"White\"",
                 $"{pane} is the white top half of the FrmMain split panel, not a modern card");
-            section.Should().Contain("BorderThickness=\"1\"", $"{pane} keeps the WinForms-like splitter border");
+            section.Should().Contain("BorderThickness=\"0\"", $"{pane} lets the one-piece colored header own its border");
             section.Should().NotContain("CornerRadius=", $"{pane} should stay square like FrmMain panels");
         }
 
@@ -1827,7 +1826,7 @@ public class MainMenuBarTests
     }
 
     [Fact]
-    public void ClassicPreviewAndOutputBottomStrips_UseFrmMainWhiteToolbarRows()
+    public void ClassicPreviewAndOutputBottomStrips_UseFrmMainControlColor()
     {
         var xaml = Xaml;
 
@@ -1838,7 +1837,7 @@ public class MainMenuBarTests
         })
         {
             var host = SectionBetween(xaml, $"x:Name=\"{pair.Item1}\"", $"</Border>");
-            host.Should().Contain("Background=\"White\"",
+            host.Should().Contain("SystemColors.ControlBrushKey",
                 $"{pair.Item1} should separate controls from the grey screen work area like FrmMain");
             host.Should().Contain("BorderThickness=\"0,0,0,1\"",
                 $"{pair.Item1} should draw the thin divider above the grey screen work area");
@@ -1880,10 +1879,10 @@ public class MainMenuBarTests
             "Preview PowerPoint top pane should wrap thumbnails like FrmMain flowLayoutPreviewPowerPoint");
         previewPowerPointSurface.Should().Contain("Converter={StaticResource LegacyPowerPointThumbnailSize}",
             "Preview PowerPoint thumbnails should use the FrmMain three-column flow sizing formula");
-        previewPowerPointSurface.Should().Contain("ConverterParameter=Height",
-            "Preview PowerPoint thumbnail height should preserve the FrmMain 4:3 canvas formula");
-        previewPowerPointSurface.Should().Contain("<Setter Property=\"BorderBrush\" Value=\"Red\" />",
-            "the current Preview PowerPoint thumbnail should use the FrmMain red selected border");
+        previewPowerPointSurface.Should().NotContain("ConverterParameter=Height",
+            "Preview thumbnail height follows the exported slide aspect");
+        previewPowerPointSurface.Should().Contain("<Setter Property=\"BorderBrush\" Value=\"#005FB8\" />",
+            "the current Preview PowerPoint thumbnail should use the FrmMain blue Preview border");
         previewPowerPointSurface.Should().Contain("Background=\"#FFF6E600\"",
             "Preview PowerPoint thumbnails should show the FrmMain yellow slide-number badge");
         previewPowerPointSurface.Should().NotContain("PowerPoint.PreviewImage",
@@ -1931,16 +1930,16 @@ public class MainMenuBarTests
             "the single display-name row should stay selected like the legacy ListView item");
         xaml.Should().Contain("Text=\"{Binding DataContext.PreviewPanelTitleText, RelativeSource={RelativeSource AncestorType=ListView}}\"",
             "Preview title row should bind to the effective Preview item, including source-preview items that are not yet in Worship List");
-        xaml.Should().Contain("Text=\"{Binding DataContext.PreviewPanelSourceText, RelativeSource={RelativeSource AncestorType=ListView}}\"",
-            "Preview title row should expose a FrmMain-style source/type cell");
-        xaml.Should().Contain("Text=\"{Binding DataContext.PreviewPanelStatusText, RelativeSource={RelativeSource AncestorType=ListView}}\"",
+        xaml.Should().Contain("Text=\"{Binding PreviewPanelSourceText}\"",
+            "Preview title row should expose a source/type tooltip");
+        xaml.Should().Contain("Text=\"{Binding PreviewPanelStatusText}\"",
             "Preview title row should expose a FrmMain-style status/position cell");
         xaml.Should().Contain("Text=\"{Binding DataContext.OutputPanelTitleText, RelativeSource={RelativeSource AncestorType=ListView}}\"",
             "Output title row should bind to the effective prepared/live Output item through the same navigation source as the source/status cells");
-        xaml.Should().Contain("Text=\"{Binding DataContext.OutputPanelSourceText, RelativeSource={RelativeSource AncestorType=ListView}}\"",
-            "Output title row should expose a FrmMain-style source/type cell");
-        xaml.Should().Contain("Text=\"{Binding DataContext.OutputPanelStatusText, RelativeSource={RelativeSource AncestorType=ListView}}\"",
-            "Output title row should expose a FrmMain-style status/live cell");
+        xaml.Should().Contain("Text=\"{Binding OutputPanelSourceText}\"",
+            "Output title row should expose a source/type tooltip");
+        xaml.Should().Contain("Text=\"{Binding OutputPanelStatusText}\"",
+            "Output title row should expose a status tooltip");
     }
 
     [Fact]
@@ -2212,18 +2211,13 @@ public class MainMenuBarTests
             "FrmMain uses a wider button for the 'w' bridge-2 section");
 
         var stripButtonStyle = SectionBetween(xaml, "x:Key=\"ClassicOperatorStripButton\"", "</Style>");
-        stripButtonStyle.Should().Contain("<Setter Property=\"Width\" Value=\"30\" />");
-        stripButtonStyle.Should().Contain("<Setter Property=\"Height\" Value=\"33\" />");
+        stripButtonStyle.Should().Contain("<Setter Property=\"Width\" Value=\"24\" />");
+        stripButtonStyle.Should().Contain("<Setter Property=\"Height\" Value=\"27\" />");
         stripButtonStyle.Should().Contain("<Setter Property=\"Padding\" Value=\"0\" />");
 
-        var stripDangerButtonStyle = SectionBetween(xaml, "x:Key=\"ClassicOperatorStripDangerButton\"", "</Style>");
-        stripDangerButtonStyle.Should().Contain("<Setter Property=\"Width\" Value=\"30\" />");
-        stripDangerButtonStyle.Should().Contain("<Setter Property=\"Height\" Value=\"33\" />");
-        stripDangerButtonStyle.Should().Contain("<Setter Property=\"Padding\" Value=\"0\" />");
-
         var stripToggleStyle = SectionBetween(xaml, "x:Key=\"ClassicOperatorStripToggleButton\"", "</Style>");
-        stripToggleStyle.Should().Contain("<Setter Property=\"Width\" Value=\"30\" />");
-        stripToggleStyle.Should().Contain("<Setter Property=\"Height\" Value=\"33\" />");
+        stripToggleStyle.Should().Contain("<Setter Property=\"Width\" Value=\"24\" />");
+        stripToggleStyle.Should().Contain("<Setter Property=\"Height\" Value=\"27\" />");
         stripToggleStyle.Should().Contain("<Setter Property=\"Padding\" Value=\"0\" />");
 
         foreach (var name in new[]
@@ -2254,33 +2248,18 @@ public class MainMenuBarTests
             SelfClosingControlBlock(xaml, name).Should().Contain("Style=\"{StaticResource ClassicOperatorStripButton}\"");
         }
 
-        SelfClosingControlBlock(xaml, "IndcbPreviewNotes").Should().Contain("Width=\"33\"");
-        SelfClosingControlBlock(xaml, "IndradioButtonText").Should().Contain("Width=\"46\"");
-        SelfClosingControlBlock(xaml, "IndradioButtonFormat").Should().Contain("Width=\"40\"");
-        SelfClosingControlBlock(xaml, "IndradioButtonInfo").Should().Contain("Width=\"45\"");
+        SelfClosingControlBlock(xaml, "IndcbPreviewNotes").Should().Contain("Width=\"26\"");
+        SelfClosingControlBlock(xaml, "IndradioButtonText").Should().Contain("Width=\"34\"");
+        SelfClosingControlBlock(xaml, "IndradioButtonFormat").Should().Contain("Width=\"29\"");
+        SelfClosingControlBlock(xaml, "IndradioButtonInfo").Should().Contain("Width=\"33\"");
     }
 
     [Fact]
-    public void ClassicOutputBottomStrip_ExposesLocalStopRestartAndRefreshLiveControls()
+    public void ClassicOutputBottomStrip_KeepsSecondaryCommandsInThePaneContextMenu()
     {
-        var strip = SectionBetween(Xaml, "x:Name=\"ClassicOutputBottomStrip\"", "x:Name=\"flowLayoutPanel2\"");
-
-        strip.Should().Contain("x:Name=\"OutputBtnStopLive\"",
-            "Stop Live should be reachable from the local Output operator strip, not only the global bar");
-        strip.Should().Contain("Command=\"{Binding StopLiveCommand}\"");
-        strip.Should().Contain("Style=\"{StaticResource ClassicOperatorStripDangerButton}\"",
-            "stopping live output is a dangerous action even in the compact FrmMain strip");
-        strip.Should().Contain("x:Name=\"OutputBtnRestartCurrentItem\"");
-        strip.Should().Contain("Command=\"{Binding RestartCurrentItemCommand}\"",
-            "Restart Current Item should act on the live/prepared Output item from the Output strip");
-        strip.Should().Contain("x:Name=\"OutputBtnRefresh\"");
-        strip.Should().Contain("Command=\"{Binding RefreshOutputCommand}\"",
-            "Refresh Output should be available in the same local Output control band as slide/item navigation");
-
-        var stopIndex = strip.IndexOf("x:Name=\"OutputBtnStopLive\"", StringComparison.Ordinal);
-        var blackIndex = strip.IndexOf("ToggleOutputBlackCommand", StringComparison.Ordinal);
-        stopIndex.Should().BeGreaterThanOrEqualTo(0);
-        blackIndex.Should().BeGreaterThan(stopIndex, "Stop Live should stay next to Output live-safety controls");
+        var menu = SectionBetween(Xaml, "<WrapPanel.ContextMenu>", "</WrapPanel.ContextMenu>");
+        foreach (var command in new[] { "StopLiveCommand", "RestartCurrentItemCommand", "RefreshOutputCommand" })
+            menu.Should().Contain($"Command=\"{{Binding {command}}}\"");
     }
 
     private static string OperatorBarXaml
@@ -2309,11 +2288,11 @@ public class MainMenuBarTests
             var marker = xaml.IndexOf("x:Name=\"toolStripMain\"", StringComparison.Ordinal);
             marker.Should().BeGreaterThanOrEqualTo(0, "FrmMain top toolStripMain should have a stable XAML name for drift tests");
 
-            var start = xaml.LastIndexOf("<StackPanel", marker, StringComparison.Ordinal);
-            start.Should().BeGreaterThanOrEqualTo(0, "toolStripMain should be a StackPanel so it cannot wrap into a second row");
+            var start = xaml.LastIndexOf("<controls:FrmMainToolBar", marker, StringComparison.Ordinal);
+            start.Should().BeGreaterThanOrEqualTo(0, "toolStripMain should be the responsive one-row panel so it cannot wrap into a second row");
 
-            var end = xaml.IndexOf("</StackPanel>", marker, StringComparison.Ordinal);
-            end.Should().BeGreaterThan(marker, "the top toolStripMain StackPanel range should be discoverable");
+            var end = xaml.IndexOf("</controls:FrmMainToolBar>", marker, StringComparison.Ordinal);
+            end.Should().BeGreaterThan(marker, "the top toolbar range should be discoverable");
 
             return xaml[start..end];
         }
@@ -2347,9 +2326,7 @@ public class MainMenuBarTests
 
     [Theory]
     // 편집/도구/보기/도움말 항목은 DI 창 런처(Click 핸들러)에 배선. 핸들러 미정의면 빌드가 실패(컴파일 가드).
-    [InlineData("SongCopy_Click")]
-    [InlineData("SongMove_Click")]
-    [InlineData("SongDelete_Click")]
+    [InlineData("Main_SourceEdit_Click")]
     [InlineData("SongRecover_Click")]
     [InlineData("SongMerge_Click")]
     [InlineData("FolderEditor_Click")]
@@ -2459,7 +2436,7 @@ public class MainMenuBarTests
     [InlineData("InputGestureText=\"F9\"")]      // 검은 화면
     [InlineData("InputGestureText=\"F3\"")]      // 화면 비우기
     [InlineData("InputGestureText=\"F1\"")]      // 도움말
-    [InlineData("InputGestureText=\"Ctrl+R\"")]  // 현재 항목 처음으로(증분136)
+    [InlineData("InputGestureText=\"F5\"")]  // 현재 항목 처음으로(증분136)
     [InlineData("InputGestureText=\"Ctrl+F5\"")] // 출력 새로고침(증분136)
     public void MenuBar_ShowsCoreGestureHints(string gesture)
         => Xaml.Should().Contain(gesture, $"메뉴에 {gesture} 단축키 힌트가 보여야 함");
@@ -2474,9 +2451,9 @@ public class MainMenuBarTests
     [InlineData(Easislides.Wpf.Shell.MainCommandIds.LivePrevious, "Shift+Space", "LivePreviousShortcutCommand")]
     [InlineData(Easislides.Wpf.Shell.MainCommandIds.LiveBlack, "F9", "ToggleOutputBlackCommand")]
     [InlineData(Easislides.Wpf.Shell.MainCommandIds.LiveClear, "F3", "ToggleOutputClearCommand")]
-    [InlineData(Easislides.Wpf.Shell.MainCommandIds.LiveRestart, "Ctrl+R", "RestartCurrentItemCommand")]
+    [InlineData(Easislides.Wpf.Shell.MainCommandIds.LiveRestart, "F5", "RestartCurrentItemCommand")]
     [InlineData(Easislides.Wpf.Shell.MainCommandIds.LiveRefresh, "Ctrl+F5", "RefreshOutputCommand")]
-    [InlineData(Easislides.Wpf.Shell.MainCommandIds.WindowHelp, "F1", "OpenHelp_Click")]
+    [InlineData(Easislides.Wpf.Shell.MainCommandIds.WindowHelp, "F1", "HelpContents_Click")]
     public void MenuGestureHints_MatchActualCatalogShortcutAndMenuCommand(
         string commandId,
         string gesture,

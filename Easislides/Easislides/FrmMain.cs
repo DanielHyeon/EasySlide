@@ -55,11 +55,14 @@ namespace Easislides
             FormClosed += Form1_FormClosed;
             WatchFirstShown();
 
-            Init();
-
-            frmMain = this;
             _keyboardHandler = new KeyboardActionHandler(this);
+            _globalShortcuts = new GlobalShortcutRouter(
+                key => TryPostGlobalInput(() => _keyboardHandler.HandleGlobalFunctionKey(key)),
+                (key, control) => TryPostGlobalInput(() => _keyboardHandler.HandleGlobalArrowKey(key, control)),
+                key => TryPostGlobalInput(() => HandleMediaPlayerKey(key)));
 
+            Init();
+            frmMain = this;
         }
 
         private void Init()
@@ -6535,6 +6538,7 @@ namespace Easislides
         private FrmLaunchMediaPlayer _mediaPlayerWindow = null;
         private bool _isMediaPlayerHookActive = false;
         private KeyboardActionHandler _keyboardHandler;
+        private readonly GlobalShortcutRouter _globalShortcuts;
 
         private void PlayMediaOnOutputMonitor(string mediaFilePath)
         {
@@ -6628,6 +6632,7 @@ namespace Easislides
                 _mediaPlayerWindow.Remote_StopItem();
                 _mediaPlayerWindow.Hide();
             }
+            RemoveHookMediaPlayer();
         }
 
         /// <summary>
@@ -6645,7 +6650,7 @@ namespace Easislides
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Failed to add media player hook: {ex.Message}");
+                Trace.TraceWarning($"Failed to add media player hook: {ex.Message}");
             }
         }
 
@@ -6656,15 +6661,12 @@ namespace Easislides
         {
             try
             {
-                if (_isMediaPlayerHookActive)
-                {
-                    HookManager.KeyDown -= HookManager_MediaPlayer_KeyDown;
-                    _isMediaPlayerHookActive = false;
-                }
+                _isMediaPlayerHookActive = false;
+                HookManager.KeyDown -= HookManager_MediaPlayer_KeyDown;
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Failed to remove media player hook: {ex.Message}");
+                Trace.TraceWarning($"Failed to remove media player hook: {ex.Message}");
             }
         }
 
@@ -6679,11 +6681,7 @@ namespace Easislides
                 return;
             }
 
-            // Make sure it runs on the UI thread
-            frmMain.BeginInvoke(new Action(() =>
-            {
-                HandleMediaPlayerKey(e.KeyCode);
-            }));
+            _globalShortcuts.OnMediaKey(e.KeyCode);
         }
 
         /// <summary>
@@ -6691,7 +6689,7 @@ namespace Easislides
         /// </summary>
         private void HandleMediaPlayerKey(Keys key)
         {
-            if (_mediaPlayerWindow == null || _mediaPlayerWindow.IsDisposed)
+            if (_mediaPlayerWindow == null || _mediaPlayerWindow.IsDisposed || !_mediaPlayerWindow.Visible)
                 return;
 
             switch (key)
@@ -9013,19 +9011,19 @@ namespace Easislides
             {
                 if (Gf.GlobalHookKey_Arrow || Gf.GlobalHookKey_CtrlArrow)
                 {
-                    HookManager.KeyUp += HookManager_KeyUp;
+                    HookManager.KeyUp += _globalShortcuts.OnArrowKey;
                 }
             }
-            catch { }
+            catch (System.ComponentModel.Win32Exception ex) { Trace.TraceWarning(ex.ToString()); }
         }
 
         public void RemoveHookSlideUpDown()
         {
             try
             {
-                HookManager.KeyUp -= HookManager_KeyUp;
+                HookManager.KeyUp -= _globalShortcuts.OnArrowKey;
             }
-            catch { }
+            catch (System.ComponentModel.Win32Exception ex) { Trace.TraceWarning(ex.ToString()); }
         }
 
         /// <summary>
@@ -9037,19 +9035,19 @@ namespace Easislides
             {
                 if (Gf.GlobalHookKey_F7 || Gf.GlobalHookKey_F8 || Gf.GlobalHookKey_F9 || Gf.GlobalHookKey_F10)
                 {
-                    HookManager.KeyDown += HookManager_KeyDown;
+                    HookManager.KeyDown += _globalShortcuts.OnFunctionKey;
                 }
             }
-            catch { }
+            catch (System.ComponentModel.Win32Exception ex) { Trace.TraceWarning(ex.ToString()); }
         }
 
         public void RemoveHookBlackScreen()
         {
             try
             {
-                HookManager.KeyDown -= HookManager_KeyDown;
+                HookManager.KeyDown -= _globalShortcuts.OnFunctionKey;
             }
-            catch { }
+            catch (System.ComponentModel.Win32Exception ex) { Trace.TraceWarning(ex.ToString()); }
         }
 
         public void UpdateBlackScreenShortcut()
@@ -9060,27 +9058,19 @@ namespace Easislides
             RefreshShortcutTooltips();
         }
 
-        #region Event handlers of particular events. They will be activated when an appropriate checkbox is checked.
-        private void HookManager_KeyDown(object sender, KeyEventArgs e)
+        private bool TryPostGlobalInput(Action action)
         {
-            frmMain.BeginInvoke(new Action(() =>
+            if (!IsHandleCreated || Disposing || IsDisposed) return false;
+            try
             {
-                _keyboardHandler.HandleGlobalFunctionKey(e.KeyCode);
-                if (e.KeyCode == Keys.F9 || e.KeyCode == Keys.F10)
-                {
-                    e.Handled = true;
-                }
-            }));
-        }
-
-        private void HookManager_KeyUp(object sender, KeyEventArgs e)
-        {
-            frmMain.BeginInvoke(new Action(() =>
+                BeginInvoke(action);
+                return true;
+            }
+            catch (InvalidOperationException) when (!IsHandleCreated || Disposing || IsDisposed)
             {
-                _keyboardHandler.HandleGlobalArrowKey(e.KeyCode, HookManager.Control);
-            }));
+                return false;
+            }
         }
-        #endregion
 
         private void Main_QuickFind_Click(object sender, EventArgs e)
         {

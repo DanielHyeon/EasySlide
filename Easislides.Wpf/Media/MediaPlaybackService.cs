@@ -33,7 +33,8 @@ public sealed record MediaPlaybackRequest(
     bool IsMuted = false,
     bool IsRepeatEnabled = false,
     bool IsWidescreen = true,
-    string? OutputDisplayId = null);
+    string? OutputDisplayId = null,
+    ItemMediaOptions? ItemOptions = null);
 
 public sealed record MediaPlaybackSnapshot(
     MediaPlaybackState State,
@@ -124,10 +125,13 @@ public sealed class MediaPlaybackService : IMediaPlaybackService, IDisposable
 
     public MediaPlaybackSnapshot Current { get; private set; } = MediaPlaybackSnapshot.Empty;
 
+    private ItemMediaOptions? _loadedItemOptions;
+
     public void Load(MediaPlaybackRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentException.ThrowIfNullOrWhiteSpace(request.Source);
+        _loadedItemOptions = request.ItemOptions;
         var effectiveRequest = ApplyConfiguredAudioDefaults(request);
 
         var snapshot = new MediaPlaybackSnapshot(
@@ -146,6 +150,37 @@ public sealed class MediaPlaybackService : IMediaPlaybackService, IDisposable
             ErrorMessage: null);
 
         TryUpdate(snapshot, () => _backend.Load(snapshot));
+    }
+
+    internal void ReportFilePosition(string source, TimeSpan position, TimeSpan duration)
+    {
+        if (!IsCurrentFile(source) || Current.State is MediaPlaybackState.Failed or MediaPlaybackState.Empty) return;
+        Update(Current with { Duration = ClampDuration(duration), Position = ClampPosition(position, duration) });
+    }
+
+    internal void ReportFileEnded(string source)
+    {
+        if (!IsCurrentFile(source) || Current.State != MediaPlaybackState.Playing) return;
+        if (!Current.IsRepeatEnabled) { Stop(); return; }
+        Seek(TimeSpan.Zero);
+        Play();
+    }
+
+    internal void ReportFileFailure(string source, Exception failure)
+    {
+        if (IsCurrentFile(source)) Update(Current with { State = MediaPlaybackState.Failed, ErrorMessage = failure.Message });
+    }
+
+    internal void ReportBackendFailure(Exception failure) =>
+        Update(Current with { State = MediaPlaybackState.Failed, ErrorMessage = failure.Message });
+
+    private bool IsCurrentFile(string source)
+    {
+        if (Current.SourceKind != MediaSourceKind.File || string.IsNullOrWhiteSpace(Current.Source)) return false;
+        if (Uri.TryCreate(Current.Source, UriKind.Absolute, out var uri))
+            return uri.IsFile && string.Equals(uri.LocalPath, source, StringComparison.OrdinalIgnoreCase);
+        try { return string.Equals(Path.GetFullPath(Current.Source), source, StringComparison.OrdinalIgnoreCase); }
+        catch (Exception ex) when (ex is ArgumentException or NotSupportedException or PathTooLongException) { return false; }
     }
 
     public void LoadFromMediaDirectory(string fileName, TimeSpan duration, string mediaType)
@@ -292,16 +327,14 @@ public sealed class MediaPlaybackService : IMediaPlaybackService, IDisposable
 
     private MediaPlaybackRequest ApplyConfiguredAudioDefaults(MediaPlaybackRequest request)
     {
-        if (_settings is null)
-        {
-            return request;
-        }
-
+        var item = request.ItemOptions;
         return request with
         {
-            Volume = ToPercent(_settings.Get(EasiSettingKeys.MediaVolume), 0, 100),
-            Balance = ToPercent(_settings.Get(EasiSettingKeys.MediaBalance), -100, 100),
-            IsMuted = _settings.Get(EasiSettingKeys.MediaMuted)
+            Volume = item?.Volume ?? (_settings == null ? request.Volume : ToPercent(_settings.Get(EasiSettingKeys.MediaVolume), 0, 100)),
+            Balance = item?.Balance ?? (_settings == null ? request.Balance : ToPercent(_settings.Get(EasiSettingKeys.MediaBalance), -100, 100)),
+            IsMuted = item?.Flags is int flags ? (flags & 1) != 0 : _settings?.Get(EasiSettingKeys.MediaMuted) ?? request.IsMuted,
+            IsRepeatEnabled = item?.Flags is int repeat ? (repeat & 2) != 0 : request.IsRepeatEnabled,
+            IsWidescreen = item?.Flags is int wide ? (wide & 4) != 0 : request.IsWidescreen
         };
     }
 
@@ -312,14 +345,18 @@ public sealed class MediaPlaybackService : IMediaPlaybackService, IDisposable
             return;
         }
 
-        if (ContainsLiveCameraSetting(args.ChangedKeys) && Current.SourceKind == MediaSourceKind.CaptureDevice)
+        if (ContainsLiveCameraSetting(args.ChangedKeys) && Current.SourceKind == MediaSourceKind.CaptureDevice && _loadedItemOptions?.Mode != 3)
         {
             var next = Current with
             {
                 Source = CreateLiveCameraSource(GetConfiguredLiveCameraNumber()),
                 ErrorMessage = null
             };
-            TryUpdate(next, () => _backend.Load(next));
+            TryUpdate(next, () =>
+            {
+                _backend.Load(next);
+                if (next.State == MediaPlaybackState.Playing) _backend.Play();
+            });
         }
 
         if (!ContainsAudioSetting(args.ChangedKeys))
@@ -329,9 +366,9 @@ public sealed class MediaPlaybackService : IMediaPlaybackService, IDisposable
 
         ApplySettings(Current with
         {
-            Volume = ToPercent(_settings.Get(EasiSettingKeys.MediaVolume), 0, 100),
-            Balance = ToPercent(_settings.Get(EasiSettingKeys.MediaBalance), -100, 100),
-            IsMuted = _settings.Get(EasiSettingKeys.MediaMuted)
+            Volume = _loadedItemOptions?.Volume ?? ToPercent(_settings.Get(EasiSettingKeys.MediaVolume), 0, 100),
+            Balance = _loadedItemOptions?.Balance ?? ToPercent(_settings.Get(EasiSettingKeys.MediaBalance), -100, 100),
+            IsMuted = _loadedItemOptions?.Flags is int flags ? (flags & 1) != 0 : _settings.Get(EasiSettingKeys.MediaMuted)
         });
     }
 

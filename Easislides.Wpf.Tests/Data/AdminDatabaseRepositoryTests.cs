@@ -15,6 +15,32 @@ namespace Easislides.Wpf.Tests.Data;
 public class AdminDatabaseRepositoryTests
 {
     [Fact]
+    public async Task FolderListingAndMediaReadTheCompleteFolderAndMaintenanceWritesOnlyItsTargets()
+    {
+        using var fixture = AdminDatabaseFixture.Create();
+        fixture.CreateLegacySchema();
+        fixture.InsertFolder(1, "Songs", "True");
+        fixture.InsertSong(7, "A", 1, 1, writer: "Writer", sequence: "1 C C", bookReference: "MP5,SF 2",
+            formatData: "99=retain>50=2>51=first.mp4>");
+        fixture.InsertSong(8, "Deleted", 0, 2, oldFolder: 1);
+        var repo = new AdminDatabaseRepository();
+        var saved = await repo.SaveSongMediaAsync(fixture.DatabasePath, fixture.BackupRoot, 7, "O'Brien.mp4");
+        saved.Succeeded.Should().BeTrue();
+        File.Exists(saved.BackupPath).Should().BeTrue();
+        var songs = await repo.GetSongsAsync(fixture.DatabasePath, 1);
+        songs.Single().FormatData.Should().Be("99=retain>50=2>51=O'Brien.mp4>");
+        songs.Single().Sequence.Should().Be("1 C C");
+        FolderListing.TabSeparated(songs, ",").Should().Contain("A\tWriter\t5\t2\t");
+        var purge = await repo.MaintainSongsAsync(fixture.DatabasePath, fixture.BackupRoot, AdminDatabaseWriteOperation.EmptyDeletedSongs);
+        purge.Succeeded.Should().BeTrue();
+        (await repo.GetSongsAsync(fixture.DatabasePath)).Select(song => song.SongId).Should().Equal(7);
+        var clear = await repo.MaintainSongsAsync(fixture.DatabasePath, fixture.BackupRoot, AdminDatabaseWriteOperation.ClearSongFormatting);
+        clear.Succeeded.Should().BeTrue();
+        var unchanged = (await repo.GetSongsAsync(fixture.DatabasePath)).Single();
+        unchanged.Should().Be(songs.Single() with { FormatData = "" });
+    }
+
+    [Fact]
     public async Task JsonSongExchange_RoundTripsMetadataAndOnlyTheSelectedFolderInSqlite()
     {
         using var fixture = AdminDatabaseFixture.Create();

@@ -197,10 +197,10 @@ namespace Easislides
                     s_MouseDoubleClick -= value;
                     if (s_MouseDoubleClick == null)
                     {
-                        //Stop monitoring mouse up
-                        MouseUp -= OnMouseUp;
-                        //Dispose the timer
+                        s_MouseUp -= OnMouseUp;
                         s_DoubleClickTimer.Tick -= DoubleClickTimeElapsed;
+                        s_DoubleClickTimer.Dispose();
+                        s_PrevClickedButton = MouseButtons.None;
                         s_DoubleClickTimer = null;
                     }
                 }
@@ -236,11 +236,11 @@ namespace Easislides
                 if (s_MouseDoubleClick!=null)
                 {
                     //Fire double click
+                    s_DoubleClickTimer.Enabled = false;
+                    s_PrevClickedButton = MouseButtons.None;
                     s_MouseDoubleClick.Invoke(null, e);
                 }
-                //Stop timer
-                s_DoubleClickTimer.Enabled = false;
-                s_PrevClickedButton = MouseButtons.None;
+
             }
             else
             {

@@ -1,3 +1,4 @@
+using System.Linq;
 using System;
 using System.Globalization;
 using Easislides.Wpf.Settings;
@@ -42,6 +43,16 @@ public sealed record SongFormatData
     public string SlideTransitionName { get; init; } = "";
 
     /// <summary>FormatData 문자열을 디코드한다. 비었으면 null. 인식 못 한 키/형식은 건너뛴다.</summary>
+    internal static string WithMediaPath(string? format, string path)
+    {
+        // Preserve properties unknown to the WPF editor when editing one media assignment.
+        var fields = (format ?? "").Split('>', StringSplitOptions.RemoveEmptyEntries)
+            .Where(field => !field.StartsWith("50=", StringComparison.Ordinal) && !field.StartsWith("51=", StringComparison.Ordinal));
+        string remaining = string.Join(">", fields);
+        if (remaining.Length > 0) remaining += ">";
+        return string.IsNullOrWhiteSpace(path) ? remaining : remaining + $"50=2>51={path}>";
+    }
+
     public static SongFormatData? Parse(string? formatData)
     {
         if (string.IsNullOrWhiteSpace(formatData))

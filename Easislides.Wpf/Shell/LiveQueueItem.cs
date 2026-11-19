@@ -28,6 +28,9 @@ public sealed record LiveQueueItem(string Id, string Title, string Kind = LiveIt
     /// <summary>곡 항목의 가사(추가 시점에 적재 — 선택 시 미리보기에 표시). 라이브 큐 콘텐츠 plumbing.</summary>
     public string? Lyrics { get; init; }
 
+    [System.Text.Json.Serialization.JsonIgnore]
+    public string? ProjectedTextPage { get; init; }
+
     /// <summary>
     /// 곡 절 순서(Sequence) — 절을 [라벨] 마커로 1회 정의하고 "1 C 2 C" 식으로 순서·반복을 지정(레거시 절 순서 모델).
     /// 토큰은 쉼표·공백으로 구분하므로 라벨은 공백 없는 한 단어여야 한다(예: [Verse 1] 은 단일 토큰으로 못 부름 → [V1] 처럼).

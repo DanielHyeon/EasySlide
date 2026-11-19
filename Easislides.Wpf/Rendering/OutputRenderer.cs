@@ -438,6 +438,8 @@ public sealed class OutputRenderer : IOutputRenderer
         var viewportHeight = Math.Max(0, request.ViewportHeight);
         var liveOutput = request.LiveOutputSettings ?? LiveOutputRenderSettings.Default;
         var kind = GetSceneKind(request.Session, request.Output);
+        if (kind == OutputSceneKind.Live && request.Session.ItemDisplay is { } itemDisplay)
+            liveOutput = itemDisplay.Apply(liveOutput, (int)viewportHeight);
         var display = GetDisplayText(kind, request.Session, liveOutput);
         var placement = GetContentPlacement(kind, request, viewportWidth, viewportHeight);
         var transition = CreateTransitionFrame(request, viewportWidth, viewportHeight, kind, liveOutput);

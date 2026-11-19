@@ -8,6 +8,15 @@ namespace Easislides.Wpf.Tests.Converters;
 public class LegacySampleScreenSizeConverterTests
 {
     [Fact]
+    public void WidescreenSampleUsesTheConfiguredSixteenByNineFrame()
+    {
+        var converter = new LegacySampleScreenSizeConverter();
+        object[] input = [800d, 500d, 540d];
+        converter.Convert(input, typeof(double), null, CultureInfo.InvariantCulture).Should().Be(720d);
+        converter.Convert(input, typeof(double), "Height", CultureInfo.InvariantCulture).Should().Be(405d);
+    }
+
+    [Fact]
     public void Convert_Width_UsesFrmMainPanelWidthFormula()
     {
         var sut = new LegacySampleScreenSizeConverter();

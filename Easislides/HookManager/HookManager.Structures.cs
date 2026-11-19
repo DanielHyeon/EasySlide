@@ -61,7 +61,7 @@ namespace Easislides
             /// <summary>
             /// Specifies extra information associated with the message. 
             /// </summary>
-            public int ExtraInfo;
+            public nuint ExtraInfo;
         }
 
         /// <summary>
@@ -92,7 +92,7 @@ namespace Easislides
             /// <summary>
             /// Specifies extra information associated with the message. 
             /// </summary>
-            public int ExtraInfo;
+            public nuint ExtraInfo;
         }
     }
 }

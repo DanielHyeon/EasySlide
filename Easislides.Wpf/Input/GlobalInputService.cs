@@ -29,7 +29,7 @@ public interface IGlobalKeySource
 
 public interface IGlobalInputDispatcher
 {
-    void Invoke(Action action);
+    void Post(Action action);
 }
 
 public interface IGlobalInputService : IDisposable
@@ -48,6 +48,7 @@ public sealed class GlobalInputService : IGlobalInputService
     private readonly IGlobalInputDispatcher _dispatcher;
     private bool _subscribed;
     private bool _disposed;
+    private int _session;
 
     public GlobalInputService(
         ShortcutRegistry registry,
@@ -90,6 +91,7 @@ public sealed class GlobalInputService : IGlobalInputService
 
     public void Stop()
     {
+        _session++;
         if (_subscribed)
         {
             _source.KeyDown -= OnKeyDown;
@@ -124,19 +126,35 @@ public sealed class GlobalInputService : IGlobalInputService
 
     private void OnKeyDown(object? sender, GlobalKeyEventArgs e)
     {
+        if (!IsRunning || !_registry.TryResolveGlobal(e.KeyCode, e.Modifiers, out var command))
+            return;
+
         try
         {
-            _dispatcher.Invoke(() =>
-            {
-                e.Handled = _registry.TryHandleGlobal(e.KeyCode, e.Modifiers);
-            });
+            PostCommand(command);
+            e.Handled = true;
         }
         catch (Exception ex)
         {
-            LastError = ex;
-            e.Handled = false;
-            Debug.WriteLine($"[GlobalInputService] key handling failed: {ex}");
+            RecordInputError(ex);
         }
+    }
+
+    private void PostCommand(Action command)
+    {
+        int session = _session;
+        _dispatcher.Post(() =>
+        {
+            if (!IsRunning || session != _session) return;
+            try { command(); }
+            catch (Exception ex) { RecordInputError(ex); }
+        });
+    }
+
+    private void RecordInputError(Exception ex)
+    {
+        LastError = ex;
+        Debug.WriteLine($"[GlobalInputService] key handling failed: {ex}");
     }
 
     private void CleanupAfterStartFailure()
@@ -179,20 +197,17 @@ public sealed class HookManagerGlobalKeySource : IGlobalKeySource
 
     public void Stop()
     {
-        if (!_running)
-        {
-            return;
-        }
-
-        Easislides.HookManager.KeyDown -= OnHookKeyDown;
+        // Removing an absent handler is safe and retries a previous native release failure.
         _running = false;
+        Easislides.HookManager.KeyDown -= OnHookKeyDown;
     }
 
     private void OnHookKeyDown(object? sender, LegacyKeyEventArgs e)
     {
+        if (e.Handled) return;
         var args = new GlobalKeyEventArgs(e.KeyCode, e.Modifiers);
         KeyDown?.Invoke(this, args);
-        e.Handled = args.Handled;
+        e.Handled |= args.Handled;
     }
 }
 
@@ -205,14 +220,13 @@ public sealed class WpfGlobalInputDispatcher : IGlobalInputDispatcher
         _dispatcher = dispatcher;
     }
 
-    public void Invoke(Action action)
+    public void Post(Action action)
     {
-        if (_dispatcher.CheckAccess())
-        {
-            action();
-            return;
-        }
+        if (_dispatcher.HasShutdownStarted || _dispatcher.HasShutdownFinished)
+            throw new InvalidOperationException("The input dispatcher is shutting down.");
 
-        _dispatcher.Invoke(action);
+        var operation = _dispatcher.BeginInvoke(DispatcherPriority.Input, action);
+        if (operation.Status == DispatcherOperationStatus.Aborted)
+            throw new InvalidOperationException("The input dispatcher rejected the command.");
     }
 }

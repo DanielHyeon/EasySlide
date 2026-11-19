@@ -14,14 +14,16 @@ public sealed class LegacySampleScreenSizeConverter : IMultiValueConverter
         var panelWidth = ReadDouble(values, 0);
         var panelHeight = ReadDouble(values, 1);
 
+        var canvasHeight = ReadDouble(values, 2);
+        var aspectRatio = canvasHeight > 0 ? 960d / canvasHeight : 4d / 3d;
         var width = Math.Floor(Math.Max(0d, panelWidth) * 18d / 20d);
-        var height = Math.Floor(Math.Max(width, MinimumSize) * 3d / 4d);
+        var height = Math.Floor(Math.Max(width, MinimumSize) / aspectRatio);
         var maxHeight = Math.Floor(Math.Max(MinimumSize, panelHeight - BottomSlack));
 
         if (height > maxHeight)
         {
             height = maxHeight;
-            width = Math.Floor(height * 4d / 3d);
+            width = Math.Floor(height * aspectRatio);
         }
 
         width = Math.Max(MinimumSize, width);

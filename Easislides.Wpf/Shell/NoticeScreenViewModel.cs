@@ -15,6 +15,8 @@ namespace Easislides.Wpf.Shell;
 /// </summary>
 public sealed partial class NoticeScreenViewModel : ObservableObject
 {
+    private string? _mediaPath;
+    private string? _legacyFormatData;
     private readonly Func<string, NoticeOptions, bool> _publish;
     private readonly Action _clear;
     private readonly IInfoScreenStore _store;
@@ -164,7 +166,7 @@ public sealed partial class NoticeScreenViewModel : ObservableObject
             Bold: Bold,
             Italic: Italic,
             Underline: Underline,
-            FontName: FontName);
+            FontName: FontName, MediaPath: _mediaPath, LegacyFormatData: _legacyFormatData);
 
     // 입력한 공지 텍스트를 출력으로 송출. 출력 창이 닫혀 있으면 콜백이 false → 안내.
     private void Send()
@@ -218,7 +220,7 @@ public sealed partial class NoticeScreenViewModel : ObservableObject
 
         try
         {
-            await _store.SaveAsync(name, new InfoScreenDto(Text, FontSizePt, Alignment, ColorArgb, BackgroundColorArgb, Bold, Italic, Underline, FontName)).ConfigureAwait(true);
+            await _store.SaveAsync(name, new InfoScreenDto(Text, FontSizePt, Alignment, ColorArgb, BackgroundColorArgb, Bold, Italic, Underline, FontName, _mediaPath, _legacyFormatData)).ConfigureAwait(true);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
         {
@@ -261,6 +263,8 @@ public sealed partial class NoticeScreenViewModel : ObservableObject
         }
 
         Text = dto.Text;
+        _mediaPath = dto.MediaPath;
+        _legacyFormatData = dto.LegacyFormatData;
         if (dto.FontSize > 0)
         {
             FontSizePt = dto.FontSize;

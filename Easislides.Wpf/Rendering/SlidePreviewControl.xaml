@@ -4,6 +4,7 @@
              xmlns:local="clr-namespace:Easislides.Wpf.Rendering"
              x:Name="Root"
              MinHeight="180"
+             Background="{DynamicResource Brush.Surface.Page}"
              Focusable="True"
              SnapsToDevicePixels="True">
     <Grid>
@@ -13,13 +14,13 @@
                              IsSelected="{Binding IsSelected, ElementName=Root}"
                              SlideNumber="{Binding SlideNumber, ElementName=Root}"
                              ShowSlideNumber="{Binding ShowSlideNumber, ElementName=Root}"
-                             Background="{DynamicResource Brush.Surface.Page}"
+                             Background="{Binding Background, ElementName=Root}"
                              SelectionBrush="{DynamicResource Brush.Accent.Primary}"
                              SlideNumberBackground="{DynamicResource Brush.Accent.Primary}"
                              SlideNumberForeground="{DynamicResource Brush.Text.Inverse}" />
 
         <Grid x:Name="FallbackPanel"
-              Background="{DynamicResource Brush.Surface.Page}">
+              Background="{Binding Background, ElementName=Root}">
             <StackPanel HorizontalAlignment="Center"
                         VerticalAlignment="Center"
                         Margin="16">

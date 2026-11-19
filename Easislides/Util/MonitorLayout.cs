@@ -16,13 +16,8 @@ internal static class MonitorLayout
 
     internal static Rectangle Fit(Rectangle area, bool wide)
     {
-        if (area.Width <= 0 || area.Height <= 0)
-            return Rectangle.Empty;
-
-        var (aspectWidth, aspectHeight) = Aspect(wide);
-        int width = (int)Math.Max(1, Math.Min(area.Width, (long)area.Height * aspectWidth / aspectHeight));
-        int height = (int)Math.Max(1, Math.Min(area.Height, (long)area.Width * aspectHeight / aspectWidth));
-        return new Rectangle(area.Left + (area.Width - width) / 2, area.Top + (area.Height - height) / 2, width, height);
+        var frame = Easislides.Core.SlideAspectRatio.Fit(area.Left, area.Top, area.Width, area.Height, wide);
+        return new Rectangle(frame.Left, frame.Top, frame.Width, frame.Height);
     }
 
     internal static Rectangle RestoreOperatorBounds(Rectangle saved, IEnumerable<Rectangle> workingAreas, Rectangle primary)
@@ -56,11 +51,7 @@ internal static class MonitorLayout
             : new MonitorPlacement(selected.Name, Fit(selected.Bounds, wide), true, audience.IsDual);
     }
 
-    internal static int HeightForWidth(int width, bool wide)
-    {
-        var (aspectWidth, aspectHeight) = Aspect(wide);
-        return (int)Math.Max(1, (long)width * aspectHeight / aspectWidth);
-    }
+    internal static int HeightForWidth(int width, bool wide) => Easislides.Core.SlideAspectRatio.HeightForWidth(width, wide);
 
     internal static MonitorDevice FindDisplay(IEnumerable<MonitorDevice> displays, string name) =>
         displays.FirstOrDefault(display => string.Equals(display.Name, name, StringComparison.OrdinalIgnoreCase));
@@ -112,7 +103,6 @@ internal static class MonitorLayout
         return selected != null ? new MonitorPlacement(selected.Name, Fit(selected.Bounds, wide), true) : default;
     }
 
-    private static (int Width, int Height) Aspect(bool wide) => wide ? (16, 9) : (4, 3);
 
     private static Rectangle CustomBounds(Point origin, int width, bool wide) =>
         new(origin, new Size(Math.Max(1, width), HeightForWidth(width, wide)));

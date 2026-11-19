@@ -63,34 +63,79 @@ public sealed class WpfMediaElementPlaybackBackend : IMediaPlaybackBackend
 {
     private readonly MediaElement _element;
 
-    public WpfMediaElementPlaybackBackend(MediaElement element)
+    private readonly Image? _videoSurface;
+    private DirectShowVideo? _directShow;
+
+    public WpfMediaElementPlaybackBackend(MediaElement element, Image? cameraSurface = null)
     {
         _element = element ?? throw new ArgumentNullException(nameof(element));
-        _element.LoadedBehavior = MediaState.Manual;
-        _element.UnloadedBehavior = MediaState.Manual;
+        _videoSurface = cameraSurface;
     }
 
     public void Load(MediaPlaybackSnapshot snapshot)
     {
-        _element.Source = CreateSourceUri(snapshot);
-        _element.Position = TimeSpan.Zero;
+        Unload();
+        if (snapshot.SourceKind == MediaSourceKind.CaptureDevice)
+        {
+            const string prefix = "<<Capture>>";
+            if (_videoSurface == null || !snapshot.Source.StartsWith(prefix, StringComparison.Ordinal)
+                || !int.TryParse(snapshot.Source.AsSpan(prefix.Length), out int index))
+                throw new MediaPlaybackException("카메라를 선택할 수 없습니다.");
+            _directShow = new DirectShowVideo(_videoSurface, index);
+        }
+        else _element.Source = CreateSourceUri(snapshot);
         ApplySettings(snapshot);
     }
 
-    public void Play() => _element.Play();
+    internal DirectShowVideo? FileGraph => _directShow?.FileName == null ? null : _directShow;
 
-    public void Pause() => _element.Pause();
+    internal bool TryFileFallback(MediaPlaybackSnapshot snapshot, TimeSpan position, out string? error)
+    {
+        error = null;
+        if (_videoSurface == null || snapshot.SourceKind != MediaSourceKind.File || _element.Source is not { IsFile: true } uri || !uri.Equals(CreateSourceUri(snapshot))) return false;
+        try
+        {
+            var graph = new DirectShowVideo(_videoSurface, uri.LocalPath);
+            _directShow = graph;
+            _element.Close();
+            _element.Source = null;
+            ApplySettings(snapshot);
+            if (position > TimeSpan.Zero) graph.Seek(position);
+            if (snapshot.State == MediaPlaybackState.Playing) graph.Play();
+            else if (snapshot.State == MediaPlaybackState.Paused) graph.Pause();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _directShow?.Dispose(); _directShow = null;
+            error = ex.Message;
+            return false;
+        }
+    }
+
+    public void Play()
+    {
+        if (_directShow != null) _directShow.Play(); else _element.Play();
+    }
+
+    public void Pause()
+    {
+        if (_directShow != null) _directShow.Pause(); else _element.Pause();
+    }
 
     public void Stop()
     {
+        if (_directShow != null) { _directShow.Stop(); return; }
         _element.Stop();
         _element.Position = TimeSpan.Zero;
     }
 
-    public void Seek(TimeSpan position) => _element.Position = position;
+    public void Seek(TimeSpan position) { if (_directShow == null) _element.Position = position; else if (FileGraph != null) _directShow.Seek(position); }
 
     public void Unload()
     {
+        _directShow?.Dispose();
+        _directShow = null;
         // 소스를 비우면 OutputWindow.xaml 의 트리거(Source==null → Collapsed)가 작동해
         // 출력 창에서 미디어가 사라지고 그 아래의 가사/타이틀이 다시 보인다.
         _element.Stop();
@@ -100,6 +145,8 @@ public sealed class WpfMediaElementPlaybackBackend : IMediaPlaybackBackend
 
     public void ApplySettings(MediaPlaybackSnapshot snapshot)
     {
+        if (FileGraph != null) _directShow!.SetAudio(snapshot);
+        if (_videoSurface != null) _videoSurface.Stretch = snapshot.IsWidescreen ? Stretch.Uniform : Stretch.Fill;
         _element.Volume = snapshot.Volume / 100d;
         _element.Balance = snapshot.Balance / 100d;
         _element.IsMuted = snapshot.IsMuted;

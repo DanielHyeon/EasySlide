@@ -59,6 +59,8 @@ public sealed partial class MediaPlaybackViewModel : ObservableObject, IDisposab
     public IRelayCommand ToggleMuteCommand { get; }
     public IRelayCommand ToggleRepeatCommand { get; }
 
+    public void LoadLiveCamera(string displayId) => _playback.LoadLiveCamera(TimeSpan.Zero, outputDisplayId: displayId);
+
     public void Load(MediaPlaybackRequest request) => _playback.Load(request);
 
     /// <summary>미디어를 완전히 내린다(출력 창에서 영상 제거 → 가사 복귀). 다른 종류 항목으로 전환 시 호출.</summary>

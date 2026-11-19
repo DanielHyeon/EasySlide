@@ -15,6 +15,7 @@
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU;x64</Platforms>
+    <ApplicationIcon>..\Easislides\favicon.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
 
@@ -38,6 +39,7 @@
 
   <ItemGroup>
     <!-- PoC-B: PowerPoint COM 호출용. NetOffice 타입이 transitively 전파됨. -->
+    <ProjectReference Include="..\DirectShow\src\DirectShowLib.csproj" />
     <ProjectReference Include="..\OfficeLib\OfficeLib.csproj" />
     <ProjectReference Include="..\Easislides.Core\Easislides.Core.csproj" />
     <!-- EasiDS 디자인 토큰 강제 분석기 (계획서 §9.2). 실행 어셈블리가 아닌 컴파일러 분석기로만 참조. -->
@@ -46,6 +48,8 @@
 
   <!-- ADR-0004 PoC-A: HookManager 소스를 file-link로 공유 (복사 X). Sprint 9에 라이브러리로 추출 후 ProjectReference로 교체 예정. -->
   <ItemGroup>
+    <Compile Include="..\Easislides\Global\ModernIcons.Paths.cs" Link="Theme\ModernIcons.Paths.cs" />
+    <Resource Include="..\Easislides\favicon.ico" Link="Assets\EasiSlides.ico" />
     <Compile Include="..\Easislides\HookManager\HookManager.cs">
       <Link>External\HookManager\HookManager.cs</Link>
     </Compile>
@@ -75,6 +79,7 @@
 
   <!-- 폰트 자산 (ADR-0003 / Q4). Pretendard Variable v1.3.9 번들. OFL 1.1 라이선스 동봉 의무. -->
   <ItemGroup>
+    <Resource Include="Assets\FrmMain\*.*" />
     <Resource Include="Assets\Fonts\PretendardVariable.ttf" />
     <Content Include="Assets\Fonts\Pretendard-OFL-1.1-LICENSE.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

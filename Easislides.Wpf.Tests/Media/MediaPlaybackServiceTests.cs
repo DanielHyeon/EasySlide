@@ -11,6 +11,51 @@ namespace Easislides.Wpf.Tests.Media;
 public class MediaPlaybackServiceTests
 {
     [Fact]
+    public void LegacyItemMediaOptionsSurviveEditingAndOverrideGlobalPlaybackDefaults()
+    {
+        const string format = "29=12>50=3>52=38>53=-20>54=7>55=4>56=Projector>999=future>";
+        var options = ItemMediaOptions.Read(format);
+        Assert.Equal(3, options.Mode);
+        Assert.Equal(4, options.Camera);
+        string saved = (options with { Mode = 2, FileName = "new.mp4" }).ApplyTo(format);
+        Assert.Contains("999=future>", saved);
+        Assert.Contains("29=12>", saved);
+        Assert.Equal(options with { Mode = 2, FileName = "new.mp4" }, ItemMediaOptions.Read(saved));
+
+        using var fixture = TempSettingsFolder.Create();
+        var settings = fixture.CreateService();
+        var playback = new MediaPlaybackService(new FakeMediaPlaybackBackend(), settings);
+        playback.Load(DefaultRequest() with { ItemOptions = options });
+        Assert.Equal(38, playback.Current.Volume);
+        Assert.Equal(-20, playback.Current.Balance);
+        Assert.True(playback.Current.IsMuted);
+        Assert.True(playback.Current.IsRepeatEnabled);
+        settings.Set(EasiSettingKeys.MediaVolume, 0.25);
+        Assert.Equal(38, playback.Current.Volume);
+    }
+
+    [Fact]
+    public void FileEventsIgnoreOldSourcesAndDriveDurationRepeatAndFailure()
+    {
+        var backend = new FakeMediaPlaybackBackend();
+        var playback = new MediaPlaybackService(backend);
+        string path = Path.GetFullPath("intro clip.mp4");
+        playback.Load(DefaultRequest() with { Source = new Uri(path).AbsoluteUri, IsRepeatEnabled = true });
+        playback.Play();
+        playback.ReportFilePosition(Path.GetFullPath("old.mp4"), TimeSpan.FromSeconds(3), TimeSpan.FromMinutes(2));
+        Assert.Equal(TimeSpan.Zero, playback.Current.Position);
+        playback.ReportFilePosition(path, TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(6));
+        Assert.Equal(TimeSpan.FromSeconds(3), playback.Current.Position);
+        Assert.Equal(TimeSpan.FromSeconds(6), playback.Current.Duration);
+        playback.ReportFileEnded(path);
+        Assert.Equal(MediaPlaybackState.Playing, playback.Current.State);
+        Assert.Equal(TimeSpan.Zero, playback.Current.Position);
+        playback.ReportFileFailure(path, new InvalidOperationException("decoder"));
+        Assert.Equal("decoder", playback.Current.ErrorMessage);
+        Assert.Equal(MediaPlaybackState.Failed, playback.Current.State);
+    }
+
+    [Fact]
     public void Load_CreatesReadySnapshotAndClampsAudioSettings()
     {
         var sut = new MediaPlaybackService();

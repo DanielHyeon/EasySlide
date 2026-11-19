@@ -29,4 +29,8 @@
     <ProjectReference Include="..\Easislides.Core\Easislides.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Media/color-bars.avi" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

@@ -17,7 +17,7 @@ public sealed class WindowPlacementService : IWindowPlacementService
     private const double PreferredWindowedWidth = 1280;
     private const double PreferredWindowedHeight = 720;
     private const double AspectRatio = PreferredWindowedWidth / PreferredWindowedHeight;
-    private const double LegacyCustomAspectRatio = 4d / 3d;
+
 
     private readonly ISettingsService? _settings;
     private readonly IDisplayService? _displays;
@@ -36,7 +36,24 @@ public sealed class WindowPlacementService : IWindowPlacementService
     {
         ArgumentNullException.ThrowIfNull(display);
         var bounds = CreatePlacementBounds(display);
-        return Place(bounds.Left, bounds.Top, bounds.Width, bounds.Height, windowed);
+        return PlaceConfiguredBounds(bounds, windowed);
+    }
+
+    public OutputWindowPlacement CreateStagePlacement(OutputDisplay display, bool windowed) =>
+        PlaceConfiguredBounds(new(display.X, display.Y, display.Width, display.Height), windowed);
+
+    private OutputWindowPlacement PlaceConfiguredBounds(DisplayBounds bounds, bool windowed)
+    {
+        if (_settings is null) return Place(bounds.Left, bounds.Top, bounds.Width, bounds.Height, windowed);
+        bool wide = _settings.Get(EasiSettingKeys.IsMonitorWide);
+        var fit = bounds.Custom
+            ? (Left: (int)bounds.Left, Top: (int)bounds.Top, Width: (int)bounds.Width, Height: (int)bounds.Height)
+            : Easislides.Core.SlideAspectRatio.Fit((int)bounds.Left, (int)bounds.Top, (int)bounds.Width, (int)bounds.Height, wide);
+        if (!windowed || fit.Width <= PreferredWindowedWidth)
+            return new(fit.Left, fit.Top, fit.Width, fit.Height, windowed);
+        int width = (int)PreferredWindowedWidth;
+        int height = Easislides.Core.SlideAspectRatio.HeightForWidth(width, wide);
+        return new(fit.Left + (fit.Width - width) / 2, fit.Top + (fit.Height - height) / 2, width, height, windowed);
     }
 
     internal static OutputWindowPlacement PlaceOnDisplay(OutputDisplay display, bool windowed)
@@ -76,11 +93,11 @@ public sealed class WindowPlacementService : IWindowPlacementService
     {
         if (TryGetCustomBounds(out int left, out int top, out int width))
         {
-            var height = width / LegacyCustomAspectRatio;
+            var height = Easislides.Core.SlideAspectRatio.HeightForWidth(width, _settings!.Get(EasiSettingKeys.IsMonitorWide));
             if (_displays == null || _displays.GetDisplays().Any(screen =>
                 left < screen.X + screen.Width && left + (double)width > screen.X &&
                 top < screen.Y + screen.Height && top + height > screen.Y))
-                return new DisplayBounds(left, top, width, height);
+                return new DisplayBounds(left, top, width, height, true);
         }
         return new DisplayBounds(display.X, display.Y, display.Width, display.Height);
     }
@@ -100,10 +117,18 @@ public sealed class WindowPlacementService : IWindowPlacementService
         top = _settings.Get(EasiSettingKeys.DisplayCustomTop);
         width = _settings.Get(EasiSettingKeys.DisplayCustomWidth);
 
-        return left != EasiSettingKeys.DisplayCustomLeft.DefaultValue
-            || top != EasiSettingKeys.DisplayCustomTop.DefaultValue
-            || width != EasiSettingKeys.DisplayCustomWidth.DefaultValue;
+        return width > 0 && UsesCustomBounds(_settings.Current.LiveOutput);
     }
 
-    private sealed record DisplayBounds(double Left, double Top, double Width, double Height);
+    // WPF profiles predating the explicit switch inferred custom mode from edited coordinates.
+    internal static bool UsesCustomBounds(LiveOutputSettings options) => options.OutputPlacementMode switch
+    {
+        0 => false,
+        1 => true,
+        _ => options.DisplayCustomLeft != EasiSettingKeys.DisplayCustomLeft.DefaultValue
+            || options.DisplayCustomTop != EasiSettingKeys.DisplayCustomTop.DefaultValue
+            || options.DisplayCustomWidth != EasiSettingKeys.DisplayCustomWidth.DefaultValue,
+    };
+
+    private sealed record DisplayBounds(double Left, double Top, double Width, double Height, bool Custom = false);
 }

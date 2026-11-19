@@ -20,6 +20,25 @@ public sealed class SongFormatDataTests
         "54=2>55=1>61=C:\\EasiSlides\\Images\\성경\\bible-sermon.jpg>62=2>63=1>64=2>65=2>66=0>71=0>72=None>73=None>";
 
     [Fact]
+    public void EditingOneFontPreservesAdvancedMediaAndSecondaryDisplaySettings()
+    {
+        const string raw = "50=3>55=4>22=118>25=1>41=9>71=3>999=future>";
+        var existing = SongFormatData.Parse(raw)!;
+        string updated = ItemFormatFields.MergeEdits(raw, existing, existing with { FontName2 = "Arial" });
+        Assert.Contains("50=3", updated);
+        Assert.Contains("55=4", updated);
+        Assert.Contains("999=future", updated);
+        var display = ItemDisplayFormat.Read(updated)!;
+        Assert.Equal(3, display.Transpose);
+        Assert.True(display.Flag(4));
+        var rendered = display.Apply(Easislides.Wpf.Rendering.LiveOutputRenderSettings.Default, 720);
+        Assert.Equal(LyricsRegionDisplay.Region2Only, rendered.LyricsMonitorRegionDisplay);
+        Assert.True(rendered.ShowLyricsOutline);
+        Assert.False(rendered.LyricsMonitorShowDisplayPanel);
+        Assert.Equal("Arial", SongFormatData.Parse(updated)!.FontName2);
+    }
+
+    [Fact]
     public void Parse_RealSample_DecodesColorsFontsSizesAlignmentBackground()
     {
         var f = SongFormatData.Parse(Sample454);

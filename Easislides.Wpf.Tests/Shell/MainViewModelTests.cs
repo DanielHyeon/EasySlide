@@ -25,6 +25,61 @@ namespace Easislides.Wpf.Tests.Shell;
 public class MainViewModelTests
 {
     [Fact]
+    public async Task ChineseSwitchChangesOnlyOutputAndPreservesBlackoutAndPage()
+    {
+        using var sut = CreateSut(seedSampleQueue: false);
+        var item = new LiveQueueItem("song:zh", "會眾", LiveItemKinds.Song) { Lyrics = "讚美詩\n\n萬國" };
+        sut.LoadQueue([item]);
+        await sut.PreviewToLiveCommand.ExecuteAsync(null);
+        sut.ToggleOutputChineseCommand.Execute(null);
+        sut.Session.Current.CurrentItemBodyText.Should().Be("赞美诗");
+        sut.PreviewLyricsPages[0].BodyText.Should().Be("讚美詩");
+        sut.OutputLyricsPages[1].BodyText.Should().Be("万国");
+        sut.Session.HideOutput(true);
+        sut.ToggleOutputChineseCommand.Execute(null);
+        sut.Session.Current.State.Should().Be(LiveState.Hidden);
+        sut.Session.Current.IsBlackout.Should().BeTrue();
+        sut.Session.Restore();
+        sut.Session.Current.CurrentItemBodyText.Should().Be("讚美詩");
+        sut.Queue.Single().Lyrics.Should().Be(item.Lyrics);
+    }
+
+    [Fact]
+    public async Task TextOverflowPreferenceRepaginatesBothConsolesAndKeepsCompleteParagraphInFitMode()
+    {
+        using var temp = TempSettingsFolder.Create();
+        var settings = temp.CreateSettings();
+        using var sut = CreateSut(settings: settings, seedSampleQueue: false);
+        var paragraph = string.Join("\n", Enumerable.Range(1, 60).Select(i => $"줄 {i}"));
+        sut.AddTextFileItem("apostles.txt", paragraph + "\n \n아멘");
+        await sut.PreviewToLiveCommand.ExecuteAsync(null);
+        sut.PreviewLyricsPages.Count.Should().Be(2);
+        sut.Session.Current.CurrentItemBodyText.Should().Be(paragraph);
+        settings.Set(EasiSettingKeys.FitTextFileParagraphs, false);
+        sut.PreviewLyricsPages.Count.Should().BeGreaterThan(2);
+        sut.OutputLyricsPages.Count.Should().Be(sut.PreviewLyricsPages.Count);
+        sut.Session.Current.CurrentItemBodyText.Should().Be(sut.PreviewLyricsPages[0].BodyText);
+        settings.Set(EasiSettingKeys.AutoTextOverflow, false);
+        sut.OutputLyricsPages.Count.Should().Be(2);
+        sut.Session.Current.CurrentItemBodyText.Should().Be(paragraph);
+    }
+
+    [Fact]
+    public async Task SourceSongPreviewCanGoLiveWithItsOwnSequenceWithoutChangingQueueSelection()
+    {
+        using var sut = CreateSut();
+        var previous = sut.SelectedItem;
+        var source = new SongSummary(77, "Source", "", 1, 1, "", "", "[1]\nverse\n[C]\nchorus", Sequence: "C 1 C", FormatData: "47=64>");
+        sut.PreviewLibrarySong(source);
+        sut.PreviewLyricsPages.Select(page => page.BodyText).Should().Equal("chorus", "verse", "chorus");
+        sut.SelectedItem.Should().BeSameAs(previous);
+        await sut.PreviewToLiveCommand.ExecuteAsync(null);
+        sut.Session.Current.CurrentItemBodyText.Should().Be("chorus");
+        sut.OutputLyricsPages.Should().HaveCount(3);
+        sut.AddSong(source)!.FormatData.Should().Be("47=64>");
+    }
+
+    [Fact]
     public void CreateSut_SeedsSampleQueue_ForTestConvenience()
     {
         // CreateSut 는 기본으로 샘플 3항목을 시드한다(운영 생성자는 빈 큐로 시작 — 별도 테스트로 검증).
@@ -41,8 +96,8 @@ public class MainViewModelTests
     {
         // §7 P0: 시작 시 더미 3항목 시드를 제거 — 빈 큐로 시작하고 안내 상태를 노출한다.
         var sut = CreateSut(seedSampleQueue: false);
-        sut.PreviewPanelTitleText.Should().Be("Preview");
-        sut.OutputPanelTitleText.Should().Be("Output");
+        sut.PreviewPanelTitleText.Should().BeEmpty();
+        sut.OutputPanelTitleText.Should().BeEmpty();
 
         sut.Queue.Should().BeEmpty();
         sut.IsQueueEmpty.Should().BeTrue();
@@ -989,12 +1044,14 @@ public class MainViewModelTests
         var a = new LiveQueueItem("song:1", "곡A", LiveItemKinds.Song) { FormatData = "29=-1", UseIndividualFormatting = true };
         var b = new LiveQueueItem("song:2", "곡B", LiveItemKinds.Song) { FormatData = "29=-2", UseIndividualFormatting = true };
         var c = new LiveQueueItem("verse:1", "성경", LiveItemKinds.Bible) { UseIndividualFormatting = true };
-        sut.LoadQueue([a, b, c]);
+        var notice = new LiveQueueItem("notice:1", "공지", LiveItemKinds.Notice) { FormatData = "29=-3>" };
+        sut.LoadQueue([a, b, c, notice]);
         sut.SelectedItem = sut.Queue[1]; // 곡B 선택
 
         sut.ApplyGlobalFormatToAllCommand.Execute(null);
 
-        sut.Queue.Should().OnlyContain(i => !i.UseIndividualFormatting, "모든 항목이 전역 서식으로 전환");
+        sut.Queue.Where(i => i != notice).Should().OnlyContain(i => !i.UseIndividualFormatting);
+        sut.Queue.Last().Should().BeSameAs(notice);
         sut.SelectedItem!.Id.Should().Be("song:2", "선택은 같은 자리(곡B)로 유지");
         sut.SelectedItem.UseIndividualFormatting.Should().BeFalse("선택 항목도 교체된 새 인스턴스");
         sut.StatusText.Should().Contain("3개");
@@ -5503,7 +5560,7 @@ public class MainViewModelTests
     }
 
     [Fact]
-    public void BindShortcuts_RegistersLocalAndGlobalLiveNextCommands()
+    public void BindShortcuts_RegistersAssignedGesturesAndReservesF5ForLocalRestart()
     {
         var catalog = new CommandCatalog();
         var sut = CreateSut(commandCatalog: catalog);
@@ -5511,9 +5568,9 @@ public class MainViewModelTests
 
         sut.BindShortcuts(registry);
 
-        registry.All.Should().BeEquivalentTo(catalog.GetDefaultShortcuts());
+        registry.All.Should().BeEquivalentTo(catalog.GetDefaultShortcuts().Where(s => s.Key != Key.None));
         registry.All.Should().Contain(s => s.CommandName == MainCommandIds.LiveGo && !s.IsGlobal);
-        registry.All.Should().Contain(s => s.CommandName == MainCommandIds.LiveNext && s.IsGlobal);
+        registry.All.Should().NotContain(s => s.CommandName == MainCommandIds.LiveNext && s.IsGlobal);
         registry.All.Should().Contain(s => s.CommandName == MainCommandIds.LiveNext && !s.IsGlobal);
         registry.All.Should().Contain(s => s.CommandName == MainCommandIds.LivePrevious && !s.IsGlobal);
     }
@@ -10836,6 +10893,7 @@ public class MainViewModelTests
         var settings = folder.CreateSettings();
         settings.Set(EasiSettingKeys.AdvanceNextItem, false);
         settings.Set(EasiSettingKeys.LyricsMonitorShowNotations, true);
+        settings.Set(EasiSettingKeys.PreviewAreaShowNotations, true);
         var sut = CreateSut(settings: settings);
         var song = new LiveQueueItem("song:repeat", "은혜", LiveItemKinds.Song)
         {
@@ -12274,7 +12332,7 @@ public class MainViewModelTests
 
         output.Current.Display.Should().Be(audience);
         preview.Current.Display.Should().Be(stage);
-        preview.Current.Placement.Should().Be(new OutputWindowPlacement(-1920, 0, 1920, 1080, false));
+        preview.Current.Placement.Should().Be(new OutputWindowPlacement(-1680, 0, 1440, 1080, false));
         settings.Get(EasiSettingKeys.PreviewMonitorId).Should().BeEmpty();
 
         screens.SetDisplays(op, stage);

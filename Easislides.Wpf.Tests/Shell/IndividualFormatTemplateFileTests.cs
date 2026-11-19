@@ -9,6 +9,26 @@ namespace Easislides.Wpf.Tests.Shell;
 public sealed class IndividualFormatTemplateFileTests
 {
     [Fact]
+    public void SessionTemplateCarriesLegacyOutputAndMediaAndPreservesOtherHeaderFields()
+    {
+        var dir = System.IO.Directory.CreateTempSubdirectory();
+        try
+        {
+            var settings = new Easislides.Wpf.Settings.SettingsService(new(System.IO.Path.Combine(dir.FullName, "settings.json"), dir.FullName));
+            const string original = "11=-1>15=5>22=6>25=1>31=3>50=3>55=4>999=preserve>";
+            SessionFormatTemplate.Transfer(settings, original, load: true);
+            Assert.Equal(Easislides.Wpf.Settings.LyricsTextAlignment.Right, settings.Get(Easislides.Wpf.Settings.EasiSettingKeys.LyricsMonitorTextAlignment));
+            Assert.True(settings.Get(Easislides.Wpf.Settings.EasiSettingKeys.LyricsMonitorShowNotations));
+            Assert.Contains("55=4>", settings.Get(Easislides.Wpf.Settings.EasiSettingKeys.DefaultMediaFormat));
+            var exported = SessionFormatTemplate.Transfer(settings, original, load: false);
+            Assert.Contains("999=preserve>", exported);
+            Assert.Contains("25=1>", exported);
+            Assert.Contains("50=3>", exported);
+        }
+        finally { dir.Delete(recursive: true); }
+    }
+
+    [Fact]
     public void LoadFormatData_ReadsLegacyListHeader_NotItemFormatData()
     {
         using var dir = new TempDir();

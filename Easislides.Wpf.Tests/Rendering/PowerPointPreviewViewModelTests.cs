@@ -82,6 +82,7 @@ public class PowerPointPreviewViewModelTests
 
         vm.Thumbnails.Should().HaveCount(3);
         vm.Thumbnails.Select(t => t.SlideNumber).Should().Equal(1, 2, 3);
+        vm.Thumbnails.Where(t => t.IsNext).Select(t => t.SlideNumber).Should().Equal(3);
         vm.Thumbnails.Single(t => t.SlideNumber == 2).IsCurrent.Should().BeTrue("현재 슬라이드(2) 강조");
         vm.Thumbnails.Where(t => t.SlideNumber != 2).Should().OnlyContain(t => !t.IsCurrent);
     }
@@ -168,6 +169,18 @@ public class PowerPointPreviewViewModelTests
 
         target.State.Should().Be(PowerPointPreviewState.Ready, "clearing Preview after publish must not clear Output");
         target.Thumbnails.Should().HaveCount(3);
+    }
+
+    [Fact]
+    public async Task FittedWidescreenThumbnailsAreReusedForTheSameRenderBox()
+    {
+        var render = new StubRenderService(success: true);
+        var vm = new PowerPointPreviewViewModel(render, _ => DummyImage);
+        await vm.LoadThumbnailsAsync("deck.pptx", 1, 640, 480);
+        vm.Thumbnails[0] = new PowerPointSlideThumbnail(1, DummyImage, 640, 360) { RenderBounds = (640, 480) };
+        await vm.LoadThumbnailsAsync("deck.pptx", 1, 640, 480);
+        Assert.Single(render.Requests);
+        Assert.Equal(360, vm.Thumbnails[0].PixelHeight);
     }
 
     [Fact]

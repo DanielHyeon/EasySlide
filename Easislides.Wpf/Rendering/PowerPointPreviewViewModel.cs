@@ -37,8 +37,11 @@ public sealed partial class PowerPointSlideThumbnail : ObservableObject
 
     public int PixelHeight { get; }
 
+    internal (int Width, int Height)? RenderBounds { get; init; }
+
     /// <summary>지금 송출/미리보기 중인 슬라이드면 true(스트립에서 강조 표시).</summary>
     [ObservableProperty] private bool _isCurrent;
+    [ObservableProperty] private bool _isNext;
 }
 
 /// <summary>
@@ -136,7 +139,9 @@ public sealed partial class PowerPointPreviewViewModel : ObservableObject
                 thumbnail.PixelWidth,
                 thumbnail.PixelHeight)
             {
-                IsCurrent = thumbnail.IsCurrent
+                IsCurrent = thumbnail.IsCurrent,
+                IsNext = thumbnail.IsNext,
+                RenderBounds = thumbnail.RenderBounds
             });
         }
     }
@@ -236,8 +241,11 @@ public sealed partial class PowerPointPreviewViewModel : ObservableObject
         return true;
     }
 
-    private static bool MatchesSlide(PowerPointSlideThumbnail thumbnail, int slide, StripKey key) =>
-        thumbnail.SlideNumber == slide && thumbnail.PixelWidth >= key.Width && thumbnail.PixelHeight >= key.Height;
+    private static bool MatchesSlide(PowerPointSlideThumbnail thumbnail, int slide, StripKey key)
+    {
+        var (width, height) = thumbnail.RenderBounds ?? (thumbnail.PixelWidth, thumbnail.PixelHeight);
+        return thumbnail.SlideNumber == slide && width >= key.Width && height >= key.Height;
+    }
 
     private void InvalidateThumbnailLoad()
     {
@@ -299,14 +307,17 @@ public sealed partial class PowerPointPreviewViewModel : ObservableObject
                     if (token.IsCancellationRequested)
                         return;
 
-                    Thumbnails.Insert(index++, new PowerPointSlideThumbnail(
+                    Thumbnails.Insert(index, new PowerPointSlideThumbnail(
                         slide,
                         image,
                         slideSnapshot.PixelWidth,
                         slideSnapshot.PixelHeight)
                     {
-                        IsCurrent = slide == SlideNumber
+                        IsNext = slide == SlideNumber + 1 && index > 0 && Thumbnails[index - 1].IsCurrent,
+                        IsCurrent = slide == SlideNumber,
+                        RenderBounds = slideSnapshot.RenderBounds
                     });
+                    index++;
                 }
             }
         }
@@ -322,6 +333,7 @@ public sealed partial class PowerPointPreviewViewModel : ObservableObject
         {
             if (ReferenceEquals(cts, _thumbnailCts))
             {
+                UpdateThumbnailSelection(SlideNumber);
                 _thumbnailTask = null;
                 _thumbnailCts = null;
             }
@@ -331,11 +343,16 @@ public sealed partial class PowerPointPreviewViewModel : ObservableObject
     }
 
     // 현재 슬라이드가 바뀌면 썸네일 스트립의 강조(IsCurrent)를 갱신한다.
-    partial void OnSlideNumberChanged(int value)
+    partial void OnSlideNumberChanged(int value) => UpdateThumbnailSelection(value);
+
+    private void UpdateThumbnailSelection(int value)
     {
+        bool selected = false;
         foreach (var thumbnail in Thumbnails)
         {
+            thumbnail.IsNext = selected && thumbnail.SlideNumber == value + 1;
             thumbnail.IsCurrent = thumbnail.SlideNumber == value;
+            selected = thumbnail.IsCurrent;
         }
     }
 

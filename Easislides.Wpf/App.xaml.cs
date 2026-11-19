@@ -94,9 +94,10 @@ public partial class App : Application
         // 동일 인스턴스를 IMediaPlaybackBackend(서비스용)과 구체 타입(출력 창 Attach용) 양쪽으로 노출.
         services.AddSingleton<AttachableMediaPlaybackBackend>();
         services.AddSingleton<IMediaPlaybackBackend>(sp => sp.GetRequiredService<AttachableMediaPlaybackBackend>());
-        services.AddSingleton<IMediaPlaybackService>(sp => new MediaPlaybackService(
+        services.AddSingleton(sp => new MediaPlaybackService(
             sp.GetRequiredService<IMediaPlaybackBackend>(),
             sp.GetRequiredService<ISettingsService>()));
+        services.AddSingleton<IMediaPlaybackService>(sp => sp.GetRequiredService<MediaPlaybackService>());
         services.AddSingleton<ILiveSafetyPrompt, WpfLiveSafetyPrompt>();
         services.AddSingleton<ICommandTelemetry, InMemoryCommandTelemetry>();
         services.AddSingleton<IWorshipListStore, WorshipListStore>();
@@ -145,7 +146,7 @@ public partial class App : Application
         {
             // 출력 창 생성 시 MediaElement 를 미디어 브리지에 부착(실제 미디어 백엔드 트랙 2단계).
             var window = sp.GetRequiredService<OutputWindow>();
-            window.AttachMedia(sp.GetRequiredService<AttachableMediaPlaybackBackend>());
+            window.AttachMedia(sp.GetRequiredService<AttachableMediaPlaybackBackend>(), sp.GetRequiredService<MediaPlaybackService>());
             return window;
         });
         services.AddSingleton<IOutputWindowHost, OutputWindowHost>();

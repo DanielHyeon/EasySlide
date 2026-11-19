@@ -523,6 +523,23 @@ public class SettingsServiceTests
     private static string Serialize(EasiSettingsSnapshot snapshot)
         => JsonSerializer.Serialize(snapshot, SettingsService.JsonOptions);
 
+    [Fact]
+    public async Task MigratedToolbarFolderShortcutsSurviveReload()
+    {
+        using var temp = TempSettingsFolder.Create();
+        var settings = temp.CreateService();
+        await settings.MigrateLegacyAsync(new DictionaryLegacySettingsSource(new Dictionary<string, string?>
+        {
+            ["JumpToA"] = "7",
+            ["JumpToB"] = "0",
+            ["JumpToC"] = "19",
+        }));
+        var reopened = temp.CreateService();
+        reopened.Get(EasiSettingKeys.JumpToA).Should().Be(7);
+        reopened.Get(EasiSettingKeys.JumpToB).Should().Be(2);
+        reopened.Get(EasiSettingKeys.JumpToC).Should().Be(19);
+    }
+
     private sealed class TempSettingsFolder : IDisposable
     {
         private TempSettingsFolder(string root)

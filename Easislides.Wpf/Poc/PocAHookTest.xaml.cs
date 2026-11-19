@@ -94,18 +94,18 @@ public partial class PocAHookTest : Window
 
     private void OnGlobalKeyDown(object? sender, System.Windows.Forms.KeyEventArgs e)
     {
-        // HookManager는 Forms.KeyEventArgs로 콜백 — Dispatcher로 UI 스레드 안전 갱신
+        if (e.Handled || !_registry.TryResolveGlobal(e.KeyCode, e.Modifiers, out var command))
+            return;
+
+        var gesture = e.KeyData;
         Dispatcher.InvokeAsync(() =>
         {
-            Log($"[HookMgr KeyDown] KeyCode={e.KeyCode}, Modifiers={e.Modifiers}");
-
-            if (_registry.TryHandleGlobal(e.KeyCode, e.Modifiers))
-            {
-                Log("  → 글로벌 핸들러가 처리. 다른 앱이 활성이어도 EasiSlides 명령 실행됨.");
-                // SuppressKeyPress = true로 OS 단계에서 키 차단 (다른 앱에 전달 안 됨)
-                e.SuppressKeyPress = true;
-            }
+            if (!_hookEnabled) return;
+            Log($"[HookMgr] {gesture}");
+            try { command(); }
+            catch (Exception ex) { Log($"[ERR] {ex.Message}"); }
         });
+        e.Handled = true;
     }
 
     private void OnClearLog_Click(object sender, RoutedEventArgs e)

@@ -13,11 +13,11 @@ namespace Easislides.Wpf.Shell;
 
 /// <summary>정보 화면(공지) 저장 DTO — 본문·글자 크기(0=기본)·가로 정렬(0=기본/1왼쪽/2가운데/3오른쪽)·글자색(ARGB int, 0=기본)·배경색(ARGB int, 0=기본)·굵게·기울임·밑줄·글꼴명(빈/null=전역 기본). 레거시 InfoScreen(.esi) 보존 필드.
 /// (새 필드는 모두 맨 끝에 기본값으로 추가 — 옛 저장 파일(필드 없음)도 JSON 역직렬화 시 기본값(0/false/null)으로 안전하게 읽힌다.)</summary>
-public sealed record InfoScreenDto(string Text, int FontSize = 0, int Alignment = 0, int ColorArgb = 0, int BackgroundColorArgb = 0, bool Bold = false, bool Italic = false, bool Underline = false, string? FontName = null);
+public sealed record InfoScreenDto(string Text, int FontSize = 0, int Alignment = 0, int ColorArgb = 0, int BackgroundColorArgb = 0, bool Bold = false, bool Italic = false, bool Underline = false, string? FontName = null, string? MediaPath = null, string? LegacyFormatData = null);
 
 /// <summary>공지 송출 옵션 — 글자 크기(pt)·가로 정렬(0기본/1왼쪽/2가운데/3오른쪽)·글자색(ARGB int, 0=기본)·배경색(ARGB int, 0=기본)·굵게·기울임·밑줄(강조)·글꼴명(빈/null=전역 기본).
 /// 송출 콜백 인자를 정수 나열(위치 모호) 대신 이름 있는 레코드로 묶어 인자 순서 실수를 막는다.</summary>
-public sealed record NoticeOptions(int FontSizePt = 0, int Alignment = 0, int ColorArgb = 0, int BackgroundColorArgb = 0, bool Bold = false, bool Italic = false, bool Underline = false, string? FontName = null);
+public sealed record NoticeOptions(int FontSizePt = 0, int Alignment = 0, int ColorArgb = 0, int BackgroundColorArgb = 0, bool Bold = false, bool Italic = false, bool Underline = false, string? FontName = null, string? MediaPath = null, string? LegacyFormatData = null);
 
 /// <summary>
 /// 명명 정보 화면(공지 텍스트)을 이름으로 저장/불러오기/삭제한다(레거시 FrmInfoScreen 의 .esi 목록 대응의 첫 슬라이스).
@@ -84,7 +84,7 @@ public sealed class InfoScreenStore : IInfoScreenStore
     {
         ArgumentNullException.ThrowIfNull(screen);
         var path = ResolvePath(name);
-        Directory.CreateDirectory(_directory);
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
 
         var json = JsonSerializer.Serialize(screen, JsonOptions);
 
@@ -123,7 +123,7 @@ public sealed class InfoScreenStore : IInfoScreenStore
     public async Task<string?> PrepareCopySourceFileAsync(string name, string exportDirectory, CancellationToken cancellationToken = default)
     {
         var legacyPath = ResolveLegacyPath(name);
-        if (legacyPath is not null && File.Exists(legacyPath))
+        if (!File.Exists(TryResolvePath(name)) && legacyPath is not null && File.Exists(legacyPath))
         {
             return legacyPath;
         }
@@ -160,8 +160,8 @@ public sealed class InfoScreenStore : IInfoScreenStore
 
         if (Directory.Exists(_directory))
         {
-            foreach (var name in Directory.GetFiles(_directory, "*.json")
-                .Select(Path.GetFileNameWithoutExtension)
+            foreach (var name in Directory.EnumerateFiles(_directory, "*.json", SearchOption.AllDirectories)
+                .Select(path => Path.ChangeExtension(Path.GetRelativePath(_directory, path), null))
                 .Where(n => !string.IsNullOrEmpty(n))
                 .Select(n => n!))
             {
@@ -179,17 +179,21 @@ public sealed class InfoScreenStore : IInfoScreenStore
 
     public bool Delete(string name)
     {
-        var path = TryResolvePath(name);
-        if (path is not null && File.Exists(path))
-        {
-            return _deleteFile(path);
-        }
-
-        var legacyPath = ResolveLegacyPath(name);
-        return legacyPath is not null && File.Exists(legacyPath) && _deleteFile(legacyPath);
+        var json = TryResolvePath(name);
+        var legacy = ResolveLegacyPath(name);
+        bool hadLegacy = legacy is not null && File.Exists(legacy);
+        if (hadLegacy && !_deleteFile(legacy!)) return false;
+        return json is not null && File.Exists(json) ? _deleteFile(json) : hadLegacy;
     }
 
-    private string ResolvePath(string name) => StoreFileNaming.ResolveJsonPath(_directory, name, "정보 화면");
+    private string ResolvePath(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name) || Path.IsPathRooted(name) || !IsSafeLegacyRelativePath(name))
+            throw new ArgumentException("정보 화면 이름이 올바르지 않습니다.", nameof(name));
+        var parent = Path.GetDirectoryName(name);
+        return StoreFileNaming.ResolveJsonPath(string.IsNullOrEmpty(parent) ? _directory : Path.Combine(_directory, parent),
+            Path.GetFileName(name), "정보 화면");
+    }
 
     private string? TryResolvePath(string name)
     {
@@ -285,7 +289,8 @@ public sealed class InfoScreenStore : IInfoScreenStore
             new XElement("EasiSlides",
                 new XElement("Item",
                     new XElement("Title1", name),
-                    new XElement("Contents", screen.Text ?? string.Empty))));
+                    new XElement("Contents", screen.Text ?? string.Empty),
+                    new XElement("FormatData", MainViewModel.BuildNoticeFormatData(InfoScreenSourceViewModel.ToNoticeOptions(screen)) ?? ""))));
 
     private static string SanitizeExportFileName(string name)
     {
@@ -305,8 +310,16 @@ public sealed class InfoScreenStore : IInfoScreenStore
         try
         {
             var fileContents = await File.ReadAllTextAsync(path, cancellationToken).ConfigureAwait(false);
-            var contents = TryReadLegacyXmlContents(fileContents) ?? fileContents;
-            return new InfoScreenDto(NormalizeLegacyInfoFileContents(contents));
+            var item = TryReadLegacyItem(fileContents);
+            var contents = item == null ? fileContents : ReadElement(item, "Contents");
+            var raw = item == null ? null : ReadElement(item, "FormatData");
+            var format = Easislides.Wpf.Library.SongFormatData.Parse(raw);
+            return new InfoScreenDto(NormalizeLegacyInfoFileContents(contents), format?.FontSize1 ?? 0,
+                format?.Alignment1 ?? 0, format?.TextColorArgb1 ?? 0, format?.BackgroundColorArgb1 ?? 0,
+                format?.Bold1 ?? false, format?.Italic1 ?? false, format?.Underline1 ?? false,
+                string.IsNullOrEmpty(format?.FontName1) ? null : format.FontName1,
+                string.IsNullOrEmpty(format?.MediaPath) ? null : format.MediaPath,
+                string.IsNullOrWhiteSpace(raw) ? null : raw);
         }
         catch (Exception ex) when (IsRecoverableFileException(ex))
         {
@@ -314,14 +327,14 @@ public sealed class InfoScreenStore : IInfoScreenStore
         }
     }
 
-    private static string? TryReadLegacyXmlContents(string text)
+    private static XElement? TryReadLegacyItem(string text)
     {
         try
         {
             var document = XDocument.Parse(text, LoadOptions.PreserveWhitespace);
             var item = document.Descendants().FirstOrDefault(element =>
                 string.Equals(element.Name.LocalName, "Item", StringComparison.OrdinalIgnoreCase));
-            return item is null ? null : ReadElement(item, "Contents");
+            return item;
         }
         catch (System.Xml.XmlException)
         {

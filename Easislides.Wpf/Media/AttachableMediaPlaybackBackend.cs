@@ -47,13 +47,20 @@ public sealed class AttachableMediaPlaybackBackend : IMediaPlaybackBackend
     }
 
     /// <summary>실제 백엔드를 분리한다(출력 창 닫힘 등). 이후 호출은 다시 no-op.</summary>
-    public void Detach() => _inner = null;
+    public void Detach()
+    {
+        var backend = _inner;
+        _inner = null;
+        backend?.Unload();
+    }
 
     public void Load(MediaPlaybackSnapshot snapshot)
     {
+        _lastLoad = null;
+        _intent = MediaPlaybackState.Empty;
+        _inner?.Load(snapshot);
         _lastLoad = snapshot;
         _intent = MediaPlaybackState.Ready;
-        _inner?.Load(snapshot);
     }
 
     public void Play()
@@ -76,7 +83,11 @@ public sealed class AttachableMediaPlaybackBackend : IMediaPlaybackBackend
 
     public void Seek(TimeSpan position) => _inner?.Seek(position);
 
-    public void ApplySettings(MediaPlaybackSnapshot snapshot) => _inner?.ApplySettings(snapshot);
+    public void ApplySettings(MediaPlaybackSnapshot snapshot)
+    {
+        _inner?.ApplySettings(snapshot);
+        if (_lastLoad != null) _lastLoad = snapshot;
+    }
 
     public void Unload()
     {

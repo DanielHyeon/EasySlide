@@ -154,6 +154,8 @@
                                   Content="라이브 중 위험 액션 확인"
                                   AutomationProperties.Name="라이브 안전 확인"
                                   MinHeight="{DynamicResource Spacing.TargetMin}" />
+                        <CheckBox Content="자동 텍스트 넘김" IsChecked="{Binding AutoTextOverflow, Mode=TwoWay}" />
+                        <CheckBox Content="텍스트 파일의 각 문단을 한 화면에 맞춤" IsChecked="{Binding FitTextFileParagraphs, Mode=TwoWay}" />
                         <CheckBox IsChecked="{Binding ShowLyricsMonitorAlertBox, Mode=TwoWay}"
                                   Content="가사 모니터 알림 표시"
                                   AutomationProperties.Name="가사 모니터 알림 표시"

@@ -10,10 +10,12 @@
         xmlns:theme="clr-namespace:Easislides.Wpf.Theme"
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
         Title="EasiSlides"
+        Icon="/EasislidesNext;component/Assets/EasiSlides.ico"
+        UseLayoutRounding="True"
         Width="1180"
         Height="760"
-        MinWidth="1180"
-        MinHeight="760"
+        MinWidth="780"
+        MinHeight="540"
         Background="{DynamicResource Brush.Surface.Page}"
         WindowStartupLocation="CenterScreen">
 
@@ -24,7 +26,31 @@
         <converters:LegacyLyricsRichTextBoxWidthConverter x:Key="LegacyLyricsRichTextBoxWidth" />
         <converters:LegacySampleScreenSizeConverter x:Key="LegacySampleScreenSize" />
         <converters:ColorValueToBrushConverter x:Key="ColorValueToBrush" />
+        <converters:KindToFrmIconConverter x:Key="KindToFrmIcon" />
         <converters:SongRowDisplayConverter x:Key="SongRowDisplay" />
+        <ControlTemplate x:Key="FrmMainMenuHeader" TargetType="MenuItem">
+            <Border x:Name="MenuHeader" Background="Transparent" Padding="8,0">
+                <Grid>
+                    <ContentPresenter ContentSource="Header" RecognizesAccessKey="True" VerticalAlignment="Center" />
+                    <Popup x:Name="PART_Popup" Placement="Bottom" Focusable="False" AllowsTransparency="True"
+                           IsOpen="{Binding IsSubmenuOpen, RelativeSource={RelativeSource TemplatedParent}}">
+                        <Border Background="{DynamicResource {x:Static SystemColors.MenuBrushKey}}" Padding="2"
+                                BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}" BorderThickness="1">
+                            <ScrollViewer MaxHeight="{Binding Source={x:Static SystemParameters.WorkArea}, Path=Height}"
+                                          CanContentScroll="True" VerticalScrollBarVisibility="Auto">
+                                <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Cycle" KeyboardNavigation.TabNavigation="Cycle" />
+                            </ScrollViewer>
+                        </Border>
+                    </Popup>
+                </Grid>
+            </Border>
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsHighlighted" Value="True">
+                    <Setter TargetName="MenuHeader" Property="Background" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.HighlightTextBrushKey}}" />
+                </Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate>
         <Style x:Key="ClassicColorSwatch" TargetType="Border">
             <Setter Property="Width" Value="18" />
             <Setter Property="Height" Value="18" />
@@ -108,37 +134,29 @@
         </Style>
         <Style x:Key="ClassicOperatorStripButton"
                TargetType="Button"
-               BasedOn="{StaticResource EsButton.Secondary}">
-            <Setter Property="Width" Value="30" />
-            <Setter Property="Height" Value="33" />
+               BasedOn="{StaticResource FrmMainButton}">
+            <Setter Property="Width" Value="24" />
+            <Setter Property="Height" Value="27" />
             <Setter Property="MinWidth" Value="0" />
             <Setter Property="MinHeight" Value="0" />
             <Setter Property="Padding" Value="0" />
-            <Setter Property="Margin" Value="0" />
-        </Style>
-        <Style x:Key="ClassicOperatorStripDangerButton"
-               TargetType="Button"
-               BasedOn="{StaticResource EsButton.Danger}">
-            <Setter Property="Width" Value="30" />
-            <Setter Property="Height" Value="33" />
-            <Setter Property="MinWidth" Value="0" />
-            <Setter Property="MinHeight" Value="0" />
-            <Setter Property="Padding" Value="0" />
+            <Setter Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.ControlLightBrushKey}}" />
             <Setter Property="Margin" Value="0" />
         </Style>
         <Style x:Key="ClassicOperatorStripToggleButton"
                TargetType="ToggleButton"
-               BasedOn="{StaticResource ClassicOutputToggleButton}">
-            <Setter Property="Width" Value="30" />
-            <Setter Property="Height" Value="33" />
+               BasedOn="{StaticResource FrmMainToggleButton}">
+            <Setter Property="Width" Value="24" />
+            <Setter Property="Height" Value="27" />
             <Setter Property="MinWidth" Value="0" />
             <Setter Property="MinHeight" Value="0" />
             <Setter Property="Padding" Value="0" />
+            <Setter Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.ControlLightBrushKey}}" />
             <Setter Property="Margin" Value="0" />
         </Style>
         <Style x:Key="ClassicTopToolStripButton"
                TargetType="Button"
-               BasedOn="{StaticResource EsButton.Secondary}">
+               BasedOn="{StaticResource FrmMainButton}">
             <Setter Property="Height" Value="24" />
             <Setter Property="MinWidth" Value="24" />
             <Setter Property="MinHeight" Value="0" />
@@ -149,12 +167,17 @@
         <Style x:Key="ClassicTopToolStripTextButton"
                TargetType="Button"
                BasedOn="{StaticResource ClassicTopToolStripButton}">
-            <Setter Property="MinWidth" Value="52" />
+            <Setter Property="MinWidth" Value="34" />
             <Setter Property="Padding" Value="5,0" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding}" Value="{x:Null}">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+            </Style.Triggers>
         </Style>
         <Style x:Key="ClassicTopToolStripToggleButton"
                TargetType="ToggleButton"
-               BasedOn="{StaticResource ClassicOutputToggleButton}">
+               BasedOn="{StaticResource FrmMainToggleButton}">
             <Setter Property="Width" Value="26" />
             <Setter Property="Height" Value="24" />
             <Setter Property="MinWidth" Value="0" />
@@ -176,17 +199,41 @@
             <Setter Property="Width" Value="26" />
             <Setter Property="Height" Value="24" />
         </Style>
+        <Style x:Key="FrmMainLiveToggle" TargetType="ToggleButton" BasedOn="{StaticResource FrmMainToggleButton}">
+            <Style.Triggers>
+                <Trigger Property="IsChecked" Value="True">
+                    <Setter Property="Background" Value="#BA4E08" />
+                    <Setter Property="Foreground" Value="White" />
+                    <Setter Property="BorderBrush" Value="#BA4E08" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="FrmMainScreenToggle" TargetType="ToggleButton" BasedOn="{StaticResource FrmMainToggleButton}">
+            <Style.Triggers>
+                <Trigger Property="IsChecked" Value="True">
+                    <Setter Property="Background" Value="White" />
+                    <Setter Property="Foreground" Value="#BA4E08" />
+                    <Setter Property="BorderBrush" Value="#BA4E08" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
         <Style x:Key="ClassicPanelDisplayList" TargetType="ListView">
-            <Setter Property="Height" Value="28" />
-            <Setter Property="Background" Value="{DynamicResource Brush.Surface.Page}" />
+            <Setter Property="Height" Value="26" />
+            <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border.Default}" />
-            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderThickness" Value="0" />
             <Setter Property="Focusable" Value="False" />
             <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
             <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Disabled" />
         </Style>
         <Style x:Key="ClassicPanelDisplayListItem" TargetType="ListViewItem">
-            <Setter Property="Padding" Value="4,1" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListViewItem">
+                        <ContentPresenter Margin="4,0" VerticalAlignment="Center" />
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
             <Setter Property="Focusable" Value="False" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
@@ -199,41 +246,46 @@
     </Window.InputBindings>
 
     <!-- 루트를 Grid 로 감싸 명령 팔레트 오버레이를 전체 위에 띄운다(평소엔 숨김). -->
-    <Grid>
+    <Grid Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" TextElement.FontFamily="{DynamicResource {x:Static SystemFonts.MessageFontFamilyKey}}">
     <DockPanel LastChildFill="True">
         <!-- FrmMain 메뉴바(File/Edit/View/Output/Tools/Help) 포팅.
              모든 항목은 실제 MainViewModel 명령 또는 DI 창 런처(Click)에 배선 — dead UI 없음.
              출력 항목은 명령 CanExecute 로 라이브 상태에 따라 자동 활성/비활성. -->
-        <Menu DockPanel.Dock="Top"
-              Background="{DynamicResource Brush.Surface.Card}"
+        <Menu DockPanel.Dock="Top" Height="24"
+              Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"
               FontSize="12"
               Padding="0"
               AutomationProperties.Name="주 메뉴">
-            <MenuItem Header="File">
+            <MenuItem Header="File" Style="{x:Null}" Template="{StaticResource FrmMainMenuHeader}" Height="24">
+                <MenuItem Header="예배 순서 관리…" Click="OpenManageWorshipLists_Click" />
+                <MenuItem Header="찬양집…" Click="OpenPraiseBookIndex_Click" />
+                <MenuItem Header="선택한 폴더의 곡 목록 내보내기…" Click="ExportFolderListing_Click" />
+                <MenuItem Header="최근 편집 항목" x:Name="RecentEditsMenu" SubmenuOpened="RecentEdits_Open"><MenuItem Header="최근 편집 항목 없음" IsEnabled="False" /></MenuItem>
+                <Separator />
                 <!-- 빠른 저장(Ctrl+S) — 현재 세션 이름으로 덮어 저장. 미저장 변경(● 수정됨)과 짝. -->
                 <MenuItem Header="예배 순서 저장" Command="{Binding QuickSaveWorshipListCommand}" InputGestureText="Ctrl+S">
-                    <MenuItem.Icon><ui:SymbolIcon Symbol="Save24" /></MenuItem.Icon>
+                    <MenuItem.Icon><controls:FrmIcon Icon="save" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
                 <Separator />
                 <MenuItem Header="예배 순서에 파일 추가" Click="AddExternalFile_Click">
-                    <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionNewItem}" /></MenuItem.Icon>
+                    <MenuItem.Icon><controls:FrmIcon Icon="document_add" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="레거시 예배 순서(.esw) 가져오기..." Click="ImportLegacyWorshipList_Click">
-                    <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.FolderOpen}" /></MenuItem.Icon>
+                    <MenuItem.Icon><controls:FrmIcon Icon="folder_open" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="PowerPoint 폴더 찾아보기..." Click="OpenPowerPointLibrary_Click">
-                    <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Folder}" /></MenuItem.Icon>
+                    <MenuItem.Icon><controls:FrmIcon Icon="folder_open" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="미디어 폴더 찾아보기..." Click="OpenMediaLibrary_Click">
-                    <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Folder}" /></MenuItem.Icon>
+                    <MenuItem.Icon><controls:FrmIcon Icon="folder_open" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="라이브러리 열기" Click="OpenLibrary_Click">
-                    <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Contents}" /></MenuItem.Icon>
+                    <MenuItem.Icon><controls:FrmIcon Icon="book_open" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
                 <!-- 최근 예배 순서(레거시 Recent Edits) — 최신순 이름을 클릭하면 즉시 다시 불러온다. 비어 있으면 비활성. -->
                 <MenuItem Header="최근 예배 순서"
                           ItemsSource="{Binding RecentWorshipLists}">
-                    <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.WorshipList}" /></MenuItem.Icon>
+                    <MenuItem.Icon><controls:FrmIcon Icon="text_bullet_list_ltr" Width="16" Height="16" /></MenuItem.Icon>
                     <MenuItem.ItemContainerStyle>
                         <Style TargetType="MenuItem">
                             <Setter Property="Header" Value="{Binding}" />
@@ -247,41 +299,51 @@
                 <MenuItem Header="종료" Click="Exit_Click" />
             </MenuItem>
 
-            <MenuItem Header="Edit">
-                <MenuItem Header="곡 복사" Click="SongCopy_Click">
-                    <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionCopy}" /></MenuItem.Icon>
+            <MenuItem Header="Edit" Style="{x:Null}" Template="{StaticResource FrmMainMenuHeader}" Height="24">
+                <MenuItem Header="새 항목…" Tag="Main_New" Click="Main_SourceEdit_Click" IsEnabled="{Binding IsEnabled, ElementName=Main_New}" />
+                <MenuItem Header="선택 항목 편집…" Tag="Main_Edit" Click="Main_SourceEdit_Click" IsEnabled="{Binding IsEnabled, ElementName=Main_Edit}" />
+                <MenuItem Header="곡 전체 선택" Click="CMenuSongs_SelectAll_Click" />
+                <MenuItem Header="찾기…" Click="Main_Find_Click" InputGestureText="Ctrl+F" />
+                <Separator />
+                <MenuItem Header="곡 번호 표시" IsCheckable="True" IsChecked="{Binding Library.UseSongNumbering, Mode=TwoWay}" />
+                <MenuItem Header="선택 항목 복사" Tag="Main_Copy" Click="Main_SourceEdit_Click" IsEnabled="{Binding IsEnabled, ElementName=Main_Copy}">
+                    <MenuItem.Icon><controls:FrmIcon Icon="copy" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Header="곡 이동" Click="SongMove_Click">
-                    <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionMove}" /></MenuItem.Icon>
+                <MenuItem Header="선택 항목 이동" Tag="Main_Move" Click="Main_SourceEdit_Click" IsEnabled="{Binding IsEnabled, ElementName=Main_Move}">
+                    <MenuItem.Icon><controls:FrmIcon Icon="folder_arrow_right" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Header="곡 삭제" Click="SongDelete_Click">
-                    <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionDelete}" /></MenuItem.Icon>
+                <MenuItem Header="선택 항목 삭제" Tag="Main_Delete" Click="Main_SourceEdit_Click" IsEnabled="{Binding IsEnabled, ElementName=Main_Delete}">
+                    <MenuItem.Icon><controls:FrmIcon Icon="delete" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
                 <Separator />
                 <MenuItem Header="삭제 항목 복구" Click="SongRecover_Click">
-                    <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionRefresh}" /></MenuItem.Icon>
+                    <MenuItem.Icon><controls:FrmIcon Icon="arrow_clockwise" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="스마트 병합" Click="SongMerge_Click">
                     <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Template}" /></MenuItem.Icon>
                 </MenuItem>
                 <Separator />
                 <MenuItem Header="폴더 정리" Click="FolderEditor_Click">
-                    <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.FolderOpen}" /></MenuItem.Icon>
+                    <MenuItem.Icon><controls:FrmIcon Icon="folder_open" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="곡 검색·사용처" Click="OpenSearchUsage_Click">
-                    <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionFind}" /></MenuItem.Icon>
+                    <MenuItem.Icon><controls:FrmIcon Icon="search" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
             </MenuItem>
 
-            <MenuItem Header="View">
+            <MenuItem Header="View" Style="{x:Null}" Template="{StaticResource FrmMainMenuHeader}" Height="24">
+                <MenuItem Header="현재 목록 새로고침" Click="Main_Refresh_Click" />
+                <MenuItem Header="미리보기 코드 표시" IsCheckable="True" IsChecked="{Binding PreviewAreaShowNotations, Mode=TwoWay}" />
+                <MenuItem Header="상태 표시줄" x:Name="ShowStatusMenu" IsCheckable="True" IsChecked="True" />
+                <Separator />
                 <MenuItem Header="설정" Click="OpenSettings_Click">
-                    <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Settings}" /></MenuItem.Icon>
+                    <MenuItem.Icon><controls:FrmIcon Icon="settings" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="출력 새로고침" Command="{Binding RefreshOutputCommand}" InputGestureText="Ctrl+F5">
-                    <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionRefresh}" /></MenuItem.Icon>
+                    <MenuItem.Icon><controls:FrmIcon Icon="arrow_clockwise" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="EasiSlides 폴더 열기" Click="OpenEasiSlidesFolder_Click">
-                    <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.FolderOpen}" /></MenuItem.Icon>
+                    <MenuItem.Icon><controls:FrmIcon Icon="folder_open" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
                 <Separator />
                 <!-- 곡 번호 표시(FrmMain Edit 메뉴 Use Song Numbering) — 라이브러리 곡 목록에 "번호. 제목" 표시. 설정에 저장됨. -->
@@ -290,34 +352,35 @@
                           IsChecked="{Binding Library.UseSongNumbering, Mode=TwoWay}" />
             </MenuItem>
 
-            <MenuItem Header="Output">
+            <MenuItem Header="Output" Style="{x:Null}" Template="{StaticResource FrmMainMenuHeader}" Height="24">
                 <MenuItem Header="Go LIVE"
                           Command="{Binding ToggleOutputLiveCommand}"
                           IsCheckable="True"
                           IsChecked="{Binding IsOutputLiveActive, Mode=OneWay}"
                           InputGestureText="F12">
-                    <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.LiveToggle}" /></MenuItem.Icon>
+                    <MenuItem.Icon><controls:FrmIcon Icon="live" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="송출 후 다음 항목" Command="{Binding SendToOutputAndNextCommand}" InputGestureText="F11">
-                    <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.LiveSendToOutput}" /></MenuItem.Icon>
+                    <MenuItem.Icon><controls:FrmIcon Icon="arrow_enter" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="Preview를 Output으로 보내고 Black 해제"
                           Command="{Binding CopyPreviewToOutputAndClearBlackCommand}"
                           InputGestureText="F7">
-                    <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.LiveSendToOutput}" /></MenuItem.Icon>
+                    <MenuItem.Icon><controls:FrmIcon Icon="arrow_enter" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="Preview를 Output으로 보내기"
                           Command="{Binding CopyPreviewToOutputShortcutCommand}"
                           InputGestureText="F8">
-                    <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.LiveSendToOutput}" /></MenuItem.Icon>
+                    <MenuItem.Icon><controls:FrmIcon Icon="arrow_enter" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
+                <MenuItem Header="출력 새로고침" Command="{Binding RefreshOutputCommand}" />
                 <MenuItem Header="라이브 중지" Command="{Binding StopLiveCommand}">
-                    <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.NoRotate}" /></MenuItem.Icon>
+                    <MenuItem.Icon><controls:FrmIcon Icon="arrow_repeat_all_off" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
                 <Separator />
                 <MenuItem Header="처음 항목" Command="{Binding FirstItemCommand}" />
                 <MenuItem Header="다음 슬라이드/절" Command="{Binding LiveNextShortcutCommand}" InputGestureText="Space">
-                    <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.LiveSendToOutput}" /></MenuItem.Icon>
+                    <MenuItem.Icon><controls:FrmIcon Icon="arrow_enter" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="이전 슬라이드/절" Command="{Binding LivePreviousShortcutCommand}" InputGestureText="Shift+Space" />
                 <MenuItem Header="마지막 항목" Command="{Binding LastItemCommand}" />
@@ -327,7 +390,7 @@
                           IsCheckable="True"
                           IsChecked="{Binding IsOutputBlackActive, Mode=OneWay}"
                           InputGestureText="F9">
-                    <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.LiveBlack}" /></MenuItem.Icon>
+                    <MenuItem.Icon><controls:FrmIcon Icon="desktop" Width="16" Height="16" Filled="True" /></MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="화면 비우기"
                           Command="{Binding ToggleOutputClearCommand}"
@@ -337,15 +400,16 @@
                     <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionClear}" /></MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="출력 숨김" Command="{Binding HideOutputCommand}" InputGestureText="Ctrl+H">
-                    <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.LiveHide}" /></MenuItem.Icon>
+                    <MenuItem.Icon><controls:FrmIcon Icon="closed_caption_off" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="복귀" Command="{Binding RestoreOutputCommand}" />
-                <MenuItem Header="현재 항목 처음으로" Command="{Binding RestartCurrentItemCommand}" InputGestureText="Ctrl+R" />
+                <MenuItem Header="현재 항목 처음으로" Command="{Binding RestartCurrentItemCommand}" InputGestureText="F5" />
                 <Separator />
                 <!-- 스테이지(Preview) 모니터(gap §3.1) — 회중용 출력과 별개로 워십 리더·밴드가 보는 확인 모니터.
                      선택한 모니터에 풀스크린으로 가사를 띄우되, 회중 화면이 검정/비움이어도 스테이지는 가사를 계속 보여 준다. -->
+                <MenuItem Header="라이브 카메라 켜기/끄기" Command="{Binding ToggleOutputCameraCommand}" />
                 <MenuItem Header="스테이지 모니터 열기" Command="{Binding OpenStageMonitorCommand}">
-                    <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.MonitorDual}" /></MenuItem.Icon>
+                    <MenuItem.Icon><controls:FrmIcon Icon="tab_desktop_multiple" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="스테이지 모니터 닫기" Command="{Binding CloseStageMonitorCommand}" />
                 <Separator />
@@ -705,7 +769,7 @@
                 <Separator />
                 <!-- 전 항목에 전역 기본 서식 적용(FrmMain "Apply to All Except InfoScreens") — 모든 항목의 개별 서식을 끄고
                      운영 기본(인스펙터) 서식으로 송출하게 한다. 곡·성경 텍스트에만 영향. -->
-                <MenuItem Header="전 항목에 전역 서식 적용"
+                <MenuItem Header="정보 화면을 제외하고 전역 서식 적용"
                           Command="{Binding ApplyGlobalFormatToAllCommand}"
                           ToolTip="모든 예배 순서 항목의 '개별 서식'을 끄고 전역 기본(인스펙터) 서식으로 통일(레거시 Apply to All)." />
                 <!-- 복사한 항목별 서식을 전 항목(곡·성경)에 일괄 적용 — 우클릭 "이 항목 서식 복사"로 담아 둔 서식이 있을 때만 활성. -->
@@ -770,18 +834,28 @@
                 </MenuItem>
             </MenuItem>
 
-            <MenuItem Header="Tools">
+            <MenuItem Header="Tools" Style="{x:Null}" Template="{StaticResource FrmMainMenuHeader}" Height="24">
+                <MenuItem Header="가져오기…" Click="OpenImportExport_Click" />
+                <MenuItem Header="폴더 가져오기…" Click="OpenFolderImport_Click" />
+                <MenuItem Header="내보내기…" Click="OpenExport_Click" />
+                <MenuItem Header="삭제한 곡 복구…" Click="SongRecover_Click" />
+                <MenuItem Header="스마트 병합…" Click="SongMerge_Click" />
+                <MenuItem Header="삭제한 곡 모두 비우기…" Click="EmptyDeleted_Click" />
+                <MenuItem Header="예배 순서를 사용 기록에 추가" Click="AddListUsages_Click" IsEnabled="{Binding CanAddWorshipListSongsToUsages}" />
+                <MenuItem Header="사용 기록 보기…" Click="OpenUsageReport_Click" />
+                <MenuItem Header="곡 데이터베이스 개별 서식 모두 지우기…" Click="ClearDatabaseFormats_Click" />
+                <Separator />
                 <MenuItem Header="가져오기·내보내기" Click="OpenImportExport_Click">
-                    <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ExportRtf}" /></MenuItem.Icon>
+                    <MenuItem.Icon><controls:FrmIcon Icon="document_text" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="외부 파일 복사·이동" Click="OpenExternalFiles_Click">
-                    <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Folder}" /></MenuItem.Icon>
+                    <MenuItem.Icon><controls:FrmIcon Icon="folder_open" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="예배 순서 관리" Click="OpenManageWorshipLists_Click">
-                    <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.WorshipList}" /></MenuItem.Icon>
+                    <MenuItem.Icon><controls:FrmIcon Icon="text_bullet_list_ltr" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="성경 버전 관리" Click="OpenBibleVersionManager_Click">
-                    <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Bible}" /></MenuItem.Icon>
+                    <MenuItem.Icon><controls:FrmIcon Icon="bible" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="찬양집 색인..." Click="OpenPraiseBookIndex_Click">
                     <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Template}" /></MenuItem.Icon>
@@ -790,14 +864,14 @@
                     <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Template}" /></MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="세션 메모..." Click="OpenSessionNotes_Click">
-                    <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionEdit}" /></MenuItem.Icon>
+                    <MenuItem.Icon><controls:FrmIcon Icon="edit" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
                 <Separator />
                 <!-- 예배 순서 검증 — 라이브 송출 전 깨진 PPT·미디어 파일을 미리 거른다(레거시 ValidateWorshipListItems). -->
                 <MenuItem Header="예배 순서 검증"
                           Command="{Binding ValidateWorshipListCommand}"
                           ToolTip="라이브 송출 전 깨진 PowerPoint·미디어 파일이 없는지 점검합니다.">
-                    <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.StatusCheck}" /></MenuItem.Icon>
+                    <MenuItem.Icon><controls:FrmIcon Icon="checkbox_checked" Filled="True" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
                 <Separator />
                 <!-- 데이터베이스 압축·정리(레거시 Tools Compact & Repair) — 백업 후 VACUUM. -->
@@ -812,19 +886,21 @@
                 <MenuItem Header="모든 설정 초기화..."
                           Click="ResetAllSettings_Click"
                           ToolTip="모든 설정을 기본값으로 되돌리고 앱을 다시 시작합니다(곡·성경 데이터는 영향 없음). 설정이 꼬였을 때 쓰는 복구 기능입니다.">
-                    <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Alert}" /></MenuItem.Icon>
+                    <MenuItem.Icon><controls:FrmIcon Icon="alert" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
             </MenuItem>
 
-            <MenuItem Header="Help">
-                <MenuItem Header="도움말" Click="OpenHelp_Click" InputGestureText="F1">
-                    <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Help}" /></MenuItem.Icon>
+            <MenuItem Header="Help" Style="{x:Null}" Template="{StaticResource FrmMainMenuHeader}" Height="24">
+                <MenuItem Header="도움말 목차" Click="HelpContents_Click" InputGestureText="F1" />
+                <MenuItem Header="온라인 도움말" Click="WebHelp_Click" />
+                <MenuItem Header="도움말" Click="OpenHelp_Click">
+                    <MenuItem.Icon><controls:FrmIcon Icon="question_circle" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="등록 안내" Click="OpenRegistration_Click">
-                    <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.StatusCheck}" /></MenuItem.Icon>
+                    <MenuItem.Icon><controls:FrmIcon Icon="checkbox_checked" Filled="True" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="정보" Click="OpenAbout_Click">
-                    <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Info}" /></MenuItem.Icon>
+                    <MenuItem.Icon><controls:FrmIcon Icon="info" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
             </MenuItem>
         </Menu>
@@ -837,7 +913,7 @@
         <!-- 하단 상태바(FrmMain StatusStrip 파리티) — 예배 순서 항목 수·현재 절 위치·운영 상태·출력 모니터.
              기존 VM 상태만 바인딩(Queue.Count·LyricsPageLabel·StatusText·SelectedOutputDisplay). 가장 아래에 깔린다. -->
         <Border DockPanel.Dock="Bottom"
-                x:Name="StatusBar"
+                x:Name="StatusBar" Visibility="{Binding IsChecked, ElementName=ShowStatusMenu, Converter={StaticResource BoolToVis}}"
                 BorderThickness="0,1,0,0"
                 BorderBrush="{DynamicResource Brush.Border.Default}"
                 Background="{DynamicResource Brush.Surface.Subtle}"
@@ -850,7 +926,8 @@
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="{Binding Queue.Count, StringFormat='예배 순서 {0}개'}"
+                    <TextBlock Text="{Binding Library.Songs.Count, StringFormat='Folder: {0} items / '}" VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding Queue.Count, StringFormat='Worship: {0} items'}"
                                VerticalAlignment="Center"
                                Style="{StaticResource Type.Caption.Style}"
                                Foreground="{DynamicResource Brush.Text.Secondary}"
@@ -914,7 +991,7 @@
                 Tag="toolStripContainerMain"
                 BorderThickness="0,0,0,1"
                 BorderBrush="{DynamicResource Brush.Border.Default}"
-                Background="{DynamicResource Brush.Surface.Card}"
+                Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"
                 Padding="2,1">
             <Grid>
                 <Grid.RowDefinitions>
@@ -929,59 +1006,76 @@
                            Foreground="{DynamicResource Brush.Text.Secondary}"
                            Visibility="Collapsed" />
 
-                <StackPanel x:Name="toolStripMain"
+                <controls:FrmMainToolBar x:Name="toolStripMain"
                             Tag="toolStripMain"
                             Grid.Row="0"
-                            Orientation="Horizontal"
                             Margin="0">
                     <Button x:Name="Main_New"
                             Tag="Main_New"
-                            Click="Main_New_Click"
+                            Click="Main_SourceEdit_Click"
                             Style="{StaticResource ClassicTopToolStripButton}"
                             ToolTip="New"
                             AutomationProperties.Name="Main_New New">
-                        <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionNewItem}" />
+                        <StackPanel Orientation="Horizontal">
+                            <controls:FrmIcon Icon="document_add" Width="20" Height="20" />
+                            <TextBlock controls:FrmMainToolBar.IsCaption="True" VerticalAlignment="Center" Margin="3,0,0,0" Text="New" />
+                        </StackPanel>
                     </Button>
                     <Button x:Name="Main_Edit"
                             Tag="Main_Edit"
-                            Click="Main_Edit_Click"
+                            Click="Main_SourceEdit_Click"
                             Style="{StaticResource ClassicTopToolStripButton}"
                             ToolTip="Edit"
                             AutomationProperties.Name="Main_Edit Edit">
-                        <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionEdit}" />
+                        <StackPanel Orientation="Horizontal">
+                            <controls:FrmIcon Icon="edit" Width="20" Height="20" />
+                            <TextBlock controls:FrmMainToolBar.IsCaption="True" VerticalAlignment="Center" Margin="3,0,0,0" Text="Edit" />
+                        </StackPanel>
                     </Button>
                     <Button x:Name="Main_Copy"
                             Tag="Main_Copy"
-                            Click="SongCopy_Click"
+                            Click="Main_SourceEdit_Click"
                             Style="{StaticResource ClassicTopToolStripButton}"
                             ToolTip="Copy"
                             AutomationProperties.Name="Main_Copy Copy">
-                        <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionCopy}" />
+                        <StackPanel Orientation="Horizontal">
+                            <controls:FrmIcon Icon="copy" Width="20" Height="20" />
+                            <TextBlock controls:FrmMainToolBar.IsCaption="True" VerticalAlignment="Center" Margin="3,0,0,0" Text="Copy" />
+                        </StackPanel>
                     </Button>
                     <Button x:Name="Main_Move"
                             Tag="Main_Move"
-                            Click="SongMove_Click"
+                            Click="Main_SourceEdit_Click"
                             Style="{StaticResource ClassicTopToolStripButton}"
                             ToolTip="Move"
                             AutomationProperties.Name="Main_Move Move">
-                        <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionMove}" />
+                        <StackPanel Orientation="Horizontal">
+                            <controls:FrmIcon Icon="folder_arrow_right" Width="20" Height="20" />
+                            <TextBlock controls:FrmMainToolBar.IsCaption="True" VerticalAlignment="Center" Margin="3,0,0,0" Text="Move" />
+                        </StackPanel>
                     </Button>
                     <Button x:Name="Main_Delete"
                             Tag="Main_Delete"
-                            Click="SongDelete_Click"
+                            Click="Main_SourceEdit_Click"
                             Style="{StaticResource ClassicTopToolStripButton}"
                             Margin="0,0,8,0"
                             ToolTip="Delete"
                             AutomationProperties.Name="Main_Delete Delete">
-                        <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionDelete}" />
+                        <StackPanel Orientation="Horizontal">
+                            <controls:FrmIcon Icon="delete" Width="20" Height="20" />
+                            <TextBlock controls:FrmMainToolBar.IsCaption="True" VerticalAlignment="Center" Margin="3,0,0,0" Text="Delete" />
+                        </StackPanel>
                     </Button>
                     <Button x:Name="Main_Media"
                             Tag="Main_Media"
-                            Click="OpenMediaLibrary_Click"
+                            Click="Main_Media_Click"
                             Style="{StaticResource ClassicTopToolStripButton}"
                             ToolTip="Play Media"
                             AutomationProperties.Name="Main_Media Play Media">
-                        <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.MediaPlay}" />
+                        <StackPanel Orientation="Horizontal">
+                            <controls:FrmIcon Icon="filmstrip_play" Width="20" Height="20" />
+                            <TextBlock controls:FrmMainToolBar.IsCaption="True" VerticalAlignment="Center" Margin="3,0,0,0" Text="Media" />
+                        </StackPanel>
                     </Button>
                     <Button x:Name="Main_Refresh"
                             Tag="Main_Refresh"
@@ -990,7 +1084,10 @@
                             Margin="0,0,8,0"
                             ToolTip="Refresh"
                             AutomationProperties.Name="Main_Refresh Refresh">
-                        <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionRefresh}" />
+                        <StackPanel Orientation="Horizontal">
+                            <controls:FrmIcon Icon="arrow_clockwise" Width="20" Height="20" />
+                            <TextBlock controls:FrmMainToolBar.IsCaption="True" VerticalAlignment="Center" Margin="3,0,0,0" Text="Refresh" />
+                        </StackPanel>
                     </Button>
                     <Button x:Name="Main_Options"
                             Tag="Main_Options"
@@ -999,7 +1096,10 @@
                             Margin="0,0,8,0"
                             ToolTip="Options"
                             AutomationProperties.Name="Main_Options Options">
-                        <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Settings}" />
+                        <StackPanel Orientation="Horizontal">
+                            <controls:FrmIcon Icon="settings" Width="20" Height="20" />
+                            <TextBlock controls:FrmMainToolBar.IsCaption="True" VerticalAlignment="Center" Margin="3,0,0,0" Text="Options" />
+                        </StackPanel>
                     </Button>
                     <ToggleButton x:Name="Main_NoRotate"
                                   Tag="Main_NoRotate"
@@ -1008,7 +1108,7 @@
                                   Style="{StaticResource ClassicTopToolStripToggleButton}"
                                   ToolTip="Stop Auto Rotate"
                                   AutomationProperties.Name="Main_NoRotate Stop Auto Rotate">
-                        <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.NoRotate}" />
+                        <controls:FrmIcon Icon="arrow_repeat_all_off" Width="20" Height="20" />
                     </ToggleButton>
                     <ComboBox x:Name="Main_RotateStyle"
                               Tag="Main_RotateStyle"
@@ -1016,13 +1116,49 @@
                               ItemsSource="{Binding AutoRotateModeOptions}"
                               SelectedValue="{Binding AutoRotateModeInput, Mode=TwoWay}"
                               SelectedValuePath="Value"
-                              DisplayMemberPath="Text"
-                              MinWidth="176"
+                              MinWidth="0"
                               Margin="0,0,8,0"
                               ToolTip="Rotate Style"
-                              AutomationProperties.Name="Main_RotateStyle Rotate Style">
+                              AutomationProperties.Name="Main_RotateStyle Rotate Style" Width="38">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <Image Width="16" Height="16">
+                                        <Image.Style>
+                                            <Style TargetType="Image">
+                                                <Setter Property="Source" Value="/EasislidesNext;component/Assets/FrmMain/Main_Rotate0.gif" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding LegacyTag}" Value="1">
+                                                        <Setter Property="Source" Value="/EasislidesNext;component/Assets/FrmMain/Main_Rotate1.gif" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding LegacyTag}" Value="2">
+                                                        <Setter Property="Source" Value="/EasislidesNext;component/Assets/FrmMain/Main_Rotate2.gif" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding LegacyTag}" Value="3">
+                                                        <Setter Property="Source" Value="/EasislidesNext;component/Assets/FrmMain/Main_Rotate3.gif" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Image.Style>
+                                    </Image>
+                                    <TextBlock Text="{Binding Text}" Margin="5,0,0,0">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=ComboBoxItem}}" Value="{x:Null}">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
                         <ComboBox.ItemContainerStyle>
                             <Style TargetType="ComboBoxItem">
+                                <Setter Property="MinWidth" Value="200" />
                                 <Setter Property="Tag" Value="{Binding LegacyTag}" />
                                 <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
                             </Style>
@@ -1034,16 +1170,16 @@
                             Style="{StaticResource ClassicTopToolStripButton}"
                             ToolTip="Alerts"
                             AutomationProperties.Name="Main_Alerts Alerts">
-                        <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Alert}" />
+                        <controls:FrmIcon Icon="alert" Width="20" Height="20" />
                     </Button>
                     <Button x:Name="Main_Chinese"
                             Tag="Main_Chinese"
-                            Command="{Binding ToggleRegionDisplayCommand}"
+                            Command="{Binding ToggleOutputChineseCommand}"
                             Style="{StaticResource ClassicTopToolStripButton}"
                             Margin="0,0,8,0"
                             ToolTip="Trad/Simp Chinese"
                             AutomationProperties.Name="Main_Chinese Trad/Simp Chinese">
-                        <ui:SymbolIcon Symbol="Translate24" />
+                        <Image Source="/EasislidesNext;component/Assets/FrmMain/Main_Chinese.png" Width="16" Height="16" />
                     </Button>
                     <Button x:Name="Main_Find"
                             Tag="Main_Find"
@@ -1051,38 +1187,52 @@
                             Style="{StaticResource ClassicTopToolStripButton}"
                             ToolTip="Find"
                             AutomationProperties.Name="Main_Find Find">
-                        <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionFind}" />
+                        <controls:FrmIcon Icon="search" Width="20" Height="20" />
                     </Button>
-                    <ComboBox x:Name="Main_QuickFind"
+                    <Grid controls:FrmMainToolBar.IsPhraseBox="True">
+                        <ComboBox x:Name="Main_QuickFind"
                               Tag="Main_QuickFind"
                               Style="{StaticResource ClassicTopToolStripComboBox}"
                               IsEditable="True"
                               Text="{Binding Search.SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                               MaxDropDownHeight="260"
-                              Width="130"
-                              Margin="0,0,8,0"
+                              Margin="0"
                               PreviewKeyDown="Main_QuickFind_PreviewKeyDown"
                               ToolTip="Enter phrase and press Keyboard Enter key"
                               AutomationProperties.Name="Main_QuickFind Search Phrase" />
-                    <Button x:Name="Main_JumpA"
-                            Tag="Main_JumpA"
-                            Style="{StaticResource ClassicTopToolStripTextButton}"
-                            ToolTip="구찬송가">
-                        <TextBlock Text="구찬송가" />
+                        <TextBlock Text="Search Phrase" IsHitTestVisible="False" Margin="5,0,22,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding ElementName=Main_QuickFind, Path=Text}" Value="" />
+                                                <Condition Binding="{Binding ElementName=Main_QuickFind, Path=IsKeyboardFocusWithin}" Value="False" />
+                                            </MultiDataTrigger.Conditions>
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </MultiDataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Grid>
+                    <Button x:Name="Main_JumpA" Tag="Main_JumpA" Style="{StaticResource ClassicTopToolStripTextButton}"
+                            DataContext="{Binding Library.JumpFolderA}" ToolTip="{Binding Name}"
+                            Click="FolderJump_Click">
+                        <TextBlock Text="{Binding Name}" MaxWidth="100" TextTrimming="CharacterEllipsis" />
                     </Button>
-                    <Button x:Name="Main_JumpB"
-                            Tag="Main_JumpB"
-                            Style="{StaticResource ClassicTopToolStripTextButton}"
-                            ToolTip="새찬송가">
-                        <TextBlock Text="새찬송가" />
+                    <Button x:Name="Main_JumpB" Tag="Main_JumpB" Style="{StaticResource ClassicTopToolStripTextButton}"
+                            DataContext="{Binding Library.JumpFolderB}" ToolTip="{Binding Name}"
+                            Click="FolderJump_Click">
+                        <TextBlock Text="{Binding Name}" MaxWidth="100" TextTrimming="CharacterEllipsis" />
                     </Button>
-                    <Button x:Name="Main_JumpC"
-                            Tag="Main_JumpC"
-                            Style="{StaticResource ClassicTopToolStripTextButton}"
-                            ToolTip="개역개정">
-                        <TextBlock Text="개역개정" />
+                    <Button x:Name="Main_JumpC" Tag="Main_JumpC" Style="{StaticResource ClassicTopToolStripTextButton}"
+                            DataContext="{Binding Library.JumpFolderC}" ToolTip="{Binding Name}"
+                            Click="FolderJump_Click">
+                        <TextBlock Text="{Binding Name}" MaxWidth="100" TextTrimming="CharacterEllipsis" />
                     </Button>
-                </StackPanel>
+                </controls:FrmMainToolBar>
 
                 <!-- Classic Operator 고정 바: WinForms toolStripMain은 한 줄이므로 상단에서는 숨기고,
                      명령 배선은 메뉴와 Preview/Output 패널에서 유지한다. -->
@@ -1219,15 +1369,15 @@
 
         <Grid x:Name="ClassicFrmMainConsole"
               Tag="splitContainerMain"
-              Margin="4">
+              Margin="0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition x:Name="ClassicSourceColumn"
-                                  Width="0.75*"
-                                  MinWidth="320" />
-                <ColumnDefinition Width="6" />
+                                  Width="33*"
+                                  MinWidth="205" />
+                <ColumnDefinition Width="4" />
                 <ColumnDefinition x:Name="ClassicRightColumn"
-                                  Width="2.35*"
-                                  MinWidth="620" />
+                                  Width="67*"
+                                  MinWidth="500" />
             </Grid.ColumnDefinitions>
 
             <!-- 좌측: 상단 콘텐츠 브라우저(라이브러리/성경 탭) + 하단 예배 순서(항상 표시) — FrmMain식 멀티페인.
@@ -1238,9 +1388,9 @@
                   Grid.Column="0">
                 <Grid.RowDefinitions>
                     <!-- 브라우저/예배순서 두 패널 높이 비율은 GridSplitter 로 조절하고, 종료 시 비율을 저장해 다음 실행에 복원한다(레거시 splitter 상태). -->
-                    <RowDefinition x:Name="BrowserRow" Height="*" MinHeight="140" />
+                    <RowDefinition x:Name="BrowserRow" Height="3*" MinHeight="110" />
                     <RowDefinition Height="Auto" />
-                    <RowDefinition x:Name="WorshipQueueRow" Height="*" MinHeight="160" />
+                    <RowDefinition x:Name="WorshipQueueRow" Height="2*" MinHeight="100" />
                 </Grid.RowDefinitions>
 
                 <TabControl Grid.Row="0"
@@ -1254,7 +1404,7 @@
                     <TabItem Tag="Folders"
                              AutomationProperties.Name="Folders">
                         <TabItem.Header>
-                            <TextBlock Text="Folders" />
+                            <TextBlock Text="Folders" FontSize="{Binding FontSize, RelativeSource={RelativeSource AncestorType=TabItem}}" />
                         </TabItem.Header>
                     <Grid x:Name="ClassicFoldersSourceGrid"
                           Margin="3,5,3,0">
@@ -1283,26 +1433,6 @@
                                         Grid.Column="1"
                                         Orientation="Horizontal"
                                         Margin="4,0,0,0">
-                                <Button Command="{Binding Library.LoadCommand}"
-                                        Style="{StaticResource EsButton.Secondary}"
-                                        Width="28"
-                                        Height="28"
-                                        Padding="0"
-                                        Margin="0,0,3,0"
-                                        ToolTip="라이브러리 불러오기"
-                                        AutomationProperties.Name="라이브러리 불러오기">
-                                    <ui:SymbolIcon Symbol="ArrowClockwise24" />
-                                </Button>
-                                <Button Command="{Binding AddSelectedLibrarySongCommand}"
-                                        Style="{StaticResource EsButton.Secondary}"
-                                        Width="28"
-                                        Height="28"
-                                        Padding="0"
-                                        Margin="0,0,3,0"
-                                        ToolTip="선택 곡을 예배 순서에 추가"
-                                        AutomationProperties.Name="선택 곡을 예배 순서에 추가">
-                                    <ui:SymbolIcon Symbol="Add24" />
-                                </Button>
                                 <ToggleButton x:Name="Folders_WordCount"
                                               Tag="Folders_WordCount"
                                               IsChecked="{Binding Library.IsWordCountSortEnabled, Mode=TwoWay}"
@@ -1312,21 +1442,22 @@
                                               Height="28"
                                               Margin="0,0,3,0"
                                               Padding="0"
-                                              Content="#"
                                               ToolTip="Folders_WordCount / CJK Word Count 정렬"
-                                              AutomationProperties.Name="Folders_WordCount" />
+                                              AutomationProperties.Name="Folders_WordCount">
+                                    <controls:FrmIcon Icon="arrow_sort_down_lines" Width="16" Height="16" />
+                                </ToggleButton>
                             </StackPanel>
                         </Grid>
 
-                        <TextBox Grid.Row="1"
-                                 Text="{Binding Library.SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 MinHeight="28"
-                                 Margin="0,0,0,4"
-                                 ToolTip="제목·가사·분류 검색"
-                                 AutomationProperties.Name="곡 검색" />
+                        <Grid Grid.Row="1" Margin="0,0,0,3">
+                            <TextBox Text="{Binding Library.SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     MinHeight="24" Padding="23,1,3,1" VerticalContentAlignment="Center"
+                                     ToolTip="제목·가사·분류 검색" AutomationProperties.Name="곡 검색" />
+                            <controls:FrmIcon Icon="search" Width="14" Height="14" Margin="5,0,0,0" HorizontalAlignment="Left" />
+                        </Grid>
 
                         <ListView Grid.Row="2"
-                                  x:Name="LibrarySongList"
+                                  x:Name="LibrarySongList" SelectionChanged="LibrarySongList_SelectionChanged"
                                   ItemsSource="{Binding Library.Songs}"
                                   SelectedItem="{Binding Library.SelectedSong, Mode=TwoWay}"
                                   Tag="SongsList"
@@ -1339,41 +1470,42 @@
                                   BorderThickness="1"
                                   FontSize="12"
                                   HorizontalContentAlignment="Stretch"
-                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled" ToolTip="{Binding Library.StatusMessage}">
                             <ListView.Resources>
                                 <Style TargetType="{x:Type GridViewColumnHeader}">
                                     <Setter Property="Visibility" Value="Collapsed" />
                                 </Style>
                                 <Style TargetType="{x:Type ListViewItem}">
-                                    <Setter Property="MinHeight" Value="20" />
+                                    <Setter Property="MinHeight" Value="17" />
                                     <Setter Property="Padding" Value="2,0" />
                                     <Setter Property="HorizontalContentAlignment" Value="Stretch" />
                                 </Style>
                             </ListView.Resources>
                             <!-- 곡 한 줄 표시: "곡 번호 표시"(Use Song Numbering) on 이면 "번호. 제목", off 면 제목만.
                                  곡번호표시 값은 ListBox 의 DataContext(Library)에서 읽어, 토글하면 모든 줄이 즉시 갱신된다. -->
-                            <ListView.View>
-                                <GridView AllowsColumnReorder="False">
-                                    <GridViewColumn Width="270">
-                                        <GridViewColumn.CellTemplate>
-                                            <DataTemplate>
-                                                <TextBlock TextTrimming="CharacterEllipsis">
-                                                    <TextBlock.Text>
-                                                        <MultiBinding Converter="{StaticResource SongRowDisplay}">
-                                                            <Binding Path="Title" />
-                                                            <Binding Path="SongNumber" />
-                                                            <Binding Path="DataContext.Library.UseSongNumbering"
-                                                                     RelativeSource="{RelativeSource AncestorType=ListView}" />
-                                                        </MultiBinding>
-                                                    </TextBlock.Text>
-                                                </TextBlock>
-                                            </DataTemplate>
-                                        </GridViewColumn.CellTemplate>
-                                    </GridViewColumn>
-                                    <GridViewColumn Width="70"
-                                                    DisplayMemberBinding="{Binding Category}" />
-                                </GridView>
-                            </ListView.View>
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid>
+                                        <Grid.DataContext>
+                                            <MultiBinding Converter="{StaticResource SongRowDisplay}" ConverterParameter="Columns">
+                                                <Binding Path="Title" />
+                                                <Binding Path="SongNumber" />
+                                                <Binding Path="DataContext.Library.UseSongNumbering" RelativeSource="{RelativeSource AncestorType=ListView}" />
+                                                <Binding Path="Category" />
+                                            </MultiBinding>
+                                        </Grid.DataContext>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" />
+                                        <controls:FrmIcon Grid.Column="1" Icon="music_note_2" Width="14" Height="14" Visibility="{Binding HasMedia, Converter={StaticResource BoolToVis}}" />
+                                        <TextBlock Grid.Column="2" Text="{Binding Number}" Margin="6,0,4,0" MaxWidth="92"
+                                                   TextAlignment="Right" TextTrimming="CharacterEllipsis" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
                             <ListView.InputBindings>
                                 <!-- 더블클릭으로 예배 순서에 추가(선택 후 추가). -->
                                 <MouseBinding MouseAction="LeftDoubleClick"
@@ -1432,20 +1564,13 @@
                                    Foreground="{DynamicResource Brush.Text.Tertiary}"
                                    Visibility="{Binding Library.HasLibraryEmptyState, Converter={StaticResource BoolToVis}}"
                                    AutomationProperties.Name="라이브러리 곡 없음" />
-
-                        <TextBlock Grid.Row="3"
-                                   Text="{Binding Library.StatusMessage}"
-                                   Margin="0,4,0,0"
-                                   TextTrimming="CharacterEllipsis"
-                                   Style="{StaticResource Type.Caption.Style}"
-                                   Foreground="{DynamicResource Brush.Text.Tertiary}" />
                     </Grid>
                 </TabItem>
                 <TabItem Tag="InfoScreenSource"
                          x:Name="InfoScreenSourceTab"
                          AutomationProperties.Name="InfoScr source">
                     <TabItem.Header>
-                        <TextBlock Text="InfoScr" />
+                        <TextBlock Text="InfoScr" FontSize="{Binding FontSize, RelativeSource={RelativeSource AncestorType=TabItem}}" />
                     </TabItem.Header>
                     <Grid Margin="0,8,0,0">
                         <Grid.RowDefinitions>
@@ -1462,16 +1587,17 @@
                                 <ColumnDefinition Width="8" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <TextBlock VerticalAlignment="Center"
-                                       Text="Saved InfoScreens"
-                                       TextTrimming="CharacterEllipsis"
-                                       Style="{StaticResource Type.Caption.Style}"
-                                       Foreground="{DynamicResource Brush.Text.Secondary}" />
-                            <Button Grid.Column="2"
+                            <ComboBox x:Name="InfoScreenFolder" ItemsSource="{Binding Folders}" DisplayMemberPath="Label"
+                                      SelectedItem="{Binding SelectedFolder, Mode=TwoWay}" AutomationProperties.Name="정보 화면 폴더"/>
+                            <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                <Button x:Name="InfoScreen_OpenFolder" Click="OpenSourceFolder_Click" Style="{StaticResource ClassicTopToolStripButton}" ToolTip="선택한 폴더 열기" AutomationProperties.Name="선택한 폴더 열기"><controls:FrmIcon Icon="folder_open" Width="16" Height="16"/></Button>
+                                <Button x:Name="InfoScreen_Import" Click="ImportSourceFiles_Click" Style="{StaticResource ClassicTopToolStripButton}" ToolTip="선택한 폴더로 가져오기" AutomationProperties.Name="선택한 폴더로 가져오기"><controls:FrmIcon Icon="document_arrow_down" Width="16" Height="16"/></Button>
+                                <Button
                                     Command="{Binding LoadCommand}"
                                     Style="{StaticResource EsButton.Secondary}"
                                     Content="Refresh"
                                     AutomationProperties.Name="Refresh InfoScreen list" />
+                            </StackPanel>
                             <Button Grid.Column="4"
                                     Command="{Binding AddSelectedCommand}"
                                     Style="{StaticResource EsButton.Primary}"
@@ -1571,11 +1697,15 @@
                                       VerticalContentAlignment="Center"
                                       ToolTip="{Binding FolderPath}"
                                       AutomationProperties.Name="PowerPoint folder selector" />
-                            <Button Grid.Column="2"
+                            <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                <Button x:Name="PP_OpenFolder" Click="OpenSourceFolder_Click" Style="{StaticResource ClassicTopToolStripButton}" ToolTip="선택한 폴더 열기" AutomationProperties.Name="선택한 폴더 열기"><controls:FrmIcon Icon="folder_open" Width="16" Height="16"/></Button>
+                                <Button x:Name="PP_Import" Click="ImportSourceFiles_Click" Style="{StaticResource ClassicTopToolStripButton}" ToolTip="선택한 폴더로 가져오기" AutomationProperties.Name="선택한 폴더로 가져오기"><controls:FrmIcon Icon="document_arrow_down" Width="16" Height="16"/></Button>
+                                <Button
                                     Command="{Binding LoadCommand}"
                                     Style="{StaticResource EsButton.Secondary}"
                                     Content="Refresh"
                                     AutomationProperties.Name="Refresh PowerPoint list" />
+                            </StackPanel>
                             <Button Grid.Column="4"
                                     Command="{Binding AddSelectedCommand}"
                                     Style="{StaticResource EsButton.Primary}"
@@ -1600,13 +1730,17 @@
                                               Header="List"
                                               Command="{Binding UseListStyleCommand}"
                                               IsCheckable="True"
-                                              IsChecked="{Binding IsListStyle, Mode=OneWay}" />
+                                              IsChecked="{Binding IsListStyle, Mode=OneWay}">
+                                        <MenuItem.Icon><controls:FrmIcon Icon="text_bullet_list_ltr" Width="20" Height="20" /></MenuItem.Icon>
+                                    </MenuItem>
                                     <MenuItem x:Name="PP_PreviewStyle"
                                               Tag="PP_PreviewStyle"
                                               Header="Preview"
                                               Command="{Binding UsePreviewStyleCommand}"
                                               IsCheckable="True"
-                                              IsChecked="{Binding IsPreviewStyle, Mode=OneWay}" />
+                                              IsChecked="{Binding IsPreviewStyle, Mode=OneWay}">
+                                        <MenuItem.Icon><controls:FrmIcon Icon="grid" Width="20" Height="20" /></MenuItem.Icon>
+                                    </MenuItem>
                                 </MenuItem>
                             </Menu>
                         </Grid>
@@ -1820,7 +1954,7 @@
                          AutomationProperties.Name="Bibles">
                     <!-- 성경 탭 = 책 아이콘. -->
                     <TabItem.Header>
-                        <TextBlock Text="Bibles" />
+                        <TextBlock Text="Bibles" FontSize="{Binding FontSize, RelativeSource={RelativeSource AncestorType=TabItem}}" />
                     </TabItem.Header>
                     <Grid Margin="0,8,0,0">
                         <Grid.RowDefinitions>
@@ -1884,7 +2018,7 @@
                                     Padding="4,0"
                                     ToolTip="입력한 구절로 이동"
                                     AutomationProperties.Name="입력한 성경 구절로 이동">
-                                <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.BibleGo}" />
+                                <controls:FrmIcon Icon="bible" Width="20" Height="20" />
                             </Button>
                         </Grid>
 
@@ -1979,7 +2113,7 @@
                          x:Name="ImagesSourceTab"
                          AutomationProperties.Name="Images">
                     <TabItem.Header>
-                        <TextBlock Text="Images" />
+                        <TextBlock Text="Images" FontSize="{Binding FontSize, RelativeSource={RelativeSource AncestorType=TabItem}}" />
                     </TabItem.Header>
                     <Grid Margin="0,8,0,0">
                         <Grid.RowDefinitions>
@@ -2007,15 +2141,18 @@
                                       VerticalContentAlignment="Center"
                                       ToolTip="{Binding FolderPath}"
                                       AutomationProperties.Name="Images folder selector" />
-                            <Button Grid.Column="2"
+                            <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                <Button x:Name="Image_OpenFolder" Click="OpenSourceFolder_Click" Style="{StaticResource ClassicTopToolStripButton}" ToolTip="선택한 폴더 열기" AutomationProperties.Name="선택한 폴더 열기"><controls:FrmIcon Icon="folder_open" Width="16" Height="16"/></Button>
+                                <Button
                                     x:Name="Image_Import"
                                     Tag="Image_Import"
                                     Click="ImageImport_Click"
                                     Style="{StaticResource ClassicOperatorStripButton}"
                                     ToolTip="Import image"
                                     AutomationProperties.Name="Import image into selected Images folder">
-                                <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionAdd}" />
-                            </Button>
+                                <controls:FrmIcon Icon="document_arrow_down" Width="20" Height="20" />
+                                </Button>
+                            </StackPanel>
                             <Button Grid.Column="4"
                                     Command="{Binding LoadCommand}"
                                     Style="{StaticResource EsButton.Secondary}"
@@ -2165,11 +2302,15 @@
                                       VerticalContentAlignment="Center"
                                       ToolTip="{Binding FolderPath}"
                                       AutomationProperties.Name="Media folder selector" />
-                            <Button Grid.Column="2"
+                            <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                <Button x:Name="Media_OpenFolder" Click="OpenSourceFolder_Click" Style="{StaticResource ClassicTopToolStripButton}" ToolTip="선택한 폴더 열기" AutomationProperties.Name="선택한 폴더 열기"><controls:FrmIcon Icon="folder_open" Width="16" Height="16"/></Button>
+                                <Button x:Name="Media_Import" Click="ImportSourceFiles_Click" Style="{StaticResource ClassicTopToolStripButton}" ToolTip="선택한 폴더로 가져오기" AutomationProperties.Name="선택한 폴더로 가져오기"><controls:FrmIcon Icon="document_arrow_down" Width="16" Height="16"/></Button>
+                                <Button
                                     Command="{Binding LoadCommand}"
                                     Style="{StaticResource EsButton.Secondary}"
                                     Content="Refresh"
                                     AutomationProperties.Name="Refresh Media list" />
+                            </StackPanel>
                             <Button Grid.Column="4"
                                     Command="{Binding AddSelectedCommand}"
                                     Style="{StaticResource EsButton.Primary}"
@@ -2244,7 +2385,7 @@
                 <TabItem Tag="DefaultSource"
                          AutomationProperties.Name="Default">
                     <TabItem.Header>
-                        <TextBlock Text="Default" />
+                        <TextBlock Text="Default" FontSize="{Binding FontSize, RelativeSource={RelativeSource AncestorType=TabItem}}" />
                     </TabItem.Header>
                     <ScrollViewer x:Name="DefPanel"
                                   Tag="DefPanel"
@@ -2257,11 +2398,15 @@
                                       Padding="8"
                                       Margin="0,0,0,8">
                                 <StackPanel>
+                                    <WrapPanel Margin="0,0,0,6">
+                                        <Button x:Name="Def_LoadTemplate" Content="세션 템플릿 열기…" Click="LoadSessionTemplate_Click" />
+                                        <Button x:Name="Def_SaveTemplate" Content="세션 템플릿 저장…" Click="SaveSessionTemplate_Click" Margin="6,0,0,0" />
+                                    </WrapPanel>
                                     <Button Command="{Binding ApplyGlobalFormatToAllCommand}"
                                             Style="{StaticResource EsButton.Secondary}"
                                             HorizontalAlignment="Stretch"
-                                            Content="Apply to All"
-                                            AutomationProperties.Name="Apply current output format to all Worship List items" />
+                                            Content="Apply to All Except InfoScreens"
+                                            AutomationProperties.Name="Apply current output format to all except InfoScreens" />
                                     <Button Command="{Binding ResetOutputAppearanceCommand}"
                                             Style="{StaticResource EsButton.Primary}"
                                             HorizontalAlignment="Stretch"
@@ -2301,36 +2446,40 @@
                                                       MinHeight="30"
                                                       Padding="9,0"
                                                       Margin="0,0,6,6"
-                                                      Content="Outline"
                                                       ToolTip="FrmMain Def_Outline"
-                                                      AutomationProperties.Name="Def Outline lyrics effect" />
+                                                      AutomationProperties.Name="Def Outline lyrics effect">
+                                            <controls:FrmIcon Icon="text_effects" Width="16" Height="16" />
+                                        </ToggleButton>
                                         <ToggleButton x:Name="Def_Shadow"
                                                       IsChecked="{Binding ActiveLyricsShadow, Mode=OneWay}"
                                                       Command="{Binding ToggleLyricsShadowCommand}"
                                                       MinHeight="30"
                                                       Padding="9,0"
                                                       Margin="0,0,6,6"
-                                                      Content="Shadow"
                                                       ToolTip="FrmMain Def_Shadow"
-                                                      AutomationProperties.Name="Def Shadow lyrics effect" />
+                                                      AutomationProperties.Name="Def Shadow lyrics effect">
+                                            <controls:FrmIcon Icon="text_shadow" Width="16" Height="16" />
+                                        </ToggleButton>
                                         <ToggleButton x:Name="Def_Notations"
                                                       IsChecked="{Binding ActiveLyricsNotations, Mode=OneWay}"
                                                       Command="{Binding ToggleLyricsNotationsCommand}"
                                                       MinHeight="30"
                                                       Padding="9,0"
                                                       Margin="0,0,6,6"
-                                                      Content="Chords"
                                                       ToolTip="FrmMain Def_Notations"
-                                                      AutomationProperties.Name="Def Notations chord display" />
+                                                      AutomationProperties.Name="Def Notations chord display">
+                                            <controls:FrmIcon Icon="chords" Width="16" Height="16" />
+                                        </ToggleButton>
                                         <Button x:Name="Def_ToZero"
                                                 Command="{Binding TransposeLiveResetCommand}"
                                                 Style="{StaticResource EsButton.Secondary}"
                                                 MinHeight="30"
                                                 Padding="9,0"
                                                 Margin="0,0,6,6"
-                                                Content="To 0"
                                                 ToolTip="FrmMain Def_ToZero"
-                                                AutomationProperties.Name="Def ToZero transpose reset" />
+                                                AutomationProperties.Name="Def ToZero transpose reset">
+                                            <controls:FrmIcon Icon="capo_zero" Width="16" Height="16" />
+                                        </Button>
                                     </WrapPanel>
 
                                     <TextBlock Text="Heading Align"
@@ -2346,9 +2495,10 @@
                                                 MinHeight="30"
                                                 Padding="9,0"
                                                 Margin="0,0,6,6"
-                                                Content="As R1"
                                                 ToolTip="FrmMain Def_HeadAlignAsR1"
-                                                AutomationProperties.Name="Def heading align as Region 1" />
+                                                AutomationProperties.Name="Def heading align as Region 1">
+                                            <controls:FrmIcon Icon="heading_align_r1" Width="16" Height="16" />
+                                        </Button>
                                         <Button x:Name="Def_HeadAlignAsR2"
                                                 Command="{Binding ApplyTitleHeadingLegacyModeCommand}"
                                                 CommandParameter="AsR2"
@@ -2356,9 +2506,10 @@
                                                 MinHeight="30"
                                                 Padding="9,0"
                                                 Margin="0,0,6,6"
-                                                Content="As R2"
                                                 ToolTip="FrmMain Def_HeadAlignAsR2"
-                                                AutomationProperties.Name="Def heading align as Region 2" />
+                                                AutomationProperties.Name="Def heading align as Region 2">
+                                            <controls:FrmIcon Icon="heading_align_r2" Width="16" Height="16" />
+                                        </Button>
                                         <Button x:Name="Def_HeadAlignLeft"
                                                 Command="{Binding ApplyTitleHeadingLegacyModeCommand}"
                                                 CommandParameter="Left"
@@ -2366,9 +2517,10 @@
                                                 MinHeight="30"
                                                 Padding="9,0"
                                                 Margin="0,0,6,6"
-                                                Content="Left"
                                                 ToolTip="FrmMain Def_HeadAlignLeft"
-                                                AutomationProperties.Name="Def heading align left" />
+                                                AutomationProperties.Name="Def heading align left">
+                                            <controls:FrmIcon Icon="heading_align_left" Width="16" Height="16" />
+                                        </Button>
                                         <Button x:Name="Def_HeadAlignCentre"
                                                 Command="{Binding ApplyTitleHeadingLegacyModeCommand}"
                                                 CommandParameter="Centre"
@@ -2376,9 +2528,10 @@
                                                 MinHeight="30"
                                                 Padding="9,0"
                                                 Margin="0,0,6,6"
-                                                Content="Centre"
                                                 ToolTip="FrmMain Def_HeadAlignCentre"
-                                                AutomationProperties.Name="Def heading align centre" />
+                                                AutomationProperties.Name="Def heading align centre">
+                                            <controls:FrmIcon Icon="heading_align_center" Width="16" Height="16" />
+                                        </Button>
                                         <Button x:Name="Def_HeadAlignRight"
                                                 Command="{Binding ApplyTitleHeadingLegacyModeCommand}"
                                                 CommandParameter="Right"
@@ -2386,9 +2539,10 @@
                                                 MinHeight="30"
                                                 Padding="9,0"
                                                 Margin="0,0,6,6"
-                                                Content="Right"
                                                 ToolTip="FrmMain Def_HeadAlignRight"
-                                                AutomationProperties.Name="Def heading align right" />
+                                                AutomationProperties.Name="Def heading align right">
+                                            <controls:FrmIcon Icon="heading_align_right" Width="16" Height="16" />
+                                        </Button>
                                     </WrapPanel>
 
                                     <TextBlock Text="Align"
@@ -2538,8 +2692,9 @@
                                                 MinWidth="56"
                                                 MinHeight="30"
                                                 Margin="0,0,6,6"
-                                                Content="Top"
-                                                AutomationProperties.Name="Def vertical align top" />
+                                                AutomationProperties.Name="Def vertical align top" ToolTip="Def vertical align top">
+                                            <controls:FrmIcon Icon="textbox_align_top" Width="16" Height="16" />
+                                        </Button>
                                         <Button x:Name="Def_VAlignCentre"
                                                 Command="{Binding ApplyLyricsVerticalAlignmentCommand}"
                                                 CommandParameter="{x:Static settings:LyricsVerticalAlignment.Center}"
@@ -2547,8 +2702,9 @@
                                                 MinWidth="56"
                                                 MinHeight="30"
                                                 Margin="0,0,6,6"
-                                                Content="Centre"
-                                                AutomationProperties.Name="Def vertical align centre" />
+                                                AutomationProperties.Name="Def vertical align centre" ToolTip="Def vertical align centre">
+                                            <controls:FrmIcon Icon="textbox_align_middle" Width="16" Height="16" />
+                                        </Button>
                                         <Button x:Name="Def_VAlignBottom"
                                                 Command="{Binding ApplyLyricsVerticalAlignmentCommand}"
                                                 CommandParameter="{x:Static settings:LyricsVerticalAlignment.Bottom}"
@@ -2556,8 +2712,9 @@
                                                 MinWidth="56"
                                                 MinHeight="30"
                                                 Margin="0,0,6,6"
-                                                Content="Bottom"
-                                                AutomationProperties.Name="Def vertical align bottom" />
+                                                AutomationProperties.Name="Def vertical align bottom" ToolTip="Def vertical align bottom">
+                                            <controls:FrmIcon Icon="textbox_align_bottom" Width="16" Height="16" />
+                                        </Button>
                                     </WrapPanel>
 
                                     <TextBlock Text="Region"
@@ -2610,10 +2767,11 @@
                                                 MinHeight="30"
                                                 Padding="9,0"
                                                 Margin="0,0,6,6"
-                                                Content="No Image"
                                                 ToolTip="{Binding OutputBackgroundNoImageToolTip}"
                                                 ToolTipService.ShowOnDisabled="True"
-                                                AutomationProperties.Name="Def NoImage clear output background" />
+                                                AutomationProperties.Name="Def NoImage clear output background">
+                                            <controls:FrmIcon Icon="image_off" Width="16" Height="16" />
+                                        </Button>
                                         <Button x:Name="Def_ImageTile"
                                                 Command="{Binding ApplyBackgroundModeCommand}"
                                                 CommandParameter="{x:Static settings:LyricsBackgroundMode.Tile}"
@@ -2621,8 +2779,9 @@
                                                 MinHeight="30"
                                                 Padding="9,0"
                                                 Margin="0,0,6,6"
-                                                Content="Tile"
-                                                AutomationProperties.Name="Def background tile" />
+                                                AutomationProperties.Name="Def background tile" ToolTip="Def background tile">
+                                            <controls:FrmIcon Icon="image_tile" Width="16" Height="16" />
+                                        </Button>
                                         <Button x:Name="Def_ImageCentre"
                                                 Command="{Binding ApplyBackgroundModeCommand}"
                                                 CommandParameter="{x:Static settings:LyricsBackgroundMode.Center}"
@@ -2630,8 +2789,9 @@
                                                 MinHeight="30"
                                                 Padding="9,0"
                                                 Margin="0,0,6,6"
-                                                Content="Centre"
-                                                AutomationProperties.Name="Def background centre" />
+                                                AutomationProperties.Name="Def background centre" ToolTip="Def background centre">
+                                            <controls:FrmIcon Icon="image_border" Width="16" Height="16" />
+                                        </Button>
                                         <Button x:Name="Def_ImageBestFit"
                                                 Command="{Binding ApplyBackgroundModeCommand}"
                                                 CommandParameter="{x:Static settings:LyricsBackgroundMode.Fit}"
@@ -2639,8 +2799,9 @@
                                                 MinHeight="30"
                                                 Padding="9,0"
                                                 Margin="0,0,6,6"
-                                                Content="Best Fit"
-                                                AutomationProperties.Name="Def background best fit" />
+                                                AutomationProperties.Name="Def background best fit" ToolTip="Def background best fit">
+                                            <controls:FrmIcon Icon="image" Width="16" Height="16" />
+                                        </Button>
                                     </WrapPanel>
 
                                     <TextBlock Text="Media"
@@ -2798,9 +2959,10 @@
                                                       MinHeight="30"
                                                       Padding="9,0"
                                                       Margin="0,0,6,6"
-                                                      Content="Panel"
                                                       ToolTip="Show Display Panel"
-                                                      AutomationProperties.Name="Def PanelShow display panel" />
+                                                      AutomationProperties.Name="Def PanelShow display panel">
+                                            <controls:FrmIcon Icon="subtitles" Width="16" Height="16" />
+                                        </ToggleButton>
                                         <ToggleButton x:Name="Def_PanelTitle"
                                                       IsChecked="{Binding ActiveLyricsTitleOnPanel, Mode=OneWay}"
                                                       Command="{Binding ToggleLyricsTitleOnPanelCommand}"
@@ -2808,9 +2970,10 @@
                                                       MinHeight="30"
                                                       Padding="9,0"
                                                       Margin="0,0,6,6"
-                                                      Content="Title"
                                                       ToolTip="Show Title"
-                                                      AutomationProperties.Name="Def PanelTitle show title" />
+                                                      AutomationProperties.Name="Def PanelTitle show title">
+                                            <controls:FrmIcon Icon="text_case_title" Width="16" Height="16" />
+                                        </ToggleButton>
                                         <ToggleButton x:Name="Def_PanelSong"
                                                       IsChecked="{Binding ActiveLyricsItemNumber, Mode=OneWay}"
                                                       Command="{Binding ToggleLyricsItemNumberCommand}"
@@ -2818,9 +2981,10 @@
                                                       MinHeight="30"
                                                       Padding="9,0"
                                                       Margin="0,0,6,6"
-                                                      Content="Item"
                                                       ToolTip="Show Item Number"
-                                                      AutomationProperties.Name="Def PanelSong show item number" />
+                                                      AutomationProperties.Name="Def PanelSong show item number">
+                                            <controls:FrmIcon Icon="number_symbol" Width="16" Height="16" />
+                                        </ToggleButton>
                                         <ToggleButton x:Name="Def_PanelSlides"
                                                       IsChecked="{Binding ActiveLyricsPositionIndicator, Mode=OneWay}"
                                                       Command="{Binding ToggleLyricsPositionIndicatorCommand}"
@@ -2828,9 +2992,10 @@
                                                       MinHeight="30"
                                                       Padding="9,0"
                                                       Margin="0,0,6,6"
-                                                      Content="Slides"
                                                       ToolTip="Show Verse/Slide Indicators"
-                                                      AutomationProperties.Name="Def PanelSlides show verse slide indicators" />
+                                                      AutomationProperties.Name="Def PanelSlides show verse slide indicators">
+                                            <controls:FrmIcon Icon="number_row" Width="16" Height="16" />
+                                        </ToggleButton>
                                         <ToggleButton x:Name="Def_PanelCopyright"
                                                       IsChecked="{Binding ActiveLyricsCopyright, Mode=OneWay}"
                                                       Command="{Binding ToggleLyricsCopyrightCommand}"
@@ -2838,9 +3003,10 @@
                                                       MinHeight="30"
                                                       Padding="9,0"
                                                       Margin="0,0,6,6"
-                                                      Content="Copy"
                                                       ToolTip="Show Copyright Information"
-                                                      AutomationProperties.Name="Def PanelCopyright show copyright" />
+                                                      AutomationProperties.Name="Def PanelCopyright show copyright">
+                                            <controls:FrmIcon Icon="copyright" Width="16" Height="16" />
+                                        </ToggleButton>
                                         <ToggleButton x:Name="Def_PanelPrevNext"
                                                       IsChecked="{Binding ActiveLyricsNextItem, Mode=OneWay}"
                                                       Command="{Binding ToggleLyricsNextItemCommand}"
@@ -2848,9 +3014,10 @@
                                                       MinHeight="30"
                                                       Padding="9,0"
                                                       Margin="0,0,6,6"
-                                                      Content="PrevNext"
                                                       ToolTip="Show Previous/Next Item"
-                                                      AutomationProperties.Name="Def PanelPrevNext show previous next item" />
+                                                      AutomationProperties.Name="Def PanelPrevNext show previous next item">
+                                            <controls:FrmIcon Icon="arrow_bidirectional_left_right" Width="16" Height="16" />
+                                        </ToggleButton>
                                         <ToggleButton x:Name="Def_PanelTransparent"
                                                       IsChecked="{Binding ActiveLyricsPanelTransparent, Mode=OneWay}"
                                                       Command="{Binding TogglePanelTransparentCommand}"
@@ -2858,9 +3025,10 @@
                                                       MinHeight="30"
                                                       Padding="9,0"
                                                       Margin="0,0,6,6"
-                                                      Content="Transp"
                                                       ToolTip="Display Panel Transparent"
-                                                      AutomationProperties.Name="Def PanelTransparent transparent background" />
+                                                      AutomationProperties.Name="Def PanelTransparent transparent background">
+                                            <controls:FrmIcon Icon="transparency_square" Width="16" Height="16" />
+                                        </ToggleButton>
                                         <WrapPanel Tag="Def_PanelBackColour"
                                                    Margin="0,0,6,6">
                                             <Button x:Name="Def_PanelBackColour"
@@ -2899,9 +3067,10 @@
                                                       MinHeight="30"
                                                       Padding="9,0"
                                                       Margin="0,0,6,6"
-                                                      Content="As R1"
                                                       ToolTip="Display Panel Text Colour As Region 1"
-                                                      AutomationProperties.Name="Def PanelAsR1 text colour follows Region1" />
+                                                      AutomationProperties.Name="Def PanelAsR1 text colour follows Region1">
+                                            <controls:FrmIcon Icon="number_circle_1" Width="16" Height="16" />
+                                        </ToggleButton>
                                         <WrapPanel Tag="Def_PanelTextColour"
                                                    Margin="0,0,6,6">
                                             <Button x:Name="Def_PanelTextColour"
@@ -2940,10 +3109,11 @@
                                                       MinHeight="30"
                                                       Padding="9,0"
                                                       Margin="0,0,6,6"
-                                                      Content="B"
                                                       FontWeight="Bold"
                                                       ToolTip="Display Panel Font Bold"
-                                                      AutomationProperties.Name="Def PanelFont bold" />
+                                                      AutomationProperties.Name="Def PanelFont bold">
+                                            <controls:FrmIcon Icon="text_bold" Width="16" Height="16" />
+                                        </ToggleButton>
                                         <ToggleButton x:Name="Def_PanelFontItalics"
                                                       IsChecked="{Binding ActivePanelFontItalic, Mode=OneWay}"
                                                       Command="{Binding TogglePanelFontItalicCommand}"
@@ -2951,10 +3121,11 @@
                                                       MinHeight="30"
                                                       Padding="9,0"
                                                       Margin="0,0,6,6"
-                                                      Content="I"
                                                       FontStyle="Italic"
                                                       ToolTip="Display Panel Font Italics"
-                                                      AutomationProperties.Name="Def PanelFont italics" />
+                                                      AutomationProperties.Name="Def PanelFont italics">
+                                            <controls:FrmIcon Icon="text_italic" Width="16" Height="16" />
+                                        </ToggleButton>
                                         <ToggleButton x:Name="Def_PanelFontUnderline"
                                                       IsChecked="{Binding ActivePanelFontUnderline, Mode=OneWay}"
                                                       Command="{Binding TogglePanelFontUnderlineCommand}"
@@ -2974,9 +3145,10 @@
                                                       MinHeight="30"
                                                       Padding="9,0"
                                                       Margin="0,0,6,6"
-                                                      Content="S"
                                                       ToolTip="Display Panel Font Shadow"
-                                                      AutomationProperties.Name="Def PanelFont shadow" />
+                                                      AutomationProperties.Name="Def PanelFont shadow">
+                                            <controls:FrmIcon Icon="text_shadow" Width="16" Height="16" />
+                                        </ToggleButton>
                                         <ToggleButton x:Name="Def_PanelFontOutline"
                                                       IsChecked="{Binding ActivePanelFontOutline, Mode=OneWay}"
                                                       Command="{Binding TogglePanelFontOutlineCommand}"
@@ -2984,9 +3156,16 @@
                                                       MinHeight="30"
                                                       Padding="9,0"
                                                       Margin="0,0,6,6"
-                                                      Content="O"
                                                       ToolTip="Display Panel Font Outline"
-                                                      AutomationProperties.Name="Def PanelFont outline" />
+                                                      AutomationProperties.Name="Def PanelFont outline">
+                                            <controls:FrmIcon Icon="text_effects" Width="16" Height="16" />
+                                        </ToggleButton>
+                                        <TextBlock x:Name="PanelFamilyLabel" Text="정보 패널 글꼴"/>
+                                        <ComboBox x:Name="Def_PanelFontList" ItemsSource="{Binding LyricsFontFamilyOptions}" IsEditable="True"
+                                                  Text="{Binding PanelFontFamily, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" AutomationProperties.LabeledBy="{Binding ElementName=PanelFamilyLabel}"/>
+                                        <TextBlock x:Name="PanelHeightLabel" Text="정보 패널 높이 (0~20%)"/>
+                                        <TextBox x:Name="Def_PanelHeight" Text="{Binding PanelHeightPercent, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}"
+                                                 AutomationProperties.LabeledBy="{Binding ElementName=PanelHeightLabel}"/>
                                         <WrapPanel x:Name="Def_PanelFont"
                                                    Tag="Def_PanelFont"
                                                    Margin="0,0,0,6">
@@ -3260,8 +3439,8 @@
                 </TabControl>
 
                 <GridSplitter Grid.Row="1"
-                              Height="6"
-                              Margin="0,4"
+                              Height="4"
+                              Margin="0"
                               HorizontalAlignment="Stretch"
                               ResizeDirection="Rows"
                               ResizeBehavior="PreviousAndNext"
@@ -3281,7 +3460,7 @@
                              x:Name="WorshipListTab"
                              AutomationProperties.Name="Worship List">
                         <TabItem.Header>
-                            <TextBlock Text="Worship List" />
+                            <TextBlock Text="Worship List" FontSize="{Binding FontSize, RelativeSource={RelativeSource AncestorType=TabItem}}" />
                         </TabItem.Header>
                         <composites:WorshipListPanel AddSelectedSourceRequested="WorshipListPanel_AddSelectedSourceRequested"
                                                      ManageWorshipListsRequested="WorshipListPanel_ManageWorshipListsRequested"
@@ -3292,7 +3471,7 @@
                              x:Name="PraiseBookTab"
                              AutomationProperties.Name="Praise Book">
                         <TabItem.Header>
-                            <TextBlock Text="Praise Book" />
+                            <TextBlock Text="Praise Book" FontSize="{Binding FontSize, RelativeSource={RelativeSource AncestorType=TabItem}}" />
                         </TabItem.Header>
                         <Grid Margin="0,8,0,0">
                             <Grid.RowDefinitions>
@@ -3330,9 +3509,10 @@
                                         MinHeight="28"
                                         Padding="6,0"
                                         Margin="0,0,2,0"
-                                        Content="M"
                                         ToolTip="Manage PraiseBooks"
-                                        AutomationProperties.Name="Manage PraiseBooks" />
+                                        AutomationProperties.Name="Manage PraiseBooks">
+                                    <controls:FrmIcon Icon="clipboard_task_list_ltr" Width="20" Height="20" />
+                                </Button>
                                 <Button Grid.Column="2"
                                         x:Name="PB_Add"
                                         Tag="PB_Add"
@@ -3342,9 +3522,10 @@
                                         MinHeight="28"
                                         Padding="6,0"
                                         Margin="0,0,2,0"
-                                        Content="+"
                                         ToolTip="Add selected song to PraiseBook"
-                                        AutomationProperties.Name="Add to PraiseBook" />
+                                        AutomationProperties.Name="Add to PraiseBook">
+                                    <controls:FrmIcon Icon="text_bullet_list_add" Width="20" Height="20" />
+                                </Button>
                                 <ToggleButton Grid.Column="3"
                                               x:Name="PB_WordCount"
                                               Tag="PB_WordCount"
@@ -3354,10 +3535,11 @@
                                               Height="28"
                                               Padding="6,0"
                                               Margin="0,0,2,0"
-                                              Content="#"
                                               IsChecked="{Binding IsWordCountSortEnabled, Mode=OneWay}"
                                               ToolTip="Sort by CJK Word Count"
-                                              AutomationProperties.Name="Sort by CJK Word Count" />
+                                              AutomationProperties.Name="Sort by CJK Word Count">
+                                    <controls:FrmIcon Icon="arrow_sort_down_lines" Width="16" Height="16" />
+                                </ToggleButton>
                                 <Button Grid.Column="4"
                                         x:Name="InlinePraiseBookOpenBookButton"
                                         Click="InlinePraiseBookOpenBook_Click"
@@ -3388,9 +3570,10 @@
                                         MinHeight="28"
                                         Padding="6,0"
                                         Margin="0,0,2,0"
-                                        Content="-"
                                         ToolTip="Delete"
-                                        AutomationProperties.Name="Delete selected PraiseBook items" />
+                                        AutomationProperties.Name="Delete selected PraiseBook items">
+                                    <controls:FrmIcon Icon="delete" Width="20" Height="20" />
+                                </Button>
                                 <Button Grid.Column="7"
                                         x:Name="PB_Word"
                                         Tag="PB_Word"
@@ -3400,9 +3583,10 @@
                                         MinHeight="28"
                                         Padding="6,0"
                                         Margin="0,0,2,0"
-                                        Content="W"
                                         ToolTip="Generate RTF Document"
-                                        AutomationProperties.Name="Generate PraiseBook RTF document" />
+                                        AutomationProperties.Name="Generate PraiseBook RTF document">
+                                    <controls:FrmIcon Icon="document_text" Width="20" Height="20" />
+                                </Button>
                                 <Button Grid.Column="8"
                                         x:Name="PB_Html"
                                         Tag="PB_Html"
@@ -3411,9 +3595,10 @@
                                         MinWidth="28"
                                         MinHeight="28"
                                         Padding="6,0"
-                                        Content="H"
                                         ToolTip="Generate HTML Document"
-                                        AutomationProperties.Name="Generate PraiseBook HTML document" />
+                                        AutomationProperties.Name="Generate PraiseBook HTML document">
+                                    <controls:FrmIcon Icon="code" Width="20" Height="20" />
+                                </Button>
                             </Grid>
 
                             <ListView Grid.Row="1"
@@ -3511,7 +3696,7 @@
             </Grid>
 
             <GridSplitter Grid.Column="1"
-                          Width="6"
+                          Width="4"
                           HorizontalAlignment="Stretch"
                           ResizeDirection="Columns"
                           ResizeBehavior="PreviousAndNext"
@@ -3525,50 +3710,47 @@
                   Grid.Column="2">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition x:Name="ClassicPreviewColumn"
-                                      Width="*"
-                                      MinWidth="280" />
-                    <ColumnDefinition Width="6" />
+                                      Width="53*"
+                                      MinWidth="220" />
+                    <ColumnDefinition Width="4" />
                     <ColumnDefinition x:Name="ClassicOutputColumn"
-                                      Width="1.35*"
-                                      MinWidth="340" />
+                                      Width="47*"
+                                      MinWidth="240" />
                 </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition x:Name="ClassicTopControlRow"
-                                   Height="1.15*"
-                                   MinHeight="220" />
-                    <RowDefinition Height="6" />
-                    <RowDefinition x:Name="ClassicBottomScreenRow"
-                                   Height="0.85*"
-                                   MinHeight="260" />
-                </Grid.RowDefinitions>
-
-            <GridSplitter Grid.Column="1"
-                          Grid.RowSpan="3"
-                          Width="6"
+                            <GridSplitter Grid.Column="1"
+                          Width="4"
                           HorizontalAlignment="Stretch"
                           ResizeDirection="Columns"
                           ResizeBehavior="PreviousAndNext"
                           Background="{DynamicResource Brush.Border.Default}"
                           AutomationProperties.Name="splitContainer2 Preview/Output 너비 조절" />
 
-            <GridSplitter Grid.Column="0"
-                          Grid.ColumnSpan="3"
-                          Grid.Row="1"
-                          Height="6"
+
+
+            <Grid x:Name="PreviewSplit" Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition x:Name="ClassicTopControlRow"
+                                   Height="3*"
+                                   MinHeight="135" />
+                    <RowDefinition Height="4" />
+                    <RowDefinition x:Name="ClassicBottomScreenRow"
+                                   Height="2*"
+                                   MinHeight="130" />
+                </Grid.RowDefinitions>
+            <GridSplitter Grid.Row="1"
+                          Height="4"
                           HorizontalAlignment="Stretch"
                           ResizeDirection="Rows"
                           ResizeBehavior="PreviousAndNext"
                           Background="{DynamicResource Brush.Border.Default}"
-                          AutomationProperties.Name="splitContainerPreview/Output 상하 패널 높이 조절" />
-
+                          AutomationProperties.Name="splitContainerPreview 상하 패널 높이 조절" />
             <Border x:Name="ClassicPreviewPane"
                     Tag="splitContainerPreview.Panel1"
-                    Grid.Column="0"
                     Grid.Row="0"
                     Background="White"
                     BorderBrush="{DynamicResource Brush.Border.Default}"
-                    BorderThickness="1"
-                    Padding="4">
+                    BorderThickness="0"
+                    Padding="0">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -3576,7 +3758,8 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
-                    <Grid Margin="0,0,0,4">
+                    <Border x:Name="PreviewHeaderFrame" BorderBrush="#D1D1D1" BorderThickness="1" Background="#E5F1FB" SnapsToDevicePixels="True">
+                    <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
@@ -3592,33 +3775,16 @@
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto" />
                                         <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="76" />
-                                        <ColumnDefinition Width="96" />
                                     </Grid.ColumnDefinitions>
-                                    <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Preview}"
-                                                   FontSize="15"
-                                                   Margin="0,0,5,0"
-                                                   Foreground="{DynamicResource Brush.Text.Secondary}" />
-                                    <TextBlock Grid.Column="1"
-                                               Text="{Binding DataContext.PreviewPanelTitleText, RelativeSource={RelativeSource AncestorType=ListView}}"
-                                               VerticalAlignment="Center"
-                                               TextTrimming="CharacterEllipsis"
-                                               Style="{StaticResource Type.Body.Style}"
-                                               Foreground="{DynamicResource Brush.Text.Primary}" />
-                                    <TextBlock Grid.Column="2"
-                                               Text="{Binding DataContext.PreviewPanelSourceText, RelativeSource={RelativeSource AncestorType=ListView}}"
-                                               VerticalAlignment="Center"
-                                               TextAlignment="Center"
-                                               TextTrimming="CharacterEllipsis"
-                                               Style="{StaticResource Type.Caption.Style}"
-                                               Foreground="{DynamicResource Brush.Text.Secondary}" />
-                                    <TextBlock Grid.Column="3"
-                                               Text="{Binding DataContext.PreviewPanelStatusText, RelativeSource={RelativeSource AncestorType=ListView}}"
-                                               VerticalAlignment="Center"
-                                               TextAlignment="Right"
-                                               TextTrimming="CharacterEllipsis"
-                                               Style="{StaticResource Type.Caption.Style}"
-                                               Foreground="{DynamicResource Brush.Text.Secondary}" />
+                                    <Grid.ToolTip>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding PreviewPanelSourceText}" />
+                                            <TextBlock Text="{Binding PreviewPanelStatusText}" />
+                                        </StackPanel>
+                                    </Grid.ToolTip>
+                                    <controls:FrmIcon Icon="{Binding DataContext.PreviewPanelItem, RelativeSource={RelativeSource AncestorType=ListView}, Converter={StaticResource KindToFrmIcon}}" Width="16" Height="16" Margin="0,0,4,0" />
+                                    <TextBlock Grid.Column="1" Text="{Binding DataContext.PreviewPanelTitleText, RelativeSource={RelativeSource AncestorType=ListView}}"
+                                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                                 </Grid>
                             </ListViewItem>
                         </ListView>
@@ -3629,45 +3795,40 @@
                             <Button x:Name="btnToLive"
                                     Tag="btnToLive"
                                     Command="{Binding PreviewToLiveCommand}"
-                                    Style="{StaticResource EsButton.Secondary}"
-                                    MinWidth="32"
-                                    MinHeight="28"
-                                    Padding="6,0"
-                                    Margin="4,0,0,0"
+                                    Style="{StaticResource FrmMainButton}"
+                                    Padding="0"
+                                    Margin="0"
                                     ToolTip="선택 항목을 라이브로 송출"
-                                    AutomationProperties.Name="Preview Go Live">
-                                <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.LiveToggle}" />
+                                    AutomationProperties.Name="Preview Go Live" Height="26" Width="44">
+                                <controls:FrmIcon Icon="live" Width="16" Height="16" />
                             </Button>
                             <Button x:Name="btnToOutputMoveNext"
                                     Tag="btnToOutputMoveNext"
                                     Command="{Binding CopyPreviewToOutputAndNextCommand}"
                                     Click="FocusOutputArea_Click"
-                                    Style="{StaticResource EsButton.Secondary}"
-                                    MinWidth="32"
-                                    MinHeight="28"
-                                    Padding="6,0"
-                                    Margin="4,0,0,0"
+                                    Style="{StaticResource FrmMainButton}"
+                                    Padding="0"
+                                    Margin="0"
                                     ToolTip="Output으로 복사 후 Preview 다음"
-                                    AutomationProperties.Name="Preview Output 복사 후 다음">
-                                <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.LiveMoveToOutput}" />
+                                    AutomationProperties.Name="Preview Output 복사 후 다음" Height="26" Width="32">
+                                <controls:FrmIcon Icon="next" Width="16" Height="16" />
                             </Button>
                             <Button x:Name="btnToOutput"
                                     Tag="btnToOutput"
                                     Command="{Binding CopyPreviewToOutputCommand}"
-                                    Style="{StaticResource EsButton.Secondary}"
-                                    MinWidth="32"
-                                    MinHeight="28"
-                                    Padding="6,0"
-                                    Margin="4,0,0,0"
+                                    Style="{StaticResource FrmMainButton}"
+                                    Padding="0"
+                                    Margin="0"
                                     ToolTip="선택 항목을 Output으로 복사"
-                                    AutomationProperties.Name="Preview Output 복사">
-                                <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.LiveSendToOutput}" />
+                                    AutomationProperties.Name="Preview Output 복사" Height="26" Width="32">
+                                <controls:FrmIcon Icon="arrow_enter" Width="16" Height="16" />
                             </Button>
                         </WrapPanel>
                     </Grid>
+                    </Border>
 
                     <Border Grid.Row="1"
-                            Background="{DynamicResource Brush.Surface.Page}"
+                            Background="White"
                             BorderBrush="{DynamicResource Brush.Border.Default}"
                             BorderThickness="1">
                         <!-- FrmMain Preview top pane: 선택 항목 종류에 맞춰 내부 content만 전환하고, 운영자-facing 탭 헤더는 렌더링하지 않는다. -->
@@ -3793,24 +3954,28 @@
                                                         Margin="0,0,0,8">
                                                     <WrapPanel x:Name="toolStripIndTemplates"
                                                                Tag="toolStripIndTemplates">
+                                                        <Button x:Name="EditDisplaySettings" Content="주·보조 언어 표시 설정…" Click="EditItemDisplay_Click"
+                                                                IsEnabled="{Binding CanEditSelectedItemColor}" Margin="0,0,4,4" />
                                                         <Button x:Name="Ind_LoadTemplate"
                                                                 Tag="Ind_LoadTemplate"
-                                                                Content="Load Template"
                                                                 Click="LoadPreviewItemTemplate_Click"
                                                                 IsEnabled="{Binding CanEditSelectedItemColor}"
                                                                 Style="{StaticResource EsButton.Secondary}"
                                                                 MinWidth="104"
                                                                 Margin="0,0,4,4"
-                                                                AutomationProperties.Name="개별 설정 템플릿 불러오기" />
+                                                                AutomationProperties.Name="개별 설정 템플릿 불러오기" ToolTip="개별 설정 템플릿 불러오기">
+                                                            <controls:FrmIcon Icon="folder_open" Width="16" Height="16" />
+                                                        </Button>
                                                         <Button x:Name="Ind_SaveTemplate"
                                                                 Tag="Ind_SaveTemplate"
-                                                                Content="Save Template"
                                                                 Click="SavePreviewItemTemplate_Click"
                                                                 IsEnabled="{Binding CanEditSelectedItemColor}"
                                                                 Style="{StaticResource EsButton.Secondary}"
                                                                 MinWidth="104"
                                                                 Margin="0,0,4,4"
-                                                                AutomationProperties.Name="개별 설정 템플릿 저장" />
+                                                                AutomationProperties.Name="개별 설정 템플릿 저장" ToolTip="개별 설정 템플릿 저장">
+                                                            <controls:FrmIcon Icon="save" Width="16" Height="16" />
+                                                        </Button>
                                                     </WrapPanel>
                                                 </Border>
 
@@ -3946,7 +4111,6 @@
                                                                    IsEnabled="{Binding CanEditSelectedItemColor}">
                                                             <ToggleButton x:Name="Ind_VAlignTop"
                                                                           Tag="0"
-                                                                          Content="Top"
                                                                           IsChecked="{Binding SelectedItemVerticalAlignmentIsTop, Mode=OneWay}"
                                                                           Command="{Binding SetSelectedItemVerticalAlignmentCommand}"
                                                                           CommandParameter="{x:Static settings:LyricsVerticalAlignment.Top}"
@@ -3955,10 +4119,11 @@
                                                                           Height="26"
                                                                           Padding="8,0"
                                                                           Margin="0,0,4,4"
-                                                                          AutomationProperties.Name="선택 항목 위쪽 정렬" />
+                                                                          AutomationProperties.Name="선택 항목 위쪽 정렬" ToolTip="선택 항목 위쪽 정렬">
+                                                                <controls:FrmIcon Icon="textbox_align_top" Width="16" Height="16" />
+                                                            </ToggleButton>
                                                             <ToggleButton x:Name="Ind_VAlignCentre"
                                                                           Tag="1"
-                                                                          Content="Centre"
                                                                           IsChecked="{Binding SelectedItemVerticalAlignmentIsCenter, Mode=OneWay}"
                                                                           Command="{Binding SetSelectedItemVerticalAlignmentCommand}"
                                                                           CommandParameter="{x:Static settings:LyricsVerticalAlignment.Center}"
@@ -3967,10 +4132,11 @@
                                                                           Height="26"
                                                                           Padding="8,0"
                                                                           Margin="0,0,4,4"
-                                                                          AutomationProperties.Name="선택 항목 세로 가운데 정렬" />
+                                                                          AutomationProperties.Name="선택 항목 세로 가운데 정렬" ToolTip="선택 항목 세로 가운데 정렬">
+                                                                <controls:FrmIcon Icon="textbox_align_middle" Width="16" Height="16" />
+                                                            </ToggleButton>
                                                             <ToggleButton x:Name="Ind_VAlignBottom"
                                                                           Tag="2"
-                                                                          Content="Bottom"
                                                                           IsChecked="{Binding SelectedItemVerticalAlignmentIsBottom, Mode=OneWay}"
                                                                           Command="{Binding SetSelectedItemVerticalAlignmentCommand}"
                                                                           CommandParameter="{x:Static settings:LyricsVerticalAlignment.Bottom}"
@@ -3979,7 +4145,9 @@
                                                                           Height="26"
                                                                           Padding="8,0"
                                                                           Margin="0,0,4,4"
-                                                                          AutomationProperties.Name="선택 항목 아래쪽 정렬" />
+                                                                          AutomationProperties.Name="선택 항목 아래쪽 정렬" ToolTip="선택 항목 아래쪽 정렬">
+                                                                <controls:FrmIcon Icon="textbox_align_bottom" Width="16" Height="16" />
+                                                            </ToggleButton>
                                                         </WrapPanel>
                                                         <Grid IsEnabled="{Binding CanEditSelectedItemColor}">
                                                             <Grid.ColumnDefinitions>
@@ -4139,7 +4307,6 @@
                                                             <Button x:Name="Ind_NoImage"
                                                                     Grid.Column="3"
                                                                     Tag="Ind_NoImage"
-                                                                    Content="No Image"
                                                                     Command="{Binding SetSelectedItemBackgroundImageCommand}"
                                                                     CommandParameter=""
                                                                     IsEnabled="{Binding CanClearSelectedItemBackgroundImage}"
@@ -4147,7 +4314,9 @@
                                                                     MinWidth="76"
                                                                     ToolTip="{Binding SelectedItemBackgroundNoImageToolTip}"
                                                                     ToolTipService.ShowOnDisabled="True"
-                                                                    AutomationProperties.Name="선택 항목 배경 이미지 해제" />
+                                                                    AutomationProperties.Name="선택 항목 배경 이미지 해제">
+                                                                <controls:FrmIcon Icon="image_off" Width="16" Height="16" />
+                                                            </Button>
                                                         </Grid>
                                                         <WrapPanel x:Name="Ind_ImageMode"
                                                                    Tag="Ind_ImageMode"
@@ -4156,7 +4325,6 @@
                                                                    ToolTip="Background Picture Format">
                                                             <ToggleButton x:Name="Ind_ImageTile"
                                                                           Tag="0"
-                                                                          Content="Tile"
                                                                           IsChecked="{Binding SelectedItemBackgroundModeIsTile, Mode=OneWay}"
                                                                           Command="{Binding SetSelectedItemBackgroundImageModeCommand}"
                                                                           CommandParameter="{x:Static settings:LyricsBackgroundMode.Tile}"
@@ -4166,10 +4334,11 @@
                                                                           Padding="8,0"
                                                                           Margin="0,0,4,4"
                                                                           ToolTip="Tile Image"
-                                                                          AutomationProperties.Name="선택 항목 배경 이미지 타일" />
+                                                                          AutomationProperties.Name="선택 항목 배경 이미지 타일">
+                                                                <controls:FrmIcon Icon="image_tile" Width="16" Height="16" />
+                                                            </ToggleButton>
                                                             <ToggleButton x:Name="Ind_ImageCentre"
                                                                           Tag="1"
-                                                                          Content="Centre"
                                                                           IsChecked="{Binding SelectedItemBackgroundModeIsCenter, Mode=OneWay}"
                                                                           Command="{Binding SetSelectedItemBackgroundImageModeCommand}"
                                                                           CommandParameter="{x:Static settings:LyricsBackgroundMode.Center}"
@@ -4179,10 +4348,11 @@
                                                                           Padding="8,0"
                                                                           Margin="0,0,4,4"
                                                                           ToolTip="Centre Image"
-                                                                          AutomationProperties.Name="선택 항목 배경 이미지 가운데" />
+                                                                          AutomationProperties.Name="선택 항목 배경 이미지 가운데">
+                                                                <controls:FrmIcon Icon="image_border" Width="16" Height="16" />
+                                                            </ToggleButton>
                                                             <ToggleButton x:Name="Ind_ImageBestFit"
                                                                           Tag="2"
-                                                                          Content="Best Fit"
                                                                           IsChecked="{Binding SelectedItemBackgroundModeIsFit, Mode=OneWay}"
                                                                           Command="{Binding SetSelectedItemBackgroundImageModeCommand}"
                                                                           CommandParameter="{x:Static settings:LyricsBackgroundMode.Fit}"
@@ -4192,7 +4362,9 @@
                                                                           Padding="8,0"
                                                                           Margin="0,0,4,4"
                                                                           ToolTip="Best Fit Image"
-                                                                          AutomationProperties.Name="선택 항목 배경 이미지 맞춤" />
+                                                                          AutomationProperties.Name="선택 항목 배경 이미지 맞춤">
+                                                                <controls:FrmIcon Icon="image" Width="16" Height="16" />
+                                                            </ToggleButton>
                                                         </WrapPanel>
                                                         <Grid Margin="0,6,0,0"
                                                               IsEnabled="{Binding CanEditSelectedItemColor}">
@@ -4323,7 +4495,7 @@
                                 </TabItem.Header>
                                 <!-- FrmMain flowLayoutPreviewPowerPoint: 상단은 덱 썸네일 흐름만 담당하고,
                                      큰 슬라이드는 아래 ClassicPreviewHolder 에서 표시한다. -->
-                                <Grid Margin="{StaticResource Thickness.Lg}">
+                                <Grid Margin="2">
                                     <ScrollViewer x:Name="ClassicPreviewPowerPointSurface"
                                                   Tag="flowLayoutPreviewPowerPoint"
                                                   Focusable="True"
@@ -4342,7 +4514,7 @@
                                                 <DataTemplate>
                                                     <Button Command="{Binding DataContext.GoToSlideCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                             CommandParameter="{Binding SlideNumber}"
-                                                            Margin="6"
+                                                            Margin="2"
                                                             Padding="0"
                                                             Background="Transparent"
                                                             BorderThickness="0"
@@ -4355,7 +4527,6 @@
                                                                           CommandParameter="{Binding SlideNumber}" />
                                                         </Button.InputBindings>
                                                         <Border Width="{Binding Path=ActualWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}, Converter={StaticResource LegacyPowerPointThumbnailSize}}"
-                                                                Height="{Binding Path=ActualWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}, Converter={StaticResource LegacyPowerPointThumbnailSize}, ConverterParameter=Height}"
                                                                 BorderThickness="5"
                                                                 Background="White"
                                                                 Padding="0"
@@ -4366,7 +4537,7 @@
                                                                     <Setter Property="BorderBrush" Value="Transparent" />
                                                                     <Style.Triggers>
                                                                         <DataTrigger Binding="{Binding IsCurrent}" Value="True">
-                                                                            <Setter Property="BorderBrush" Value="Red" />
+                                                                            <Setter Property="BorderBrush" Value="#005FB8" />
                                                                         </DataTrigger>
                                                                     </Style.Triggers>
                                                                 </Style>
@@ -4525,7 +4696,6 @@
 
             <Border x:Name="ClassicPreviewSlidePane"
                     Tag="splitContainerPreview.Panel2"
-                    Grid.Column="0"
                     Grid.Row="2"
                     Background="#808080"
                     BorderBrush="{DynamicResource Brush.Border.Default}"
@@ -4540,11 +4710,11 @@
                     </Grid.RowDefinitions>
 
                     <Border x:Name="ClassicPreviewBottomStripHost"
-                            Background="White"
+                            Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"
                             BorderBrush="{DynamicResource Brush.Border.Default}"
                             BorderThickness="0,0,0,1"
-                            Margin="-6,-6,-6,6"
-                            Padding="6,6,6,5">
+                            Margin="-6,-6,-6,3"
+                            Padding="1,1">
                         <WrapPanel x:Name="ClassicPreviewBottomStrip"
                                    Orientation="Horizontal"
                                    ButtonBase.Click="FocusPreviewArea_Click">
@@ -4552,16 +4722,17 @@
                                     Tag="IndcbPreviewNotes"
                                     Click="OpenSessionNotes_Click"
                                     Style="{StaticResource ClassicOperatorStripButton}"
-                                    Width="33"
-                                    Content="N"
+                                    Width="26"
                                     ToolTip="세션 노트"
-                                    AutomationProperties.Name="Preview 세션 노트" />
+                                    AutomationProperties.Name="Preview 세션 노트">
+                                <controls:FrmIcon Icon="note" Width="16" Height="16" />
+                            </Button>
                             <ToggleButton x:Name="IndradioButtonText"
                                           Tag="IndradioButtonText"
                                           Command="{Binding ShowPreviewTextModeCommand}"
                                           IsChecked="{Binding IsPreviewTextMode, Mode=OneWay}"
                                           Style="{StaticResource ClassicOperatorStripToggleButton}"
-                                          Width="46"
+                                          Width="34"
                                           Content="Text"
                                           ToolTip="텍스트 보기"
                                           AutomationProperties.Name="Preview Text 모드" />
@@ -4570,7 +4741,7 @@
                                           Command="{Binding ShowPreviewFormatModeCommand}"
                                           IsChecked="{Binding IsPreviewFormatMode, Mode=OneWay}"
                                           Style="{StaticResource ClassicOperatorStripToggleButton}"
-                                          Width="40"
+                                          Width="29"
                                           Content="Set"
                                           ToolTip="서식 설정"
                                           AutomationProperties.Name="Preview Set 모드" />
@@ -4579,7 +4750,7 @@
                                           Command="{Binding ShowPreviewInfoModeCommand}"
                                           IsChecked="{Binding IsPreviewInfoMode, Mode=OneWay}"
                                           Style="{StaticResource ClassicOperatorStripToggleButton}"
-                                          Width="45"
+                                          Width="33"
                                           Content="Info"
                                           ToolTip="항목 정보"
                                           AutomationProperties.Name="Preview Info 모드" />
@@ -4587,33 +4758,36 @@
                                     Tag="PreviewBtnItemUp"
                                     Command="{Binding PreviousPreviewItemCommand}"
                                     Style="{StaticResource ClassicOperatorStripButton}"
-                                    Content="⌃"
                                     ToolTip="이전 항목"
-                                    AutomationProperties.Name="Preview 이전 항목" />
+                                    AutomationProperties.Name="Preview 이전 항목">
+                                <controls:FrmIcon Icon="chevron_double_up" Width="16" Height="16" />
+                            </Button>
                             <Button x:Name="PreviewBtnItemDown"
                                     Tag="PreviewBtnItemDown"
                                     Command="{Binding NextPreviewItemCommand}"
                                     Style="{StaticResource ClassicOperatorStripButton}"
-                                    Content="⌄"
                                     ToolTip="다음 항목"
-                                    AutomationProperties.Name="Preview 다음 항목" />
+                                    AutomationProperties.Name="Preview 다음 항목">
+                                <controls:FrmIcon Icon="chevron_double_down" Width="16" Height="16" />
+                            </Button>
                             <Button x:Name="PreviewBtnSlideUp"
                                     Tag="PreviewBtnSlideUp"
                                     Command="{Binding PreviousSlideCommand}"
                                     Style="{StaticResource ClassicOperatorStripButton}"
-                                    Content="◀"
                                     ToolTip="이전 슬라이드"
-                                    AutomationProperties.Name="Preview 이전 슬라이드" />
+                                    AutomationProperties.Name="Preview 이전 슬라이드">
+                                <controls:FrmIcon Icon="chevron_up" Width="16" Height="16" />
+                            </Button>
                             <Button x:Name="PreviewBtnSlideDown"
                                     Tag="PreviewBtnSlideDown"
                                     Command="{Binding NextSlideCommand}"
                                     Style="{StaticResource ClassicOperatorStripButton}"
-                                    Content="▶"
                                     ToolTip="다음 슬라이드"
-                                    AutomationProperties.Name="Preview 다음 슬라이드" />
+                                    AutomationProperties.Name="Preview 다음 슬라이드">
+                                <controls:FrmIcon Icon="chevron_down" Width="16" Height="16" />
+                            </Button>
                             <TextBlock x:Name="ClassicPreviewPositionLabel"
                                        Text="{Binding PreviewNavigationPositionLabel}"
-                                       MinWidth="36"
                                        Margin="0,0,8,0"
                                        VerticalAlignment="Center"
                                        TextAlignment="Center"
@@ -4651,28 +4825,30 @@
                              Stretch="Uniform"
                              Focusable="True"
                              MouseDown="ClassicKeyboardSurface_MouseDown"
-                             AutomationProperties.Name="Preview 4:3 화면 프레임">
+                             AutomationProperties.Name="Preview 화면 프레임">
                         <Viewbox.Width>
                             <MultiBinding Converter="{StaticResource LegacySampleScreenSize}">
                                 <Binding ElementName="ClassicPreviewSampleScreenHost" Path="ActualWidth" />
                                 <Binding ElementName="ClassicPreviewSampleScreenHost" Path="ActualHeight" />
+                                <Binding Path="SampleScreenHeight" />
                             </MultiBinding>
                         </Viewbox.Width>
                         <Viewbox.Height>
                             <MultiBinding Converter="{StaticResource LegacySampleScreenSize}" ConverterParameter="Height">
                                 <Binding ElementName="ClassicPreviewSampleScreenHost" Path="ActualWidth" />
                                 <Binding ElementName="ClassicPreviewSampleScreenHost" Path="ActualHeight" />
+                                <Binding Path="SampleScreenHeight" />
                             </MultiBinding>
                         </Viewbox.Height>
-                        <Grid Width="960"
-                              Height="720">
+                        <Grid Width="960" Height="{Binding SampleScreenHeight}">
+                            <Border Margin="0,0,16,16" Background="#2720B0" />
                             <Border x:Name="ClassicPreviewBack"
                                     Tag="PreviewBack"
-                                    Background="#165D7A"
-                                    BorderBrush="#111111"
-                                    BorderThickness="0,0,8,8"
+                                    Background="#141414"
+                                    BorderBrush="#182539"
+                                    BorderThickness="0"
                                     Focusable="True"
-                                    MouseDown="ClassicKeyboardSurface_MouseDown">
+                                    MouseDown="ClassicKeyboardSurface_MouseDown" Margin="16,16,0,0">
                                 <Grid>
                                     <TextBlock x:Name="ClassicPreviewLargeLyricsText"
                                                Tag="PreviewScreenLyrics"
@@ -4705,28 +4881,47 @@
                                                            SlideNumber="{Binding PreviewVisualSlideNumber}"
                                                            ShowSlideNumber="True"
                                                            IsSelected="True"
-                                                           Visibility="{Binding HasPreviewVisualSource, Converter={StaticResource BoolToVis}}" />
+                                                           Visibility="{Binding HasPreviewVisualSource, Converter={StaticResource BoolToVis}}" Margin="16,16,0,0" Background="#141414" />
                         </Grid>
                     </Viewbox>
                     </Grid>
                 </Grid>
             </Border>
 
+            </Grid>
+
+            <Grid x:Name="OutputSplit" Grid.Column="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition x:Name="OutputTopControlRow"
+                                   Height="3*"
+                                   MinHeight="135" />
+                    <RowDefinition Height="4" />
+                    <RowDefinition x:Name="OutputBottomScreenRow"
+                                   Height="2*"
+                                   MinHeight="130" />
+                </Grid.RowDefinitions>
+            <GridSplitter Grid.Row="1"
+                          Height="4"
+                          HorizontalAlignment="Stretch"
+                          ResizeDirection="Rows"
+                          ResizeBehavior="PreviousAndNext"
+                          Background="{DynamicResource Brush.Border.Default}"
+                          AutomationProperties.Name="splitContainerOutput 상하 패널 높이 조절" />
             <Border x:Name="ClassicOutputPane"
                     Tag="splitContainerOutput.Panel1"
-                    Grid.Column="2"
                     Grid.Row="0"
                     Background="White"
                     BorderBrush="{DynamicResource Brush.Border.Default}"
-                    BorderThickness="1"
-                    Padding="4">
+                    BorderThickness="0"
+                    Padding="0">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
-                    <Grid Margin="0,0,0,4">
+                    <Border x:Name="OutputHeaderFrame" BorderBrush="#D1D1D1" BorderThickness="1" Background="#FDEDE3" SnapsToDevicePixels="True">
+                    <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
@@ -4742,33 +4937,16 @@
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto" />
                                         <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="76" />
-                                        <ColumnDefinition Width="96" />
                                     </Grid.ColumnDefinitions>
-                                    <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.LiveToggle}"
-                                                   FontSize="15"
-                                                   Margin="0,0,5,0"
-                                                   Foreground="{DynamicResource Brush.Text.Secondary}" />
-                                    <TextBlock Grid.Column="1"
-                                               Text="{Binding DataContext.OutputPanelTitleText, RelativeSource={RelativeSource AncestorType=ListView}}"
-                                               VerticalAlignment="Center"
-                                               TextTrimming="CharacterEllipsis"
-                                               Style="{StaticResource Type.Body.Style}"
-                                               Foreground="{DynamicResource Brush.Text.Primary}" />
-                                    <TextBlock Grid.Column="2"
-                                               Text="{Binding DataContext.OutputPanelSourceText, RelativeSource={RelativeSource AncestorType=ListView}}"
-                                               VerticalAlignment="Center"
-                                               TextAlignment="Center"
-                                               TextTrimming="CharacterEllipsis"
-                                               Style="{StaticResource Type.Caption.Style}"
-                                               Foreground="{DynamicResource Brush.Text.Secondary}" />
-                                    <TextBlock Grid.Column="3"
-                                               Text="{Binding DataContext.OutputPanelStatusText, RelativeSource={RelativeSource AncestorType=ListView}}"
-                                               VerticalAlignment="Center"
-                                               TextAlignment="Right"
-                                               TextTrimming="CharacterEllipsis"
-                                               Style="{StaticResource Type.Caption.Style}"
-                                               Foreground="{DynamicResource Brush.Text.Secondary}" />
+                                    <Grid.ToolTip>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding OutputPanelSourceText}" />
+                                            <TextBlock Text="{Binding OutputPanelStatusText}" />
+                                        </StackPanel>
+                                    </Grid.ToolTip>
+                                    <controls:FrmIcon Icon="{Binding DataContext.OutputPanelItem, RelativeSource={RelativeSource AncestorType=ListView}, Converter={StaticResource KindToFrmIcon}}" Width="16" Height="16" Margin="0,0,4,0" />
+                                    <TextBlock Grid.Column="1" Text="{Binding DataContext.OutputPanelTitleText, RelativeSource={RelativeSource AncestorType=ListView}}"
+                                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                                 </Grid>
                             </ListViewItem>
                         </ListView>
@@ -4780,44 +4958,41 @@
                                           Tag="cbOutputBlack"
                                           Command="{Binding ToggleOutputBlackCommand}"
                                           IsChecked="{Binding IsOutputBlackActive, Mode=OneWay}"
-                                          Style="{StaticResource ClassicOutputToggleButton}"
-                                          MinWidth="32"
-                                          MinHeight="28"
-                                          Padding="6,0"
-                                          Margin="4,0,0,0"
+                                          Style="{StaticResource FrmMainScreenToggle}"
+                                          Padding="0"
+                                          Margin="0"
                                           ToolTip="검은 화면"
-                                          AutomationProperties.Name="Output 검은 화면">
-                                <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.LiveBlack}" />
+                                          AutomationProperties.Name="Output 검은 화면" Height="26" Width="32">
+                                <controls:FrmIcon Icon="desktop" Width="16" Height="16" Filled="True" />
                             </ToggleButton>
                             <ToggleButton x:Name="cbOutputClear"
                                           Tag="cbOutputClear"
                                           Command="{Binding ToggleOutputClearCommand}"
                                           IsChecked="{Binding IsOutputClearActive, Mode=OneWay}"
-                                          Style="{StaticResource ClassicOutputToggleButton}"
-                                          MinWidth="32"
-                                          MinHeight="28"
-                                          Padding="6,0"
-                                          Margin="4,0,0,0"
-                                          Content="Tx"
+                                          Style="{StaticResource FrmMainScreenToggle}"
+                                          Padding="0"
+                                          Margin="0"
                                           ToolTip="화면 비우기"
-                                          AutomationProperties.Name="Output 화면 비우기" />
+                                          AutomationProperties.Name="Output 화면 비우기" Height="26" Width="32">
+                                <controls:FrmIcon Icon="closed_caption_off" Width="16" Height="16" Filled="{Binding IsOutputClearActive}" />
+                            </ToggleButton>
                             <ToggleButton x:Name="cbGoLive"
                                           Tag="cbGoLive"
                                           Command="{Binding ToggleOutputLiveCommand}"
                                           IsChecked="{Binding IsOutputLiveActive, Mode=OneWay}"
-                                          Style="{StaticResource ClassicOutputToggleButton}"
-                                          MinWidth="32"
-                                          MinHeight="28"
-                                          Padding="6,0"
-                                          Margin="4,0,0,0"
-                                          Content="LIVE"
+                                          Style="{StaticResource FrmMainLiveToggle}"
+                                          Padding="0"
+                                          Margin="12,0,0,0"
                                           ToolTip="출력 복귀"
-                                          AutomationProperties.Name="Output 복귀" />
+                                          AutomationProperties.Name="Output 복귀" Height="26" Width="44">
+                                <controls:FrmIcon Icon="live" Width="16" Height="16" Filled="{Binding IsOutputLiveActive}" />
+                            </ToggleButton>
                         </WrapPanel>
                     </Grid>
+                    </Border>
 
                     <Border Grid.Row="1"
-                            Background="{DynamicResource Brush.Surface.Page}"
+                            Background="White"
                             BorderBrush="{DynamicResource Brush.Border.Default}"
                             BorderThickness="1">
                         <Grid x:Name="ClassicOutputInfo"
@@ -4905,7 +5080,7 @@
                                               MouseDown="ClassicKeyboardSurface_MouseDown"
                                               HorizontalScrollBarVisibility="Disabled"
                                               VerticalScrollBarVisibility="Auto"
-                                              Margin="8"
+                                              Margin="2"
                                               Visibility="{Binding IsOutputPowerPointContext, Converter={StaticResource BoolToVis}}"
                                               AutomationProperties.Name="Output PowerPoint 썸네일 영역">
                                     <ItemsControl x:Name="ClassicOutputThumbnailGrid"
@@ -4919,7 +5094,7 @@
                                             <DataTemplate>
                                                 <Button Command="{Binding DataContext.GoToOutputSlideCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                         CommandParameter="{Binding SlideNumber}"
-                                                        Margin="6"
+                                                        Margin="2"
                                                         Padding="0"
                                                         Background="Transparent"
                                                         BorderThickness="0"
@@ -4931,7 +5106,6 @@
                                                                       CommandParameter="{Binding SlideNumber}" />
                                                     </Button.InputBindings>
                                                     <Border Width="{Binding Path=ActualWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}, Converter={StaticResource LegacyPowerPointThumbnailSize}}"
-                                                            Height="{Binding Path=ActualWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}, Converter={StaticResource LegacyPowerPointThumbnailSize}, ConverterParameter=Height}"
                                                             BorderThickness="5"
                                                             Background="White"
                                                             Padding="0"
@@ -4942,7 +5116,7 @@
                                                                 <Setter Property="BorderBrush" Value="Transparent" />
                                                                 <Style.Triggers>
                                                                     <DataTrigger Binding="{Binding IsCurrent}" Value="True">
-                                                                        <Setter Property="BorderBrush" Value="Red" />
+                                                                        <Setter Property="BorderBrush" Value="#C4500A" />
                                                                     </DataTrigger>
                                                                 </Style.Triggers>
                                                             </Style>
@@ -4953,7 +5127,9 @@
                                                                    RenderOptions.BitmapScalingMode="HighQuality"
                                                                    SnapsToDevicePixels="True"
                                                                    UseLayoutRounding="True" />
-                                                            <TextBlock Text="{Binding SlideNumber}"
+                                                            <Rectangle IsHitTestVisible="False" Stroke="#8A8A8A" StrokeThickness="2" StrokeDashArray="3,2"
+                                                                             Visibility="{Binding IsNext, Converter={StaticResource BoolToVis}}" />
+                                                                  <TextBlock Text="{Binding SlideNumber}"
                                                                        HorizontalAlignment="Right"
                                                                        VerticalAlignment="Top"
                                                                        MinWidth="18"
@@ -5085,7 +5261,6 @@
 
             <Border x:Name="ClassicOutputSlidePane"
                     Tag="splitContainerOutput.Panel2"
-                    Grid.Column="2"
                     Grid.Row="2"
                     Background="#808080"
                     BorderBrush="{DynamicResource Brush.Border.Default}"
@@ -5096,132 +5271,95 @@
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
                     <Border x:Name="ClassicOutputBottomStripHost"
-                            Background="White"
+                            Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"
                             BorderBrush="{DynamicResource Brush.Border.Default}"
                             BorderThickness="0,0,0,1"
-                            Margin="-6,-6,-6,6"
-                            Padding="6,6,6,5">
+                            Margin="-6,-6,-6,3"
+                            Padding="1,1">
                         <WrapPanel x:Name="ClassicOutputBottomStrip"
                                    Orientation="Horizontal"
                                    ButtonBase.Click="FocusOutputArea_Click">
+                            <WrapPanel.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem x:Name="OutputBtnStopLive" Header="라이브 중지" Command="{Binding StopLiveCommand}" />
+                                    <MenuItem x:Name="OutputBtnRestartCurrentItem" Header="현재 항목 처음으로" Command="{Binding RestartCurrentItemCommand}" />
+                                    <MenuItem x:Name="OutputBtnRefresh" Header="출력 새로고침" Command="{Binding RefreshOutputCommand}" />
+                                </ContextMenu>
+                            </WrapPanel.ContextMenu>
                             <Button x:Name="OutputBtnJumpToNonRotate"
                                     Tag="OutputBtnJumpToNonRotate"
                                     Command="{Binding JumpToNextNonRotateOutputItemCommand}"
                                     Style="{StaticResource ClassicOperatorStripButton}"
-                                    Width="31"
-                                    Content="J"
+                                    Width="24"
                                     ToolTip="회전 제외 항목으로 이동"
-                                    AutomationProperties.Name="Output 회전 제외 항목 이동" />
+                                    AutomationProperties.Name="Output 회전 제외 항목 이동">
+                                <controls:FrmIcon Icon="arrow_step_over" Width="16" Height="16" />
+                            </Button>
                             <Button x:Name="OutputBtnMedia"
                                     Tag="OutputBtnMedia"
                                     Command="{Binding PlayOutputMediaCommand}"
                                     Style="{StaticResource ClassicOperatorStripButton}"
-                                    Width="31"
+                                    Width="24"
                                     ToolTip="미디어 재생/일시정지"
                                     AutomationProperties.Name="Output 미디어 재생 일시정지">
-                                <ui:SymbolIcon Symbol="{Binding OutputMediaPlayPauseSymbol}" />
+                                <controls:FrmIcon Icon="video_play_pause" Width="16" Height="16" />
                             </Button>
                             <ToggleButton x:Name="OutputBtnRefAlert"
                                           Tag="OutputBtnRefAlert"
                                           Command="{Binding ToggleOutputReferenceAlertCommand}"
                                           IsChecked="{Binding IsOutputReferenceAlertActive, Mode=OneWay}"
                                           Style="{StaticResource ClassicOperatorStripToggleButton}"
-                                          Width="31"
-                                          Content="!"
+                                          Width="24"
                                           ToolTip="성경 구절 알림"
-                                          AutomationProperties.Name="Output 구절 알림" />
-                            <Button x:Name="OutputBtnStopLive"
-                                    Tag="StopLiveCommand"
-                                    Command="{Binding StopLiveCommand}"
-                                    Style="{StaticResource ClassicOperatorStripDangerButton}"
-                                    Width="31"
-                                    ToolTip="라이브 중지"
-                                    AutomationProperties.Name="Output 라이브 중지">
-                                <ui:SymbolIcon Symbol="Dismiss24" />
-                            </Button>
-                            <Button x:Name="OutputBtnRestartCurrentItem"
-                                    Tag="Menu_RestartCurrentItem"
-                                    Command="{Binding RestartCurrentItemCommand}"
-                                    Style="{StaticResource ClassicOperatorStripButton}"
-                                    Width="31"
-                                    ToolTip="현재 항목 처음으로"
-                                    AutomationProperties.Name="Output 현재 항목 처음으로">
-                                <ui:SymbolIcon Symbol="ArrowReset24" />
-                            </Button>
-                            <Button x:Name="OutputBtnRefresh"
-                                    Tag="Menu_RefreshOutput"
-                                    Command="{Binding RefreshOutputCommand}"
-                                    Style="{StaticResource ClassicOperatorStripButton}"
-                                    Width="31"
-                                    ToolTip="출력 새로고침"
-                                    AutomationProperties.Name="Output 새로고침">
-                                <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionRefresh}" />
-                            </Button>
-                            <ToggleButton Command="{Binding ToggleOutputBlackCommand}"
-                                          IsChecked="{Binding IsOutputBlackActive, Mode=OneWay}"
-                                          Style="{StaticResource ClassicOperatorStripToggleButton}"
-                                          Width="40"
-                                          ToolTip="검은 화면"
-                                          AutomationProperties.Name="Output 하단 검은 화면">
-                                <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.LiveBlack}" />
+                                          AutomationProperties.Name="Output 구절 알림">
+                                <controls:FrmIcon Icon="warning" Width="16" Height="16" />
                             </ToggleButton>
-                            <ToggleButton Command="{Binding ToggleOutputClearCommand}"
-                                          IsChecked="{Binding IsOutputClearActive, Mode=OneWay}"
-                                          Style="{StaticResource ClassicOperatorStripToggleButton}"
-                                          Width="40"
-                                          Content="Tx"
-                                          ToolTip="화면 비우기"
-                                          AutomationProperties.Name="Output 하단 화면 비우기" />
                             <Button x:Name="OutputBtnItemUp"
                                     Tag="OutputBtnItemUp"
                                     Command="{Binding PreviousOutputItemCommand}"
                                     Style="{StaticResource ClassicOperatorStripButton}"
-                                    Content="⌃"
                                     ToolTip="이전 항목"
-                                    AutomationProperties.Name="Output 이전 항목" />
+                                    AutomationProperties.Name="Output 이전 항목">
+                                <controls:FrmIcon Icon="chevron_double_up" Width="16" Height="16" />
+                            </Button>
                             <Button x:Name="OutputBtnItemDown"
                                     Tag="OutputBtnItemDown"
                                     Command="{Binding NextOutputItemCommand}"
                                     Style="{StaticResource ClassicOperatorStripButton}"
-                                    Content="⌄"
                                     ToolTip="다음 항목"
-                                    AutomationProperties.Name="Output 다음 항목" />
+                                    AutomationProperties.Name="Output 다음 항목">
+                                <controls:FrmIcon Icon="chevron_double_down" Width="16" Height="16" />
+                            </Button>
                             <Button x:Name="OutputBtnSlideUp"
                                     Tag="OutputBtnSlideUp"
                                     Command="{Binding PreviousOutputSlideCommand}"
                                     Style="{StaticResource ClassicOperatorStripButton}"
-                                    Content="◀"
                                     ToolTip="이전 슬라이드"
-                                    AutomationProperties.Name="Output 이전 슬라이드" />
+                                    AutomationProperties.Name="Output 이전 슬라이드">
+                                <controls:FrmIcon Icon="chevron_up" Width="16" Height="16" />
+                            </Button>
                             <Button x:Name="OutputBtnSlideDown"
                                     Tag="OutputBtnSlideDown"
                                     Command="{Binding NextOutputSlideCommand}"
                                     Style="{StaticResource ClassicOperatorStripButton}"
-                                    Content="▶"
                                     ToolTip="다음 슬라이드"
-                                    AutomationProperties.Name="Output 다음 슬라이드" />
+                                    AutomationProperties.Name="Output 다음 슬라이드">
+                                <controls:FrmIcon Icon="chevron_down" Width="16" Height="16" />
+                            </Button>
                             <TextBlock x:Name="ClassicOutputPositionLabel"
                                        Text="{Binding OutputNavigationPositionLabel}"
-                                       MinWidth="36"
                                        Margin="0,0,4,0"
                                        VerticalAlignment="Center"
                                        TextAlignment="Center"
                                        Style="{StaticResource Type.Caption.Style}"
                                        Foreground="{DynamicResource Brush.Text.Secondary}"
                                        AutomationProperties.Name="Output 현재 위치" />
-                            <ToggleButton Command="{Binding ToggleOutputLiveCommand}"
-                                          IsChecked="{Binding IsOutputLiveActive, Mode=OneWay}"
-                                          Style="{StaticResource ClassicOperatorStripToggleButton}"
-                                          Width="56"
-                                          ToolTip="출력 복귀"
-                                          AutomationProperties.Name="Output 하단 복귀">
-                                <ui:SymbolIcon Symbol="ArrowReset24" />
-                            </ToggleButton>
                             <WrapPanel x:Name="flowLayoutPanel2"
                                        Tag="flowLayoutPanel2"
                                        Margin="4,0,0,0">
@@ -5245,7 +5383,11 @@
                         </WrapPanel>
                     </Border>
 
-                    <Grid Grid.Row="1"
+                    <Border Grid.Row="1" Background="White" Margin="-6,-3,-6,2" Padding="5,2">
+                        <TextBlock Text="{Binding OutputScreenStatus}" FontSize="11" />
+                    </Border>
+
+                    <Grid Grid.Row="2"
                           x:Name="ClassicOutputSampleScreenHost">
                     <Viewbox x:Name="ClassicOutputHolder"
                              Tag="OutputHolder"
@@ -5254,28 +5396,30 @@
                              Stretch="Uniform"
                              Focusable="True"
                              MouseDown="ClassicKeyboardSurface_MouseDown"
-                             AutomationProperties.Name="Output 4:3 화면 프레임">
+                             AutomationProperties.Name="Output 화면 프레임">
                         <Viewbox.Width>
                             <MultiBinding Converter="{StaticResource LegacySampleScreenSize}">
                                 <Binding ElementName="ClassicOutputSampleScreenHost" Path="ActualWidth" />
                                 <Binding ElementName="ClassicOutputSampleScreenHost" Path="ActualHeight" />
+                                <Binding Path="SampleScreenHeight" />
                             </MultiBinding>
                         </Viewbox.Width>
                         <Viewbox.Height>
                             <MultiBinding Converter="{StaticResource LegacySampleScreenSize}" ConverterParameter="Height">
                                 <Binding ElementName="ClassicOutputSampleScreenHost" Path="ActualWidth" />
                                 <Binding ElementName="ClassicOutputSampleScreenHost" Path="ActualHeight" />
+                                <Binding Path="SampleScreenHeight" />
                             </MultiBinding>
                         </Viewbox.Height>
-                        <Grid Width="960"
-                              Height="720">
+                        <Grid Width="960" Height="{Binding SampleScreenHeight}">
+                            <Border Margin="0,0,16,16" Background="#2720B0" />
                             <Border x:Name="ClassicOutputBack"
                                     Tag="OutputBack"
-                                    Background="#165D7A"
+                                    Background="#141414"
                                     BorderBrush="#111111"
                                     Focusable="True"
                                     MouseDown="ClassicKeyboardSurface_MouseDown"
-                                    BorderThickness="0,0,8,8">
+                                    BorderThickness="0" Margin="16,16,0,0">
                                 <Grid>
                                     <TextBlock x:Name="ClassicOutputLargeLyricsText"
                                                Tag="OutputScreenLyrics"
@@ -5313,12 +5457,12 @@
                                                            FillMode="{Binding OutputVisualFillMode}"
                                                            SlideNumber="{Binding OutputVisualSlideNumber}"
                                                            Visibility="{Binding HasOutputVisualSource, Converter={StaticResource BoolToVis}}"
-                                                           AutomationProperties.Name="Output 큰 시각 자료" />
+                                                           AutomationProperties.Name="Output 큰 시각 자료" Margin="16,16,0,0" Background="#141414" />
                         </Grid>
                     </Viewbox>
                     </Grid>
 
-                    <Border Grid.Row="2"
+                    <Border Grid.Row="3"
                             x:Name="panelOutputLM1"
                             Tag="panelOutputLM1"
                             Visibility="{Binding IsOutputLiveMessagePanelVisible, Converter={StaticResource BoolToVis}}"
@@ -5380,18 +5524,20 @@
                                         MinHeight="28"
                                         Padding="6,0"
                                         Margin="4,0,0,0"
-                                        Content="X"
                                         ToolTip="라이브 메시지 지우기"
-                                        AutomationProperties.Name="라이브 메시지 지우기" />
+                                        AutomationProperties.Name="라이브 메시지 지우기">
+                                    <controls:FrmIcon Icon="broom" Width="16" Height="16" />
+                                </Button>
                             </StackPanel>
                         </Grid>
                     </Border>
                 </Grid>
             </Border>
 
+            </Grid>
+
             <Border x:Name="ClassicInspectorFlyout"
                     Grid.Column="2"
-                    Grid.RowSpan="3"
                     Width="340"
                     HorizontalAlignment="Right"
                     Panel.ZIndex="5"

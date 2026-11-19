@@ -47,6 +47,7 @@ public sealed partial class LibraryViewModel : ObservableObject
         _settings = settings ?? throw new ArgumentNullException(nameof(settings));
         _adminDatabase = adminDatabase ?? throw new ArgumentNullException(nameof(adminDatabase));
         // 표시 곡 수가 바뀌면 "곡 없음" 빈 상태 안내 표시 여부도 다시 평가하도록 통지.
+        Folders.CollectionChanged += (_, _) => RefreshJumpFolders();
         Songs.CollectionChanged += (_, _) => RaiseLibraryEmptyStateChanged();
         LoadCommand = new AsyncRelayCommand(LoadAsync, () => !IsBusy);
         LoadSongsForSelectedFolderCommand = new AsyncRelayCommand(LoadSongsForSelectedFolderAsync, () => !IsBusy);
@@ -110,6 +111,23 @@ public sealed partial class LibraryViewModel : ObservableObject
 
     /// <summary>곡을 처음 불러온 순간(또는 해제 시) 빈 상태 안내 표시 여부를 다시 평가한다.</summary>
     partial void OnHasLoadedSongsChanged(bool value) => RaiseLibraryEmptyStateChanged();
+
+    public SongFolderSummary? JumpFolderA => FindJumpFolder(EasiSettingKeys.JumpToA);
+    public SongFolderSummary? JumpFolderB => FindJumpFolder(EasiSettingKeys.JumpToB);
+    public SongFolderSummary? JumpFolderC => FindJumpFolder(EasiSettingKeys.JumpToC);
+
+    internal void RefreshJumpFolders()
+    {
+        OnPropertyChanged(nameof(JumpFolderA));
+        OnPropertyChanged(nameof(JumpFolderB));
+        OnPropertyChanged(nameof(JumpFolderC));
+    }
+
+    private SongFolderSummary? FindJumpFolder(SettingKey<int> key)
+    {
+        var number = _settings.Get(key);
+        return Folders.FirstOrDefault(folder => folder.FolderNo == number);
+    }
 
     public ObservableCollection<SongFolderSummary> Folders { get; } = new();
 
@@ -474,6 +492,46 @@ public sealed partial class LibraryViewModel : ObservableObject
         {
             IsBusy = false;
         }
+    }
+
+    public async Task<bool> SaveSongMediaAsync(SongSummary song, string path, Media.ItemMediaOptions? options = null)
+    {
+        var report = await _adminDatabase.SaveSongMediaAsync(DatabasePath, ResolveBackupRoot(), song.SongId, path, options);
+        if (!report.Succeeded)
+        {
+            StatusMessage = FormatWriteFailure("미디어 설정 저장 실패", report);
+            return false;
+        }
+        await LoadSongsForSelectedFolderAsync();
+        SelectSongById(song.SongId);
+        return true;
+    }
+
+    public async Task MaintainSongsAsync(AdminDatabaseWriteOperation operation)
+    {
+        if (IsBusy) return;
+        if (!TryEnsureWritableDatabasePath(out var message))
+        {
+            StatusMessage = message;
+            return;
+        }
+        IsBusy = true;
+        try
+        {
+            var report = await _adminDatabase.MaintainSongsAsync(DatabasePath, ResolveBackupRoot(), operation);
+            if (report.Succeeded)
+            {
+                IsBusy = false;
+                await LoadAsync();
+                StatusMessage = "곡 데이터베이스 정리가 완료되었습니다.";
+            }
+            else StatusMessage = FormatWriteFailure("곡 데이터베이스 정리 실패", report);
+        }
+        catch (Exception ex) when (IsRecoverableLibraryException(ex))
+        {
+            StatusMessage = ex.Message;
+        }
+        finally { IsBusy = false; }
     }
 
     public Task MoveSelectedSongToSongAsync(SongSummary targetSong)

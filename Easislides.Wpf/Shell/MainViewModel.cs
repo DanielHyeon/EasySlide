@@ -82,6 +82,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [NotifyPropertyChangedFor(nameof(IsOutputMediaContext))]
     [NotifyPropertyChangedFor(nameof(IsOutputVisualContext))]
     [NotifyPropertyChangedFor(nameof(OutputPanelTitleText))]
+    [NotifyPropertyChangedFor(nameof(OutputPanelItem))]
     [NotifyPropertyChangedFor(nameof(OutputMediaTitle))]
     [NotifyPropertyChangedFor(nameof(OutputMediaSourceText))]
     [NotifyPropertyChangedFor(nameof(OutputMediaStatusText))]
@@ -237,6 +238,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// <summary>FrmMain cbGoLive 체크 상태: 현재 출력이 라이브로 표시 중인가.</summary>
     public bool IsOutputLiveActive => _session.Current.State == LiveState.Active;
 
+    public double SampleScreenHeight => _settings.Get(EasiSettingKeys.IsMonitorWide) ? 540d : 720d;
+
+    public string OutputScreenStatus =>
+        $"Show: {(_session.Current.State == LiveState.Off ? "OFF" : "ON")}     Text: {(IsOutputClearActive ? "hidden" : "shown")}     Screen: {(IsOutputBlackActive ? "black" : "normal")}";
+
     /// <summary>FrmMain OutputBtnRefAlert 상태: 현재 라이브 출력의 구절/제목 알림 오버레이가 표시 중인가.</summary>
     public bool IsOutputReferenceAlertActive => _session.Current.IsReferenceAlertVisible;
 
@@ -302,7 +308,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     public bool IsOutputHeaderTextVisible => false;
 
-    public string PreviewPanelTitleText => PreviewItem?.Title ?? "Preview";
+    public string PreviewPanelTitleText => PreviewItem?.Title ?? string.Empty;
+
+    public LiveQueueItem? PreviewPanelItem => PreviewItem;
 
     /// <summary>FrmMain PreviewPanelDisplayName 출처 셀: 선택된 Preview 항목의 legacy 종류.</summary>
     public string PreviewPanelSourceText => BuildPanelSourceText(PreviewItem, "Preview");
@@ -311,7 +319,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public string PreviewPanelStatusText => BuildPreviewPanelStatusText();
 
     /// <summary>FrmMain OutputPanelDisplayName 제목 셀: 준비/라이브 Output 항목의 현재 제목.</summary>
-    public string OutputPanelTitleText => GetOutputNavigationItem()?.Title ?? "Output";
+    public string OutputPanelTitleText => GetOutputNavigationItem()?.Title ?? string.Empty;
+
+    public LiveQueueItem? OutputPanelItem => GetOutputNavigationItem();
 
     /// <summary>FrmMain OutputPanelDisplayName 출처 셀: 준비/라이브 Output 항목의 legacy 종류.</summary>
     public string OutputPanelSourceText => BuildPanelSourceText(GetOutputNavigationItem(), "Output");
@@ -766,6 +776,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// FrmMain flowLayoutOutputLyrics 대응: 현재 준비/라이브 Output 항목의 가사/성경 페이지 카드.
     /// </summary>
     public ObservableCollection<OperatorLyricsPageCard> OutputLyricsPages { get; } = new();
+
+    public bool PreviewAreaShowNotations
+    {
+        get => _settings.Get(EasiSettingKeys.PreviewAreaShowNotations);
+        set => _settings.Set(EasiSettingKeys.PreviewAreaShowNotations, value);
+    }
 
     public bool HasPreviewLyricsPages => PreviewLyricsPages.Count > 0;
 
@@ -1341,8 +1357,22 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public string OutputBackgroundNoImageToolTip => CanClearOutputBackgroundImage
         ? $"Remove Default Background '{ActiveOutputBackgroundImagePath}'"
         : "No Default Background";
-    public string DefaultMediaPath => _settings.Get(EasiSettingKeys.DefaultMediaPath);
-    public bool CanClearDefaultMedia => !string.IsNullOrWhiteSpace(DefaultMediaPath);
+    public string PanelFontFamily
+    {
+        get => _settings.Get(EasiSettingKeys.PanelFontFamily);
+        set => _settings.Set(EasiSettingKeys.PanelFontFamily, value?.Trim() ?? "");
+    }
+
+    public int PanelHeightPercent
+    {
+        get => _settings.Get(EasiSettingKeys.PanelHeightPercent);
+        set => _settings.Set(EasiSettingKeys.PanelHeightPercent, Math.Clamp(value, 0, 20));
+    }
+
+    internal string DefaultMediaFormat => _settings.Get(EasiSettingKeys.DefaultMediaFormat);
+    public string DefaultMediaPath => DefaultMediaFormat.Length == 0
+        ? _settings.Get(EasiSettingKeys.DefaultMediaPath) : ItemMediaOptions.Read(DefaultMediaFormat).FileName;
+    public bool CanClearDefaultMedia => DefaultMediaFormat.Length > 0 || !string.IsNullOrWhiteSpace(DefaultMediaPath);
     public string DefaultMediaToolTip => CanClearDefaultMedia
         ? $"Remove Default Media '{Path.GetFileName(DefaultMediaPath)}'"
         : "No Default Media";
@@ -1767,16 +1797,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return null;
         }
 
-        var item = new LiveQueueItem($"song:{song.SongId}", song.Title, LiveItemKinds.Song)
-        {
-            Lyrics = song.Lyrics,
-            Sequence = sequence,
-            SongNumber = song.SongNumber,
-            Copyright = song.Copyright,
-            FormatData = formatData,
-            BookReference = bookReference ?? song.BookReference,
-            UserReference = userReference ?? song.UserReference,
-        };
+        var item = CreateSongQueueItem(song, sequence, formatData, bookReference, userReference);
 
         // 참조 일치(IndexOfReference)로 "드롭한 바로 그 인스턴스"의 위치를 찾는다 — 성경 드롭·재정렬과 동일 규칙(같은-값 중복 안전).
         var targetIndex = targetItem is null ? -1 : IndexOfReference(targetItem);
@@ -1826,20 +1847,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return null;
         }
 
-        var item = new LiveQueueItem($"song:{song.SongId}", song.Title, LiveItemKinds.Song)
-        {
-            Lyrics = song.Lyrics,
-            Sequence = sequence,
-            // 곡 번호(출력 "곡 번호 표시" 설정 on 일 때 회중 화면에 표시).
-            SongNumber = song.SongNumber,
-            // 저작권(출력 "저작권 표시" 설정 on 일 때 표시).
-            Copyright = song.Copyright,
-            // 곡별 출력 색(레거시 v32 FormatData) — 있으면 라이브 송출 시 그 곡의 색으로 표시.
-            FormatData = formatData,
-            // 레거시 BOOK_REFERENCE/USER_REFERENCE — OutputBtnRefAlert source 3/4.
-            BookReference = bookReference ?? song.BookReference,
-            UserReference = userReference ?? song.UserReference,
-        };
+        var item = CreateSongQueueItem(song, sequence, formatData, bookReference, userReference);
         var selectedIndex = SelectedItem is null ? -1 : Queue.IndexOf(SelectedItem);
         var insertIndex = selectedIndex >= 0 ? selectedIndex + 1 : Queue.Count;
         Queue.Insert(insertIndex, item);
@@ -3019,10 +3027,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         => new($"song:{song.SongId}", song.Title, LiveItemKinds.Song)
         {
             Lyrics = song.Lyrics,
-            Sequence = sequence,
+            Sequence = sequence ?? song.Sequence,
             SongNumber = song.SongNumber,
             Copyright = song.Copyright,
-            FormatData = formatData,
+            FormatData = formatData ?? song.FormatData,
             BookReference = bookReference ?? song.BookReference,
             UserReference = userReference ?? song.UserReference,
         };
@@ -3649,6 +3657,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private void NotifyPreviewPanelDisplayProperties()
     {
         OnPropertyChanged(nameof(PreviewPanelTitleText));
+        OnPropertyChanged(nameof(PreviewPanelItem));
         OnPropertyChanged(nameof(PreviewPanelSourceText));
         OnPropertyChanged(nameof(PreviewPanelStatusText));
     }
@@ -3656,6 +3665,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private void NotifyOutputPanelDisplayProperties()
     {
         OnPropertyChanged(nameof(OutputPanelTitleText));
+        OnPropertyChanged(nameof(OutputPanelItem));
         OnPropertyChanged(nameof(OutputPanelSourceText));
         OnPropertyChanged(nameof(OutputPanelStatusText));
     }
@@ -3870,13 +3880,39 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         RebuildOutputLyricsPages();
     }
 
-    private static (int Count, IReadOnlyList<string> Labels) BuildLyricsPageModel(LiveQueueItem? item)
+    private (string? Lyrics, string? Sequence, TextFileLayout? Layout, IReadOnlyList<string> Pages)? _textFilePages;
+
+    private IReadOnlyList<string> GetTextFilePages(LiveQueueItem item)
+    {
+        var options = _settings.Current.LiveOutput;
+        TextFileLayout? layout = null;
+        if (options.AutoTextOverflow && !options.FitTextFileParagraphs)
+        {
+            var display = SelectedOutputDisplay ?? OutputDisplay.PrimaryFallback;
+            var placement = _output.Current.IsOpen ? _output.Current.Placement
+                : new WindowPlacementService(_settings, _display).CreateOutputPlacement(display, false);
+            double scale = Math.Max(1, display.DpiScale);
+            layout = new(placement.Width / scale - options.LyricsMonitorBodyLeftMargin - options.LyricsMonitorBodyRightMargin,
+                placement.Height / scale - options.LyricsMonitorBodyBottomMargin, options.LyricsMonitorFontFamily,
+                options.LyricsMonitorFontSize, options.LyricsMonitorFontSize * options.LyricsMonitorLineSpacingPercent / 100d);
+        }
+        if (_textFilePages is { } cached && cached.Lyrics == item.Lyrics && cached.Sequence == item.Sequence && cached.Layout == layout)
+            return cached.Pages;
+        var pages = TextFilePagination.Create(item.Lyrics, item.Sequence, layout);
+        _textFilePages = (item.Lyrics, item.Sequence, layout, pages);
+        return pages;
+    }
+
+    private (int Count, IReadOnlyList<string> Labels) BuildLyricsPageModel(LiveQueueItem? item)
     {
         var paginated = IsLyricsPaginated(item);
         if (!paginated)
         {
             return (0, Array.Empty<string>());
         }
+
+        if (IsExternalTextFileItem(item!))
+            return (GetTextFilePages(item!).Count, Array.Empty<string>());
 
         // 성경 본문은 인용부호 »…« 가 코드 마커로 오인돼 절 수가 어긋나지 않도록 분할 전 보호한다(본문 추출과 동일 규칙).
         var lyrics = GuardBibleNotation(item!);
@@ -3946,7 +3982,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var item = PreviewItem;
         ReplaceLyricsPageCards(
             PreviewLyricsPages,
-            BuildLyricsPageCards(item, IsLyricsPaginated(item) ? LyricsPageIndex : 0));
+            BuildLyricsPageCards(item, IsLyricsPaginated(item) ? LyricsPageIndex : 0, preview: true));
         OnPropertyChanged(nameof(HasPreviewLyricsPages));
         OnPropertyChanged(nameof(PreviewLyricsText));
         OnPropertyChanged(nameof(HasPreviewLyricsText));
@@ -3960,7 +3996,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var currentPage = item is not null && IsLyricsPaginated(item)
             ? GetOutputLyricsPageIndex(item)
             : 0;
-        ReplaceLyricsPageCards(OutputLyricsPages, BuildLyricsPageCards(item, currentPage));
+        ReplaceLyricsPageCards(OutputLyricsPages, BuildLyricsPageCards(item is null ? null : ApplyOutputScript(item), currentPage));
         OnPropertyChanged(nameof(HasOutputLyricsPages));
         GoToOutputLyricsPageCommand.NotifyCanExecuteChanged();
         GoToLastOutputLyricsPageCommand.NotifyCanExecuteChanged();
@@ -3977,7 +4013,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
-    private IReadOnlyList<OperatorLyricsPageCard> BuildLyricsPageCards(LiveQueueItem? item, int currentPage)
+    private IReadOnlyList<OperatorLyricsPageCard> BuildLyricsPageCards(LiveQueueItem? item, int currentPage, bool preview = false)
     {
         if (item is null || string.IsNullOrWhiteSpace(item.Lyrics))
         {
@@ -4004,7 +4040,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         var clamped = Math.Clamp(currentPage, 0, pageModel.Count - 1);
-        var textAt = PrepareLyricsPageText(item);
+        var textAt = PrepareLyricsPageText(item, preview);
         var cards = new List<OperatorLyricsPageCard>(pageModel.Count);
         for (var index = 0; index < pageModel.Count; index++)
         {
@@ -4464,7 +4500,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
             if (item is { Kind: LiveItemKinds.Media, ContentPath: { Length: > 0 } mediaPath })
             {
-                Media.Load(new MediaPlaybackRequest(mediaPath, MediaSourceKind.File, TimeSpan.Zero, InferMediaType(mediaPath)));
+                Media.Load(GetItemMediaRequest(item, mediaPath));
             }
             else
             {
@@ -4517,7 +4553,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return directMediaPath;
         }
 
-        if (TryResolveSpecificMediaPath(item, out var specificMediaPath))
+        if (TryGetExplicitItemMedia(item, out var specificMediaPath))
         {
             return specificMediaPath;
         }
@@ -4587,6 +4623,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (string.IsNullOrWhiteSpace(mediaPath))
         {
             StatusText = $"미디어 파일을 찾을 수 없습니다: {item.Title}";
+            return;
+        }
+
+        if (mediaPath.StartsWith("<<Capture>>", StringComparison.Ordinal))
+        {
+            StatusText = "연결된 카메라는 송출 모니터 재생에서 열 수 있습니다.";
             return;
         }
 
@@ -4660,6 +4702,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     partial void OnOutputItemChanged(LiveQueueItem? value)
     {
+        if (value?.Id != _chineseOutputItemId) _outputScript = null;
+        ToggleOutputChineseCommand.NotifyCanExecuteChanged();
         RefreshOutputSurfaceText();
         RebuildOutputLyricsPages();
         OnPropertyChanged(nameof(IsOutputPowerPointContext));
@@ -4675,6 +4719,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(OutputNavigationPositionLabel));
         NotifyOutputPanelDisplayProperties();
         NotifyCommandStates();
+    }
+
+    private void RefreshPreparedTextOutput(LiveQueueItem output)
+    {
+        var projection = ResolveLiveProjection(output with { LyricsPageIndex = GetOutputLyricsPageIndex(output) });
+        string monitor = _output.Current.Display?.Name ?? OutputDisplay.PrimaryFallback.Name;
+        if (_session.Current.State == LiveState.Active) _session.GoLive(projection, monitor);
+        else if (_session.Current.State == LiveState.Hidden) _session.UpdateHiddenContent(projection, monitor);
+        RefreshOutputSurfaceText();
+        RebuildOutputLyricsPages();
     }
 
     private void RefreshOutputSurfaceText()
@@ -4696,7 +4750,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             }
         }
 
-        OutputLyricsText = BuildOutputSurfaceText(item);
+        OutputLyricsText = BuildOutputSurfaceText(ApplyOutputScript(item));
     }
 
     private static string JoinOutputBodyText(string region1, string region2)
@@ -4714,6 +4768,20 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         return $"{region1}{Environment.NewLine}{Environment.NewLine}{region2}";
     }
 
+    [RelayCommand]
+    private void ToggleOutputCamera()
+    {
+        if (Media.MediaType == "Live Camera" && Media.State != MediaPlaybackState.Failed)
+        {
+            Media.Unload();
+            return;
+        }
+        var display = EnsureLiveOutputDisplay();
+        Media.LoadLiveCamera(display.Id);
+        if (Media.PlayPauseCommand.CanExecute(null)) Media.PlayPauseCommand.Execute(null);
+        StatusText = Media.State == MediaPlaybackState.Failed ? Media.StatusText : "카메라 송출";
+    }
+
     private void PlaySelectedWorshipMediaOnOutput()
     {
         if (SelectedItem is not { } item)
@@ -4729,24 +4797,21 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        if (!_output.Current.IsOpen)
+        var request = GetItemMediaRequest(item, mediaPath);
+        if (!OpenAssignedMediaDisplay(request) && !_output.Current.IsOpen)
         {
             EnsureLiveOutputDisplay();
         }
 
         OutputItem = item;
-        Media.Load(new MediaPlaybackRequest(
-            mediaPath,
-            MediaSourceKind.File,
-            TimeSpan.Zero,
-            InferMediaType(mediaPath)));
+        Media.Load(request);
 
         if (Media.PlayPauseCommand.CanExecute(null))
         {
             Media.PlayPauseCommand.Execute(null);
         }
 
-        StatusText = $"Output 미디어 재생: {Path.GetFileName(mediaPath)}";
+        StatusText = Media.State == MediaPlaybackState.Failed ? Media.StatusText : $"Output 미디어 재생: {Path.GetFileName(mediaPath)}";
         NotifyCommandStates();
     }
 
@@ -4767,7 +4832,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        if (!_output.Current.IsOpen)
+        var request = GetItemMediaRequest(item, mediaPath);
+        if (!OpenAssignedMediaDisplay(request) && !_output.Current.IsOpen)
         {
             OpenOutput();
         }
@@ -4777,11 +4843,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             || Media.State is MediaPlaybackState.Empty or MediaPlaybackState.Failed;
         if (shouldLoad)
         {
-            Media.Load(new MediaPlaybackRequest(
-                mediaPath,
-                MediaSourceKind.File,
-                TimeSpan.Zero,
-                InferMediaType(mediaPath)));
+            Media.Load(request);
         }
 
         if (!Media.PlayPauseCommand.CanExecute(null))
@@ -4804,7 +4866,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return directMediaPath;
         }
 
-        if (TryResolveSpecificMediaPath(item, out var specificMediaPath))
+        if (TryGetExplicitItemMedia(item, out var specificMediaPath))
         {
             return specificMediaPath;
         }
@@ -4908,16 +4970,62 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private static bool IsSupportedWorshipOutputMediaFile(string filePath)
         => WorshipOutputMediaExtensions.Contains(Path.GetExtension(filePath), StringComparer.OrdinalIgnoreCase);
 
-    private static bool TryResolveSpecificMediaPath(LiveQueueItem item, out string mediaPath)
+    private bool TryGetExplicitItemMedia(LiveQueueItem item, out string? source)
     {
-        var assigned = SongFormatData.Parse(item.FormatData)?.MediaPath;
-        return TryResolveExistingFile(assigned, out mediaPath);
+        source = null;
+        var media = GetItemMediaOptions(item);
+        switch (media.Mode)
+        {
+            case 0: return true;
+            case 1:
+                source = FindWorshipOutputMediaByTitle(item.Title);
+                return true;
+            case 3:
+                source = MediaPlaybackService.CreateLiveCameraSource(media.Camera);
+                return true;
+            default:
+                if (TryResolveAssignedMedia(media.FileName, out var path)) { source = path; return true; }
+                return media.Mode == 2;
+        }
+    }
+
+    private bool TryResolveAssignedMedia(string? path, out string resolved)
+    {
+        if (!string.IsNullOrWhiteSpace(path) && !Path.IsPathFullyQualified(path) && ResolveWorshipOutputMediaRoot() is { } root
+            && TryResolveExistingFile(Path.Combine(root, path), out resolved)) return true;
+        return TryResolveExistingFile(path, out resolved);
+    }
+
+    private ItemMediaOptions GetItemMediaOptions(LiveQueueItem item)
+    {
+        var options = ItemMediaOptions.Read(item.UseIndividualFormatting ? item.FormatData : null);
+        return options == new ItemMediaOptions() && DefaultMediaFormat.Length > 0
+            ? ItemMediaOptions.Read(DefaultMediaFormat) : options;
+    }
+
+    private MediaPlaybackRequest GetItemMediaRequest(LiveQueueItem item, string source)
+    {
+        var options = GetItemMediaOptions(item);
+        bool camera = source.StartsWith("<<Capture>>", StringComparison.Ordinal);
+        return new MediaPlaybackRequest(source, camera ? MediaSourceKind.CaptureDevice : MediaSourceKind.File,
+            TimeSpan.Zero, camera ? "Live Camera" : InferMediaType(source), OutputDisplayId: string.IsNullOrEmpty(options.Monitor) ? null : options.Monitor, ItemOptions: options);
+    }
+
+    private bool OpenAssignedMediaDisplay(MediaPlaybackRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.OutputDisplayId)) return false;
+        var display = _display.GetDisplays().FirstOrDefault(d => string.Equals(request.OutputDisplayId, d.Id, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(request.OutputDisplayId, d.Name, StringComparison.OrdinalIgnoreCase));
+        if (display == null) return false;
+        if (!_output.Current.IsOpen) _output.Open(display, windowed: false);
+        else if (_output.Current.Display?.Id != display.Id) _output.MoveTo(display, windowed: false);
+        return true;
     }
 
     private bool TryResolveDefaultMediaPath(out string mediaPath)
     {
-        var assigned = _settings.Get(EasiSettingKeys.DefaultMediaPath);
-        return TryResolveExistingFile(assigned, out mediaPath);
+        var assigned = DefaultMediaPath;
+        return TryResolveAssignedMedia(assigned, out mediaPath);
     }
 
     private static string NormalizeWorshipMediaLookupName(string value)
@@ -5423,18 +5531,20 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     // Prepare the displayed content once. The card list and the live surface use the same index and fallback rules.
-    private Func<int, string> PrepareLyricsPageText(LiveQueueItem item)
+    private Func<int, string> PrepareLyricsPageText(LiveQueueItem item, bool preview = false)
     {
         if (IsExternalTextFileItem(item))
         {
-            var pages = LyricsDisplayFormatter.ToVersePages(item.Lyrics, item.Sequence);
+            var pages = GetTextFilePages(item);
             return index => TextOrTitle(PageAt(pages, index), item.Title);
         }
 
         bool bible = LiveItemKindMatcher.IsBible(item.Kind);
+        var itemDisplay = item.UseIndividualFormatting ? ItemDisplayFormat.Read(item.FormatData) : null;
+        bool showChords = preview ? PreviewAreaShowNotations : itemDisplay?.Flag(4) ?? _settings.Get(EasiSettingKeys.LyricsMonitorShowNotations);
         string lyrics = bible
             ? LyricsDisplayFormatter.GuardLiteralNotation(LyricsDisplayFormatter.NormalizeText(item.Lyrics ?? string.Empty))
-            : LyricsDisplayFormatter.ExpandNotations(item.Lyrics, _settings.Get(EasiSettingKeys.LyricsMonitorShowNotations), LiveTransposeSemitones);
+            : LyricsDisplayFormatter.ExpandNotations(item.Lyrics, showChords, LiveTransposeSemitones + (itemDisplay?.Transpose ?? 0));
 
         string DisplayText(string? text) => bible
             ? TextOrTitle(LyricsDisplayFormatter.UnguardLiteralNotation(text), item.Title)
@@ -5459,9 +5569,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         => string.IsNullOrWhiteSpace(text) ? title : text;
 
     private LiveQueueItem? GetLiveLyricsItem()
-        => Queue.FirstOrDefault(item =>
-            string.Equals(item.Id, _liveItemId, StringComparison.Ordinal)
-            && IsLyricsPaginated(item));
+        => Queue.FirstOrDefault(item => item.Id == _liveItemId && IsLyricsPaginated(item))
+            ?? (OutputItem is { } prepared && prepared.Id == _liveItemId && IsLyricsPaginated(prepared) ? prepared : null);
 
     // PPT 미리보기 VM 의 상태/슬라이드 변화에 슬라이드 이동 커맨드 활성 상태를 동기화.
     private void OnPowerPointPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -6699,11 +6808,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (!string.Equals(Media.Source, mediaPath, StringComparison.OrdinalIgnoreCase)
             || Media.State is MediaPlaybackState.Empty or MediaPlaybackState.Failed)
         {
-            Media.Load(new MediaPlaybackRequest(
-                mediaPath,
-                MediaSourceKind.File,
-                TimeSpan.Zero,
-                InferMediaType(mediaPath)));
+            Media.Load(GetItemMediaRequest(item, mediaPath));
         }
 
         if (!Media.RestartCommand.CanExecute(null))
@@ -6749,11 +6854,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         OutputItem = item;
-        Media.Load(new MediaPlaybackRequest(
-            mediaPath,
-            MediaSourceKind.File,
-            TimeSpan.Zero,
-            InferMediaType(mediaPath)));
+        Media.Load(GetItemMediaRequest(item, mediaPath));
 
         if (shouldResume && Media.PlayPauseCommand.CanExecute(null))
         {
@@ -7045,7 +7146,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// </summary>
     public void ClearSelectedItemFormatting()
     {
-        if (ApplySelectedSongFormatChange(_ => new SongFormatData(), wantsIndividual: false, out _))
+        if (ApplySelectedSongFormatChange(_ => new SongFormatData(), wantsIndividual: false, out _, clearAll: true))
         {
             StatusText = "이 항목 서식 모두 지움(전역 기본)";
         }
@@ -7085,12 +7186,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        // 담아 둔 FormatData 를 그대로 적용 — 헬퍼가 Parse→Encode 왕복으로 안전하게 검증·재인코드한다(잘못된 코드 걸러짐).
-        var pasted = SongFormatData.Parse(_copiedItemFormatData) ?? new SongFormatData();
-        if (ApplySelectedSongFormatChange(_ => pasted, wantsIndividual: true, out _))
-        {
+        if (ApplySelectedItemFormatDataTemplate(_copiedItemFormatData))
             StatusText = "이 항목에 서식 붙여넣음";
-        }
     }
 
     /// <summary>"복사한 서식을 전 항목에 적용"을 누를 수 있는지 — 담아 둔 서식이 있고, 큐에 서식 적용 가능한 항목(곡·성경)이 하나라도 있을 때.</summary>
@@ -7110,7 +7207,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         // 담아 둔 서식을 Parse→Encode 로 한 번 정규화한다(잘못된 코드 걸러지고, 비교용 표준 문자열 확보).
-        var encoded = SongFormatData.Parse(_copiedItemFormatData)?.Encode();
+        var encoded = _copiedItemFormatData?.TrimEnd('>');
         if (string.IsNullOrEmpty(encoded))
         {
             StatusText = "복사한 서식이 비어 있습니다.";
@@ -7220,7 +7317,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private bool ApplySelectedSongFormatChange(
         Func<SongFormatData, SongFormatData> mutate,
         bool wantsIndividual,
-        out bool turnedOnIndividual)
+        out bool turnedOnIndividual,
+        bool clearAll = false)
     {
         turnedOnIndividual = false;
         if (!CanEditSelectedItemColor || SelectedItem is not { } item)
@@ -7230,7 +7328,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         var current = SongFormatData.Parse(item.FormatData) ?? new SongFormatData();
         var next = mutate(current);
-        if (next == current)
+        if (next == current && (!clearAll || string.IsNullOrWhiteSpace(item.FormatData)))
         {
             return false; // 레코드 동등 — 바뀐 게 없으면 무시(불필요한 교체·재송출 방지).
         }
@@ -7242,7 +7340,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         // 결과가 비면 FormatData 는 null(서식 없음). 서식을 켜는 변경이면 개별 서식도 켜서 송출에 보이게 한다.
-        var encoded = next.Encode();
+        var encoded = clearAll ? "" : ItemFormatFields.MergeEdits(item.FormatData, current, next);
         turnedOnIndividual = wantsIndividual && !item.UseIndividualFormatting; // 일부러 꺼둔 걸 자동으로 켰는지(상태줄 고지용).
         var updated = item with
         {
@@ -7680,7 +7778,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         for (var i = 0; i < Queue.Count; i++)
         {
             var item = Queue[i];
-            if (item.UseIndividualFormatting)
+            if (item.UseIndividualFormatting && item.Kind != LiveItemKinds.Notice)
             {
                 Queue[i] = item with { UseIndividualFormatting = false };
                 changed++;
@@ -7709,13 +7807,20 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         LiveQueueItem item,
         Rendering.PowerPointPreviewViewModel? powerPoint = null)
     {
-        item = PrepareLiveItemForOutput(item);
+        item = ApplyOutputScript(PrepareLiveItemForOutput(item));
+        if (IsExternalTextFileItem(item))
+        {
+            var pages = GetTextFilePages(item);
+            int index = Math.Clamp(item.LyricsPageIndex, 0, Math.Max(0, pages.Count - 1));
+            item = item with { LyricsPageIndex = index, ProjectedTextPage = PageAt(pages, index) ?? item.Title };
+        }
         var ppt = powerPoint ?? PowerPoint;
         var positionLabel = ComputePositionLabel(item, ppt);
         var nextTitle = ComputeNextTitle(item);
         // "코드 표시"(Show Notations) 설정을 투영에 얹는다 — 라이브 본문 계산(ComputeBodyText)이 이 값으로
         // 가사 위 코드 줄을 끼울지 판단한다. 모든 곡 송출 경로가 ResolveLiveProjection 을 거치므로 한 곳에서 일관 적용.
-        var showNotations = _settings.Get(EasiSettingKeys.LyricsMonitorShowNotations);
+        var itemDisplay = item.UseIndividualFormatting ? ItemDisplayFormat.Read(item.FormatData) : null;
+        var showNotations = itemDisplay?.Flag(4) ?? _settings.Get(EasiSettingKeys.LyricsMonitorShowNotations);
         // 항목별 "개별 서식 사용"이 꺼져 있으면 곡별 FormatData(색·정렬·폰트·배경)를 비워 전역 기본 설정으로 송출한다.
         // 기본(true)이면 곡별 서식 그대로(무회귀). 레거시 FrmMain Ind_checkBox "Use Individual Settings" 대응.
         var formatData = item.UseIndividualFormatting ? item.FormatData : null;
@@ -7734,7 +7839,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 PositionLabel = positionLabel,
                 NextTitle = nextTitle,
                 ShowNotations = showNotations,
-                TransposeSemitones = LiveTransposeSemitones,
+                TransposeSemitones = LiveTransposeSemitones + (itemDisplay?.Transpose ?? 0),
                 FormatData = formatData,
             };
         }
@@ -7744,7 +7849,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             PositionLabel = positionLabel,
             NextTitle = nextTitle,
             ShowNotations = showNotations,
-            TransposeSemitones = LiveTransposeSemitones,
+            TransposeSemitones = LiveTransposeSemitones + (itemDisplay?.Transpose ?? 0),
             FormatData = formatData,
         };
     }
@@ -7915,10 +8020,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             // 이중 언어(성경/곡)는 영역-인식 페이지 수를 써 RefreshLyricsPages 의 LyricsPageCount 와 어긋나지 않게 한다.
             // 성경 본문은 동일하게 인용부호를 보호한 뒤 센다(LyricsPageCount 와 같은 입력 → 위치 라벨 N/M 일치).
-            var lyrics = GuardBibleNotation(item);
-            var count = LyricsDisplayFormatter.HasRegion2(lyrics)
-                ? LyricsDisplayFormatter.GetRegionPages(lyrics, item.Sequence).Count
-                : LyricsDisplayFormatter.ToVersePages(lyrics, item.Sequence).Count;
+            var count = BuildLyricsPageModel(item).Count;
+            if (count < 2) return string.Empty;
             // 라이브 절 이동 후 절 순서를 편집해 페이지 수가 줄면 LyricsPageIndex 가 범위를 넘을 수 있어 클램프(예: "4/3" 방지).
             // 본문은 GetVersePage 가 이미 클램프하므로, 위치 라벨도 같은 마지막 절로 맞춰 일관되게 보여 준다.
             var position = System.Math.Clamp(item.LyricsPageIndex, 0, count - 1) + 1;
@@ -7967,10 +8070,32 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private void OnSettingsChanged(object? sender, SettingsChangedEventArgs args)
     {
+        if (ContainsKey(args.ChangedKeys, EasiSettingKeys.PanelFontFamily.Id)) OnPropertyChanged(nameof(PanelFontFamily));
+        if (ContainsKey(args.ChangedKeys, EasiSettingKeys.PanelHeightPercent.Id)) OnPropertyChanged(nameof(PanelHeightPercent));
+
+        if (ContainsKey(args.ChangedKeys, EasiSettingKeys.JumpToA.Id)
+            || ContainsKey(args.ChangedKeys, EasiSettingKeys.JumpToB.Id)
+            || ContainsKey(args.ChangedKeys, EasiSettingKeys.JumpToC.Id))
+            Library.RefreshJumpFolders();
+        if (ContainsKey(args.ChangedKeys, EasiSettingKeys.IsMonitorWide.Id))
+            OnPropertyChanged(nameof(SampleScreenHeight));
+        if (ContainsKey(args.ChangedKeys, EasiSettingKeys.PreviewAreaShowNotations.Id))
+        {
+            OnPropertyChanged(nameof(PreviewAreaShowNotations));
+            RebuildPreviewLyricsPages();
+        }
+        if (ContainsKey(args.ChangedKeys, EasiSettingKeys.FitTextFileParagraphs.Id)
+            || ContainsKey(args.ChangedKeys, EasiSettingKeys.AutoTextOverflow.Id))
+        {
+            if (PreviewItem is { } preview && IsExternalTextFileItem(preview)) RefreshLyricsPages(preview);
+            if (OutputItem is { } output && IsExternalTextFileItem(output)) RefreshPreparedTextOutput(output);
+        }
         bool newAudiencePreference = ContainsKey(args.ChangedKeys, EasiSettingKeys.DefaultOutputMonitorId.Id);
         if (newAudiencePreference)
             _sessionOutputMonitorId = null;
-        if (newAudiencePreference || ContainsKey(args.ChangedKeys, EasiSettingKeys.DisplayAlwaysUseSecondaryMonitor.Id)
+        if (newAudiencePreference || ContainsKey(args.ChangedKeys, EasiSettingKeys.OutputPlacementMode.Id)
+            || ContainsKey(args.ChangedKeys, EasiSettingKeys.IsMonitorWide.Id)
+            || ContainsKey(args.ChangedKeys, EasiSettingKeys.DisplayAlwaysUseSecondaryMonitor.Id)
             || ContainsKey(args.ChangedKeys, EasiSettingKeys.DisplayCustomTop.Id)
             || ContainsKey(args.ChangedKeys, EasiSettingKeys.DisplayCustomLeft.Id)
             || ContainsKey(args.ChangedKeys, EasiSettingKeys.DisplayCustomWidth.Id))
@@ -8038,6 +8163,15 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     // 인라인 라이브러리에서 선택한 곡을 예배 순서(큐)에 추가(별도 LibraryWindow 없이). AddSong 재사용.
     private void AddSelectedLibrarySong() => AddSong(Library.SelectedSong);
+
+    public void PreviewLibrarySong(Data.SongSummary song)
+    {
+        _sourcePreviewItem = CreateSongQueueItem(song);
+        RefreshLyricsPages(_sourcePreviewItem);
+        UpdateContentTabForItem(_sourcePreviewItem);
+        NotifyPreviewItemProperties();
+        NotifyCommandStates();
+    }
 
     private void OnLibraryPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
@@ -8774,6 +8908,20 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     internal static string? BuildNoticeFormatData(NoticeOptions options)
     {
         var sb = new System.Text.StringBuilder();
+        // Keep second-language settings, transitions and future format keys when editing an existing .esi.
+        int otherEffectBits = 0;
+        bool changedMedia = !string.Equals(SongFormatData.Parse(options.LegacyFormatData)?.MediaPath ?? "",
+            options.MediaPath ?? "", StringComparison.Ordinal);
+        foreach (var field in (options.LegacyFormatData ?? "").Split('>', StringSplitOptions.RemoveEmptyEntries))
+        {
+            int assignment = field.IndexOf('=');
+            if (assignment > 0 && int.TryParse(field.AsSpan(0, assignment), out int key))
+            {
+                if (key == 41 && int.TryParse(field.AsSpan(assignment + 1), out int bits)) otherEffectBits = bits & ~7;
+                if (key is 26 or 29 or 31 or 41 or 43 or 47 || (changedMedia && key is (50 or 51))) continue;
+            }
+            sb.Append(field).Append('>');
+        }
         if (options.FontSizePt > 0)
         {
             sb.Append($"47={options.FontSizePt}>");
@@ -8798,7 +8946,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         // 코드 41 = 강조 비트밭(곡 강조와 동일 파이프라인) — 비트0=굵게, 비트1=기울임, 비트2=밑줄.
         // 출력이 라이브에서 OverrideBold1/Italic1/Underline1 로 적용한다(영역1=공지 본문).
         // 주의: 출력의 "강조 후렴만" 설정이 켜져 있으면 공지(=후렴 아님)에서는 강조가 억제된다(기본은 꺼짐이라 그대로 보인다).
-        var effectBits = (options.Bold ? 1 : 0) | (options.Italic ? 2 : 0) | (options.Underline ? 4 : 0);
+        var effectBits = otherEffectBits | (options.Bold ? 1 : 0) | (options.Italic ? 2 : 0) | (options.Underline ? 4 : 0);
         if (effectBits != 0)
         {
             sb.Append($"41={effectBits}>");
@@ -8811,6 +8959,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             sb.Append($"43={fontName}>");
         }
+
+        if (changedMedia && !string.IsNullOrWhiteSpace(options.MediaPath))
+            sb.Append("50=2>51=").Append(options.MediaPath).Append('>');
 
         return sb.Length == 0 ? null : sb.ToString();
     }
@@ -9106,12 +9257,17 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     // 인-셸 가사 폰트 크기 조절(+/- 단계) — 절대값 커밋 함수에 위임(직접 수치 입력과 동일 경로).
-    public void SetDefaultMedia(string? mediaPath)
+    public void SetDefaultMedia(string? mediaPath, ItemMediaOptions? options = null)
     {
         var normalized = (mediaPath ?? string.Empty).Trim().Replace(">", string.Empty);
-        _settings.Set(EasiSettingKeys.DefaultMediaPath, normalized);
+        var result = _settings.SetValues(new Dictionary<string, object>
+        {
+            [EasiSettingKeys.DefaultMediaPath.Id] = normalized,
+            [EasiSettingKeys.DefaultMediaFormat.Id] = options?.ApplyTo("") ?? ""
+        });
+        if (!result.Succeeded) { StatusText = "기본 미디어 설정을 저장할 수 없습니다."; return; }
         NotifyDefaultMediaProperties();
-        StatusText = string.IsNullOrWhiteSpace(normalized)
+        StatusText = options is { Mode: 1 or 3 } ? "기본 미디어 설정을 저장했습니다." : string.IsNullOrWhiteSpace(normalized)
             ? "Default media cleared"
             : $"Default media: {Path.GetFileName(normalized)}";
     }
@@ -9771,6 +9927,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(IsOutputBlackActive));
         OnPropertyChanged(nameof(IsOutputClearActive));
         OnPropertyChanged(nameof(IsOutputLiveActive));
+        OnPropertyChanged(nameof(OutputScreenStatus));
         OnPropertyChanged(nameof(IsOutputReferenceAlertActive));
         NotifyOutputPanelDisplayProperties();
     }

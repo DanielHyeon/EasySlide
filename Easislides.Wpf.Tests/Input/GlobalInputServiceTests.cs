@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Easislides.Wpf.Input;
 using FluentAssertions;
 using Xunit;
@@ -39,8 +40,10 @@ public class GlobalInputServiceTests
         var args = source.RaiseKeyDown(LegacyKeys.F5, LegacyKeys.None);
 
         args.Handled.Should().BeTrue();
+        executed.Should().BeFalse();
+        dispatcher.Drain();
         executed.Should().BeTrue();
-        dispatcher.InvokeCount.Should().Be(1);
+        dispatcher.PostCount.Should().Be(1);
     }
 
     [Fact]
@@ -85,6 +88,65 @@ public class GlobalInputServiceTests
         sut.IsRunning.Should().BeFalse();
         sut.LastError.Should().BeOfType<InvalidOperationException>();
         source.SubscriptionCount.Should().Be(0);
+    }
+
+    [Fact]
+    public void UnrelatedKeysDoNotPostAndStoppedSessionDropsPendingCommands()
+    {
+        var registry = new ShortcutRegistry();
+        var source = new FakeGlobalKeySource();
+        var dispatcher = new RecordingGlobalInputDispatcher();
+        int executed = 0;
+        registry.Register(new Shortcut(WpfKey.F5, WpfModifierKeys.None, "Live.Next", true, "다음"));
+        registry.Bind("Live.Next", () => executed++);
+        var service = CreateSut(source, registry, dispatcher);
+        service.Start();
+
+        for (int i = 0; i < 1000; i++)
+            source.RaiseKeyDown(LegacyKeys.F3, LegacyKeys.None).Handled.Should().BeFalse();
+        dispatcher.PostCount.Should().Be(0);
+        source.RaiseKeyDown(LegacyKeys.F5, LegacyKeys.None).Handled.Should().BeTrue();
+        service.Stop();
+        service.Start();
+        dispatcher.Drain();
+        executed.Should().Be(0);
+        source.RaiseKeyDown(LegacyKeys.F5, LegacyKeys.None);
+        dispatcher.Drain();
+        executed.Should().Be(1);
+    }
+
+    [Fact]
+    public void FailedPostPassesTheKeyThroughAndQueuedCommandErrorIsReported()
+    {
+        var registry = new ShortcutRegistry();
+        var source = new FakeGlobalKeySource();
+        var dispatcher = new RecordingGlobalInputDispatcher { RejectPosts = true };
+        registry.Register(new Shortcut(WpfKey.F5, WpfModifierKeys.None, "Live.Next", true, "다음"));
+        registry.Bind("Live.Next", () => throw new InvalidOperationException("command failed"));
+        var service = CreateSut(source, registry, dispatcher);
+        service.Start();
+
+        source.RaiseKeyDown(LegacyKeys.F5, LegacyKeys.None).Handled.Should().BeFalse();
+        service.LastError!.Message.Should().Be("queue closed");
+        dispatcher.RejectPosts = false;
+        source.RaiseKeyDown(LegacyKeys.F5, LegacyKeys.None).Handled.Should().BeTrue();
+        dispatcher.Drain();
+        service.LastError!.Message.Should().Be("command failed");
+    }
+
+    [Fact]
+    public void WpfDispatcherDefersCommandsEvenOnItsOwningThread()
+    {
+        StaHelper.RunOnSta(() =>
+        {
+            var dispatcher = System.Windows.Threading.Dispatcher.CurrentDispatcher;
+            bool executed = false;
+            new WpfGlobalInputDispatcher(dispatcher).Post(() => executed = true);
+            executed.Should().BeFalse();
+            dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Background, new Action(() => { }));
+            executed.Should().BeTrue();
+            dispatcher.InvokeShutdown();
+        });
     }
 
     private static GlobalInputService CreateSut(
@@ -138,12 +200,20 @@ public class GlobalInputServiceTests
 
     private sealed class RecordingGlobalInputDispatcher : IGlobalInputDispatcher
     {
-        public int InvokeCount { get; private set; }
+        private readonly Queue<Action> _pending = new();
+        public int PostCount { get; private set; }
+        public bool RejectPosts { get; set; }
 
-        public void Invoke(Action action)
+        public void Drain()
         {
-            InvokeCount++;
-            action();
+            while (_pending.TryDequeue(out var action)) action();
+        }
+
+        public void Post(Action action)
+        {
+            if (RejectPosts) throw new InvalidOperationException("queue closed");
+            PostCount++;
+            _pending.Enqueue(action);
         }
     }
 }

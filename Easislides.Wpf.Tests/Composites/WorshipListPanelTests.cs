@@ -57,8 +57,8 @@ public class WorshipListPanelTests
                 "FrmMain WorshipListItems_DoubleClick has a media special case and otherwise routes through PreviewItemToLive, not the top-level GoLive auto-advance workflow");
 
         // 증분137 — 항목 한 줄은 종류 아이콘 + 제목. 종류 아이콘은 Kind→Fluent 변환기로 바인딩.
-        var symbolIcon = list.Descendants().Single(e => e.Name.LocalName == "SymbolIcon");
-        Attr(symbolIcon, "Symbol").Should().Contain("Kind").And.Contain("KindToSymbol", "종류 아이콘은 Kind 를 KindToSymbol 변환기로 바인딩");
+        var symbolIcon = list.Descendants().Single(e => e.Name.LocalName == "FrmIcon");
+        Attr(symbolIcon, "Icon").Should().Be("{Binding Converter={StaticResource KindToFrmIcon}}", "항목 종류는 FrmMain 그림을 선택한다");
         var titleBlock = list.Descendants().Single(
             e => e.Name.LocalName == "TextBlock" && (Attr(e, "Text")?.Contains("Title") ?? false));
         Attr(titleBlock, "Text").Should().Contain("Title", "제목은 TextBlock 에 그대로 바인딩");
@@ -167,8 +167,8 @@ public class WorshipListPanelTests
         Attr(wlWord, "Click").Should().Be("WL_Word_Click", "FrmMain WL_Word should generate an RTF document from the Worship List");
         Attr(wlWord, "ToolTip").Should().Be("Generate RTF Document");
         Attr(wlWord, "AutomationProperties.Name").Should().Contain("RTF");
-        wlWord.Descendants().Single(e => e.Name.LocalName == "SymbolIcon")
-            .Attribute("Symbol")!.Value.Should().Be("DocumentText24",
+        wlWord.Descendants().Single(e => e.Name.LocalName == "FrmIcon")
+            .Attribute("Icon")!.Value.Should().Be("document_text",
                 "RTF generation should read visually as a text document, not a download action");
         var wlNotes = composite.Descendants().Single(e => e.Name.LocalName == "Button" && Attr(e, "Name") == "WL_Notes");
         Attr(wlNotes, "Tag").Should().Be("WL_Notes", "FrmMain WL_Notes role should be visible in the lower-left toolbar");

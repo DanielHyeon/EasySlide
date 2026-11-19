@@ -68,7 +68,10 @@ public sealed record SongSummary(
     string Copyright = "",
     // 레거시 BOOK_REFERENCE/USER_REFERENCE — FrmMain Reference alert source 3/4 에 쓰인다.
     string BookReference = "",
-    string UserReference = "");
+    string UserReference = "",
+    string Writer = "",
+    string? Sequence = null,
+    string? FormatData = null);
 
 public sealed record SongDetail(
     int SongId,
@@ -111,6 +114,9 @@ public enum AdminDatabaseWriteOperation
     ReorderFolders,
     ReorderSongs,
     Compact,
+    EmptyDeletedSongs,
+    ClearSongFormatting,
+    SaveSongMedia,
 }
 
 public enum AdminDatabaseWriteIssueKind
@@ -209,6 +215,13 @@ public interface IAdminDatabaseRepository
 
     Task<IReadOnlyList<DeletedSongSummary>> GetDeletedSongsAsync(string databasePath);
 
+    Task<AdminDatabaseWriteReport> SaveSongMediaAsync(string databasePath, string backupRoot, int songId, string path, Media.ItemMediaOptions? options = null)
+        => throw new NotSupportedException("This repository does not support song media assignments.");
+
+    Task<AdminDatabaseWriteReport> MaintainSongsAsync(string databasePath, string backupRoot, AdminDatabaseWriteOperation operation)
+        => throw new NotSupportedException("This repository does not support song maintenance.");
+
+
     Task<AdminDatabaseWriteReport> SaveFolderAsync(
         string databasePath,
         string backupRoot,
@@ -299,6 +312,34 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
 
     public Task<SongDetail?> GetSongDetailAsync(string databasePath, int songId)
         => Task.FromResult(GetSongDetail(databasePath, songId));
+
+    public Task<AdminDatabaseWriteReport> SaveSongMediaAsync(string databasePath, string backupRoot, int songId, string path, Media.ItemMediaOptions? options = null)
+        => Task.FromResult(ExecuteWrite(databasePath, backupRoot, AdminDatabaseWriteOperation.SaveSongMedia, (connection, transaction, outcome) =>
+        {
+            using var read = new SQLiteCommand("SELECT FORMATDATA FROM SONG WHERE SONGID = @id AND FOLDERNO > 0", connection, transaction);
+            read.Parameters.AddWithValue("@id", songId);
+            var format = read.ExecuteScalar() ?? throw new InvalidOperationException("선택한 곡이 없습니다.");
+            using var save = new SQLiteCommand("UPDATE SONG SET FORMATDATA = @format WHERE SONGID = @id", connection, transaction);
+            save.Parameters.AddWithValue("@format", options?.ApplyTo(Convert.ToString(format)) ?? Library.SongFormatData.WithMediaPath(Convert.ToString(format), path));
+            save.Parameters.AddWithValue("@id", songId);
+            save.ExecuteNonQuery();
+            outcome.SongIds.Add(songId);
+        }));
+
+    public Task<AdminDatabaseWriteReport> MaintainSongsAsync(string databasePath, string backupRoot, AdminDatabaseWriteOperation operation)
+    {
+        string sql = operation switch
+        {
+            AdminDatabaseWriteOperation.EmptyDeletedSongs => "DELETE FROM SONG WHERE FolderNo = 0",
+            AdminDatabaseWriteOperation.ClearSongFormatting => "UPDATE SONG SET FORMATDATA = '' WHERE FORMATDATA <> ''",
+            _ => throw new ArgumentOutOfRangeException(nameof(operation)),
+        };
+        return Task.FromResult(ExecuteWrite(databasePath, backupRoot, operation, (connection, transaction, _) =>
+        {
+            using var command = new SQLiteCommand(sql, connection, transaction);
+            command.ExecuteNonQuery();
+        }));
+    }
 
     public Task<IReadOnlyList<DeletedSongSummary>> GetDeletedSongsAsync(string databasePath)
         => Task.FromResult(GetDeletedSongs(databasePath));
@@ -565,6 +606,9 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
                 {SelectColumn(columns, "KEY", "KEY")},
                 {SelectColumn(columns, "LYRICS", "LYRICS")},
                 {SelectColumn(columns, "COPYRIGHT", "COPYRIGHT")},
+                {SelectColumn(columns, "FORMATDATA", "FORMATDATA")},
+                {SelectColumn(columns, "SEQUENCE", "SEQUENCE")},
+                {SelectColumn(columns, "WRITER", "WRITER")},
                 {SelectColumn(columns, "BOOK_REFERENCE", "BOOK_REFERENCE")},
                 {SelectColumn(columns, "USER_REFERENCE", "USER_REFERENCE")}
             FROM SONG
@@ -589,7 +633,10 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
                 GetString(reader, "LYRICS"),
                 GetString(reader, "COPYRIGHT"),
                 GetString(reader, "BOOK_REFERENCE"),
-                GetString(reader, "USER_REFERENCE")));
+                GetString(reader, "USER_REFERENCE"),
+                GetString(reader, "WRITER"),
+                GetString(reader, "SEQUENCE"),
+                GetString(reader, "FORMATDATA")));
         }
 
         return songs;

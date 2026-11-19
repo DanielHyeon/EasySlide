@@ -21,9 +21,20 @@ public sealed class SongRowDisplayConverter : IMultiValueConverter
         var title = values[0] as string;
         var songNumber = values[1] is int n ? n : 0;
         var useNumbering = values[2] is bool b && b;
+        if (parameter is "Columns")
+        {
+            string? category = values.Length > 3 ? values[3] as string : null;
+            if (useNumbering)
+                return new FolderSongRow(SongListFormatting.FormatRow(title, songNumber, true), category, false);
+
+            Easislides.Core.SongRowTitle.Split(title, out var name, out var number, out var media);
+            return new FolderSongRow(name, number ?? category, media);
+        }
         return SongListFormatting.FormatRow(title, songNumber, useNumbering);
     }
 
     public object[] ConvertBack(object value, Type[] targetTypes, object? parameter, CultureInfo culture)
         => throw new NotSupportedException();
 }
+
+public sealed record FolderSongRow(string Title, string? Number, bool HasMedia);

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using LegacyKeys = System.Windows.Forms.Keys;
 using WpfKey = System.Windows.Input.Key;
@@ -12,29 +12,28 @@ namespace Easislides.Wpf.Input;
 
 public sealed class ShortcutRegistry
 {
-    private ImmutableList<Shortcut> _shortcuts = ImmutableList<Shortcut>.Empty;
+    private sealed record Registrations(
+        ImmutableList<Shortcut> Ordered,
+        ImmutableDictionary<(WpfKey, WpfModifierKeys), Shortcut> ByGesture);
+
+    private Registrations _registered = new(ImmutableList<Shortcut>.Empty,
+        ImmutableDictionary<(WpfKey, WpfModifierKeys), Shortcut>.Empty);
     private readonly ConcurrentDictionary<string, Action> _bindings = new();
 
-    public IReadOnlyList<Shortcut> All => _shortcuts;
+    public IReadOnlyList<Shortcut> All => Volatile.Read(ref _registered).Ordered;
 
     public void Register(Shortcut shortcut)
     {
         ArgumentNullException.ThrowIfNull(shortcut);
-
+        var gesture = (shortcut.Key, shortcut.Modifiers);
         while (true)
         {
-            var oldList = _shortcuts;
-            if (oldList.Any(s => s.Key == shortcut.Key && s.Modifiers == shortcut.Modifiers))
-            {
-                throw new InvalidOperationException(
-                    $"Shortcut collision: {shortcut.DisplayText} is already registered.");
-            }
+            var current = Volatile.Read(ref _registered);
+            if (current.ByGesture.ContainsKey(gesture))
+                throw new InvalidOperationException($"Shortcut collision: {shortcut.DisplayText} is already registered.");
 
-            var newList = oldList.Add(shortcut);
-            if (Interlocked.CompareExchange(ref _shortcuts, newList, oldList) == oldList)
-            {
-                return;
-            }
+            var updated = new Registrations(current.Ordered.Add(shortcut), current.ByGesture.Add(gesture, shortcut));
+            if (ReferenceEquals(Interlocked.CompareExchange(ref _registered, updated, current), current)) return;
         }
     }
 
@@ -48,23 +47,20 @@ public sealed class ShortcutRegistry
 
     public bool TryHandle(WpfKey key, WpfModifierKeys modifiers)
     {
-        var shortcut = _shortcuts.FirstOrDefault(s => s.Key == key && s.Modifiers == modifiers);
-        return shortcut is not null && Invoke(shortcut.CommandName);
+        return Volatile.Read(ref _registered).ByGesture.TryGetValue((key, modifiers), out var shortcut)
+            && Invoke(shortcut.CommandName);
     }
 
-    public bool TryHandleGlobal(LegacyKeys legacyKey, LegacyKeys legacyModifiers)
+    internal bool TryResolveGlobal(LegacyKeys key, LegacyKeys modifiers, [NotNullWhen(true)] out Action? handler)
     {
-        if (!Enum.TryParse<WpfKey>(legacyKey.ToString(), out var wpfKey))
-        {
-            return false;
-        }
-
-        var wpfModifiers = ToWpfModifiers(legacyModifiers);
-        var shortcut = _shortcuts.FirstOrDefault(
-            s => s.IsGlobal && s.Key == wpfKey && s.Modifiers == wpfModifiers);
-
-        return shortcut is not null && Invoke(shortcut.CommandName);
+        var gesture = (System.Windows.Input.KeyInterop.KeyFromVirtualKey((int)key), ToWpfModifiers(modifiers));
+        handler = null;
+        return Volatile.Read(ref _registered).ByGesture.TryGetValue(gesture, out var shortcut)
+            && shortcut.IsGlobal && _bindings.TryGetValue(shortcut.CommandName, out handler);
     }
+
+    public bool TryHandleGlobal(LegacyKeys key, LegacyKeys modifiers) =>
+        TryResolveGlobal(key, modifiers, out var handler) && Execute(handler);
 
     private static WpfModifierKeys ToWpfModifiers(LegacyKeys legacyModifiers)
     {
@@ -94,6 +90,11 @@ public sealed class ShortcutRegistry
             return false;
         }
 
+        return Execute(handler);
+    }
+
+    private static bool Execute(Action handler)
+    {
         try
         {
             handler();
@@ -101,7 +102,7 @@ public sealed class ShortcutRegistry
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[ShortcutRegistry] {commandName} failed: {ex}");
+            System.Diagnostics.Debug.WriteLine($"[ShortcutRegistry] Command failed: {ex}");
             return false;
         }
     }

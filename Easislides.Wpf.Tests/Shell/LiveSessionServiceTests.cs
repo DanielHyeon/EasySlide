@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows.Media.Imaging;
 using Easislides.Wpf.Controls;
 using Easislides.Wpf.Rendering;
@@ -11,6 +12,46 @@ namespace Easislides.Wpf.Tests.Shell;
 
 public class LiveSessionServiceTests
 {
+    [Fact]
+    public void AudienceAndParentalAlertsFollowLiveSlidesAndBlackoutIndependently()
+    {
+        var session = new LiveSessionService();
+        var message = new OutputAlert("안내", false, true, false);
+        var parental = new OutputAlert("보호자 23", true, false, true);
+        session.SetAudienceAlert(false, message);
+        Assert.Null(session.Current.MessageAlert);
+        session.GoLive(new LiveQueueItem("1", "A"), "display");
+        session.SetAudienceAlert(false, message);
+        session.SetAudienceAlert(true, parental);
+        session.GoLive(new LiveQueueItem("2", "B"), "display");
+        Assert.Equal(message, session.Current.MessageAlert);
+        Assert.Equal(parental, session.Current.ParentalAlert);
+        session.HideOutput(true);
+        session.SetAudienceAlert(true, null);
+        session.Restore();
+        Assert.Equal(message, session.Current.MessageAlert);
+        Assert.Null(session.Current.ParentalAlert);
+        session.Stop();
+        Assert.Null(session.Current.MessageAlert);
+    }
+
+    [Fact]
+    public void LegacyAlertHistoriesRoundTripIndependentlyWithTwentyEntries()
+    {
+        var directory = System.IO.Directory.CreateTempSubdirectory();
+        try
+        {
+            var messages = Enumerable.Range(0, 24).Select(i => $"안내 {i}").ToArray();
+            Assert.True(AlertHistory.Save(directory.FullName, false, messages));
+            Assert.True(AlertHistory.Save(directory.FullName, true, ["보호자"]));
+            Assert.Equal(messages[..20], AlertHistory.Read(directory.FullName, false));
+            Assert.True(AlertHistory.Save(directory.FullName, false, []));
+            Assert.Empty(AlertHistory.Read(directory.FullName, false));
+            Assert.Equal(new[] { "보호자" }, AlertHistory.Read(directory.FullName, true));
+        }
+        finally { directory.Delete(recursive: true); }
+    }
+
     [Fact]
     public void NewService_DefaultsToOffSnapshot()
     {
