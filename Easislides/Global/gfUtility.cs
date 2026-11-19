@@ -340,6 +340,7 @@ namespace Easislides
 			RegUtil.SaveRegValue("options", "BibleShowVerses", 1);
 			RegUtil.SaveRegValue("options", "PowerpointMaxFiles", PP_MaxFiles);
 			RegUtil.SaveRegValue("options", "AutoTextOverflow", AutoTextOverflow ? 1 : 0);
+			RegUtil.SaveRegValue("options", RegUtil.Reg_FitTextFileParagraphs, FitTextFileParagraphs ? 1 : 0);
 			RegUtil.SaveRegValue("options", "UseLargestFontSize", UseLargestFontSize ? 1 : 0);
 			RegUtil.SaveRegValue("options", "UsePowerpointTab", UsePowerpointTab ? 1 : 0);
 			RegUtil.SaveRegValue("options", "NoPowerpointPanelOverlay", NoPowerpointPanelOverlay ? 1 : 0);

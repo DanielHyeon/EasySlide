@@ -526,6 +526,7 @@ namespace Easislides
 			ShowLyricsMonitorAlertBox = ((DataUtil.ObjToInt(RegUtil.GetRegValue("options", "ShowLyricsMonitorAlertBox", 0)) > 0) ? true : false);
 			NoMediaPanelOverlay = ((DataUtil.ObjToInt(RegUtil.GetRegValue("options", "NoMediaPanelOverlay", 0)) > 0) ? true : false);
 			AutoTextOverflow = ((DataUtil.ObjToInt(RegUtil.GetRegValue("options", "AutoTextOverflow", 1)) > 0) ? true : false);
+			FitTextFileParagraphs = RegUtil.GetRegValue("options", RegUtil.Reg_FitTextFileParagraphs, 1) > 0;
 			UseLargestFontSize = ((DataUtil.ObjToInt(RegUtil.GetRegValue("options", "UseLargestFontSize", 0)) > 0) ? true : false);
 			AdvanceNextItem = ((DataUtil.ObjToInt(RegUtil.GetRegValue("options", "AdvanceNextItem", 0)) > 0) ? true : false);
 			LineBetweenRegions = ((DataUtil.ObjToInt(RegUtil.GetRegValue("options", "LineBetweenRegions", 1)) > 0) ? true : false);

@@ -600,9 +600,46 @@ namespace Easislides
 		private bool MatchesCachedVersion(FileInfo file) =>
 			_cachedFileName == FileName && _cachedFileTime == file.LastWriteTimeUtc && _cachedFileLength == file.Length;
 
-		private Rectangle ContentBounds(Size size)
+		// Put the number beside the source, in the frame. Slide numbers in a deck can have different widths.
+		private Rectangle SlideNumberBounds(Size size)
+		{
+			int inset = Math.Min((int)Math.Ceiling(size.Width / FONT_SIZE_RATIO / 2) + 1,
+				(Math.Min(size.Width, size.Height) - 1) / 2);
+			int height = Math.Max(1, (int)Math.Round((size.Height - 2 * inset) * 0.13));
+			int width = Math.Min(size.Width - 2 * inset - 1,
+				(int)Math.Ceiling(height * (0.3 + 0.5 * PowerPointSlideNumbering.ToString().Length)));
+			return new Rectangle(size.Width - inset - width, inset, width, height);
+		}
+
+		private void DrawSlideNumberInFrame(Graphics graphics, Rectangle badge)
+		{
+			if (badge.Width < 2 || badge.Height < 2)
+				return;
+			using var font = new Font("Microsoft Sans Serif", badge.Height * 0.77f, GraphicsUnit.Pixel);
+			graphics.FillRectangle(Brushes.Yellow, badge);
+			using var format = new StringFormat(StringFormat.GenericTypographic)
+			{
+				Alignment = StringAlignment.Center,
+				LineAlignment = StringAlignment.Center,
+				FormatFlags = StringFormatFlags.NoWrap
+			};
+			graphics.DrawString(PowerPointSlideNumbering.ToString(), font, Brushes.Black, badge, format);
+		}
+
+		private Rectangle ContentBounds(Size size, Size source)
 		{
 			var bounds = new Rectangle(Point.Empty, size);
+			if (IsPowerPoint)
+			{
+				var badge = SlideNumberBounds(size);
+				int inset = badge.Top;
+				int roomWidth = badge.Left - inset;
+				int roomHeight = size.Height - 2 * inset;
+				double scale = Math.Min((double)roomWidth / source.Width, (double)roomHeight / source.Height);
+				int width = Math.Clamp((int)Math.Round(source.Width * scale), 1, roomWidth);
+				int height = Math.Clamp((int)Math.Round(source.Height * scale), 1, roomHeight);
+				return new Rectangle(inset + (roomWidth - width) / 2, (size.Height - height) / 2, width, height);
+			}
 			if (ShouldDrawPowerPointOverlay() && !UsesSlideAspect)
 			{
 				int margin = Math.Clamp(CalculateBorderMargin(size.Width, size.Height), 0,
@@ -621,7 +658,7 @@ namespace Easislides
 			{
 				using Graphics graphics = Graphics.FromImage(target);
 				ConfigureGraphics(graphics);
-				graphics.Clear(Color.Black);
+				graphics.Clear(IsPowerPoint ? Parent?.BackColor ?? BackColor : Color.Black);
 				bool overlay = ShouldDrawPowerPointOverlay();
 				var full = new Rectangle(Point.Empty, size);
 				float borderWidth = size.Width / FONT_SIZE_RATIO;
@@ -632,8 +669,11 @@ namespace Easislides
 				{
 					if (UsesSlideAspect)
 						DrawBorder(graphics, full, borderWidth);
-					int margin = UsesSlideAspect ? CalculateBorderMargin(size.Width, size.Height) : _contentBounds.X;
-					DrawSlideNumber(graphics, size.Width, size.Height, margin);
+					if (IsPowerPoint)
+						DrawSlideNumberInFrame(graphics, SlideNumberBounds(size));
+					else
+						DrawSlideNumber(graphics, size.Width, size.Height,
+							UsesSlideAspect ? CalculateBorderMargin(size.Width, size.Height) : _contentBounds.X);
 				}
 			}
 			catch
@@ -666,7 +706,7 @@ namespace Easislides
 		{
 			bool cached = _thumbnailContent != null && MatchesCachedVersion(file);
 			if (cached && TryGetThumbnailSize(_sourceSize, out Size cachedSize)
-				&& _thumbnailContent.Size == cachedSize && _contentBounds == ContentBounds(cachedSize))
+				&& _thumbnailContent.Size == cachedSize && _contentBounds == ContentBounds(cachedSize, _sourceSize))
 				return true;
 
 			using var stream = new FileStream(file.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
@@ -674,7 +714,7 @@ namespace Easislides
 			Size sourceSize = source.Size;
 			if (!TryGetThumbnailSize(sourceSize, out Size size))
 				return false;
-			Rectangle bounds = ContentBounds(size);
+			Rectangle bounds = ContentBounds(size, sourceSize);
 			var raster = new Bitmap(size.Width, size.Height, PixelFormat.Format32bppPArgb);
 			try
 			{

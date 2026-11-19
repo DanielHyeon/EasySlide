@@ -51,6 +51,7 @@ namespace Easislides
         private Button SongFolder_Rename;
         private CheckBox cbAdvanceNextItem;
         private CheckBox cbAutoTextOverflow;
+        private CheckBox cbFitTextFileParagraphs;
         private CheckBox cbDisableScreenSaver;
         private CheckBox cbEnforceDisplay;
         private CheckBox cbFolderUse;
@@ -598,6 +599,7 @@ private void InitializeComponent()
             cbLineBetweenRegions = new CheckBox();
             cbUseLargestFont = new CheckBox();
             cbAutoTextOverflow = new CheckBox();
+            cbFitTextFileParagraphs = new CheckBox();
             tabPageMonitors = new TabPage();
             groupBox23 = new GroupBox();
             checkBoxLiveCamNoPanel = new CheckBox();
@@ -1654,7 +1656,7 @@ private void InitializeComponent()
             // label58
             //
             label58.AutoSize = true;
-            label58.Location = new Point(24, 424);
+            label58.Location = new Point(24, 448);
             label58.Margin = new Padding(5, 0, 5, 0);
             label58.Name = "label58";
             label58.Size = new Size(239, 20);
@@ -1667,7 +1669,7 @@ private void InitializeComponent()
             groupBox5.Controls.Add(cbAdvanceNextItem);
             groupBox5.Controls.Add(checkBoxMediaNoPanel);
             groupBox5.Controls.Add(checkBoxPPNoPanel);
-            groupBox5.Location = new Point(8, 229);
+            groupBox5.Location = new Point(8, 254);
             groupBox5.Margin = new Padding(5, 4, 5, 4);
             groupBox5.Name = "groupBox5";
             groupBox5.Padding = new Padding(5, 4, 5, 4);
@@ -1979,11 +1981,12 @@ private void InitializeComponent()
             groupBox4.Controls.Add(cbLineBetweenRegions);
             groupBox4.Controls.Add(cbUseLargestFont);
             groupBox4.Controls.Add(cbAutoTextOverflow);
+            groupBox4.Controls.Add(cbFitTextFileParagraphs);
             groupBox4.Location = new Point(8, 23);
             groupBox4.Margin = new Padding(5, 4, 5, 4);
             groupBox4.Name = "groupBox4";
             groupBox4.Padding = new Padding(5, 4, 5, 4);
-            groupBox4.Size = new Size(334, 197);
+            groupBox4.Size = new Size(334, 222);
             groupBox4.TabIndex = 0;
             groupBox4.TabStop = false;
             groupBox4.Text = "Text Settings";
@@ -1992,11 +1995,11 @@ private void InitializeComponent()
             //
             panel46.Controls.Add(NotationFontFactorUpDown);
             panel46.Controls.Add(label54);
-            panel46.Location = new Point(8, 141);
+            panel46.Location = new Point(8, 172);
             panel46.Margin = new Padding(5, 4, 5, 4);
             panel46.Name = "panel46";
             panel46.Size = new Size(318, 39);
-            panel46.TabIndex = 4;
+            panel46.TabIndex = 5;
             //
             // NotationFontFactorUpDown
             //
@@ -2022,31 +2025,31 @@ private void InitializeComponent()
             // cbWordWrapLeftAlignIndent
             //
             cbWordWrapLeftAlignIndent.AutoSize = true;
-            cbWordWrapLeftAlignIndent.Location = new Point(15, 116);
+            cbWordWrapLeftAlignIndent.Location = new Point(15, 144);
             cbWordWrapLeftAlignIndent.Margin = new Padding(5, 4, 5, 4);
             cbWordWrapLeftAlignIndent.Name = "cbWordWrapLeftAlignIndent";
             cbWordWrapLeftAlignIndent.Size = new Size(210, 24);
-            cbWordWrapLeftAlignIndent.TabIndex = 3;
+            cbWordWrapLeftAlignIndent.TabIndex = 4;
             cbWordWrapLeftAlignIndent.Text = "Indent Word Wrapped Text";
             //
             // cbLineBetweenRegions
             //
             cbLineBetweenRegions.AutoSize = true;
-            cbLineBetweenRegions.Location = new Point(15, 87);
+            cbLineBetweenRegions.Location = new Point(15, 115);
             cbLineBetweenRegions.Margin = new Padding(5, 4, 5, 4);
             cbLineBetweenRegions.Name = "cbLineBetweenRegions";
             cbLineBetweenRegions.Size = new Size(176, 24);
-            cbLineBetweenRegions.TabIndex = 2;
+            cbLineBetweenRegions.TabIndex = 3;
             cbLineBetweenRegions.Text = "Line between Regions";
             //
             // cbUseLargestFont
             //
             cbUseLargestFont.AutoSize = true;
-            cbUseLargestFont.Location = new Point(15, 57);
+            cbUseLargestFont.Location = new Point(15, 86);
             cbUseLargestFont.Margin = new Padding(5, 4, 5, 4);
             cbUseLargestFont.Name = "cbUseLargestFont";
             cbUseLargestFont.Size = new Size(140, 24);
-            cbUseLargestFont.TabIndex = 1;
+            cbUseLargestFont.TabIndex = 2;
             cbUseLargestFont.Text = "Use Largest Font";
             //
             // cbAutoTextOverflow
@@ -2058,6 +2061,14 @@ private void InitializeComponent()
             cbAutoTextOverflow.Size = new Size(158, 24);
             cbAutoTextOverflow.TabIndex = 0;
             cbAutoTextOverflow.Text = "Auto Text Overflow";
+            //
+            // cbFitTextFileParagraphs
+            //
+            cbFitTextFileParagraphs.AutoSize = true;
+            cbFitTextFileParagraphs.Location = new Point(15, 57);
+            cbFitTextFileParagraphs.Name = "cbFitTextFileParagraphs";
+            cbFitTextFileParagraphs.TabIndex = 1;
+            cbFitTextFileParagraphs.Text = "Fit each text file paragraph on one slide";
             //
             // tabPageMonitors
             //

@@ -322,7 +322,7 @@ namespace Easislides
 		{
 			bool interlaceEnabled = (options.ShowInterlace == 1);
 			bool liveCamOnShow = false;
-			bool fitAllIntoOneScreen = ((!AutoTextOverflow || InItem.RotateStyle == 2) && InItem.Type != "B");
+			bool fitAllIntoOneScreen = FitWholeLyricPage(InItem);
 			int width;
 			int height;
 			if (!EnsureBackgroundAndSize(ref InItem, ref InPictureBox, out width, out height))

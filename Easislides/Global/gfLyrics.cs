@@ -464,6 +464,48 @@ namespace Easislides
 			return high;
 		}
 
+		// The slide count can change when the operator toggles paragraph fitting mid-item.
+		// Locate its first text line again even if repeated blank separators have collapsed.
+		internal static bool RepaginateTextFile(ref SongSettings item)
+		{
+			if (item.Type != "T")
+				return false;
+
+			int firstLine = 0;
+			int column = 1;
+			if (item.CurSlide > 0 && item.CurSlide <= item.TotalSlides)
+			{
+				column = item.Slide[item.CurSlide, 1] >= 0 ? 1 : 3;
+				firstLine = item.Slide[item.CurSlide, column];
+			}
+			var rows = item.LyricsAndNotationsList.Items;
+			int linesBefore = 0;
+			for (int i = 0; i < firstLine; i++)
+				if (!string.IsNullOrWhiteSpace(rows[i].SubItems[2].Text))
+					linesBefore++;
+
+			FormatDisplayLyrics(ref item, PrepareSlides: true, UseStoredSequence: true);
+			item.CurSlide = Math.Clamp(item.CurSlide, 1, Math.Max(1, item.TotalSlides));
+			for (int line = 0; line < rows.Count; line++)
+			{
+				if (string.IsNullOrWhiteSpace(rows[line].SubItems[2].Text) || linesBefore-- > 0)
+					continue;
+				for (int slide = 1; slide <= item.TotalSlides; slide++)
+				{
+					if (item.Slide[slide, column] >= 0 && item.Slide[slide, column] <= line && line <= item.Slide[slide, column + 1])
+					{
+						item.CurSlide = slide;
+						break;
+					}
+				}
+				break;
+			}
+			return true;
+		}
+
+		private static bool FitWholeLyricPage(SongSettings item) =>
+			item.Type != "B" && (!AutoTextOverflow || item.RotateStyle == 2 || (item.Type == "T" && FitTextFileParagraphs));
+
 		public static void FormatDisplayLyrics(ref SongSettings InItem, bool PrepareSlides, bool UseStoredSequence)
 		{
 			//using var perf = PerfLog.Enabled ? PerfLog.Scope("FormatDisplayLyrics", $"prepare={PrepareSlides} useStored={UseStoredSequence} lyricsLen={(InItem != null && InItem.CompleteLyrics != null ? InItem.CompleteLyrics.Length : 0)}") : null;
@@ -491,7 +533,9 @@ namespace Easislides
 				}
 			}
 			Array.Clear(InItem.VersePresent);
-			using ListView listView = ExtractLyrics(InItem.CompleteLyrics, InItem.Notations);
+			bool fitParagraphs = InItem.Type == "T" && FitTextFileParagraphs;
+			string lyrics = fitParagraphs ? InItem.CompleteLyrics.Replace('\r', '\n') : InItem.CompleteLyrics;
+			using ListView listView = ExtractLyrics(lyrics, InItem.Notations);
 			InItem.LyricsAndNotationsList.Items.Clear();
 			int highestVerse = 1;
 			if (InItem.RotateStyle == 2)
@@ -501,7 +545,10 @@ namespace Easislides
 			InItem.SongBasicSequence = "";
 			for (int i = 0; i < listView.Items.Count; i++)
 			{
-				int verseNumber = DataUtil.StringToInt(listView.Items[i].Text);
+				var row = listView.Items[i];
+				if (fitParagraphs && string.IsNullOrWhiteSpace(row.SubItems[2].Text))
+					row.SubItems[2].Text = "";
+				int verseNumber = DataUtil.StringToInt(row.Text);
 				if (!InItem.VersePresent[verseNumber])
 				{
 					InItem.VersePresent[verseNumber] = true;
@@ -1616,7 +1663,7 @@ namespace Easislides
 
 		public static int GetOneScreen(SongSettings InItem, SongLyrics InLyricsFormat, ref ListView LyricsLists, Graphics g, int startline, ref int endline, int EndLoc, bool Region2Present, int RegionNumber, int FolderNo, int InShowNotations)
 		{
-			return GetOneScreen(InItem, InLyricsFormat, ref LyricsLists, g, startline, ref endline, EndLoc, Region2Present, RegionNumber, FolderNo, InShowNotations, FitAllIntoOneScreen: false, UseLargestFontSize: false);
+			return GetOneScreen(InItem, InLyricsFormat, ref LyricsLists, g, startline, ref endline, EndLoc, Region2Present, RegionNumber, FolderNo, InShowNotations, FitAllIntoOneScreen: FitWholeLyricPage(InItem), UseLargestFontSize: false);
 		}
 
 		public static int GetOneScreen(SongSettings InItem, SongLyrics InLyricsFormat, ref ListView LyricsLists, Graphics g, int startline, ref int endline, int EndLoc, bool Region2Present, int RegionNumber, int FolderNo, int InShowNotations, bool FitAllIntoOneScreen, bool UseLargestFontSize)
@@ -1630,7 +1677,7 @@ namespace Easislides
 			SizeF layoutArea = new SizeF(InLyricsFormat.FS_Width, 32000f);
 			double lineSpacingFactor = Folders[FolderNo].FontSpacingFactor[0] + ((InShowNotations > 0) ? NotationFontFactor : 0.0);
 			int availableHeight = (int)((double)(Region2Present ? InLyricsFormat.FS_Height_R2Bound : InLyricsFormat.FS_Height) / lineSpacingFactor);
-			if ((!AutoTextOverflow || InItem.RotateStyle == 2) && InItem.Type != "B")
+			if (FitAllIntoOneScreen)
 			{
 				var screenText = new StringBuilder();
 				for (int i = startline; i <= endline; i++)
@@ -1650,7 +1697,7 @@ namespace Easislides
 					ReduceFontToFit(g, LyricsLists.Items[i].SubItems[2].Text, ref MainFont, InLyricsFormat.FS_Width, availableHeight, MultiLine: true);
 				}
 				usedHeight += GetLinesRequiredAndAddBreakPlusFont(ref LyricsLists, MainFont, g, i, layoutArea.Width) * lineHeight;
-				if (usedHeight > availableHeight && ((AutoTextOverflow && InItem.RotateStyle != 2) || InItem.Type == "B"))
+				if (!FitAllIntoOneScreen && usedHeight > availableHeight)
 				{
 					endline = ((i > startline) ? (i - 1) : startline);
 					return 1;

@@ -649,6 +649,62 @@ public class LyricsProcessingTests
         Assert.Equal(expectedRows, matches.Rows.Count);
     }
 
+    [Fact]
+    public void CreedTextFileKeepsItsFourLineParagraphAndIgnoresRepeatedBlankLines()
+    {
+        OnSta(() =>
+        {
+            const string heading = "   신앙 고백\n  (사도신경)";
+            const string body = "나는 전능하신\n아버지 하나님,\n천지의 창조주를\n믿습니다.";
+            const int folder = Gf.MAXSONGSFOLDERS - 1;
+            var song = new SongSettings { Type = "T", FolderNo = folder,
+                CompleteLyrics = "\r\n" + heading + "\r\n \t\r\n\r\n" + body + "\r\n\t\r\n" };
+            using var rows = song.LyricsAndNotationsList;
+            using var font = new Font("Malgun Gothic", 60);
+            song.Lyrics[0] = new SongLyrics { Font = font, FS_Font = font, FS_Width = 884, FS_Height = 316 };
+            double savedSpacing = Gf.Folders[folder].FontSpacingFactor[0];
+            bool previousOverflow = Gf.AutoTextOverflow;
+            bool previousFit = Gf.FitTextFileParagraphs;
+            try
+            {
+                Gf.Folders[folder].FontSpacingFactor[0] = 1.05;
+                Gf.AutoTextOverflow = true;
+                Gf.FitTextFileParagraphs = true;
+                Gf.FormatDisplayLyrics(ref song, PrepareSlides: true, UseStoredSequence: false);
+                Assert.Equal(2, song.TotalSlides);
+                string TextOf(int slide) => string.Join("\n", Enumerable.Range(song.Slide[slide, 1],
+                    song.Slide[slide, 2] - song.Slide[slide, 1] + 1).Select(index => rows.Items[index].SubItems[2].Text));
+                Assert.Equal(heading, TextOf(1));
+                Assert.Equal(body, TextOf(2));
+                song.CurSlide = 2;
+                int firstLine = song.Slide[2, 1];
+                Assert.InRange(float.Parse(rows.Items[firstLine].SubItems[4].Text.Split('>')[1]), 1, 59);
+                // Switch both ways while looking at the second half of the first body paragraph.
+                song.CompleteLyrics = heading + "\n\n" + body;
+                Gf.FitTextFileParagraphs = false;
+                Assert.True(Gf.RepaginateTextFile(ref song));
+                Assert.True(song.TotalSlides > 2);
+                Assert.StartsWith("나는 전능하신", TextOf(song.CurSlide));
+                song.CurSlide = song.TotalSlides;
+                Gf.FitTextFileParagraphs = true;
+                Assert.True(Gf.RepaginateTextFile(ref song));
+                Assert.Equal(2, song.CurSlide);
+                Assert.Equal(body, TextOf(song.CurSlide));
+
+                song.Type = "D";
+                Gf.FormatDisplayLyrics(ref song, PrepareSlides: true, UseStoredSequence: false);
+                Assert.True(song.TotalSlides > 2);
+                Assert.False(Gf.RepaginateTextFile(ref song));
+            }
+            finally
+            {
+                Gf.Folders[folder].FontSpacingFactor[0] = savedSpacing;
+                Gf.AutoTextOverflow = previousOverflow;
+                Gf.FitTextFileParagraphs = previousFit;
+            }
+        });
+    }
+
     [Theory]
     [InlineData(false, false, false)]
     [InlineData(true, false, false)]

@@ -843,6 +843,8 @@ namespace Easislides
 
 		public static bool AutoTextOverflow = true;
 
+		public static bool FitTextFileParagraphs = true;
+
 		public static bool UseLargestFontSize = true;
 
 		public static bool AdvanceNextItem = false;

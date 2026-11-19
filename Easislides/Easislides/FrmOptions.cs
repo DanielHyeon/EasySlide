@@ -225,6 +225,7 @@ namespace Easislides
                 Gf.WordWrapLeftAlignIndent = cbWordWrapLeftAlignIndent.Checked;
                 Gf.Options_FolderFormatChanged = true;
             }
+            Gf.FitTextFileParagraphs = cbFitTextFileParagraphs.Checked;
             Gf.AdvanceNextItem = cbAdvanceNextItem.Checked;
             if (rbGapItemOption1.Checked)
             {
@@ -1286,6 +1287,7 @@ namespace Easislides
             checkBoxLMBox.Checked = Gf.ShowLyricsMonitorAlertBox;
             cbUseLargestFont.Checked = Gf.UseLargestFontSize;
             cbAutoTextOverflow.Checked = Gf.AutoTextOverflow;
+            cbFitTextFileParagraphs.Checked = Gf.FitTextFileParagraphs;
             cbAdvanceNextItem.Checked = Gf.AdvanceNextItem;
             cbLineBetweenRegions.Checked = Gf.LineBetweenRegions;
             cbWordWrapLeftAlignIndent.Checked = Gf.WordWrapLeftAlignIndent;

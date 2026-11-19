@@ -711,6 +711,16 @@ namespace Easislides
 			Gf.RefreshWindowsDesktop();
 		}
 
+		internal void RefreshTextFilePages()
+		{
+			if (!Gf.RepaginateTextFile(ref Gf.LiveItem))
+				return;
+			Gf.DisplaySlidesFormattedLyrics(ref Gf.LiveItem, ref Gf.tbLyricsMonitorSpace, ScrollToCaret: true, Gf.LMShowNotations);
+			lyricsWindow?.Remote_ItemChanged();
+			if (!Gf.ShowLiveCam)
+				ShowSlide(ref Gf.LiveItem, ImageTransitionControl.TransitionAction.None);
+		}
+
 		public void Remote_DefaultBackgroundChanged()
 		{
 			Gf.SetDefaultBackScreen(ref LiveScreen);

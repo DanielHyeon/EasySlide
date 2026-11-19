@@ -69,6 +69,8 @@ namespace Easislides.Util
 
 		public const string Reg_AutoTextOverflow = "AutoTextOverflow";
 
+		public const string Reg_FitTextFileParagraphs = "FitTextFileParagraphs";
+
 		public const string Reg_UseLargestFontSize = "UseLargestFontSize";
 
 		public const string Reg_AdvanceNextItem = "AdvanceNextItem";

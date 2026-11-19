@@ -5603,6 +5603,7 @@ namespace Easislides
             Gf.Options_DMChanged = false;
             // A modal form is not disposed when it closes: dispose it here. Nothing below reads the dialog itself
             // (its results are in the Gf.Options_* flags), so only the result needs to leave the using block.
+            bool previousParagraphSetting = Gf.FitTextFileParagraphs;
             DialogResult optionsResult;
             using (FrmOptions frmOptions = new FrmOptions())
             {
@@ -5631,6 +5632,13 @@ namespace Easislides
                 {
                     WorshipListIndexChanged();
                 }
+            }
+            if (previousParagraphSetting != Gf.FitTextFileParagraphs)
+            {
+                RefreshTextFilePages(ref Gf.PreviewItem);
+                RefreshTextFilePages(ref Gf.OutputItem);
+                if (Gf.ShowRunning)
+                    LiveShow?.RefreshTextFilePages();
             }
             if (Gf.Options_BibleListChanged)
             {
@@ -5665,6 +5673,15 @@ namespace Easislides
             SetTabsVisibility();
             SetJumpToolTips();
             ShowStatusBarSummary();
+        }
+
+        private void RefreshTextFilePages(ref SongSettings item)
+        {
+            if (Gf.RepaginateTextFile(ref item))
+            {
+                BuildVerseButtons(item);
+                DisplayLyrics(item, item.CurSlide);
+            }
         }
 
         private void SetJumpToolTips()
