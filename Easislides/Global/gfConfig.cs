@@ -205,32 +205,36 @@ namespace Easislides
 		}
 
 		/// <summary>
-		/// Builds the symbols string from verse symbols
+		/// Initializes the verse lookup and the ordered heading list used by the editors.
 		/// </summary>
-		private static void BuildSymbolsString()
+		internal static void InitializeVerseHeadings()
 		{
-			var symbolsBuilder = new StringBuilder();
-			
-			// Add numbered verse symbols (1-99)
+			InitializeVerseTitles();
+			InitializeVerseSymbols();
+			InitializeSequenceSymbols();
+			var symbols = new StringBuilder();
+			var numbers = new Dictionary<string, int>(StringComparer.Ordinal);
 			for (int i = 1; i <= 99; i++)
 			{
 				VerseSymbol[i] = "[" + VerseTitle[i] + "]";
 				SequenceSymbol[i] = VerseTitle[i];
-				symbolsBuilder.Append(VerseSymbol[i]).Append(",");
+				AddHeading(i);
 			}
-			
-			// Append additional symbols
-			symbolsBuilder.Append(VerseSymbol[0]).Append(",")
-				.Append(VerseSymbol[102]).Append(",")
-				.Append(VerseSymbol[100]).Append(",")
-				.Append(VerseSymbol[103]).Append(",")
-				.Append(VerseSymbol[111]).Append(",")
-				.Append(VerseSymbol[112]).Append(",")
-				.Append(VerseSymbol[101]).Append(",")
-				.Append(VerseSymbol[150]);
-			
-			SymbolsString = symbolsBuilder.ToString();
-			xArray = SymbolsString.Split(',');
+			ReadOnlySpan<int> specialHeadings = [0, 102, 100, 103, 111, 112, 101, 150];
+			foreach (int verse in specialHeadings)
+				AddHeading(verse);
+
+			SymbolsString = symbols.ToString();
+			verseNumbersByHeading = numbers;
+
+			void AddHeading(int verse)
+			{
+				string heading = VerseSymbol[verse];
+				if (symbols.Length > 0)
+					symbols.Append(',');
+				symbols.Append(heading);
+				numbers.Add(heading, verse);
+			}
 		}
 
 		/// <summary>
@@ -283,10 +287,7 @@ namespace Easislides
 			ShowFontColour[0] = DefaultBackColour;
 			ShowFontColour[1] = DefaultBackColour;
 
-			InitializeVerseTitles();
-			InitializeVerseSymbols();
-			InitializeSequenceSymbols();
-			BuildSymbolsString();
+			InitializeVerseHeadings();
 
 			ShowLMargin = Screen.PrimaryScreen.Bounds.Width / 50;
 			ShowRMargin = ShowLMargin;

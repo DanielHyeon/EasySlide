@@ -541,213 +541,100 @@ namespace Easislides.Util
 			{
 				return -1;
 			}
-			string text = "";
-			int num = -1;
+			var convertedFormat = new StringBuilder();
 			int result = -1;
-			string[] array = InFormatString.Split(InSeparator);
-			for (int i = 0; i <= array.GetUpperBound(0); i++)
+			ReadOnlySpan<char> header = InFormatString;
+			foreach (Range range in header.Split(InSeparator))
 			{
-				num = DataUtil.Remap32Index(ExtractOneInfo(ref array[i], '=', RemoveExtract: true, MinusOneIfBlank: false));
-				if (num > 1 && num < 10000)
+				var field = header[range];
+				if (field.IsEmpty || field[0] == '=')
+					continue;
+				int remappedFieldIndex = Remap32Field(field[0]);
+				int equals = field.IndexOf('=');
+				var value = equals < 0 ? ReadOnlySpan<char>.Empty : field[(equals + 1)..];
+				if (remappedFieldIndex > 1 && remappedFieldIndex < 10000)
 				{
-					object obj = text;
-					text = string.Concat(obj, num.ToString(), "=", array[i], '>');
+					convertedFormat.Append(remappedFieldIndex).Append('=').Append(value).Append('>');
 				}
-				switch (num)
+				switch (remappedFieldIndex)
 				{
 					case 1:
-						result = DataUtil.StringToInt(array[i]);
+						int.TryParse(value, out result);
 						break;
 					case 10001:
-						InfoHeading = array[i];
+						InfoHeading = value.ToString();
 						break;
 					case 10002:
-						InfoFolder = array[i];
+						InfoFolder = value.ToString();
 						break;
 					case 10003:
-						InfoRotate = array[i];
+						InfoRotate = value.ToString();
 						break;
 				}
 			}
-			InFormatString = text;
+			InFormatString = convertedFormat.ToString();
 			return result;
 		}
 
-		public static int Remap32Index(string InString)
+		public static int Remap32Index(string InString) => string.IsNullOrEmpty(InString) ? -1 : Remap32Field(InString[0]);
+
+		private static int Remap32Field(int legacyFieldCode) => legacyFieldCode switch
 		{
-			try
-			{
-				int num = InString[0];
-				int result = -1;
-				switch (num)
-				{
-					case 1:
-						result = 1;
-						break;
-					case 2:
-						result = 11;
-						break;
-					case 3:
-						result = 12;
-						break;
-					case 4:
-						result = 13;
-						break;
-					case 5:
-						result = 14;
-						break;
-					case 6:
-						result = 15;
-						break;
-					case 8:
-						result = 22;
-						break;
-					case 9:
-						result = 25;
-						break;
-					case 10:
-						result = 26;
-						break;
-					case 11:
-						result = 27;
-						break;
-					case 12:
-						result = 28;
-						break;
-					case 13:
-						result = 29;
-						break;
-					case 14:
-						result = 30;
-						break;
-					case 15:
-						result = 31;
-						break;
-					case 16:
-						result = 41;
-						break;
-					case 17:
-						result = 42;
-						break;
-					case 19:
-						result = 43;
-						break;
-					case 20:
-						result = 44;
-						break;
-					case 21:
-						result = 45;
-						break;
-					case 22:
-						result = 46;
-						break;
-					case 23:
-						result = 47;
-						break;
-					case 24:
-						result = 48;
-						break;
-					case 26:
-						result = 61;
-						break;
-					case 27:
-						result = 62;
-						break;
-					case 28:
-						result = 63;
-						break;
-					case 29:
-						result = 64;
-						break;
-					case 30:
-						result = 65;
-						break;
-					case 41:
-						result = 101;
-						break;
-					case 42:
-						result = 102;
-						break;
-					case 46:
-						result = 106;
-						break;
-					case 47:
-						result = 107;
-						break;
-					case 51:
-						result = 111;
-						break;
-					case 52:
-						result = 112;
-						break;
-					case 56:
-						result = 116;
-						break;
-					case 57:
-						result = 117;
-						break;
-					case 61:
-						result = 121;
-						break;
-					case 62:
-						result = 122;
-						break;
-					case 66:
-						result = 131;
-						break;
-					case 67:
-						result = 132;
-						break;
-					case 71:
-						result = 136;
-						break;
-					case 72:
-						result = 137;
-						break;
-					case 81:
-						result = 151;
-						break;
-					case 82:
-						result = 153;
-						break;
-					case 83:
-						result = 154;
-						break;
-					case 84:
-						result = 155;
-						break;
-					case 85:
-						result = 170;
-						break;
-					case 86:
-						result = 171;
-						break;
-					case 87:
-						result = 172;
-						break;
-					case 95:
-						result = 174;
-						break;
-					case 96:
-						result = 180;
-						break;
-					case 110:
-						result = 10001;
-						break;
-					case 111:
-						result = 10002;
-						break;
-					case 31:
-						result = 10003;
-						break;
-				}
-				return result;
-			}
-			catch
-			{
-				return -1;
-			}
-		}
+			1 => 1,
+			2 => 11,
+			3 => 12,
+			4 => 13,
+			5 => 14,
+			6 => 15,
+			8 => 22,
+			9 => 25,
+			10 => 26,
+			11 => 27,
+			12 => 28,
+			13 => 29,
+			14 => 30,
+			15 => 31,
+			16 => 41,
+			17 => 42,
+			19 => 43,
+			20 => 44,
+			21 => 45,
+			22 => 46,
+			23 => 47,
+			24 => 48,
+			26 => 61,
+			27 => 62,
+			28 => 63,
+			29 => 64,
+			30 => 65,
+			41 => 101,
+			42 => 102,
+			46 => 106,
+			47 => 107,
+			51 => 111,
+			52 => 112,
+			56 => 116,
+			57 => 117,
+			61 => 121,
+			62 => 122,
+			66 => 131,
+			67 => 132,
+			71 => 136,
+			72 => 137,
+			81 => 151,
+			82 => 153,
+			83 => 154,
+			84 => 155,
+			85 => 170,
+			86 => 171,
+			87 => 172,
+			95 => 174,
+			96 => 180,
+			110 => 10001,
+			111 => 10002,
+			31 => 10003,
+			_ => -1
+		};
 
 		public static string ExtractOneInfo(ref string InString, char ExtractSym)
 		{

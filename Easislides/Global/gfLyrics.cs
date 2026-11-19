@@ -551,21 +551,22 @@ namespace Easislides
 
 		public static string TransposeNotations(string InNotationsData, int PreviousTransposeTo, int TransposeTo, string StoredMusicKey)
 		{
-			string notationLine = "";
-			string transposedNotations = "";
-			int lineNumber = ExtractOneNotationsLine(ref InNotationsData, ref notationLine);
+			ReadOnlySpan<char> remaining = InNotationsData;
+			if (!TryReadNotationRecord(ref remaining, out int lineNumber, out var chords) || lineNumber < 0)
+				return string.Empty;
 			if (PreviousTransposeTo > TransposeTo)
 			{
 				TransposeTo -= 12;
 			}
 			int flatSharpKey = TransposeKey(ref StoredMusicKey, TransposeTo);
-			while (lineNumber >= 0)
+			var result = new StringBuilder();
+			do
 			{
-				transposedNotations = transposedNotations + "(" + Convert.ToString(lineNumber) + ";";
-				transposedNotations = transposedNotations + TransposeOneNotationString(notationLine, TransposeTo, flatSharpKey) + ")";
-				lineNumber = Convert.ToInt32(ExtractOneNotationsLine(ref InNotationsData, ref notationLine));
-			}
-			return transposedNotations;
+				result.Append('(').Append(lineNumber).Append(';');
+				AppendTransposedChords(result, chords, TransposeTo, flatSharpKey);
+				result.Append(')');
+			} while (TryReadNotationRecord(ref remaining, out lineNumber, out chords) && lineNumber >= 0);
+			return result.ToString();
 		}
 
 		public static int ListNotationData(string InString, ref string[] NotationsArray, int MaxLineCount)
@@ -923,69 +924,31 @@ namespace Easislides
 
 		public static bool IsNewR2Format(string InLyrics)
 		{
-			InLyrics = InLyrics.Replace("\r\n", "\n");
-			string[] sections = InLyrics.Split(new string[1]
-			{
-				VerseSymbol[150]
-			}, StringSplitOptions.RemoveEmptyEntries);
-			if (InLyrics == "" || sections.GetUpperBound(0) == 0 || sections.GetUpperBound(0) > 1)
-			{
+			ReadOnlySpan<char> lyrics = InLyrics;
+			ReadOnlySpan<char> marker = VerseSymbol[REGION2];
+			if (marker.IsEmpty)
 				return false;
-			}
-			if (sections[1][0] == "\n"[0])
-			{
-				sections[1] = DataUtil.Mid(sections[1], 1);
-			}
-			for (int i = 1; i <= 99; i++)
-			{
-				if (DataUtil.Left(sections[1], VerseSymbol[i].Length) == VerseSymbol[i])
-				{
-					return true;
-				}
-			}
-			if (DataUtil.Left(sections[1], VerseSymbol[0].Length) == VerseSymbol[0])
-			{
-				return true;
-			}
-			if (DataUtil.Left(sections[1], VerseSymbol[100].Length) == VerseSymbol[100])
-			{
-				return true;
-			}
-			if (DataUtil.Left(sections[1], VerseSymbol[103].Length) == VerseSymbol[103])
-			{
-				return true;
-			}
-			if (DataUtil.Left(sections[1], VerseSymbol[101].Length) == VerseSymbol[101])
-			{
-				return true;
-			}
-			if (DataUtil.Left(sections[1], VerseSymbol[102].Length) == VerseSymbol[102])
-			{
-				return true;
-			}
-			if (DataUtil.Left(sections[1], VerseSymbol[111].Length) == VerseSymbol[111])
-			{
-				return true;
-			}
-			if (DataUtil.Left(sections[1], VerseSymbol[112].Length) == VerseSymbol[112])
-			{
-				return true;
-			}
-			return false;
-		}
 
-		public static int IncrementChord(ref int CurPos, int TransposeTo)
-		{
-			int chordIndex = CurPos + TransposeTo;
-			if (chordIndex >= 12)
+			int sectionCount = 0;
+			ReadOnlySpan<char> secondSection = default;
+			foreach (Range range in lyrics.Split(marker))
 			{
-				chordIndex %= 12;
+				var section = lyrics[range];
+				if (section.IsEmpty)
+					continue;
+				sectionCount++;
+				if (sectionCount == 2)
+					secondSection = section;
+				else if (sectionCount > 2)
+					return false;
 			}
-			else if (chordIndex < 0)
-			{
-				chordIndex += 12 * (1 - chordIndex / 12);
-			}
-			return chordIndex;
+			if (sectionCount != 2)
+				return false;
+			if (secondSection.StartsWith("\r\n", StringComparison.Ordinal))
+				secondSection = secondSection[2..];
+			else if (secondSection[0] == '\n')
+				secondSection = secondSection[1..];
+			return ReadVerseIndicator(secondSection).Length > 0;
 		}
 
 		public static string GetSlideContents(SongSettings InItem, int CurSlide, int RegionNumber, Font InFont, bool PreviewNotations)
@@ -1224,14 +1187,40 @@ namespace Easislides
 
 		public static string TransposeOneNotationString(string NotationString, int TransposeTo, int FlatSharpKey)
 		{
-			string result = "";
-			while (NotationString != "")
+			if (string.IsNullOrEmpty(NotationString))
+				return string.Empty;
+			var result = new StringBuilder(NotationString.Length);
+			AppendTransposedChords(result, NotationString, TransposeTo, FlatSharpKey);
+			return result.ToString();
+		}
+
+		private static void AppendTransposedChords(StringBuilder result, ReadOnlySpan<char> fields, int steps, int spelling)
+		{
+			while (!fields.IsEmpty)
 			{
-				string chord = TransposeChord(DataUtil.ExtractOneInfo(ref NotationString, ';'), TransposeTo, FlatSharpKey);
-				string chordPos = DataUtil.ExtractOneInfo(ref NotationString, ';');
-				result = result + chord + ";" + chordPos + ";";
+				var chord = TakeNotationField(ref fields);
+				if (steps == 0)
+					result.Append(chord);
+				else
+					result.Append(TransposeChord(chord, steps, spelling));
+				result.Append(';').Append(TakeNotationField(ref fields)).Append(';');
 			}
-			return result;
+		}
+
+		private static ReadOnlySpan<char> TakeNotationField(ref ReadOnlySpan<char> fields)
+		{
+			if (fields.IsEmpty)
+				return "-1"; // The position is missing after the last chord.
+			int separator = fields.IndexOf(';');
+			if (separator < 0)
+			{
+				var lastField = fields;
+				fields = default;
+				return lastField;
+			}
+			var field = fields[..separator];
+			fields = fields[(separator + 1)..];
+			return field;
 		}
 
 		public static int ExtractOneNotationsLine(ref string InString, ref string ResultString)
@@ -1241,26 +1230,38 @@ namespace Easislides
 				ResultString = "";
 				return -1;
 			}
-			int openPos = 0;
-			int closePos = 0;
-			string lineContent = "";
-			int lineNumber = -1;
-			openPos = InString.IndexOf("(");
-			if (openPos < 0)
-			{
+			ReadOnlySpan<char> remaining = InString;
+			if (!TryReadNotationRecord(ref remaining, out int lineNumber, out var chords))
 				return -1;
-			}
-			closePos = InString.IndexOf(")", openPos);
-			if (closePos < openPos)
-			{
-				return -1;
-			}
-			openPos++;
-			lineContent += DataUtil.Mid(InString, openPos, closePos - openPos);
-			InString = DataUtil.Mid(InString, closePos + ")".Length);
-			lineNumber = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref lineContent, ';'));
-			ResultString = lineContent;
+			InString = remaining.ToString();
+			ResultString = chords.ToString();
 			return lineNumber;
+		}
+
+		private static bool TryReadNotationRecord(ref ReadOnlySpan<char> remaining, out int lineNumber, out ReadOnlySpan<char> chords)
+		{
+			lineNumber = -1;
+			chords = default;
+			int opening = remaining.IndexOf('(');
+			if (opening < 0)
+				return false;
+			var record = remaining[(opening + 1)..];
+			int closing = record.IndexOf(')');
+			if (closing < 0)
+				return false;
+
+			remaining = record[(closing + 1)..];
+			record = record[..closing];
+			if (!record.IsEmpty)
+			{
+				int separator = record.IndexOf(';');
+				var number = separator < 0 ? record : record[..separator];
+				// Legacy files treat a nonnumeric line label as zero and an empty record as the end.
+				int.TryParse(number, out lineNumber);
+				if (separator >= 0)
+					chords = record[(separator + 1)..];
+			}
+			return true;
 		}
 
 		public static void ChangeNotationLineNumber(ref string InOneNotationLine, int InNewLineNumber)
@@ -1962,156 +1963,6 @@ namespace Easislides
 			return source;
 		}
 
-		public static string TransposeChord(string InNotation, int TransposeStep, int FlatSharpKey)
-		{
-			if (InNotation == "")
-			{
-				return "";
-			}
-			if (TransposeStep == 0)
-			{
-				return InNotation;
-			}
-			string[] chordParts = InNotation.Split('/');
-			string rootChord = TransposeOneChord(chordParts[0], TransposeStep, accidentals: false, FlatSharpKey);
-			string bassChord = "";
-			if (chordParts.GetUpperBound(0) > 0)
-			{
-				bassChord = "/" + TransposeOneChord(chordParts[1], TransposeStep, accidentals: true, FlatSharpKey);
-			}
-			return rootChord + bassChord;
-		}
-
-		public static string TransposeOneChord(string InChord, int TransposeStep, bool accidentals, int FlatSharpKey)
-		{
-			int start = 0;
-			bool found = false;
-			int chordIndex = -1;
-			int chordType = 0;
-			string openBracket = DataUtil.Left(InChord, 1);
-			if (openBracket == "[" || openBracket == "{")
-			{
-				InChord = DataUtil.Mid(InChord, 1);
-			}
-			else
-			{
-				openBracket = "";
-			}
-			string chordName = DataUtil.Left(InChord, 2);
-			while (chordName.Length > 0 && !found)
-			{
-				start = chordName.Length;
-				for (int i = 0; i <= 11; i++)
-				{
-					if (MusicMajorChords[i, 0] == chordName || MusicMajorChords[i, 1] == chordName)
-					{
-						found = true;
-						chordIndex = i;
-						chordType = 0;
-						i = 12;
-					}
-				}
-				if (!found)
-				{
-					for (int i = 0; i <= 11; i++)
-					{
-						if (MusicMinorChords[i, 0] == chordName || MusicMinorChords[i, 1] == chordName)
-						{
-							found = true;
-							chordIndex = i;
-							chordType = 1;
-							i = 12;
-						}
-					}
-				}
-				if (!found)
-				{
-					chordName = DataUtil.Left(chordName, chordName.Length - 1);
-				}
-			}
-			if (found)
-			{
-				string newChord = "";
-				if (FlatSharpKey < 0 || FlatSharpKey > 1)
-				{
-					FlatSharpKey = ((TransposeStep > 0) ? 1 : 0);
-				}
-				int newIndex = chordIndex + TransposeStep;
-				if (newIndex < 0)
-				{
-					newIndex = 11 + newIndex + 1;
-				}
-				if (newIndex > 11)
-				{
-					newIndex = newIndex - 11 - 1;
-				}
-				newChord = ((chordType != 0) ? MusicMinorChords[newIndex, (FlatSharpKey > 0) ? 1 : 0] : MusicMajorChords[newIndex, (FlatSharpKey > 0) ? 1 : 0]);
-				return openBracket + newChord + DataUtil.Mid(InChord, start);
-			}
-			return openBracket + InChord;
-		}
-
-		public static int TransposeKey(ref string InKey, int TransposeStep)
-		{
-			if (InKey == "")
-			{
-				return (TransposeStep > 0) ? 1 : 0;
-			}
-			bool found = false;
-			int keyIndex = -1;
-			int keyType = 0;
-			for (int i = 0; i <= 11; i++)
-			{
-				if (MusicMajorKeys[i] == InKey)
-				{
-					found = true;
-					keyIndex = i;
-					keyType = 0;
-					i = 12;
-				}
-			}
-			if (!found)
-			{
-				for (int i = 0; i <= 11; i++)
-				{
-					if (MusicMinorKeys[i] == InKey)
-					{
-						found = true;
-						keyIndex = i;
-						keyType = 1;
-						i = 12;
-					}
-				}
-			}
-			if (found)
-			{
-				string newKey = "";
-				int flatSharp = -1;
-				int newIndex = keyIndex + TransposeStep;
-				if (newIndex < 0)
-				{
-					newIndex = 11 + newIndex + 1;
-				}
-				if (newIndex > 11)
-				{
-					newIndex = newIndex - 11 - 1;
-				}
-				if (keyType == 0)
-				{
-					newKey = MusicMajorKeys[newIndex];
-					flatSharp = MusicMajorKeysFlatSharp[newIndex];
-				}
-				else
-				{
-					newKey = MusicMinorKeys[newIndex];
-					flatSharp = MusicMinorKeysFlatSharp[newIndex];
-				}
-				InKey = newKey;
-				return flatSharp;
-			}
-			return -1;
-		}
-
 		public static void GetCurPosInLine(string instring, ref int CurPos)
 		{
 			MoveToPosInLine(instring, ref CurPos, 0);
@@ -2661,200 +2512,87 @@ namespace Easislides
 		}
 
 		public static ListView ExtractNewFormatLyrics(string InLyrics, string InNotations, ref string OutText1, ref string OutNotationString1, ref string OutText2, ref string OutNotationString2)
-		{
-			StringBuilder region1Text = new StringBuilder();
-			StringBuilder region2Text = new StringBuilder();
-			StringBuilder region1Notations = new StringBuilder();
-			StringBuilder region2Notations = new StringBuilder();
-			string notationLine = "";
-			string lineNotation = "";
-			int notationLineIndex = -1;
-			int region1Line = -1;
-			int region2Line = -1;
-			string currentVerseSymbol = "";
-			int verseNumber = -1;
-			int regionNumber = 1;
-			bool isHeading = false;
-			string[] lines = InLyrics.Split("\n"[0]);
-			ListView listView = new ListView();
-			SetListViewColumns(listView, 4);
-			listView.Items.Clear();
-			ListViewItem listViewItem = new ListViewItem();
-			for (int i = 0; i <= lines.GetUpperBound(0); i++)
-			{
-				for (int j = 0; j <= xArray.GetUpperBound(0); j++)
-				{
-					if (lines[i] == xArray[j])
-					{
-						if (lines[i] != VerseSymbol[150])
-						{
-							currentVerseSymbol = lines[i];
-							verseNumber = GetVerseNumeric(currentVerseSymbol);
-							isHeading = true;
-							j = xArray.GetUpperBound(0) + 1;
-						}
-						else
-						{
-							regionNumber = 2;
-						}
-					}
-				}
-				if (notationLineIndex < i && InNotations.Length > 0)
-				{
-					notationLineIndex = ExtractOneNotationsLine(ref InNotations, ref notationLine);
-				}
-				if (regionNumber == 1)
-				{
-					region1Line++;
-					region1Text.Append(lines[i] + "\n");
-					if (i == notationLineIndex)
-					{
-						lineNotation = AddNotationLineNumber(notationLine, region1Line);
-						region1Notations.Append(lineNotation);
-						lineNotation = notationLine;
-					}
-				}
-				else if (lines[i] == VerseSymbol[150])
-				{
-					isHeading = true;
-				}
-				else
-				{
-					region2Line++;
-					region2Text.Append(lines[i] + "\n");
-					if (i == notationLineIndex)
-					{
-						lineNotation = AddNotationLineNumber(notationLine, region2Line);
-						region2Notations.Append(lineNotation);
-						lineNotation = notationLine;
-					}
-				}
-				if (!isHeading)
-				{
-					if (verseNumber < 0)
-					{
-						verseNumber = 1;
-					}
-					listViewItem = listView.Items.Add(verseNumber.ToString());
-					listViewItem.SubItems.Add(regionNumber.ToString());
-					listViewItem.SubItems.Add(lines[i]);
-					listViewItem.SubItems.Add(lineNotation);
-				}
-				isHeading = false;
-				lineNotation = "";
-			}
-			OutText1 = DataUtil.TrimEnd(region1Text.ToString());
-			OutText2 = DataUtil.TrimEnd(region2Text.ToString());
-			OutNotationString1 = region1Notations.ToString();
-			OutNotationString2 = region2Notations.ToString();
-			return listView;
-		}
+			=> ExtractLyricRegions(InLyrics, InNotations, true, ref OutText1, ref OutNotationString1, ref OutText2, ref OutNotationString2);
 
 		public static ListView ExtractDefaultFormatLyrics(string InLyrics, string InNotations, ref string OutText1, ref string OutNotationString1, ref string OutText2, ref string OutNotationString2)
+			=> ExtractLyricRegions(InLyrics, InNotations, false, ref OutText1, ref OutNotationString1, ref OutText2, ref OutNotationString2);
+
+		private static ListView ExtractLyricRegions(string lyrics, string notations, bool separateRegions,
+			ref string firstText, ref string firstNotations, ref string secondText, ref string secondNotations)
 		{
-			StringBuilder region1Text = new StringBuilder();
-			StringBuilder region2Text = new StringBuilder();
-			StringBuilder region1Notations = new StringBuilder();
-			StringBuilder region2Notations = new StringBuilder();
-			string notationLine = "";
-			string lineNotation = "";
-			int notationLineIndex = -1;
-			int region1Line = -1;
-			int region2Line = -1;
-			string currentVerseSymbol = "";
-			int verseNumber = -1;
-			int regionNumber = 1;
-			bool isHeading = false;
-			string[] lines = InLyrics.Split("\n"[0]);
-			ListView listView = new ListView();
-			SetListViewColumns(listView, 4);
-			listView.Items.Clear();
-			ListViewItem listViewItem = new ListViewItem();
-			for (int i = 0; i <= lines.GetUpperBound(0); i++)
+			var region1Text = new StringBuilder();
+			var region2Text = new StringBuilder();
+			var region1Notes = new StringBuilder();
+			var region2Notes = new StringBuilder();
+			int region1Line = -1, region2Line = -1;
+			int lineIndex = -1, notationLineIndex = -1;
+			int verseNumber = 1;
+			bool inSecondRegion = false;
+			string currentVerseHeading = string.Empty;
+			ReadOnlySpan<char> remainingNotes = notations;
+			ReadOnlySpan<char> noteFields = default;
+			ReadOnlySpan<char> text = lyrics;
+			var headings = verseNumbersByHeading.GetAlternateLookup<ReadOnlySpan<char>>();
+			var rows = new ListView();
+			SetListViewColumns(rows, 4);
+			foreach (Range range in text.Split('\n'))
 			{
-				for (int j = 0; j <= xArray.GetUpperBound(0); j++)
+				lineIndex++;
+				var line = text[range];
+				// Stored notation is read in order, with at most one record consumed per lyric line.
+				if (notationLineIndex < lineIndex && !remainingNotes.IsEmpty &&
+					!TryReadNotationRecord(ref remainingNotes, out notationLineIndex, out noteFields))
+					remainingNotes = default;
+
+				bool isHeading = headings.TryGetValue(line, out int heading);
+				if (isHeading && heading == REGION2)
 				{
-					if (lines[i] == xArray[j])
+					inSecondRegion = true;
+					if (!separateRegions && currentVerseHeading.Length > 0)
 					{
-						isHeading = true;
-						if (lines[i] != VerseSymbol[150])
-						{
-							regionNumber = 1;
-							currentVerseSymbol = lines[i];
-							verseNumber = GetVerseNumeric(currentVerseSymbol);
-							j = xArray.GetUpperBound(0) + 1;
-						}
-						else
-						{
-							regionNumber = 2;
-						}
-					}
-				}
-				if (notationLineIndex < i && InNotations.Length > 0)
-				{
-					notationLineIndex = ExtractOneNotationsLine(ref InNotations, ref notationLine);
-				}
-				if (regionNumber == 1)
-				{
-					region1Line++;
-					region1Text.Append(lines[i] + "\n");
-					if (i == notationLineIndex)
-					{
-						lineNotation = AddNotationLineNumber(notationLine, region1Line);
-						region1Notations.Append(lineNotation);
-						lineNotation = notationLine;
-					}
-				}
-				else if (lines[i] == VerseSymbol[150])
-				{
-					if (currentVerseSymbol != "")
-					{
+						region2Text.Append(currentVerseHeading).Append('\n');
 						region2Line++;
-						region2Text.Append(currentVerseSymbol + "\n");
 					}
+					continue;
 				}
-				else
+				if (isHeading)
 				{
-					region2Line++;
-					region2Text.Append(lines[i] + "\n");
-					if (i == notationLineIndex)
-					{
-						lineNotation = AddNotationLineNumber(notationLine, region2Line);
-						region2Notations.Append(lineNotation);
-						lineNotation = notationLine;
-					}
+					verseNumber = heading;
+					currentVerseHeading = VerseSymbol[heading];
+					// In the older format each new verse starts in region 1 again.
+					if (!separateRegions)
+						inSecondRegion = false;
+				}
+
+				int regionLine = inSecondRegion ? ++region2Line : ++region1Line;
+				var regionText = inSecondRegion ? region2Text : region1Text;
+				regionText.Append(line).Append('\n');
+				var chords = lineIndex == notationLineIndex ? noteFields : default;
+				if (!chords.IsEmpty)
+				{
+					var regionNotes = inSecondRegion ? region2Notes : region1Notes;
+					regionNotes.Append('(').Append(regionLine).Append(';').Append(chords).Append(')');
 				}
 				if (!isHeading)
 				{
-					if (verseNumber < 0)
-					{
-						verseNumber = 1;
-					}
-					listViewItem = listView.Items.Add(verseNumber.ToString());
-					listViewItem.SubItems.Add(regionNumber.ToString());
-					listViewItem.SubItems.Add(lines[i]);
-					listViewItem.SubItems.Add(lineNotation);
+					var row = rows.Items.Add(verseNumber.ToString());
+					row.SubItems.Add(inSecondRegion ? "2" : "1");
+					row.SubItems.Add(line.ToString());
+					row.SubItems.Add(chords.ToString());
 				}
-				isHeading = false;
-				lineNotation = "";
 			}
-			OutText1 = DataUtil.TrimEnd(region1Text.ToString());
-			OutText2 = DataUtil.TrimEnd(region2Text.ToString());
-			OutNotationString1 = region1Notations.ToString();
-			OutNotationString2 = region2Notations.ToString();
-			return listView;
-		}
+			firstText = FinishRegionText(region1Text);
+			secondText = FinishRegionText(region2Text);
+			firstNotations = region1Notes.ToString();
+			secondNotations = region2Notes.ToString();
+			return rows;
 
-		private static int GetVerseNumeric(string CurVerseSymbol)
-		{
-			for (int i = 0; i < 160; i++)
+			static string FinishRegionText(StringBuilder region)
 			{
-				if (CurVerseSymbol == VerseSymbol[i])
-				{
-					return i;
-				}
+				while (region.Length > 0 && region[^1] is '\r' or '\n')
+					region.Length--;
+				return region.ToString();
 			}
-			return -1;
 		}
 
 		public static string AddNotationLineNumber(string InOneNotationLine, int InNewLineNumber)
@@ -3168,6 +2906,21 @@ namespace Easislides
 				}
 			}
 			return "";
+		}
+
+		private static string ReadVerseIndicator(ReadOnlySpan<char> text)
+		{
+			if (text.IsEmpty || text[0] != '[')
+				return string.Empty;
+
+			var afterBracket = text[1..];
+			int end = afterBracket.IndexOfAny('[', ']', '\n');
+			if (end < 0 || afterBracket[end] != ']')
+				return string.Empty;
+
+			var heading = text[..(end + 2)];
+			var headings = verseNumbersByHeading.GetAlternateLookup<ReadOnlySpan<char>>();
+			return headings.TryGetValue(heading, out int verse) && verse != REGION2 ? VerseSymbol[verse] : string.Empty;
 		}
 
 		public static void AddItemToScreenBreak(ref ListView InListView, int NewPosition, string VerseSym, int ScreenBreakCount)

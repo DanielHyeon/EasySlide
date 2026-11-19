@@ -1384,7 +1384,7 @@ namespace Easislides
 
 		public static string[] sArray;
 
-		public static string[] xArray;
+		private static Dictionary<string, int> verseNumbersByHeading = new(StringComparer.Ordinal);
 
 		public static RichTextBox tbWorkspace = new RichTextBox();
 

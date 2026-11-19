@@ -1,5 +1,6 @@
 using System;
 using System.Drawing;
+using System.Linq;
 using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Windows.Forms;
@@ -11,6 +12,71 @@ namespace Easislides.Tests;
 
 public class LyricsProcessingTests
 {
+    [Fact]
+    public void AutomaticRegionDetectionHandlesEmptySectionsAndRequiresAVerseAtTheStart()
+    {
+        Gf.InitializeVerseHeadings();
+        Assert.True(Gf.IsNewR2Format("[1]\r\n가[region 2]\r\n[prechorus 2]나"));
+        Assert.True(Gf.IsNewR2Format("가[region 2][region 2][1]나[region 2]"));
+        Assert.False(Gf.IsNewR2Format("가[region 2]\n\n[1]나"));
+        Assert.False(Gf.IsNewR2Format("가[region 2][CHORUS]"));
+        Assert.False(Gf.IsNewR2Format("가[region 2][1]나[region 2]다"));
+        Assert.False(Gf.IsNewR2Format("[region 2]"));
+    }
+
+    [Theory]
+    [InlineData(false, "[1]\n가\n[chorus]\n나\n[2]\n다", "[1]", "(3;G;2;)(4;F;3;)", "")]
+    [InlineData(true, "[1]\n가", "[chorus]\n나\n[2]\n다", "", "(1;G;2;)(2;F;3;)")]
+    public void LyricRegionsKeepTheirOwnLineNumbersAndBlankTrailingRow(bool newer, string firstText,
+        string secondText, string firstNotes, string secondNotes)
+    {
+        OnSta(() =>
+        {
+            Gf.InitializeVerseHeadings();
+            const string lyrics = "[1]\n가\n[region 2]\n[chorus]\n나\n[2]\n다\n";
+            const string notes = "(1;C;0;)(4;G;2;)(5;F;3;)";
+            string first = "", second = "", firstChords = "", secondChords = "";
+            using var rows = newer
+                ? Gf.ExtractNewFormatLyrics(lyrics, notes, ref first, ref firstChords, ref second, ref secondChords)
+                : Gf.ExtractDefaultFormatLyrics(lyrics, notes, ref first, ref firstChords, ref second, ref secondChords);
+            Assert.Equal(firstText, first);
+            Assert.Equal(secondText, second);
+            Assert.Equal("(1;C;0;)" + firstNotes, firstChords);
+            Assert.Equal(secondNotes, secondChords);
+            Assert.Equal("", rows.Items[rows.Items.Count - 1].SubItems[2].Text);
+        });
+    }
+
+    [Fact]
+    public void ImportTreatsALoneRegionMarkerAsAnEmptySong()
+    {
+        OnSta(() =>
+        {
+            Gf.InitializeVerseHeadings();
+            using var rows = Gf.ExtractLyrics("[region 2]", "");
+            Assert.Empty(rows.Items);
+        });
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void RegionalChordRowsPreserveStoredOrderThroughDuplicateAndIncompleteRecords(bool newer)
+    {
+        OnSta(() =>
+        {
+            Gf.InitializeVerseHeadings();
+            const string lyrics = "[1]\na\nb\nc\nd\ne\nf";
+            const string notes = "(1;C;0;)(1;D;4;)(3;G;2;)()(5;F;8;)(unfinished";
+            string first = "", second = "", firstNotes = "", secondNotes = "";
+            using var rows = newer
+                ? Gf.ExtractNewFormatLyrics(lyrics, notes, ref first, ref firstNotes, ref second, ref secondNotes)
+                : Gf.ExtractDefaultFormatLyrics(lyrics, notes, ref first, ref firstNotes, ref second, ref secondNotes);
+            Assert.Equal(new[] { "C;0;", "", "G;2;", "", "F;8;", "" },
+                rows.Items.Cast<ListViewItem>().Select(row => row.SubItems[3].Text));
+        });
+    }
+
     [Theory]
     [InlineData(false, false, false)]
     [InlineData(true, false, false)]
