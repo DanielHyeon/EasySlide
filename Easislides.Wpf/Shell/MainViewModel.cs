@@ -40,7 +40,10 @@ public sealed record OperatorLyricsPageCard(
     string Label,
     string PositionText,
     string BodyText,
-    bool IsCurrent);
+    bool IsCurrent)
+{
+    public string SectionHeading { get; init; } = string.Empty;
+}
 
 public sealed partial class MainViewModel : ObservableObject, IDisposable
 {
@@ -237,6 +240,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     /// <summary>FrmMain cbGoLive 체크 상태: 현재 출력이 라이브로 표시 중인가.</summary>
     public bool IsOutputLiveActive => _session.Current.State == LiveState.Active;
+
+    public bool IsShowRunning => _session.Current.State != LiveState.Off;
 
     public double SampleScreenHeight => _settings.Get(EasiSettingKeys.IsMonitorWide) ? 540d : 720d;
 
@@ -587,7 +592,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return false;
         }
 
-        var items = EswWorshipListParser.Parse(xml);
+        var items = EswWorshipListParser.Parse(xml, out var sessionFormat);
         if (items.Count == 0)
         {
             StatusText = $"Legacy worship list is empty: {name} (.esw)";
@@ -595,6 +600,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         var queueItems = await BuildEswQueueItemsAsync(items).ConfigureAwait(true);
+        if (!string.IsNullOrWhiteSpace(sessionFormat))
+        {
+            try { SessionFormatTemplate.Transfer(_settings, sessionFormat, load: true); }
+            catch (Exception ex) when (ex is InvalidDataException or FormatException or OverflowException)
+            {
+                System.Diagnostics.Trace.WriteLine(ex.Message);
+            }
+        }
         LoadQueue(queueItems);
         RecordRecentWorshipList(name);
         WorshipListHasUnsavedChanges = false;
@@ -3028,6 +3041,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             Lyrics = song.Lyrics,
             Sequence = sequence ?? song.Sequence,
+            SongLayout = Library.Folders.FirstOrDefault(folder => folder.FolderNo == song.FolderNo)?.SlideLayout,
             SongNumber = song.SongNumber,
             Copyright = song.Copyright,
             FormatData = formatData ?? song.FormatData,
@@ -3903,6 +3917,23 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         return pages;
     }
 
+    private readonly Dictionary<(string Lyrics, string? Sequence, Data.SongPageLayout Layout, string? Format, double Height, int Panel),
+        (List<string> Bodies, List<string> Labels)> _songPages = new();
+
+    private (List<string> Bodies, List<string> Labels)? GetSongPages(LiveQueueItem item)
+    {
+        if (item.SongLayout is not { } layout || item.Lyrics is not { Length: > 0 } lyrics ||
+            !_settings.Get(EasiSettingKeys.AutoTextOverflow) || LyricsDisplayFormatter.HasRegion2(lyrics)) return null;
+        string? format = item.UseIndividualFormatting ? item.FormatData : null;
+        int panel = _settings.Get(EasiSettingKeys.PanelHeightPercent);
+        var key = (lyrics, item.Sequence, layout, format, SampleScreenHeight, panel);
+        if (_songPages.TryGetValue(key, out var pages)) return pages;
+        pages = layout.Paginate(lyrics, item.Sequence, SongFormatData.Parse(format), SampleScreenHeight, panel);
+        if (_songPages.Count >= 4) _songPages.Clear();
+        _songPages.Add(key, pages);
+        return pages;
+    }
+
     private (int Count, IReadOnlyList<string> Labels) BuildLyricsPageModel(LiveQueueItem? item)
     {
         var paginated = IsLyricsPaginated(item);
@@ -3913,6 +3944,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         if (IsExternalTextFileItem(item!))
             return (GetTextFilePages(item!).Count, Array.Empty<string>());
+        if (GetSongPages(item!) is { } songPages) return (songPages.Bodies.Count, songPages.Labels);
 
         // 성경 본문은 인용부호 »…« 가 코드 마커로 오인돼 절 수가 어긋나지 않도록 분할 전 보호한다(본문 추출과 동일 규칙).
         var lyrics = GuardBibleNotation(item!);
@@ -4052,7 +4084,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 label,
                 $"{index + 1}/{pageModel.Count}",
                 textAt(index),
-                index == clamped));
+                index == clamped)
+            {
+                SectionHeading = index < pageModel.Labels.Count && (index == 0 || pageModel.Labels[index] != pageModel.Labels[index - 1])
+                    ? pageModel.Labels[index] : string.Empty,
+            });
         }
 
         return cards;
@@ -5542,6 +5578,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         bool bible = LiveItemKindMatcher.IsBible(item.Kind);
         var itemDisplay = item.UseIndividualFormatting ? ItemDisplayFormat.Read(item.FormatData) : null;
         bool showChords = preview ? PreviewAreaShowNotations : itemDisplay?.Flag(4) ?? _settings.Get(EasiSettingKeys.LyricsMonitorShowNotations);
+        if (GetSongPages(item) is { } songPages)
+            return index => LyricsDisplayFormatter.FormatSongSlide(PageAt(songPages.Bodies, index), showChords, LiveTransposeSemitones + (itemDisplay?.Transpose ?? 0));
         string lyrics = bible
             ? LyricsDisplayFormatter.GuardLiteralNotation(LyricsDisplayFormatter.NormalizeText(item.Lyrics ?? string.Empty))
             : LyricsDisplayFormatter.ExpandNotations(item.Lyrics, showChords, LiveTransposeSemitones + (itemDisplay?.Transpose ?? 0));
@@ -6013,6 +6051,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         var powerPointStopError = await StopPowerPointSlideShowForLiveAsync().ConfigureAwait(true);
         _session.Stop();
+        if (_output.Current.IsOpen && !_output.Current.Placement.IsWindowed) _output.Close();
         SetLiveItemId(null);
         OutputPowerPoint.Clear();
         StatusText = powerPointStopError is null
@@ -6672,13 +6711,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private async Task ToggleOutputLiveAsync()
     {
-        if (_session.Current.State == LiveState.Hidden)
-        {
-            RestoreOutput();
-            return;
-        }
-
-        if (_session.Current.State == LiveState.Active)
+        if (_session.Current.State is LiveState.Active or LiveState.Hidden)
         {
             await StopLiveAsync().ConfigureAwait(true);
             return;
@@ -7813,6 +7846,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             var pages = GetTextFilePages(item);
             int index = Math.Clamp(item.LyricsPageIndex, 0, Math.Max(0, pages.Count - 1));
             item = item with { LyricsPageIndex = index, ProjectedTextPage = PageAt(pages, index) ?? item.Title };
+        }
+        else if (GetSongPages(item) is { Bodies.Count: > 0 } songPages)
+        {
+            int index = Math.Clamp(item.LyricsPageIndex, 0, songPages.Bodies.Count - 1);
+            item = item with { LyricsPageIndex = index, ProjectedTextPage = songPages.Bodies[index], ProjectedSectionLabel = songPages.Labels[index] };
         }
         var ppt = powerPoint ?? PowerPoint;
         var positionLabel = ComputePositionLabel(item, ppt);
@@ -9927,6 +9965,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(IsOutputBlackActive));
         OnPropertyChanged(nameof(IsOutputClearActive));
         OnPropertyChanged(nameof(IsOutputLiveActive));
+        OnPropertyChanged(nameof(IsShowRunning));
         OnPropertyChanged(nameof(OutputScreenStatus));
         OnPropertyChanged(nameof(IsOutputReferenceAlertActive));
         NotifyOutputPanelDisplayProperties();

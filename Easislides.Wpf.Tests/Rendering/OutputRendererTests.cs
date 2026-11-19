@@ -132,6 +132,8 @@ public class OutputRendererTests
                 CurrentItemBodyText: "1절 가사")
             {
                 IsCleared = true,
+                OverrideBackgroundImagePath = "worship-background.jpg",
+                OverrideBackgroundColorArgb = unchecked((int)0xff23648a),
             },
             Output: output,
             ViewportWidth: 300,
@@ -147,6 +149,8 @@ public class OutputRendererTests
         scene.ContentPlacement.Should().Be(ImagePlacement.Empty);
         scene.ShowsPanelOverlay.Should().BeFalse("비우기 화면엔 모니터/상태 오버레이도 감춤");
         scene.StatusLabel.Should().Be("CLEARED");
+        scene.BackgroundImagePath.Should().Be("worship-background.jpg");
+        scene.LyricsMonitorBackgroundColorArgb.Should().Be(unchecked((int)0xff23648a));
     }
 
     [Fact]

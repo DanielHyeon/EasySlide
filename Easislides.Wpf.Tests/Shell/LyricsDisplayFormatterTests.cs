@@ -8,6 +8,19 @@ namespace Easislides.Wpf.Tests.Shell;
 public class LyricsDisplayFormatterTests
 {
     [Fact]
+    public void LegacySequenceAndPageBreaksPreserveVerseLabelsAndNotation()
+    {
+        const string first = "one » G";
+        const string second = "two";
+        var layout = new Easislides.Wpf.Data.SongPageLayout(60, "Arial", 10, 6, 2, 0, 1, 80, 0);
+        var pages = layout.Paginate("[1]\n" + first + "\n" + second + "\n[chorus]\nrefrain\n[2]\nunused", "1,c,1", null, 100, 6);
+        Assert.Equal(new[] {first, second, "refrain", first, second}, pages.Bodies);
+        Assert.Equal(new[] {"1", "1", "chorus", "1", "1"}, pages.Labels);
+        Assert.Equal("one", LyricsDisplayFormatter.FormatSongSlide(pages.Bodies[0], false, 0));
+        Assert.Equal("G\none", LyricsDisplayFormatter.FormatSongSlide(pages.Bodies[0], true, 0));
+    }
+
+    [Fact]
     public void ToDisplayText_StripsVerseMarkersAndSeparatesVerses()
     {
         // [1] [2] 같은 절/페이지 마커는 회중 화면에 보이면 안 되고, 절 사이는 빈 줄 하나로 구분.

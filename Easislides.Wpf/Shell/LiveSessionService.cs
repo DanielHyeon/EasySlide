@@ -98,7 +98,8 @@ public sealed record LiveSessionSnapshot(
     bool IsExternalTextPage = false,
     OutputAlert? MessageAlert = null,
     OutputAlert? ParentalAlert = null,
-    Library.ItemDisplayFormat? ItemDisplay = null)
+    Library.ItemDisplayFormat? ItemDisplay = null,
+    Data.SongPageLayout? SongLayout = null)
 {
     public static LiveSessionSnapshot Off { get; } = new(
         LiveState.Off,
@@ -142,7 +143,7 @@ public sealed class LiveSessionService : ILiveSessionService
     {
         ArgumentNullException.ThrowIfNull(item);
 
-        Update(CreateSnapshot(
+        Update(CreateSnapshot(Current,
             item,
             outputMonitorName,
             LiveState.Active,
@@ -158,7 +159,7 @@ public sealed class LiveSessionService : ILiveSessionService
             return;
         }
 
-        Update(CreateSnapshot(
+        Update(CreateSnapshot(Current,
             item,
             outputMonitorName,
             LiveState.Hidden,
@@ -166,7 +167,8 @@ public sealed class LiveSessionService : ILiveSessionService
             Current.IsCleared));
     }
 
-    private LiveSessionSnapshot CreateSnapshot(
+    internal static LiveSessionSnapshot CreateSnapshot(
+        LiveSessionSnapshot previous,
         LiveQueueItem item,
         string outputMonitorName,
         LiveState state,
@@ -215,8 +217,8 @@ public sealed class LiveSessionService : ILiveSessionService
             // region2 정렬(32) — 이중 언어 Region2 본문에 적용(없으면 Region1 정렬 추종).
             OverrideTextAlignment2: MapAlignment(format?.Alignment2),
             // 곡별 글꼴명(43)·크기(47, region1). 폰트명은 비면 null(테마 상속), 크기는 레거시 pt→px 변환.
-            OverrideFontName: NormalizeFontName(format?.FontName1),
-            OverrideFontSizePx: LegacyPointToPixel(format?.FontSize1),
+            OverrideFontName: NormalizeFontName(format?.FontName1) ?? NormalizeFontName(item.SongLayout?.FontName),
+            OverrideFontSizePx: LegacyPointToPixel(format?.FontSize1 ?? item.SongLayout?.FontPoints),
             // region2 글꼴명(44)·크기(48) — 이중 언어 Region2 본문에 적용(없으면 Region1 글꼴 추종).
             OverrideFontName2: NormalizeFontName(format?.FontName2),
             OverrideFontSizePx2: LegacyPointToPixel(format?.FontSize2),
@@ -234,15 +236,16 @@ public sealed class LiveSessionService : ILiveSessionService
             CurrentPageIsChorus: ComputeCurrentPageIsChorus(item),
             CurrentSectionLabel: ComputeCurrentSectionLabel(item),
             // 항목 식별자 — 출력 VM 의 "항목 전환 vs 슬라이드 전환" 판별 근거(같은 곡 안 절 이동은 같은 Id 로 재송출됨).
-            MessageAlert: Current.MessageAlert,
-            ParentalAlert: Current.ParentalAlert,
+            MessageAlert: previous.MessageAlert,
+            ParentalAlert: previous.ParentalAlert,
             ItemDisplay: item.UseIndividualFormatting ? Library.ItemDisplayFormat.Read(item.FormatData) : null,
             CurrentItemId: item.Id,
             IsExternalTextPage: IsExternalTextFileItem(item),
             OverrideVerticalAlignment: format?.VerticalAlignment,
             OverrideBodyLeftMargin: format?.BodyLeftMargin,
             OverrideBodyRightMargin: format?.BodyRightMargin,
-            OverrideBodyBottomMargin: format?.BodyBottomMargin);
+            OverrideBodyBottomMargin: format?.BodyBottomMargin,
+            SongLayout: item.SongLayout);
     }
 
     // 곡별 배경 이미지 경로 정리 — 공백뿐이거나 비었으면 null(색 배경 유지). 앞뒤 공백 제거.
@@ -273,6 +276,8 @@ public sealed class LiveSessionService : ILiveSessionService
     //       이중 언어 + Sequence 동시 지원·절 라벨 점프는 차기 슬라이스.
     private static string ComputeBodyText(LiveQueueItem item)
     {
+        if (LiveItemKindMatcher.IsSong(item.Kind) && item.ProjectedTextPage is { } slide)
+            return LyricsDisplayFormatter.FormatSongSlide(slide, item.ShowNotations, item.TransposeSemitones);
         if (IsExternalTextFileItem(item))
         {
             return item.ProjectedTextPage ?? TextOrTitle(
@@ -356,6 +361,7 @@ public sealed class LiveSessionService : ILiveSessionService
     //       성경 항목별 강조(굵게/기울임/밑줄)는 화면에서 억제된다(성경엔 후렴 개념이 없으니 자연스러운 동작 — 색·정렬·글꼴은 무관하게 적용).
     private static string ComputeCurrentSectionLabel(LiveQueueItem item)
     {
+        if (item.ProjectedSectionLabel is { } label) return label;
         if (!LiveItemKindMatcher.IsSong(item.Kind) || string.IsNullOrEmpty(item.Lyrics))
         {
             return string.Empty;

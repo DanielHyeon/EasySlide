@@ -48,6 +48,7 @@
 
   <!-- ADR-0004 PoC-A: HookManager 소스를 file-link로 공유 (복사 X). Sprint 9에 라이브러리로 추출 후 ProjectReference로 교체 예정. -->
   <ItemGroup>
+    <Compile Include="..\Easislides\Global\LyricLineMeasurement.cs" Link="Rendering\LyricLineMeasurement.cs" />
     <Compile Include="..\Easislides\Global\ModernIcons.Paths.cs" Link="Theme\ModernIcons.Paths.cs" />
     <Resource Include="..\Easislides\favicon.ico" Link="Assets\EasiSlides.ico" />
     <Compile Include="..\Easislides\HookManager\HookManager.cs">

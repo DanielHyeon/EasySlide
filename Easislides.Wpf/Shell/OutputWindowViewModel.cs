@@ -1098,7 +1098,9 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         // 본문 묶음 여백 = 사용자 설정 좌/우/아래 여백 + (헤딩이 보이면) 헤딩 높이만큼 상단 확보.
         // 좌/우/아래는 FrmMain ShowLeftMargin/Right/Bottom 대응 — 가장자리에서 안쪽으로 들여써 잘림·치우침을 보정한다.
         // 기본값 0/0/0 이면 헤딩 유무에 따라 기존 Thickness(0,heading,0,0)/Thickness(0) 과 완전히 동일(무회귀).
-        var headingTop = scene.ShowsTitleHeading ? TitleHeadingReservedHeight : 0;
+        double headingTop = scene.ShowsTitleHeading ? TitleHeadingReservedHeight : 0;
+        if (_session.SongLayout is { } folder && scene.Kind == OutputSceneKind.Live)
+            headingTop += scene.Viewport.Height * Math.Clamp(folder.TopPercent, 0, 100) / 100d;
         BodyContentMargin = new Thickness(
             scene.LyricsMonitorBodyLeftMargin,
             headingTop,

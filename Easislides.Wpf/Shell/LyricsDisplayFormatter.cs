@@ -268,7 +268,7 @@ public static class LyricsDisplayFormatter
             {
                 foreach (var section in sections)
                 {
-                    if (string.Equals(section.Label, token, StringComparison.OrdinalIgnoreCase)
+                    if (MatchesSection(section.Label, token)
                         && (section.Region1.Length > 0 || section.Region2.Length > 0))
                     {
                         seqLabels.Add(section.Label);
@@ -316,7 +316,7 @@ public static class LyricsDisplayFormatter
         {
             foreach (var section in sections)
             {
-                if (string.Equals(section.Label, token, StringComparison.OrdinalIgnoreCase)
+                if (MatchesSection(section.Label, token)
                     && (section.Region1.Length > 0 || section.Region2.Length > 0))
                 {
                     pages.Add(new LyricsRegionPage(section.Region1, section.Region2));
@@ -456,7 +456,7 @@ public static class LyricsDisplayFormatter
         {
             foreach (var section in sections)
             {
-                if (string.Equals(section.Label, token, StringComparison.OrdinalIgnoreCase)
+                if (MatchesSection(section.Label, token)
                     && section.Content.Length > 0)
                 {
                     pages.Add((section.Label, section.Content));
@@ -604,7 +604,7 @@ public static class LyricsDisplayFormatter
         {
             foreach (var section in sections)
             {
-                if (string.Equals(section.Label, token, StringComparison.OrdinalIgnoreCase)
+                if (MatchesSection(section.Label, token)
                     && section.Content.Length > 0)
                 {
                     pages.Add(section.Content);
@@ -767,6 +767,12 @@ public static class LyricsDisplayFormatter
     }
 
     // 마커 줄이 라벨 마커( [1] [Chorus] [C] )면 그 라벨, 노테이션 블록([~...])이나 일반 줄이면 null.
+    private static bool MatchesSection(string label, string token) =>
+        string.Equals(label, token, StringComparison.OrdinalIgnoreCase) ||
+        (token.ToLowerInvariant(), label.ToLowerInvariant()) is
+            ("c", "chorus") or ("b", "bridge") or ("e", "ending") or ("p", "prechorus") or
+            ("t", "chorus 2") or ("w", "bridge 2") or ("q", "prechorus 2");
+
     private static string? SectionLabel(string line)
     {
         if (!IsMarkerOnlyLine(line))
@@ -791,9 +797,12 @@ public static class LyricsDisplayFormatter
     public static string UnguardLiteralNotation(string? text)
         => string.IsNullOrEmpty(text) ? string.Empty : text.Replace(LiteralNotationGuard, '»');
 
+    internal static string FormatSongSlide(string? page, bool showNotations, int transpose)
+        => showNotations ? ExpandNotations(page, true, transpose) : ToDisplayText(page);
+
     // 줄에서 '»'(코드/노테이션 마커) 이후를 잘라 본문만 남긴다. 마커가 없으면 줄 그대로.
     // ('»' 정규화는 호출 전에 끝나 있다고 가정 — ToDisplayText 가 "Â»"→"»"로 모은 뒤 호출.)
-    private static string StripInlineNotation(string line)
+    internal static string StripInlineNotation(string line)
     {
         var markerIndex = line.IndexOf('»'); // '»'
         return markerIndex < 0 ? line : line[..markerIndex];

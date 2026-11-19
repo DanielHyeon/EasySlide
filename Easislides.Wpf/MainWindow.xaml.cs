@@ -20,6 +20,7 @@ using Easislides.Wpf.Settings;
 using Easislides.Wpf.Shell;
 using Easislides.Wpf.Support;
 using Microsoft.Extensions.DependencyInjection;
+using LiveState = Easislides.Wpf.Controls.LiveState;
 using DrawingColor = System.Drawing.Color;
 using FormsColorDialog = System.Windows.Forms.ColorDialog;
 using FormsDialogResult = System.Windows.Forms.DialogResult;
@@ -58,15 +59,23 @@ public partial class MainWindow : Window
     // (안 그러면 방금 되돌린 기본값을 닫으면서 다시 덮어쓴다. 레거시 SaveToRegistryOnClosing=false 와 같은 취지).
     private bool _suppressSettingsSaveOnClose;
 
+    public OutputWindowViewModel PreviewSample { get; }
+    public OutputWindowViewModel OutputSample { get; }
+
     public MainWindow(MainViewModel viewModel, ShortcutRegistry shortcuts, IServiceProvider services)
     {
+        var renderer = services.GetRequiredService<IOutputRenderer>();
+        _settings = services.GetService<ISettingsService>();
+        PreviewSample = new OutputWindowViewModel(renderer, _settings);
+        OutputSample = new OutputWindowViewModel(renderer, _settings);
         InitializeComponent();
 
         _shortcuts = shortcuts;
         _services = services;
         _viewModel = viewModel;
         // 설정 서비스(창 배치 저장/복원). 해석 실패해도 창 동작에 지장 없도록 null 허용(복원/저장만 건너뜀).
-        _settings = services?.GetService<ISettingsService>();
+        RefreshSample(true);
+        RefreshSample(false);
         DataContext = viewModel;
         viewModel.BindShortcuts(_shortcuts);
         BindWindowLaunchers();
@@ -515,10 +524,26 @@ public partial class MainWindow : Window
     // VM 의 자동 회전 상태/간격 변화를 받아 타이머를 시작·정지·재설정한다.
     private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
+        if (e.PropertyName is nameof(MainViewModel.PreviewPanelItem) or nameof(MainViewModel.SampleScreenHeight)) RefreshSample(true);
+        if (e.PropertyName is nameof(MainViewModel.OutputItem) or nameof(MainViewModel.OutputScreenStatus) or nameof(MainViewModel.SampleScreenHeight)) RefreshSample(false);
         if (e.PropertyName is nameof(MainViewModel.IsAutoRotating) or nameof(MainViewModel.AutoRotateIntervalSeconds))
         {
             SyncAutoRotateTimer();
         }
+    }
+
+    private void RefreshSample(bool preview)
+    {
+        var sample = preview ? PreviewSample : OutputSample;
+        var item = preview ? _viewModel.PreviewPanelItem : _viewModel.OutputItem;
+        var snapshot = !preview && _viewModel.Session.Current.State != LiveState.Off
+            ? _viewModel.Session.Current
+            : item is null ? LiveSessionSnapshot.Off with { State = LiveState.Active }
+            : LiveSessionService.CreateSnapshot(LiveSessionSnapshot.Off,
+                item.UseIndividualFormatting ? item : item with { FormatData = null }, string.Empty, LiveState.Active, false, false);
+        if (sample.Scene.Viewport.Width != 960 || sample.Scene.Viewport.Height != _viewModel.SampleScreenHeight || !sample.IsOutputOpen)
+            sample.ApplyOutput(new OutputWindowState(true, null, new OutputWindowPlacement(0, 0, 960, _viewModel.SampleScreenHeight, true)));
+        sample.ApplySession(snapshot);
     }
 
     private void SyncAutoRotateTimer()
@@ -582,7 +607,7 @@ public partial class MainWindow : Window
 
         // FrmMain focus safety: while the operator is typing in QuickFind, Bible lookup,
         // live message, or editable setting fields, global live shortcuts must not fire.
-        if (IsTextInputFocused())
+        if (IsTextInputFocused() && !IsMenuShortcut(e.Key, Keyboard.Modifiers))
         {
             return;
         }
@@ -592,6 +617,14 @@ public partial class MainWindow : Window
             e.Handled = true;
         }
     }
+
+    // The WinForms menu strip handles these accelerators even when Quick Find owns focus.
+    internal static bool IsMenuShortcut(Key key, ModifierKeys modifiers) => modifiers switch
+    {
+        ModifierKeys.None => key is Key.F1 or Key.F3 or Key.F5 or Key.F9 or Key.F11 or Key.F12,
+        ModifierKeys.Control => key == Key.F,
+        _ => false,
+    };
 
     private bool TryHandlePreviewOutputPowerPointKey(KeyEventArgs e)
     {
@@ -4663,6 +4696,8 @@ public partial class MainWindow : Window
     {
         Microsoft.Win32.SystemEvents.DisplaySettingsChanged -= OnDisplaySettingsChanged;
         _autoRotateTimer.Stop();
+        PreviewSample.Dispose();
+        OutputSample.Dispose();
         _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
 
         if (DataContext is IDisposable disposable)

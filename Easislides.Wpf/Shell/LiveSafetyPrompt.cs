@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using Easislides.Wpf.Composites;
+using Easislides.Wpf.Settings;
 
 namespace Easislides.Wpf.Shell;
 
@@ -18,11 +19,13 @@ public interface ILiveSafetyPrompt
     Task<bool> ConfirmAsync(LiveSafetyRequest request, CancellationToken cancellationToken = default);
 }
 
-public sealed class WpfLiveSafetyPrompt : ILiveSafetyPrompt
+public sealed class WpfLiveSafetyPrompt(ISettingsService settings) : ILiveSafetyPrompt
 {
     public async Task<bool> ConfirmAsync(LiveSafetyRequest request, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
+        cancellationToken.ThrowIfCancellationRequested();
+        if (!settings.Get(EasiSettingKeys.UseSafetyConfirmations)) return true;
 
         if (Application.Current?.MainWindow is not FrameworkElement mainWindow)
         {

@@ -5952,13 +5952,13 @@ public class MainViewModelTests
         sut.IsOutputLiveActive.Should().BeFalse();
 
         await sut.ToggleOutputLiveCommand.ExecuteAsync(null);
-        sut.Session.Current.State.Should().Be(LiveState.Active, "checked GoLive toggle restores Hidden/Clear");
+        sut.Session.Current.State.Should().Be(LiveState.Off, "Go Live stops a running show even while its lyrics are cleared");
         sut.IsOutputClearActive.Should().BeFalse();
-        sut.IsOutputLiveActive.Should().BeTrue();
+        sut.IsOutputLiveActive.Should().BeFalse();
 
         await sut.ToggleOutputLiveCommand.ExecuteAsync(null);
-        sut.Session.Current.State.Should().Be(LiveState.Off, "checked GoLive toggle clicked while active stops live");
-        sut.IsOutputLiveActive.Should().BeFalse();
+        sut.Session.Current.State.Should().Be(LiveState.Active, "a new show starts with the prepared item");
+        sut.IsOutputLiveActive.Should().BeTrue();
     }
 
     [Fact]

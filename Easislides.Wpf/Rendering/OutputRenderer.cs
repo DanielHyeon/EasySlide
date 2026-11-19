@@ -451,7 +451,8 @@ public sealed class OutputRenderer : IOutputRenderer
             ? songTextColor
             : liveOutput.LyricsMonitorTextColorArgb;
         // 배경 오버라이드가 있으면 솔리드 단색으로 칠한다(끝색=시작색, 그라데이션 해제).
-        var hasBgOverride = isLive && request.Session.OverrideBackgroundColorArgb is int;
+        var showItemBackground = kind is OutputSceneKind.Live or OutputSceneKind.Cleared;
+        var hasBgOverride = showItemBackground && request.Session.OverrideBackgroundColorArgb is int;
         var bgColorArgb = hasBgOverride
             ? request.Session.OverrideBackgroundColorArgb!.Value
             : liveOutput.LyricsMonitorBackgroundColorArgb;
@@ -487,18 +488,26 @@ public sealed class OutputRenderer : IOutputRenderer
         var fontSizePx = isLive && request.Session.OverrideFontSizePx is int songFontPx
             ? songFontPx
             : liveOutput.LyricsMonitorFontSize;
+        if (isLive && request.Session.SongLayout is { } folder)
+        {
+            // FOLDER and legacy song format store margins as percentages and fonts at a 960-pixel reference width.
+            bodyLeftMargin = (int)Math.Round(viewportWidth * Math.Clamp(request.Session.OverrideBodyLeftMargin ?? folder.LeftPercent, 0, 100) / 100d);
+            bodyRightMargin = (int)Math.Round(viewportWidth * Math.Clamp(request.Session.OverrideBodyRightMargin ?? folder.RightPercent, 0, 100) / 100d);
+            bodyBottomMargin = (int)Math.Round(viewportHeight * Math.Clamp(request.Session.OverrideBodyBottomMargin ?? folder.BottomPercent, 0, 100) / 100d);
+            fontSizePx = Math.Max(1, (int)Math.Round(fontSizePx * viewportWidth / 960d));
+        }
         // 글꼴명 우선순위: 곡별 글꼴(43, Live 일 때만) > 전역 출력 글꼴(설정) > 빈 문자열(VM 이 테마 기본 글꼴 상속, 무회귀).
         var fontFamily = isLive && !string.IsNullOrWhiteSpace(request.Session.OverrideFontName)
             ? request.Session.OverrideFontName!
             : liveOutput.LyricsMonitorFontFamily;
         // 배경 이미지(Live 일 때만): 곡별 배경(FormatData 61)이 있으면 그 곡 동안 우선,
         // 없으면 전역 배경 이미지(Images 탭 설정)를 쓴다. 둘 다 없으면 빈 문자열 → 색 배경 유지(무회귀).
-        var backgroundImagePath = !isLive
+        var backgroundImagePath = !showItemBackground
             ? ""
             : !string.IsNullOrWhiteSpace(request.Session.OverrideBackgroundImagePath)
                 ? request.Session.OverrideBackgroundImagePath!
                 : liveOutput.LyricsMonitorBackgroundImagePath;
-        var backgroundMode = isLive
+        var backgroundMode = showItemBackground
             && !string.IsNullOrWhiteSpace(request.Session.OverrideBackgroundImagePath)
             && request.Session.OverrideBackgroundImageMode is LyricsBackgroundMode songBackgroundMode
                 ? songBackgroundMode

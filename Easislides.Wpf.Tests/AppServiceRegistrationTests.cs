@@ -33,6 +33,8 @@ public class AppServiceRegistrationTests
 
             using var provider = services.BuildServiceProvider();
             var settings = provider.GetRequiredService<ISettingsService>();
+            provider.GetRequiredService<Easislides.Wpf.Input.ICommandCatalog>().GetDefaultShortcuts()
+                .Should().Contain(shortcut => shortcut.Key == System.Windows.Input.Key.F12);
             var legacySettings = provider.GetRequiredService<ILegacySettingsSource>();
             var service = provider.GetRequiredService<IPowerPointRenderService>();
             var slideShowControl = provider.GetRequiredService<IPowerPointSlideShowControl>();

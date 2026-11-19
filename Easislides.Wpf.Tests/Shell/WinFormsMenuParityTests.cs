@@ -76,6 +76,39 @@ public class WinFormsMenuParityTests
         Assert.Equal(expected, cases);
     }
 
+    [Theory]
+    [InlineData("File")]
+    [InlineData("Edit")]
+    [InlineData("View")]
+    [InlineData("Output")]
+    [InlineData("Tools")]
+    [InlineData("Help")]
+    public void NativeMenuOrderLabelsAndIconsMatch(string group)
+    {
+        var menu = MainMenu.Elements().Single(item => (string?)item.Attribute("Header") == group);
+        var expected = Regex.Match(Designer, @"Menu_Main" + group + @"\.DropDownItems\.AddRange\(([^;]+)\);");
+        var slots = Regex.Matches(expected.Groups[1].Value, @"\b(Menu_\w+|toolStripSeparator\w+)");
+        var icons = File.ReadAllText(Path.Combine(Root, "Easislides", "Easislides", "FrmMain.ModernUi.FormatIcons.cs"));
+        var actual = menu.Elements().Take(slots.Count).ToList();
+        Assert.Equal(slots.Count, actual.Count);
+        for (int i = 0; i < slots.Count; i++)
+        {
+            var id = slots[i].Value;
+            if (id.StartsWith("toolStripSeparator", StringComparison.Ordinal))
+            {
+                Assert.Equal("Separator", actual[i].Name.LocalName);
+                continue;
+            }
+            var caption = Regex.Match(Designer, id + "\\.Text = \"([^\"]+)\";").Groups[1].Value.Replace("&", "");
+            if (id == "Menu_ClearRegistrySettings") caption = "Reset WPF Settings...";
+            Assert.Equal(caption, ((string?)actual[i].Attribute("Header"))?.Replace("_", "").Replace("…", "..."));
+            var glyph = Regex.Match(icons, "\\(" + id + ", \"([^\"]+)\", ModernIconStyle\\.(\\w+)");
+            var icon = actual[i].Elements().FirstOrDefault(e => e.Name.LocalName == "MenuItem.Icon")?.Elements().Single();
+            Assert.Equal(glyph.Success ? glyph.Groups[1].Value : null, (string?)icon?.Attribute("Icon"));
+            Assert.Equal(glyph.Groups[2].Value == "Filled", (string?)icon?.Attribute("Filled") == "True");
+        }
+    }
+
     private static string FindRepositoryRoot()
     {
         for (var dir = new DirectoryInfo(AppContext.BaseDirectory); dir != null; dir = dir.Parent)

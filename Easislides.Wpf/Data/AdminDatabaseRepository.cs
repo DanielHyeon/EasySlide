@@ -53,7 +53,8 @@ public sealed record SongFolderSummary(
     string Name,
     bool IsEnabled,
     int SongCount,
-    int GroupStyle = 0);
+    int GroupStyle = 0,
+    SongPageLayout? SlideLayout = null);
 
 public sealed record SongSummary(
     int SongId,
@@ -567,6 +568,7 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
                 f.Name,
                 f.Use,
                 {SelectColumn(folderColumns, "GroupStyle", "GroupStyle", "f")},
+                {string.Join(", ", new[] { "Size0", "Fontname0", "VPos0", "LMargin", "RMargin", "BMargin", "LineSpacing", "HeadingSize", "BIU0" }.Select(column => SelectColumn(folderColumns, column, column, "f")))},
                 COUNT(s.SONGID) AS SongCount
             FROM FOLDER f
             LEFT JOIN SONG s ON s.FOLDERNO = f.FolderNo
@@ -583,7 +585,12 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
                 GetString(reader, "Name"),
                 ParseEnabled(GetString(reader, "Use")),
                 GetInt(reader, "SongCount"),
-                GetInt(reader, "GroupStyle")));
+                GetInt(reader, "GroupStyle"),
+                GetInt(reader, "Size0") is > 0 and <= 500 ? new SongPageLayout(
+                    GetInt(reader, "Size0"), GetString(reader, "Fontname0"), GetInt(reader, "VPos0"),
+                    GetInt(reader, "LMargin"), GetInt(reader, "RMargin"), GetInt(reader, "BMargin"),
+                    double.TryParse(GetString(reader, "LineSpacing"), CultureInfo.InvariantCulture, out var spacing) && spacing is >= 0.5 and <= 2 ? spacing : 1,
+                    GetInt(reader, "HeadingSize"), GetInt(reader, "BIU0")) : null));
         }
 
         return folders;

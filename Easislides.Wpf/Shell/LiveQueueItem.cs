@@ -36,7 +36,19 @@ public sealed record LiveQueueItem(string Id, string Title, string Kind = LiveIt
     /// 토큰은 쉼표·공백으로 구분하므로 라벨은 공백 없는 한 단어여야 한다(예: [Verse 1] 은 단일 토큰으로 못 부름 → [V1] 처럼).
     /// 비었거나 라벨과 안 맞으면 가사를 선형으로 페이지네이션(기존 동작). 절 페이지 계산·라이브 투영에 쓰인다.
     /// </summary>
-    public string? Sequence { get; init; }
+    public string? Sequence
+    {
+        get;
+        init
+        {
+            try { field = value is null ? null : Easislides.Module.SongExchangeSequence.FromWpfDatabase(value); }
+            catch (System.IO.InvalidDataException) { field = value; } // Unrecognized sequences retain the linear fallback.
+        }
+    }
+
+    public Easislides.Wpf.Data.SongPageLayout? SongLayout { get; init; }
+    [System.Text.Json.Serialization.JsonIgnore]
+    public string? ProjectedSectionLabel { get; init; }
 
     /// <summary>
     /// 가사 절 단위 페이지네이션의 현재 페이지 인덱스(0-based).

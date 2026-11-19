@@ -27,7 +27,11 @@ public static class EswWorshipListParser
 {
     /// <summary>.esw XML 문자열에서 항목 원시 데이터를 순서대로 추출한다. ItemID 가 비면 그 항목은 건너뛴다.</summary>
     public static IReadOnlyList<EswWorshipListItem> Parse(string? xml)
+        => Parse(xml, out _);
+
+    internal static IReadOnlyList<EswWorshipListItem> Parse(string? xml, out string? sessionFormat)
     {
+        sessionFormat = null;
         var items = new List<EswWorshipListItem>();
         if (string.IsNullOrWhiteSpace(xml))
         {
@@ -45,6 +49,7 @@ public static class EswWorshipListParser
         }
 
         // <Item> 만 대상으로 한다 — <ListHeader> 의 FormatData/Notes(설정·세션 메모)는 항목이 아니므로 자연히 제외된다.
+        sessionFormat = (string?)document.Root?.Element("ListItem")?.Element("ListHeader")?.Element("FormatData");
         foreach (var element in document.Descendants("Item"))
         {
             var itemId = ((string?)element.Element("ItemID") ?? string.Empty).Trim();

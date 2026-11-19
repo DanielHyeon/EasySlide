@@ -359,10 +359,10 @@ public class MainMenuBarTests
             "Output lyrics rows should fill the scroller width like FrmMain docked RichTextBox controls");
         outputLyricsSurface.Should().Contain("Text=\"{Binding BodyText}\"",
             "Output lyrics rows should show the full RichTextBox body without a separate page badge");
-        outputLyricsSurface.Should().Contain("<Setter Property=\"Background\" Value=\"#FFFFFF00\" />",
-            "the current Output lyrics row should use FrmMain's selected-slide yellow background");
-        outputLyricsSurface.Should().Contain("<Setter Property=\"Foreground\" Value=\"Red\" />",
-            "the current Output lyrics row should use FrmMain's selected-slide red text");
+        outputLyricsSurface.Should().Contain("<Setter Property=\"Background\" Value=\"#C4500A\" />",
+            "the current Output lyrics row should use the active FrmMain slide accent");
+        outputLyricsSurface.Should().Contain("<Setter Property=\"Foreground\" Value=\"White\" />",
+            "the current Output lyrics row should use white text on the active slide accent");
         var outputInfoSurface = SectionBetween(xaml, "x:Name=\"ClassicOutputInfo\"", "x:Name=\"ClassicOutputPowerPointSurface\"");
         outputInfoSurface.Should().NotContain("IsOutputHeaderTextVisible",
             "FrmMain flowLayoutOutputLyrics does not add a separate title header above the text rows");
@@ -589,14 +589,14 @@ public class MainMenuBarTests
             "FrmMain's lower Preview sample screen shows the song/Bible body, not a separate item-title overlay");
         preview.Should().NotContain("AutomationProperties.Name=\"Preview 슬라이드 현재 항목\"");
         preview.Should().Contain("x:Name=\"ClassicPreviewLargeLyricsText\"");
-        preview.Should().Contain("Margin=\"36,48,36,68\"",
+        preview.Should().Contain("PreviewSample.BodyContentMargin",
             "without the WPF title overlay, lyrics should start near the top of the 4:3 frame like FrmMain");
 
         output.Should().NotContain("Text=\"{Binding OutputItem.Title}\"",
             "FrmMain's lower Output sample screen follows the live/prepared body instead of drawing a title overlay");
         output.Should().NotContain("AutomationProperties.Name=\"Output 슬라이드 현재 항목\"");
         output.Should().Contain("x:Name=\"ClassicOutputLargeLyricsText\"");
-        output.Should().Contain("Margin=\"36,48,36,68\"",
+        output.Should().Contain("OutputSample.BodyContentMargin",
             "Output lyrics should use the same title-free 4:3 frame geometry as Preview");
     }
 
@@ -893,13 +893,13 @@ public class MainMenuBarTests
             "protected override void OnPreviewKeyDown",
             "private bool TryHandlePreviewOutputPowerPointKey");
 
-        var textInputGuardIndex = onPreviewKeyDown.IndexOf("if (IsTextInputFocused())", StringComparison.Ordinal);
+        var textInputGuardIndex = onPreviewKeyDown.IndexOf("if (IsTextInputFocused() && !IsMenuShortcut(e.Key, Keyboard.Modifiers))", StringComparison.Ordinal);
         var shortcutRouterIndex = onPreviewKeyDown.IndexOf("_shortcuts.TryHandle(e.Key, Keyboard.Modifiers)", StringComparison.Ordinal);
 
         textInputGuardIndex.Should().BeGreaterThanOrEqualTo(0,
             "FrmMain live shortcuts should not fire while the operator is typing in QuickFind, Bible lookup, live message, or setting fields");
         textInputGuardIndex.Should().BeLessThan(shortcutRouterIndex,
-            "text input focus must block the final global ShortcutRegistry route for F12/F11/F9/F3/Space");
+            "text editing must keep ordinary input while still accepting the WinForms menu accelerators");
         onPreviewKeyDown[textInputGuardIndex..shortcutRouterIndex].Should().Contain("return;",
             "typing should leave the key to the focused input control instead of marking it as a global live shortcut");
         code.Should().Contain("Keyboard.FocusedElement is System.Windows.Controls.Primitives.TextBoxBase",
@@ -1786,7 +1786,7 @@ public class MainMenuBarTests
         xaml.Should().Contain("{Binding ToggleOutputClearCommand}", "Output strip exposes FrmMain-style checked Clear toggle");
         xaml.Should().Contain("IsChecked=\"{Binding IsOutputClearActive, Mode=OneWay}\"", "Clear toggle should reflect the current live clear state");
         xaml.Should().Contain("{Binding ToggleOutputLiveCommand}", "Output strip exposes FrmMain-style checked GoLive toggle");
-        xaml.Should().Contain("IsChecked=\"{Binding IsOutputLiveActive, Mode=OneWay}\"", "GoLive toggle should reflect the current live active state");
+        xaml.Should().Contain("IsChecked=\"{Binding IsShowRunning, Mode=OneWay}\"", "GoLive toggle should reflect the current live active state");
         xaml.Should().Contain("x:Name=\"ClassicPreviewPositionLabel\"", "Preview strip should expose the current Preview page/slide position");
         xaml.Should().Contain("Text=\"{Binding PreviewNavigationPositionLabel}\"", "Preview position should follow Preview navigation only");
         xaml.Should().Contain("x:Name=\"ClassicOutputPositionLabel\"", "Output strip should expose the current Output page/slide position");
@@ -1900,10 +1900,10 @@ public class MainMenuBarTests
             "Preview lyrics rows should fill the scroller width like FrmMain docked RichTextBox controls");
         previewLyricsSurface.Should().Contain("Text=\"{Binding BodyText}\"",
             "Preview lyrics rows should show the full RichTextBox body without a separate page badge");
-        previewLyricsSurface.Should().Contain("<Setter Property=\"Background\" Value=\"#FFFFFF00\" />",
-            "the current Preview lyrics row should use FrmMain's selected-slide yellow background");
-        previewLyricsSurface.Should().Contain("<Setter Property=\"Foreground\" Value=\"Red\" />",
-            "the current Preview lyrics row should use FrmMain's selected-slide red text");
+        previewLyricsSurface.Should().Contain("<Setter Property=\"Background\" Value=\"#005FB8\" />",
+            "the current Preview lyrics row should use the active FrmMain slide accent");
+        previewLyricsSurface.Should().Contain("<Setter Property=\"Foreground\" Value=\"White\" />",
+            "the current Preview lyrics row should use white text on the active slide accent");
         previewLyricsSurface.Should().NotContain("<WrapPanel />");
         previewLyricsSurface.Should().NotContain("Width=\"180\"");
         previewLyricsSurface.Should().NotContain("MaxHeight=\"90\"");
@@ -2347,7 +2347,7 @@ public class MainMenuBarTests
 
     [Fact]
     public void MenuBar_FileMenuHasExit()
-        => Xaml.Should().Contain("Header=\"종료\"", "파일 메뉴에 종료가 있어야 함");
+        => Xaml.Should().Contain("Header=\"Exit\"", "파일 메뉴에 종료가 있어야 함");
 
     [Theory]
     // 미디어 전송 컨트롤이 텍스트 글리프 대신 Fluent SymbolIcon(EsIcons.Media*)으로 현대화됐는지(아이콘 업그레이드).
@@ -2473,7 +2473,7 @@ public class MainMenuBarTests
     }
 
     [Theory]
-    [InlineData("ToggleOutputLiveCommand", "IsOutputLiveActive")]
+    [InlineData("ToggleOutputLiveCommand", "IsShowRunning")]
     [InlineData("ToggleOutputBlackCommand", "IsOutputBlackActive")]
     [InlineData("ToggleOutputClearCommand", "IsOutputClearActive")]
     public void OutputLiveSafetyMenuItems_AreCheckedFrmMainToggles(string command, string activeProperty)
@@ -2495,6 +2495,8 @@ public class MainMenuBarTests
             .Select(s => s.DisplayText)
             .ToHashSet();
 
+        // Windows dispatches Alt+F4 to the window independently of the command catalog.
+        catalogDisplayTexts.Add("Alt+F4");
         var gestures = System.Text.RegularExpressions.Regex
             .Matches(Xaml, "InputGestureText=\"([^\"]+)\"")
             .Select(m => m.Groups[1].Value)

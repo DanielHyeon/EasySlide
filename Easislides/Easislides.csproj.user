@@ -160,6 +160,15 @@
     <Compile Update="Easislides\ImageTransitionControl.TextOverlay.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Update="Easislides\LyricsSlidePanel.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="Easislides\PowerPointThumbnailPanel.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="Easislides\RotationTimingPanel.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Update="Easislides\SongFindBox.cs">
       <SubType>Component</SubType>
     </Compile>

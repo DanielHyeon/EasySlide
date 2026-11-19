@@ -1760,35 +1760,11 @@ namespace Easislides
 		{
 			string InString = LyricsLists.Items[LyricsIndex].SubItems[2].Text;
 			ActionWordWrapSpacesAtStart(ref InString);
-			int length = InString.Length;
-			if (length == 0)
-			{
-				return 0;
-			}
-			int lineStart = 1;
-			int lastSpacePos = 0;
-			bool hasSpace = false;
-			int previousBreak = 1;
-			int breakCount = 0;
 			StringBuilder breaks = new();
-			for (int i = 1; i <= length; i++)
-			{
-				if (i < length && InString[i] == ' ')
-				{
-					lastSpacePos = i;
-					hasSpace = true;
-				}
-				else if (g.MeasureString(InString.AsSpan(lineStart, Math.Min(i + 1, length) - lineStart), MainFont).Width > InWidth)
-				{
-					breakCount++;
-					lineStart = hasSpace ? lastSpacePos + 1 : i;
-					breaks.Append(lineStart - previousBreak).Append('>');
-					previousBreak = lineStart;
-					hasSpace = false;
-				}
-			}
-			LyricsLists.Items[LyricsIndex].SubItems[4].Text = $"{breakCount + 1}>{MainFont.Size}>{breaks}{length - previousBreak + 1}>";
-			return breakCount + 1;
+			int count = LyricLineMeasurement.Count(InString, MainFont, g, InWidth, breaks);
+			if (count > 0)
+				LyricsLists.Items[LyricsIndex].SubItems[4].Text = $"{count}>{MainFont.Size}>{breaks}";
+			return count;
 		}
 
 

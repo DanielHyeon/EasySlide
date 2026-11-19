@@ -31,10 +31,10 @@
         <ControlTemplate x:Key="FrmMainMenuHeader" TargetType="MenuItem">
             <Border x:Name="MenuHeader" Background="Transparent" Padding="8,0">
                 <Grid>
-                    <ContentPresenter ContentSource="Header" RecognizesAccessKey="True" VerticalAlignment="Center" />
+                    <AccessText x:Name="MenuHeaderText" Text="{Binding Header, RelativeSource={RelativeSource TemplatedParent}, StringFormat=_{0}}" VerticalAlignment="Center" />
                     <Popup x:Name="PART_Popup" Placement="Bottom" Focusable="False" AllowsTransparency="True"
                            IsOpen="{Binding IsSubmenuOpen, RelativeSource={RelativeSource TemplatedParent}}">
-                        <Border Background="{DynamicResource {x:Static SystemColors.MenuBrushKey}}" Padding="2"
+                        <Border Background="{DynamicResource {x:Static SystemColors.MenuBrushKey}}" TextElement.Foreground="{DynamicResource {x:Static SystemColors.MenuTextBrushKey}}" Padding="2"
                                 BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}" BorderThickness="1">
                             <ScrollViewer MaxHeight="{Binding Source={x:Static SystemParameters.WorkArea}, Path=Height}"
                                           CanContentScroll="True" VerticalScrollBarVisibility="Auto">
@@ -47,7 +47,7 @@
             <ControlTemplate.Triggers>
                 <Trigger Property="IsHighlighted" Value="True">
                     <Setter TargetName="MenuHeader" Property="Background" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
-                    <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.HighlightTextBrushKey}}" />
+                    <Setter TargetName="MenuHeaderText" Property="Foreground" Value="{DynamicResource {x:Static SystemColors.HighlightTextBrushKey}}" />
                 </Trigger>
             </ControlTemplate.Triggers>
         </ControlTemplate>
@@ -257,650 +257,655 @@
               Padding="0"
               AutomationProperties.Name="주 메뉴">
             <MenuItem Header="File" Style="{x:Null}" Template="{StaticResource FrmMainMenuHeader}" Height="24">
-                <MenuItem Header="예배 순서 관리…" Click="OpenManageWorshipLists_Click" />
-                <MenuItem Header="찬양집…" Click="OpenPraiseBookIndex_Click" />
-                <MenuItem Header="선택한 폴더의 곡 목록 내보내기…" Click="ExportFolderListing_Click" />
-                <MenuItem Header="최근 편집 항목" x:Name="RecentEditsMenu" SubmenuOpened="RecentEdits_Open"><MenuItem Header="최근 편집 항목 없음" IsEnabled="False" /></MenuItem>
-                <Separator />
-                <!-- 빠른 저장(Ctrl+S) — 현재 세션 이름으로 덮어 저장. 미저장 변경(● 수정됨)과 짝. -->
-                <MenuItem Header="예배 순서 저장" Command="{Binding QuickSaveWorshipListCommand}" InputGestureText="Ctrl+S">
-                    <MenuItem.Icon><controls:FrmIcon Icon="save" Width="16" Height="16" /></MenuItem.Icon>
-                </MenuItem>
-                <Separator />
-                <MenuItem Header="예배 순서에 파일 추가" Click="AddExternalFile_Click">
-                    <MenuItem.Icon><controls:FrmIcon Icon="document_add" Width="16" Height="16" /></MenuItem.Icon>
-                </MenuItem>
-                <MenuItem Header="레거시 예배 순서(.esw) 가져오기..." Click="ImportLegacyWorshipList_Click">
-                    <MenuItem.Icon><controls:FrmIcon Icon="folder_open" Width="16" Height="16" /></MenuItem.Icon>
-                </MenuItem>
-                <MenuItem Header="PowerPoint 폴더 찾아보기..." Click="OpenPowerPointLibrary_Click">
-                    <MenuItem.Icon><controls:FrmIcon Icon="folder_open" Width="16" Height="16" /></MenuItem.Icon>
-                </MenuItem>
-                <MenuItem Header="미디어 폴더 찾아보기..." Click="OpenMediaLibrary_Click">
-                    <MenuItem.Icon><controls:FrmIcon Icon="folder_open" Width="16" Height="16" /></MenuItem.Icon>
-                </MenuItem>
-                <MenuItem Header="라이브러리 열기" Click="OpenLibrary_Click">
-                    <MenuItem.Icon><controls:FrmIcon Icon="book_open" Width="16" Height="16" /></MenuItem.Icon>
-                </MenuItem>
-                <!-- 최근 예배 순서(레거시 Recent Edits) — 최신순 이름을 클릭하면 즉시 다시 불러온다. 비어 있으면 비활성. -->
-                <MenuItem Header="최근 예배 순서"
-                          ItemsSource="{Binding RecentWorshipLists}">
-                    <MenuItem.Icon><controls:FrmIcon Icon="text_bullet_list_ltr" Width="16" Height="16" /></MenuItem.Icon>
-                    <MenuItem.ItemContainerStyle>
-                        <Style TargetType="MenuItem">
-                            <Setter Property="Header" Value="{Binding}" />
-                            <Setter Property="Command"
-                                    Value="{Binding DataContext.OpenRecentWorshipListCommand, RelativeSource={RelativeSource AncestorType=Menu}}" />
-                            <Setter Property="CommandParameter" Value="{Binding}" />
+                <MenuItem Header="Worship Sessions..." Click="OpenManageWorshipLists_Click">
+                    <MenuItem.Style>
+                        <Style TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsSelected, ElementName=WorshipListTab}" Value="False"><Setter Property="IsEnabled" Value="False" /></DataTrigger>
+                                <DataTrigger Binding="{Binding IsShowRunning}" Value="True"><Setter Property="IsEnabled" Value="False" /></DataTrigger>
+                            </Style.Triggers>
                         </Style>
-                    </MenuItem.ItemContainerStyle>
+                    </MenuItem.Style>
+                    <MenuItem.Icon><controls:FrmIcon Icon="clipboard_task_list_ltr" Width="16" Height="16" /></MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="PraiseBooks..." IsEnabled="{Binding IsSelected, ElementName=PraiseBookTab}" Click="OpenPraiseBookIndex_Click">
+                    <MenuItem.Icon><controls:FrmIcon Icon="clipboard_task_list_ltr" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
                 <Separator />
-                <MenuItem Header="종료" Click="Exit_Click" />
+                <MenuItem Header="Listing of Selected Folder" Click="ExportFolderListing_Click" />
+                <Separator />
+                <MenuItem Header="Recent Edits" x:Name="RecentEditsMenu" SubmenuOpened="RecentEdits_Open"><MenuItem Header="최근 편집 항목 없음" IsEnabled="False" /></MenuItem>
+                <Separator />
+                <MenuItem Header="Exit" Click="Exit_Click" InputGestureText="Alt+F4" />
+                <Separator />
+                <MenuItem Header="More…">
+                    <MenuItem Header="예배 순서 저장" Command="{Binding QuickSaveWorshipListCommand}" InputGestureText="Ctrl+S">
+                        <MenuItem.Icon><controls:FrmIcon Icon="save" Width="16" Height="16" /></MenuItem.Icon>
+                    </MenuItem>
+                    <Separator />
+                    <MenuItem Header="예배 순서에 파일 추가" Click="AddExternalFile_Click">
+                        <MenuItem.Icon><controls:FrmIcon Icon="document_add" Width="16" Height="16" /></MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="레거시 예배 순서(.esw) 가져오기..." Click="ImportLegacyWorshipList_Click">
+                        <MenuItem.Icon><controls:FrmIcon Icon="folder_open" Width="16" Height="16" /></MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="PowerPoint 폴더 찾아보기..." Click="OpenPowerPointLibrary_Click">
+                        <MenuItem.Icon><controls:FrmIcon Icon="folder_open" Width="16" Height="16" /></MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="미디어 폴더 찾아보기..." Click="OpenMediaLibrary_Click">
+                        <MenuItem.Icon><controls:FrmIcon Icon="folder_open" Width="16" Height="16" /></MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="라이브러리 열기" Click="OpenLibrary_Click">
+                        <MenuItem.Icon><controls:FrmIcon Icon="book_open" Width="16" Height="16" /></MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="최근 예배 순서"
+                              ItemsSource="{Binding RecentWorshipLists}">
+                        <MenuItem.Icon><controls:FrmIcon Icon="text_bullet_list_ltr" Width="16" Height="16" /></MenuItem.Icon>
+                        <MenuItem.ItemContainerStyle>
+                            <Style TargetType="MenuItem">
+                                <Setter Property="Header" Value="{Binding}" />
+                                <Setter Property="Command"
+                                        Value="{Binding DataContext.OpenRecentWorshipListCommand, RelativeSource={RelativeSource AncestorType=Menu}}" />
+                                <Setter Property="CommandParameter" Value="{Binding}" />
+                            </Style>
+                        </MenuItem.ItemContainerStyle>
+                    </MenuItem>
+                </MenuItem>
             </MenuItem>
 
             <MenuItem Header="Edit" Style="{x:Null}" Template="{StaticResource FrmMainMenuHeader}" Height="24">
-                <MenuItem Header="새 항목…" Tag="Main_New" Click="Main_SourceEdit_Click" IsEnabled="{Binding IsEnabled, ElementName=Main_New}" />
-                <MenuItem Header="선택 항목 편집…" Tag="Main_Edit" Click="Main_SourceEdit_Click" IsEnabled="{Binding IsEnabled, ElementName=Main_Edit}" />
-                <MenuItem Header="곡 전체 선택" Click="CMenuSongs_SelectAll_Click" />
-                <MenuItem Header="찾기…" Click="Main_Find_Click" InputGestureText="Ctrl+F" />
+                <MenuItem Header="Add New Song..." Tag="Main_New" Click="Main_SourceEdit_Click" IsEnabled="{Binding IsEnabled, ElementName=Main_New}">
+                    <MenuItem.Icon><controls:FrmIcon Icon="document_add" Width="16" Height="16" /></MenuItem.Icon>
+                </MenuItem>
                 <Separator />
-                <MenuItem Header="곡 번호 표시" IsCheckable="True" IsChecked="{Binding Library.UseSongNumbering, Mode=TwoWay}" />
-                <MenuItem Header="선택 항목 복사" Tag="Main_Copy" Click="Main_SourceEdit_Click" IsEnabled="{Binding IsEnabled, ElementName=Main_Copy}">
+                <MenuItem Header="Edit" Tag="Main_Edit" Click="Main_SourceEdit_Click" IsEnabled="{Binding IsEnabled, ElementName=Main_Edit}">
+                    <MenuItem.Icon><controls:FrmIcon Icon="edit" Width="16" Height="16" /></MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Copy" Tag="Main_Copy" Click="Main_SourceEdit_Click" IsEnabled="{Binding IsEnabled, ElementName=Main_Copy}">
                     <MenuItem.Icon><controls:FrmIcon Icon="copy" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Header="선택 항목 이동" Tag="Main_Move" Click="Main_SourceEdit_Click" IsEnabled="{Binding IsEnabled, ElementName=Main_Move}">
+                <MenuItem Header="Move" Tag="Main_Move" Click="Main_SourceEdit_Click" IsEnabled="{Binding IsEnabled, ElementName=Main_Move}">
                     <MenuItem.Icon><controls:FrmIcon Icon="folder_arrow_right" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Header="선택 항목 삭제" Tag="Main_Delete" Click="Main_SourceEdit_Click" IsEnabled="{Binding IsEnabled, ElementName=Main_Delete}">
+                <MenuItem Header="Delete..." Tag="Main_Delete" Click="Main_SourceEdit_Click" IsEnabled="{Binding IsEnabled, ElementName=Main_Delete}">
                     <MenuItem.Icon><controls:FrmIcon Icon="delete" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
                 <Separator />
-                <MenuItem Header="삭제 항목 복구" Click="SongRecover_Click">
-                    <MenuItem.Icon><controls:FrmIcon Icon="arrow_clockwise" Width="16" Height="16" /></MenuItem.Icon>
-                </MenuItem>
-                <MenuItem Header="스마트 병합" Click="SongMerge_Click">
-                    <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Template}" /></MenuItem.Icon>
+                <MenuItem Header="Select All" Click="CMenuSongs_SelectAll_Click" />
+                <MenuItem Header="Find" Click="Main_Find_Click" InputGestureText="Ctrl+F">
+                    <MenuItem.Icon><controls:FrmIcon Icon="search" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
                 <Separator />
-                <MenuItem Header="폴더 정리" Click="FolderEditor_Click">
-                    <MenuItem.Icon><controls:FrmIcon Icon="folder_open" Width="16" Height="16" /></MenuItem.Icon>
-                </MenuItem>
-                <MenuItem Header="곡 검색·사용처" Click="OpenSearchUsage_Click">
-                    <MenuItem.Icon><controls:FrmIcon Icon="search" Width="16" Height="16" /></MenuItem.Icon>
+                <MenuItem Header="Use Song Numbering" IsCheckable="True" IsChecked="{Binding Library.UseSongNumbering, Mode=TwoWay}" />
+                <MenuItem Header="Re-Arrange Song Folders" Click="FolderEditor_Click" />
+                <Separator />
+                <MenuItem Header="More…">
+                    <MenuItem Header="삭제 항목 복구" Click="SongRecover_Click">
+                        <MenuItem.Icon><controls:FrmIcon Icon="arrow_clockwise" Width="16" Height="16" /></MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="스마트 병합" Click="SongMerge_Click">
+                        <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Template}" /></MenuItem.Icon>
+                    </MenuItem>
+                    <Separator />
+                    <MenuItem Header="곡 검색·사용처" Click="OpenSearchUsage_Click">
+                        <MenuItem.Icon><controls:FrmIcon Icon="search" Width="16" Height="16" /></MenuItem.Icon>
+                    </MenuItem>
                 </MenuItem>
             </MenuItem>
 
             <MenuItem Header="View" Style="{x:Null}" Template="{StaticResource FrmMainMenuHeader}" Height="24">
-                <MenuItem Header="현재 목록 새로고침" Click="Main_Refresh_Click" />
-                <MenuItem Header="미리보기 코드 표시" IsCheckable="True" IsChecked="{Binding PreviewAreaShowNotations, Mode=TwoWay}" />
-                <MenuItem Header="상태 표시줄" x:Name="ShowStatusMenu" IsCheckable="True" IsChecked="True" />
-                <Separator />
-                <MenuItem Header="설정" Click="OpenSettings_Click">
-                    <MenuItem.Icon><controls:FrmIcon Icon="settings" Width="16" Height="16" /></MenuItem.Icon>
-                </MenuItem>
-                <MenuItem Header="출력 새로고침" Command="{Binding RefreshOutputCommand}" InputGestureText="Ctrl+F5">
-                    <MenuItem.Icon><controls:FrmIcon Icon="arrow_clockwise" Width="16" Height="16" /></MenuItem.Icon>
-                </MenuItem>
-                <MenuItem Header="EasiSlides 폴더 열기" Click="OpenEasiSlidesFolder_Click">
+                <MenuItem Header="EasiSlides Folder" Click="OpenEasiSlidesFolder_Click">
                     <MenuItem.Icon><controls:FrmIcon Icon="folder_open" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
+                <MenuItem Header="Options" Click="OpenSettings_Click">
+                    <MenuItem.Icon><controls:FrmIcon Icon="settings" Width="16" Height="16" /></MenuItem.Icon>
+                </MenuItem>
                 <Separator />
-                <!-- 곡 번호 표시(FrmMain Edit 메뉴 Use Song Numbering) — 라이브러리 곡 목록에 "번호. 제목" 표시. 설정에 저장됨. -->
-                <MenuItem Header="곡 번호 표시"
-                          IsCheckable="True"
-                          IsChecked="{Binding Library.UseSongNumbering, Mode=TwoWay}" />
+                <MenuItem Header="Refresh" Click="Main_Refresh_Click">
+                    <MenuItem.Icon><controls:FrmIcon Icon="arrow_clockwise" Width="16" Height="16" /></MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Show Notations in Preview" IsCheckable="True" IsChecked="{Binding PreviewAreaShowNotations, Mode=TwoWay}" />
+                <MenuItem Header="Status Bar" x:Name="ShowStatusMenu" IsCheckable="True" IsChecked="True" />
+                <Separator />
+                <MenuItem Header="More…">
+                    <MenuItem Header="출력 새로고침" Command="{Binding RefreshOutputCommand}" InputGestureText="Ctrl+F5">
+                        <MenuItem.Icon><controls:FrmIcon Icon="arrow_clockwise" Width="16" Height="16" /></MenuItem.Icon>
+                    </MenuItem>
+                    <Separator />
+                    <MenuItem Header="곡 번호 표시"
+                              IsCheckable="True"
+                              IsChecked="{Binding Library.UseSongNumbering, Mode=TwoWay}" />
+                </MenuItem>
             </MenuItem>
 
             <MenuItem Header="Output" Style="{x:Null}" Template="{StaticResource FrmMainMenuHeader}" Height="24">
-                <MenuItem Header="Go LIVE"
+                <MenuItem Header="Start Show - Go LIVE"
                           Command="{Binding ToggleOutputLiveCommand}"
                           IsCheckable="True"
-                          IsChecked="{Binding IsOutputLiveActive, Mode=OneWay}"
-                          InputGestureText="F12">
-                    <MenuItem.Icon><controls:FrmIcon Icon="live" Width="16" Height="16" /></MenuItem.Icon>
-                </MenuItem>
-                <MenuItem Header="송출 후 다음 항목" Command="{Binding SendToOutputAndNextCommand}" InputGestureText="F11">
-                    <MenuItem.Icon><controls:FrmIcon Icon="arrow_enter" Width="16" Height="16" /></MenuItem.Icon>
-                </MenuItem>
-                <MenuItem Header="Preview를 Output으로 보내고 Black 해제"
-                          Command="{Binding CopyPreviewToOutputAndClearBlackCommand}"
-                          InputGestureText="F7">
-                    <MenuItem.Icon><controls:FrmIcon Icon="arrow_enter" Width="16" Height="16" /></MenuItem.Icon>
-                </MenuItem>
-                <MenuItem Header="Preview를 Output으로 보내기"
-                          Command="{Binding CopyPreviewToOutputShortcutCommand}"
-                          InputGestureText="F8">
-                    <MenuItem.Icon><controls:FrmIcon Icon="arrow_enter" Width="16" Height="16" /></MenuItem.Icon>
-                </MenuItem>
-                <MenuItem Header="출력 새로고침" Command="{Binding RefreshOutputCommand}" />
-                <MenuItem Header="라이브 중지" Command="{Binding StopLiveCommand}">
-                    <MenuItem.Icon><controls:FrmIcon Icon="arrow_repeat_all_off" Width="16" Height="16" /></MenuItem.Icon>
-                </MenuItem>
+                          IsChecked="{Binding IsShowRunning, Mode=OneWay}"
+                          InputGestureText="F12" />
+                <MenuItem Header="Preview: Go Live, Move Next" Command="{Binding SendToOutputAndNextCommand}" InputGestureText="F11" />
+                <MenuItem Header="Refresh Output" Command="{Binding RefreshOutputCommand}" />
                 <Separator />
-                <MenuItem Header="처음 항목" Command="{Binding FirstItemCommand}" />
-                <MenuItem Header="다음 슬라이드/절" Command="{Binding LiveNextShortcutCommand}" InputGestureText="Space">
-                    <MenuItem.Icon><controls:FrmIcon Icon="arrow_enter" Width="16" Height="16" /></MenuItem.Icon>
-                </MenuItem>
-                <MenuItem Header="이전 슬라이드/절" Command="{Binding LivePreviousShortcutCommand}" InputGestureText="Shift+Space" />
-                <MenuItem Header="마지막 항목" Command="{Binding LastItemCommand}" />
-                <Separator />
-                <MenuItem Header="검은 화면"
+                <MenuItem Header="Black Screen"
                           Command="{Binding ToggleOutputBlackCommand}"
                           IsCheckable="True"
                           IsChecked="{Binding IsOutputBlackActive, Mode=OneWay}"
                           InputGestureText="F9">
                     <MenuItem.Icon><controls:FrmIcon Icon="desktop" Width="16" Height="16" Filled="True" /></MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Header="화면 비우기"
+                <MenuItem Header="Clear Screen"
                           Command="{Binding ToggleOutputClearCommand}"
                           IsCheckable="True"
                           IsChecked="{Binding IsOutputClearActive, Mode=OneWay}"
                           InputGestureText="F3">
-                    <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionClear}" /></MenuItem.Icon>
-                </MenuItem>
-                <MenuItem Header="출력 숨김" Command="{Binding HideOutputCommand}" InputGestureText="Ctrl+H">
                     <MenuItem.Icon><controls:FrmIcon Icon="closed_caption_off" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Header="복귀" Command="{Binding RestoreOutputCommand}" />
-                <MenuItem Header="현재 항목 처음으로" Command="{Binding RestartCurrentItemCommand}" InputGestureText="F5" />
+                <MenuItem Header="Restart Current Item" Command="{Binding RestartCurrentItemCommand}" InputGestureText="F5" />
                 <Separator />
-                <!-- 스테이지(Preview) 모니터(gap §3.1) — 회중용 출력과 별개로 워십 리더·밴드가 보는 확인 모니터.
-                     선택한 모니터에 풀스크린으로 가사를 띄우되, 회중 화면이 검정/비움이어도 스테이지는 가사를 계속 보여 준다. -->
-                <MenuItem Header="라이브 카메라 켜기/끄기" Command="{Binding ToggleOutputCameraCommand}" />
-                <MenuItem Header="스테이지 모니터 열기" Command="{Binding OpenStageMonitorCommand}">
-                    <MenuItem.Icon><controls:FrmIcon Icon="tab_desktop_multiple" Width="16" Height="16" /></MenuItem.Icon>
-                </MenuItem>
-                <MenuItem Header="스테이지 모니터 닫기" Command="{Binding CloseStageMonitorCommand}" />
-                <Separator />
-                <!-- 출력 표시 토글(FrmMain View/Output "Show …" 토글 대응) — 기존 인-셸 설정·명령 재사용.
-                     IsChecked 는 현재 상태(Active*)에 단방향 바인딩, 클릭은 토글 명령이 처리(체크 표시 동기화). -->
-                <MenuItem Header="정보 패널 표시"
-                          IsChecked="{Binding ActiveLyricsDisplayPanel, Mode=OneWay}"
-                          Command="{Binding ToggleLyricsDisplayPanelCommand}"
-                          ToolTip="Display Panel 전체 표시/숨김(레거시 Def_PanelShow)." />
-                <MenuItem Header="위치 인디케이터 (N/M)"
-                          IsChecked="{Binding ActiveLyricsPositionIndicator, Mode=OneWay}"
-                          Command="{Binding ToggleLyricsPositionIndicatorCommand}" />
-                <MenuItem Header="절 헤딩 (1절/후렴)"
-                          IsChecked="{Binding ActiveLyricsVerseHeading, Mode=OneWay}"
-                          Command="{Binding ToggleLyricsVerseHeadingCommand}" />
-                <MenuItem Header="곡 번호 표시"
-                          IsChecked="{Binding ActiveLyricsItemNumber, Mode=OneWay}"
-                          Command="{Binding ToggleLyricsItemNumberCommand}" />
-                <MenuItem Header="정보 패널에 제목 표시"
-                          IsChecked="{Binding ActiveLyricsTitleOnPanel, Mode=OneWay}"
-                          Command="{Binding ToggleLyricsTitleOnPanelCommand}"
-                          ToolTip="현재 곡 제목을 송출 화면 좌측 상단 정보 밴드에 작게 표시(레거시 Def_PanelTitle)." />
-                <MenuItem Header="저작권 표시"
-                          IsChecked="{Binding ActiveLyricsCopyright, Mode=OneWay}"
-                          Command="{Binding ToggleLyricsCopyrightCommand}" />
-                <MenuItem Header="다음 항목 표시"
-                          IsChecked="{Binding ActiveLyricsNextItem, Mode=OneWay}"
-                          Command="{Binding ToggleLyricsNextItemCommand}" />
-                <MenuItem Header="정보 패널 투명 배경"
-                          IsChecked="{Binding ActiveLyricsPanelTransparent, Mode=OneWay}"
-                          Command="{Binding TogglePanelTransparentCommand}"
-                          ToolTip="곡번호·저작권·다음항목 밴드의 어두운 배경을 없앱니다(레거시 Transparent)." />
-                <!-- 정보 패널 밴드 색(레거시 Def_PanelColour) — 색조만 고르고 반투명은 유지(밴드 뒤 가사 비침). 투명 배경 on 이면 무시됨. -->
-                <MenuItem Header="정보 패널 색">
-                    <MenuItem Header="검정 (기본)"
-                              Command="{Binding ApplyPanelColorHexCommand}"
-                              CommandParameter="#000000" />
-                    <MenuItem Header="남색"
-                              Command="{Binding ApplyPanelColorHexCommand}"
-                              CommandParameter="#102040" />
-                    <MenuItem Header="진회색"
-                              Command="{Binding ApplyPanelColorHexCommand}"
-                              CommandParameter="#303030" />
-                    <MenuItem Header="자주"
-                              Command="{Binding ApplyPanelColorHexCommand}"
-                              CommandParameter="#3A1030" />
-                    <MenuItem Header="진녹색"
-                              Command="{Binding ApplyPanelColorHexCommand}"
-                              CommandParameter="#103020" />
-                </MenuItem>
-                <!-- 정보 패널 글자 크기(레거시 Def_PanelFont 크기) — 곡번호·저작권·다음항목·위치 텍스트를 비율로 확대/축소. -->
-                <MenuItem Header="정보 패널 글자">
-                    <MenuItem Header="{Binding ActivePanelFontScale, StringFormat=현재 크기: {0}%}" IsEnabled="False" />
-                    <MenuItem Header="크게 (+)" Command="{Binding IncreasePanelFontScaleCommand}" />
-                    <MenuItem Header="작게 (−)" Command="{Binding DecreasePanelFontScaleCommand}" />
-                </MenuItem>
-                <MenuItem Header="제목 헤딩"
-                          IsChecked="{Binding ActiveLyricsTitleHeading, Mode=OneWay}"
-                          Command="{Binding ToggleLyricsTitleHeadingCommand}" />
-                <MenuItem Header="가사 외곽선"
-                          IsChecked="{Binding ActiveLyricsOutline, Mode=OneWay}"
-                          Command="{Binding ToggleLyricsOutlineCommand}" />
-                <MenuItem Header="가사 그림자"
-                          IsChecked="{Binding ActiveLyricsShadow, Mode=OneWay}"
-                          Command="{Binding ToggleLyricsShadowCommand}" />
-                <MenuItem Header="가사 굵게"
-                          IsChecked="{Binding ActiveLyricsBold, Mode=OneWay}"
-                          Command="{Binding ToggleLyricsBoldCommand}" />
-                <MenuItem Header="가사 기울임"
-                          IsChecked="{Binding ActiveLyricsItalic, Mode=OneWay}"
-                          Command="{Binding ToggleLyricsItalicCommand}" />
-                <MenuItem Header="가사 밑줄"
-                          IsChecked="{Binding ActiveLyricsUnderline, Mode=OneWay}"
-                          Command="{Binding ToggleLyricsUnderlineCommand}" />
-                <MenuItem Header="강조는 후렴만(굵게·기울임·밑줄)"
-                          IsChecked="{Binding ActiveLyricsEmphasisChorusOnly, Mode=OneWay}"
-                          Command="{Binding ToggleEmphasisChorusOnlyCommand}" />
-                <MenuItem Header="이중 언어 줄 교차(원문/번역 번갈아)"
-                          IsChecked="{Binding ActiveLyricsInterlace, Mode=OneWay}"
-                          Command="{Binding ToggleInterlaceCommand}" />
-                <Separator />
-                <!-- 전환 효과(FrmMain Transition) — 현재 페이드만 구현. 페이드 on/off + 속도 프리셋. -->
-                <MenuItem Header="전환 효과">
-                    <MenuItem Header="페이드 사용"
-                              IsChecked="{Binding ActiveFadeTransition, Mode=OneWay}"
-                              Command="{Binding ToggleFadeTransitionCommand}" />
-                    <Separator />
-                    <!-- 슬라이드/절 전환(같은 곡 안 절·슬라이드 이동) — 항목 전환(아래 '모션:' 라디오)과 분리(FrmMain 항목 vs 슬라이드 전환). -->
-                    <MenuItem Header="슬라이드 전환(같은 곡 절·슬라이드 이동)"
-                              StaysOpenOnClick="True"
-                              ToolTip="같은 곡 안에서 절·슬라이드만 바뀔 때 쓰는 전환. 곡→곡 항목 전환은 아래 '모션:' 항목에서 따로 고릅니다.">
-                        <ComboBox ItemsSource="{Binding TransitionKindOptions}"
-                                  SelectedValue="{Binding SlideTransitionKindInput, Mode=TwoWay}"
-                                  SelectedValuePath="Value"
-                                  DisplayMemberPath="Key"
-                                  MinWidth="200"
-                                  Margin="4"
-                                  AutomationProperties.Name="슬라이드/절 전환 효과" />
+                <MenuItem Header="More…">
+                    <MenuItem Header="Preview를 Output으로 보내고 Black 해제"
+                              Command="{Binding CopyPreviewToOutputAndClearBlackCommand}"
+                              InputGestureText="F7">
+                        <MenuItem.Icon><controls:FrmIcon Icon="arrow_enter" Width="16" Height="16" /></MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="Preview를 Output으로 보내기"
+                              Command="{Binding CopyPreviewToOutputShortcutCommand}"
+                              InputGestureText="F8">
+                        <MenuItem.Icon><controls:FrmIcon Icon="arrow_enter" Width="16" Height="16" /></MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="라이브 중지" Command="{Binding StopLiveCommand}">
+                        <MenuItem.Icon><controls:FrmIcon Icon="arrow_repeat_all_off" Width="16" Height="16" /></MenuItem.Icon>
                     </MenuItem>
                     <Separator />
-                    <!-- 항목 전환(곡→곡) 모션(Fade/Slide 4방향 등) — FrmMain 전환 효과 중 구현분. -->
-                    <MenuItem Header="모션: 페이드"
-                              IsChecked="{Binding TransitionKindIsFade, Mode=OneWay}"
-                              Command="{Binding ApplyTransitionKindCommand}"
-                              CommandParameter="{x:Static settings:LyricsTransitionKind.Fade}" />
-                    <MenuItem Header="모션: 슬라이드 ←(왼쪽에서)"
-                              IsChecked="{Binding TransitionKindIsSlideLeft, Mode=OneWay}"
-                              Command="{Binding ApplyTransitionKindCommand}"
-                              CommandParameter="{x:Static settings:LyricsTransitionKind.SlideFromLeft}" />
-                    <MenuItem Header="모션: 슬라이드 →(오른쪽에서)"
-                              IsChecked="{Binding TransitionKindIsSlideRight, Mode=OneWay}"
-                              Command="{Binding ApplyTransitionKindCommand}"
-                              CommandParameter="{x:Static settings:LyricsTransitionKind.SlideFromRight}" />
-                    <MenuItem Header="모션: 슬라이드 ↑(위에서)"
-                              IsChecked="{Binding TransitionKindIsSlideUp, Mode=OneWay}"
-                              Command="{Binding ApplyTransitionKindCommand}"
-                              CommandParameter="{x:Static settings:LyricsTransitionKind.SlideFromTop}" />
-                    <MenuItem Header="모션: 슬라이드 ↓(아래에서)"
-                              IsChecked="{Binding TransitionKindIsSlideDown, Mode=OneWay}"
-                              Command="{Binding ApplyTransitionKindCommand}"
-                              CommandParameter="{x:Static settings:LyricsTransitionKind.SlideFromBottom}" />
-                    <MenuItem Header="모션: 줌 인"
-                              IsChecked="{Binding TransitionKindIsZoomIn, Mode=OneWay}"
-                              Command="{Binding ApplyTransitionKindCommand}"
-                              CommandParameter="{x:Static settings:LyricsTransitionKind.ZoomIn}" />
-                    <MenuItem Header="모션: 줌 아웃"
-                              IsChecked="{Binding TransitionKindIsZoomOut, Mode=OneWay}"
-                              Command="{Binding ApplyTransitionKindCommand}"
-                              CommandParameter="{x:Static settings:LyricsTransitionKind.ZoomOut}" />
-                    <MenuItem Header="모션: 회전"
-                              IsChecked="{Binding TransitionKindIsSpin, Mode=OneWay}"
-                              Command="{Binding ApplyTransitionKindCommand}"
-                              CommandParameter="{x:Static settings:LyricsTransitionKind.Spin}" />
-                    <MenuItem Header="모션: 뒤집기(가로)"
-                              IsChecked="{Binding TransitionKindIsFlipH, Mode=OneWay}"
-                              Command="{Binding ApplyTransitionKindCommand}"
-                              CommandParameter="{x:Static settings:LyricsTransitionKind.FlipHorizontal}" />
-                    <MenuItem Header="모션: 뒤집기(세로)"
-                              IsChecked="{Binding TransitionKindIsFlipV, Mode=OneWay}"
-                              Command="{Binding ApplyTransitionKindCommand}"
-                              CommandParameter="{x:Static settings:LyricsTransitionKind.FlipVertical}" />
-                    <MenuItem Header="모션: 원형 리빌"
-                              IsChecked="{Binding TransitionKindIsRevealCircle, Mode=OneWay}"
-                              Command="{Binding ApplyTransitionKindCommand}"
-                              CommandParameter="{x:Static settings:LyricsTransitionKind.RevealCircle}" />
-                    <MenuItem Header="모션: 사각 리빌"
-                              IsChecked="{Binding TransitionKindIsRevealRectangle, Mode=OneWay}"
-                              Command="{Binding ApplyTransitionKindCommand}"
-                              CommandParameter="{x:Static settings:LyricsTransitionKind.RevealRectangle}" />
-                    <MenuItem Header="모션: 와이프 →"
-                              IsChecked="{Binding TransitionKindIsWipeRight, Mode=OneWay}"
-                              Command="{Binding ApplyTransitionKindCommand}"
-                              CommandParameter="{x:Static settings:LyricsTransitionKind.WipeRight}" />
-                    <MenuItem Header="모션: 와이프 ←"
-                              IsChecked="{Binding TransitionKindIsWipeLeft, Mode=OneWay}"
-                              Command="{Binding ApplyTransitionKindCommand}"
-                              CommandParameter="{x:Static settings:LyricsTransitionKind.WipeLeft}" />
-                    <MenuItem Header="모션: 와이프 ↓"
-                              IsChecked="{Binding TransitionKindIsWipeDown, Mode=OneWay}"
-                              Command="{Binding ApplyTransitionKindCommand}"
-                              CommandParameter="{x:Static settings:LyricsTransitionKind.WipeDown}" />
-                    <MenuItem Header="모션: 와이프 ↑"
-                              IsChecked="{Binding TransitionKindIsWipeUp, Mode=OneWay}"
-                              Command="{Binding ApplyTransitionKindCommand}"
-                              CommandParameter="{x:Static settings:LyricsTransitionKind.WipeUp}" />
-                    <MenuItem Header="모션: 블라인드(가로)"
-                              IsChecked="{Binding TransitionKindIsBlindsH, Mode=OneWay}"
-                              Command="{Binding ApplyTransitionKindCommand}"
-                              CommandParameter="{x:Static settings:LyricsTransitionKind.BlindsHorizontal}" />
-                    <MenuItem Header="모션: 블라인드(세로)"
-                              IsChecked="{Binding TransitionKindIsBlindsV, Mode=OneWay}"
-                              Command="{Binding ApplyTransitionKindCommand}"
-                              CommandParameter="{x:Static settings:LyricsTransitionKind.BlindsVertical}" />
-                    <MenuItem Header="모션: 체커보드"
-                              IsChecked="{Binding TransitionKindIsCheckerboard, Mode=OneWay}"
-                              Command="{Binding ApplyTransitionKindCommand}"
-                              CommandParameter="{x:Static settings:LyricsTransitionKind.Checkerboard}" />
-                    <MenuItem Header="모션: 다이아몬드"
-                              IsChecked="{Binding TransitionKindIsDiamond, Mode=OneWay}"
-                              Command="{Binding ApplyTransitionKindCommand}"
-                              CommandParameter="{x:Static settings:LyricsTransitionKind.Diamond}" />
-                    <MenuItem Header="모션: 양문 열기"
-                              IsChecked="{Binding TransitionKindIsDoorsOpen, Mode=OneWay}"
-                              Command="{Binding ApplyTransitionKindCommand}"
-                              CommandParameter="{x:Static settings:LyricsTransitionKind.DoorsOpen}" />
-                    <MenuItem Header="모션: 양문 닫기"
-                              IsChecked="{Binding TransitionKindIsDoorsClose, Mode=OneWay}"
-                              Command="{Binding ApplyTransitionKindCommand}"
-                              CommandParameter="{x:Static settings:LyricsTransitionKind.DoorsClose}" />
-                    <MenuItem Header="모션: 별"
-                              IsChecked="{Binding TransitionKindIsStar, Mode=OneWay}"
-                              Command="{Binding ApplyTransitionKindCommand}"
-                              CommandParameter="{x:Static settings:LyricsTransitionKind.Star}" />
-                    <MenuItem Header="모션: 십자(2-레이어)"
-                              IsChecked="{Binding TransitionKindIsCross, Mode=OneWay}"
-                              Command="{Binding ApplyTransitionKindCommand}"
-                              CommandParameter="{x:Static settings:LyricsTransitionKind.Cross}" />
-                    <MenuItem Header="모션: 나비넥타이(2-레이어)"
-                              IsChecked="{Binding TransitionKindIsBowTie, Mode=OneWay}"
-                              Command="{Binding ApplyTransitionKindCommand}"
-                              CommandParameter="{x:Static settings:LyricsTransitionKind.BowTie}" />
-                    <MenuItem Header="모션: 하트(2-레이어)"
-                              IsChecked="{Binding TransitionKindIsHeart, Mode=OneWay}"
-                              Command="{Binding ApplyTransitionKindCommand}"
-                              CommandParameter="{x:Static settings:LyricsTransitionKind.Heart}" />
-                    <MenuItem Header="모션: 시계 와이프"
-                              IsChecked="{Binding TransitionKindIsWedge, Mode=OneWay}"
-                              Command="{Binding ApplyTransitionKindCommand}"
-                              CommandParameter="{x:Static settings:LyricsTransitionKind.Wedge}" />
-                    <MenuItem Header="모션: 나선"
-                              IsChecked="{Binding TransitionKindIsSpiral, Mode=OneWay}"
-                              Command="{Binding ApplyTransitionKindCommand}"
-                              CommandParameter="{x:Static settings:LyricsTransitionKind.Spiral}" />
-                    <MenuItem Header="모션: 바람개비"
-                              IsChecked="{Binding TransitionKindIsWindMill, Mode=OneWay}"
-                              Command="{Binding ApplyTransitionKindCommand}"
-                              CommandParameter="{x:Static settings:LyricsTransitionKind.WindMill}" />
-                    <MenuItem Header="모션: 부채 펼침"
-                              IsChecked="{Binding TransitionKindIsFanUp, Mode=OneWay}"
-                              Command="{Binding ApplyTransitionKindCommand}"
-                              CommandParameter="{x:Static settings:LyricsTransitionKind.FanUp}" />
-                    <Separator />
-                    <MenuItem Header="빠르게 (150ms)"
-                              IsChecked="{Binding TransitionIsFast, Mode=OneWay}"
-                              Command="{Binding ApplyTransitionDurationCommand}">
-                        <MenuItem.CommandParameter>
-                            <sys:Int32>150</sys:Int32>
-                        </MenuItem.CommandParameter>
+                    <MenuItem Header="처음 항목" Command="{Binding FirstItemCommand}" />
+                    <MenuItem Header="다음 슬라이드/절" Command="{Binding LiveNextShortcutCommand}" InputGestureText="Space">
+                        <MenuItem.Icon><controls:FrmIcon Icon="arrow_enter" Width="16" Height="16" /></MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem Header="보통 (250ms)"
-                              IsChecked="{Binding TransitionIsNormal, Mode=OneWay}"
-                              Command="{Binding ApplyTransitionDurationCommand}">
-                        <MenuItem.CommandParameter>
-                            <sys:Int32>250</sys:Int32>
-                        </MenuItem.CommandParameter>
+                    <MenuItem Header="이전 슬라이드/절" Command="{Binding LivePreviousShortcutCommand}" InputGestureText="Shift+Space" />
+                    <MenuItem Header="마지막 항목" Command="{Binding LastItemCommand}" />
+                    <Separator />
+                    <MenuItem Header="출력 숨김" Command="{Binding HideOutputCommand}" InputGestureText="Ctrl+H">
+                        <MenuItem.Icon><controls:FrmIcon Icon="closed_caption_off" Width="16" Height="16" /></MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem Header="느리게 (500ms)"
-                              IsChecked="{Binding TransitionIsSlow, Mode=OneWay}"
-                              Command="{Binding ApplyTransitionDurationCommand}">
-                        <MenuItem.CommandParameter>
-                            <sys:Int32>500</sys:Int32>
-                        </MenuItem.CommandParameter>
+                    <MenuItem Header="복귀" Command="{Binding RestoreOutputCommand}" />
+                    <Separator />
+                    <MenuItem Header="라이브 카메라 켜기/끄기" Command="{Binding ToggleOutputCameraCommand}" />
+                    <MenuItem Header="스테이지 모니터 열기" Command="{Binding OpenStageMonitorCommand}">
+                        <MenuItem.Icon><controls:FrmIcon Icon="tab_desktop_multiple" Width="16" Height="16" /></MenuItem.Icon>
                     </MenuItem>
-                </MenuItem>
-                <!-- 대기 화면(Gap)(FrmMain Gap Item) — 라이브 콘텐츠가 없을 때(대기 상태) 보여줄 화면. 모드/페이드/로고를 빠르게 조작. -->
-                <MenuItem Header="대기 화면(Gap)">
-                    <MenuItem Header="모드"
-                              StaysOpenOnClick="True"
-                              ToolTip="대기(라이브 콘텐츠 없음) 상태에서 보여줄 화면: 없음/검정/기본/로고 이미지.">
-                        <ComboBox ItemsSource="{Binding GapItemModeOptions}"
-                                  SelectedValue="{Binding GapItemModeInput, Mode=TwoWay}"
-                                  SelectedValuePath="Value"
-                                  DisplayMemberPath="Key"
-                                  MinWidth="180"
-                                  Margin="4"
-                                  AutomationProperties.Name="대기 화면 Gap 모드" />
+                    <MenuItem Header="스테이지 모니터 닫기" Command="{Binding CloseStageMonitorCommand}" />
+                    <Separator />
+                    <MenuItem Header="정보 패널 표시"
+                              IsChecked="{Binding ActiveLyricsDisplayPanel, Mode=OneWay}"
+                              Command="{Binding ToggleLyricsDisplayPanelCommand}"
+                              ToolTip="Display Panel 전체 표시/숨김(레거시 Def_PanelShow)." />
+                    <MenuItem Header="위치 인디케이터 (N/M)"
+                              IsChecked="{Binding ActiveLyricsPositionIndicator, Mode=OneWay}"
+                              Command="{Binding ToggleLyricsPositionIndicatorCommand}" />
+                    <MenuItem Header="절 헤딩 (1절/후렴)"
+                              IsChecked="{Binding ActiveLyricsVerseHeading, Mode=OneWay}"
+                              Command="{Binding ToggleLyricsVerseHeadingCommand}" />
+                    <MenuItem Header="곡 번호 표시"
+                              IsChecked="{Binding ActiveLyricsItemNumber, Mode=OneWay}"
+                              Command="{Binding ToggleLyricsItemNumberCommand}" />
+                    <MenuItem Header="정보 패널에 제목 표시"
+                              IsChecked="{Binding ActiveLyricsTitleOnPanel, Mode=OneWay}"
+                              Command="{Binding ToggleLyricsTitleOnPanelCommand}"
+                              ToolTip="현재 곡 제목을 송출 화면 좌측 상단 정보 밴드에 작게 표시(레거시 Def_PanelTitle)." />
+                    <MenuItem Header="저작권 표시"
+                              IsChecked="{Binding ActiveLyricsCopyright, Mode=OneWay}"
+                              Command="{Binding ToggleLyricsCopyrightCommand}" />
+                    <MenuItem Header="다음 항목 표시"
+                              IsChecked="{Binding ActiveLyricsNextItem, Mode=OneWay}"
+                              Command="{Binding ToggleLyricsNextItemCommand}" />
+                    <MenuItem Header="정보 패널 투명 배경"
+                              IsChecked="{Binding ActiveLyricsPanelTransparent, Mode=OneWay}"
+                              Command="{Binding TogglePanelTransparentCommand}"
+                              ToolTip="곡번호·저작권·다음항목 밴드의 어두운 배경을 없앱니다(레거시 Transparent)." />
+                    <MenuItem Header="정보 패널 색">
+                        <MenuItem Header="검정 (기본)"
+                                  Command="{Binding ApplyPanelColorHexCommand}"
+                                  CommandParameter="#000000" />
+                        <MenuItem Header="남색"
+                                  Command="{Binding ApplyPanelColorHexCommand}"
+                                  CommandParameter="#102040" />
+                        <MenuItem Header="진회색"
+                                  Command="{Binding ApplyPanelColorHexCommand}"
+                                  CommandParameter="#303030" />
+                        <MenuItem Header="자주"
+                                  Command="{Binding ApplyPanelColorHexCommand}"
+                                  CommandParameter="#3A1030" />
+                        <MenuItem Header="진녹색"
+                                  Command="{Binding ApplyPanelColorHexCommand}"
+                                  CommandParameter="#103020" />
                     </MenuItem>
-                    <MenuItem Header="전환 페이드 사용"
-                              IsChecked="{Binding ActiveGapItemUseFade, Mode=OneWay}"
-                              Command="{Binding ToggleGapItemUseFadeCommand}"
-                              ToolTip="대기 화면으로 들어갈 때 부드럽게 페이드합니다." />
+                    <MenuItem Header="정보 패널 글자">
+                        <MenuItem Header="{Binding ActivePanelFontScale, StringFormat=현재 크기: {0}%}" IsEnabled="False" />
+                        <MenuItem Header="크게 (+)" Command="{Binding IncreasePanelFontScaleCommand}" />
+                        <MenuItem Header="작게 (−)" Command="{Binding DecreasePanelFontScaleCommand}" />
+                    </MenuItem>
+                    <MenuItem Header="제목 헤딩"
+                              IsChecked="{Binding ActiveLyricsTitleHeading, Mode=OneWay}"
+                              Command="{Binding ToggleLyricsTitleHeadingCommand}" />
+                    <MenuItem Header="가사 외곽선"
+                              IsChecked="{Binding ActiveLyricsOutline, Mode=OneWay}"
+                              Command="{Binding ToggleLyricsOutlineCommand}" />
+                    <MenuItem Header="가사 그림자"
+                              IsChecked="{Binding ActiveLyricsShadow, Mode=OneWay}"
+                              Command="{Binding ToggleLyricsShadowCommand}" />
+                    <MenuItem Header="가사 굵게"
+                              IsChecked="{Binding ActiveLyricsBold, Mode=OneWay}"
+                              Command="{Binding ToggleLyricsBoldCommand}" />
+                    <MenuItem Header="가사 기울임"
+                              IsChecked="{Binding ActiveLyricsItalic, Mode=OneWay}"
+                              Command="{Binding ToggleLyricsItalicCommand}" />
+                    <MenuItem Header="가사 밑줄"
+                              IsChecked="{Binding ActiveLyricsUnderline, Mode=OneWay}"
+                              Command="{Binding ToggleLyricsUnderlineCommand}" />
+                    <MenuItem Header="강조는 후렴만(굵게·기울임·밑줄)"
+                              IsChecked="{Binding ActiveLyricsEmphasisChorusOnly, Mode=OneWay}"
+                              Command="{Binding ToggleEmphasisChorusOnlyCommand}" />
+                    <MenuItem Header="이중 언어 줄 교차(원문/번역 번갈아)"
+                              IsChecked="{Binding ActiveLyricsInterlace, Mode=OneWay}"
+                              Command="{Binding ToggleInterlaceCommand}" />
                     <Separator />
-                    <MenuItem Header="로고 이미지 선택..." Click="SelectGapLogo_Click"
-                              ToolTip="'로고' 모드에서 보여줄 이미지를 고릅니다(고르면 모드도 로고로 바뀜)." />
-                    <MenuItem Header="로고 지우기"
-                              Command="{Binding ClearGapItemLogoFileCommand}" />
-                </MenuItem>
-                <!-- 배경 이미지(FrmMain Images 탭 — 배경 적용). 선택은 파일 대화상자(코드-비하인드), 해제는 커맨드. -->
-                <MenuItem Header="배경 이미지">
-                    <MenuItem Header="갤러리에서 선택..."
-                              Click="OpenImageLibrary_Click" />
-                    <MenuItem Header="이미지 선택..."
-                              Click="SelectOutputBackgroundImage_Click" />
-                    <MenuItem Header="배경 지우기"
-                              Command="{Binding ClearOutputBackgroundImageCommand}" />
+                    <MenuItem Header="전환 효과">
+                        <MenuItem Header="페이드 사용"
+                                  IsChecked="{Binding ActiveFadeTransition, Mode=OneWay}"
+                                  Command="{Binding ToggleFadeTransitionCommand}" />
+                        <Separator />
+                        <!-- 슬라이드/절 전환(같은 곡 안 절·슬라이드 이동) — 항목 전환(아래 '모션:' 라디오)과 분리(FrmMain 항목 vs 슬라이드 전환). -->
+                        <MenuItem Header="슬라이드 전환(같은 곡 절·슬라이드 이동)"
+                                  StaysOpenOnClick="True"
+                                  ToolTip="같은 곡 안에서 절·슬라이드만 바뀔 때 쓰는 전환. 곡→곡 항목 전환은 아래 '모션:' 항목에서 따로 고릅니다.">
+                            <ComboBox ItemsSource="{Binding TransitionKindOptions}"
+                                      SelectedValue="{Binding SlideTransitionKindInput, Mode=TwoWay}"
+                                      SelectedValuePath="Value"
+                                      DisplayMemberPath="Key"
+                                      MinWidth="200"
+                                      Margin="4"
+                                      AutomationProperties.Name="슬라이드/절 전환 효과" />
+                        </MenuItem>
+                        <Separator />
+                        <!-- 항목 전환(곡→곡) 모션(Fade/Slide 4방향 등) — FrmMain 전환 효과 중 구현분. -->
+                        <MenuItem Header="모션: 페이드"
+                                  IsChecked="{Binding TransitionKindIsFade, Mode=OneWay}"
+                                  Command="{Binding ApplyTransitionKindCommand}"
+                                  CommandParameter="{x:Static settings:LyricsTransitionKind.Fade}" />
+                        <MenuItem Header="모션: 슬라이드 ←(왼쪽에서)"
+                                  IsChecked="{Binding TransitionKindIsSlideLeft, Mode=OneWay}"
+                                  Command="{Binding ApplyTransitionKindCommand}"
+                                  CommandParameter="{x:Static settings:LyricsTransitionKind.SlideFromLeft}" />
+                        <MenuItem Header="모션: 슬라이드 →(오른쪽에서)"
+                                  IsChecked="{Binding TransitionKindIsSlideRight, Mode=OneWay}"
+                                  Command="{Binding ApplyTransitionKindCommand}"
+                                  CommandParameter="{x:Static settings:LyricsTransitionKind.SlideFromRight}" />
+                        <MenuItem Header="모션: 슬라이드 ↑(위에서)"
+                                  IsChecked="{Binding TransitionKindIsSlideUp, Mode=OneWay}"
+                                  Command="{Binding ApplyTransitionKindCommand}"
+                                  CommandParameter="{x:Static settings:LyricsTransitionKind.SlideFromTop}" />
+                        <MenuItem Header="모션: 슬라이드 ↓(아래에서)"
+                                  IsChecked="{Binding TransitionKindIsSlideDown, Mode=OneWay}"
+                                  Command="{Binding ApplyTransitionKindCommand}"
+                                  CommandParameter="{x:Static settings:LyricsTransitionKind.SlideFromBottom}" />
+                        <MenuItem Header="모션: 줌 인"
+                                  IsChecked="{Binding TransitionKindIsZoomIn, Mode=OneWay}"
+                                  Command="{Binding ApplyTransitionKindCommand}"
+                                  CommandParameter="{x:Static settings:LyricsTransitionKind.ZoomIn}" />
+                        <MenuItem Header="모션: 줌 아웃"
+                                  IsChecked="{Binding TransitionKindIsZoomOut, Mode=OneWay}"
+                                  Command="{Binding ApplyTransitionKindCommand}"
+                                  CommandParameter="{x:Static settings:LyricsTransitionKind.ZoomOut}" />
+                        <MenuItem Header="모션: 회전"
+                                  IsChecked="{Binding TransitionKindIsSpin, Mode=OneWay}"
+                                  Command="{Binding ApplyTransitionKindCommand}"
+                                  CommandParameter="{x:Static settings:LyricsTransitionKind.Spin}" />
+                        <MenuItem Header="모션: 뒤집기(가로)"
+                                  IsChecked="{Binding TransitionKindIsFlipH, Mode=OneWay}"
+                                  Command="{Binding ApplyTransitionKindCommand}"
+                                  CommandParameter="{x:Static settings:LyricsTransitionKind.FlipHorizontal}" />
+                        <MenuItem Header="모션: 뒤집기(세로)"
+                                  IsChecked="{Binding TransitionKindIsFlipV, Mode=OneWay}"
+                                  Command="{Binding ApplyTransitionKindCommand}"
+                                  CommandParameter="{x:Static settings:LyricsTransitionKind.FlipVertical}" />
+                        <MenuItem Header="모션: 원형 리빌"
+                                  IsChecked="{Binding TransitionKindIsRevealCircle, Mode=OneWay}"
+                                  Command="{Binding ApplyTransitionKindCommand}"
+                                  CommandParameter="{x:Static settings:LyricsTransitionKind.RevealCircle}" />
+                        <MenuItem Header="모션: 사각 리빌"
+                                  IsChecked="{Binding TransitionKindIsRevealRectangle, Mode=OneWay}"
+                                  Command="{Binding ApplyTransitionKindCommand}"
+                                  CommandParameter="{x:Static settings:LyricsTransitionKind.RevealRectangle}" />
+                        <MenuItem Header="모션: 와이프 →"
+                                  IsChecked="{Binding TransitionKindIsWipeRight, Mode=OneWay}"
+                                  Command="{Binding ApplyTransitionKindCommand}"
+                                  CommandParameter="{x:Static settings:LyricsTransitionKind.WipeRight}" />
+                        <MenuItem Header="모션: 와이프 ←"
+                                  IsChecked="{Binding TransitionKindIsWipeLeft, Mode=OneWay}"
+                                  Command="{Binding ApplyTransitionKindCommand}"
+                                  CommandParameter="{x:Static settings:LyricsTransitionKind.WipeLeft}" />
+                        <MenuItem Header="모션: 와이프 ↓"
+                                  IsChecked="{Binding TransitionKindIsWipeDown, Mode=OneWay}"
+                                  Command="{Binding ApplyTransitionKindCommand}"
+                                  CommandParameter="{x:Static settings:LyricsTransitionKind.WipeDown}" />
+                        <MenuItem Header="모션: 와이프 ↑"
+                                  IsChecked="{Binding TransitionKindIsWipeUp, Mode=OneWay}"
+                                  Command="{Binding ApplyTransitionKindCommand}"
+                                  CommandParameter="{x:Static settings:LyricsTransitionKind.WipeUp}" />
+                        <MenuItem Header="모션: 블라인드(가로)"
+                                  IsChecked="{Binding TransitionKindIsBlindsH, Mode=OneWay}"
+                                  Command="{Binding ApplyTransitionKindCommand}"
+                                  CommandParameter="{x:Static settings:LyricsTransitionKind.BlindsHorizontal}" />
+                        <MenuItem Header="모션: 블라인드(세로)"
+                                  IsChecked="{Binding TransitionKindIsBlindsV, Mode=OneWay}"
+                                  Command="{Binding ApplyTransitionKindCommand}"
+                                  CommandParameter="{x:Static settings:LyricsTransitionKind.BlindsVertical}" />
+                        <MenuItem Header="모션: 체커보드"
+                                  IsChecked="{Binding TransitionKindIsCheckerboard, Mode=OneWay}"
+                                  Command="{Binding ApplyTransitionKindCommand}"
+                                  CommandParameter="{x:Static settings:LyricsTransitionKind.Checkerboard}" />
+                        <MenuItem Header="모션: 다이아몬드"
+                                  IsChecked="{Binding TransitionKindIsDiamond, Mode=OneWay}"
+                                  Command="{Binding ApplyTransitionKindCommand}"
+                                  CommandParameter="{x:Static settings:LyricsTransitionKind.Diamond}" />
+                        <MenuItem Header="모션: 양문 열기"
+                                  IsChecked="{Binding TransitionKindIsDoorsOpen, Mode=OneWay}"
+                                  Command="{Binding ApplyTransitionKindCommand}"
+                                  CommandParameter="{x:Static settings:LyricsTransitionKind.DoorsOpen}" />
+                        <MenuItem Header="모션: 양문 닫기"
+                                  IsChecked="{Binding TransitionKindIsDoorsClose, Mode=OneWay}"
+                                  Command="{Binding ApplyTransitionKindCommand}"
+                                  CommandParameter="{x:Static settings:LyricsTransitionKind.DoorsClose}" />
+                        <MenuItem Header="모션: 별"
+                                  IsChecked="{Binding TransitionKindIsStar, Mode=OneWay}"
+                                  Command="{Binding ApplyTransitionKindCommand}"
+                                  CommandParameter="{x:Static settings:LyricsTransitionKind.Star}" />
+                        <MenuItem Header="모션: 십자(2-레이어)"
+                                  IsChecked="{Binding TransitionKindIsCross, Mode=OneWay}"
+                                  Command="{Binding ApplyTransitionKindCommand}"
+                                  CommandParameter="{x:Static settings:LyricsTransitionKind.Cross}" />
+                        <MenuItem Header="모션: 나비넥타이(2-레이어)"
+                                  IsChecked="{Binding TransitionKindIsBowTie, Mode=OneWay}"
+                                  Command="{Binding ApplyTransitionKindCommand}"
+                                  CommandParameter="{x:Static settings:LyricsTransitionKind.BowTie}" />
+                        <MenuItem Header="모션: 하트(2-레이어)"
+                                  IsChecked="{Binding TransitionKindIsHeart, Mode=OneWay}"
+                                  Command="{Binding ApplyTransitionKindCommand}"
+                                  CommandParameter="{x:Static settings:LyricsTransitionKind.Heart}" />
+                        <MenuItem Header="모션: 시계 와이프"
+                                  IsChecked="{Binding TransitionKindIsWedge, Mode=OneWay}"
+                                  Command="{Binding ApplyTransitionKindCommand}"
+                                  CommandParameter="{x:Static settings:LyricsTransitionKind.Wedge}" />
+                        <MenuItem Header="모션: 나선"
+                                  IsChecked="{Binding TransitionKindIsSpiral, Mode=OneWay}"
+                                  Command="{Binding ApplyTransitionKindCommand}"
+                                  CommandParameter="{x:Static settings:LyricsTransitionKind.Spiral}" />
+                        <MenuItem Header="모션: 바람개비"
+                                  IsChecked="{Binding TransitionKindIsWindMill, Mode=OneWay}"
+                                  Command="{Binding ApplyTransitionKindCommand}"
+                                  CommandParameter="{x:Static settings:LyricsTransitionKind.WindMill}" />
+                        <MenuItem Header="모션: 부채 펼침"
+                                  IsChecked="{Binding TransitionKindIsFanUp, Mode=OneWay}"
+                                  Command="{Binding ApplyTransitionKindCommand}"
+                                  CommandParameter="{x:Static settings:LyricsTransitionKind.FanUp}" />
+                        <Separator />
+                        <MenuItem Header="빠르게 (150ms)"
+                                  IsChecked="{Binding TransitionIsFast, Mode=OneWay}"
+                                  Command="{Binding ApplyTransitionDurationCommand}">
+                            <MenuItem.CommandParameter>
+                                <sys:Int32>150</sys:Int32>
+                            </MenuItem.CommandParameter>
+                        </MenuItem>
+                        <MenuItem Header="보통 (250ms)"
+                                  IsChecked="{Binding TransitionIsNormal, Mode=OneWay}"
+                                  Command="{Binding ApplyTransitionDurationCommand}">
+                            <MenuItem.CommandParameter>
+                                <sys:Int32>250</sys:Int32>
+                            </MenuItem.CommandParameter>
+                        </MenuItem>
+                        <MenuItem Header="느리게 (500ms)"
+                                  IsChecked="{Binding TransitionIsSlow, Mode=OneWay}"
+                                  Command="{Binding ApplyTransitionDurationCommand}">
+                            <MenuItem.CommandParameter>
+                                <sys:Int32>500</sys:Int32>
+                            </MenuItem.CommandParameter>
+                        </MenuItem>
+                    </MenuItem>
+                    <MenuItem Header="대기 화면(Gap)">
+                        <MenuItem Header="모드"
+                                  StaysOpenOnClick="True"
+                                  ToolTip="대기(라이브 콘텐츠 없음) 상태에서 보여줄 화면: 없음/검정/기본/로고 이미지.">
+                            <ComboBox ItemsSource="{Binding GapItemModeOptions}"
+                                      SelectedValue="{Binding GapItemModeInput, Mode=TwoWay}"
+                                      SelectedValuePath="Value"
+                                      DisplayMemberPath="Key"
+                                      MinWidth="180"
+                                      Margin="4"
+                                      AutomationProperties.Name="대기 화면 Gap 모드" />
+                        </MenuItem>
+                        <MenuItem Header="전환 페이드 사용"
+                                  IsChecked="{Binding ActiveGapItemUseFade, Mode=OneWay}"
+                                  Command="{Binding ToggleGapItemUseFadeCommand}"
+                                  ToolTip="대기 화면으로 들어갈 때 부드럽게 페이드합니다." />
+                        <Separator />
+                        <MenuItem Header="로고 이미지 선택..." Click="SelectGapLogo_Click"
+                                  ToolTip="'로고' 모드에서 보여줄 이미지를 고릅니다(고르면 모드도 로고로 바뀜)." />
+                        <MenuItem Header="로고 지우기"
+                                  Command="{Binding ClearGapItemLogoFileCommand}" />
+                    </MenuItem>
+                    <MenuItem Header="배경 이미지">
+                        <MenuItem Header="갤러리에서 선택..."
+                                  Click="OpenImageLibrary_Click" />
+                        <MenuItem Header="이미지 선택..."
+                                  Click="SelectOutputBackgroundImage_Click" />
+                        <MenuItem Header="배경 지우기"
+                                  Command="{Binding ClearOutputBackgroundImageCommand}" />
+                        <Separator />
+                        <!-- 배경 이미지 표시 모드(레거시 Def_ImageMode: Tile/Centre/BestFit). 기본 채움=UniformToFill. -->
+                        <MenuItem Header="표시 모드: 채움(가득)"
+                                  IsCheckable="True"
+                                  IsChecked="{Binding BackgroundModeIsFill, Mode=OneWay}"
+                                  Command="{Binding ApplyBackgroundModeCommand}"
+                                  CommandParameter="{x:Static settings:LyricsBackgroundMode.Fill}" />
+                        <MenuItem Header="표시 모드: 맞춤(전체 보임)"
+                                  IsCheckable="True"
+                                  IsChecked="{Binding BackgroundModeIsFit, Mode=OneWay}"
+                                  Command="{Binding ApplyBackgroundModeCommand}"
+                                  CommandParameter="{x:Static settings:LyricsBackgroundMode.Fit}" />
+                        <MenuItem Header="표시 모드: 가운데(원본 크기)"
+                                  IsCheckable="True"
+                                  IsChecked="{Binding BackgroundModeIsCenter, Mode=OneWay}"
+                                  Command="{Binding ApplyBackgroundModeCommand}"
+                                  CommandParameter="{x:Static settings:LyricsBackgroundMode.Center}" />
+                        <MenuItem Header="표시 모드: 타일(반복)"
+                                  IsCheckable="True"
+                                  IsChecked="{Binding BackgroundModeIsTile, Mode=OneWay}"
+                                  Command="{Binding ApplyBackgroundModeCommand}"
+                                  CommandParameter="{x:Static settings:LyricsBackgroundMode.Tile}" />
+                    </MenuItem>
+                    <MenuItem Header="그라데이션 방향">
+                        <MenuItem Header="세로 (위→아래)"
+                                  IsCheckable="True"
+                                  IsChecked="{Binding GradientDirectionIsVertical, Mode=OneWay}"
+                                  Command="{Binding ApplyGradientDirectionCommand}"
+                                  CommandParameter="{x:Static settings:LyricsGradientDirection.Vertical}" />
+                        <MenuItem Header="가로 (좌→우)"
+                                  IsCheckable="True"
+                                  IsChecked="{Binding GradientDirectionIsHorizontal, Mode=OneWay}"
+                                  Command="{Binding ApplyGradientDirectionCommand}"
+                                  CommandParameter="{x:Static settings:LyricsGradientDirection.Horizontal}" />
+                        <MenuItem Header="대각선 ↘ (좌상→우하)"
+                                  IsCheckable="True"
+                                  IsChecked="{Binding GradientDirectionIsDiagonalDown, Mode=OneWay}"
+                                  Command="{Binding ApplyGradientDirectionCommand}"
+                                  CommandParameter="{x:Static settings:LyricsGradientDirection.DiagonalDown}" />
+                        <MenuItem Header="대각선 ↗ (좌하→우상)"
+                                  IsCheckable="True"
+                                  IsChecked="{Binding GradientDirectionIsDiagonalUp, Mode=OneWay}"
+                                  Command="{Binding ApplyGradientDirectionCommand}"
+                                  CommandParameter="{x:Static settings:LyricsGradientDirection.DiagonalUp}" />
+                    </MenuItem>
+                    <MenuItem Header="이중 언어 영역 표시">
+                        <MenuItem Header="둘 다"
+                                  IsCheckable="True"
+                                  IsChecked="{Binding RegionDisplayIsBoth, Mode=OneWay}"
+                                  Command="{Binding ApplyRegionDisplayCommand}"
+                                  CommandParameter="{x:Static settings:LyricsRegionDisplay.Both}" />
+                        <MenuItem Header="Region 1만(주 언어)"
+                                  IsCheckable="True"
+                                  IsChecked="{Binding RegionDisplayIsRegion1Only, Mode=OneWay}"
+                                  Command="{Binding ApplyRegionDisplayCommand}"
+                                  CommandParameter="{x:Static settings:LyricsRegionDisplay.Region1Only}" />
+                        <MenuItem Header="Region 2만(보조 언어)"
+                                  IsCheckable="True"
+                                  IsChecked="{Binding RegionDisplayIsRegion2Only, Mode=OneWay}"
+                                  Command="{Binding ApplyRegionDisplayCommand}"
+                                  CommandParameter="{x:Static settings:LyricsRegionDisplay.Region2Only}" />
+                    </MenuItem>
+                    <MenuItem Header="코드 표시"
+                              IsChecked="{Binding ActiveLyricsNotations, Mode=OneWay}"
+                              Command="{Binding ToggleLyricsNotationsCommand}"
+                              ToolTip="송출 가사에 코드(악보 기호) 줄을 함께 표시(레거시 Def_Notations). 아래 조옮김은 이게 켜져야 적용됨." />
+                    <MenuItem Header="코드 조옮김">
+                        <MenuItem Header="{Binding LiveTransposeLabel}" IsEnabled="False" />
+                        <Separator />
+                        <MenuItem Header="반음 올림 ▲"
+                                  Command="{Binding TransposeLiveUpCommand}" />
+                        <MenuItem Header="반음 내림 ▼"
+                                  Command="{Binding TransposeLiveDownCommand}" />
+                        <MenuItem Header="원조 복귀"
+                                  Command="{Binding TransposeLiveResetCommand}" />
+                    </MenuItem>
                     <Separator />
-                    <!-- 배경 이미지 표시 모드(레거시 Def_ImageMode: Tile/Centre/BestFit). 기본 채움=UniformToFill. -->
-                    <MenuItem Header="표시 모드: 채움(가득)"
-                              IsCheckable="True"
-                              IsChecked="{Binding BackgroundModeIsFill, Mode=OneWay}"
-                              Command="{Binding ApplyBackgroundModeCommand}"
-                              CommandParameter="{x:Static settings:LyricsBackgroundMode.Fill}" />
-                    <MenuItem Header="표시 모드: 맞춤(전체 보임)"
-                              IsCheckable="True"
-                              IsChecked="{Binding BackgroundModeIsFit, Mode=OneWay}"
-                              Command="{Binding ApplyBackgroundModeCommand}"
-                              CommandParameter="{x:Static settings:LyricsBackgroundMode.Fit}" />
-                    <MenuItem Header="표시 모드: 가운데(원본 크기)"
-                              IsCheckable="True"
-                              IsChecked="{Binding BackgroundModeIsCenter, Mode=OneWay}"
-                              Command="{Binding ApplyBackgroundModeCommand}"
-                              CommandParameter="{x:Static settings:LyricsBackgroundMode.Center}" />
-                    <MenuItem Header="표시 모드: 타일(반복)"
-                              IsCheckable="True"
-                              IsChecked="{Binding BackgroundModeIsTile, Mode=OneWay}"
-                              Command="{Binding ApplyBackgroundModeCommand}"
-                              CommandParameter="{x:Static settings:LyricsBackgroundMode.Tile}" />
-                </MenuItem>
-                <!-- 배경 2색 그라데이션 방향(레거시 Def_BackColour 패턴) — 2색 배경일 때 방향 선택. 기본 세로(위→아래). -->
-                <MenuItem Header="그라데이션 방향">
-                    <MenuItem Header="세로 (위→아래)"
-                              IsCheckable="True"
-                              IsChecked="{Binding GradientDirectionIsVertical, Mode=OneWay}"
-                              Command="{Binding ApplyGradientDirectionCommand}"
-                              CommandParameter="{x:Static settings:LyricsGradientDirection.Vertical}" />
-                    <MenuItem Header="가로 (좌→우)"
-                              IsCheckable="True"
-                              IsChecked="{Binding GradientDirectionIsHorizontal, Mode=OneWay}"
-                              Command="{Binding ApplyGradientDirectionCommand}"
-                              CommandParameter="{x:Static settings:LyricsGradientDirection.Horizontal}" />
-                    <MenuItem Header="대각선 ↘ (좌상→우하)"
-                              IsCheckable="True"
-                              IsChecked="{Binding GradientDirectionIsDiagonalDown, Mode=OneWay}"
-                              Command="{Binding ApplyGradientDirectionCommand}"
-                              CommandParameter="{x:Static settings:LyricsGradientDirection.DiagonalDown}" />
-                    <MenuItem Header="대각선 ↗ (좌하→우상)"
-                              IsCheckable="True"
-                              IsChecked="{Binding GradientDirectionIsDiagonalUp, Mode=OneWay}"
-                              Command="{Binding ApplyGradientDirectionCommand}"
-                              CommandParameter="{x:Static settings:LyricsGradientDirection.DiagonalUp}" />
-                </MenuItem>
-                <!-- 이중 언어 영역 표시(레거시 Def_ShowRegion1/2/Both) — 둘 다/Region1만/Region2만. 단일 언어 곡엔 영향 없음. -->
-                <MenuItem Header="이중 언어 영역 표시">
-                    <MenuItem Header="둘 다"
-                              IsCheckable="True"
-                              IsChecked="{Binding RegionDisplayIsBoth, Mode=OneWay}"
-                              Command="{Binding ApplyRegionDisplayCommand}"
-                              CommandParameter="{x:Static settings:LyricsRegionDisplay.Both}" />
-                    <MenuItem Header="Region 1만(주 언어)"
-                              IsCheckable="True"
-                              IsChecked="{Binding RegionDisplayIsRegion1Only, Mode=OneWay}"
-                              Command="{Binding ApplyRegionDisplayCommand}"
-                              CommandParameter="{x:Static settings:LyricsRegionDisplay.Region1Only}" />
-                    <MenuItem Header="Region 2만(보조 언어)"
-                              IsCheckable="True"
-                              IsChecked="{Binding RegionDisplayIsRegion2Only, Mode=OneWay}"
-                              Command="{Binding ApplyRegionDisplayCommand}"
-                              CommandParameter="{x:Static settings:LyricsRegionDisplay.Region2Only}" />
-                </MenuItem>
-                <!-- 코드/악상 표시(FrmMain Def_Notations) — on 이면 송출 가사에 코드 줄을 함께 그린다. 조옮김은 이게 켜져야 의미 있다. -->
-                <MenuItem Header="코드 표시"
-                          IsChecked="{Binding ActiveLyricsNotations, Mode=OneWay}"
-                          Command="{Binding ToggleLyricsNotationsCommand}"
-                          ToolTip="송출 가사에 코드(악보 기호) 줄을 함께 표시(레거시 Def_Notations). 아래 조옮김은 이게 켜져야 적용됨." />
-                <!-- 코드 조옮김(FrmMain Transpose Up/Down Semi-Tone, To Capo 0) — "코드 표시" on 일 때 송출 코드를 이동.
-                     라이브 곡에 즉시 반영(재송출). 새 곡을 송출하면 원조로 초기화된다. -->
-                <MenuItem Header="코드 조옮김">
-                    <MenuItem Header="{Binding LiveTransposeLabel}" IsEnabled="False" />
+                    <MenuItem Header="정보 화면을 제외하고 전역 서식 적용"
+                              Command="{Binding ApplyGlobalFormatToAllCommand}"
+                              ToolTip="모든 예배 순서 항목의 '개별 서식'을 끄고 전역 기본(인스펙터) 서식으로 통일(레거시 Apply to All)." />
+                    <MenuItem Header="복사한 서식을 전 항목에 적용"
+                              Command="{Binding ApplyCopiedFormatToAllCommand}"
+                              ToolTip="우클릭 '이 항목 서식 복사'로 담아 둔 서식을 모든 곡·성경 항목에 한 번에 적용(같은 색·글꼴로 통일)." />
                     <Separator />
-                    <MenuItem Header="반음 올림 ▲"
-                              Command="{Binding TransposeLiveUpCommand}" />
-                    <MenuItem Header="반음 내림 ▼"
-                              Command="{Binding TransposeLiveDownCommand}" />
-                    <MenuItem Header="원조 복귀"
-                              Command="{Binding TransposeLiveResetCommand}" />
-                </MenuItem>
-                <Separator />
-                <!-- 전 항목에 전역 기본 서식 적용(FrmMain "Apply to All Except InfoScreens") — 모든 항목의 개별 서식을 끄고
-                     운영 기본(인스펙터) 서식으로 송출하게 한다. 곡·성경 텍스트에만 영향. -->
-                <MenuItem Header="정보 화면을 제외하고 전역 서식 적용"
-                          Command="{Binding ApplyGlobalFormatToAllCommand}"
-                          ToolTip="모든 예배 순서 항목의 '개별 서식'을 끄고 전역 기본(인스펙터) 서식으로 통일(레거시 Apply to All)." />
-                <!-- 복사한 항목별 서식을 전 항목(곡·성경)에 일괄 적용 — 우클릭 "이 항목 서식 복사"로 담아 둔 서식이 있을 때만 활성. -->
-                <MenuItem Header="복사한 서식을 전 항목에 적용"
-                          Command="{Binding ApplyCopiedFormatToAllCommand}"
-                          ToolTip="우클릭 '이 항목 서식 복사'로 담아 둔 서식을 모든 곡·성경 항목에 한 번에 적용(같은 색·글꼴로 통일)." />
-                <Separator />
-                <!-- 가사 정렬(FrmMain Align Left/Centre/Right) — 기존 인-셸 정렬 명령 재사용. -->
-                <MenuItem Header="가사 정렬">
-                    <MenuItem Header="왼쪽"
-                              Command="{Binding ApplyLyricsAlignmentCommand}"
-                              CommandParameter="{x:Static settings:LyricsTextAlignment.Left}" />
-                    <MenuItem Header="가운데"
-                              Command="{Binding ApplyLyricsAlignmentCommand}"
-                              CommandParameter="{x:Static settings:LyricsTextAlignment.Center}" />
-                    <MenuItem Header="오른쪽"
-                              Command="{Binding ApplyLyricsAlignmentCommand}"
-                              CommandParameter="{x:Static settings:LyricsTextAlignment.Right}" />
-                </MenuItem>
-                <!-- 세로 정렬(FrmMain Vertical Alignment Top/Centre/Bottom). -->
-                <MenuItem Header="가사 세로 정렬">
-                    <MenuItem Header="위"
-                              Command="{Binding ApplyLyricsVerticalAlignmentCommand}"
-                              CommandParameter="{x:Static settings:LyricsVerticalAlignment.Top}" />
-                    <MenuItem Header="가운데"
-                              Command="{Binding ApplyLyricsVerticalAlignmentCommand}"
-                              CommandParameter="{x:Static settings:LyricsVerticalAlignment.Center}" />
-                    <MenuItem Header="아래"
-                              Command="{Binding ApplyLyricsVerticalAlignmentCommand}"
-                              CommandParameter="{x:Static settings:LyricsVerticalAlignment.Bottom}" />
-                </MenuItem>
-                <Separator />
-                <!-- 글자 크기·줄 간격(FrmMain 글자 크기/줄 간격) — 기존 인-셸 명령 재사용. -->
-                <MenuItem Header="글자 크게" Command="{Binding IncreaseLyricsFontSizeCommand}" />
-                <MenuItem Header="글자 작게" Command="{Binding DecreaseLyricsFontSizeCommand}" />
-                <MenuItem Header="줄 간격 늘림" Command="{Binding IncreaseLyricsLineSpacingCommand}" />
-                <MenuItem Header="줄 간격 줄임" Command="{Binding DecreaseLyricsLineSpacingCommand}" />
-                <Separator />
-                <!-- 본문 여백(FrmMain ShowLeftMargin/ShowRightMargin/ShowBottomMargin) — 본문을 가장자리에서 안쪽으로 들여쓴다. -->
-                <MenuItem Header="본문 여백">
-                    <MenuItem Header="{Binding ActiveLyricsLeftMargin, StringFormat=왼쪽 여백: {0}px}" IsEnabled="False" />
-                    <MenuItem Header="왼쪽 여백 넓게" Command="{Binding IncreaseLyricsLeftMarginCommand}" />
-                    <MenuItem Header="왼쪽 여백 좁게" Command="{Binding DecreaseLyricsLeftMarginCommand}" />
+                    <MenuItem Header="가사 정렬">
+                        <MenuItem Header="왼쪽"
+                                  Command="{Binding ApplyLyricsAlignmentCommand}"
+                                  CommandParameter="{x:Static settings:LyricsTextAlignment.Left}" />
+                        <MenuItem Header="가운데"
+                                  Command="{Binding ApplyLyricsAlignmentCommand}"
+                                  CommandParameter="{x:Static settings:LyricsTextAlignment.Center}" />
+                        <MenuItem Header="오른쪽"
+                                  Command="{Binding ApplyLyricsAlignmentCommand}"
+                                  CommandParameter="{x:Static settings:LyricsTextAlignment.Right}" />
+                    </MenuItem>
+                    <MenuItem Header="가사 세로 정렬">
+                        <MenuItem Header="위"
+                                  Command="{Binding ApplyLyricsVerticalAlignmentCommand}"
+                                  CommandParameter="{x:Static settings:LyricsVerticalAlignment.Top}" />
+                        <MenuItem Header="가운데"
+                                  Command="{Binding ApplyLyricsVerticalAlignmentCommand}"
+                                  CommandParameter="{x:Static settings:LyricsVerticalAlignment.Center}" />
+                        <MenuItem Header="아래"
+                                  Command="{Binding ApplyLyricsVerticalAlignmentCommand}"
+                                  CommandParameter="{x:Static settings:LyricsVerticalAlignment.Bottom}" />
+                    </MenuItem>
                     <Separator />
-                    <MenuItem Header="{Binding ActiveLyricsRightMargin, StringFormat=오른쪽 여백: {0}px}" IsEnabled="False" />
-                    <MenuItem Header="오른쪽 여백 넓게" Command="{Binding IncreaseLyricsRightMarginCommand}" />
-                    <MenuItem Header="오른쪽 여백 좁게" Command="{Binding DecreaseLyricsRightMarginCommand}" />
+                    <MenuItem Header="글자 크게" Command="{Binding IncreaseLyricsFontSizeCommand}" />
+                    <MenuItem Header="글자 작게" Command="{Binding DecreaseLyricsFontSizeCommand}" />
+                    <MenuItem Header="줄 간격 늘림" Command="{Binding IncreaseLyricsLineSpacingCommand}" />
+                    <MenuItem Header="줄 간격 줄임" Command="{Binding DecreaseLyricsLineSpacingCommand}" />
                     <Separator />
-                    <MenuItem Header="{Binding ActiveLyricsBottomMargin, StringFormat=아래 여백: {0}px}" IsEnabled="False" />
-                    <MenuItem Header="아래 여백 넓게" Command="{Binding IncreaseLyricsBottomMarginCommand}" />
-                    <MenuItem Header="아래 여백 좁게" Command="{Binding DecreaseLyricsBottomMarginCommand}" />
-                    <Separator />
-                    <!-- 이중 언어 영역 간 세로 간격(FrmMain Ind_Reg2TopUpDown) — 원문(Region1)과 번역(Region2) 사이 간격. -->
-                    <MenuItem Header="{Binding ActiveRegionGap, StringFormat=영역 간 간격: {0}px}" IsEnabled="False" />
-                    <MenuItem Header="영역 간격 넓게" Command="{Binding IncreaseRegionGapCommand}" />
-                    <MenuItem Header="영역 간격 좁게" Command="{Binding DecreaseRegionGapCommand}" />
-                    <Separator />
-                    <!-- 본문 세로 위치(FrmMain Ind_Reg1TopUpDown) — 정렬 유지한 채 본문을 위/아래로 미세 이동. -->
-                    <MenuItem Header="{Binding ActiveBodyVerticalOffset, StringFormat=본문 세로 위치: {0}px}" IsEnabled="False" />
-                    <MenuItem Header="본문 위로 ▲" Command="{Binding MoveBodyUpCommand}" />
-                    <MenuItem Header="본문 아래로 ▼" Command="{Binding MoveBodyDownCommand}" />
+                    <MenuItem Header="본문 여백">
+                        <MenuItem Header="{Binding ActiveLyricsLeftMargin, StringFormat=왼쪽 여백: {0}px}" IsEnabled="False" />
+                        <MenuItem Header="왼쪽 여백 넓게" Command="{Binding IncreaseLyricsLeftMarginCommand}" />
+                        <MenuItem Header="왼쪽 여백 좁게" Command="{Binding DecreaseLyricsLeftMarginCommand}" />
+                        <Separator />
+                        <MenuItem Header="{Binding ActiveLyricsRightMargin, StringFormat=오른쪽 여백: {0}px}" IsEnabled="False" />
+                        <MenuItem Header="오른쪽 여백 넓게" Command="{Binding IncreaseLyricsRightMarginCommand}" />
+                        <MenuItem Header="오른쪽 여백 좁게" Command="{Binding DecreaseLyricsRightMarginCommand}" />
+                        <Separator />
+                        <MenuItem Header="{Binding ActiveLyricsBottomMargin, StringFormat=아래 여백: {0}px}" IsEnabled="False" />
+                        <MenuItem Header="아래 여백 넓게" Command="{Binding IncreaseLyricsBottomMarginCommand}" />
+                        <MenuItem Header="아래 여백 좁게" Command="{Binding DecreaseLyricsBottomMarginCommand}" />
+                        <Separator />
+                        <!-- 이중 언어 영역 간 세로 간격(FrmMain Ind_Reg2TopUpDown) — 원문(Region1)과 번역(Region2) 사이 간격. -->
+                        <MenuItem Header="{Binding ActiveRegionGap, StringFormat=영역 간 간격: {0}px}" IsEnabled="False" />
+                        <MenuItem Header="영역 간격 넓게" Command="{Binding IncreaseRegionGapCommand}" />
+                        <MenuItem Header="영역 간격 좁게" Command="{Binding DecreaseRegionGapCommand}" />
+                        <Separator />
+                        <!-- 본문 세로 위치(FrmMain Ind_Reg1TopUpDown) — 정렬 유지한 채 본문을 위/아래로 미세 이동. -->
+                        <MenuItem Header="{Binding ActiveBodyVerticalOffset, StringFormat=본문 세로 위치: {0}px}" IsEnabled="False" />
+                        <MenuItem Header="본문 위로 ▲" Command="{Binding MoveBodyUpCommand}" />
+                        <MenuItem Header="본문 아래로 ▼" Command="{Binding MoveBodyDownCommand}" />
+                    </MenuItem>
                 </MenuItem>
             </MenuItem>
 
             <MenuItem Header="Tools" Style="{x:Null}" Template="{StaticResource FrmMainMenuHeader}" Height="24">
-                <MenuItem Header="가져오기…" Click="OpenImportExport_Click" />
-                <MenuItem Header="폴더 가져오기…" Click="OpenFolderImport_Click" />
-                <MenuItem Header="내보내기…" Click="OpenExport_Click" />
-                <MenuItem Header="삭제한 곡 복구…" Click="SongRecover_Click" />
-                <MenuItem Header="스마트 병합…" Click="SongMerge_Click" />
-                <MenuItem Header="삭제한 곡 모두 비우기…" Click="EmptyDeleted_Click" />
-                <MenuItem Header="예배 순서를 사용 기록에 추가" Click="AddListUsages_Click" IsEnabled="{Binding CanAddWorshipListSongsToUsages}" />
-                <MenuItem Header="사용 기록 보기…" Click="OpenUsageReport_Click" />
-                <MenuItem Header="곡 데이터베이스 개별 서식 모두 지우기…" Click="ClearDatabaseFormats_Click" />
+                <MenuItem Header="_Import" Click="OpenImportExport_Click" />
+                <MenuItem Header="I_mport Folder" Click="OpenFolderImport_Click" />
+                <MenuItem Header="_Export" Click="OpenExport_Click" />
                 <Separator />
-                <MenuItem Header="가져오기·내보내기" Click="OpenImportExport_Click">
-                    <MenuItem.Icon><controls:FrmIcon Icon="document_text" Width="16" Height="16" /></MenuItem.Icon>
-                </MenuItem>
-                <MenuItem Header="외부 파일 복사·이동" Click="OpenExternalFiles_Click">
-                    <MenuItem.Icon><controls:FrmIcon Icon="folder_open" Width="16" Height="16" /></MenuItem.Icon>
-                </MenuItem>
-                <MenuItem Header="예배 순서 관리" Click="OpenManageWorshipLists_Click">
-                    <MenuItem.Icon><controls:FrmIcon Icon="text_bullet_list_ltr" Width="16" Height="16" /></MenuItem.Icon>
-                </MenuItem>
-                <MenuItem Header="성경 버전 관리" Click="OpenBibleVersionManager_Click">
-                    <MenuItem.Icon><controls:FrmIcon Icon="bible" Width="16" Height="16" /></MenuItem.Icon>
-                </MenuItem>
-                <MenuItem Header="찬양집 색인..." Click="OpenPraiseBookIndex_Click">
-                    <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Template}" /></MenuItem.Icon>
-                </MenuItem>
-                <MenuItem Header="공지 화면(InfoScreen)..." Click="OpenNoticeScreen_Click">
-                    <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Template}" /></MenuItem.Icon>
-                </MenuItem>
-                <MenuItem Header="세션 메모..." Click="OpenSessionNotes_Click">
-                    <MenuItem.Icon><controls:FrmIcon Icon="edit" Width="16" Height="16" /></MenuItem.Icon>
-                </MenuItem>
+                <MenuItem Header="_Recover Deleted Items" Click="SongRecover_Click" />
+                <MenuItem Header="_Empty Deleted Folder..." Click="EmptyDeleted_Click" />
                 <Separator />
-                <!-- 예배 순서 검증 — 라이브 송출 전 깨진 PPT·미디어 파일을 미리 거른다(레거시 ValidateWorshipListItems). -->
-                <MenuItem Header="예배 순서 검증"
-                          Command="{Binding ValidateWorshipListCommand}"
-                          ToolTip="라이브 송출 전 깨진 PowerPoint·미디어 파일이 없는지 점검합니다.">
-                    <MenuItem.Icon><controls:FrmIcon Icon="checkbox_checked" Filled="True" Width="16" Height="16" /></MenuItem.Icon>
-                </MenuItem>
+                <MenuItem Header="_Add Worship List to Usages" Click="AddListUsages_Click" IsEnabled="{Binding CanAddWorshipListSongsToUsages}" />
+                <MenuItem Header="_View usages" Click="OpenUsageReport_Click" />
                 <Separator />
-                <!-- 데이터베이스 압축·정리(레거시 Tools Compact & Repair) — 백업 후 VACUUM. -->
-                <MenuItem Header="데이터베이스 압축·정리"
+                <MenuItem Header="_Smart Merge" Click="SongMerge_Click" />
+                <MenuItem Header="_Compact and Repair Databases"
                           Command="{Binding Library.CompactDatabaseCommand}"
-                          ToolTip="곡 데이터베이스의 빈 공간을 회수해 파일을 줄입니다(백업을 먼저 만듭니다).">
-                    <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Template}" /></MenuItem.Icon>
-                </MenuItem>
+                          ToolTip="곡 데이터베이스의 빈 공간을 회수해 파일을 줄입니다(백업을 먼저 만듭니다)." />
+                <MenuItem Header="Clear All _Formatting in Database." Click="ClearDatabaseFormats_Click" />
                 <Separator />
-                <!-- 모든 설정 초기화(레거시 Tools "Clear EasiSlides Registry Settings and Exit") — 설정이 꼬여 앱이
-                     이상할 때 쓰는 복구 탈출구. 파괴적(되돌릴 수 없음)이라 확인 다이얼로그를 거치고, 초기화 후 앱을 다시 시작한다. -->
-                <MenuItem Header="모든 설정 초기화..."
+                <MenuItem Header="Reset WPF Settings…"
                           Click="ResetAllSettings_Click"
-                          ToolTip="모든 설정을 기본값으로 되돌리고 앱을 다시 시작합니다(곡·성경 데이터는 영향 없음). 설정이 꼬였을 때 쓰는 복구 기능입니다.">
-                    <MenuItem.Icon><controls:FrmIcon Icon="alert" Width="16" Height="16" /></MenuItem.Icon>
+                          ToolTip="모든 설정을 기본값으로 되돌리고 앱을 다시 시작합니다(곡·성경 데이터는 영향 없음). 설정이 꼬였을 때 쓰는 복구 기능입니다." />
+                <Separator />
+                <MenuItem Header="More…">
+                    <MenuItem Header="가져오기·내보내기" Click="OpenImportExport_Click">
+                        <MenuItem.Icon><controls:FrmIcon Icon="document_text" Width="16" Height="16" /></MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="외부 파일 복사·이동" Click="OpenExternalFiles_Click">
+                        <MenuItem.Icon><controls:FrmIcon Icon="folder_open" Width="16" Height="16" /></MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="예배 순서 관리" Click="OpenManageWorshipLists_Click">
+                        <MenuItem.Icon><controls:FrmIcon Icon="text_bullet_list_ltr" Width="16" Height="16" /></MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="성경 버전 관리" Click="OpenBibleVersionManager_Click">
+                        <MenuItem.Icon><controls:FrmIcon Icon="bible" Width="16" Height="16" /></MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="찬양집 색인..." Click="OpenPraiseBookIndex_Click">
+                        <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Template}" /></MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="공지 화면(InfoScreen)..." Click="OpenNoticeScreen_Click">
+                        <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Template}" /></MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="세션 메모..." Click="OpenSessionNotes_Click">
+                        <MenuItem.Icon><controls:FrmIcon Icon="edit" Width="16" Height="16" /></MenuItem.Icon>
+                    </MenuItem>
+                    <Separator />
+                    <MenuItem Header="예배 순서 검증"
+                              Command="{Binding ValidateWorshipListCommand}"
+                              ToolTip="라이브 송출 전 깨진 PowerPoint·미디어 파일이 없는지 점검합니다.">
+                        <MenuItem.Icon><controls:FrmIcon Icon="checkbox_checked" Filled="True" Width="16" Height="16" /></MenuItem.Icon>
+                    </MenuItem>
                 </MenuItem>
             </MenuItem>
 
             <MenuItem Header="Help" Style="{x:Null}" Template="{StaticResource FrmMainMenuHeader}" Height="24">
-                <MenuItem Header="도움말 목차" Click="HelpContents_Click" InputGestureText="F1" />
-                <MenuItem Header="온라인 도움말" Click="WebHelp_Click" />
-                <MenuItem Header="도움말" Click="OpenHelp_Click">
+                <MenuItem Header="Contents" Click="HelpContents_Click" InputGestureText="F1">
                     <MenuItem.Icon><controls:FrmIcon Icon="question_circle" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Header="등록 안내" Click="OpenRegistration_Click">
-                    <MenuItem.Icon><controls:FrmIcon Icon="checkbox_checked" Filled="True" Width="16" Height="16" /></MenuItem.Icon>
+                <MenuItem Header="Help on the Web" Click="WebHelp_Click">
+                    <MenuItem.Icon><controls:FrmIcon Icon="globe" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Header="정보" Click="OpenAbout_Click">
-                    <MenuItem.Icon><controls:FrmIcon Icon="info" Width="16" Height="16" /></MenuItem.Icon>
+                <Separator />
+                <MenuItem Header="Register Use of EasiSlides" Click="OpenRegistration_Click" />
+                <MenuItem Header="About EasiSlides" Click="OpenAbout_Click" />
+                <Separator />
+                <MenuItem Header="More…">
+                    <MenuItem Header="도움말" Click="OpenHelp_Click">
+                        <MenuItem.Icon><controls:FrmIcon Icon="question_circle" Width="16" Height="16" /></MenuItem.Icon>
+                    </MenuItem>
                 </MenuItem>
             </MenuItem>
         </Menu>
@@ -3904,7 +3909,7 @@
                                                                     <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Primary}" />
                                                                     <Style.Triggers>
                                                                         <DataTrigger Binding="{Binding IsCurrent}" Value="True">
-                                                                            <Setter Property="Foreground" Value="Red" />
+                                                                            <Setter Property="Foreground" Value="White" />
                                                                         </DataTrigger>
                                                                     </Style.Triggers>
                                                                 </Style>
@@ -3922,16 +3927,25 @@
                                                                         <Setter Property="Background" Value="{DynamicResource Brush.Surface.Page}" />
                                                                         <Style.Triggers>
                                                                             <DataTrigger Binding="{Binding IsCurrent}" Value="True">
-                                                                                <Setter Property="Background" Value="#FFFFFF00" />
+                                                                                <Setter Property="Background" Value="#005FB8" />
                                                                             </DataTrigger>
                                                                         </Style.Triggers>
                                                                     </Style>
                                                                 </Border.Style>
-                                                                <TextBlock Text="{Binding BodyText}"
+                                                                <StackPanel>
+                                                                    <TextBlock Text="{Binding SectionHeading}" FontSize="12" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}">
+                                                                        <TextBlock.Style>
+                                                                            <Style TargetType="TextBlock"><Style.Triggers>
+                                                                                <DataTrigger Binding="{Binding SectionHeading}" Value=""><Setter Property="Visibility" Value="Collapsed" /></DataTrigger>
+                                                                            </Style.Triggers></Style>
+                                                                        </TextBlock.Style>
+                                                                    </TextBlock>
+                                                                    <TextBlock Text="{Binding BodyText}"
                                                                            TextWrapping="Wrap"
                                                                            FontFamily="Microsoft Sans Serif"
                                                                            FontSize="13"
                                                                            Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
+                                                                </StackPanel>
                                                             </Border>
                                                         </Button>
                                                     </DataTemplate>
@@ -4841,35 +4855,36 @@
                             </MultiBinding>
                         </Viewbox.Height>
                         <Grid Width="960" Height="{Binding SampleScreenHeight}">
-                            <Border Margin="0,0,16,16" Background="#2720B0" />
+                            <Border Margin="16,16,0,0" Background="#141414" />
                             <Border x:Name="ClassicPreviewBack"
                                     Tag="PreviewBack"
-                                    Background="#141414"
+                                    Background="{Binding PreviewSample.SceneBackgroundBrush, RelativeSource={RelativeSource AncestorType=Window}}"
                                     BorderBrush="#182539"
                                     BorderThickness="0"
                                     Focusable="True"
-                                    MouseDown="ClassicKeyboardSurface_MouseDown" Margin="16,16,0,0">
-                                <Grid>
+                                    MouseDown="ClassicKeyboardSurface_MouseDown" Margin="0,0,16,16">
+                                <Grid ClipToBounds="True">
+                                    <Rectangle Fill="{Binding PreviewSample.BackgroundImageBrush, RelativeSource={RelativeSource AncestorType=Window}}" Visibility="{Binding PreviewSample.BackgroundImageVisibility, RelativeSource={RelativeSource AncestorType=Window}}" />
                                     <TextBlock x:Name="ClassicPreviewLargeLyricsText"
                                                Tag="PreviewScreenLyrics"
                                                Text="{Binding PreviewLyricsText}"
                                                Visibility="{Binding HasPreviewLyricsText, Converter={StaticResource BoolToVis}}"
-                                               Margin="36,48,36,68"
-                                               VerticalAlignment="Top"
+                                               Margin="{Binding PreviewSample.BodyContentMargin, RelativeSource={RelativeSource AncestorType=Window}}"
+                                               VerticalAlignment="{Binding PreviewSample.BodyVerticalAlignment, RelativeSource={RelativeSource AncestorType=Window}}"
+                                               TextAlignment="{Binding PreviewSample.BodyTextAlignment, RelativeSource={RelativeSource AncestorType=Window}}"
                                                TextWrapping="Wrap"
                                                TextTrimming="CharacterEllipsis"
-                                               FontSize="48"
-                                               FontWeight="Bold"
-                                               LineHeight="64"
-                                               LineStackingStrategy="BlockLineHeight"
-                                               Foreground="#FFF6E600"
+                                               FontSize="{Binding PreviewSample.BodyFontSize, RelativeSource={RelativeSource AncestorType=Window}}"
+                                               FontFamily="{Binding PreviewSample.BodyFontFamily, RelativeSource={RelativeSource AncestorType=Window}}"
+                                               FontWeight="{Binding PreviewSample.BodyFontWeight, RelativeSource={RelativeSource AncestorType=Window}}"
+                                               Foreground="{Binding PreviewSample.SceneForegroundBrush, RelativeSource={RelativeSource AncestorType=Window}}"
                                                AutomationProperties.Name="Preview 큰 화면 본문" />
                                     <TextBlock Text="{Binding PreviewNavigationPositionLabel}"
                                                Margin="20,0,0,18"
                                                HorizontalAlignment="Left"
                                                VerticalAlignment="Bottom"
                                                Style="{StaticResource Type.Caption.Style}"
-                                               Foreground="#FFF6E600"
+                                               Foreground="{Binding PreviewSample.SceneForegroundBrush, RelativeSource={RelativeSource AncestorType=Window}}"
                                                AutomationProperties.Name="Preview 큰 화면 위치" />
                                 </Grid>
                             </Border>
@@ -4881,7 +4896,7 @@
                                                            SlideNumber="{Binding PreviewVisualSlideNumber}"
                                                            ShowSlideNumber="True"
                                                            IsSelected="True"
-                                                           Visibility="{Binding HasPreviewVisualSource, Converter={StaticResource BoolToVis}}" Margin="16,16,0,0" Background="#141414" />
+                                                           Visibility="{Binding HasPreviewVisualSource, Converter={StaticResource BoolToVis}}" Margin="0,0,16,16" Background="#141414" />
                         </Grid>
                     </Viewbox>
                     </Grid>
@@ -4979,13 +4994,13 @@
                             <ToggleButton x:Name="cbGoLive"
                                           Tag="cbGoLive"
                                           Command="{Binding ToggleOutputLiveCommand}"
-                                          IsChecked="{Binding IsOutputLiveActive, Mode=OneWay}"
+                                          IsChecked="{Binding IsShowRunning, Mode=OneWay}"
                                           Style="{StaticResource FrmMainLiveToggle}"
                                           Padding="0"
                                           Margin="12,0,0,0"
-                                          ToolTip="출력 복귀"
-                                          AutomationProperties.Name="Output 복귀" Height="26" Width="44">
-                                <controls:FrmIcon Icon="live" Width="16" Height="16" Filled="{Binding IsOutputLiveActive}" />
+                                          ToolTip="송출 시작 또는 중지 (F12)"
+                                          AutomationProperties.Name="Output 송출 시작 또는 중지" Height="26" Width="44">
+                                <controls:FrmIcon Icon="live" Width="16" Height="16" Filled="{Binding IsShowRunning}" />
                             </ToggleButton>
                         </WrapPanel>
                     </Grid>
@@ -5039,8 +5054,15 @@
                                                             <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Primary}" />
                                                             <Style.Triggers>
                                                                 <DataTrigger Binding="{Binding IsCurrent}" Value="True">
-                                                                    <Setter Property="Foreground" Value="Red" />
+                                                                    <Setter Property="Foreground" Value="#A33F00" />
                                                                 </DataTrigger>
+                                                                <MultiDataTrigger>
+                                                                    <MultiDataTrigger.Conditions>
+                                                                        <Condition Binding="{Binding IsCurrent}" Value="True" />
+                                                                        <Condition Binding="{Binding DataContext.IsOutputLiveActive, RelativeSource={RelativeSource AncestorType=ItemsControl}}" Value="True" />
+                                                                    </MultiDataTrigger.Conditions>
+                                                                    <Setter Property="Foreground" Value="White" />
+                                                                </MultiDataTrigger>
                                                             </Style.Triggers>
                                                         </Style>
                                                     </Button.Style>
@@ -5057,16 +5079,32 @@
                                                                 <Setter Property="Background" Value="{DynamicResource Brush.Surface.Page}" />
                                                                 <Style.Triggers>
                                                                     <DataTrigger Binding="{Binding IsCurrent}" Value="True">
-                                                                        <Setter Property="Background" Value="#FFFFFF00" />
+                                                                        <Setter Property="Background" Value="#FDEDE3" />
                                                                     </DataTrigger>
+                                                                    <MultiDataTrigger>
+                                                                        <MultiDataTrigger.Conditions>
+                                                                            <Condition Binding="{Binding IsCurrent}" Value="True" />
+                                                                            <Condition Binding="{Binding DataContext.IsOutputLiveActive, RelativeSource={RelativeSource AncestorType=ItemsControl}}" Value="True" />
+                                                                        </MultiDataTrigger.Conditions>
+                                                                        <Setter Property="Background" Value="#C4500A" />
+                                                                    </MultiDataTrigger>
                                                                 </Style.Triggers>
                                                             </Style>
                                                         </Border.Style>
-                                                        <TextBlock Text="{Binding BodyText}"
+                                                        <StackPanel>
+                                                            <TextBlock Text="{Binding SectionHeading}" FontSize="12" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}">
+                                                                <TextBlock.Style>
+                                                                    <Style TargetType="TextBlock"><Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding SectionHeading}" Value=""><Setter Property="Visibility" Value="Collapsed" /></DataTrigger>
+                                                                    </Style.Triggers></Style>
+                                                                </TextBlock.Style>
+                                                            </TextBlock>
+                                                            <TextBlock Text="{Binding BodyText}"
                                                                    TextWrapping="Wrap"
                                                                    FontFamily="Microsoft Sans Serif"
                                                                    FontSize="13"
                                                                    Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
+                                                        </StackPanel>
                                                     </Border>
                                                 </Button>
                                             </DataTemplate>
@@ -5412,44 +5450,64 @@
                             </MultiBinding>
                         </Viewbox.Height>
                         <Grid Width="960" Height="{Binding SampleScreenHeight}">
-                            <Border Margin="0,0,16,16" Background="#2720B0" />
+                            <Border Margin="16,16,0,0" Background="#141414" />
                             <Border x:Name="ClassicOutputBack"
                                     Tag="OutputBack"
-                                    Background="#141414"
+                                    Background="{Binding OutputSample.SceneBackgroundBrush, RelativeSource={RelativeSource AncestorType=Window}}"
                                     BorderBrush="#111111"
                                     Focusable="True"
                                     MouseDown="ClassicKeyboardSurface_MouseDown"
-                                    BorderThickness="0" Margin="16,16,0,0">
-                                <Grid>
+                                    BorderThickness="0" Margin="0,0,16,16">
+                                <Grid ClipToBounds="True">
+                                    <Rectangle Fill="{Binding OutputSample.BackgroundImageBrush, RelativeSource={RelativeSource AncestorType=Window}}" Visibility="{Binding OutputSample.BackgroundImageVisibility, RelativeSource={RelativeSource AncestorType=Window}}" />
+                                    <Grid>
+                                        <Grid.Style>
+                                            <Style TargetType="Grid">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsOutputClearActive}" Value="True">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Grid.Style>
                                     <TextBlock x:Name="ClassicOutputLargeLyricsText"
                                                Tag="OutputScreenLyrics"
                                                Text="{Binding OutputLyricsText}"
                                                Visibility="{Binding HasOutputLyricsText, Converter={StaticResource BoolToVis}}"
-                                               Margin="36,48,36,68"
-                                               VerticalAlignment="Top"
+                                               Margin="{Binding OutputSample.BodyContentMargin, RelativeSource={RelativeSource AncestorType=Window}}"
+                                               VerticalAlignment="{Binding OutputSample.BodyVerticalAlignment, RelativeSource={RelativeSource AncestorType=Window}}"
+                                               TextAlignment="{Binding OutputSample.BodyTextAlignment, RelativeSource={RelativeSource AncestorType=Window}}"
                                                TextWrapping="Wrap"
                                                TextTrimming="CharacterEllipsis"
-                                               FontSize="48"
-                                               FontWeight="Bold"
-                                               LineHeight="64"
-                                               LineStackingStrategy="BlockLineHeight"
-                                               Foreground="#FFF6E600"
+                                               FontSize="{Binding OutputSample.BodyFontSize, RelativeSource={RelativeSource AncestorType=Window}}"
+                                               FontFamily="{Binding OutputSample.BodyFontFamily, RelativeSource={RelativeSource AncestorType=Window}}"
+                                               FontWeight="{Binding OutputSample.BodyFontWeight, RelativeSource={RelativeSource AncestorType=Window}}"
+                                               Foreground="{Binding OutputSample.SceneForegroundBrush, RelativeSource={RelativeSource AncestorType=Window}}"
                                                AutomationProperties.Name="Output 큰 화면 본문" />
                                     <TextBlock Text="{Binding OutputNavigationPositionLabel}"
                                                Margin="20,0,0,18"
                                                HorizontalAlignment="Left"
                                                VerticalAlignment="Bottom"
                                                Style="{StaticResource Type.Caption.Style}"
-                                               Foreground="#FFF6E600"
+                                               Foreground="{Binding OutputSample.SceneForegroundBrush, RelativeSource={RelativeSource AncestorType=Window}}"
                                                AutomationProperties.Name="Output 큰 화면 위치" />
                                     <TextBlock Text="{Binding LiveBar.StateLabel}"
                                                Margin="0,0,20,18"
                                                HorizontalAlignment="Right"
                                                VerticalAlignment="Bottom"
                                                Style="{StaticResource Type.Caption.Style}"
-                                               Foreground="#FFF6E600" />
+                                               Foreground="{Binding OutputSample.SceneForegroundBrush, RelativeSource={RelativeSource AncestorType=Window}}" />
+                                    </Grid>
                                 </Grid>
                             </Border>
+                            <Grid>
+                                <Grid.Style>
+                                    <Style TargetType="Grid">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsOutputClearActive}" Value="True"><Setter Property="Visibility" Value="Collapsed" /></DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Grid.Style>
                             <rendering:SlidePreviewControl x:Name="ClassicOutputLargeSlideImage"
                                                            Title="{Binding OutputVisualTitle}"
                                                            Kind="{Binding OutputVisualKind}"
@@ -5457,7 +5515,9 @@
                                                            FillMode="{Binding OutputVisualFillMode}"
                                                            SlideNumber="{Binding OutputVisualSlideNumber}"
                                                            Visibility="{Binding HasOutputVisualSource, Converter={StaticResource BoolToVis}}"
-                                                           AutomationProperties.Name="Output 큰 시각 자료" Margin="16,16,0,0" Background="#141414" />
+                                                           AutomationProperties.Name="Output 큰 시각 자료" Margin="0,0,16,16" Background="#141414" />
+                            </Grid>
+                            <Border Margin="0,0,16,16" Background="Black" IsHitTestVisible="False" Visibility="{Binding IsOutputBlackActive, Converter={StaticResource BoolToVis}}" />
                         </Grid>
                     </Viewbox>
                     </Grid>

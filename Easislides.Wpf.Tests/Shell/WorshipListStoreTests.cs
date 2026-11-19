@@ -19,7 +19,8 @@ public sealed class WorshipListStoreTests : IDisposable
         var store = new WorshipListStore(_dir);
         var items = new[]
         {
-            new LiveQueueItem("song:1", "찬양", "Song") { Lyrics = "은혜", SlideNumber = 2 },
+            new LiveQueueItem("song:1", "찬양", "Song") { Lyrics = "은혜", SlideNumber = 2, Sequence = "\u0001\0\u0002",
+                SongLayout = new(60, "Arial", 10, 6, 2, 0, 1, 80, 0) },
             new LiveQueueItem("bible:1", "요한복음", "Bible") { ContentPath = null },
         };
 
@@ -31,6 +32,8 @@ public sealed class WorshipListStoreTests : IDisposable
         loaded[0].Kind.Should().Be("Song");
         loaded[0].Lyrics.Should().Be("은혜");
         loaded[0].SlideNumber.Should().Be(2);
+        loaded[0].Sequence.Should().Be("1,c,2");
+        loaded[0].SongLayout.Should().Be(items[0].SongLayout);
         loaded[1].Title.Should().Be("요한복음");
     }
 
