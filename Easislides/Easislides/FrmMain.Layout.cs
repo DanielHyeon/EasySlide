@@ -767,7 +767,7 @@ namespace Easislides
             {
                 paneText = "Verses listed: " + Gf.HB_VersesLocation[0].Version + " / ";
             }
-            else if (Gf.HB_TotalVersions > 0)
+            else if (Gf.BibleVersions.Count > 0)
             {
                 paneText = "Verses listed: 0 / ";
             }

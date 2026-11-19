@@ -58,9 +58,9 @@ namespace Easislides
 			{
 				for (int i = 0; i <= 1; i++)
 				{
-					string text = SongFolder.Items[selectedIndex].SubItems[i].Text;
+					string selectedColumnText = SongFolder.Items[selectedIndex].SubItems[i].Text;
 					SongFolder.Items[selectedIndex].SubItems[i].Text = SongFolder.Items[selectedIndex - 1].SubItems[i].Text;
-					SongFolder.Items[selectedIndex - 1].SubItems[i].Text = text;
+					SongFolder.Items[selectedIndex - 1].SubItems[i].Text = selectedColumnText;
 				}
 				SongFolder.Items[selectedIndex].Selected = false;
 				SongFolder.Items[selectedIndex - 1].Selected = true;
@@ -80,9 +80,9 @@ namespace Easislides
 			{
 				for (int i = 0; i <= 1; i++)
 				{
-					string text = SongFolder.Items[selectedIndex].SubItems[i].Text;
+					string selectedColumnText = SongFolder.Items[selectedIndex].SubItems[i].Text;
 					SongFolder.Items[selectedIndex].SubItems[i].Text = SongFolder.Items[selectedIndex + 1].SubItems[i].Text;
-					SongFolder.Items[selectedIndex + 1].SubItems[i].Text = text;
+					SongFolder.Items[selectedIndex + 1].SubItems[i].Text = selectedColumnText;
 				}
 				SongFolder.Items[selectedIndex].Selected = false;
 				SongFolder.Items[selectedIndex + 1].Selected = true;

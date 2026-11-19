@@ -289,14 +289,14 @@ public sealed class ExternalFileOperationService : IExternalFileOperationService
         {
         }
 
-        var text = File.ReadAllText(sourcePath);
+        var fileContents = File.ReadAllText(sourcePath);
         return new SongWriteModel(
             SongId: null,
             title,
             AlternateTitle: "",
             folderNo,
             songNumber,
-            NormalizeLegacyInfoFileContents(text));
+            NormalizeLegacyInfoFileContents(fileContents));
     }
 
     private static ExternalFileOperationReport CreateReport(

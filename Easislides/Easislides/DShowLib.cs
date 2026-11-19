@@ -157,28 +157,28 @@ namespace Easislides
 
 		private void PlayMovieInWindow(string filename)
 		{
-			int num = 0;
+			int hr = 0;
 			if (!(filename == string.Empty))
 			{
 				OpenInterfaces();
-				num = graphBuilder.RenderFile(filename, null);
-				DsError.ThrowExceptionForHR(num);
-				int num2 = CheckVisibility();
-				num = mediaEventEx.SetNotifyWindow(base.Handle, 32769, IntPtr.Zero);
-				DsError.ThrowExceptionForHR(num);
+				hr = graphBuilder.RenderFile(filename, null);
+				DsError.ThrowExceptionForHR(hr);
+				int visibilityResult = CheckVisibility();
+				hr = mediaEventEx.SetNotifyWindow(base.Handle, 32769, IntPtr.Zero);
+				DsError.ThrowExceptionForHR(hr);
 				if (isVideo)
 				{
 					try
 					{
-						num = videoWindow.put_Owner(base.Handle);
-						DsError.ThrowExceptionForHR(num);
-						num = videoWindow.put_WindowStyle(WindowStyle.Child | WindowStyle.ClipSiblings | WindowStyle.ClipChildren);
-						DsError.ThrowExceptionForHR(num);
+						hr = videoWindow.put_Owner(base.Handle);
+						DsError.ThrowExceptionForHR(hr);
+						hr = videoWindow.put_WindowStyle(WindowStyle.Child | WindowStyle.ClipSiblings | WindowStyle.ClipChildren);
+						DsError.ThrowExceptionForHR(hr);
 						// Position the video window before showing it, so it never
 						// appears at its default size and then jumps into place.
 						int sizeResult = InitVideoWindow();
-						num = videoWindow.put_Visible(OABool.True);
-						DsError.ThrowExceptionForHR(num);
+						hr = videoWindow.put_Visible(OABool.True);
+						DsError.ThrowExceptionForHR(hr);
 						DsError.ThrowExceptionForHR(sizeResult);
 						GetFrameStepInterface();
 					}
@@ -188,11 +188,11 @@ namespace Easislides
 				}
 				else
 				{
-					num = InitPlayerWindow();
-					DsError.ThrowExceptionForHR(num);
+					hr = InitPlayerWindow();
+					DsError.ThrowExceptionForHR(hr);
 				}
-				num = mediaControl.Run();
-				DsError.ThrowExceptionForHR(num);
+				hr = mediaControl.Run();
+				DsError.ThrowExceptionForHR(hr);
 				if (ResumeFromPreviousPosition)
 				{
 					SetCurrentPosition(PreviousMediaStoppedPosition);
@@ -216,7 +216,7 @@ namespace Easislides
 
 		public void CloseClip()
 		{
-			int num = 0;
+			int stopResult = 0;
 			PauseClip();
 			if (DataUtil.Left(newFilename, "<<Capture>>".Length) == "<<Capture>>")
 			{
@@ -224,7 +224,7 @@ namespace Easislides
 			}
 			if (mediaControl != null)
 			{
-				num = mediaControl.Stop();
+				stopResult = mediaControl.Stop();
 			}
 			SetPlayState(PlayState.Stopped);
 			isVideo = false;
@@ -237,25 +237,25 @@ namespace Easislides
 
 		public void StopClip()
 		{
-			int num = 0;
+			int hr = 0;
 			DsLong pCurrent = new DsLong(0L);
 			if (mediaControl != null && mediaSeeking != null && (currentState == PlayState.Paused || currentState == PlayState.Running))
 			{
-				num = mediaControl.Stop();
+				hr = mediaControl.Stop();
 				SetPlayState(PlayState.Stopped);
-				num = mediaSeeking.SetPositions(pCurrent, AMSeekingSeekingFlags.AbsolutePositioning, null, AMSeekingSeekingFlags.NoPositioning);
-				num = mediaControl.Pause();
+				hr = mediaSeeking.SetPositions(pCurrent, AMSeekingSeekingFlags.AbsolutePositioning, null, AMSeekingSeekingFlags.NoPositioning);
+				hr = mediaControl.Pause();
 			}
 		}
 
 		public int InitVideoWindow()
 		{
-			int num = 0;
-			bool flag = false;
+			int hr = 0;
+			bool hasNativeWidescreenAspect = false;
 			int pWidth;
 			int pHeight;
-			int num2;
-			int num3;
+			int aspectWidth;
+			int aspectHeight;
 			int plAspectX;
 			int plAspectY;
 			if (DataUtil.Left(newFilename, "<<Capture>>".Length) == "<<Capture>>")
@@ -265,18 +265,18 @@ namespace Easislides
 					DebugMessage("videoWindow Quit: Null");
 					return 0;
 				}
-				num = basicVideo2.GetVideoSize(out pWidth, out pHeight);
+				hr = basicVideo2.GetVideoSize(out pWidth, out pHeight);
 				DebugMessage("InitVideoWindow Invideo " + pWidth + " " + pHeight);
-				if (num == -2147220971)
+				if (hr == -2147220971)
 				{
 					DebugMessage("InitVideoWindow Quit: GetVideoSize Error");
 					return 0;
 				}
-				num2 = Default_Width;
-				num3 = Default_Heigth;
-				num = basicVideo2.GetPreferredAspectRatio(out plAspectX, out plAspectY);
+				aspectWidth = Default_Width;
+				aspectHeight = Default_Heigth;
+				hr = basicVideo2.GetPreferredAspectRatio(out plAspectX, out plAspectY);
 				DebugMessage("InitVideoWindow aspect " + pWidth + " " + pHeight);
-				if (num == -2147220971)
+				if (hr == -2147220971)
 				{
 					DebugMessage("InitVideoWindow Quit: GetPreferredAspectRatio Error");
 					return 0;
@@ -289,18 +289,18 @@ namespace Easislides
 					DebugMessage("basicVideo2 Quit: Null");
 					return 0;
 				}
-				num = basicVideo2.GetVideoSize(out pWidth, out pHeight);
+				hr = basicVideo2.GetVideoSize(out pWidth, out pHeight);
 				DebugMessage("InitVideoWindow Invideo " + pWidth + " " + pHeight);
-				if (num == -2147220971)
+				if (hr == -2147220971)
 				{
 					DebugMessage("InitVideoWindow Quit: GetVideoSize Error");
 					return 0;
 				}
-				num2 = pWidth;
-				num3 = pHeight;
-				num = basicVideo2.GetPreferredAspectRatio(out plAspectX, out plAspectY);
+				aspectWidth = pWidth;
+				aspectHeight = pHeight;
+				hr = basicVideo2.GetPreferredAspectRatio(out plAspectX, out plAspectY);
 				DebugMessage("InitVideoWindow aspect " + pWidth + " " + pHeight);
-				if (num == -2147220971)
+				if (hr == -2147220971)
 				{
 					DebugMessage("InitVideoWindow Quit: GetPreferredAspectRatio Error");
 					return 0;
@@ -313,39 +313,39 @@ namespace Easislides
 			}
 			if (plAspectX == 16 && plAspectY == 9)
 			{
-				flag = true;
-				num2 = num3 * plAspectX / plAspectY;
+				hasNativeWidescreenAspect = true;
+				aspectWidth = aspectHeight * plAspectX / plAspectY;
 			}
-			if (isWidescreen && !flag)
+			if (isWidescreen && !hasNativeWidescreenAspect)
 			{
-				num2 = num3 * 16 / 9;
+				aspectWidth = aspectHeight * 16 / 9;
 			}
 			else if (plAspectX > 0 && plAspectY > 0)
 			{
-				num2 = num3 * plAspectX / plAspectY;
+				aspectWidth = aspectHeight * plAspectX / plAspectY;
 			}
-			DebugMessage("Adjusted Media Size: " + num2 + " " + num3);
-			double num4 = (double)num2 / (double)num3;
-			double num5 = (double)Default_Width / (double)Default_Heigth;
+			DebugMessage("Adjusted Media Size: " + aspectWidth + " " + aspectHeight);
+			double videoAspectRatio = (double)aspectWidth / (double)aspectHeight;
+			double outputAspectRatio = (double)Default_Width / (double)Default_Heigth;
 			int left;
-			int num6;
-			int num7;
+			int windowWidth;
+			int windowHeight;
 			int top;
-			if (num5 < num4)
+			if (outputAspectRatio < videoAspectRatio)
 			{
 				left = Default_Left;
-				num6 = Default_Width;
-				num7 = (int)((double)num6 / num4);
-				pHeight = (int)((double)pWidth / num4);
-				top = ((Default_Align == VAlign.Top) ? Default_Top : ((Default_Align != VAlign.Centre) ? (Default_Top + (Default_Heigth - num7)) : (Default_Top + (Default_Heigth - num7) / 2)));
+				windowWidth = Default_Width;
+				windowHeight = (int)((double)windowWidth / videoAspectRatio);
+				pHeight = (int)((double)pWidth / videoAspectRatio);
+				top = ((Default_Align == VAlign.Top) ? Default_Top : ((Default_Align != VAlign.Centre) ? (Default_Top + (Default_Heigth - windowHeight)) : (Default_Top + (Default_Heigth - windowHeight) / 2)));
 			}
 			else
 			{
 				top = Default_Top;
-				num7 = Default_Heigth;
-				num6 = (int)((double)num7 * num4);
-				pWidth = (int)((double)pHeight * num4);
-				left = Default_Left + (Default_Width - num6) / 2;
+				windowHeight = Default_Heigth;
+				windowWidth = (int)((double)windowHeight * videoAspectRatio);
+				pWidth = (int)((double)pHeight * videoAspectRatio);
+				left = Default_Left + (Default_Width - windowWidth) / 2;
 			}
 			Media_Width = pWidth;
 			Media_Height = pHeight;
@@ -354,10 +354,10 @@ namespace Easislides
 			// used to follow here; it let queued input (e.g. the media hot keys) re-enter
 			// OpenClip/CloseClip while the graph was still being built.
 			Dock = DockStyle.Fill;
-			num = videoWindow.SetWindowPosition(left, top, num6, num7);
+			hr = videoWindow.SetWindowPosition(left, top, windowWidth, windowHeight);
 			OABool hideCursor = OABool.True;
 			videoWindow.HideCursor(hideCursor);
-			return num;
+			return hr;
 		}
 
 		public string GetVideoSize()
@@ -371,26 +371,26 @@ namespace Easislides
 
 		private int CheckVisibility()
 		{
-			int num = 0;
+			int hr = 0;
 			if (videoWindow == null || basicVideo2 == null)
 			{
 				isVideo = false;
 				return -1;
 			}
 			isVideo = true;
-			num = videoWindow.get_Visible(out OABool _);
-			if (num < 0)
+			hr = videoWindow.get_Visible(out OABool _);
+			if (hr < 0)
 			{
-				if (num == -2147467262)
+				if (hr == -2147467262)
 				{
 					isVideo = false;
 				}
 				else
 				{
-					DsError.ThrowExceptionForHR(num);
+					DsError.ThrowExceptionForHR(hr);
 				}
 			}
-			return num;
+			return hr;
 		}
 
 		private bool GetFrameStepInterface()
@@ -409,7 +409,7 @@ namespace Easislides
 
 		public void CloseInterfaces()
 		{
-			int num = 0;
+			int hr = 0;
 			if (mediaControl != null)
 			{
 				mediaControl.StopWhenReady();
@@ -421,16 +421,16 @@ namespace Easislides
 				{
 					try
 					{
-						num = videoWindow.put_Visible(OABool.False);
-						DsError.ThrowExceptionForHR(num);
+						hr = videoWindow.put_Visible(OABool.False);
+						DsError.ThrowExceptionForHR(hr);
 					}
 					catch
 					{
 					}
 					try
 					{
-						num = videoWindow.put_Owner(IntPtr.Zero);
-						DsError.ThrowExceptionForHR(num);
+						hr = videoWindow.put_Owner(IntPtr.Zero);
+						DsError.ThrowExceptionForHR(hr);
 					}
 					catch
 					{
@@ -439,8 +439,8 @@ namespace Easislides
 					{
 						if (mediaEventEx != null)
 						{
-							num = mediaEventEx.SetNotifyWindow(IntPtr.Zero, 0, IntPtr.Zero);
-							DsError.ThrowExceptionForHR(num);
+							hr = mediaEventEx.SetNotifyWindow(IntPtr.Zero, 0, IntPtr.Zero);
+							DsError.ThrowExceptionForHR(hr);
 						}
 					}
 					catch
@@ -556,8 +556,8 @@ namespace Easislides
 			{
 				InPct = 50;
 			}
-			double num = (double)InPct + 0.01;
-			return (int)(Math.Log10(num / 100.0) * 2500.0);
+			double adjustedPercent = (double)InPct + 0.01;
+			return (int)(Math.Log10(adjustedPercent / 100.0) * 2500.0);
 		}
 
 		private void ApplyVolumeSettings()
@@ -597,19 +597,19 @@ namespace Easislides
 
 		public int SetMute(bool SetMuteOn)
 		{
-			int num = 0;
+			int hr = 0;
 			if (graphBuilder == null || basicAudio == null)
 			{
 				return 0;
 			}
-			num = basicAudio.get_Volume(out currentVolume);
-			if (num == -1)
+			hr = basicAudio.get_Volume(out currentVolume);
+			if (hr == -1)
 			{
 				return 0;
 			}
-			if (num < 0)
+			if (hr < 0)
 			{
-				return num;
+				return hr;
 			}
 			if (SetMuteOn)
 			{
@@ -740,7 +740,7 @@ namespace Easislides
 
 		private void HandleGraphEvent_MediaFile()
 		{
-			int num = 0;
+			int hr = 0;
 			if (mediaEventEx == null)
 			{
 				return;
@@ -750,15 +750,15 @@ namespace Easislides
 			IntPtr lParam2;
 			while (mediaEventEx.GetEvent(out lEventCode, out lParam, out lParam2, 0) == 0)
 			{
-				num = mediaEventEx.FreeEventParams(lEventCode, lParam, lParam2);
+				hr = mediaEventEx.FreeEventParams(lEventCode, lParam, lParam2);
 				if (lEventCode == EventCode.Complete)
 				{
 					DsLong pCurrent = new DsLong(0L);
-					num = mediaSeeking.SetPositions(pCurrent, AMSeekingSeekingFlags.AbsolutePositioning, null, AMSeekingSeekingFlags.NoPositioning);
-					num = mediaControl.Stop();
+					hr = mediaSeeking.SetPositions(pCurrent, AMSeekingSeekingFlags.AbsolutePositioning, null, AMSeekingSeekingFlags.NoPositioning);
+					hr = mediaControl.Stop();
 					if (LoopClip)
 					{
-						num = mediaControl.Run();
+						hr = mediaControl.Run();
 					}
 				}
 			}
@@ -808,35 +808,35 @@ namespace Easislides
 
 		public void CaptureVideo()
 		{
-			int num = 0;
+			int hr = 0;
 			IBaseFilter baseFilter = null;
 			try
 			{
 				OpenInterfaces();
-				num = mediaEventEx.SetNotifyWindow(base.Handle, 32769, IntPtr.Zero);
-				DsError.ThrowExceptionForHR(num);
-				num = captureGraphBuilder.SetFiltergraph(graphBuilder);
-				DsError.ThrowExceptionForHR(num);
+				hr = mediaEventEx.SetNotifyWindow(base.Handle, 32769, IntPtr.Zero);
+				DsError.ThrowExceptionForHR(hr);
+				hr = captureGraphBuilder.SetFiltergraph(graphBuilder);
+				DsError.ThrowExceptionForHR(hr);
 				baseFilter = FindCaptureDevice(currentInputDevice);
-				num = graphBuilder.AddFilter(baseFilter, "Video Capture");
-				DsError.ThrowExceptionForHR(num);
+				hr = graphBuilder.AddFilter(baseFilter, "Video Capture");
+				DsError.ThrowExceptionForHR(hr);
 				bool configResult = SetConfigParms(captureGraphBuilder, baseFilter);
-				num = GetVideoStream(baseFilter, configResult);
-				DsError.ThrowExceptionForHR(num);
-				DebugMessage("GetVideoStream hr=" + num);
+				hr = GetVideoStream(baseFilter, configResult);
+				DsError.ThrowExceptionForHR(hr);
+				DebugMessage("GetVideoStream hr=" + hr);
 				Marshal.ReleaseComObject(baseFilter);
 				//GC.Collect();
-				num = videoWindow.put_Owner(base.Handle);
-				DsError.ThrowExceptionForHR(num);
-				num = videoWindow.put_WindowStyle(WindowStyle.Child | WindowStyle.ClipSiblings | WindowStyle.ClipChildren);
-				DsError.ThrowExceptionForHR(num);
+				hr = videoWindow.put_Owner(base.Handle);
+				DsError.ThrowExceptionForHR(hr);
+				hr = videoWindow.put_WindowStyle(WindowStyle.Child | WindowStyle.ClipSiblings | WindowStyle.ClipChildren);
+				DsError.ThrowExceptionForHR(hr);
 				int sizeResult = InitVideoWindow();
-				num = videoWindow.put_Visible(OABool.True);
-				DsError.ThrowExceptionForHR(num);
+				hr = videoWindow.put_Visible(OABool.True);
+				DsError.ThrowExceptionForHR(hr);
 				DsError.ThrowExceptionForHR(sizeResult);
 				GetFrameStepInterface();
-				num = mediaControl.Run();
-				DsError.ThrowExceptionForHR(num);
+				hr = mediaControl.Run();
+				DsError.ThrowExceptionForHR(hr);
 				isVideo = true;
 				SetPlayState(PlayState.Running);
 			}
@@ -868,23 +868,23 @@ namespace Easislides
 			}
 			ArrayList arrayList = new ArrayList();
 			DsDevice[] devicesOfCat = DsDevice.GetDevicesOfCat(FilterCategory.VideoInputDevice);
-			int num = 0;
+			int deviceCount = 0;
 			DsDevice[] array = devicesOfCat;
 			foreach (DsDevice dsDevice in array)
 			{
-				num++;
+				deviceCount++;
 			}
-			if (num > 5)
+			if (deviceCount > 5)
 			{
-				num = 5;
+				deviceCount = 5;
 			}
-			if (num == 0)
+			if (deviceCount == 0)
 			{
 				return null;
 			}
-			if (InDeviceNumber > num)
+			if (InDeviceNumber > deviceCount)
 			{
-				InDeviceNumber = num;
+				InDeviceNumber = deviceCount;
 			}
 			InDeviceNumber--;
 			return devicesOfCat[InDeviceNumber];
@@ -894,20 +894,20 @@ namespace Easislides
 		{
 			ArrayList arrayList = new ArrayList();
 			DsDevice[] devicesOfCat = DsDevice.GetDevicesOfCat(FilterCategory.VideoInputDevice);
-			int num = 0;
+			int deviceNumber = 0;
 			InComboBox.Items.Clear();
 			DsDevice[] array = devicesOfCat;
 			foreach (DsDevice dsDevice in array)
 			{
-				num++;
-				if (num <= 5)
+				deviceNumber++;
+				if (deviceNumber <= 5)
 				{
-					InComboBox.Items.Add(num + ". " + dsDevice.Name);
+					InComboBox.Items.Add(deviceNumber + ". " + dsDevice.Name);
 				}
 			}
-			if (num < 5)
+			if (deviceNumber < 5)
 			{
-				for (int j = num + 1; j <= 5; j++)
+				for (int j = deviceNumber + 1; j <= 5; j++)
 				{
 					InComboBox.Items.Add(j + ". ");
 				}
@@ -917,7 +917,7 @@ namespace Easislides
 		private int GetVideoStream(IBaseFilter sourceFilter, bool ConfigResult)
 		{
 			int hr = 0;
-			int num = FindCorrectVideoStream(sourceFilter, ConfigResult, ref hr);
+			FindCorrectVideoStream(sourceFilter, ConfigResult, ref hr);
 			return hr;
 		}
 
@@ -945,7 +945,7 @@ namespace Easislides
 
 		public void HandleGraphEvent_CaptureDevice()
 		{
-			int num = 0;
+			int hr = 0;
 			if (mediaEventEx != null)
 			{
 				EventCode lEventCode;
@@ -953,25 +953,25 @@ namespace Easislides
                 IntPtr lParam2;
 				while (mediaEventEx.GetEvent(out lEventCode, out lParam, out lParam2, 0) == 0)
 				{
-					num = mediaEventEx.FreeEventParams(lEventCode, lParam, lParam2);
-					DsError.ThrowExceptionForHR(num);
+					hr = mediaEventEx.FreeEventParams(lEventCode, lParam, lParam2);
+					DsError.ThrowExceptionForHR(hr);
 				}
 			}
 		}
 
 		private bool IsMatchedConfigcaps(VideoStreamConfigCaps Caps, AMMediaType MediaType, int SizeX, int SizeY)
 		{
-			bool flag = true;
-			if (flag)
+			bool matchesSizeRange = true;
+			if (matchesSizeRange)
 			{
-				flag = (SizeX >= Caps.MinOutputSize.Width && SizeX <= Caps.MaxOutputSize.Width && SizeY >= Caps.MinOutputSize.Height && SizeY <= Caps.MaxOutputSize.Height);
+				matchesSizeRange = (SizeX >= Caps.MinOutputSize.Width && SizeX <= Caps.MaxOutputSize.Width && SizeY >= Caps.MinOutputSize.Height && SizeY <= Caps.MaxOutputSize.Height);
 			}
-			if (flag)
+			if (matchesSizeRange)
 			{
 				RCount++;
 			}
-			Debug.WriteLine("result = " + flag);
-			return flag;
+			Debug.WriteLine("result = " + matchesSizeRange);
+			return matchesSizeRange;
 		}
 
 		private int SetPreviewFormat(IBaseFilter sourceFilter)
@@ -979,9 +979,9 @@ namespace Easislides
 			DsGuid pCategory = PinCategory.Capture;
 			DsGuid pType = MediaType.Interleaved;
 			DsGuid g = typeof(IAMStreamConfig).GUID;
-			bool flag = captureGraphBuilder.FindInterface(pCategory, pType, sourceFilter, g, out object ppint) == 0;
+			captureGraphBuilder.FindInterface(pCategory, pType, sourceFilter, g, out object ppint);
 			pType = MediaType.Video;
-			flag = (captureGraphBuilder.FindInterface(pCategory, pType, sourceFilter, g, out ppint) == 0);
+			captureGraphBuilder.FindInterface(pCategory, pType, sourceFilter, g, out ppint);
 			IAMStreamConfig iAMStreamConfig = ppint as IAMStreamConfig;
 			iAMStreamConfig.GetNumberOfCapabilities(out int piCount, out int _);
 			int[,] array = new int[1000, 2];
@@ -1020,8 +1020,8 @@ namespace Easislides
 			DsGuid pCategory = PinCategory.Capture;
 			DsGuid pType = MediaType.Interleaved;
 			DsGuid g = typeof(IAMStreamConfig).GUID;
-			int num = 768;
-			int num2 = 576;
+			int targetWidth = 768;
+			int targetHeight = 576;
 			Debug.WriteLine("Interleaved: " + (captureGraphBuilder.FindInterface(pCategory, pType, sourceFilter, g, out object ppint) == 0));
 			pType = MediaType.Video;
 			Debug.WriteLine("Video: " + (captureGraphBuilder.FindInterface(pCategory, pType, sourceFilter, g, out ppint) == 0));
@@ -1044,24 +1044,24 @@ namespace Easislides
 				int streamCaps = iAMStreamConfig.GetStreamCaps(i, out AMMediaType ppmt, intPtr);
 				Marshal.ThrowExceptionForHR(streamCaps);
 				VideoStreamConfigCaps caps = (VideoStreamConfigCaps)Marshal.PtrToStructure(intPtr, typeof(VideoStreamConfigCaps));
-				if (IsMatchedConfigcaps(caps, ppmt, num, num2))
+				if (IsMatchedConfigcaps(caps, ppmt, targetWidth, targetHeight))
 				{
 					if (object.Equals(ppmt.formatType, FormatType.VideoInfo))
 					{
 						VideoInfoHeader videoInfoHeader = (VideoInfoHeader)Marshal.PtrToStructure(ppmt.formatPtr, typeof(VideoInfoHeader));
 						Debug.WriteLine("VideoInfoHeader == null : " + (videoInfoHeader == null));
-						videoInfoHeader.TargetRect = new DsRect(0, 0, num, num2);
-						videoInfoHeader.BmiHeader.Width = num;
-						videoInfoHeader.BmiHeader.Height = num2;
+						videoInfoHeader.TargetRect = new DsRect(0, 0, targetWidth, targetHeight);
+						videoInfoHeader.BmiHeader.Width = targetWidth;
+						videoInfoHeader.BmiHeader.Height = targetHeight;
 						Debug.WriteLine("FormatType.VideoInfo");
 					}
 					else if (object.Equals(ppmt.formatType, FormatType.VideoInfo2))
 					{
 						VideoInfoHeader2 videoInfoHeader2 = (VideoInfoHeader2)Marshal.PtrToStructure(ppmt.formatPtr, typeof(VideoInfoHeader2));
 						Debug.WriteLine((videoInfoHeader2 == null).ToString());
-						videoInfoHeader2.TargetRect = new DsRect(0, 0, num, num2);
-						videoInfoHeader2.BmiHeader.Width = num;
-						videoInfoHeader2.BmiHeader.Height = num2;
+						videoInfoHeader2.TargetRect = new DsRect(0, 0, targetWidth, targetHeight);
+						videoInfoHeader2.BmiHeader.Width = targetWidth;
+						videoInfoHeader2.BmiHeader.Height = targetHeight;
 						Debug.WriteLine("FormatType.VideoInfo2");
 					}
 					streamCaps = iAMStreamConfig.SetFormat(ppmt);
@@ -1077,8 +1077,8 @@ namespace Easislides
 
 		private bool SetConfigParms(ICaptureGraphBuilder2 capGraph, IBaseFilter capFilter)
 		{
-			int num = capGraph.FindInterface(PinCategory.Preview, MediaType.Video, capFilter, typeof(IAMStreamConfig).GUID, out object ppint);
-			if (num < 0)
+			int hr = capGraph.FindInterface(PinCategory.Preview, MediaType.Video, capFilter, typeof(IAMStreamConfig).GUID, out object ppint);
+			if (hr < 0)
 			{
 				DebugMessage("SetConfigParms Preview Pin failed");
 				return false;
@@ -1102,44 +1102,44 @@ namespace Easislides
 					return false;
 				}
 				int[,] array = new int[1000, 2];
-				int num2 = 0;
-				int num3 = 0;
-				int num4 = 0;
-				int num5 = 0;
-				num = iAMStreamConfig.GetNumberOfCapabilities(out int piCount, out int _);
+				int maxFourThreeHeight = 0;
+				int maxOtherHeight = 0;
+				int fourThreeFormatIndex = 0;
+				int otherFormatIndex = 0;
+				hr = iAMStreamConfig.GetNumberOfCapabilities(out int piCount, out int _);
 				VideoInfoHeader videoInfoHeader = new VideoInfoHeader();
 				AMMediaType pmt;
 				for (int i = 0; i < piCount; i++)
 				{
-					num = iAMStreamConfig.GetStreamCaps(i, out pmt, intPtr);
+					hr = iAMStreamConfig.GetStreamCaps(i, out pmt, intPtr);
 					VideoStreamConfigCaps videoStreamConfigCaps = (VideoStreamConfigCaps)Marshal.PtrToStructure(intPtr, typeof(VideoStreamConfigCaps));
 					array[i, 0] = videoStreamConfigCaps.MaxOutputSize.Width;
 					array[i, 1] = videoStreamConfigCaps.MaxOutputSize.Height;
 					if (array[i, 1] == array[i, 0] * 3 / 4)
 					{
-						if (array[i, 1] > num2)
+						if (array[i, 1] > maxFourThreeHeight)
 						{
-							num2 = array[i, 1];
-							num4 = i;
+							maxFourThreeHeight = array[i, 1];
+							fourThreeFormatIndex = i;
 						}
 					}
-					else if (array[i, 1] > num3)
+					else if (array[i, 1] > maxOtherHeight)
 					{
-						num3 = array[i, 1];
-						num5 = i;
+						maxOtherHeight = array[i, 1];
+						otherFormatIndex = i;
 					}
 				}
-				num = iAMStreamConfig.GetFormat(out pmt);
-				DsError.ThrowExceptionForHR(num);
+				hr = iAMStreamConfig.GetFormat(out pmt);
+				DsError.ThrowExceptionForHR(hr);
 				DebugMessage("videoStreamConfig.GetFormat OK");
-				int num6 = (num2 < num3) ? num5 : num4;
+				int selectedFormatIndex = (maxFourThreeHeight < maxOtherHeight) ? otherFormatIndex : fourThreeFormatIndex;
 				Marshal.PtrToStructure(pmt.formatPtr, (object)videoInfoHeader);
-				videoInfoHeader.BmiHeader.Width = array[num6, 0];
-				videoInfoHeader.BmiHeader.Height = array[num6, 1];
-				DebugMessage("Index selected: " + num6 + " - " + array[num6, 0] + "x" + array[num6, 1]);
+				videoInfoHeader.BmiHeader.Width = array[selectedFormatIndex, 0];
+				videoInfoHeader.BmiHeader.Height = array[selectedFormatIndex, 1];
+				DebugMessage("Index selected: " + selectedFormatIndex + " - " + array[selectedFormatIndex, 0] + "x" + array[selectedFormatIndex, 1]);
 				Marshal.StructureToPtr((object)videoInfoHeader, pmt.formatPtr, fDeleteOld: false);
-				num = iAMStreamConfig.SetFormat(pmt);
-				DsError.ThrowExceptionForHR(num);
+				hr = iAMStreamConfig.SetFormat(pmt);
+				DsError.ThrowExceptionForHR(hr);
 				DebugMessage("videoStreamConfig.SetFormat OK");
 				DsUtils.FreeAMMediaType(pmt);
 				pmt = null;

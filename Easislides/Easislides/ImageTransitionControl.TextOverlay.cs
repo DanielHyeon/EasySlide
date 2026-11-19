@@ -342,8 +342,8 @@ namespace Easislides
 			private void ComputeOccurrences(string text, float overallDuration, ref float messageDuration)
 			{
 				_charPerSecond = _initialCharPerSecond;
-				int num = (int)((float)text.Length / _charPerSecond) + GapDuration;
-				if ((float)num > overallDuration)
+				int passDurationWithGap = (int)((float)text.Length / _charPerSecond) + GapDuration;
+				if ((float)passDurationWithGap > overallDuration)
 				{
 					// One pass and the gap do not fit: a single pass, sped up to end when the gap starts
 					// (duration - gap). When the gap alone takes the whole duration there is no such time (it
@@ -362,7 +362,7 @@ namespace Easislides
 				}
 				else
 				{
-					_occurrences = (int)(overallDuration / (float)num);
+					_occurrences = (int)(overallDuration / (float)passDurationWithGap);
 					if (_occurrences == 0)
 					{
 						_occurrences = 1;

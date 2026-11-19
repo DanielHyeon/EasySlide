@@ -94,9 +94,9 @@ namespace Easislides
 			UsageDetails.Sorting = SortOrder.None;
 			ListViewItem listViewItem = new ListViewItem();
 			bool result = true;
-			string text = "";
+			string songNumber = "";
 			SongNumberUsed = false;
-			string text2 = "";
+			string worshipListName = "";
 			try
 			{
 				//daniel ���� �ӵ��� ������ �ϱ�����OledataReader ���
@@ -123,20 +123,20 @@ namespace Easislides
 				{
 					try
 					{
-						text2 = DataUtil.ObjToString(dataTableReader["WORSHIP_LIST"]);
-						AddItemToSessionList(text2);
-						if (SelectedSession == "" || text2 == SelectedSession)
+						worshipListName = DataUtil.ObjToString(dataTableReader["WORSHIP_LIST"]);
+						AddItemToSessionList(worshipListName);
+						if (SelectedSession == "" || worshipListName == SelectedSession)
 						{
 							DateTime dateTime = (DateTime)dataTableReader["WORSHIP_DATE"];
 							listViewItem = UsageDetails.Items.Add(dateTime.ToString("yyyy-MM-dd"));
-							listViewItem.SubItems.Add(text2);
+							listViewItem.SubItems.Add(worshipListName);
 							listViewItem.SubItems.Add(Gf.RemoveMusicSym(DataUtil.ObjToString(dataTableReader["SONG_TITLE"])));
-							text = DataUtil.ObjToString(dataTableReader["SONG_NUMBER"]);
-							if (text != "" && text != "0")
+							songNumber = DataUtil.ObjToString(dataTableReader["SONG_NUMBER"]);
+							if (songNumber != "" && songNumber != "0")
 							{
 								SongNumberUsed = true;
 							}
-							listViewItem.SubItems.Add(text);
+							listViewItem.SubItems.Add(songNumber);
 							listViewItem.SubItems.Add(DataUtil.ObjToString(dataTableReader["ADMIN_1"]));
 							listViewItem.SubItems.Add(DataUtil.ObjToString(dataTableReader["ADMIN_2"]));
 							listViewItem.SubItems.Add(DataUtil.ObjToString(dataTableReader["SONG_ID"]));
@@ -195,12 +195,12 @@ namespace Easislides
 		{
 			try
 			{
-				string text = UsageDetails.Items[InIndex].SubItems[6].Text;
+				string songId = UsageDetails.Items[InIndex].SubItems[6].Text;
 				if (SummaryDetails.Items.Count > 0)
 				{
 					for (int i = 0; i <= SummaryDetails.Items.Count - 1; i++)
 					{
-						if (text == SummaryDetails.Items[i].SubItems[3].Text)
+						if (songId == SummaryDetails.Items[i].SubItems[3].Text)
 						{
 							SummaryDetails.Items[i].SubItems[0].Text = (DataUtil.StringToInt(SummaryDetails.Items[i].SubItems[0].Text) + 1).ToString();
 							return;
@@ -284,12 +284,12 @@ namespace Easislides
 				{
 					if (MessageBox.Show("This will permanently delete the selected usages records. Please Yes to confirm the delete.", "Deleted Selected Usages", MessageBoxButtons.YesNo) == DialogResult.Yes)
 					{
-						for (int num = UsageDetails.SelectedItems.Count - 1; num >= 0; num--)
+						for (int selectedIndex = UsageDetails.SelectedItems.Count - 1; selectedIndex >= 0; selectedIndex--)
 						{
 							using DbConnection connection = DbController.GetDbConnection(Gf.ConnectStringUsageDB);
-							DbCommand command = new DbCommand("Delete * FROM [USAGE] WHERE REC_ID = " + UsageDetails.SelectedItems[num].SubItems[7].Text, connection);
+							DbCommand command = new DbCommand("Delete * FROM [USAGE] WHERE REC_ID = " + UsageDetails.SelectedItems[selectedIndex].SubItems[7].Text, connection);
 							command.ExecuteNonQuery();
-							UsageDetails.SelectedItems[num].Remove();
+							UsageDetails.SelectedItems[selectedIndex].Remove();
 						}
 					}
 				}
@@ -330,64 +330,63 @@ namespace Easislides
 
 		private void GenerateReport()
 		{
-			string text = Gf.RootEasiSlidesDir + "Documents\\Song Usages.rtf";
-			if (MessageBox.Show("This will overwrite previous report " + text + ". Press OK to proceed or Cancel to quit.", "", MessageBoxButtons.OKCancel) == DialogResult.OK)
+			string reportPath = Gf.RootEasiSlidesDir + "Documents\\Song Usages.rtf";
+			if (MessageBox.Show("This will overwrite previous report " + reportPath + ". Press OK to proceed or Cancel to quit.", "", MessageBoxButtons.OKCancel) == DialogResult.OK)
 			{
 				try
 				{
 					Cursor = Cursors.WaitCursor;
-					using StreamWriter streamWriter = new StreamWriter(text, append: false, FileUtil.Utf8WithBom);
+					using StreamWriter streamWriter = new StreamWriter(reportPath, append: false, FileUtil.Utf8WithBom);
 					try
 					{
 						streamWriter.AutoFlush = true;
 
-						Gf.RTFNewLine = "\\b0\\i0\\ulnone\\par ";
-						Gf.RTFIndent[0] = "\\pard\\tx1200\\tx3500\\tx8200\\tx9000 ";
-						string text2 = "";
+						const string detailTabs = "\\pard\\tx1200\\tx3500\\tx8200\\tx9000 ";
+						string licenseAdministrators = "";
 						string value = "{\\rtf1\\ansi\\ansicpg1252\\deff0\\deflang1033{\\fonttbl{\\f0\\fnil\\fcharset0 Microsoft Sans Serif;}}\\viewkind1\\uc1\\pard\\f0\\fs20\\margr600\\margl1000\\margt900\\margb1000 ";
 						streamWriter.Write(value);
 						streamWriter.Write("\\b\\ul Usage Details: " + Gf.RTFNewLine + Gf.RTFNewLine);
 						streamWriter.Write("\\b Period:\\b0  " + CalendarFrom.SelectionStart.ToString("yyyy-MM-dd") + " to " + CalendarTo.SelectionStart.ToString("yyyy-MM-dd") + " (yyyy-mm-dd)" + Gf.RTFNewLine);
 						streamWriter.Write(((SelectedSession == "") ? "All Worship Lists displayed" : ("Worship List Restricted to '" + SelectedSession + "'")) + Gf.RTFNewLine + Gf.RTFNewLine);
-						streamWriter.Write(Gf.RTFIndent[0] + "\\b Date\tWorship List\tSong Title" + (SongNumberUsed ? "\tNo." : "") + "\tLic Admin" + Gf.RTFNewLine);
+						streamWriter.Write(detailTabs + "\\b Date\tWorship List\tSong Title" + (SongNumberUsed ? "\tNo." : "") + "\tLic Admin" + Gf.RTFNewLine);
 						for (int i = 0; i <= UsageDetails.Items.Count - 1; i++)
 						{
-							text2 = UsageDetails.Items[i].SubItems[4].Text;
-							if (text2 == "")
+							licenseAdministrators = UsageDetails.Items[i].SubItems[4].Text;
+							if (licenseAdministrators == "")
 							{
-								text2 = UsageDetails.Items[i].SubItems[5].Text;
+								licenseAdministrators = UsageDetails.Items[i].SubItems[5].Text;
 							}
 							else if (UsageDetails.Items[i].SubItems[5].Text != "")
 							{
-								text2 = text2 + "/" + UsageDetails.Items[i].SubItems[5].Text;
+								licenseAdministrators = licenseAdministrators + "/" + UsageDetails.Items[i].SubItems[5].Text;
 							}
-							streamWriter.Write(DataUtil.UnicodeToAscii_RTF(Gf.RTFIndent[0] + UsageDetails.Items[i].SubItems[0].Text + "\t" + UsageDetails.Items[i].SubItems[1].Text + "\t" + UsageDetails.Items[i].SubItems[2].Text + (SongNumberUsed ? ("\t" + UsageDetails.Items[i].SubItems[3].Text) : "") + "\t" + text2 + Gf.RTFNewLine));
+							streamWriter.Write(DataUtil.UnicodeToAscii_RTF(detailTabs + UsageDetails.Items[i].SubItems[0].Text + "\t" + UsageDetails.Items[i].SubItems[1].Text + "\t" + UsageDetails.Items[i].SubItems[2].Text + (SongNumberUsed ? ("\t" + UsageDetails.Items[i].SubItems[3].Text) : "") + "\t" + licenseAdministrators + Gf.RTFNewLine));
 						}
-						Gf.RTFIndent[0] = "\\pard\\tx1200\\tx6200 ";
+						const string summaryTabs = "\\pard\\tx1200\\tx6200 ";
 						streamWriter.Write(Gf.RTFNewLine + Gf.RTFNewLine + Gf.RTFNewLine);
 						streamWriter.Write("\\b\\ul Occurrences:" + Gf.RTFNewLine + Gf.RTFNewLine);
 						streamWriter.Write("\\b Period:\\b0  " + CalendarFrom.SelectionStart.ToString("yyyy-MM-dd") + " to " + CalendarTo.SelectionStart.ToString("yyyy-MM-dd") + " (yyyy-mm-dd)" + Gf.RTFNewLine);
 						streamWriter.Write(((SelectedSession == "") ? "All Worship Lists displayed" : ("Worship List Restricted to '" + SelectedSession + "'")) + Gf.RTFNewLine + Gf.RTFNewLine);
-						streamWriter.Write(Gf.RTFIndent[0] + "\\b Occurrence\tSong Title" + (SongNumberUsed ? "\tNo." : "") + Gf.RTFNewLine);
+						streamWriter.Write(summaryTabs + "\\b Occurrence\tSong Title" + (SongNumberUsed ? "\tNo." : "") + Gf.RTFNewLine);
 						for (int i = 0; i <= SummaryDetails.Items.Count - 1; i++)
 						{
-							streamWriter.Write(DataUtil.UnicodeToAscii_RTF(Gf.RTFIndent[0] + SummaryDetails.Items[i].SubItems[0].Text + "\t" + SummaryDetails.Items[i].SubItems[1].Text + "\t" + (SongNumberUsed ? ("\t" + SummaryDetails.Items[i].SubItems[2].Text) : "") + Gf.RTFNewLine));
+							streamWriter.Write(DataUtil.UnicodeToAscii_RTF(summaryTabs + SummaryDetails.Items[i].SubItems[0].Text + "\t" + SummaryDetails.Items[i].SubItems[1].Text + "\t" + (SongNumberUsed ? ("\t" + SummaryDetails.Items[i].SubItems[2].Text) : "") + Gf.RTFNewLine));
 						}
 						streamWriter.Write("}");
 						//streamWriter.Flush();
 						//streamWriter.Close();
-						Gf.RunProcess(text);
+						Gf.RunProcess(reportPath);
 					}
 					catch
 					{
 						//streamWriter.Flush();
 						//streamWriter.Close();
-						MessageBox.Show("Error generating report " + text + ". The document might still be open. Please close it first and try again.");
+						MessageBox.Show("Error generating report " + reportPath + ". The document might still be open. Please close it first and try again.");
 					}
 				}
 				catch
 				{
-					MessageBox.Show("Error generating report " + text + ". The document might still be open. Please close it first and try again.");
+					MessageBox.Show("Error generating report " + reportPath + ". The document might still be open. Please close it first and try again.");
 				}
 				Cursor = Cursors.Default;
 			}

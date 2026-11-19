@@ -37,20 +37,20 @@ namespace Easislides.Util
                 result = dateTime;
                 return true;
             }
-            string text = (value == null || value is DBNull) ? "" : (Convert.ToString(value, CultureInfo.InvariantCulture) ?? "").Trim();
-            if (text.Length == 0)
+            string dateText = (value == null || value is DBNull) ? "" : (Convert.ToString(value, CultureInfo.InvariantCulture) ?? "").Trim();
+            if (dateText.Length == 0)
             {
                 result = default;
                 return false;
             }
             // RoundtripKind: a value with an offset keeps its own date instead of moving to local time.
-            if (DateTime.TryParseExact(text, IsoFormats, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out result))
+            if (DateTime.TryParseExact(dateText, IsoFormats, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out result))
             {
                 return true;
             }
             foreach (CultureInfo culture in new[] { CultureInfo.CurrentCulture, Korean, English })
             {
-                if (DateTime.TryParse(text, culture, DateTimeStyles.AllowWhiteSpaces, out result))
+                if (DateTime.TryParse(dateText, culture, DateTimeStyles.AllowWhiteSpaces, out result))
                 {
                     return true;
                 }

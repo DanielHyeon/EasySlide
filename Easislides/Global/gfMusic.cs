@@ -1,4 +1,6 @@
 using System;
+using System.Windows.Forms;
+using Easislides.Module;
 
 namespace Easislides;
 
@@ -74,6 +76,17 @@ internal unsafe partial class Gf
         return (minor ? target.MinorUsesSharps : target.MajorUsesSharps) ? 1 : 0;
     }
 
+    internal static int TransposeEditorKeyAndCapo(ComboBox keySelector, ComboBox capoSelector, int steps)
+    {
+        string key = keySelector.Text;
+        int spelling = TransposeKey(ref key, steps);
+        keySelector.Text = key;
+        // Index 0 is unspecified. Indices 1 through 12 represent capo frets 0 through 11.
+        if (capoSelector.SelectedIndex > 0)
+            capoSelector.SelectedIndex = ShiftPitch(capoSelector.SelectedIndex - 1, -steps) + 1;
+        return spelling;
+    }
+
     public static string TransposeChord(string InNotation, int TransposeStep, int FlatSharpKey)
     {
         if (string.IsNullOrEmpty(InNotation) || TransposeStep == 0)
@@ -84,11 +97,11 @@ internal unsafe partial class Gf
     private static string TransposeChord(ReadOnlySpan<char> chord, int steps, int spelling)
     {
         bool useSharps = spelling switch { 0 => false, 1 => true, _ => steps > 0 };
-        int slash = chord.IndexOf('/');
+        int slash = ChordNotation.FindBassSeparator(chord);
         if (slash < 0)
             return TransposePart(chord, steps, useSharps);
         var bass = chord[(slash + 1)..];
-        int nextSlash = bass.IndexOf('/');
+        int nextSlash = ChordNotation.FindBassSeparator(bass);
         if (nextSlash >= 0)
             bass = bass[..nextSlash];
         return string.Concat(TransposePart(chord[..slash], steps, useSharps), "/",
@@ -106,5 +119,34 @@ internal unsafe partial class Gf
         if (prefix == 0 && length == chord.Length)
             return root;
         return string.Concat(chord[..prefix], root, chord[(prefix + length)..]);
+    }
+
+    internal static void AddChordMenuItems(ContextMenuStrip menu, int region, EventHandler clicked)
+    {
+        menu.Items.Add(new ToolStripSeparator());
+        var minor = new ToolStripMenuItem("Minor");
+        var minorSeventh = new ToolStripMenuItem("Minor 7th");
+        var majorSeventh = new ToolStripMenuItem("Major 7th");
+        var bass = new ToolStripMenuItem("Bass");
+        menu.Items.AddRange([minor, minorSeventh, majorSeventh, bass]);
+        string regionTag = region.ToString();
+        foreach (var pitch in ChromaticScale)
+        {
+            Add(minor.DropDownItems, pitch.MinorFlat);
+            Add(minorSeventh.DropDownItems, pitch.MinorFlat + "7");
+            Add(majorSeventh.DropDownItems, pitch.Sharp + "7");
+            Add(bass.DropDownItems, "/" + pitch.Sharp);
+            Add(menu.Items, pitch.Sharp);
+            if (pitch.Flat != pitch.Sharp)
+            {
+                Add(minor.DropDownItems, pitch.MinorSharp);
+                Add(minorSeventh.DropDownItems, pitch.MinorSharp + "7");
+                Add(majorSeventh.DropDownItems, pitch.Flat + "7");
+                Add(menu.Items, pitch.Flat);
+            }
+        }
+
+        void Add(ToolStripItemCollection items, string chord)
+            => items.Add(new ToolStripMenuItem(chord, null, clicked) { Tag = regionTag });
     }
 }

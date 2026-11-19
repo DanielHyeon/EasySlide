@@ -1,31 +1,17 @@
 using System;
-using System.ComponentModel;
-using System.Drawing;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using System.IO;
 using System.Windows.Forms;
 using Easislides.Module;
-using Easislides.Properties;
 using Easislides.Util;
 
 namespace Easislides
 {
     public partial class FrmImportFolder : Form
 	{
-		private const int MaxDocExtensions = 3000;
-
-		private static DateTime BuildDocumentsStartTime;
-
-		private static TimeSpan BuildDocumentsLapseTime = new TimeSpan(0L);
-
-		private static bool BuildDocumentsContinue = true;
-
-		private static string[] DocFilesList = new string[32000];
-
-		private static int TotalDocFiles = -1;
-
-		public static string[] DocFileExtension = new string[3000];
-
-		public static int TotalDocFileExt = 0;
+		private CancellationTokenSource documentScan;
 
 		private SongSettings ImportItem = new SongSettings();
 
@@ -37,10 +23,6 @@ namespace Easislides
 		private void FrmImportFolder_Load(object sender, EventArgs e)
 		{
 			tbLocation.Text = Gf.ImportFolder_StartDir;
-			DocFileExtension[0] = ".doc";
-			DocFileExtension[1] = ".docx";
-			DocFileExtension[2] = ".txt";
-			TotalDocFileExt = 3;
 			BuildFolderList();
 		}
 
@@ -55,105 +37,77 @@ namespace Easislides
 			}
 		}
 
-		private void BtnOK_Click(object sender, EventArgs e)
+		private async void BtnOK_Click(object sender, EventArgs e)
 		{
-			if (ValidateContents())
+			if (documentScan != null || !ValidateContents())
+				return;
+			string sourceFolder = tbLocation.Text;
+			using var scan = new CancellationTokenSource();
+			documentScan = scan;
+			BtnOK.Enabled = false;
+			groupBox1.Enabled = false;
+			ProgressBar1.Style = ProgressBarStyle.Marquee;
+			try
 			{
-				StartImport();
+				var documents = await Task.Run(() => DocumentImportFiles.Find(sourceFolder, scan.Token), scan.Token);
+				if (!scan.IsCancellationRequested && !IsDisposed)
+				{
+					ProgressBar1.Style = ProgressBarStyle.Blocks;
+					ImportDocuments(documents);
+				}
+			}
+			catch (OperationCanceledException) when (scan.IsCancellationRequested) { }
+			catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+			{
+				if (!scan.IsCancellationRequested && !IsDisposed)
+					MessageBox.Show(this, ex.Message, "Folder import", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
+			finally
+			{
+				documentScan = null;
+				if (!IsDisposed)
+				{
+					ProgressBar1.Style = ProgressBarStyle.Blocks;
+					groupBox1.Enabled = true;
+					BtnOK.Enabled = true;
+				}
 			}
 		}
 
-		/// <summary>
-		/// daniel
-		/// Ȯ���� docx �߰�
-		/// </summary>
-		private void StartImport()
+		private void ImportDocuments(List<string> documents)
 		{
-			BuildDocumentsContinue = true;
-			BuildDocumentsStartTime = DateTime.Now;
-			TotalDocFiles = 0;
-			BuildDocumentsListArray(tbLocation.Text);
-			int num2 = 0;
 			ProgressBar1.Value = 0;
 			Gf.InitialiseIndividualData(ref ImportItem);
-			int num3 = 0;
-			int num4 = 0;
+			int wordDocumentCount = 0;
+			int textFileCount = 0;
 			int folderNumber = Gf.GetFolderNumber(SongFolder.Text);
-			if (TotalDocFiles > 0 && folderNumber > 0)
+			if (documents.Count > 0 && folderNumber > 0)
 			{
-				for (int i = 0; i < TotalDocFiles; i++)
+				for (int i = 0; i < documents.Count; i++)
 				{
-					num2 = i * 100 / TotalDocFiles;
-					ProgressBar1.Value = ((num2 > 100) ? 100 : num2);
+					string path = documents[i];
+					ProgressBar1.Value = (int)((long)i * 100 / documents.Count);
 					Invalidate();
 					ProgressBar1.Invalidate();
-					switch (Path.GetExtension(DocFilesList[i]).ToLower())
-					{
-						case ".doc":
-						case ".docx":
-							num3++;
-							break;
-						case ".txt":
-							num4++;
-							break;
-					}
+					if (Path.GetExtension(path.AsSpan()).Equals(".txt", StringComparison.OrdinalIgnoreCase))
+						textFileCount++;
+					else
+						wordDocumentCount++;
 					ImportItem.FolderNo = folderNumber;
-					ImportItem.Title = Path.GetFileNameWithoutExtension(DocFilesList[i]);
-					ImportItem.CompleteLyrics = Gf.ExtractDocTextContents(DocFilesList[i]);
+					ImportItem.Title = Path.GetFileNameWithoutExtension(path);
+					ImportItem.CompleteLyrics = Gf.ExtractDocTextContents(path);
 					Gf.InsertItemIntoDatabase(Gf.ConnectStringMainDB, ImportItem);
 				}
 				ProgressBar1.Value = 100;
-				string text = (num3 > 0) ? (num3 + " Word Document" + ((num3 > 1) ? "s" : "")) : "";
-				string text2 = (num4 > 0) ? (num4 + " Text File" + ((num4 > 1) ? "s" : "")) : "";
-				string text3 = "";
-				text3 = ((num3 > 0 && num4 > 0) ? (TotalDocFiles + " items (" + text + " and " + text2 + ")") : ((num3 > 0) ? text : ((num4 <= 0) ? "" : text2)));
-				MessageBox.Show((text3 != "") ? ("Imported " + text3 + " into " + SongFolder.Text) : "No Word/text documents were found for import");
+				string wordDocumentSummary = (wordDocumentCount > 0) ? (wordDocumentCount + " Word Document" + ((wordDocumentCount > 1) ? "s" : "")) : "";
+				string textFileSummary = (textFileCount > 0) ? (textFileCount + " Text File" + ((textFileCount > 1) ? "s" : "")) : "";
+				string importSummary = "";
+				importSummary = ((wordDocumentCount > 0 && textFileCount > 0) ? (documents.Count + " items (" + wordDocumentSummary + " and " + textFileSummary + ")") : ((wordDocumentCount > 0) ? wordDocumentSummary : ((textFileCount <= 0) ? "" : textFileSummary)));
+				MessageBox.Show((importSummary != "") ? ("Imported " + importSummary + " into " + SongFolder.Text) : "No Word/text documents were found for import");
 			}
 			else
 			{
 				MessageBox.Show("Nothing Imported.  No Word or text Files were found in the Source Windows Folder");
-			}
-		}
-
-		public static void BuildDocumentsListArray(string FolderPath)
-		{
-			if (FolderPath == "" || !BuildDocumentsContinue || (!Directory.Exists(FolderPath) | (DataUtil.Mid(FolderPath, 1) == ":\\System Volume Information\\")))
-			{
-				return;
-			}
-			BuildDocumentsLapseTime = DateTime.Now.Subtract(BuildDocumentsStartTime);
-			if (BuildDocumentsLapseTime.Seconds > 10)
-			{
-				BuildDocumentsContinue = false;
-				return;
-			}
-			string[] array;
-			for (int i = 0; i < TotalDocFileExt; i++)
-			{
-				try
-				{
-					string[] files = Directory.GetFiles(FolderPath, "*" + DocFileExtension[i]);
-					array = files;
-					foreach (string text in array)
-					{
-						string text2 = text;
-						DocFilesList[TotalDocFiles] = text2;
-						TotalDocFiles++;
-					}
-				}
-				catch
-				{
-				}
-			}
-			string[] directories = Directory.GetDirectories(FolderPath);
-			if (directories.Length > 0)
-			{
-				Gf.SingleArraySort(directories, SortAscending: true);
-			}
-			array = directories;
-			foreach (string str in array)
-			{
-				BuildDocumentsListArray(str + "\\");
 			}
 		}
 
@@ -174,7 +128,7 @@ namespace Easislides
 
 		private void BuildFolderList()
 		{
-			string text = "";
+			string selectedFolderName = "";
 			SongFolder.Items.Clear();
 			for (int i = 1; i < Gf.MAXSONGSFOLDERS; i++)
 			{
@@ -183,15 +137,16 @@ namespace Easislides
 					SongFolder.Items.Add(Gf.Folders[i].Name);
 					if (Gf.Folders[i].Name == Gf.ImportFolder_FolderName)
 					{
-						text = Gf.ImportFolder_FolderName;
+						selectedFolderName = Gf.ImportFolder_FolderName;
 					}
 				}
 			}
-			SongFolder.Text = text;
+			SongFolder.Text = selectedFolderName;
 		}
 
 		private void FrmImportFolder_FormClosing(object sender, FormClosingEventArgs e)
 		{
+			documentScan?.Cancel();
 			Gf.ImportFolder_FolderName = SongFolder.Text;
 			Gf.ImportFolder_StartDir = tbLocation.Text;
 		}

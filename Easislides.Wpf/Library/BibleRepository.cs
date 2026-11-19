@@ -354,38 +354,38 @@ public sealed class BibleRepository : IBibleRepository
         int maxResults,
         bool wasLimited = false)
     {
-        var text = new StringBuilder();
+        var passageText = new StringBuilder();
         var locations = new List<BibleVerseLocation>();
         foreach (var row in rows.Take(maxResults))
         {
-            var start = text.Length;
+            var start = passageText.Length;
             if (isSequential)
             {
                 var prefix = $"{row.Chapter}:{row.Verse} ";
-                text.Append(prefix);
+                passageText.Append(prefix);
             }
             else
             {
-                text.Append(GetBookName(books, row.Book)).Append(' ')
+                passageText.Append(GetBookName(books, row.Book)).Append(' ')
                     .Append(row.Chapter).Append(':').Append(row.Verse).Append(' ');
             }
 
             if (showVerses)
             {
-                text.Append(row.Text);
+                passageText.Append(row.Text);
             }
 
-            text.Append("\n\n");
+            passageText.Append("\n\n");
             locations.Add(new BibleVerseLocation(
                 version.Index,
                 row.Book,
                 row.Chapter,
                 row.Verse,
                 start,
-                text.Length - start));
+                passageText.Length - start));
         }
 
-        return new BiblePassageResult(TrimEndNewLines(text), locations, isSequential, wasLimited);
+        return new BiblePassageResult(TrimEndNewLines(passageText), locations, isSequential, wasLimited);
     }
 
     private static BiblePassageResult BuildResult(

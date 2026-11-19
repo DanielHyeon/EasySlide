@@ -24,22 +24,22 @@ namespace Easislides
 
 		public int Compare(object x, object y)
 		{
-			int num;
+			int comparisonResult;
 			try
 			{
 				DateTime t = DateTime.Parse(((ListViewItem)x).SubItems[col].Text);
 				DateTime t2 = DateTime.Parse(((ListViewItem)y).SubItems[col].Text);
-				num = DateTime.Compare(t, t2);
+				comparisonResult = DateTime.Compare(t, t2);
 			}
 			catch
 			{
-				num = string.Compare(((ListViewItem)x).SubItems[col].Text, ((ListViewItem)y).SubItems[col].Text);
+				comparisonResult = string.Compare(((ListViewItem)x).SubItems[col].Text, ((ListViewItem)y).SubItems[col].Text);
 			}
 			if (order == SortOrder.Descending)
 			{
-				num *= -1;
+				comparisonResult *= -1;
 			}
-			return num;
+			return comparisonResult;
 		}
 	}
 }

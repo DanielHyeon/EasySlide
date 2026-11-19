@@ -35,26 +35,26 @@ namespace Easislides
 		private void FrmFind_Load(object sender, EventArgs e)
 		{
 			Gf.FindItemsFormOpen = true;
-			int num = RegUtil.GetRegValue("settings", Reg_FormLeft, 50);
-			int num2 = RegUtil.GetRegValue("settings", Reg_FormTop, 100);
-			if (num < 0)
+			int windowLeft = RegUtil.GetRegValue("settings", Reg_FormLeft, 50);
+			int windowTop = RegUtil.GetRegValue("settings", Reg_FormTop, 100);
+			if (windowLeft < 0)
 			{
-				num = 0;
+				windowLeft = 0;
 			}
-			else if (num > Screen.PrimaryScreen.Bounds.Width - base.Width)
+			else if (windowLeft > Screen.PrimaryScreen.Bounds.Width - base.Width)
 			{
-				num = Screen.PrimaryScreen.Bounds.Width - base.Width;
+				windowLeft = Screen.PrimaryScreen.Bounds.Width - base.Width;
 			}
-			if (num2 < 0)
+			if (windowTop < 0)
 			{
-				num2 = 0;
+				windowTop = 0;
 			}
-			else if (num2 > Screen.PrimaryScreen.Bounds.Height - base.Height)
+			else if (windowTop > Screen.PrimaryScreen.Bounds.Height - base.Height)
 			{
-				num2 = Screen.PrimaryScreen.Bounds.Height - base.Height;
+				windowTop = Screen.PrimaryScreen.Bounds.Height - base.Height;
 			}
-			base.Top = num2;
-			base.Left = num;
+			base.Top = windowTop;
+			base.Left = windowLeft;
 			FolderList.Items.Clear();
 			for (int i = 1; i < Gf.MAXSONGSFOLDERS; i++)
 			{
@@ -88,7 +88,7 @@ namespace Easislides
 			TimerRestoreWindow.Start();
 			BibleLookup.Items.Clear();
 			BookLookup.Items.Clear();
-			if (Gf.HB_TotalVersions < 1)
+			if (Gf.BibleVersions.Count < 1)
 			{
 				TabControl1.TabPages[1].Enabled = false;
 				TabControl1.SelectedIndex = 0;
@@ -100,13 +100,14 @@ namespace Easislides
 			Gf.HB_SQLString = "";
 			PassageSearchBox.Text = Gf.FindBibleSearchPhrase;
 			InitFormLoad = true;
-			for (int i = 0; i <= Gf.HB_TotalVersions - 1; i++)
+			foreach (var version in Gf.BibleVersions)
 			{
-				BibleLookup.Items.Add(Gf.HB_Versions[i, 1] + " - " + Gf.HB_Versions[i, 2]);
+				BibleLookup.Items.Add(version.Name + " - " + version.Description);
 			}
 			InitFormLoad = false;
-			BibleLookup.SelectedIndex = Gf.HB_CurVersionTabIndex;
-			BookLookup.SelectedIndex = Gf.FindBibleBookIndex;
+			BibleLookup.SelectedIndex = Gf.BibleVersions.ContainsIndex(Gf.HB_CurVersionTabIndex) ? Gf.HB_CurVersionTabIndex : 0;
+			if (Gf.FindBibleBookIndex >= 0 && Gf.FindBibleBookIndex < BookLookup.Items.Count)
+				BookLookup.SelectedIndex = Gf.FindBibleBookIndex;
 			if (Gf.FindBibleVerses)
 			{
 				TabControl1.SelectedIndex = 1;
@@ -158,18 +159,16 @@ namespace Easislides
 			SongKey.Items.Clear();
 			SongKey.Items.Add("");
 			string fullSearchString = "select DISTINCT Key FROM SONG ORDER BY Key";
-			string text = "";
 			using DataTable datatable1 = DbController.GetDataTable(Gf.ConnectStringMainDB, fullSearchString);
 
 			if (datatable1.Rows.Count > 0)
 			{
-				text = "";
 				foreach (DataRow dr in datatable1.Rows)
 				{
-					text = DataUtil.Trim(DataUtil.GetDataString(dr, "Key"));
-					if (text != "")
+					string songKey = DataUtil.Trim(DataUtil.GetDataString(dr, "Key"));
+					if (songKey != "")
 					{
-						SongKey.Items.Add(text);
+						SongKey.Items.Add(songKey);
 					}
 				}
 			}
@@ -183,13 +182,12 @@ namespace Easislides
 
 			if (datatable2.Rows.Count > 0)
 			{
-				text = "";
 				foreach (DataRow dr in datatable2.Rows)
 				{
-					text = DataUtil.Trim(DataUtil.GetDataString(dr, "Timing"));
-					if (text != "")
+					string songTiming = DataUtil.Trim(DataUtil.GetDataString(dr, "Timing"));
+					if (songTiming != "")
 					{
-						SongTiming.Items.Add(text);
+						SongTiming.Items.Add(songTiming);
 					}
 				}
 			}
@@ -296,13 +294,13 @@ namespace Easislides
 					Gf.FindItemsRequested = true;
 				}
 			}
-			else if (TabControl1.SelectedIndex == 1 && Gf.HB_TotalVersions >= 1)
+			else if (TabControl1.SelectedIndex == 1 && Gf.BibleVersions.Count >= 1)
 			{
-				string text = Gf.BuildBibleSearchString(MatchSelected: MatchAny.Checked ? 1 : ((!MatchAll.Checked) ? 2 : 0), InSearchPassage: PassageSearchBox.Text, VersionIndex: BibleLookup.SelectedIndex, BookIndex: BookLookup.SelectedIndex);
-				if (text != "")
+				string bibleSearchQuery = Gf.BuildBibleSearchString(MatchSelected: MatchAny.Checked ? 1 : ((!MatchAll.Checked) ? 2 : 0), InSearchPassage: PassageSearchBox.Text, VersionIndex: BibleLookup.SelectedIndex, BookIndex: BookLookup.SelectedIndex);
+				if (bibleSearchQuery != "")
 				{
 					Gf.HB_CurVersionTabIndex = BibleLookup.SelectedIndex;
-					Gf.HB_SQLString = text;
+					Gf.HB_SQLString = bibleSearchQuery;
 					Gf.FindBibleSearchPhrase = PassageSearchBox.Text;
 					Gf.FindBibleBookIndex = BookLookup.SelectedIndex;
 					Gf.FindItemsRequested = true;

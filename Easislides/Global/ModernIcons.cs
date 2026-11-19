@@ -62,15 +62,19 @@ namespace Easislides
 			public readonly ModernIconStyle Style;
 			public readonly int Size;
 			public readonly FillMode Fill;
-			public readonly string[] Paths;
+			private readonly string firstPath;
+			private readonly string[] additionalPaths;
+			public int PathCount => 1 + additionalPaths.Length;
+			public string GetPath(int index) => index == 0 ? firstPath : additionalPaths[index - 1];
 
-			public IconSource(string name, ModernIconStyle style, int size, FillMode fill, params string[] paths)
+			public IconSource(string name, ModernIconStyle style, int size, FillMode fill, string firstPath, params string[] additionalPaths)
 			{
 				Name = name;
 				Style = style;
 				Size = size;
 				Fill = fill;
-				Paths = paths;
+				this.firstPath = firstPath;
+				this.additionalPaths = additionalPaths;
 			}
 		}
 
@@ -98,7 +102,7 @@ namespace Easislides
 			public override int GetHashCode() => HashCode.Combine(StringComparer.Ordinal.GetHashCode(Name ?? ""), Style, PixelSize, Argb);
 		}
 
-		private static Dictionary<(string, ModernIconStyle), List<IconSource>> index;
+		private static readonly Lazy<Dictionary<(string, ModernIconStyle), List<IconSource>>> SourceIndex = new(BuildIndex);
 		private static readonly Dictionary<CacheKey, Bitmap> cache = new Dictionary<CacheKey, Bitmap>();
 		private static readonly HashSet<string> loggedFailures = new HashSet<string>(StringComparer.Ordinal);
 
@@ -107,7 +111,7 @@ namespace Easislides
 		{
 			try
 			{
-				return name != null && GetIndex().ContainsKey((name, style));
+				return name != null && SourceIndex.Value.ContainsKey((name, style));
 			}
 			catch (Exception ex)
 			{
@@ -244,13 +248,13 @@ namespace Easislides
 				LogOnce(name + "/" + style + "/missing", "ModernIcons: no path data for icon '" + name + "' (" + style + ")");
 				return null;
 			}
-			var paths = new List<GraphicsPath>(source.Paths.Length);
+			var paths = new List<GraphicsPath>(source.PathCount);
 			Bitmap bitmap = null;
 			try
 			{
-				foreach (string d in source.Paths)
+				for (int index = 0; index < source.PathCount; index++)
 				{
-					GraphicsPath path = ParsePath(d, source.Fill, out string error);
+					GraphicsPath path = ParsePath(source.GetPath(index), source.Fill, out string error);
 					if (path == null)
 					{
 						LogOnce(name + "/" + style + "/source" + source.Size,
@@ -300,7 +304,7 @@ namespace Easislides
 
 		private static IconSource PickSource(string name, ModernIconStyle style, int pixelSize)
 		{
-			if (name == null || !GetIndex().TryGetValue((name, style), out List<IconSource> sizes))
+			if (name == null || !SourceIndex.Value.TryGetValue((name, style), out List<IconSource> sizes))
 			{
 				return null;
 			}
@@ -316,14 +320,10 @@ namespace Easislides
 			return best ?? sizes[0];
 		}
 
-		private static Dictionary<(string, ModernIconStyle), List<IconSource>> GetIndex()
+		private static Dictionary<(string, ModernIconStyle), List<IconSource>> BuildIndex()
 		{
-			if (index != null)
-			{
-				return index;
-			}
 			var map = new Dictionary<(string, ModernIconStyle), List<IconSource>>();
-			foreach (IconSource s in Sources.Concat(OwnSources))
+			foreach (IconSource s in CreateFluentSources().Concat(CreateOwnSources()))
 			{
 				if (!map.TryGetValue((s.Name, s.Style), out List<IconSource> list))
 				{
@@ -336,8 +336,7 @@ namespace Easislides
 			{
 				list.Sort((a, b) => a.Size.CompareTo(b.Size));
 			}
-			index = map;
-			return index;
+			return map;
 		}
 
 		private static void LogOnce(string key, string message)
@@ -816,9 +815,9 @@ namespace Easislides
 					rx *= root;
 					ry *= root;
 				}
-				double num = rx * rx * ry * ry - rx * rx * y1p * y1p - ry * ry * x1p * x1p;
+				double centerNumerator = rx * rx * ry * ry - rx * rx * y1p * y1p - ry * ry * x1p * x1p;
 				double den = rx * rx * y1p * y1p + ry * ry * x1p * x1p;
-				double coef = den == 0 ? 0 : Math.Sqrt(Math.Max(0, num / den));
+				double coef = den == 0 ? 0 : Math.Sqrt(Math.Max(0, centerNumerator / den));
 				if (largeArc == sweep)
 				{
 					coef = -coef;
@@ -1168,7 +1167,7 @@ namespace Easislides
 		//   ic_fluent_checkbox_unchecked_16_regular.svg
 		internal const string IconSourceCommit = "41089846ad80c5749df505aef35a68712c1561b9";
 
-		private static readonly IconSource[] Sources =
+		private static IconSource[] CreateFluentSources() => new IconSource[]
 		{
 			new IconSource("document_add", ModernIconStyle.Regular, 16, FillMode.Winding,
 				"M6 1C4.89543 1 4 1.89543 4 3V5.20703C4.32228 5.11588 4.65659 5.05337 5 5.02242V3C5 2.44772 5.44772 2 6 2H9V4.5C9 5.32843 9.67157 6 10.5 6H13V13C13 13.5523 12.5523 14 12 14H9.74284C9.42948 14.3794 9.06621 14.7161 8.66308 15H12C13.1046 15 14 14.1046 14 13V5.41421C14 5.01639 13.842 4.63486 13.5607 4.35355L10.6464 1.43934C10.3651 1.15804 9.98361 1 9.58579 1H6ZM12.7929 5H10.5C10.2239 5 10 4.77614 10 4.5V2.20711L12.7929 5ZM10 10.5C10 12.9853 7.98528 15 5.5 15C3.01472 15 1 12.9853 1 10.5C1 8.01472 3.01472 6 5.5 6C7.98528 6 10 8.01472 10 10.5ZM6 8.5C6 8.22386 5.77614 8 5.5 8C5.22386 8 5 8.22386 5 8.5V10H3.5C3.22386 10 3 10.2239 3 10.5C3 10.7761 3.22386 11 3.5 11H5L5 12.5C5 12.7761 5.22386 13 5.5 13C5.77614 13 6 12.7761 6 12.5V11H7.5C7.77614 11 8 10.7761 8 10.5C8 10.2239 7.77614 10 7.5 10H6V8.5Z"),
@@ -1720,7 +1719,7 @@ namespace Easislides
 		// Every part is a simple shape or an outer/inner ring pair, so evenodd is exact.
 		// Parts that overlap are separate path strings (each is filled on its own), never subpaths of one string.
 		// ---------------------------------------------------------------------------------------
-		private static readonly IconSource[] OwnSources =
+		private static IconSource[] CreateOwnSources() => new IconSource[]
 		{
 			new IconSource("bible", ModernIconStyle.Regular, 16, FillMode.Alternate,
 				"M5 1H12A2 2 0 0 1 14 3V13A2 2 0 0 1 12 15H5A2 2 0 0 1 3 13V3A2 2 0 0 1 5 1ZM5 2H12A1 1 0 0 1 13 3V13A1 1 0 0 1 12 14H5A1 1 0 0 1 4 13V3A1 1 0 0 1 5 2Z",

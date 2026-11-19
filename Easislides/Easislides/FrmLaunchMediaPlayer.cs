@@ -90,12 +90,12 @@ namespace Easislides
 
 		private void ApplyPlayerBounds(int screenWidth, int screenHeight)
 		{
-			int num = screenWidth * Gf.VideoSize / 100;
-			int num2 = screenHeight * Gf.VideoSize / 100;
-			int num3 = (screenWidth - num) / 2 - 1;
-			num3 = ((num3 >= 0) ? num3 : 0);
-			int t = (Gf.VideoVAlign == 1) ? ((screenHeight - num2) / 2) : ((Gf.VideoVAlign == 2) ? (screenHeight - num2) : 0);
-			DShowPlayer.SetDefaultSize(num3, t, num, num2, (VAlign)Gf.VideoVAlign);
+			int playerWidth = screenWidth * Gf.VideoSize / 100;
+			int playerHeight = screenHeight * Gf.VideoSize / 100;
+			int playerLeft = (screenWidth - playerWidth) / 2 - 1;
+			playerLeft = ((playerLeft >= 0) ? playerLeft : 0);
+			int playerTop = (Gf.VideoVAlign == 1) ? ((screenHeight - playerHeight) / 2) : ((Gf.VideoVAlign == 2) ? (screenHeight - playerHeight) : 0);
+			DShowPlayer.SetDefaultSize(playerLeft, playerTop, playerWidth, playerHeight, (VAlign)Gf.VideoVAlign);
 		}
 
 		private void DShowPlayer_ForeColorChanged(object sender, EventArgs e)

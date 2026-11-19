@@ -425,13 +425,13 @@ namespace OfficeLib
 				}
 				StringBuilder title = new StringBuilder(512);
 				GetWindowText(handle, title, title.Capacity);
-				string text = title.ToString().TrimEnd();
-				if (separated.IsMatch(text))
+				string windowTitle = title.ToString().TrimEnd();
+				if (separated.IsMatch(windowTitle))
 				{
 					exact = handle;
 					return false;
 				}
-				if (text.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
+				if (windowTitle.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
 				{
 					loose.Add(handle);
 				}
@@ -555,7 +555,7 @@ namespace OfficeLib
 				return true;
 			}, IntPtr.Zero);
 			PowerPointAnswer result = PowerPointAnswer.Answers;
-			StringBuilder text = new StringBuilder();
+			StringBuilder probeDetails = new StringBuilder();
 			foreach (uint processId in processIds)
 			{
 				List<IntPtr> targets = frames.TryGetValue(processId, out List<IntPtr> found) ? found : new List<IntPtr>();
@@ -563,13 +563,13 @@ namespace OfficeLib
 				{
 					targets.Add(other);
 				}
-				if (text.Length > 0)
+				if (probeDetails.Length > 0)
 				{
-					text.Append("; ");
+					probeDetails.Append("; ");
 				}
 				if (targets.Count == 0)
 				{
-					text.Append("POWERPNT ").Append(processId).Append(": no window");
+					probeDetails.Append("POWERPNT ").Append(processId).Append(": no window");
 					if (result == PowerPointAnswer.Answers)
 					{
 						result = PowerPointAnswer.NoWindow;
@@ -605,11 +605,11 @@ namespace OfficeLib
 						break;
 					}
 				}
-				text.Append("POWERPNT ").Append(processId)
+				probeDetails.Append("POWERPNT ").Append(processId)
 					.Append(answered ? ": answered in " : (timedOut ? ": no answer in " : ": could not be asked in ")).Append(watch.ElapsedMilliseconds).Append(" ms");
 				if (!answered)
 				{
-					text.Append(" (error ").Append(lastError).Append(')');
+					probeDetails.Append(" (error ").Append(lastError).Append(')');
 				}
 				if (timedOut)
 				{
@@ -620,7 +620,7 @@ namespace OfficeLib
 					result = PowerPointAnswer.NoWindow;
 				}
 			}
-			detail = text.ToString();
+			detail = probeDetails.ToString();
 			return result;
 		}
 

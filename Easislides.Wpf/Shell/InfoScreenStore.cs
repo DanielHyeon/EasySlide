@@ -304,8 +304,8 @@ public sealed class InfoScreenStore : IInfoScreenStore
     {
         try
         {
-            var text = await File.ReadAllTextAsync(path, cancellationToken).ConfigureAwait(false);
-            var contents = TryReadLegacyXmlContents(text) ?? text;
+            var fileContents = await File.ReadAllTextAsync(path, cancellationToken).ConfigureAwait(false);
+            var contents = TryReadLegacyXmlContents(fileContents) ?? fileContents;
             return new InfoScreenDto(NormalizeLegacyInfoFileContents(contents));
         }
         catch (Exception ex) when (IsRecoverableFileException(ex))

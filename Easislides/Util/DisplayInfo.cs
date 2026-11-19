@@ -51,9 +51,9 @@ namespace Easislides.Util
             }
             else
             {
-                float num = 768f / (float)Gf.LS_Height;
+                float bufferScale = 768f / (float)Gf.LS_Height;
                 Gf.Buffer_LS_Height = 768;
-                Gf.Buffer_LS_Width = (int)((float)Gf.LS_Width * num);
+                Gf.Buffer_LS_Width = (int)((float)Gf.LS_Width * bufferScale);
             }
             Gf.ShowTopBorderSize = (int)((double)Gf.Buffer_LS_Height * Gf.TopBorderFactor);
             Gf.ShowBottomBorderSize = (int)((double)Gf.Buffer_LS_Height * Gf.BottomBorderFactor);

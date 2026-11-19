@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Windows.Forms;
@@ -23,88 +24,34 @@ namespace Easislides
 		public static void FormatText(ref SongSettings InItem, Color PanelBackColour, int PanelBackColorAsScreen, Color PanelTextColor, int PaneltextColourAsRegion1, bool UseDefault)
 		{
 			//using var perf = PerfLog.Enabled ? PerfLog.Scope("FormatText", $"folder={(InItem != null ? InItem.FolderNo : -1)} type={(InItem != null ? InItem.Type : "null")} useDefault={UseDefault}") : null;
-			Color[] fontColours = new Color[2];
-			int[] fontAligns = new int[2];
-			int[] fontBolds = new int[4];
-			int[] fontItalics = new int[4];
-			int[] fontUnderlines = new int[4];
-			int[] fontRtl = new int[2];
-			string[] fontNames = new string[2];
-			int[] fontSizes = new int[2];
-			int[] fontVPositions = new int[2];
+			var folder = Folders[InItem.FolderNo];
+			var format = InItem.Format;
+			ReadOnlySpan<int> fontAligns = UseDefault ? Folders[0].FontAlign : format.ShowFontAlign;
+			ReadOnlySpan<int> fontBolds = UseDefault ? folder.FontBold : format.ShowFontBold;
+			ReadOnlySpan<int> fontItalics = UseDefault ? folder.FontItalic : format.ShowFontItalic;
+			ReadOnlySpan<int> fontUnderlines = UseDefault ? folder.FontUnderline : format.ShowFontUnderline;
+			ReadOnlySpan<string> fontNames = UseDefault ? folder.FontName : format.ShowFontName;
+			ReadOnlySpan<int> fontSizes = UseDefault && InItem.Type != "B" ? folder.FontSize : format.ShowFontSize;
+			ReadOnlySpan<int> fontVPositions = UseDefault ? folder.FontVPosition : format.ShowFontVPosition;
 			int buffer_LS_Width = Buffer_LS_Width;
 			int buffer_LS_Height = Buffer_LS_Height;
 			double previewFactor = PreviewSampleFactor;
-			int leftMargin = 0;
-			int rightMargin = 0;
-			int bottomMargin = 0;
-			int headingAlign = 0;
-			if (UseDefault)
+			int leftMargin = UseDefault ? folder.LeftMargin : format.ShowLeftMargin;
+			int rightMargin = UseDefault ? folder.RightMargin : format.ShowRightMargin;
+			int bottomMargin = UseDefault ? folder.BottomMargin : format.ShowBottomMargin;
+			int headingAlign = (UseDefault ? ShowSongHeadingsAlign : format.ShowSongHeadingsAlign) switch
 			{
-				fontColours[0] = ShowFontColour[0];
-				fontColours[1] = ShowFontColour[1];
-				fontAligns[0] = Folders[0].FontAlign[0];
-				fontAligns[1] = Folders[0].FontAlign[1];
-				fontBolds[0] = Folders[InItem.FolderNo].FontBold[0];
-				fontBolds[1] = Folders[InItem.FolderNo].FontBold[1];
-				fontItalics[0] = Folders[InItem.FolderNo].FontItalic[0];
-				fontItalics[1] = Folders[InItem.FolderNo].FontItalic[1];
-				fontItalics[2] = Folders[InItem.FolderNo].FontItalic[2];
-				fontItalics[3] = Folders[InItem.FolderNo].FontItalic[3];
-				fontUnderlines[0] = Folders[InItem.FolderNo].FontUnderline[0];
-				fontUnderlines[1] = Folders[InItem.FolderNo].FontUnderline[1];
-				fontRtl[0] = Folders[InItem.FolderNo].FontRTL[0];
-				fontRtl[1] = Folders[InItem.FolderNo].FontRTL[1];
-				fontNames[0] = Folders[InItem.FolderNo].FontName[0];
-				fontNames[1] = Folders[InItem.FolderNo].FontName[1];
-				if (InItem.Type == "B")
-				{
-					fontSizes[0] = InItem.Format.ShowFontSize[0];
-					fontSizes[1] = InItem.Format.ShowFontSize[1];
-				}
-				else
-				{
-					fontSizes[0] = Folders[InItem.FolderNo].FontSize[0];
-					fontSizes[1] = Folders[InItem.FolderNo].FontSize[1];
-				}
-				fontVPositions[0] = Folders[InItem.FolderNo].FontVPosition[0];
-				fontVPositions[1] = Folders[InItem.FolderNo].FontVPosition[1];
-				leftMargin = Folders[InItem.FolderNo].LeftMargin;
-				rightMargin = Folders[InItem.FolderNo].RightMargin;
-				bottomMargin = Folders[InItem.FolderNo].BottomMargin;
-				headingAlign = ((ShowSongHeadingsAlign == 1) ? fontAligns[1] : ((ShowSongHeadingsAlign == 2) ? 1 : ((ShowSongHeadingsAlign == 3) ? 2 : ((ShowSongHeadingsAlign != 4) ? fontAligns[0] : 3))));
-			}
-			else if (!UseDefault)
-			{
-				// SongFormat font colours are ARGB ints: convert them to Color and store them in the Color[].
-				fontColours[0] = Color.FromArgb(InItem.Format.ShowFontColour[0]);
-				fontColours[1] = Color.FromArgb(InItem.Format.ShowFontColour[1]);
-				fontAligns[0] = InItem.Format.ShowFontAlign[0];
-				fontAligns[1] = InItem.Format.ShowFontAlign[1];
-				fontBolds[0] = InItem.Format.ShowFontBold[0];
-				fontBolds[1] = InItem.Format.ShowFontBold[1];
-				fontItalics[0] = InItem.Format.ShowFontItalic[0];
-				fontItalics[1] = InItem.Format.ShowFontItalic[1];
-				fontItalics[2] = InItem.Format.ShowFontItalic[2];
-				fontItalics[3] = InItem.Format.ShowFontItalic[3];
-				fontUnderlines[0] = InItem.Format.ShowFontUnderline[0];
-				fontUnderlines[1] = InItem.Format.ShowFontUnderline[1];
-				fontNames[0] = InItem.Format.ShowFontName[0];
-				fontNames[1] = InItem.Format.ShowFontName[1];
-				fontSizes[0] = InItem.Format.ShowFontSize[0];
-				fontSizes[1] = InItem.Format.ShowFontSize[1];
-				fontVPositions[0] = InItem.Format.ShowFontVPosition[0];
-				fontVPositions[1] = InItem.Format.ShowFontVPosition[1];
-				leftMargin = InItem.Format.ShowLeftMargin;
-				rightMargin = InItem.Format.ShowRightMargin;
-				bottomMargin = InItem.Format.ShowBottomMargin;
-				headingAlign = ((InItem.Format.ShowSongHeadingsAlign == 1) ? fontAligns[1] : ((InItem.Format.ShowSongHeadingsAlign == 2) ? 1 : ((InItem.Format.ShowSongHeadingsAlign == 3) ? 2 : ((InItem.Format.ShowSongHeadingsAlign != 4) ? fontAligns[0] : 3))));
-			}
-			int headingOption = Folders[InItem.FolderNo].HeadingOption;
-			bool headingBold = (Folders[InItem.FolderNo].HeadingFontBold[0] > 0) ? true : false;
-			bool headingItalic = (Folders[InItem.FolderNo].HeadingFontItalic[0] > 0) ? true : false;
-			bool headingUnderline = (Folders[InItem.FolderNo].HeadingFontUnderline[0] > 0) ? true : false;
-			bool headingChorusItalic = (Folders[InItem.FolderNo].HeadingFontItalic[1] > 0) ? true : false;
+				1 => fontAligns[1],
+				2 => 1,
+				3 => 2,
+				4 => 3,
+				_ => fontAligns[0]
+			};
+			int headingOption = folder.HeadingOption;
+			bool headingBold = folder.HeadingFontBold[0] > 0;
+			bool headingItalic = folder.HeadingFontItalic[0] > 0;
+			bool headingUnderline = folder.HeadingFontUnderline[0] > 0;
+			bool headingChorusItalic = folder.HeadingFontItalic[1] > 0;
 			int lyricsLeft = leftMargin * buffer_LS_Width / 100;
 			int lyricsWidth = buffer_LS_Width - (lyricsLeft + rightMargin * buffer_LS_Width / 100);
 			int lyricsAreaHeight = buffer_LS_Height - (int)(TopBorderFactor * (double)buffer_LS_Height + (BottomBorderFactor + 0.029999999329447746) * (double)buffer_LS_Height + (double)(bottomMargin * buffer_LS_Height / 100));
@@ -188,7 +135,7 @@ namespace Easislides
 						chorusFontStyle |= FontStyle.Italic;
 					}
 				}
-				InItem.Lyrics[i].ForeColour = fontColours[formatIndex].ToArgb();
+				InItem.Lyrics[i].ForeColour = UseDefault ? ShowFontColour[formatIndex].ToArgb() : format.ShowFontColour[formatIndex];
 				switch ((i == 2) ? headingAlign : fontAligns[formatIndex])
 				{
 					case 3:
@@ -338,58 +285,183 @@ namespace Easislides
 			return notationLine;
 		}
 
+		// Keep offsets in the original RichEdit text when translating chord positions to lyric columns.
+		internal static void ReadEditorNotations(RichTextBox editor, out string notations, out string lyrics)
+		{
+			// Before handle creation Text can still contain CRLF, whereas native caret offsets count LF.
+			_ = editor.Handle;
+			string text = editor.Text;
+			notations = string.Empty;
+			lyrics = text;
+			if (!text.Contains('»'))
+				return;
+
+			var lyricText = new StringBuilder(text.Length);
+			var records = new StringBuilder();
+			int lyricRow = 0;
+			int start = 0;
+			while (start < text.Length)
+			{
+				int end = text.IndexOf('\n', start);
+				if (end < 0)
+					end = text.Length;
+				var line = text.AsSpan(start, end - start);
+				if (line.Contains('»') && end + 1 < text.Length)
+				{
+					int nextStart = end + 1;
+					int nextEnd = text.IndexOf('\n', nextStart);
+					if (nextEnd < 0)
+						nextEnd = text.Length;
+					var next = text.AsSpan(nextStart, nextEnd - nextStart);
+					if (!next.IsEmpty && !next.Contains('»'))
+					{
+						records.Append('(').Append(lyricRow).Append(';');
+						AppendEditorChords(records, editor, line, start, nextStart, next.Length);
+						records.Append(')');
+						line = next;
+						end = nextEnd;
+					}
+				}
+
+				if (line.Contains('»'))
+					lyricText.Append(line.ToString().Replace(" »", "").Replace(" »", "").Replace("»", ""));
+				else
+					lyricText.Append(line);
+				if (end < text.Length)
+					lyricText.Append('\n');
+				start = end + 1;
+				lyricRow++;
+			}
+			notations = records.ToString();
+			lyrics = lyricText.ToString();
+		}
+
+		private static void AppendEditorChords(StringBuilder records, RichTextBox editor, ReadOnlySpan<char> line,
+			int chordLineStart, int lyricStart, int lyricLength)
+		{
+			int offset = 0;
+			int previousX = int.MinValue;
+			for (int start = 0; start < line.Length;)
+			{
+				if (line[start] is ' ' or '»')
+				{
+					start++;
+					continue;
+				}
+				int length = line[start..].IndexOfAny(' ', '»');
+				if (length < 0)
+					break;
+				int x = editor.GetPositionFromCharIndex(chordLineStart + start).X;
+				if (x < previousX)
+					offset = 0;
+				while (offset <= lyricLength && editor.GetPositionFromCharIndex(lyricStart + offset).X <= x)
+					offset++;
+				previousX = x;
+				records.Append(line.Slice(start, length)).Append(';').Append(Math.Max(0, offset - 1)).Append(';');
+				start += length;
+			}
+		}
+
+		internal static void TransposeEditorRegion(RichTextBox editor, int steps, int spelling, Font lyricFont,
+			Font chordFont, RichTextBox workspace, RichTextBox scratch, out string notations, out string lyrics)
+		{
+			ReadEditorNotations(editor, out notations, out lyrics);
+			if (notations.Length == 0)
+			{
+				if (editor.Text != lyrics)
+					editor.Text = lyrics;
+				return;
+			}
+			notations = TransposeNotations(notations, steps, spelling);
+			string display = CombineLyricsAndNotations(lyrics, notations, lyricFont, chordFont, ref workspace, ref scratch);
+			editor.Text = lyrics.EndsWith('\n') ? display + "\n" : display;
+		}
+
 		public static string CombineLyricsAndNotations(string InText, string InNotations, Font MainFont, Font NotationFont, ref RichTextBox InWorkspace, ref RichTextBox InTempSpace)
 		{
-			//using var perf = PerfLog.Enabled ? PerfLog.Scope("CombineLyricsAndNotations", $"textLen={(InText != null ? InText.Length : 0)} notationLen={(InNotations != null ? InNotations.Length : 0)}") : null;
-			if (InNotations == "" || InText == "")
-			{
+			if (string.IsNullOrEmpty(InNotations) || string.IsNullOrEmpty(InText))
 				return InText;
-			}
-			StringBuilder stringBuilder = new StringBuilder();
+
+			InWorkspace.WordWrap = false;
 			InWorkspace.Text = InText;
-			MarkSelectedRTB(ref InWorkspace, 0, InWorkspace.Text.Length, 0, MainFont, NotationFont);
-			int lineCount = DataUtil.CountLf(InWorkspace.Text);
-			int InMin = 0;
-			int InMax = 0;
-			string remainingNotations = "";
-			int notationLineCount = ListNotationData(InNotations, ref NotationsArray, lineCount);
-			for (int i = 0; i < lineCount; i++)
+			InWorkspace.SelectAll();
+			InWorkspace.SelectionFont = MainFont;
+			InTempSpace.WordWrap = false;
+			string lyrics = InWorkspace.Text;
+			int lineCount = DataUtil.CountLf(lyrics) + (lyrics.EndsWith('\n') ? 0 : 1);
+			var notationsByLine = GetNotationsByLine(InNotations, lineCount);
+			var result = new StringBuilder(lyrics.Length + InNotations.Length);
+			var chordLine = new StringBuilder();
+			int lineStart = 0;
+			for (int row = 0; row < lineCount; row++)
 			{
-				if (notationLineCount > 0 && NotationsArray[i] != "")
+				int lineEnd = lyrics.IndexOf('\n', lineStart);
+				if (lineEnd < 0)
+					lineEnd = lyrics.Length;
+				if (notationsByLine.TryGetValue(row, out string notation) && notation.Length > 0)
 				{
-					GetMinMaxfromTextBox(InWorkspace, i, ref InMin, ref InMax);
-					InTempSpace.Text = "";
-					StringBuilder lineNotationBuilder = new StringBuilder();
-					while (NotationsArray[i].Length > 0)
+					chordLine.Clear();
+					ReadOnlySpan<char> fields = notation;
+					while (!fields.IsEmpty)
 					{
-						remainingNotations = NotationsArray[i];
-						string chord = DataUtil.ExtractOneInfo(ref remainingNotations, ';');
-						int inCurPos = Convert.ToInt32(DataUtil.ExtractOneInfo(ref remainingNotations, ';'));
-						NotationsArray[i] = remainingNotations;
-						int associatedLyricsLineCurPosX = GetAssociatedLyricsLineCurPosX(ref InWorkspace, inCurPos, InMin, InMax);
-						while (GetAssociatedLyricsLineCurPosX(ref InTempSpace, InTempSpace.Text.Length - 1) < associatedLyricsLineCurPosX - 4)
-						{
-							lineNotationBuilder.Append(' ');
-							InTempSpace.Text = lineNotationBuilder.ToString();
-							MarkSelectedRTB(ref InTempSpace, 0, InTempSpace.Text.Length, 2, MainFont, NotationFont);
-						}
-						if (lineNotationBuilder.Length > 1 && lineNotationBuilder[lineNotationBuilder.Length - 1] != ' ')
-						{
-							lineNotationBuilder.Append(' ');
-						}
-						lineNotationBuilder.Append(chord);
-						InTempSpace.Text = lineNotationBuilder.ToString();
-						MarkSelectedRTB(ref InTempSpace, 0, InTempSpace.Text.Length, 2, MainFont, NotationFont);
+						var chord = TakeNotationField(ref fields);
+						int position = int.Parse(TakeNotationField(ref fields));
+						int target = GetAssociatedLyricsLineCurPosX(ref InWorkspace, position, lineStart, lineEnd - 1) - 4;
+						int padding = GetRichTextChordPadding(InTempSpace, NotationFont, chordLine, target);
+						chordLine.Append(' ', padding);
+						if (chordLine.Length > 1 && chordLine[^1] != ' ')
+							chordLine.Append(' ');
+						chordLine.Append(chord);
 					}
-					stringBuilder.Append(InTempSpace.Text + " »\n");
+					result.Append(chordLine).Append(" »\n");
 				}
-				stringBuilder.Append(InWorkspace.Lines[i] + "\n");
+				result.Append(lyrics.AsSpan(lineStart, lineEnd - lineStart));
+				if (row + 1 < lineCount)
+					result.Append('\n');
+				lineStart = lineEnd + 1;
 			}
-			if (DataUtil.Right(stringBuilder.ToString(), 1) == "\n")
+			return result.ToString();
+		}
+
+		private static int GetRichTextChordPadding(RichTextBox scratch, Font chordFont, StringBuilder line, int targetX)
+		{
+			if (targetX <= 0)
+				return 0;
+
+			// RichEdit aligns on the start of the last character, including for a single space.
+			// Lay out a run once and look up the first caret position which reaches the target.
+			int prefix = line.Length;
+			int high = Math.Max(8, targetX / 4 + 2);
+			int low = 0;
+			int RightEdge(int spaces) => scratch.GetPositionFromCharIndex(Math.Max(0, prefix + spaces - 1)).X;
+			while (true)
 			{
-				return DataUtil.Left(stringBuilder.ToString(), stringBuilder.Length - 1);
+				line.Append(' ', high);
+				scratch.Text = line.ToString();
+				// Set the character format explicitly. RichEdit's default font can substitute
+				// different advances after Korean or right-to-left text.
+				scratch.SelectAll();
+				scratch.SelectionFont = chordFont;
+				line.Length = prefix;
+				if (RightEdge(0) >= targetX)
+					return 0;
+				int edge = RightEdge(high);
+				if (edge >= targetX)
+					break;
+				if (low > 0 && edge <= RightEdge(low))
+					return low;
+				low = high;
+				high *= 2;
 			}
-			return stringBuilder.ToString();
+			while (high - low > 1)
+			{
+				int mid = low + (high - low) / 2;
+				if (RightEdge(mid) < targetX)
+					low = mid;
+				else
+					high = mid;
+			}
+			return high;
 		}
 
 		public static void FormatDisplayLyrics(ref SongSettings InItem, bool PrepareSlides, bool UseStoredSequence)
@@ -531,40 +603,39 @@ namespace Easislides
 
 		public static string TransposeNotations(string InNotationsData, int PreviousTransposeTo, int TransposeTo, string StoredMusicKey)
 		{
-			ReadOnlySpan<char> remaining = InNotationsData;
-			if (!TryReadNotationRecord(ref remaining, out int lineNumber, out var chords) || lineNumber < 0)
-				return string.Empty;
 			if (PreviousTransposeTo > TransposeTo)
 			{
 				TransposeTo -= 12;
 			}
 			int flatSharpKey = TransposeKey(ref StoredMusicKey, TransposeTo);
+			return TransposeNotations(InNotationsData, TransposeTo, flatSharpKey);
+		}
+
+		internal static string TransposeNotations(string data, int steps, int spelling)
+		{
+			ReadOnlySpan<char> remaining = data;
+			if (!TryReadNotationRecord(ref remaining, out int lineNumber, out var chords) || lineNumber < 0)
+				return string.Empty;
 			var result = new StringBuilder();
 			do
 			{
 				result.Append('(').Append(lineNumber).Append(';');
-				AppendTransposedChords(result, chords, TransposeTo, flatSharpKey);
+				AppendTransposedChords(result, chords, steps, spelling);
 				result.Append(')');
 			} while (TryReadNotationRecord(ref remaining, out lineNumber, out chords) && lineNumber >= 0);
 			return result.ToString();
 		}
 
-		public static int ListNotationData(string InString, ref string[] NotationsArray, int MaxLineCount)
+		internal static Dictionary<int, string> GetNotationsByLine(string notationData, int lineCount)
 		{
-			string notationLine = "";
-			int notationCount = 0;
-			for (int i = 0; i <= MaxLineCount; i++)
+			var notations = new Dictionary<int, string>();
+			ReadOnlySpan<char> remaining = notationData;
+			while (TryReadNotationRecord(ref remaining, out int lineNumber, out var chords) && lineNumber >= 0)
 			{
-				NotationsArray[i] = "";
+				if (lineNumber < lineCount)
+					notations[lineNumber] = chords.ToString();
 			}
-			int lineNumber = ExtractOneNotationsLine(ref InString, ref notationLine);
-			while (lineNumber >= 0)
-			{
-				NotationsArray[lineNumber] = notationLine;
-				lineNumber = ExtractOneNotationsLine(ref InString, ref notationLine);
-				notationCount++;
-			}
-			return notationCount;
+			return notations;
 		}
 
 		public static int Load32HeaderData(string InFileName, string InContents, ref string[] ThisHeaderData)
@@ -624,27 +695,22 @@ namespace Easislides
 
 		public static int LoadHeaderData(string InFormatString, ref string[] ThisHeaderData, char SeparatorSym)
 		{
-			for (int i = 0; i < 255; i++)
-			{
-				ThisHeaderData[i] = "";
-			}
+			for (int index = 0; index < HeaderDataMax; index++)
+				ThisHeaderData[index] = string.Empty;
 			if (InFormatString == "" || InFormatString[0] == '[')
 			{
 				return -1;
 			}
-			string headerKey = "";
-			int headerIndex = -1;
-			string[] headerEntries = InFormatString.Split('>');
-			for (int i = 0; i <= headerEntries.GetUpperBound(0); i++)
+			// Stored session fields always use '>' and the last occurrence of a key wins.
+			ReadOnlySpan<char> header = InFormatString;
+			foreach (Range field in header.Split('>'))
 			{
-				headerKey = DataUtil.ExtractOneInfo(ref headerEntries[i], '=', RemoveExtract: true, MinusOneIfBlank: false);
-				if (headerKey != "")
+				var entry = header[field];
+				int equals = entry.IndexOf('=');
+				var key = equals < 0 ? entry : entry[..equals];
+				if (int.TryParse(key, out int index) && index > 0 && index < HeaderDataMax)
 				{
-					headerIndex = DataUtil.StringToInt(headerKey);
-					if (headerIndex > 0 && headerIndex < 255)
-					{
-						ThisHeaderData[headerIndex] = headerEntries[i];
-					}
+					ThisHeaderData[index] = equals < 0 ? string.Empty : entry[(equals + 1)..].ToString();
 				}
 			}
 			return 1;
@@ -657,15 +723,7 @@ namespace Easislides
 
 		public static void ApplyHeaderData(int InMode)
 		{
-			int?[] numericCache = new int?[HeaderData.Length];
-			int GetNumeric(int index)
-			{
-				if (!numericCache[index].HasValue)
-				{
-					numericCache[index] = ExtractNumericData(HeaderData[index]);
-				}
-				return numericCache[index].Value;
-			}
+			static int GetNumeric(int index) => ExtractNumericData(HeaderData[index]);
 			int headerValue = IndexFileVersion = GetNumeric(1);
 			if (InMode != 1)
 			{
@@ -757,22 +815,7 @@ namespace Easislides
 				ShowItemTransition = GlobalImageCanvas.GetTransitionType(HeaderData[72]);
 				ShowSlideTransition = GlobalImageCanvas.GetTransitionType(HeaderData[73]);
 			}
-			for (int i = 0; i < 8; i++)
-			{
-				PB_ShowWords[i] = 1;
-				PB_WordsBold[i] = 0;
-				PB_WordsItalic[i] = 0;
-				PB_WordsUnderline[i] = 0;
-				PB_WordsSize[i] = 11;
-				PB_WordsColour[i] = BlackScreenColour;
-			}
-			PB_WordsSize[0] = 13;
-			PB_WordsSize[5] = 11;
-			PB_WordsSize[2] = 6;
-			PB_WordsBold[0] = 1;
-			PB_WordsBold[1] = 1;
-			PB_WordsItalic[4] = 1;
-			PB_WordsUnderline[0] = 1;
+			PraiseBookTextStyle.ReadHeader(HeaderData, PraiseBookTextStyles, BlackScreenColour);
 			PB_ShowHeadings[0] = 1;
 			PB_ShowHeadings[1] = 1;
 			PB_ShowHeadings[2] = 0;
@@ -786,34 +829,6 @@ namespace Easislides
 			PB_ShowScreenBreaks = 1;
 			PB_OneSongPerPage = 0;
 			PB_CJKGroupStyle = SortBy.Alpha;
-			for (int i = 0; i < 8; i++)
-			{
-				int wordsHeaderIndex = 101 + i * 5;
-				headerValue = GetNumeric(wordsHeaderIndex);
-				PB_ShowWords[i] = ((headerValue < 0) ? 1 : DataUtil.GetBitValue(headerValue, 1));
-				if (headerValue < 0)
-				{
-					headerValue = 0;
-				}
-				if (i < 6)
-				{
-					PB_WordsBold[i] = DataUtil.GetBitValue(headerValue, 2);
-					PB_WordsItalic[i] = DataUtil.GetBitValue(headerValue, 3);
-					PB_WordsUnderline[i] = DataUtil.GetBitValue(headerValue, 4);
-					headerValue = GetNumeric(wordsHeaderIndex + 1);
-					PB_WordsSize[i] = ((headerValue < 4 || headerValue > 72) ? PB_WordsSize[i] : headerValue);
-					headerValue = GetNumeric(wordsHeaderIndex + 2);
-					PB_WordsColour[i] = ((HeaderData[wordsHeaderIndex + 2] == "" || !ValidateColour(headerValue)) ? BlackScreenColour : Color.FromArgb(Convert.ToInt32(headerValue)));
-				}
-				else
-				{
-					PB_WordsBold[i] = PB_WordsBold[2];
-					PB_WordsItalic[i] = PB_WordsItalic[2];
-					PB_WordsUnderline[i] = PB_WordsUnderline[2];
-					PB_WordsSize[i] = PB_WordsSize[2];
-					PB_WordsColour[i] = PB_WordsColour[2];
-				}
-			}
 			headerValue = GetNumeric(151);
 			PB_ShowHeadings[0] = DataUtil.GetBitValue(headerValue, 1);
 			PB_ShowHeadings[1] = DataUtil.GetBitValue(headerValue, 2);
@@ -1017,56 +1032,82 @@ namespace Easislides
 
 		public static string FormatNotationString(ListView InListView, string InString, string InNotation, Font MainFont, Font NotationsFont)
 		{
-			Graphics graphics = InListView.CreateGraphics();
-			string lyricsPrefix = "";
-			int lyricsWidth = 0;
-			string endMarker = "i";
-			int markerWidth = (int)graphics.MeasureString(endMarker, NotationsFont, 1000, StringFormat.GenericTypographic).Width;
-			string notationLine = endMarker;
-			string printerLine = "";
-			int padCount = 0;
-			string chord = DataUtil.ExtractOneInfo(ref InNotation, ';');
-			string chordPosText = DataUtil.ExtractOneInfo(ref InNotation, ';');
-			while (chord != "-1" && chordPosText != "-1")
+			using var graphics = InListView.CreateGraphics();
+			using var layout = StringFormat.GenericDefault;
+			return FormatNotationString(graphics, layout, InString, InNotation, MainFont, NotationsFont);
+		}
+
+		private static string FormatNotationString(Graphics graphics, StringFormat layout, string lyrics, string notations, Font lyricFont, Font chordFont)
+		{
+			ReadOnlySpan<char> fields = notations;
+			var chord = TakeNotationField(ref fields);
+			var position = TakeNotationField(ref fields);
+			if (chord.SequenceEqual("-1") || position.SequenceEqual("-1"))
+				return " ";
+
+			using var typographic = StringFormat.GenericTypographic;
+			int markerWidth = (int)graphics.MeasureString("i", chordFont, 1000, typographic).Width;
+			float spaceAdvance = (graphics.MeasureString("        i", chordFont, PointF.Empty, layout).Width
+				- graphics.MeasureString("i", chordFont, PointF.Empty, layout).Width) / 8;
+			var screenLine = new StringBuilder();
+			var printLine = PB_PrinterSpaces > 0 ? new StringBuilder() : null;
+			ReadOnlySpan<char> text = lyrics;
+			while (!chord.SequenceEqual("-1") && !position.SequenceEqual("-1"))
 			{
-				lyricsPrefix = DataUtil.Left(InString, Convert.ToInt32(chordPosText));
-				if (DataUtil.Right(lyricsPrefix, 1) == " ")
-				{
-					lyricsPrefix = DataUtil.Left(lyricsPrefix, lyricsPrefix.Length - 1) + endMarker;
-				}
-				lyricsWidth = (int)graphics.MeasureString(lyricsPrefix, MainFont, 32000, StringFormat.GenericDefault).Width;
-				while (graphics.MeasureString(notationLine, NotationsFont, 32000, StringFormat.GenericDefault).Width < (float)(lyricsWidth + markerWidth))
-				{
-					notationLine = DataUtil.Left(notationLine, notationLine.Length - 1) + " " + endMarker;
-					padCount++;
-				}
-				notationLine = ((notationLine.Length - 2 < 0 || notationLine[notationLine.Length - 2].ToString() == " ") ? (DataUtil.Left(notationLine, notationLine.Length - 1) + chord + endMarker) : (DataUtil.Left(notationLine, notationLine.Length - 1) + " " + chord + endMarker));
-				if (PB_PrinterSpaces > 0)
-				{
-					int extraSpaces = padCount / 12;
-					for (int i = 1; i <= padCount + extraSpaces; i++)
-					{
-						printerLine += " ";
-					}
-					printerLine += chord;
-				}
-				padCount = 0;
-				chord = DataUtil.ExtractOneInfo(ref InNotation, ';');
-				chordPosText = DataUtil.ExtractOneInfo(ref InNotation, ';');
+				var prefix = text[..Math.Clamp(int.Parse(position), 0, text.Length)];
+				if (!prefix.IsEmpty && prefix[^1] == ' ')
+					prefix = string.Concat(prefix[..^1], "i");
+				int target = (int)graphics.MeasureString(prefix, lyricFont, 32000, layout).Width + markerWidth;
+				int padding = GetChordPadding(graphics, layout, chordFont, screenLine, target, spaceAdvance);
+				screenLine.Append(' ', padding);
+				if (screenLine.Length > 0 && screenLine[^1] != ' ')
+					screenLine.Append(' ');
+				screenLine.Append(chord);
+				printLine?.Append(' ', padding + padding / 12).Append(chord);
+				chord = TakeNotationField(ref fields);
+				position = TakeNotationField(ref fields);
 			}
-			if (DataUtil.Right(notationLine, 1) == endMarker)
+			return screenLine.Length == 0 ? " " : (printLine ?? screenLine).ToString();
+		}
+
+		private static int GetChordPadding(Graphics graphics, StringFormat layout, Font font, StringBuilder line, int targetWidth, float spaceAdvance)
+		{
+			int prefixLength = line.Length;
+			float Measure(int spaces)
 			{
-				notationLine = DataUtil.Left(notationLine, notationLine.Length - 1);
+				line.Append(' ', spaces).Append('i');
+				float width = graphics.MeasureString(line.ToString(), font, PointF.Empty, layout).Width;
+				line.Length = prefixLength;
+				return width;
 			}
-			if (notationLine != "")
+
+			float currentWidth = Measure(0);
+			if (currentWidth >= targetWidth || spaceAdvance <= 0)
+				return 0;
+
+			// The space advance gives a starting estimate. Measure the actual font run to
+			// preserve kerning and choose the first space that reaches the original pixel target.
+			int limit = (int)Math.Ceiling(targetWidth / spaceAdvance) + 2;
+			int high = Math.Clamp((int)Math.Ceiling((targetWidth - currentWidth) / spaceAdvance), 1, limit);
+			int low = 0;
+			while (Measure(high) < targetWidth)
 			{
-				if (PB_PrinterSpaces > 0)
-				{
-					return printerLine;
-				}
-				return notationLine;
+				if (high == limit)
+					return 0; // The font run could not reach the target with visible padding.
+				low = high;
+				high = Math.Min(high * 2, limit);
 			}
-			return " ";
+			if (high - low > 1 && Measure(high - 1) < targetWidth)
+				return high;
+			while (high - low > 1)
+			{
+				int mid = low + (high - low) / 2;
+				if (Measure(mid) < targetWidth)
+					low = mid;
+				else
+					high = mid;
+			}
+			return high;
 		}
 
 		public static int GetAssociatedLyricsLineCurPosX(ref RichTextBox IntextBox, int InCurPos)
@@ -1208,7 +1249,7 @@ namespace Easislides
 			if (opening < 0)
 				return false;
 			var record = remaining[(opening + 1)..];
-			int closing = record.IndexOf(')');
+			int closing = ChordNotation.FindRecordEnd(record);
 			if (closing < 0)
 				return false;
 
@@ -2362,7 +2403,6 @@ namespace Easislides
 		{
 			FormatDisplayLyrics(ref InItem1, PrepareSlides: false, UseStoredSequence: true);
 			FormatDisplayLyrics(ref InItem2, PrepareSlides: false, UseStoredSequence: true);
-			int[] verseMarks = new int[160];
 			ListViewItem listViewItem = new ListViewItem();
 			TempItem1.LyricsAndNotationsList.Items.Clear();
 			bool keepFirstHeading = false;
@@ -2713,6 +2753,26 @@ namespace Easislides
 			Alert_FormatOriginalSequence = Alert_FormatSequence;
 		}
 
+		private const int AlertHistoryLimit = 20;
+
+		internal static void RecordAlertHistory(ComboBox history, string filePath)
+		{
+			if (history.Items.Count == 0 || history.Text != history.Items[0].ToString())
+			{
+				history.Items.Insert(0, history.Text);
+			}
+			else if (history.Items.Count <= AlertHistoryLimit)
+			{
+				return;
+			}
+
+			while (history.Items.Count > AlertHistoryLimit)
+			{
+				history.Items.RemoveAt(history.Items.Count - 1);
+			}
+			SaveComboBoxToTextFile(ref history, filePath);
+		}
+
 		public static void LoadComboBoxFromTextFile(ref ComboBox InComboBox, string InTextFile)
 		{
 			InComboBox.Items.Clear();
@@ -2723,7 +2783,7 @@ namespace Easislides
 				try
 				{
 					string[] lines = InString.Split("\n"[0]);
-					for (int i = 0; i <= lines.GetUpperBound(0) && i < 20; i++)
+					for (int i = 0; i <= lines.GetUpperBound(0) && i < AlertHistoryLimit; i++)
 					{
 						if (DataUtil.Trim(lines[i]) != "")
 						{
@@ -2741,7 +2801,7 @@ namespace Easislides
 		public static void SaveComboBoxToTextFile(ref ComboBox InComboBox, string InTextFile)
 		{
 			string fileContents = "";
-			for (int i = 0; i < InComboBox.Items.Count && i < 20; i++)
+			for (int i = 0; i < InComboBox.Items.Count && i < AlertHistoryLimit; i++)
 			{
 				if (DataUtil.Trim(InComboBox.Items[i].ToString()) != "")
 				{
@@ -2789,98 +2849,42 @@ namespace Easislides
 			FileUtil.CreateNewFile(InTextFile, FileUtil.FileContentsType.DoubleByte, fileContents);
 		}
 
-		public static void MapLyricsBreak(ref ListView InScreenBreak, ref RichTextBox InLyrics, ref bool ScreenBreakListDone)
+		public static void MapLyricsBreak(ref ListView screenBreaks, ref RichTextBox editor, ref bool screenBreakListDone)
 		{
-			int searchPos = 0;
-			int bracketPos = -1;
-			int blankLinePos = -1;
-			int screenCount = 0;
-			string verseIndicator = "";
-			string currentVerse = "";
-			bool pastStart = false;
-			InLyrics.Text = DataUtil.TrimStart(InLyrics.Text);
-			InScreenBreak.Items.Clear();
-			InLyrics.Focus();
-			while (searchPos >= 0)
+			string lyrics = DataUtil.TrimStart(editor.Text);
+			editor.Text = lyrics;
+			screenBreaks.Items.Clear();
+			editor.Focus();
+
+			string currentHeading = ValidateVerseIndicator(lyrics, 0);
+			AddItemToScreenBreak(ref screenBreaks, 0, currentHeading, 0);
+			int nextScreenNumber = 1;
+			for (int position = Math.Max(1, currentHeading.Length); position < lyrics.Length; position++)
 			{
-				bracketPos = InLyrics.Text.IndexOf("[", (searchPos < InLyrics.Text.Length) ? searchPos : InLyrics.Text.Length);
-				blankLinePos = InLyrics.Text.IndexOf("\n\n", (searchPos < InLyrics.Text.Length) ? searchPos : InLyrics.Text.Length);
-				if (!pastStart && bracketPos != 0 && blankLinePos != 0)
+				if (lyrics[position] == '[')
 				{
-					bracketPos = -1;
-					blankLinePos = 0;
+					string heading = ValidateVerseIndicator(lyrics, position);
+					if (heading.Length == 0)
+						continue;
+					if (heading != currentHeading)
+						nextScreenNumber = 0;
+					currentHeading = heading;
+					AddItemToScreenBreak(ref screenBreaks, position, currentHeading, nextScreenNumber++);
+					position += heading.Length - 1;
 				}
-				if (bracketPos >= 0 && blankLinePos >= 0)
+				else if (lyrics[position] == '\n' && position + 1 < lyrics.Length && lyrics[position + 1] == '\n')
 				{
-					if (bracketPos < blankLinePos)
-					{
-						verseIndicator = ValidateVerseIndicator(InLyrics.Text, bracketPos);
-						if (verseIndicator != "")
-						{
-							if (currentVerse != verseIndicator)
-							{
-								screenCount = 0;
-							}
-							currentVerse = verseIndicator;
-							AddItemToScreenBreak(ref InScreenBreak, bracketPos, currentVerse, screenCount);
-							screenCount++;
-							searchPos = currentVerse.Length + bracketPos;
-						}
-					}
-					else
-					{
-						AddItemToScreenBreak(ref InScreenBreak, blankLinePos + (pastStart ? 2 : 0), currentVerse, screenCount);
-						screenCount++;
-						searchPos = 2 + blankLinePos;
-					}
+					position++;
+					AddItemToScreenBreak(ref screenBreaks, position + 1, currentHeading, nextScreenNumber++);
 				}
-				else if (bracketPos >= 0)
-				{
-					verseIndicator = ValidateVerseIndicator(InLyrics.Text, bracketPos);
-					if (verseIndicator != "")
-					{
-						if (currentVerse != verseIndicator)
-						{
-							screenCount = 0;
-						}
-						currentVerse = verseIndicator;
-						AddItemToScreenBreak(ref InScreenBreak, bracketPos, currentVerse, screenCount);
-						screenCount++;
-						searchPos = currentVerse.Length + bracketPos;
-					}
-				}
-				else if (blankLinePos >= 0)
-				{
-					AddItemToScreenBreak(ref InScreenBreak, blankLinePos + (pastStart ? 2 : 0), currentVerse, screenCount);
-					screenCount++;
-					searchPos = 2 + blankLinePos;
-				}
-				else
-				{
-					searchPos = -1;
-				}
-				pastStart = true;
 			}
-			ScreenBreakListDone = true;
+			screenBreakListDone = true;
 		}
 
-		public static string ValidateVerseIndicator(string InText, int StartPosition)
+		public static string ValidateVerseIndicator(string lyrics, int position)
 		{
-			for (int i = 0; i <= 99; i++)
-			{
-				if (DataUtil.Mid(InText, StartPosition, VerseSymbol[i].Length) == VerseSymbol[i])
-				{
-					return VerseSymbol[i];
-				}
-			}
-			for (int i = 100; i <= 112; i++)
-			{
-				if (DataUtil.Mid(InText, StartPosition, VerseSymbol[i].Length) == VerseSymbol[i])
-				{
-					return VerseSymbol[i];
-				}
-			}
-			return "";
+			ReadOnlySpan<char> text = lyrics;
+			return (uint)position < (uint)text.Length ? ReadVerseIndicator(text[position..]) : string.Empty;
 		}
 
 		private static string ReadVerseIndicator(ReadOnlySpan<char> text)
@@ -2900,8 +2904,7 @@ namespace Easislides
 
 		public static void AddItemToScreenBreak(ref ListView InListView, int NewPosition, string VerseSym, int ScreenBreakCount)
 		{
-			ListViewItem listViewItem = new ListViewItem();
-			listViewItem = InListView.Items.Add(NewPosition.ToString());
+			ListViewItem listViewItem = InListView.Items.Add(NewPosition.ToString());
 			listViewItem.SubItems.Add(VerseSym);
 			listViewItem.SubItems.Add(ScreenBreakCount.ToString());
 		}
@@ -3361,15 +3364,7 @@ namespace Easislides
 			return "";
 		}
 
-		public static string FormatMode(int InPart)
-		{
-			int bold = PB_WordsBold[InPart];
-			int italic = PB_WordsItalic[InPart];
-			int underline = PB_WordsUnderline[InPart];
-			string colourCode = "\\cf" + Convert.ToString(InPart + 1);
-			string styleCode = (bold > 0) ? ((italic > 0) ? ((underline <= 0) ? "\\b\\i\\ulnone " : "\\b\\i\\ul ") : ((underline <= 0) ? "\\b\\i0\\ulnone " : "\\b\\i0\\ul ")) : ((italic > 0) ? ((underline <= 0) ? "\\b0\\i\\ulnone " : "\\b0\\i\\ul ") : ((underline <= 0) ? "\\b0\\i0\\ulnone " : "\\b0\\i0\\ul "));
-			return "\\fs" + Convert.ToString(PB_WordsSize[InPart] * 2) + colourCode + styleCode;
-		}
+		public static string FormatMode(int part) => PraiseBookTextStyles[part].ToRtf(part);
 
 
 		public static bool LoadDataIntoItem(ref SongSettings InItem, DataTable dt, string InID)
@@ -3707,7 +3702,8 @@ namespace Easislides
 		{
 			//using var perf = PerfLog.Enabled ? PerfLog.Scope("SubDivideTextAndNotations", $"textLen={(InString != null ? InString.Length : 0)} notationLen={(InNotation != null ? InNotation.Length : 0)} width={InWidth}") : null;
 			InWidth /= 15;
-			Graphics graphics = TextNotationsList.CreateGraphics();
+			using var graphics = TextNotationsList.CreateGraphics();
+			using var layout = StringFormat.GenericDefault;
 			ListViewItem listViewItem = new ListViewItem();
 			int charOffset = 0;
 			TextNotationsList.Items.Clear();
@@ -3717,7 +3713,10 @@ namespace Easislides
 				for (int chunkLength = length; chunkLength >= 1; chunkLength--)
 				{
 					string chunk = DataUtil.Left(InString, chunkLength);
-					if ((graphics.MeasureString(chunk, MainFont, 32000, StringFormat.GenericDefault).Width <= (float)InWidth || chunk.IndexOf(" ") < 0) && (DataUtil.Right(chunk, 1) == " " || chunkLength == length || chunk.IndexOf(" ") < 0))
+					// Consume at least one character even if a leading space is wider than the page.
+					bool singleWord = !chunk.Contains(' ');
+					if (chunkLength == 1 || ((singleWord || graphics.MeasureString(chunk, MainFont, 32000, layout).Width <= InWidth)
+						&& (singleWord || chunk.EndsWith(' ') || chunkLength == length)))
 					{
 						listViewItem = TextNotationsList.Items.Add(chunk);
 						listViewItem.SubItems.Add("");
@@ -3750,7 +3749,8 @@ namespace Easislides
 			}
 			for (int i = 0; i < TextNotationsList.Items.Count; i++)
 			{
-				TextNotationsList.Items[i].SubItems[1].Text = FormatNotationString(TextNotationsList, TextNotationsList.Items[i].SubItems[0].Text, TextNotationsList.Items[i].SubItems[2].Text, MainFont, NotationsFont);
+				var row = TextNotationsList.Items[i];
+				row.SubItems[1].Text = FormatNotationString(graphics, layout, row.Text, row.SubItems[2].Text, MainFont, NotationsFont);
 			}
 		}
 
@@ -3940,12 +3940,73 @@ namespace Easislides
 
 
 
+		private static void ReadIndividualFormatHeader(string format, Span<string> slots)
+		{
+			int terminator = format.IndexOf('>');
+			slots.Fill(string.Empty);
+			if (terminator < 0)
+				return;
+
+			Span<bool> seen = stackalloc bool[HeaderDataMax];
+			seen.Clear();
+			ReadOnlySpan<char> remaining = format;
+			do
+			{
+				var entry = remaining[..terminator];
+				remaining = remaining[(terminator + 1)..];
+				int key = GetIndividualHeaderKey(entry, out int valueStart);
+				if (key >= 0 && !seen[key])
+				{
+					slots[key] = entry[valueStart..].ToString();
+					seen[key] = true;
+				}
+				terminator = remaining.IndexOf('>');
+			} while (terminator >= 0);
+		}
+
+		private static int GetIndividualHeaderKey(ReadOnlySpan<char> entry, out int valueStart)
+		{
+			int equals = entry.IndexOf('=');
+			valueStart = equals + 1;
+			if (entry.IsEmpty)
+				return -1;
+			if (equals >= 0 && !entry[..equals].ContainsAnyExceptInRange('0', '9'))
+			{
+				if (equals is < 1 or > 3 || (equals > 1 && entry[0] == '0') ||
+					!byte.TryParse(entry[..equals], NumberStyles.None, CultureInfo.InvariantCulture, out byte key) || key >= HeaderDataMax)
+					return -1;
+
+				// Combining marks in the value can affect the linguistic match of the preceding '='.
+				return entry.IndexOf(entry[..valueStart], StringComparison.CurrentCulture) == 0 ? key : -1;
+			}
+
+			// Old headers used culture-sensitive IndexOf. For example, an ignorable character inside
+			// "12=" can match, but the value still starts three UTF-16 code units into the entry.
+			var comparison = CultureInfo.CurrentCulture.CompareInfo;
+			int separator = comparison.IndexOf(entry, "=");
+			if (separator <= 0)
+				return -1;
+			var legacyDigits = entry[..separator];
+			Span<char> marker = stackalloc char[4];
+			for (int key = 0; key < HeaderDataMax; key++)
+			{
+				key.TryFormat(marker, out int length, provider: CultureInfo.InvariantCulture);
+				if (comparison.Compare(legacyDigits, marker[..length]) != 0)
+					continue;
+				marker[length] = '=';
+				var prefix = marker[..(length + 1)];
+				if (comparison.IndexOf(entry, prefix) == 0)
+				{
+					valueStart = prefix.Length;
+					return key;
+				}
+			}
+			return -1;
+		}
+
 		public static void LoadIndividualFormatData(ref SongSettings InItem, string InFormatString)
 		{
-			for (int i = 0; i < 255; i++)
-			{
-				InItem.Format.HeaderData[i] = ExtractHeaderInfo(InFormatString, i, '>');
-			}
+			ReadIndividualFormatHeader(InFormatString, InItem.Format.HeaderData.AsSpan(0, HeaderDataMax));
 			int folderNo = InItem.FolderNo;
 			int region2FolderNo = folderNo;
 			int region2FontIndex = 1;

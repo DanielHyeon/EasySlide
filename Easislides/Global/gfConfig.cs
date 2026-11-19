@@ -305,7 +305,6 @@ namespace Easislides
 
 			LoadSavedData();
 
-			GenerateMusicKeysList();
 			DisplayInfo.SizeLaunchDisplay();
 			ResetShowRunningSettings();
 
@@ -789,12 +788,12 @@ namespace Easislides
 
 		public static void SaveLicenceConfigSettings()
 		{
-			RegUtil.SaveRegValue("config", "licCCLI_no", LicAdmin_List[3, 1]);
-			RegUtil.SaveRegValue("config", "lic4_no", LicAdmin_List[4, 1]);
-			RegUtil.SaveRegValue("config", "lic5_no", LicAdmin_List[5, 1]);
-			RegUtil.SaveRegValue("config", "lic6_no", LicAdmin_List[6, 1]);
-			RegUtil.SaveRegValue("config", "lic7_no", LicAdmin_List[7, 1]);
-			RegUtil.SaveRegValue("config", "lic8_no", LicAdmin_List[8, 1]);
+			RegUtil.SaveRegValue("config", "licCCLI_no", LicenseAdministrators[3].Number);
+			RegUtil.SaveRegValue("config", "lic4_no", LicenseAdministrators[4].Number);
+			RegUtil.SaveRegValue("config", "lic5_no", LicenseAdministrators[5].Number);
+			RegUtil.SaveRegValue("config", "lic6_no", LicenseAdministrators[6].Number);
+			RegUtil.SaveRegValue("config", "lic7_no", LicenseAdministrators[7].Number);
+			RegUtil.SaveRegValue("config", "lic8_no", LicenseAdministrators[8].Number);
 			RegUtil.SaveRegValue("config", "licNoSym", LicAdminNoSymbol);
 			RegUtil.SaveRegValue("config", "licEnforceDisplay", LicAdminEnforceDisplay ? 1 : 0);
 		}

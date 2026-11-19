@@ -44,7 +44,7 @@ namespace Easislides.SQLite
 		{
 			try
 			{
-				bool flag = false;
+				bool tableExists = false;
 				DataTable dbSchemaTable = connection.GetSchema("Tables", new string[4]
 				{
 					null,
@@ -57,11 +57,11 @@ namespace Easislides.SQLite
 				{
 					if (tableName.ToUpper() == DataUtil.ObjToString(row["TABLE_NAME"]).ToUpper())
 					{
-						flag = true;
+						tableExists = true;
 					}
 				}
 
-				if (flag)
+				if (tableExists)
 				{
 					using (DbCommand command = new DbCommand("DROP TABLE " + tableName, connection))
 					{
@@ -183,34 +183,34 @@ namespace Easislides.SQLite
 
 		public static void CreateField(ref DbConnection connection, string tableName, string fieldName, int fieldType, int fieldSize)
 		{
-			string text = "";
+			string alterTableSql = "";
 			try
 			{
 				switch (fieldType)
 				{
 					case 0:
-						text = $"ALTER TABLE {tableName} ADD COLUMN {fieldName} TEXT({DataUtil.ObjToString(fieldSize)}) NULL";
+						alterTableSql = $"ALTER TABLE {tableName} ADD COLUMN {fieldName} TEXT({DataUtil.ObjToString(fieldSize)}) NULL";
 						break;
 					case 1:
-						text = $"ALTER TABLE {tableName} ADD COLUMN {fieldName} INT";
+						alterTableSql = $"ALTER TABLE {tableName} ADD COLUMN {fieldName} INT";
 						break;
 					case 2:
-						text = $"ALTER TABLE {tableName} ADD COLUMN {fieldName} DATE";
+						alterTableSql = $"ALTER TABLE {tableName} ADD COLUMN {fieldName} DATE";
 						break;
 					case 4:
-						text = $"ALTER TABLE {tableName} ADD COLUMN {fieldName} FLOAT";
+						alterTableSql = $"ALTER TABLE {tableName} ADD COLUMN {fieldName} FLOAT";
 						break;
 					case 5:
-						text = $"ALTER TABLE {tableName} ADD COLUMN {fieldName} TEXT";
+						alterTableSql = $"ALTER TABLE {tableName} ADD COLUMN {fieldName} TEXT";
 						break;
 				}
-				if (!(text == ""))
+				if (!(alterTableSql == ""))
 				{
 
 					if (connection.State != ConnectionState.Open)
 						connection.Open();
 
-					using DbCommand command = new DbCommand(text, connection);
+					using DbCommand command = new DbCommand(alterTableSql, connection);
 					command.ExecuteNonQuery();
 
 					if (fieldType == 0)
@@ -218,8 +218,8 @@ namespace Easislides.SQLite
 						if (fieldName.ToUpper() == "TIMING".ToUpper())
 						{
 							fieldName = "MSC";
-							text = $"ALTER TABLE {tableName} ADD COLUMN {fieldName}";
-							using DbCommand dbCommand1 = new DbCommand(text, connection);
+							alterTableSql = $"ALTER TABLE {tableName} ADD COLUMN {fieldName}";
+							using DbCommand dbCommand1 = new DbCommand(alterTableSql, connection);
 							dbCommand1.ExecuteNonQuery();
 						}
 					}

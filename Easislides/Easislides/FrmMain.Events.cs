@@ -112,13 +112,13 @@ namespace Easislides
         private void panelPreviewTop_Resize(object sender, EventArgs e)
         {
             PreviewPanelDisplayName.Columns[0].Width = PreviewPanelDisplayName.Width - 5;
-            int num = panelPreviewTop.Width - IndgroupBox1.Width;
-            num = ((num > 0) ? (num / 2) : 0);
-            IndgroupBox1.Left = num;
-            IndgroupBox2.Left = num;
-            IndgroupBox3.Left = num;
-            IndgroupBox4.Left = num;
-            Ind_checkBox.Left = num;
+            int groupLeft = panelPreviewTop.Width - IndgroupBox1.Width;
+            groupLeft = ((groupLeft > 0) ? (groupLeft / 2) : 0);
+            IndgroupBox1.Left = groupLeft;
+            IndgroupBox2.Left = groupLeft;
+            IndgroupBox3.Left = groupLeft;
+            IndgroupBox4.Left = groupLeft;
+            Ind_checkBox.Left = groupLeft;
             panelIndTemplate.Left = Ind_checkBox.Left + Ind_checkBox.Width + 4;
             if (flowLayoutPreviewPowerPoint.Visible)
             {
@@ -589,17 +589,16 @@ namespace Easislides
         private void Ind_R1Italics_DropDownItemClicked(object sender, ToolStripItemClickedEventArgs e)
         {
             Gf.AssignDropDownItem(ref Ind_R1Italics, e.ClickedItem.Name, Ind_R1Italics0, Ind_R1Italics1, Ind_R1Italics2);
-            int num = DataUtil.ObjToInt(Ind_R1Italics.Tag);
-            int num2 = num;
-            if (num2 == 2)
+            int italicMode = DataUtil.ObjToInt(Ind_R1Italics.Tag);
+            if (italicMode == 2)
             {
                 Gf.PreviewItem.Format.ShowFontItalic[0] = 0;
                 Gf.PreviewItem.Format.ShowFontItalic[2] = 1;
             }
             else
             {
-                Gf.PreviewItem.Format.ShowFontItalic[0] = num;
-                Gf.PreviewItem.Format.ShowFontItalic[2] = num;
+                Gf.PreviewItem.Format.ShowFontItalic[0] = italicMode;
+                Gf.PreviewItem.Format.ShowFontItalic[2] = italicMode;
             }
             UpdateFormatData();
         }
@@ -607,17 +606,16 @@ namespace Easislides
         private void Ind_R2Italics_DropDownItemClicked(object sender, ToolStripItemClickedEventArgs e)
         {
             Gf.AssignDropDownItem(ref Ind_R2Italics, e.ClickedItem.Name, Ind_R2Italics0, Ind_R2Italics1, Ind_R2Italics2);
-            int num = DataUtil.ObjToInt(Ind_R2Italics.Tag);
-            int num2 = num;
-            if (num2 == 2)
+            int italicMode = DataUtil.ObjToInt(Ind_R2Italics.Tag);
+            if (italicMode == 2)
             {
                 Gf.PreviewItem.Format.ShowFontItalic[1] = 0;
                 Gf.PreviewItem.Format.ShowFontItalic[3] = 1;
             }
             else
             {
-                Gf.PreviewItem.Format.ShowFontItalic[1] = num;
-                Gf.PreviewItem.Format.ShowFontItalic[3] = num;
+                Gf.PreviewItem.Format.ShowFontItalic[1] = italicMode;
+                Gf.PreviewItem.Format.ShowFontItalic[3] = italicMode;
             }
             UpdateFormatData();
         }

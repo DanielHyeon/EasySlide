@@ -37,8 +37,8 @@ namespace Easislides
 
 		public static void CalcImageToFit(float InImageRatio, int InContainerWidth, int InContainerHeight, ref int NewImageWidth, ref int NewImageHeight, bool ComputeStoredImage, ref int StoredImageWidth, ref int StoredImageHeight)
 		{
-			float num = (float)InContainerWidth / (float)InContainerHeight;
-			if (num < InImageRatio)
+			float containerAspectRatio = (float)InContainerWidth / (float)InContainerHeight;
+			if (containerAspectRatio < InImageRatio)
 			{
 				NewImageWidth = InContainerWidth;
 				NewImageHeight = (int)((float)NewImageWidth / InImageRatio);
@@ -66,10 +66,10 @@ namespace Easislides
 			{
 				string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(InFileName);
 				string extension = Path.GetExtension(InFileName);
-				string text = EasiSlidesTempDir + fileNameWithoutExtension + GetUniqueID() + extension;
-				using FileStream fileStream = new FileStream(text, FileMode.OpenOrCreate, FileAccess.Write);
+				string tempImagePath = EasiSlidesTempDir + fileNameWithoutExtension + GetUniqueID() + extension;
+				using FileStream fileStream = new FileStream(tempImagePath, FileMode.OpenOrCreate, FileAccess.Write);
 				fileStream.Write(img, 0, img.Length);
-				return text;
+				return tempImagePath;
 			}
 			catch (Exception ex)
 			{
@@ -104,9 +104,9 @@ namespace Easislides
 			string backgroundPicture = InItem.Format.BackgroundPicture;
 			int backgroundMode = (int)InItem.Format.BackgroundMode;
 			bool useDefaultFormat = InItem.UseDefaultFormat;
-			string text = InItem.Lyrics[0].Text;
-			string text2 = InItem.Lyrics[1].Text;
-			string text3 = InItem.Lyrics[2].Text;
+			string savedRegion1Lyrics = InItem.Lyrics[0].Text;
+			string savedRegion2Lyrics = InItem.Lyrics[1].Text;
+			string savedHeading = InItem.Lyrics[2].Text;
 			string songSequence = InItem.SongSequence;
 			InItem.SongSequence = "";
 			InItem.Lyrics[0].Text = "";
@@ -174,59 +174,59 @@ namespace Easislides
 		public static void LoadReferenceAlert(ref ImageTransitionControl InScreen, SongSettings InItem, bool ClearAll, bool DoActiveIndicator)
 		{
 			InScreen.StopRef();
-			string text = "";
+			string referenceText = "";
 			if (!ClearAll)
 			{
 				switch (ReferenceAlertSource)
 				{
 					case 1:
-						text = InItem.Title;
+						referenceText = InItem.Title;
 						break;
 					case 2:
-						text = InItem.SongNumber.ToString();
+						referenceText = InItem.SongNumber.ToString();
 						break;
 					case 3:
-						text = InItem.Book_Reference;
+						referenceText = InItem.Book_Reference;
 						break;
 					case 4:
-						text = InItem.User_Reference;
+						referenceText = InItem.User_Reference;
 						break;
 					default:
-						text = "";
+						referenceText = "";
 						break;
 				}
 			}
-			if (ReferenceAlertUsePick & (text != "") & (ReferenceAlertPickName != ""))
+			if (ReferenceAlertUsePick & (referenceText != "") & (ReferenceAlertPickName != ""))
 			{
-				int num = text.IndexOf(ReferenceAlertPickName);
-				if (num >= 0)
+				int pickNameStart = referenceText.IndexOf(ReferenceAlertPickName);
+				if (pickNameStart >= 0)
 				{
-					int num2 = num + ReferenceAlertPickName.Length;
-					if (text.Length == num2)
+					int pickNameEnd = pickNameStart + ReferenceAlertPickName.Length;
+					if (referenceText.Length == pickNameEnd)
 					{
-						text = ReferenceAlertPickSubstitute;
+						referenceText = ReferenceAlertPickSubstitute;
 					}
 					else if (ReferenceAlertPickSeparator != "")
 					{
-						int num3 = text.IndexOfAny(ReferenceAlertPickSeparator.ToCharArray(), num2);
-						num3 = ((num3 >= 0) ? num3 : text.Length);
-						text = ((ReferenceAlertPickSubstitute == "") ? ReferenceAlertPickName : ReferenceAlertPickSubstitute) + DataUtil.Mid(text, num2, num3 - num2);
+						int separatorIndex = referenceText.IndexOfAny(ReferenceAlertPickSeparator.ToCharArray(), pickNameEnd);
+						separatorIndex = ((separatorIndex >= 0) ? separatorIndex : referenceText.Length);
+						referenceText = ((ReferenceAlertPickSubstitute == "") ? ReferenceAlertPickName : ReferenceAlertPickSubstitute) + DataUtil.Mid(referenceText, pickNameEnd, separatorIndex - pickNameEnd);
 					}
 					else
 					{
-						text = ((ReferenceAlertPickSubstitute == "") ? ReferenceAlertPickName : ReferenceAlertPickSubstitute) + DataUtil.Mid(text, num2, text.Length - num2);
+						referenceText = ((ReferenceAlertPickSubstitute == "") ? ReferenceAlertPickName : ReferenceAlertPickSubstitute) + DataUtil.Mid(referenceText, pickNameEnd, referenceText.Length - pickNameEnd);
 					}
 				}
 				else if (ReferenceAlertBlankIfPickNotFound)
 				{
-					text = "";
+					referenceText = "";
 				}
 			}
-			if (DoActiveIndicator && text == "")
+			if (DoActiveIndicator && referenceText == "")
 			{
-				text = " ";
+				referenceText = " ";
 			}
-			if (text == "")
+			if (referenceText == "")
 			{
 				InScreen.StopRef();
 				InScreen.RefDisplayString = "";
@@ -234,7 +234,7 @@ namespace Easislides
 			else
 			{
 				ReferenceAlertFont = GetReusedFont(ReferenceAlertFont, ref ReferenceAlertFontKey, ReferenceAlertFontName, ReferenceAlertFontSize, ReferenceAlertBold, ReferenceAlertItalic, ReferenceAlertUnderline);
-				InScreen.LoadRef(InItem, DataUtil.Left(text, 50), ReferenceAlertDuration, ReferenceAlertFont, ReferenceAlertScroll, ReferenceAlertFlash, ReferenceAlertTransparent, ReferenceAlertShadow, ReferenceAlertOutline, ReferenceAlertTextColour, ReferenceAlertBackColour, ReferenceAlertTextAlign, ReferenceAlertVerticalAlign, BottomBorderFactor);
+				InScreen.LoadRef(InItem, DataUtil.Left(referenceText, 50), ReferenceAlertDuration, ReferenceAlertFont, ReferenceAlertScroll, ReferenceAlertFlash, ReferenceAlertTransparent, ReferenceAlertShadow, ReferenceAlertOutline, ReferenceAlertTextColour, ReferenceAlertBackColour, ReferenceAlertTextAlign, ReferenceAlertVerticalAlign, BottomBorderFactor);
 			}
 		}
 
@@ -311,12 +311,12 @@ namespace Easislides
 
 		public static ImageTransitionControl.TransitionTypes ComputeTransition(SongSettings InItem, ref ImageTransitionControl InPictureBox, ImageTransitionControl.TransitionAction TransitionAction)
 		{
-			bool flag = false;
+			bool suppressTransition = false;
 			if ((ShowLiveCam & InItem.AtLiveScreen) || (InItem.OutputStyleScreen && ShowLiveBlack && TransitionAction != ImageTransitionControl.TransitionAction.AsFade))
 			{
-				flag = true;
+				suppressTransition = true;
 			}
-			if (InItem.PrevItemPP || flag)
+			if (InItem.PrevItemPP || suppressTransition)
 			{
 				InPictureBox.TransitionType = ImageTransitionControl.TransitionTypes.None;
 			}

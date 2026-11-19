@@ -1,0 +1,159 @@
+{
+  "version": 2,
+  "skills": {
+    "agent-desktop": {
+      "source": "vercel-labs/agent-desktop",
+      "sourceType": "github",
+      "skillPath": "skills/agent-desktop/SKILL.md",
+      "computedHash": "241993fe8465bd04f7ed582387b5f0d7ef1795355907c588ad553a8e98a88386",
+      "installMode": "copy"
+    },
+    "agentmemory-agents": {
+      "source": "rohitg00/agentmemory",
+      "sourceType": "github",
+      "skillPath": "plugin/skills/agentmemory-agents/SKILL.md",
+      "computedHash": "0925ac8d6202d503c9577fd83481b5b57b0f2bd564d5af0fbb8cf5adc7d35df4",
+      "installMode": "copy"
+    },
+    "agentmemory-architecture": {
+      "source": "rohitg00/agentmemory",
+      "sourceType": "github",
+      "skillPath": "plugin/skills/agentmemory-architecture/SKILL.md",
+      "computedHash": "adea35fada4dc1490add46a167ffb2e3e885acba7e48e31343389c3acdad1b2e",
+      "installMode": "copy"
+    },
+    "agentmemory-config": {
+      "source": "rohitg00/agentmemory",
+      "sourceType": "github",
+      "skillPath": "plugin/skills/agentmemory-config/SKILL.md",
+      "computedHash": "bc3bbdc3a3603d36a218889adad6aef69e8c5cd21664887c42e0f5a0bc4c8808",
+      "installMode": "copy"
+    },
+    "agentmemory-hooks": {
+      "source": "rohitg00/agentmemory",
+      "sourceType": "github",
+      "skillPath": "plugin/skills/agentmemory-hooks/SKILL.md",
+      "computedHash": "1d9ff78be741215707f367eb994e550761ce251186465f89e3b39fdff58ad4b9",
+      "installMode": "copy"
+    },
+    "agentmemory-mcp-tools": {
+      "source": "rohitg00/agentmemory",
+      "sourceType": "github",
+      "skillPath": "plugin/skills/agentmemory-mcp-tools/SKILL.md",
+      "computedHash": "87f555840fe5e22ca3934d4b8282ad0653e25bd911e7f1e43a3f120cbf024639",
+      "installMode": "copy"
+    },
+    "agentmemory-rest-api": {
+      "source": "rohitg00/agentmemory",
+      "sourceType": "github",
+      "skillPath": "plugin/skills/agentmemory-rest-api/SKILL.md",
+      "computedHash": "368a8ba61561f21f13c855ef28a36bfb0111acbd1ac8c707bccb4153bffe0446",
+      "installMode": "copy"
+    },
+    "caveman": {
+      "source": "JuliusBrussee/caveman",
+      "sourceType": "github",
+      "skillPath": "skills/caveman/SKILL.md",
+      "computedHash": "b51af74aacdadbc3c2d6bb79f05db58dc521854b87f7ffabd48faf286a81ed31",
+      "installMode": "copy"
+    },
+    "commit-context": {
+      "source": "rohitg00/agentmemory",
+      "sourceType": "github",
+      "skillPath": "plugin/skills/commit-context/SKILL.md",
+      "computedHash": "97b66143fdad44ce797721d8cbb06fd428997f334396d7dca45dd4a62d974b74",
+      "installMode": "copy"
+    },
+    "commit-history": {
+      "source": "rohitg00/agentmemory",
+      "sourceType": "github",
+      "skillPath": "plugin/skills/commit-history/SKILL.md",
+      "computedHash": "23b60163c413a8fca9ec5904ec4eff4b9327a49b9cffca386787073c002dd52f",
+      "installMode": "copy"
+    },
+    "forget": {
+      "source": "rohitg00/agentmemory",
+      "sourceType": "github",
+      "skillPath": "plugin/skills/forget/SKILL.md",
+      "computedHash": "71ca46385320864a3255cd90b675f860ce056e4b1a4154d6e24b459adf20dae7",
+      "installMode": "copy"
+    },
+    "handoff": {
+      "source": "rohitg00/agentmemory",
+      "sourceType": "github",
+      "skillPath": "plugin/skills/handoff/SKILL.md",
+      "computedHash": "3e86a09430f5973837ac35d3e7a3d3594be9d6cbcce7868349fa987fa6ba2ffb",
+      "installMode": "copy"
+    },
+    "i-have-adhd": {
+      "source": "ayghri/i-have-adhd",
+      "sourceType": "github",
+      "skillPath": "skills/i-have-adhd/SKILL.md",
+      "computedHash": "894c54f32643b3ff9f626bbb758f12a704c354dbf8ce6b4939f7971a16827ae1",
+      "installMode": "copy"
+    },
+    "lesson": {
+      "source": "rohitg00/agentmemory",
+      "sourceType": "github",
+      "skillPath": "plugin/skills/lesson/SKILL.md",
+      "computedHash": "badee7e6bc8fb4b09f5a6e05e197c436502f765952f3e5c810662b66796e5689",
+      "installMode": "copy"
+    },
+    "memory-discipline": {
+      "source": "rohitg00/agentmemory",
+      "sourceType": "github",
+      "skillPath": "plugin/skills/memory-discipline/SKILL.md",
+      "computedHash": "1722ba92063f5c25fb9de8fa4e178ce2f8bd2d281f4122fbd96bf7daa7100e17",
+      "installMode": "copy"
+    },
+    "ponytail": {
+      "source": "DietrichGebert/ponytail",
+      "sourceType": "github",
+      "skillPath": "skills/ponytail/SKILL.md",
+      "computedHash": "56d72677aca02689ac89bd48734e8c19b40ab86716d1257eaf5f1238b43cda6b",
+      "installMode": "copy"
+    },
+    "recall": {
+      "source": "rohitg00/agentmemory",
+      "sourceType": "github",
+      "skillPath": "plugin/skills/recall/SKILL.md",
+      "computedHash": "58480113d2cc50f411bf5c58f33a4a213830431a431ba76d0bd731e10fb3cad9",
+      "installMode": "copy"
+    },
+    "recap": {
+      "source": "rohitg00/agentmemory",
+      "sourceType": "github",
+      "skillPath": "plugin/skills/recap/SKILL.md",
+      "computedHash": "c57b7af18dec021545be1193086e2850eef9dce2c5ba1bdb12d8280e0ea531fb",
+      "installMode": "copy"
+    },
+    "remember": {
+      "source": "rohitg00/agentmemory",
+      "sourceType": "github",
+      "skillPath": "plugin/skills/remember/SKILL.md",
+      "computedHash": "6cc8f7f0e6c9fc5079f21eaa98e2f91c2b886fd9a060e3566fcb67d9eee031fe",
+      "installMode": "copy"
+    },
+    "search-first": {
+      "source": "affaan-m/ECC",
+      "sourceType": "github",
+      "skillPath": "skills/search-first/SKILL.md",
+      "computedHash": "f95b1d0ce088b1dd1b5de029c709c02a17cebf38f1ebcc1b0140fc97e4bf5ae9",
+      "installMode": "copy"
+    },
+    "session-history": {
+      "source": "rohitg00/agentmemory",
+      "sourceType": "github",
+      "skillPath": "plugin/skills/session-history/SKILL.md",
+      "computedHash": "ad7e3f69da6a9a84208cb28fd37369748cc052ec1dd76ee946bb6aef3dce25fe",
+      "installMode": "copy"
+    },
+    "write-agentmemory-skill": {
+      "source": "rohitg00/agentmemory",
+      "sourceType": "github",
+      "skillPath": "plugin/skills/write-agentmemory-skill/SKILL.md",
+      "computedHash": "c1f7bf985a1cd895fc7c90729013e542fbd6f451284cf8de37547340e8eade28",
+      "installMode": "copy"
+    }
+  }
+}

@@ -174,16 +174,16 @@ namespace Easislides
 			}
 			if (cbTickAll.CheckState == CheckState.Checked)
 			{
-				for (int num = SongsList.Items.Count - 1; num >= 0; num--)
+				for (int songIndex = SongsList.Items.Count - 1; songIndex >= 0; songIndex--)
 				{
-					SongsList.Items[num].Checked = true;
+					SongsList.Items[songIndex].Checked = true;
 				}
 			}
 			else if (cbTickAll.CheckState == CheckState.Unchecked)
 			{
-				for (int num = SongsList.Items.Count - 1; num >= 0; num--)
+				for (int songIndex = SongsList.Items.Count - 1; songIndex >= 0; songIndex--)
 				{
-					SongsList.Items[num].Checked = false;
+					SongsList.Items[songIndex].Checked = false;
 				}
 			}
 			BtnOK.Enabled = ((SongsList.CheckedItems.Count > 0) ? true : false);
@@ -226,20 +226,19 @@ namespace Easislides
 			ListViewItem listViewItem = new ListViewItem();
 			SongsList.Items.Clear();
 			TempSongsList.Items.Clear();
-			string text;
+			string targetTitleColumn;
 			if (OptionSourceATitle1.Checked)
 			{
-				text = "Title_1";
+				targetTitleColumn = "Title_1";
 			}
 			else
 			{
-				text = "Title_2";
+				targetTitleColumn = "Title_2";
 			}
 			string inName = SongFolderA.Items[SongFolderA.SelectedIndex].ToString();
 			inName = "select * from SONG where Folderno=" + Gf.GetFolderNumber(inName);
-			text = ((!OptionSourceBTitle1.Checked) ? "Title_2" : "Title_1");
-			int num = 0;
-			int num2 = 0;
+			targetTitleColumn = ((!OptionSourceBTitle1.Checked) ? "Title_2" : "Title_1");
+			int matchIndex = 0;
 
 			try
 			{
@@ -251,12 +250,12 @@ namespace Easislides
 					foreach (DataRow dr in dataTable.Rows)
 					{
 						SongID1 = DataUtil.ObjToInt(dr["SongID"]);
-						string text2 = (!OptionSourceATitle1.Checked) ? DataUtil.ObjToString(dr["Title_2"]) : DataUtil.ObjToString(dr["Title_1"]);
-						if (DataUtil.Trim(text2) != "")
+						string sourceMatchTitle = (!OptionSourceATitle1.Checked) ? DataUtil.ObjToString(dr["Title_2"]) : DataUtil.ObjToString(dr["Title_1"]);
+						if (DataUtil.Trim(sourceMatchTitle) != "")
 						{
-							string text3 = DataUtil.ObjToString(dr["Title_1"]);
+							string sourceTitle = DataUtil.ObjToString(dr["Title_1"]);
 							string inName2 = SongFolderB.Items[SongFolderB.SelectedIndex].ToString();
-							inName2 = "select * from SONG where Folderno=" + Gf.GetFolderNumber(inName2) + " and LCase(" + text + ") like LCase(\"" + text2 + "\") ";
+							inName2 = "select * from SONG where Folderno=" + Gf.GetFolderNumber(inName2) + " and LCase(" + targetTitleColumn + ") like LCase(\"" + sourceMatchTitle + "\") ";
 							try
 							{
 								using DataTable dataTable1 = DbController.GetDataTable(connection, inName2);
@@ -265,14 +264,13 @@ namespace Easislides
 									foreach (DataRow dr1 in dataTable1.Rows)
 									{
 										SongID2 = DataUtil.ObjToInt(dr1["SongID"]);
-										num2++;
 										string initTitle = GetInitTitle(DataUtil.ObjToString(dr1["Title_1"]));
-										string text4 = text3 + (OptionNewTitleA.Checked ? (" (" + initTitle + ")") : "");
-										listViewItem = TempSongsList.Items.Add(DataUtil.GetCJKTitle(text4, SortBy.Alpha));
-										listViewItem.SubItems.Add(text4);
+										string mergedTitle = sourceTitle + (OptionNewTitleA.Checked ? (" (" + initTitle + ")") : "");
+										listViewItem = TempSongsList.Items.Add(DataUtil.GetCJKTitle(mergedTitle, SortBy.Alpha));
+										listViewItem.SubItems.Add(mergedTitle);
 										listViewItem.SubItems.Add(SongID1.ToString());
 										listViewItem.SubItems.Add(SongID2.ToString());
-										listViewItem.SubItems.Add(text3);
+										listViewItem.SubItems.Add(sourceTitle);
 										listViewItem.SubItems.Add(initTitle);
 									}
 								}
@@ -296,13 +294,13 @@ namespace Easislides
 			TempSongsList.Sort();
 			if (TempSongsList.Items.Count > 0)
 			{
-				for (num = 0; num < TempSongsList.Items.Count; num++)
+				for (matchIndex = 0; matchIndex < TempSongsList.Items.Count; matchIndex++)
 				{
-					listViewItem = SongsList.Items.Add(TempSongsList.Items[num].SubItems[1].Text);
-					listViewItem.SubItems.Add(TempSongsList.Items[num].SubItems[2].Text);
-					listViewItem.SubItems.Add(TempSongsList.Items[num].SubItems[3].Text);
-					listViewItem.SubItems.Add(TempSongsList.Items[num].SubItems[4].Text);
-					listViewItem.SubItems.Add(TempSongsList.Items[num].SubItems[5].Text);
+					listViewItem = SongsList.Items.Add(TempSongsList.Items[matchIndex].SubItems[1].Text);
+					listViewItem.SubItems.Add(TempSongsList.Items[matchIndex].SubItems[2].Text);
+					listViewItem.SubItems.Add(TempSongsList.Items[matchIndex].SubItems[3].Text);
+					listViewItem.SubItems.Add(TempSongsList.Items[matchIndex].SubItems[4].Text);
+					listViewItem.SubItems.Add(TempSongsList.Items[matchIndex].SubItems[5].Text);
 				}
 			}
 			DisplayCount();
@@ -313,10 +311,10 @@ namespace Easislides
 		{
 			if (DataUtil.Left(InTitle, 1) != "(")
 			{
-				int num = InTitle.IndexOf("(");
-				if (num >= 0)
+				int parenthesisIndex = InTitle.IndexOf("(");
+				if (parenthesisIndex >= 0)
 				{
-					InTitle = DataUtil.Left(InTitle, num - 1);
+					InTitle = DataUtil.Left(InTitle, parenthesisIndex - 1);
 				}
 			}
 			return DataUtil.Trim(InTitle);
@@ -329,7 +327,7 @@ namespace Easislides
 
 		private void Start_Merge()
 		{
-			int num = DisplayCount();
+			int selectedSongCount = DisplayCount();
 			if (SongFolderA.Text == "")
 			{
 				MessageBox.Show("Please select a folder for Source A before proceeding");
@@ -350,7 +348,7 @@ namespace Easislides
 				MessageBox.Show("There aren't any items listed for merging!");
 				return;
 			}
-			if (num <= 0)
+			if (selectedSongCount <= 0)
 			{
 				MessageBox.Show("Cannot find any items Ticked for merging!");
 				return;
@@ -358,7 +356,7 @@ namespace Easislides
 			string CombinedLyrics = "";
 			string CombinedNotations = "";
 			string folderNum = Gf.GetFolderNumber(SongFolderC.Items[SongFolderC.SelectedIndex].ToString()).ToString();
-			int num2 = 0;
+			int processedSongCount = 0;
 			for (int i = 0; i < SongsList.Items.Count; i++)
 			{
 				if (!SongsList.Items[i].Checked)
@@ -373,12 +371,12 @@ namespace Easislides
 					{
 						Gf.Merge_Songs(SmartMergeItemA, SmartMergeItemB, ref CombinedLyrics, ref CombinedNotations);
 						SaveSong(SongsList.Items[i].SubItems[0].Text, folderNum, SongsList.Items[i].SubItems[3].Text, CombinedLyrics, CombinedNotations, SongSequenceA, (SongCopyrightA != "") ? SongCopyrightA : SongCopyrightB, BookReferenceA + (((BookReferenceA != "") & (BookReferenceB != "")) ? "," : "") + BookReferenceB, UserReferenceA + (((UserReferenceA != "") & (UserReferenceB != "")) ? "," : "") + UserReferenceB, (SongWriterInfoA != "") ? SongWriterInfoA : SongWriterInfoB, (SongCapoA != "-1") ? SongCapoA : SongCapoB, (SongKeyA != "") ? SongKeyA : SongKeyB, (SongTimingA != "") ? SongTimingA : SongTimingB, SongAdminA, SongAdminB);
-						num2++;
+						processedSongCount++;
 					}
 				}
-				ProgressBar1.Value = num2 / num * 100;
+				ProgressBar1.Value = processedSongCount / selectedSongCount * 100;
 			}
-			MessageBox.Show(num2 + " newly merged items have been created in Folder '" + SongFolderC.Items[SongFolderC.SelectedIndex].ToString() + "'");
+			MessageBox.Show(processedSongCount + " newly merged items have been created in Folder '" + SongFolderC.Items[SongFolderC.SelectedIndex].ToString() + "'");
 			ProgressBar1.Value = 0;
 		}
 
@@ -429,7 +427,7 @@ namespace Easislides
 
 		private void SaveSong(string Title, string FolderNum, string Title2, string InLyrics, string InNotations, string Sequence, string Copyright, string BookReference, string UserReference, string Writer, string SongCapo, string SongKey, string SongTiming, string SongAdmin1, string SongAdmin2)
 		{
-			int num = Gf.InsertItemIntoDatabase(Gf.ConnectStringMainDB, Title, Title2, 0, DataUtil.StringToInt(FolderNum), InLyrics, Sequence, Writer, Copyright, SongCapo, SongTiming, SongKey, InNotations, "", SongAdmin1, SongAdmin2, BookReference, UserReference, "", "");
+			Gf.InsertItemIntoDatabase(Gf.ConnectStringMainDB, Title, Title2, 0, DataUtil.StringToInt(FolderNum), InLyrics, Sequence, Writer, Copyright, SongCapo, SongTiming, SongKey, InNotations, "", SongAdmin1, SongAdmin2, BookReference, UserReference, "", "");
 		}
 
 		            }

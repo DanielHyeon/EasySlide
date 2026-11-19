@@ -288,11 +288,11 @@ namespace Easislides
         {
             try
             {
-                string text = "";
+                string fileContents = "";
 
                 using StreamReader streamReader = new StreamReader(InFileName, Encoding.Default, detectEncodingFromByteOrderMarks: true);
-                text = streamReader.ReadToEnd();
-                return text.Replace("\r\n", "\n").Replace("\v", "\n");
+                fileContents = streamReader.ReadToEnd();
+                return fileContents.Replace("\r\n", "\n").Replace("\v", "\n");
             }
             catch (Exception e)
             {
@@ -311,21 +311,21 @@ namespace Easislides
         {
             try
             {
-                string text = "";
+                string infoFileContents = "";
                 using StreamReader streamReader = File.OpenText(InFileName);
-                text = streamReader.ReadToEnd();
+                infoFileContents = streamReader.ReadToEnd();
                 string InfoFolder = "";
                 string InfoHeading = "";
                 string InfoRotate = "";
-                int num = text.IndexOf("[");
-                int num2 = text.IndexOf("]", num + 1);
-                if (num == 0 && num2 > 1)
+                int headerStart = infoFileContents.IndexOf("[");
+                int headerEnd = infoFileContents.IndexOf("]", headerStart + 1);
+                if (headerStart == 0 && headerEnd > 1)
                 {
-                    num++;
-                    string InFormatString = DataUtil.Mid(text, num, num2 - num);
+                    headerStart++;
+                    string InFormatString = DataUtil.Mid(infoFileContents, headerStart, headerEnd - headerStart);
                     if (DataUtil.Convertv32FormatString(ref InFormatString, '*', ref InfoHeading, ref InfoFolder, ref InfoRotate) == 320)
                     {
-                        InItem.CompleteLyrics = DataUtil.Mid(text, num2 + 1, text.Length - num2);
+                        InItem.CompleteLyrics = DataUtil.Mid(infoFileContents, headerEnd + 1, infoFileContents.Length - headerEnd);
                         InItem.Title = InfoHeading;
                         InItem.FolderNo = DataUtil.StringToInt(InfoFolder);
                         if (InItem.FolderNo < 1)
@@ -416,7 +416,7 @@ namespace Easislides
 
         private static void PreLoadPowerpointFileCalls(ref PowerPoint InPP, ref WorshipItemList InSongsArray)
         {
-            bool flag = false;
+            bool powerpointInitialized = false;
             int failedCount = 0;
             string firstFailed = null;
             for (int i = 0; i <= Gf.TotalWorshipListItems && !PowerPointCallLimit.CurrentAbandoned; i++)
@@ -425,7 +425,7 @@ namespace Easislides
                 {
                     if (InSongsArray[i].Type == "P")
                     {
-                        if (!flag)
+                        if (!powerpointInitialized)
                         {
                             InPP.NewApp();
                             // The main form's wrapper is made once at start-up; when PowerPoint was closed or
@@ -447,7 +447,7 @@ namespace Easislides
                                     }
                                 }
                             }
-                            flag = true;
+                            powerpointInitialized = true;
                         }
                         string path = DataUtil.Right(InSongsArray[i].IdString, InSongsArray[i].IdString.Length - 1);
                         string result = InPP.Open(path, ref Gf.PowerpointList);

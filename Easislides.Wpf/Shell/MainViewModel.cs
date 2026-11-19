@@ -3092,14 +3092,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         try
         {
             var bytes = File.ReadAllBytes(path);
-            var text = DecodeUtf8OrBomText(bytes);
-            if (!text.Contains('\uFFFD', StringComparison.Ordinal))
+            var decodedText = DecodeUtf8OrBomText(bytes);
+            if (!decodedText.Contains('\uFFFD', StringComparison.Ordinal))
             {
-                return text;
+                return decodedText;
             }
 
             var legacyText = LegacyKoreanEncoding.Value.GetString(bytes);
-            return legacyText.Contains('\uFFFD', StringComparison.Ordinal) ? text : legacyText;
+            return legacyText.Contains('\uFFFD', StringComparison.Ordinal) ? decodedText : legacyText;
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
@@ -8865,8 +8865,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private void ToggleOutputReferenceAlert()
     {
         var show = !_session.Current.IsReferenceAlertVisible;
-        var text = show ? ResolveReferenceAlertText(_session.Current) : string.Empty;
-        if (show && string.IsNullOrWhiteSpace(text))
+        var alertText = show ? ResolveReferenceAlertText(_session.Current) : string.Empty;
+        if (show && string.IsNullOrWhiteSpace(alertText))
         {
             CancelReferenceAlertAutoHide();
             _session.SetReferenceAlert(visible: false, string.Empty);
@@ -8875,7 +8875,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        _session.SetReferenceAlert(show, text);
+        _session.SetReferenceAlert(show, alertText);
         if (show)
         {
             ScheduleReferenceAlertAutoHide();
@@ -8956,7 +8956,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private string ResolveReferenceAlertText(LiveSessionSnapshot snapshot)
     {
-        var text = NormalizeReferenceAlertSource(_settings.Get(EasiSettingKeys.ReferenceAlertSource)) switch
+        var referenceText = NormalizeReferenceAlertSource(_settings.Get(EasiSettingKeys.ReferenceAlertSource)) switch
         {
             0 => string.Empty,
             2 when snapshot.CurrentItemNumber > 0 => snapshot.CurrentItemNumber.ToString(CultureInfo.InvariantCulture),
@@ -8965,7 +8965,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             _ => ResolveReferenceAlertFallbackText(snapshot),
         };
 
-        return ApplyReferenceAlertPickFilter(text);
+        return ApplyReferenceAlertPickFilter(referenceText);
     }
 
     private static int NormalizeReferenceAlertSource(int value)
@@ -9589,7 +9589,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // 현재 설정과 일치하는 프리셋을 찾아 활성 이름을 갱신(없으면 "사용자 지정").
     private void RefreshActiveAppearance()
     {
-        var text = _settings.Get(EasiSettingKeys.LyricsMonitorTextColorArgb);
+        var textColorArgb = _settings.Get(EasiSettingKeys.LyricsMonitorTextColorArgb);
         var bg1 = _settings.Get(EasiSettingKeys.LyricsMonitorBackgroundColorArgb);
         var bg2 = _settings.Get(EasiSettingKeys.LyricsMonitorBackgroundColor2Argb);
         var gradient = _settings.Get(EasiSettingKeys.LyricsMonitorBackgroundIsGradient);
@@ -9597,7 +9597,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var panelText = _settings.Get(EasiSettingKeys.LyricsMonitorPanelTextColorArgb);
 
         var match = OutputAppearancePresets.FirstOrDefault(p =>
-            p.TextArgb == text && p.Background1Argb == bg1 && p.Background2Argb == bg2 && p.IsGradient == gradient);
+            p.TextArgb == textColorArgb && p.Background1Argb == bg1 && p.Background2Argb == bg2 && p.IsGradient == gradient);
         ActiveAppearanceName = match?.Name ?? "사용자 지정";
 
         // 가사 정렬(가로/세로)·폰트 크기 활성 상태도 함께 동기화(Settings 창 등 다른 경로 변경도 인스펙터가 따라가도록).
@@ -9662,7 +9662,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ActiveTitleHeadingFirstScreenOnly = _settings.Get(EasiSettingKeys.LyricsMonitorTitleHeadingFirstScreenOnly);
         ActiveTitleHeadingFollowBody = _settings.Get(EasiSettingKeys.LyricsMonitorTitleHeadingFollowBody);
         ActiveTitleHeadingFollowRegion2 = _settings.Get(EasiSettingKeys.LyricsMonitorTitleHeadingFollowRegion2);
-        ActiveTextColorHex = FormatColorHex(text);
+        ActiveTextColorHex = FormatColorHex(textColorArgb);
         ActiveBackgroundColorHex = FormatColorHex(bg1);
         ActivePanelColorHex = FormatColorHex(panel);
         ActivePanelTextColorHex = FormatColorHex(panelText);

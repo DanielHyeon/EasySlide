@@ -760,14 +760,14 @@ public sealed class SearchUsageService : ISearchUsageService
 
     private static DateTime? GetDate(SQLiteDataReader reader, IReadOnlyDictionary<string, int> columns, string name)
     {
-        var text = GetString(reader, columns, name);
-        if (string.IsNullOrWhiteSpace(text))
+        var dateText = GetString(reader, columns, name);
+        if (string.IsNullOrWhiteSpace(dateText))
         {
             return null;
         }
 
         // Shared with the WinForms app: yyyy-MM-dd, or what older versions wrote in the Korean or English format.
-        return Easislides.Util.StoredDate.TryParse(text, out var value)
+        return Easislides.Util.StoredDate.TryParse(dateText, out var value)
             ? value.Date
             : null;
     }

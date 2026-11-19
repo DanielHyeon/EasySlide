@@ -33,6 +33,15 @@ public class SongMergeServiceTests
     }
 
     [Fact]
+    public void Merge_PreservesParenthesizedChordsAndFollowingPositions()
+    {
+        var sourceA = Detail(10, "Alpha", "One", notations: "(0;C(add9);0;G/B;08;)");
+        var sourceB = Detail(20, "Alpha", "Two", notations: "(0;Am7(b5);0;)");
+        new SongMergeService().Merge(sourceA, sourceB).Notations.Should()
+            .Be("(0;C(add9);0;G/B;08;)(2;Am7(b5);0;)");
+    }
+
+    [Fact]
     public void Merge_RemapsSourceNotationLineIndexesToMergedOutput()
     {
         var sut = new SongMergeService();

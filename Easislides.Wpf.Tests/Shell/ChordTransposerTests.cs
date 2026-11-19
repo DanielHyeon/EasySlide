@@ -33,6 +33,7 @@ public class ChordTransposerTests
     [Theory]
     [InlineData("C/G", 2, "D/A")]   // 슬래시 베이스도 함께 조옮김
     [InlineData("Am/E", 1, "A#m/F")]
+    [InlineData("C(omit3/add9)/G", 2, "D(omit3/add9)/A")]
     public void Transpose_SlashBass_TransposesBoth(string chord, int semitones, string expected)
         => ChordTransposer.Transpose(chord, semitones).Should().Be(expected);
 

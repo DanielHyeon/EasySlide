@@ -4,7 +4,6 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.IO;
-using System.Text;
 using System.Windows.Forms;
 using Easislides.Module;
 using Easislides.Properties;
@@ -175,10 +174,6 @@ namespace Easislides
 		private string Reg_FormRegion2Tab = "EditDB_Region2Tab";
 
 		private ListView tempSequenceCopied = new ListView();
-
-		private ListView ListViewNotations = new ListView();
-
-		private ListView ListViewNotationLog = new ListView();
 
 		private ListView ScreenBreaks1 = new ListView();
 
@@ -524,18 +519,6 @@ namespace Easislides
 			tempSequenceCopied.Clear();
 			tempSequenceCopied.Columns.Add("tempSequenceCopied1");
 			tempSequenceCopied.Columns.Add("tempSequenceCopied2");
-			ListViewNotations.Columns.Add("ListViewNotations1");
-			ListViewNotations.Columns.Add("ListViewNotations2");
-			ListViewNotations.Columns.Add("ListViewNotations3");
-			ListViewNotations.Columns.Add("ListViewNotations4");
-			ListViewNotations.Columns.Add("ListViewNotations5");
-			ListViewNotations.View = System.Windows.Forms.View.Details;
-			ListViewNotationLog.Columns.Add("ListViewNotationLog1");
-			ListViewNotationLog.Columns.Add("ListViewNotationLog2");
-			ListViewNotationLog.Columns.Add("ListViewNotationLog3");
-			ListViewNotationLog.Columns.Add("ListViewNotationLog4");
-			ListViewNotationLog.Columns.Add("ListViewNotationLog5");
-			ListViewNotationLog.View = System.Windows.Forms.View.Details;
 			ScreenBreaks1.Columns.Add("ScreenBreak1");
 			ScreenBreaks1.Columns.Add("ScreenBreak2");
 			tbWorkspace.WordWrap = false;
@@ -629,29 +612,7 @@ namespace Easislides
 		private void LoadLists()
 		{
 			Gf.LoadSongKeyCapoTiming(ref SongCapo, ref SongKey, ref SongTiming);
-			LicAdminInfo1.Items.Clear();
-			LicAdminInfo1.Items.Add("");
-			LicAdminInfo1.Items.Add(Gf.LicAdmin_List[2, 0]);
-			LicAdminInfo1.Items.Add(Gf.LicAdmin_List[3, 0]);
-			LicAdminInfo2.Items.Clear();
-			LicAdminInfo2.Items.Add("");
-			LicAdminInfo2.Items.Add(Gf.LicAdmin_List[2, 0]);
-			LicAdminInfo2.Items.Add(Gf.LicAdmin_List[3, 0]);
-			if (Gf.LicAdmin_List[4, 0] != "")
-			{
-				LicAdminInfo1.Items.Add(Gf.LicAdmin_List[4, 0]);
-				LicAdminInfo2.Items.Add(Gf.LicAdmin_List[4, 0]);
-			}
-			if (Gf.LicAdmin_List[5, 0] != "")
-			{
-				LicAdminInfo1.Items.Add(Gf.LicAdmin_List[5, 0]);
-				LicAdminInfo2.Items.Add(Gf.LicAdmin_List[5, 0]);
-			}
-			if (Gf.LicAdmin_List[6, 0] != "")
-			{
-				LicAdminInfo1.Items.Add(Gf.LicAdmin_List[6, 0]);
-				LicAdminInfo2.Items.Add(Gf.LicAdmin_List[6, 0]);
-			}
+			Gf.PopulateLicenseAdministratorChoices(LicAdminInfo1, LicAdminInfo2);
 		}
 
 		private void ResetAll()
@@ -887,136 +848,23 @@ namespace Easislides
 			}
 		}
 
-		private void BtnChordsClick(int TransposeStep)
+		private void BtnChordsClick(int steps)
 		{
-			int flatSharpKey = -1;
-			if (SongKey.Text != "")
-			{
-				string InKey = SongKey.Text;
-				flatSharpKey = Gf.TransposeKey(ref InKey, TransposeStep);
-				SongKey.Text = InKey;
-			}
-			if (SongCapo.Text != "")
-			{
-				int selectedIndex = SongCapo.SelectedIndex;
-				selectedIndex -= TransposeStep;
-				if (selectedIndex > 12)
-				{
-					selectedIndex = (selectedIndex - 1) % 12 + 1;
-				}
-				else if (selectedIndex < 1)
-				{
-					selectedIndex = 13 - (selectedIndex + 1);
-				}
-				SongCapo.SelectedIndex = selectedIndex;
-			}
+			int spelling = Gf.TransposeEditorKeyAndCapo(SongKey, SongCapo, steps);
 			IgnoreChange = true;
-			BtnChordsClick(TransposeStep, ref tbLyrics1, ref Lyrics1SavedNotations, ref Lyrics1Only, flatSharpKey);
-			BtnChordsClick(TransposeStep, ref tbLyrics2, ref Lyrics2SavedNotations, ref Lyrics2Only, flatSharpKey);
-			Gf.FormatEditorLyrics(tbLyrics1, ref formattedLyrics1, sArray, MainFont, NotationFont, formatAll: true);
-			Gf.FormatEditorLyrics(tbLyrics2, ref formattedLyrics2, sArray, MainFont, NotationFont, formatAll: true);
-			IgnoreChange = false;
-		}
-
-		private void BtnChordsClick(int TransposeStep, ref RichTextBox InTextBox, ref string SavedNotations, ref string LyricsOnly, int FlatSharpKey)
-		{
-			ValidateMusicNotations(ref InTextBox, ref SavedNotations, ref LyricsOnly);
-			string notations = SavedNotations;
-			string transposedNotations = "";
-			string chord = "";
-			for (int i = 0; i < notations.Length; i++)
+			try
 			{
-				string currentChar = DataUtil.Mid(notations, i, 1);
-				if ((currentChar == "(") || (currentChar == ")"))
-				{
-					transposedNotations += currentChar;
-				}
-				else if (currentChar == ';'.ToString())
-				{
-					chord = Gf.TransposeChord(chord, TransposeStep, FlatSharpKey);
-					transposedNotations = transposedNotations + chord + currentChar;
-					chord = "";
-				}
-				else
-				{
-					chord += currentChar;
-				}
+				Gf.TransposeEditorRegion(tbLyrics1, steps, spelling, MainFont, NotationFont,
+					tbWorkspace, tbTempSpace, out Lyrics1SavedNotations, out Lyrics1Only);
+				Gf.TransposeEditorRegion(tbLyrics2, steps, spelling, MainFont, NotationFont,
+					tbWorkspace, tbTempSpace, out Lyrics2SavedNotations, out Lyrics2Only);
+				Gf.FormatEditorLyrics(tbLyrics1, ref formattedLyrics1, sArray, MainFont, NotationFont, formatAll: true);
+				Gf.FormatEditorLyrics(tbLyrics2, ref formattedLyrics2, sArray, MainFont, NotationFont, formatAll: true);
 			}
-			InTextBox.Text = Gf.CombineLyricsAndNotations(LyricsOnly, transposedNotations, MainFont, NotationFont, ref tbWorkspace, ref tbTempSpace);
-		}
-
-		private bool ValidateMusicNotations(ref RichTextBox InTextBox, ref string InSavedNotations, ref string InLyricsOnly)
-		{
-			InSavedNotations = "";
-			InLyricsOnly = InTextBox.Text;
-			if (InTextBox.Text.IndexOf("»") < 0)
+			finally
 			{
-				return true;
+				IgnoreChange = false;
 			}
-			int lineCount = DataUtil.CountLf(InTextBox.Text);
-			if (lineCount < 1)
-			{
-				return true;
-			}
-			int notationLineOffset = 0;
-			ListViewItem listViewItem = new ListViewItem();
-			BuildListofNotationLines(ref InTextBox, ref ListViewNotations, ref InLyricsOnly, lineCount);
-			int lastLineIndex = lineCount - 1;
-			bool removeItem = false;
-			for (int itemIndex = lineCount - 1; itemIndex >= 0; itemIndex--)
-			{
-				if (ListViewNotations.Items[itemIndex].SubItems[1].Text == "" && itemIndex > 0)
-				{
-					if (ListViewNotations.Items[itemIndex - 1].SubItems[1].Text == "»")
-					{
-						ListViewNotations.Items[itemIndex].SubItems[2].Text = Convert.ToString(itemIndex - 1);
-					}
-					else
-					{
-						removeItem = true;
-					}
-				}
-				else
-				{
-					removeItem = true;
-				}
-				if (removeItem)
-				{
-					ListViewNotations.Items[itemIndex].Remove();
-				}
-				removeItem = false;
-			}
-			int InMin = 0;
-			int InMax = 0;
-			int InMin2 = 0;
-			int InMax2 = 0;
-			int notationSearchPos = 0;
-			string MusicNotationName = "";
-			System.Drawing.Point MusicNotationCoOrd = new System.Drawing.Point(0, 0);
-			InSavedNotations = "";
-			for (int itemIndex = 0; itemIndex <= ListViewNotations.Items.Count - 1; itemIndex++)
-			{
-				ListViewNotationLog.Items.Clear();
-				Gf.GetMinMaxfromTextBox(InTextBox, DataUtil.StringToInt(ListViewNotations.Items[itemIndex].SubItems[2].Text), ref InMin, ref InMax);
-				Gf.GetMinMaxfromTextBox(InTextBox, DataUtil.StringToInt(ListViewNotations.Items[itemIndex].Text), ref InMin2, ref InMax2);
-				notationLineOffset = DataUtil.StringToInt(ListViewNotations.Items[itemIndex].SubItems[2].Text) - itemIndex;
-				notationSearchPos = 0;
-				while (FindNextNotation(InTextBox, ref notationSearchPos, ref MusicNotationName, ref MusicNotationCoOrd, InMin, InMax))
-				{
-					int associatedLyricsLineCurPos = GetAssociatedLyricsLineCurPos(ref InTextBox, MusicNotationCoOrd.X, InMin2, InMax2);
-					listViewItem = ListViewNotationLog.Items.Add(MusicNotationName);
-					listViewItem.SubItems.Add(Convert.ToString(associatedLyricsLineCurPos));
-				}
-				object notationsSoFar = InSavedNotations;
-				InSavedNotations = string.Concat(notationsSoFar, "(", Convert.ToString(notationLineOffset), ';');
-				for (int i = 0; i <= ListViewNotationLog.Items.Count - 1; i++)
-				{
-					notationsSoFar = InSavedNotations;
-					InSavedNotations = string.Concat(notationsSoFar, ListViewNotationLog.Items[i].Text, ';', ListViewNotationLog.Items[i].SubItems[1].Text, ';');
-				}
-				InSavedNotations += ")";
-			}
-			return true;
 		}
 
 		public void BuildListofNotationLines(ref RichTextBox InTextBox, ref ListView StoreNotationsList, ref string InLyricsOnly, int TotalLines)
@@ -1128,55 +976,6 @@ namespace Easislides
 				return lastLeftOffset;
 			}
 			return charOffset - 1;
-		}
-
-		private string OldCombineLyricsAndNotations(string InLyrics, string InNotations)
-		{
-			if ((InNotations == "") || (InLyrics == ""))
-			{
-				return InLyrics;
-			}
-			StringBuilder stringBuilder = new StringBuilder();
-			tbWorkspace.Text = InLyrics;
-			Gf.MarkSelectedRTB(ref tbWorkspace, 0, tbWorkspace.Text.Length, 0, MainFont, NotationFont);
-			int lineCount = DataUtil.CountLf(tbWorkspace.Text);
-			int InMin = 0;
-			int InMax = 0;
-			string remainingNotations = "";
-			int notationLineCount = Gf.ListNotationData(InNotations, ref Gf.NotationsArray, lineCount);
-			for (int i = 0; i < lineCount; i++)
-			{
-				if (notationLineCount > 0 && Gf.NotationsArray[i] != "")
-				{
-					Gf.GetMinMaxfromTextBox(tbWorkspace, i, ref InMin, ref InMax);
-					tbTempSpace.Text = "";
-					string notationLine = "";
-					while (Gf.NotationsArray[i].Length > 0)
-					{
-						remainingNotations = Gf.NotationsArray[i];
-						string chordName = DataUtil.ExtractOneInfo(ref remainingNotations, ';', RemoveExtract: true, MinusOneIfBlank: false);
-						int inCurPos = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref remainingNotations, ';', RemoveExtract: true, MinusOneIfBlank: false));
-						Gf.NotationsArray[i] = remainingNotations;
-						int associatedLyricsLineCurPosX = Gf.GetAssociatedLyricsLineCurPosX(ref tbWorkspace, inCurPos, InMin, InMax);
-						while (Gf.GetAssociatedLyricsLineCurPosX(ref tbTempSpace, tbTempSpace.Text.Length - 1) < associatedLyricsLineCurPosX - 1)
-						{
-							notationLine += " ";
-							tbTempSpace.Text = notationLine;
-							Gf.MarkSelectedRTB(ref tbTempSpace, 0, tbTempSpace.Text.Length, 2, MainFont, NotationFont);
-						}
-						notationLine += (((notationLine.Length > 1) && (DataUtil.Right(notationLine, 1) != " ")) ? (" " + chordName) : chordName);
-						tbTempSpace.Text = notationLine;
-						Gf.MarkSelectedRTB(ref tbTempSpace, 0, tbTempSpace.Text.Length, 2, MainFont, NotationFont);
-					}
-					stringBuilder.Append(tbTempSpace.Text + " »\n");
-				}
-				stringBuilder.Append(tbWorkspace.Lines[i] + "\n");
-			}
-			if (DataUtil.Right(stringBuilder.ToString(), 1) == "\n")
-			{
-				return DataUtil.Left(stringBuilder.ToString(), stringBuilder.Length - 1);
-			}
-			return stringBuilder.ToString();
 		}
 
 		private void EnableEditHistory()
@@ -1587,14 +1386,8 @@ namespace Easislides
 			{
 				return false;
 			}
-			if (!ValidateMusicNotations(ref tbLyrics1, ref Lyrics1SavedNotations, ref Lyrics1Only))
-			{
-				return false;
-			}
-			if (!ValidateMusicNotations(ref tbLyrics2, ref Lyrics2SavedNotations, ref Lyrics2Only))
-			{
-				return false;
-			}
+			Gf.ReadEditorNotations(tbLyrics1, out Lyrics1SavedNotations, out Lyrics1Only);
+			Gf.ReadEditorNotations(tbLyrics2, out Lyrics2SavedNotations, out Lyrics2Only);
 			tbLyrics1.SelectionStart = selectionStart;
 			tbLyrics1.SelectionLength = 0;
 			tbLyrics1.ScrollToCaret();
@@ -3312,98 +3105,8 @@ namespace Easislides
 			{
 				toolStripMenuItem.Click += new EventHandler(CMRegion2_Paste_Click).Invoke;
 			}
-			if (!InSetChordsMenu)
-			{
-				return;
-			}
-			ToolStripSeparator toolStripSeparator = new ToolStripSeparator();
-			toolStripSeparator = new ToolStripSeparator();
-			InContextMenu.Items.Add(toolStripSeparator);
-			ToolStripMenuItem chordGroupMenu = new ToolStripMenuItem();
-			chordGroupMenu = new ToolStripMenuItem();
-			chordGroupMenu.Text = "Minor";
-			InContextMenu.Items.Add(chordGroupMenu);
-			for (int i = 0; i < 12; i++)
-			{
-				toolStripMenuItem = new ToolStripMenuItem();
-				toolStripMenuItem.Text = Gf.MusicMinorChords[i, 0];
-				toolStripMenuItem.Tag = InRegion.ToString();
-				chordGroupMenu.DropDownItems.Add(toolStripMenuItem);
-				toolStripMenuItem.Click += ContextMenuChords_Click;
-				if (i == 1 || i == 3 || i == 6 || i == 8 || i == 11)
-				{
-					toolStripMenuItem = new ToolStripMenuItem();
-					toolStripMenuItem.Text = Gf.MusicMinorChords[i, 1];
-					toolStripMenuItem.Tag = InRegion.ToString();
-					chordGroupMenu.DropDownItems.Add(toolStripMenuItem);
-					toolStripMenuItem.Click += ContextMenuChords_Click;
-				}
-			}
-			chordGroupMenu = new ToolStripMenuItem();
-			chordGroupMenu.Text = "Minor 7th";
-			InContextMenu.Items.Add(chordGroupMenu);
-			for (int i = 0; i < 12; i++)
-			{
-				toolStripMenuItem = new ToolStripMenuItem();
-				toolStripMenuItem.Text = Gf.MusicMinorChords[i, 0] + "7";
-				toolStripMenuItem.Tag = InRegion.ToString();
-				chordGroupMenu.DropDownItems.Add(toolStripMenuItem);
-				toolStripMenuItem.Click += ContextMenuChords_Click;
-				if (i == 1 || i == 3 || i == 6 || i == 8 || i == 11)
-				{
-					toolStripMenuItem = new ToolStripMenuItem();
-					toolStripMenuItem.Text = Gf.MusicMinorChords[i, 1] + "7";
-					toolStripMenuItem.Tag = InRegion.ToString();
-					chordGroupMenu.DropDownItems.Add(toolStripMenuItem);
-					toolStripMenuItem.Click += ContextMenuChords_Click;
-				}
-			}
-			chordGroupMenu = new ToolStripMenuItem();
-			chordGroupMenu.Text = "Major 7th";
-			InContextMenu.Items.Add(chordGroupMenu);
-			for (int i = 0; i < 12; i++)
-			{
-				toolStripMenuItem = new ToolStripMenuItem();
-				toolStripMenuItem.Text = Gf.MusicMajorChords[i, 1] + "7";
-				toolStripMenuItem.Tag = InRegion.ToString();
-				chordGroupMenu.DropDownItems.Add(toolStripMenuItem);
-				toolStripMenuItem.Click += ContextMenuChords_Click;
-				if (i == 1 || i == 3 || i == 6 || i == 8 || i == 11)
-				{
-					toolStripMenuItem = new ToolStripMenuItem();
-					toolStripMenuItem.Text = Gf.MusicMajorChords[i, 0] + "7";
-					toolStripMenuItem.Tag = InRegion.ToString();
-					chordGroupMenu.DropDownItems.Add(toolStripMenuItem);
-					toolStripMenuItem.Click += ContextMenuChords_Click;
-				}
-			}
-			chordGroupMenu = new ToolStripMenuItem();
-			chordGroupMenu.Text = "Bass";
-			InContextMenu.Items.Add(chordGroupMenu);
-			for (int i = 0; i < 12; i++)
-			{
-				toolStripMenuItem = new ToolStripMenuItem();
-				toolStripMenuItem.Text = "/" + Gf.MusicMajorChords[i, 1];
-				toolStripMenuItem.Tag = InRegion.ToString();
-				chordGroupMenu.DropDownItems.Add(toolStripMenuItem);
-				toolStripMenuItem.Click += ContextMenuChords_Click;
-			}
-			for (int i = 0; i < 12; i++)
-			{
-				toolStripMenuItem = new ToolStripMenuItem();
-				toolStripMenuItem.Text = Gf.MusicMajorChords[i, 1];
-				toolStripMenuItem.Tag = InRegion.ToString();
-				InContextMenu.Items.Add(toolStripMenuItem);
-				toolStripMenuItem.Click += ContextMenuChords_Click;
-				if (i == 1 || i == 3 || i == 6 || i == 8 || i == 11)
-				{
-					toolStripMenuItem = new ToolStripMenuItem();
-					toolStripMenuItem.Text = Gf.MusicMajorChords[i, 0];
-					toolStripMenuItem.Tag = InRegion.ToString();
-					InContextMenu.Items.Add(toolStripMenuItem);
-					toolStripMenuItem.Click += ContextMenuChords_Click;
-				}
-			}
+			if (InSetChordsMenu)
+				Gf.AddChordMenuItems(InContextMenu, InRegion, ContextMenuChords_Click);
 		}
 
 		private void ContextMenuChords_Click(object sender, EventArgs e)

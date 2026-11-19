@@ -40,9 +40,9 @@ namespace Easislides
 		{
 			InBibleList.Items.Clear();
 			InBibleList.Items.Add("");
-			for (int i = 0; i <= Gf.HB_TotalVersions - 1; i++)
+			foreach (var version in Gf.BibleVersions)
 			{
-				InBibleList.Items.Add(Gf.HB_Versions[i, 1] + " - " + Gf.HB_Versions[i, 2]);
+				InBibleList.Items.Add(version.Name + " - " + version.Description);
 			}
 		}
 
@@ -67,7 +67,7 @@ namespace Easislides
 
 		private bool ValidateVersionOptions()
 		{
-			if (BibleVersionsRegion1.SelectedIndex == 0)
+			if (BibleVersionsRegion1.SelectedIndex <= 0)
 			{
 				MessageBox.Show("You must select a Bible Version for Region 1");
 				return false;
@@ -77,29 +77,16 @@ namespace Easislides
 
 		private void BuildNewIDString()
 		{
-			string text = "";
-			string text2 = "";
-			text = Gf.GetDisplayNameOnly(ref Gf.HB_Versions[BibleVersionsRegion1.SelectedIndex - 1, 4], UpdateByRef: false, KeepExt: true);
-			if (BibleVersionsRegion2.SelectedIndex > 0)
-			{
-				text2 = Gf.GetDisplayNameOnly(ref Gf.HB_Versions[BibleVersionsRegion2.SelectedIndex - 1, 4], UpdateByRef: false, KeepExt: true);
-			}
-			//Gf.EditBible_IDString = InIDStringFirstPart + ';' + text + ';' + text2 + ';' + InIDString;
-			Gf.EditBible_IDString = $"{InIDStringFirstPart};{text};{text2};{InIDString}";
+			var primaryVersion = Gf.BibleVersions[BibleVersionsRegion1.SelectedIndex - 1];
+			var secondaryVersion = BibleVersionsRegion2.SelectedIndex > 0
+				? Gf.BibleVersions[BibleVersionsRegion2.SelectedIndex - 1] : null;
+			Gf.EditBible_IDString = $"{InIDStringFirstPart};{primaryVersion.FileName};{secondaryVersion?.FileName};{InIDString}";
 
-			int num = Gf.EditBible_Title.IndexOf('(');
-			if (num > 0)
-			{
-				Gf.EditBible_Title = DataUtil.Trim(DataUtil.Left(Gf.EditBible_Title, num - 1));
-			}
-			if (text2 == "")
-			{
-				Gf.EditBible_Title = Gf.EditBible_Title + " (" + Gf.HB_Versions[BibleVersionsRegion1.SelectedIndex - 1, 1] + ")";
-				return;
-			}
-			string editBible_Title = Gf.EditBible_Title;
-			//Gf.EditBible_Title = editBible_Title + " (" + Gf.HB_Versions[BibleVersionsRegion1.SelectedIndex - 1, 1] + "/" + Gf.HB_Versions[BibleVersionsRegion2.SelectedIndex - 1, 1] + ")";
-			Gf.EditBible_Title = $"{editBible_Title} ({Gf.HB_Versions[BibleVersionsRegion1.SelectedIndex - 1, 1]}/{Gf.HB_Versions[BibleVersionsRegion2.SelectedIndex - 1, 1]})";
+			int parenthesisIndex = Gf.EditBible_Title.IndexOf('(');
+			if (parenthesisIndex > 0)
+				Gf.EditBible_Title = DataUtil.Trim(DataUtil.Left(Gf.EditBible_Title, parenthesisIndex - 1));
+			string versionNames = secondaryVersion == null ? primaryVersion.Name : $"{primaryVersion.Name}/{secondaryVersion.Name}";
+			Gf.EditBible_Title += $" ({versionNames})";
 		}
 
 		private void BtnOK_Click()

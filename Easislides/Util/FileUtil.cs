@@ -77,11 +77,11 @@ namespace Easislides.Util
 				DirectoryInfo directoryInfo = new DirectoryInfo(SrcFolder);
 				string[] files = Directory.GetFiles(SrcFolder, "*.*");
 				string[] array = files;
-				foreach (string text in array)
+				foreach (string sourceFilePath in array)
 				{
 					try
 					{
-						File.Copy(text, DestFolder + "\\" + Path.GetFileName(text), overwrite: false);
+						File.Copy(sourceFilePath, DestFolder + "\\" + Path.GetFileName(sourceFilePath), overwrite: false);
 					}
 					catch
 					{

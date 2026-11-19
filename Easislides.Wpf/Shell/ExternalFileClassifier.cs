@@ -1,5 +1,7 @@
 using System;
-using System.Linq;
+using System.Collections.Frozen;
+using System.Collections.Generic;
+using System.IO;
 
 namespace Easislides.Wpf.Shell;
 
@@ -25,37 +27,31 @@ public enum ExternalFileKind
 /// </summary>
 public static class ExternalFileClassifier
 {
-    // 파일 추가 메뉴(AddExternalFile)의 필터와 동일한 확장자 집합 — 한 곳에서 관리해 메뉴/드래그가 어긋나지 않게.
-    private static readonly string[] PowerPointExtensions = [".ppt", ".pptx"];
-    private static readonly string[] MediaExtensions =
-        [".mp4", ".avi", ".wmv", ".mov", ".mkv", ".mp3", ".wav", ".wma"];
-    // 출력 배경 드롭에 쓰는 이미지 확장자 — 배경 이미지 선택 대화상자 필터와 같은 집합.
-    private static readonly string[] ImageExtensions = [".jpg", ".jpeg", ".png", ".bmp", ".gif"];
+    private static readonly FrozenDictionary<string, ExternalFileKind> KindsByExtension =
+        new Dictionary<string, ExternalFileKind>
+        {
+            [".ppt"] = ExternalFileKind.PowerPoint,
+            [".pptx"] = ExternalFileKind.PowerPoint,
+            [".mp4"] = ExternalFileKind.Media,
+            [".avi"] = ExternalFileKind.Media,
+            [".wmv"] = ExternalFileKind.Media,
+            [".mov"] = ExternalFileKind.Media,
+            [".mkv"] = ExternalFileKind.Media,
+            [".mp3"] = ExternalFileKind.Media,
+            [".wav"] = ExternalFileKind.Media,
+            [".wma"] = ExternalFileKind.Media,
+            [".jpg"] = ExternalFileKind.Image,
+            [".jpeg"] = ExternalFileKind.Image,
+            [".png"] = ExternalFileKind.Image,
+            [".bmp"] = ExternalFileKind.Image,
+            [".gif"] = ExternalFileKind.Image,
+        }.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>파일 경로의 확장자로 파일 종류를 정한다. 비었거나 모르는 확장자면 <see cref="ExternalFileKind.Unsupported"/>.</summary>
     public static ExternalFileKind Classify(string? path)
     {
-        if (string.IsNullOrWhiteSpace(path))
-        {
-            return ExternalFileKind.Unsupported;
-        }
-
-        var ext = System.IO.Path.GetExtension(path).ToLowerInvariant();
-        if (PowerPointExtensions.Contains(ext))
-        {
-            return ExternalFileKind.PowerPoint;
-        }
-
-        if (MediaExtensions.Contains(ext))
-        {
-            return ExternalFileKind.Media;
-        }
-
-        if (ImageExtensions.Contains(ext))
-        {
-            return ExternalFileKind.Image;
-        }
-
-        return ExternalFileKind.Unsupported;
+        var extension = Path.GetExtension(path.AsSpan());
+        return KindsByExtension.GetAlternateLookup<ReadOnlySpan<char>>().TryGetValue(extension, out var kind)
+            ? kind : ExternalFileKind.Unsupported;
     }
 }

@@ -982,7 +982,7 @@ namespace Easislides
 				StopShowAndTellMainForm();
 				return;
 			}
-			int num;
+			int nextItemKeyMismatch;
 			switch (KeyCode)
 			{
 			case Keys.F1:
@@ -1071,18 +1071,18 @@ namespace Easislides
 				MoveToLiveItem(InItem, KeyDirection.PrevOne);
 				return;
 			default:
-				num = ((KeyCode != Keys.Tab) ? 1 : 0);
+				nextItemKeyMismatch = ((KeyCode != Keys.Tab) ? 1 : 0);
 				break;
 			case Keys.Next:
-				num = 0;
+				nextItemKeyMismatch = 0;
 				break;
 			}
-			if (num == 0)
+			if (nextItemKeyMismatch == 0)
 			{
 				MoveToLiveItem(InItem, KeyDirection.NextOne);
 				return;
 			}
-			int num2;
+			int secondBridgeKeyMismatch;
 			switch (KeyCode)
 			{
 			case Keys.End:
@@ -1122,36 +1122,36 @@ namespace Easislides
 				}
 				return;
 			default:
-				num2 = ((KeyCode != (Keys)65602) ? 1 : 0);
+				secondBridgeKeyMismatch = ((KeyCode != (Keys)65602) ? 1 : 0);
 				break;
 			case Keys.W:
-				num2 = 0;
+				secondBridgeKeyMismatch = 0;
 				break;
 			}
-			if (num2 == 0)
+			if (secondBridgeKeyMismatch == 0)
 			{
 				JumpToVerseType(InItem, 103);
 				return;
 			}
-			int num3;
+			int secondPreChorusKeyMismatch;
 			switch (KeyCode)
 			{
 			case Keys.B:
 				JumpToVerseType(InItem, 100);
 				return;
 			default:
-				num3 = ((KeyCode != (Keys)65616) ? 1 : 0);
+				secondPreChorusKeyMismatch = ((KeyCode != (Keys)65616) ? 1 : 0);
 				break;
 			case Keys.Q:
-				num3 = 0;
+				secondPreChorusKeyMismatch = 0;
 				break;
 			}
-			if (num3 == 0)
+			if (secondPreChorusKeyMismatch == 0)
 			{
 				JumpToVerseType(InItem, 112);
 				return;
 			}
-			int num4;
+			int secondChorusKeyMismatch;
 			switch (KeyCode)
 			{
 			case Keys.P:
@@ -1164,13 +1164,13 @@ namespace Easislides
 				QueryShowActive(!LiveScreen.RefStatus());
 				return;
 			default:
-				num4 = ((KeyCode != (Keys)65603) ? 1 : 0);
+				secondChorusKeyMismatch = ((KeyCode != (Keys)65603) ? 1 : 0);
 				break;
 			case Keys.T:
-				num4 = 0;
+				secondChorusKeyMismatch = 0;
 				break;
 			}
-			if (num4 == 0)
+			if (secondChorusKeyMismatch == 0)
 			{
 				JumpToVerseType(InItem, 102);
 				return;
@@ -1216,21 +1216,21 @@ namespace Easislides
 
 		private void JumpToVerseType(SongSettings InItem, int InOtherVerse)
 		{
-			int num = 1;
+			int slideNumber = 1;
 			while (true)
 			{
-				if (num <= InItem.TotalSlides)
+				if (slideNumber <= InItem.TotalSlides)
 				{
-					if (InItem.Slide[num, 0] == InOtherVerse)
+					if (InItem.Slide[slideNumber, 0] == InOtherVerse)
 					{
 						break;
 					}
-					num++;
+					slideNumber++;
 					continue;
 				}
 				return;
 			}
-			InItem.CurSlide = num;
+			InItem.CurSlide = slideNumber;
 			MoveToSlideLiveItem(InItem, KeyDirection.Refresh);
 		}
 
@@ -1426,13 +1426,13 @@ namespace Easislides
 				SetShowWindow(max: true);
 			}
 			InItem.TotalItems = Gf.TotalWorshipListItems;
-			bool flag = Gf.ShowDBSlide(ref InItem, ref LiveScreen, DoActiveIndicator, TransitionAction, RedoBackground);
-			if (!flag)
+			bool slideShown = Gf.ShowDBSlide(ref InItem, ref LiveScreen, DoActiveIndicator, TransitionAction, RedoBackground);
+			if (!slideShown)
 			{
 				Gf.ResetPictureBox(ref InItem, ref LiveScreen, GapType.Default, TransitionAction);
 			}
 			lyricsWindow?.Remote_LyricsChanged();
-			return flag;
+			return slideShown;
 		}
 
 		private void ShowSong(ref SongSettings InItem, int StartingSlide, ImageTransitionControl.TransitionAction TransitionAction)
@@ -1563,11 +1563,11 @@ namespace Easislides
 				{
 					if (InItem.Type == "P" && Gf.LivePowerPointRunState != Gf.LivePowerPointRun.None)
 					{
-						int num = Gf.LivePP.ImplementPowerpointSlideMovement(ref InItem.CurSlide, InItem.TotalSlides, (OfficeLibKeys)Gf.ReMapKeyDirectionToPowerpoint(InDirection));
+						int powerpointSlideNumber = Gf.LivePP.ImplementPowerpointSlideMovement(ref InItem.CurSlide, InItem.TotalSlides, (OfficeLibKeys)Gf.ReMapKeyDirectionToPowerpoint(InDirection));
 						// The end of the item, so the next item: PowerPoint reached the end of the show (-1, also
 						// when the show ended on this move), or there is no slide show to move (not started, or
 						// ended earlier). A navigation error or a busy PowerPoint is not an end: the item stays.
-						bool itemEnded = num <= 0 || (Gf.LivePP.LastCallNotRunning && Gf.LivePP.LastNavigationError == null);
+						bool itemEnded = powerpointSlideNumber <= 0 || (Gf.LivePP.LastCallNotRunning && Gf.LivePP.LastNavigationError == null);
 						if (!itemEnded)
 						{
 							Gf.ReportPowerpointNavigation(Gf.LivePP, InItem);
@@ -1657,11 +1657,11 @@ namespace Easislides
 				Gf.RestartItemActioned = true;
 				Gf.RestartCurrentItem = true;
 			}
-			string text = DataUtil.Left(InIDString, 1);
+			string itemTypeCode = DataUtil.Left(InIDString, 1);
 			// Set again below when this item runs a slide show. The serial tells the main form this state is new.
 			Gf.LivePowerPointRunState = Gf.LivePowerPointRun.None;
 			Gf.LiveLoadSerial++;
-			if (text == "P")
+			if (itemTypeCode == "P")
 			{
 				// Before any PowerPoint work: a lowering still waiting after a non-PowerPoint item must not run.
 				Gf.PowerPointItemLoading();
@@ -1669,41 +1669,41 @@ namespace Easislides
 			}
 			string prevTitle = "";
 			string nextTitle = "";
-			bool flag = false;
+			bool liveCameraOverridesItem = false;
 			if (Gf.TotalWorshipListItems > 0)
 			{
-				int num = -1;
-				int num2 = -1;
+				int previousItemIndex = -1;
+				int nextItemIndex = -1;
 				if (InItem.CurItemNo == 0)
 				{
-					num = Gf.StartPresAt;
-					num2 = Gf.StartPresAt + 1;
+					previousItemIndex = Gf.StartPresAt;
+					nextItemIndex = Gf.StartPresAt + 1;
 				}
 				else
 				{
-					num = Gf.StartPresAt - 1;
-					num2 = Gf.StartPresAt + 1;
+					previousItemIndex = Gf.StartPresAt - 1;
+					nextItemIndex = Gf.StartPresAt + 1;
 				}
-				if (num < 1 && InItem.CurItemNo == 0)
+				if (previousItemIndex < 1 && InItem.CurItemNo == 0)
 				{
-					num = 1;
+					previousItemIndex = 1;
 				}
-				if (num2 > Gf.TotalWorshipListItems)
+				if (nextItemIndex > Gf.TotalWorshipListItems)
 				{
-					num2 = ((InItem.CurItemNo != 0) ? (-1) : Gf.TotalWorshipListItems);
+					nextItemIndex = ((InItem.CurItemNo != 0) ? (-1) : Gf.TotalWorshipListItems);
 				}
-				if (num == num2 && num == 0)
+				if (previousItemIndex == nextItemIndex && previousItemIndex == 0)
 				{
-					num = -1;
+					previousItemIndex = -1;
 				}
-				prevTitle = ((num >= 1) ? Gf.RemoveMusicSym(Gf.WorshipSongs[num].Title) : "");
-				nextTitle = ((num2 >= 1) ? Gf.RemoveMusicSym(Gf.WorshipSongs[num2].Title) : "");
+				prevTitle = ((previousItemIndex >= 1) ? Gf.RemoveMusicSym(Gf.WorshipSongs[previousItemIndex].Title) : "");
+				nextTitle = ((nextItemIndex >= 1) ? Gf.RemoveMusicSym(Gf.WorshipSongs[nextItemIndex].Title) : "");
 			}
-			Gf.InitialiseIndividualData(ref InItem, (text == "G" && Media_NextItemHasSameMedia()) ? GapMedia.SameAsPrevious : GapMedia.SessionMedia, "");
+			Gf.InitialiseIndividualData(ref InItem, (itemTypeCode == "G" && Media_NextItemHasSameMedia()) ? GapMedia.SameAsPrevious : GapMedia.SessionMedia, "");
 			InItem.PrevTitle = prevTitle;
 			InItem.NextTitle = nextTitle;
 			Gf.LoadIndividualData(ref InItem, InIDString, "", StartingSlide, ref InTitle);
-			if (InItem.Type == "I" || text == "G")
+			if (InItem.Type == "I" || itemTypeCode == "G")
 			{
 				InFormatString = InItem.Format.FormatString;
 				TransitionAction = ImageTransitionControl.TransitionAction.AsStored;
@@ -1716,16 +1716,16 @@ namespace Easislides
 					Gf.CurrentMediaLocation = "";
 			Gf.CurrentMediaOutputMonitorName = "";
 				}
-				if (text == "P")
+				if (itemTypeCode == "P")
 				{
 					Gf.MinimizePowerPointWindows(ref Gf.LivePP);
 					// This item is not run as a slide show: LivePP's run is an earlier item's, which nothing
 					// here may move.
 					Gf.LivePP.ForgetRun();
 				}
-				flag = true;
+				liveCameraOverridesItem = true;
 			}
-			if (text == "P" && !flag)
+			if (itemTypeCode == "P" && !liveCameraOverridesItem)
 			{
 				SetScreenOnTop(StartTimer: false);
 				Gf.FormatText(ref InItem, Gf.PanelBackColour, Gf.PanelBackColourTransparent, Gf.PanelTextColour, Gf.PanelTextColourAsRegion1, InItem.UseDefaultFormat);
@@ -1761,11 +1761,11 @@ namespace Easislides
 				SetScreenOnTop(StartTimer: true);
 				return;
 			}
-			int num3;
-			switch (text)
+			int unsupportedItemType;
+			switch (itemTypeCode)
 			{
 			default:
-				num3 = ((!(text == "G")) ? 1 : 0);
+				unsupportedItemType = ((!(itemTypeCode == "G")) ? 1 : 0);
 				break;
 			case "D":
 			case "B":
@@ -1773,10 +1773,10 @@ namespace Easislides
 			case "I":
 			case "W":
 			case "M":
-				num3 = 0;
+				unsupportedItemType = 0;
 				break;
 			}
-			if (num3 != 0)
+			if (unsupportedItemType != 0)
 			{
 				return;
 			}
@@ -1788,7 +1788,7 @@ namespace Easislides
 			Gf.FormatText(ref InItem, Gf.PanelBackColour, Gf.PanelBackColourTransparent, Gf.PanelTextColour, Gf.PanelTextColourAsRegion1, InItem.UseDefaultFormat);
 			Gf.FormatDisplayLyrics(ref InItem, PrepareSlides: true, UseStoredSequence: true);
 			Gf.DisplaySlidesFormattedLyrics(ref InItem, ref Gf.tbLyricsMonitorSpace, ScrollToCaret: true, Gf.LMShowNotations);
-			if (flag)
+			if (liveCameraOverridesItem)
 			{
 				return;
 			}
@@ -1892,18 +1892,18 @@ namespace Easislides
 			}
 			try
 			{
-				int num = Gf.StartPresAt + 1;
-				string inTitle = Gf.WorshipSongs[num].Title;
-				string text = Gf.WorshipSongs[num].Type;
+				int nextItemIndex = Gf.StartPresAt + 1;
+				string inTitle = Gf.WorshipSongs[nextItemIndex].Title;
+				string nextItemType = Gf.WorshipSongs[nextItemIndex].Type;
 				string Title = "";
-				string FormatString = Gf.WorshipSongs[num].FormatString;
-				if (text == "D")
+				string FormatString = Gf.WorshipSongs[nextItemIndex].FormatString;
+				if (nextItemType == "D")
 				{
-					Title = Gf.LookupDBTitle2(DataUtil.StringToInt(DataUtil.Mid(Gf.WorshipSongs[num].IdString, 1)));
+					Title = Gf.LookupDBTitle2(DataUtil.StringToInt(DataUtil.Mid(Gf.WorshipSongs[nextItemIndex].IdString, 1)));
 				}
-				else if (text == "I")
+				else if (nextItemType == "I")
 				{
-					Gf.GetTitle2AndFormatFromInfoFile(DataUtil.Mid(Gf.WorshipSongs[num].IdString, 1), ref Title, ref FormatString);
+					Gf.GetTitle2AndFormatFromInfoFile(DataUtil.Mid(Gf.WorshipSongs[nextItemIndex].IdString, 1), ref Title, ref FormatString);
 				}
 				int inMediaOption = DataUtil.StringToInt(Gf.ExtractHeaderInfo(FormatString, 50, '>'));
 				bool inUseDefaultFormat = (FormatString == "") ? true : false;
@@ -1918,7 +1918,7 @@ namespace Easislides
 				{
 					inMediaOutputMonitorName = DisplayInfo.ActiveOutputMonitorName;
 				}
-				string mediaLocation = Gf.GetMediaLocation(inMediaOption, inTitle, Title, inUseDefaultFormat, text, inMediaLocation, inMediaCaptureDeviceNumber);
+				string mediaLocation = Gf.GetMediaLocation(inMediaOption, inTitle, Title, inUseDefaultFormat, nextItemType, inMediaLocation, inMediaCaptureDeviceNumber);
 				if (Gf.CurrentMediaLocation == mediaLocation)
 				{
 					return true;
@@ -1963,24 +1963,24 @@ namespace Easislides
 					}
 					else
 					{
-						int num = 1;
-						int num2 = 1;
+						int latestSlideTiming = 1;
+						int slideTiming = 1;
 						while (InRotateTimings.Length > 0)
 						{
-							num2 = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref InRotateTimings, ';', RemoveExtract: true, MinusOneIfBlank: false));
-							if (num2 > num)
+							slideTiming = DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref InRotateTimings, ';', RemoveExtract: true, MinusOneIfBlank: false));
+							if (slideTiming > latestSlideTiming)
 							{
-								num = num2;
+								latestSlideTiming = slideTiming;
 							}
 						}
-						Gf.LiveItem.RotateTotal = num + 10;
+						Gf.LiveItem.RotateTotal = latestSlideTiming + 10;
 					}
 				}
 				else
 				{
 					RemoteControlMediaPlayerWindow(MediaPlayerWindowAction.Remote_GetMediaTimings);
-					int num3 = intLiveMediaDuration;
-					if (num3 != Gf.LiveItem.RotateTotal)
+					int mediaDuration = intLiveMediaDuration;
+					if (mediaDuration != Gf.LiveItem.RotateTotal)
 					{
 						Gf.MediaDoRotate = false;
 					}
@@ -2040,10 +2040,10 @@ namespace Easislides
 						break;
 					}
 					TimerRotate.Stop();
-					int num = ImplementAutoRotateOption();
-					if (num >= 0)
+					int targetItemIndex = ImplementAutoRotateOption();
+					if (targetItemIndex >= 0)
 					{
-						if (num == Gf.LiveItem.CurItemNo)
+						if (targetItemIndex == Gf.LiveItem.CurItemNo)
 						{
 							ItemRotationNextTiming = (int)Gf.MediaPlayedLapseTime.TotalSeconds + Gf.LiveItem.RotateGap;
 							Gf.LiveItem.CurSlide = 1;
@@ -2056,8 +2056,8 @@ namespace Easislides
 							break;
 						}
 						prevRefMode = Gf.ReferenceAlertSource;
-						Gf.ReferenceAlertSource = ((num != Gf.LiveItem.CurItemNo) ? Gf.ReferenceAlertSource : 0);
-						LoadWorshipListItemToLive(num, 1, ImageTransitionControl.TransitionAction.AsStored);
+						Gf.ReferenceAlertSource = ((targetItemIndex != Gf.LiveItem.CurItemNo) ? Gf.ReferenceAlertSource : 0);
+						LoadWorshipListItemToLive(targetItemIndex, 1, ImageTransitionControl.TransitionAction.AsStored);
 						Gf.MediaLiveItemStartTime = DateTime.Now;
 						Gf.ReferenceAlertSource = prevRefMode;
 						if (Gf.ShowRunning)
@@ -2085,16 +2085,16 @@ namespace Easislides
 				if (Gf.MediaPlayedLapseTime.TotalSeconds >= (double)Gf.LiveItem.RotateTotal)
 				{
 					TimerRotate.Stop();
-					int num = ImplementAutoRotateOption();
-					if (num >= 0)
+					int targetItemIndex = ImplementAutoRotateOption();
+					if (targetItemIndex >= 0)
 					{
 						prevRefMode = Gf.ReferenceAlertSource;
-						Gf.ReferenceAlertSource = ((num != Gf.LiveItem.CurItemNo) ? Gf.ReferenceAlertSource : 0);
+						Gf.ReferenceAlertSource = ((targetItemIndex != Gf.LiveItem.CurItemNo) ? Gf.ReferenceAlertSource : 0);
 						if (Gf.MediaLengthAsRotateLength)
 						{
 							RemoteControlMediaPlayerWindow(MediaPlayerWindowAction.Remote_StopItem);
 						}
-						LoadWorshipListItemToLive(num, 1, ImageTransitionControl.TransitionAction.AsStored);
+						LoadWorshipListItemToLive(targetItemIndex, 1, ImageTransitionControl.TransitionAction.AsStored);
 						Gf.MediaLiveItemStartTime = DateTime.Now;
 						Gf.ReferenceAlertSource = prevRefMode;
 						if (Gf.ShowRunning)
@@ -2135,7 +2135,7 @@ namespace Easislides
 
 		private int ImplementAutoRotateOption()
 		{
-			int num = -1;
+			int targetItemIndex = -1;
 			if (Gf.RestartCurrentItem)
 			{
 				return -1;
@@ -2149,20 +2149,20 @@ namespace Easislides
 				case 1:
 					return (!Gf.AdHocItemPresent) ? Gf.StartPresAt : 0;
 				case 2:
-					num = Rotate_FindNextItem(GetPreviousIfNoNext: false);
-					if (num == Gf.LiveItem.CurItemNo)
+					targetItemIndex = Rotate_FindNextItem(GetPreviousIfNoNext: false);
+					if (targetItemIndex == Gf.LiveItem.CurItemNo)
 					{
 						return -1;
 					}
-					Gf.StartPresAt = num;
+					Gf.StartPresAt = targetItemIndex;
 					return Gf.StartPresAt;
 				default:
-					num = Rotate_FindNextItem(GetPreviousIfNoNext: true);
-					if (num == Gf.LiveItem.CurItemNo)
+					targetItemIndex = Rotate_FindNextItem(GetPreviousIfNoNext: true);
+					if (targetItemIndex == Gf.LiveItem.CurItemNo)
 					{
 						return Gf.LiveItem.CurItemNo;
 					}
-					Gf.StartPresAt = num;
+					Gf.StartPresAt = targetItemIndex;
 					return Gf.StartPresAt;
 				}
 			}
@@ -2181,8 +2181,8 @@ namespace Easislides
 			}
 			try
 			{
-				int num = Gf.StartPresAt + 1;
-				int itemRotateResult = Gf.GetItemRotateResult(Gf.WorshipSongs[num].IdString);
+				int nextItemIndex = Gf.StartPresAt + 1;
+				int itemRotateResult = Gf.GetItemRotateResult(Gf.WorshipSongs[nextItemIndex].IdString);
 				if (itemRotateResult > 0)
 				{
 					if (itemRotateResult == 2)
@@ -2198,16 +2198,16 @@ namespace Easislides
 				}
 				if (Gf.AdHocItemPresent && GetPreviousIfNoNext)
 				{
-					int num2 = Gf.StartPresAt;
+					int currentItemRotateResult = Gf.StartPresAt;
 					try
 					{
-						num2 = Gf.GetItemRotateResult(Gf.WorshipSongs[Gf.StartPresAt].IdString);
+						currentItemRotateResult = Gf.GetItemRotateResult(Gf.WorshipSongs[Gf.StartPresAt].IdString);
 					}
 					catch
 					{
 					}
 					int result = Rotate_FindPreviousItem(Gf.StartPresAt);
-					if (num2 < 1)
+					if (currentItemRotateResult < 1)
 					{
 						return Gf.LiveItem.CurItemNo;
 					}
@@ -2232,8 +2232,8 @@ namespace Easislides
 			}
 			try
 			{
-				int num = InItemNo - 1;
-				int itemRotateResult = Gf.GetItemRotateResult(Gf.WorshipSongs[num].IdString);
+				int previousItemIndex = InItemNo - 1;
+				int itemRotateResult = Gf.GetItemRotateResult(Gf.WorshipSongs[previousItemIndex].IdString);
 				if (itemRotateResult > 0)
 				{
 					if (itemRotateResult == 2)
@@ -2461,7 +2461,7 @@ namespace Easislides
 		private void GotoNextNonRotateItem()
 		{
 			int nextNonRotateItem = Gf.GetNextNonRotateItem((Gf.LiveItem.Type == "G") ? true : false);
-			bool flag = false;
+			bool shouldLoadGapItem = false;
 			if (Gf.GapItemOption == GapType.None)
 			{
 				if (nextNonRotateItem != Gf.StartPresAt)
@@ -2474,14 +2474,14 @@ namespace Easislides
 			{
 				if (Gf.LiveItem.Type != "G")
 				{
-					flag = true;
+					shouldLoadGapItem = true;
 				}
 			}
 			else if (nextNonRotateItem > 1)
 			{
-				flag = true;
+				shouldLoadGapItem = true;
 			}
-			if (flag)
+			if (shouldLoadGapItem)
 			{
 				Gf.StartPresAt = nextNonRotateItem;
 				Gf.Launch_StartPresAt = Gf.StartPresAt;

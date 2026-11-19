@@ -542,13 +542,13 @@ public sealed class ImportExportService : IImportExportService
 
     private static LoadedImportSongs LoadLegacyText(string path)
     {
-        var text = NormalizeLineEndings(File.ReadAllText(path));
-        if (text.Length < 8)
+        var fileContents = NormalizeLineEndings(File.ReadAllText(path));
+        if (fileContents.Length < 8)
         {
             return Failed(ImportSourceKind.EasiSlidesText, path, "Text import file is too short.");
         }
 
-        var header = text[..8].ToLowerInvariant();
+        var header = fileContents[..8].ToLowerInvariant();
         var separator = header switch
         {
             "[est3.1]" => '>',
@@ -561,7 +561,7 @@ public sealed class ImportExportService : IImportExportService
         }
 
         var marker = "[" + separator;
-        var body = text[8..].Replace(marker, "\u0001", StringComparison.Ordinal);
+        var body = fileContents[8..].Replace(marker, "\u0001", StringComparison.Ordinal);
         var songs = new List<ImportSong>();
         foreach (var segment in body.Split('\u0001'))
         {

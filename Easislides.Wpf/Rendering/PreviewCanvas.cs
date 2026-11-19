@@ -175,7 +175,7 @@ public sealed class PreviewCanvas : FrameworkElement
     private void DrawSlideNumber(DrawingContext drawingContext)
     {
         var dpi = VisualTreeHelper.GetDpi(this);
-        var text = new FormattedText(
+        var slideNumberText = new FormattedText(
             SlideNumber.ToString(CultureInfo.CurrentUICulture),
             CultureInfo.CurrentUICulture,
             FlowDirection.LeftToRight,
@@ -186,10 +186,10 @@ public sealed class PreviewCanvas : FrameworkElement
 
         var paddingX = 5d;
         var paddingY = 2d;
-        var bounds = new Rect(4, 4, text.Width + paddingX * 2, text.Height + paddingY * 2);
+        var bounds = new Rect(4, 4, slideNumberText.Width + paddingX * 2, slideNumberText.Height + paddingY * 2);
 
         drawingContext.DrawRectangle(SlideNumberBackground ?? Brushes.Yellow, null, bounds);
-        drawingContext.DrawText(text, new Point(bounds.Left + paddingX, bounds.Top + paddingY));
+        drawingContext.DrawText(slideNumberText, new Point(bounds.Left + paddingX, bounds.Top + paddingY));
     }
 
     private bool TryGetViewportSize(out int width, out int height)

@@ -366,28 +366,23 @@ namespace Easislides.Util
 				FirstCharSym = "";
 				return "";
 			}
-			string text = "";
+			string sortKey = "";
 			if (CJKMode == SortBy.WordCount)
 			{
-				text = CJK_WordCount(InTitle);
+				sortKey = CJK_WordCount(InTitle);
 			}
 			if (FirstCharSym != null)
 			{
-				int num = InTitle[0];
-				if (num < 0)
+				int firstCharacterStrokeCount = Gf.GetStrokeCount(InTitle[0]);
+				if (firstCharacterStrokeCount > 0)
 				{
-					num += 65536;
-				}
-				int num2 = Gf.StrokeCount[num];
-				if (num2 > 0)
-				{
-					if (text != "")
+					if (sortKey != "")
 					{
-						FirstCharSym = text;
+						FirstCharSym = sortKey;
 					}
 					else
 					{
-						FirstCharSym = num2.ToString("00");
+						FirstCharSym = firstCharacterStrokeCount.ToString("00");
 					}
 				}
 				else
@@ -395,12 +390,12 @@ namespace Easislides.Util
 					FirstCharSym = " " + Left(InTitle, 1);
 				}
 			}
-			text += CJK_StrokeCount(InTitle);
-			if (text.Length > 100)
+			sortKey += CJK_StrokeCount(InTitle);
+			if (sortKey.Length > 100)
 			{
-				text = DataUtil.Left(text, 100);
+				sortKey = DataUtil.Left(sortKey, 100);
 			}
-			return text;
+			return sortKey;
 		}
 
 		public static string CJK_WordCount(string DName)
@@ -409,63 +404,55 @@ namespace Easislides.Util
 			{
 				return "000";
 			}
-			int num = DName.IndexOf("(") - 1;
-			if (num < 0)
+			int wordCount = DName.IndexOf("(") - 1;
+			if (wordCount < 0)
 			{
-				num = DName.Length;
+				wordCount = DName.Length;
 			}
-			int num2 = DName.IndexOf(" ") - 1;
-			if (num2 > 0 && num2 < num)
+			int countBeforeSpace = DName.IndexOf(" ") - 1;
+			if (countBeforeSpace > 0 && countBeforeSpace < wordCount)
 			{
-				num = num2;
+				wordCount = countBeforeSpace;
 			}
-			return num.ToString("000");
+			return wordCount.ToString("000");
 		}
 
 		public static string CJK_StrokeCount(string DName)
 		{
-			string str = "";
-			int num = 0;
-			long num2 = (!(DName == "")) ? DataUtil.StringToInt(DName[0]) : 0;
-			if (num2 < 0)
+			string strokeSortKey = "";
+			int characterIndex = 0;
+			char character = DName.Length > 0 ? DName[0] : '\0';
+			int strokeCount = Gf.GetStrokeCount(character);
+			if (strokeCount > 0)
 			{
-				num2 += 65536;
-			}
-			int num3 = Gf.StrokeCount[num2];
-			if (num3 > 0)
-			{
-				str = str + num3.ToString("00") + num2.ToString("00000");
+				strokeSortKey = strokeSortKey + strokeCount.ToString("00") + ((int)character).ToString("00000");
 				DName = DataUtil.Right(DName, DName.Length - 1);
 				while (DName.Length > 0)
 				{
-					num++;
-					if (num < 6)
+					characterIndex++;
+					if (characterIndex < 6)
 					{
-						num2 = (int)DName[0];
-						if (num2 < 0)
-						{
-							num2 += 65536;
-						}
-						num3 = Gf.StrokeCount[num2];
-						str = ((num3 <= 0) ? (str + "00" + num2.ToString("00000")) : (str + num3.ToString("00") + num2.ToString("00000")));
+						character = DName[0];
+						strokeCount = Gf.GetStrokeCount(character);
+						strokeSortKey += strokeCount.ToString("00") + ((int)character).ToString("00000");
 						DName = DataUtil.Right(DName, DName.Length - 1);
 					}
 					else
 					{
-						str += DName;
+						strokeSortKey += DName;
 						DName = "";
 					}
 				}
-				if (str.Length > 100)
+				if (strokeSortKey.Length > 100)
 				{
-					str = DataUtil.Left(str, 100);
+					strokeSortKey = DataUtil.Left(strokeSortKey, 100);
 				}
 			}
 			else
 			{
-				str = "000" + DName;
+				strokeSortKey = "000" + DName;
 			}
-			return str;
+			return strokeSortKey;
 		}
 
 		public static string Format6(string InString)
@@ -656,14 +643,14 @@ namespace Easislides.Util
 				}
 				return "";
 			}
-			int num = InString.IndexOf(ExtractSym);
+			int separatorIndex = InString.IndexOf(ExtractSym);
 			string result;
-			if (num >= 0)
+			if (separatorIndex >= 0)
 			{
-				result = DataUtil.Mid(InString, 0, num);
+				result = DataUtil.Mid(InString, 0, separatorIndex);
 				if (RemoveExtract)
 				{
-					InString = DataUtil.Mid(InString, num + 1);
+					InString = DataUtil.Mid(InString, separatorIndex + 1);
 				}
 				return result;
 			}

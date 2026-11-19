@@ -426,7 +426,7 @@ public class WorshipListPanelTests
             "the toolbar path should support adding several external files in one operation");
         code.Should().Contain("AddExternalFiles(new[] { fileName })",
             "PPT, media, and .esw files should use the same tested insertion path in the chosen file order");
-        code.Should().Contain("AddWordTextItem(text)",
+        code.Should().MatchRegex(@"var (\w+) = new OfficeLib\.WordDoc\(\)\.GetContents\(fileName\);\s*viewModel\.AddWordTextItem\(\1\);",
             "Word documents should become text/notice queue items like the existing menu path");
         code.Should().Contain("ExtractLegacyInfoScreenText",
             "legacy .esi files should be accepted as InfoScreen text rather than silently skipped");

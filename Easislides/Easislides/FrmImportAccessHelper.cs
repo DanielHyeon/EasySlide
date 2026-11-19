@@ -106,8 +106,8 @@ namespace Easislides
 
 		private void LoadColumns()
 		{
-			string text = TablesList.Text;
-			if (text == "")
+			string selectedTable = TablesList.Text;
+			if (selectedTable == "")
 			{
 				MessageBox.Show("Please select a Database Table under Step 1.");
 				return;
@@ -115,35 +115,35 @@ namespace Easislides
 
 			using DbConnection connection = DbController.GetDbConnection(Gf.ConnectStringSQLiteDef + Gf.Import_AccessFileName);
 
-			if (!TableNameExists(connection, text))
+			if (!TableNameExists(connection, selectedTable))
 			{
-				MessageBox.Show("Error Encountered - Cannot find the table " + text + " in the Access Database");
+				MessageBox.Show("Error Encountered - Cannot find the table " + selectedTable + " in the Access Database");
 				return;
 			}
 			ClearColumns();
 			AssignedTitle.Items.Add("");
-			foreach (DataColumn field in connection.GetSchema(text).Columns)
+			foreach (DataColumn field in connection.GetSchema(selectedTable).Columns)
 			{
 				AssignedTitle.Items.Add(field.ColumnName);
 			}
 
 			if (AssignedTitle.Items.Count != 0)
 			{
-				string text2 = "";
+				string columnName = "";
 				for (int i = 0; i <= AssignedTitle.Items.Count - 1; i++)
 				{
-					text2 = AssignedTitle.Items[i].ToString();
-					AssignedLyrics.Items.Add(text2);
-					AssignedTitle2.Items.Add(text2);
-					AssignedSongNumber.Items.Add(text2);
-					AssignedBookReference.Items.Add(text2);
-					AssignedUserReference.Items.Add(text2);
-					AssignedCopyright.Items.Add(text2);
-					AssignedWriter.Items.Add(text2);
-					AssignedKey.Items.Add(text2);
-					AssignedTiming.Items.Add(text2);
-					AssignedAdmin1.Items.Add(text2);
-					AssignedAdmin2.Items.Add(text2);
+					columnName = AssignedTitle.Items[i].ToString();
+					AssignedLyrics.Items.Add(columnName);
+					AssignedTitle2.Items.Add(columnName);
+					AssignedSongNumber.Items.Add(columnName);
+					AssignedBookReference.Items.Add(columnName);
+					AssignedUserReference.Items.Add(columnName);
+					AssignedCopyright.Items.Add(columnName);
+					AssignedWriter.Items.Add(columnName);
+					AssignedKey.Items.Add(columnName);
+					AssignedTiming.Items.Add(columnName);
+					AssignedAdmin1.Items.Add(columnName);
+					AssignedAdmin2.Items.Add(columnName);
 				}
 				AssignedTitle.Items.RemoveAt(0);
 				AssignedLyrics.Items.RemoveAt(0);
@@ -186,12 +186,12 @@ namespace Easislides
 
 			using DataTable datatable = DbController.GetDataTable(Gf.ConnectSQLiteDef + Gf.Import_AccessFileName, fullSearchString);
 
-			int num = 0;
+			int displayedRowCount = 0;
 			if (datatable.Rows.Count > 0)
 			{
 				//recordSet.MoveFirst();
-				int num2 = 0;
-				num2 = datatable.Rows.Count;
+				int totalRowCount = 0;
+				totalRowCount = datatable.Rows.Count;
 
 				foreach (DataRow dr in datatable.Rows)
 				{
@@ -200,9 +200,9 @@ namespace Easislides
 					{
 						listViewItem.SubItems.Add(Convert.ToString(DataUtil.ObjToString(dr[AssignedTitle.Items[i].ToString()])));
 					}
-					num++;
+					displayedRowCount++;
 				}
-				label2.Text = "Records Found in selected table: " + ((num < num2) ? ("(Displaying " + num + "/" + num2 + " records)") : ("(Displaying all " + num2 + " records)"));
+				label2.Text = "Records Found in selected table: " + ((displayedRowCount < totalRowCount) ? ("(Displaying " + displayedRowCount + "/" + totalRowCount + " records)") : ("(Displaying all " + totalRowCount + " records)"));
 			}
 
 			Cursor = Cursors.Default;
@@ -288,27 +288,27 @@ namespace Easislides
 			{
 				return;
 			}
-			int num = 0;
+			int selectedIndex = 0;
 			for (int i = 0; i <= count - 1; i++)
 			{
 				if (AssignedLyricsMergeOrderList.Items[i].Selected)
 				{
-					if (num < 1)
+					if (selectedIndex < 1)
 					{
-						num = i;
+						selectedIndex = i;
 						continue;
 					}
 					i = count;
-					num = 0;
+					selectedIndex = 0;
 				}
 			}
-			if (num >= 1)
+			if (selectedIndex >= 1)
 			{
-				string text = AssignedLyricsMergeOrderList.Items[num].Text;
-				AssignedLyricsMergeOrderList.Items[num].Text = AssignedLyricsMergeOrderList.Items[num - 1].Text;
-				AssignedLyricsMergeOrderList.Items[num - 1].Text = text;
-				AssignedLyricsMergeOrderList.Items[num].Selected = false;
-				AssignedLyricsMergeOrderList.Items[num - 1].Selected = true;
+				string selectedColumnName = AssignedLyricsMergeOrderList.Items[selectedIndex].Text;
+				AssignedLyricsMergeOrderList.Items[selectedIndex].Text = AssignedLyricsMergeOrderList.Items[selectedIndex - 1].Text;
+				AssignedLyricsMergeOrderList.Items[selectedIndex - 1].Text = selectedColumnName;
+				AssignedLyricsMergeOrderList.Items[selectedIndex].Selected = false;
+				AssignedLyricsMergeOrderList.Items[selectedIndex - 1].Selected = true;
 			}
 		}
 
@@ -319,27 +319,27 @@ namespace Easislides
 			{
 				return;
 			}
-			int num = 0;
+			int selectedIndex = 0;
 			for (int i = 0; i <= count - 1; i++)
 			{
 				if (AssignedLyricsMergeOrderList.Items[i].Selected)
 				{
-					if (num < 1)
+					if (selectedIndex < 1)
 					{
-						num = i;
+						selectedIndex = i;
 						continue;
 					}
 					i = count;
-					num = -1;
+					selectedIndex = -1;
 				}
 			}
-			if (!((num < 0) | (num == count - 1)))
+			if (!((selectedIndex < 0) | (selectedIndex == count - 1)))
 			{
-				string text = AssignedLyricsMergeOrderList.Items[num].Text;
-				AssignedLyricsMergeOrderList.Items[num].Text = AssignedLyricsMergeOrderList.Items[num + 1].Text;
-				AssignedLyricsMergeOrderList.Items[num + 1].Text = text;
-				AssignedLyricsMergeOrderList.Items[num].Selected = false;
-				AssignedLyricsMergeOrderList.Items[num + 1].Selected = true;
+				string selectedColumnName = AssignedLyricsMergeOrderList.Items[selectedIndex].Text;
+				AssignedLyricsMergeOrderList.Items[selectedIndex].Text = AssignedLyricsMergeOrderList.Items[selectedIndex + 1].Text;
+				AssignedLyricsMergeOrderList.Items[selectedIndex + 1].Text = selectedColumnName;
+				AssignedLyricsMergeOrderList.Items[selectedIndex].Selected = false;
+				AssignedLyricsMergeOrderList.Items[selectedIndex + 1].Selected = true;
 			}
 		}
 
@@ -349,22 +349,22 @@ namespace Easislides
 			{
 				return;
 			}
-			int num = 0;
-			for (int num2 = AssignedLyricsMergeOrderList.Items.Count - 1; num2 >= 0; num2--)
+			int nextSelectionIndex = 0;
+			for (int columnIndex = AssignedLyricsMergeOrderList.Items.Count - 1; columnIndex >= 0; columnIndex--)
 			{
-				if (AssignedLyricsMergeOrderList.Items[num2].Selected)
+				if (AssignedLyricsMergeOrderList.Items[columnIndex].Selected)
 				{
-					AssignedLyricsMergeOrderList.Items[num2].Remove();
-					num = num2;
+					AssignedLyricsMergeOrderList.Items[columnIndex].Remove();
+					nextSelectionIndex = columnIndex;
 				}
 			}
-			if (num > 0)
+			if (nextSelectionIndex > 0)
 			{
-				num--;
+				nextSelectionIndex--;
 			}
 			if (AssignedLyricsMergeOrderList.Items.Count > 0)
 			{
-				AssignedLyricsMergeOrderList.Items[num].Selected = true;
+				AssignedLyricsMergeOrderList.Items[nextSelectionIndex].Selected = true;
 			}
 		}
 
@@ -387,17 +387,17 @@ namespace Easislides
 					object import_SongLyricsColumnName = Gf.Import_SongLyricsColumnName;
 					Gf.Import_SongLyricsColumnName = string.Concat(import_SongLyricsColumnName, "[", AssignedLyricsMergeOrderList.Items[i].Text, "]", '>');
 				}
-				string text = "";
-				Gf.Import_SongTitle2ColumnName = ((AssignedTitle2.Text != "") ? ("[" + AssignedTitle2.Text + "]") : text);
-				Gf.Import_SongNumberColumnName = ((AssignedSongNumber.Text != "") ? ("[" + AssignedSongNumber.Text + "]") : text);
-				Gf.Import_SongWriterInfoColumnName = ((AssignedWriter.Text != "") ? ("[" + AssignedWriter.Text + "]") : text);
-				Gf.Import_BookReferenceColumnName = ((AssignedBookReference.Text != "") ? ("[" + AssignedBookReference.Text + "]") : text);
-				Gf.Import_UserReferenceColumnName = ((AssignedUserReference.Text != "") ? ("[" + AssignedUserReference.Text + "]") : text);
-				Gf.Import_SongCopyrightColumnName = ((AssignedCopyright.Text != "") ? ("[" + AssignedCopyright.Text + "]") : text);
-				Gf.Import_SongKeyColumnName = ((AssignedKey.Text != "") ? ("[" + AssignedKey.Text + "]") : text);
-				Gf.Import_SongTimingColumnName = ((AssignedTiming.Text != "") ? ("[" + AssignedTiming.Text + "]") : text);
-				Gf.Import_Admin1ColumnName = ((AssignedAdmin1.Text != "") ? ("[" + AssignedAdmin1.Text + "]") : text);
-				Gf.Import_Admin2ColumnName = ((AssignedAdmin2.Text != "") ? ("[" + AssignedAdmin2.Text + "]") : text);
+				string unassignedColumn = "";
+				Gf.Import_SongTitle2ColumnName = ((AssignedTitle2.Text != "") ? ("[" + AssignedTitle2.Text + "]") : unassignedColumn);
+				Gf.Import_SongNumberColumnName = ((AssignedSongNumber.Text != "") ? ("[" + AssignedSongNumber.Text + "]") : unassignedColumn);
+				Gf.Import_SongWriterInfoColumnName = ((AssignedWriter.Text != "") ? ("[" + AssignedWriter.Text + "]") : unassignedColumn);
+				Gf.Import_BookReferenceColumnName = ((AssignedBookReference.Text != "") ? ("[" + AssignedBookReference.Text + "]") : unassignedColumn);
+				Gf.Import_UserReferenceColumnName = ((AssignedUserReference.Text != "") ? ("[" + AssignedUserReference.Text + "]") : unassignedColumn);
+				Gf.Import_SongCopyrightColumnName = ((AssignedCopyright.Text != "") ? ("[" + AssignedCopyright.Text + "]") : unassignedColumn);
+				Gf.Import_SongKeyColumnName = ((AssignedKey.Text != "") ? ("[" + AssignedKey.Text + "]") : unassignedColumn);
+				Gf.Import_SongTimingColumnName = ((AssignedTiming.Text != "") ? ("[" + AssignedTiming.Text + "]") : unassignedColumn);
+				Gf.Import_Admin1ColumnName = ((AssignedAdmin1.Text != "") ? ("[" + AssignedAdmin1.Text + "]") : unassignedColumn);
+				Gf.Import_Admin2ColumnName = ((AssignedAdmin2.Text != "") ? ("[" + AssignedAdmin2.Text + "]") : unassignedColumn);
 				base.DialogResult = DialogResult.OK;
 				Close();
 			}

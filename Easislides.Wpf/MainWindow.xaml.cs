@@ -3106,8 +3106,8 @@ public partial class MainWindow : Window
 
         // OfficeLib.WordDoc.GetContents 는 try/finally 로 COM(Document·Application)을 반드시 해제한다(좀비 프로세스 방지).
         // Word 미설치·읽기 실패면 빈 문자열을 돌려주고, VM 이 그 경우를 안내 메시지로 처리한다.
-        var text = new OfficeLib.WordDoc().GetContents(filePath);
-        viewModel.AddWordTextItem(text);
+        var documentText = new OfficeLib.WordDoc().GetContents(filePath);
+        viewModel.AddWordTextItem(documentText);
     }
 
     private void SelectOutputBackgroundImage_Click(object sender, RoutedEventArgs e)
@@ -3582,10 +3582,10 @@ public partial class MainWindow : Window
     private void CopyBibleToInfoScreen_Click(object sender, RoutedEventArgs e)
     {
         // 선택 우선·없으면 전체·둘 다 비면 null — 순수 결정 로직은 NoticeScreenViewModel.ResolveCopyText(테스트됨).
-        var text = Easislides.Wpf.Shell.NoticeScreenViewModel.ResolveCopyText(BiblePassageBox.SelectedText, BiblePassageBox.Text);
-        if (text is not null)
+        var passageText = Easislides.Wpf.Shell.NoticeScreenViewModel.ResolveCopyText(BiblePassageBox.SelectedText, BiblePassageBox.Text);
+        if (passageText is not null)
         {
-            OpenNoticeScreen(text);
+            OpenNoticeScreen(passageText);
         }
     }
 

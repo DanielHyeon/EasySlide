@@ -31,16 +31,16 @@ public static class LyricsDisplayFormatter
         }
 
         // 1) 줄바꿈·코드 마커 정규화(NormalizeText 단일 규칙).
-        var text = NormalizeText(rawLyrics);
+        var normalizedLyrics = NormalizeText(rawLyrics);
 
         // 2) 맨 앞 코드(노테이션) 블록 [~...] 제거.
-        var leading = text.TrimStart('\n', ' ', '\t');
+        var leading = normalizedLyrics.TrimStart('\n', ' ', '\t');
         if (leading.StartsWith("[~", StringComparison.Ordinal))
         {
             var end = leading.IndexOf(']');
             if (end > 1)
             {
-                text = leading[(end + 1)..];
+                normalizedLyrics = leading[(end + 1)..];
             }
         }
 
@@ -48,7 +48,7 @@ public static class LyricsDisplayFormatter
         var output = new StringBuilder();
         var hasContent = false;   // 첫 본문 줄이 나오기 전의 경계는 모두 버린다
         var pendingBlank = false; // 절 경계(빈 줄)는 "다음 본문 줄" 앞에만 삽입
-        foreach (var rawLine in text.Split('\n'))
+        foreach (var rawLine in normalizedLyrics.Split('\n'))
         {
             // 줄 안의 '»'(코드/노테이션 마커) 뒤는 회중 화면에 보이지 않게 잘라낸다 — 가사 본문만 남긴다.
             // (코드는 운영자/연주자용이며, 미리보기에선 흐리게 보여 주지만 출력에선 숨긴다. [~...] 블록 제거와 같은 원칙.)
@@ -87,14 +87,14 @@ public static class LyricsDisplayFormatter
     /// </summary>
     public static IReadOnlyList<string> ToVersePages(string? rawLyrics)
     {
-        var text = ToDisplayText(rawLyrics);
-        if (string.IsNullOrEmpty(text))
+        var displayLyrics = ToDisplayText(rawLyrics);
+        if (string.IsNullOrEmpty(displayLyrics))
         {
             return Array.Empty<string>();
         }
 
         // ToDisplayText 가 보장하는 절 구분자는 정확히 \n\n 하나.
-        return text.Split("\n\n", StringSplitOptions.RemoveEmptyEntries);
+        return displayLyrics.Split("\n\n", StringSplitOptions.RemoveEmptyEntries);
     }
 
     /// <summary>
@@ -132,14 +132,14 @@ public static class LyricsDisplayFormatter
         }
 
         // ToDisplayText 1~2단계와 동일: 정규화 + 맨 앞 [~...] 노테이션 블록 제거.
-        var text = NormalizeText(rawLyrics);
-        var leading = text.TrimStart('\n', ' ', '\t');
+        var normalizedLyrics = NormalizeText(rawLyrics);
+        var leading = normalizedLyrics.TrimStart('\n', ' ', '\t');
         if (leading.StartsWith("[~", StringComparison.Ordinal))
         {
             var end = leading.IndexOf(']');
             if (end > 1)
             {
-                text = leading[(end + 1)..];
+                normalizedLyrics = leading[(end + 1)..];
             }
         }
 
@@ -162,7 +162,7 @@ public static class LyricsDisplayFormatter
             inVerse = false;
         }
 
-        foreach (var rawLine in text.Split('\n'))
+        foreach (var rawLine in normalizedLyrics.Split('\n'))
         {
             var line = StripInlineNotation(rawLine).TrimEnd();
 
@@ -337,7 +337,7 @@ public static class LyricsDisplayFormatter
             return Array.Empty<(string, string, string)>();
         }
 
-        var text = NormalizeText(rawLyrics);
+        var normalizedLyrics = NormalizeText(rawLyrics);
         var sections = new List<(string Label, string Region1, string Region2)>();
         string? currentLabel = null;
         var region1 = new StringBuilder();
@@ -356,7 +356,7 @@ public static class LyricsDisplayFormatter
             currentRegion = 1; // 새 절은 다시 region1.
         }
 
-        foreach (var rawLine in text.Split('\n'))
+        foreach (var rawLine in normalizedLyrics.Split('\n'))
         {
             var line = StripInlineNotation(rawLine).TrimEnd();
 
@@ -478,14 +478,14 @@ public static class LyricsDisplayFormatter
         }
 
         // ToDisplayText 1~2단계와 동일: 정규화 + 맨 앞 [~...] 노테이션 블록 제거.
-        var text = NormalizeText(rawLyrics);
-        var leading = text.TrimStart('\n', ' ', '\t');
+        var normalizedLyrics = NormalizeText(rawLyrics);
+        var leading = normalizedLyrics.TrimStart('\n', ' ', '\t');
         if (leading.StartsWith("[~", StringComparison.Ordinal))
         {
             var end = leading.IndexOf(']');
             if (end > 1)
             {
-                text = leading[(end + 1)..];
+                normalizedLyrics = leading[(end + 1)..];
             }
         }
 
@@ -506,7 +506,7 @@ public static class LyricsDisplayFormatter
             inVerse = false;
         }
 
-        foreach (var rawLine in text.Split('\n'))
+        foreach (var rawLine in normalizedLyrics.Split('\n'))
         {
             var line = StripInlineNotation(rawLine).TrimEnd();
             var label = SectionLabel(line);
@@ -552,12 +552,12 @@ public static class LyricsDisplayFormatter
             return Array.Empty<string>();
         }
 
-        var text = NormalizeText(rawLyrics);
+        var normalizedLyrics = NormalizeText(rawLyrics);
 
         var firstSeen = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         var reported = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var duplicates = new List<string>();
-        foreach (var line in text.Split('\n'))
+        foreach (var line in normalizedLyrics.Split('\n'))
         {
             var label = SectionLabel(line);
             if (label is null)
@@ -625,7 +625,7 @@ public static class LyricsDisplayFormatter
             return Array.Empty<(string, string)>();
         }
 
-        var text = NormalizeText(rawLyrics);
+        var normalizedLyrics = NormalizeText(rawLyrics);
 
         var sections = new List<(string Label, string Content)>();
         string? currentLabel = null;
@@ -642,7 +642,7 @@ public static class LyricsDisplayFormatter
             body.Clear();
         }
 
-        foreach (var rawLine in text.Split('\n'))
+        foreach (var rawLine in normalizedLyrics.Split('\n'))
         {
             var label = SectionLabel(rawLine);
             if (label is not null)
@@ -709,9 +709,9 @@ public static class LyricsDisplayFormatter
             return rawLyrics ?? string.Empty;
         }
 
-        var text = NormalizeText(rawLyrics); // 줄바꿈·'Â»' 통일 후 줄 단위로 처리.
-        var sb = new StringBuilder(text.Length + 16);
-        var lines = text.Split('\n');
+        var normalizedLyrics = NormalizeText(rawLyrics); // 줄바꿈·'Â»' 통일 후 줄 단위로 처리.
+        var sb = new StringBuilder(normalizedLyrics.Length + 16);
+        var lines = normalizedLyrics.Split('\n');
         for (var i = 0; i < lines.Length; i++)
         {
             if (i > 0)

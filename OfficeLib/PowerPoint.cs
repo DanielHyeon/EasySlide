@@ -91,7 +91,7 @@ namespace OfficeLib
 
 		public string Open(string InPowerpointFullPath, ref ShowCopyList PowerpointList)
 		{
-			string text = "";
+			string showCopyName = "";
 			Presentation presentation = null;
 			using PowerPointGate gate = PowerPointGate.Enter(PowerPointCallWeight.Heavy, "open " + Path.GetFileName(InPowerpointFullPath));
 			if (gate == null)
@@ -120,14 +120,14 @@ namespace OfficeLib
 				// One entry per path: a path whose copy is gone (closed in PowerPoint, or PowerPoint restarted) gets
 				// its entry replaced below, so the dead name cannot hide the new copy.
 				int entry = FindListedEntry(InPowerpointFullPath, PowerpointList);
-				text = (entry > 0) ? PowerpointList[entry].CopyName : "";
-				bool flag = entry > 0 && IsShowCopyOpen(text, PowerpointList[entry].SourcePath);
+				showCopyName = (entry > 0) ? PowerpointList[entry].CopyName : "";
+				bool isShowCopyOpen = entry > 0 && IsShowCopyOpen(showCopyName, PowerpointList[entry].SourcePath);
 				// NetOffice disposes the proxies made from a proxy with it, so the collection is released only after
 				// (or together with) the presentation, never while the presentation is kept for a later close.
 				Presentations openTarget = null;
 				try
 				{
-					if (!flag)
+					if (!isShowCopyOpen)
 					{
 						openTarget = prePowerPointApp.Presentations;
 						presentation = openTarget.Open(InPowerpointFullPath, MsoTriState.msoTrue, MsoTriState.msoTrue);
@@ -194,21 +194,21 @@ namespace OfficeLib
 						}
 					}
 					ReleaseProxy(openTarget);
-					return PowerPointCallLimit.CurrentAbandoned ? NotRespondingText : "Error Loading: " + text;
+					return PowerPointCallLimit.CurrentAbandoned ? NotRespondingText : "Error Loading: " + showCopyName;
 				}
 			}
 			catch (Exception ex)
 			{
 				Console.WriteLine($"Error in Open method: {ex.Message}");
-				return PowerPointCallLimit.CurrentAbandoned ? NotRespondingText : "Error Loading: " + text;
+				return PowerPointCallLimit.CurrentAbandoned ? NotRespondingText : "Error Loading: " + showCopyName;
 			}
 			return "";
 		}
 
 		public string Run(string InPowerpointFullPath, ref ShowCopyList PowerpointList)
 		{
-			string text = "";
-			string text2 = "";
+			string showCopyName = "";
+			string inspectedPresentations = "";
 			SlideShowRaiseError = null;
 			SlideShowRaiseSkipped = null;
 			LastRunStarted = false;
@@ -231,9 +231,9 @@ namespace OfficeLib
 				}
 
 				int entry = FindListedEntry(InPowerpointFullPath, PowerpointList);
-				text = (entry > 0) ? PowerpointList[entry].CopyName : "";
-				text2 = "";
-				if (!(text != ""))
+				showCopyName = (entry > 0) ? PowerpointList[entry].CopyName : "";
+				inspectedPresentations = "";
+				if (!(showCopyName != ""))
 				{
 					return "Cannot find opened Presentation: " + PowerpointList.Count + ", " + InPowerpointFullPath;
 				}
@@ -259,8 +259,8 @@ namespace OfficeLib
 							continue;
 						}
 						// For the failure text only: FullName is already read (no extra call per presentation).
-						text2 = text2 + i + "(" + fullName + ") ";
-						if (string.Equals(fullName, text, StringComparison.OrdinalIgnoreCase))
+						inspectedPresentations = inspectedPresentations + i + "(" + fullName + ") ";
+						if (string.Equals(fullName, showCopyName, StringComparison.OrdinalIgnoreCase))
 						{
 							if (!HasShowCopyMark(candidate, mark))
 							{
@@ -313,11 +313,11 @@ namespace OfficeLib
 				}
 				if (unmarked)
 				{
-					return "The copy opened for this item is no longer open (the presentation named " + text + " was not opened by EasiSlides)";
+					return "The copy opened for this item is no longer open (the presentation named " + showCopyName + " was not opened by EasiSlides)";
 				}
 				if (unreadable != null)
 				{
-					return "Can't find Presentations: " + text + " (a presentation could not be read: " + unreadable.GetBaseException().Message + ").  " + text2;
+					return "Can't find Presentations: " + showCopyName + " (a presentation could not be read: " + unreadable.GetBaseException().Message + ").  " + inspectedPresentations;
 				}
 			}
 			catch (Exception ex)
@@ -331,7 +331,7 @@ namespace OfficeLib
 				}
 				return "Error: " + PowerpointList.Count + ", " + InPowerpointFullPath;
 			}
-			return "Can't find Presentations: " + text + ".  " + text2;
+			return "Can't find Presentations: " + showCopyName + ".  " + inspectedPresentations;
 		}
 
 		/// <summary>
@@ -1301,12 +1301,12 @@ namespace OfficeLib
 				return "";
 			}
 
-			int num = PowerpointList.Count;
-            int num2 = 0;
-			int num3 = 0;
+			int trackedCopyCount = PowerpointList.Count;
+            int openPresentationCount = 0;
+			int closedCopyCount = 0;
 			int unreadable = 0;
 			string firstUnreadableError = null;
-			bool flag = false;
+			bool enumerationFailed = false;
 			HashSet<string> closedNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 			HashSet<string> failedNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 			// The presentations of this show are closed now: no wrapper may act on a name it remembered from it.
@@ -1321,9 +1321,9 @@ namespace OfficeLib
 				if (app != null && !app.IsDisposed)
                 {
 					presentations = app.Presentations;
-					num2 = presentations.Count;
+					openPresentationCount = presentations.Count;
 					PowerPointCallLimit.Progress();
-					for (int num4 = num2; num4 > 0; num4--)
+					for (int presentationIndex = openPresentationCount; presentationIndex > 0; presentationIndex--)
 					{
 						if (PowerPointCallLimit.Current?.Expired() == true)
 						{
@@ -1336,7 +1336,7 @@ namespace OfficeLib
 						string fullName;
 						try
 						{
-							openPresentation = presentations[num4];
+							openPresentation = presentations[presentationIndex];
 							fullName = openPresentation.FullName;
 							string copyPath = GetShowCopyPath(openPresentation, fullName, PowerpointList);
 							PowerPointCallLimit.Progress();
@@ -1350,19 +1350,19 @@ namespace OfficeLib
 							if (PowerPointCallLimit.CurrentAbandoned)
 							{
 								// Cancelled by the time limit: no further call.
-								Console.WriteLine($"Show end: reading presentation {num4} was cancelled: {ex.GetBaseException().Message}");
+								Console.WriteLine($"Show end: reading presentation {presentationIndex} was cancelled: {ex.GetBaseException().Message}");
 								break;
 							}
 							// Not known whether it is one of the copies: left open, reported below.
 							unreadable++;
 							firstUnreadableError ??= ex.GetBaseException().Message;
-							Console.WriteLine($"Error reading presentation {num4} at show end: {ex.Message}");
+							Console.WriteLine($"Error reading presentation {presentationIndex} at show end: {ex.Message}");
 							continue;
 						}
 						try
 						{
 							openPresentation.Close();
-							num3++;
+							closedCopyCount++;
 							closedNames.Add(fullName);
 							PowerPointCallLimit.Progress();
 						}
@@ -1383,7 +1383,7 @@ namespace OfficeLib
 			}
 			catch (Exception ex)
 			{
-				flag = true;
+				enumerationFailed = true;
 				LastCloseError = "the open presentations could not be read: " + ex.GetBaseException().Message;
 			}
 			finally
@@ -1396,7 +1396,7 @@ namespace OfficeLib
 				// this wrapper's proxy is not used again.
 				// The caller reads PowerPointCallLimit.CurrentAbandoned; the text is for its log.
 				DropPowerPointApp();
-				return "Abandoned: Opened PP=" + num2 + ", Total On List=" + num + ", Numbers Closed=" + num3;
+				return "Abandoned: Opened PP=" + openPresentationCount + ", Total On List=" + trackedCopyCount + ", Numbers Closed=" + closedCopyCount;
 			}
 			if (unreadable > 0 && LastCloseError == null)
 			{
@@ -1405,7 +1405,7 @@ namespace OfficeLib
 			// Only rows that may still be open stay listed, for the caller to try again later: copies whose Close
 			// failed, and, when some presentations (or the collection) could not be read, every copy not closed
 			// (it may be one of those). A copy that is positively gone or closed is dropped.
-			KeepUnclosedRows(PowerpointList, failedNames, closedNames, keepAllNotClosed: unreadable > 0 || flag);
+			KeepUnclosedRows(PowerpointList, failedNames, closedNames, keepAllNotClosed: unreadable > 0 || enumerationFailed);
 
 			// Quit PowerPoint when nothing else is open in it (see QuitPowerPointApp).
 			if (quitWhenEmpty)
@@ -1413,7 +1413,7 @@ namespace OfficeLib
 				QuitPowerPointApp(prePowerPointApp);
 			}
 
-			return "Opened PP=" + num2 + ", Total On List=" + num + ", Numbers Closed=" + num3 + (flag ? ". Error When Closing" : ". No Error");
+			return "Opened PP=" + openPresentationCount + ", Total On List=" + trackedCopyCount + ", Numbers Closed=" + closedCopyCount + (enumerationFailed ? ". Error When Closing" : ". No Error");
 		}
 
 		private static void KeepUnclosedRows(ShowCopyList list, HashSet<string> failedNames, HashSet<string> closedNames, bool keepAllNotClosed)
@@ -1876,10 +1876,10 @@ namespace OfficeLib
 			InString = InString.ToLower().Trim();
 			try
 			{
-				int num = Convert.ToInt32(InString);
-				if (num >= 0 && num <= MAX_VERSE_NUMBER)
+				int verseNumber = Convert.ToInt32(InString);
+				if (verseNumber >= 0 && verseNumber <= MAX_VERSE_NUMBER)
 				{
-					return num;
+					return verseNumber;
 				}
 				return -1;
 			}
@@ -2428,13 +2428,13 @@ namespace OfficeLib
 		/// </summary>
 		public bool BuildOneFirstScreenDump(int PPNumbering)
 		{
-			int num = PPNumbering - 1;
-			if (num < 0 || num >= ScreenDumpFullPath.GetLength(1) || ScreenDumpFullPath[0, num] == null || string.IsNullOrEmpty(ScreenDumpFullPath[1, num]))
+			int screenDumpIndex = PPNumbering - 1;
+			if (screenDumpIndex < 0 || screenDumpIndex >= ScreenDumpFullPath.GetLength(1) || ScreenDumpFullPath[0, screenDumpIndex] == null || string.IsNullOrEmpty(ScreenDumpFullPath[1, screenDumpIndex]))
 			{
 				return false;
 			}
-			string presentationPath = ScreenDumpFullPath[0, num];
-			string previewPath = ScreenDumpFullPath[1, num];
+			string presentationPath = ScreenDumpFullPath[0, screenDumpIndex];
+			string previewPath = ScreenDumpFullPath[1, screenDumpIndex];
 			if (File.Exists(previewPath) || ExternalPreviewCache.AdoptPendingExport(previewPath))
 			{
 				return true; // this version was exported before (or an earlier export finished late)

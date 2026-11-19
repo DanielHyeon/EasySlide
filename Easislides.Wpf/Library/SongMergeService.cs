@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Easislides.Module;
 using Easislides.Wpf.Data;
 
 namespace Easislides.Wpf.Library;
@@ -195,19 +196,21 @@ public sealed class SongMergeService : ISongMergeService
                 break;
             }
 
-            var separator = notations.IndexOf(';', open + 1);
-            var close = notations.IndexOf(')', separator + 1);
-            if (separator < 0 || close < 0)
+            var record = notations.AsSpan(open + 1);
+            int close = ChordNotation.FindRecordEnd(record);
+            if (close < 0)
             {
                 break;
             }
 
-            if (int.TryParse(notations[(open + 1)..separator], out var lineIndex))
+            record = record[..close];
+            int separator = record.IndexOf(';');
+            if (separator >= 0 && int.TryParse(record[..separator], out var lineIndex))
             {
-                map[lineIndex] = notations[(separator + 1)..close];
+                map[lineIndex] = record[(separator + 1)..].ToString();
             }
 
-            index = close + 1;
+            index = open + close + 2;
         }
 
         return map;

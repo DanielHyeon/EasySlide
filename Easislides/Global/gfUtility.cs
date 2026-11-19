@@ -51,118 +51,118 @@ namespace Easislides
 
 		public static void AssignDropDownItem(ref ToolStripDropDownButton SelectedBtn, string SelectedMenuItemName, ToolStripMenuItem InMenuItem1, ToolStripMenuItem InMenuItem2)
 		{
-			string text = "";
-			string text2 = "";
+			string selectedItemTag = "";
+			string selectedToolTip = "";
 			if (SelectedMenuItemName == InMenuItem2.Name)
 			{
 				SelectedBtn.Image = InMenuItem2.Image;
-				text = (string)InMenuItem2.Tag;
-				text2 = InMenuItem2.Text;
+				selectedItemTag = (string)InMenuItem2.Tag;
+				selectedToolTip = InMenuItem2.Text;
 			}
 			else
 			{
 				SelectedBtn.Image = InMenuItem1.Image;
-				text = (string)InMenuItem1.Tag;
-				text2 = InMenuItem1.Text;
+				selectedItemTag = (string)InMenuItem1.Tag;
+				selectedToolTip = InMenuItem1.Text;
 			}
-			SelectedBtn.Tag = text;
-			SelectedBtn.ToolTipText = text2;
+			SelectedBtn.Tag = selectedItemTag;
+			SelectedBtn.ToolTipText = selectedToolTip;
 		}
 
 		public static void AssignDropDownItem(ref ToolStripDropDownButton SelectedBtn, string SelectedMenuItemName, ToolStripMenuItem InMenuItem1, ToolStripMenuItem InMenuItem2, ToolStripMenuItem InMenuItem3)
 		{
-			string text = "";
-			string text2 = "";
+			string selectedItemTag = "";
+			string selectedToolTip = "";
 			if (SelectedMenuItemName == InMenuItem2.Name)
 			{
 				SelectedBtn.Image = InMenuItem2.Image;
-				text = (string)InMenuItem2.Tag;
-				text2 = InMenuItem2.Text;
+				selectedItemTag = (string)InMenuItem2.Tag;
+				selectedToolTip = InMenuItem2.Text;
 			}
 			else if (SelectedMenuItemName == InMenuItem3.Name)
 			{
 				SelectedBtn.Image = InMenuItem3.Image;
-				text = (string)InMenuItem3.Tag;
-				text2 = InMenuItem3.Text;
+				selectedItemTag = (string)InMenuItem3.Tag;
+				selectedToolTip = InMenuItem3.Text;
 			}
 			else
 			{
 				SelectedBtn.Image = InMenuItem1.Image;
-				text = (string)InMenuItem1.Tag;
-				text2 = InMenuItem1.Text;
+				selectedItemTag = (string)InMenuItem1.Tag;
+				selectedToolTip = InMenuItem1.Text;
 			}
-			SelectedBtn.Tag = text;
-			SelectedBtn.ToolTipText = text2;
+			SelectedBtn.Tag = selectedItemTag;
+			SelectedBtn.ToolTipText = selectedToolTip;
 		}
 
 		public static void AssignDropDownItem(ref ToolStripDropDownButton SelectedBtn, string SelectedMenuItemName, ToolStripMenuItem InMenuItem1, ToolStripMenuItem InMenuItem2, ToolStripMenuItem InMenuItem3, ToolStripMenuItem InMenuItem4)
 		{
-			string text = "";
-			string text2 = "";
+			string selectedItemTag = "";
+			string selectedToolTip = "";
 			if (SelectedMenuItemName == InMenuItem2.Name)
 			{
 				SelectedBtn.Image = InMenuItem2.Image;
-				text = (string)InMenuItem2.Tag;
-				text2 = InMenuItem2.Text;
+				selectedItemTag = (string)InMenuItem2.Tag;
+				selectedToolTip = InMenuItem2.Text;
 			}
 			else if (SelectedMenuItemName == InMenuItem3.Name)
 			{
 				SelectedBtn.Image = InMenuItem3.Image;
-				text = (string)InMenuItem3.Tag;
-				text2 = InMenuItem3.Text;
+				selectedItemTag = (string)InMenuItem3.Tag;
+				selectedToolTip = InMenuItem3.Text;
 			}
 			else if (SelectedMenuItemName == InMenuItem4.Name)
 			{
 				SelectedBtn.Image = InMenuItem4.Image;
-				text = (string)InMenuItem4.Tag;
-				text2 = InMenuItem4.Text;
+				selectedItemTag = (string)InMenuItem4.Tag;
+				selectedToolTip = InMenuItem4.Text;
 			}
 			else
 			{
 				SelectedBtn.Image = InMenuItem1.Image;
-				text = (string)InMenuItem1.Tag;
-				text2 = InMenuItem1.Text;
+				selectedItemTag = (string)InMenuItem1.Tag;
+				selectedToolTip = InMenuItem1.Text;
 			}
-			SelectedBtn.Tag = text;
-			SelectedBtn.ToolTipText = text2;
+			SelectedBtn.Tag = selectedItemTag;
+			SelectedBtn.ToolTipText = selectedToolTip;
 		}
 
 		public static void AssignDropDownItem(ref ToolStripDropDownButton SelectedBtn, string SelectedMenuItemName, ToolStripMenuItem InMenuItem1, ToolStripMenuItem InMenuItem2, ToolStripMenuItem InMenuItem3, ToolStripMenuItem InMenuItem4, ToolStripMenuItem InMenuItem5)
 		{
-			string text = "";
-			string text2 = "";
+			string selectedItemTag = "";
+			string selectedToolTip = "";
 			if (SelectedMenuItemName == InMenuItem2.Name)
 			{
 				SelectedBtn.Image = InMenuItem2.Image;
-				text = (string)InMenuItem2.Tag;
-				text2 = InMenuItem2.Text;
+				selectedItemTag = (string)InMenuItem2.Tag;
+				selectedToolTip = InMenuItem2.Text;
 			}
 			else if (SelectedMenuItemName == InMenuItem3.Name)
 			{
 				SelectedBtn.Image = InMenuItem3.Image;
-				text = (string)InMenuItem3.Tag;
-				text2 = InMenuItem3.Text;
+				selectedItemTag = (string)InMenuItem3.Tag;
+				selectedToolTip = InMenuItem3.Text;
 			}
 			else if (SelectedMenuItemName == InMenuItem4.Name)
 			{
 				SelectedBtn.Image = InMenuItem4.Image;
-				text = (string)InMenuItem4.Tag;
-				text2 = InMenuItem4.Text;
+				selectedItemTag = (string)InMenuItem4.Tag;
+				selectedToolTip = InMenuItem4.Text;
 			}
 			else if (SelectedMenuItemName == InMenuItem5.Name)
 			{
 				SelectedBtn.Image = InMenuItem5.Image;
-				text = (string)InMenuItem5.Tag;
-				text2 = InMenuItem5.Text;
+				selectedItemTag = (string)InMenuItem5.Tag;
+				selectedToolTip = InMenuItem5.Text;
 			}
 			else
 			{
 				SelectedBtn.Image = InMenuItem1.Image;
-				text = (string)InMenuItem1.Tag;
-				text2 = InMenuItem1.Text;
+				selectedItemTag = (string)InMenuItem1.Tag;
+				selectedToolTip = InMenuItem1.Text;
 			}
-			SelectedBtn.Tag = text;
-			SelectedBtn.ToolTipText = text2;
+			SelectedBtn.Tag = selectedItemTag;
+			SelectedBtn.ToolTipText = selectedToolTip;
 		}
 
 	
@@ -170,57 +170,45 @@ namespace Easislides
 		{
 			LicAdminEnforceDisplay = ((DataUtil.ObjToInt(RegUtil.GetRegValue("config", "licEnforceDisplay", 1)) > 0) ? true : false);
 			LicAdminNoSymbol = RegUtil.GetRegValue("config", "licNoSym", "#");
-			LicAdmin_List[0, 0] = "1";
-			LicAdmin_List[1, 0] = "None";
-			LicAdmin_List[2, 0] = "Public Domain";
-			LicAdmin_List[3, 0] = "CCLI";
-			int num = 0;
-			for (num = 4; num < 9; num++)
+			LicenseAdministrators[0].Name = "1";
+			LicenseAdministrators[1].Name = "None";
+			LicenseAdministrators[2].Name = "Public Domain";
+			LicenseAdministrators[3].Name = "CCLI";
+			for (int administratorIndex = 4; administratorIndex < LicenseAdministrators.Length; administratorIndex++)
 			{
-				LicAdmin_List[num, 0] = "";
+				LicenseAdministrators[administratorIndex].Name = "";
 			}
-			string fullSearchString = "select * from LICENCE where Ref >=4 and Ref < " + DataUtil.ObjToString(9);
+			string fullSearchString = $"select * from LICENCE where Ref >=4 and Ref < {LicenseAdministrators.Length}";
 			using DataTable datatable = DbController.GetDataTable(ConnectStringMainDB, fullSearchString);
 
-			if (datatable.Rows.Count > 0)
+			foreach (DataRow row in datatable.Rows)
 			{
-				//recordSet.MoveFirst();
-				//while (!recordSet.EOF)
-				foreach (DataRow dr in datatable.Rows)
-				{
-					num = DataUtil.GetDataInt(dr, "Ref");
-					LicAdmin_List[num, 0] = DataUtil.Trim(DataUtil.GetDataString(dr, "ADMINISTRATOR"));
-					//recordSet.MoveNext();
-				}
+				int administratorIndex = DataUtil.GetDataInt(row, "Ref");
+				LicenseAdministrators[administratorIndex].Name = DataUtil.Trim(DataUtil.GetDataString(row, "ADMINISTRATOR"));
 			}
-			LicAdmin_List[1, 1] = "";
-			LicAdmin_List[2, 1] = "Public Domain";
-			LicAdmin_List[3, 1] = DataUtil.Trim(RegUtil.GetRegValue("config", "licCCLI_no", ""));
-			LicAdmin_List[4, 1] = DataUtil.Trim(RegUtil.GetRegValue("config", "lic4_no", ""));
-			LicAdmin_List[5, 1] = DataUtil.Trim(RegUtil.GetRegValue("config", "lic5_no", ""));
-			LicAdmin_List[6, 1] = DataUtil.Trim(RegUtil.GetRegValue("config", "lic6_no", ""));
-			LicAdmin_List[7, 1] = DataUtil.Trim(RegUtil.GetRegValue("config", "lic7_no", ""));
-			LicAdmin_List[8, 1] = DataUtil.Trim(RegUtil.GetRegValue("config", "lic8_no", ""));
-			LicAdmin_List[1, 2] = "";
-			LicAdmin_List[2, 2] = "Public Domain";
-			for (num = 3; num < 9; num++)
+			LicenseAdministrators[1].Number = "";
+			LicenseAdministrators[2].Number = "Public Domain";
+			LicenseAdministrators[3].Number = DataUtil.Trim(RegUtil.GetRegValue("config", "licCCLI_no", ""));
+			LicenseAdministrators[4].Number = DataUtil.Trim(RegUtil.GetRegValue("config", "lic4_no", ""));
+			LicenseAdministrators[5].Number = DataUtil.Trim(RegUtil.GetRegValue("config", "lic5_no", ""));
+			LicenseAdministrators[6].Number = DataUtil.Trim(RegUtil.GetRegValue("config", "lic6_no", ""));
+			LicenseAdministrators[7].Number = DataUtil.Trim(RegUtil.GetRegValue("config", "lic7_no", ""));
+			LicenseAdministrators[8].Number = DataUtil.Trim(RegUtil.GetRegValue("config", "lic8_no", ""));
+			LicenseAdministrators[1].DisplayText = "";
+			LicenseAdministrators[2].DisplayText = "Public Domain";
+			for (int administratorIndex = 3; administratorIndex < LicenseAdministrators.Length; administratorIndex++)
 			{
-				if ((LicAdmin_List[num, 0] == "") | (LicAdmin_List[num, 1] == ""))
-				{
-					LicAdmin_List[num, 2] = "";
-				}
-				else
-				{
-					LicAdmin_List[num, 2] = LicAdmin_List[num, 0] + LicAdminNoSymbol + LicAdmin_List[num, 1];
-				}
+				ref var administrator = ref LicenseAdministrators[administratorIndex];
+				administrator.DisplayText = string.IsNullOrEmpty(administrator.Name) || string.IsNullOrEmpty(administrator.Number)
+					? "" : administrator.Name + LicAdminNoSymbol + administrator.Number;
 			}
-			LicAdmin_List[0, 1] = LicAdmin_List[1, 1];
-			LicAdmin_List[0, 2] = LicAdmin_List[1, 2];
+			LicenseAdministrators[0].Number = LicenseAdministrators[1].Number;
+			LicenseAdministrators[0].DisplayText = LicenseAdministrators[1].DisplayText;
 		}
 
 		public static void SaveFoldersSettings4()
 		{
-			int num = 0;
+			int currentFolderIndex = 0;
 			if (ValidateDefaultFolders(0))
 			{
 				try
@@ -235,7 +223,7 @@ namespace Easislides
 
 					for (int i = 1; i < MAXSONGSFOLDERS; i++)
 					{
-						num = i;
+						currentFolderIndex = i;
 						if (Folders[i].Name != "")
 						{
 							DataRow dr = dataTable.Rows.Find($"{i}");
@@ -273,34 +261,34 @@ namespace Easislides
 				}
 				catch
 				{
-					MessageBox.Show("Error: Cannot Save Folder Settings for Folder Index: " + num);
+					MessageBox.Show("Error: Cannot Save Folder Settings for Folder Index: " + currentFolderIndex);
 				}
 			}
 		}
 
 		public static void SaveFoldersSettings()
 		{
-			int num = 0;
+			int currentFolderIndex = 0;
 			int rowIndex = 0;
 
 			if (ValidateDefaultFolders(0))
 			{
 				try
 				{
-					string text = "";
+					string folderQuery = "";
 					using DbConnection connection = DbController.GetDbConnection(ConnectStringMainDB);
 
 					DbDataAdapter sQLiteDataAdapter = null;
 					DataTable dataTable = null;
 
-					text = "select * from Folder where FolderNo > 0 and FolderNo <= " + MAXSONGSFOLDERS;
-					(sQLiteDataAdapter, dataTable) = DbController.GetDataAdapter(connection, text);
+					folderQuery = "select * from Folder where FolderNo > 0 and FolderNo <= " + MAXSONGSFOLDERS;
+					(sQLiteDataAdapter, dataTable) = DbController.GetDataAdapter(connection, folderQuery);
 
 					if (dataTable.Rows.Count > 0)
 					{
 						for (int i = 1; i < MAXSONGSFOLDERS; i++)
 						{
-							num = i;
+							currentFolderIndex = i;
 							rowIndex = i - 1;
 							if (Folders[i].Name != "")
 							{
@@ -329,7 +317,7 @@ namespace Easislides
 								dataTable.Rows[rowIndex]["BMargin"] = Folders[i].BottomMargin;
 							}
 						}
-						DbController.UpdateTable(connection, text, dataTable);
+						DbController.UpdateTable(connection, folderQuery, dataTable);
 					}
 
 					if (dataTable != null)
@@ -395,9 +383,9 @@ namespace Easislides
 			RegUtil.SaveRegValue("options", "ParentalAlertBackColour", ParentalAlertBackColour.ToArgb());
 			RegUtil.SaveRegValue("options", "ParentalAlertTextAlign", ParentalAlertTextAlign);
 			RegUtil.SaveRegValue("options", "ParentalAlertVerticalAlign", ParentalAlertVerticalAlign);
-			int num = 0;
-			num = (ParentalAlertScroll ? 1 : 0) + (ParentalAlertFlash ? 1 : 0) * 2 + (ParentalAlertTransparent ? 1 : 0) * 4;
-			RegUtil.SaveRegValue("options", "ParentalAlertStyle", num);
+			int alertStyleFlags = 0;
+			alertStyleFlags = (ParentalAlertScroll ? 1 : 0) + (ParentalAlertFlash ? 1 : 0) * 2 + (ParentalAlertTransparent ? 1 : 0) * 4;
+			RegUtil.SaveRegValue("options", "ParentalAlertStyle", alertStyleFlags);
 			RegUtil.SaveRegValue("options", "ParentalAlertFontName", ParentalAlertFontName);
 			RegUtil.SaveRegValue("options", "ParentalAlertFontSize", ParentalAlertFontSize);
 			RegUtil.SaveRegValue("options", "ParentalAlertFontFormat", ParentalAlertFontFormat);
@@ -406,8 +394,8 @@ namespace Easislides
 			RegUtil.SaveRegValue("options", "MessageAlertVerticalAlign", MessageAlertVerticalAlign);
 			RegUtil.SaveRegValue("options", "MessageAlertTextColour", MessageAlertTextColour.ToArgb());
 			RegUtil.SaveRegValue("options", "MessageAlertBackColour", MessageAlertBackColour.ToArgb());
-			num = (MessageAlertScroll ? 1 : 0) + (MessageAlertFlash ? 1 : 0) * 2 + (MessageAlertTransparent ? 1 : 0) * 4;
-			RegUtil.SaveRegValue("options", "MessageAlertStyle", num);
+			alertStyleFlags = (MessageAlertScroll ? 1 : 0) + (MessageAlertFlash ? 1 : 0) * 2 + (MessageAlertTransparent ? 1 : 0) * 4;
+			RegUtil.SaveRegValue("options", "MessageAlertStyle", alertStyleFlags);
 			RegUtil.SaveRegValue("options", "MessageAlertFontName", MessageAlertFontName);
 			RegUtil.SaveRegValue("options", "MessageAlertFontSize", MessageAlertFontSize);
 			RegUtil.SaveRegValue("options", "MessageAlertFontFormat", MessageAlertFontFormat);
@@ -416,8 +404,8 @@ namespace Easislides
 			RegUtil.SaveRegValue("options", "ReferenceAlertVerticalAlign", ReferenceAlertVerticalAlign);
 			RegUtil.SaveRegValue("options", "ReferenceAlertTextColour", ReferenceAlertTextColour.ToArgb());
 			RegUtil.SaveRegValue("options", "ReferenceAlertBackColour", ReferenceAlertBackColour.ToArgb());
-			num = (ReferenceAlertScroll ? 1 : 0) + (ReferenceAlertFlash ? 1 : 0) * 2 + (ReferenceAlertTransparent ? 1 : 0) * 4;
-			RegUtil.SaveRegValue("options", "ReferenceAlertStyle", num);
+			alertStyleFlags = (ReferenceAlertScroll ? 1 : 0) + (ReferenceAlertFlash ? 1 : 0) * 2 + (ReferenceAlertTransparent ? 1 : 0) * 4;
+			RegUtil.SaveRegValue("options", "ReferenceAlertStyle", alertStyleFlags);
 			RegUtil.SaveRegValue("options", "ReferenceAlertFontName", ReferenceAlertFontName);
 			RegUtil.SaveRegValue("options", "ReferenceAlertFontSize", ReferenceAlertFontSize);
 			RegUtil.SaveRegValue("options", "ReferenceAlertFontFormat", ReferenceAlertFontFormat);
@@ -499,37 +487,6 @@ namespace Easislides
 		string[] timings = { "", "3/4", "4/4" };
 		SongTiming.Items.Clear();
 		SongTiming.Items.AddRange(timings);
-	}
-
-		public static void GenerateMusicKeysList()
-	{
-		string[] majorKeys = { "G", "Ab", "A", "Bb", "B", "C", "Db", "D", "Eb", "E", "F", "F#" };
-		Array.Copy(majorKeys, MusicMajorKeys, majorKeys.Length);
-
-		int[] majorKeysFlatSharp = { 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1 };
-		Array.Copy(majorKeysFlatSharp, MusicMajorKeysFlatSharp, majorKeysFlatSharp.Length);
-
-		string[] minorKeys = { "Gm", "G#m", "Am", "Bbm", "Bm", "Cm", "C#m", "Dm", "D#m", "Em", "Fm", "F#m" };
-		Array.Copy(minorKeys, MusicMinorKeys, minorKeys.Length);
-
-		int[] minorKeysFlatSharp = { 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1 };
-		Array.Copy(minorKeysFlatSharp, MusicMinorKeysFlatSharp, minorKeysFlatSharp.Length);
-
-		string[] majorChords0 = { "G", "Ab", "A", "Bb", "B", "C", "Db", "D", "Eb", "E", "F", "Gb" };
-		string[] majorChords1 = { "G", "G#", "A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#" };
-		for (int i = 0; i < 12; i++)
-		{
-			MusicMajorChords[i, 0] = majorChords0[i];
-			MusicMajorChords[i, 1] = majorChords1[i];
-		}
-
-		string[] minorChords0 = { "Gm", "Abm", "Am", "Bbm", "Bm", "Cm", "Dbm", "Dm", "Ebm", "Em", "Fm", "Gbm" };
-		string[] minorChords1 = { "Gm", "G#m", "Am", "A#m", "Bm", "Cm", "C#m", "Dm", "D#m", "Em", "Fm", "F#m" };
-		for (int i = 0; i < 12; i++)
-		{
-			MusicMinorChords[i, 0] = minorChords0[i];
-			MusicMinorChords[i, 1] = minorChords1[i];
-		}
 	}
 
 		public static void SingleArraySort(string[] InArray)
@@ -733,35 +690,35 @@ namespace Easislides
 			{
 				string InString = InIDString;
 				DataUtil.ExtractOneInfo(ref InString, ';');
-				int num = LookUpBibleVersionNumber(DataUtil.ExtractOneInfo(ref InString, ';'));
-				int num2 = LookUpBibleVersionNumber(DataUtil.ExtractOneInfo(ref InString, ';'));
+				int primaryVersionIndex = LookUpBibleVersionNumber(DataUtil.ExtractOneInfo(ref InString, ';'));
+				int secondaryVersionIndex = LookUpBibleVersionNumber(DataUtil.ExtractOneInfo(ref InString, ';'));
 				InItem.Type = "B";
-				if (num >= 0)
+				if (primaryVersionIndex >= 0)
 				{
 					InItem.Type = "B";
-					InItem.FolderNo = DataUtil.StringToInt(HB_Versions[num, 5]);
-					InItem.FontSizeFactor = DataUtil.StringToInt(HB_Versions[num, 6]);
+					InItem.FolderNo = BibleVersions[primaryVersionIndex].SongFolder;
+					InItem.FontSizeFactor = BibleVersions[primaryVersionIndex].FontSize;
 					InItem.CompleteLyrics = LoadSelectedBibleVerses(InItem.ItemID);
-					InItem.Copyright = HB_Versions[num, 3];
+					InItem.Copyright = BibleVersions[primaryVersionIndex].Copyright;
 					InItem.Show_BookName = ((DataUtil.Left(InItem.ItemID, 1) == "1") ? true : false);
-					int num3 = InTitle.IndexOf("(");
-					if (num3 > 0)
+					int versionSuffixStart = InTitle.IndexOf("(");
+					if (versionSuffixStart > 0)
 					{
-						InTitle = DataUtil.Trim(DataUtil.Left(InTitle, num3 - 1));
+						InTitle = DataUtil.Trim(DataUtil.Left(InTitle, versionSuffixStart - 1));
 					}
-					if (num2 < 0)
+					if (secondaryVersionIndex < 0)
 					{
-						InItem.Title = InTitle + " (" + HB_Versions[num, 1] + ")";
+						InItem.Title = InTitle + " (" + BibleVersions[primaryVersionIndex].Name + ")";
 						InItem.HBR2_FolderNo = InItem.FolderNo;
 						InItem.HBR2_FontSizeFactor = InItem.FontSizeFactor;
 					}
 					else
 					{
-						InItem.Title = InTitle + " (" + HB_Versions[num, 1] + "/" + HB_Versions[num2, 1] + ")";
-						InItem.HBR2_FolderNo = DataUtil.StringToInt(HB_Versions[num2, 5]);
-						InItem.HBR2_FontSizeFactor = DataUtil.StringToInt(HB_Versions[num2, 6]);
+						InItem.Title = InTitle + " (" + BibleVersions[primaryVersionIndex].Name + "/" + BibleVersions[secondaryVersionIndex].Name + ")";
+						InItem.HBR2_FolderNo = BibleVersions[secondaryVersionIndex].SongFolder;
+						InItem.HBR2_FontSizeFactor = BibleVersions[secondaryVersionIndex].FontSize;
 						SongSettings obj2 = InItem;
-						obj2.Copyright = obj2.Copyright + "/" + HB_Versions[num2, 3];
+						obj2.Copyright = obj2.Copyright + "/" + BibleVersions[secondaryVersionIndex].Copyright;
 					}
 					InItem.Format.FormatString = InFormatString;
 					LoadLicAdminDisplayInfo(ref InItem.Show_LicAdminInfo1, ref InItem.Show_LicAdminInfo2);
@@ -827,48 +784,51 @@ namespace Easislides
 			}
 		}
 
+		internal static void PopulateLicenseAdministratorChoices(ComboBox primary, ComboBox secondary)
+		{
+			primary.Items.Clear();
+			secondary.Items.Clear();
+			primary.Items.Add("");
+			secondary.Items.Add("");
+			for (int index = 2; index < LicenseAdministrators.Length; index++)
+			{
+				string name = LicenseAdministrators[index].Name;
+				if (!string.IsNullOrEmpty(name))
+				{
+					primary.Items.Add(name);
+					secondary.Items.Add(name);
+				}
+			}
+		}
+
 		public static void LoadLicAdminDisplayInfo(ref string AdminInfo1, ref string AdminInfo2)
 		{
-			string text = "";
-			string text2 = "";
-			if (AdminInfo1 == "")
+			string primary = FindLicenseDisplayText(AdminInfo1);
+			string secondary = FindLicenseDisplayText(AdminInfo2);
+			if (!string.IsNullOrEmpty(primary))
 			{
-				text = LicAdmin_List[0, 2];
+				AdminInfo1 = primary;
 			}
-			else
+			if (primary != secondary)
 			{
-				for (int i = 2; i <= 9; i++)
+				AdminInfo2 = secondary;
+			}
+		}
+
+		private static string FindLicenseDisplayText(string name)
+		{
+			if (string.IsNullOrEmpty(name))
+			{
+				return LicenseAdministrators[0].DisplayText ?? "";
+			}
+			foreach (ref readonly var administrator in LicenseAdministrators.AsSpan(2))
+			{
+				if (administrator.Name == name)
 				{
-					if (LicAdmin_List[i, 0] != "" && AdminInfo1 == LicAdmin_List[i, 0])
-					{
-						text = LicAdmin_List[i, 2];
-						i = 9;
-					}
+					return administrator.DisplayText;
 				}
 			}
-			if (AdminInfo2 == "")
-			{
-				text2 = LicAdmin_List[0, 2];
-			}
-			else
-			{
-				for (int i = 2; i <= 9; i++)
-				{
-					if (LicAdmin_List[i, 0] != "" && AdminInfo2 == LicAdmin_List[i, 0])
-					{
-						text2 = LicAdmin_List[i, 2];
-						i = 9;
-					}
-				}
-			}
-			if (text != "")
-			{
-				AdminInfo1 = text;
-			}
-			if (text != text2)
-			{
-				AdminInfo2 = text2;
-			}
+			return name;
 		}
 
 		public void LoadIndividualFormatData(ref SongSettings InItem)
@@ -924,21 +884,21 @@ namespace Easislides
 		public static void SetShowBackground(SongSettings InItem, ref ImageTransitionControl InPic, bool FallBackToDefault)
 		{
 			ImageMode picMode = ImageMode.Tile;
-			string text = "";
+			string backgroundImagePath = "";
 			if (InItem.UseDefaultFormat)
 			{
 				if (File.Exists(BackgroundPicture))
 				{
-					text = BackgroundPicture;
+					backgroundImagePath = BackgroundPicture;
 				}
 				picMode = BackgroundMode;
 			}
 			else
 			{
-				string text2 = (InItem.Type == "I") ? InItem.Format.TempImageFileName : InItem.Format.BackgroundPicture;
-				if (File.Exists(text2))
+				string itemImagePath = (InItem.Type == "I") ? InItem.Format.TempImageFileName : InItem.Format.BackgroundPicture;
+				if (File.Exists(itemImagePath))
 				{
-					text = text2;
+					backgroundImagePath = itemImagePath;
 					picMode = InItem.Format.BackgroundMode;
 				}
 				else if (InItem.Type == "I" && InItem.Format.TempImageFileName == "")
@@ -948,13 +908,13 @@ namespace Easislides
 					InItem.Format.ShowScreenStyle = ShowScreenStyle;
 				}
 			}
-			if (text == "")
+			if (backgroundImagePath == "")
 			{
 				SetColoursFormat(InItem, ref InPic);
 			}
 			else
 			{
-				SetImageFormat(ref InPic, text, picMode, SetTransparent: false);
+				SetImageFormat(ref InPic, backgroundImagePath, picMode, SetTransparent: false);
 			}
 		}
 
@@ -1043,7 +1003,7 @@ namespace Easislides
 			}
 			else
 			{
-				Image image = NewBackgroundBitmap(InItem, Transparent: false, out string text);
+				Image image = NewBackgroundBitmap(InItem, Transparent: false, out string backgroundId);
 				if (InPic.NewBackgroundPicture != null)
 				{
 					InPic.CurrentBackgroundPicture = InPic.NewBackgroundPicture;
@@ -1057,7 +1017,7 @@ namespace Easislides
 				}
 				InPic.AdoptImage(image);
 				InPic.NewBackgroundPicture = image;
-				if (InPic.BackgroundID == text)
+				if (InPic.BackgroundID == backgroundId)
 				{
 					InPic.TransitBackPictureAction = ImageTransitionControl.BackPicturesTransition.None;
 				}
@@ -1065,7 +1025,7 @@ namespace Easislides
 				{
 					InPic.TransitBackPictureAction = ImageTransitionControl.BackPicturesTransition.NewOnly;
 				}
-				else if (text == DefaultBackgroundID)
+				else if (backgroundId == DefaultBackgroundID)
 				{
 					InPic.TransitBackPictureAction = ImageTransitionControl.BackPicturesTransition.CurrentOnly;
 				}
@@ -1073,7 +1033,7 @@ namespace Easislides
 				{
 					InPic.TransitBackPictureAction = ImageTransitionControl.BackPicturesTransition.BothBackgrounds;
 				}
-				InPic.BackgroundID = text;
+				InPic.BackgroundID = backgroundId;
 			}
 			try
 			{
@@ -1145,52 +1105,52 @@ namespace Easislides
 			{
 				InPic.ImageFileName = File_Name;
 				InPic.PicMode = (int)PicMode;
-				double num = (double)image2.Width / (double)image2.Height;
+				double sourceAspectRatio = (double)image2.Width / (double)image2.Height;
 				if ((InPic.Width <= 0) | (InPic.Height <= 0))
 				{
 					return;
 				}
-				double num2 = (double)InPic.Width / (double)InPic.Height;
+				double canvasAspectRatio = (double)InPic.Width / (double)InPic.Height;
 				switch (PicMode)
 				{
 					case ImageMode.Centre:
 						{
 							int x2 = 0;
 							int y2 = 0;
-							int num4 = image2.Width;
-							int num3 = image2.Height;
+							int sourceWidth = image2.Width;
+							int sourceHeight = image2.Height;
 							int x;
 							int width;
 							int height;
 							int y;
-							if (num2 < num)
+							if (canvasAspectRatio < sourceAspectRatio)
 							{
 								x = 0;
 								width = image.Width;
-								height = (int)((double)width / num);
+								height = (int)((double)width / sourceAspectRatio);
 								y = (image.Height - height) / 2;
 							}
 							else
 							{
 								y = 0;
 								height = image.Height;
-								width = (int)((double)height * num);
+								width = (int)((double)height * sourceAspectRatio);
 								x = (image.Width - width) / 2;
 							}
-							graphics.DrawImage(image2, new Rectangle(x, y, width, height), new Rectangle(x2, y2, num4, num3), GraphicsUnit.Pixel);
+							graphics.DrawImage(image2, new Rectangle(x, y, width, height), new Rectangle(x2, y2, sourceWidth, sourceHeight), GraphicsUnit.Pixel);
 							break;
 						}
 					case ImageMode.Tile:
 						{
-							int num4 = image2.Width;
-							int num3 = image2.Height;
-							for (int x2 = 0; x2 <= image.Width / num4; x2++)
+							int tileWidth = image2.Width;
+							int tileHeight = image2.Height;
+							for (int x2 = 0; x2 <= image.Width / tileWidth; x2++)
 							{
-								for (int y2 = 0; y2 <= image.Height / num3; y2++)
+								for (int y2 = 0; y2 <= image.Height / tileHeight; y2++)
 								{
-									int x = x2 * num4;
-									int y = y2 * num3;
-									graphics.DrawImage(image2, new Rectangle(x, y, num4, num3), new Rectangle(0, 0, num4, num3), GraphicsUnit.Pixel);
+									int x = x2 * tileWidth;
+									int y = y2 * tileHeight;
+									graphics.DrawImage(image2, new Rectangle(x, y, tileWidth, tileHeight), new Rectangle(0, 0, tileWidth, tileHeight), GraphicsUnit.Pixel);
 								}
 							}
 							break;
@@ -1202,24 +1162,24 @@ namespace Easislides
 							int width = image.Width;
 							int height = image.Height;
 							int y2;
-							int num3;
-							int num4;
+							int cropHeight;
+							int cropWidth;
 							int x2;
-							if (num2 < num)
+							if (canvasAspectRatio < sourceAspectRatio)
 							{
 								y2 = 0;
-								num3 = image2.Height;
-								num4 = (int)((double)num3 * num2);
-								x2 = (image2.Width - num4) / 2;
+								cropHeight = image2.Height;
+								cropWidth = (int)((double)cropHeight * canvasAspectRatio);
+								x2 = (image2.Width - cropWidth) / 2;
 							}
 							else
 							{
 								x2 = 0;
-								num4 = image2.Width;
-								num3 = (int)((double)num4 / num2);
-								y2 = (image2.Height - num3) / 2;
+								cropWidth = image2.Width;
+								cropHeight = (int)((double)cropWidth / canvasAspectRatio);
+								y2 = (image2.Height - cropHeight) / 2;
 							}
-							graphics.DrawImage(image2, new Rectangle(x, y, width, height), new Rectangle(x2, y2, num4, num3), GraphicsUnit.Pixel);
+							graphics.DrawImage(image2, new Rectangle(x, y, width, height), new Rectangle(x2, y2, cropWidth, cropHeight), GraphicsUnit.Pixel);
 							break;
 						}
 				}
@@ -1275,103 +1235,103 @@ namespace Easislides
 			{
 				return 0;
 			}
-			int num = (int)InItem.Lyrics[RegNum].FS_Font.Size;
-			int num2 = (int)((double)num * NotationFontFactor);
-			string text = "";
-			string text2 = "";
-			int num3 = 0;
+			int lyricFontSize = (int)InItem.Lyrics[RegNum].FS_Font.Size;
+			int notationFontSize = (int)((double)lyricFontSize * NotationFontFactor);
+			string regionText = "";
+			string lineText = "";
+			int regionBottom = 0;
 			int fS_Left = InItem.Lyrics[RegNum].FS_Left;
 			int fS_Top = InItem.Lyrics[RegNum].FS_Top;
 			int fS_Width = InItem.Lyrics[RegNum].FS_Width;
-			int num4 = (InItem.Slide[0, 3] > 0 && !OnlyOneRegionShown) ? InItem.Lyrics[RegNum].FS_Height_R2Bound : InItem.Lyrics[RegNum].FS_Height;
-			num3 = InItem.Lyrics[RegNum].FS_Top + InItem.Lyrics[RegNum].FS_Height;
+			int availableHeight = (InItem.Slide[0, 3] > 0 && !OnlyOneRegionShown) ? InItem.Lyrics[RegNum].FS_Height_R2Bound : InItem.Lyrics[RegNum].FS_Height;
+			regionBottom = InItem.Lyrics[RegNum].FS_Top + InItem.Lyrics[RegNum].FS_Height;
 			int fS_Height_R2Bound = InItem.Lyrics[1].FS_Height_R2Bound;
 			SizeF layoutArea = new SizeF(fS_Width, 32000f);
-			int num5 = 0;
-			int num6 = 0;
-			double num7 = Folders[InItem.FolderNo].FontSpacingFactor[(RegNum != 0) ? 1 : 0] + ((InShowNotations > 0) ? NotationFontFactor : 0.0);
-			int num8;
-			int num9;
+			int wrappedLineCount = 0;
+			int lyricLineCount = 0;
+			double lineSpacingFactor = Folders[InItem.FolderNo].FontSpacingFactor[(RegNum != 0) ? 1 : 0] + ((InShowNotations > 0) ? NotationFontFactor : 0.0);
+			int firstLineIndex;
+			int lastLineIndex;
 			switch (RegNum)
 			{
 				case 0:
-					num8 = InItem.Slide[InItem.CurSlide, 1];
-					num9 = InItem.Slide[InItem.CurSlide, 2];
+					firstLineIndex = InItem.Slide[InItem.CurSlide, 1];
+					lastLineIndex = InItem.Slide[InItem.CurSlide, 2];
 					break;
 				case 1:
-					num8 = InItem.Slide[InItem.CurSlide, 3];
-					num9 = InItem.Slide[InItem.CurSlide, 4];
+					firstLineIndex = InItem.Slide[InItem.CurSlide, 3];
+					lastLineIndex = InItem.Slide[InItem.CurSlide, 4];
 					break;
 				default:
-					text = InItem.Lyrics[RegNum].Text;
-					ReplaceFont(ref MainFont, new Font(InItem.Lyrics[RegNum].Font.Name, num, InItem.CurSlideIsVerse ? InItem.Lyrics[RegNum].Font.Style : InItem.Lyrics[RegNum].ChorusFont.Style));
+					regionText = InItem.Lyrics[RegNum].Text;
+					ReplaceFont(ref MainFont, new Font(InItem.Lyrics[RegNum].Font.Name, lyricFontSize, InItem.CurSlideIsVerse ? InItem.Lyrics[RegNum].Font.Style : InItem.Lyrics[RegNum].ChorusFont.Style));
 					if (UseLargestFontSize)
 					{
-						ActionWordWrapSpacesAtStart(ref text);
+						ActionWordWrapSpacesAtStart(ref regionText);
 					}
-					ReduceFontToFit(g, text, ref MainFont, fS_Width, num4, MultiLine: true);
-					return num4;
+					ReduceFontToFit(g, regionText, ref MainFont, fS_Width, availableHeight, MultiLine: true);
+					return availableHeight;
 			}
-			if ((num8 < 0) | (num9 < 0))
+			if ((firstLineIndex < 0) | (lastLineIndex < 0))
 			{
 				return 0;
 			}
-			if (num8 <= num9)
+			if (firstLineIndex <= lastLineIndex)
 			{
-				string text3 = "";
-				for (int i = num8; i <= num9; i++)
+				string lineLayoutData = "";
+				for (int i = firstLineIndex; i <= lastLineIndex; i++)
 				{
 					ListViewItem item = InItem.LyricsAndNotationsList.Items[i];
-					text2 = item.SubItems[2].Text;
+					lineText = item.SubItems[2].Text;
 					if (UseLargestFontSize)
 					{
-						ActionWordWrapSpacesAtStart(ref text2);
+						ActionWordWrapSpacesAtStart(ref lineText);
 					}
-					text = text + text2 + "\n";
-					text3 = item.SubItems[4].Text;
-					num5 += DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref text3, '>', RemoveExtract: false));
-					num6++;
+					regionText = regionText + lineText + "\n";
+					lineLayoutData = item.SubItems[4].Text;
+					wrappedLineCount += DataUtil.StringToInt(DataUtil.ExtractOneInfo(ref lineLayoutData, '>', RemoveExtract: false));
+					lyricLineCount++;
 				}
-				if (text.Length > 1)
+				if (regionText.Length > 1)
 				{
-					text = DataUtil.Left(text, text.Length - 1);
+					regionText = DataUtil.Left(regionText, regionText.Length - 1);
 				}
 			}
 			else
 			{
-				num6 = 1;
+				lyricLineCount = 1;
 			}
-			num4 = (int)((double)num4 / num7);
-			int num10;
+			availableHeight = (int)((double)availableHeight / lineSpacingFactor);
+			int measuredHeight;
 			if (UseLargestFontSize)
 			{
-				ReplaceFont(ref MainFont, new Font(InItem.Lyrics[RegNum].Font.Name, num, InItem.CurSlideIsVerse ? InItem.Lyrics[RegNum].Font.Style : InItem.Lyrics[RegNum].ChorusFont.Style));
+				ReplaceFont(ref MainFont, new Font(InItem.Lyrics[RegNum].Font.Name, lyricFontSize, InItem.CurSlideIsVerse ? InItem.Lyrics[RegNum].Font.Style : InItem.Lyrics[RegNum].ChorusFont.Style));
 				bool OnlyOneDisplayLine = false;
-				num10 = IncreaseFontToLargest(g, text, ref MainFont, fS_Width, num4, ref OnlyOneDisplayLine);
+				measuredHeight = IncreaseFontToLargest(g, regionText, ref MainFont, fS_Width, availableHeight, ref OnlyOneDisplayLine);
 				ReplaceFont(ref NotationsFont, new Font(InItem.Lyrics[RegNum].Font.Name, (!(MainFont.Size >= 2f)) ? 1 : Convert.ToInt32((double)MainFont.Size * NotationFontFactor), InItem.Lyrics[RegNum].Font.Style));
-				InItem.Lyrics[RegNum].FS_OneLyricAndNotationHeight = (int)((double)g.MeasureString("A", MainFont, layoutArea).Height * num7);
-				return (int)((double)num10 * num7);
+				InItem.Lyrics[RegNum].FS_OneLyricAndNotationHeight = (int)((double)g.MeasureString("A", MainFont, layoutArea).Height * lineSpacingFactor);
+				return (int)((double)measuredHeight * lineSpacingFactor);
 			}
-			if (num5 > 0)
+			if (wrappedLineCount > 0)
 			{
-				string InString = InItem.LyricsAndNotationsList.Items[num8].SubItems[4].Text;
+				string InString = InItem.LyricsAndNotationsList.Items[firstLineIndex].SubItems[4].Text;
 				DataUtil.ExtractOneInfo(ref InString, '>');
-				num = Convert.ToInt32(DataUtil.ExtractOneInfo(ref InString, '>'));
-				if (num < 1)
+				lyricFontSize = Convert.ToInt32(DataUtil.ExtractOneInfo(ref InString, '>'));
+				if (lyricFontSize < 1)
 				{
-					num = (int)InItem.Lyrics[RegNum].Font.Size;
+					lyricFontSize = (int)InItem.Lyrics[RegNum].Font.Size;
 				}
-				ReplaceFont(ref MainFont, new Font(InItem.Lyrics[RegNum].Font.Name, num, InItem.CurSlideIsVerse ? InItem.Lyrics[RegNum].Font.Style : InItem.Lyrics[RegNum].ChorusFont.Style));
+				ReplaceFont(ref MainFont, new Font(InItem.Lyrics[RegNum].Font.Name, lyricFontSize, InItem.CurSlideIsVerse ? InItem.Lyrics[RegNum].Font.Style : InItem.Lyrics[RegNum].ChorusFont.Style));
 				ReplaceFont(ref NotationsFont, new Font(InItem.Lyrics[RegNum].Font.Name, (!(MainFont.Size >= 2f)) ? 1 : Convert.ToInt32((double)MainFont.Size * NotationFontFactor), InItem.Lyrics[RegNum].Font.Style));
-				InItem.Lyrics[RegNum].FS_OneLyricAndNotationHeight = (int)((double)g.MeasureString("A", MainFont, layoutArea).Height * num7);
-				return InItem.Lyrics[RegNum].FS_OneLyricAndNotationHeight * num5;
+				InItem.Lyrics[RegNum].FS_OneLyricAndNotationHeight = (int)((double)g.MeasureString("A", MainFont, layoutArea).Height * lineSpacingFactor);
+				return InItem.Lyrics[RegNum].FS_OneLyricAndNotationHeight * wrappedLineCount;
 			}
-			ReplaceFont(ref MainFont, new Font(InItem.Lyrics[RegNum].Font.Name, num, InItem.CurSlideIsVerse ? InItem.Lyrics[RegNum].Font.Style : InItem.Lyrics[RegNum].ChorusFont.Style));
-			ReduceFontToFit(g, text, ref MainFont, fS_Width, num4, MultiLine: true);
-			num10 = num4;
+			ReplaceFont(ref MainFont, new Font(InItem.Lyrics[RegNum].Font.Name, lyricFontSize, InItem.CurSlideIsVerse ? InItem.Lyrics[RegNum].Font.Style : InItem.Lyrics[RegNum].ChorusFont.Style));
+			ReduceFontToFit(g, regionText, ref MainFont, fS_Width, availableHeight, MultiLine: true);
+			measuredHeight = availableHeight;
 			ReplaceFont(ref NotationsFont, new Font(InItem.Lyrics[RegNum].Font.Name, (!(MainFont.Size >= 2f)) ? 1 : Convert.ToInt32((double)MainFont.Size * NotationFontFactor), InItem.Lyrics[RegNum].Font.Style));
-			InItem.Lyrics[RegNum].FS_OneLyricAndNotationHeight = (int)((double)g.MeasureString("A", MainFont, layoutArea).Height * num7);
-			return (int)((double)num10 * num7);
+			InItem.Lyrics[RegNum].FS_OneLyricAndNotationHeight = (int)((double)g.MeasureString("A", MainFont, layoutArea).Height * lineSpacingFactor);
+			return (int)((double)measuredHeight * lineSpacingFactor);
 		}
 
 		private static void ReplaceFont(ref Font target, Font replacement)
@@ -1387,12 +1347,12 @@ namespace Easislides
 		{
 			if (InString.Length != 0)
 			{
-				string text = "";
-				for (int num = InString.Length - 1; num >= 0; num--)
+				string reversedText = "";
+				for (int characterIndex = InString.Length - 1; characterIndex >= 0; characterIndex--)
 				{
-					text += InString[num];
+					reversedText += InString[characterIndex];
 				}
-				InString = text;
+				InString = reversedText;
 			}
 		}
 
@@ -1473,13 +1433,13 @@ namespace Easislides
 				return "";
 			}
 			string a = DataUtil.Left(InIDString, 1);
-			string text = DataUtil.Mid(InIDString, 1);
+			string itemIdOrPath = DataUtil.Mid(InIDString, 1);
 			string InFileName = "";
 			if (a == "D")
 			{
 				try
 				{
-					string fullSearchString = "select * from SONG where songid=" + text;
+					string fullSearchString = "select * from SONG where songid=" + itemIdOrPath;
 
 					using DataTable datatable = DbController.GetDataTable(ConnectStringMainDB, fullSearchString);
 
@@ -1494,26 +1454,26 @@ namespace Easislides
 			}
 			else if (a == "P")
 			{
-				InFileName = text;
+				InFileName = itemIdOrPath;
 			}
 			else if (!(a == "B"))
 			{
 				if (a == "T")
 				{
-					InFileName = text;
+					InFileName = itemIdOrPath;
 				}
 				else if (a == "I")
 				{
-					InFileName = text;
+					InFileName = itemIdOrPath;
 					GetDisplayNameOnly(ref InFileName, UpdateByRef: true);
 				}
 				else if (a == "W")
 				{
-					InFileName = text;
+					InFileName = itemIdOrPath;
 				}
 				else if (a == "M")
 				{
-					InFileName = text;
+					InFileName = itemIdOrPath;
 				}
 			}
 			return InFileName;
@@ -1540,46 +1500,46 @@ namespace Easislides
 
 		public static void RemoveDuplicateEditorHistoryItems(ref EditHistoryList InEditHistoryList, ref int InTotalEditorEditHistory)
 		{
-			int num = (InTotalEditorEditHistory <= AbsoluteMaxHitoryItems) ? InTotalEditorEditHistory : AbsoluteMaxHitoryItems;
-			bool flag = false;
-			int num2 = 0;
-			int num3 = 0;
-			int num4 = 0;
-			for (num3 = 1; num3 <= AbsoluteMaxHitoryItems; num3++)
+			int historyCount = (InTotalEditorEditHistory <= AbsoluteMaxHitoryItems) ? InTotalEditorEditHistory : AbsoluteMaxHitoryItems;
+			bool isDuplicate = false;
+			int uniqueCount = 0;
+			int historyIndex = 0;
+			int uniqueIndex = 0;
+			for (historyIndex = 1; historyIndex <= AbsoluteMaxHitoryItems; historyIndex++)
 			{
-				TempEditHistoryList[num3].Id = "";
-				TempEditHistoryList[num3].Title = "";
+				TempEditHistoryList[historyIndex].Id = "";
+				TempEditHistoryList[historyIndex].Title = "";
 			}
-			for (num3 = 1; num3 <= num; num3++)
+			for (historyIndex = 1; historyIndex <= historyCount; historyIndex++)
 			{
-				if (num3 == 1)
+				if (historyIndex == 1)
 				{
-					num2 = 1;
+					uniqueCount = 1;
 					TempEditHistoryList[1].Id = InEditHistoryList[1].Id;
 					TempEditHistoryList[1].Title = InEditHistoryList[1].Title;
 					continue;
 				}
-				flag = false;
-				for (num4 = 1; num4 <= num2; num4++)
+				isDuplicate = false;
+				for (uniqueIndex = 1; uniqueIndex <= uniqueCount; uniqueIndex++)
 				{
-					if (InEditHistoryList[num3].Id == TempEditHistoryList[num4].Id)
+					if (InEditHistoryList[historyIndex].Id == TempEditHistoryList[uniqueIndex].Id)
 					{
-						flag = true;
+						isDuplicate = true;
 					}
 				}
-				if (!flag)
+				if (!isDuplicate)
 				{
-					num2++;
-					TempEditHistoryList[num2].Id = InEditHistoryList[num3].Id;
-					TempEditHistoryList[num2].Title = InEditHistoryList[num3].Title;
+					uniqueCount++;
+					TempEditHistoryList[uniqueCount].Id = InEditHistoryList[historyIndex].Id;
+					TempEditHistoryList[uniqueCount].Title = InEditHistoryList[historyIndex].Title;
 				}
 			}
-			for (num3 = 1; num3 <= AbsoluteMaxHitoryItems; num3++)
+			for (historyIndex = 1; historyIndex <= AbsoluteMaxHitoryItems; historyIndex++)
 			{
-				InEditHistoryList[num3].Id = TempEditHistoryList[num3].Id;
-				InEditHistoryList[num3].Title = TempEditHistoryList[num3].Title;
+				InEditHistoryList[historyIndex].Id = TempEditHistoryList[historyIndex].Id;
+				InEditHistoryList[historyIndex].Title = TempEditHistoryList[historyIndex].Title;
 			}
-			InTotalEditorEditHistory = num2;
+			InTotalEditorEditHistory = uniqueCount;
 		}
 
 		public static void SaveEditorEditHistoryToRegistry()
@@ -1639,7 +1599,7 @@ namespace Easislides
 
 		public static void WriteXMLSessionHeader(ref XmlTextWriter xtw, string InFormatString, string InNotes)
 		{
-			int num = MediaMute + MediaRepeat * 2 + MediaWidescreen * 4;
+			int mediaFlags = MediaMute + MediaRepeat * 2 + MediaWidescreen * 4;
 			StringBuilder stringBuilder = new StringBuilder();
 			if (InFormatString != "")
 			{
@@ -1671,7 +1631,7 @@ namespace Easislides
 				stringBuilder.AppendFormat("{0}={1}>", 51, MediaLocation);
 				stringBuilder.AppendFormat("{0}={1}>", 52, MediaVolume);
 				stringBuilder.AppendFormat("{0}={1}>", 53, MediaBalance);
-				stringBuilder.AppendFormat("{0}={1}>", 54, num.ToString());
+				stringBuilder.AppendFormat("{0}={1}>", 54, mediaFlags.ToString());
 				stringBuilder.AppendFormat("{0}={1}>", 55, MediaCaptureDeviceNumber.ToString());
 				stringBuilder.AppendFormat("{0}={1}>", 56, MediaOutputMonitorName);
 				stringBuilder.AppendFormat("{0}={1}>", 61, BackgroundPicture);
@@ -1682,12 +1642,9 @@ namespace Easislides
 				stringBuilder.AppendFormat("{0}={1}>", 66, Folders[0].BottomMargin);
 				stringBuilder.AppendFormat("{0}={1}>", 72, GlobalImageCanvas.GetTransitionText(ShowItemTransition));
 				stringBuilder.AppendFormat("{0}={1}>", 73, GlobalImageCanvas.GetTransitionText(ShowSlideTransition));
-				for (int i = 0; i < 8; i++)
+				for (int part = 0; part < PraiseBookTextStyles.Length; part++)
 				{
-					int num2 = 101 + i * 5;
-					stringBuilder.Append(num2.ToString() + "=" + Convert.ToString(PB_ShowWords[i] + PB_WordsBold[i] * 2 + PB_WordsItalic[i] * 4 + PB_WordsUnderline[i] * 8) + '>');
-					stringBuilder.Append(Convert.ToString(num2 + 1) + "=" + PB_WordsSize[i].ToString() + '>');
-					stringBuilder.Append(Convert.ToString(num2 + 2) + "=" + Convert.ToString(PB_WordsColour[i].ToArgb()) + '>');
+					PraiseBookTextStyles[part].AppendToHeader(stringBuilder, part);
 				}
 				stringBuilder.AppendFormat("{0}={1}>", 151, PB_ShowHeadings[0] + PB_ShowHeadings[1] * 2 + PB_ShowHeadings[2] * 4 + PB_ShowHeadings[3] * 8);
 				stringBuilder.AppendFormat("{0}={1}>", 153, PB_LyricsPattern);
@@ -1836,16 +1793,16 @@ namespace Easislides
 			{
 				return "";
 			}
-			string text2 = "";
-			int num = -1;
+			string categoryKey = "";
+			int categoryIndex = -1;
 			string[] array = InSettingsString.Split('>');
 			for (int i = 0; i <= array.GetUpperBound(0); i++)
 			{
-				text2 = DataUtil.ExtractOneInfo(ref array[i], '=', RemoveExtract: true, MinusOneIfBlank: false);
-				if (text2 != "")
+				categoryKey = DataUtil.ExtractOneInfo(ref array[i], '=', RemoveExtract: true, MinusOneIfBlank: false);
+				if (categoryKey != "")
 				{
-					num = DataUtil.StringToInt(text2);
-					if (num == (int)settingsCategory)
+					categoryIndex = DataUtil.StringToInt(categoryKey);
+					if (categoryIndex == (int)settingsCategory)
 					{
 						return array[i];
 					}
@@ -1990,9 +1947,9 @@ namespace Easislides
 				InMenuItem.Enabled = ((!DisableWhenBlank) ? true : false);
 				return;
 			}
-			int num = 20;
-			string str = (ItemName.Length <= num) ? "'" : "...'";
-			InMenuItem.Text = MergedText + " '" + DataUtil.Left(ItemName, num) + str;
+			int maxTitleLength = 20;
+			string str = (ItemName.Length <= maxTitleLength) ? "'" : "...'";
+			InMenuItem.Text = MergedText + " '" + DataUtil.Left(ItemName, maxTitleLength) + str;
 			InMenuItem.Enabled = true;
 		}
 

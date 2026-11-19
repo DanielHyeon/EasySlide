@@ -71,45 +71,45 @@ namespace Easislides
 
 		private void UpdateLists()
 		{
-			bool flag = false;
+			bool foundCurrentList = false;
 			ItemList.Items.Clear();
 			Gf.ValidateDir(InputDir, CreateDir: true);
 			Ext_ToUse = ((InputDir == Gf.WorshipDir) ? ".esw" : ".esp");
 			string[] files = Directory.GetFiles(InputDir, "*" + Ext_ToUse);
-			foreach (string text in files)
+			foreach (string listPath in files)
 			{
 				// Skip files in Trash folder (Directory.GetFiles doesn't search subdirectories, but keep this check for safety)
-				if (text.StartsWith(TrashDir, StringComparison.OrdinalIgnoreCase))
+				if (listPath.StartsWith(TrashDir, StringComparison.OrdinalIgnoreCase))
 					continue;
 
-				string InFileName = text;
+				string InFileName = listPath;
 				InFileName = Gf.GetDisplayNameOnly(ref InFileName, UpdateByRef: true);
 				if (InFileName != "")
 				{
 					ItemList.Items.Add(InFileName);
 					if (CurFile == InFileName)
 					{
-						flag = true;
+						foundCurrentList = true;
 					}
 				}
 			}
-			if (flag)
+			if (foundCurrentList)
 			{
-				int num = 0;
+				int currentListIndex = 0;
 				while (true)
 				{
-					if (num < ItemList.Items.Count)
+					if (currentListIndex < ItemList.Items.Count)
 					{
-						if (CurFile == ItemList.Items[num].Text)
+						if (CurFile == ItemList.Items[currentListIndex].Text)
 						{
 							break;
 						}
-						num++;
+						currentListIndex++;
 						continue;
 					}
 					return;
 				}
-				ItemList.Items[num].Selected = true;
+				ItemList.Items[currentListIndex].Selected = true;
 			}
 			else if (Gf.EasiSlidesMode == UsageMode.Worship)
 			{
@@ -143,9 +143,9 @@ namespace Easislides
 
 			Ext_ToUse = ((InputDir == Gf.WorshipDir) ? ".esw" : ".esp");
 			string[] files = Directory.GetFiles(TrashDir, "*" + Ext_ToUse);
-			foreach (string text in files)
+			foreach (string deletedListPath in files)
 			{
-				string InFileName = text;
+				string InFileName = deletedListPath;
 				InFileName = Gf.GetDisplayNameOnly(ref InFileName, UpdateByRef: true);
 				if (InFileName != "")
 				{
@@ -250,11 +250,11 @@ namespace Easislides
 				return;
 			}
 			Gf.SelectedListName = ItemList.SelectedItems[0].Text;
-			bool flag = (Gf.SelectedListName == CurFile) ? true : false;
+			bool renamingSelectedList = (Gf.SelectedListName == CurFile) ? true : false;
 			FrmUpdateFileName frmUpdateFileName = new FrmUpdateFileName();
 			if (frmUpdateFileName.ShowDialog() == DialogResult.OK)
 			{
-				if (flag)
+				if (renamingSelectedList)
 				{
 					CurFile = Gf.SelectedListName;
 				}
@@ -282,8 +282,8 @@ namespace Easislides
 				MessageBox.Show("You have not selected a " + ListText + " to Save As!");
 				return;
 			}
-			string text = ItemList.SelectedItems[0].Text;
-			if (SaveAsItem(InputDir + text + Ext_ToUse) != "")
+			string selectedListName = ItemList.SelectedItems[0].Text;
+			if (SaveAsItem(InputDir + selectedListName + Ext_ToUse) != "")
 			{
 				if (Gf.EasiSlidesMode == UsageMode.Worship)
 				{
@@ -306,8 +306,8 @@ namespace Easislides
 				MessageBox.Show("You have not selected a " + ListText + " to Save To " + ListTextTo);
 				return;
 			}
-			string text = ItemList.SelectedItems[0].Text;
-			Gf.SelectedListName = InputDir + text + Ext_ToUse;
+			string selectedListName = ItemList.SelectedItems[0].Text;
+			Gf.SelectedListName = InputDir + selectedListName + Ext_ToUse;
 			FrmUpdateFileName frmUpdateFileName = new FrmUpdateFileName();
 			Gf.NameChangeSucceeded = false;
 			if (Gf.EasiSlidesMode == UsageMode.Worship)
@@ -338,21 +338,21 @@ namespace Easislides
 				MessageBox.Show("You have not selected a " + ListText + " to Save As a Template!");
 				return;
 			}
-			string text = ItemList.SelectedItems[0].Text;
+			string selectedListName = ItemList.SelectedItems[0].Text;
 			try
 			{
-				string text2 = InputDir + text + Ext_ToUse;
-				string text3 = Gf.WorshipTemplatesDir + text + ".est";
-				if (File.Exists(text2))
+				string sourceListPath = InputDir + selectedListName + Ext_ToUse;
+				string templatePath = Gf.WorshipTemplatesDir + selectedListName + ".est";
+				if (File.Exists(sourceListPath))
 				{
 					DialogResult dialogResult = DialogResult.Yes;
-					if (File.Exists(text3))
+					if (File.Exists(templatePath))
 					{
 						dialogResult = MessageBox.Show("There is already a template with the same name. Overwrite it?", "Overwrite", MessageBoxButtons.YesNo);
 					}
 					if (dialogResult == DialogResult.Yes)
 					{
-						File.Copy(text2, text3, overwrite: true);
+						File.Copy(sourceListPath, templatePath, overwrite: true);
 					}
 				}
 				else

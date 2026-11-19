@@ -38,7 +38,9 @@ namespace Easislides
 
 		private int[] ListViewVerseIndex = new int[160];
 
-		private int MaxTextWidth;
+		private ParagraphLayout paragraphs;
+
+		private string rtfLineSpacing;
 
 		private string RTFLineandNotationsSpacing;
 
@@ -61,17 +63,17 @@ namespace Easislides
 
 		private void FrmFormatPraiseBookDoc_Load(object sender, EventArgs e)
 		{
-			UpdateFontFields(ref toolStripFont0, ref tbFontSize0, ref PanelFontColour0, Gf.PB_WordsBold[0], Gf.PB_WordsItalic[0], Gf.PB_WordsUnderline[0], Gf.PB_WordsSize[0], Gf.PB_WordsColour[0]);
-			UpdateFontFields(ref toolStripFont1, ref tbFontSize1, ref PanelFontColour1, Gf.PB_WordsBold[1], Gf.PB_WordsItalic[1], Gf.PB_WordsUnderline[1], Gf.PB_WordsSize[1], Gf.PB_WordsColour[1]);
-			UpdateFontFields(ref toolStripFont2, ref tbFontSize2, ref PanelFontColour2, Gf.PB_WordsBold[2], Gf.PB_WordsItalic[2], Gf.PB_WordsUnderline[2], Gf.PB_WordsSize[2], Gf.PB_WordsColour[2]);
-			UpdateFontFields(ref toolStripFont3, ref tbFontSize3, ref PanelFontColour3, Gf.PB_WordsBold[3], Gf.PB_WordsItalic[3], Gf.PB_WordsUnderline[3], Gf.PB_WordsSize[3], Gf.PB_WordsColour[3]);
-			UpdateFontFields(ref toolStripFont4, ref tbFontSize4, ref PanelFontColour4, Gf.PB_WordsBold[4], Gf.PB_WordsItalic[4], Gf.PB_WordsUnderline[4], Gf.PB_WordsSize[4], Gf.PB_WordsColour[4]);
-			UpdateFontFields(ref toolStripFont5, ref tbFontSize5, ref PanelFontColour5, Gf.PB_WordsBold[5], Gf.PB_WordsItalic[5], Gf.PB_WordsUnderline[5], Gf.PB_WordsSize[5], Gf.PB_WordsColour[5]);
-			optWords0.Checked = ((Gf.PB_ShowWords[0] == 1) ? true : false);
-			optWords1.Checked = ((Gf.PB_ShowWords[1] == 1) ? true : false);
-			optWords2.Checked = ((Gf.PB_ShowWords[2] == 1) ? true : false);
-			optWords6.Checked = ((Gf.PB_ShowWords[6] == 1) ? true : false);
-			optWords7.Checked = ((Gf.PB_ShowWords[7] == 1) ? true : false);
+			UpdateFontFields(toolStripFont0, tbFontSize0, PanelFontColour0, Gf.PraiseBookTextStyles[0]);
+			UpdateFontFields(toolStripFont1, tbFontSize1, PanelFontColour1, Gf.PraiseBookTextStyles[1]);
+			UpdateFontFields(toolStripFont2, tbFontSize2, PanelFontColour2, Gf.PraiseBookTextStyles[2]);
+			UpdateFontFields(toolStripFont3, tbFontSize3, PanelFontColour3, Gf.PraiseBookTextStyles[3]);
+			UpdateFontFields(toolStripFont4, tbFontSize4, PanelFontColour4, Gf.PraiseBookTextStyles[4]);
+			UpdateFontFields(toolStripFont5, tbFontSize5, PanelFontColour5, Gf.PraiseBookTextStyles[5]);
+			optWords0.Checked = Gf.PraiseBookTextStyles[0].Visible;
+			optWords1.Checked = Gf.PraiseBookTextStyles[1].Visible;
+			optWords2.Checked = Gf.PraiseBookTextStyles[2].Visible;
+			optWords6.Checked = Gf.PraiseBookTextStyles[6].Visible;
+			optWords7.Checked = Gf.PraiseBookTextStyles[7].Visible;
 			optHeadings0.Checked = ((Gf.PB_ShowHeadings[0] == 1) ? true : false);
 			optHeadings1.Checked = ((Gf.PB_ShowHeadings[1] == 1) ? true : false);
 			optHeadings2.Checked = ((Gf.PB_ShowHeadings[2] == 1) ? true : false);
@@ -134,67 +136,70 @@ namespace Easislides
 			InitRTF();
 		}
 
+		internal readonly struct ParagraphLayout
+		{
+			public int TextWidth { get; }
+			public string IndexIndent { get; }
+
+			public ParagraphLayout(int columnCount)
+			{
+				TextWidth = columnCount == 1 ? 8900 : 4400;
+				IndexIndent = FormattableString.Invariant($@"\pard\fi-400\li400\ri680\tqr\tx{TextWidth}");
+			}
+
+			public string GetIndent(int tabNumber) => tabNumber switch
+			{
+				0 => @"\pard\fi-400\li400",
+				1 or 4 => @"\pard\fi-900\li900\tx500",
+				2 => @"\pard\fi-1400\li1400\tx1000",
+				3 => IndexIndent,
+				5 => @"\pard\fi-500\li500\tx500",
+				_ => throw new ArgumentOutOfRangeException(nameof(tabNumber))
+			};
+		}
+
 		private void InitRTF()
 		{
-			Gf.RTFNewLine = "\\b0\\i0\\ulnone\\par ";
-			Gf.RTFTabValue[0] = 0;
-			Gf.RTFTabValue[1] = 500;
-			Gf.RTFTabValue[2] = 1000;
-			Gf.RTFTabValue[3] = 4400;
-			Gf.RTFIndent[0] = "\\pard\\fi-" + Convert.ToString(Gf.RTFTabValue[0] + 400) + "\\li" + Convert.ToString(Gf.RTFTabValue[0] + 400);
-			Gf.RTFIndent[1] = "\\pard\\fi-" + Convert.ToString(Gf.RTFTabValue[1] + 400) + "\\li" + Convert.ToString(Gf.RTFTabValue[1] + 400) + "\\tx" + Convert.ToString(Gf.RTFTabValue[1]);
-			Gf.RTFIndent[2] = "\\pard\\fi-" + Convert.ToString(Gf.RTFTabValue[2] + 400) + "\\li" + Convert.ToString(Gf.RTFTabValue[2] + 400) + "\\tx" + Convert.ToString(Gf.RTFTabValue[2]);
-			if (Gf.PB_ShowColumns == 1)
-			{
-				MaxTextWidth = Gf.RTFTabValue[3] + 4500;
-				Gf.RTFIndent[3] = "\\pard\\fi-" + Convert.ToString(400) + "\\li" + Convert.ToString(400) + "\\ri680\\tqr\\tx" + Convert.ToString(MaxTextWidth);
-			}
-			else
-			{
-				MaxTextWidth = Gf.RTFTabValue[3];
-				Gf.RTFIndent[3] = "\\pard\\fi-" + Convert.ToString(400) + "\\li" + Convert.ToString(400) + "\\ri680\\tqr\\tx" + Convert.ToString(MaxTextWidth);
-			}
-			Gf.RTFIndent[4] = "\\pard\\fi-" + Convert.ToString(Gf.RTFTabValue[1] + 400) + "\\li" + Convert.ToString(Gf.RTFTabValue[1] + 400) + "\\tx" + Convert.ToString(Gf.RTFTabValue[1]);
-			Gf.RTFIndent[5] = "\\pard\\fi-" + Convert.ToString(Gf.RTFTabValue[1]) + "\\li" + Convert.ToString(Gf.RTFTabValue[1]) + "\\tx" + Convert.ToString(Gf.RTFTabValue[1]);
+			paragraphs = new ParagraphLayout(Gf.PB_ShowColumns);
 			RichTextBox1.Height = 0;
 			RichTextBox1.Top = 0;
 		}
 
-		private void UpdateFontFields(ref ToolStrip InToolBar, ref NumericUpDown InUpDown, ref Panel InPanel, int bold, int italic, int underline, int fontSize, Color InColour)
+		private static void UpdateFontFields(ToolStrip toolbar, NumericUpDown size, Panel colour, PraiseBookTextStyle style)
 		{
-			((ToolStripButton)InToolBar.Items[0]).Checked = ((bold == 1) ? true : false);
-			((ToolStripButton)InToolBar.Items[1]).Checked = ((italic == 1) ? true : false);
-			((ToolStripButton)InToolBar.Items[2]).Checked = ((underline == 1) ? true : false);
-			InUpDown.Minimum = 4m;
-			InUpDown.Maximum = 72m;
-			InUpDown.Value = fontSize;
-			InPanel.BackColor = InColour;
+			((ToolStripButton)toolbar.Items[0]).Checked = style.Bold;
+			((ToolStripButton)toolbar.Items[1]).Checked = style.Italic;
+			((ToolStripButton)toolbar.Items[2]).Checked = style.Underline;
+			size.Minimum = 4m;
+			size.Maximum = 72m;
+			size.Value = style.FontSize;
+			colour.BackColor = style.Colour;
 		}
 
-		private void UpdateFontInfo(ToolStrip InToolBar, NumericUpDown InUpDown, Panel InPanel, ref int bold, ref int italic, ref int underline, ref int fontSize, ref Color InColour)
+		private static void UpdateFontInfo(ToolStrip toolbar, NumericUpDown size, Panel colour, ref PraiseBookTextStyle style)
 		{
-			bold = (((ToolStripButton)InToolBar.Items[0]).Checked ? 1 : 0);
-			italic = (((ToolStripButton)InToolBar.Items[1]).Checked ? 1 : 0);
-			underline = (((ToolStripButton)InToolBar.Items[2]).Checked ? 1 : 0);
-			fontSize = (int)InUpDown.Value;
-			InColour = InPanel.BackColor;
+			style.Bold = ((ToolStripButton)toolbar.Items[0]).Checked;
+			style.Italic = ((ToolStripButton)toolbar.Items[1]).Checked;
+			style.Underline = ((ToolStripButton)toolbar.Items[2]).Checked;
+			style.FontSize = (int)size.Value;
+			style.Colour = colour.BackColor;
 		}
 
 		private void UpdatePBFormat()
 		{
-			UpdateFontInfo(toolStripFont0, tbFontSize0, PanelFontColour0, ref Gf.PB_WordsBold[0], ref Gf.PB_WordsItalic[0], ref Gf.PB_WordsUnderline[0], ref Gf.PB_WordsSize[0], ref Gf.PB_WordsColour[0]);
-			UpdateFontInfo(toolStripFont1, tbFontSize1, PanelFontColour1, ref Gf.PB_WordsBold[1], ref Gf.PB_WordsItalic[1], ref Gf.PB_WordsUnderline[1], ref Gf.PB_WordsSize[1], ref Gf.PB_WordsColour[1]);
-			UpdateFontInfo(toolStripFont2, tbFontSize2, PanelFontColour2, ref Gf.PB_WordsBold[2], ref Gf.PB_WordsItalic[2], ref Gf.PB_WordsUnderline[2], ref Gf.PB_WordsSize[2], ref Gf.PB_WordsColour[2]);
-			UpdateFontInfo(toolStripFont3, tbFontSize3, PanelFontColour3, ref Gf.PB_WordsBold[3], ref Gf.PB_WordsItalic[3], ref Gf.PB_WordsUnderline[3], ref Gf.PB_WordsSize[3], ref Gf.PB_WordsColour[3]);
-			UpdateFontInfo(toolStripFont4, tbFontSize4, PanelFontColour4, ref Gf.PB_WordsBold[4], ref Gf.PB_WordsItalic[4], ref Gf.PB_WordsUnderline[4], ref Gf.PB_WordsSize[4], ref Gf.PB_WordsColour[4]);
-			UpdateFontInfo(toolStripFont5, tbFontSize5, PanelFontColour5, ref Gf.PB_WordsBold[5], ref Gf.PB_WordsItalic[5], ref Gf.PB_WordsUnderline[5], ref Gf.PB_WordsSize[5], ref Gf.PB_WordsColour[5]);
-			UpdateFontInfo(toolStripFont2, tbFontSize2, PanelFontColour2, ref Gf.PB_WordsBold[6], ref Gf.PB_WordsItalic[6], ref Gf.PB_WordsUnderline[6], ref Gf.PB_WordsSize[6], ref Gf.PB_WordsColour[6]);
-			UpdateFontInfo(toolStripFont2, tbFontSize2, PanelFontColour2, ref Gf.PB_WordsBold[7], ref Gf.PB_WordsItalic[7], ref Gf.PB_WordsUnderline[7], ref Gf.PB_WordsSize[7], ref Gf.PB_WordsColour[7]);
-			Gf.PB_ShowWords[0] = (optWords0.Checked ? 1 : 0);
-			Gf.PB_ShowWords[1] = (optWords1.Checked ? 1 : 0);
-			Gf.PB_ShowWords[2] = (optWords2.Checked ? 1 : 0);
-			Gf.PB_ShowWords[6] = (optWords6.Checked ? 1 : 0);
-			Gf.PB_ShowWords[7] = (optWords7.Checked ? 1 : 0);
+			UpdateFontInfo(toolStripFont0, tbFontSize0, PanelFontColour0, ref Gf.PraiseBookTextStyles[0]);
+			UpdateFontInfo(toolStripFont1, tbFontSize1, PanelFontColour1, ref Gf.PraiseBookTextStyles[1]);
+			UpdateFontInfo(toolStripFont2, tbFontSize2, PanelFontColour2, ref Gf.PraiseBookTextStyles[2]);
+			UpdateFontInfo(toolStripFont3, tbFontSize3, PanelFontColour3, ref Gf.PraiseBookTextStyles[3]);
+			UpdateFontInfo(toolStripFont4, tbFontSize4, PanelFontColour4, ref Gf.PraiseBookTextStyles[4]);
+			UpdateFontInfo(toolStripFont5, tbFontSize5, PanelFontColour5, ref Gf.PraiseBookTextStyles[5]);
+			UpdateFontInfo(toolStripFont2, tbFontSize2, PanelFontColour2, ref Gf.PraiseBookTextStyles[6]);
+			UpdateFontInfo(toolStripFont2, tbFontSize2, PanelFontColour2, ref Gf.PraiseBookTextStyles[7]);
+			Gf.PraiseBookTextStyles[0].Visible = optWords0.Checked;
+			Gf.PraiseBookTextStyles[1].Visible = optWords1.Checked;
+			Gf.PraiseBookTextStyles[2].Visible = optWords2.Checked;
+			Gf.PraiseBookTextStyles[6].Visible = optWords6.Checked;
+			Gf.PraiseBookTextStyles[7].Visible = optWords7.Checked;
 			Gf.PB_ShowHeadings[0] = (optHeadings0.Checked ? 1 : 0);
 			Gf.PB_ShowHeadings[1] = (optHeadings1.Checked ? 1 : 0);
 			Gf.PB_ShowHeadings[2] = (optHeadings2.Checked ? 1 : 0);
@@ -308,11 +313,11 @@ namespace Easislides
 					int progressPercent = 0;
 					string musicKey = "";
 					int capo = 0;
-					Gf.RTFLineSpacing = "";
+					rtfLineSpacing = "";
 					RTFLineandNotationsSpacing = "";
 					for (int i = 0; i <= Gf.PB_Spacing[0]; i++)
 					{
-						Gf.RTFLineSpacing += Gf.RTFNewLine;
+						rtfLineSpacing += Gf.RTFNewLine;
 						RTFLineandNotationsSpacing += "\n";
 					}
 					streamWriter.Write(BuildRTFHeader());
@@ -327,39 +332,35 @@ namespace Easislides
 							LoadItem(ref DocItem);
 							SongFolderLog[i] = DocItem.FolderNo;
 							string titleLine = "";
-							if (Gf.PB_ShowWords[0] > 0)
+							if (Gf.PraiseBookTextStyles[0].Visible)
 							{
 								songNumber = DataUtil.ExtractOneInfo(ref Gf.DocumentSongs[CurrentSong].NumberAndInfo, '>', RemoveExtract: false, MinusOneIfBlank: false);
 								titleLine = ((songNumber != "") ? songNumber : Convert.ToString(i + 1));
 							}
-							if (Gf.PB_ShowWords[1] > 0)
+							if (Gf.PraiseBookTextStyles[1].Visible)
 							{
-								titleLine = ((Gf.PB_ShowWords[0] <= 0) ? (Gf.FormatMode(1) + DocItem.Title) : ($"{titleLine}.{Gf.FormatMode(1)} {DocItem.Title}"));
+								titleLine = (!Gf.PraiseBookTextStyles[0].Visible ? (Gf.FormatMode(1) + DocItem.Title) : ($"{titleLine}.{Gf.FormatMode(1)} {DocItem.Title}"));
 							}
-							if ((Gf.PB_ShowWords[2] > 0) || (Gf.PB_ShowWords[6] > 0) || (Gf.PB_ShowWords[7] > 0))
+							if (Gf.PraiseBookTextStyles[2].Visible || Gf.PraiseBookTextStyles[6].Visible || Gf.PraiseBookTextStyles[7].Visible)
 							{
-								if ((Gf.PB_ShowWords[0] > 0) && (Gf.PB_ShowWords[1] > 0))
+								if (Gf.PraiseBookTextStyles[1].Visible)
 								{
 									streamWriter.Write(AddtoRTF(titleLine, 0, 0, 4, 0, 0));
 								}
-								else if ((Gf.PB_ShowWords[0] < 1) && (Gf.PB_ShowWords[1] > 0))
-								{
-									streamWriter.Write(AddtoRTF(titleLine, 0, 0, 4, 0, 0));
-								}
-								else if ((Gf.PB_ShowWords[0] > 0) && (Gf.PB_ShowWords[1] < 1))
+								else if (Gf.PraiseBookTextStyles[0].Visible)
 								{
 									titleLine = $"{titleLine}.{Gf.FormatMode(2)} {DocItem.Copyright} {DocItem.Book_Reference} {DocItem.User_Reference}";
 									streamWriter.Write(AddtoRTF(titleLine, 0, 0, 4, 0, 0));
 								}
-								if ((Gf.PB_ShowWords[2] > 0) && (DocItem.Copyright != ""))
+								if (Gf.PraiseBookTextStyles[2].Visible && (DocItem.Copyright != ""))
 								{
 									streamWriter.Write(AddtoRTF(DocItem.Copyright, 0, 2, 0, 0, 0));
 								}
-								if ((Gf.PB_ShowWords[6] > 0) && (DocItem.Book_Reference != ""))
+								if (Gf.PraiseBookTextStyles[6].Visible && (DocItem.Book_Reference != ""))
 								{
 									streamWriter.Write(AddtoRTF(DocItem.Book_Reference, 0, 2, 0, 0, 0));
 								}
-								if ((Gf.PB_ShowWords[7] > 0) && (DocItem.User_Reference != ""))
+								if (Gf.PraiseBookTextStyles[7].Visible && (DocItem.User_Reference != ""))
 								{
 									streamWriter.Write(AddtoRTF(DocItem.User_Reference, 0, 2, 0, 0, 0));
 								}
@@ -620,12 +621,12 @@ namespace Easislides
 					{
 						DocItem.FolderNo = SongFolderLog[0];
 						streamWriter.Write(AddtoRTF("INDEX", 0, 0, 4, 0, 0));
-						streamWriter.Write(AddtoRTF(Gf.RTFIndent[3] + "\\tab", 0, 3, 0, 0, 0));
+						streamWriter.Write(AddtoRTF(paragraphs.IndexIndent + "\\tab", 0, 3, 0, 0, 0));
 						if (DataUtil.Left(Gf.DocumentSongs[1].IndexGroup, 1) != " ")
 						{
-							streamWriter.Write(AddtoRTF(Convert.ToString(Convert.ToInt32(Gf.DocumentSongs[1].IndexGroup)) + Gf.RTFIndent[3] + "\\tab", 0, 3, 0, 0, 0));
+							streamWriter.Write(AddtoRTF(Convert.ToString(Convert.ToInt32(Gf.DocumentSongs[1].IndexGroup)) + paragraphs.IndexIndent + "\\tab", 0, 3, 0, 0, 0));
 						}
-						string inString = ((Gf.DocumentSongs[1].Title.Length < 4) ? (Gf.DocumentSongs[1].Title + " ") : Gf.DocumentSongs[1].Title) + Gf.RTFIndent[3] + "\\tab " + ((DataUtil.ExtractOneInfo(ref Gf.DocumentSongs[1].NumberAndInfo, '>', RemoveExtract: false, MinusOneIfBlank: false) == "") ? "1" : DataUtil.ExtractOneInfo(ref Gf.DocumentSongs[1].NumberAndInfo, '>', RemoveExtract: false, MinusOneIfBlank: false));
+						string inString = ((Gf.DocumentSongs[1].Title.Length < 4) ? (Gf.DocumentSongs[1].Title + " ") : Gf.DocumentSongs[1].Title) + paragraphs.IndexIndent + "\\tab " + ((DataUtil.ExtractOneInfo(ref Gf.DocumentSongs[1].NumberAndInfo, '>', RemoveExtract: false, MinusOneIfBlank: false) == "") ? "1" : DataUtil.ExtractOneInfo(ref Gf.DocumentSongs[1].NumberAndInfo, '>', RemoveExtract: false, MinusOneIfBlank: false));
 						streamWriter.Write(AddtoRTF(inString, 0, 3, 0, 0, 0));
 						for (int i = 2; i <= Gf.TotalPraiseBookItems; i++)
 						{
@@ -633,16 +634,16 @@ namespace Easislides
 							{
 								if (DataUtil.Left(Gf.DocumentSongs[i].IndexGroup, 1) == " ")
 								{
-									streamWriter.Write(AddtoRTF(Gf.RTFIndent[3] + "\\tab", 0, 3, 0, 0, 0));
+									streamWriter.Write(AddtoRTF(paragraphs.IndexIndent + "\\tab", 0, 3, 0, 0, 0));
 								}
 								else if (Convert.ToInt32(Gf.DocumentSongs[i].IndexGroup) < 17)
 								{
-									streamWriter.Write(AddtoRTF(Gf.RTFIndent[3] + "\\tab", 0, 3, 0, 0, 0));
-									streamWriter.Write(AddtoRTF(Convert.ToString(Convert.ToInt32(Gf.DocumentSongs[i].IndexGroup)) + ((Convert.ToInt32(Gf.DocumentSongs[i].IndexGroup) == 16) ? "+" : "") + Gf.RTFIndent[3] + "\\tab", 0, 3, 0, 0, 0));
+									streamWriter.Write(AddtoRTF(paragraphs.IndexIndent + "\\tab", 0, 3, 0, 0, 0));
+									streamWriter.Write(AddtoRTF(Convert.ToString(Convert.ToInt32(Gf.DocumentSongs[i].IndexGroup)) + ((Convert.ToInt32(Gf.DocumentSongs[i].IndexGroup) == 16) ? "+" : "") + paragraphs.IndexIndent + "\\tab", 0, 3, 0, 0, 0));
 								}
 							}
 							DocItem.FolderNo = SongFolderLog[i - 1];
-							inString = ((Gf.DocumentSongs[i].Title.Length < 4) ? (Gf.DocumentSongs[i].Title + " ") : Gf.DocumentSongs[i].Title) + Gf.RTFIndent[3] + "\\tab " + ((DataUtil.ExtractOneInfo(ref Gf.DocumentSongs[i].NumberAndInfo, '>', RemoveExtract: false, MinusOneIfBlank: false) == "") ? i.ToString() : DataUtil.ExtractOneInfo(ref Gf.DocumentSongs[i].NumberAndInfo, '>', RemoveExtract: false, MinusOneIfBlank: false));
+							inString = ((Gf.DocumentSongs[i].Title.Length < 4) ? (Gf.DocumentSongs[i].Title + " ") : Gf.DocumentSongs[i].Title) + paragraphs.IndexIndent + "\\tab " + ((DataUtil.ExtractOneInfo(ref Gf.DocumentSongs[i].NumberAndInfo, '>', RemoveExtract: false, MinusOneIfBlank: false) == "") ? i.ToString() : DataUtil.ExtractOneInfo(ref Gf.DocumentSongs[i].NumberAndInfo, '>', RemoveExtract: false, MinusOneIfBlank: false));
 							streamWriter.Write(AddtoRTF(inString, 0, 3, 0, 0, 0));
 						}
 					}
@@ -710,9 +711,9 @@ namespace Easislides
 			fontTable += "}";
 			for (int l = 0; l < 6; l++)
 			{
-				colourTable = colourTable + "\\red" + Gf.PB_WordsColour[l].R;
-				colourTable = colourTable + "\\green" + Gf.PB_WordsColour[l].G;
-				colourTable = colourTable + "\\blue" + Gf.PB_WordsColour[l].B + ";";
+				colourTable = colourTable + "\\red" + Gf.PraiseBookTextStyles[l].Colour.R;
+				colourTable = colourTable + "\\green" + Gf.PraiseBookTextStyles[l].Colour.G;
+				colourTable = colourTable + "\\blue" + Gf.PraiseBookTextStyles[l].Colour.B + ";";
 			}
 			colourTable += "}";
 			string header = rtfStart + fontTable + colourTable + viewSettings;
@@ -746,8 +747,6 @@ namespace Easislides
 			string tabPrefix = "";
 			string rtfBody = "";
 			string rtfPrefix = "";
-			string lineFormat = "";
-			string indent = "";
 			string notations = "";
 			string lyricLine = "";
 			string lineSuffix = "";
@@ -755,7 +754,6 @@ namespace Easislides
 			{
 				InString = "";
 			}
-			indent = Gf.RTFIndent[TabNum];
 			if (TabNum > 0 && TabNum < 4)
 			{
 				tabPrefix = Gf.RTFTab;
@@ -765,21 +763,21 @@ namespace Easislides
 				tabPrefix = Gf.RTFTab;
 			}
 			FontStyle fontStyle = FontStyle.Regular;
-			if (Gf.PB_WordsBold[FormatOption] > 0)
+			if (Gf.PraiseBookTextStyles[FormatOption].Bold)
 			{
 				fontStyle |= FontStyle.Bold;
 			}
-			if (Gf.PB_WordsItalic[FormatOption] > 0)
+			if (Gf.PraiseBookTextStyles[FormatOption].Italic)
 			{
 				fontStyle |= FontStyle.Italic;
 			}
-			if (Gf.PB_WordsUnderline[FormatOption] > 0)
+			if (Gf.PraiseBookTextStyles[FormatOption].Underline)
 			{
 				fontStyle |= FontStyle.Underline;
 			}
-			int notationsFontSize = Gf.PB_WordsSize[5];
+			int notationsFontSize = Gf.PraiseBookTextStyles[5].FontSize;
 			FontStyle style = fontStyle | FontStyle.Italic;
-			Font mainFont = new Font(FList[FolderFNum[folderNo, Section]], Gf.PB_WordsSize[FormatOption], fontStyle);
+			Font mainFont = new Font(FList[FolderFNum[folderNo, Section]], Gf.PraiseBookTextStyles[FormatOption].FontSize, fontStyle);
 			Font notationsFont = new Font(FList[FolderFNum[folderNo, Section]], notationsFontSize, style);
 			rtfPrefix = "\\f" + Convert.ToString(FolderFNum[folderNo, Section]);
 			string notationsFormat = "\\fs" + Convert.ToString(notationsFontSize * 2) + Gf.FormatMode(5);
@@ -800,8 +798,7 @@ namespace Easislides
 			{
 				rtfPrefix += tabPrefix;
 			}
-			lineFormat = Gf.RTFIndent[TabNum];
-			lineFormat += Gf.FormatMode(FormatOption);
+			string lineFormat = paragraphs.GetIndent(TabNum) + Gf.FormatMode(FormatOption);
 			rtfBody = "";
 			notations = "";
 			string notationLine = "";
@@ -837,7 +834,7 @@ namespace Easislides
 							{
 								notations = Gf.TransposeOneNotationString(notations, InTransposeOffset, -1);
 							}
-							Gf.SubDivideTextAndNotations(lyricLine, notations, mainFont, notationsFont, ref SubDivideList, MaxTextWidth - 400 - 200);
+							Gf.SubDivideTextAndNotations(lyricLine, notations, mainFont, notationsFont, ref SubDivideList, paragraphs.TextWidth - 400 - 200);
 							InString += Gf.FormatMode(FormatOption);
 							for (int k = 0; k < SubDivideList.Items.Count; k++)
 							{
@@ -913,11 +910,11 @@ namespace Easislides
 					}
 					else if (i == InString.Length - 1)
 					{
-						rtfBody = rtfBody + "\r\n" + Gf.RTFLineSpacing + lineFormat;
+						rtfBody = rtfBody + "\r\n" + rtfLineSpacing + lineFormat;
 					}
 					else
 					{
-						string lineSpacing = (DataUtil.Mid(InString, i + 2, 1) == DummyNotationSym) ? Gf.RTFNewLine : Gf.RTFLineSpacing;
+						string lineSpacing = (DataUtil.Mid(InString, i + 2, 1) == DummyNotationSym) ? Gf.RTFNewLine : rtfLineSpacing;
 						rtfBody = rtfBody + "\r\n" + lineSpacing + tabPrefix + lineFormat;
 					}
 				}

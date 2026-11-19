@@ -165,16 +165,16 @@ public partial class WorshipListPanel : UserControl
         viewModel.StatusText = "Word 문서를 읽는 중...";
         await System.Windows.Threading.Dispatcher.Yield(System.Windows.Threading.DispatcherPriority.Render);
 
-        var text = new OfficeLib.WordDoc().GetContents(fileName);
-        viewModel.AddWordTextItem(text);
+        var documentText = new OfficeLib.WordDoc().GetContents(fileName);
+        viewModel.AddWordTextItem(documentText);
     }
 
     private static async Task AddTextFileAsNoticeAsync(MainViewModel viewModel, string fileName)
     {
         try
         {
-            var text = await File.ReadAllTextAsync(fileName).ConfigureAwait(true);
-            viewModel.AddTextFileItem(fileName, ExtractLegacyInfoScreenText(text));
+            var fileContents = await File.ReadAllTextAsync(fileName).ConfigureAwait(true);
+            viewModel.AddTextFileItem(fileName, ExtractLegacyInfoScreenText(fileContents));
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {

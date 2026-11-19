@@ -67,32 +67,27 @@ namespace Easislides
 			return false;
 		}
 
+		private static string[] installedFontNames = [];
+
 		public static void BuildFontsList(ref ToolStripComboBox InTSComboBox)
 		{
-			if (FontsListMaxIndex < 0)
+			if (installedFontNames.Length == 0)
 			{
-				using (InstalledFontCollection installedFontCollection = new InstalledFontCollection())
+				using var installedFonts = new InstalledFontCollection();
+				FontFamily[] families = installedFonts.Families;
+				var names = new string[families.Length];
+				for (int i = 0; i < families.Length; i++)
 				{
-					FontFamily[] families = installedFontCollection.Families;
-					FontsListMaxIndex = -1;
-					foreach (FontFamily fontFamily in families)
-					{
-						if (FontsListMaxIndex + 1 >= FontsList.Length)
-						{
-							break;
-						}
-						FontsList[++FontsListMaxIndex] = fontFamily.Name;
-					}
+					using FontFamily family = families[i];
+					names[i] = family.Name;
 				}
+				installedFontNames = names;
 			}
-			if (FontsListMaxIndex >= 0)
+			if (installedFontNames.Length > 0)
 			{
 				InTSComboBox.Items.Clear();
 				InTSComboBox.Sorted = false;
-				for (int j = 0; j <= FontsListMaxIndex; j++)
-				{
-					InTSComboBox.Items.Add(FontsList[j]);
-				}
+				InTSComboBox.Items.AddRange(installedFontNames);
 				InTSComboBox.Sorted = true;
 				InTSComboBox.SelectedIndex = 0;
 			}

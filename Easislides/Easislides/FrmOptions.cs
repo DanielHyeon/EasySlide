@@ -4,25 +4,10 @@ using System.ComponentModel;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
-using System.Data;
 using Easislides.Util;
-//using System.Data.SQLite;
-using Easislides.SQLite;
 using Easislides.Module;
 using Easislides.Global;
 using System.Collections.Generic;
-
-#if SQLite
-using DbConnection = System.Data.SQLite.SQLiteConnection;
-using DbDataAdapter = System.Data.SQLite.SQLiteDataAdapter;
-#elif MariaDB
-using DbConnection = MySql.Data.MySqlClient.MySqlConnection;
-using DbDataAdapter = MySql.Data.MySqlClient.MySqlDataAdapter;
-using DbCommandBuilder = MySql.Data.MySqlClient.MySqlCommandBuilder;
-using DbCommand = MySql.Data.MySqlClient.MySqlCommand;
-using DbDataReader = MySql.Data.MySqlClient.MySqlDataReader;
-using DbTransaction = MySql.Data.MySqlClient.MySqlTransaction;
-#endif
 
 namespace Easislides
 {
@@ -40,11 +25,8 @@ namespace Easislides
 
         private float SampleSplitterHorizontalIncrement = 1.4f;
 
-        // Working copies of Gf.Folders, edited on the Folders tab and written back by SaveVariables (OK). Entries 1-40 are
-        // replaced by copies in FrmOptions_Load; entry 0 is never copied (as element 0 of the arrays this replaced was not)
-        // and keeps their defaults, a null Name included. The flags that were bool copies here (Use, FontBold, FontItalic,
-        // FontUnderline, FontRTL, HeadingFontBold, HeadingFontItalic, HeadingFontUnderline) only ever hold 1 or 0.
-        private FolderSettings[] tempFolders = CreateTempFolders();
+        // Slots 1–40 are cloned on load and written back on OK. Slot 0 has its own defaults.
+        private readonly FolderSettings[] tempFolders = new FolderSettings[Gf.MAXSONGSFOLDERS];
 
         private int[,] tempShowFontVPositionMax = new int[Gf.MAXSONGSFOLDERS, 2];
 
@@ -52,22 +34,13 @@ namespace Easislides
 
         private bool LoadTempPos = false;
 
-        private int tempHB_TotalVersions = 0;
+        private BibleVersionCatalog originalBibleVersions;
 
 		public FrmOptions()
         {
+            tempFolders[0] = new FolderSettings { Name = null };
             InitializeComponent();
             InitModernUi();
-        }
-
-        private static FolderSettings[] CreateTempFolders()
-        {
-            FolderSettings[] folders = new FolderSettings[Gf.MAXSONGSFOLDERS];
-            for (int i = 0; i < folders.Length; i++)
-            {
-                folders[i] = new FolderSettings { Name = null };
-            }
-            return folders;
         }
 
         private void FrmOptions_Load(object sender, EventArgs e)
@@ -158,11 +131,19 @@ namespace Easislides
 
         private void BtnOK_Click(object sender, EventArgs e)
         {
-            SaveVariables();
             if (Gf.Options_BibleListChanged)
             {
-                SaveBibleChanges();
+                try
+                {
+                    SaveBibleChanges();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(this, ex.Message, "Could not save the Bible list", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
             }
+            SaveVariables();
             //SaveLicenceChanges();
             Gf.Options_SelectedTabIndex = tabControl1.SelectedIndex;
             base.DialogResult = DialogResult.OK;
@@ -635,17 +616,16 @@ namespace Easislides
         private void HeadingsFont_Italics_DropDownItemClicked(object sender, ToolStripItemClickedEventArgs e)
         {
             Gf.AssignDropDownItem(ref HeadingsFont_Italics, e.ClickedItem.Name, HeadingsFont_Italics0, HeadingsFont_Italics1, HeadingsFont_Italics2);
-            int num = DataUtil.ObjToInt(HeadingsFont_Italics.Tag);
-            int num2 = num;
-            if (num2 == 2)
+            int italicMode = DataUtil.ObjToInt(HeadingsFont_Italics.Tag);
+            if (italicMode == 2)
             {
                 tempFolders[CurFolder].HeadingFontItalic[0] = 0;
                 tempFolders[CurFolder].HeadingFontItalic[1] = 1;
             }
             else
             {
-                tempFolders[CurFolder].HeadingFontItalic[0] = ((num > 0) ? 1 : 0);
-                tempFolders[CurFolder].HeadingFontItalic[1] = ((num > 0) ? 1 : 0);
+                tempFolders[CurFolder].HeadingFontItalic[0] = ((italicMode > 0) ? 1 : 0);
+                tempFolders[CurFolder].HeadingFontItalic[1] = ((italicMode > 0) ? 1 : 0);
             }
         }
 
@@ -777,17 +757,16 @@ namespace Easislides
         private void ToolBarFont_R1Italics_DropDownItemClicked(object sender, ToolStripItemClickedEventArgs e)
         {
             Gf.AssignDropDownItem(ref ToolBarFont_R1Italics, e.ClickedItem.Name, ToolBarFont_R1Italics0, ToolBarFont_R1Italics1, ToolBarFont_R1Italics2);
-            int num = DataUtil.ObjToInt(ToolBarFont_R1Italics.Tag);
-            int num2 = num;
-            if (num2 == 2)
+            int italicMode = DataUtil.ObjToInt(ToolBarFont_R1Italics.Tag);
+            if (italicMode == 2)
             {
                 tempFolders[CurFolder].FontItalic[0] = 0;
                 tempFolders[CurFolder].FontItalic[2] = 1;
             }
             else
             {
-                tempFolders[CurFolder].FontItalic[0] = ((num > 0) ? 1 : 0);
-                tempFolders[CurFolder].FontItalic[2] = ((num > 0) ? 1 : 0);
+                tempFolders[CurFolder].FontItalic[0] = ((italicMode > 0) ? 1 : 0);
+                tempFolders[CurFolder].FontItalic[2] = ((italicMode > 0) ? 1 : 0);
             }
             UpdateFontDisplay();
         }
@@ -815,17 +794,16 @@ namespace Easislides
         private void ToolBarFont_R2Italics_DropDownItemClicked(object sender, ToolStripItemClickedEventArgs e)
         {
             Gf.AssignDropDownItem(ref ToolBarFont_R2Italics, e.ClickedItem.Name, ToolBarFont_R2Italics0, ToolBarFont_R2Italics1, ToolBarFont_R2Italics2);
-            int num = DataUtil.ObjToInt(ToolBarFont_R2Italics.Tag);
-            int num2 = num;
-            if (num2 == 2)
+            int italicMode = DataUtil.ObjToInt(ToolBarFont_R2Italics.Tag);
+            if (italicMode == 2)
             {
                 tempFolders[CurFolder].FontItalic[1] = 0;
                 tempFolders[CurFolder].FontItalic[3] = 1;
             }
             else
             {
-                tempFolders[CurFolder].FontItalic[1] = ((num > 0) ? 1 : 0);
-                tempFolders[CurFolder].FontItalic[3] = ((num > 0) ? 1 : 0);
+                tempFolders[CurFolder].FontItalic[1] = ((italicMode > 0) ? 1 : 0);
+                tempFolders[CurFolder].FontItalic[3] = ((italicMode > 0) ? 1 : 0);
             }
             UpdateFontDisplay();
         }
@@ -937,59 +915,29 @@ namespace Easislides
 
         private void BuildBibleList()
         {
-            tempHB_TotalVersions = 0;
-            ListViewItem listViewItem = new ListViewItem();
-            string fullSearchString = "select * from Biblefolder where name like \"*\" and displayorder >=0 order by displayorder, name";
-
-            fullSearchString = fullSearchString.Replace("\"*\"", "\"%\"");
-
+            originalBibleVersions = null;
+            BibleList.Items.Clear();
             try
             {
-                using DataTable datatable = DbController.GetDataTable(Gf.ConnectSQLiteDef + Gf.BiblesListFileName, fullSearchString);
-                BibleList.Items.Clear();
-                if (datatable.Rows.Count > 0)
-                {
-
-                    foreach (DataRow dr in datatable.Rows)
-                    {
-                        if (tempHB_TotalVersions <= 250)
-                        {
-                            listViewItem = BibleList.Items.Add(DataUtil.GetDataString(dr, "name"));
-                            string InFileName = DataUtil.GetDataString(dr, "filename");
-                            if (File.Exists(Gf.BibleDir + InFileName))
-                            {
-                                listViewItem.ImageIndex = 4;
-                                listViewItem.SubItems.Add(DataUtil.GetDataString(dr, "description"));
-                            }
-                            else
-                            {
-                                listViewItem.ImageIndex = 27;
-                                listViewItem.SubItems.Add("** Cannot find Bible - please check Filename!");
-                            }
-                            listViewItem.SubItems.Add(Gf.GetDisplayNameOnly(ref InFileName, UpdateByRef: false, KeepExt: true));
-                            listViewItem.SubItems.Add(DataUtil.GetDataString(dr, "copyright"));
-                            string text = DataUtil.GetDataString(dr, "songfolder");
-                            if ((text == "") | (text == "0"))
-                            {
-                                text = "1";
-                            }
-                            listViewItem.SubItems.Add(text);
-                            text = DataUtil.GetDataString(dr, "size");
-                            if ((text == "") | (text == "0"))
-                            {
-                                text = "80";
-                            }
-                            listViewItem.SubItems.Add(text);
-                        }
-                    }
+                originalBibleVersions = BibleVersionCatalog.Load(Gf.ConnectStringBibleDB);
+                foreach (var version in originalBibleVersions)
+                    AddBibleRow(version);
+                if (BibleList.Items.Count > 0)
                     BibleList.Items[0].Selected = true;
-                }
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
-                Console.WriteLine(ex.StackTrace);
+                Console.WriteLine(ex);
             }
+        }
+
+        private void AddBibleRow(BibleVersion version)
+        {
+            bool available = File.Exists(Gf.BibleDir + version.FileName);
+            string description = available ? version.Description : "** Cannot find Bible - please check Filename!";
+            BibleList.Items.Add(new ListViewItem([version.Name, description, Path.GetFileName(version.FileName),
+                version.Copyright, version.SongFolder.ToString(), version.FontSize.ToString()], available ? 4 : 27)
+                { Tag = version });
         }
 
         private void BuildBibleAssociatedFolder()
@@ -1008,47 +956,40 @@ namespace Easislides
         private void btnBibleSearch_Click(object sender, EventArgs e)
         {
             Cursor = Cursors.WaitCursor;
-            string text = "";
-            string Name = "";
-            string Description = "";
-            string Copyright = "";
-            string Info = "";
-            ListViewItem listViewItem = new ListViewItem();
             BibleSearchList.Items.Clear();
-            string[] files = Directory.GetFiles(Gf.BibleDir, "*.mdb");
+            var listedFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (ListViewItem row in BibleList.Items)
+                listedFiles.Add(((BibleVersion)row.Tag).FileName);
             try
             {
-                string[] array = files;
-                foreach (string text2 in array)
+                foreach (string path in FindUnlistedBibleFiles(Gf.BibleDir, listedFiles))
                 {
-                    text = text2;
-                    if (Gf.LookUpBibleName(text, ref Name, ref Description, ref Copyright, ref Info) && !BibleFileNameOnBibleList(text))
+                    string name = "", description = "", copyright = "", info = "";
+                    if (Gf.LookUpBibleName(path, ref name, ref description, ref copyright, ref info))
                     {
-                        listViewItem = BibleSearchList.Items.Add(Name);
-                        listViewItem.ImageIndex = 4;
-                        listViewItem.SubItems.Add(Description);
-                        listViewItem.SubItems.Add(Gf.GetDisplayNameOnly(ref text, UpdateByRef: false, KeepExt: true));
-                        listViewItem.SubItems.Add(Copyright);
+                        BibleSearchList.Items.Add(new ListViewItem([name, description, Path.GetFileName(path), copyright], 4));
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine(ex);
             }
-            Cursor = Cursors.Default;
+            finally
+            {
+                Cursor = Cursors.Default;
+            }
         }
 
-        private bool BibleFileNameOnBibleList(string InFileName)
+        internal static IEnumerable<string> FindUnlistedBibleFiles(string directory, HashSet<string> listedFiles)
         {
-            Gf.GetDisplayNameOnly(ref InFileName, UpdateByRef: true, KeepExt: true);
-            for (int i = 0; i <= BibleList.Items.Count - 1; i++)
+            foreach (string path in Directory.EnumerateFiles(directory))
             {
-                if (BibleList.Items[i].SubItems[2].Text == InFileName)
-                {
-                    return true;
-                }
+                string extension = Path.GetExtension(path);
+                if ((extension.Equals(".db", StringComparison.OrdinalIgnoreCase) ||
+                     extension.Equals(".mdb", StringComparison.OrdinalIgnoreCase)) && !listedFiles.Contains(Path.GetFileName(path)))
+                    yield return path;
             }
-            return false;
         }
 
         private void btnBibleAdd_Click(object sender, EventArgs e)
@@ -1073,19 +1014,14 @@ namespace Easislides
                 MessageBox.Show("Please select a Bible from the list to Add!");
                 return;
             }
-            ListViewItem listViewItem = new ListViewItem();
-            for (int num = BibleSearchList.Items.Count - 1; num >= 0; num--)
+            for (int index = BibleSearchList.Items.Count - 1; index >= 0; index--)
             {
-                if (BibleSearchList.Items[num].Selected)
+                var result = BibleSearchList.Items[index];
+                if (result.Selected)
                 {
-                    listViewItem = BibleList.Items.Add(BibleSearchList.Items[num].Text);
-                    listViewItem.ImageIndex = 4;
-                    listViewItem.SubItems.Add(BibleSearchList.Items[num].SubItems[1].Text);
-                    listViewItem.SubItems.Add(BibleSearchList.Items[num].SubItems[2].Text);
-                    listViewItem.SubItems.Add(BibleSearchList.Items[num].SubItems[3].Text);
-                    listViewItem.SubItems.Add("1");
-                    listViewItem.SubItems.Add("80");
-                    BibleSearchList.Items[num].Remove();
+                    AddBibleRow(new(null, result.Text, result.SubItems[2].Text, result.SubItems[1].Text,
+                        result.SubItems[3].Text, 1, 80));
+                    result.Remove();
                 }
             }
             Gf.Options_BibleListChanged = true;
@@ -1103,11 +1039,11 @@ namespace Easislides
                 MessageBox.Show("Please select a Bible from the list to Remove");
                 return;
             }
-            for (int num = BibleList.Items.Count - 1; num >= 0; num--)
+            for (int bibleIndex = BibleList.Items.Count - 1; bibleIndex >= 0; bibleIndex--)
             {
-                if (BibleList.Items[num].Selected)
+                if (BibleList.Items[bibleIndex].Selected)
                 {
-                    BibleList.Items[num].Remove();
+                    BibleList.Items[bibleIndex].Remove();
                 }
             }
             Gf.Options_BibleListChanged = true;
@@ -1123,11 +1059,11 @@ namespace Easislides
             }
             else if (name == "Bibles_Up")
             {
-                MoveBibleUp();
+                MoveSelectedBible(-1);
             }
             else if (name == "Bibles_Down")
             {
-                MoveBibleDown();
+                MoveSelectedBible(1);
             }
         }
 
@@ -1141,7 +1077,7 @@ namespace Easislides
             int selectedIndex = Gf.GetSelectedIndex(BibleList);
             if (selectedIndex >= 0)
             {
-                string fileName = Gf.BibleDir + BibleList.Items[selectedIndex].SubItems[2].Text;
+                string fileName = Gf.BibleDir + ((BibleVersion)BibleList.Items[selectedIndex].Tag).FileName;
                 string Name = "";
                 string Description = "";
                 string Copyright = "";
@@ -1153,139 +1089,30 @@ namespace Easislides
             }
         }
 
-        private void MoveBibleUp()
+        private void MoveSelectedBible(int offset)
         {
-            int count = BibleList.Items.Count;
-            if (count < 1)
-            {
+            int index = Gf.GetSelectedIndex(BibleList);
+            int destination = index + offset;
+            if (index < 0 || destination < 0 || destination >= BibleList.Items.Count)
                 return;
-            }
-            int selectedIndex = Gf.GetSelectedIndex(BibleList);
-            if (selectedIndex >= 1)
-            {
-                for (int i = 0; i <= 5; i++)
-                {
-                    string text = BibleList.Items[selectedIndex].SubItems[i].Text;
-                    BibleList.Items[selectedIndex].SubItems[i].Text = BibleList.Items[selectedIndex - 1].SubItems[i].Text;
-                    BibleList.Items[selectedIndex - 1].SubItems[i].Text = text;
-                }
-                int imageIndex = BibleList.Items[selectedIndex].ImageIndex;
-                BibleList.Items[selectedIndex].ImageIndex = BibleList.Items[selectedIndex - 1].ImageIndex;
-                BibleList.Items[selectedIndex - 1].ImageIndex = imageIndex;
-                BibleList.Items[selectedIndex].Selected = false;
-                BibleList.Items[selectedIndex - 1].Selected = true;
-                BibleList.EnsureVisible(selectedIndex - 1);
-                Gf.Options_BibleListChanged = true;
-            }
-        }
 
-        private void MoveBibleDown()
-        {
-            int count = BibleList.Items.Count;
-            if (count <= 1)
-            {
-                return;
-            }
-            int selectedIndex = Gf.GetSelectedIndex(BibleList);
-            if (!((selectedIndex < 0) | (selectedIndex == count - 1)))
-            {
-                for (int i = 0; i <= 5; i++)
-                {
-                    string text = BibleList.Items[selectedIndex].SubItems[i].Text;
-                    BibleList.Items[selectedIndex].SubItems[i].Text = BibleList.Items[selectedIndex + 1].SubItems[i].Text;
-                    BibleList.Items[selectedIndex + 1].SubItems[i].Text = text;
-                }
-                int imageIndex = BibleList.Items[selectedIndex].ImageIndex;
-                BibleList.Items[selectedIndex].ImageIndex = BibleList.Items[selectedIndex + 1].ImageIndex;
-                BibleList.Items[selectedIndex + 1].ImageIndex = imageIndex;
-                BibleList.Items[selectedIndex].Selected = false;
-                BibleList.Items[selectedIndex + 1].Selected = true;
-                BibleList.EnsureVisible(selectedIndex + 1);
-                Gf.Options_BibleListChanged = true;
-            }
+            var item = BibleList.Items[index];
+            item.Remove();
+            BibleList.Items.Insert(destination, item);
+            item.Selected = true;
+            item.Focused = true;
+            item.EnsureVisible();
+            Gf.Options_BibleListChanged = true;
         }
 
         public void SaveBibleChanges()
         {
-            using DbConnection connection = DbController.GetDbConnection(Gf.ConnectStringSQLiteDef + Gf.BiblesListFileName);
-            DbDataAdapter sQLiteDataAdapter;
-            DataTable dataTable;
-            try
-            {
-                string query = "select * from Biblefolder where NAME like \"%\" ";
-
-                (sQLiteDataAdapter, dataTable) = DbController.GetDataAdapter(connection, query);
-
-                if (dataTable.Rows.Count > 0)
-                {
-                    foreach (DataRow dr in dataTable.Rows)
-                    {
-                        dr["displayorder"] = -1;
-                    }
-                    sQLiteDataAdapter.Update(dataTable);
-                }
-
-                for (int i = 0; i < BibleList.Items.Count; i++)
-                {
-                    (sQLiteDataAdapter, dataTable) = DbController.GetDataAdapter(connection, "select * from Biblefolder where FILENAME = \"" + BibleList.Items[i].SubItems[2].Text + "\"");
-
-                    if (dataTable.Rows.Count > 0)
-                    {
-                        DataRow dr = dataTable.Rows[i];
-                        dr["name"] = BibleList.Items[i].Text;
-                        dr["description"] = BibleList.Items[i].SubItems[1].Text;
-                        dr["filename"] = BibleList.Items[i].SubItems[2].Text;
-                        dr["copyright"] = BibleList.Items[i].SubItems[3].Text;
-                        dr["songfolder"] = BibleList.Items[i].SubItems[4].Text;
-                        int num = (BibleList.Items[i].SubItems[5].Text == "") ? 1 : Convert.ToInt32(BibleList.Items[i].SubItems[5].Text);
-                        dr["size"] = num;
-                        dr["displayorder"] = i;
-                    }
-                    else
-                    {
-                        query = "select * from Biblefolder where NAME like \"%\" ";
-                        (sQLiteDataAdapter, dataTable) = DbController.GetDataAdapter(connection, query);
-
-                        DataRow dr = dataTable.NewRow();
-                        dr["name"] = BibleList.Items[i].Text;
-                        dr["description"] = BibleList.Items[i].SubItems[1].Text;
-                        dr["filename"] = BibleList.Items[i].SubItems[2].Text;
-                        dr["copyright"] = BibleList.Items[i].SubItems[3].Text;
-                        dr["songfolder"] = BibleList.Items[i].SubItems[4].Text;
-                        int num = (BibleList.Items[i].SubItems[5].Text == "") ? 1 : Convert.ToInt32(BibleList.Items[i].SubItems[5].Text);
-                        dr["size"] = num;
-                        dr["displayorder"] = i;
-                    }
-                    sQLiteDataAdapter.Update(dataTable);
-                    dataTable.Dispose();
-
-                    Gf.HB_Versions[i, 1] = BibleList.Items[i].Text;
-                    Gf.HB_Versions[i, 2] = BibleList.Items[i].SubItems[1].Text;
-                    Gf.HB_Versions[i, 4] = Gf.BibleDir + BibleList.Items[i].SubItems[2].Text;
-                    Gf.HB_Versions[i, 3] = BibleList.Items[i].SubItems[3].Text;
-                    Gf.HB_Versions[i, 5] = BibleList.Items[i].SubItems[4].Text;
-                    Gf.HB_Versions[i, 6] = BibleList.Items[i].SubItems[5].Text;
-                }
-
-                Gf.HB_TotalVersions = BibleList.Items.Count;
-                (sQLiteDataAdapter, dataTable) = DbController.GetDataAdapter(connection, "select * from Biblefolder where displayorder < 0 ");
-
-                if (dataTable.Rows.Count > 0)
-                {
-                    for (int i = 0; i < dataTable.Rows.Count; i++)
-                    {
-                        dataTable.Rows[i].Delete();
-                    }
-                    sQLiteDataAdapter.Update(dataTable);
-                }
-
-                dataTable.Dispose();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                Console.WriteLine(ex.StackTrace);
-            }
+            if (originalBibleVersions == null)
+                throw new InvalidOperationException("Reopen Options to reload the Bible list before saving.");
+            var edited = new List<BibleVersion>(BibleList.Items.Count);
+            foreach (ListViewItem item in BibleList.Items)
+                edited.Add((BibleVersion)item.Tag);
+            originalBibleVersions.Save(Gf.ConnectStringBibleDB, edited);
         }
 
         private void btnBibleNameChange_Click(object sender, EventArgs e)
@@ -1307,7 +1134,9 @@ namespace Easislides
             FrmBibleRename frmBibleRename = new FrmBibleRename();
             if (frmBibleRename.ShowDialog() == DialogResult.OK)
             {
-                BibleList.Items[selectedIndex].Text = Gf.Rename_String;
+                var item = BibleList.Items[selectedIndex];
+                item.Tag = ((BibleVersion)item.Tag) with { Name = Gf.Rename_String };
+                item.Text = Gf.Rename_String;
                 Gf.Options_BibleListChanged = true;
             }
         }
@@ -1322,59 +1151,58 @@ namespace Easislides
             int selectedIndex = Gf.GetSelectedIndex(BibleList);
             if (selectedIndex >= 0)
             {
+                var version = (BibleVersion)BibleList.Items[selectedIndex].Tag;
+                bool wasLoading = InitFormLoad;
                 InitFormLoad = true;
-                BibleAssociatedFolder.Text = tempFolders[Convert.ToInt32(BibleList.Items[selectedIndex].SubItems[4].Text)].Name;
-                int num = Convert.ToInt32(BibleList.Items[selectedIndex].SubItems[5].Text);
-                BibleFontSizeUpDown.Value = (((num < 5) | (num > 200)) ? 80 : num);
-                InitFormLoad = false;
+                BibleAssociatedFolder.SelectedIndex = version.SongFolder - 1;
+                BibleFontSizeUpDown.Value = version.FontSize;
+                InitFormLoad = wasLoading;
             }
         }
 
         private void BibleAssociatedFolder_SelectedIndexChanged(object sender, EventArgs e)
         {
-            int selectedIndex = Gf.GetSelectedIndex(BibleList);
-            if (selectedIndex >= 0)
-            {
-                BibleList.Items[selectedIndex].SubItems[4].Text = ((BibleAssociatedFolder.Text == "") ? "1" : Convert.ToString(BibleAssociatedFolder.SelectedIndex + 1));
-                if (!InitFormLoad)
-                {
-                    Gf.Options_BibleListChanged = true;
-                }
-            }
+            int index = Gf.GetSelectedIndex(BibleList);
+            if (InitFormLoad || index < 0 || BibleAssociatedFolder.SelectedIndex < 0)
+                return;
+            var item = BibleList.Items[index];
+            int folder = BibleAssociatedFolder.SelectedIndex + 1;
+            item.Tag = ((BibleVersion)item.Tag) with { SongFolder = folder };
+            item.SubItems[4].Text = folder.ToString();
+            Gf.Options_BibleListChanged = true;
         }
 
         private void BibleFontSizeUpDown_ValueChanged(object sender, EventArgs e)
         {
-            int selectedIndex = Gf.GetSelectedIndex(BibleList);
-            if (selectedIndex >= 0)
-            {
-                BibleList.Items[selectedIndex].SubItems[5].Text = BibleFontSizeUpDown.Value.ToString();
-                if (!InitFormLoad)
-                {
-                    Gf.Options_BibleListChanged = true;
-                }
-            }
+            int index = Gf.GetSelectedIndex(BibleList);
+            if (InitFormLoad || index < 0)
+                return;
+            var item = BibleList.Items[index];
+            int size = (int)BibleFontSizeUpDown.Value;
+            item.Tag = ((BibleVersion)item.Tag) with { FontSize = size };
+            item.SubItems[5].Text = size.ToString();
+            Gf.Options_BibleListChanged = true;
         }
 
         private void BuildLicencesList()
         {
-            AdminLic4.Text = Gf.LicAdmin_List[4, 0];
-            AdminLic5.Text = Gf.LicAdmin_List[5, 0];
-            AdminLic6.Text = Gf.LicAdmin_List[6, 0];
-            AdminLic7.Text = Gf.LicAdmin_List[7, 0];
-            AdminLic8.Text = Gf.LicAdmin_List[8, 0];
-            AdminLicNo3.Text = Gf.LicAdmin_List[3, 1];
-            AdminLicNo4.Text = Gf.LicAdmin_List[4, 1];
-            AdminLicNo5.Text = Gf.LicAdmin_List[5, 1];
-            AdminLicNo6.Text = Gf.LicAdmin_List[6, 1];
-            AdminLicNo7.Text = Gf.LicAdmin_List[7, 1];
-            AdminLicNo8.Text = Gf.LicAdmin_List[8, 1];
-            AdminLicPreview3.Text = Gf.LicAdmin_List[3, 2];
-            AdminLicPreview4.Text = Gf.LicAdmin_List[4, 2];
-            AdminLicPreview5.Text = Gf.LicAdmin_List[5, 2];
-            AdminLicPreview6.Text = Gf.LicAdmin_List[6, 2];
-            AdminLicPreview7.Text = Gf.LicAdmin_List[7, 2];
-            AdminLicPreview8.Text = Gf.LicAdmin_List[8, 2];
+            AdminLic4.Text = Gf.LicenseAdministrators[4].Name;
+            AdminLic5.Text = Gf.LicenseAdministrators[5].Name;
+            AdminLic6.Text = Gf.LicenseAdministrators[6].Name;
+            AdminLic7.Text = Gf.LicenseAdministrators[7].Name;
+            AdminLic8.Text = Gf.LicenseAdministrators[8].Name;
+            AdminLicNo3.Text = Gf.LicenseAdministrators[3].Number;
+            AdminLicNo4.Text = Gf.LicenseAdministrators[4].Number;
+            AdminLicNo5.Text = Gf.LicenseAdministrators[5].Number;
+            AdminLicNo6.Text = Gf.LicenseAdministrators[6].Number;
+            AdminLicNo7.Text = Gf.LicenseAdministrators[7].Number;
+            AdminLicNo8.Text = Gf.LicenseAdministrators[8].Number;
+            AdminLicPreview3.Text = Gf.LicenseAdministrators[3].DisplayText;
+            AdminLicPreview4.Text = Gf.LicenseAdministrators[4].DisplayText;
+            AdminLicPreview5.Text = Gf.LicenseAdministrators[5].DisplayText;
+            AdminLicPreview6.Text = Gf.LicenseAdministrators[6].DisplayText;
+            AdminLicPreview7.Text = Gf.LicenseAdministrators[7].DisplayText;
+            AdminLicPreview8.Text = Gf.LicenseAdministrators[8].DisplayText;
             tbNumberSymbol.Text = Gf.LicAdminNoSymbol;
             cbEnforceDisplay.Checked = Gf.LicAdminEnforceDisplay;
         }
@@ -1887,13 +1715,13 @@ namespace Easislides
         private void GapLogoLocationBtn_Click(object sender, EventArgs e)
         {
             tbGapLogoLocation.Text = DataUtil.Trim(tbGapLogoLocation.Text);
-            string text = (tbGapLogoLocation.Text != "") ? Path.GetDirectoryName(tbGapLogoLocation.Text) : "";
-            if (text == "")
+            string initialDirectory = (tbGapLogoLocation.Text != "") ? Path.GetDirectoryName(tbGapLogoLocation.Text) : "";
+            if (initialDirectory == "")
             {
-                text = Gf.ImagesDir;
+                initialDirectory = Gf.ImagesDir;
             }
             OpenFileDialog1.Filter = "Image Files (*.jpg,*.jpeg,*.bmp,*.gif,*.ico)|*.jpg;*.jpeg;*.bmp;*.gif;*.ico";
-            OpenFileDialog1.InitialDirectory = text;
+            OpenFileDialog1.InitialDirectory = initialDirectory;
             OpenFileDialog1.AddExtension = true;
             OpenFileDialog1.FileName = "";
             if (OpenFileDialog1.ShowDialog() == DialogResult.OK)
@@ -1918,27 +1746,27 @@ namespace Easislides
 
         private void UpdateVideoSizeSample()
         {
-            int num = panelVideoHolder.Width * (int)VideoSizeUpDown1.Value / 100;
-            int num2 = num * 3 / 4;
-            int num3 = (panelVideoHolder.Width - num) / 2 - 1;
-            num3 = ((num3 >= 0) ? num3 : 0);
-            panelVideoSize.Left = num3;
-            panelVideoSize.Width = num;
-            panelVideoSize.Height = num2;
-            int num4;
+            int sampleWidth = panelVideoHolder.Width * (int)VideoSizeUpDown1.Value / 100;
+            int sampleHeight = sampleWidth * 3 / 4;
+            int sampleLeft = (panelVideoHolder.Width - sampleWidth) / 2 - 1;
+            sampleLeft = ((sampleLeft >= 0) ? sampleLeft : 0);
+            panelVideoSize.Left = sampleLeft;
+            panelVideoSize.Width = sampleWidth;
+            panelVideoSize.Height = sampleHeight;
+            int sampleTop;
             switch (DataUtil.ObjToInt(Video_VAlign.Tag))
             {
                 default:
-                    num4 = 0;
+                    sampleTop = 0;
                     break;
                 case 2:
-                    num4 = panelVideoHolder.Height - num2;
+                    sampleTop = panelVideoHolder.Height - sampleHeight;
                     break;
                 case 1:
-                    num4 = (panelVideoHolder.Height - num2) / 2;
+                    sampleTop = (panelVideoHolder.Height - sampleHeight) / 2;
                     break;
             }
-            int top = num4;
+            int top = sampleTop;
             panelVideoSize.Top = top;
         }
 

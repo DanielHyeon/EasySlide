@@ -25,7 +25,7 @@ namespace Easislides
 			try
 			{
 				InitListItems = true;
-				int num = 0;
+				int originalFolderNumber = 0;
 				ListViewItem listViewItem = new ListViewItem();
 				string fullSearchString = "select * from SONG where FolderNo=" + 0 + " order by LastModified";
 
@@ -38,18 +38,18 @@ namespace Easislides
 					//while (!recordSet.EOF)
 					foreach (DataRow dr in datatable.Rows)
 					{
-						num = DataUtil.ObjToInt(dr["OldFolder"]);
-						if ((num < 0) | (num > Gf.MAXSONGSFOLDERS))
+						originalFolderNumber = DataUtil.ObjToInt(dr["OldFolder"]);
+						if ((originalFolderNumber < 0) | (originalFolderNumber > Gf.MAXSONGSFOLDERS))
 						{
-							num = 1;
+							originalFolderNumber = 1;
 						}
 						// An empty or unreadable date stays empty (it used to show today's date).
 						string deletedOn = DataUtil.TryParseStoredDate(dr["LastModified"], out DateTime dateTime) ? DataUtil.ToStoredDate(dateTime) : "";
 						listViewItem = SongsList.Items.Add(DataUtil.ObjToString(dr["Title_1"]));
-						listViewItem.SubItems.Add(Gf.Folders[num].Name);
+						listViewItem.SubItems.Add(Gf.Folders[originalFolderNumber].Name);
 						listViewItem.SubItems.Add(deletedOn);
 						listViewItem.SubItems.Add(DataUtil.ObjToString(dr["SongID"]));
-						listViewItem.SubItems.Add(num.ToString());
+						listViewItem.SubItems.Add(originalFolderNumber.ToString());
 					}
 				}
 
@@ -101,16 +101,16 @@ namespace Easislides
 			InitListItems = true;
 			if (cbTickAll.CheckState == CheckState.Checked)
 			{
-				for (int num = SongsList.Items.Count - 1; num >= 0; num--)
+				for (int songIndex = SongsList.Items.Count - 1; songIndex >= 0; songIndex--)
 				{
-					SongsList.Items[num].Checked = true;
+					SongsList.Items[songIndex].Checked = true;
 				}
 			}
 			else if (cbTickAll.CheckState == CheckState.Unchecked)
 			{
-				for (int num = SongsList.Items.Count - 1; num >= 0; num--)
+				for (int songIndex = SongsList.Items.Count - 1; songIndex >= 0; songIndex--)
 				{
-					SongsList.Items[num].Checked = false;
+					SongsList.Items[songIndex].Checked = false;
 				}
 			}
 			SongsList.Columns[0].Text = SongsList.Items.Count + " items listed / " + SongsList.CheckedItems.Count + " ticked for recovery.";

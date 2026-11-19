@@ -14,6 +14,10 @@ public class ExternalFileClassifierTests
     [InlineData(@"D:\clip.MOV", ExternalFileKind.Media)]
     [InlineData(@"D:\song.mp3", ExternalFileKind.Media)]
     [InlineData(@"D:\song.wav", ExternalFileKind.Media)]
+    [InlineData(@"D:\archive.pptx\clip.aVi", ExternalFileKind.Media)]
+    [InlineData(@"D:\clip.WmV", ExternalFileKind.Media)]
+    [InlineData(@"D:\clip.MKV", ExternalFileKind.Media)]
+    [InlineData(@"D:\song.WmA", ExternalFileKind.Media)]
     [InlineData(@"C:\image.png", ExternalFileKind.Image)]   // 이미지 = 배경 드롭용(큐 아님)
     [InlineData(@"C:\photo.JPG", ExternalFileKind.Image)]   // 대소문자 무시
     [InlineData(@"C:\pic.jpeg", ExternalFileKind.Image)]
@@ -22,6 +26,8 @@ public class ExternalFileClassifierTests
     [InlineData(@"C:\notes.txt", ExternalFileKind.Unsupported)]  // 텍스트
     [InlineData(@"C:\doc.docx", ExternalFileKind.Unsupported)]   // Word 는 드래그 미지원(메뉴로)
     [InlineData(@"C:\noext", ExternalFileKind.Unsupported)]
+    [InlineData(@"C:\photo.jpg.bak", ExternalFileKind.Unsupported)]
+    [InlineData(@"C:\image.", ExternalFileKind.Unsupported)]
     public void Classify_MapsByExtension(string path, ExternalFileKind expected)
         => ExternalFileClassifier.Classify(path).Should().Be(expected);
 

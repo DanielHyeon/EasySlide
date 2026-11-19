@@ -734,9 +734,9 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
             return new SongPreviewLine(line, "");
         }
 
-        var text = line[..markerIndex].TrimEnd();
+        var lyricText = line[..markerIndex].TrimEnd();
         var notation = line[(markerIndex + 1)..].Trim();
-        return new SongPreviewLine(text, notation);
+        return new SongPreviewLine(lyricText, notation);
     }
 
     private static bool IsRegionMarker(string line)

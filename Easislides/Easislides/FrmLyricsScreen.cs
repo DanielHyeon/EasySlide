@@ -285,37 +285,37 @@ namespace Easislides
 				return;
 			}
 			ListViewItem listViewItem = new ListViewItem();
-			string text = "";
+			string itemTypeCode = "";
 			for (int i = 0; i < Gf.TotalWorshipListItems; i++)
 			{
 				var item = Gf.WorshipSongs[i + 1];
 				listViewItem = WorshipListItems.Items.Add(item.Title);
-				text = item.Type;
-				if (text == "D")
+				itemTypeCode = item.Type;
+				if (itemTypeCode == "D")
 				{
 					listViewItem.ImageIndex = 0;
 				}
-				else if (text == "P")
+				else if (itemTypeCode == "P")
 				{
 					listViewItem.ImageIndex = 2;
 				}
-				else if (text == "B")
+				else if (itemTypeCode == "B")
 				{
 					listViewItem.ImageIndex = 4;
 				}
-				else if (text == "T")
+				else if (itemTypeCode == "T")
 				{
 					listViewItem.ImageIndex = 6;
 				}
-				else if (text == "I")
+				else if (itemTypeCode == "I")
 				{
 					listViewItem.ImageIndex = 8;
 				}
-				else if (text == "M")
+				else if (itemTypeCode == "M")
 				{
 					listViewItem.ImageIndex = 28;
 				}
-				else if (text == "W")
+				else if (itemTypeCode == "W")
 				{
 					listViewItem.ImageIndex = 10;
 				}
@@ -357,25 +357,25 @@ namespace Easislides
 
 		private void LoadItem(ref SongSettings InItem, string InIDString, string InFormatString, ref string InTitle)
 		{
-			string text = DataUtil.Left(InIDString, 1);
+			string itemTypeCode = DataUtil.Left(InIDString, 1);
 			Gf.InitialiseIndividualData(ref InItem);
 			InItem.PrevTitle = "";
 			InItem.NextTitle = "";
 			PreviewLyrics.Text = "";
-			int num;
-			switch (text)
+			int unsupportedItemType;
+			switch (itemTypeCode)
 			{
 			default:
-				num = ((!(text == "W")) ? 1 : 0);
+				unsupportedItemType = ((!(itemTypeCode == "W")) ? 1 : 0);
 				break;
 			case "D":
 			case "B":
 			case "T":
 			case "I":
-				num = 0;
+				unsupportedItemType = 0;
 				break;
 			}
-			if (num == 0)
+			if (unsupportedItemType == 0)
 			{
 				Gf.LoadIndividualData(ref InItem, InIDString, "", 1, ref InTitle);
 				if (InItem.Type == "I")

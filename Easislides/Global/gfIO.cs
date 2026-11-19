@@ -21,11 +21,11 @@ namespace Easislides
 				{
 					string baseName = Path.GetFileNameWithoutExtension(path);
 					string dest = Path.Combine(InDir, baseName + InNewExt);
-					int num = 0;
+					int renameSuffix = 0;
 					while (File.Exists(dest))
 					{
-						num++;
-						dest = Path.Combine(InDir, baseName + " - Renamed (" + num + ")" + InNewExt);
+						renameSuffix++;
+						dest = Path.Combine(InDir, baseName + " - Renamed (" + renameSuffix + ")" + InNewExt);
 					}
 					File.Move(path, dest);
 				}
@@ -51,51 +51,48 @@ namespace Easislides
 			{
 				return "";
 			}
-			string text = "";
+			string displayName = "";
 			try
 			{
-				text = ((!KeepExt) ? Path.GetFileNameWithoutExtension(InFileName) : Path.GetFileName(InFileName));
+				displayName = ((!KeepExt) ? Path.GetFileNameWithoutExtension(InFileName) : Path.GetFileName(InFileName));
 				if (UpdateByRef)
 				{
-					InFileName = text;
+					InFileName = displayName;
 				}
 			}
 			catch
 			{
 			}
-			return text;
+			return displayName;
 		}
+
+		private static byte[] strokeCounts;
+
+		internal static int GetStrokeCount(char character) => strokeCounts?[character] ?? 0;
 
 		public static bool LoadUnicodeStrokeCount()
 		{
 			string InString = "";
 			if (gfFileHelpers.LoadFileContents(Application.StartupPath + "\\Sys\\strokecount.dat", ref InString))
 			{
-				ReadOnlySpan<char> roString = InString.AsSpan();
-				int i = 1;
-				for (int num = roString.Length - 2; i <= num - 2; i += 3)
-				{
-					if (!int.TryParse(roString.Slice(i, 2), out int num2))
-					{
-						continue;
-					}
-					if (num2 > 0)
-					{
-						int num3 = roString[i - 1];
-						if (num3 < 0)
-						{
-							num3 += 65536;
-						}
-						if (num3 >= 0)
-						{
-							StrokeCount[num3] = num2;
-						}
-					}
-				}
+				var counts = strokeCounts ?? new byte[char.MaxValue + 1];
+				ReadStrokeCounts(InString, counts);
+				strokeCounts = counts;
 				return true;
 			}
 			MessageOverSplashScreen("The EasiSlides system file strokecount.dat is missing. Please re-install EasiSlides Software.");
 			return false;
+		}
+
+		internal static void ReadStrokeCounts(ReadOnlySpan<char> data, Span<byte> counts)
+		{
+			// Each entry is one UTF-16 character followed by two decimal digits. The file has a two-character trailer.
+			int recordsEnd = data.Length - 2;
+			for (int offset = 0; offset <= recordsEnd - 3; offset += 3)
+			{
+				if (byte.TryParse(data.Slice(offset + 1, 2), out byte count) && count > 0)
+					counts[data[offset]] = count;
+			}
 		}
 
 		public static string ExtractDocTextContents(string InFileName)
@@ -163,23 +160,23 @@ namespace Easislides
 		{
 			if (File.Exists(SourceFileName))
 			{
-				int num = 0;
+				int copySuffix = 0;
 				string extension = Path.GetExtension(SourceFileName);
 				string displayNameOnly = GetDisplayNameOnly(ref SourceFileName, UpdateByRef: false);
 				if (!Directory.Exists(CopyToFolder) && !FileUtil.MakeDir(CopyToFolder))
 				{
 					return "";
 				}
-				string text2 = Path.Combine(CopyToFolder, displayNameOnly + extension);
-				while (File.Exists(text2))
+				string destinationPath = Path.Combine(CopyToFolder, displayNameOnly + extension);
+				while (File.Exists(destinationPath))
 				{
-					num++;
-					text2 = Path.Combine(CopyToFolder, displayNameOnly + " - Copy (" + num + ")" + extension);
+					copySuffix++;
+					destinationPath = Path.Combine(CopyToFolder, displayNameOnly + " - Copy (" + copySuffix + ")" + extension);
 				}
 				try
 				{
-					File.Copy(SourceFileName, text2);
-					return text2;
+					File.Copy(SourceFileName, destinationPath);
+					return destinationPath;
 				}
 				catch
 				{
@@ -192,23 +189,23 @@ namespace Easislides
 		{
 			if (File.Exists(SourceFileName))
 			{
-				int num = 0;
+				int copySuffix = 0;
 				string extension = Path.GetExtension(SourceFileName);
 				string displayNameOnly = GetDisplayNameOnly(ref SourceFileName, UpdateByRef: false);
 				if (!Directory.Exists(MoveToFolder) && !FileUtil.MakeDir(MoveToFolder))
 				{
 					return "";
 				}
-				string text2 = Path.Combine(MoveToFolder, displayNameOnly + extension);
-				while (File.Exists(text2))
+				string destinationPath = Path.Combine(MoveToFolder, displayNameOnly + extension);
+				while (File.Exists(destinationPath))
 				{
-					num++;
-					text2 = Path.Combine(MoveToFolder, displayNameOnly + " - Copy (" + num + ")" + extension);
+					copySuffix++;
+					destinationPath = Path.Combine(MoveToFolder, displayNameOnly + " - Copy (" + copySuffix + ")" + extension);
 				}
 				try
 				{
-					File.Move(SourceFileName, text2);
-					return text2;
+					File.Move(SourceFileName, destinationPath);
+					return destinationPath;
 				}
 				catch
 				{

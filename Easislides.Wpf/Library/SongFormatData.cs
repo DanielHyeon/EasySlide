@@ -205,14 +205,14 @@ public sealed record SongFormatData
             return null;
         }
 
-        var text = hex.Trim().TrimStart('#');
-        if (text.Length == 6)
+        var hexDigits = hex.Trim().TrimStart('#');
+        if (hexDigits.Length == 6)
         {
-            text = "FF" + text; // 알파 없으면 불투명으로.
+            hexDigits = "FF" + hexDigits; // 알파 없으면 불투명으로.
         }
 
-        return text.Length == 8
-            && uint.TryParse(text, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var argb)
+        return hexDigits.Length == 8
+            && uint.TryParse(hexDigits, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var argb)
             ? unchecked((int)argb)
             : null;
     }

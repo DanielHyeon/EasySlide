@@ -685,10 +685,10 @@ namespace Easislides
             foreach (var (button, _) in ShortcutTooltipTable())
             {
                 // A button without a tooltip gets none (design D13).
-                string text = toolTip1.GetToolTip(button);
-                if (!string.IsNullOrEmpty(text))
+                string baseToolTip = toolTip1.GetToolTip(button);
+                if (!string.IsNullOrEmpty(baseToolTip))
                 {
-                    shortcutTooltipBase[button] = text;
+                    shortcutTooltipBase[button] = baseToolTip;
                 }
             }
         }
@@ -717,10 +717,10 @@ namespace Easislides
                         continue;
                     }
                     Keys shortcut = modern ? key() : Keys.None;
-                    string text = shortcut == Keys.None ? baseText : $"{baseText} ({ShortcutKeyText.ConvertToString(shortcut)})";
-                    if (toolTip1.GetToolTip(button) != text)
+                    string shortcutToolTip = shortcut == Keys.None ? baseText : $"{baseText} ({ShortcutKeyText.ConvertToString(shortcut)})";
+                    if (toolTip1.GetToolTip(button) != shortcutToolTip)
                     {
-                        toolTip1.SetToolTip(button, text);
+                        toolTip1.SetToolTip(button, shortcutToolTip);
                     }
                 }
             }
@@ -1354,11 +1354,11 @@ namespace Easislides
             Color itemBack = item.BackColor;
             bool customBack = itemBack.ToArgb() != list.BackColor.ToArgb() && itemBack.ToArgb() != resetBackColour().ToArgb();
             Color back;
-            Color text;
+            Color textColor;
             if (selected)
             {
                 back = hasFocus ? SystemColors.Highlight : SystemColors.Control;
-                text = hasFocus ? SystemColors.HighlightText : SystemColors.ControlText;
+                textColor = hasFocus ? SystemColors.HighlightText : SystemColors.ControlText;
             }
             else
             {
@@ -1369,7 +1369,7 @@ namespace Easislides
                     : section ? ModernUiPalette.SurfaceAlt
                     : itemBack;
                 // The output row is marked by bar and tag; its title is not drawn in the old red.
-                text = onOutput ? ModernUiPalette.TextPrimary : item.ForeColor;
+                textColor = onOutput ? ModernUiPalette.TextPrimary : item.ForeColor;
             }
             Rectangle label = item.GetBounds(ItemBoundsPortion.Label);
             string tag = TagText(item, mark, section);
@@ -1421,7 +1421,7 @@ namespace Easislides
                     // title would and ends with an ellipsis (only below about 100 px at 96 dpi).
                     int tagLeft = Math.Max(tagRight - tagWidth, label.Left + TitleTextOffset);
                     Rectangle tagRect = Rectangle.FromLTRB(tagLeft, bounds.Top, Math.Max(tagLeft, tagRight), bounds.Bottom);
-                    Color tagColour = selected ? text
+                    Color tagColour = selected ? textColor
                         : onOutput ? ModernUiPalette.LiveAccentText
                         : mark == MarkPreview ? ModernUiPalette.PreviewAccent
                         : ModernUiPalette.TextSecondary;
@@ -1433,7 +1433,7 @@ namespace Easislides
                     Math.Min(label.Right - TitleTextOffset, titleRight), bounds.Bottom);
                 if (titleRect.Width > 0)
                 {
-                    DrawGdiText(hdc, item.Text, section ? BoldFontHandle(regular) : regular, titleRect, text, TitleFlags);
+                    DrawGdiText(hdc, item.Text, section ? BoldFontHandle(regular) : regular, titleRect, textColor, TitleFlags);
                 }
 
                 if (hasFocus && item.Focused && ShowFocusCues())

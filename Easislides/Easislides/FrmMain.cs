@@ -1255,8 +1255,8 @@ namespace Easislides
             if (DataUtil.Trim(PraiseBook.Text) != "")
             {
                 Gf.CurPraiseBook = PraiseBook.Text;
-                Gf.PB_ShowWords[3] = 1;
-                Gf.PB_ShowWords[4] = 1;
+                Gf.PraiseBookTextStyles[3].Visible = true;
+                Gf.PraiseBookTextStyles[4].Visible = true;
                 for (int i = 1; i <= PraiseBookItems.Items.Count; i++)
                 {
                     Gf.DocumentSongs[i].Title = Gf.RemoveMusicSym(DataUtil.Trim(PraiseBookItems.Items[i - 1].SubItems[2].Text));
@@ -2227,7 +2227,7 @@ namespace Easislides
             }
             if (hasLetters)
             {
-                if (Gf.HB_TotalVersions < 1)
+                if (Gf.BibleVersions.Count < 1)
                 {
                     return;
                 }
@@ -2434,18 +2434,10 @@ namespace Easislides
         private void BuildBibleTextR2SubMenus()
         {
             CMenuBible_AddRegion2.DropDownItems.Clear();
-            ToolStripMenuItem toolStripMenuItem = new ToolStripMenuItem();
-            for (int i = 0; i <= Gf.HB_TotalVersions - 1; i++)
+            for (int index = 0; index < Gf.BibleVersions.Count; index++)
             {
-                toolStripMenuItem = new ToolStripMenuItem();
-                toolStripMenuItem.Text = Gf.HB_Versions[i, 1];
-                CMenuBible_AddRegion2.DropDownItems.Add(toolStripMenuItem);
-                CMenuBible_AddRegion2.DropDownItems[i].Tag = i.ToString();
-            }
-            EventHandler value = new EventHandler(BibleR2MenuClickHandler).Invoke;
-            foreach (ToolStripMenuItem dropDownItem in CMenuBible_AddRegion2.DropDownItems)
-            {
-                dropDownItem.Click += value;
+                var item = new ToolStripMenuItem(Gf.BibleVersions[index].Name, null, BibleR2MenuClickHandler) { Tag = index };
+                CMenuBible_AddRegion2.DropDownItems.Add(item);
             }
         }
 
@@ -6096,7 +6088,7 @@ namespace Easislides
             }
             else if (IsSelectedTab(tabControlSource, "tabBibles"))
             {
-                if (Gf.HB_TotalVersions < 1)
+                if (Gf.BibleVersions.Count < 1)
                 {
                     Cursor = Cursors.Default;
                     return;
@@ -7090,10 +7082,12 @@ namespace Easislides
 
         private void AddRegion2ToBiblePassage(int InVersionNo)
         {
+            if (!Gf.BibleVersions.ContainsIndex(InVersionNo))
+                return;
             string arg = DataUtil.ExtractOneInfo(ref HB_CurSelectedPassages, ';') + ';';
             arg = arg + DataUtil.ExtractOneInfo(ref HB_CurSelectedPassages, ';') + ';';
             DataUtil.ExtractOneInfo(ref HB_CurSelectedPassages, ';');
-            arg = arg + Gf.GetDisplayNameOnly(ref Gf.HB_Versions[InVersionNo, 4], UpdateByRef: false, KeepExt: true) + ';';
+            arg = arg + Gf.BibleVersions[InVersionNo].FileName + ';';
             HB_CurSelectedPassages = arg + HB_CurSelectedPassages;
             HB_SelectedPassagesChanged(HB_CurSelectedPassages, ref HB_CurSelectedTitle);
             HB_CurSelectedFormat = Gf.PreviewItem.Format.FormatString;
@@ -7113,15 +7107,10 @@ namespace Easislides
                 if (lyrics != "")
                 {
                     Clipboard.SetDataObject(lyrics);
-                    string infoScreenId = "";
-                    try
-                    {
-                        infoScreenId = "*NEW*" + '>' + Gf.HB_Versions[TabBibleVersions.SelectedIndex, 5] + '>' + Gf.PreviewItem.Title;
-                    }
-                    catch
-                    {
-                        infoScreenId = "*NEW*" + '>' + Gf.PreviewItem.FolderNo.ToString() + '>' + Gf.PreviewItem.Title;
-                    }
+                    int versionIndex = TabBibleVersions.SelectedIndex;
+                    int folder = Gf.BibleVersions.ContainsIndex(versionIndex)
+                        ? Gf.BibleVersions[versionIndex].SongFolder : Gf.PreviewItem.FolderNo;
+                    string infoScreenId = $"*NEW*>{folder}>{Gf.PreviewItem.Title}";
                     ShowInfoScreen(infoScreenId);
                 }
             }
@@ -7440,8 +7429,7 @@ namespace Easislides
                 {
                     streamWriter.AutoFlush = true;
 
-                    Gf.RTFNewLine = "\\b0\\i0\\ulnone\\par ";
-                    Gf.RTFIndent[0] = "\\pard\\tx1200\\tx3500\\tx8200\\tx9000 ";
+                    const string songListTabs = "\\pard\\tx1200\\tx3500\\tx8200\\tx9000 ";
                     string rtfHeader = "{\\rtf1\\ansi\\ansicpg1252\\deff0\\deflang1033{\\fonttbl{\\f0\\fnil\\fcharset0 Microsoft Sans Serif;}}\\viewkind1\\uc1\\pard\\f0\\fs24\\margr600\\margl1000\\margt900\\margb1000\\cols2\\colno1\\colw4650\\colsr750\\colno2\\colw4650 ";
 
                     //Recordset tableRecordSet = DbDaoController.GetTableRecordSet(Gf.ConnectStringMainDB, "SONG");
@@ -7452,7 +7440,7 @@ namespace Easislides
                     streamWriter.Write(DataUtil.UnicodeToAscii_RTF(Gf.RTFNewLine));
                     for (int i = 0; i < SongsList.Items.Count; i++)
                     {
-                        streamWriter.Write(DataUtil.UnicodeToAscii_RTF(Gf.RTFIndent[0] + Gf.RemoveMusicSym(SongsList.Items[i].SubItems[0].Text) + Gf.RTFNewLine));
+                        streamWriter.Write(DataUtil.UnicodeToAscii_RTF(songListTabs + Gf.RemoveMusicSym(SongsList.Items[i].SubItems[0].Text) + Gf.RTFNewLine));
                     }
                     streamWriter.Write(DataUtil.UnicodeToAscii_RTF(Gf.RTFNewLine));
                     streamWriter.Write(DataUtil.UnicodeToAscii_RTF("(Total: " + SongsList.Items.Count + " items)" + Gf.RTFNewLine));

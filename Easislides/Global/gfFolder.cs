@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
@@ -21,7 +22,7 @@ namespace Easislides
 {
 	internal unsafe partial class Gf
 	{
-		private static readonly char[] InvalidDirNameChars = new char[] { '\\', '/', ':', '*', '?', '"', '<', '>', '|' };
+		private static readonly SearchValues<char> InvalidDirNameChars = SearchValues.Create("\\/:*?\"<>|");
 		private static Dictionary<string, int> FolderNameIndex;
 
 		private struct SongRefileUpdate
@@ -30,39 +31,6 @@ namespace Easislides
 			public int NewFolder;
 			public int OldFolder;
 			public ListViewItem Item;
-		}
-
-		private static bool ContainsInvalidDirNameChars(string value)
-		{
-			return value.IndexOfAny(InvalidDirNameChars) >= 0;
-		}
-
-		private static string RemoveInvalidDirNameCharsInternal(string value)
-		{
-			StringBuilder sb = new StringBuilder(value.Length);
-			foreach (char ch in value)
-			{
-				if (Array.IndexOf(InvalidDirNameChars, ch) < 0)
-				{
-					sb.Append(ch);
-				}
-			}
-			return sb.ToString();
-		}
-
-		private static string ReplaceInvalidDirNameChars(string value, char replacement)
-		{
-			char[] buffer = value.ToCharArray();
-			bool changed = false;
-			for (int i = 0; i < buffer.Length; i++)
-			{
-				if (Array.IndexOf(InvalidDirNameChars, buffer[i]) >= 0)
-				{
-					buffer[i] = replacement;
-					changed = true;
-				}
-			}
-			return changed ? new string(buffer) : value;
 		}
 
 		private static void RebuildFolderNameIndex()
@@ -142,18 +110,18 @@ namespace Easislides
 
 		public static bool ValidateDir(string FDir, bool CreateDir)
 		{
-			string text = DataUtil.Trim(FDir);
-			if (text != "" && DataUtil.Right(text, 1) != "\\")
+			string directoryPath = DataUtil.Trim(FDir);
+			if (directoryPath != "" && DataUtil.Right(directoryPath, 1) != "\\")
 			{
-				text += "\\";
+				directoryPath += "\\";
 			}
-			if (Directory.Exists(text))
+			if (Directory.Exists(directoryPath))
 			{
 				return true;
 			}
 			if (CreateDir)
 			{
-				return FileUtil.MakeDir(text);
+				return FileUtil.MakeDir(directoryPath);
 			}
 			return false;
 		}
@@ -165,7 +133,8 @@ namespace Easislides
 
 		public static bool ValidateDirNameFormat(string InString, string Heading)
 		{
-			if (!ContainsInvalidDirNameChars(InString))
+			ArgumentNullException.ThrowIfNull(InString);
+			if (!InString.AsSpan().ContainsAny(InvalidDirNameChars))
 			{
 				return true;
 			}
@@ -176,17 +145,27 @@ namespace Easislides
 			return false;
 		}
 
-		public static string CorrectDirNameFormat(string InString)
+		public static string CorrectDirNameFormat(string folderName)
 		{
-			return RemoveInvalidDirNameCharsInternal(InString);
+			ArgumentNullException.ThrowIfNull(folderName);
+			int invalidCount = folderName.AsSpan().CountAny(InvalidDirNameChars);
+			if (invalidCount == 0)
+				return folderName;
+			return string.Create(folderName.Length - invalidCount, folderName, static (validName, source) =>
+			{
+				int written = 0;
+				foreach (char character in source)
+					if (!InvalidDirNameChars.Contains(character))
+						validName[written++] = character;
+			});
 		}
 
 		public static void LoadFolderNamesArray()
 		{
 			ValidateDefaultFolders();
-			int num = 0;
-			string text = "";
-			string text2 = "";
+			int folderNumber = 0;
+			string headingFontStyleBits = "";
+			string headingOptionValue = "";
 			string fullSearchString = "select * from FOLDER where FolderNo >=0 and FolderNo < " + DataUtil.ObjToString(MAXSONGSFOLDERS);
 
 			DbConnection connection = null;
@@ -205,111 +184,111 @@ namespace Easislides
 
 					while (dataReader.Read())
 					{
-						num = DataUtil.GetDataInt(dataReader, "FolderNo");
-						Folders[num].Name = DataUtil.GetDataString(dataReader, "name");
-						Folders[num].Use = DataUtil.GetDataInt(dataReader, "Use");
-						Folders[num].GroupStyle = ToFolderSortBy(DataUtil.GetDataInt(dataReader, "GroupStyle"));
-						Folders[num].LyricsHeading[0] = DataUtil.GetDataString(dataReader, "PreChorusHeading");
-						Folders[num].LyricsHeading[1] = DataUtil.GetDataString(dataReader, "ChorusHeading");
-						Folders[num].LyricsHeading[2] = DataUtil.GetDataString(dataReader, "BridgeHeading");
-						Folders[num].LyricsHeading[3] = DataUtil.GetDataString(dataReader, "EndingHeading");
-						Folders[num].HeadingPercentSize = DataUtil.ObjToInt(DataUtil.GetDataString(dataReader, "HeadingSize"));
-						if ((Folders[num].HeadingPercentSize < 0) | (Folders[num].HeadingPercentSize > 150))
+						folderNumber = DataUtil.GetDataInt(dataReader, "FolderNo");
+						Folders[folderNumber].Name = DataUtil.GetDataString(dataReader, "name");
+						Folders[folderNumber].Use = DataUtil.GetDataInt(dataReader, "Use");
+						Folders[folderNumber].GroupStyle = ToFolderSortBy(DataUtil.GetDataInt(dataReader, "GroupStyle"));
+						Folders[folderNumber].LyricsHeading[0] = DataUtil.GetDataString(dataReader, "PreChorusHeading");
+						Folders[folderNumber].LyricsHeading[1] = DataUtil.GetDataString(dataReader, "ChorusHeading");
+						Folders[folderNumber].LyricsHeading[2] = DataUtil.GetDataString(dataReader, "BridgeHeading");
+						Folders[folderNumber].LyricsHeading[3] = DataUtil.GetDataString(dataReader, "EndingHeading");
+						Folders[folderNumber].HeadingPercentSize = DataUtil.ObjToInt(DataUtil.GetDataString(dataReader, "HeadingSize"));
+						if ((Folders[folderNumber].HeadingPercentSize < 0) | (Folders[folderNumber].HeadingPercentSize > 150))
 						{
-							Folders[num].HeadingPercentSize = 100;
+							Folders[folderNumber].HeadingPercentSize = 100;
 						}
-						text2 = DataUtil.GetDataString(dataReader, "HeadingOption");
-						if (text2 == "")
+						headingOptionValue = DataUtil.GetDataString(dataReader, "HeadingOption");
+						if (headingOptionValue == "")
 						{
-							text2 = DataUtil.ObjToString(HeadingFormat.AsRegion1Plus);
+							headingOptionValue = DataUtil.ObjToString(HeadingFormat.AsRegion1Plus);
 						}
-						Folders[num].HeadingOption = DataUtil.ObjToInt(text2);
-						if ((Folders[num].HeadingOption < 0) | (Folders[num].HeadingOption > 2))
+						Folders[folderNumber].HeadingOption = DataUtil.ObjToInt(headingOptionValue);
+						if ((Folders[folderNumber].HeadingOption < 0) | (Folders[folderNumber].HeadingOption > 2))
 						{
-							Folders[num].HeadingOption = DataUtil.ObjToInt(HeadingFormat.AsRegion1Plus);
+							Folders[folderNumber].HeadingOption = DataUtil.ObjToInt(HeadingFormat.AsRegion1Plus);
 						}
-						text = DataUtil.GetDataString(dataReader, "BIUHeading");
-						if (text == "")
+						headingFontStyleBits = DataUtil.GetDataString(dataReader, "BIUHeading");
+						if (headingFontStyleBits == "")
 						{
-							text = "4";
+							headingFontStyleBits = "4";
 						}
-						Folders[num].HeadingFontBold[0] = DataUtil.GetBitValue(DataUtil.ObjToInt(text), 1);
-						Folders[num].HeadingFontItalic[0] = DataUtil.GetBitValue(DataUtil.ObjToInt(text), 2);
-						Folders[num].HeadingFontUnderline[0] = DataUtil.GetBitValue(DataUtil.ObjToInt(text), 3);
-						Folders[num].HeadingFontBold[1] = DataUtil.GetBitValue(DataUtil.ObjToInt(text), 4);
-						Folders[num].HeadingFontItalic[1] = DataUtil.GetBitValue(DataUtil.ObjToInt(text), 5);
-						Folders[num].HeadingFontUnderline[1] = DataUtil.GetBitValue(DataUtil.ObjToInt(text), 6);
-						Folders[num].LineSpacing[0] = DataUtil.GetDataDouble(dataReader, "LineSpacing");
-						if ((Folders[num].LineSpacing[0] < 0.5) | (Folders[num].LineSpacing[0] > 2.0))
+						Folders[folderNumber].HeadingFontBold[0] = DataUtil.GetBitValue(DataUtil.ObjToInt(headingFontStyleBits), 1);
+						Folders[folderNumber].HeadingFontItalic[0] = DataUtil.GetBitValue(DataUtil.ObjToInt(headingFontStyleBits), 2);
+						Folders[folderNumber].HeadingFontUnderline[0] = DataUtil.GetBitValue(DataUtil.ObjToInt(headingFontStyleBits), 3);
+						Folders[folderNumber].HeadingFontBold[1] = DataUtil.GetBitValue(DataUtil.ObjToInt(headingFontStyleBits), 4);
+						Folders[folderNumber].HeadingFontItalic[1] = DataUtil.GetBitValue(DataUtil.ObjToInt(headingFontStyleBits), 5);
+						Folders[folderNumber].HeadingFontUnderline[1] = DataUtil.GetBitValue(DataUtil.ObjToInt(headingFontStyleBits), 6);
+						Folders[folderNumber].LineSpacing[0] = DataUtil.GetDataDouble(dataReader, "LineSpacing");
+						if ((Folders[folderNumber].LineSpacing[0] < 0.5) | (Folders[folderNumber].LineSpacing[0] > 2.0))
 						{
-							Folders[num].LineSpacing[0] = 1.0;
+							Folders[folderNumber].LineSpacing[0] = 1.0;
 						}
-						Folders[num].LineSpacing[1] = DataUtil.GetDataDouble(dataReader, "LineSpacing2");
-						if ((Folders[num].LineSpacing[1] < 0.5) | (Folders[num].LineSpacing[1] > 2.0))
+						Folders[folderNumber].LineSpacing[1] = DataUtil.GetDataDouble(dataReader, "LineSpacing2");
+						if ((Folders[folderNumber].LineSpacing[1] < 0.5) | (Folders[folderNumber].LineSpacing[1] > 2.0))
 						{
-							Folders[num].LineSpacing[1] = 1.0;
+							Folders[folderNumber].LineSpacing[1] = 1.0;
 						}
-						Folders[num].LeftMargin = 2;
-						Folders[num].LeftMargin = DataUtil.GetDataInt(dataReader, "LMargin");
-						if ((Folders[num].LeftMargin < 0) | (Folders[num].LeftMargin > 40))
+						Folders[folderNumber].LeftMargin = 2;
+						Folders[folderNumber].LeftMargin = DataUtil.GetDataInt(dataReader, "LMargin");
+						if ((Folders[folderNumber].LeftMargin < 0) | (Folders[folderNumber].LeftMargin > 40))
 						{
-							Folders[num].LeftMargin = 2;
+							Folders[folderNumber].LeftMargin = 2;
 						}
-						Folders[num].RightMargin = 2;
-						Folders[num].RightMargin = DataUtil.GetDataInt(dataReader, "RMargin");
-						if ((Folders[num].RightMargin < 0) | (Folders[num].RightMargin > 40))
+						Folders[folderNumber].RightMargin = 2;
+						Folders[folderNumber].RightMargin = DataUtil.GetDataInt(dataReader, "RMargin");
+						if ((Folders[folderNumber].RightMargin < 0) | (Folders[folderNumber].RightMargin > 40))
 						{
-							Folders[num].RightMargin = 2;
+							Folders[folderNumber].RightMargin = 2;
 						}
-						Folders[num].BottomMargin = 0;
-						Folders[num].BottomMargin = DataUtil.GetDataInt(dataReader, "BMargin");
-						if ((Folders[num].BottomMargin < 0) | (Folders[num].BottomMargin > 100))
+						Folders[folderNumber].BottomMargin = 0;
+						Folders[folderNumber].BottomMargin = DataUtil.GetDataInt(dataReader, "BMargin");
+						if ((Folders[folderNumber].BottomMargin < 0) | (Folders[folderNumber].BottomMargin > 100))
 						{
-							Folders[num].BottomMargin = 0;
+							Folders[folderNumber].BottomMargin = 0;
 						}
-						Folders[num].FontSize[0] = DataUtil.ObjToInt(DataUtil.GetDataString(dataReader, "Size0"));
-						if ((Folders[num].FontSize[0] < 1) | (Folders[num].FontSize[0] > 100))
+						Folders[folderNumber].FontSize[0] = DataUtil.ObjToInt(DataUtil.GetDataString(dataReader, "Size0"));
+						if ((Folders[folderNumber].FontSize[0] < 1) | (Folders[folderNumber].FontSize[0] > 100))
 						{
-							Folders[num].FontSize[0] = 37;
+							Folders[folderNumber].FontSize[0] = 37;
 						}
-						Folders[num].FontBold[0] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU0"), 1);
-						Folders[num].FontItalic[0] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU0"), 2);
-						Folders[num].FontUnderline[0] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU0"), 3);
-						Folders[num].FontBold[2] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU0"), 4);
-						Folders[num].FontItalic[2] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU0"), 5);
-						Folders[num].FontUnderline[2] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU0"), 6);
-						Folders[num].FontRTL[0] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU0"), 7);
-						Folders[num].FontName[0] = DataUtil.GetDataString(dataReader, "FontName0");
-						if (Folders[num].FontName[0] == "")
+						Folders[folderNumber].FontBold[0] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU0"), 1);
+						Folders[folderNumber].FontItalic[0] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU0"), 2);
+						Folders[folderNumber].FontUnderline[0] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU0"), 3);
+						Folders[folderNumber].FontBold[2] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU0"), 4);
+						Folders[folderNumber].FontItalic[2] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU0"), 5);
+						Folders[folderNumber].FontUnderline[2] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU0"), 6);
+						Folders[folderNumber].FontRTL[0] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU0"), 7);
+						Folders[folderNumber].FontName[0] = DataUtil.GetDataString(dataReader, "FontName0");
+						if (Folders[folderNumber].FontName[0] == "")
 						{
-							Folders[num].FontName[0] = "Microsoft Sans Serif";
+							Folders[folderNumber].FontName[0] = "Microsoft Sans Serif";
 						}
-						Folders[num].FontVPosition[0] = DataUtil.ObjToInt(DataUtil.GetDataString(dataReader, "Vpos0"));
-						if ((Folders[num].FontVPosition[0] < 0) | (Folders[num].FontVPosition[0] > 100))
+						Folders[folderNumber].FontVPosition[0] = DataUtil.ObjToInt(DataUtil.GetDataString(dataReader, "Vpos0"));
+						if ((Folders[folderNumber].FontVPosition[0] < 0) | (Folders[folderNumber].FontVPosition[0] > 100))
 						{
-							Folders[num].FontVPosition[0] = 0;
+							Folders[folderNumber].FontVPosition[0] = 0;
 						}
-						Folders[num].FontSize[1] = DataUtil.ObjToInt(DataUtil.GetDataString(dataReader, "Size1"));
-						if ((Folders[num].FontSize[1] < 1) | (Folders[num].FontSize[1] > 100))
+						Folders[folderNumber].FontSize[1] = DataUtil.ObjToInt(DataUtil.GetDataString(dataReader, "Size1"));
+						if ((Folders[folderNumber].FontSize[1] < 1) | (Folders[folderNumber].FontSize[1] > 100))
 						{
-							Folders[num].FontSize[1] = 37;
+							Folders[folderNumber].FontSize[1] = 37;
 						}
-						Folders[num].FontBold[1] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU1"), 1);
-						Folders[num].FontItalic[1] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU1"), 2);
-						Folders[num].FontUnderline[1] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU1"), 3);
-						Folders[num].FontBold[3] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU1"), 4);
-						Folders[num].FontItalic[3] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU1"), 5);
-						Folders[num].FontUnderline[3] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU1"), 6);
-						Folders[num].FontRTL[1] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU1"), 7);
-						Folders[num].FontName[1] = DataUtil.GetDataString(dataReader, "FontName1");
-						if (Folders[num].FontName[1] == "")
+						Folders[folderNumber].FontBold[1] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU1"), 1);
+						Folders[folderNumber].FontItalic[1] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU1"), 2);
+						Folders[folderNumber].FontUnderline[1] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU1"), 3);
+						Folders[folderNumber].FontBold[3] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU1"), 4);
+						Folders[folderNumber].FontItalic[3] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU1"), 5);
+						Folders[folderNumber].FontUnderline[3] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU1"), 6);
+						Folders[folderNumber].FontRTL[1] = DataUtil.GetBitValue(DataUtil.GetDataInt(dataReader, "BIU1"), 7);
+						Folders[folderNumber].FontName[1] = DataUtil.GetDataString(dataReader, "FontName1");
+						if (Folders[folderNumber].FontName[1] == "")
 						{
-							Folders[num].FontName[1] = "Microsoft Sans Serif";
+							Folders[folderNumber].FontName[1] = "Microsoft Sans Serif";
 						}
-						Folders[num].FontVPosition[1] = DataUtil.ObjToInt(DataUtil.GetDataString(dataReader, "Vpos1"));
-						if ((Folders[num].FontVPosition[1] < Folders[num].FontVPosition[0]) | (Folders[num].FontVPosition[1] > 100))
+						Folders[folderNumber].FontVPosition[1] = DataUtil.ObjToInt(DataUtil.GetDataString(dataReader, "Vpos1"));
+						if ((Folders[folderNumber].FontVPosition[1] < Folders[folderNumber].FontVPosition[0]) | (Folders[folderNumber].FontVPosition[1] > 100))
 						{
-							Folders[num].FontVPosition[1] = Folders[num].FontVPosition[0] + (100 - Folders[num].FontVPosition[0]) / 2;
+							Folders[folderNumber].FontVPosition[1] = Folders[folderNumber].FontVPosition[0] + (100 - Folders[folderNumber].FontVPosition[0]) / 2;
 						}
 					}
 				}
@@ -359,12 +338,12 @@ namespace Easislides
 		public static string ExtractFolderFromListTitle(ref string InListTitle)
 		{
 			string result = "1";
-			int num = InListTitle.IndexOf(":", 0);
-			if (num > 0)
+			int separatorIndex = InListTitle.IndexOf(":", 0);
+			if (separatorIndex > 0)
 			{
-				string inName = DataUtil.Trim(DataUtil.Right(InListTitle, InListTitle.Length - num - 1));
+				string inName = DataUtil.Trim(DataUtil.Right(InListTitle, InListTitle.Length - separatorIndex - 1));
 				result = GetFolderNumber(inName, ZeroIfInvalid: true).ToString();
-				InListTitle = DataUtil.Left(InListTitle, num);
+				InListTitle = DataUtil.Left(InListTitle, separatorIndex);
 			}
 			return result;
 		}
@@ -446,18 +425,18 @@ namespace Easislides
 				List<SongRefileUpdate> updates = new List<SongRefileUpdate>();
 				HashSet<int> songIds = new HashSet<int>();
 
-				for (int num = InListView.Items.Count - 1; num >= 0; num--)
+				for (int itemIndex = InListView.Items.Count - 1; itemIndex >= 0; itemIndex--)
 				{
-					if (InListView.Items[num].Checked)
+					if (InListView.Items[itemIndex].Checked)
 					{
-						int songId = DataUtil.StringToInt(InListView.Items[num].SubItems[3].Text);
+						int songId = DataUtil.StringToInt(InListView.Items[itemIndex].SubItems[3].Text);
 						songIds.Add(songId);
 						updates.Add(new SongRefileUpdate
 						{
 							SongId = songId,
-							NewFolder = DataUtil.StringToInt(InListView.Items[num].SubItems[4].Text),
+							NewFolder = DataUtil.StringToInt(InListView.Items[itemIndex].SubItems[4].Text),
 							OldFolder = 0,
-							Item = InListView.Items[num]
+							Item = InListView.Items[itemIndex]
 						});
 					}
 				}
@@ -536,7 +515,7 @@ namespace Easislides
 				using (DbConnection connection = new DbConnection(ConnectStringMainDB))
 				{
 
-					int num = 0;
+					int originalFolderNumber = 0;
 					DbDataAdapter sQLiteDataAdapter;
 
 					DataTable dataTable = null;
@@ -551,10 +530,10 @@ namespace Easislides
 
 						foreach (DataRow dr in dataTable.Rows)
 						{
-							num = DataUtil.ObjToInt(dr["FolderNo"]);
-							if (num != array[num])
+							originalFolderNumber = DataUtil.ObjToInt(dr["FolderNo"]);
+							if (originalFolderNumber != array[originalFolderNumber])
 							{
-								dr["FolderNo"] = array[num];
+								dr["FolderNo"] = array[originalFolderNumber];
 							}
 						}
 						sQLiteDataAdapter.Update(dataTable);
@@ -565,7 +544,7 @@ namespace Easislides
 					fullSearchString = "select * from FOLDER  where FolderNo > 0 ORDER BY FolderNo";
 					(sQLiteDataAdapter, dataTable) = DbController.GetDataAdapter(connection, fullSearchString);
 
-					string text2 = "";
+					string folderName = "";
 					if (dataTable.Rows.Count > 0)
 					{
 						dataTable.AcceptChanges();
@@ -575,9 +554,9 @@ namespace Easislides
 
 						foreach (DataRow dr in dataTable.Rows)
 						{
-							num = DataUtil.ObjToInt(dr["FolderNo"]);
-							text2 = DataUtil.ObjToString(dr["Name"]);
-							dr["FolderNo"] = -array[num];
+							originalFolderNumber = DataUtil.ObjToInt(dr["FolderNo"]);
+							folderName = DataUtil.ObjToString(dr["Name"]);
+							dr["FolderNo"] = -array[originalFolderNumber];
 						}
 						sQLiteDataAdapter.Update(dataTable);
 						dataTable.Dispose();
@@ -596,8 +575,8 @@ namespace Easislides
 
 						foreach (DataRow dr in dataTable.Rows)
 						{
-							num = DataUtil.ObjToInt(dr["FolderNo"]);
-							dr["FolderNo"] = -num;
+							originalFolderNumber = DataUtil.ObjToInt(dr["FolderNo"]);
+							dr["FolderNo"] = -originalFolderNumber;
 						}
 						sQLiteDataAdapter.Update(dataTable);
 						dataTable.Dispose();
@@ -613,9 +592,12 @@ namespace Easislides
 			return false;
 		}
 
-		public static void RemoveInvalidDirNameChars(ref string InString)
+		public static void RemoveInvalidDirNameChars(ref string folderName)
 		{
-			InString = ReplaceInvalidDirNameChars(InString, '_');
+			ArgumentNullException.ThrowIfNull(folderName);
+			if (folderName.AsSpan().ContainsAny(InvalidDirNameChars))
+				folderName = string.Create(folderName.Length, folderName, static (destination, source) =>
+					source.AsSpan().ReplaceAny(destination, InvalidDirNameChars, '_'));
 		}
 
 		public static void InitFolderFiles(string InFolder)
@@ -645,15 +627,15 @@ namespace Easislides
 				}
 				for (int i = directories.Length - 1; i >= 0; i--)
 				{
-					string text = directories[i];
-					if ((!(RemovePrefix == ImagesDir) || !(text == RootEasiSlidesDir + "Images\\Scenery")) && !(text == RootEasiSlidesDir + "Images\\Tiles") && InGroup.Count < 255)
+					string subdirectoryPath = directories[i];
+					if ((!(RemovePrefix == ImagesDir) || !(subdirectoryPath == RootEasiSlidesDir + "Images\\Scenery")) && !(subdirectoryPath == RootEasiSlidesDir + "Images\\Tiles") && InGroup.Count < 255)
 					{
 						InGroup.Add(new FolderGroup
 						{
-							Path = text + "\\",
-							Name = "\\" + text.Replace(RemovePrefix, "")
+							Path = subdirectoryPath + "\\",
+							Name = "\\" + subdirectoryPath.Replace(RemovePrefix, "")
 						});
-						pending.Push(text);
+						pending.Push(subdirectoryPath);
 					}
 				}
 			}

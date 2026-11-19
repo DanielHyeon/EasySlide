@@ -29,6 +29,13 @@ using DbTransaction = MySql.Data.MySqlClient.MySqlTransaction;
 
 namespace Easislides
 {
+	internal struct LicenseAdministrator
+	{
+		public string Name;
+		public string Number;
+		public string DisplayText;
+	}
+
 	public class MediaFileInfo
 	{
 		public string FileName { get; set; }
@@ -1382,8 +1389,6 @@ namespace Easislides
 
 		public static int popUpTextMaxLength = 100;
 
-		public static string[] sArray;
-
 		private static Dictionary<string, int> verseNumbersByHeading = new(StringComparer.Ordinal);
 
 		public static RichTextBox tbWorkspace = new RichTextBox();
@@ -1402,9 +1407,7 @@ namespace Easislides
 
 		public static int ShowLyricsWidth = 0;
 
-		public static int HB_TotalVersions = 0;
-
-		public static string[,] HB_Versions = new string[250, 7];
+		internal static BibleVersionCatalog BibleVersions { get; private set; } = BibleVersionCatalog.Empty;
 
 		public static int HB_CurVersionTabIndex = -1;
 
@@ -1475,21 +1478,9 @@ namespace Easislides
 
 		public static string[] SequenceSymbol = Enumerable.Repeat(string.Empty, 160).ToArray();// new string[160] 
 
-		public static int[] Reg_NumArray = new int[9];
-
 		public static string RootEasiSlidesDir;
 
-		public static int[] PB_WordsUnderline = new int[8];
-
-		public static int[] PB_WordsItalic = new int[8];
-
-		public static int[] PB_WordsBold = new int[8];
-
-		public static int[] PB_WordsSize = new int[8];
-
-		public static int[] PB_ShowWords = new int[8];
-
-		public static Color[] PB_WordsColour = new Color[8];
+		internal static readonly PraiseBookTextStyle[] PraiseBookTextStyles = new PraiseBookTextStyle[PraiseBookTextStyle.PartCount];
 
 		public static SortBy PB_CJKGroupStyle = SortBy.Alpha;
 
@@ -1542,8 +1533,6 @@ namespace Easislides
 		public static string[] VerseSymbol = Enumerable.Repeat(string.Empty, 160).ToArray();// new string[160];
 
 		public static string[] VerseTitle = Enumerable.Repeat(string.Empty, 160).ToArray();  //new string[160];
-
-		public static string[] VerseFormatSymbol = new string[6];
 
 		public static string EULA;
 
@@ -1764,8 +1753,6 @@ namespace Easislides
 
 		public static string ExportFileName = "";
 
-		public static string HBFilename = "";
-
 		public static string ListingDirPath = "";
 
 		public static string Listing_File_Name = "";
@@ -1778,7 +1765,7 @@ namespace Easislides
 
 		public long MainFormHwnd = 0L;
 
-		public static string[,] LicAdmin_List = new string[9, 3];
+		internal static readonly LicenseAdministrator[] LicenseAdministrators = new LicenseAdministrator[9];
 
 		public static string SFMPTSData = "";
 
@@ -1838,31 +1825,17 @@ namespace Easislides
 
 		public static string SongFormatData = "";
 
-		public static string[] FontsList = new string[2000];
-
-		public static int FontsListMaxIndex = -1;
-
-		public static string[] ShowInput = new string[60];
-
 		public static string[] HeaderData = new string[255];
 
 		public static bool SaveShowOptions;
 
 		public static UsageMode EasiSlidesMode = UsageMode.Worship;
 
-		public static int[] StrokeCount = new int[65536];
-
 		public static bool PB_FormatChanged;
-
-		public static string[] RTFIndent = new string[6];
 
 		public static string RTFTab = "\\tab ";
 
-		public static string RTFLineSpacing;
-
-		public static string RTFNewLine;
-
-		public static int[] RTFTabValue = new int[9];
+		public const string RTFNewLine = @"\b0\i0\ulnone\par ";
 
 		public static int MoveToFolder;
 
@@ -1912,23 +1885,7 @@ namespace Easislides
 
 		public static string OutputMonitorText = "";
 
-		public static string[] HBBookName = new string[67];
-
-		public static string[] HBVersionBookName = new string[67];
-
 		public UnicodeEncoding UnicodeEncoder = new UnicodeEncoding();
-
-		public static string[] MusicMajorKeys = new string[14];
-
-		public static string[] MusicMinorKeys = new string[14];
-
-		public static string[,] MusicMajorChords = new string[13, 2];
-
-		public static string[,] MusicMinorChords = new string[13, 2];
-
-		public static int[] MusicMajorKeysFlatSharp = new int[14];
-
-		public static int[] MusicMinorKeysFlatSharp = new int[14];
 
 		public static bool TimerFlashOn = false;
 
@@ -1949,8 +1906,6 @@ namespace Easislides
 		public static string DefaultBackgroundID = "";
 
 		public static object missing = Missing.Value;
-
-		public static string[] NotationsArray = new string[32000];
 
 		public static readonly object def = Missing.Value;
 

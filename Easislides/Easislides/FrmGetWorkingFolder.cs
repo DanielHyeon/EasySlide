@@ -48,27 +48,27 @@ namespace Easislides
 				}
 				return;
 			}
-			string text = tbLocation.Text.Trim();
-			if (text == "")
+			string workingDirectory = tbLocation.Text.Trim();
+			if (workingDirectory == "")
 			{
 				MessageBox.Show("Please select a valid folder location.");
 				return;
 			}
-			if (DataUtil.Right(text, 1) != "\\")
+			if (DataUtil.Right(workingDirectory, 1) != "\\")
 			{
-				text += "\\";
+				workingDirectory += "\\";
 			}
-			if (Directory.Exists(text))
+			if (Directory.Exists(workingDirectory))
 			{
-				Gf.RootEasiSlidesDir = text;
+				Gf.RootEasiSlidesDir = workingDirectory;
 				base.DialogResult = DialogResult.OK;
 				Close();
 			}
-			else if (MessageBox.Show("Folder " + text + " doesn't exist, do you want EasiSlides to create it?", "Create Folder", MessageBoxButtons.YesNo) == DialogResult.Yes)
+			else if (MessageBox.Show("Folder " + workingDirectory + " doesn't exist, do you want EasiSlides to create it?", "Create Folder", MessageBoxButtons.YesNo) == DialogResult.Yes)
 			{
-				if (CreateFolder(text))
+				if (CreateFolder(workingDirectory))
 				{
-					Gf.RootEasiSlidesDir = text;
+					Gf.RootEasiSlidesDir = workingDirectory;
 					base.DialogResult = DialogResult.OK;
 					Close();
 				}

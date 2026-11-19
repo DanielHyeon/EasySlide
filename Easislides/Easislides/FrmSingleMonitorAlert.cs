@@ -48,24 +48,7 @@ namespace Easislides
 			if (!(Gf.MessageAlertDetails == ""))
 			{
 				cbMessageAlert.Text = DataUtil.Trim(cbMessageAlert.Text);
-				if (cbMessageAlert.Items.Count == 0 || cbMessageAlert.Text != cbMessageAlert.Items[0].ToString())
-				{
-					try
-					{
-						cbMessageAlert.Items.Insert(0, cbMessageAlert.Text);
-						if (cbMessageAlert.Items.Count > 20)
-						{
-							for (int num = cbMessageAlert.Items.Count; num >= 21; num--)
-							{
-								cbMessageAlert.Items.RemoveAt(num);
-							}
-						}
-						Gf.SaveComboBoxToTextFile(ref cbMessageAlert, Gf.AlertsDataFile);
-					}
-					catch
-					{
-					}
-				}
+				Gf.RecordAlertHistory(cbMessageAlert, Gf.AlertsDataFile);
 				Gf.MessageAlertScroll = Message_Scroll.Checked;
 				Gf.MessageAlertFlash = Message_Flash.Checked;
 				Gf.MessageAlertTransparent = Message_Transparent.Checked;
@@ -81,24 +64,7 @@ namespace Easislides
 			Gf.ParentalAlertDetails = DataUtil.Trim(cbParentalAlert.Text);
 			if (!(Gf.ParentalAlertDetails == ""))
 			{
-				if (cbParentalAlert.Items.Count == 0 || cbParentalAlert.Text != cbParentalAlert.Items[0].ToString())
-				{
-					try
-					{
-						cbParentalAlert.Items.Insert(0, cbParentalAlert.Text);
-						if (cbParentalAlert.Items.Count > 20)
-						{
-							for (int num = cbParentalAlert.Items.Count; num >= 21; num--)
-							{
-								cbParentalAlert.Items.RemoveAt(num);
-							}
-						}
-						Gf.SaveComboBoxToTextFile(ref cbParentalAlert, Gf.ParentalDataFile);
-					}
-					catch
-					{
-					}
-				}
+				Gf.RecordAlertHistory(cbParentalAlert, Gf.ParentalDataFile);
 				Gf.ParentalAlertScroll = Parental_Scroll.Checked;
 				Gf.ParentalAlertFlash = Parental_Flash.Checked;
 				Gf.ParentalAlertTransparent = Parental_Transparent.Checked;

@@ -78,16 +78,16 @@ namespace Easislides
 
 		private bool PerformAction()
 		{
-			string text = tbFileName.Text;
-			string text2 = "";
+			string requestedName = tbFileName.Text;
+			string listExtension = "";
 			if (Gf.NameChangeAction == 1)
 			{
-				text2 = ((InputDir == Gf.WorshipDir) ? ".esw" : ".esp");
-				if (!Gf.ValidateDirNameFormat(text, ListText + " Title"))
+				listExtension = ((InputDir == Gf.WorshipDir) ? ".esw" : ".esp");
+				if (!Gf.ValidateDirNameFormat(requestedName, ListText + " Title"))
 				{
 					return false;
 				}
-				if (File.Exists(InputDir + text + text2))
+				if (File.Exists(InputDir + requestedName + listExtension))
 				{
 					MessageBox.Show("There is already a list with the same name, please try a different name.", "", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
 					return false;
@@ -96,8 +96,8 @@ namespace Easislides
 				try
 				{
 					string inNotes = "";
-                    gfFileHelpers.SaveIndexFile(InputDir + text + text2, ref Gf.ListViewNotations, UsageMode.Worship, SaveAllItems: false, Gf.Def_FormatString, inNotes);
-					Gf.SelectedListName = text;
+                    gfFileHelpers.SaveIndexFile(InputDir + requestedName + listExtension, ref Gf.ListViewNotations, UsageMode.Worship, SaveAllItems: false, Gf.Def_FormatString, inNotes);
+					Gf.SelectedListName = requestedName;
 				}
 				catch
 				{
@@ -106,12 +106,12 @@ namespace Easislides
 			}
 			else if (Gf.NameChangeAction == 2)
 			{
-				text2 = ((InputDir == Gf.WorshipDir) ? ".esw" : ".esp");
-				if (!Gf.ValidateDirNameFormat(text, ListText + " Title"))
+				listExtension = ((InputDir == Gf.WorshipDir) ? ".esw" : ".esp");
+				if (!Gf.ValidateDirNameFormat(requestedName, ListText + " Title"))
 				{
 					return false;
 				}
-				if (File.Exists(InputDir + text + text2))
+				if (File.Exists(InputDir + requestedName + listExtension))
 				{
 					MessageBox.Show("There is already a list with the same name, please try a different name.", "", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
 					return false;
@@ -119,8 +119,8 @@ namespace Easislides
 				Gf.ValidateDir(InputDir, CreateDir: true);
 				try
 				{
-					File.Move(InputDir + Gf.SelectedListName + text2, InputDir + text + text2);
-					Gf.SelectedListName = text;
+					File.Move(InputDir + Gf.SelectedListName + listExtension, InputDir + requestedName + listExtension);
+					Gf.SelectedListName = requestedName;
 				}
 				catch
 				{
@@ -131,21 +131,20 @@ namespace Easislides
 			{
 				if (Gf.NameChangeAction == 3)
 				{
-					string text3 = Gf.Folders[Gf.FolderRenameNo].RenameName;
-					string text4 = text;
-					bool flag = false;
-					if (Gf.ValidateDirNameFormat(text, "New folder name"))
+					_ = Gf.Folders[Gf.FolderRenameNo].RenameName;
+					bool folderNameExists = false;
+					if (Gf.ValidateDirNameFormat(requestedName, "New folder name"))
 					{
 						for (int i = 1; i <= Gf.MAXSONGSFOLDERS; i++)
 						{
-							if (Gf.Folders[i].RenameName.ToLower() == text.ToLower())
+							if (Gf.Folders[i].RenameName.ToLower() == requestedName.ToLower())
 							{
-								flag = true;
+								folderNameExists = true;
 							}
 						}
-						if (!flag)
+						if (!folderNameExists)
 						{
-							Gf.Folders[Gf.FolderRenameNo].RenameName = text;
+							Gf.Folders[Gf.FolderRenameNo].RenameName = requestedName;
 							return true;
 						}
 						return false;
@@ -154,17 +153,17 @@ namespace Easislides
 				}
 				if (Gf.NameChangeAction == 7)
 				{
-					string text5 = Gf.PraiseBookDir + DataUtil.Trim(tbFileName.Text) + ".esp";
+					string praiseBookPath = Gf.PraiseBookDir + DataUtil.Trim(tbFileName.Text) + ".esp";
 					try
 					{
-						if (!File.Exists(text5))
+						if (!File.Exists(praiseBookPath))
 						{
-							File.Copy(Gf.SelectedListName, text5, overwrite: true);
+							File.Copy(Gf.SelectedListName, praiseBookPath, overwrite: true);
 							return true;
 						}
 						if (MessageBox.Show("PraiseBook already exists. Overwrite it?", "Overwrite", MessageBoxButtons.YesNo) == DialogResult.Yes)
 						{
-							File.Copy(Gf.SelectedListName, text5, overwrite: true);
+							File.Copy(Gf.SelectedListName, praiseBookPath, overwrite: true);
 							return true;
 						}
 						return false;
@@ -177,17 +176,17 @@ namespace Easislides
 				}
 				if (Gf.NameChangeAction == 8)
 				{
-					string text5 = Gf.WorshipDir + DataUtil.Trim(tbFileName.Text) + ".esw";
+					string worshipListPath = Gf.WorshipDir + DataUtil.Trim(tbFileName.Text) + ".esw";
 					try
 					{
-						if (!File.Exists(text5))
+						if (!File.Exists(worshipListPath))
 						{
-							File.Copy(Gf.SelectedListName, text5, overwrite: true);
+							File.Copy(Gf.SelectedListName, worshipListPath, overwrite: true);
 							return true;
 						}
 						if (MessageBox.Show("WorshipList already exists. Overwrite it?", "Overwrite", MessageBoxButtons.YesNo) == DialogResult.Yes)
 						{
-							File.Copy(Gf.SelectedListName, text5, overwrite: true);
+							File.Copy(Gf.SelectedListName, worshipListPath, overwrite: true);
 							return true;
 						}
 						return false;

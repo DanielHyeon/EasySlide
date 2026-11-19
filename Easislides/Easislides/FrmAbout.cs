@@ -44,10 +44,10 @@ namespace Easislides
 
 		private void BtnSysInfo_Click(object sender, EventArgs e)
 		{
-			string text = (string)Registry.LocalMachine.OpenSubKey("SOFTWARE\\Microsoft\\Shared Tools\\MSINFO").GetValue("Path", "");
-			if (File.Exists(text))
+			string systemInfoPath = (string)Registry.LocalMachine.OpenSubKey("SOFTWARE\\Microsoft\\Shared Tools\\MSINFO").GetValue("Path", "");
+			if (File.Exists(systemInfoPath))
 			{
-				Gf.RunProcess(text);
+				Gf.RunProcess(systemInfoPath);
 			}
 		}
 	}

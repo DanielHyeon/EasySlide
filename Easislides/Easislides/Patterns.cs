@@ -187,42 +187,42 @@ namespace Easislides
 
 		public Color Lighter(Color InColor)
 		{
-			int num = InColor.R + 50;
-			int num2 = InColor.G + 50;
-			int num3 = InColor.B + 50;
-			if (num > 255)
+			int red = InColor.R + 50;
+			int green = InColor.G + 50;
+			int blue = InColor.B + 50;
+			if (red > 255)
 			{
-				num = 255;
+				red = 255;
 			}
-			if (num2 > 255)
+			if (green > 255)
 			{
-				num2 = 255;
+				green = 255;
 			}
-			if (num3 > 255)
+			if (blue > 255)
 			{
-				num3 = 255;
+				blue = 255;
 			}
-			return Color.FromArgb(num, num2, num3);
+			return Color.FromArgb(red, green, blue);
 		}
 
 		public Color Darker(Color InColor)
 		{
-			int num = InColor.R - 50;
-			int num2 = InColor.G - 50;
-			int num3 = InColor.B - 50;
-			if (num < 0)
+			int red = InColor.R - 50;
+			int green = InColor.G - 50;
+			int blue = InColor.B - 50;
+			if (red < 0)
 			{
-				num = 0;
+				red = 0;
 			}
-			if (num2 < 0)
+			if (green < 0)
 			{
-				num2 = 0;
+				green = 0;
 			}
-			if (num3 < 0)
+			if (blue < 0)
 			{
-				num3 = 0;
+				blue = 0;
 			}
-			return Color.FromArgb(num, num2, num3);
+			return Color.FromArgb(red, green, blue);
 		}
 	}
 }

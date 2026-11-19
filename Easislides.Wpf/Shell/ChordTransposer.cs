@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Easislides.Module;
 
 namespace Easislides.Wpf.Shell;
 
@@ -32,7 +33,7 @@ public static class ChordTransposer
         }
 
         // 슬래시 베이스(C/G) — 양쪽을 각각 조옮김.
-        var slash = chord.IndexOf('/');
+        var slash = ChordNotation.FindBassSeparator(chord);
         if (slash > 0)
         {
             var left = Transpose(chord[..slash], semitones);

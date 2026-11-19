@@ -65,5 +65,5 @@ internal static class MonitorRegistrySettings
 
     private static bool HasLegacyDualMonitorValues(RegistrySettings settings) =>
         settings.TryReadValue(LegacySection, RegUtil.Reg_DMAlwaysUse, out object marker)
-        && int.TryParse(marker?.ToString(), out int flag) && flag >= 0;
+        && int.TryParse(marker?.ToString(), out int alwaysUseValue) && alwaysUseValue >= 0;
 }

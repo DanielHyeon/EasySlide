@@ -18,8 +18,6 @@ namespace Easislides
     {
 		private const int ExecutableBufferSize = 260;
 		private const int MaxPowerpointSequence = 49;
-		private const int MaxSlideCount = 1000;
-		private const int SongVerseInitCount = 10;
 		private const int MainWindowWaitCount = 80;
 		private const int MainWindowWaitDelayMs = 100;
 		private const int WindowInitialSearchDelayMs = 1500;
@@ -60,15 +58,15 @@ namespace Easislides
 
 		public static bool PowerpointPresent()
 		{
-			string text = Application.StartupPath + "\\Sys\\~temp.ppt";
+			string probePresentationPath = Application.StartupPath + "\\Sys\\~temp.ppt";
 			FileUtil.MakeDir(Application.StartupPath + "\\Sys");
-			if (!File.Exists(text))
+			if (!File.Exists(probePresentationPath))
 			{
-				FileUtil.CreateNewFile(text);
+				FileUtil.CreateNewFile(probePresentationPath);
 			}
-			text = '"' + text + '"';
+			probePresentationPath = '"' + probePresentationPath + '"';
 			string lpResult = new string(' ', ExecutableBufferSize);
-			if (FindExecutable(text, "", lpResult) > 32)
+			if (FindExecutable(probePresentationPath, "", lpResult) > 32)
 			{
 				return true;
 			}
@@ -591,7 +589,7 @@ namespace Easislides
 			// One heavy group for the whole item run (fix-ppt-show-call-timeout G4): Run, the slide placement, the
 			// window placement, the verse markers and the slide count share its limits. Given up at any point, the
 			// item takes the "not started" path below.
-			string text;
+			string runMessage;
 			int count = 0;
 			bool givenUp;
 			using (PowerPointGate gate = PowerPointGate.Enter(PowerPointCallWeight.Heavy, "run the PowerPoint item " + Path.GetFileName(InItem.Path)))
@@ -600,11 +598,11 @@ namespace Easislides
 				{
 					// Not asked: no slide show was started, and nothing of an earlier run of this wrapper counts.
 					InPPT.ForgetAbandonedRun();
-					text = PowerPoint.NotRespondingText;
+					runMessage = PowerPoint.NotRespondingText;
 				}
 				else
 				{
-					text = InPPT.Run(InItem.Path, ref PowerpointList);
+					runMessage = InPPT.Run(InItem.Path, ref PowerpointList);
 					if (InPPT.LastRunStarted)
 					{
 						count = RunPowerpointSongCalls(ref InItem, InPPT, StartingSlide);
@@ -618,7 +616,7 @@ namespace Easislides
 				// row, notice); the wrapper does not act on that slide show any more.
 				InPPT.ForgetAbandonedRun();
 				ResetPowerpointVerses(ref InItem);
-				text = PowerPoint.NotRespondingText;
+				runMessage = PowerPoint.NotRespondingText;
 			}
 			if (!InPPT.LastRunStarted)
 			{
@@ -628,7 +626,7 @@ namespace Easislides
 				// what the readers already get when no presentation is open at all, and they cope with it
 				// (status "x/0", slide keys find nothing to move). The verse data was reset above, so no verse
 				// buttons.
-				string runFailure = string.IsNullOrEmpty(text) ? "(no result)" : text;
+				string runFailure = string.IsNullOrEmpty(runMessage) ? "(no result)" : runMessage;
 				if (InPPT.KeepSlideShowOnTop)
 				{
 					// The previous PowerPoint item's slide show must not stay on top under the transparent show
@@ -770,10 +768,10 @@ namespace Easislides
 				}
 				if (liveWork)
 				{
-					string text = LivePP.ClearUpPowerpointWindows(ref PowerpointList);
+					string cleanupReport = LivePP.ClearUpPowerpointWindows(ref PowerpointList);
 					if (!PowerPointCallLimit.CurrentAbandoned)
 					{
-						ReportShowEndCloseFailures(text);
+						ReportShowEndCloseFailures(cleanupReport);
 						if (PowerpointList.Count > 0)
 						{
 							// Copies that may still be open (Close failed, or not every presentation could be read):
@@ -781,14 +779,14 @@ namespace Easislides
 							KeepShowCopiesForLater();
 							powerPointCleanUpPending = true;
 						}
-						if (text == "")
+						if (cleanupReport == "")
 						{
 							LivePP.QuitPowerPointApp(LivePP.prePowerPointApp);
 						}
 					}
 					if (PowerPointCallLimit.CurrentAbandoned)
 					{
-						PowerPointNotAnswering(where, "PowerPoint stopped answering: the calls were abandoned " + LimitText(limit) + " (" + text + ")", atExit);
+						PowerPointNotAnswering(where, "PowerPoint stopped answering: the calls were abandoned " + LimitText(limit) + " (" + cleanupReport + ")", atExit);
 						return false;
 					}
 				}
@@ -949,12 +947,12 @@ namespace Easislides
 				if (pendingShowCopies.Count > 0)
 				{
 					int kept = pendingShowCopies.Count;
-					string text = LivePP.ClearUpPowerpointWindows(ref pendingShowCopies, quitWhenEmpty: atExit);
+					string cleanupReport = LivePP.ClearUpPowerpointWindows(ref pendingShowCopies, quitWhenEmpty: atExit);
 					if (PowerPointCallLimit.CurrentAbandoned)
 					{
 						return false;
 					}
-					FrmMain.WriteDebugLog(where + ": PowerPoint answers again; the " + kept + " show copy(ies) an earlier show end could not close were looked for and closed (" + text + ")");
+					FrmMain.WriteDebugLog(where + ": PowerPoint answers again; the " + kept + " show copy(ies) an earlier show end could not close were looked for and closed (" + cleanupReport + ")");
 					int failed = LivePP.LastCloseFailedCount;
 					if (failed > 0 || LivePP.LastCloseError != null)
 					{

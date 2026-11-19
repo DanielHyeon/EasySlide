@@ -30,8 +30,8 @@ namespace OfficeLib
 					false,  // AddToRecentFiles
 					missing, missing, missing, missing, missing, missing, missing,
 					false); // Visible
-				string text = document.Content.Text ?? "";
-				return text.Replace("\r\n", "\n").Replace('\r', '\n');
+				string documentText = document.Content.Text ?? "";
+				return documentText.Replace("\r\n", "\n").Replace('\r', '\n');
 			}
 			catch (Exception ex)
 			{

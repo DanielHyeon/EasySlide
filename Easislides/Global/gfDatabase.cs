@@ -74,26 +74,26 @@ namespace Easislides
 				RegUtil.SaveRegValue("config", "media_dir", regValue);
 			}
 			RegUtil.DeleteRegKey("config", name);
-			string text = RootEasiSlidesDir + "Admin\\Database\\MusicExtensions.txt";
-			string text2 = RootEasiSlidesDir + "Admin\\Database\\MediaExtensions.txt";
-			if (File.Exists(text) && !File.Exists(text2))
+			string legacyMusicExtensionsPath = RootEasiSlidesDir + "Admin\\Database\\MusicExtensions.txt";
+			string mediaExtensionsPath = RootEasiSlidesDir + "Admin\\Database\\MediaExtensions.txt";
+			if (File.Exists(legacyMusicExtensionsPath) && !File.Exists(mediaExtensionsPath))
 			{
 				try
 				{
-					File.Move(text, text2);
+					File.Move(legacyMusicExtensionsPath, mediaExtensionsPath);
 				}
 				catch (Exception ex)
 				{
 					Debug.WriteLine($"Failed to move MusicExtensions.txt to MediaExtensions.txt: {ex.Message}");
 				}
 			}
-			string text3 = RootEasiSlidesDir + "User Images";
-			string text4 = RootEasiSlidesDir + "Images\\";
-			if (Directory.Exists(text3) && !Directory.Exists(text4))
+			string legacyImagesDirectory = RootEasiSlidesDir + "User Images";
+			string imagesDirectory = RootEasiSlidesDir + "Images\\";
+			if (Directory.Exists(legacyImagesDirectory) && !Directory.Exists(imagesDirectory))
 			{
 				try
 				{
-					Directory.Move(text3, text4);
+					Directory.Move(legacyImagesDirectory, imagesDirectory);
 				}
 				catch (Exception ex)
 				{
@@ -200,9 +200,9 @@ namespace Easislides
 
 				// GetDbConnection returns an open connection; opening it again threw, so no edit was ever saved.
 				using DbConnection connection = DbController.GetDbConnection(ConnectStringMainDB);
-				string text = "Update SONG SET Title_1 =@Title_1,Title_2 =@Title_2,song_number =@song_number,FolderNo =@FolderNo,Lyrics =@Lyrics,Sequence =@Sequence,writer =@writer,copyright =@copyright,CJK_WordCount =@CJK_WordCount,CJK_StrokeCount =@CJK_StrokeCount,capo =@capo,Timing =@Timing,[Key] =@Key,msc =@msc,CATEGORY =@CATEGORY,LICENCE_ADMIN1 =@LICENCE_ADMIN1,LICENCE_ADMIN2 =@LICENCE_ADMIN2,BOOK_REFERENCE =@BOOK_REFERENCE,USER_REFERENCE =@USER_REFERENCE,SETTINGS =@SETTINGS,FORMATDATA =@FORMATDATA,LastModified =@LastModified where songid=" + SongID;
-				using DbCommand command = new DbCommand(text, connection);
-				command.CommandText = text;
+				string updateSongSql = "Update SONG SET Title_1 =@Title_1,Title_2 =@Title_2,song_number =@song_number,FolderNo =@FolderNo,Lyrics =@Lyrics,Sequence =@Sequence,writer =@writer,copyright =@copyright,CJK_WordCount =@CJK_WordCount,CJK_StrokeCount =@CJK_StrokeCount,capo =@capo,Timing =@Timing,[Key] =@Key,msc =@msc,CATEGORY =@CATEGORY,LICENCE_ADMIN1 =@LICENCE_ADMIN1,LICENCE_ADMIN2 =@LICENCE_ADMIN2,BOOK_REFERENCE =@BOOK_REFERENCE,USER_REFERENCE =@USER_REFERENCE,SETTINGS =@SETTINGS,FORMATDATA =@FORMATDATA,LastModified =@LastModified where songid=" + SongID;
+				using DbCommand command = new DbCommand(updateSongSql, connection);
+				command.CommandText = updateSongSql;
 				command.Parameters.AddWithValue("@Title_1", Title_1);
 				command.Parameters.AddWithValue("@Title_2", Title_2);
 				command.Parameters.AddWithValue("@song_number", song_number);
@@ -238,23 +238,23 @@ namespace Easislides
 
 		public static string RestoreOriginalSongsDatabase()
 		{
-			string text = $@"{Application.StartupPath}Sys\EasiSlidesDb.db";
+			string bundledDatabasePath = $@"{Application.StartupPath}Sys\EasiSlidesDb.db";
 
 			RestoreSongsDatabase = false;
-			if (File.Exists(text))
+			if (File.Exists(bundledDatabasePath))
 			{
 				try
 				{
 					FileUtil.MakeDir(RootEasiSlidesDir + "Admin\\Database\\");
-					int num = 1;
+					int backupNumber = 1;
 					string dBFileName = DBFileName;
 					if (File.Exists(dBFileName))
 					{
-						dBFileName = $@"{RootEasiSlidesDir}Admin\Database\{Path.GetFileNameWithoutExtension("EasiSlidesDb.mdb")}{DateTime.Now.ToString("-yyyy-MM-dd-")}{num}{Path.GetExtension("EasiSlidesDb.db")}";
+						dBFileName = $@"{RootEasiSlidesDir}Admin\Database\{Path.GetFileNameWithoutExtension("EasiSlidesDb.mdb")}{DateTime.Now.ToString("-yyyy-MM-dd-")}{backupNumber}{Path.GetExtension("EasiSlidesDb.db")}";
 						while (File.Exists(dBFileName))
 						{
-							num++;
-							dBFileName = $@"{RootEasiSlidesDir}Admin\Database\{Path.GetFileNameWithoutExtension("EasiSlidesDb.mdb")}{DateTime.Now.ToString("-yyyy-MM-dd-")}{num}{Path.GetExtension("EasiSlidesDb.db")}";
+							backupNumber++;
+							dBFileName = $@"{RootEasiSlidesDir}Admin\Database\{Path.GetFileNameWithoutExtension("EasiSlidesDb.mdb")}{DateTime.Now.ToString("-yyyy-MM-dd-")}{backupNumber}{Path.GetExtension("EasiSlidesDb.db")}";
 						}
 					}
 					else
@@ -267,7 +267,7 @@ namespace Easislides
 						{
 							File.Move(DBFileName, dBFileName);
 						}
-						File.Copy(text, DBFileName);
+						File.Copy(bundledDatabasePath, DBFileName);
 						return dBFileName;
 					}
 					catch (Exception ex)
@@ -290,19 +290,19 @@ namespace Easislides
 
 		public static void RestoreBackgroundImages()
 		{
-			string text = $@"{Application.StartupPath}\Backgrounds\Scenery\";
-			string text2 = $@"{Application.StartupPath}\Backgrounds\Tiles\";
-			string text3 = $@"{RootEasiSlidesDir}Images\Scenery\";
-			string text4 = $@"{RootEasiSlidesDir}Images\Tiles\";
+			string bundledSceneryDirectory = $@"{Application.StartupPath}\Backgrounds\Scenery\";
+			string bundledTilesDirectory = $@"{Application.StartupPath}\Backgrounds\Tiles\";
+			string sceneryDirectory = $@"{RootEasiSlidesDir}Images\Scenery\";
+			string tilesDirectory = $@"{RootEasiSlidesDir}Images\Tiles\";
 			if (FileUtil.MakeDir($@"{RootEasiSlidesDir}Images\"))
 			{
-				if (Directory.Exists(text) && FileUtil.MakeDir(text3))
+				if (Directory.Exists(bundledSceneryDirectory) && FileUtil.MakeDir(sceneryDirectory))
 				{
-					FileUtil.CopyFiles(text, text3);
+					FileUtil.CopyFiles(bundledSceneryDirectory, sceneryDirectory);
 				}
-				if (Directory.Exists(text2) && FileUtil.MakeDir(text4))
+				if (Directory.Exists(bundledTilesDirectory) && FileUtil.MakeDir(tilesDirectory))
 				{
-					FileUtil.CopyFiles(text2, text4);
+					FileUtil.CopyFiles(bundledTilesDirectory, tilesDirectory);
 				}
 			}
 		}
@@ -375,7 +375,7 @@ namespace Easislides
 
 			try
 			{
-				bool flag = false;
+				bool isFolderEnabled = false;
 				string cmdText = $@"select count(*) from FOLDER where FolderNo={DataUtil.ObjToString(FNumber)}";
 
 				DbCommand command = new DbCommand(cmdText, connection);
@@ -388,23 +388,23 @@ namespace Easislides
 						if (FNumber > 0)
 						{
 							value = $@"Folder {DataUtil.ObjToString(FNumber)}";
-							flag = ((FNumber < 4) ? true : false);
+							isFolderEnabled = ((FNumber < 4) ? true : false);
 						}
 						else
 						{
 							value = "Recycle Folder";
-							flag = false;
+							isFolderEnabled = false;
 						}
 					}
 					else
 					{
 						value = InFolderName;
-						flag = true;
+						isFolderEnabled = true;
 					}
 					cmdText = (command.CommandText = "Insert into Folder (FolderNo,name,Use,GroupStyle,PreChorusHeading,ChorusHeading, BridgeHeading,EndingHeading,BIUHeading,HeadingSize,HeadingOption,BIU0,Size0,Bold0,Align0,FontName0,Vpos0,BIU1,Size1,Bold1,Align1,FontName1,Vpos1)  Values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
 					command.Parameters.AddWithValue("@FolderNo", FNumber);
 					command.Parameters.AddWithValue("@Name", value);
-					command.Parameters.AddWithValue("@Use", flag);
+					command.Parameters.AddWithValue("@Use", isFolderEnabled);
 					command.Parameters.AddWithValue("@GroupStyle", SortBy.Alpha);
 					command.Parameters.AddWithValue("@PreChorusHeading", "");
 					command.Parameters.AddWithValue("@ChorusHeading", "Chorus:");
@@ -509,14 +509,14 @@ namespace Easislides
 			}
 			CurSession = RegUtil.GetRegValue("config", "current_session", "");
 			CurPraiseBook = RegUtil.GetRegValue("config", "current_praisebook", "");
-			string text = RegUtil.GetRegValue("config", "media_dir", MediaDir);
-			if (DataUtil.Right(text, 1) != "\\")
+			string configuredMediaDirectory = RegUtil.GetRegValue("config", "media_dir", MediaDir);
+			if (DataUtil.Right(configuredMediaDirectory, 1) != "\\")
 			{
-				text += "\\";
+				configuredMediaDirectory += "\\";
 			}
-			if (Directory.Exists(text))
+			if (Directory.Exists(configuredMediaDirectory))
 			{
-				MediaDir = text;
+				MediaDir = configuredMediaDirectory;
 			}
 			ExportToDir = RegUtil.GetRegValue("config", "export_dir", DocumentsDir);
 			if (DataUtil.Right(ExportToDir, 1) != "\\")
@@ -587,12 +587,12 @@ namespace Easislides
 			{
 				AutoRotateStyle = 3;
 			}
-			int num = DataUtil.ObjToInt(RegUtil.GetRegValue("options", "NotationFontFactor", 75));
-			if (num < 20 && num > 200)
+			int notationFontFactor = DataUtil.ObjToInt(RegUtil.GetRegValue("options", "NotationFontFactor", 75));
+			if (notationFontFactor < 20 && notationFontFactor > 200)
 			{
-				num = 75;
+				notationFontFactor = 75;
 			}
-			NotationFontFactor = (float)num / 100f;
+			NotationFontFactor = (float)notationFontFactor / 100f;
 			PowerpointListingStyle = DataUtil.ObjToInt(RegUtil.GetRegValue("options", "ExternalListing", 0));
 			if ((PowerpointListingStyle < 0) & (PowerpointListingStyle > 1))
 			{

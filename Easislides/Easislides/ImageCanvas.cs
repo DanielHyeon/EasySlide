@@ -481,17 +481,17 @@ namespace Easislides
 
 		private void DrawSlideNumber(Graphics graphics, int storedImageWidth, int storedImageHeight, int margin)
 		{
-			string text = PowerPointSlideNumbering.ToString();
+			string slideNumberText = PowerPointSlideNumbering.ToString();
 			float offsetX = PowerPointSlideNumbering < 10 ? SINGLE_DIGIT_OFFSET : MULTI_DIGIT_OFFSET;
 			PointF position = new PointF(storedImageWidth - (margin * 2 + offsetX), margin);
 
 			using (Font font = new Font("Microsoft Sans Serif", storedImageWidth / SMALL_FONT_SIZE_RATIO))
 			{
-				SizeF textSize = graphics.MeasureString(text, font);
+				SizeF textSize = graphics.MeasureString(slideNumberText, font);
 
 				graphics.FillRectangle(Brushes.Black, position.X - 3, position.Y + 1, textSize.Width - 2, textSize.Height - 3);
 				graphics.FillRectangle(Brushes.Yellow, position.X - 4, position.Y, textSize.Width - 2, textSize.Height - 3);
-				graphics.DrawString(text, font, Brushes.Black, position.X - 5, position.Y);
+				graphics.DrawString(slideNumberText, font, Brushes.Black, position.X - 5, position.Y);
 			}
 		}
 

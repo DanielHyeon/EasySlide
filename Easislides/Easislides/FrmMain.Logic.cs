@@ -1253,7 +1253,7 @@ namespace Easislides
 
         private bool HB_StartBuildStringProcess()
         {
-            if (Gf.HB_TotalVersions >= 1)
+            if (Gf.BibleVersions.ContainsIndex(TabBibleVersions.SelectedIndex))
             {
                 HB_CurSelectedTitle = "";
                 HB_CurSelectedPassages = HB_BuildSelectionString(TabBibleVersions.SelectedIndex, ref HB_CurSelectedTitle);
@@ -1272,7 +1272,7 @@ namespace Easislides
         {
             if (BibleText.Text != "")
             {
-                string displayNameOnly = Gf.GetDisplayNameOnly(ref Gf.HB_Versions[InBibleVersion, 4], UpdateByRef: false, KeepExt: true);
+                string versionFileName = Gf.BibleVersions[InBibleVersion].FileName;
                 int firstVerse = 0;
                 int lastVerse = 0;
                 string selection = "";
@@ -1328,8 +1328,8 @@ namespace Easislides
                     {
                         endReference = ((Gf.HB_VersesLocation[firstVerse].Verse != Gf.HB_VersesLocation[lastVerse].Verse) ? ("-" + Convert.ToString(Gf.HB_VersesLocation[lastVerse].Verse)) : "");
                     }
-                    OutputTitle = Gf.LookUpBookName(InBibleVersion, Gf.HB_VersesLocation[firstVerse].Book) + " " + startReference + endReference + " (" + Gf.HB_Versions[InBibleVersion, 1] + ")";
-                    selection = "0" + ';' + displayNameOnly + ';' + ';';
+                    OutputTitle = Gf.LookUpBookName(InBibleVersion, Gf.HB_VersesLocation[firstVerse].Book) + " " + startReference + endReference + " (" + Gf.BibleVersions[InBibleVersion].Name + ")";
+                    selection = "0" + ';' + versionFileName + ';' + ';';
                     int i;
                     for (i = firstVerse; i <= lastVerse; i++)
                     {
@@ -1344,7 +1344,7 @@ namespace Easislides
                 }
                 else
                 {
-                    selection = "1" + ';' + displayNameOnly + ';' + ';';
+                    selection = "1" + ';' + versionFileName + ';' + ';';
                     for (int i = firstVerse; i <= lastVerse; i++)
                     {
                         OutputTitle = OutputTitle + DataUtil.Trim(DataUtil.Left(Gf.LookUpBookName(InBibleVersion, Gf.HB_VersesLocation[i].Book), 4)) + " " + Convert.ToString(Gf.HB_VersesLocation[i].Chapter) + ":" + Convert.ToString(Gf.HB_VersesLocation[i].Verse) + ",";
@@ -1355,7 +1355,7 @@ namespace Easislides
                     {
                         OutputTitle = DataUtil.Left(OutputTitle, 60) + " .. ";
                     }
-                    OutputTitle = OutputTitle + " (" + Gf.HB_Versions[InBibleVersion, 1] + ")";
+                    OutputTitle = OutputTitle + " (" + Gf.BibleVersions[InBibleVersion].Name + ")";
                 }
                 return selection;
             }

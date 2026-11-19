@@ -129,7 +129,7 @@ namespace Easislides
 		{
 			int CurPos = InTextBox.SelectionStart;
 			string selectedText = (InNum == 152) ? " »" : VerseSymbol[InNum];
-			string text = "";
+			string trailingLineBreak = "";
 			switch (InNum)
 			{
 				case 151:
@@ -143,13 +143,13 @@ namespace Easislides
 				default:
 					GetCurPosInLine(InTextBox.Text, ref CurPos);
 					InTextBox.SelectionStart = CurPos;
-					text = (((DataUtil.Mid(InTextBox.Text, CurPos, 1) == "\r") | (DataUtil.Mid(InTextBox.Text, CurPos, 1) == "\n")) ? "" : "\r\n");
+					trailingLineBreak = (((DataUtil.Mid(InTextBox.Text, CurPos, 1) == "\r") | (DataUtil.Mid(InTextBox.Text, CurPos, 1) == "\n")) ? "" : "\r\n");
 					break;
 			}
 			InTextBox.SelectedText = selectedText;
-			if (text != "")
+			if (trailingLineBreak != "")
 			{
-				InTextBox.SelectedText = text;
+				InTextBox.SelectedText = trailingLineBreak;
 			}
 			if (InNum == 152)
 			{

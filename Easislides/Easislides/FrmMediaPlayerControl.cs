@@ -424,7 +424,7 @@ namespace Easislides
 			OpenFileDialog1.AddExtension = true;
 			tbSourceLocation.Text = DataUtil.Trim(tbSourceLocation.Text);
 			OpenFileDialog1.FileName = tbSourceLocation.Text;
-			bool flag = false;
+			bool retryFileSelection = false;
 			try
 			{
 				if (OpenFileDialog1.ShowDialog() == DialogResult.OK)
@@ -440,9 +440,9 @@ namespace Easislides
 			}
 			catch
 			{
-				flag = true;
+				retryFileSelection = true;
 			}
-			if (flag)
+			if (retryFileSelection)
 			{
 				try
 				{

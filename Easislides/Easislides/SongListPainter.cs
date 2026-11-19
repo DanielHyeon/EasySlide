@@ -199,8 +199,8 @@ namespace Easislides
             // As the control shows it: with HideSelection the selection is not shown while unfocused.
             bool selected = item.Selected && (hasFocus || !list.HideSelection);
             Color back = selected ? (hasFocus ? SystemColors.Highlight : SystemColors.Control) : item.BackColor;
-            Color text = selected ? (hasFocus ? SystemColors.HighlightText : SystemColors.ControlText) : item.ForeColor;
-            Color secondary = selected ? text : ModernUiPalette.TextSecondary;
+            Color textColor = selected ? (hasFocus ? SystemColors.HighlightText : SystemColors.ControlText) : item.ForeColor;
+            Color secondary = selected ? textColor : ModernUiPalette.TextSecondary;
             SplitTitle(item.Text, out string title, out string number, out bool media);
 
             Rectangle label = item.GetBounds(ItemBoundsPortion.Label);
@@ -236,7 +236,7 @@ namespace Easislides
                 int titleLimit = titleRight - noteSpace;
                 if (titleLimit > textLeft)
                 {
-                    DrawGdiText(hdc, title, font, Rectangle.FromLTRB(textLeft, bounds.Top, titleLimit, bounds.Bottom), text, TitleFlags);
+                    DrawGdiText(hdc, title, font, Rectangle.FromLTRB(textLeft, bounds.Top, titleLimit, bounds.Bottom), textColor, TitleFlags);
                     if (media)
                     {
                         int drawnRight = Math.Min(textLeft + TextWidth(hdc, title, font), titleLimit);
