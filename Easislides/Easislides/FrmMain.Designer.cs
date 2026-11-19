@@ -87,7 +87,7 @@ namespace Easislides
             Ind_VAlignTop = new ToolStripMenuItem();
             Ind_VAlignCentre = new ToolStripMenuItem();
             Ind_VAlignBottom = new ToolStripMenuItem();
-            flowLayoutPreviewLyrics = new Panel();
+            flowLayoutPreviewLyrics = new LyricsSlidePanel();
             Ind_Outline = new ToolStripButton();
             Ind_Interlace = new ToolStripButton();
             Ind_Notations = new ToolStripButton();
@@ -95,8 +95,8 @@ namespace Easislides
             Ind_Shadow = new ToolStripButton();
             PreviewInfo = new RichTextBox();
             panelOutputTop = new Panel();
-            flowLayoutOutputPowerPoint = new FlowLayoutPanel();
-            flowLayoutOutputLyrics = new Panel();
+            flowLayoutOutputPowerPoint = new PowerPointThumbnailPanel();
+            flowLayoutOutputLyrics = new LyricsSlidePanel();
             OutputInfo = new TextBox();
             panel10 = new Panel();
             cbOutputBlack = new CheckBox();
@@ -596,7 +596,7 @@ namespace Easislides
             splitContainer2 = new SplitContainer();
             splitContainerPreview = new SplitContainer();
             panelPreviewTop = new Panel();
-            flowLayoutPreviewPowerPoint = new FlowLayoutPanel();
+            flowLayoutPreviewPowerPoint = new PowerPointThumbnailPanel();
             IndPanel = new Panel();
             panelIndTemplate = new Panel();
             toolStripIndTemplates = new ToolStrip();
@@ -1401,7 +1401,8 @@ namespace Easislides
             // 
             // flowLayoutPreviewLyrics
             // 
-            flowLayoutPreviewLyrics.AutoScroll = true;
+            flowLayoutPreviewLyrics.SlideMouseUp += LyricsRichTextBox_MouseUp;
+            flowLayoutPreviewLyrics.SlideKeyUp += LyricsRichTextBox_KeyUp;
             flowLayoutPreviewLyrics.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             flowLayoutPreviewLyrics.BackColor = System.Drawing.SystemColors.Window;
             flowLayoutPreviewLyrics.Location = new System.Drawing.Point(3, 29);
@@ -1514,7 +1515,8 @@ namespace Easislides
             // 
             // flowLayoutOutputLyrics
             // 
-            flowLayoutOutputLyrics.AutoScroll = true;
+            flowLayoutOutputLyrics.SlideMouseUp += LyricsRichTextBox_MouseUp;
+            flowLayoutOutputLyrics.SlideKeyUp += LyricsRichTextBox_KeyUp;
             flowLayoutOutputLyrics.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             flowLayoutOutputLyrics.BackColor = System.Drawing.SystemColors.Window;
             flowLayoutOutputLyrics.Location = new System.Drawing.Point(15, 33);
@@ -6788,7 +6790,7 @@ namespace Easislides
         private ToolStripMenuItem Ind_VAlignTop;
         private ToolStripMenuItem Ind_VAlignCentre;
         private ToolStripMenuItem Ind_VAlignBottom;
-        private Panel flowLayoutPreviewLyrics;
+        private LyricsSlidePanel flowLayoutPreviewLyrics;
         private ToolStripButton Ind_Outline;
         private ToolStripButton Ind_Interlace;
         private ToolStripButton Ind_Notations;
@@ -6796,8 +6798,8 @@ namespace Easislides
         private ToolStripButton Ind_Shadow;
         private RichTextBox PreviewInfo;
         private Panel panelOutputTop;
-        private FlowLayoutPanel flowLayoutOutputPowerPoint;
-        private Panel flowLayoutOutputLyrics;
+        private PowerPointThumbnailPanel flowLayoutOutputPowerPoint;
+        private LyricsSlidePanel flowLayoutOutputLyrics;
         private TextBox OutputInfo;
         private Panel panel10;
         private CheckBox cbOutputBlack;
@@ -7297,7 +7299,7 @@ namespace Easislides
         private SplitContainer splitContainer2;
         private SplitContainer splitContainerPreview;
         private Panel panelPreviewTop;
-        private FlowLayoutPanel flowLayoutPreviewPowerPoint;
+        private PowerPointThumbnailPanel flowLayoutPreviewPowerPoint;
         private Panel IndPanel;
         private Panel panelIndTemplate;
         private ToolStrip toolStripIndTemplates;

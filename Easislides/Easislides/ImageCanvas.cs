@@ -393,19 +393,27 @@ namespace Easislides
 								int NewTotalCount, string NewPrefix, int NewCurSelectedSlide, Color NewBackColour,
 								ToolTip NewToolTip, bool NewExternalPowerPoint)
 		{
+			if (NewImageArray is null || (uint)NewCanvasIndex >= (uint)NewImageArray.Length)
+				return;
+			BuildImageThumbnail(NewCanvasIndex, NewWidth, NewHeight, NewImageArray[NewCanvasIndex], NewCurSelectedSlide, NewBackColour, NewToolTip, NewExternalPowerPoint);
+		}
+
+		internal void BuildImageThumbnail(int canvasIndex, int requestedWidth, int requestedHeight, string sourcePath,
+			int selectedSlide, Color background, ToolTip toolTip, bool externalPowerPoint)
+		{
 			try
 			{
-				int slideNumbering = NewCanvasIndex + 1;
-				string extension = Path.GetExtension(NewImageArray[NewCanvasIndex]).ToLower();
-				string imagePath = NewImageArray[NewCanvasIndex];
+				int slideNumbering = canvasIndex + 1;
+				string extension = Path.GetExtension(sourcePath).ToLowerInvariant();
+				string imagePath = sourcePath;
 
-				IsExternalPowerPoint = NewExternalPowerPoint;
-				CurrentSelectedSlide = NewCurSelectedSlide;
+				IsExternalPowerPoint = externalPowerPoint;
+				CurrentSelectedSlide = selectedSlide;
 
 				_isExternalPresentationPreview = false;
 				if (IsPowerPoint)
 				{
-					SlideNumber = PowerPointSlideNumbering;
+					SlideNumber = slideNumbering;
 				}
 				else
 				{
@@ -415,7 +423,7 @@ namespace Easislides
 						// The cached picture of the presentation's current version (null: not listed or unreadable).
 						// It is looked up only here: a presentation edited while its thumbnail stays on screen keeps
 						// the old picture until the next rebuild (listing, re-layout, resize).
-						imagePath = Gf.ExternalPPT.GetFirstScreenDumpPath(NewCanvasIndex, imagePath) ?? "";
+						imagePath = Gf.ExternalPPT.GetFirstScreenDumpPath(canvasIndex, imagePath) ?? "";
 						_isExternalPresentationPreview = true;
 					}
 				}
@@ -428,10 +436,10 @@ namespace Easislides
 				                   && !string.IsNullOrEmpty(imagePath)
 				                   && File.Exists(imagePath)
 				                   && new FileInfo(imagePath).LastWriteTimeUtc != _cachedFileTime;
-				int width = Math.Max(1, NewWidth);
+				int width = Math.Max(1, requestedWidth);
 				int height = UsesSlideAspect && _cachedSourceImage != null && _cachedFileName == imagePath
 					? HeightForSlideImage(width, _cachedSourceImage)
-					: Math.Max(1, NewHeight);
+					: Math.Max(1, requestedHeight);
 				Size = new Size(width, height);
 				if (pathChanged || fileTouched || IsExternalPowerPoint)
 				{
@@ -444,13 +452,13 @@ namespace Easislides
 					{
 						ClearFailures();
 					}
-					BackColor = NewBackColour;
+					BackColor = background;
 					BorderWidthFactor = 0.04f;
 					base.Visible = true;
 
 					// An external presentation shows its own path, not the cache picture's hashed name.
-					string toolTipText = _isExternalPresentationPreview ? NewImageArray[NewCanvasIndex] : imagePath;
-					NewToolTip.SetToolTip(this, SlideNumber > 0 ? SlideNumber.ToString() : toolTipText);
+					string toolTipText = _isExternalPresentationPreview ? sourcePath : imagePath;
+					toolTip.SetToolTip(this, SlideNumber > 0 ? SlideNumber.ToString() : toolTipText);
 
 					PowerPointSlideNumbering = slideNumbering;
 

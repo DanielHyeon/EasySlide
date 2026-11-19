@@ -84,7 +84,8 @@ namespace Easislides.Module
 
         public bool AtLiveScreen = false;
 
-        public int[,] Slide = new int[1001, 8];
+        // Row 0 holds region metadata. The UI can read slide 1 before the first song is built.
+        public int[,] Slide = new int[2, 8];
 
         public bool UseDefaultFormat = true;
 
@@ -124,7 +125,7 @@ namespace Easislides.Module
 
         public bool[] VersePresent = new bool[160];
 
-        public int[,] VerseLineLoc = new int[160, 5];
+        public int[,] VerseLineLoc = new int[2, 5];
 
         public bool PrevItemPP = false;
 

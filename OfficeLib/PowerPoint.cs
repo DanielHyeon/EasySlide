@@ -1925,7 +1925,8 @@ namespace OfficeLib
 		/// </summary>
 		private bool ParseVersesFromPresentation(_Presentation presentation, int totalSlides, ref int[] SongVerses, ref int[,] Slide, string[] SequenceSymbol)
 		{
-			bool flag = false;
+			EnsureSlideMarkerCapacity(ref Slide, totalSlides);
+			bool foundChorus = false;
 			bool complete = true;
 			for (int i = 1; i <= totalSlides; i++)
 			{
@@ -1951,11 +1952,11 @@ namespace OfficeLib
 						{
 							if (verseIndicator == VERSE_CHORUS)
 							{
-								if (!flag)
+								if (!foundChorus)
 								{
 									Slide[i, 0] = verseIndicator;
 									SongVerses[verseIndicator] = i;
-									flag = true;
+									foundChorus = true;
 								}
 							}
 							else if (verseIndicator <= MAX_VERSE_NUMBER)
@@ -2016,6 +2017,23 @@ namespace OfficeLib
 			return true;
 		}
 
+		public bool IsBuildedFileCheck(string filePath, string filePrefix, ref int totalSlides, ref int[,] slides)
+		{
+			int count = 0;
+			if (!IsBuildedFileCheck(filePath, filePrefix, ref count))
+				return false;
+			EnsureSlideMarkerCapacity(ref slides, count);
+			totalSlides = count;
+			return true;
+		}
+
+		public int Count(ref int[,] slides)
+		{
+			int count = Count();
+			EnsureSlideMarkerCapacity(ref slides, count);
+			return count;
+		}
+
 		/// <summary>
 		/// Builds the output slide images of FilePath under FilePrefix and copies them under the matching preview
 		/// prefix, unless a complete export of this version exists; then fills the verse data. Returns false when
@@ -2058,7 +2076,7 @@ namespace OfficeLib
 				string previewPrefix = copyToPreview && FilePrefix.Contains(OutputImagePrefixMarker)
 					? FilePrefix.Replace(OutputImagePrefixMarker, PreviewImagePrefixMarker)
 					: null;
-				if (IsBuildedFileCheck(FilePath, FilePrefix, ref TotalSlides)
+				if (IsBuildedFileCheck(FilePath, FilePrefix, ref TotalSlides, ref Slide)
 					&& (previewPrefix == null || SlideImageManifest.TryMatch(previewPrefix, FilePath, out _)))
 				{
 					Console.WriteLine($"[BuildSlideImages] Reusing {TotalSlides} slide images: {FilePrefix}");
@@ -2080,6 +2098,7 @@ namespace OfficeLib
 				working = OpenTemporary(FilePath, MsoTriState.msoTrue, MsoTriState.msoFalse);
 				int slideCount = working.Slides.Count;
 				var exportSize = GetSlideExportSize(working);
+				EnsureSlideMarkerCapacity(ref Slide, slideCount);
 				TotalSlides = slideCount;
 				Console.WriteLine($"[BuildSlideImages] Exporting {slideCount} slides to: {FilePrefix}");
 				bool previewComplete = previewPrefix != null;
@@ -2168,18 +2187,28 @@ namespace OfficeLib
 		}
 
 		/// <summary>
-		/// Clears all verse data (same range as BuildScreenDumps) so nothing from a previously loaded item survives.
+		/// Clears markers in the allocated rows, including the last slide. DB_MAXSLIDES is retained for existing callers.
 		/// </summary>
 		public static void ResetVerses(int MAX_VERSES, int DB_MAXSLIDES, ref int[] SongVerses, ref int[,] Slide)
 		{
-			for (int i = 1; i < DB_MAXSLIDES; i++)
+			for (int i = 1; i < Slide.GetLength(0); i++)
 			{
 				Slide[i, 0] = -1;
 			}
-			for (int j = 0; j <= MAX_VERSES; j++)
-			{
-				SongVerses[j] = 0;
-			}
+			Array.Clear(SongVerses, 0, Math.Min(SongVerses.Length, MAX_VERSES + 1));
+		}
+
+		private static void EnsureSlideMarkerCapacity(ref int[,] slides, int slideCount)
+		{
+			int previousRows = slides.GetLength(0);
+			if (slideCount < previousRows)
+				return;
+			var expanded = new int[checked(slideCount + 1), slides.GetLength(1)];
+			Array.Copy(slides, expanded, slides.Length);
+			// A missing note has no verse marker. Zero denotes a chorus.
+			for (int row = Math.Max(1, previousRows); row <= slideCount; row++)
+				expanded[row, 0] = -1;
+			slides = expanded;
 		}
 
 		// Verse data already parsed in this session, keyed by file path; the entry is valid only while the
@@ -2192,7 +2221,7 @@ namespace OfficeLib
 		/// Caches the parsed verse data under the file's last write time read BEFORE the file was opened
 		/// (lastWriteBeforeRead), and only when every slide was read (complete).
 		/// </summary>
-		private static void StoreCachedVerses(string FilePath, DateTime? lastWriteBeforeRead, bool complete, int totalSlides, int MAX_VERSES, int[] SongVerses, int[,] Slide)
+		internal static void StoreCachedVerses(string FilePath, DateTime? lastWriteBeforeRead, bool complete, int totalSlides, int MAX_VERSES, int[] SongVerses, int[,] Slide)
 		{
 			try
 			{
@@ -2236,8 +2265,9 @@ namespace OfficeLib
 				_verseCache.Remove(FilePath);
 				return false;
 			}
-			Array.Copy(entry.SongVerses, SongVerses, Math.Min(entry.SongVerses.Length, MAX_VERSES + 1));
-			for (int i = 1; i < entry.SlideTypes.Length && i < DB_MAXSLIDES; i++)
+			EnsureSlideMarkerCapacity(ref Slide, entry.SlideTypes.Length - 1);
+			Array.Copy(entry.SongVerses, SongVerses, Math.Min(Math.Min(entry.SongVerses.Length, SongVerses.Length), MAX_VERSES + 1));
+			for (int i = 1; i < entry.SlideTypes.Length; i++)
 			{
 				Slide[i, 0] = entry.SlideTypes[i];
 			}

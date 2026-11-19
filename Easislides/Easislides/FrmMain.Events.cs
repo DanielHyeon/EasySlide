@@ -120,10 +120,9 @@ namespace Easislides
             IndgroupBox4.Left = num;
             Ind_checkBox.Left = num;
             panelIndTemplate.Left = Ind_checkBox.Left + Ind_checkBox.Width + 4;
-            ResizePreviewRichTextBox();
             if (flowLayoutPreviewPowerPoint.Visible)
             {
-                SetPreviewPPThumbImages1(Gf.PreviewItem.CurSlide);
+                DisplayPreviewPowerPointThumbnails(Gf.PreviewItem.CurSlide);
             }
         }
 
@@ -135,10 +134,9 @@ namespace Easislides
         private void panelOutputTop_Resize(object sender, EventArgs e)
         {
             OutputPanelDisplayName.Columns[0].Width = OutputPanelDisplayName.Width - 5;
-            ResizeOutputRichTextBox();
             if (flowLayoutOutputPowerPoint.Visible)
             {
-                SetOutputPPThumbImages1(Gf.OutputItem.CurSlide);
+                DisplayOutputPowerPointThumbnails(Gf.OutputItem.CurSlide);
             }
         }
 

@@ -578,7 +578,7 @@ namespace Easislides
             {
                 Gf.PreviewItem.Type = "";
                 Gf.PreviewItem.ItemID = "";
-                ClearLyrics(ref flowLayoutPreviewLyrics);
+                ClearLyrics(flowLayoutPreviewLyrics);
             }
         }
 
@@ -1998,7 +1998,7 @@ namespace Easislides
         /// </summary>
         private void WorshipListIndexChanged()
         {
-            LoadThumbPreviewlockkey = 0;
+            flowLayoutPreviewPowerPoint.ResetSelection();
             WorshipListIndexChanged(0);
         }
 
@@ -2045,7 +2045,7 @@ namespace Easislides
                 if (!hasPptPathFromList
                     || preSelectedItemNum != selectedIndex
                     || Gf.PreviewItem.Type + Gf.PreviewItem.ItemID != itemId
-                    || !Gf.PreviewPPT.IsBuildedFileCheck(Gf.PreviewItem.Path, filePrefix, ref Gf.PreviewItem.TotalSlides))
+                    || !Gf.PreviewPPT.IsBuildedFileCheck(Gf.PreviewItem.Path, filePrefix, ref Gf.PreviewItem.TotalSlides, ref Gf.PreviewItem.Slide))
                 {
                     LoadItem(ref Gf.PreviewItem, itemId, WorshipListItems.Items[selectedIndex].SubItems[2].Text, StartingSlide, ref InTitle, ScrollToCaret: true);
                     UpdateDisplayPanelFields();
@@ -2064,7 +2064,7 @@ namespace Easislides
                 Gf.PreviewItem.Format.ShowItemTransition = 0;
 
                 ResetMainPictureBox(ref Gf.PreviewItem);
-                ClearLyrics(ref flowLayoutPreviewLyrics);
+                ClearLyrics(flowLayoutPreviewLyrics);
                 UpdateDisplayPanelFields();
             }
             RefreshWorshipListMarks();
@@ -2303,11 +2303,11 @@ namespace Easislides
                 InItem.CurSlide = ((InItem.CurSlide < 1) ? 1 : ((InItem.CurSlide > InItem.TotalSlides) ? InItem.TotalSlides : InItem.CurSlide));
                 if (InItem.OutputStyleScreen)
                 {
-                    ShowOutputPPThumbs(InItem.CurSlide);
+                    DisplayOutputPowerPointThumbnails(InItem.CurSlide);
                 }
                 else
                 {
-                    ShowPreviewPPThumbs(InItem.CurSlide);
+                    DisplayPreviewPowerPointThumbnails(InItem.CurSlide);
                 }
                 InItem.Format.ShowItemTransition = 0;
                 InItem.Format.ShowSlideTransition = 0;
@@ -2550,7 +2550,7 @@ namespace Easislides
                 }
                 else
                 {
-                    if (Gf.OutputPPT.IsBuildedFileCheck(InItem.Path, filePrefix, ref InItem.TotalSlides))
+                    if (Gf.OutputPPT.IsBuildedFileCheck(InItem.Path, filePrefix, ref InItem.TotalSlides, ref InItem.Slide))
                     {
                         Console.WriteLine($"[Cache Hit] Output PPT already built: {InItem.ItemID}");
                         Console.WriteLine($"[ThumbPreview] Cache hit Output: TotalSlides={InItem.TotalSlides}");
@@ -2561,7 +2561,7 @@ namespace Easislides
                         Gf.OutputPPT.LoadVerses(InItem.Path, Gf.MAX_VERSES, Gf.DB_MAXSLIDES, ref InItem.SongVerses, ref InItem.Slide, Gf.SequenceSymbol, allowOpen: !Gf.ShowRunning);
                         if (InItem.TotalSlides > 0)
                         {
-                            FormatPowerPointThumbContainers(ref Powerpoint_OutputCanvas, ref flowLayoutOutputPowerPoint, InItem.TotalSlides);
+                            FormatPowerPointThumbContainers(flowLayoutOutputPowerPoint, InItem.TotalSlides);
                         }
                         return;
                     }
@@ -2589,7 +2589,7 @@ namespace Easislides
                 }
                 else
                 {
-                    if (Gf.PreviewPPT.IsBuildedFileCheck(InItem.Path, filePrefix, ref InItem.TotalSlides))
+                    if (Gf.PreviewPPT.IsBuildedFileCheck(InItem.Path, filePrefix, ref InItem.TotalSlides, ref InItem.Slide))
                     {
                         Console.WriteLine($"[Cache Hit] Preview PPT already built: {InItem.ItemID}");
                         Console.WriteLine($"[ThumbPreview] Cache hit Preview: TotalSlides={InItem.TotalSlides}");
@@ -2598,7 +2598,7 @@ namespace Easislides
                         Gf.PreviewPPT.LoadVerses(InItem.Path, Gf.MAX_VERSES, Gf.DB_MAXSLIDES, ref InItem.SongVerses, ref InItem.Slide, Gf.SequenceSymbol);
                         if (InItem.TotalSlides > 0)
                         {
-                            FormatPowerPointThumbContainers(ref Powerpoint_PreviewCanvas, ref flowLayoutPreviewPowerPoint, InItem.TotalSlides);
+                            FormatPowerPointThumbContainers(flowLayoutPreviewPowerPoint, InItem.TotalSlides);
                         }
                         return;
                     }
@@ -2613,7 +2613,7 @@ namespace Easislides
                 {
                     string firstOut = filePrefix + "1.jpg";
                     Console.WriteLine($"[PPTBuild] Output first image exists: {File.Exists(firstOut)} ({firstOut})");
-                    FormatPowerPointThumbContainers(ref Powerpoint_OutputCanvas, ref flowLayoutOutputPowerPoint, InItem.TotalSlides);
+                    FormatPowerPointThumbContainers(flowLayoutOutputPowerPoint, InItem.TotalSlides);
                 }
             }
             else
@@ -2626,7 +2626,7 @@ namespace Easislides
                 {
                     string firstPre = filePrefix + "1.jpg";
                     Console.WriteLine($"[PPTBuild] Preview first image exists: {File.Exists(firstPre)} ({firstPre})");
-                    FormatPowerPointThumbContainers(ref Powerpoint_PreviewCanvas, ref flowLayoutPreviewPowerPoint, InItem.TotalSlides);
+                    FormatPowerPointThumbContainers(flowLayoutPreviewPowerPoint, InItem.TotalSlides);
                 }
             }
         }
@@ -2730,11 +2730,11 @@ namespace Easislides
                 ResetMainPictureBox(ref InItem, GapType.Default, ImageTransitionControl.TransitionAction.None);
                 if (InItem.OutputStyleScreen)
                 {
-                    ClearLyrics(ref flowLayoutOutputLyrics);
+                    ClearLyrics(flowLayoutOutputLyrics);
                 }
                 else
                 {
-                    ClearLyrics(ref flowLayoutPreviewLyrics);
+                    ClearLyrics(flowLayoutPreviewLyrics);
                 }
                 showLyrics = false;
             }
@@ -3226,8 +3226,7 @@ namespace Easislides
                     gfFileHelpers.PreLoadPowerpointFiles(ref Gf.LivePP, ref Gf.WorshipSongs);
                 }
             }
-            LoadThumbOutlockkey = 0;
-            previousOutSelectedSlide = 1;
+            flowLayoutOutputPowerPoint.ResetSelection();
             LoadItem(ref Gf.OutputItem, Gf.PreviewItem.Type + Gf.PreviewItem.ItemID, Gf.PreviewItem.Format.FormatString, Gf.PreviewItem.CurSlide, ref Gf.PreviewItem.Title, ScrollToCaret: true);
             UpdateWorshipShowIcons();
             if (Gf.ShowRunning)

@@ -509,11 +509,11 @@ namespace Easislides
         /// </summary>
         private void RefreshLiveThumbMarkers(LiveIndicatorState state)
         {
-            if (Powerpoint_OutputCanvas == null)
+            if (flowLayoutOutputPowerPoint == null)
             {
                 return;
             }
-            int count = Math.Min(state.TotalSlides, Powerpoint_OutputCanvas.Length);
+            int count = Math.Min(state.TotalSlides, flowLayoutOutputPowerPoint.Controls.Count);
             bool thin = state.ModernUi && !IsOutputActuallyLive;
             int nextIndex = -1;
             if (state.ModernUi)
@@ -521,7 +521,7 @@ namespace Easislides
                 for (int i = 0; i < count; i++)
                 {
                     // Only built canvases (slide numbering set to their position) count.
-                    ImageCanvas candidate = Powerpoint_OutputCanvas[i];
+                    ImageCanvas candidate = flowLayoutOutputPowerPoint.SlideAt(i);
                     if (candidate != null && candidate.PowerPointSlideNumbering == i + 1 && candidate.IsDrawnSelected)
                     {
                         nextIndex = (i + 1 < count) ? i + 1 : -1;
@@ -529,9 +529,9 @@ namespace Easislides
                     }
                 }
             }
-            for (int i = 0; i < Powerpoint_OutputCanvas.Length; i++)
+            for (int i = 0; i < flowLayoutOutputPowerPoint.Controls.Count; i++)
             {
-                ImageCanvas canvas = Powerpoint_OutputCanvas[i];
+                ImageCanvas canvas = flowLayoutOutputPowerPoint.SlideAt(i);
                 if (canvas == null)
                 {
                     continue;
@@ -542,45 +542,12 @@ namespace Easislides
         }
 
         /// <summary>
-        /// Lyrics list of the live column (D9): the current slide gets the live / not-live colours and
-        /// every other filled slide box gets the colours a non-current box has in the panel's present
-        /// focus state (the panel's own back colour; see Gf.HighlightRichTextBox), so exactly one box
-        /// stays marked. Boxes are found by Tag like Gf.HighlightRichTextBox does. Empty (reset) boxes
-        /// are left alone. Only ForeColor / BackColor are set: no focus, scroll or panel change.
+        /// Recolour the visible lyrics and remember the selection for newly scrolled rows.
         /// </summary>
         private void RecolourOutputLyricsSlides(LiveIndicatorState state)
         {
-            if (Lyrics_OutputBox == null)
-            {
-                return;
-            }
-            GetLyricsSelectionColours(flowLayoutOutputLyrics, out Color currentText, out Color currentBack);
-            Color normalText = Gf.NormalTextColour;
-            Color normalBack = flowLayoutOutputLyrics.BackColor;
-            string currentTag = state.CurSlide.ToString();
-            int last = Math.Min(state.TotalSlides, Lyrics_OutputBox.Length - 1);
-            for (int i = 1; i <= last; i++)
-            {
-                RichTextBox box = Lyrics_OutputBox[i];
-                if (box == null || box.Parent != flowLayoutOutputLyrics || box.TextLength == 0)
-                {
-                    continue;
-                }
-                bool isCurrent = (string)box.Tag == currentTag;
-                SetBoxColours(box, isCurrent ? currentText : normalText, isCurrent ? currentBack : normalBack);
-            }
-        }
-
-        private static void SetBoxColours(RichTextBox box, Color text, Color back)
-        {
-            if (box.ForeColor.ToArgb() != text.ToArgb())
-            {
-                box.ForeColor = text;
-            }
-            if (box.BackColor.ToArgb() != back.ToArgb())
-            {
-                box.BackColor = back;
-            }
+            GetLyricsSelectionColours(flowLayoutOutputLyrics, out Color text, out Color back);
+            flowLayoutOutputLyrics.Highlight(state.CurSlide, text, back);
         }
 
         /// <summary>

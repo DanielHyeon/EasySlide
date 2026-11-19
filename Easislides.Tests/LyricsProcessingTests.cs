@@ -1,6 +1,7 @@
 using System;
 using System.Drawing;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Windows.Forms;
@@ -12,6 +13,169 @@ namespace Easislides.Tests;
 
 public class LyricsProcessingTests
 {
+    private static void SetEditorFontsAndHeadings(Form editor, Font lyric, Font chord)
+    {
+        const BindingFlags fields = BindingFlags.Instance | BindingFlags.NonPublic;
+        var type = editor.GetType();
+        type.GetField("MainFont", fields).SetValue(editor, lyric);
+        type.GetField("NotationFont", fields).SetValue(editor, chord);
+        Gf.InitializeVerseHeadings();
+        type.GetField("sArray", fields).SetValue(editor, Gf.SymbolsString.Split(','));
+    }
+
+    [Theory]
+    [InlineData(typeof(FrmEditItem), "tbLyrics1")]
+    [InlineData(typeof(FrmInfoScreen), "tbLyrics2")]
+    public void EditorTextChangedStylesMultilineInsertionAtTheCaret(Type type, string field)
+    {
+        OnSta(() =>
+        {
+            using var form = (Form)Activator.CreateInstance(type);
+            using var lyric = new Font("Arial", 12);
+            using var chord = new Font("Consolas", 10);
+            SetEditorFontsAndHeadings(form, lyric, chord);
+            var editor = (RichTextBox)type.GetField(field, BindingFlags.Instance | BindingFlags.NonPublic).GetValue(form);
+            string region = Gf.VerseSymbol[150];
+            _ = editor.Handle;
+            editor.Text = "위\n" + region + "\n끝";
+            // Setting a native character format itself raises TextChanged. Seed the
+            // untouched row before exercising the real TextChanged handler for the paste.
+            var ignoreChange = type.GetField("IgnoreChange", BindingFlags.Instance | BindingFlags.NonPublic);
+            ignoreChange.SetValue(form, true);
+            editor.Select(2, region.Length);
+            editor.SelectionColor = Color.Magenta;
+            Assert.Equal(Color.Magenta.ToArgb(), editor.SelectionColor.ToArgb());
+            ignoreChange.SetValue(form, false);
+            editor.Select(2, 0);
+            const string insert = "C(add9)    G/B »\nverse 가사 한 줄\n";
+            editor.SelectedText = insert;
+            Assert.Equal("위\n" + insert + region + "\n끝", editor.Text);
+            Assert.Equal((2 + insert.Length, 0), (editor.SelectionStart, editor.SelectionLength));
+            editor.Select(2, 1);
+            Assert.Equal(chord.Name, editor.SelectionFont.Name);
+            Assert.Equal(Gf.NotationColour.ToArgb(), editor.SelectionColor.ToArgb());
+            editor.Select(editor.Text.IndexOf("verse", StringComparison.Ordinal), 1);
+            Assert.Equal(lyric.Name, editor.SelectionFont.Name);
+            editor.Select(2 + insert.Length, 1);
+            Assert.Equal(Color.Magenta.ToArgb(), editor.SelectionColor.ToArgb());
+        });
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void PartialEditorFormattingPreservesSelectionAndSurroundingRows(bool hasSelection)
+    {
+        OnSta(() =>
+        {
+            Gf.InitializeVerseHeadings();
+            using var control = new CountingRichTextBox();
+            RichTextBox editor = control;
+            using var lyricFont = new Font("Arial", 12);
+            using var chordFont = new Font("Consolas", 10);
+            string region = Gf.VerseSymbol[150];
+            string verse = Gf.VerseSymbol[1];
+            _ = editor.Handle;
+            editor.Text = $"위\n{verse}\nC  » »\n{region}\n가사\n{region}\n끝";
+            editor.SelectAll();
+            editor.SelectionColor = Color.Magenta;
+            string text = editor.Text;
+            int first = text.IndexOf(verse, StringComparison.Ordinal);
+            int last = text.IndexOf("가사", StringComparison.Ordinal);
+            editor.Select(last + 1, 0);
+            if (hasSelection)
+                editor.Select(first, 2);
+            var selection = (editor.SelectionStart, editor.SelectionLength);
+            control.RefreshCount = 0;
+            string previousText = $"위\n기존 가사\n{region}\n끝";
+            Gf.FormatEditorLyrics(editor, ref previousText, [verse, region], lyricFont, chordFont);
+            Assert.Equal(text, previousText);
+            Assert.Equal(selection, (editor.SelectionStart, editor.SelectionLength));
+            Assert.Equal(1, control.RefreshCount);
+            Assert.Equal(text, editor.Text);
+            int ColorAt(int index)
+            {
+                editor.Select(index, 1);
+                return editor.SelectionColor.ToArgb();
+            }
+            Assert.Equal(Color.Magenta.ToArgb(), ColorAt(0));
+            Assert.Equal(Gf.SelectedTextColour.ToArgb(), ColorAt(first));
+            Assert.Equal(Gf.NotationColour.ToArgb(), ColorAt(text.IndexOf('C')));
+            Assert.Equal(chordFont.Name, editor.SelectionFont.Name);
+            Assert.Equal(Gf.SelectedTextColour.ToArgb(), ColorAt(text.IndexOf(region, StringComparison.Ordinal)));
+            Assert.Equal(Color.FromArgb(255, Gf.NormalTextColour).ToArgb(), ColorAt(last));
+            Assert.Equal(Color.Magenta.ToArgb(), ColorAt(text.LastIndexOf(region, StringComparison.Ordinal)));
+        });
+    }
+
+    private sealed class CountingRichTextBox : RichTextBox
+    {
+        internal int RefreshCount;
+        public override void Refresh()
+        {
+            RefreshCount++;
+            base.Refresh();
+        }
+    }
+
+    [Theory]
+    [InlineData("[region 2]\n끝", "[region 2]\n[region 2]\n끝", 11, 0, 11)]
+    [InlineData("위\n끝", "위\nG »\n끝", 6, 2, 6)]
+    [InlineData("위\nG »\n끝", "위\n끝", 2, -1, 2)]
+    public void EditingWholeRowsLeavesTheNextRowStyleIntact(string previous, string current, int caret,
+        int styled, int untouched)
+    {
+        OnSta(() =>
+        {
+            Gf.InitializeVerseHeadings();
+            using var editor = new RichTextBox();
+            using var font = new Font("Arial", 12);
+            _ = editor.Handle;
+            editor.Text = current;
+            editor.SelectAll();
+            editor.SelectionColor = Color.Magenta;
+            editor.Select(caret, 0);
+            Gf.FormatEditorLyrics(editor, ref previous, [Gf.VerseSymbol[150]], font, font);
+            Assert.Equal(caret, editor.SelectionStart);
+            if (styled >= 0)
+            {
+                editor.Select(styled, 1);
+                Color color = current[styled] == '[' ? Gf.SelectedTextColour : Gf.NotationColour;
+                Assert.Equal(color.ToArgb(), editor.SelectionColor.ToArgb());
+            }
+            editor.Select(untouched, 1);
+            Assert.Equal(Color.Magenta.ToArgb(), editor.SelectionColor.ToArgb());
+        });
+    }
+
+    [Fact]
+    public void SplittingAndRejoiningAChordLineReformatsBothSides()
+    {
+        OnSta(() =>
+        {
+            using var editor = new RichTextBox();
+            using var lyric = new Font("Arial", 12);
+            using var chord = new Font("Consolas", 10);
+            _ = editor.Handle;
+            editor.Text = "lyric C »";
+            string previous = null;
+            Gf.FormatEditorLyrics(editor, ref previous, [], lyric, chord, formatAll: true);
+            editor.Select(6, 0);
+            editor.SelectedText = "\n";
+            Gf.FormatEditorLyrics(editor, ref previous, [], lyric, chord);
+            editor.Select(0, 1);
+            Assert.Equal(lyric.Name, editor.SelectionFont.Name);
+            editor.Select(7, 1);
+            Assert.Equal(chord.Name, editor.SelectionFont.Name);
+            editor.Select(6, 1);
+            editor.SelectedText = "";
+            Gf.FormatEditorLyrics(editor, ref previous, [], lyric, chord);
+            editor.Select(0, 1);
+            Assert.Equal(chord.Name, editor.SelectionFont.Name);
+            Assert.Equal("lyric C »", editor.Text);
+        });
+    }
+
     [Fact]
     public void AutomaticRegionDetectionHandlesEmptySectionsAndRequiresAVerseAtTheStart()
     {
@@ -166,6 +330,93 @@ public class LyricsProcessingTests
         Assert.Equal(ascii + "\u0080ÿ" + @"\u00256?\u54620?\u55357?\u56832?", DataUtil.UnicodeToAscii_RTF(text));
         Assert.Equal(ascii + "\u0080ÿ&#00256;&#54620;&#55357;&#56832;", DataUtil.UnicodeToAscii_HTML(text));
         Assert.Equal(ascii + "80ff100d55cd83dde00", DataUtil.HexString(text));
+    }
+
+    [Fact]
+    public void RebuildingShortAndLongSongsKeepsTheLastSlideAndVerseLookupInBounds()
+    {
+        OnSta(() =>
+        {
+            var song = new SongSettings { SplitScreens = false, FolderNo = 1 };
+            using var lines = song.LyricsAndNotationsList;
+            lines.Items.Add(new ListViewItem(["1", "1", "verse", "", ""]));
+            song.VersePresent[1] = true;
+            song.VerseLineLoc[1, 3] = song.VerseLineLoc[1, 4] = -1;
+            foreach (int slideCount in new[] { 1, 1000, 1001, 3 })
+            {
+                song.SongSequence = new string((char)1, slideCount);
+                Gf.BuildSlides(song, lines, ref song.SongSequence, ref song.TotalSlides, ref song.SongVerses,
+                    ref song.ChorusSlides, ref song.Slide, 0);
+                Assert.Equal(slideCount, song.TotalSlides);
+                Assert.Equal(1, song.SongVerses[1]);
+                Assert.Equal(1, song.Slide[slideCount, 0]);
+                Assert.Equal(-1, song.Slide[slideCount, 4]);
+                Assert.Equal(-1, song.Slide[0, 3]);
+            }
+        });
+    }
+
+    [Fact]
+    public void NewSongReservesOnlyTheSentinelAndFirstRowOfEachTable()
+    {
+        var song = new SongSettingsBase();
+        Assert.Equal(2, song.Slide.GetLength(0));
+        Assert.Equal(8, song.Slide.GetLength(1));
+        Assert.Equal(2, song.VerseLineLoc.GetLength(0));
+        Assert.Equal(5, song.VerseLineLoc.GetLength(1));
+    }
+
+    [Fact]
+    public void ExtraPagesInTheSecondRegionGrowPastTheFirstSlide()
+    {
+        OnSta(() =>
+        {
+            var song = new SongSettings { SongSequence = "\u0001", SplitScreens = false };
+            using var lines = song.LyricsAndNotationsList;
+            foreach (string line in new[] { "first region", "translation", "", "last translation" })
+                lines.Items.Add(new ListViewItem(["", "", line, "", ""]));
+            song.VersePresent[1] = true;
+            song.VerseLineLoc[1, 3] = 1;
+            song.VerseLineLoc[1, 4] = 3;
+            Gf.BuildSlides(song, lines, ref song.SongSequence, ref song.TotalSlides, ref song.SongVerses,
+                ref song.ChorusSlides, ref song.Slide, 0);
+            Assert.Equal(2, song.TotalSlides);
+            Assert.Equal(1, song.Slide[1, 0]);
+            Assert.Equal(-1, song.Slide[2, 0]);
+            Assert.Equal(-1, song.Slide[2, 1]);
+            Assert.Equal(3, song.Slide[2, 3]);
+            Assert.Equal(3, song.Slide[2, 4]);
+        });
+    }
+
+    [Fact]
+    public void FormattingRebuildsBothRegionsAndClearsRangesOfThePreviousSong()
+    {
+        OnSta(() =>
+        {
+            Gf.InitializeVerseHeadings();
+            var song = new SongSettings { SplitScreens = false, CompleteLyrics = "[1]\none\n[region 2]\ntwo" };
+            using var lines = song.LyricsAndNotationsList;
+            Gf.FormatDisplayLyrics(ref song, PrepareSlides: true, UseStoredSequence: false);
+            Assert.Equal(2, song.VerseLineLoc.GetLength(0));
+            Assert.Equal(1, song.TotalSlides);
+            Assert.Equal(1, song.Slide[1, 3]);
+            Assert.True(song.VersePresent[150]);
+
+            song.CompleteLyrics = "[prechorus 2]\nlast\nline";
+            Gf.FormatDisplayLyrics(ref song, PrepareSlides: true, UseStoredSequence: false);
+            Assert.Equal(112, song.Slide[1, 0]);
+            Assert.Equal(0, song.VerseLineLoc[112, 1]);
+            Assert.Equal(1, song.VerseLineLoc[112, 2]);
+            Assert.Equal(-1, song.VerseLineLoc[112, 3]);
+            Assert.False(song.VersePresent[150]);
+
+            song.CompleteLyrics = "[1]\nnew";
+            Gf.FormatDisplayLyrics(ref song, PrepareSlides: true, UseStoredSequence: false);
+            Assert.Equal(1, song.SongVerses[1]);
+            Assert.Equal(-1, song.VerseLineLoc[112, 1]);
+            Assert.Equal(-1, song.Slide[1, 4]);
+        });
     }
 
     [Theory]

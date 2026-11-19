@@ -101,7 +101,7 @@ public class MonitorPresentationTests
         });
     }
 
-    private static void RunOnSta(Action action)
+    internal static void RunOnSta(Action action)
     {
         ExceptionDispatchInfo error = null;
         var thread = new Thread(() =>

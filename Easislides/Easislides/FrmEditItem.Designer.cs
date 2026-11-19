@@ -97,7 +97,7 @@ namespace Easislides
 		private ContextMenuStrip CMRegion1;
 		private ContextMenuStrip CMRegion2;
 		private DateTimePicker Rotate_TimeTotal;
-		private FlowLayoutPanel flowLayoutRotate;
+		private RotationTimingPanel flowLayoutRotate;
 		private GroupBox groupBox1;
 		private GroupBox groupBox2;
 		private GroupBox groupBox3;
@@ -475,7 +475,7 @@ private void InitializeComponent()
             labelVol = new Label();
             LabelDuration = new Label();
             panelRotateLeft = new Panel();
-            flowLayoutRotate = new FlowLayoutPanel();
+            flowLayoutRotate = new RotationTimingPanel();
             panelRotateLeftTop2 = new Panel();
             Rotate_TimeTotal = new DateTimePicker();
             btnClearMediaPositions = new Button();
@@ -1501,7 +1501,6 @@ private void InitializeComponent()
             tbLyrics1.Size = new Size(332, 568);
             tbLyrics1.TabIndex = 0;
             tbLyrics1.Text = "";
-            tbLyrics1.SelectionChanged += tbLyrics_SelectionChanged;
             tbLyrics1.TextChanged += tbLyrics1_TextChanged;
             tbLyrics1.KeyDown += tbLyrics1_KeyDown;
             tbLyrics1.KeyUp += tbLyrics1_KeyUp;
@@ -1944,7 +1943,6 @@ private void InitializeComponent()
             tbLyrics2.Size = new Size(429, 525);
             tbLyrics2.TabIndex = 5;
             tbLyrics2.Text = "";
-            tbLyrics2.SelectionChanged += tbLyrics2_SelectionChanged;
             tbLyrics2.TextChanged += tbLyrics2_TextChanged;
             tbLyrics2.KeyDown += tbLyrics2_KeyDown;
             tbLyrics2.KeyUp += tbLyrics2_KeyUp;
@@ -2980,7 +2978,6 @@ private void InitializeComponent()
             //
             // flowLayoutRotate
             //
-            flowLayoutRotate.AutoScroll = true;
             flowLayoutRotate.Dock = DockStyle.Fill;
             flowLayoutRotate.Location = new Point(0, 209);
             flowLayoutRotate.Margin = new Padding(4, 5, 4, 5);

@@ -389,162 +389,35 @@ namespace Easislides
         /// </summary>
         public void FormatPowerPointThumbContainers2(int index)
         {
-            FormatPowerPointThumbContainers3(ref Powerpoint_OutputCanvas, ref flowLayoutOutputPowerPoint, index);
+            if (index >= flowLayoutOutputPowerPoint.Controls.Count)
+                FormatPowerPointThumbContainers(flowLayoutOutputPowerPoint, checked(index + 1));
         }
 
-        private void FormatPowerPointThumbContainers3(ref ImageCanvas[] InCanvas, ref FlowLayoutPanel InPanel, int index)
+        private void FormatPowerPointThumbContainers(PowerPointThumbnailPanel panel, int count)
         {
-            string canvasName = (InPanel.Name == "flowLayoutPreviewPowerPoint") ? "PP_Preview" : "PP_Output";
-            if (index == 0)
-            {
-                Gf.ThumbImagesPerRow = 3;
-            }
-
-            //for (int i = 0; i < InTotalScreens; i++)
-            {
-                if (InCanvas[index] == null)
-                {
-                    InCanvas[index] = new ImageCanvas();
-                    InCanvas[index].Name = canvasName;
-                    InCanvas[index].Tag = index.ToString();
-                    InCanvas[index].SlideNumber = index + 1;
-                    InCanvas[index].MouseUp += PowerPointImage_MouseUp;
-                    InCanvas[index].DoubleClick += PowerPointImage_DoubleClick;
-                    InCanvas[index].KeyUp += PowerPointImage_KeyUp;
-                    InCanvas[index].PowerPoint = true;
-                    ApplyModernThumbStyle(InCanvas[index], InPanel);
-                    InCanvas[index].Visible = true;
-                }
-                if (InPanel.Name == "flowLayoutPreviewPowerPoint")
-                {
-                    flowLayoutPreviewPowerPoint.Controls.Add(InCanvas[index]);
-                }
-                else
-                {
-                    flowLayoutOutputPowerPoint.Controls.Add(InCanvas[index]);
-                }
-            }
-
-        }
-
-        private void FormatPowerPointThumbContainers(ref ImageCanvas[] InCanvas, ref FlowLayoutPanel InPanel, int InTotalScreens)
-        {
-            Console.WriteLine($"[ThumbPreview] FormatPowerPointThumbContainers: Panel={InPanel?.Name}, TotalScreens={InTotalScreens}");
-            string canvasName = "";
             Gf.ThumbImagesPerRow = 3;
-            if (InPanel.Name == "flowLayoutPreviewPowerPoint")
+            panel.SetSlideCount(count, toolTip1, index =>
             {
-                canvasName = "PP_Preview";
-                flowLayoutPreviewPowerPoint.Controls.Clear();
-            }
-            else
-            {
-                canvasName = "PP_Output";
-                flowLayoutOutputPowerPoint.Controls.Clear();
-            }
-
-            for (int i = 0; i < InTotalScreens; i++)
-            {
-                if (InCanvas[i] == null)
+                var canvas = new ImageCanvas
                 {
-                    InCanvas[i] = new ImageCanvas();
-                    InCanvas[i].Name = canvasName;
-                    InCanvas[i].Tag = i.ToString();
-                    InCanvas[i].SlideNumber = i + 1;
-                    InCanvas[i].MouseUp += PowerPointImage_MouseUp;
-                    InCanvas[i].DoubleClick += PowerPointImage_DoubleClick;
-                    InCanvas[i].KeyUp += PowerPointImage_KeyUp;
-                    InCanvas[i].PowerPoint = true;
-                    ApplyModernThumbStyle(InCanvas[i], InPanel);
-                }
-
-                if (InPanel.Name == "flowLayoutPreviewPowerPoint")
-                {
-                    flowLayoutPreviewPowerPoint.Controls.Add(InCanvas[i]);
-                }
-                else
-                {
-                    flowLayoutOutputPowerPoint.Controls.Add(InCanvas[i]);
-                }
-            }
-
+                    Name = panel == flowLayoutPreviewPowerPoint ? "PP_Preview" : "PP_Output",
+                    Tag = index.ToString(),
+                    SlideNumber = index + 1,
+                    PowerPoint = true
+                };
+                canvas.MouseUp += PowerPointImage_MouseUp;
+                canvas.DoubleClick += PowerPointImage_DoubleClick;
+                canvas.KeyUp += PowerPointImage_KeyUp;
+                ApplyModernThumbStyle(canvas, panel);
+                return canvas;
+            });
         }
 
-        /// <summary>
-        /// Earlier FormatPowerPointThumbContainers (2019-11-24) that reuses the existing canvases.
-        /// </summary>
-        private void FormatPowerPointThumbContainers1(ref ImageCanvas[] InCanvas, ref FlowLayoutPanel InPanel, int InTotalScreens)
+        private void DisplayPowerPointThumbnails(PowerPointThumbnailPanel panel, int count, string prefix, int selectedSlide)
         {
-            string canvasName = "";
-
-            Gf.ThumbImagesPerRow = 3;
-            if (InPanel.Name == "flowLayoutPreviewPowerPoint")
-            {
-                canvasName = "PP_Preview";
-                flowLayoutPreviewPowerPoint.Controls.Clear();
-            }
-            else
-            {
-                canvasName = "PP_Output";
-                flowLayoutOutputPowerPoint.Controls.Clear();
-            }
-
-            int controlCount = 0;
-
-            if (InPanel.Name == "flowLayoutPreviewPowerPoint")
-            {
-                controlCount = flowLayoutPreviewPowerPoint.Controls.Count;
-            }
-            else
-            {
-                controlCount = flowLayoutOutputPowerPoint.Controls.Count;
-            }
-
-            for (int i = 0; i < InTotalScreens; i++)
-            {
-                if (InCanvas[i] == null)
-                {
-                    InCanvas[i] = new ImageCanvas();
-                    InCanvas[i].Name = canvasName;
-                    InCanvas[i].Tag = i.ToString();
-                    InCanvas[i].SlideNumber = i + 1;
-                    InCanvas[i].MouseUp += PowerPointImage_MouseUp;
-                    InCanvas[i].DoubleClick += PowerPointImage_DoubleClick;
-                    InCanvas[i].KeyUp += PowerPointImage_KeyUp;
-                    InCanvas[i].PowerPoint = true;
-                    ApplyModernThumbStyle(InCanvas[i], InPanel);
-
-                    // Only a new canvas is added to its panel.
-                    if (InPanel.Name == "flowLayoutPreviewPowerPoint")
-                    {
-                        flowLayoutPreviewPowerPoint.Controls.Add(InCanvas[i]);
-                    }
-                    else
-                    {
-                        flowLayoutOutputPowerPoint.Controls.Add(InCanvas[i]);
-                    }
-                }
-                else
-                {
-                    InCanvas[i].Name = canvasName;
-                    InCanvas[i].Tag = i.ToString();
-                    InCanvas[i].SlideNumber = i + 1;
-                    //InCanvas[i].MouseUp += PowerPointImage_MouseUp;
-                    InCanvas[i].PowerPoint = true;
-                }
-
-            }
-
-            if (controlCount > InTotalScreens)
-            {
-                for (int k = InTotalScreens; k < controlCount; k++)
-                {
-                    if (InCanvas[k] != null)
-                    {
-                        InCanvas[k].Visible = false;
-                    }
-                }
-            }
+            if (panel.Controls.Count != count)
+                FormatPowerPointThumbContainers(panel, count);
+            panel.Display(prefix, selectedSlide, toolTip1);
         }
 
         private void PowerPointImage_DoubleClick(object sender, EventArgs e)
@@ -659,21 +532,9 @@ namespace Easislides
             Menu_PraiseBookTemplates.Enabled = !EnableWorshipMode;
         }
 
-        private void ClearLyrics(ref Panel InPanel)
+        private void ClearLyrics(LyricsSlidePanel panel)
         {
-            ClearLyrics(ref InPanel, SetFocus: false);
-        }
-
-        private void ClearLyrics(ref Panel InPanel, bool SetFocus)
-        {
-            if (InPanel.Name == "flowLayoutPreviewLyrics")
-            {
-                FormatLyricsContainers(Gf.PreviewItem, Reset: true, SetFocus);
-            }
-            else
-            {
-                FormatLyricsContainers(Gf.OutputItem, Reset: true, SetFocus);
-            }
+            FormatLyricsContainers(panel == flowLayoutPreviewLyrics ? Gf.PreviewItem : Gf.OutputItem, Reset: true, SetFocus: false);
         }
 
         // Error notice of the status strip: created on the first error, written by nothing else,
@@ -1104,137 +965,6 @@ namespace Easislides
                 BackgroundImagesCanvas[i].Visible = false;
             }
             LoadBackgroundThumbImages();
-        }
-
-        /// <summary>
-        /// Loads the output thumbnails: all of them on the first load, afterwards only the newly and the
-        /// previously selected slide.
-        /// </summary>
-        private void LoadThumbOutImages(FlowLayoutPanel InFlowPanel, ref ImageCanvas[] InCanvas, string[] ImageName, int TotalImagesCount, int PanelWidth, string InPrefix, int CurSelectedSlide, ToolTip InToolTip, bool ExternalPP)
-        {
-            if (InCanvas != null && CurSelectedSlide > 0)
-            {
-                Color backColor = InFlowPanel.BackColor;
-                int thumbWidth = (PanelWidth - 35) / 3;
-                int newHeight = thumbWidth * 3 / 4;
-
-                try
-                {
-                    if (LoadThumbOutlockkey == 0)
-                    {
-                        for (int i = 0; i < TotalImagesCount; i++)
-                        {
-                            InCanvas[i].BuildNewImageThumbs(i, thumbWidth, newHeight, ref ImageName, TotalImagesCount, InPrefix, CurSelectedSlide, backColor, InToolTip, ExternalPP);
-                        }
-                        Console.WriteLine($"[ThumbPreview] LoadThumbPreviewImages first-load done: Count={TotalImagesCount}");
-                    }
-                    else
-                    {
-                        if (previousOutSelectedSlide != CurSelectedSlide)
-                        {
-                            InCanvas[CurSelectedSlide - 1].BuildNewImageThumbs(CurSelectedSlide - 1, thumbWidth, newHeight, ref ImageName, TotalImagesCount, InPrefix, CurSelectedSlide, backColor, InToolTip, ExternalPP);
-                            if (previousOutSelectedSlide > 0 && previousOutSelectedSlide <= TotalImagesCount)
-                            {
-                                InCanvas[previousOutSelectedSlide - 1].BuildNewImageThumbs(previousOutSelectedSlide - 1, thumbWidth, newHeight, ref ImageName, TotalImagesCount, InPrefix, CurSelectedSlide, backColor, InToolTip, ExternalPP);
-                            }
-                        }
-                    }
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.Message);
-
-                    Console.WriteLine(e.ToString());
-                }
-
-                // CurSelectedSlide is not limited to the thumbnail array (1024 entries) by the callers.
-                ScrollThumbIntoView(InFlowPanel, InCanvas, CurSelectedSlide);
-
-                System.Threading.Interlocked.Increment(ref LoadThumbOutlockkey);
-                previousOutSelectedSlide = CurSelectedSlide;
-            }
-        }
-
-        /// <summary>
-        /// Loads the preview thumbnails: all of them on the first load, afterwards only the slides around
-        /// the new and the previous selection.
-        /// </summary>
-        private void LoadThumbPreviewImages(FlowLayoutPanel InFlowPanel, ref ImageCanvas[] InCanvas, string[] ImageName, int TotalImagesCount, int PanelWidth, string InPrefix, int CurSelectedSlide, ToolTip InToolTip, bool ExternalPP)
-        {
-            Console.WriteLine($"[ThumbPreview] LoadThumbPreviewImages: Panel={InFlowPanel?.Name}, TotalImagesCount={TotalImagesCount}, CurSelectedSlide={CurSelectedSlide}, PanelWidth={PanelWidth}, CanvasNull={InCanvas == null}");
-            if (InCanvas != null && TotalImagesCount > 0)
-            {
-                if (CurSelectedSlide <= 0)
-                {
-                    CurSelectedSlide = 1;
-                }
-                Color backColor = InFlowPanel.BackColor;
-                int thumbWidth = (PanelWidth - 35) / 3;
-                int newHeight = thumbWidth * 3 / 4;
-
-                try
-                {
-
-                    if (LoadThumbPreviewlockkey == 0)
-                    {
-                        // First load: load every thumbnail
-                        for (int i = 0; i < TotalImagesCount; i++)
-                        {
-                            InCanvas[i].BuildNewImageThumbs(i, thumbWidth, newHeight, ref ImageName, TotalImagesCount, InPrefix, CurSelectedSlide, backColor, InToolTip, ExternalPP);
-                        }
-                    }
-                    else
-                    {
-                        if (previousPreviewSelectedSlide != CurSelectedSlide)
-                        {
-                            // Update only the current and the previous slide
-                            InCanvas[CurSelectedSlide - 1].BuildNewImageThumbs(CurSelectedSlide - 1, thumbWidth, newHeight, ref ImageName, TotalImagesCount, InPrefix, CurSelectedSlide, backColor, InToolTip, ExternalPP);
-
-                            if (previousPreviewSelectedSlide > 0 && previousPreviewSelectedSlide <= TotalImagesCount)
-                            {
-                                InCanvas[previousPreviewSelectedSlide - 1].BuildNewImageThumbs(previousPreviewSelectedSlide - 1, thumbWidth, newHeight, ref ImageName, TotalImagesCount, InPrefix, CurSelectedSlide, backColor, InToolTip, ExternalPP);
-                            }
-
-                            // Also load the neighbouring slides ahead of the next selection
-                            if (CurSelectedSlide < TotalImagesCount)
-                            {
-                                InCanvas[CurSelectedSlide].BuildNewImageThumbs(CurSelectedSlide, thumbWidth, newHeight, ref ImageName, TotalImagesCount, InPrefix, CurSelectedSlide, backColor, InToolTip, ExternalPP);
-                            }
-                            if (CurSelectedSlide > 1)
-                            {
-                                InCanvas[CurSelectedSlide - 2].BuildNewImageThumbs(CurSelectedSlide - 2, thumbWidth, newHeight, ref ImageName, TotalImagesCount, InPrefix, CurSelectedSlide, backColor, InToolTip, ExternalPP);
-                            }
-                            Console.WriteLine($"[ThumbPreview] LoadThumbPreviewImages incremental update: CurSelectedSlide={CurSelectedSlide}, PrevSelectedSlide={previousPreviewSelectedSlide}");
-                        }
-                    }
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.Message);
-
-                    Console.WriteLine(e.ToString());
-                }
-
-                if (CurSelectedSlide > 0 && CurSelectedSlide <= TotalImagesCount)
-                {
-                    // TotalImagesCount is not checked against the thumbnail array by the callers.
-                    ScrollThumbIntoView(InFlowPanel, InCanvas, CurSelectedSlide);
-                }
-
-                System.Threading.Interlocked.Increment(ref LoadThumbPreviewlockkey);
-                previousPreviewSelectedSlide = CurSelectedSlide;
-
-            }
-        }
-
-        /// <summary>Scrolls slide <paramref name="slideNumber"/>'s thumbnail into view when the array has one for it.</summary>
-        private static void ScrollThumbIntoView(FlowLayoutPanel flowPanel, ImageCanvas[] canvas, int slideNumber)
-        {
-            int index = slideNumber - 1;
-            if (index >= 0 && index < canvas.Length && canvas[index] != null)
-            {
-                flowPanel.ScrollControlIntoView(canvas[index]);
-            }
         }
 
         private void LoadThumbImages(FlowLayoutPanel InFlowPanel, ref ImageCanvas[] InCanvas, string[] ImageName, int TotalImagesCount, int PanelWidth, string InPrefix, int CurSelectedSlide, ToolTip InToolTip, bool ExternalPP)

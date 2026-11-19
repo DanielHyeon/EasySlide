@@ -1469,7 +1469,7 @@ namespace Easislides
                     WorshipListItems.Items[i].Selected = true;
                 }
                 Gf.DB_CurSongID = 0;
-                ClearLyrics(ref flowLayoutPreviewLyrics);
+                ClearLyrics(flowLayoutPreviewLyrics);
                 ResetMainPictureBox(ref Gf.PreviewItem);
                 Cursor = Cursors.Default;
             }
@@ -1485,7 +1485,7 @@ namespace Easislides
                     WorshipListItems.Items[i].Selected = false;
                 }
                 Gf.DB_CurSongID = 0;
-                ClearLyrics(ref flowLayoutPreviewLyrics);
+                ClearLyrics(flowLayoutPreviewLyrics);
                 WorshipListIndexChanged();
                 Cursor = Cursors.Default;
             }
@@ -1512,7 +1512,7 @@ namespace Easislides
                     PraiseBookItems.Items[i].Selected = true;
                 }
                 Gf.DB_CurSongID = 0;
-                ClearLyrics(ref flowLayoutPreviewLyrics);
+                ClearLyrics(flowLayoutPreviewLyrics);
                 Cursor = Cursors.Default;
                 DisplayLyrics(Gf.PreviewItem, 1, ImageTransitionControl.TransitionAction.None);
             }
@@ -1528,7 +1528,7 @@ namespace Easislides
                     PraiseBookItems.Items[i].Selected = false;
                 }
                 Gf.DB_CurSongID = 0;
-                ClearLyrics(ref flowLayoutPreviewLyrics);
+                ClearLyrics(flowLayoutPreviewLyrics);
                 PraiseBookListIndexChanged();
                 Cursor = Cursors.Default;
             }
@@ -1573,7 +1573,7 @@ namespace Easislides
             {
                 Gf.PreviewItem.Type = "";
                 Gf.PreviewItem.ItemID = "";
-                ClearLyrics(ref flowLayoutPreviewLyrics);
+                ClearLyrics(flowLayoutPreviewLyrics);
             }
         }
 
@@ -3165,8 +3165,7 @@ namespace Easislides
                 return;
             }
             Gf.Launch_StartPresAt = Gf.StartPresAt;
-            LoadThumbOutlockkey = 0;
-            previousOutSelectedSlide = 1;
+            flowLayoutOutputPowerPoint.ResetSelection();
 
             switch (InDirection)
             {
@@ -3266,13 +3265,13 @@ namespace Easislides
                 if (InDirection != KeyDirection.NextOne || InItem.CurSlide < InItem.TotalSlides || Gf.AdvanceNextItem)
                 {
                     MoveToSlideOutputItem(InItem, InDirection, NotifyLiveShow: true);
-                    SetOutputPPThumbImages1(Gf.OutputItem.CurSlide);
+                    DisplayOutputPowerPointThumbnails(Gf.OutputItem.CurSlide);
                 }
             }
             else
             {
                 MoveToSlidePreviewItem(InItem, InDirection);
-                SetPreviewPPThumbImages1(Gf.PreviewItem.CurSlide);
+                DisplayPreviewPowerPointThumbnails(Gf.PreviewItem.CurSlide);
             }
         }
 
@@ -3857,73 +3856,11 @@ namespace Easislides
             return false;
         }
 
-        //private void ShowPreviewPPThumbs()
-        //{
-        //	ShowPreviewPPThumbs(0);
-        //}
-
-        private void ShowPreviewPPThumbs(int GotoSlide)
-        {
-            //PreviewPPTotalImagesCount = Gf.PreviewItem.TotalSlides;
-            //if (PreviewPPTotalImagesCount > 1024)
-            //	PreviewPPTotalImagesCount = 1024;
-
-            //for (int i = 0; i < PreviewPPTotalImagesCount; i++)
-            //{
-            //	PreviewPPImagename[i] = "";
-            //	PreviewPPTIHoldersFileName[i] = "";
-            //	PreviewPPSlideNumber[i] = -1;
-            //	PreviewPPImagename[i] = Gf.PREPPFullPath + Convert.ToString(i + 1) + ".jpg";
-            //}
-
-            PreviewPPTotalImagesCount = Gf.PreviewItem.TotalSlides;
-
-            //for (int i = 0; i < 1024; i++)
-            for (int i = 0; i < PreviewPPTotalImagesCount; i++)
-            {
-                PreviewPPImagename[i] = "";
-            }
-            //for (int i = 0; i < 1024; i++)
-            for (int i = 0; i < PreviewPPTotalImagesCount; i++)
-            {
-                PreviewPPTIHoldersFileName[i] = "";
-                PreviewPPSlideNumber[i] = -1;
-            }
-
-            for (int i = 0; i <= ((PreviewPPTotalImagesCount < 1024) ? (PreviewPPTotalImagesCount - 1) : 1023); i++)
-            {
-                PreviewPPImagename[i] = Gf.PREPPFullPath + Convert.ToString(i + 1) + ".jpg";
-            }
-            SetPreviewPPThumbImages1(GotoSlide);
-        }
-
-        /// <summary>
-        /// Shows the slide thumbnails of the preview PowerPoint item.
-        /// </summary>
-        /// <param name="GotoSlide">The slide to scroll to; below 0 means the last slide.</param>
-        private void SetPreviewPPThumbImages1(int GotoSlide)
+        private void DisplayPreviewPowerPointThumbnails(int selectedSlide)
         {
             if (Gf.PreviewItem.Type == "P")
-            {
-                if (GotoSlide < 0)
-                {
-                    GotoSlide = Gf.PreviewItem.TotalSlides;
-                }
-                LoadThumbPreviewImages(flowLayoutPreviewPowerPoint, ref Powerpoint_PreviewCanvas, PreviewPPImagename, Gf.PreviewItem.TotalSlides, flowLayoutPreviewPowerPoint.Width, Gf.OUTPPFullPath, GotoSlide, toolTip1, ExternalPP: true);
-            }
+                DisplayPowerPointThumbnails(flowLayoutPreviewPowerPoint, Gf.PreviewItem.TotalSlides, Gf.PREPPFullPath, selectedSlide);
         }
-
-        //private void SetPreviewPPThumbImages(int GotoSlide)
-        //{
-        //	if (Gf.PreviewItem.Type == "P")
-        //	{
-        //		if (GotoSlide < 0)
-        //		{
-        //			GotoSlide = Gf.PreviewItem.TotalSlides;
-        //		}
-        //		LoadThumbImages(flowLayoutPreviewPowerPoint, ref Powerpoint_PreviewCanvas, PreviewPPImagename, Gf.PreviewItem.TotalSlides, flowLayoutPreviewPowerPoint.Width, Gf.OUTPPFullPath, GotoSlide, toolTip1, ExternalPP: true);
-        //	}
-        //}
 
         private void MakePowerpointPreviewVisible(SongSettings InItem, bool MakeVisible)
         {
@@ -3964,99 +3901,14 @@ namespace Easislides
             }
         }
 
-        private void ShowOutputPPThumbs()
-        {
-            ShowOutputPPThumbs(0);
-        }
-
-        string previousOutputPPImageName = "";
-
-        /// <summary>
-        /// Shows the slide thumbnails of the output PowerPoint item; the image name list is rebuilt only when
-        /// the item's first image name changed.
-        /// </summary>
-        /// <param name="GotoSlide">The slide to scroll to; below 0 means the last slide.</param>
-        private void ShowOutputPPThumbs(int GotoSlide)
-        {
-            bool isCurrentOutputPPImageSame = false;
-            OutputPPTotalImagesCount = Gf.OutputItem.TotalSlides;
-
-            if (!String.IsNullOrEmpty(previousOutputPPImageName))
-            {
-                if (previousOutputPPImageName != Gf.OUTPPFullPath + Convert.ToString(1) + ".jpg")
-                {
-                    isCurrentOutputPPImageSame = false;
-                }
-                else
-                {
-                    isCurrentOutputPPImageSame = true;
-                }
-            }
-
-            if (!isCurrentOutputPPImageSame)
-            {
-                //for (int i = 0; i < 1024; i++)
-                for (int i = 0; i < OutputPPTotalImagesCount; i++)
-                {
-                    OutputPPImagename[i] = "";
-                }
-                //for (int i = 0; i < 1024; i++)
-                for (int i = 0; i < OutputPPTotalImagesCount; i++)
-                {
-                    OutputPPTIHoldersFileName[i] = "";
-                    OutputPPSlideNumber[i] = -1;
-                }
-                for (int i = 0; i <= ((OutputPPTotalImagesCount < 1024) ? (OutputPPTotalImagesCount - 1) : 1023); i++)
-                {
-                    OutputPPImagename[i] = Gf.OUTPPFullPath + Convert.ToString(i + 1) + ".jpg";
-                }
-            }
-
-            //OutputPPTotalImagesCount = Gf.PreviewItem.TotalSlides;
-            //if (OutputPPTotalImagesCount > 1024)
-            //	OutputPPTotalImagesCount = 1024;
-
-            //for (int i = 0; i < OutputPPTotalImagesCount; i++)
-            //{
-            //	OutputPPImagename[i] = "";
-            //	OutputPPTIHoldersFileName[i] = "";
-            //	OutputPPSlideNumber[i] = -1;
-            //	OutputPPImagename[i] = Gf.OUTPPFullPath + Convert.ToString(i + 1) + ".jpg"; ;
-            //}
-
-            SetOutputPPThumbImages1(GotoSlide);
-            previousOutputPPImageName = OutputPPImagename[0];
-        }
-
-        //private void SetOutputPPThumbImages()
-        //{
-        //	SetOutputPPThumbImages(0);
-        //}
-
-        private void SetOutputPPThumbImages1(int GotoSlide)
+        private void DisplayOutputPowerPointThumbnails(int selectedSlide)
         {
             if (Gf.OutputItem.Type == "P")
             {
-                if (GotoSlide < 0)
-                {
-                    GotoSlide = Gf.OutputItem.TotalSlides;
-                }
-                LoadThumbOutImages(flowLayoutOutputPowerPoint, ref Powerpoint_OutputCanvas, OutputPPImagename, Gf.OutputItem.TotalSlides, flowLayoutOutputPowerPoint.Width, Gf.OUTPPFullPath, GotoSlide, toolTip1, ExternalPP: true);
+                DisplayPowerPointThumbnails(flowLayoutOutputPowerPoint, Gf.OutputItem.TotalSlides, Gf.OUTPPFullPath, selectedSlide);
                 RefreshLiveIndicators();
             }
         }
-
-        //private void SetOutputPPThumbImages2(int GotoSlide)
-        //{
-        //	if (Gf.OutputItem.Type == "P")
-        //	{
-        //		if (GotoSlide < 0)
-        //		{
-        //			GotoSlide = Gf.OutputItem.TotalSlides;
-        //		}
-        //		LoadThumbImages(flowLayoutOutputPowerPoint, ref Powerpoint_OutputCanvas, OutputPPImagename, Gf.OutputItem.TotalSlides, flowLayoutOutputPowerPoint.Width, Gf.OUTPPFullPath, GotoSlide, toolTip1, ExternalPP: true);
-        //	}
-        //}
 
         private void MakePowerpointOutputVisible(SongSettings InItem, bool MakeVisible)
         {
@@ -7546,86 +7398,11 @@ namespace Easislides
             previewAreaOwnedFonts[InControl] = font;
         }
 
-        // Returns the font shared by all lyrics boxes of one lyrics panel. A new font is created only when
-        // the panel font or the preview font size changes; then every box of that panel is moved to the new
-        // font, and the old font is disposed only if no box still uses it. (A RichTextBox that has a handle
-        // and text stores its own copy of an assigned font, so a box may hold neither instance.)
-        private Font GetLyricsFont(Panel InPanel, RichTextBox[] InRichTextBox)
+        private void ApplyLyricsRichTextBoxFont(int mode)
         {
-            bool isPreview = ReferenceEquals(InPanel, flowLayoutPreviewLyrics);
-            (string Name, float Size, FontStyle Style) key = (InPanel.Font.Name, Gf.PreviewArea_FontSize, InPanel.Font.Style);
-            Font current = isPreview ? previewLyricsFont : outputLyricsFont;
-            if (current != null && key.Equals(isPreview ? previewLyricsFontKey : outputLyricsFontKey))
-            {
-                return current;
-            }
-
-            Font font = new Font(key.Name, key.Size, key.Style);
-            if (isPreview)
-            {
-                previewLyricsFont = font;
-                previewLyricsFontKey = key;
-            }
-            else
-            {
-                outputLyricsFont = font;
-                outputLyricsFontKey = key;
-            }
-
-            if (current != null)
-            {
-                bool currentStillUsed = false;
-                foreach (RichTextBox box in InRichTextBox)
-                {
-                    if (box == null)
-                    {
-                        continue;
-                    }
-                    box.Font = font;
-                    if (ReferenceEquals(box.Font, current))
-                    {
-                        currentStillUsed = true;
-                    }
-                }
-                if (!currentStillUsed)
-                {
-                    current.Dispose();
-                }
-            }
-            return font;
-        }
-
-        private void ApplyLyricsRichTextBoxFont(int InMode)
-        {
-            if (InMode == 0 || InMode == 2)
-            {
-                Font previewFont = GetLyricsFont(flowLayoutPreviewLyrics, Lyrics_PreviewBox);
-                for (int i = 1; i <= Gf.PreviewItem.TotalSlides; i++)
-                {
-                    if (Lyrics_PreviewBox[i] != null)
-                    {
-                        Lyrics_PreviewBox[i].Font = previewFont;
-                        Lyrics_PreviewBox[i].BorderStyle = (Gf.PreviewArea_LineBetweenScreens ? BorderStyle.FixedSingle : BorderStyle.None);
-                    }
-                }
-            }
             FormatLyricsContainers(Gf.PreviewItem);
-            ResizePreviewRichTextBox();
-            if (InMode != 1 && InMode != 2)
-            {
-                return;
-            }
-            Font outputFont = GetLyricsFont(flowLayoutOutputLyrics, Lyrics_OutputBox);
-            for (int i = 1; i <= Gf.OutputItem.TotalSlides; i++)
-            {
-                if (Lyrics_OutputBox[i] != null)
-                {
-                    Lyrics_OutputBox[i].Font = outputFont;
-                    Lyrics_OutputBox[i].BorderStyle = (Gf.PreviewArea_LineBetweenScreens ? BorderStyle.FixedSingle : BorderStyle.None);
-                }
-            }
-            FormatLyricsContainers(Gf.OutputItem);
-            ResizeOutputRichTextBox();
+            if (mode == 1 || mode == 2)
+                FormatLyricsContainers(Gf.OutputItem);
         }
 
         private void GenerateIndexReport()
@@ -8904,67 +8681,16 @@ namespace Easislides
 
         private void FormatLyricsContainers(SongSettings InItem, bool Reset, bool SetFocus)
         {
-            if (InItem.OutputStyleScreen)
+            var panel = InItem.OutputStyleScreen ? flowLayoutOutputLyrics : flowLayoutPreviewLyrics;
+            Font font = panel.PrepareFont(Gf.PreviewArea_FontSize);
+            string[] slides = Reset ? [""] : Gf.BuildLyricsSlideTexts(InItem, font, Gf.PreviewArea_ShowNotations);
+            panel.SetSlides(slides, !Reset && Gf.PreviewArea_LineBetweenScreens, Reset);
+            if (Reset)
             {
-                FormatLyricsContainers(ref Lyrics_OutputBox, ref flowLayoutOutputLyrics, InItem, Reset, SetFocus);
+                if (SetFocus) panel.Focus();
+                return;
             }
-            else
-            {
-                FormatLyricsContainers(ref Lyrics_PreviewBox, ref flowLayoutPreviewLyrics, InItem, Reset, SetFocus);
-            }
-        }
-
-        private void FormatLyricsContainers(ref RichTextBox[] InRichTextBox, ref Panel InPanel, SongSettings InItem, bool Reset, bool SetFocus)
-        {
-            string name = (InPanel.Name == flowLayoutPreviewLyrics.Name) ? "Preview" : "Output";
-
-            InPanel.Controls.Clear();
-
-            InPanel.AutoScroll = true;
-            int boxCount = Reset ? 1 : InItem.TotalSlides;
-            Font lyricsFont = GetLyricsFont(InPanel, InRichTextBox);
-            for (int i = 1; i <= boxCount; i++)
-            {
-                if (InRichTextBox[i] == null)
-                {
-                    InRichTextBox[i] = new RichTextBox();
-                    InRichTextBox[i].Name = name;
-                    InRichTextBox[i].Tag = i.ToString();
-                    InRichTextBox[i].MouseUp += LyricsRichTextBox_MouseUp;
-                    InRichTextBox[i].MouseWheel += LyricsRichTextBox_MouseWheel;
-                    InRichTextBox[i].KeyUp += LyricsRichTextBox_KeyUp;
-                    InRichTextBox[i].Dock = DockStyle.Top;
-                    InRichTextBox[i].ScrollBars = RichTextBoxScrollBars.None;
-                    InRichTextBox[i].ReadOnly = true;
-                    InRichTextBox[i].BorderStyle = BorderStyle.None;
-                    InRichTextBox[i].Font = lyricsFont;
-                }
-                else
-                {
-                    InRichTextBox[i].Font = lyricsFont;
-                    InRichTextBox[i].BorderStyle = BorderStyle.None;
-                }
-                InPanel.Controls.Add(InRichTextBox[i]);
-                InRichTextBox[i].BringToFront();
-                if (Reset)
-                {
-                    InRichTextBox[i].Text = "";
-                    InRichTextBox[i].Height = InRichTextBox[i].Font.Height;
-                    if (SetFocus)
-                    {
-                        InRichTextBox[i].Focus();
-                    }
-                    return;
-                }
-            }
-            GetLyricsSelectionColours(InPanel, out Color selectedText, out Color selectedBack);
-            Gf.DisplayRichTextBoxSeries(ref InItem, ref InPanel, ref InRichTextBox, ScrollToCaret: true, Gf.PreviewArea_ShowNotations, selectedText, selectedBack);
-            for (int i = 1; i <= boxCount; i++)
-            {
-                InRichTextBox[i].BorderStyle = (Gf.PreviewArea_LineBetweenScreens ? BorderStyle.FixedSingle : BorderStyle.None);
-            }
-            ResizePreviewRichTextBox();
-            ResizeOutputRichTextBox();
+            HighlightLyricsPanel(panel, InItem, onEnter: false, scrollToTop: false);
         }
 
         private void LyricsRichTextBox_MouseUp(object sender, MouseEventArgs e)
@@ -8972,7 +8698,7 @@ namespace Easislides
             RichTextBox richTextBox = (RichTextBox)sender;
             richTextBox.SelectionStart = 0;
             richTextBox.SelectionLength = 0;
-            int newSlideNumber = DataUtil.StringToInt((string)richTextBox.Tag);
+            int newSlideNumber = (int)richTextBox.Tag;
             if (richTextBox.Name == "Output")
             {
                 LyricsRichTextBox_ShowSlide(Gf.OutputItem, newSlideNumber);
@@ -8997,30 +8723,6 @@ namespace Easislides
             else
             {
                 ItemKeyPressed(Gf.PreviewItem, keyCode, e.Shift);
-            }
-        }
-
-        private void LyricsRichTextBox_MouseWheel(object sender, MouseEventArgs e)
-        {
-            RichTextBox richTextBox = (RichTextBox)sender;
-            int scrollY = -(e.Delta / 3);
-            if (richTextBox.Name == "Output")
-            {
-                scrollY -= flowLayoutOutputLyrics.AutoScrollPosition.Y;
-                if (scrollY < 0)
-                {
-                    scrollY = 0;
-                }
-                flowLayoutOutputLyrics.AutoScrollPosition = new Point(0, scrollY);
-            }
-            else
-            {
-                scrollY -= flowLayoutPreviewLyrics.AutoScrollPosition.Y;
-                if (scrollY < 0)
-                {
-                    scrollY = 0;
-                }
-                flowLayoutPreviewLyrics.AutoScrollPosition = new Point(0, scrollY);
             }
         }
 
@@ -9052,44 +8754,26 @@ namespace Easislides
             ImplementSlideMove(Gf.PreviewItem, ScrollToTop: false);
         }
 
+        private void HighlightLyricsPanel(LyricsSlidePanel panel, SongSettings item, bool onEnter, bool scrollToTop)
+        {
+            GetLyricsSelectionColours(panel, out Color selectedText, out Color selectedBack);
+            if (onEnter)
+                Gf.Control_Enter(panel);
+            else
+                Gf.Control_Leave(panel);
+            panel.Highlight(onEnter && item.GapItemOnDisplay ? 0 : item.CurSlide,
+                selectedText, selectedBack, navigate: onEnter, alignTop: scrollToTop);
+        }
+
         private void HighlightPreviewRichTextBox(bool OnEnter, bool ScrollToTop)
         {
-            GetLyricsSelectionColours(flowLayoutPreviewLyrics, out Color selectedText, out Color selectedBack);
-            Gf.HighlightRichTextBox(ref Lyrics_PreviewBox, ref flowLayoutPreviewLyrics, Gf.PreviewItem, OnEnter, ScrollToTop, selectedText, selectedBack);
+            HighlightLyricsPanel(flowLayoutPreviewLyrics, Gf.PreviewItem, OnEnter, ScrollToTop);
         }
 
         private void HighlightOutputRichTextBox(bool OnEnter, bool ScrollToTop)
         {
-            GetLyricsSelectionColours(flowLayoutOutputLyrics, out Color selectedText, out Color selectedBack);
-            Gf.HighlightRichTextBox(ref Lyrics_OutputBox, ref flowLayoutOutputLyrics, Gf.OutputItem, OnEnter, ScrollToTop, selectedText, selectedBack);
+            HighlightLyricsPanel(flowLayoutOutputLyrics, Gf.OutputItem, OnEnter, ScrollToTop);
             ShowStatusBarSummary();
-        }
-
-        private void ResizePreviewRichTextBox()
-        {
-            ResizeLyricsRichTextBox(ref Lyrics_PreviewBox, ref flowLayoutPreviewLyrics, Gf.PreviewItem);
-        }
-
-        private void ResizeOutputRichTextBox()
-        {
-            ResizeLyricsRichTextBox(ref Lyrics_OutputBox, ref flowLayoutOutputLyrics, Gf.OutputItem);
-        }
-
-        private void ResizeLyricsRichTextBox(ref RichTextBox[] InRichTextBox, ref Panel InPanel, SongSettings InItem)
-        {
-            for (int i = 1; i <= InItem.TotalSlides; i++)
-            {
-                if (InRichTextBox[i] != null)
-                {
-                    if (InRichTextBox[i].TextLength == 0)
-                    {
-                        InRichTextBox[i].Height = 5;
-                        continue;
-                    }
-                    Point positionFromCharIndex = InRichTextBox[i].GetPositionFromCharIndex(InRichTextBox[i].TextLength - 1);
-                    InRichTextBox[i].Height = positionFromCharIndex.Y + InRichTextBox[i].Font.Height * 2;
-                }
-            }
         }
 
         private void flowLayoutOutputLyrics_Click(object sender, EventArgs e)

@@ -397,11 +397,8 @@ namespace Easislides
 			//using var perf = PerfLog.Enabled ? PerfLog.Scope("FormatDisplayLyrics", $"prepare={PrepareSlides} useStored={UseStoredSequence} lyricsLen={(InItem != null && InItem.CompleteLyrics != null ? InItem.CompleteLyrics.Length : 0)}") : null;
 			int showNotations = InItem.UseDefaultFormat ? ShowNotations : InItem.Format.ShowNotations;
 			int transposeOffset = (!InItem.UseDefaultFormat) ? InItem.Format.TransposeOffset : ((ShowCapoZero == 1) ? IncrementChord(ref InItem.Capo, 0) : 0);
-			int verseNumber = -1;
-			ListViewItem listViewItem = new ListViewItem();
-			int lineCount = 0;
+			ListViewItem listViewItem;
 			InItem.CompleteLyrics = InItem.CompleteLyrics.Replace("\r\n", "\n");
-			lineCount = DataUtil.CountLf(InItem.CompleteLyrics);
 			if (InItem != null && InItem.Capo < 0)
 			{
 				InItem.Capo = -1;
@@ -421,19 +418,10 @@ namespace Easislides
 					InItem.Notations = InItem.OriginalNotations;
 				}
 			}
-			for (int i = 0; i < 160; i++)
-			{
-				InItem.VersePresent[i] = false;
-				InItem.VerseLineLoc[i, 0] = -1;
-				InItem.VerseLineLoc[i, 1] = -1;
-				InItem.VerseLineLoc[i, 2] = -1;
-				InItem.VerseLineLoc[i, 3] = -1;
-				InItem.VerseLineLoc[i, 4] = -1;
-			}
-			ListView listView = ExtractLyrics(InItem.CompleteLyrics, InItem.Notations);
+			Array.Clear(InItem.VersePresent);
+			using ListView listView = ExtractLyrics(InItem.CompleteLyrics, InItem.Notations);
 			InItem.LyricsAndNotationsList.Items.Clear();
-			int itemVerse = -1;
-			verseNumber = -1;
+			int highestVerse = 1;
 			if (InItem.RotateStyle == 2)
 			{
 				InItem.SongSequence = InItem.RotateSequence;
@@ -441,18 +429,15 @@ namespace Easislides
 			InItem.SongBasicSequence = "";
 			for (int i = 0; i < listView.Items.Count; i++)
 			{
-				verseNumber = DataUtil.StringToInt(listView.Items[i].Text);
+				int verseNumber = DataUtil.StringToInt(listView.Items[i].Text);
 				if (!InItem.VersePresent[verseNumber])
 				{
 					InItem.VersePresent[verseNumber] = true;
-					if (itemVerse != verseNumber)
-					{
-						InItem.SongBasicSequence += (char)verseNumber;
-						itemVerse = verseNumber;
-					}
+					InItem.SongBasicSequence += (char)verseNumber;
+					highestVerse = Math.Max(highestVerse, verseNumber);
 				}
 			}
-			for (int i = 0; i < 160; i++)
+			for (int i = 0; i <= highestVerse; i++)
 			{
 				if (!InItem.VersePresent[i])
 				{
@@ -506,27 +491,22 @@ namespace Easislides
 			{
 				InItem.LyricsAndNotationsList.Items[0].Remove();
 			}
-			int regionNumber = -1;
-			itemVerse = -1;
-			for (verseNumber = 0; verseNumber < 160; verseNumber++)
+			if (highestVerse >= InItem.VerseLineLoc.GetLength(0))
+				InItem.VerseLineLoc = new int[highestVerse + 1, 5];
+			var locations = InItem.VerseLineLoc;
+			for (int verse = 0; verse < locations.GetLength(0); verse++)
 			{
-				if (!InItem.VersePresent[verseNumber])
-				{
-					continue;
-				}
-				for (int i = 0; i < InItem.LyricsAndNotationsList.Items.Count; i++)
-				{
-					itemVerse = DataUtil.StringToInt(InItem.LyricsAndNotationsList.Items[i].SubItems[0].Text);
-					regionNumber = DataUtil.StringToInt(InItem.LyricsAndNotationsList.Items[i].SubItems[1].Text);
-					if (verseNumber == itemVerse)
-					{
-						if (InItem.VerseLineLoc[verseNumber, regionNumber * 2 - 1] < 0)
-						{
-							InItem.VerseLineLoc[verseNumber, regionNumber * 2 - 1] = i;
-						}
-						InItem.VerseLineLoc[verseNumber, regionNumber * 2] = i;
-					}
-				}
+				for (int column = 0; column < 5; column++)
+					locations[verse, column] = -1;
+			}
+			for (int lineIndex = 0; lineIndex < InItem.LyricsAndNotationsList.Items.Count; lineIndex++)
+			{
+				var line = InItem.LyricsAndNotationsList.Items[lineIndex];
+				int verse = DataUtil.StringToInt(line.Text);
+				int endColumn = DataUtil.StringToInt(line.SubItems[1].Text) * 2;
+				if (locations[verse, endColumn - 1] < 0)
+					locations[verse, endColumn - 1] = lineIndex;
+				locations[verse, endColumn] = lineIndex;
 			}
 			if (PrepareSlides)
 			{
@@ -953,61 +933,43 @@ namespace Easislides
 
 		public static string GetSlideContents(SongSettings InItem, int CurSlide, int RegionNumber, Font InFont, bool PreviewNotations)
 		{
-			int[,] slide = InItem.Slide;
-			int startColumn = (RegionNumber == 0) ? 1 : 3;
-			int endColumn = (RegionNumber == 0) ? 2 : 4;
-			string slideText = "";
-			string lineText = "";
-			int lineIndex = 0;
 			tbWorkspace.WordWrap = false;
 			tbTempSpace.WordWrap = false;
+			int startColumn = RegionNumber == 0 ? 1 : 3;
+			int firstRow = InItem.Slide[CurSlide, startColumn];
+			var rows = InItem.LyricsAndNotationsList.Items;
+			int lastRow = Math.Min(InItem.Slide[CurSlide, startColumn + 1], rows.Count - 1);
+			if (firstRow < 0 || firstRow > lastRow)
+				return "\n";
 
-			int itemCount = InItem.LyricsAndNotationsList.Items.Count;
-
-			if (PreviewNotations)
+			var lyrics = new StringBuilder();
+			StringBuilder notes = null;
+			for (int i = firstRow; i <= lastRow; i++)
 			{
-				if (slide[CurSlide, startColumn] <= slide[CurSlide, endColumn])
+				var fields = rows[i].SubItems;
+				lyrics.Append(fields[2].Text).Append('\n');
+				if (PreviewNotations)
 				{
-					bool hasNotations = false;
-
-					for (int i = slide[CurSlide, startColumn]; i <= slide[CurSlide, endColumn]; i++)
+					string chords = fields[3].Text;
+					if (notes != null || chords.Length > 0)
 					{
-						if (i >= itemCount) continue;
-						if (InItem.LyricsAndNotationsList.Items[i].SubItems[3].Text != "")
-						{
-							hasNotations = true;
-							i = slide[CurSlide, endColumn] + 1;
-						}
+						notes ??= new StringBuilder();
+						notes.Append('(').Append(i - firstRow).Append(';').Append(chords).Append(')');
 					}
-					string notations = "";
-					for (int i = slide[CurSlide, startColumn]; i <= slide[CurSlide, endColumn]; i++)
-					{
-						if (i >= itemCount) continue;
-						slideText = slideText + InItem.LyricsAndNotationsList.Items[i].SubItems[2].Text + "\n";
-						if (hasNotations)
-						{
-							notations = notations + "(" + Convert.ToInt32(lineIndex) + ";" + InItem.LyricsAndNotationsList.Items[i].SubItems[3].Text + ")";
-						}
-						lineIndex++;
-					}
-					slideText = CombineLyricsAndNotations(slideText, notations, InFont, InFont, ref tbWorkspace, ref tbTempSpace) + "\n";
 				}
 			}
-			else if (slide[CurSlide, startColumn] <= slide[CurSlide, endColumn])
-			{
-				for (int i = slide[CurSlide, startColumn]; i <= slide[CurSlide, endColumn]; i++)
-				{
-					if (i >= itemCount) continue;
-					lineText = InItem.LyricsAndNotationsList.Items[i].SubItems[2].Text + "\n";
-					SubstituteDashes(ref lineText, 0);
-					slideText += lineText;
-				}
-			}
+
+			string text = lyrics.ToString();
+			if (notes != null)
+				text = CombineLyricsAndNotations(text, notes.ToString(), InFont, InFont, ref tbWorkspace, ref tbTempSpace);
+			else if (!PreviewNotations)
+				SubstituteDashes(ref text, 0);
 			if (InItem.Type == "B")
-			{
-				slideText = slideText.Replace('\u0098'.ToString(), "");
-			}
-			return DataUtil.TrimEnd(slideText) + "\n";
+				text = text.Replace("\u0098", "");
+			var content = text.AsSpan().TrimEnd("\r\n");
+			if (text.EndsWith('\n') && content.Length == text.Length - 1)
+				return text;
+			return string.Concat(content, "\n");
 		}
 
 		public static string OldGetSlideContents(SongSettings InItem, int CurSlide, int RegionNumber, Font InFont, bool PreviewNotations)
@@ -1278,6 +1240,19 @@ namespace Easislides
 			}
 		}
 
+		private static void AppendLyricSlide(ref int[,] slides, ref int slideCount)
+		{
+			int nextSlide = slideCount + 1;
+			if (nextSlide >= slides.GetLength(0))
+			{
+				int rows = Math.Max(nextSlide + 1, slides.GetLength(0) * 2);
+				var expanded = new int[rows, slides.GetLength(1)];
+				Array.Copy(slides, expanded, slides.Length);
+				slides = expanded;
+			}
+			slideCount = nextSlide;
+		}
+
 		public static void BuildSlides(SongSettings InItem, ListView LyricsLists, ref string SongSequence, ref int CurSongMaxSlides, ref int[] SongVerses, ref int[] ChorusSlides, ref int[,] Slide, int InShowNotations)
 		{
 			List<(int Start, int End)> splitRanges = InItem?.SplitScreens == true ? [] : null;
@@ -1297,7 +1272,7 @@ namespace Easislides
 			foreach (int verseIndex in SongSequence)
 			{
 				bool lastSubScreen = false;
-				if (InItem.VersePresent[verseIndex])
+				if (verseIndex < InItem.VerseLineLoc.GetLength(0) && InItem.VersePresent[verseIndex])
 				{
 					int verseScreenCount = GetVerseScreenCount(LyricsLists, InItem.VerseLineLoc[verseIndex, 1], InItem.VerseLineLoc[verseIndex, 2]);
 					if (verseScreenCount > 0)
@@ -1309,7 +1284,7 @@ namespace Easislides
 								int verseScreenLoc = GetVerseScreenLoc(LyricsLists, InItem.VerseLineLoc[verseIndex, 1], InItem.VerseLineLoc[verseIndex, 2], j);
 								if (verseScreenLoc >= 0)
 								{
-									CurSongMaxSlides++;
+									AppendLyricSlide(ref Slide, ref CurSongMaxSlides);
 									if (j == 1)
 									{
 										Slide[CurSongMaxSlides, 0] = verseIndex;
@@ -1331,7 +1306,7 @@ namespace Easislides
 										CurSongMaxSlides--;
 										for (int k = 0; k < screenCount; k++)
 										{
-											CurSongMaxSlides++;
+											AppendLyricSlide(ref Slide, ref CurSongMaxSlides);
 											if (j == 1 && k == 0)
 											{
 												Slide[CurSongMaxSlides, 0] = verseIndex;
@@ -1372,7 +1347,7 @@ namespace Easislides
 								int verseScreenLoc = GetVerseScreenLoc(LyricsLists, InItem.VerseLineLoc[verseIndex, 3], InItem.VerseLineLoc[verseIndex, 4], j);
 								if (verseScreenLoc >= 0)
 								{
-									CurSongMaxSlides++;
+									AppendLyricSlide(ref Slide, ref CurSongMaxSlides);
 									if (j == 1)
 									{
 										Slide[CurSongMaxSlides, 0] = verseIndex;
@@ -1391,7 +1366,7 @@ namespace Easislides
 										CurSongMaxSlides--;
 										for (int k = 0; k < splitRanges.Count; k++)
 										{
-											CurSongMaxSlides++;
+											AppendLyricSlide(ref Slide, ref CurSongMaxSlides);
 											if (k == 0)
 											{
 												Slide[CurSongMaxSlides, 0] = verseIndex;
@@ -1570,7 +1545,7 @@ namespace Easislides
 				int verseScreenLoc = GetVerseScreenLoc(LyricsLists, screenStart, EndLoc, j);
 				if (verseScreenLoc >= 0)
 				{
-					CurSlideNumber++;
+					AppendLyricSlide(ref Slide, ref CurSlideNumber);
 					Slide[CurSlideNumber, 0] = -1;
 					Slide[CurSlideNumber, 1] = -1;
 					Slide[CurSlideNumber, 2] = -1;
@@ -3044,93 +3019,114 @@ namespace Easislides
 			}
 		}
 
-		public static void ScanSelectedRTB(ref RichTextBox InTextBox, bool[] VersePresent, bool DoAll, int StartPos, int EndPos, string[] InsArray, Font MainFont, Font NotationFont, bool DoNotations)
+		internal static void FormatEditorLyrics(RichTextBox editor, ref string previousText, string[] headings,
+			Font lyricFont, Font chordFont, bool formatAll = false)
 		{
-			if (InTextBox.Text == "")
+			// RichEdit returns LF offsets after its native handle has been created.
+			_ = editor.Handle;
+			string text = editor.Text;
+			if (text.Length > 0)
 			{
-				return;
+				int start = 0;
+				int end = text.Length;
+				if (!formatAll && previousText != null)
+					FindEditedLines(text, previousText, editor.SelectionStart, out start, out end);
+				if (start < end || start == text.Length)
+					FormatLyricsRange(editor, text, start, end, headings, lyricFont, chordFont);
 			}
-			int selectionStart = EndPos;
-			if (DoAll)
+			previousText = text;
+		}
+
+		private static void FindEditedLines(string text, string previous, int caret, out int start, out int end)
+		{
+			// Match the suffix beyond the caret first so that pasting a duplicate line formats the new copy.
+			int after = text.Length;
+			int oldAfter = previous.Length;
+			while (after > caret && oldAfter > 0 && text[after - 1] == previous[oldAfter - 1])
 			{
-				StartPos = 0;
-				EndPos = InTextBox.Text.Length - 1;
+				after--;
+				oldAfter--;
 			}
+			int first = text.AsSpan(0, after).CommonPrefixLength(previous.AsSpan(0, oldAfter));
+			while (after > first && oldAfter > first && text[after - 1] == previous[oldAfter - 1])
+			{
+				after--;
+				oldAfter--;
+			}
+
+			start = text.AsSpan(0, first).LastIndexOf('\n') + 1;
+			// Adding or removing complete rows leaves the next row intact. A split or join
+			// within a row also needs the unchanged suffix of that row to be styled.
+			bool suffixStartsRow = (after == 0 || text[after - 1] == '\n')
+				&& (oldAfter == 0 || previous[oldAfter - 1] == '\n');
+			if (suffixStartsRow && (after > first || oldAfter > first))
+				end = after;
 			else
 			{
-				if (StartPos > EndPos)
-				{
-					int swapTemp = StartPos;
-					StartPos = EndPos;
-					EndPos = swapTemp;
-				}
-				MoveToPosInLine(InTextBox.Text, ref StartPos, 0);
-				MoveToPosInLine(InTextBox.Text, ref EndPos, 1);
+				int newline = text.IndexOf('\n', after);
+				end = newline < 0 ? text.Length : newline + 1;
 			}
-			int symbolIndex = 0;
-			MarkSelectedRTB(ref InTextBox, StartPos, EndPos - StartPos + 1, 0, MainFont, NotationFont);
-			for (symbolIndex = 0; symbolIndex <= InsArray.GetUpperBound(0); symbolIndex++)
+		}
+
+		private static void FormatLyricsRange(RichTextBox editor, string text, int start, int end,
+			string[] headings, Font lyricFont, Font chordFont)
+		{
+			int selectionStart = editor.SelectionStart;
+			int selectionLength = editor.SelectionLength;
+			bool suspendRedraw = editor.Visible;
+			if (suspendRedraw)
+				SendMessage(editor.Handle, WM_SETREDRAW, 0u, 0u);
+			try
 			{
-				if (StartPos < 0)
+				ApplyLyricStyle(editor, start, end - start, lyricFont, NormalTextColour);
+				var range = text.AsSpan(start, end - start);
+				foreach (string heading in headings.AsSpan())
 				{
-					StartPos = 0;
+					if (string.IsNullOrEmpty(heading))
+						continue;
+					int offset = 0;
+					while (offset < range.Length)
+					{
+						int match = range[offset..].IndexOf(heading.AsSpan(), StringComparison.Ordinal);
+						if (match < 0)
+							break;
+						offset += match;
+						editor.Select(start + offset, heading.Length);
+						editor.SelectionColor = SelectedTextColour;
+						if (heading != VerseSymbol[150])
+							break;
+						offset += heading.Length;
+					}
 				}
-				if (InsArray[symbolIndex] == VerseSymbol[150])
+
+				int lineStart = start;
+				while (lineStart < end)
 				{
-					int foundPos;
-					try
-					{
-						foundPos = InTextBox.Text.IndexOf(InsArray[symbolIndex], StartPos);
-					}
-					catch
-					{
-						foundPos = -1;
-					}
-					while (foundPos >= 0)
-					{
-						MarkSelectedRTB(ref InTextBox, foundPos, InsArray[symbolIndex].Length, 1, MainFont, NotationFont);
-						foundPos = InTextBox.Text.IndexOf(InsArray[symbolIndex], foundPos + 1);
-					}
-				}
-				else
-				{
-					int foundPos;
-					try
-					{
-						foundPos = InTextBox.Text.IndexOf(InsArray[symbolIndex], StartPos);
-					}
-					catch
-					{
-						foundPos = -1;
-					}
-					if (foundPos >= 0 && foundPos <= EndPos)
-					{
-						MarkSelectedRTB(ref InTextBox, foundPos, InsArray[symbolIndex].Length, 1, MainFont, NotationFont);
-					}
+					int marker = text.IndexOf('»', lineStart, end - lineStart);
+					if (marker < 0)
+						break;
+					lineStart += text.AsSpan(lineStart, marker - lineStart).LastIndexOf('\n') + 1;
+					int newline = text.IndexOf('\n', marker, end - marker);
+					int lineEnd = newline < 0 ? end : newline + 1;
+					ApplyLyricStyle(editor, lineStart, lineEnd - lineStart, chordFont, NotationColour);
+					lineStart = lineEnd;
 				}
 			}
-			if (DoNotations)
+			finally
 			{
-				int foundPos;
-				try
-				{
-					foundPos = InTextBox.Text.IndexOf("»", StartPos);
-				}
-				catch
-				{
-					foundPos = -1;
-				}
-				while (foundPos >= 0 && foundPos <= EndPos)
-				{
-					int lineStartPos = foundPos;
-					int lineEndPos = foundPos;
-					MoveToPosInLine(InTextBox.Text, ref lineStartPos, 0);
-					MoveToPosInLine(InTextBox.Text, ref lineEndPos, 1);
-					MarkSelectedRTB(ref InTextBox, lineStartPos, lineEndPos - lineStartPos + 1, 2, MainFont, NotationFont);
-					foundPos = InTextBox.Text.IndexOf("»", foundPos + 1);
-				}
+				editor.Select(selectionStart, selectionLength);
+				if (suspendRedraw)
+					SendMessage(editor.Handle, WM_SETREDRAW, 1u, 0u);
+				editor.Refresh();
 			}
-			InTextBox.SelectionStart = selectionStart;
+		}
+
+		private static void ApplyLyricStyle(RichTextBox editor, int start, int length, Font font, Color color)
+		{
+			editor.Select(start, length);
+			editor.SelectionCharOffset = 0;
+			editor.SelectionFont = font;
+			editor.SelectionColor = color;
 		}
 
 		public static void MarkSelectedRTB(ref RichTextBox InTextBox, int SelStartPos, int SelLen, int InMode, Font MainFont, Font NotationFont)

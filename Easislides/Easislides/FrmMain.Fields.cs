@@ -156,22 +156,6 @@ namespace Easislides
 
         private int ExternalPPTotalImagesCount = 0;
 
-        private string[] OutputPPTIHoldersFileName = new string[1024];
-
-        private string[] OutputPPImagename = new string[1024];
-
-        private int[] OutputPPSlideNumber = new int[1024];
-
-        private int OutputPPTotalImagesCount = 0;
-
-        private string[] PreviewPPTIHoldersFileName = new string[1024];
-
-        private string[] PreviewPPImagename = new string[1024];
-
-        private int[] PreviewPPSlideNumber = new int[1024];
-
-        private int PreviewPPTotalImagesCount = 0;
-
         private bool UpdatingFormatFields = false;
 
         private bool UpdatingDefaultFields = false;
@@ -204,15 +188,6 @@ namespace Easislides
 
         private PowerPoint MainPPT = new PowerPoint();
 
-        // Fonts this form creates for the preview area. Each is shared and disposed only after no control uses it.
-        private Font previewLyricsFont;
-
-        private (string Name, float Size, FontStyle Style) previewLyricsFontKey;
-
-        private Font outputLyricsFont;
-
-        private (string Name, float Size, FontStyle Style) outputLyricsFontKey;
-
         private readonly System.Collections.Generic.Dictionary<Control, Font> previewAreaOwnedFonts = new System.Collections.Generic.Dictionary<Control, Font>();
 
         private int frmHeight;
@@ -225,10 +200,6 @@ namespace Easislides
 
         private ImageCanvas[] BackgroundImagesCanvas = new ImageCanvas[1024];
 
-        private ImageCanvas[] Powerpoint_PreviewCanvas = new ImageCanvas[1024];
-
-        private ImageCanvas[] Powerpoint_OutputCanvas = new ImageCanvas[1024];
-
         private ImageCanvas[] Powerpoint_ExternalCanvas = new ImageCanvas[1024];
 
         // Named so that a paint failure in the log and the error notice says which screen failed.
@@ -237,10 +208,6 @@ namespace Easislides
         private ImageTransitionControl OutputScreen = new ImageTransitionControl { Name = "OutputScreen" };
 
         private int ThumbImageClicked = 0;
-
-        private RichTextBox[] Lyrics_PreviewBox = new RichTextBox[30000];
-
-        private RichTextBox[] Lyrics_OutputBox = new RichTextBox[30000];
 
         private bool WorshipListDoubleClick = false;
 
@@ -258,10 +225,6 @@ namespace Easislides
         private bool pptDoubleClickInProgress = false;
 
         // Thumbnail loading state
-        static int previousOutSelectedSlide = 1;
-        static int LoadThumbOutlockkey = 0;
-        static int LoadThumbPreviewlockkey = 0;
-        static int previousPreviewSelectedSlide = 1;
 
     }
 }

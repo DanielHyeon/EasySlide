@@ -437,7 +437,7 @@ namespace Easislides
 		internal static int AdoptLivePowerpointRun(ref SongSettings InItem, PowerPoint InMainPPT)
 		{
 			InMainPPT.FollowRunOf(LivePP, InItem.Path, PowerpointList);
-			int count = InMainPPT.Count();
+			int count = InMainPPT.Count(ref InItem.Slide);
 			if (count <= 0)
 			{
 				// Not taken: the item keeps its slide count and verse data.
@@ -468,11 +468,7 @@ namespace Easislides
 
 		private static void ResetPowerpointVerses(ref SongSettings InItem)
 		{
-			for (int i = 1; i <= MaxSlideCount; i++)
-			{
-				InItem.Slide[i, 0] = -1;
-			}
-			Array.Fill(InItem.SongVerses, 0, 0, Math.Min(SongVerseInitCount, InItem.SongVerses.Length));
+			PowerPoint.ResetVerses(MAX_VERSES, DB_MAXSLIDES, ref InItem.SongVerses, ref InItem.Slide);
 		}
 
 		/// <summary>
@@ -693,7 +689,7 @@ namespace Easislides
 			}
 
 			InPPT.LoadVersesAndSlides(ref InItem.SongVerses, ref InItem.Slide, SequenceSymbol);
-			return InPPT.Count();
+			return InPPT.Count(ref InItem.Slide);
 		}
 
 		// Show end and app exit (fix-ppt-show-end-timeout): PowerPoint must answer a window message within the probe

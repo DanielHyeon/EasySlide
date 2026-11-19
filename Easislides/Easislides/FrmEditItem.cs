@@ -116,8 +116,6 @@ namespace Easislides
 
 		private bool InsertingPresetItem = false;
 
-		private int StackArrayMaxPoint = 100;
-
 		private bool SetWordWrap = true;
 
 		private bool SetRightToLeft1 = true;
@@ -126,17 +124,11 @@ namespace Easislides
 
 		private bool SetChordsMenu = true;
 
-		private int[,] StackTrackPos = new int[3, 2];
+		private string formattedLyrics1;
+		private string formattedLyrics2;
 
-		private int[] StackMaxRedo = new int[3];
-
-		private int[] StackIndex = new int[3];
-
-		private int[] StackStartPoint = new int[3];
-
-		private string[,] sStack = new string[3, 1000];
-
-		private int[,] iCursorPosition = new int[3, 1000];
+		private readonly LyricsEditHistory regionOneHistory = new();
+		private readonly LyricsEditHistory regionTwoHistory = new();
 
 		private string CombinedLyrics = "";
 
@@ -198,15 +190,9 @@ namespace Easislides
 
 		private string RotateString = "";
 
-		private DateTime InitDateTime = new DateTime(2005, 1, 1, 0, 0, 0);
-
-		private int RotateTotalScreensIndex = -1;
+		private static readonly DateTime InitDateTime = RotationTimingPanel.StartTime;
 
 		private double TimeIncrement = 1.0;
-
-		private DateTimePicker[] RotateTimePosition = new DateTimePicker[1024];
-
-		private Label[] RotateTimeLabel = new Label[1024];
 
 		private int AttemptConnectCount = 0;
 
@@ -749,29 +735,8 @@ namespace Easislides
 			SavedRotateString = RotateString;
 		}
 
-		private void rtfMain_Change(int Region)
-		{
-			if (!IgnoreChange)
-			{
-				StackIndex[Region]++;
-				if ((StackIndex[Region] == StackStartPoint[Region]) && (StackStartPoint[Region] > 0))
-				{
-					StackStartPoint[Region]++;
-				}
-				if (StackStartPoint[Region] > StackArrayMaxPoint)
-				{
-					StackStartPoint[Region] = 1;
-				}
-				if (StackIndex[Region] > StackArrayMaxPoint)
-				{
-					StackIndex[Region] = 0;
-					StackStartPoint[Region] = 1;
-				}
-				StackMaxRedo[Region] = StackIndex[Region];
-				iCursorPosition[Region, StackIndex[Region]] = ((Region == 1) ? tbLyrics1.SelectionStart : tbLyrics2.SelectionStart);
-				sStack[Region, StackIndex[Region]] = ((Region == 1) ? tbLyrics1.Rtf : tbLyrics2.Rtf);
-			}
-		}
+		private (RichTextBox Editor, LyricsEditHistory History) GetLyricsEditor(int region) =>
+			region == 1 ? (tbLyrics1, regionOneHistory) : (tbLyrics2, regionTwoHistory);
 
 		private void ApplyFonts()
 		{
@@ -948,8 +913,8 @@ namespace Easislides
 			IgnoreChange = true;
 			BtnChordsClick(TransposeStep, ref tbLyrics1, ref Lyrics1SavedNotations, ref Lyrics1Only, flatSharpKey);
 			BtnChordsClick(TransposeStep, ref tbLyrics2, ref Lyrics2SavedNotations, ref Lyrics2Only, flatSharpKey);
-			Gf.ScanSelectedRTB(ref tbLyrics1, VersePresent, DoAll: true, 0, 0, sArray, MainFont, NotationFont, DoNotations: true);
-			Gf.ScanSelectedRTB(ref tbLyrics2, VersePresent, DoAll: true, 0, 0, sArray, MainFont, NotationFont, DoNotations: true);
+			Gf.FormatEditorLyrics(tbLyrics1, ref formattedLyrics1, sArray, MainFont, NotationFont, formatAll: true);
+			Gf.FormatEditorLyrics(tbLyrics2, ref formattedLyrics2, sArray, MainFont, NotationFont, formatAll: true);
 			IgnoreChange = false;
 		}
 
@@ -1520,8 +1485,8 @@ namespace Easislides
 				InitLoad = false;
 				UpdateVersesList();
 				IgnoreChange = true;
-				Gf.ScanSelectedRTB(ref tbLyrics1, VersePresent, DoAll: true, 0, 0, sArray, MainFont, NotationFont, DoNotations: true);
-				Gf.ScanSelectedRTB(ref tbLyrics2, VersePresent, DoAll: true, 0, 0, sArray, MainFont, NotationFont, DoNotations: true);
+				Gf.FormatEditorLyrics(tbLyrics1, ref formattedLyrics1, sArray, MainFont, NotationFont, formatAll: true);
+				Gf.FormatEditorLyrics(tbLyrics2, ref formattedLyrics2, sArray, MainFont, NotationFont, formatAll: true);
 				IgnoreChange = false;
 				RotateString = Gf.EditItem1.RotateString;
 				OrderList.Items.Clear();
@@ -1564,10 +1529,6 @@ namespace Easislides
 				SongTitle2_Change();
 				tbLyrics1.Focus();
 				tbLyrics1.SelectionLength = 0;
-				StackTrackPos[1, 0] = 0;
-				StackTrackPos[1, 1] = 0;
-				StackTrackPos[2, 0] = 0;
-				StackTrackPos[2, 1] = 0;
 				ClearStack(0);
 			}
 		}
@@ -1735,11 +1696,11 @@ namespace Easislides
 			InTextBox.Text = InTextBox.Text.Replace("\r\n", "\n");
 			if (Region == 1)
 			{
-				Gf.ScanSelectedRTB(ref tbLyrics1, VersePresent, DoAll: true, 0, 0, sArray, MainFont, NotationFont, DoNotations: true);
+				Gf.FormatEditorLyrics(tbLyrics1, ref formattedLyrics1, sArray, MainFont, NotationFont, formatAll: true);
 			}
 			else
 			{
-				Gf.ScanSelectedRTB(ref tbLyrics2, VersePresent, DoAll: true, 0, 0, sArray, MainFont, NotationFont, DoNotations: true);
+				Gf.FormatEditorLyrics(tbLyrics2, ref formattedLyrics2, sArray, MainFont, NotationFont, formatAll: true);
 			}
 			IgnoreChange = false;
 			bool keepScanning = true;
@@ -2015,28 +1976,6 @@ namespace Easislides
 			return screenCount;
 		}
 
-		private void tbLyrics_SelectionChanged(object sender, EventArgs e)
-		{
-			if (!IgnoreChange)
-			{
-				Lyrics_SelectionChanged(1);
-			}
-		}
-
-		private void tbLyrics2_SelectionChanged(object sender, EventArgs e)
-		{
-			if (!IgnoreChange)
-			{
-				Lyrics_SelectionChanged(2);
-			}
-		}
-
-		private void Lyrics_SelectionChanged(int Region)
-		{
-			StackTrackPos[Region, 0] = StackTrackPos[Region, 1];
-			StackTrackPos[Region, 1] = ((Region == 1) ? tbLyrics1.SelectionStart : tbLyrics2.SelectionStart);
-		}
-
 		private void FrmEditItem_Resize(object sender, EventArgs e)
 		{
 			SetTopPanel();
@@ -2101,36 +2040,42 @@ namespace Easislides
 		private void Lyrics_TextChanged(int Region)
 		{
 			IgnoreChange = true;
-			if ((tbLyrics1.Text != "") || (tbLyrics2.Text != ""))
+			try
 			{
-				if (ComboFontName.Enabled)
+				if ((tbLyrics1.Text != "") || (tbLyrics2.Text != ""))
 				{
-					EnableFontNameSize(EnableState: false);
+					if (ComboFontName.Enabled)
+					{
+						EnableFontNameSize(EnableState: false);
+					}
+				}
+				else
+				{
+					EnableFontNameSize(EnableState: true);
+				}
+				ClearErrorMessage(Region);
+				UpdateVersesList();
+
+				if (Region == 1)
+				{
+					Gf.FormatEditorLyrics(tbLyrics1, ref formattedLyrics1, sArray, MainFont, NotationFont);
+					tbLyrics1.Focus();
+				}
+				else
+				{
+					Gf.FormatEditorLyrics(tbLyrics2, ref formattedLyrics2, sArray, MainFont, NotationFont);
+					tbLyrics2.Focus();
 				}
 			}
-			else
+			finally
 			{
-				EnableFontNameSize(EnableState: true);
+				IgnoreChange = false;
 			}
-			ClearErrorMessage(Region);
-			UpdateVersesList();
-			IgnoreChange = false;
 			if (!InsertingPresetItem)
 			{
-				rtfMain_Change(Region);
+				var (editor, history) = GetLyricsEditor(Region);
+				history.Record(new(editor.Rtf, editor.SelectionStart));
 			}
-			IgnoreChange = true;
-			if (Region == 1)
-			{
-				Gf.ScanSelectedRTB(ref tbLyrics1, VersePresent, DoAll: false, StackTrackPos[Region, 1], StackTrackPos[Region, 1], sArray, MainFont, NotationFont, DoNotations: true);
-				tbLyrics1.Focus();
-			}
-			else
-			{
-				Gf.ScanSelectedRTB(ref tbLyrics2, VersePresent, DoAll: false, StackTrackPos[Region, 1], StackTrackPos[Region, 1], sArray, MainFont, NotationFont, DoNotations: true);
-				tbLyrics2.Focus();
-			}
-			IgnoreChange = false;
 		}
 
 		private void SongFolder_SelectedIndexChanged(object sender, EventArgs e)
@@ -2268,94 +2213,41 @@ namespace Easislides
 			}
 		}
 
-		private void ClearStack(int Region)
+		private void ClearStack(int region)
 		{
-			if ((Region == 0) || (Region == 1))
-			{
-				StackIndex[1] = -1;
-				StackMaxRedo[1] = -1;
-				StackStartPoint[1] = 0;
-				rtfMain_Change(1);
-			}
-			if ((Region == 0) || (Region == 2))
-			{
-				StackIndex[2] = -1;
-				StackMaxRedo[2] = -1;
-				StackStartPoint[2] = 0;
-				rtfMain_Change(2);
-			}
+			if (region == 0 || region == 1)
+				regionOneHistory.Reset(new(tbLyrics1.Rtf, tbLyrics1.SelectionStart));
+			if (region == 0 || region == 2)
+				regionTwoHistory.Reset(new(tbLyrics2.Rtf, tbLyrics2.SelectionStart));
 		}
 
-		private void cmdUndo_Click(int Region)
+		private void cmdUndo_Click(int region) => RestoreLyricsEdit(region, redo: false);
+
+		private void cmdRedo_Click(int region) => RestoreLyricsEdit(region, redo: true);
+
+		private void RestoreLyricsEdit(int region, bool redo)
 		{
-			if (StackIndex[Region] != StackStartPoint[Region])
+			var (editor, history) = GetLyricsEditor(region);
+			if (history.TryMove(redo, out var snapshot))
 			{
+				bool wasIgnoringChanges = IgnoreChange;
 				IgnoreChange = true;
-				StackIndex[Region]--;
-				if (StackIndex[Region] >= 0)
+				try
 				{
-					switch (Region)
-					{
-					case 1:
-						AssignStackToLyrics(ref tbLyrics1, Region);
-						break;
-					case 2:
-						AssignStackToLyrics(ref tbLyrics2, Region);
-						break;
-					}
+					editor.Rtf = snapshot.Rtf;
+					editor.Select(snapshot.Caret, 0);
+					if (region == 1)
+						formattedLyrics1 = editor.Text;
+					else
+						formattedLyrics2 = editor.Text;
+					UpdateVersesList();
 				}
-				else if (StackStartPoint[Region] > 0)
+				finally
 				{
-					StackIndex[Region] = StackArrayMaxPoint;
+					IgnoreChange = wasIgnoringChanges;
 				}
-				IgnoreChange = false;
 			}
-			if (Region == 1)
-			{
-				tbLyrics1.Focus();
-			}
-			else
-			{
-				tbLyrics2.Focus();
-			}
-		}
-
-		private void cmdRedo_Click(int Region)
-		{
-			if (StackIndex[Region] != StackMaxRedo[Region])
-			{
-				IgnoreChange = true;
-				StackIndex[Region]++;
-				if (StackIndex[Region] > StackArrayMaxPoint)
-				{
-					StackIndex[Region] = 0;
-				}
-				switch (Region)
-				{
-				case 1:
-					AssignStackToLyrics(ref tbLyrics1, Region);
-					break;
-				case 2:
-					AssignStackToLyrics(ref tbLyrics2, Region);
-					break;
-				}
-				IgnoreChange = false;
-			}
-			if (Region == 1)
-			{
-				tbLyrics1.Focus();
-			}
-			else
-			{
-				tbLyrics2.Focus();
-			}
-		}
-
-		private void AssignStackToLyrics(ref RichTextBox InLyrics, int Region)
-		{
-			InLyrics.Rtf = sStack[Region, StackIndex[Region]];
-			InLyrics.SelectionStart = iCursorPosition[Region, StackIndex[Region]];
-			UpdateVersesList();
+			editor.Focus();
 		}
 
 		private void Verses_Add_Click(object sender, EventArgs e)
@@ -2876,13 +2768,11 @@ namespace Easislides
 
 		private void UpdateRotateTimePositions()
 		{
-			TimeSpan timeSpan = new TimeSpan(0, 0, 0);
 			UpdateRotateTimePositions(InTotalRotateTime: (int)Rotate_TimeTotal.Value.Subtract(InitDateTime).TotalSeconds, InStyle: (!Rotate_Multiple.Checked) ? 1 : 2, InGapRotateTime: (int)Rotate_SlidesGapUpDown.Value, InRotateTimings: "", UseRotateTimings: false, ResetAll: false);
 		}
 
 		private void UpdateRotateTimePositions(int InStyle, int InGapRotateTime, int InTotalRotateTime, string InRotateTimings, bool UseRotateTimings, bool ResetAll)
 		{
-			flowLayoutRotate.Controls.Clear();
 			if (InStyle == 2)
 			{
 				Rotate_Multiple.Checked = true;
@@ -2892,59 +2782,8 @@ namespace Easislides
 				Rotate_Equal.Checked = true;
 			}
 			Rotate_SlidesGapUpDown.Value = InGapRotateTime;
-			Rotate_TimeTotal.Value = InitDateTime.Add(new TimeSpan(0, 0, InTotalRotateTime));
-			RotateTotalScreensIndex = -1;
-			int screenCount = -1;
-			string timingText = "";
-			for (int i = 0; i < Rotate_OrderList.Items.Count; i++)
-			{
-				screenCount = VersePresentNewScreenCount[DataUtil.StringToInt(Rotate_OrderList.Items[i].SubItems[1].Text)];
-				for (int j = 0; j < screenCount; j++)
-				{
-					RotateTotalScreensIndex++;
-					if (RotateTimeLabel[RotateTotalScreensIndex] == null)
-					{
-						RotateTimeLabel[RotateTotalScreensIndex] = new Label();
-						RotateTimeLabel[RotateTotalScreensIndex].AutoSize = false;
-						RotateTimeLabel[RotateTotalScreensIndex].Width = 48;
-						RotateTimeLabel[RotateTotalScreensIndex].TextAlign = ContentAlignment.MiddleLeft;
-					}
-					if (RotateTimePosition[RotateTotalScreensIndex] == null)
-					{
-						RotateTimePosition[RotateTotalScreensIndex] = new DateTimePicker();
-						RotateTimePosition[RotateTotalScreensIndex].Width = 52;
-						RotateTimePosition[RotateTotalScreensIndex].ShowUpDown = true;
-						RotateTimePosition[RotateTotalScreensIndex].MinDate = InitDateTime;
-						RotateTimePosition[RotateTotalScreensIndex].CustomFormat = "mm:ss";
-						RotateTimePosition[RotateTotalScreensIndex].Format = DateTimePickerFormat.Custom;
-						RotateTimePosition[RotateTotalScreensIndex].Value = InitDateTime;
-						if (i == 0 && j == 0)
-						{
-							RotateTimePosition[RotateTotalScreensIndex].Enabled = false;
-						}
-					}
-					RotateTimeLabel[RotateTotalScreensIndex].Text = ((j < 1) ? Rotate_OrderList.Items[i].Text : " - ");
-					RotateTimePosition[RotateTotalScreensIndex].Tag = ((j < 1) ? Rotate_OrderList.Items[i].SubItems[1].Text : 151.ToString());
-					if (UseRotateTimings && RotateTotalScreensIndex > 0)
-					{
-						timingText = DataUtil.ExtractOneInfo(ref InRotateTimings, ';', RemoveExtract: true, MinusOneIfBlank: false);
-						RotateTimePosition[RotateTotalScreensIndex].Value = InitDateTime.Add(new TimeSpan(0, 0, DataUtil.StringToInt(timingText)));
-					}
-					flowLayoutRotate.Controls.Add(RotateTimeLabel[RotateTotalScreensIndex]);
-					flowLayoutRotate.Controls.Add(RotateTimePosition[RotateTotalScreensIndex]);
-				}
-			}
-			if (!ResetAll)
-			{
-				return;
-			}
-			for (int i = 0; i < RotateTimePosition.Length; i++)
-			{
-				if (RotateTimePosition[i] != null)
-				{
-					RotateTimePosition[i].Value = InitDateTime;
-				}
-			}
+			Rotate_TimeTotal.Value = InitDateTime.AddSeconds(InTotalRotateTime);
+			flowLayoutRotate.UpdateRows(Rotate_OrderList, VersePresentNewScreenCount, InRotateTimings, UseRotateTimings, ResetAll);
 		}
 
 		private void InitMediaPlayer()
@@ -3263,19 +3102,7 @@ namespace Easislides
 
 		private void btnAddPosition_Click(object sender, EventArgs e)
 		{
-			if (RotateTotalScreensIndex <= 0)
-			{
-				return;
-			}
-			DateTime value = InitDateTime.Add(new TimeSpan(0, 0, (int)CurMediaPosition));
-			for (int screenIndex = 1; screenIndex < RotateTotalScreensIndex + 1; screenIndex++)
-			{
-				if (RotateTimePosition[screenIndex].Value <= InitDateTime)
-				{
-					RotateTimePosition[screenIndex].Value = value;
-					return;
-				}
-			}
+			flowLayoutRotate.AddPosition((int)CurMediaPosition);
 		}
 
 		private void Rotate_Option_CheckedChanged(object sender, EventArgs e)
@@ -3299,16 +3126,7 @@ namespace Easislides
 
 		private void btnClearMediaPositions_Click(object sender, EventArgs e)
 		{
-			if (RotateTotalScreensIndex >= 0)
-			{
-				for (int i = 0; i <= RotateTotalScreensIndex; i++)
-				{
-					if (RotateTimePosition[i] != null)
-					{
-						RotateTimePosition[i].Value = InitDateTime;
-					}
-				}
-			}
+			flowLayoutRotate.ClearPositions();
 			Rotate_TimeTotal.Value = InitDateTime;
 		}
 
@@ -3334,49 +3152,8 @@ namespace Easislides
 
 		private string GenerateRotateString()
 		{
-			TimeSpan timeSpan = new TimeSpan(0, 0, 0);
-			return GenerateRotateString(InTotalRotateTime: (int)Rotate_TimeTotal.Value.Subtract(InitDateTime).TotalSeconds, InStyle: Rotate_Equal.Checked ? 1 : 2, InGapRotateTime: (int)Rotate_SlidesGapUpDown.Value, InOrderList: Rotate_OrderList, InPosition: RotateTimePosition, InTotalScreens: RotateTotalScreensIndex + 1);
-		}
-
-		private string GenerateRotateString(int InStyle, int InGapRotateTime, int InTotalRotateTime, ListView InOrderList, DateTimePicker[] InPosition, int InTotalScreens)
-		{
-			if (InStyle == 1 && InGapRotateTime == 0 && InTotalRotateTime == 0 && InOrderList.Items.Count == 0)
-			{
-				return "";
-			}
-			string result = InStyle.ToString() + ';' + InGapRotateTime.ToString() + ';' + InTotalRotateTime.ToString() + ';';
-			for (int i = 0; i < InOrderList.Items.Count; i++)
-			{
-				result = result + DataUtil.StringToInt(InOrderList.Items[i].SubItems[1].Text).ToString() + ';';
-			}
-			if (InTotalScreens > 0)
-			{
-				ListBox listBox = new ListBox();
-				listBox.Sorted = false;
-				TimeSpan timeSpan = new TimeSpan(0, 0, 0);
-				for (int i = 0; i < InTotalScreens; i++)
-				{
-					if (InPosition[i] != null)
-					{
-						timeSpan = InPosition[i].Value.Subtract(InitDateTime);
-						if ((int)timeSpan.TotalSeconds > 0)
-						{
-							listBox.Items.Add(timeSpan.TotalSeconds.ToString("00000"));
-						}
-					}
-				}
-				if (listBox.Items.Count > 0)
-				{
-					listBox.Sorted = true;
-					string sortedTimings = "";
-					for (int i = 0; i < listBox.Items.Count; i++)
-					{
-						sortedTimings = sortedTimings + DataUtil.StringToInt(listBox.Items[i].ToString()).ToString() + ';';
-					}
-					result = result + "»" + sortedTimings;
-				}
-			}
-			return result;
+			return flowLayoutRotate.Serialize(Rotate_Equal.Checked ? 1 : 2, (int)Rotate_SlidesGapUpDown.Value,
+				(int)(Rotate_TimeTotal.Value - InitDateTime).TotalSeconds, Rotate_OrderList);
 		}
 
 		private void TimerAttemptConnect_Tick(object sender, EventArgs e)
