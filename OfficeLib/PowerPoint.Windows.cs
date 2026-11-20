@@ -100,6 +100,14 @@ namespace OfficeLib
 		/// </summary>
 		private IntPtr FindSlideShowWindow(SlideShowWindow window, Func<string> getPresentationName)
 		{
+			var handle = FindSlideShowWindow(window, getPresentationName, out string error);
+			if (handle == IntPtr.Zero) SlideShowRaiseError = error;
+			return handle;
+		}
+
+		public static IntPtr FindSlideShowWindow(SlideShowWindow window, Func<string> getPresentationName, out string error)
+		{
+			error = null;
 			IntPtr handle = IntPtr.Zero;
 			string handleError = null;
 			if (!slideShowHwndUnreadable)
@@ -149,7 +157,7 @@ namespace OfficeLib
 					return handle;
 				}
 			}
-			SlideShowRaiseError = "the slide show window of '" + presentationName + "' was not found" + (handleError == null ? "" : " (" + handleError + ")");
+			error = "the slide show window of '" + presentationName + "' was not found" + (handleError == null ? "" : " (" + handleError + ")");
 			return IntPtr.Zero;
 		}
 

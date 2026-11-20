@@ -29,6 +29,10 @@ public interface IPowerPointSlideShowControl
 
     Task StopAsync(CancellationToken cancellationToken = default);
     Task<int?> ReadOutputPositionAsync(string path) => Task.FromResult<int?>(null);
+    bool HasOutputShow => false;
+    Task SetBlackoutAsync(bool black) => Task.CompletedTask;
+    bool OwnsOutputWindow(nint window) => false;
+    Task<int?> AdvanceOutputAsync(string path) => Task.FromResult<int?>(null);
 }
 
 public sealed class NullPowerPointSlideShowControl : IPowerPointSlideShowControl
@@ -57,12 +61,21 @@ public sealed class NullPowerPointSlideShowControl : IPowerPointSlideShowControl
 public sealed class OfficePowerPointSlideShowControl : IPowerPointSlideShowControl, IDisposable
 {
     private readonly Lazy<OfficePptSession> _session;
-    private volatile string? _outputPath;
+    private OfficePptSession.OutputShow? Output => _session.IsValueCreated ? _session.Value.CurrentOutput : null;
 
     public Task<int?> ReadOutputPositionAsync(string path) =>
-        _session.IsValueCreated && string.Equals(path, _outputPath, StringComparison.OrdinalIgnoreCase)
+        Output is { } show && string.Equals(path, show.Path, StringComparison.OrdinalIgnoreCase)
             ? _session.Value.ReadShowPositionAsync(path)
             : Task.FromResult<int?>(null);
+
+    public bool HasOutputShow => Output != null;
+    public Task SetBlackoutAsync(bool black) => Output is { } show ? _session.Value.SetBlackoutAsync(show.Path, black) : Task.CompletedTask;
+
+    public bool OwnsOutputWindow(nint window) => window != 0 && Output?.Handle == window;
+
+    public Task<int?> AdvanceOutputAsync(string path) =>
+        Output is { } show && string.Equals(System.IO.Path.GetFullPath(path), show.Path, StringComparison.OrdinalIgnoreCase)
+            ? _session.Value.AdvanceShowAsync(show.Path) : Task.FromResult<int?>(null);
 
     public OfficePowerPointSlideShowControl()
         : this(static () => new OfficePptSession())
@@ -90,12 +103,11 @@ public sealed class OfficePowerPointSlideShowControl : IPowerPointSlideShowContr
             request.FilePath,
             request.SlideNumber,
             outputMonitorName,
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken, request.Target == PowerPointSlideShowTarget.Output).ConfigureAwait(false);
         if (!started)
         {
             throw new InvalidOperationException("PowerPoint slide show window was not created.");
         }
-        _outputPath = request.Target == PowerPointSlideShowTarget.Output ? System.IO.Path.GetFullPath(request.FilePath) : null;
     }
 
     public Task TriggerNextAsync(
@@ -113,18 +125,16 @@ public sealed class OfficePowerPointSlideShowControl : IPowerPointSlideShowContr
         var triggered = await _session.Value.TriggerSlideShowNextAsync(
             request.FilePath,
             request.SlideNumber,
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken, request.Target == PowerPointSlideShowTarget.Output).ConfigureAwait(false);
         if (!triggered)
         {
             throw new InvalidOperationException("PowerPoint slide show window was not available.");
         }
-        _outputPath = request.Target == PowerPointSlideShowTarget.Output ? System.IO.Path.GetFullPath(request.FilePath) : null;
     }
 
     public Task StopAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        _outputPath = null;
         return _session.IsValueCreated
             ? _session.Value.CloseAsync()
             : Task.CompletedTask;

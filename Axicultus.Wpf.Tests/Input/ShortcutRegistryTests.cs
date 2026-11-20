@@ -17,6 +17,18 @@ namespace Axicultus.Wpf.Tests.Input;
 public class ShortcutRegistryTests
 {
     [Fact]
+    public void SameSpaceGestureInLocalAndGlobalSlotsRemainsGloballyReachable()
+    {
+        var registry = new ShortcutRegistry();
+        var space = new Shortcut(Key.Space, ModifierKeys.None, "Live.Next", false, "다음");
+        registry.ReplaceShortcuts([space, space with { IsGlobal = true }]);
+        var calls = 0;
+        registry.Bind("Live.Next", () => calls++);
+        registry.TryHandleGlobal(LegacyKeys.Space, LegacyKeys.None).Should().BeTrue();
+        calls.Should().Be(1);
+    }
+
+    [Fact]
     public void Register_AddsShortcut_ToCollection()
     {
         var sut = new ShortcutRegistry();

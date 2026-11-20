@@ -36,8 +36,13 @@ public sealed class OfficePptSession : IDisposable
     private readonly CancellationTokenSource _cts;
     private Application? _ppt;
     private bool _disposed;
+    internal sealed record OutputShow(string Path, nint Handle);
+    private volatile OutputShow? _outputShow;
+    internal OutputShow? CurrentOutput => _outputShow;
     private readonly System.Collections.Generic.HashSet<string> _controlledShows = [with(StringComparer.OrdinalIgnoreCase)];
     private readonly System.Collections.Generic.HashSet<string> _openedDecks = [with(StringComparer.OrdinalIgnoreCase)];
+
+    private readonly System.Collections.Generic.Dictionary<IntPtr, PpWindowState> _editorStates = [];
 
     public OfficePptSession()
     {
@@ -111,7 +116,7 @@ public sealed class OfficePptSession : IDisposable
     {
         _ppt ??= new Application();
         using var presentations = _ppt.Presentations;
-        using var deck = OpenConversionCopy(_ppt, presentations, path);
+        using var deck = OpenForConversion(_ppt, presentations, path, out bool ownsCopy);
         try
         {
             using var slides = deck.Slides;
@@ -135,7 +140,7 @@ public sealed class OfficePptSession : IDisposable
             }
             return new Captions.CaptionDeck(Path.GetFullPath(path), result);
         }
-        finally { deck.Close(); }
+        finally { if (ownsCopy) deck.Close(); }
     });
 
     public Task<OfficePptSlideExport> ExportSlideAsync(string filePath, int slideNumber, int width, int height)
@@ -151,11 +156,12 @@ public sealed class OfficePptSession : IDisposable
             using var presentations = _ppt.Presentations;
 
             _Presentation? presentation = null;
+            bool ownsCopy = false;
             var tempFile = Path.Combine(Path.GetTempPath(), $"AxicultusPpt_{Guid.NewGuid():N}.png");
 
             try
             {
-                presentation = OpenConversionCopy(_ppt, presentations, filePath);
+                presentation = OpenForConversion(_ppt, presentations, filePath, out ownsCopy);
                 using var slides = presentation.Slides;
                 var slideCount = slides.Count;
                 if (slideNumber > slideCount)
@@ -177,7 +183,7 @@ public sealed class OfficePptSession : IDisposable
             {
                 if (presentation is not null)
                 {
-                    try { presentation.Close(); }
+                    try { if (ownsCopy) presentation.Close(); }
                     catch { }
 
                     try { presentation.Dispose(); }
@@ -190,14 +196,21 @@ public sealed class OfficePptSession : IDisposable
         });
     }
 
-    // An untitled conversion copy can be closed independently of an open operator document.
-    private static Presentation OpenConversionCopy(Application application, Presentations presentations, string path)
+    // Office can return the already open document even when Untitled is requested.
+    private static Presentation OpenForConversion(Application application, Presentations presentations, string path, out bool ownsCopy)
     {
+        if (FindPresentation(presentations, path) is { } existing)
+        {
+            ownsCopy = false;
+            return existing;
+        }
         var previous = application.AutomationSecurity;
         try
         {
             application.AutomationSecurity = MsoAutomationSecurity.msoAutomationSecurityForceDisable;
-            return presentations.Open(path, MsoTriState.msoTrue, MsoTriState.msoTrue, MsoTriState.msoFalse);
+            var presentation = presentations.Open(path, MsoTriState.msoTrue, MsoTriState.msoTrue, MsoTriState.msoFalse);
+            ownsCopy = string.IsNullOrEmpty(presentation.Path);
+            return presentation;
         }
         finally { application.AutomationSecurity = previous; }
     }
@@ -206,16 +219,36 @@ public sealed class OfficePptSession : IDisposable
     {
         if (_ppt == null || !_controlledShows.Contains(path)) return null;
         using var windows = _ppt.SlideShowWindows;
-        for (int index = 1; index <= windows.Count; index++)
-        {
-            using var window = windows[index];
-            using var deck = window.Presentation;
-            if (!string.Equals(deck.FullName, path, StringComparison.OrdinalIgnoreCase)) continue;
-            using var view = window.View;
-            using var slide = view.Slide;
-            return slide.SlideIndex;
-        }
-        return null;
+        using var window = FindShowWindow(windows, path);
+        if (window is null) return null;
+        using var view = window.View;
+        using var slide = view.Slide;
+        return slide.SlideIndex;
+    });
+
+    internal Task SetBlackoutAsync(string path, bool black) => RunOnStaAsync(() =>
+    {
+        if (_ppt == null || !_controlledShows.Contains(path)) return false;
+        using var windows = _ppt.SlideShowWindows;
+        using var window = FindShowWindow(windows, path);
+        using var view = window?.View;
+        if (view != null && (black || view.State == PpSlideShowState.ppSlideShowBlackScreen))
+            view.State = black ? PpSlideShowState.ppSlideShowBlackScreen : PpSlideShowState.ppSlideShowRunning;
+        return true;
+    });
+
+    internal Task<int?> AdvanceShowAsync(string path) => RunOnStaAsync<int?>(() =>
+    {
+        if (_ppt == null || !_controlledShows.Contains(path)) return null;
+        using var windows = _ppt.SlideShowWindows;
+        using var window = FindShowWindow(windows, path);
+        if (window is null) return null;
+        using var view = window.View;
+        if (view.State == PpSlideShowState.ppSlideShowDone) return null;
+        view.Next();
+        if (view.State == PpSlideShowState.ppSlideShowDone) return null;
+        using var slide = view.Slide;
+        return slide.SlideIndex;
     });
 
     /// <summary>Start a PowerPoint slide show on the configured output monitor.</summary>
@@ -223,7 +256,7 @@ public sealed class OfficePptSession : IDisposable
         string filePath,
         int slideNumber,
         string outputMonitorName,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default, bool isOutput = true)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
         ArgumentOutOfRangeException.ThrowIfLessThan(slideNumber, 1);
@@ -234,24 +267,26 @@ public sealed class OfficePptSession : IDisposable
             cancellationToken.ThrowIfCancellationRequested();
 
             _ppt ??= new Application();
-            _ = _ppt.Presentations.Count;
+            using var presentations = _ppt.Presentations;
 
             SaveSlideShowMonitor(_ppt.Version, outputMonitorName);
-            var presentation = FindOrOpenPresentation(fullPath);
+            if (isOutput) ClosePreviousOutput(presentations, fullPath);
+            using var presentation = FindOrOpenPresentation(presentations, fullPath);
             if (slideNumber > presentation.Slides.Count)
             {
                 throw new ArgumentOutOfRangeException(nameof(slideNumber), slideNumber, $"Slide number exceeds slide count {presentation.Slides.Count}.");
             }
 
             ConfigureSlideShowForLive(presentation, 1);
-            var slideShowWindow = TryGetSlideShowWindow(presentation)
+            using var showWindows = _ppt.SlideShowWindows;
+            using var slideShowWindow = FindShowWindow(showWindows, fullPath)
                 ?? presentation.SlideShowSettings.Run();
             if (slideShowWindow is null)
             {
                 return false;
             }
 
-            var view = slideShowWindow.View;
+            using var view = slideShowWindow.View;
             if (slideNumber < 2)
             {
                 view.First();
@@ -261,8 +296,7 @@ public sealed class OfficePptSession : IDisposable
                 view.GotoSlide(slideNumber, MsoTriState.msoFalse);
             }
 
-            slideShowWindow.Activate();
-            _controlledShows.Add(fullPath);
+            ActivateShow(presentation, slideShowWindow, fullPath, isOutput);
             return true;
         });
     }
@@ -270,7 +304,7 @@ public sealed class OfficePptSession : IDisposable
     public Task<bool> TriggerSlideShowNextAsync(
         string filePath,
         int slideNumber,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default, bool isOutput = true)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
         ArgumentOutOfRangeException.ThrowIfLessThan(slideNumber, 1);
@@ -281,30 +315,31 @@ public sealed class OfficePptSession : IDisposable
             cancellationToken.ThrowIfCancellationRequested();
 
             _ppt ??= new Application();
-            _ = _ppt.Presentations.Count;
+            using var presentations = _ppt.Presentations;
 
-            var presentation = FindOrOpenPresentation(fullPath);
+            if (isOutput) ClosePreviousOutput(presentations, fullPath);
+            using var presentation = FindOrOpenPresentation(presentations, fullPath);
             if (slideNumber > presentation.Slides.Count)
             {
                 throw new ArgumentOutOfRangeException(nameof(slideNumber), slideNumber, $"Slide number exceeds slide count {presentation.Slides.Count}.");
             }
 
             ConfigureSlideShowForLive(presentation, slideNumber);
-            var slideShowWindow = TryGetSlideShowWindow(presentation)
+            using var showWindows = _ppt.SlideShowWindows;
+            using var slideShowWindow = FindShowWindow(showWindows, fullPath)
                 ?? presentation.SlideShowSettings.Run();
             if (slideShowWindow is null)
             {
                 return false;
             }
 
-            var view = slideShowWindow.View;
+            using var view = slideShowWindow.View;
             if (view.Slide.SlideIndex != slideNumber)
             {
                 view.GotoSlide(slideNumber, MsoTriState.msoTrue);
             }
 
-            slideShowWindow.Activate();
-            _controlledShows.Add(fullPath);
+            ActivateShow(presentation, slideShowWindow, fullPath, isOutput);
             var totalClicks = view.Slide.TimeLine.MainSequence.Count;
             var currentIndex = view.GetClickIndex();
             if (currentIndex < totalClicks)
@@ -321,46 +356,84 @@ public sealed class OfficePptSession : IDisposable
         });
     }
 
-    private Presentation FindOrOpenPresentation(string fullPath)
+    private Presentation FindOrOpenPresentation(Presentations presentations, string fullPath)
     {
-        if (_ppt is null)
-        {
-            throw new InvalidOperationException("PowerPoint session is not open.");
-        }
+        if (FindPresentation(presentations, fullPath) is { } existing) return existing;
 
-        for (var i = 1; i <= _ppt.Presentations.Count; i++)
-        {
-            var candidate = _ppt.Presentations[i];
-            if (string.Equals(Path.GetFullPath(candidate.FullName), fullPath, StringComparison.OrdinalIgnoreCase))
-            {
-                return candidate;
-            }
-        }
-
-        var opened = _ppt.Presentations.Open(
-            fullPath,
-            MsoTriState.msoFalse,
-            MsoTriState.msoFalse,
-            MsoTriState.msoTrue);
+        var opened = presentations.Open(
+            fullPath, MsoTriState.msoTrue, MsoTriState.msoFalse, MsoTriState.msoFalse);
         _openedDecks.Add(fullPath);
         return opened;
     }
 
-    private static SlideShowWindow? TryGetSlideShowWindow(_Presentation presentation)
+    private static Presentation? FindPresentation(Presentations presentations, string path)
     {
-        try
+        for (int i = 1; i <= presentations.Count; i++)
         {
-            var window = presentation.SlideShowWindow;
-            _ = window.View.Slide.SlideIndex;
-            return window;
+            var deck = presentations[i];
+            if (string.Equals(deck.FullName, path, StringComparison.OrdinalIgnoreCase)) return deck;
+            deck.Dispose();
         }
-        catch (COMException)
+        return null;
+    }
+
+    private static SlideShowWindow? FindShowWindow(SlideShowWindows windows, string path)
+    {
+        for (int i = 1; i <= windows.Count; i++)
         {
-            return null;
+            var window = windows[i];
+            using var deck = window.Presentation;
+            if (string.Equals(deck.FullName, path, StringComparison.OrdinalIgnoreCase)) return window;
+            window.Dispose();
         }
-        catch (InvalidOperationException)
+        return null;
+    }
+
+    private void ActivateShow(Presentation deck, SlideShowWindow window, string path, bool isOutput)
+    {
+        _controlledShows.Add(path);
+        MinimizeEditors(deck);
+        window.Activate();
+        if (isOutput)
+            _outputShow = new(path, OfficeLib.PowerPoint.FindSlideShowWindow(window, () => deck.Name, out _));
+    }
+
+    private void MinimizeEditors(Presentation deck)
+    {
+        using var windows = deck.Windows;
+        for (int i = 1; i <= windows.Count; i++)
         {
-            return null;
+            using var editor = windows[i];
+            var state = editor.WindowState;
+            if (state == PpWindowState.ppWindowMinimized) continue;
+            // Some Office versions do not expose DocumentWindow.HWND through automation.
+            var identity = Marshal.GetIUnknownForObject(editor.UnderlyingObject);
+            try
+            {
+                editor.WindowState = PpWindowState.ppWindowMinimized;
+                if (_editorStates.TryAdd(identity, state)) identity = IntPtr.Zero;
+            }
+            finally { if (identity != IntPtr.Zero) Marshal.Release(identity); }
+        }
+    }
+
+    private void RestoreEditors(Presentation deck)
+    {
+        if (_editorStates.Count == 0) return;
+        using var windows = deck.Windows;
+        for (int i = 1; i <= windows.Count; i++)
+        {
+            using var editor = windows[i];
+            var identity = Marshal.GetIUnknownForObject(editor.UnderlyingObject);
+            try
+            {
+                if (_editorStates.Remove(identity, out var state))
+                {
+                    Marshal.Release(identity); // release the reference retained when minimizing
+                    if (editor.WindowState == PpWindowState.ppWindowMinimized) editor.WindowState = state;
+                }
+            }
+            finally { Marshal.Release(identity); }
         }
     }
 
@@ -397,8 +470,34 @@ public sealed class OfficePptSession : IDisposable
         }
     }
 
+    private void ClosePreviousOutput(Presentations decks, string nextPath)
+    {
+        if (_outputShow is not { } previous || string.Equals(previous.Path, nextPath, StringComparison.OrdinalIgnoreCase)) return;
+        using var deck = FindPresentation(decks, previous.Path);
+        if (deck != null) CloseDeck(deck);
+        _outputShow = null;
+    }
+
+    private void CloseDeck(Presentation deck)
+    {
+        var path = deck.FullName;
+        if (_controlledShows.Remove(path))
+        {
+            try
+            {
+                using var windows = _ppt!.SlideShowWindows;
+                using var window = FindShowWindow(windows, path);
+                using var view = window?.View;
+                view?.Exit();
+            }
+            finally { RestoreEditors(deck); }
+        }
+        if (_openedDecks.Remove(path) && deck.Saved == MsoTriState.msoTrue) deck.Close();
+    }
+
     public Task CloseAsync() => RunOnStaAsync(() =>
     {
+        _outputShow = null;
         if (_ppt is not null)
         {
             try
@@ -407,14 +506,7 @@ public sealed class OfficePptSession : IDisposable
                 for (int i = decks.Count; i > 0; i--)
                 {
                     using var deck = decks[i];
-                    var path = deck.FullName;
-                    if (_controlledShows.Remove(path))
-                    {
-                        using var window = TryGetSlideShowWindow(deck);
-                        using var view = window?.View;
-                        view?.Exit();
-                    }
-                    if (_openedDecks.Remove(path) && deck.Saved == MsoTriState.msoTrue) deck.Close();
+                    CloseDeck(deck);
                 }
                 if (decks.Count == 0) _ppt.Quit();
             }
@@ -426,6 +518,8 @@ public sealed class OfficePptSession : IDisposable
             try { Marshal.FinalReleaseComObject(_ppt); }
             catch { }
 
+            foreach (var identity in _editorStates.Keys) Marshal.Release(identity);
+            _editorStates.Clear();
             _controlledShows.Clear();
             _openedDecks.Clear();
             _ppt = null;

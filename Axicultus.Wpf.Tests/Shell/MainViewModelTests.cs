@@ -6144,6 +6144,77 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task OutputSpace_AdvancesLyricsAndPausesOrResumesFilePlayback()
+    {
+        using var sut = CreateSut(seedSampleQueue: false);
+        var keys = new ShortcutRegistry();
+        sut.BindShortcuts(keys);
+        keys.TryInvoke(MainCommandIds.OutputSpace).Should().BeFalse();
+        sut.LoadQueue([new LiveQueueItem("song:test", "Song", LiveItemKinds.Song) { Lyrics = "첫 화면\n\n다음 화면" }]);
+        sut.OpenOutputCommand.Execute(null);
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        keys.TryInvoke(MainCommandIds.OutputSpace).Should().BeTrue();
+        sut.Session.Current.CurrentLyricsPageIndex.Should().Be(1);
+        sut.Media.Load(new MediaPlaybackRequest("song.mp4", MediaSourceKind.File, TimeSpan.FromMinutes(2), "Video"));
+        sut.Media.PlayPauseCommand.Execute(null);
+        keys.TryInvoke(MainCommandIds.OutputSpace).Should().BeTrue();
+        sut.Media.State.Should().Be(MediaPlaybackState.Paused);
+        keys.TryInvoke(MainCommandIds.OutputSpace).Should().BeTrue();
+        sut.Media.State.Should().Be(MediaPlaybackState.Playing);
+        sut.Session.Current.CurrentLyricsPageIndex.Should().Be(1);
+    }
+
+    [Fact]
+    public void LegacyKeyboardOptions_CanDisableMigratedGesturesAndKeepCustomChords()
+    {
+        using var temp = TempSettingsFolder.Create();
+        var settings = temp.CreateSettings();
+        settings.SetValues(new Dictionary<string, object> { ["operator.GlobalF9"] = true, ["operator.GlobalF10"] = true, ["operator.GlobalArrow"] = true });
+        settings.SetShortcutOverride("Live.Black:global", "F9");
+        settings.SetShortcutOverride("Live.Next:global", "Down");
+        settings.SetShortcutOverride("Live.Previous:global", "Ctrl+F6");
+        using var shell = CreateSut(settings: settings);
+        var keys = new ShortcutRegistry();
+        shell.BindShortcuts(keys);
+
+        keys.IsGlobalGesture(Key.F9, ModifierKeys.Shift).Should().BeTrue();
+        keys.IsGlobalGesture(Key.F10, ModifierKeys.None).Should().BeTrue();
+        keys.IsGlobalGesture(Key.Down, ModifierKeys.Control | ModifierKeys.Shift).Should().BeFalse("the shell uses this chord to reorder its queue");
+        keys.TryResolveGlobal(System.Windows.Forms.Keys.Down, System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift, out _)
+            .Should().BeTrue("outside the shell WinForms uses the Ctrl bit for global arrows");
+        settings.SetValues(new Dictionary<string, object> { ["operator.GlobalF9"] = false, ["operator.GlobalArrow"] = false });
+        keys.IsGlobalGesture(Key.F9, ModifierKeys.None).Should().BeFalse();
+        keys.IsGlobalGesture(Key.Down, ModifierKeys.None).Should().BeFalse();
+        keys.IsGlobalGesture(Key.F10, ModifierKeys.None).Should().BeTrue();
+        keys.IsGlobalGesture(Key.F6, ModifierKeys.Control).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task EscapeEndsOnlyTheRunningShowWithoutAConfirmation()
+    {
+        var prompt = new RecordingSafetyPrompt(true);
+        var slideShow = new RecordingPowerPointSlideShowControl();
+        using var sut = CreateSut(prompt: prompt, powerPointSlideShow: slideShow);
+        var registry = new ShortcutRegistry();
+        sut.BindShortcuts(registry);
+        bool PressEscape() => registry.TryHandleGlobal(System.Windows.Forms.Keys.Escape, System.Windows.Forms.Keys.None);
+
+        PressEscape().Should().BeFalse();
+        sut.OpenOutputCommand.Execute(null);
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        sut.IsShowRunning.Should().BeTrue();
+        prompt.Allow = false;
+        prompt.Requests.Clear();
+
+        PressEscape().Should().BeTrue();
+        sut.IsShowRunning.Should().BeFalse();
+        slideShow.StopCount.Should().Be(1);
+        prompt.Requests.Should().BeEmpty();
+        PressEscape().Should().BeFalse();
+    }
+
+    [Fact]
     public async Task StopLiveCommand_PowerPointLive_StopsSlideShowAndClosesPowerPoint()
     {
         var slideShow = new RecordingPowerPointSlideShowControl();

@@ -3467,6 +3467,23 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         // F11 = 송출 후 다음 항목. 형제 명령 LiveGo 와 같은 방식으로 바인딩 —
         // 둘 다 CanGoLive 조건·내부 안전 확인을 SendToOutputAndNextAsync 안에서 처리하므로 여기서 따로 게이트하지 않는다.
         registry.Bind(MainCommandIds.LiveGoAndNext, () => _ = SendToOutputAndNextCommand.ExecuteAsync(null));
+        registry.IsPowerPointOutputWindow = _powerPointSlideShow.OwnsOutputWindow;
+        registry.ResolveOutputMediaKey = key =>
+        {
+            if (!_output.Current.IsOpen || !Media.HasFilePlayback) return null;
+            var action = MediaPlayerKeyMap.MapKey(System.Windows.Input.KeyInterop.KeyFromVirtualKey((int)key));
+            var command = Media.CommandFor(action);
+            return command?.CanExecute(null) == true
+                ? () => { if (_output.Current.IsOpen && Media.HasFilePlayback && command.CanExecute(null)) command.Execute(null); }
+                : null;
+        };
+        registry.Bind(MainCommandIds.EndShow, () => _ = EndShowAsync(), () => IsShowRunning);
+        registry.Bind(MainCommandIds.OutputSpace, () =>
+        {
+            if (_session.Current is { State: LiveState.Active, PptPath: { Length: > 0 } path }) _ = AdvanceLivePowerPointAsync(path);
+            else if (Media.HasFilePlayback && Media.PlayPauseCommand.CanExecute(null)) Media.PlayPauseCommand.Execute(null);
+            else if (_session.Current.State == LiveState.Active) LiveNextShortcutCommand.Execute(null);
+        }, () => IsShowRunning || (Media.HasFilePlayback && Media.PlayPauseCommand.CanExecute(null)));
         registry.Bind(MainCommandIds.LiveStop, () => _ = StopLiveCommand.ExecuteAsync(null));
         registry.Bind(MainCommandIds.LiveNext, () => _ = LiveNextShortcutCommand.ExecuteAsync(null));
         registry.Bind(MainCommandIds.LivePrevious, () => _ = LivePreviousShortcutCommand.ExecuteAsync(null));
@@ -5332,14 +5349,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private async Task<bool> StartPowerPointSlideShowForLiveAsync(LiveQueueItem item, string monitorName)
     {
-        if (!IsPowerPointItem(item) || string.IsNullOrWhiteSpace(item.ContentPath))
-        {
-            return true;
-        }
-
-        var slideNumber = item.SlideNumber > 0 ? item.SlideNumber : Math.Max(OutputPowerPoint.SlideNumber, 1);
         try
         {
+            if (!IsPowerPointItem(item) || string.IsNullOrWhiteSpace(item.ContentPath))
+            {
+                if (_powerPointSlideShow.HasOutputShow) await _powerPointSlideShow.StopAsync().ConfigureAwait(true);
+                return true;
+            }
+            var slideNumber = item.SlideNumber > 0 ? item.SlideNumber : Math.Max(OutputPowerPoint.SlideNumber, 1);
             await _powerPointSlideShow.StartAsync(
                 new PowerPointSlideShowRequest(item.ContentPath, slideNumber, PowerPointSlideShowTarget.Output),
                 monitorName).ConfigureAwait(true);
@@ -5374,6 +5391,23 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private bool IsPreviewLyricsPageNavReady()
         => LyricsPageCount > 0;
+
+    private async Task AdvanceLivePowerPointAsync(string path)
+    {
+        var session = _session.Current;
+        try
+        {
+            var position = await _powerPointSlideShow.AdvanceOutputAsync(path).ConfigureAwait(true);
+            if (position is not { } slide || !ReferenceEquals(session, _session.Current) ||
+                GetOutputPowerPointNavigationItem() is not { } item || OutputPowerPoint.SlideNumber == slide) return;
+            var (width, height) = ResolvePptRenderSize();
+            await OutputPowerPoint.LoadAsync(path, slide, width, height).ConfigureAwait(true);
+            if (!ReferenceEquals(session, _session.Current) || OutputPowerPoint.SlideNumber != slide) return;
+            _session.GoLive(ResolveLiveProjection(item with { SlideNumber = slide }, OutputPowerPoint), session.OutputMonitorName);
+            NotifyCommandStates();
+        }
+        catch (Exception ex) { StatusText = $"PowerPoint 슬라이드 진행 실패: {ex.Message}"; }
+    }
 
     private async Task GoToOutputSlideAsync(int target)
     {
@@ -6155,6 +6189,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     }
 
+    private bool _endingShow;
+
     private async Task StopLiveAsync()
     {
         var ok = await ConfirmLiveSafetyAsync(
@@ -6167,16 +6203,27 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        var powerPointStopError = await StopPowerPointSlideShowForLiveAsync().ConfigureAwait(true);
-        _session.Stop();
-        if (_output.Current.IsOpen && !_output.Current.Placement.IsWindowed) _output.Close();
-        SetLiveItemId(null);
-        OutputPowerPoint.Clear();
-        StatusText = powerPointStopError is null
-            ? "라이브 중지"
-            : $"라이브 중지 (PowerPoint 종료 실패: {powerPointStopError})";
-        _telemetry.Record(MainCommandIds.LiveStop, powerPointStopError is null, StatusText);
-        NotifyCommandStates();
+        await EndShowAsync().ConfigureAwait(true);
+    }
+
+    private async Task EndShowAsync()
+    {
+        if (_endingShow || !IsShowRunning) return;
+        _endingShow = true;
+        try
+        {
+            var powerPointStopError = await StopPowerPointSlideShowForLiveAsync().ConfigureAwait(true);
+            _session.Stop();
+            if (_output.Current.IsOpen && !_output.Current.Placement.IsWindowed) _output.Close();
+            SetLiveItemId(null);
+            OutputPowerPoint.Clear();
+            StatusText = powerPointStopError is null
+                ? "라이브 중지"
+                : $"라이브 중지 (PowerPoint 종료 실패: {powerPointStopError})";
+            _telemetry.Record(MainCommandIds.LiveStop, powerPointStopError is null, StatusText);
+            NotifyCommandStates();
+        }
+        finally { _endingShow = false; }
     }
 
     private async Task<string?> StopPowerPointSlideShowForLiveAsync()
@@ -10082,8 +10129,22 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private static bool IsMediaItem(LiveQueueItem item)
         => LiveItemKindMatcher.IsMedia(item.Kind);
 
+    private bool _nativeBlackout;
+
+    private async Task SetPowerPointBlackoutAsync(bool black)
+    {
+        try { await _powerPointSlideShow.SetBlackoutAsync(black).ConfigureAwait(true); }
+        catch (Exception ex) { StatusText = $"PowerPoint 암전 전환 실패: {ex.Message}"; }
+    }
+
     private void ApplyLiveSnapshot(LiveSessionSnapshot snapshot)
     {
+        if (_nativeBlackout != snapshot.IsBlackout)
+        {
+            _nativeBlackout = snapshot.IsBlackout;
+            if (_powerPointSlideShow.HasOutputShow && snapshot.PptPath != null)
+                _ = SetPowerPointBlackoutAsync(_nativeBlackout);
+        }
         if (snapshot.State != LiveState.Active || !snapshot.IsReferenceAlertVisible)
         {
             CancelReferenceAlertAutoHide();
@@ -10236,11 +10297,19 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private void RefreshShortcutBindings(ShortcutRegistry registry)
     {
         var options = _settings.Current.Operator;
-        var configured = ShortcutSettings.ApplyOverrides(_commandCatalog.GetDefaultShortcuts(), _settings.Current.Shortcuts);
+        var overrides = _settings.Current.Shortcuts;
+        var blackSlot = ShortcutSettings.GetSlotId(MainCommandIds.LiveBlack, true);
+        // A legacy F9 override occupied the only global Black slot, hiding an independently enabled F10.
+        if (options.GlobalF9 && overrides.TryGetValue(blackSlot, out var gesture) && gesture == "F9")
+        {
+            overrides = new Dictionary<string, string>(overrides, StringComparer.OrdinalIgnoreCase);
+            overrides.Remove(blackSlot);
+        }
+        var configured = ShortcutSettings.ApplyOverrides(_commandCatalog.GetDefaultShortcuts(), overrides);
         var shortcuts = new List<Shortcut>();
         foreach (var shortcut in configured)
         {
-            if (shortcut.Modifiers != System.Windows.Input.ModifierKeys.None || _settings.Current.Shortcuts.ContainsKey(ShortcutSettings.GetSlotId(shortcut)))
+            if (shortcut.Modifiers != System.Windows.Input.ModifierKeys.None || overrides.ContainsKey(ShortcutSettings.GetSlotId(shortcut)))
             {
                 shortcuts.Add(shortcut);
                 continue;

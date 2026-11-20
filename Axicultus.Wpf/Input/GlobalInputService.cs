@@ -6,16 +6,18 @@ using LegacyKeys = System.Windows.Forms.Keys;
 
 namespace Axicultus.Wpf.Input;
 
-public sealed class GlobalKeyEventArgs(LegacyKeys keyCode, LegacyKeys modifiers) : EventArgs
+public sealed class GlobalKeyEventArgs(LegacyKeys keyCode, LegacyKeys modifiers, bool externalWindow = false, nint window = 0) : EventArgs
 {
     public LegacyKeys KeyCode { get; } = keyCode;
     public LegacyKeys Modifiers { get; } = modifiers;
+    public nint Window { get; } = window;
+    public bool ExternalWindow { get; } = externalWindow;
     public bool Handled { get; set; }
 }
 
 public interface IGlobalKeySource
 {
-    event EventHandler<GlobalKeyEventArgs>? KeyDown;
+    event EventHandler<GlobalKeyEventArgs>? ShortcutPressed;
 
     void Start();
     void Stop();
@@ -60,7 +62,7 @@ public sealed class GlobalInputService(
 
         try
         {
-            _source.KeyDown += OnKeyDown;
+            _source.ShortcutPressed += OnKeyDown;
             _subscribed = true;
             _source.Start();
             IsRunning = true;
@@ -81,7 +83,7 @@ public sealed class GlobalInputService(
         _session++;
         if (_subscribed)
         {
-            _source.KeyDown -= OnKeyDown;
+            _source.ShortcutPressed -= OnKeyDown;
             _subscribed = false;
         }
 
@@ -113,13 +115,18 @@ public sealed class GlobalInputService(
 
     private void OnKeyDown(object? sender, GlobalKeyEventArgs e)
     {
-        if (!IsRunning || !_registry.TryResolveGlobal(e.KeyCode, e.Modifiers, out var command))
-            return;
+        if (!IsRunning) return;
+        bool showSpace = e.KeyCode == LegacyKeys.Space && e.Modifiers == LegacyKeys.None &&
+            _registry.IsPowerPointOutputWindow?.Invoke(e.Window) == true;
+        Action? command;
+        bool global = showSpace ? _registry.TryGetHandler(Shell.MainCommandIds.OutputSpace, out command)
+            : _registry.TryResolveGlobal(e.KeyCode, e.Modifiers, out command);
+        if (!global && (!e.ExternalWindow || !_registry.TryResolveMedia(e.KeyCode, e.Modifiers, out command))) return;
 
         try
         {
-            PostCommand(command);
-            e.Handled = true;
+            PostCommand(command!);
+            e.Handled = global && (!e.ExternalWindow || e.KeyCode is not (LegacyKeys.F7 or LegacyKeys.F8 or LegacyKeys.Up or LegacyKeys.Down));
         }
         catch (Exception ex)
         {
@@ -148,7 +155,7 @@ public sealed class GlobalInputService(
     {
         if (_subscribed)
         {
-            _source.KeyDown -= OnKeyDown;
+            _source.ShortcutPressed -= OnKeyDown;
             _subscribed = false;
         }
 
@@ -169,7 +176,7 @@ public sealed class HookManagerGlobalKeySource : IGlobalKeySource
 {
     private bool _running;
 
-    public event EventHandler<GlobalKeyEventArgs>? KeyDown;
+    public event EventHandler<GlobalKeyEventArgs>? ShortcutPressed;
 
     public void Start()
     {
@@ -179,6 +186,7 @@ public sealed class HookManagerGlobalKeySource : IGlobalKeySource
         }
 
         Axicultus.HookManager.KeyDown += OnHookKeyDown;
+        Axicultus.HookManager.KeyUp += OnHookKeyUp;
         _running = true;
     }
 
@@ -187,6 +195,7 @@ public sealed class HookManagerGlobalKeySource : IGlobalKeySource
         // Removing an absent handler is safe and retries a previous native release failure.
         _running = false;
         Axicultus.HookManager.KeyDown -= OnHookKeyDown;
+        Axicultus.HookManager.KeyUp -= OnHookKeyUp;
     }
 
     [System.Runtime.InteropServices.DllImport("user32.dll")]
@@ -197,16 +206,29 @@ public sealed class HookManagerGlobalKeySource : IGlobalKeySource
 
     private void OnHookKeyDown(object? sender, LegacyKeyEventArgs e)
     {
+        if (e.KeyCode is not (LegacyKeys.Up or LegacyKeys.Down)) Forward(e, arrow: false);
+    }
+
+    private void OnHookKeyUp(object? sender, LegacyKeyEventArgs e)
+    {
+        if (e.KeyCode is LegacyKeys.Up or LegacyKeys.Down) Forward(e, arrow: true);
+    }
+
+    private void Forward(LegacyKeyEventArgs e, bool arrow)
+    {
         if (e.Handled) return;
-        // Let the focused WPF control route arrows while typing or editing options.
-        if (e.KeyCode is LegacyKeys.Up or LegacyKeys.Down)
+        nint foreground = 0;
+        bool external = false;
+        if (arrow || e.KeyCode is LegacyKeys.Escape or LegacyKeys.Space or LegacyKeys.Enter or LegacyKeys.S or LegacyKeys.M or LegacyKeys.F7 or LegacyKeys.F8)
         {
-            IntPtr foreground = GetForegroundWindow();
-            if (foreground == IntPtr.Zero || GetWindowThreadProcessId(foreground, out uint process) == 0 ||
-                process == Environment.ProcessId) return;
+            foreground = GetForegroundWindow();
+            if (foreground == 0 || GetWindowThreadProcessId(foreground, out var process) == 0) return;
+            external = process != Environment.ProcessId;
+            // Shell, output and modal windows handle their own Esc and arrow releases.
+            if (!external && (arrow || e.KeyCode == LegacyKeys.Escape)) return;
         }
-        var args = new GlobalKeyEventArgs(e.KeyCode, e.Modifiers);
-        KeyDown?.Invoke(this, args);
+        var args = new GlobalKeyEventArgs(e.KeyCode, e.Modifiers, external, foreground);
+        ShortcutPressed?.Invoke(this, args);
         e.Handled |= args.Handled;
     }
 }

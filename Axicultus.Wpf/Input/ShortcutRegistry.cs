@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using Axicultus.Wpf.Shell;
 using LegacyKeys = System.Windows.Forms.Keys;
 using WpfKey = System.Windows.Input.Key;
 using WpfModifierKeys = System.Windows.Input.ModifierKeys;
@@ -19,7 +20,17 @@ public sealed class ShortcutRegistry
 
     private Registrations _registered = new([],
         []);
-    private readonly ConcurrentDictionary<string, Action> _bindings = new();
+    private sealed record Binding(Action Execute, Func<bool>? CanExecute);
+    private readonly ConcurrentDictionary<string, Binding> _bindings = new();
+
+    internal Func<nint, bool>? IsPowerPointOutputWindow { get; set; }
+    internal Func<LegacyKeys, Action?>? ResolveOutputMediaKey { private get; set; }
+
+    internal bool TryResolveMedia(LegacyKeys key, LegacyKeys modifiers, [NotNullWhen(true)] out Action? handler)
+    {
+        handler = modifiers == LegacyKeys.None ? ResolveOutputMediaKey?.Invoke(key) : null;
+        return handler != null;
+    }
 
     public IReadOnlyList<Shortcut> All => Volatile.Read(ref _registered).Ordered;
 
@@ -40,30 +51,33 @@ public sealed class ShortcutRegistry
 
     internal void ReplaceShortcuts(IEnumerable<Shortcut> shortcuts)
     {
-        var list = shortcuts.DistinctBy(s => (s.Key, s.Modifiers)).ToImmutableList();
+        var list = shortcuts.GroupBy(s => (s.Key, s.Modifiers)).Select(group =>
+        {
+            var first = group.First();
+            return group.FirstOrDefault(s => s.IsGlobal && s.CommandName == first.CommandName) ?? first;
+        }).ToImmutableList();
         Volatile.Write(ref _registered, new Registrations(list, list.ToImmutableDictionary(s => (s.Key, s.Modifiers))));
     }
 
-    public void Bind(string commandName, Action handler)
+    public void Bind(string commandName, Action handler, Func<bool>? canExecute = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(commandName);
         ArgumentNullException.ThrowIfNull(handler);
 
-        _bindings[commandName] = handler;
+        _bindings[commandName] = new Binding(handler, canExecute);
     }
 
     public bool TryHandle(WpfKey key, WpfModifierKeys modifiers)
     {
-        return Volatile.Read(ref _registered).ByGesture.TryGetValue((key, modifiers), out var shortcut)
-            && Invoke(shortcut.CommandName);
+        return FindShortcut(key, modifiers) is { } shortcut && Invoke(shortcut.CommandName);
     }
 
     internal bool TryResolveGlobal(LegacyKeys key, LegacyKeys modifiers, [NotNullWhen(true)] out Action? handler)
     {
-        var gesture = (System.Windows.Input.KeyInterop.KeyFromVirtualKey((int)key), ToWpfModifiers(modifiers));
+        if (key == LegacyKeys.Escape && modifiers == LegacyKeys.None && TryGetHandler(MainCommandIds.EndShow, out handler)) return true;
+        var shortcut = FindShortcut(System.Windows.Input.KeyInterop.KeyFromVirtualKey((int)key), ToWpfModifiers(modifiers), globalOnly: true);
         handler = null;
-        return Volatile.Read(ref _registered).ByGesture.TryGetValue(gesture, out var shortcut)
-            && shortcut.IsGlobal && _bindings.TryGetValue(shortcut.CommandName, out handler);
+        return shortcut is { IsGlobal: true } && TryGetHandler(shortcut.CommandName, out handler);
     }
 
     public bool TryHandleGlobal(LegacyKeys key, LegacyKeys modifiers) =>
@@ -90,14 +104,36 @@ public sealed class ShortcutRegistry
         return Invoke(commandName);
     }
 
-    private bool Invoke(string commandName)
-    {
-        if (!_bindings.TryGetValue(commandName, out var handler))
-        {
-            return false;
-        }
+    private bool Invoke(string commandName) => TryGetHandler(commandName, out var handler) && Execute(handler);
 
-        return Execute(handler);
+    internal bool TryGetHandler(string name, [NotNullWhen(true)] out Action? handler)
+    {
+        handler = null;
+        if (!_bindings.TryGetValue(name, out var binding) || binding.CanExecute?.Invoke() == false)
+            return false;
+        handler = binding.Execute;
+        return true;
+    }
+
+    internal bool IsGlobalGesture(WpfKey key, WpfModifierKeys modifiers) =>
+        FindShortcut(key, modifiers) is { IsGlobal: true };
+
+    private Shortcut? FindShortcut(WpfKey key, WpfModifierKeys modifiers, bool globalOnly = false)
+    {
+        var gestures = Volatile.Read(ref _registered).ByGesture;
+        if (gestures.TryGetValue((key, modifiers), out var exact) && (!globalOnly || exact.IsGlobal)) return exact;
+        if (modifiers == WpfModifierKeys.None) return null;
+
+        // FrmMain checks KeyCode for F7–F10 and only the Ctrl bit for arrows.
+        var legacyModifier = key is WpfKey.Up or WpfKey.Down ? modifiers & WpfModifierKeys.Control : WpfModifierKeys.None;
+        if (!gestures.TryGetValue((key, legacyModifier), out var candidate) || !candidate.IsGlobal) return null;
+        return (key, candidate.CommandName) switch
+        {
+            (WpfKey.F7, MainCommandIds.LivePreviewToOutputClearBlack) or (WpfKey.F8, MainCommandIds.LivePreviewToOutput)
+                or (WpfKey.F9 or WpfKey.F10, MainCommandIds.LiveBlack) or (WpfKey.Up, MainCommandIds.LivePrevious)
+                or (WpfKey.Down, MainCommandIds.LiveNext) => candidate,
+            _ => null
+        };
     }
 
     private static bool Execute(Action handler)

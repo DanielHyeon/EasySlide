@@ -49,6 +49,17 @@ public sealed partial class MediaPlaybackViewModel : ObservableObject, IDisposab
         ApplySnapshot(_playback.Current);
     }
 
+    internal bool HasFilePlayback => _playback.Current.SourceKind != MediaSourceKind.CaptureDevice && CanUsePlaybackControls();
+
+    internal IRelayCommand? CommandFor(Input.MediaPlayerKeyAction action) => action switch
+    {
+        Input.MediaPlayerKeyAction.PlayPause => PlayPauseCommand,
+        Input.MediaPlayerKeyAction.Stop => StopCommand,
+        Input.MediaPlayerKeyAction.Restart => RestartCommand,
+        Input.MediaPlayerKeyAction.ToggleMute => ToggleMuteCommand,
+        _ => null
+    };
+
     public IRelayCommand PlayPauseCommand { get; }
     public IRelayCommand StopCommand { get; }
 

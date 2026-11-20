@@ -2273,10 +2273,39 @@ public sealed class SettingsService : ISettingsService
             _ => throw new ArgumentOutOfRangeException(nameof(keyId), keyId, "Unknown setting key."),
         };
 
+    private static AxicultusSettingsSnapshot SetOperatorOption(AxicultusSettingsSnapshot snapshot, OperatorOption option, object value)
+    {
+        var updated = snapshot with { Operator = option.Write(snapshot.Operator, value) };
+        if (snapshot.Shortcuts.Count == 0 || !option.Id.StartsWith("operator.Global", StringComparison.Ordinal) || Equals(option.Read(snapshot.Operator), value)) return updated;
+        var shortcuts = new Dictionary<string, string>(snapshot.Shortcuts, StringComparer.OrdinalIgnoreCase);
+        void RemoveLegacyGesture(string command, string gesture)
+        {
+            var slot = ShortcutSettings.GetSlotId(command, true);
+            if (shortcuts.TryGetValue(slot, out var current) && string.Equals(current, gesture, StringComparison.OrdinalIgnoreCase))
+                shortcuts.Remove(slot);
+        }
+        switch (option.Id)
+        {
+            case "operator.GlobalF7": RemoveLegacyGesture(MainCommandIds.LivePreviewToOutputClearBlack, "F7"); break;
+            case "operator.GlobalF8": RemoveLegacyGesture(MainCommandIds.LivePreviewToOutput, "F8"); break;
+            case "operator.GlobalF9": RemoveLegacyGesture(MainCommandIds.LiveBlack, "F9"); break;
+            case "operator.GlobalF10": RemoveLegacyGesture(MainCommandIds.LiveBlack, "F10"); break;
+            case "operator.GlobalArrow":
+                RemoveLegacyGesture(MainCommandIds.LivePrevious, "Up");
+                RemoveLegacyGesture(MainCommandIds.LiveNext, "Down");
+                break;
+            case "operator.GlobalCtrlArrow":
+                RemoveLegacyGesture(MainCommandIds.LivePrevious, "Ctrl+Up");
+                RemoveLegacyGesture(MainCommandIds.LiveNext, "Ctrl+Down");
+                break;
+        }
+        return shortcuts.Count == snapshot.Shortcuts.Count ? updated : updated with { Shortcuts = shortcuts };
+    }
+
     private static AxicultusSettingsSnapshot SetValue<T>(AxicultusSettingsSnapshot snapshot, string keyId, T value)
         => keyId switch
         {
-            _ when OperatorOptionCatalog.ById.TryGetValue(keyId, out var option) => snapshot with { Operator = option.Write(snapshot.Operator, value!) },
+            _ when OperatorOptionCatalog.ById.TryGetValue(keyId, out var option) => SetOperatorOption(snapshot, option, value!),
             "general.licenceNamesImportedFrom" => snapshot with { General = snapshot.General with { LicenceNamesImportedFrom = Cast<string>(keyId, value) } },
             "general.language" => snapshot with
             {

@@ -1,6 +1,8 @@
 using System;
 using System.Windows;
 using System.Windows.Media.Animation;
+using System.Windows.Input;
+using Axicultus.Wpf.Input;
 using Axicultus.Wpf.Media;
 using Axicultus.Wpf.Shell;
 
@@ -28,6 +30,34 @@ public partial class OutputWindow : Window, IOutputSurface
     {
         get => (double)GetValue(WedgeProgressProperty);
         set => SetValue(WedgeProgressProperty, value);
+    }
+
+    public OutputWindow(ShortcutRegistry shortcuts) : this()
+    {
+        PreviewKeyDown += (_, e) =>
+        {
+            var key = e.Key == Key.System ? e.SystemKey : e.Key;
+            if (Keyboard.Modifiers == ModifierKeys.None)
+            {
+                e.Handled = key switch
+                {
+                    Key.Escape or Key.F12 or Key.Subtract or Key.OemMinus => shortcuts.TryInvoke(MainCommandIds.EndShow),
+                    Key.Space => shortcuts.TryInvoke(MainCommandIds.OutputSpace),
+                    Key.F9 or Key.F10 => shortcuts.TryHandle(key, ModifierKeys.None),
+                    _ => false
+                };
+            }
+            if (!e.Handled && key is Key.Up or Key.Down && (Keyboard.Modifiers == ModifierKeys.None || shortcuts.IsGlobalGesture(key, Keyboard.Modifiers)))
+                e.Handled = true; // Navigation runs on release.
+        };
+        PreviewKeyUp += (sender, e) =>
+        {
+            if (e.Key is not (Key.Up or Key.Down) || !shortcuts.TryGetHandler(MainCommandIds.EndShow, out _)) return;
+            if (shortcuts.IsGlobalGesture(e.Key, Keyboard.Modifiers))
+                e.Handled = shortcuts.TryHandle(e.Key, Keyboard.Modifiers);
+            else if (Keyboard.Modifiers == ModifierKeys.None)
+                e.Handled = shortcuts.TryInvoke(e.Key == Key.Down ? MainCommandIds.LiveNext : MainCommandIds.LivePrevious);
+        };
     }
 
     public OutputWindow()

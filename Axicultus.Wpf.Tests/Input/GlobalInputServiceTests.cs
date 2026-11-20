@@ -62,6 +62,46 @@ public class GlobalInputServiceTests
     }
 
     [Fact]
+    public void SpaceOutsideWpfOnlyDrivesTheControlledPowerPointShow()
+    {
+        var registry = new ShortcutRegistry { IsPowerPointOutputWindow = hwnd => hwnd == 42 };
+        var source = new FakeGlobalKeySource();
+        var dispatcher = new RecordingGlobalInputDispatcher();
+        int advances = 0;
+        registry.Bind(Axicultus.Wpf.Shell.MainCommandIds.OutputSpace, () => advances++);
+        using var sut = CreateSut(source, registry, dispatcher);
+        sut.Start();
+
+        source.RaiseKeyDown(LegacyKeys.Space, LegacyKeys.None, 23).Handled.Should().BeFalse();
+        source.RaiseKeyDown(LegacyKeys.Space, LegacyKeys.Control, 42).Handled.Should().BeFalse();
+        source.RaiseKeyDown(LegacyKeys.Space, LegacyKeys.None, 42).Handled.Should().BeTrue();
+        dispatcher.Drain();
+        advances.Should().Be(1);
+    }
+
+    [Theory]
+    [InlineData(WpfKey.F7, false)]
+    [InlineData(WpfKey.F8, false)]
+    [InlineData(WpfKey.F9, true)]
+    [InlineData(WpfKey.F10, true)]
+    [InlineData(WpfKey.Down, false)]
+    public void LegacyGlobalKey_ExecutesOnceWithWinFormsPassThrough(WpfKey key, bool handled)
+    {
+        var registry = new ShortcutRegistry();
+        registry.Register(new Shortcut(key, WpfModifierKeys.None, "command", true, ""));
+        var source = new FakeGlobalKeySource();
+        var dispatcher = new RecordingGlobalInputDispatcher();
+        int executions = 0;
+        registry.Bind("command", () => executions++);
+        using var sut = CreateSut(source, registry, dispatcher);
+        sut.Start();
+        var virtualKey = (LegacyKeys)System.Windows.Input.KeyInterop.VirtualKeyFromKey(key);
+        source.RaiseKeyDown(virtualKey, LegacyKeys.None, 11).Handled.Should().Be(handled);
+        dispatcher.Drain();
+        executions.Should().Be(1);
+    }
+
+    [Fact]
     public void Stop_UnsubscribesAndStopsSource()
     {
         var source = new FakeGlobalKeySource();
@@ -164,7 +204,7 @@ public class GlobalInputServiceTests
         public int StopCount { get; private set; }
         public int SubscriptionCount { get; private set; }
 
-        public event EventHandler<GlobalKeyEventArgs>? KeyDown
+        public event EventHandler<GlobalKeyEventArgs>? ShortcutPressed
         {
             add
             {
@@ -190,9 +230,9 @@ public class GlobalInputServiceTests
 
         public void Stop() => StopCount++;
 
-        public GlobalKeyEventArgs RaiseKeyDown(LegacyKeys key, LegacyKeys modifiers)
+        public GlobalKeyEventArgs RaiseKeyDown(LegacyKeys key, LegacyKeys modifiers, nint externalWindow = 0)
         {
-            var args = new GlobalKeyEventArgs(key, modifiers);
+            var args = new GlobalKeyEventArgs(key, modifiers, externalWindow != 0, externalWindow);
             KeyDownCore?.Invoke(this, args);
             return args;
         }

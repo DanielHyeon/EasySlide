@@ -11,6 +11,8 @@ public static class MainCommandIds
     public const string LivePreviewToOutput = "Live.PreviewToOutput";
     // 레거시 글로벌 F7 — PreviewItem 을 OutputItem 으로 복사하고 Black 화면을 해제한다.
     public const string LivePreviewToOutputClearBlack = "Live.PreviewToOutputClearBlack";
+    internal const string EndShow = "Live.EndShow";
+    internal const string OutputSpace = "Live.OutputSpace";
     public const string LiveStop = "Live.Stop";
     public const string LiveNext = "Live.Next";
     public const string LivePrevious = "Live.Previous";

@@ -592,6 +592,17 @@ public partial class MainWindow : Window
             return;
         }
 
+        if (e.Key == Key.Escape && Keyboard.Modifiers == ModifierKeys.None && _shortcuts.TryInvoke(MainCommandIds.EndShow))
+        {
+            e.Handled = true;
+            return;
+        }
+        if (IsShowArrow(e.Key))
+        {
+            e.Handled = true;
+            return;
+        }
+
         // FrmMain 의 flowLayoutPreviewPowerPoint/flowLayoutOutputPowerPoint_KeyUp 대응:
         // PPT 썸네일 영역에 포커스가 있으면 방향키/Space/Home/End 는 전역 Space/F 단축키보다
         // 해당 Preview/Output 슬라이드 네비게이션으로 먼저 처리한다.
@@ -638,10 +649,22 @@ public partial class MainWindow : Window
             return;
         }
 
-        if (_shortcuts.TryHandle(e.Key, Keyboard.Modifiers))
+        if (e.Key == Key.Space && Keyboard.FocusedElement is System.Windows.Controls.Primitives.ButtonBase)
+            return;
+
+        if (_shortcuts.TryHandle(e.Key == Key.System ? e.SystemKey : e.Key, Keyboard.Modifiers))
         {
             e.Handled = true;
         }
+    }
+
+    private bool IsShowArrow(Key key) => key is Key.Up or Key.Down && !_viewModel.CommandPalette.IsOpen
+        && !IsTextInputFocused() && _shortcuts.IsGlobalGesture(key, Keyboard.Modifiers);
+
+    protected override void OnPreviewKeyUp(KeyEventArgs e)
+    {
+        base.OnPreviewKeyUp(e);
+        if (IsShowArrow(e.Key)) e.Handled = _shortcuts.TryHandle(e.Key, Keyboard.Modifiers);
     }
 
     // The WinForms menu strip handles these accelerators even when Quick Find owns focus.
@@ -963,7 +986,8 @@ public partial class MainWindow : Window
                 return true;
 
             case Key.Space:
-                ExecuteOutputSlideReplay(_viewModel.OutputPowerPoint.SlideNumber);
+                if (!_viewModel.IsShowRunning || !_shortcuts.TryInvoke(MainCommandIds.OutputSpace))
+                    ExecuteOutputSlideReplay(_viewModel.OutputPowerPoint.SlideNumber);
                 return true;
 
             case Key.Left:
@@ -1060,28 +1084,16 @@ public partial class MainWindow : Window
             Keyboard.Modifiers != ModifierKeys.None,
             IsTextInputFocused(),
             isButtonFocused,
-            candidate => MediaCommandFor(media, candidate) is { } command && command.CanExecute(null));
+            candidate => media.CommandFor(candidate) is { } command && command.CanExecute(null));
 
         if (action == MediaPlayerKeyAction.None)
         {
             return false;
         }
 
-        MediaCommandFor(media, action)!.Execute(null);
+        media.CommandFor(action)!.Execute(null);
         return true;
     }
-
-    // 미디어 동작 → 해당 명령. 매핑 없으면 null(라우터의 None 과 짝).
-    private static CommunityToolkit.Mvvm.Input.IRelayCommand? MediaCommandFor(
-        Media.MediaPlaybackViewModel media,
-        MediaPlayerKeyAction action) => action switch
-    {
-        MediaPlayerKeyAction.PlayPause => media.PlayPauseCommand,
-        MediaPlayerKeyAction.Stop => media.StopCommand,
-        MediaPlayerKeyAction.Restart => media.RestartCommand,
-        MediaPlayerKeyAction.ToggleMute => media.ToggleMuteCommand,
-        _ => null,
-    };
 
     // 절 점프 키 처리: 수식 키 없음 + 텍스트 입력에 포커스 없음 + 매핑된 라벨이 현재 곡에 존재할 때만 점프.
     private bool TryHandleVerseJumpKey(KeyEventArgs e)
