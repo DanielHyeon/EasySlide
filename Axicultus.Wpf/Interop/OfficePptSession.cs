@@ -222,6 +222,7 @@ public sealed class OfficePptSession : IDisposable
         using var window = FindShowWindow(windows, path);
         if (window is null) return null;
         using var view = window.View;
+        if (view.State != PpSlideShowState.ppSlideShowRunning) return null;
         using var slide = view.Slide;
         return slide.SlideIndex;
     });

@@ -13,6 +13,9 @@ namespace Axicultus;
 
 		private string PreviousItemLocation = "";
 
+		private string standalonePath;
+		private bool standaloneMuted;
+
 		private bool ItemFirstPlay = false;
 
 		private Rectangle? outputBounds;
@@ -79,6 +82,7 @@ namespace Axicultus;
 
 		private void DShowPlayer_ForeColorChanged(object sender, EventArgs e)
 		{
+			if (standalonePath != null) return;
 			if (DShowPlayer.ForeColor == Color.Red)
 			{
 				if (Gf.ShowRunning)
@@ -203,6 +207,15 @@ namespace Axicultus;
 			return 0;
 		}
 
+		internal int PlayStandaloneFile(string path)
+		{
+			standalonePath = path;
+			standaloneMuted = false;
+			return Remote_PlayItem();
+		}
+
+		internal void ToggleStandaloneMute() => DShowPlayer.SetMute(standaloneMuted = !standaloneMuted);
+
 		public int Remote_ResumeItem()
 		{
 			if (Gf.WMP_Present)
@@ -217,6 +230,7 @@ namespace Axicultus;
 			if (Gf.WMP_Present)
 			{
 				DShowPlayer.ResumeFromStart();
+				if (standaloneMuted) DShowPlayer.SetMute(true);
 			}
 		}
 
@@ -311,7 +325,7 @@ namespace Axicultus;
 
 		private void UpdateProgress()
 		{
-			if (DShowPlayer.currentState != PlayState.Running || Gf.ShowLiveCam)
+			if (standalonePath != null || DShowPlayer.currentState != PlayState.Running || Gf.ShowLiveCam)
 			{
 				return;
 			}
@@ -340,7 +354,7 @@ namespace Axicultus;
 
 		private int LoadMedia(bool ResumeFromPreviousPosition, bool FirstLoad)
 		{
-			string mediaLocation = Gf.GetMediaLocation(Gf.LiveItem);
+			string mediaLocation = standalonePath ?? Gf.GetMediaLocation(Gf.LiveItem);
 			int currentInputDevice = 1;
 			if (mediaLocation == "")
 			{
@@ -351,16 +365,16 @@ namespace Axicultus;
 			{
 				currentInputDevice = DataUtil.StringToInt(DataUtil.Mid(mediaLocation, "<<Capture>>".Length));
 			}
-			DShowPlayer.SetMute((Gf.LiveItem.Format.MediaMute > 0) ? true : false);
-			DShowPlayer.SetWideScreen((Gf.LiveItem.Format.MediaWidescreen > 0) ? true : false, ResizeWindow: false);
-			Gf.MediaResetStartTime = true;
+			DShowPlayer.SetMute(standalonePath == null && Gf.LiveItem.Format.MediaMute > 0);
+			DShowPlayer.SetWideScreen(standalonePath == null && Gf.LiveItem.Format.MediaWidescreen > 0, ResizeWindow: false);
+			if (standalonePath == null) Gf.MediaResetStartTime = true;
 			DShowPlayer.newFilename = mediaLocation;
 			DShowPlayer.currentInputDevice = currentInputDevice;
 			PreviousItemLocation = mediaLocation;
 			ItemFirstPlay = true;
 			DShowPlayer.ResumeFromPreviousPosition = ResumeFromPreviousPosition;
 			DShowPlayer.OpenClip();
-			DShowPlayer.SetVolume(Gf.LiveItem.Format.MediaVolume);
+			DShowPlayer.SetVolume(standalonePath == null ? Gf.LiveItem.Format.MediaVolume : 100);
 			if (DShowPlayer.currentState == PlayState.Running)
 			{
 				int result = (!DShowPlayer.isVideo) ? 1 : 2;

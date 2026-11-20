@@ -38,6 +38,7 @@ public partial class MainWindow : Window
     // 자동 회전 타이머(§7.3-B) — VM 은 로직만 갖고(테스트 용이), 실제 주기 구동은 View 가 맡는다.
     // IsAutoRotating 이 켜지면 시작, 꺼지면 정지. 매 tick 에 VM.AdvanceAutoRotation 을 호출.
     private readonly DispatcherTimer _autoRotateTimer;
+    private readonly DispatcherTimer _powerPointPositionTimer = new(DispatcherPriority.Background) { Interval = TimeSpan.FromMilliseconds(400) };
     private bool _libraryLoadedOnce;
     private bool _bibleLoadedOnce;
     private bool _searchLoadedOnce;
@@ -90,6 +91,7 @@ public partial class MainWindow : Window
         viewModel.BindShortcuts(_shortcuts);
         BindWindowLaunchers();
 
+        _powerPointPositionTimer.Tick += async (_, _) => await _viewModel.SyncNativePowerPointPositionAsync();
         _autoRotateTimer = new DispatcherTimer();
         _autoRotateTimer.Tick += (_, _) => _viewModel.AdvanceAutoRotation();
         _viewModel.PropertyChanged += OnViewModelPropertyChanged;
@@ -547,6 +549,7 @@ public partial class MainWindow : Window
         {
             if (_wasShowRunning && !_viewModel.IsShowRunning) StopLocalLiveDevices();
             _wasShowRunning = _viewModel.IsShowRunning;
+            _powerPointPositionTimer.IsEnabled = _viewModel.Session.Current is { State: LiveState.Active, PptPath.Length: > 0 };
         }
         if (e.PropertyName == nameof(MainViewModel.CurrentWorshipListName) && _captionConsole == null)
             _services.GetService<Captions.CaptionSession>()?.BeginPlan(_viewModel.CurrentWorshipListName);
@@ -1099,6 +1102,7 @@ public partial class MainWindow : Window
     // 버튼에 포커스가 있으면 Space/Enter 는 그 버튼을 눌러야 하므로 가로채지 않는다(라우터가 처리).
     private bool TryHandleMediaPlayerKey(KeyEventArgs e)
     {
+        if (!_viewModel.CanRouteMediaShortcut) return false;
         var media = _viewModel.Media;
         var isButtonFocused = Keyboard.FocusedElement is System.Windows.Controls.Primitives.ButtonBase;
 
@@ -4880,6 +4884,7 @@ public partial class MainWindow : Window
         Microsoft.Win32.SystemEvents.DisplaySettingsChanged -= OnDisplaySettingsChanged;
         _displayRefresh.Stop();
         _displayRefresh.Tick -= RefreshAfterDisplayChange;
+        _powerPointPositionTimer.Stop();
         _autoRotateTimer.Stop();
         _queueRecovery?.Dispose();
         PreviewSample.Dispose();

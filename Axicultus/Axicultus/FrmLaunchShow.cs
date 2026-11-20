@@ -1659,6 +1659,7 @@ namespace Axicultus;
 				Gf.RestartItemActioned = true;
 				Gf.RestartCurrentItem = true;
 			}
+			FrmMain.frmMain?.CloseMediaPlayer();
 			string itemTypeCode = DataUtil.Left(InIDString, 1);
 			// Set again below when this item runs a slide show. The serial tells the main form this state is new.
 			Gf.LivePowerPointRunState = Gf.LivePowerPointRun.None;

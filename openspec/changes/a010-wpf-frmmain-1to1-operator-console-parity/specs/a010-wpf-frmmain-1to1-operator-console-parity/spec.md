@@ -130,6 +130,13 @@ The WPF worship-list command SHALL play selected or linked media in a borderless
 - **AND** a read-only PowerPoint deck appears in front with the entire slide visible, including on a scaled monitor
 - **AND** browsing the Worship List alone preserves standalone playback
 
+#### Scenario: 재생 중인 미디어에서 PPT로 전환한 뒤 Space로 진행
+
+- **WHEN** WinForms 또는 WPF에서 `Play Media on Output Monitor`로 파일을 재생한 뒤 예배 목록의 PPT를 송출하고 Space를 누른다
+- **THEN** 이전 미디어의 재생과 단축키 처리가 종료되고 PowerPoint는 한 번의 입력에 한 단계만 진행한다
+- **AND** 오른쪽 송출 이미지와 현재 장 표시는 PowerPoint의 실제 장 번호를 따른다
+- **AND** 한 장 안에서 애니메이션만 진행하면 같은 썸네일을 유지하고, 왼쪽 미리보기의 선택은 독립적으로 유지한다
+
 #### Scenario: The output is interrupted
 
 - **WHEN** the operator blacks out, hides or closes the live output, or the selected audience display changes during playback

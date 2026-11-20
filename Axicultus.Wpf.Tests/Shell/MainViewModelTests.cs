@@ -8184,6 +8184,62 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task PlayingClipHandsSpaceToTheNativeShowAndOutputFollowsItsActualPosition()
+    {
+        using var folder = TempSettingsFolder.Create();
+        string file = Path.Combine(folder.Root, "opening.avi");
+        string deck = Path.Combine(folder.Root, "service.pptx");
+        File.WriteAllText(file, "clip");
+        File.WriteAllText(deck, "slides");
+        var clip = new LiveQueueItem("clip", "Opening", LiveItemKinds.Media) { ContentPath = file };
+        var slides = new LiveQueueItem("deck", "Service", LiveItemKinds.PowerPoint) { ContentPath = deck };
+        var show = new RecordingPowerPointSlideShowControl { ActualSlide = 1 };
+        var renderer = new FixedSlideCountPowerPointRenderService(3);
+        using var sut = CreateSut(seedSampleQueue: false, powerPointSlideShow: show,
+            powerPoint: new PowerPointPreviewViewModel(renderer, _ => Frozen()),
+            outputPowerPoint: new PowerPointPreviewViewModel(renderer, _ => Frozen()));
+        var keys = new ShortcutRegistry();
+        sut.BindShortcuts(keys);
+        sut.LoadQueue([clip, slides]);
+        sut.PlaySelectedWorshipMediaOnOutputCommand.Execute(null);
+        sut.Media.State.Should().Be(MediaPlaybackState.Playing);
+        keys.TryResolveMedia(System.Windows.Forms.Keys.Space, 0, out var queuedMediaSpace).Should().BeTrue();
+
+        sut.SelectedItem = slides;
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        sut.Media.IsOutputPlayerVisible.Should().BeFalse();
+        // Browsing the clip can prepare it again while the deck is still live.
+        sut.SelectedItem = clip;
+        sut.Media.Load(new MediaPlaybackRequest(file, MediaSourceKind.File, TimeSpan.FromMinutes(1), "Video"));
+        sut.CanRouteMediaShortcut.Should().BeFalse();
+        queuedMediaSpace!();
+        keys.TryResolveMedia(System.Windows.Forms.Keys.Space, 0, out _).Should().BeFalse();
+        sut.Media.State.Should().Be(MediaPlaybackState.Ready);
+        keys.TryInvoke(MainCommandIds.OutputSpace).Should().BeTrue();
+        show.AdvanceCount.Should().Be(1);
+        sut.Session.Current.PptSlideNumber.Should().Be(1); // animation or Office still on the first slide
+
+        renderer.FailSlide = 3;
+        foreach (int slide in new[] { 2, 3 })
+        {
+            show.ActualSlide = slide;
+            await sut.SyncNativePowerPointPositionAsync();
+            sut.Session.Current.PptSlideNumber.Should().Be(slide);
+            sut.OutputPowerPoint.Thumbnails.Single(t => t.IsCurrent).SlideNumber.Should().Be(slide);
+        }
+        await sut.SyncNativePowerPointPositionAsync();
+        renderer.FailedRenders.Should().Be(1);
+        show.AdvanceCount.Should().Be(1);
+        sut.SelectedItem.Should().Be(clip);
+        sut.Media.State.Should().Be(MediaPlaybackState.Ready);
+
+        await sut.ToggleOutputBlackCommand.ExecuteAsync(null);
+        keys.TryInvoke(MainCommandIds.OutputSpace);
+        sut.Media.State.Should().Be(MediaPlaybackState.Ready);
+        show.AdvanceCount.Should().Be(1);
+    }
+
+    [Fact]
     public async Task StandaloneMedia_PreservesTheLiveItemAndReleasesSlideShortcutsOnEscape()
     {
         using var folder = TempSettingsFolder.Create();
@@ -12849,6 +12905,16 @@ public class MainViewModelTests
     // 워십 리스트 저장/로드 — 파일시스템 없이 인메모리로 검증.
     private sealed class RecordingPowerPointSlideShowControl : IPowerPointSlideShowControl
     {
+        public int? ActualSlide { get; set; }
+        public int AdvanceCount { get; private set; }
+        public bool HasOutputShow => ActualSlide != null;
+        public Task<int?> ReadOutputPositionAsync(string path) => Task.FromResult(ActualSlide);
+        public Task<int?> AdvanceOutputAsync(string path)
+        {
+            AdvanceCount++;
+            return Task.FromResult(ActualSlide);
+        }
+
         public List<(PowerPointSlideShowRequest Request, string OutputMonitorName)> StartRequests { get; } = new();
 
         public List<PowerPointSlideShowRequest> Requests { get; } = new();
@@ -13024,8 +13090,17 @@ public class MainViewModelTests
 
     private sealed class FixedSlideCountPowerPointRenderService(int slideCount) : IPowerPointRenderService
     {
+        public int? FailSlide { get; set; }
+        public int FailedRenders { get; private set; }
+
         public Task<PowerPointRenderResult> RenderSlideAsync(PowerPointRenderRequest request, CancellationToken cancellationToken = default)
-            => Task.FromResult(new PowerPointRenderResult(
+        {
+            if (request.SlideNumber == FailSlide)
+            {
+                FailedRenders++;
+                return Task.FromResult(new PowerPointRenderResult(PowerPointRenderErrorKind.CorruptFile, null, "render failed", false, TimeSpan.Zero));
+            }
+            return Task.FromResult(new PowerPointRenderResult(
                 PowerPointRenderErrorKind.None,
                 new PowerPointSlideSnapshot(
                     request.FilePath,
@@ -13039,6 +13114,7 @@ public class MainViewModelTests
                 ErrorMessage: null,
                 FromCache: false,
                 Elapsed: TimeSpan.Zero));
+        }
 
         public void ClearCache()
         {

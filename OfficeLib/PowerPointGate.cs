@@ -146,8 +146,8 @@ namespace OfficeLib
 			{
 				stallMs = LightStallMs;
 			}
-			int cap = capMs > 0 ? capMs : (weight == PowerPointCallWeight.Heavy ? HeavyCapMs : LightCapMs);
-			PowerPointCallLimit begun = PowerPointCallLimit.Begin(stallMs, Math.Max(cap, stallMs));
+			int cap = capMs > 0 ? capMs : Math.Max(stallMs, weight == PowerPointCallWeight.Heavy ? HeavyCapMs : LightCapMs);
+			PowerPointCallLimit begun = PowerPointCallLimit.Begin(Math.Min(stallMs, cap), cap);
 			return begun == null ? Nested : new PowerPointGate(begun, what, weight);
 		}
 

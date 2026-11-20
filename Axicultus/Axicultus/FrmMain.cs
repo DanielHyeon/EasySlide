@@ -2896,8 +2896,35 @@ public partial class FrmMain : Form
                 {
                 }
             }
+            SyncNativePowerPointSlide();
             SetStatusBarMediaTimings();
         }
+    }
+
+    private void SyncNativePowerPointSlide()
+    {
+        if (!Gf.DualMonitorMode || Gf.LivePowerPointRunState != Gf.LivePowerPointRun.Started ||
+            Gf.OutputItem.Type != "P" || Gf.LiveItem.Type != "P" ||
+            !string.Equals(Gf.OutputItem.Path, Gf.LiveItem.Path, StringComparison.OrdinalIgnoreCase))
+            return;
+
+        int loadSerial = Gf.LiveLoadSerial;
+        int? slide = Gf.LivePP.ReadRunSlideNumber();
+        if (!Gf.ShowRunning || loadSerial != Gf.LiveLoadSerial ||
+            !ApplyNativeSlidePosition(Gf.LiveItem, Gf.OutputItem, slide, flowLayoutOutputPowerPoint.SelectedSlide)) return;
+
+        ShowDualMonitorPP_Preview(ref Gf.OutputItem);
+        DisplayOutputPowerPointThumbnails(Gf.OutputItem.CurSlide);
+        ShowStatusBarSummary();
+    }
+
+    internal static bool ApplyNativeSlidePosition(SongSettings live, SongSettings output, int? position, int selectedThumbnail)
+    {
+        if (position is not int slide || slide < 1 || slide > output.TotalSlides) return false;
+        live.CurSlide = slide;
+        bool needsRedraw = output.CurSlide != slide || selectedThumbnail != slide;
+        output.CurSlide = slide;
+        return needsRedraw;
     }
 
     public void Remote_SongChanged()
@@ -6542,16 +6569,6 @@ public partial class FrmMain : Form
             // Apply the output monitor
             _mediaPlayerWindow.ApplyOutputMonitor(output);
 
-            // Set the media file path
-            Gf.LiveItem.Format.MediaOption = 2; // 2 = path given directly
-            Gf.LiveItem.Format.MediaLocation = mediaFilePath;
-            Gf.LiveItem.Format.MediaVolume = 100;
-            Gf.LiveItem.Format.MediaMute = 0;
-            Gf.LiveItem.Format.MediaWidescreen = 0;
-            Gf.LiveItem.Format.MediaRepeat = 0;
-            Gf.LiveItem.RotateTotal = 0;
-            Gf.LiveItem.Type = "M"; // M = media type
-
             // Show the media player window
             if (!_mediaPlayerWindow.Visible)
             {
@@ -6572,7 +6589,7 @@ public partial class FrmMain : Form
             // Load and play in one go. Loading paused and then calling
             // Remote_ResumeItemFromStart tore the graph down and rebuilt it,
             // which blanked the output once before the video started.
-            int result = _mediaPlayerWindow.Remote_PlayItem();
+            int result = _mediaPlayerWindow.PlayStandaloneFile(mediaFilePath);
             if (result == 0)
             {
                 MessageBox.Show("Failed to load media file: " + mediaFilePath + "\n\nPlease check if DirectShow is installed and the file format is supported.");
@@ -6594,12 +6611,12 @@ public partial class FrmMain : Form
     // Closes the media player window
     public void CloseMediaPlayer()
     {
-        if (_mediaPlayerWindow != null && !_mediaPlayerWindow.IsDisposed)
+        if (_mediaPlayerWindow is { IsDisposed: false, Visible: true })
         {
             _mediaPlayerWindow.Remote_StopItem();
             _mediaPlayerWindow.Hide();
         }
-        RemoveHookMediaPlayer();
+        if (_isMediaPlayerHookActive) RemoveHookMediaPlayer();
     }
 
     /// <summary>
@@ -6683,7 +6700,7 @@ public partial class FrmMain : Form
 
             case Keys.M:
                 // M: toggle mute
-                ToggleMediaMute();
+                _mediaPlayerWindow.ToggleStandaloneMute();
                 break;
         }
     }
@@ -6691,27 +6708,7 @@ public partial class FrmMain : Form
     /// <summary>
     /// Stops the media player.
     /// </summary>
-    private void StopMediaPlayer()
-    {
-        if (_mediaPlayerWindow != null && !_mediaPlayerWindow.IsDisposed)
-        {
-            _mediaPlayerWindow.Remote_StopItem();
-            _mediaPlayerWindow.Hide();
-            RemoveHookMediaPlayer();
-        }
-    }
-
-    /// <summary>
-    /// Toggles media mute.
-    /// </summary>
-    private static void ToggleMediaMute()
-    {
-        if (Gf.LiveItem != null && Gf.LiveItem.Format != null)
-        {
-            Gf.LiveItem.Format.MediaMute = Gf.LiveItem.Format.MediaMute == 0 ? 1 : 0;
-            // To apply the mute state, call Remote_LoadItem again if needed
-        }
-    }
+    private void StopMediaPlayer() => CloseMediaPlayer();
 
     private void CMenuWorship_AddUsages_Click(object sender, EventArgs e)
     {

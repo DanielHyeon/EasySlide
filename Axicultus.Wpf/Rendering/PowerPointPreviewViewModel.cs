@@ -346,6 +346,22 @@ public sealed partial class PowerPointPreviewViewModel(IPowerPointRenderService 
         }
     }
 
+    internal void MarkNativeSlideAfterRenderFailure(string path, int slide, int knownCount)
+    {
+        SlideNumber = slide;
+        SlideCount = knownCount >= slide ? knownCount : 0;
+        if (_stripKey is not { } key || key != StripKey.TryCreate(path, key.Count, key.Width, key.Height)) return;
+        foreach (var thumbnail in Thumbnails)
+        {
+            if (thumbnail.SlideNumber != slide) continue;
+            PreviewImage = thumbnail.Image;
+            LoadedContentPath = path;
+            State = PowerPointPreviewState.Ready;
+            StatusText = $"슬라이드 {slide} (썸네일 사용)";
+            break;
+        }
+    }
+
     private void SetFailed(string status)
     {
         PreviewImage = null;

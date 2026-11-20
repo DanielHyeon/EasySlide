@@ -69,8 +69,8 @@ public sealed class OfficePowerPointSlideShowControl : IPowerPointSlideShowContr
     private OfficePptSession.OutputShow? Output => _session.IsValueCreated ? _session.Value.CurrentOutput : null;
 
     public Task<int?> ReadOutputPositionAsync(string path) =>
-        Output is { } show && string.Equals(path, show.Path, StringComparison.OrdinalIgnoreCase)
-            ? _session.Value.ReadShowPositionAsync(path)
+        Output is { } show && string.Equals(System.IO.Path.GetFullPath(path), show.Path, StringComparison.OrdinalIgnoreCase)
+            ? _session.Value.ReadShowPositionAsync(show.Path)
             : Task.FromResult<int?>(null);
 
     public bool HasOutputShow => Output != null;

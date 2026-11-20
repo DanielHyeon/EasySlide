@@ -1075,6 +1075,27 @@ namespace OfficeLib
 			}
 		}
 
+		/// <summary>Reads the actual slide of the owned show without advancing animations or changing navigation state.</summary>
+		public int? ReadRunSlideNumber()
+		{
+			if (CurrentRunPresentationName == null || PowerPointCallLimit.Current != null)
+				return null;
+			using PowerPointGate gate = PowerPointGate.Enter(PowerPointCallWeight.Light, "read the live slide", capMs: 300);
+			if (gate == null) return null;
+			try
+			{
+				using RunPresentation run = FindRunPresentation();
+				if (run == null) return null;
+				var view = run.Presentation.SlideShowWindow.View;
+				return view.State == PpSlideShowState.ppSlideShowRunning ? view.Slide.SlideIndex : null;
+			}
+			catch (Exception ex)
+			{
+				System.Diagnostics.Debug.WriteLine(ex.Message);
+				return null;
+			}
+		}
+
 		public void First()
 		{
 			using PowerPointGate gate = PowerPointGate.Enter(PowerPointCallWeight.Light, "go to the first slide");

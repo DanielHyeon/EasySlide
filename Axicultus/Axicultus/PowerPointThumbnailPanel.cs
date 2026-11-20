@@ -10,6 +10,8 @@ internal sealed class PowerPointThumbnailPanel : FlowLayoutPanel
     private string imagePrefix;
     private int renderedWidth;
 
+    internal int SelectedSlide => selectedSlide;
+
     internal ImageCanvas SlideAt(int index) => (ImageCanvas)Controls[index];
 
     internal void ResetSelection() => selectedSlide = 0;

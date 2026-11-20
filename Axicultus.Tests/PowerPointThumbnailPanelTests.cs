@@ -12,6 +12,28 @@ namespace Axicultus.Tests;
 public class PowerPointThumbnailPanelTests
 {
     [Theory]
+    [InlineData(2, 1, 1, 2, true)]
+    [InlineData(2, 2, 1, 2, true)]
+    [InlineData(2, 2, 2, 2, false)]
+    [InlineData(null, 1, 1, 1, false)]
+    [InlineData(4, 1, 1, 1, false)]
+    public void NativeSlideUpdatesOutputAndRepairsStaleThumbnail(int? native, int outputSlide,
+        int selectedThumbnail, int expected, bool redraw)
+    {
+        MonitorPresentationTests.RunOnSta(() =>
+        {
+            var live = new Module.SongSettings { CurSlide = outputSlide };
+            var output = new Module.SongSettings { CurSlide = outputSlide, TotalSlides = 3 };
+            using var liveList = live.LyricsAndNotationsList;
+            using var outputList = output.LyricsAndNotationsList;
+
+            Assert.Equal(redraw, FrmMain.ApplyNativeSlidePosition(live, output, native, selectedThumbnail));
+            Assert.Equal(expected, live.CurSlide);
+            Assert.Equal(expected, output.CurSlide);
+        });
+    }
+
+    [Theory]
     [InlineData(320, 180, 180)]
     [InlineData(320, 240, 240)]
     public void UpperThumbnailsKeepAllFourSlideEdgesVisible(int sourceWidth, int sourceHeight, int width)

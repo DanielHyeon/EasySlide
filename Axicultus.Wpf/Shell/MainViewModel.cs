@@ -1300,6 +1300,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     public ILiveSessionService Session => _session;
 
+    internal bool CanRouteMediaShortcut => Media.IsOutputPlayerVisible || _session.Current.PptPath is null;
+
     public bool IsPreviewTextMode => PreviewPanelMode == PreviewPanelMode.Text;
 
     public bool IsPreviewFormatMode => PreviewPanelMode == PreviewPanelMode.Format;
@@ -3470,13 +3472,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         // 둘 다 CanGoLive 조건·내부 안전 확인을 SendToOutputAndNextAsync 안에서 처리하므로 여기서 따로 게이트하지 않는다.
         registry.Bind(MainCommandIds.LiveGoAndNext, () => _ = SendToOutputAndNextCommand.ExecuteAsync(null));
         registry.IsPowerPointOutputWindow = _powerPointSlideShow.OwnsOutputWindow;
+        bool MediaOwnsKeys() => Media.HasFilePlayback && CanRouteMediaShortcut && (_output.Current.IsOpen || Media.IsOutputPlayerVisible);
         registry.ResolveOutputMediaKey = key =>
         {
-            if ((!_output.Current.IsOpen && !Media.IsOutputPlayerVisible) || !Media.HasFilePlayback) return null;
+            if (!MediaOwnsKeys()) return null;
             var action = MediaPlayerKeyMap.MapKey(System.Windows.Input.KeyInterop.KeyFromVirtualKey((int)key));
             var command = Media.CommandFor(action);
             return command?.CanExecute(null) == true
-                ? () => { if ((_output.Current.IsOpen || Media.IsOutputPlayerVisible) && Media.HasFilePlayback && command.CanExecute(null)) command.Execute(null); }
+                ? () => { if (MediaOwnsKeys() && command.CanExecute(null)) command.Execute(null); }
                 : null;
         };
         registry.Bind(MainCommandIds.EndShow, () =>
@@ -3488,7 +3491,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             if (Media.IsOutputPlayerVisible) Media.PlayPauseCommand.Execute(null);
             else if (_session.Current is { State: LiveState.Active, PptPath: { Length: > 0 } path }) _ = AdvanceLivePowerPointAsync(path);
-            else if (Media.HasFilePlayback && Media.PlayPauseCommand.CanExecute(null)) Media.PlayPauseCommand.Execute(null);
+            else if (MediaOwnsKeys() && Media.PlayPauseCommand.CanExecute(null)) Media.PlayPauseCommand.Execute(null);
             else if (_session.Current.State == LiveState.Active) LiveNextShortcutCommand.Execute(null);
         }, () => IsShowRunning || (Media.HasFilePlayback && Media.PlayPauseCommand.CanExecute(null)));
         registry.Bind(MainCommandIds.LiveStop, () => _ = StopLiveCommand.ExecuteAsync(null));
@@ -5424,15 +5427,53 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         try
         {
             var position = await _powerPointSlideShow.AdvanceOutputAsync(path).ConfigureAwait(true);
-            if (position is not { } slide || !ReferenceEquals(session, _session.Current) ||
-                GetOutputPowerPointNavigationItem() is not { } item || OutputPowerPoint.SlideNumber == slide) return;
-            var (width, height) = ResolvePptRenderSize();
-            await OutputPowerPoint.LoadAsync(path, slide, width, height).ConfigureAwait(true);
-            if (!ReferenceEquals(session, _session.Current) || OutputPowerPoint.SlideNumber != slide) return;
-            _session.GoLive(ResolveLiveProjection(item with { SlideNumber = slide }, OutputPowerPoint), session.OutputMonitorName);
-            NotifyCommandStates();
+            await ApplyNativeSlidePositionAsync(session, position).ConfigureAwait(true);
         }
         catch (Exception ex) { StatusText = $"PowerPoint 슬라이드 진행 실패: {ex.Message}"; }
+    }
+
+    private bool _readingNativePosition;
+
+    internal async Task SyncNativePowerPointPositionAsync()
+    {
+        var session = _session.Current;
+        if (_disposed || _readingNativePosition || !_powerPointSlideShow.HasOutputShow ||
+            session is not { State: LiveState.Active, PptPath: { Length: > 0 } path } ||
+            Media.IsOutputPlayerVisible || OutputPowerPoint.State == Rendering.PowerPointPreviewState.Rendering) return;
+
+        _readingNativePosition = true;
+        try
+        {
+            var slide = await _powerPointSlideShow.ReadOutputPositionAsync(path).ConfigureAwait(true);
+            await ApplyNativeSlidePositionAsync(session, slide).ConfigureAwait(true);
+        }
+        catch (Exception ex) { System.Diagnostics.Debug.WriteLine(ex.Message); }
+        finally { _readingNativePosition = false; }
+    }
+
+    private async Task ApplyNativeSlidePositionAsync(LiveSessionSnapshot session, int? position)
+    {
+        if (_disposed || position is not int slide || slide < 1 || !ReferenceEquals(session, _session.Current) ||
+            GetOutputPowerPointNavigationItem() is not { ContentPath: { Length: > 0 } path } item ||
+            !string.Equals(path, session.PptPath, StringComparison.OrdinalIgnoreCase)) return;
+
+        if (OutputPowerPoint.State == Rendering.PowerPointPreviewState.Failed &&
+            session.PptSlideNumber == slide && OutputPowerPoint.SlideNumber == slide) return;
+
+        if (OutputPowerPoint.SlideNumber != slide ||
+            !string.Equals(path, OutputPowerPoint.LoadedContentPath, StringComparison.OrdinalIgnoreCase))
+        {
+            var (width, height) = ResolvePptRenderSize();
+            int knownCount = OutputPowerPoint.SlideCount;
+            await OutputPowerPoint.LoadAsync(path, slide, width, height).ConfigureAwait(true);
+            if (_disposed || !ReferenceEquals(session, _session.Current)) return;
+            if (OutputPowerPoint.State == Rendering.PowerPointPreviewState.Failed)
+                OutputPowerPoint.MarkNativeSlideAfterRenderFailure(path, slide, knownCount);
+            else if (OutputPowerPoint.SlideNumber != slide) return;
+            else EnsurePowerPointThumbnails(OutputPowerPoint, path);
+        }
+        if (session.PptSlideNumber != slide)
+            _session.GoLive(ResolveLiveProjection(item with { SlideNumber = slide, PreviewSource = OutputPowerPoint.PreviewImage }, OutputPowerPoint), session.OutputMonitorName);
     }
 
     private async Task GoToOutputSlideAsync(int target)
@@ -5618,7 +5659,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (_session.Current.State is LiveState.Active or LiveState.Hidden)
         {
-            return GetLivePowerPointItem();
+            return GetLivePowerPointItem() ?? (OutputItem is { } outputItem && IsPowerPointItem(outputItem) &&
+                outputItem.Id == _session.Current.CurrentItemId ? outputItem : null);
         }
 
         return _session.Current.State == LiveState.Off

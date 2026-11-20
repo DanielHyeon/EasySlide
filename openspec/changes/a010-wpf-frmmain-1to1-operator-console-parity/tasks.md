@@ -668,5 +668,7 @@ With a 4:3 slide setting, legacy custom width 1 and 50% background video size in
 
 - [x] Verify the reverse handoff from standalone media to a live Worship List PPT. With an isolated profile on two 125% displays, start a show after pausing or stopping the clip, then send a read-only deck. Check four colored corner markers on the frontmost native slide and the WPF slide surface. Both 4:3 and 16:9 decks passed.
 
+- [x] WinForms와 WPF에서 미디어 재생 중 PPT 송출로 전환한 뒤 Space 입력에 따른 실제 PowerPoint 장 번호와 오른쪽 송출 썸네일을 대조한다. 격리된 설정과 실제 PowerPoint로 재생 중인 WAV를 3장짜리 PPT로 전환했다. 두 앱 모두 첫 Space에서 클릭 애니메이션을 진행하며 1장 표시를 유지했고, 다음 두 입력에서 실제 슬라이드와 오른쪽 표시가 함께 2장, 3장으로 이동했다. 이전 미디어의 재생 상태는 정지 상태로 유지됐다.
+
 - [x] 운영자 빠른 검색, 현재 폴더 제목 필터, 상세 찾기와 곡 정렬을 WinForms 동작에 맞춘다. 격리된 WPF 메인 창에서 제목 필터 해제, 결과 목록 복귀, 성경 전체·책 검색과 상세 찾기 반복을 확인한다.
 - [x] 같은 곡 DB 사본으로 WinForms와 WPF 메인 창의 빠른 검색 결과를 대조했다. 은혜(530곡), 사랑(1,132곡), 가_안(19곡), 136(5곡), 일치하지 않는 구문(0곡) 모두 곡 ID와 표시 순서가 일치했다.
