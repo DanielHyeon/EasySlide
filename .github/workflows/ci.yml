@@ -18,13 +18,13 @@ jobs:
       - name: 체크아웃
         uses: actions/checkout@v4
 
-      - name: .NET SDK 설치 (9.0 + 10.0)
-        # OfficeLib 는 net9.0-windows, 그 외는 net10.0-windows 를 타깃하므로 둘 다 필요.
+      - name: .NET SDK 설치 (10.0 + 11.0)
+        # 데스크톱 앱은 .NET 11, 분석기 테스트는 .NET 10 런타임을 사용한다.
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: |
-            9.0.x
             10.0.x
+            11.0.x
 
       - name: Node.js 설치 (OpenSpec)
         uses: actions/setup-node@v4
@@ -35,15 +35,15 @@ jobs:
         run: npx --yes @fission-ai/openspec@1.4.1 validate --all --no-interactive
 
       - name: 복원
-        run: dotnet restore Easislides.sln
+        run: dotnet restore Axicultus.sln
 
       - name: 빌드 (Debug)
-        run: dotnet build Easislides.sln -c Debug --no-restore -nologo -v minimal
+        run: dotnet build Axicultus.sln -c Debug --no-restore -nologo -v minimal
 
       - name: 테스트 (Debug)
         # 스크린샷 기준 이미지가 없을 때 조용히 생성되지 않도록 승인 모드는 켜지 않는다
-        # (EASISLIDES_APPROVE_BASELINES 미설정). 기준 누락 시 테스트가 명시적으로 실패한다.
-        run: dotnet test Easislides.sln -c Debug --no-build -nologo -v minimal
+        # (AXICULTUS_APPROVE_BASELINES 미설정). 기준 누락 시 테스트가 명시적으로 실패한다.
+        run: dotnet test Axicultus.sln -c Debug --no-build -nologo -v minimal
 
       - name: 스크린샷 진단 산출물 업로드 (실패 시)
         if: failure()

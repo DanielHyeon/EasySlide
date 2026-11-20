@@ -4,14 +4,14 @@
 
 기준 파일:
 
-- `Easislides/Easislides/FrmMain.Designer.cs`
-- `Easislides/Easislides/FrmMain.cs`
-- `Easislides/Easislides/FrmMain.Events.cs`
-- `Easislides/Easislides/FrmMain.Logic.cs`
-- `Easislides/Easislides/FrmMain.Layout.cs`
-- `Easislides/Easislides/FrmMain.Fields.cs`
-- `Easislides.Wpf/MainWindow.xaml`
-- `Easislides.Wpf/MainWindow.xaml.cs`
+- `Axicultus/Axicultus/FrmMain.Designer.cs`
+- `Axicultus/Axicultus/FrmMain.cs`
+- `Axicultus/Axicultus/FrmMain.Events.cs`
+- `Axicultus/Axicultus/FrmMain.Logic.cs`
+- `Axicultus/Axicultus/FrmMain.Layout.cs`
+- `Axicultus/Axicultus/FrmMain.Fields.cs`
+- `Axicultus.Wpf/MainWindow.xaml`
+- `Axicultus.Wpf/MainWindow.xaml.cs`
 
 ## 1. 재수립 이유
 
@@ -35,7 +35,7 @@
 - 첫 화면의 영역 구조가 FrmMain의 `SplitContainer` 구조와 대응해야 한다.
 - 각 영역 안의 주요 컨트롤은 원본 컨트롤명 기준으로 WPF 대응 항목을 가져야 한다.
 - 각 버튼, 목록, 탭, 단축키, 더블클릭, 드래그 앤 드롭, 컨텍스트 메뉴는 "동일", "WPF식 대체", "보류", "제거 금지" 중 하나로 판정되어야 한다.
-- `C:\EasiSlides` 기반 실제 데이터가 로드되어야 한다.
+- `C:\Axicultus` 기반 실제 데이터가 로드되어야 한다.
 - Worship List, Praise Book, Bible, PowerPoint, Images, InfoScreen, Media는 모두 실제 항목을 추가하거나 미리보기/송출로 이어져야 한다.
 - Preview와 Output은 항상 화면상으로 분리되어야 한다.
 - 검증 전에는 완료라고 말하지 않는다.
@@ -93,7 +93,7 @@ UI/UX 규칙:
 | FrmMain 컨트롤 | WPF 1:1 목표 | 필수 동작 |
 | --- | --- | --- |
 | `tabWorshipList` | `Worship List` 탭 | 항상 좌측 하단에 표시 |
-| `SessionList` | 저장된 예배순서 콤보 | `C:\EasiSlides\Admin\WorshipLists`의 실제 `.esw` 목록 로드 |
+| `SessionList` | 저장된 예배순서 콤보 | `C:\Axicultus\Admin\WorshipLists`의 실제 `.esw` 목록 로드 |
 | `WorshipListItems` | 예배순서 목록 | 선택, 더블클릭 Preview, Play, Play on Output, 재정렬 |
 | `WL_Manage` | 관리 | 기존 세션 관리 흐름 또는 WPF 대체 창 |
 | `WL_Add` | 선택 소스 추가 | 현재 선택 소스에 따라 곡, 성경, PPT, InfoScreen, Media 추가 |
@@ -177,7 +177,7 @@ UI/UX 규칙:
 
 | FrmMain 초기화 | WPF 필수 대응 |
 | --- | --- |
-| `Gf.InitAppData()` | `C:\EasiSlides` 실제 루트 초기화와 설정 반영 |
+| `Gf.InitAppData()` | `C:\Axicultus` 실제 루트 초기화와 설정 반영 |
 | `BuildFolderList()` | 곡 폴더와 `SongsList` 실제 로딩 |
 | `PopulateWorshipList()` | 저장된 예배순서 목록 실제 로딩 |
 | `LoadWorshipList(0/1/2)` | `.esw`, 템플릿, 세션 열기 구분 |
@@ -250,7 +250,7 @@ UI/UX 규칙:
 
 작업:
 
-- `C:\EasiSlides` 기준 WorkingFolder를 명확히 적용한다.
+- `C:\Axicultus` 기준 WorkingFolder를 명확히 적용한다.
 - Worship List `.esw` 로딩과 저장 목록 콤보를 FrmMain처럼 동작시킨다.
 - Praise Book 목록과 항목을 실제 데이터에서 로드한다.
 - Bible versions, books, passage lookup을 실제 DB/API 경로로 복구한다.
@@ -259,7 +259,7 @@ UI/UX 규칙:
 완료 기준:
 
 - 빈 껍데기 목록이 없어야 한다.
-- 사용자가 제공한 `C:\EasiSlides` 데이터로 찬양, 예배순서, 성경, PPT, 이미지, 미디어가 보인다.
+- 사용자가 제공한 `C:\Axicultus` 데이터로 찬양, 예배순서, 성경, PPT, 이미지, 미디어가 보인다.
 
 ### Phase 3: 소스별 추가, Preview, Worship List 삽입
 
@@ -346,7 +346,7 @@ UI/UX 규칙:
 - 각 Phase는 FrmMain 컨트롤명 기준 매핑표와 함께 시작한다.
 - WPF 구현은 `MainWindow.xaml`에 무작정 추가하지 않고, 필요한 경우 composite 또는 ViewModel로 분리한다.
 - 단, 사용자가 보는 위치와 즉시 접근성은 FrmMain을 우선한다.
-- 각 Phase 완료 시 `dotnet test Easislides.Wpf.Tests`와 수동 실행 증거를 남긴다.
+- 각 Phase 완료 시 `dotnet test Axicultus.Wpf.Tests`와 수동 실행 증거를 남긴다.
 - "껍데기" 상태의 화면만 만든 커밋은 완료로 보지 않는다.
 
 ## 9. 다음 작업

@@ -8,7 +8,7 @@
 
 | 열 | 의미 |
 |---|---|
-| **현행** | `Easislides/Resources/` 또는 `EasislideImages/`의 raster 파일명 |
+| **현행** | `Axicultus/Resources/` 또는 `AxicultusImages/`의 raster 파일명 |
 | **EasiDS 키** | `Theme/Icons.xaml`에 정의할 통일된 키 (`Icon.도메인.역할`) |
 | **옵션 A (WPF UI Symbol)** | `<Ui:SymbolIcon Symbol="..." />` 즉시 사용 |
 | **옵션 B (Fluent SVG)** | WPF UI Symbol에 없으면 이 SVG 다운로드 → 변환 |
@@ -52,15 +52,15 @@
 | `DeleteFile.png` | `Icon.Action.Delete` | `Delete24` | `ic_fluent_delete_24_regular` | |
 | `DeleteList.png` | `Icon.Action.DeleteList` | `Delete24` | `ic_fluent_delete_24_regular` | (DeleteFile과 동일 자산) |
 | `Clear.png` | `Icon.Action.Clear` | `Eraser24` | `ic_fluent_eraser_24_regular` | |
-| `EditFile.png` | `Icon.Action.Edit` | `Edit24` | `ic_fluent_edit_24_regular` | (EasislideImages) |
-| `NewItem.png` | `Icon.Action.NewItem` | `DocumentAdd24` | `ic_fluent_document_add_24_regular` | (EasislideImages) |
-| `CopyFile.png` | `Icon.Action.Copy` | `Copy24` | `ic_fluent_copy_24_regular` | (EasislideImages) |
-| `MoveFile.png` | `Icon.Action.Move` | `ArrowMove24` | `ic_fluent_arrow_move_24_regular` | (EasislideImages) |
-| `Move Up.png` | `Icon.Action.MoveUp` | `ArrowUp24` | `ic_fluent_arrow_up_24_regular` | (EasislideImages) |
-| `Move Down.png` | `Icon.Action.MoveDown` | `ArrowDown24` | `ic_fluent_arrow_down_24_regular` | (EasislideImages) |
-| `Refresh.png` | `Icon.Action.Refresh` | `ArrowSync24` 또는 `ArrowClockwise24` | `ic_fluent_arrow_sync_24_regular` | (EasislideImages) |
-| `Find.png` | `Icon.Action.Find` | `Search24` | `ic_fluent_search_24_regular` | (EasislideImages) |
-| `save.png` | `Icon.Action.Save` | `Save24` | `ic_fluent_save_24_regular` | (EasislideImages) |
+| `EditFile.png` | `Icon.Action.Edit` | `Edit24` | `ic_fluent_edit_24_regular` | (AxicultusImages) |
+| `NewItem.png` | `Icon.Action.NewItem` | `DocumentAdd24` | `ic_fluent_document_add_24_regular` | (AxicultusImages) |
+| `CopyFile.png` | `Icon.Action.Copy` | `Copy24` | `ic_fluent_copy_24_regular` | (AxicultusImages) |
+| `MoveFile.png` | `Icon.Action.Move` | `ArrowMove24` | `ic_fluent_arrow_move_24_regular` | (AxicultusImages) |
+| `Move Up.png` | `Icon.Action.MoveUp` | `ArrowUp24` | `ic_fluent_arrow_up_24_regular` | (AxicultusImages) |
+| `Move Down.png` | `Icon.Action.MoveDown` | `ArrowDown24` | `ic_fluent_arrow_down_24_regular` | (AxicultusImages) |
+| `Refresh.png` | `Icon.Action.Refresh` | `ArrowSync24` 또는 `ArrowClockwise24` | `ic_fluent_arrow_sync_24_regular` | (AxicultusImages) |
+| `Find.png` | `Icon.Action.Find` | `Search24` | `ic_fluent_search_24_regular` | (AxicultusImages) |
+| `save.png` | `Icon.Action.Save` | `Save24` | `ic_fluent_save_24_regular` | (AxicultusImages) |
 
 ## 4. 설정·시스템·도움말
 
@@ -71,15 +71,15 @@
 | `Help.png` | `Icon.Help` | `QuestionCircle24` 또는 `Question24` | `ic_fluent_question_circle_24_regular` | |
 | `ques.png` | `Icon.Question` | `Question24` | `ic_fluent_question_24_regular` | |
 | `Info_Sym.png` + `highlight.png` | `Icon.Info` | `Info24` | `ic_fluent_info_24_regular` | |
-| `Alert.png` | `Icon.Alert` | `Warning24` | `ic_fluent_warning_24_regular` | (EasislideImages) |
+| `Alert.png` | `Icon.Alert` | `Warning24` | `ic_fluent_warning_24_regular` | (AxicultusImages) |
 | `Template.png` | `Icon.Template` | `Layer24` 또는 `DocumentTextLink24` | `ic_fluent_layer_24_regular` | |
 | `Contents.png` | `Icon.Contents` | `ListBar24` 또는 `TextBulletList24` | `ic_fluent_text_bullet_list_24_regular` | |
-| `WishList.png` | `Icon.WorshipList` | `TaskListLtr24` | `ic_fluent_task_list_ltr_24_regular` | EasiSlides 도메인 핵심 |
+| `WishList.png` | `Icon.WorshipList` | `TaskListLtr24` | `ic_fluent_task_list_ltr_24_regular` | Axicultus 도메인 핵심 |
 | `EditSessionNote.png` | `Icon.SessionNote` | `Notepad24` 또는 `NoteEdit24` | `ic_fluent_notepad_24_regular` | |
 | `PPTListType.png` | `Icon.Ppt.List` | `SlideMultiple24` | `ic_fluent_slide_multiple_24_regular` | |
 | `PPTPreviewStyle.png` | `Icon.Ppt.Preview` | `SlideContent24` 또는 `SlideGrid24` | `ic_fluent_slide_content_24_regular` | |
-| `MediaFile.png` | `Icon.Media.File` | `MusicNote124` 또는 `Video24` | `ic_fluent_video_24_regular` | (EasislideImages) |
-| `NoRotate.png` | `Icon.NoRotate` | `LockClosed24` 또는 `ArrowRotateClockwiseOff24` | `ic_fluent_lock_closed_24_regular` | (EasislideImages) — 의미 검토 필요 |
+| `MediaFile.png` | `Icon.Media.File` | `MusicNote124` 또는 `Video24` | `ic_fluent_video_24_regular` | (AxicultusImages) |
+| `NoRotate.png` | `Icon.NoRotate` | `LockClosed24` 또는 `ArrowRotateClockwiseOff24` | `ic_fluent_lock_closed_24_regular` | (AxicultusImages) — 의미 검토 필요 |
 
 ## 5. 모니터·디스플레이
 
@@ -95,21 +95,21 @@
 | `ES Icon 32 Blue.png` + `Highlight.png` | `Icon.Brand.AppIcon` | **자체 자산 유지** — Fluent 아이콘으로 대체 불가 (앱 브랜드 식별자). Sprint 1에 SVG 리디자인 검토. |
 | `ES.Icon.ico` / `$this.Icon.ico` | `Icon.Brand.Window` | **자체 자산 유지** — Windows 작업표시줄·트레이용 .ico. Sprint 1에 다중 사이즈 .ico 재생성. |
 | `logo2023.png` / `logo2023.gif` | `Icon.Brand.LogoMark` | **자체 자산 유지** — 마케팅·About 다이얼로그용. PNG→SVG 변환 검토. |
-| `favicon-Highlight.ico` (EasislideImages) | — | EasislideImages 기타 자산은 폐기 후보. 미사용 확인 후 제거. |
+| `favicon-Highlight.ico` (AxicultusImages) | — | AxicultusImages 기타 자산은 폐기 후보. 미사용 확인 후 제거. |
 
 ## 7. 폐기 (자산 아님 — 사용자 콘텐츠 또는 미사용)
 
 | 현행 | 처리 |
 |---|---|
-| `주일예배 썸네일.png` / `수요예배 썸네일.png` | **사용자 콘텐츠로 분리** — `%AppData%\EasislidesNext\UserAssets\Thumbs\`로 마이그레이션 (§10.5.1 AssetMigrator) |
+| `주일예배 썸네일.png` / `수요예배 썸네일.png` | **사용자 콘텐츠로 분리** — `%AppData%\Axicultus\UserAssets\Thumbs\`로 마이그레이션 (§10.5.1 AssetMigrator) |
 | `panel1.BackgroundImage.gif` / `panel1.BackgroundImage.png` | UI 배경 raster — 폐기, 토큰 색만 사용 |
 | `no-image.png` | `Icon.Placeholder.NoImage` — `ImageMultiple24` 또는 `ImageOff24`로 대체 |
 | `Image1.bmp` | 미사용 추정 — 그렙으로 참조 확인 후 폐기 |
 | `pic-bestfit.png` | UI 옵션 인디케이터 — `ResizeImage24` 또는 자체 작성 |
-| `Cherch.png` / `Easislides\Cherch.png` | 의미 불명 — 코드 참조 확인 후 폐기 |
-| `Chinese.png` / `A.png` / `B.png` / `C.png` (EasislideImages) | 다국어/탭 라벨 — 텍스트로 대체 검토 |
+| `Cherch.png` / `Axicultus\Cherch.png` | 의미 불명 — 코드 참조 확인 후 폐기 |
+| `Chinese.png` / `A.png` / `B.png` / `C.png` (AxicultusImages) | 다국어/탭 라벨 — 텍스트로 대체 검토 |
 | `Bibles_Go.png` | `Icon.Bible.Go` → `Play24` 또는 `ArrowRight24` |
-| `genRTF.png` (EasislideImages) | `Icon.Export.Rtf` → `DocumentArrowDown24` |
+| `genRTF.png` (AxicultusImages) | `Icon.Export.Rtf` → `DocumentArrowDown24` |
 
 ## 8. 처리 카운터 (검증용)
 
@@ -127,15 +127,15 @@
 ## 9. 적용 후 디렉터리 상태 (목표)
 
 **삭제 대상**:
-- `Easislides/Resources/*.png` (전부)
-- `Easislides/Resources/Image1.bmp`
-- `EasislideImages/*.png` 및 `EasislideImages/Original/*.png` (브랜드 자산 제외)
+- `Axicultus/Resources/*.png` (전부)
+- `Axicultus/Resources/Image1.bmp`
+- `AxicultusImages/*.png` 및 `AxicultusImages/Original/*.png` (브랜드 자산 제외)
 
 **유지 (자체 자산)**:
-- `Easislides.Wpf/Assets/Brand/AppIcon.svg` ← 신규, ES Icon 32 Blue 재작업
-- `Easislides.Wpf/Assets/Brand/AppIcon.ico` ← 다중 사이즈 .ico
-- `Easislides.Wpf/Assets/Brand/Logo.svg` ← logo2023 재작업
-- `Easislides.Wpf/Theme/Icons.xaml` ← Fluent 아이콘 매핑 키 정의
+- `Axicultus.Wpf/Assets/Brand/AppIcon.svg` ← 신규, ES Icon 32 Blue 재작업
+- `Axicultus.Wpf/Assets/Brand/AppIcon.ico` ← 다중 사이즈 .ico
+- `Axicultus.Wpf/Assets/Brand/Logo.svg` ← logo2023 재작업
+- `Axicultus.Wpf/Theme/Icons.xaml` ← Fluent 아이콘 매핑 키 정의
 
 **금지** (Q6 100% 폐기 원칙):
 - 어떤 형태로든 PNG/BMP 형식의 UI 아이콘
@@ -146,6 +146,6 @@
 - [ ] 본 표의 모든 행에 `Icon.*` 키 할당됨
 - [ ] 옵션 A 컬럼의 모든 Symbol이 WPF UI 라이브러리에 실제 존재하는지 확인 (코드에서 `Wpf.Ui.Controls.SymbolRegular`/`SymbolFilled` enum 검사)
 - [ ] 옵션 B로 폴백한 항목은 SVG 다운로드 + 변환 + `Assets/Icons/` 등록
-- [ ] `Easislides/Resources/`, `EasislideImages/` 폴더 전체 삭제 (Q6)
+- [ ] `Axicultus/Resources/`, `AxicultusImages/` 폴더 전체 삭제 (Q6)
 - [ ] 사용자 콘텐츠(`주일예배 썸네일.png` 등)는 `AssetMigrator`로 이동 (§10.5.1)
-- [ ] 모든 폼에서 더 이상 Legacy raster를 참조하지 않음 (`grep -r "\.png" Easislides.Wpf/` 결과 0건, Assets/Brand 제외)
+- [ ] 모든 폼에서 더 이상 Legacy raster를 참조하지 않음 (`grep -r "\.png" Axicultus.Wpf/` 결과 0건, Assets/Brand 제외)

@@ -1,13 +1,13 @@
 # FrmMain 기준 WPF UI/UX 정렬 문서
 
 작성일: 2026-06-04  
-대상: `Easislides.Wpf/MainWindow.xaml`, `Easislides/Easislides/FrmMain.*`
+대상: `Axicultus.Wpf/MainWindow.xaml`, `Axicultus/Axicultus/FrmMain.*`
 
 ## 1. 결론
 
-`Easislides.Wpf/MainWindow.xaml`의 최종 UI/UX 기준은 새롭게 재해석한 WPF 대시보드가 아니라, 기존 WinForms `FrmMain`의 운영 방식이어야 한다.
+`Axicultus.Wpf/MainWindow.xaml`의 최종 UI/UX 기준은 새롭게 재해석한 WPF 대시보드가 아니라, 기존 WinForms `FrmMain`의 운영 방식이어야 한다.
 
-이 판단의 이유는 단순한 취향 문제가 아니다. EasiSlides는 예배나 행사 중 실제 송출을 다루는 도구이고, 이 환경에서는 보기 좋은 화면보다 운영자가 실수 없이 빠르게 조작할 수 있는 화면이 더 중요하다. 기존 `FrmMain`은 시각적으로 낡았더라도, 운영자가 필요한 기능을 한 화면에서 바로 찾고 바로 누르는 "운영 콘솔" 구조를 갖고 있다.
+이 판단의 이유는 단순한 취향 문제가 아니다. Axicultus는 예배나 행사 중 실제 송출을 다루는 도구이고, 이 환경에서는 보기 좋은 화면보다 운영자가 실수 없이 빠르게 조작할 수 있는 화면이 더 중요하다. 기존 `FrmMain`은 시각적으로 낡았더라도, 운영자가 필요한 기능을 한 화면에서 바로 찾고 바로 누르는 "운영 콘솔" 구조를 갖고 있다.
 
 따라서 WPF 전환의 목표는 다음과 같이 잡는다.
 
@@ -17,7 +17,7 @@
 
 최근 WPF 앱 실행 확인 중 `MainWindow.xaml`의 `IsChecked` 바인딩에서 읽기 전용 상태 속성에 기본 `TwoWay` 바인딩이 걸려 디버그 알림이 발생했다. `TransitionKindIsSlideRight`, `TransitionKindIsSlideLeft`, `BackgroundModeIsCenter` 계열이 대표 사례였다.
 
-이 문제는 read-only 상태 표시에는 `Mode=OneWay`, 사용자가 실제로 변경하는 옵션에는 `Mode=TwoWay`를 명시하는 방식으로 정리되었다. 이후 `EasislidesNext.exe`는 메인 창까지 뜨고, 디버그 알림 없이 실행되는 상태가 확인되었다.
+이 문제는 read-only 상태 표시에는 `Mode=OneWay`, 사용자가 실제로 변경하는 옵션에는 `Mode=TwoWay`를 명시하는 방식으로 정리되었다. 이후 `AxicultusNext.exe`는 메인 창까지 뜨고, 디버그 알림 없이 실행되는 상태가 확인되었다.
 
 하지만 실행 가능 여부와 UI/UX 적합성은 별개의 문제다. 현재 WPF `MainWindow.xaml`은 메뉴, LiveBar, 상태바, 좌측 브라우저, 예배 순서, 중앙 Preview, 우측 인스펙터 등 현대적인 구조를 갖추고 있으나, 기존 `FrmMain`과 비교하면 운영자가 익숙하게 쓰던 기능 배치와 조작 밀도가 달라졌다.
 
@@ -27,20 +27,20 @@
 
 레거시 WinForms 기준:
 
-- `Easislides/Easislides/FrmMain.cs`
-- `Easislides/Easislides/FrmMain.Designer.cs`
-- `Easislides/Easislides/FrmMain.Events.cs`
-- `Easislides/Easislides/FrmMain.Fields.cs`
-- `Easislides/Easislides/FrmMain.Layout.cs`
-- `Easislides/Easislides/FrmMain.Logic.cs`
-- `Easislides/Easislides/FrmMain.resx`
+- `Axicultus/Axicultus/FrmMain.cs`
+- `Axicultus/Axicultus/FrmMain.Designer.cs`
+- `Axicultus/Axicultus/FrmMain.Events.cs`
+- `Axicultus/Axicultus/FrmMain.Fields.cs`
+- `Axicultus/Axicultus/FrmMain.Layout.cs`
+- `Axicultus/Axicultus/FrmMain.Logic.cs`
+- `Axicultus/Axicultus/FrmMain.resx`
 
 WPF 대상:
 
-- `Easislides.Wpf/MainWindow.xaml`
-- `Easislides.Wpf/MainWindow.xaml.cs`
-- `Easislides.Wpf/Shell/MainViewModel.cs`
-- `Easislides.Wpf/Composites/*`
+- `Axicultus.Wpf/MainWindow.xaml`
+- `Axicultus.Wpf/MainWindow.xaml.cs`
+- `Axicultus.Wpf/Shell/MainViewModel.cs`
+- `Axicultus.Wpf/Composites/*`
 
 관련 기존 문서:
 
@@ -112,7 +112,7 @@ WPF의 단축키 체계는 새로 설계하는 것이 아니라 기존 조작을
 
 ### 6.2 화면 밀도를 무조건 낮추지 않는다
 
-현대 UI라고 해서 여백을 크게 잡고 카드를 많이 쓰면 운영 효율이 떨어질 수 있다. EasiSlides의 기본 화면은 SaaS 대시보드가 아니라 현장 콘솔이다. 밀도는 유지하되, 그룹핑, 정렬, 색상, 아이콘, 접근성 이름을 정돈하는 방식이 맞다.
+현대 UI라고 해서 여백을 크게 잡고 카드를 많이 쓰면 운영 효율이 떨어질 수 있다. Axicultus의 기본 화면은 SaaS 대시보드가 아니라 현장 콘솔이다. 밀도는 유지하되, 그룹핑, 정렬, 색상, 아이콘, 접근성 이름을 정돈하는 방식이 맞다.
 
 ### 6.3 FrmMain의 영역 모델을 먼저 보존한다
 
@@ -287,7 +287,7 @@ WPF에서 개선할 대상은 다음이다.
 
 완료 기준:
 
-- `dotnet test Easislides.Wpf.Tests/Easislides.Wpf.Tests.csproj -c Debug --no-restore` 통과.
+- `dotnet test Axicultus.Wpf.Tests/Axicultus.Wpf.Tests.csproj -c Debug --no-restore` 통과.
 - WPF 앱 실행 시 바인딩 관련 디버그 알림이 뜨지 않는다.
 
 ### P2. 시각 디자인 정돈

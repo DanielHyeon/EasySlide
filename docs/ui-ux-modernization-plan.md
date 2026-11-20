@@ -1,6 +1,6 @@
-# EasiSlides UI/UX 현대화 계획서 (v1.1 — Reviewed)
+# Axicultus UI/UX 현대화 계획서 (v1.1 — Reviewed)
 
-> 작성일: 2026-05-27 (v1.0) / 리뷰 반영: 2026-05-27 (v1.1) · 대상: EasiSlides v2.6.4 → v3.0 (UI 풀-리프레시)
+> 작성일: 2026-05-27 (v1.0) / 리뷰 반영: 2026-05-27 (v1.1) · 대상: Axicultus v2.6.4 → v3.0 (UI 풀-리프레시)
 > 입력: ui-ux-pro-max 스킬, ux-ui-design-reviewer 에이전트(현재 상태 감사), 사용자 결정 4건 + 리뷰 합의 8건(Q1~Q8)
 > 상태: **결정 확정 (Ready for ADR)** — 11개 미해결 → 0개. Sprint 0 킥오프 가능.
 >
@@ -29,14 +29,14 @@
 | **Q4** | 한국어 폰트 | **Pretendard Variable (OFL 1.1) 번들 필수** | WPF ClearType + Malgun Gothic weight 부족 + UI 스케일링 시 글자 뭉개짐. 모든 PC 동일 레이아웃 보장 위해 앱 리소스 포함 배포. |
 | **Q5** | 라이브 인디케이터 위치 | **상단 LiveBar + 우측 상단 모서리 Pulse 이중 배치** | (1) 화면 최상단에 `Color.Live.Active` 라인 — 폼 전체가 라이브임을 무의식 인지. (2) 송출 중인 개별 아이템(WorshipList 행·PPT 썸네일) 우측 상단에 깜빡이는 Pulse 애니메이션 — 어떤 소스가 나가는지 직관 매핑. |
 | **Q6** | Legacy 아이콘 자산 | **100% 폐기 → Fluent UI System Icons 전면 교체** | 일관성이 시각 시스템의 생명. 10% 잔존만으로도 "낡았다" 인지. 메타포 부재 시 가장 유사한 SVG 차용 또는 조합으로라도 SVG 통일. |
-| **Q7** | 사용자 커스텀 자산 | **첫 실행 자동 마이그레이션 도구로 보존** | `%AppData%\Easislides` 스캔 → `%AppData%\EasislidesNext\UserAssets\`로 자동 복사 + 해상도/포맷 백그라운드 최적화. 절대 유실 금지. (§10.5 참조) |
+| **Q7** | 사용자 커스텀 자산 | **첫 실행 자동 마이그레이션 도구로 보존** | `%AppData%\EasiSlides` 스캔 → `%AppData%\Axicultus\UserAssets\`로 자동 복사 + 해상도/포맷 백그라운드 최적화. 절대 유실 금지. (§10.5 참조) |
 | **Q8** | Legacy 유지보수 | **v3.0 출시 후 6개월, 크리티컬 버그/보안만** | 두 아키텍처 장기 동시 유지 = 리소스 고갈. 새 기능은 v3.0 전용. v2.6.4는 "유지보수 모드" 선언. (§10.5 참조) |
 
 ---
 
 ## 1. Executive Summary
 
-EasiSlides는 .NET 10 WinForms로 동작하지만 시각·상호작용 시스템은 XP/Vista 시대(2005~2008년경) 패턴에 머물러 있다. 색·폰트·아이콘이 토큰화되지 않았고, 다크모드·접근성·반응형 레이아웃이 부재하다. **현재 UX Maturity = Level 1.2 / 5** (Functional이지만 Consistent에 도달 못 함).
+Axicultus는 .NET 10 WinForms로 동작하지만 시각·상호작용 시스템은 XP/Vista 시대(2005~2008년경) 패턴에 머물러 있다. 색·폰트·아이콘이 토큰화되지 않았고, 다크모드·접근성·반응형 레이아웃이 부재하다. **현재 UX Maturity = Level 1.2 / 5** (Functional이지만 Consistent에 도달 못 함).
 
 본 계획은 **WinForms → WPF/.NET 10 (Fluent UI WPF Theme + WinUI 3 Composition 일부)** 마이그레이션과 동시에 **Fluent 2 디자인 시스템(EasiDS)** 을 신규 구축하여 다음을 달성한다:
 
@@ -73,7 +73,7 @@ EasiSlides는 .NET 10 WinForms로 동작하지만 시각·상호작용 시스템
 - 단순 `ColorDialog` 래퍼 + `Microsoft Sans Serif` 폴백
 
 ### 2.4 접근성
-- `AccessibleName/AccessibleDescription/AccessibleRole` 사용 **0건** (`Easislides/Easislides` 전체)
+- `AccessibleName/AccessibleDescription/AccessibleRole` 사용 **0건** (`Axicultus/Axicultus` 전체)
 - 단축키(`&` 액세스 키) **0건** — 메뉴/버튼 키 접근 불가
 - `HookManager` 5파일로 전역 Win32 후킹 → 표준 키 라우팅 대체 (이식 시 보존 필요)
 
@@ -167,7 +167,7 @@ EasiSlides는 .NET 10 WinForms로 동작하지만 시각·상호작용 시스템
 **폰트 패밀리** (Q4 확정: Pretendard Variable 번들 필수)
 - **UI 기본**: `Segoe UI Variable` (영문/Windows 11 디폴트), 폴백 `Segoe UI`
 - **한글 기본**: **`Pretendard Variable` (앱 리소스 번들, OFL 1.1)** — 시스템 폰트 의존 금지. WPF ClearType 렌더링 한계 + Malgun Gothic weight 부족 + UI 스케일링 시 글자 뭉개짐 회피. 모든 사용자 PC에서 100% 동일 레이아웃 보장.
-- **번들 위치**: `Easislides.Wpf/Assets/Fonts/PretendardVariable.ttf` + `App.xaml`에 `pack://application:,,,/Assets/Fonts/#Pretendard Variable` 등록. OFL 1.1 라이선스 파일 함께 동봉.
+- **번들 위치**: `Axicultus.Wpf/Assets/Fonts/PretendardVariable.ttf` + `App.xaml`에 `pack://application:,,,/Assets/Fonts/#Pretendard Variable` 등록. OFL 1.1 라이선스 파일 함께 동봉.
 - **폴백 체인**: `Pretendard Variable, Segoe UI Variable, Segoe UI, Malgun Gothic, sans-serif`
 - **모노**: `Cascadia Code` (가사 코드 표기 등)
 - **금지**: `Microsoft Sans Serif`, `Tahoma` (현재 잔재) — 마이그레이션 시 제거. `Malgun Gothic` 직접 지정도 금지(폴백으로만).
@@ -212,14 +212,14 @@ EasiSlides는 .NET 10 WinForms로 동작하지만 시각·상호작용 시스템
 - **포맷**: WPF UI 라이브러리의 `SymbolIcon` 우선(Fluent 시스템 아이콘 내장) → 부족분만 SVG → XAML `DrawingImage` 빌드 변환 (Inkscape CLI 또는 SvgToXaml 빌드 태스크)
 - **사이즈**: 16, 20, 24, 32 — 컨트롤별 고정
 - **상태 표현**: 베이스 1개 SVG + 색·투명도 토큰으로 hover/pressed/disabled → **상태별 별파일 제거**
-- **레거시 자산 정책 (Q6)**: `Easislides/Resources/` + `EasislideImages/` 모든 raster(60+ PNG/BMP) **100% 폐기**. Fluent 셋에 메타포가 정확히 일치하지 않으면 가장 유사한 SVG 차용 또는 여러 아이콘 조합으로라도 SVG 통일. **부분 잔존 금지** — 10%만 남아도 시스템 전체가 낡아 보임.
+- **레거시 자산 정책 (Q6)**: `Axicultus/Resources/` + `AxicultusImages/` 모든 raster(60+ PNG/BMP) **100% 폐기**. Fluent 셋에 메타포가 정확히 일치하지 않으면 가장 유사한 SVG 차용 또는 여러 아이콘 조합으로라도 SVG 통일. **부분 잔존 금지** — 10%만 남아도 시스템 전체가 낡아 보임.
 - **자산 매핑 (현재 → 신규)** — 부록 §11.B 참조 (전체 60+개), 1:1 매핑 미정인 항목은 ADR-002 작성 시 확정
 
 ---
 
 ## 5. 컴포넌트 라이브러리 — "EasiControls"
 
-`Easislides/UI/Controls/` 신규 디렉터리. 모든 컨트롤은 EasiDS 토큰 강제 참조.
+`Axicultus/UI/Controls/` 신규 디렉터리. 모든 컨트롤은 EasiDS 토큰 강제 참조.
 
 ### 5.1 베이스 컨트롤
 
@@ -404,22 +404,22 @@ EasiSlides는 .NET 10 WinForms로 동작하지만 시각·상호작용 시스템
 유지 (수정 거의 없음):
 - `OfficeLib/` PowerPoint·Word interop
 - `DirectShow/` 비디오
-- `Easislides/SQLite/SQLiteController.cs` DB
-- `Easislides/Global/gf*.cs` 도메인 헬퍼 (Bible/Lyrics/Media/Database/Config 등)
-- `Easislides/HookManager/` 전역 후킹
-- `Easislides/Module/` 도메인 모델 (`SongFormat`, `SongLyrics`, `SongSettings`, `CommonEnum`)
-- `Easislides/Util/` 공통 유틸
+- `Axicultus/SQLite/SQLiteController.cs` DB
+- `Axicultus/Global/gf*.cs` 도메인 헬퍼 (Bible/Lyrics/Media/Database/Config 등)
+- `Axicultus/HookManager/` 전역 후킹
+- `Axicultus/Module/` 도메인 모델 (`SongFormat`, `SongLyrics`, `SongSettings`, `CommonEnum`)
+- `Axicultus/Util/` 공통 유틸
 
 대체:
-- `Easislides/Easislides/Frm*.cs` 및 `Frm*.Designer.cs` (40개) → WPF `Window`/`Page` + `ViewModel`
-- `Easislides/Global/gfColorsFonts.cs` → `EasiDS` 토큰 + `IThemeService`
-- `EasislideImages/` raster + `Resources/` 이미지 일부 → SVG/XAML 아이콘 + 단일 자산
+- `Axicultus/Axicultus/Frm*.cs` 및 `Frm*.Designer.cs` (40개) → WPF `Window`/`Page` + `ViewModel`
+- `Axicultus/Global/gfColorsFonts.cs` → `EasiDS` 토큰 + `IThemeService`
+- `AxicultusImages/` raster + `Resources/` 이미지 일부 → SVG/XAML 아이콘 + 단일 자산
 
 ### 8.3 단계적 이식 (Strangler Fig)
 **바로 전체 재작성은 비추**. 다음 순서로 점진 이식 — 사용자 결정이 "동시 진행"이라도 **빌드/배포는 점진**:
 
 1. **Sprint 0 (1주) — 기술 PoC 최우선**:
-   - 새 프로젝트 `Easislides.Wpf/` 생성, WPF UI + Toolkit MVVM 설치
+   - 새 프로젝트 `Axicultus.Wpf/` 생성, WPF UI + Toolkit MVVM 설치
    - `EasiDS` 토큰 ResourceDictionary 작성, 첫 컨트롤 `EsButton` 3변종
    - **PoC-A (필수)**: HookManager 전역 후킹 ↔ WPF `PreviewKeyDown` 충돌 검증. 후킹 결과를 `e.Handled = true`로 처리하면 라우티드 이벤트가 차단되는지 확인. 실패 시 InputBinding 라우팅 우선순위 재설계 — 라이브 단축키 누락 = 운영 마비 직결.
    - **PoC-B (필수)**: PowerPoint COM 객체 수명주기 래퍼(`OfficePptSession`) — `Task.Run` 백그라운드에서 COM 생성/사용/`Marshal.ReleaseComObject` 호출이 좀비 프로세스 없이 종료되는지 stress 테스트 (100회 순회). STA 스레드 어피니티 보장 패턴 확정 (§10.3 신규 리스크 참조).
@@ -479,7 +479,7 @@ EasiSlides는 .NET 10 WinForms로 동작하지만 시각·상호작용 시스템
 - PR CI에 위 체크리스트 일부 자동 검증
 
 ### 9.3 디자인 토큰 단일 소스
-`Easislides.Wpf/Theme/` 디렉터리:
+`Axicultus.Wpf/Theme/` 디렉터리:
 ```
 Theme/
   Tokens/
@@ -495,9 +495,9 @@ Theme/
 
 ### 9.4 마이그레이션 가드 (병행 기간)
 구버전 WinForms와 신버전 WPF가 한 솔루션에 공존하는 동안:
-- 빌드 산출물 분리: `Easislides.exe` (legacy) / `EasislidesNext.exe` (신규)
+- 빌드 산출물 분리: `Axicultuss.exe` (legacy) / `Axicultus.exe` (신규)
 - 사용자 토글: `--legacy-ui` CLI 인자로 기존 UI 호출 가능 (롤백 안전망)
-- 공통 도메인 어셈블리 `Easislides.Core.dll` 추출 → 양쪽 참조
+- 공통 도메인 어셈블리 `Axicultus.Core.dll` 추출 → 양쪽 참조
 
 ---
 
@@ -551,8 +551,8 @@ Theme/
 #### 10.5.1 자동 마이그레이션 도구 (`AssetMigrator`)
 v3.0 첫 구동 시 자동 실행:
 
-1. **탐지**: `%AppData%\Easislides\` (또는 사용자 설정 `WorkingFolder`)를 스캔 — 커스텀 썸네일/배경 이미지/사용자 폰트 등
-2. **백업**: 마이그레이션 직전 원본을 `%AppData%\EasislidesNext\Backup\YYYYMMDD-HHmmss\` zip으로 압축 (실패 롤백 안전망)
+1. **탐지**: `%AppData%\Axicultus\` (또는 사용자 설정 `WorkingFolder`)를 스캔 — 커스텀 썸네일/배경 이미지/사용자 폰트 등
+2. **백업**: 마이그레이션 직전 원본을 `%AppData%\Axicultus\Backup\YYYYMMDD-HHmmss\` zip으로 압축 (실패 롤백 안전망)
 3. **변환·복사**: 신규 규격 폴더로 이동
    - `UserAssets/Thumbs/` — 썸네일 (해상도 정규화: 긴 변 1920px 이상이면 리사이즈)
    - `UserAssets/Backgrounds/` — 배경 (포맷 검증, 손상 파일 격리)
@@ -607,7 +607,7 @@ v3.0 정식 출시일(M4)을 D-Day로 하여:
 | `Tick.png` | `ic_fluent_checkmark_24_regular` | |
 | `folder.png` / `folderOpen.png` | `ic_fluent_folder_24_regular` + `_open_` | |
 | `dualscreens.png` / `singlescreen.png` | `ic_fluent_dual_screen_24_regular` / `ic_fluent_screen_24_regular` | |
-| `주일예배 썸네일.png` / `수요예배 썸네일.png` | 사용자 콘텐츠로 분리 (`%AppData%/EasiSlides/Thumbs/`) | 자산 아님 |
+| `주일예배 썸네일.png` / `수요예배 썸네일.png` | 사용자 콘텐츠로 분리 (`%AppData%/Axicultus/Thumbs/`) | 자산 아님 |
 
 **전체 매핑 표 + 추출/변환 가이드는 별도 문서로 분리됨**:
 - [docs/ui/icon-pipeline.md](ui/icon-pipeline.md) — Microsoft Fluent UI System Icons에서 직접 추출, SVG→XAML 변환, WPF UI `SymbolIcon` 사용법
@@ -643,7 +643,7 @@ v3.0 정식 출시일(M4)을 D-Day로 하여:
 
 1. ~~본 계획서 합의 / Q1~Q8 답변~~ ✅ 완료 (v1.1)
 2. **ADR-001~007 작성** (다음 마일스톤) — 결정의 배경·대안·결과를 영구 기록
-3. **Sprint 0 킥오프** — `Easislides.Wpf` 프로젝트 생성 + `EasiDS` 토큰 ResourceDictionary + **PoC-A(HookManager), PoC-B(COM STA) 최우선 검증** (§8.3)
+3. **Sprint 0 킥오프** — `Axicultus.Wpf` 프로젝트 생성 + `EasiDS` 토큰 ResourceDictionary + **PoC-A(HookManager), PoC-B(COM STA) 최우선 검증** (§8.3)
 4. **아이콘 추출 (내부 작업, 외주 없음)** — [docs/ui/icon-pipeline.md](ui/icon-pipeline.md) 가이드 따라 Microsoft Fluent UI System Icons에서 60+ 자산 SVG 추출 + WPF 자원 등록. 매핑 표는 [docs/ui/icon-migration-map.md](ui/icon-migration-map.md). Sprint 1 Day 1~2에 일괄 작업.
 5. 베타 테스터 그룹(2~3명 운영자) 모집 — 시니어 모드 온보딩 카피 검증 포함
 6. `AssetMigrator` 명세서 + 백업/롤백 시퀀스 다이어그램 별도 작성 (§10.5.1)

@@ -34,7 +34,7 @@ namespace OfficeLib
 
 		public Application prePowerPointApp;
 
-		public string[,] ScreenDumpFullPath = new string[2, 10000];
+		public string[,] ScreenDumpFullPath = new string[2, 0];
 
 		// Screen device name of the output monitor, written to PowerPoint's DisplayMonitor setting by Run.
 		public string displayName = "None";
@@ -313,7 +313,7 @@ namespace OfficeLib
 				}
 				if (unmarked)
 				{
-					return "The copy opened for this item is no longer open (the presentation named " + showCopyName + " was not opened by EasiSlides)";
+					return "The copy opened for this item is no longer open (the presentation named " + showCopyName + " was not opened by Axicultus)";
 				}
 				if (unreadable != null)
 				{
@@ -395,7 +395,7 @@ namespace OfficeLib
 		// presentation is the app's copy only when the name AND the mark match: a user's presentation that got the
 		// same "PresentationN" name (PowerPoint restarted during the show) has no mark, and a copy left by an
 		// earlier run of the app (crashed) has another token. Shared by all wrappers (they all drive one PowerPoint).
-		private const string ShowCopyTagName = "EASISLIDES_SHOWCOPY";
+		private const string ShowCopyTagName = "AXICULTUS_SHOWCOPY";
 		private static readonly string ShowCopyRunToken = Guid.NewGuid().ToString("N");
 
 		private static string ShowCopyMark(string path)
@@ -2370,22 +2370,23 @@ namespace OfficeLib
 			bool result = true;
 			try
 			{
-				firstScreenDumpFolder = CacheFolder;
-				// A new listing tries the presentations that could not be exported again.
-				failedFirstScreenDumps.Clear();
 				if (!string.IsNullOrEmpty(CacheFolder))
 				{
 					Directory.CreateDirectory(CacheFolder);
 				}
-				int count = Math.Min(Math.Min(MaxFileCount, InFileList.Length), ScreenDumpFullPath.GetLength(1));
+				int count = Math.Clamp(MaxFileCount, 0, InFileList.Length);
+				var paths = new string[2, count];
 				List<string> listed = new List<string>(count);
 				for (int i = 0; i < count; i++)
 				{
-					ScreenDumpFullPath[0, i] = InFileList[i];
-					ScreenDumpFullPath[1, i] = ExternalPreviewCache.GetPreviewPath(CacheFolder, InFileList[i]);
-					listed.Add(ScreenDumpFullPath[1, i]);
+					paths[0, i] = InFileList[i];
+					paths[1, i] = ExternalPreviewCache.GetPreviewPath(CacheFolder, InFileList[i]);
+					listed.Add(paths[1, i]);
 				}
 				ExternalPreviewCache.Prune(CacheFolder, listed, DateTime.UtcNow);
+				firstScreenDumpFolder = CacheFolder;
+				failedFirstScreenDumps.Clear();
+				ScreenDumpFullPath = paths;
 				return result;
 			}
 			catch (Exception ex)
@@ -2748,7 +2749,7 @@ namespace OfficeLib
 					// PowerPoint is single-instance, so this may be the user's own PowerPoint.
 					// Quit closes every open presentation without asking to save, so only quit when none is open,
 					// no file is open in Protected View (those are not in Presentations), and the process was not
-					// already running before EasiSlides started (the user's PowerPoint, perhaps on its start screen).
+					// already running before Axicultus started (the user's PowerPoint, perhaps on its start screen).
 					if (GetOpenPresentationCount(prePowerPointApp) == 0 && !PowerPointCallLimit.CurrentAbandoned
 						&& GetProtectedViewWindowCount(prePowerPointApp) == 0 && !PowerPointCallLimit.CurrentAbandoned
 						&& !IsUsersOwnPowerPoint(prePowerPointApp))
@@ -2816,8 +2817,8 @@ namespace OfficeLib
 
 		/// <summary>
 		/// True when the PowerPoint behind app is the user's own: its process was already running when this app
-		/// started and it is visible (e.g. on its start screen). EasiSlides must never quit it. False when it started
-		/// later (EasiSlides started it), when it is hidden (a PowerPoint left behind by an earlier run of the app),
+		/// started and it is visible (e.g. on its start screen). Axicultus must never quit it. False when it started
+		/// later (Axicultus started it), when it is hidden (a PowerPoint left behind by an earlier run of the app),
 		/// or when that cannot be told (then the presentation checks alone decide, as before).
 		/// </summary>
 		private static bool IsUsersOwnPowerPoint(Application app)

@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Sprint 1: xUnit 테스트 프로젝트 (계획서 §8.4) -->
+    <TargetFramework>net11.0-windows7.0</TargetFramework>
+    <RootNamespace>Axicultus.Wpf.Tests</RootNamespace>
+    <AssemblyName>Axicultus.Tests</AssemblyName>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="FluentAssertions" Version="7.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Axicultus.Wpf\Axicultus.Wpf.csproj" />
+    <!-- B-3 Phase 1: Core 추출 검증(CommonEnum 이 Axicultus.Core 에 위치)용 참조. -->
+    <ProjectReference Include="..\Axicultus.Core\Axicultus.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Media/color-bars.avi" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

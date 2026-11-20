@@ -1,4 +1,4 @@
-﻿# EasiSlides 하네스 엔지니어링 적용 보고서
+﻿# Axicultus 하네스 엔지니어링 적용 보고서
 
 작성일: 2026-06-11  
 대상 저장소: `EasiSlides_v2.6.4`  
@@ -15,7 +15,7 @@
    - gstack 계열 리뷰와 QA 게이트를 완료 판단의 안전장치로 둔다.
 
 2. 코드 및 테스트 하네스
-   - WPF 포팅 프로젝트 `Easislides.Wpf`와 테스트 프로젝트 `Easislides.Wpf.Tests`에 집중되어 있다.
+   - WPF 포팅 프로젝트 `Axicultus.Wpf`와 테스트 프로젝트 `Axicultus.Wpf.Tests`에 집중되어 있다.
    - UI STA 스레드, 헤드리스 렌더링, 스크린샷 회귀, DI 서비스 검증, Office PowerPoint COM 격리, SQLite 임시 DB, 파일 시스템 임시 폴더, 레지스트리 샌드박스, 글로벌 입력 훅, 출력창 surface fake, media backend fake 등이 적용되어 있다.
 
 현재 하네스의 핵심 특징은 "운영 중 실패하면 치명적인 영역을 직접 건드리지 않고, 인터페이스와 fixture를 통해 제어 가능한 작은 환경에서 검증한다"는 점이다. 예배 송출 프로그램 특성상 PowerPoint COM, 출력 모니터 좌표, 라이브 상태 전환, SQLite 데이터 변경, WPF UI 렌더링이 모두 위험 지점인데, WPF 포팅에서는 이 지점마다 테스트 seam이 비교적 촘촘하게 들어가 있다.
@@ -27,9 +27,9 @@
 | 구분 | 확인 내용 |
 | --- | --- |
 | CodeGraph 상태 | 525개 파일, 29,517개 노드, 50,034개 엣지 색인 확인 |
-| 테스트 프로젝트 구조 | `Easislides.Wpf.Tests` 아래 146개 C# 파일 확인 |
+| 테스트 프로젝트 구조 | `Axicultus.Wpf.Tests` 아래 146개 C# 파일 확인 |
 | xUnit 테스트 규모 | literal scan 기준 `[Fact]` 1,898개, `[Theory]` 103개 |
-| production seam | `Easislides.Wpf`에서 `public interface I...` 58개 확인 |
+| production seam | `Axicultus.Wpf`에서 `public interface I...` 58개 확인 |
 | 테스트 더블 | test double 명명 패턴 기준 Fake/Stub/Recording/InMemory 계열 55개 확인 |
 | fixture/harness | Fixture/Harness/Temp* 계열 클래스 36개 확인 |
 
@@ -43,7 +43,7 @@
 | --- | --- | --- |
 | 계약 하네스 | 변경 범위와 완료 조건을 문서로 고정 | `openspec/changes/*` |
 | 구조 하네스 | 변경 전 영향 범위를 AST 그래프로 확인 | `.codegraph/codegraph.db`, `codegraph-impact.md` |
-| 실행 하네스 | 위험한 외부 의존성을 fake, fixture, temp folder로 대체 | `Easislides.Wpf.Tests/*` |
+| 실행 하네스 | 위험한 외부 의존성을 fake, fixture, temp folder로 대체 | `Axicultus.Wpf.Tests/*` |
 | 회귀 하네스 | UI/렌더/접근성/DI drift를 자동 테스트로 잠금 | `VisualRenderHarness`, `ScreenshotBaseline`, XAML scanner tests |
 
 핵심은 "실제 예배 송출 환경을 그대로 테스트하지 않고, 예배 송출에 필요한 결정적인 계약을 작게 잘라 반복 가능하게 만든다"는 점이다.
@@ -118,7 +118,7 @@
 
 위치:
 
-- `Easislides.Wpf.Tests/Easislides.Wpf.Tests.csproj`
+- `Axicultus.Wpf.Tests/Axicultus.Wpf.Tests.csproj`
 
 확인 내용:
 
@@ -126,7 +126,7 @@
 - `UseWPF`: `true`
 - 테스트 프레임워크: xUnit
 - Assertion: FluentAssertions
-- 참조: `Easislides.Wpf`, `Easislides.Core`
+- 참조: `Axicultus.Wpf`, `Axicultus.Core`
 
 의미:
 
@@ -163,7 +163,7 @@
 
 위치:
 
-- `Easislides.Wpf.Tests/StaHelper.cs`
+- `Axicultus.Wpf.Tests/StaHelper.cs`
 
 현재 적용:
 
@@ -192,7 +192,7 @@
 
 위치:
 
-- `Easislides.Wpf.Tests/Theme/WpfApplicationFixture.cs`
+- `Axicultus.Wpf.Tests/Theme/WpfApplicationFixture.cs`
 
 현재 적용:
 
@@ -216,7 +216,7 @@
 
 위치:
 
-- `Easislides.Wpf.Tests/Rendering/VisualRenderHarness.cs`
+- `Axicultus.Wpf.Tests/Rendering/VisualRenderHarness.cs`
 
 현재 적용:
 
@@ -239,7 +239,7 @@
 
 위치:
 
-- `Easislides.Wpf.Tests/Rendering/ImageComparer.cs`
+- `Axicultus.Wpf.Tests/Rendering/ImageComparer.cs`
 
 현재 적용:
 
@@ -261,7 +261,7 @@
 
 위치:
 
-- `Easislides.Wpf.Tests/Rendering/ScreenshotBaseline.cs`
+- `Axicultus.Wpf.Tests/Rendering/ScreenshotBaseline.cs`
 
 현재 적용:
 
@@ -270,9 +270,9 @@
 
 역할:
 
-- 기준 이미지는 `Easislides.Wpf.Tests/Rendering/baselines/`에 둔다.
+- 기준 이미지는 `Axicultus.Wpf.Tests/Rendering/baselines/`에 둔다.
 - 실제 결과가 다르면 테스트 출력 폴더의 `screenshot-actuals`에 `*.actual.png`를 남긴다.
-- 기준 이미지가 없을 때는 `EASISLIDES_APPROVE_BASELINES=1`인 경우에만 생성하고, 그래도 테스트는 실패시켜 사람이 검토하게 한다.
+- 기준 이미지가 없을 때는 `AXICULTUS_APPROVE_BASELINES=1`인 경우에만 생성하고, 그래도 테스트는 실패시켜 사람이 검토하게 한다.
 
 교육 포인트:
 
@@ -285,17 +285,17 @@
 
 대표 위치:
 
-- `Easislides.Wpf/App.xaml.cs`
-- `Easislides.Wpf/Rendering/PowerPointRenderService.cs`
-- `Easislides.Wpf/Media/MediaPlaybackService.cs`
-- `Easislides.Wpf/Input/GlobalInputService.cs`
-- `Easislides.Wpf/Data/AdminDatabaseRepository.cs`
-- `Easislides.Wpf/Library/BibleRepository.cs`
-- `Easislides.Wpf/Shell/OutputWindowHost.cs`
+- `Axicultus.Wpf/App.xaml.cs`
+- `Axicultus.Wpf/Rendering/PowerPointRenderService.cs`
+- `Axicultus.Wpf/Media/MediaPlaybackService.cs`
+- `Axicultus.Wpf/Input/GlobalInputService.cs`
+- `Axicultus.Wpf/Data/AdminDatabaseRepository.cs`
+- `Axicultus.Wpf/Library/BibleRepository.cs`
+- `Axicultus.Wpf/Shell/OutputWindowHost.cs`
 
 현재 확인된 production interface:
 
-- literal scan 기준 `Easislides.Wpf`에 `public interface I...` 58개
+- literal scan 기준 `Axicultus.Wpf`에 `public interface I...` 58개
 - 예: `IPowerPointRenderService`, `IPowerPointRenderBackend`, `IMediaPlaybackBackend`, `IGlobalKeySource`, `IGlobalInputDispatcher`, `IOutputWindowService`, `IOutputSurface`, `IBibleRepository`, `IAdminDatabaseRepository`, `ISettingsService`
 
 역할:
@@ -312,8 +312,8 @@
 
 위치:
 
-- production: `Easislides.Wpf/App.xaml.cs`
-- test: `Easislides.Wpf.Tests/AppServiceRegistrationTests.cs`
+- production: `Axicultus.Wpf/App.xaml.cs`
+- test: `Axicultus.Wpf.Tests/AppServiceRegistrationTests.cs`
 
 현재 적용:
 
@@ -348,7 +348,7 @@
 
 위치:
 
-- `Easislides.Wpf/Interop/OfficePptSession.cs`
+- `Axicultus.Wpf/Interop/OfficePptSession.cs`
 
 역할:
 
@@ -366,9 +366,9 @@
 
 위치:
 
-- production: `Easislides.Wpf/Rendering/PowerPointRenderService.cs`
-- tests: `Easislides.Wpf.Tests/Rendering/PowerPointRenderServiceTests.cs`
-- shell tests: `Easislides.Wpf.Tests/Shell/MainViewModelTests.cs`
+- production: `Axicultus.Wpf/Rendering/PowerPointRenderService.cs`
+- tests: `Axicultus.Wpf.Tests/Rendering/PowerPointRenderServiceTests.cs`
+- shell tests: `Axicultus.Wpf.Tests/Shell/MainViewModelTests.cs`
 
 현재 적용:
 
@@ -404,10 +404,10 @@
 
 위치:
 
-- production: `Easislides.Wpf/Shell/OutputWindowHost.cs`
-- production: `Easislides.Wpf/Shell/PreviewWindowHost.cs`
-- tests: `Easislides.Wpf.Tests/Shell/OutputWindowHostTests.cs`
-- tests: `Easislides.Wpf.Tests/Shell/PreviewWindowHostTests.cs`
+- production: `Axicultus.Wpf/Shell/OutputWindowHost.cs`
+- production: `Axicultus.Wpf/Shell/PreviewWindowHost.cs`
+- tests: `Axicultus.Wpf.Tests/Shell/OutputWindowHostTests.cs`
+- tests: `Axicultus.Wpf.Tests/Shell/PreviewWindowHostTests.cs`
 
 현재 적용:
 
@@ -434,12 +434,12 @@
 
 위치:
 
-- production: `Easislides.Wpf/Rendering/OutputRenderer.cs`
-- production: `Easislides.Wpf/Shell/OutputWindowViewModel.cs`
-- tests: `Easislides.Wpf.Tests/Rendering/OutputRendererTests.cs`
-- tests: `Easislides.Wpf.Tests/Shell/OutputWindowViewModelTests.cs`
-- tests: `Easislides.Wpf.Tests/Shell/OutputWindowTileClipTests.cs`
-- tests: `Easislides.Wpf.Tests/Shell/OutputWindowClipGuardTests.cs`
+- production: `Axicultus.Wpf/Rendering/OutputRenderer.cs`
+- production: `Axicultus.Wpf/Shell/OutputWindowViewModel.cs`
+- tests: `Axicultus.Wpf.Tests/Rendering/OutputRendererTests.cs`
+- tests: `Axicultus.Wpf.Tests/Shell/OutputWindowViewModelTests.cs`
+- tests: `Axicultus.Wpf.Tests/Shell/OutputWindowTileClipTests.cs`
+- tests: `Axicultus.Wpf.Tests/Shell/OutputWindowClipGuardTests.cs`
 
 검증하는 것:
 
@@ -460,11 +460,11 @@
 
 위치:
 
-- production: `Easislides.Wpf/Media/MediaPlaybackBackend.cs`
-- production: `Easislides.Wpf/Media/MediaPlaybackService.cs`
-- tests: `Easislides.Wpf.Tests/Media/MediaPlaybackServiceTests.cs`
-- tests: `Easislides.Wpf.Tests/Media/AttachableMediaPlaybackBackendTests.cs`
-- tests: `Easislides.Wpf.Tests/Media/MediaPlaybackViewModelTests.cs`
+- production: `Axicultus.Wpf/Media/MediaPlaybackBackend.cs`
+- production: `Axicultus.Wpf/Media/MediaPlaybackService.cs`
+- tests: `Axicultus.Wpf.Tests/Media/MediaPlaybackServiceTests.cs`
+- tests: `Axicultus.Wpf.Tests/Media/AttachableMediaPlaybackBackendTests.cs`
+- tests: `Axicultus.Wpf.Tests/Media/MediaPlaybackViewModelTests.cs`
 
 현재 적용:
 
@@ -491,12 +491,12 @@
 
 위치:
 
-- production: `Easislides.Wpf/Input/GlobalInputService.cs`
-- production: `Easislides.Wpf/Input/ShortcutRegistry.cs`
-- production: `Easislides.Wpf/Input/CommandCatalog.cs`
-- tests: `Easislides.Wpf.Tests/Input/GlobalInputServiceTests.cs`
-- tests: `Easislides.Wpf.Tests/Input/ShortcutRegistryTests.cs`
-- tests: `Easislides.Wpf.Tests/Input/CommandCatalogTests.cs`
+- production: `Axicultus.Wpf/Input/GlobalInputService.cs`
+- production: `Axicultus.Wpf/Input/ShortcutRegistry.cs`
+- production: `Axicultus.Wpf/Input/CommandCatalog.cs`
+- tests: `Axicultus.Wpf.Tests/Input/GlobalInputServiceTests.cs`
+- tests: `Axicultus.Wpf.Tests/Input/ShortcutRegistryTests.cs`
+- tests: `Axicultus.Wpf.Tests/Input/CommandCatalogTests.cs`
 - docs: `docs/wpf-migration/inventory/frmmain-shortcut-parity-map.md`
 
 현재 적용:
@@ -526,10 +526,10 @@
 
 대표 위치:
 
-- `Easislides.Wpf.Tests/Data/AdminDatabaseRepositoryTests.cs`
-- `Easislides.Wpf.Tests/Data/DatabaseMigrationServiceTests.cs`
-- `Easislides.Wpf.Tests/Library/BibleRepositoryTests.cs`
-- `Easislides.Wpf.Tests/Settings/OperationalDataRehearsalServiceTests.cs`
+- `Axicultus.Wpf.Tests/Data/AdminDatabaseRepositoryTests.cs`
+- `Axicultus.Wpf.Tests/Data/DatabaseMigrationServiceTests.cs`
+- `Axicultus.Wpf.Tests/Library/BibleRepositoryTests.cs`
+- `Axicultus.Wpf.Tests/Settings/OperationalDataRehearsalServiceTests.cs`
 
 현재 적용:
 
@@ -558,12 +558,12 @@
 
 대표 위치:
 
-- `Easislides.Wpf.Tests/Library/ImportExportServiceTests.cs`
-- `Easislides.Wpf.Tests/Library/ExternalFileOperationServiceTests.cs`
-- `Easislides.Wpf.Tests/Settings/AssetMigrationServiceTests.cs`
-- `Easislides.Wpf.Tests/Settings/SettingsServiceTests.cs`
-- `Easislides.Wpf.Tests/Shell/WorshipListStoreTests.cs`
-- `Easislides.Wpf.Tests/Rendering/ThumbnailCacheTests.cs`
+- `Axicultus.Wpf.Tests/Library/ImportExportServiceTests.cs`
+- `Axicultus.Wpf.Tests/Library/ExternalFileOperationServiceTests.cs`
+- `Axicultus.Wpf.Tests/Settings/AssetMigrationServiceTests.cs`
+- `Axicultus.Wpf.Tests/Settings/SettingsServiceTests.cs`
+- `Axicultus.Wpf.Tests/Shell/WorshipListStoreTests.cs`
+- `Axicultus.Wpf.Tests/Rendering/ThumbnailCacheTests.cs`
 
 현재 적용:
 
@@ -583,13 +583,13 @@
 
 위치:
 
-- production: `Easislides.Wpf/Settings/SettingsService.cs`
-- production: `Easislides.Wpf/Settings/RegistryLegacySettingsSource.cs`
-- production: `Easislides.Wpf/Settings/FileLegacySettingsSource.cs`
-- tests: `Easislides.Wpf.Tests/Settings/RegistryLegacySettingsSourceTests.cs`
-- tests: `Easislides.Wpf.Tests/Settings/FileLegacySettingsSourceTests.cs`
-- tests: `Easislides.Wpf.Tests/Settings/LegacySettingsMapTests.cs`
-- tests: `Easislides.Wpf.Tests/Settings/SettingsBootstrapMigrationServiceTests.cs`
+- production: `Axicultus.Wpf/Settings/SettingsService.cs`
+- production: `Axicultus.Wpf/Settings/RegistryLegacySettingsSource.cs`
+- production: `Axicultus.Wpf/Settings/FileLegacySettingsSource.cs`
+- tests: `Axicultus.Wpf.Tests/Settings/RegistryLegacySettingsSourceTests.cs`
+- tests: `Axicultus.Wpf.Tests/Settings/FileLegacySettingsSourceTests.cs`
+- tests: `Axicultus.Wpf.Tests/Settings/LegacySettingsMapTests.cs`
+- tests: `Axicultus.Wpf.Tests/Settings/SettingsBootstrapMigrationServiceTests.cs`
 
 현재 적용:
 
@@ -609,19 +609,19 @@
 교육 포인트:
 
 - migration 하네스는 "깨끗한 새 설치"와 "기존 사용자 데이터"를 모두 재현해야 한다.
-- 이 프로젝트는 WPF 기본 경로와 legacy `C:\EasiSlides` 경로 차이를 OpenSpec과 tests로 다룬다.
+- 이 프로젝트는 WPF 기본 경로와 legacy `C:\Axicultus` 경로 차이를 OpenSpec과 tests로 다룬다.
 
 ## 14. 접근성 및 XAML 정적 분석 하네스
 
 위치:
 
-- `Easislides.Wpf.Tests/Accessibility/XamlAccessibilityScanner.cs`
-- `Easislides.Wpf.Tests/Accessibility/LabeledByScanner.cs`
-- `Easislides.Wpf.Tests/Accessibility/XamlAccessibilityTests.cs`
-- `Easislides.Wpf.Tests/Accessibility/LabeledByTests.cs`
-- `Easislides.Wpf.Tests/Accessibility/TemplatePartsTests.cs`
-- `Easislides.Wpf.Tests/Accessibility/LiveRegionTests.cs`
-- `Easislides.Wpf.Tests/Binding/XamlBindingModeTests.cs`
+- `Axicultus.Wpf.Tests/Accessibility/XamlAccessibilityScanner.cs`
+- `Axicultus.Wpf.Tests/Accessibility/LabeledByScanner.cs`
+- `Axicultus.Wpf.Tests/Accessibility/XamlAccessibilityTests.cs`
+- `Axicultus.Wpf.Tests/Accessibility/LabeledByTests.cs`
+- `Axicultus.Wpf.Tests/Accessibility/TemplatePartsTests.cs`
+- `Axicultus.Wpf.Tests/Accessibility/LiveRegionTests.cs`
+- `Axicultus.Wpf.Tests/Binding/XamlBindingModeTests.cs`
 
 현재 적용:
 
@@ -644,7 +644,7 @@
 
 위치:
 
-- `Easislides.Wpf.Tests/Shell/MainViewModelTests.cs`
+- `Axicultus.Wpf.Tests/Shell/MainViewModelTests.cs`
 
 현재 적용:
 
@@ -681,9 +681,9 @@
 
 위치:
 
-- production: `Easislides.Wpf/Shell/LiveSessionService.cs`
-- production: `Easislides.Wpf/Shell/OutputWindowService.cs`
-- production: `Easislides.Wpf/Shell/PreviewWindowService.cs`
+- production: `Axicultus.Wpf/Shell/LiveSessionService.cs`
+- production: `Axicultus.Wpf/Shell/OutputWindowService.cs`
+- production: `Axicultus.Wpf/Shell/PreviewWindowService.cs`
 - tests: `LiveSessionServiceTests`
 - tests: `OutputWindowServiceTests`
 - tests: `PreviewWindowServiceTests`
@@ -709,10 +709,10 @@
 - `docs/wpf-migration/inventory/frmmain-to-wpf-1to1-map.md`
 - `docs/wpf-migration/inventory/frmmain-shortcut-parity-map.md`
 - `docs/wpf-migration/frmmain-1to1-ui-ux-function-mapping-plan.md`
-- `Easislides.Wpf.Tests/Composites/WorshipListPanelTests.cs`
-- `Easislides.Wpf.Tests/Shell/MainMenuBarTests.cs`
-- `Easislides.Wpf.Tests/Shell/MainWindowCopyTests.cs`
-- `Easislides.Wpf.Tests/Startup/AppStartupTests.cs`
+- `Axicultus.Wpf.Tests/Composites/WorshipListPanelTests.cs`
+- `Axicultus.Wpf.Tests/Shell/MainMenuBarTests.cs`
+- `Axicultus.Wpf.Tests/Shell/MainWindowCopyTests.cs`
+- `Axicultus.Wpf.Tests/Startup/AppStartupTests.cs`
 
 현재 적용:
 
@@ -730,11 +730,11 @@
 
 위치:
 
-- production: `Easislides.Wpf/App.xaml.cs`
-- production: `Easislides.Wpf/Startup/StartupArguments.cs`
-- tests: `Easislides.Wpf.Tests/Startup/StartupArgumentsTests.cs`
-- tests: `Easislides.Wpf.Tests/Startup/AppStartupTests.cs`
-- tests: `Easislides.Wpf.Tests/AppServiceRegistrationTests.cs`
+- production: `Axicultus.Wpf/App.xaml.cs`
+- production: `Axicultus.Wpf/Startup/StartupArguments.cs`
+- tests: `Axicultus.Wpf.Tests/Startup/StartupArgumentsTests.cs`
+- tests: `Axicultus.Wpf.Tests/Startup/AppStartupTests.cs`
+- tests: `Axicultus.Wpf.Tests/AppServiceRegistrationTests.cs`
 
 현재 적용:
 
@@ -753,9 +753,9 @@
 
 추천 파일:
 
-- `Easislides.Wpf.Tests/StaHelper.cs`
-- `Easislides.Wpf.Tests/Rendering/SlidePreviewControlTests.cs`
-- `Easislides.Wpf.Tests/Rendering/PreviewCanvasTests.cs`
+- `Axicultus.Wpf.Tests/StaHelper.cs`
+- `Axicultus.Wpf.Tests/Rendering/SlidePreviewControlTests.cs`
+- `Axicultus.Wpf.Tests/Rendering/PreviewCanvasTests.cs`
 
 강의 흐름:
 
@@ -991,7 +991,7 @@
 | --- | --- | --- |
 | OpenSpec contract | `openspec/changes/*` | WPF FrmMain parity, shortcut parity, visual parity |
 | CodeGraph impact | `openspec/changes/*/codegraph-impact.md` | MainWindow, MainViewModel, FrmMain reference 영향 분석 |
-| STA 실행 | `Easislides.Wpf.Tests/StaHelper.cs` | WPF control, automation peer, render tests |
+| STA 실행 | `Axicultus.Wpf.Tests/StaHelper.cs` | WPF control, automation peer, render tests |
 | WPF Application fixture | `Theme/WpfApplicationFixture.cs` | theme resource, Application.Current 의존 테스트 |
 | Headless render | `Rendering/VisualRenderHarness.cs` | screenshot regression, output render parity |
 | Image compare | `Rendering/ImageComparer.cs` | PNG pixel tolerance 비교 |
@@ -1011,10 +1011,10 @@
 
 ## 23. 최종 판단
 
-EasiSlides WPF 포팅은 하네스 엔지니어링 교육에 좋은 사례다. 이유는 단순히 테스트가 많아서가 아니라, 위험한 운영 환경을 작은 계약으로 나누는 방식이 여러 층에 나타나기 때문이다.
+Axicultus WPF 포팅은 하네스 엔지니어링 교육에 좋은 사례다. 이유는 단순히 테스트가 많아서가 아니라, 위험한 운영 환경을 작은 계약으로 나누는 방식이 여러 층에 나타나기 때문이다.
 
 가장 강한 교육 메시지는 다음이다.
 
 > 예배 송출 안정성을 지키려면 "실제 환경을 매번 띄워 본다"만으로는 부족하다. Office, DB, 출력창, WPF UI, 단축키, 레거시 parity를 각각 작게 격리하고, 그 격리된 환경을 반복 실행 가능한 하네스로 만들어야 한다.
 
-현재 이 원칙은 특히 `Easislides.Wpf`와 `Easislides.Wpf.Tests`에 잘 적용되어 있다. 반대로 legacy WinForms 영역은 주로 reference oracle로 남아 있어, 실제 legacy production code를 수정할 때는 OpenSpec, CodeGraph impact, manual UAT checklist, focused characterization test를 더 강하게 붙이는 것이 좋다.
+현재 이 원칙은 특히 `Axicultus.Wpf`와 `Axicultus.Wpf.Tests`에 잘 적용되어 있다. 반대로 legacy WinForms 영역은 주로 reference oracle로 남아 있어, 실제 legacy production code를 수정할 때는 OpenSpec, CodeGraph impact, manual UAT checklist, focused characterization test를 더 강하게 붙이는 것이 좋다.

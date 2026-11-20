@@ -15,8 +15,8 @@ WinForms→WPF 이식·컴포지트 추출(작업 A) 시 "보이는 결과가 �
 | **기준 비주얼 = 텍스트 없는 색 토큰 스와치** | 폰트 힌팅·안티에일리어싱은 환경마다 달라 픽셀 비교가 불안정. 텍스트를 배제하면 결정적이 되어 환경 간 안정적이고, 토큰 색이 바뀌면 즉시 회귀로 잡힌다. |
 | **DPI 96 고정 + Pbgra32** | 환경 간 동일 픽셀 치수·채널 정렬 보장. |
 | **허용오차 비교** (채널 ±2, 차이 픽셀 0%) | 미세 인코딩 잡음은 흡수, 실제 색·레이아웃 변경은 감지. |
-| **승인 테스트(approval) 방식** | 기준 이미지가 없으면 `EASISLIDES_APPROVE_BASELINES=1` 일 때만 생성·실패. CI에서는 미설정이라 "조용한 생성 후 통과" 위장 차단. |
-| **경로 분리** | 기준 이미지는 소스 트리(`Easislides.Wpf.Tests/Rendering/baselines/`, 커밋 대상), 진단 산출물 `*.actual.png` 는 테스트 출력 폴더(`bin/.../screenshot-actuals/`, gitignore). |
+| **승인 테스트(approval) 방식** | 기준 이미지가 없으면 `AXICULTUS_APPROVE_BASELINES=1` 일 때만 생성·실패. CI에서는 미설정이라 "조용한 생성 후 통과" 위장 차단. |
+| **경로 분리** | 기준 이미지는 소스 트리(`Axicultus.Wpf.Tests/Rendering/baselines/`, 커밋 대상), 진단 산출물 `*.actual.png` 는 테스트 출력 폴더(`bin/.../screenshot-actuals/`, gitignore). |
 
 ## 3. 구성 요소 (테스트 인프라)
 
@@ -30,8 +30,8 @@ WinForms→WPF 이식·컴포지트 추출(작업 A) 시 "보이는 결과가 �
 
 ```powershell
 # 새 기준 비주얼을 추가하거나 의도적으로 갱신할 때(로컬, 승인 모드):
-$env:EASISLIDES_APPROVE_BASELINES = "1"
-dotnet test Easislides.Wpf.Tests --filter "FullyQualifiedName~ScreenshotRegressionTests"
+$env:AXICULTUS_APPROVE_BASELINES = "1"
+dotnet test Axicultus.Wpf.Tests --filter "FullyQualifiedName~ScreenshotRegressionTests"
 # → 누락된 기준 이미지가 생성되고 테스트는 1회 실패. 생성된 PNG를 눈으로 검토 후 커밋하고 다시 실행.
 ```
 

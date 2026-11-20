@@ -8,7 +8,7 @@
 
 ## 컨텍스트
 
-`Easislides/HookManager/` 에 5파일로 구성된 전역 Win32 키보드/마우스 후킹 시스템:
+`Axicultus/HookManager/` 에 5파일로 구성된 전역 Win32 키보드/마우스 후킹 시스템:
 - `HookManager.cs` — 진입점
 - `HookManager.Callbacks.cs` — 후킹 콜백
 - `HookManager.Windows.cs` — Win32 API 바인딩 (`SetWindowsHookEx`, `WH_KEYBOARD_LL`, `WH_MOUSE_LL`)
@@ -17,7 +17,7 @@
 
 이 시스템이 처리하는 것:
 - **무선 리모컨 입력** — 라이브 운영자가 무대 뒤에서 PgUp/PgDn/F5/Esc 등으로 슬라이드 전환 (앱이 포커스를 갖지 않을 때도 작동)
-- **글로벌 단축키** — 다른 앱이 활성일 때도 EasiSlides에 입력 전달
+- **글로벌 단축키** — 다른 앱이 활성일 때도 Axicultus에 입력 전달
 - **마우스 후킹** — 송출 화면 영역 클릭 차단 등
 
 WPF는 **표준 입력 라우팅**으로 `InputBinding`/`KeyBinding`/`PreviewKeyDown` 라우티드 이벤트를 제공하지만, 이는 **앱이 포커스를 가질 때만** 작동.
@@ -57,7 +57,7 @@ WPF는 **표준 입력 라우팅**으로 `InputBinding`/`KeyBinding`/`PreviewKey
 
 세부 — **충돌 회피 프로토콜**:
 
-1. **단축키 등록 단일 소스**: `Easislides.Wpf/Input/ShortcutRegistry.cs` 신설.
+1. **단축키 등록 단일 소스**: `Axicultus.Wpf/Input/ShortcutRegistry.cs` 신설.
    - 단축키 정의를 `Shortcut` 레코드(키 조합 + Command + 글로벌 여부)로 단일 선언
    - HookManager는 `IsGlobal == true`인 항목만 처리
    - WPF `PreviewKeyDown`은 모든 항목 처리 (포커스 있을 때)
@@ -78,7 +78,7 @@ WPF는 **표준 입력 라우팅**으로 `InputBinding`/`KeyBinding`/`PreviewKey
    ```
 
 4. **검증 — Sprint 0 PoC-A**: 다음 시나리오를 자동 테스트.
-   - 글로벌 키(예: `F5`) → 다른 앱 활성 상태에서 EasiSlides 명령 실행 확인
+   - 글로벌 키(예: `F5`) → 다른 앱 활성 상태에서 Axicultus 명령 실행 확인
    - 로컬 키(예: `Ctrl+S` in 편집 폼) → 글로벌 등록 없을 때 폼별 작동 확인
    - 충돌 키 → 글로벌 핸들러가 항상 우선 작동 확인
    - 리모컨 시뮬레이션 — `PgUp`/`PgDn`이 앱 비포커스 시에도 슬라이드 전환
@@ -89,7 +89,7 @@ PoC-A 실패 시 Sprint 1 진입 차단 (계획서 §8.3).
 
 ### 긍정적
 - **라이브 안정성 보존** — 5년+ 검증된 동작 그대로
-- **리모컨·글로벌 단축키 보장** — 운영자가 부스 뒤·다른 앱 활성 상태에서도 EasiSlides 제어 가능
+- **리모컨·글로벌 단축키 보장** — 운영자가 부스 뒤·다른 앱 활성 상태에서도 Axicultus 제어 가능
 - **마이그레이션 위험 최소** — HookManager 코드는 0줄 변경
 
 ### 부정적
@@ -105,5 +105,5 @@ PoC-A 실패 시 Sprint 1 진입 차단 (계획서 §8.3).
 - 계획서 §7.5, §8.3 (Sprint 0 PoC-A), §10.3
 - [Win32 SetWindowsHookEx 문서](https://learn.microsoft.com/windows/win32/api/winuser/nf-winuser-setwindowshookex)
 - [WPF Input Routing](https://learn.microsoft.com/dotnet/desktop/wpf/advanced/input-overview)
-- `Easislides/HookManager/HookManager.cs` (보존 대상)
+- `Axicultus/HookManager/HookManager.cs` (보존 대상)
 - ADR-0001 (WPF UI)

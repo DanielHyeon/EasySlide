@@ -2,7 +2,7 @@
 
 작성일: 2026-06-04
 
-목적: WPF가 "실행되는 껍데기"가 아니라 실제 예배 운영에 쓸 수 있는지 검증한다. 모든 시나리오는 가능하면 `C:\EasiSlides` 실제 데이터로 수행한다.
+목적: WPF가 "실행되는 껍데기"가 아니라 실제 예배 운영에 쓸 수 있는지 검증한다. 모든 시나리오는 가능하면 `C:\Axicultus` 실제 데이터로 수행한다.
 
 결과 표기:
 
@@ -18,7 +18,7 @@
 | UAT-001 | WPF 실행 | 창이 오류 없이 열리고 메뉴/툴바/상태바/좌측/Preview/Output이 보인다 | PASS - 2026-06-21 캡처 비교에서 WPF MainWindow가 오류 없이 열리고 주요 영역이 첫 화면에 표시됨 |
 | UAT-002 | 1180x760 크기로 조절 | 좌측 상단, 좌측 하단, Preview, Output이 겹치지 않는다 | PASS - WPF `MinWidth=1180`, `MinHeight=760` 확인. 125% DPI 환경에서 물리 캡처는 1475x950으로 기록되며, 해당 1180x760 logical size에서 영역 겹침 없음 |
 | UAT-003 | 1920x1080 최대화 | FrmMain과 같은 운영 영역 비율로 사용할 수 있다 | PASS - 2026-06-21 1920x1080 캡처에서 좌측 source/list, Preview, Output, bottom preview/output 영역 분리 유지 |
-| UAT-004 | `C:\EasiSlides` working folder 확인 | 실제 legacy 데이터 경로를 사용한다 | PASS - `C:\EasiSlides` 존재 및 `Legacy worship list loaded: 1.주일예배 (23 .esw items)` 확인 |
+| UAT-004 | `C:\Axicultus` working folder 확인 | 실제 legacy 데이터 경로를 사용한다 | PASS - `C:\Axicultus` 존재 및 `Legacy worship list loaded: 1.주일예배 (23 .esw items)` 확인 |
 
 ## 2. Left Top Source Browser
 
@@ -28,28 +28,28 @@
 | UAT-102 | 곡 검색 | title/lyrics/number search works with real songs | PASS - `manual-uat-run2-song-search.png`; 실제 곡 검색어 `감사` 입력 후 목록이 감사 관련 곡으로 필터링되고 Preview/목록 상태가 유지됨 |
 | UAT-103 | 곡 더블클릭 | selected song is added to Worship List or Preview according to legacy flow | PARTIAL - `manual-uat-run2-song-add-button.png`; 선택 곡은 `WL_Add` 경로로 예배 순서에 추가되고 Preview가 갱신됨. 단, 더블클릭 gesture 자체의 목록 증가 증거는 확보하지 못해 follow-up 필요 |
 | UAT-104 | 곡 drag to Worship List | dropped song is inserted at drop position | PARTIAL - source 선택 및 add 경로는 검증했으나 UIAutomation drag gesture 증거가 안정적으로 확보되지 않음 |
-| UAT-111 | InfoScr 탭 열기 | InfoScreen folders and list are populated | BLOCKED - `tabs/source-02-infoscr.png`; 탭은 열리지만 `C:\EasiSlides\InfoScreens` 파일 수 0으로 실제 데이터 population 검증 불가 |
-| UAT-112 | InfoScreen add/drag | selected InfoScreen is inserted into Worship List | BLOCKED - `C:\EasiSlides\InfoScreens` 파일 수 0으로 실제 add/drag 대상 없음 |
-| UAT-121 | PowerPoint 탭 열기 | PPT folders/files are populated | BLOCKED - 현재 `UsePowerPointTab=false` 설정으로 탭 숨김, `C:\EasiSlides\Powerpoint` 파일 수 0. XAML에는 `PowerPointSourceTab` 존재 |
-| UAT-122 | PPT preview/list style | thumbnails or list style matches selected mode | BLOCKED - `UsePowerPointTab=false` 및 `C:\EasiSlides\Powerpoint` 파일 수 0 |
+| UAT-111 | InfoScr 탭 열기 | InfoScreen folders and list are populated | BLOCKED - `tabs/source-02-infoscr.png`; 탭은 열리지만 `C:\Axicultus\InfoScreens` 파일 수 0으로 실제 데이터 population 검증 불가 |
+| UAT-112 | InfoScreen add/drag | selected InfoScreen is inserted into Worship List | BLOCKED - `C:\Axicultus\InfoScreens` 파일 수 0으로 실제 add/drag 대상 없음 |
+| UAT-121 | PowerPoint 탭 열기 | PPT folders/files are populated | BLOCKED - 현재 `UsePowerPointTab=false` 설정으로 탭 숨김, `C:\Axicultus\Powerpoint` 파일 수 0. XAML에는 `PowerPointSourceTab` 존재 |
+| UAT-122 | PPT preview/list style | thumbnails or list style matches selected mode | BLOCKED - `UsePowerPointTab=false` 및 `C:\Axicultus\Powerpoint` 파일 수 0 |
 | UAT-123 | PPT add/drag | selected PPT is inserted into Worship List and Preview shows first slide | BLOCKED - 실제 PPT 데이터 없음 |
 | UAT-124 | PPT thumbnail sharpness | left source, Preview, and Output PPT thumbnails render as clear 4:3 images, not blurry low-resolution exports | BLOCKED - 실제 PPT 데이터 없음 |
-| UAT-131 | Bibles 탭 열기 | Bible versions, books, and text area are populated | PASS - `tabs/source-03-bibles-after-frmmain-bottom-fix.png`; `C:\EasiSlides\HolyBibles` DB 2개, 책/본문/버전 UI 표시. 2026-06-21 지적 반영: non-legacy 하단 추가 버튼 제거, `BibleText` 바로 아래 `TabBibleVersions` 배치 확인 |
+| UAT-131 | Bibles 탭 열기 | Bible versions, books, and text area are populated | PASS - `tabs/source-03-bibles-after-frmmain-bottom-fix.png`; `C:\Axicultus\HolyBibles` DB 2개, 책/본문/버전 UI 표시. 2026-06-21 지적 반영: non-legacy 하단 추가 버튼 제거, `BibleText` 바로 아래 `TabBibleVersions` 배치 확인 |
 | UAT-132 | Bible direct lookup | reference such as `사도행전 9:31` selects/shows verses | PASS - `manual-uat-bible-lookup-add.png`, `manual-uat-run2-bible-lookup.png`; `사도행전 9:31` 조회 후 본문과 선택 범위가 표시됨 |
 | UAT-133 | Bible passage add | selected verses are added to Worship List | PASS - `manual-uat-bible-lookup-add.png`; `사도행전 9:31-32 (개역개정)` 항목이 예배 순서에 추가됨 |
 | UAT-134 | Bible passage drag | selected verses can be dragged into desired Worship List position | PARTIAL - lookup/add 경로는 검증했으나 Bible drag insertion 증거는 안정적으로 확보하지 못함 |
 | UAT-135 | Bible click and Shift-click selection | clicking a verse selects that verse, Shift+click extends multiple verses, and context/Enter/source-add paths insert the selected range into Worship List | PARTIAL - 단일 조회 및 2절 범위 추가는 확인했으나 Shift-click multi-select gesture 자체는 별도 follow-up 필요 |
-| UAT-141 | Images 탭 열기 | image folders and thumbnails are populated | PARTIAL - `tabs/source-04-images.png`; `C:\EasiSlides\Images` 파일 117개와 썸네일 표시. 단, `tabs-compare/compare-04-images.png` 기준 WPF 첫 화면 썸네일 밀도/가시 개수가 FrmMain보다 낮아 visual usability parity 보정 필요 |
+| UAT-141 | Images 탭 열기 | image folders and thumbnails are populated | PARTIAL - `tabs/source-04-images.png`; `C:\Axicultus\Images` 파일 117개와 썸네일 표시. 단, `tabs-compare/compare-04-images.png` 기준 WPF 첫 화면 썸네일 밀도/가시 개수가 FrmMain보다 낮아 visual usability parity 보정 필요 |
 | UAT-142 | Apply image background | selected image changes item/default/output background as expected | PASS - `manual-uat-images-apply.png`, `manual-uat-run2-images-apply.png`; `cross1.jpg` 선택 후 Apply 실행, 상태바에 항목 배경 이미지 적용 메시지 표시 |
-| UAT-151 | Media 탭 열기 | media folders and files are populated | BLOCKED - 현재 `UseMediaTab=false` 설정으로 탭 숨김, `C:\EasiSlides\Media` 파일 수 0. XAML에는 `MediaSourceTab` 존재 |
-| UAT-152 | Media double-click/add/drag | selected media is inserted and can be previewed/output | BLOCKED - `UseMediaTab=false` 및 `C:\EasiSlides\Media` 파일 수 0 |
+| UAT-151 | Media 탭 열기 | media folders and files are populated | BLOCKED - 현재 `UseMediaTab=false` 설정으로 탭 숨김, `C:\Axicultus\Media` 파일 수 0. XAML에는 `MediaSourceTab` 존재 |
+| UAT-152 | Media double-click/add/drag | selected media is inserted and can be previewed/output | BLOCKED - `UseMediaTab=false` 및 `C:\Axicultus\Media` 파일 수 0 |
 | UAT-161 | Default 탭 열기 | default format/background/transition controls are available | PARTIAL - `tabs/source-05-default.png`; `Def_*` 컨트롤은 XAML/스크롤 영역에 존재하지만, `tabs-compare/compare-05-default.png` 기준 FrmMain 첫 화면의 `Apply to All Except InfoScreens`, `Default Background`, `Display Panel` 밀도와 순서가 WPF 첫 화면에서 동일하지 않음 |
 
 ## 3. Left Bottom Worship List And Praise Book
 
 | ID | Scenario | Expected result | Result |
 | --- | --- | --- | --- |
-| UAT-201 | Saved Worship List selector open | `.esw` lists from `C:\EasiSlides\Admin\WorshipLists` appear | PASS - `tabs/list-01-worship-list.png`; `C:\EasiSlides\Admin\WorshipLists` 파일 35개, selector 표시 |
+| UAT-201 | Saved Worship List selector open | `.esw` lists from `C:\Axicultus\Admin\WorshipLists` appear | PASS - `tabs/list-01-worship-list.png`; `C:\Axicultus\Admin\WorshipLists` 파일 35개, selector 표시 |
 | UAT-202 | Load saved Worship List | selected list loads real items with icons/types | PASS - `tabs/list-01-worship-list.png`; `1.주일예배` 23개 항목 로드 및 아이콘/타입 표시 |
 | UAT-203 | Select Worship List item | Preview updates to selected item | PASS - `manual-uat-run2-worship-select.png`; 실제 예배 순서 항목 선택 시 Preview 선택 상태/본문이 갱신됨 |
 | UAT-204 | Delete selected item | item is removed and list remains stable | PASS - `manual-uat-run2-worship-delete.png`; 세션 내 항목 제거 버튼 실행 후 UI 안정 유지. 파일 저장은 수행하지 않음 |
@@ -105,7 +105,7 @@
 
 ## Phase 7 Smoke Evidence (2026-06-21)
 
-자동 smoke 검증은 manual UAT 전체 PASS를 대체하지 않는다. 다만 실제 `C:\EasiSlides` 데이터가 있는 환경에서 WPF MainWindow가 시작되고, 주요 first-screen 영역과 레거시 데이터 로딩 신호가 노출되는지 확인하는 gate evidence로 기록한다.
+자동 smoke 검증은 manual UAT 전체 PASS를 대체하지 않는다. 다만 실제 `C:\Axicultus` 데이터가 있는 환경에서 WPF MainWindow가 시작되고, 주요 first-screen 영역과 레거시 데이터 로딩 신호가 노출되는지 확인하는 gate evidence로 기록한다.
 
 - 캡처 위치: `openspec/changes/a010-wpf-frmmain-1to1-operator-console-parity/evidence/screenshots/2026-06-21/`.
 - FrmMain/WPF 비교 캡처: `frmmain-vs-wpf-printwindow-side-by-side.png`.
@@ -115,8 +115,8 @@
 - Folders UI 수정 후 캡처: `tabs/source-01-folders-after-initial-strip-fix.png`, `tabs-compare/compare-01-folders-after-initial-strip-fix.png`. FrmMain `tabFolders`는 `SongFolder`, `SongsList`, `panelFolders/Folders_WordCount`만 가지므로 WPF-only 머리글자 점프 바를 제거함. 재캡처는 최대화 상태라 기존 1440x900 비교와 배율은 다르며, 추가 UI 제거 확인 증거로 사용한다.
 - Bibles 하단 UI 수정 후 캡처: `tabs/source-03-bibles-after-frmmain-bottom-fix.png`. 사용자 지적에 따라 WPF-only 하단 추가 버튼/상태 줄을 제거하고 FrmMain처럼 `BibleText` 바로 아래 `TabBibleVersions`가 오도록 맞춤.
 - Live/Output 캡처: `wpf-before-preview-go-live.png`, `wpf-after-preview-go-live.png`, `wpf-live-safety-contact-sheet.png`, `wpf-live-before-safety-actions.png`, `wpf-output-black.png`, `wpf-output-clear.png`, `wpf-output-restore.png`.
-- `C:\EasiSlides` 존재 확인: `Admin`, `Backgrounds`, `HolyBibles`, `Images`, `InfoScreens`, `Media`, `Powerpoint` 폴더 확인.
-- `Easislides.Wpf\bin\Debug\net10.0-windows\EasislidesNext.exe` 실행 확인: `MainWindowTitle=EasiSlides`, `AutomationName=EasiSlides`, `AutomationClassName=Window`, UIAutomation descendant 355개.
+- `C:\Axicultus` 존재 확인: `Admin`, `Backgrounds`, `HolyBibles`, `Images`, `InfoScreens`, `Media`, `Powerpoint` 폴더 확인.
+- `Axicultus.Wpf\bin\Debug\net10.0-windows\AxicultusNext.exe` 실행 확인: `MainWindowTitle=Axicultus`, `AutomationName=Axicultus`, `AutomationClassName=Window`, UIAutomation descendant 355개.
 - 실제 데이터 로딩 신호 확인: `Legacy worship list loaded: 1.주일예배 (23 .esw items)`.
 - 주요 UI 영역 노출 확인: `Folders`, `InfoScr`, `Bibles`, `Images`, `Default`, `Worship List`, `Praise Book`, `Preview`, `Output`, `Go Live`.
 - 주요 Output 안전 제어 노출 확인: `Output 검은 화면`, `Output 화면 비우기`, `Output 복귀`, `Output 새로고침`.
@@ -126,7 +126,7 @@
 
 ## Actual Manual UAT Evidence (2026-06-21)
 
-실제 `C:\EasiSlides` 데이터로 WPF MainWindow를 실행하고 UAT 표의 모든 row에 PASS/PARTIAL/BLOCKED/FAIL 판정을 채웠다.
+실제 `C:\Axicultus` 데이터로 WPF MainWindow를 실행하고 UAT 표의 모든 row에 PASS/PARTIAL/BLOCKED/FAIL 판정을 채웠다.
 
 - 상세 요약: `openspec/changes/a010-wpf-frmmain-1to1-operator-console-parity/evidence/manual-uat/2026-06-21/manual-uat-summary.md`.
 - 결과 집계: PASS 25, PARTIAL 25, BLOCKED 12, FAIL 0.
@@ -142,13 +142,13 @@ OpenSpec `a010-wpf-frmmain-1to1-operator-console-parity` Phase 8에서 PARTIAL 2
 - 구현/테스트 증거로 닫음: UAT-103, UAT-104, UAT-134, UAT-135, UAT-205~208, UAT-303, UAT-402, UAT-404, UAT-411, UAT-501~507.
 - 외부 송출 모니터 직접 관찰 필요: UAT-406~408.
 - source 폴더/설정/선택 상태 재검증 필요로 BLOCKED 유지: UAT-111, UAT-112, UAT-121~124, UAT-151, UAT-152, UAT-212, UAT-213, UAT-306, UAT-405.
-- 후속 확인: `C:\EasiSlides` 운영 데이터 루트는 존재한다. PPT/Media 운영 자료는 `C:\EasiSlides\Documents\*.lnk`가 가리키는 `D:\예배자료`에 존재한다. 다만 현재 `UsePowerPointTab=0`, `UseMediaTab=0`이고 `C:\EasiSlides\Powerpoint`, `C:\EasiSlides\Media`, `C:\EasiSlides\InfoScreens` 직접 source 폴더는 비어 있어 source tab UAT는 설정/경로 재확인 후 재수행해야 한다.
+- 후속 확인: `C:\Axicultus` 운영 데이터 루트는 존재한다. PPT/Media 운영 자료는 `C:\Axicultus\Documents\*.lnk`가 가리키는 `D:\예배자료`에 존재한다. 다만 현재 `UsePowerPointTab=0`, `UseMediaTab=0`이고 `C:\Axicultus\Powerpoint`, `C:\Axicultus\Media`, `C:\Axicultus\InfoScreens` 직접 source 폴더는 비어 있어 source tab UAT는 설정/경로 재확인 후 재수행해야 한다.
 
 상세 근거: `openspec/changes/a010-wpf-frmmain-1to1-operator-console-parity/evidence/manual-uat/2026-06-21/phase8-partial-blocked-closure.md`.
 
 ## Phase 9 레지스트리 런타임 설정 보정 (2026-06-21)
 
-사용자 확인으로 `HKCU\Software\EasiSlides` 아래에 FrmMain 관련 설정이 있음을 재확인했다. WPF는 레지스트리 소스를 가지고 있었지만, 기존 `%APPDATA%\EasislidesNext\settings.json`이 있으면 bootstrap migration을 건너뛰어 `current_praisebook`, `current_session`, `UsePowerpointTab`, `UseMediaTab`, `media_dir`가 재반영되지 않았다.
+사용자 확인으로 `HKCU\Software\Axicultus` 아래에 FrmMain 관련 설정이 있음을 재확인했다. WPF는 레지스트리 소스를 가지고 있었지만, 기존 `%APPDATA%\AxicultusNext\settings.json`이 있으면 bootstrap migration을 건너뛰어 `current_praisebook`, `current_session`, `UsePowerpointTab`, `UseMediaTab`, `media_dir`가 재반영되지 않았다.
 
 Phase 9에서 `SettingsBootstrapMigrationService`를 수정해 기존 WPF 작업 폴더는 덮어쓰지 않고 위 runtime registry settings만 시작 시 재동기화하도록 했다.
 
@@ -156,15 +156,15 @@ Phase 9에서 `SettingsBootstrapMigrationService`를 수정해 기존 WPF 작업
 - 테스트 완료: `SettingsBootstrapMigrationServiceTests|RegistryLegacySettingsSourceTests` 실패 0, 통과 8, 건너뜀 0.
 - UAT 영향: `current_praisebook`/`current_session` 선택 상태와 PowerPoint/Media tab 표시 설정은 다음 WPF 시작부터 레지스트리 기준으로 재동기화된다. 단, `UsePowerpointTab=0`, `UseMediaTab=0` 값 자체가 legacy 현재 상태이면 해당 탭은 FrmMain과 동일하게 숨김 상태가 맞다.
 
-## Phase 10 C:\EasiSlides 배포 검증 (2026-06-21)
+## Phase 10 C:\Axicultus 배포 검증 (2026-06-21)
 
-WPF Release 산출물을 `C:\EasiSlides\EasislidesNext`에 배포하고 기존 WinForms `C:\EasiSlides\Easislides.exe`와 같은 운영 루트/레지스트리 기준으로 실행했다.
+WPF Release 산출물을 `C:\Axicultus\AxicultusNext`에 배포하고 기존 WinForms `C:\Axicultus\Axicultus.exe`와 같은 운영 루트/레지스트리 기준으로 실행했다.
 
-- WPF 배포본 실행 확인: `C:\EasiSlides\EasislidesNext\EasislidesNext.exe`, `MainWindowTitle=EasiSlides`, UIAutomation descendant 358개.
-- WPF 설정 동기화 확인: `WorkingFolder=C:\EasiSlides\`, `CurrentWorshipListName=1.주일예배`, `CurrentPraiseBookName=PraiseBook 1`, `UsePowerPointTab=false`, `UseMediaTab=false`, `MediaDirectory=C:\EasiSlides\Media\`.
+- WPF 배포본 실행 확인: `C:\Axicultus\AxicultusNext\AxicultusNext.exe`, `MainWindowTitle=Axicultus`, UIAutomation descendant 358개.
+- WPF 설정 동기화 확인: `WorkingFolder=C:\Axicultus\`, `CurrentWorshipListName=1.주일예배`, `CurrentPraiseBookName=PraiseBook 1`, `UsePowerPointTab=false`, `UseMediaTab=false`, `MediaDirectory=C:\Axicultus\Media\`.
 - WPF 데이터 로딩 확인: `Legacy worship list loaded: 1.주일예배 (23 .esw items)`, Folders/Bibles/Images/Default/Worship List/Praise Book/Preview/Output/Go Live surface 확인.
 - Praise Book 탭 확인: `찬양집 열림: PraiseBook 1 (0곡)`. 이는 현재 legacy registry 선택값과 해당 `.esp` 데이터 상태를 반영한 결과다.
-- WinForms 비교 실행 확인: `C:\EasiSlides\Easislides.exe`, `MainWindowTitle=EasiSlides`, 같은 Folders 찬송가 source list 및 Worship 23 items 화면 확인.
+- WinForms 비교 실행 확인: `C:\Axicultus\Axicultus.exe`, `MainWindowTitle=Axicultus`, 같은 Folders 찬송가 source list 및 Worship 23 items 화면 확인.
 - 캡처: `openspec/changes/a010-wpf-frmmain-1to1-operator-console-parity/evidence/screenshots/2026-06-21/phase10-deployed/`.
 
 ## 7. Completion Gate
@@ -174,6 +174,6 @@ The WPF migration cannot be marked usable until:
 - all P0 UAT rows are `PASS`;
 - every `PARTIAL` row has a linked implementation task;
 - every `FAIL` row has a bug/task and is not hidden;
-- `dotnet test Easislides.Wpf.Tests` passes;
-- `dotnet build Easislides\Easislides.csproj -nologo -v minimal` passes;
+- `dotnet test Axicultus.Wpf.Tests` passes;
+- `dotnet build Axicultus\Axicultus.csproj -nologo -v minimal` passes;
 - WPF is launched and manually checked with real legacy data.

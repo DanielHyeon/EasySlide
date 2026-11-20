@@ -27,7 +27,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="Easislides.Tests" />
+    <InternalsVisibleTo Include="Axicultuss.Tests" />
     <PackageReference Include="NetOffice.Core" Version="1.7.4.11" />
     <PackageReference Include="NetOffice.PowerPoint" Version="1.7.4.11" />
     <PackageReference Include="NetOffice.Word" Version="1.7.4.11" />

@@ -45,7 +45,7 @@ WPF UI 3.x 라이브러리가 Fluent 아이콘 전체를 Symbol Font + Enum으�
 
 1. <https://aka.ms/fluenticons>에서 검색 → SVG 다운로드
 2. Visual Studio Blend의 "이미지 → XAML 변환" 또는 온라인 변환기 (<https://github.com/BerndK/SvgToXaml>)
-3. `Easislides.Wpf/Assets/Icons/<Name>.xaml`에 `DrawingImage` 또는 `Geometry` 리소스로 저장
+3. `Axicultus.Wpf/Assets/Icons/<Name>.xaml`에 `DrawingImage` 또는 `Geometry` 리소스로 저장
 4. `Theme/Icons.xaml`에 머지
 
 예시:
@@ -69,7 +69,7 @@ WPF UI 3.x 라이브러리가 Fluent 아이콘 전체를 Symbol Font + Enum으�
 
 #### B-2. 빌드 자동화 (수십 개 이상)
 
-`Easislides.Wpf.csproj`에 빌드 타깃 추가:
+`Axicultus.Wpf.csproj`에 빌드 타깃 추가:
 
 ```xml
 <Target Name="ConvertSvgToXaml" BeforeTargets="BeforeBuild">
@@ -94,14 +94,14 @@ PNG는 하이-DPI에서 흐릿. 부득이한 경우만 — 예: 일러스트레�
 
 1. **매핑 표 확정** — [icon-migration-map.md](icon-migration-map.md)의 모든 행을 검토하여 신규 Fluent 아이콘 이름이 실제 카탈로그에 존재하는지 <https://aka.ms/fluenticons>에서 확인.
 2. **옵션 A 우선** — WPF UI `SymbolIcon` enum (`Symbol="Book24"` 등)으로 사용 가능한 항목 표시.
-3. **옵션 B로 보충** — WPF UI에 없는 항목은 SVG 다운로드 → `Easislides.Wpf/Assets/Icons/Source/`에 저장 → 변환.
+3. **옵션 B로 보충** — WPF UI에 없는 항목은 SVG 다운로드 → `Axicultus.Wpf/Assets/Icons/Source/`에 저장 → 변환.
 4. **`Theme/Icons.xaml` 정리** — 모든 도메인-특화 아이콘 키를 한 곳에 모아 명명 표준화:
    ```xml
    <Ui:SymbolIcon x:Key="Icon.Bible" Symbol="Book24" />
    <Ui:SymbolIcon x:Key="Icon.Media.Play" Symbol="PlayCircle24" />
    <DrawingImage x:Key="Icon.Worship" ... /> <!-- 커스텀 -->
    ```
-5. **레거시 자산 삭제** — `Easislides/Resources/*.png`, `EasislideImages/*.png` 모두 제거 (Q6 100% 폐기).
+5. **레거시 자산 삭제** — `Axicultus/Resources/*.png`, `AxicultusImages/*.png` 모두 제거 (Q6 100% 폐기).
 6. **빌드 검증** — `dotnet build`로 미사용 리소스 참조 0건, 신규 아이콘 표시 확인.
 
 ## 4. 색상·크기 정책 (계획서 §4.5)
@@ -114,10 +114,10 @@ PNG는 하이-DPI에서 흐릿. 부득이한 경우만 — 예: 일러스트레�
 
 - [ ] [icon-migration-map.md](icon-migration-map.md)의 모든 행이 옵션 A 또는 B에 매핑됨
 - [ ] 매핑 표에 ❌ 표시된 항목(예: 사용자 콘텐츠로 분리) 처리됨
-- [ ] `Easislides.Wpf/Assets/Icons/` 또는 WPF UI Symbol enum만 사용, 외부 raster 0건
+- [ ] `Axicultus.Wpf/Assets/Icons/` 또는 WPF UI Symbol enum만 사용, 외부 raster 0건
 - [ ] `Theme/Icons.xaml`에 도메인-특화 키(`Icon.Bible`, `Icon.WorshipList` 등) 정리됨
 - [ ] 다크/라이트 모드 양쪽에서 아이콘 색 토큰이 정상 전환되는지 시각 확인
-- [ ] `Easislides/Resources/`, `EasislideImages/` 폴더 전체 삭제됨
+- [ ] `Axicultus/Resources/`, `AxicultusImages/` 폴더 전체 삭제됨
 
 ## 6. 참고 자료
 

@@ -1,21 +1,21 @@
-# `Easislides.Core.dll` 공통 도메인 추출 계획 (§9.4 / ADR-0007 / 작업 B-3)
+# `Axicultus.Core.dll` 공통 도메인 추출 계획 (§9.4 / ADR-0007 / 작업 B-3)
 
 > 상태: **설계(코드 변경 전)** · 작성 기준: `main` (B-1 `--legacy-ui` #25, B-2 산출물 분리 #26 병합 후)
-> 목적: legacy WinForms(`Easislides.exe`)와 신규 WPF(`EasislidesNext.exe`)가 **공유할 도메인 어셈블리**를 안전하게 추출하는 단계 계획을 정의한다. 큰 리팩토링이므로 코드 변경 전 "무엇을·어떤 순서로" 먼저 확정한다.
+> 목적: legacy WinForms(`Axicultuss.exe`)와 신규 WPF(`Axicultus.exe`)가 **공유할 도메인 어셈블리**를 안전하게 추출하는 단계 계획을 정의한다. 큰 리팩토링이므로 코드 변경 전 "무엇을·어떤 순서로" 먼저 확정한다.
 
 ## 1. 배경
 
 - §9.4 산출물 분리 + ADR-0007 안전망: 두 빌드(legacy/신규)가 D-Day 이후까지 공존한다.
-- 공통 도메인을 `Easislides.Core.dll`로 추출해 **양쪽이 참조**하면, 도메인 진실(enum·모델)의 단일 출처가 생기고 중복·드리프트를 줄인다.
+- 공통 도메인을 `Axicultus.Core.dll`로 추출해 **양쪽이 참조**하면, 도메인 진실(enum·모델)의 단일 출처가 생기고 중복·드리프트를 줄인다.
 
 ## 2. 현황 분석 (조사 결과)
 
 | 항목 | 사실 |
 |---|---|
-| legacy 프로젝트 | `Easislides/Easislides.csproj` — `net10.0-windows7.0`, `WinExe`, `UseWindowsForms=true` |
-| 신규 WPF | `Easislides.Wpf/Easislides.Wpf.csproj` — `net10.0-windows`, 산출물 `EasislidesNext.exe` |
+| legacy 프로젝트 | `Axicultus/Axicultus.csproj` — `net10.0-windows7.0`, `WinExe`, `UseWindowsForms=true` |
+| 신규 WPF | `Axicultus.Wpf/Axicultus.Wpf.csproj` — `net10.0-windows`, 산출물 `Axicultus.exe` |
 | 상호 참조 | **WPF는 legacy 를 ProjectReference 하지 않음** — 두 앱의 도메인 모델이 **현재 완전히 분리**(WPF는 `LegacySettingsMap` 등으로 매핑만) |
-| legacy 도메인 위치 | `Easislides/Module/` — `CommonEnum.cs`(131줄), `SongFormat.cs`(97), `SongLyrics.cs`(79), `SongSettings.cs`(210) |
+| legacy 도메인 위치 | `Axicultus/Module/` — `CommonEnum.cs`(131줄), `SongFormat.cs`(97), `SongLyrics.cs`(79), `SongSettings.cs`(210) |
 
 ### 2.1 Core 후보의 결합도 분류 (using 분석)
 
@@ -24,23 +24,23 @@
 | `CommonEnum.cs` | **없음**(순수 enum ~17종: SettingsCategory, MediaBackgroundStyle, PlayState, DatabaseType, VAlign, ImageMode, UsageMode, PraiseBookLayout, GapMedia, HeadingFormat, GapType, AlertType, SortBy, InfoType, ItemSource, KeyDirection, MPCType …) | ★★★ **최우선·최저위험** |
 | `SongFormat.cs` | `System.Drawing`(Color/Font) | ★★ — Core 가 System.Drawing 의존을 가질지 결정 필요 |
 | `SongLyrics.cs` | `System.Drawing` | ★★ — 동상 |
-| `SongSettings.cs` | `System.Windows.Forms` + `static Easislides.Gf` | ★ **보류** — WinForms·Gf 강결합, 디커플 선행 필요 |
+| `SongSettings.cs` | `System.Windows.Forms` + `static Axicultus.Gf` | ★ **보류** — WinForms·Gf 강결합, 디커플 선행 필요 |
 
 > WPF 측은 자체 enum(`LiveState` 등)을 별도로 갖고 있어 **개념적 중복**이 존재하나 타입은 공유하지 않는다. 통합(중복 제거)은 후순위(Phase 4)로 둔다.
 
 ## 3. 핵심 설계 결정
 
 1. **Core TFM = 포터블** (`net10.0`, Windows 비의존). 두 앱(net10.0-windows*)이 모두 참조 가능하고, Core 에 WinForms/Drawing 결합을 끌어들이지 않는다. → `CommonEnum` 만 우선 이동(순수). System.Drawing 결합 타입은 별도 단계에서 결정.
-2. **네임스페이스 유지 = 사용처 churn 0** (핵심 안전 장치). `CommonEnum` 을 Core 로 옮길 때 네임스페이스를 `Easislides.Module` 그대로 둔다. C# 은 한 네임스페이스가 여러 어셈블리에 걸쳐 존재할 수 있으므로, legacy 의 기존 `using Easislides.Module;` 코드는 **수정 없이** Core.dll 에서 enum 을 해석한다. (SongFormat 등 아직 안 옮긴 타입은 legacy 어셈블리의 같은 네임스페이스에 잔존 — 공존 가능.)
-3. **단방향 의존**: `Easislides.Core` ← `Easislides`(legacy), `Easislides.Core` ← `Easislides.Wpf`(필요 시). Core 는 어떤 앱도 참조하지 않는다(순수 도메인).
+2. **네임스페이스 유지 = 사용처 churn 0** (핵심 안전 장치). `CommonEnum` 을 Core 로 옮길 때 네임스페이스를 `Axicultus.Module` 그대로 둔다. C# 은 한 네임스페이스가 여러 어셈블리에 걸쳐 존재할 수 있으므로, legacy 의 기존 `using Axicultus.Module;` 코드는 **수정 없이** Core.dll 에서 enum 을 해석한다. (SongFormat 등 아직 안 옮긴 타입은 legacy 어셈블리의 같은 네임스페이스에 잔존 — 공존 가능.)
+3. **단방향 의존**: `Axicultus.Core` ← `Axicultus`(legacy), `Axicultus.Core` ← `Axicultus.Wpf`(필요 시). Core 는 어떤 앱도 참조하지 않는다(순수 도메인).
 4. **소비 시점 참조**: WPF 는 Core 타입을 실제로 소비할 때만 참조를 추가한다(불필요한 결합 회피).
 
 ## 4. 단계별 추출 순서 (작은 PR 단위, 각 단계 독립 검증)
 
 ### Phase 1 — `CommonEnum` → Core (최저위험, 먼저)
-1. `Easislides.Core` 프로젝트 생성(`net10.0`, 클래스 라이브러리), 솔루션에 추가.
-2. `Easislides/Module/CommonEnum.cs` 를 `Easislides.Core/` 로 이동(네임스페이스 `Easislides.Module` 유지).
-3. `Easislides.csproj` 에 `ProjectReference Easislides.Core` 추가.
+1. `Axicultus.Core` 프로젝트 생성(`net10.0`, 클래스 라이브러리), 솔루션에 추가.
+2. `Axicultus/Module/CommonEnum.cs` 를 `Axicultus.Core/` 로 이동(네임스페이스 `Axicultus.Module` 유지).
+3. `Axicultus.csproj` 에 `ProjectReference Axicultus.Core` 추가.
 4. **검증**: legacy 빌드 0 errors(사용처 코드 무수정 컴파일), 전체 테스트 green.
 5. **롤백**: 파일 되돌리기 + 참조 제거(독립적).
 
@@ -61,17 +61,17 @@
 - **조사 발견(계획서 초기 분류 정정)**: `SongLyrics` 는 순수 도메인 모델이 아니라 **렌더링 핫패스의 런타임 상태 홀더**다.
   - `Font Font`/`ChorusFont`/`FS_Font`/`FS_ChorusFont` 4개 Font 필드가 `gfDisplay`·`gfLyrics`·`gfUtility` 의 GDI+ 경로에서 `.Name`/`.Style`/`.Size` 로 재사용됨(영속 도메인 값이 아니라 SongFormat 설정으로부터 빌드해 캐싱한 Font).
   - `FS_ComputedHeight`·`FS_InterlaceGapHeight` 등 계산된 레이아웃 캐시 필드 보유.
-  - `Initialise()` 가 `Gf.DefaultForeColour`(static `Easislides.Gf`) 를 참조 — 계획서 §2.1 분류(★★, Drawing만)와 달리 Gf 강결합 존재.
+  - `Initialise()` 가 `Gf.DefaultForeColour`(static `Axicultus.Gf`) 를 참조 — 계획서 §2.1 분류(★★, Drawing만)와 달리 Gf 강결합 존재.
 - **결정: 상속 분리**(전체 원시값화 대신). Font 재생성 회귀 위험을 피하면서 포터블 도메인만 Core 로 옮긴다.
-  - `Easislides.Core/SongLyricsBase.cs`(namespace `Easislides.Module`): 포터블 상태만 — 텍스트·표시여부·좌표 int·레이아웃 캐시 int·`FS_InterlaceLinePattern`. 색상 `BackColour`/`ForeColour` 는 ARGB `int` 로 디커플(SongFormat 과 동일 규칙, 기본값 0 == `default(Color).ToArgb()`).
-  - `Easislides/Module/SongLyrics.cs` → `public class SongLyrics : SongLyricsBase`: GDI+ 캐시(`Font`×4, `StringAlignment TextAlign`)와 `Initialise()` 만 보유. 네임스페이스·클래스명 유지 → 사용처 무변경.
+  - `Axicultus.Core/SongLyricsBase.cs`(namespace `Axicultus.Module`): 포터블 상태만 — 텍스트·표시여부·좌표 int·레이아웃 캐시 int·`FS_InterlaceLinePattern`. 색상 `BackColour`/`ForeColour` 는 ARGB `int` 로 디커플(SongFormat 과 동일 규칙, 기본값 0 == `default(Color).ToArgb()`).
+  - `Axicultus/Module/SongLyrics.cs` → `public class SongLyrics : SongLyricsBase`: GDI+ 캐시(`Font`×4, `StringAlignment TextAlign`)와 `Initialise()` 만 보유. 네임스페이스·클래스명 유지 → 사용처 무변경.
   - 색상 소비처 9곳(`gfDisplay` 6, `gfLyrics` 3) 만 `Color.FromArgb`/`.ToArgb` 변환. **Font/TextAlign 핫패스 무변경**.
 - 검증: Core 0 warnings, legacy 빌드 0 errors, 전체 테스트 453(WPF) green(SongLyricsBase 위치·색상 int·Font/TextAlign 비포함 고정 테스트 추가). code-reviewer Approve(Critical 0).
 
 ### Phase 3 — `SongSettings` (완료 · 상속 분리 채택)
 - **결정: 상속 분리**(Phase 2b 와 동일 패턴). WinForms/Gf 결합을 "디커플 선행"하는 대신, 포터블 부분만 base 로 떼어 Core 에 둔다.
-  - `Easislides.Core/SongSettingsBase.cs`(namespace `Easislides.Module`): 포터블 필드 전체(string/int/bool/배열, `ItemSource Source`, `SongFormat Format`). 65개 필드, 초기값 그대로.
-  - `Easislides/Module/SongSettings.cs` → `public class SongSettings : SongSettingsBase`: Core 로 못 옮기는 것만 보유 — `ListView LyricsAndNotationsList`(WinForms), `SongLyrics[] Lyrics`(legacy 렌더 상태), `Initialise()`(`static Gf.SetListViewColumns` 호출). 무관한 `SHFILEOPSTRUCT`(P/Invoke)도 이 파일에 잔류.
+  - `Axicultus.Core/SongSettingsBase.cs`(namespace `Axicultus.Module`): 포터블 필드 전체(string/int/bool/배열, `ItemSource Source`, `SongFormat Format`). 65개 필드, 초기값 그대로.
+  - `Axicultus/Module/SongSettings.cs` → `public class SongSettings : SongSettingsBase`: Core 로 못 옮기는 것만 보유 — `ListView LyricsAndNotationsList`(WinForms), `SongLyrics[] Lyrics`(legacy 렌더 상태), `Initialise()`(`static Gf.SetListViewColumns` 호출). 무관한 `SHFILEOPSTRUCT`(P/Invoke)도 이 파일에 잔류.
   - **필드 타입 변경 없음(순수 relocation)** → 17개 `new SongSettings()` 포함 모든 사용처 무변경.
 - 검증: Core 0 warnings, legacy 빌드 0 errors, 전체 테스트 454(WPF) green(SongSettingsBase 위치·`Format`/`Source`·ListView/Lyrics/Initialise 비포함 고정 테스트 추가). code-reviewer Approve(Critical 0 — 필드 분할 67=65+2, 초기값·`Initialise()` 본문 byte-identical 교차검증).
 - 후속(비범위): `Initialise()` 의 local `songFormat` 미대입(기존 죽은 코드)은 relocation 계약 보존 위해 이번엔 손대지 않음 — relocation 단계 종료 후 별도 정리 검토.
@@ -86,14 +86,14 @@
 | `PlayState` | `MediaPlaybackState` | 부분 | 멤버 상이 |
 | `MediaBackgroundStyle` | `TransitionBackgroundMode` | 부분 | 상이 |
 
-- **결정: 분리 유지**(ADR-0008). `Easislides.Wpf` 는 Core 를 참조하지 않으며(의도적 디커플, `LegacySettingsMap` 으로 레거시와 경계), 유일 정확 일치인 `GapItemMode` 도 영속화·마이그레이션·UI 에 박혀 있어 통합 시 신규 교차 결합 + 중간 규모 리팩토링 + 회귀 위험 대비 이득이 작다. 향후 신규 공유 개념이 생기면 Core 에 정의하고 양쪽이 소비(소비 시점 참조 원칙).
+- **결정: 분리 유지**(ADR-0008). `Axicultus.Wpf` 는 Core 를 참조하지 않으며(의도적 디커플, `LegacySettingsMap` 으로 레거시와 경계), 유일 정확 일치인 `GapItemMode` 도 영속화·마이그레이션·UI 에 박혀 있어 통합 시 신규 교차 결합 + 중간 규모 리팩토링 + 회귀 위험 대비 이득이 작다. 향후 신규 공유 개념이 생기면 Core 에 정의하고 양쪽이 소비(소비 시점 참조 원칙).
 
 ## 5. 위험과 완화
 
 | 위험 | 완화 |
 |---|---|
 | 네임스페이스 분할로 혼란 | Phase 1 은 enum만, 네임스페이스 유지 → 사용처 무변경. 문서로 "Module 네임스페이스는 Core+legacy 에 걸쳐 있음" 명시 |
-| legacy 빌드 깨짐 | 각 Phase 후 `dotnet build Easislides.sln` + 전체 테스트로 즉시 검증, 단계별 독립 롤백 |
+| legacy 빌드 깨짐 | 각 Phase 후 `dotnet build Axicultus.sln` + 전체 테스트로 즉시 검증, 단계별 독립 롤백 |
 | Core 에 원치 않는 결합 유입 | Core TFM 을 `net10.0`(비-windows)로 고정 → WinForms/Drawing 결합 타입은 컴파일 자체가 막혀 사전 차단 |
 | 순환 참조 | Core 는 앱을 참조하지 않음(단방향 규칙) |
 | 같은 네임스페이스가 두 어셈블리에 걸침 | **불변식**: 공유 네임스페이스의 동일 타입명은 반드시 **단일 어셈블리에만** 정의(이동 시 원본 삭제 동반). 양쪽에 같은 타입이 생기면 소비자에서 `CS0433` 모호성 에러. Phase 1 은 git mv 로 원본을 제거해 이 규칙을 지킴 |
@@ -101,9 +101,9 @@
 
 ## 6. 수용 기준 (Phase 1)
 
-- `Easislides.Core.dll`(net10.0) 생성, 솔루션 포함.
-- `CommonEnum` enum 전부 Core 로 이동(네임스페이스 `Easislides.Module` 유지), legacy 사용처 코드 **무수정**.
-- `dotnet build Easislides.sln` 0 errors, 전체 테스트(현재 467) green 유지.
+- `Axicultus.Core.dll`(net10.0) 생성, 솔루션 포함.
+- `CommonEnum` enum 전부 Core 로 이동(네임스페이스 `Axicultus.Module` 유지), legacy 사용처 코드 **무수정**.
+- `dotnet build Axicultus.sln` 0 errors, 전체 테스트(현재 467) green 유지.
 - (가능 시) Core 어셈블리명/타깃을 고정하는 테스트 1건.
 
 ## 7. 비범위 / 후속

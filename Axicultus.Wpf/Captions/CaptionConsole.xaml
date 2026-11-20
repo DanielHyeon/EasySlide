@@ -1,0 +1,115 @@
+<Window x:Class="Axicultus.Wpf.Captions.CaptionConsole"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="카메라 하단 자막" Width="650" Height="680" MinWidth="520" MinHeight="480"
+        WindowStartupLocation="CenterOwner">
+    <DockPanel Margin="14">
+        <StackPanel DockPanel.Dock="Bottom" Margin="0,10,0,0">
+            <TextBlock Text="현재 송출 자막" FontWeight="SemiBold" />
+            <Border Background="#232323" Padding="10" MinHeight="44" Margin="0,4">
+                <Grid>
+                    <Image Source="{Binding DataContext.Preview, ElementName=CameraControls}" MaxHeight="110" Stretch="Uniform" RenderTransformOrigin="0.5,0.5">
+                        <Image.RenderTransform>
+                            <ScaleTransform ScaleY="{Binding DataContext.ScaleY, ElementName=CameraControls}"/>
+                        </Image.RenderTransform>
+                    </Image>
+                    <TextBlock Text="{Binding Session.PublicText}" Foreground="White" Background="#B0101010" HorizontalAlignment="Center"
+                               VerticalAlignment="Bottom" TextAlignment="Center" TextWrapping="Wrap" MaxHeight="80"/>
+                </Grid>
+            </Border>
+            <WrapPanel>
+                <Button x:Name="HideButton" Content="자막 숨김" Command="{Binding HideCommand}" Padding="10,4"/>
+                <Button x:Name="ShowButton" Content="다시 표시" Command="{Binding ShowCommand}" Padding="10,4" Margin="4,0"/>
+                <Button x:Name="RecoverButton" Content="예배 편집 복구…" Click="Recover" Padding="10,4" IsEnabled="False"/>
+                <CheckBox Content="회중 화면에도 자막 표시" IsChecked="{Binding Session.AudienceEnabled, Mode=TwoWay}"
+                          Margin="8,0" VerticalAlignment="Center"/>
+            </WrapPanel>
+            <TextBlock x:Name="Status" TextWrapping="Wrap" Margin="0,5,0,0" AutomationProperties.LiveSetting="Polite"/>
+        </StackPanel>
+        <WrapPanel DockPanel.Dock="Top" Margin="0,0,0,8" x:Name="CameraControls">
+            <Button Content="로컬 카메라 켜기 / 끄기" Click="ToggleCamera" Padding="6,3" />
+            <CheckBox Content="카메라는 OBS에서 사용" IsChecked="{Binding ObsOwnsCamera, Mode=TwoWay}" Margin="8,0" VerticalAlignment="Center"/>
+            <TextBlock Text="{Binding Status}" VerticalAlignment="Center"/>
+        </WrapPanel>
+        <TabControl>
+            <TabItem Header="직접 입력">
+                <DockPanel Margin="10">
+                    <WrapPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
+                        <Button x:Name="TakeButton" Content="송출 (Ctrl+Enter)" Command="{Binding TakeCommand}" Padding="12,5"/>
+                        <CheckBox x:Name="Instant" Content="실시간 반영" VerticalAlignment="Center" Margin="12,0"
+                                  IsChecked="{Binding IsInstant, Mode=TwoWay}"
+                                  ToolTip="새로 입력하고 확정한 글자부터 송출합니다."/>
+                    </WrapPanel>
+                    <TextBox x:Name="Draft" AcceptsReturn="True" FontSize="20" TextWrapping="Wrap"
+                             VerticalScrollBarVisibility="Auto" Text="{Binding DraftText, UpdateSourceTrigger=PropertyChanged}" PreviewKeyDown="DraftKey"
+                             AutomationProperties.Name="직접 입력 자막"/>
+                </DockPanel>
+            </TabItem>
+            <TabItem Header="PPT 자막">
+                <DockPanel Margin="10">
+                    <StackPanel DockPanel.Dock="Top">
+                        <WrapPanel>
+                            <Button Content="현재 송출 PPT" Click="OpenLiveDeck" Padding="9,4" Margin="0,0,4,0"/>
+                            <Button Content="PPT 열기…" Click="OpenDeck" Padding="9,4"/>
+                            <TextBlock x:Name="DeckLabel" VerticalAlignment="Center" Margin="8,0"/>
+                        </WrapPanel>
+                        <TextBlock Text="미리 볼 슬라이드와 텍스트 상자" Margin="0,10,0,2"/>
+                        <DockPanel>
+                            <ComboBox x:Name="Slides" Width="70" DockPanel.Dock="Left" SelectionChanged="SlideSelected" AutomationProperties.Name="슬라이드 번호"/>
+                            <ComboBox x:Name="Boxes" DisplayMemberPath="Name" Margin="4,0,0,0" SelectionChanged="BoxSelected" AutomationProperties.Name="텍스트 상자"/>
+                        </DockPanel>
+                    </StackPanel>
+                    <WrapPanel DockPanel.Dock="Bottom" Margin="0,5,0,0">
+                        <Button Content="이 장 수동 문구 저장" Click="SaveOverride" Padding="6,4"/>
+                        <Button Content="PPT 따라가기" Click="Follow" Margin="4,0" Padding="6,4"/>
+                        <Button Content="이전 자막" Click="Previous" Padding="6,4"/>
+                        <Button Content="다음 자막" Click="Next" Margin="4,0" Padding="6,4"/>
+                    </WrapPanel>
+                    <TextBox x:Name="Cue" AcceptsReturn="True" Margin="0,6,0,0" TextWrapping="Wrap" FontSize="18"
+                             VerticalScrollBarVisibility="Auto" AutomationProperties.Name="PPT 자막 미리보기와 수동 문구"/>
+                </DockPanel>
+            </TabItem>
+            <TabItem Header="OBS">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="10">
+                        <TextBlock Text="Browser Source 주소" FontWeight="SemiBold"/>
+                        <DockPanel Margin="0,4">
+                            <Button DockPanel.Dock="Right" Content="자막 서버 시작" Click="StartBrowser" Padding="8,4"/>
+                            <TextBox IsReadOnly="True" Text="http://127.0.0.1:17948/" AutomationProperties.Name="OBS 자막 소스 주소"/>
+                        </DockPanel>
+                        <TextBlock Text="OBS의 카메라 소스 위에 이 주소를 브라우저 소스로 추가하세요." TextWrapping="Wrap"/>
+                        <Separator Margin="0,10"/>
+                        <TextBlock Text="OBS WebSocket 연결 (이 PC)" FontWeight="SemiBold"/>
+                        <WrapPanel Margin="0,5">
+                            <TextBlock Text="포트" VerticalAlignment="Center"/>
+                            <TextBox x:Name="Port" Text="4455" Width="60" Margin="4,0,10,0" AutomationProperties.Name="OBS WebSocket 포트"/>
+                            <TextBlock Text="암호" VerticalAlignment="Center"/>
+                            <PasswordBox x:Name="Password" Width="135" Margin="4,0" AutomationProperties.Name="OBS WebSocket 암호"/>
+                            <Button Content="연결 / 재연결" Click="ConnectObs" Padding="8,4"/>
+                        </WrapPanel>
+                        <CheckBox x:Name="AutoObs" Content="앱 시작 시 자동 연결 및 자막 서버 시작" Margin="0,3"
+                                  ToolTip="암호를 이 Windows 사용자 계정으로 암호화해 보관합니다. 빈칸은 저장된 암호를 사용합니다."/>
+                        <TextBlock x:Name="ObsLabel" Text="연결 전" TextWrapping="Wrap"/>
+                        <TextBlock Text="카메라 미리보기에 사용할 OBS 소스 이름" Margin="0,8,0,2"/>
+                        <TextBox x:Name="CameraSource" AutomationProperties.Name="미리 볼 OBS 카메라 소스"/>
+                        <CheckBox x:Name="PreviewObsCamera" Content="OBS 카메라 미리보기" Margin="0,4"/>
+                        <ComboBox x:Name="Scenes" Margin="0,6" AutomationProperties.Name="전환할 OBS 프로그램 씬"/>
+                        <TextBlock Text="함께 제어할 소스 이름 (선택)"/>
+                        <TextBox x:Name="SourceName" AutomationProperties.Name="OBS 소스 이름"/>
+                        <WrapPanel Margin="0,5">
+                            <CheckBox x:Name="EnableSource" IsChecked="True" Content="소스 표시" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                            <Button Content="프로그램 씬 전환" Click="SwitchScene" Padding="8,4"/>
+                        </WrapPanel>
+                        <TextBlock Text="씬 단축키 · 씬 이름을 입력하고 연결을 눌러 저장" Margin="0,8,0,2"/>
+                        <UniformGrid Columns="2">
+                            <TextBlock Text="Ctrl+Alt+1"/><TextBox x:Name="Scene1" AutomationProperties.Name="Ctrl Alt 1 씬 이름"/>
+                            <TextBlock Text="Ctrl+Alt+2"/><TextBox x:Name="Scene2" AutomationProperties.Name="Ctrl Alt 2 씬 이름"/>
+                            <TextBlock Text="Ctrl+Alt+3"/><TextBox x:Name="Scene3" AutomationProperties.Name="Ctrl Alt 3 씬 이름"/>
+                            <TextBlock Text="Ctrl+Alt+4"/><TextBox x:Name="Scene4" AutomationProperties.Name="Ctrl Alt 4 씬 이름"/>
+                        </UniformGrid>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
+    </DockPanel>
+</Window>

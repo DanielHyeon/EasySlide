@@ -12,7 +12,7 @@
 
 ## 1. 범위
 
-이 문서는 기존 `Easislides/Easislides`의 메인 운영 화면과 라이브 송출 흐름을 WPF로 옮기는 계획이다.
+이 문서는 기존 `Axicultus/Axicultus`의 메인 운영 화면과 라이브 송출 흐름을 WPF로 옮기는 계획이다.
 
 대상 legacy 파일:
 
@@ -28,12 +28,12 @@
 
 현재 WPF 기반:
 
-- `Easislides.Wpf/Demo/DemoWindow.xaml`
-- `Easislides.Wpf/Composites/LiveBar.xaml`
-- `Easislides.Wpf/Composites/SafetyConfirm.cs`
-- `Easislides.Wpf/Controls/*`
-- `Easislides.Wpf/Input/ShortcutRegistry.cs`
-- `Easislides.Wpf/Media/MediaPlaybackBackend.cs`
+- `Axicultus.Wpf/Demo/DemoWindow.xaml`
+- `Axicultus.Wpf/Composites/LiveBar.xaml`
+- `Axicultus.Wpf/Composites/SafetyConfirm.cs`
+- `Axicultus.Wpf/Controls/*`
+- `Axicultus.Wpf/Input/ShortcutRegistry.cs`
+- `Axicultus.Wpf/Media/MediaPlaybackBackend.cs`
 
 ## 2. 목표 UI 구조
 
@@ -126,7 +126,7 @@
 
 | 항목 | 상태 | 비고 |
 |---|---|---|
-| WPF 앱 골격 | 완료 | `Easislides.Wpf` 존재 |
+| WPF 앱 골격 | 완료 | `Axicultus.Wpf` 존재 |
 | LiveBar 컴포지트 | 1차 구현 완료 | `LiveSessionService` snapshot과 `MainViewModel.ApplyLiveSnapshot`으로 상태/현재 항목/출력 모니터 연결 완료 |
 | SafetyConfirm | 1차 운영 연결 완료 | Go Live, Stop Live, 라이브 중 출력 닫기, Black/Hide 명령이 `ILiveSafetyPrompt` 확인 경계를 통과 |
 | MainWindow | 1차 구현 완료 | `MainWindow`, `MainViewModel`, 기본 운영 셸 및 단축키 연결. 운영 셸 제목/버튼/패널 라벨, 샘플 큐, 빈 큐/PowerPoint 제한 상태 메시지의 한국어 readable copy 회귀 방지 완료 |
@@ -202,12 +202,12 @@ UX 검증:
 
 2026-05-29 검증 결과:
 
-- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "MainViewModelTests|MainWindowCopyTests"`: 19개 통과
-- `dotnet test Easislides.sln -c Debug`: 375개 통과
-- `dotnet build Easislides.sln -c Release`: 성공
-- `dotnet test Easislides.sln -c Release --no-build`: 375개 통과
+- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter "MainViewModelTests|MainWindowCopyTests"`: 19개 통과
+- `dotnet test Axicultus.sln -c Debug`: 375개 통과
+- `dotnet build Axicultus.sln -c Release`: 성공
+- `dotnet test Axicultus.sln -c Release --no-build`: 375개 통과
 - CodeGraph 동기화 및 `GlobalInputService`, `CommandCatalog`, `WindowPlacementService`, `PlatformDiagnosticsService`, `IMediaPlaybackService`, `IMediaPlaybackBackend`, `NoOpMediaPlaybackBackend`, `WpfMediaElementPlaybackBackend`, `MediaPlaybackService`, `MediaPlaybackViewModel`, `IPowerPointRenderService`, `PowerPointRenderService`, `IThumbnailCache`, `ThumbnailCache`, `ThumbnailCacheTests`, `IImageAssetService`, `ImageAssetService`, `PreviewCanvas`, `SlidePreviewControl`, `PreviewCanvasTests`, `SlidePreviewControlTests`, `ITransitionEffectService`, `TransitionEffectService`, `TransitionEffectServiceTests`, `IOutputRenderer`, `OutputRenderer`, `OutputRendererTests`, `LiveOutputRenderSettings`, `OutputWindowViewModel`, `OfficePptSession.ExportSlideAsync` 인식 확인 완료
-- Release 산출물 확인: `Easislides.Wpf\bin\Release\net10.0-windows\EasislidesNext.exe`, `MainWindow.baml`, `OutputWindow.baml` (산출물 분리 §9.4 — exe 명 EasislidesNext)
+- Release 산출물 확인: `Axicultus.Wpf\bin\Release\net11.0-windows7.0\Axicultus.exe`, `MainWindow.baml`, `OutputWindow.baml` (산출물 분리 §9.4 — exe 명 Axicultus)
 - `gstack /qa`, `GSD verify-work`: 현재 작업 환경 PATH에 도구가 없어 실행 불가. 동일 요구사항은 xUnit/Release build/산출물 확인으로 대체 검증
 
 수동 테스트:

@@ -1,4 +1,4 @@
-# EasiSlides SDD Toolchain Runbook
+# Axicultus SDD Toolchain Runbook
 
 This runbook applies the linked SDD collaboration method to this repository.
 The rule is simple: OpenSpec is the contract, CodeGraph is evidence, Superpowers-style TDD is execution, and gstack/code-review is the gate.

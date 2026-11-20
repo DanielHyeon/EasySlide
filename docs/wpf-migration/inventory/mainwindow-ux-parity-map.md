@@ -1,7 +1,7 @@
 # MainWindow UX parity map
 
 작성일: 2026-06-04
-대상: `Easislides.Wpf/MainWindow.xaml`
+대상: `Axicultus.Wpf/MainWindow.xaml`
 
 ## 요약
 

@@ -1,0 +1,31 @@
+<Window x:Class="Axicultus.Wpf.Media.MediaAssignmentWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="미디어 설정" Width="560" Height="570" MinWidth="440" MinHeight="450" WindowStartupLocation="CenterOwner">
+    <Grid Margin="12">
+        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+        <StackPanel>
+            <DockPanel Margin="0,0,0,5"><TextBlock x:Name="SourceLabel" Text="미디어 원본" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                <ComboBox x:Name="ModeBox" AutomationProperties.LabeledBy="{Binding ElementName=SourceLabel}">
+                    <ComboBoxItem Content="기본 설정 따르기"/><ComboBoxItem Content="미디어 없음"/><ComboBoxItem Content="제목과 같은 파일"/>
+                    <ComboBoxItem Content="지정한 파일"/><ComboBoxItem Content="카메라"/>
+                </ComboBox></DockPanel>
+        <DockPanel><Button DockPanel.Dock="Right" Content="찾아보기…" Click="Browse_Click" Margin="6,0,0,0"/>
+            <TextBox x:Name="SourcePath" AutomationProperties.Name="미디어 파일" VerticalContentAlignment="Center" /></DockPanel>
+            <WrapPanel Margin="0,6"><TextBlock Text="음량" VerticalAlignment="Center"/><TextBox x:Name="VolumeBox" Width="45" Margin="4,0,12,0" AutomationProperties.Name="음량 0부터 100"/>
+                <TextBlock Text="좌우 균형" VerticalAlignment="Center"/><TextBox x:Name="BalanceBox" Width="45" Margin="4,0,12,0" AutomationProperties.Name="좌우 균형 -100부터 100"/>
+                <TextBlock Text="카메라" VerticalAlignment="Center"/><ComboBox x:Name="CameraBox" Width="46" Margin="4,0" AutomationProperties.Name="카메라 번호"/></WrapPanel>
+            <WrapPanel><CheckBox x:Name="OverrideFlags" Content="재생 옵션 지정"/><CheckBox x:Name="Mute" Content="음소거" Margin="8,0" IsEnabled="{Binding IsChecked, ElementName=OverrideFlags}"/>
+                <CheckBox x:Name="Repeat" Content="반복" IsEnabled="{Binding IsChecked, ElementName=OverrideFlags}"/><CheckBox x:Name="Wide" Content="와이드" Margin="8,0" IsEnabled="{Binding IsChecked, ElementName=OverrideFlags}"/></WrapPanel>
+            <DockPanel Margin="0,5,0,0"><TextBlock x:Name="MonitorLabel" Text="재생 모니터" VerticalAlignment="Center" Margin="0,0,8,0"/><ComboBox x:Name="MonitorBox" IsEditable="True" AutomationProperties.LabeledBy="{Binding ElementName=MonitorLabel}"/></DockPanel>
+            </StackPanel>
+        <Border Grid.Row="1" Background="Black" Margin="0,8"><Grid><Image x:Name="CameraImage"/><MediaElement x:Name="Player" LoadedBehavior="Manual" UnloadedBehavior="Close" Stretch="Uniform" MediaFailed="PlaybackFailed" MediaEnded="PreviewEnded"/></Grid></Border>
+        <TextBlock Grid.Row="2" x:Name="Status" TextWrapping="Wrap"/>
+        <DockPanel Grid.Row="3">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                <Button Content="확인" Click="Save_Click" IsDefault="True" MinWidth="65" />
+                <Button Content="취소" IsCancel="True" MinWidth="65" Margin="6,0,0,0" /></StackPanel>
+            <StackPanel Orientation="Horizontal"><Button Content="재생" Click="Play_Click"/><Button Content="일시 정지" Click="Pause_Click" Margin="4,0"/><Button Content="정지" Click="Stop_Click"/></StackPanel>
+        </DockPanel>
+    </Grid>
+</Window>

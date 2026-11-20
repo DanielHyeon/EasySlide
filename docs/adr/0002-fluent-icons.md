@@ -8,7 +8,7 @@
 
 ## 컨텍스트
 
-현재 EasiSlides는 `Easislides/Resources/` + `EasislideImages/`에 60+ 개의 raster (PNG/BMP) 아이콘을 사용:
+현재 Axicultus는 `Axicultus/Resources/` + `AxicultusImages/`에 60+ 개의 raster (PNG/BMP) 아이콘을 사용:
 - 동일 의미 상태 3개를 별도 파일로 (`BlackScreen.png` / `BlackScreen-Pressed.png` / `BlackScreen-Red.png`)
 - 호버 듀얼 (`Bible.png` / `Bible - Hightlight.png` ← 오타 자산)
 - High-DPI 스케일 대응 없음, 벡터 자산 0개
@@ -53,7 +53,7 @@ Q6 결정: **레거시 raster 100% 폐기, 벡터 아이콘 셋으로 전면 교
 | 장점 | 단점 |
 |---|---|
 | 100% 브랜드 일관성 | 60+ 아이콘 디자인 비용·시간 ($3k-10k, 4-8주) |
-| EasiSlides 도메인 특화 메타포 | 사용자 익숙도 0에서 시작 |
+| Axicultus 도메인 특화 메타포 | 사용자 익숙도 0에서 시작 |
 | — | 유지보수 비용 (신규 아이콘 필요 시마다 디자이너 의뢰) |
 
 ## 결정
@@ -64,7 +64,7 @@ Q6 결정: **레거시 raster 100% 폐기, 벡터 아이콘 셋으로 전면 교
 - **우선순위**: WPF UI 라이브러리의 `SymbolIcon` 사용. 라이브러리에 없거나 다른 weight 필요 시 SVG 다운로드 후 빌드 시 XAML 변환.
 - **사이즈 표준**: 컨트롤별 고정 (계획서 §4.5 — 16/20/24/32)
 - **상태 표현**: 단일 아이콘 + 색·투명도 토큰으로 hover/pressed/disabled. Regular(기본) ↔ Filled(active) 페어 활용.
-- **레거시 자산**: `Easislides/Resources/` + `EasislideImages/` 모든 raster 100% 폐기. 사용자 콘텐츠(예배 썸네일 등)는 자산 아니므로 분리 보존(`%AppData%\EasislidesNext\UserAssets\`, ADR 외 §10.5.1).
+- **레거시 자산**: `Axicultus/Resources/` + `AxicultusImages/` 모든 raster 100% 폐기. 사용자 콘텐츠(예배 썸네일 등)는 자산 아니므로 분리 보존(`%AppData%\Axicultus\UserAssets\`, ADR 외 §10.5.1).
 - **메타포 부재 처리**: Fluent 셋에 정확한 메타포가 없으면 가장 유사한 아이콘 차용. 절대 raster 잔존 금지.
 - **매핑 표**: 계획서 §11.B에 초안, 전체 60+개 1:1 매핑은 별도 `docs/ui/icon-migration-map.md`로 확정.
 

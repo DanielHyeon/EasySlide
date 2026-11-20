@@ -1,4 +1,4 @@
-﻿# SDD 방법론 적용 검토 보고서 — EasiSlides v2.6.4 WPF 포팅
+﻿# SDD 방법론 적용 검토 보고서 — Axicultus v2.6.4 WPF 포팅
 
 > 작성일: 2026-06-11 · 기준 브랜치: `feat/per-song-font-bg-bible-version-crud`
 > 검토 방법: 저장소 산출물(openspec/·docs/·.claude/·.codex/), git 이력(총 783커밋), 세션 핸드오프 메모리 기반의 **증거 중심 검토**.
@@ -124,7 +124,7 @@
 | 증분 | reviewer가 잡은 것 (머지 전 적발) | 등급 |
 | --- | --- | --- |
 | 6-슬라이스2 | 저작권 오버레이가 기존 코너 UI와 충돌 → 위치 변경 | MAJOR |
-| 7 | **잠복 버그 발굴** — `EasiSettingKeys.All` 누락으로 토글 3종이 라이브 즉시 반영 안 되던 기존 결함, 회귀 가드까지 추가 | 근본수정 |
+| 7 | **잠복 버그 발굴** — `AxicultusSettingKeys.All` 누락으로 토글 3종이 라이브 즉시 반영 안 되던 기존 결함, 회귀 가드까지 추가 | 근본수정 |
 | 10 | 썸네일 비동기 디코딩 재진입 경쟁 | MAJOR |
 | 11 | 공지 텍스트가 가사 포맷터를 타며 마커 손상 + `_liveItemId=null` 와일드카드로 공지 중 이동 버튼 오활성 — 2건 근본수정 후 **재검증 에이전트로 종결 확인** | MAJOR×2 |
 | 18 | 빠른 전환 시 이전 애니메이션 Completed가 다음 클립을 지우는 경쟁 → 참조 가드 + InternalsVisibleTo 테스트 | MAJOR |
@@ -245,7 +245,7 @@ codegraph sync ↔ git index.lock 충돌(실측, 우회 관행 `sleep 4` 존재)
 | 커밋 분포 783건(12월 38·1월 34·2월 1·5월 230·6월 480), 06-04 이후 214건 | `git log` 월별 집계 |
 | 증분 루프·리뷰 평결·테스트 수 추이(919→2,017) | `docs/wpf-migration/frmmain-port-roadmap.md` 진행 로그(증분 1~160-E, 커밋 해시 병기) |
 | 3기 당시 gstack/GSD 미설치 | 같은 파일 머리말 "환경 미설치 → 표준 검증으로 대체" |
-| 테스트 현황 148파일·마커 2,001개 | `Easislides.Wpf.Tests` 파일/어트리뷰트 집계 |
+| 테스트 현황 148파일·마커 2,001개 | `Axicultus.Wpf.Tests` 파일/어트리뷰트 집계 |
 | OpenSpec change 10건·archive 0·specs 0·impact 7건 | `openspec/changes/*` 디렉터리 실사 |
 | 4계층 계약·Hard Rules·위험도 매트릭스·TDD 완화 | `.claude/CLAUDE.md` §1, 루트 `AGENTS.md` |
 | codegraph 자동 sync 훅 | `.claude/settings.json` PostToolUse |

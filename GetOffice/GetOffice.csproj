@@ -86,10 +86,10 @@
       <HintPath>C:\Windows\Microsoft.NET\Framework64\v4.0.30319\System.Windows.Forms.dll</HintPath>
     </Reference>
     <Reference Include="Interop.Office">
-      <HintPath>\\Mac\Home\Downloads\EasiSlides\Interop.Office.dll</HintPath>
+      <HintPath>\\Mac\Home\Downloads\Axicultus\Interop.Office.dll</HintPath>
     </Reference>
     <Reference Include="Interop.Word">
-      <HintPath>\\Mac\Home\Downloads\EasiSlides\Interop.Word.dll</HintPath>
+      <HintPath>\\Mac\Home\Downloads\Axicultus\Interop.Word.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

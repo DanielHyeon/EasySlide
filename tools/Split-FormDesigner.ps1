@@ -170,7 +170,7 @@ function Split-LinesWithEndings {
         ForEach-Object { $_.Value }
 }
 
-$formsDir = Join-Path $ProjectRoot 'Easislides\Easislides'
+$formsDir = Join-Path $ProjectRoot 'Axicultus\Axicultus'
 $formFiles = Get-ChildItem -Path $formsDir -Filter 'Frm*.cs' |
     Where-Object { $_.Name -notmatch '\.(Designer|Events|Fields|Layout|Logic)\.cs$' } |
     Sort-Object Name
@@ -226,7 +226,7 @@ foreach ($file in $formFiles) {
     $rootText = $rootText.TrimEnd() + "`r`n"
 
     $namespacePrefix = $text.Substring(0, $classMatch.Index)
-    $namespacePrefix = [regex]::Replace($namespacePrefix, '\s*namespace\s+Easislides\s*\{\s*$', '')
+    $namespacePrefix = [regex]::Replace($namespacePrefix, '\s*namespace\s+Axicultus\s*\{\s*$', '')
     $namespacePrefix = $namespacePrefix.TrimEnd()
 
     $fieldText = ($movedFields | Sort-Object -Unique) -join "`r`n"
@@ -238,7 +238,7 @@ foreach ($file in $formFiles) {
         $designerParts.Add($namespacePrefix)
         $designerParts.Add('')
     }
-    $designerParts.Add('namespace Easislides')
+    $designerParts.Add('namespace Axicultus')
     $designerParts.Add('{')
     $designerParts.Add("    partial class $className")
     $designerParts.Add('    {')

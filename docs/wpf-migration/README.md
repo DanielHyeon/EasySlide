@@ -1,8 +1,8 @@
 # WPF 이식 계획 문서 인덱스
 
 > 기준일: 2026-05-29
-> 참조: `.serena/memories/project_structure.md`, `docs/` 기준 문서, `Easislides.Wpf/README.md`  
-> 목적: WinForms 기반 EasiSlides v2.6.4의 모든 운영 기능을 WPF/Fluent 2 기반 v3.0으로 이식하기 위한 부문별 실행 계획, 완료 기준, 검증 및 테스트 방안을 정의한다.
+> 참조: `.serena/memories/project_structure.md`, `docs/` 기준 문서, `Axicultus.Wpf/README.md`
+> 목적: WinForms 기반 Axicultus v2.6.4의 모든 운영 기능을 WPF/Fluent 2 기반 v3.0으로 이식하기 위한 부문별 실행 계획, 완료 기준, 검증 및 테스트 방안을 정의한다.
 
 ## 0. 기준 문서
 
@@ -27,12 +27,12 @@
 
 | 구분 | 현재 상태 | 완료 판단 |
 |---|---|---|
-| WPF 프로젝트 골격 | `Easislides.Wpf` 솔루션 포함, DI, App.xaml, 테마 토큰 구성 | 완료 |
+| WPF 프로젝트 골격 | `Axicultus.Wpf` 솔루션 포함, DI, App.xaml, 테마 토큰 구성 | 완료 |
 | 디자인 시스템 | EasiDS 색/타입/간격/반경/모션 토큰, Pretendard 번들, 기본 컨트롤 일부 | 1차 완료, 추가 컨트롤 확장 필요 |
 | PoC | HookManager 호환 PoC, Office COM STA stress PoC 화면 존재 | 구현 완료, 실제 운영 데이터 검증 필요 |
 | 디자인 시스템 베이스 컨트롤 | §5.1 11종 완성 (`EsButton`~`EsLiveIndicator` + `EsDataGrid`) | 완료 |
-| 테스트 인프라 | `Easislides.Wpf.Tests` 398 + `Easislides.Analyzers.Tests` 20 = 418개 테스트 | 완료 |
-| 거버넌스 자동화 | `Easislides.Analyzers` EasiDS001(매직 색·폰트) + EasiDS003(매직 간격) + 20개 분석기 테스트, WPF에 Analyzer 참조 | 1차 완료 |
+| 테스트 인프라 | `Axicultus.Wpf.Tests` 398 + `Axicultus.Analyzers.Tests` 20 = 418개 테스트 | 완료 |
+| 거버넌스 자동화 | `Axicultus.Analyzers` EasiDS001(매직 색·폰트) + EasiDS003(매직 간격) + 20개 분석기 테스트, WPF에 Analyzer 참조 | 1차 완료 |
 | 접근성(a11y) | `XamlAccessibilityScanner` 가드 + 프로덕션 XAML 인터랙티브 컨트롤 이름 부여(위반 0). 2차 정밀화: 입력 필드 `LabeledBy` 라벨 연결(PR #16), `LiveRegion`(LiveSetting=Assertive) 동적 알림 — LiveBar·EsToast(PR #15), 템플릿 파트 노출 정책 정형화(PR #17). a11y 가드 +11 테스트(세 PR 병합 시) | 1·2차 완료(3 PR 리뷰 대기). 잔여: NVDA/Narrator 수동 검증 |
 | 실제 기능 이식 | 운영 셸, 출력, 렌더링/미디어, 플랫폼 일부와 SettingsWindow/SettingsService/LegacySettingsMap/RegistryLegacySettingsSource/FileLegacySettingsSource/CompositeLegacySettingsSource/SettingsBootstrapMigrationService/최초 실행 온보딩/도움말·정보·등록 창/LibraryWindow/LibraryViewModel AdminDB browse/search/folder soft delete recover/folder·song reorder 및 drag reorder/FolderEditorWindow folder add edit/SongEditorWindow song edit legacy detail 보존/preview/live safety 저장/SongCopyWindow song copy/SongMoveWindow song move/SongDeleteWindow song soft delete/SongRecoveryWindow song recover/SongMergeWindow smart merge/ExternalFileOperationWindow external file copy move 및 InfoScreen import/ImportExportWindow text XML ESF Access MDB helper document-folder import(.txt/.doc/.docx, Word COM `.doc` 추출 포함) 및 praise-book 옵션형 XML ESN ESF HTML RTF export/SearchUsageWindow song search title lookup usage inspector/delete confirmation/BibleWindow bible browse search selection/dual-region preview/live queue insert/자산/DB 마이그레이션 service/AdminDatabaseRepository read/write/detail/folder and song soft delete/recover/reorder backup transaction/운영 데이터 dry-run 리허설 및 SettingsWindow 데이터 탭 실행/요약 표시, 기본 출력 모니터, display/window placement, GAP(User) 로고 이미지 송출, media audio/directory/live camera, PowerPoint render/cache/module runtime 소비, 운영 셸 한국어 UI copy 회귀 방지가 WPF 경계로 이동 중 | 부분 구현 |
 | 운영 앱 전환 | WPF 앱은 데모/기반 단계, production entrypoint 아님 | 미완료 |
@@ -40,8 +40,8 @@
 최근 검증 결과:
 
 ```powershell
-dotnet build Easislides.sln -c Debug
-dotnet test Easislides.sln -c Debug
+dotnet build Axicultus.sln -c Debug
+dotnet test Axicultus.sln -c Debug
 ```
 
 결과: 빌드 성공, 테스트 418개 통과(WPF 398 + 분석기 20). 단, 기존 NetOffice/DirectShow/HookManager 경고는 남아 있다.
@@ -54,7 +54,7 @@ dotnet test Easislides.sln -c Debug
 
 | 기존 구조 | WPF 이식 분류 | 계획 문서 |
 |---|---|---|
-| `Easislides/Easislides/FrmMain*.cs`, `FrmInfoScreen`, `FrmLyricsScreen`, `FrmLaunchShow`, alert/media control forms | 운영 셸 및 라이브 송출 | `01-shell-live-operations.md` |
+| `Axicultus/Axicultus/FrmMain*.cs`, `FrmInfoScreen`, `FrmLyricsScreen`, `FrmLaunchShow`, alert/media control forms | 운영 셸 및 라이브 송출 | `01-shell-live-operations.md` |
 | `FrmEditItem`, `FrmEditBibleItem`, `FrmImport*`, `FrmExport`, `FrmGenerate*`, `FrmFind`, `FrmManageItemLists`, `gfBible`, `gfLyrics`, `gfFolder` | 콘텐츠 편집/라이브러리 | `02-content-authoring-library.md` |
 | `ImageCanvas`, `ImageTransitionControl`, `gfImages`, `gfMedia`, `gfPowerPoint`, `OfficeLib`, `DirectShow` | 렌더링, Office, 미디어 | `03-rendering-office-media.md` |
 | `FrmOptions`, `FrmBackground`, `FrmGetWorkingFolder`, `FrmRegister`, `Settings`, `SQLite`, `AdminDB`, `Resources` | 설정, 데이터, 자산 마이그레이션 | `04-settings-data-assets.md` |
@@ -101,7 +101,7 @@ WPF 이식 완료는 다음을 모두 만족할 때만 선언한다.
 
 - 기존 WinForms의 주요 운영 기능을 WPF에서 수행할 수 있다.
 - 1시간 예배 리허설 시나리오가 WPF 앱만으로 통과한다.
-- `dotnet build Easislides.sln -c Release`와 `dotnet test Easislides.sln -c Release`가 통과한다.
+- `dotnet build Axicultus.sln -c Release`와 `dotnet test Axicultus.sln -c Release`가 통과한다.
 - PowerPoint/Word/DirectShow 사용 후 좀비 프로세스와 파일 잠금이 남지 않는다.
 - 설정/사용자 자산/작업 폴더 마이그레이션 후 원본 데이터가 보존된다.
 - 다크/라이트/큰 글자 모드에서 주요 화면의 텍스트 잘림과 겹침이 없다.

@@ -9,8 +9,8 @@
 - [ ] CodeGraph impact/context checked when shared helpers, Office interop, DB, output geometry, or FrmMain partial logic changed
 - [ ] Behavior changes have failing-test evidence before implementation, or `Test-Needed: no` with reason
 - [ ] `openspec validate --all --no-interactive`
-- [ ] `dotnet build Easislides\Easislides.csproj -nologo -v minimal`
-- [ ] `dotnet test Easislides.Wpf.Tests`
+- [ ] `dotnet build Axicultus\Axicultus.csproj -nologo -v minimal`
+- [ ] `dotnet test Axicultus.Wpf.Tests`
 
 ## Worship QA
 

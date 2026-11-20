@@ -10,8 +10,8 @@
 
 WinForms → WPF 마이그레이션 기간(Sprint 0~10, ~5개월) 동안 라이브 운영 환경에서 회귀 위험을 어떻게 방어할 것인가? 계획서 §9.4에 안전망 패턴 정의됨:
 
-- 빌드 산출물 분리: `Easislides.exe` (legacy WinForms) + `EasislidesNext.exe` (신규 WPF)
-- 공통 도메인 어셈블리 `Easislides.Core.dll` 추출 → 양쪽 참조
+- 빌드 산출물 분리: `Axicultuss.exe` (legacy WinForms) + `Axicultus.exe` (신규 WPF)
+- 공통 도메인 어셈블리 `Axicultus.Core.dll` 추출 → 양쪽 참조
 - 사용자 토글: CLI 인자 `--legacy-ui`로 신규 빌드에서도 legacy UI 호출 가능
 
 이 안전망을 **언제까지 유지할 것인가**? Q8 결정: D-Day +6개월까지 legacy 유지보수, 그러나 **인-프로세스 토글 `--legacy-ui`는 별개의 문제**.
@@ -56,9 +56,9 @@ WinForms → WPF 마이그레이션 기간(Sprint 0~10, ~5개월) 동안 라이�
 
 | 시점 | 상태 | 동작 |
 |---|---|---|
-| **Sprint 0 ~ M3 (Sprint 8 end)** | `--legacy-ui` **활성** | 사용자가 CLI 인자로 호출 시 신규 WPF 빌드 안에서 legacy WinForms `Easislides.exe` 프로세스 호출. 백업 안전망 풀 활성. |
+| **Sprint 0 ~ M3 (Sprint 8 end)** | `--legacy-ui` **활성** | 사용자가 CLI 인자로 호출 시 신규 WPF 빌드 안에서 legacy WinForms `Axicultuss.exe` 프로세스 호출. 백업 안전망 풀 활성. |
 | **M3+0 ~ M4 (Sprint 9~10, 4주)** | `--legacy-ui` **deprecated** | 인자 인식하지만 시작 시 경고 다이얼로그 표시: "이 옵션은 v3.0 출시 후 제거됩니다. 신규 UI에서 작동하지 않는 기능이 있으면 이슈로 보고해 주세요." 여전히 legacy 실행. |
-| **M4 (v3.0 출시) ~ D-Day +6개월** | `--legacy-ui` **제거** | 인자 인식 안 함. 단, **별도 다운로드로 legacy `Easislides.exe` 빌드 자체는 D-Day +6개월까지 GitHub Releases에서 제공** (계획서 §10.5.2). |
+| **M4 (v3.0 출시) ~ D-Day +6개월** | `--legacy-ui` **제거** | 인자 인식 안 함. 단, **별도 다운로드로 legacy `Axicultuss.exe` 빌드 자체는 D-Day +6개월까지 GitHub Releases에서 제공** (계획서 §10.5.2). |
 | **D-Day +6개월 이후** | EOL | legacy 빌드 다운로드 페이지에 "EOL 선언, 단순 보존" 명시. |
 
 **별도 다운로드 보존 vs 인-프로세스 토글의 분리 이유**:

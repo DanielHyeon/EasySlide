@@ -8,7 +8,7 @@
 
 ## 컨텍스트
 
-EasiSlides 사용자 90%+ 가 한국 교회 운영자. 현재 폰트 사용 현황:
+Axicultus 사용자 90%+ 가 한국 교회 운영자. 현재 폰트 사용 현황:
 - `gfColorsFonts.cs:148` 폴백: `Microsoft Sans Serif` (1992년 도입, 한글 미지원 — 시스템 한글 폰트로 자동 대체)
 - `FrmMain.Designer.cs` 등에 `Tahoma` 8.25pt 하드코딩
 - 시스템 한글: 사용자 PC의 `Malgun Gothic` (Windows 8+) 또는 `Gulim` (구버전)
@@ -68,14 +68,14 @@ Q4 결정: **앱이 폰트를 번들로 제공해 시스템 의존 제거.** 어
 **A. Pretendard Variable 번들 (OFL 1.1).**
 
 세부:
-- **파일**: `Easislides.Wpf/Assets/Fonts/PretendardVariable.ttf` (Variable Font 단일 파일, ~1.5MB)
+- **파일**: `Axicultus.Wpf/Assets/Fonts/PretendardVariable.ttf` (Variable Font 단일 파일, ~1.5MB)
 - **WPF 등록**: `App.xaml`
   ```xml
   <FontFamily x:Key="Font.Primary">pack://application:,,,/Assets/Fonts/#Pretendard Variable</FontFamily>
   ```
 - **폴백 체인** (`Type.Body` 등 모든 토큰에 적용):
   `Pretendard Variable, Segoe UI Variable, Segoe UI, Malgun Gothic, sans-serif`
-- **라이선스 동봉**: `Easislides.Wpf/Assets/Fonts/PretendardVariable-OFL-1.1-LICENSE.txt` (원본 LICENSE 그대로 복사)
+- **라이선스 동봉**: `Axicultus.Wpf/Assets/Fonts/PretendardVariable-OFL-1.1-LICENSE.txt` (원본 LICENSE 그대로 복사)
 - **금지**: `Malgun Gothic` 직접 지정 금지(폴백으로만), `Microsoft Sans Serif`/`Tahoma` 사용 금지 (마이그레이션 시 모두 제거 — 계획서 §4.2)
 - **모노스페이스**: `Cascadia Code` 시스템 폰트 사용 (Windows 11 기본). 미설치 PC를 위해 폴백 `Consolas` 지정.
 
@@ -94,7 +94,7 @@ Q4 결정: **앱이 폰트를 번들로 제공해 시스템 의존 제거.** 어
 
 ### 중립 / 리스크
 - Variable Font를 일부 구버전 WPF 렌더링 파이프라인이 완전 지원하지 않을 가능성 → **Sprint 1에서 .NET 10 + Pretendard Variable 렌더링 PoC** (모든 weight가 화면에 올바르게 출력되는지)
-- 사용자 PC에 같은 이름 폰트가 미리 설치돼 있으면 충돌 가능성 → `pack://` URI 임베드 폰트는 시스템 폰트와 별도 네임스페이스로 동작하나, 일부 텍스트 박스(예: PowerPoint Interop 결과)에서는 시스템 폰트가 우선 — 본 폰트는 EasiSlides UI 내부에만 적용, 송출 슬라이드 내 폰트는 별도 처리.
+- 사용자 PC에 같은 이름 폰트가 미리 설치돼 있으면 충돌 가능성 → `pack://` URI 임베드 폰트는 시스템 폰트와 별도 네임스페이스로 동작하나, 일부 텍스트 박스(예: PowerPoint Interop 결과)에서는 시스템 폰트가 우선 — 본 폰트는 Axicultus UI 내부에만 적용, 송출 슬라이드 내 폰트는 별도 처리.
 
 ## 참조
 

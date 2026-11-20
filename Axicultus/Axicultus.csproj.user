@@ -1,0 +1,187 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <_LastSelectedProfileId>$(MSBuildProjectDirectory)\Properties\PublishProfiles\FolderProfile.pubxml</_LastSelectedProfileId>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Update="Axicultus\DShowLib.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="Axicultus\FrmLaunchMediaPlayer.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Axicultus\FrmLaunchShow.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Axicultus\FrmLyricsScreen.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Axicultus\FrmMain.Events.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Axicultus\FrmMain.Fields.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Axicultus\FrmMain.Layout.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Axicultus\FrmMain.Logic.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Axicultus\FrmMain.ModernUi.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Axicultus\FrmMain.ModernUi.FormatIcons.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Axicultus\FrmMain.ModernUi.Icons.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Axicultus\FrmMain.ModernUi.ImageList.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Axicultus\FrmMain.ModernUi.SongList.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Axicultus\FrmMain.ModernUi.Surface.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Axicultus\FrmOptions.ModernUi.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Axicultus\FrmSplashScreen.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Axicultus\FrmMain.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Axicultus\FrmAbout.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Axicultus\FrmBackground.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Axicultus\FrmBibleRename.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Axicultus\FrmCopy.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Axicultus\FrmCopyMoveExternal.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Axicultus\FrmEditBibleItem.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Axicultus\FrmEditItem.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Axicultus\FrmEditNotes.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Axicultus\FrmExport.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Axicultus\FrmFind.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Axicultus\FrmGenerateDoc.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Axicultus\FrmGenerateHtml.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Axicultus\FrmGetWorkingFolder.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Axicultus\FrmHelp.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Axicultus\FrmImport.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Axicultus\FrmImportAccessHelper.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Axicultus\FrmImportFolder.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Axicultus\FrmInfoScreen.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Axicultus\FrmLookupTitles.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Axicultus\FrmManageItemLists.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Axicultus\FrmMediaPlayerControl.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Axicultus\FrmMove.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Axicultus\FrmOptions.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Axicultus\FrmPopupText.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Axicultus\FrmRearrangeFolderPositions.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Axicultus\FrmRecoverDeleted.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Axicultus\FrmRegister.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Axicultus\FrmShowAlert.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Axicultus\FrmSingleMonitorAlert.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Axicultus\FrmSmartMerge.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Axicultus\FrmUpdateFileName.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Axicultus\FrmUsages.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Axicultus\ImageCanvas.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="Axicultus\ImageTransitionControl.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="Axicultus\ImageTransitionControl.TextOverlay.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="Axicultus\LyricsSlidePanel.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="Axicultus\PowerPointThumbnailPanel.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="Axicultus\RotationTimingPanel.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="Axicultus\SongFindBox.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="HookManager\GlobalEventProvider.cs">
+      <SubType>Component</SubType>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="Axicultus\FrmMain.resx">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Axicultus\FrmSplashScreen.resx">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+</Project>

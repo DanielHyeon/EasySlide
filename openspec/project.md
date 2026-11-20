@@ -2,14 +2,14 @@
 
 ## Purpose
 
-EasiSlides는 교회 예배용 프레젠테이션 프로그램이다. 가사, 성경 구절, PowerPoint 슬라이드를 멀티 모니터로 송출한다.
+Axicultus는 교회 예배용 프레젠테이션 프로그램이다. 가사, 성경 구절, PowerPoint 슬라이드를 멀티 모니터로 송출한다.
 자세한 구조와 규칙은 `.claude/CLAUDE.md`를 따른다. 이 문서는 OpenSpec 변경 제안에 공통으로 적용되는 조건만 적는다.
 
 ## Tech Stack
 
 - C# / .NET (`net11.0-windows7.0`), Windows Forms, `WinExe`
 - 메인 폼 `FrmMain`은 partial 파일로 나뉜다: `FrmMain.cs`, `.Designer.cs`, `.Fields.cs`, `.Events.cs`, `.Layout.cs`, `.Logic.cs`
-- 빌드: `dotnet build Easislides\Easislides.csproj -nologo -v minimal`
+- 빌드: `dotnet build Axicultus\Axicultus.csproj -nologo -v minimal`
 - git 실행 파일은 PATH에 없다. Visual Studio에 포함된 git을 전체 경로로 호출한다.
   `C:\Program Files\Microsoft Visual Studio\18\Enterprise\Common7\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Git\cmd\git.exe`
 

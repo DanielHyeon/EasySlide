@@ -2,13 +2,13 @@
     "version": "2.0.0",
     "tasks": [
         {
-            // 빠른 WPF 단독 빌드 — F5(Easislides.Wpf) 시 자동 실행
+            // 빠른 WPF 단독 빌드 — F5(Axicultus.Wpf) 시 자동 실행
             "label": "build-wpf",
             "command": "dotnet",
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/Easislides.Wpf/Easislides.Wpf.csproj",
+                "${workspaceFolder}/Axicultus.Wpf/Axicultus.Wpf.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary;ForceNoAlign"
             ],
@@ -30,7 +30,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/Easislides.sln",
+                "${workspaceFolder}/Axicultus.sln",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary;ForceNoAlign"
             ],
@@ -44,7 +44,7 @@
             "args": [
                 "watch",
                 "--project",
-                "${workspaceFolder}/Easislides.Wpf/Easislides.Wpf.csproj",
+                "${workspaceFolder}/Axicultus.Wpf/Axicultus.Wpf.csproj",
                 "run"
             ],
             "problemMatcher": "$msCompile",
@@ -56,7 +56,7 @@
             "type": "process",
             "args": [
                 "publish",
-                "${workspaceFolder}/Easislides.sln",
+                "${workspaceFolder}/Axicultus.sln",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary;ForceNoAlign"
             ],
@@ -70,7 +70,7 @@
                 "watch",
                 "run",
                 "--project",
-                "${workspaceFolder}/Easislides.sln"
+                "${workspaceFolder}/Axicultus.sln"
             ],
             "problemMatcher": "$msCompile"
         }

@@ -3,7 +3,7 @@ using System.Data;
 using System.Data.SQLite;
 using System.Text;
 
-namespace Easislides.Util
+namespace Axicultus.Util
 {
     class Program
     {
@@ -15,7 +15,7 @@ namespace Easislides.Util
 			//SQLiteCommandBuilder를 활용한 데이터 변경 : Insert 예제
 			/*
 			SQLiteConnection sqConn = new SQLiteConnection();
-			sqConn.ConnectionString = @"Data Source = C:\EasiSlides\Admin\Database\EasiSlidesDb.db";
+			sqConn.ConnectionString = @"Data Source = C:\Axicultus\Admin\Database\AxicultusDb.db";
 			sqConn.Open();
 
 			//Data Adapter 생성
@@ -50,7 +50,7 @@ namespace Easislides.Util
 			///
 			/*
 			SQLiteConnection sQLiteConnection = new SQLiteConnection();
-			sQLiteConnection.ConnectionString = @"Data Source = C:\EasiSlides\Admin\Database\EasiSlidesDb.db";
+			sQLiteConnection.ConnectionString = @"Data Source = C:\Axicultus\Admin\Database\AxicultusDb.db";
 			sQLiteConnection.Open();
 
 			DataTable dt = new DataTable();
@@ -75,7 +75,7 @@ namespace Easislides.Util
 			string text = "select * from TEST";
 
 			using SQLiteConnection sQLiteConnection = new SQLiteConnection();
-			sQLiteConnection.ConnectionString = @"Data Source = C:\EasiSlides\Admin\Database\EasiSlidesDb.db";
+			sQLiteConnection.ConnectionString = @"Data Source = C:\Axicultus\Admin\Database\AxicultusDb.db";
 			sQLiteConnection.Open();
 
 			SQLiteDataAdapter sQLiteDataAdapter = null;
@@ -111,7 +111,7 @@ namespace Easislides.Util
 			/*
 
 			SQLiteConnection sqConn = new SQLiteConnection();
-			sqConn.ConnectionString = @"Data Source = C:\EasiSlides\Admin\Database\EasiSlidesDb.db";
+			sqConn.ConnectionString = @"Data Source = C:\Axicultus\Admin\Database\AxicultusDb.db";
 			sqConn.Open();
 
 			SQLiteTransaction transaction = sqConn.BeginTransaction();
@@ -148,7 +148,7 @@ namespace Easislides.Util
 			//
 			/*
 			SQLiteConnection sqConn = new SQLiteConnection();
-			sqConn.ConnectionString = @"Data Source = C:\EasiSlides\Admin\Database\EasiSlidesDb.db";
+			sqConn.ConnectionString = @"Data Source = C:\Axicultus\Admin\Database\AxicultusDb.db";
 			sqConn.Open();
 
 			SQLiteTransaction transaction = sqConn.BeginTransaction();
@@ -187,7 +187,7 @@ namespace Easislides.Util
 			//DataTable dt = new DataTable();
 
 			//SQLiteConnection sqConn = new SQLiteConnection();
-			//sqConn.ConnectionString = @"Data Source = C:\EasiSlides\Admin\Database\EasiSlidesDb.db";
+			//sqConn.ConnectionString = @"Data Source = C:\Axicultus\Admin\Database\AxicultusDb.db";
 			//sqConn.Open();
 
 			//// 出力データ取得
@@ -215,7 +215,7 @@ namespace Easislides.Util
 			//DataTable dt = new DataTable();
 
 			//SQLiteConnection sqConn = new SQLiteConnection();
-			//sqConn.ConnectionString = @"Data Source = C:\EasiSlides\Admin\Database\EasiSlidesDb.db";
+			//sqConn.ConnectionString = @"Data Source = C:\Axicultus\Admin\Database\AxicultusDb.db";
 			//sqConn.Open();
 
 			//// 出力データ取得
@@ -250,7 +250,7 @@ namespace Easislides.Util
 
 
 			//SQLiteConnection sqConn = new SQLiteConnection();
-			//sqConn.ConnectionString = @"Data Source = C:\EasiSlides\Admin\Database\EasiSlidesDb.db";
+			//sqConn.ConnectionString = @"Data Source = C:\Axicultus\Admin\Database\AxicultusDb.db";
 			//sqConn.Open();
 
 			//SQLiteDataReader dataReader = GetDataReader(sqConn, "select * from TEST");
@@ -349,7 +349,7 @@ namespace Easislides.Util
 
 			//SQLite 연결
 			//SQLiteConnection sqConn = new SQLiteConnection();
-			sqConn.ConnectionString = @"Data Source = C:\EasiSlides\Admin\Database\EasiSlidesDb.db";
+			sqConn.ConnectionString = @"Data Source = C:\Axicultus\Admin\Database\AxicultusDb.db";
 			sqConn.Open();
 
 			//트랜잭션 시작
@@ -407,7 +407,7 @@ namespace Easislides.Util
 		private static void bibleListTest()
 		{
 			using SQLiteConnection connection = new SQLiteConnection();
-			connection.ConnectionString = @"Data Source=C:\EasiSlides\Admin-Copy\Database\EsBiblesList.db";
+			connection.ConnectionString = @"Data Source=C:\Axicultus\Admin-Copy\Database\EsBiblesList.db";
 			connection.Open();
 
 			string queryString = "select * from Biblefolder where NAME like \"%\" ";
@@ -450,7 +450,7 @@ namespace Easislides.Util
 		private static void bibleListTest1()
 		{
 			using SQLiteConnection sqConn = new SQLiteConnection();
-			sqConn.ConnectionString = @"Data Source=C:\EasiSlides\Admin-Copy\Database\EsBiblesList.db";
+			sqConn.ConnectionString = @"Data Source=C:\Axicultus\Admin-Copy\Database\EsBiblesList.db";
 			sqConn.Open();
 
 			try
@@ -527,7 +527,7 @@ namespace Easislides.Util
 		private static void InsertTest()
         {
 			SQLiteConnection sqConn = new SQLiteConnection();
-			sqConn.ConnectionString = @"Data Source = C:\EasiSlides\Admin\Database\EasiSlidesDb.db";
+			sqConn.ConnectionString = @"Data Source = C:\Axicultus\Admin\Database\AxicultusDb.db";
 			sqConn.Open();
 
 			DataTable dt = new DataTable();
@@ -572,7 +572,7 @@ namespace Easislides.Util
 		private static void UpdateTest()
 		{
 			SQLiteConnection sqConn = new SQLiteConnection();
-			sqConn.ConnectionString = @"Data Source = C:\EasiSlides\Admin\Database\EasiSlidesDb.db";
+			sqConn.ConnectionString = @"Data Source = C:\Axicultus\Admin\Database\AxicultusDb.db";
 			sqConn.Open();
 
 			DataTable dt = new DataTable();
@@ -647,7 +647,7 @@ namespace Easislides.Util
 			string query = "Select * From Table";
 
 			SQLiteConnection sqConn = new SQLiteConnection();
-			sqConn.ConnectionString = @"Data Source = C:\EasiSlides\Admin\Database\EasiSlidesDb.db";
+			sqConn.ConnectionString = @"Data Source = C:\Axicultus\Admin\Database\AxicultusDb.db";
 			sqConn.Open();
 
 			using (SQLiteTransaction transaction = sqConn.BeginTransaction())
@@ -709,7 +709,7 @@ namespace Easislides.Util
 
 				// DataAdapter는 자동으로 Connection을
 				// 핸들링한다. conn.Open() 불필요.
-				//string connStr = @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=C:\EasiSlides\Admin\Database\EasiSlidesDb.mdb";
+				//string connStr = @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=C:\Axicultus\Admin\Database\AxicultusDb.mdb";
 				//string sql = "select * from FOLDER where FolderNo >=0 and FolderNo < 41";
 				SQLiteCommand scdCommand = new SQLiteCommand(FullSearchString, sQLiteConnection);
 				SQLiteDataReader sqliteDataReader = scdCommand.ExecuteReader(CommandBehavior.CloseConnection);
@@ -764,7 +764,7 @@ namespace Easislides.Util
 
 				// DataAdapter는 자동으로 Connection을
 				// 핸들링한다. conn.Open() 불필요.
-				//string connStr = @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=C:\EasiSlides\Admin\Database\EasiSlidesDb.mdb";
+				//string connStr = @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=C:\Axicultus\Admin\Database\AxicultusDb.mdb";
 				//string sql = "select * from FOLDER where FolderNo >=0 and FolderNo < 41";
 
 				//SQLiteConnection sQLiteConnection = GetSqliteDbConnection(ConnectString);
@@ -795,7 +795,7 @@ namespace Easislides.Util
 
 				// DataAdapter는 자동으로 Connection을
 				// 핸들링한다. conn.Open() 불필요.
-				//string connStr = @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=C:\EasiSlides\Admin\Database\EasiSlidesDb.mdb";
+				//string connStr = @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=C:\Axicultus\Admin\Database\AxicultusDb.mdb";
 				//string sql = "select * from FOLDER where FolderNo >=0 and FolderNo < 41";
 
 				SQLiteDataAdapter da = new SQLiteDataAdapter(FullSearchString, sQLiteConnection);

@@ -1,9 +1,0 @@
-{
-  "profiles": {
-    "Easislides": {
-      "commandName": "Project",
-      "remoteDebugEnabled": false,
-      "remoteDebugMachine": "SSMB-1:4026"
-    }
-  }
-}

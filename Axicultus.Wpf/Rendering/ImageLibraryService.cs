@@ -1,0 +1,121 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+
+namespace Axicultus.Wpf.Rendering;
+
+public sealed record ImageFolderItem(string DisplayName, string FolderPath);
+
+public sealed record ImageImportResult(bool Succeeded, string SourcePath, string DestinationPath, string Message);
+
+/// <summary>
+/// 이미지 폴더 탐색기(FrmMain Images 탭 포팅) — 지정한 폴더의 이미지 파일 경로 목록을 돌려준다.
+/// 출력 배경으로 쓸 이미지를 운영자가 갤러리에서 고를 수 있게 하는 데이터 소스.
+/// 순수 함수형(파일 시스템 열거만) — 폴더가 없거나 접근 불가면 빈 목록(예외를 던지지 않는다).
+/// </summary>
+public interface IImageLibraryService
+{
+    /// <summary>폴더 안 이미지 파일 경로를 이름순으로 돌려준다. 폴더가 없으면 빈 목록.</summary>
+    IReadOnlyList<string> EnumerateImages(string folderPath, bool includeSubfolders);
+
+    IReadOnlyList<ImageFolderItem> EnumerateFolders(string rootFolder);
+
+    ImageImportResult ImportImage(string sourceFilePath, string destinationFolderPath);
+}
+
+public sealed class ImageLibraryService : IImageLibraryService
+{
+    // 출력 배경으로 쓸 수 있는 이미지 확장자(ImageAssetService 의 디코드 가능 형식과 동일).
+    private static readonly HashSet<string> ImageExtensions =
+    [
+with(StringComparer.OrdinalIgnoreCase),         ".bmp", ".gif", ".ico", ".jpg", ".jpeg", ".png", ".tif", ".tiff",
+    ];
+
+    public IReadOnlyList<string> EnumerateImages(string folderPath, bool includeSubfolders)
+        => FolderFileEnumerator.Enumerate(folderPath, ImageExtensions, includeSubfolders);
+
+    public IReadOnlyList<ImageFolderItem> EnumerateFolders(string rootFolder)
+    {
+        if (string.IsNullOrWhiteSpace(rootFolder) || !Directory.Exists(rootFolder))
+        {
+            return Array.Empty<ImageFolderItem>();
+        }
+
+        var root = Path.GetFullPath(rootFolder);
+        var scenery = Path.Combine(root, "Scenery");
+        var tiles = Path.Combine(root, "Tiles");
+        var folders = new List<ImageFolderItem>
+        {
+            new("Scenery", scenery),
+            new("Tiles", tiles),
+            new("Images", root),
+        };
+
+        var legacyBuiltIns = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            Path.GetFullPath(scenery),
+            Path.GetFullPath(tiles),
+        };
+
+        try
+        {
+            folders.AddRange(Directory
+                .EnumerateDirectories(root, "*", SearchOption.AllDirectories)
+                .OrderBy(path => RelativeFolderName(root, path), StringComparer.OrdinalIgnoreCase)
+                .Where(path => !legacyBuiltIns.Contains(Path.GetFullPath(path)))
+                .Take(252)
+                .Select(path => new ImageFolderItem("\\" + RelativeFolderName(root, path), path)));
+        }
+        catch (IOException)
+        {
+        }
+        catch (UnauthorizedAccessException)
+        {
+        }
+
+        return folders;
+    }
+
+    public ImageImportResult ImportImage(string sourceFilePath, string destinationFolderPath)
+    {
+        var source = sourceFilePath ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(source) || !File.Exists(source))
+        {
+            return new ImageImportResult(false, source, string.Empty, "Image file not found.");
+        }
+
+        if (!ImageExtensions.Contains(Path.GetExtension(source)))
+        {
+            return new ImageImportResult(false, source, string.Empty, "Unsupported image file.");
+        }
+
+        if (string.IsNullOrWhiteSpace(destinationFolderPath))
+        {
+            return new ImageImportResult(false, source, string.Empty, "Image folder is not selected.");
+        }
+
+        var destinationPath = Path.Combine(destinationFolderPath, Path.GetFileName(source));
+        try
+        {
+            Directory.CreateDirectory(destinationFolderPath);
+            if (File.Exists(destinationPath))
+            {
+                return new ImageImportResult(false, source, destinationPath, "Image file already exists in the selected folder.");
+            }
+
+            File.Copy(source, destinationPath, overwrite: false);
+            return new ImageImportResult(true, source, destinationPath, string.Empty);
+        }
+        catch (Exception ex) when (ex is ArgumentException
+                                       or IOException
+                                       or NotSupportedException
+                                       or UnauthorizedAccessException)
+        {
+            return new ImageImportResult(false, source, destinationPath, ex.Message);
+        }
+    }
+
+    private static string RelativeFolderName(string root, string path)
+        => Path.GetRelativePath(root, path).Replace(Path.DirectorySeparatorChar, '\\');
+}

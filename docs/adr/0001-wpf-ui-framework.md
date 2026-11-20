@@ -8,7 +8,7 @@
 
 ## 컨텍스트
 
-EasiSlides v2.6.4는 .NET 10 WinForms 기반(40+ `Frm*.cs` 폼, FrmMain 8,800줄)이며, UI 시각/상호작용 시스템은 XP/Vista 시대 패턴에 머물러 있다. 계획서 §0에서 다음이 결정됨:
+Axicultus v2.6.4는 .NET 10 WinForms 기반(40+ `Frm*.cs` 폼, FrmMain 8,800줄)이며, UI 시각/상호작용 시스템은 XP/Vista 시대 패턴에 머물러 있다. 계획서 §0에서 다음이 결정됨:
 
 - **전체 WPF/WinUI 마이그레이션** (WinForms 단계적 폐기)
 - **Fluent 2 (Windows 11 네이티브)** 비주얼 톤

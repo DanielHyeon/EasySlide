@@ -67,7 +67,7 @@ WPF는 OS DPI 설정(125%/150%/175%)을 자동 반영. 사용자가 OS 설정 �
 |---|---|
 | 코드 변경 0 | **앱 외부 의존** — Windows 설정 메뉴 진입 부담 |
 | | 모니터별 DPI 분리 — 같은 PC 다중 모니터에서 다르게 작동 (라이브 운영 부스에서 혼란) |
-| | **EasiSlides 단독으로 시니어 모드 켜고 끄기 불가** — 다른 앱까지 영향 |
+| | **Axicultus 단독으로 시니어 모드 켜고 끄기 불가** — 다른 앱까지 영향 |
 
 ## 결정
 
@@ -91,7 +91,7 @@ WPF는 OS DPI 설정(125%/150%/175%)을 자동 반영. 사용자가 OS 설정 �
 2. 스케일 적용 토큰을 `Application.Current.Resources`에서 갱신 (`Type.Body.FontSize` = 14.0 × factor)
 3. `OnPropertyChanged("ScaleFactor")` 발생
 4. WPF DataBinding이 모든 `{DynamicResource}` 참조 컨트롤 재렌더
-5. 설정 저장 (`%AppData%\EasislidesNext\settings.json`)
+5. 설정 저장 (`%AppData%\Axicultus\settings.json`)
 
 **온보딩 (계획서 §7.4)**:
 - 최초 실행 1회 표시, 큰 카드 3개 — "표준" / "큰 글씨" / "시니어"

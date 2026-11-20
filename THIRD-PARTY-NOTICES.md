@@ -1,12 +1,12 @@
 # Third-party notices
 
-EasiSlides includes material from the third-party projects listed below.
+Axicultus includes material from the third-party projects listed below.
 
 ## Fluent UI System Icons
 
 - Project: https://github.com/microsoft/fluentui-system-icons
 - Version: commit 41089846ad80c5749df505aef35a68712c1561b9 (main, downloaded 2026-11-17)
-- What is used: the SVG path data of the icons listed in `Easislides/Global/ModernIcons.cs`, copied into that source file and drawn by the app. No image or font file of the project is included.
+- What is used: the SVG path data of the icons listed in `Axicultus/Global/ModernIcons.cs`, copied into that source file and drawn by the app. No image or font file of the project is included.
 - Licence: MIT. The licence text below is copied unchanged from the project's `LICENSE` file at that commit.
 
 ```text

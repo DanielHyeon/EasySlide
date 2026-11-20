@@ -1,6 +1,6 @@
 ﻿# FrmMain ↔ WPF 상세 갭 분석 (UI/UX + 기능 전수)
 
-> 작성일: 2026-06-01 · 방법: **레거시 `FrmMain.*`(21,649줄) 전체와 WPF `Easislides.Wpf` 전체를 실제 코드로 전수 인벤토리**하여 컨트롤·기능 단위로 1:1 대조. 추정/요약이 아니라 Designer 컨트롤명·핸들러 메서드명·WPF Command/Property명을 근거로 표기한다.
+> 작성일: 2026-06-01 · 방법: **레거시 `FrmMain.*`(21,649줄) 전체와 WPF `Axicultus.Wpf` 전체를 실제 코드로 전수 인벤토리**하여 컨트롤·기능 단위로 1:1 대조. 추정/요약이 아니라 Designer 컨트롤명·핸들러 메서드명·WPF Command/Property명을 근거로 표기한다.
 > 근거 파일: `FrmMain.Designer.cs`(7,318) · `FrmMain.cs`(8,822) · `FrmMain.Logic.cs`(3,115) · `FrmMain.Events/Fields/Layout.cs` ↔ `MainWindow.xaml(.cs)` · `Shell/MainViewModel.cs` · `Composites/*` · `Library/BibleWindow.xaml` 등.
 >
 > **재검증 이력(2026-06-01)**: 작성 후 적대적 교차검증(코드 직접 grep/read + 독립 리뷰 에이전트) 수행. 결과 — **거짓 "없음" 주장(over-statement) 0건**(모든 🔴/0% 판정이 코드로 확인됨). 발견·반영한 정정 4건: ① PraiseBook "전무" → 문서생성(RTF/HTML)은 존재·운영 UI만 부재로 정밀화, ② Region2 "0%" → 디코더는 region2 파싱·출력 렌더만 부재로 정밀화, ③ ToolStrip 수 31→30, ④ **`LyricsMonitorShowNotations` 설정이 mis-bound된 실제 결함** 발견·기록(§3.7).
@@ -60,7 +60,7 @@ WPF는 메뉴바가 없고 ⌘K 팔레트(24)로 일부만 흡수. **팔레트�
 
 - File: Worship Sessions / PraiseBooks / Listing of Selected Folder / Recent Edits → PraiseBooks·Recent Edits·Listing of Selected Folder 는 포팅("찬양집 색인..." 창=Listing, 증분44+158), **Worship Sessions 만 후속**
 - Edit: Add/Edit/Copy/Move/Delete/Select All/**Use Song Numbering**/Re-Arrange Song Folders → **Use Song Numbering ✅**(보기 메뉴 토글, `Library.UseSongNumbering`)·**Re-Arrange ✅**(라이브러리 폴더 재정렬); 다중선택 Select All 만 후속
-- View: EasiSlides Folder / **Show Notations in Preview** / Status Bar → **EasiSlides Folder ✅**(보기 메뉴 "EasiSlides 폴더 열기", `OpenEasiSlidesFolder_Click`)·**코드/악상 표시 ✅**(출력 토글 `ActiveLyricsNotations`=레거시 Def_Notations); Status Bar 표시 토글·Preview 전용 노테이션만 후속
+- View: Axicultus Folder / **Show Notations in Preview** / Status Bar → **Axicultus Folder ✅**(보기 메뉴 "Axicultus 폴더 열기", `OpenAxicultusFolder_Click`)·**코드/악상 표시 ✅**(출력 토글 `ActiveLyricsNotations`=레거시 Def_Notations); Status Bar 표시 토글·Preview 전용 노테이션만 후속
 - Output: Start Show(**F12**=Go Live ✅)/Preview Go-Live-Move-Next(**F11**=송출 후 다음, 증분135 ✅)/Refresh/Black(**F9** ✅)/**Clear(F3** ✅)/Restart → F12·F11·F9·F3 매핑 완료(테스트 잠금). F5 는 WPF 에서 "다음 항목"으로 재배정(레거시 Restart 는 ⌘K 팔레트 "처음으로"). Refresh 는 팔레트 "출력 새로고침"(F-키 미배정)
 - Tools: Import/ImportFolder/Export/Recover/Empty/AddToUsages/ViewUsages/SmartMerge/**Compact&Repair**/**Clear All Formatting**/Clear Registry → Compact·ClearAllFormatting·ClearRegistry **모두 포팅**(증분40·153·159)
 - Help: Contents(F1)/Help-Web/Register/About → 창 존재 + **F1=도움말 ✅**(`CommandCatalog` 등록 + `CommandCatalogTests` F-키 파리티 `[Theory]` 테스트 잠금). Help-Web 만 후속
@@ -293,7 +293,7 @@ FrmMain의 성경은 **메인 창에 인라인**(Bibles 탭)이고, 운영 중 �
 
 1. **P0 — Phase 5 완료**: first-screen/default/individual formatting, background, transition, live-safety controls의 남은 row를 mapping table에 맞춰 닫는다.
 2. **P0 — Phase 6 완료**: shortcut/focus parity를 자동 테스트와 수동 UAT로 나눈다. 전역키, ListBox 포커스, TextBox 입력 중 키 충돌을 별도 케이스로 둔다.
-3. **P0 — Phase 7 검증 증거 확보**: `dotnet test Easislides.Wpf.Tests`, `dotnet build Easislides\Easislides.csproj`, WPF launch, 멀티모니터 Preview/Output/Region1/2/Validate UAT를 한 번에 묶어 기록한다.
+3. **P0 — Phase 7 검증 증거 확보**: `dotnet test Axicultus.Wpf.Tests`, `dotnet build Axicultus\Axicultus.csproj`, WPF launch, 멀티모니터 Preview/Output/Region1/2/Validate UAT를 한 번에 묶어 기록한다.
 4. **P1 — ValidateWorshipListItems 동등성 보강**: 파일 검증 이후 곡 DB 존재, 성경/공지/세션 항목 검증 범위를 legacy와 대조한다.
 5. **P1 — live 보조 갭 정리**: Lyrics Monitor 메시지, 중국어 변환, AssignMedia, media output/top-most/global keys/remote bus를 별도 OpenSpec slice로 분리한다.
 6. **P1 — 운영 보조 창 동등성**: Worship Sessions bundle, InfoScreen legacy editor, PowerPoint thumbnail/import gallery, Bible notes/edit 계열을 기능별 phase로 나눈다.

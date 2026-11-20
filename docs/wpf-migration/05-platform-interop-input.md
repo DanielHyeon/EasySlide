@@ -170,9 +170,9 @@
 
 2026-05-29 기준:
 
-- `dotnet test Easislides.sln -c Debug`: 375개 통과
-- `dotnet build Easislides.sln -c Release`: 성공
-- `dotnet test Easislides.sln -c Release --no-build`: 375개 통과
-- CodeGraph 동기화 완료: `Easislides.Wpf/Input/GlobalInputService.cs`, `Easislides.Wpf/Input/CommandCatalog.cs`, `Easislides.Wpf/Platform/DisplayService.cs`, `Easislides.Wpf/Platform/WindowPlacementService.cs`, `Easislides.Wpf/Platform/PlatformDiagnosticsService.cs`, `Easislides.Wpf/Shell/MainViewModel.cs` 인식 확인
-- Release 산출물 확인: `Easislides.Wpf\bin\Release\net10.0-windows\EasislidesNext.exe`, `MainWindow.baml`, `OutputWindow.baml` (산출물 분리 §9.4 — exe 명 EasislidesNext)
+- `dotnet test Axicultus.sln -c Debug`: 375개 통과
+- `dotnet build Axicultus.sln -c Release`: 성공
+- `dotnet test Axicultus.sln -c Release --no-build`: 375개 통과
+- CodeGraph 동기화 완료: `Axicultus.Wpf/Input/GlobalInputService.cs`, `Axicultus.Wpf/Input/CommandCatalog.cs`, `Axicultus.Wpf/Platform/DisplayService.cs`, `Axicultus.Wpf/Platform/WindowPlacementService.cs`, `Axicultus.Wpf/Platform/PlatformDiagnosticsService.cs`, `Axicultus.Wpf/Shell/MainViewModel.cs` 인식 확인
+- Release 산출물 확인: `Axicultus.Wpf\bin\Release\net11.0-windows7.0\Axicultus.exe`, `MainWindow.baml`, `OutputWindow.baml` (산출물 분리 §9.4 — exe 명 Axicultus)
 - 남은 수동 검증: 실제 듀얼 모니터 좌우/상하 배치, 혼합 DPI, 모니터 제거/재연결, 실제 리모컨/타 앱 포커스 글로벌 단축키, 텍스트 입력 중 shortcut 충돌

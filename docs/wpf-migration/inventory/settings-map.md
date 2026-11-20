@@ -1,8 +1,8 @@
 # Legacy 설정 매핑 인벤토리
 
 > 기준일: 2026-05-29
-> 코드 기준: `Easislides.Wpf/Settings/LegacySettingsMap.cs`
-> 범위: `FrmOptions.SaveVariables`, `gfConfig.InitEasiSlidesDir`, WPF `EasiSettingKeys`
+> 코드 기준: `Axicultus.Wpf/Settings/LegacySettingsMap.cs`
+> 범위: `FrmOptions.SaveVariables`, `gfConfig.InitAxicultusDir`, WPF `AxicultusSettingKeys`
 
 ## 1. 목적
 
@@ -13,7 +13,7 @@
 | Legacy key | WPF key | 섹션 | 변환 |
 |---|---|---|---|
 | `Language` | `general.language` | 일반 | 문자열 |
-| `WorkingFolder`, `RootEasiSlidesDir`, `root_directory` | `general.workingFolder` | 일반 | 경로 문자열 |
+| `WorkingFolder`, `RootAxicultusDir`, `root_directory` | `general.workingFolder` | 일반 | 경로 문자열 |
 | `OnboardingCompleted` | `general.onboardingCompleted` | 일반 | bool |
 | `RegistrationUser` | `general.registrationUser` | 일반 | 문자열, About dialog 등록 사용자 표시/저장 |
 | `Theme` | `appearance.theme` | 화면 | enum |
@@ -64,7 +64,7 @@
 
 ## 4. 검증
 
-- `LegacySettingsMapTests`: 현행 `EasiSettingKeys` 전체가 인벤토리에 포함되는지 검증한다.
+- `LegacySettingsMapTests`: 현행 `AxicultusSettingKeys` 전체가 인벤토리에 포함되는지 검증한다.
 - `LegacySettingsMapTests`: `FrmOptions.SaveVariables`의 고위험 key가 문서화되어 있는지 검증한다.
 - `LegacySettingsMapTests`: `root_directory`, `RegistrationUser`, `OutputMonitorName`, `LiveCamVolume`, `LiveCamBalance`, `LiveCamMute`, `DBFileName` 별칭 migration, scale 정규화, operational setting alias migration, `KeyBoardOption`/`GlobalHookKey_*` shortcut override 변환을 검증한다.
 - `RegistryLegacySettingsSourceTests`: `RegUtil` 호환 HKCU section(`config`/`options`/`monitors`)에서 문자열/DWORD 값을 읽고, 누락 값 조회 시 legacy registry key를 생성하지 않으며, registry source가 `SettingsService.MigrateLegacyAsync`에 연결되는지 검증한다.

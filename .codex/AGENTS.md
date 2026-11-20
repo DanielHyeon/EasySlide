@@ -1,11 +1,11 @@
-# EasiSlides v2.6.x — 핵심 요약 + SDD 운영 정책(GBrain 통합)
+# Axicultus v2.6.x — 핵심 요약 + SDD 운영 정책(GBrain 통합)
 
 ## 0. 미션 / 스택
 
 교회 예배용 워십 슬라이드 송출 프로그램. 찬양 가사·성경 구절·PPT를 멀티 모니터로 송출하고 예배 순서(WorshipList)에 따라 즉시 전환한다.
 
-- **런타임**: C# / .NET 10 (`net10.0-windows7.0`), WinForms(`WinExe`) — WPF(`Easislides.Wpf`) 신규 포팅 진행 중
-- **솔루션**: `Easislides/`(메인) · `OfficeLib/`(PPT/Word Interop) · `DirectShow/`(영상) · `Easislides.Wpf/`(WPF 포팅)
+- **런타임**: C# / .NET 11 (`net11.0-windows7.0`), WinForms(`WinExe`) — WPF(`Axicultus.Wpf`) 신규 포팅 진행 중
+- **솔루션**: `Axicultus/`(메인) · `OfficeLib/`(PPT/Word Interop) · `DirectShow/`(영상) · `Axicultus.Wpf/`(WPF 포팅)
 - **주요 NuGet**: MySql.Data 9.1, MySqlConnector 2.4, NetOffice.PowerPoint/Word 1.7.4.11, System.Data.SQLite.Core 1.0.119
 - **DB**: 로컬 SQLite(찬양/성경) + 선택적 MariaDB/MySQL 동기화. `DefineConstants=ODBC, SQLite`
 
@@ -93,7 +93,7 @@ GSD 계획, `.planning/`, gstack-spec, gstack-autoplan 산출물은 프로젝트
 - **Step 1 · 계약**: `/opsx:propose "<변경 의도>"` → `openspec/changes/`에 proposal·specs·design·tasks 생성. 새 change id는 지금부터 `<prefix><NNN>-short-kebab-intent` 형식을 사용한다(예: `a001-wpf-mainwindow-shell`, `a002-wpf-shortcut-focus-parity`, `a999-wpf-some-change`, `b001-wpf-next-change`). 접두사는 `a001`~`a999` 다음 `b001`, 그 다음 `c001`처럼 알파벳 소문자 순서로 증가하고, 첫 글자는 OpenSpec CLI의 문자 시작 조건을 만족하기 위한 알파벳이다. `NNN`은 생성 순서 메타데이터이며 우선순위가 아니다. (간단/긴급 건은 `docs/` 구현 계획서로 대체 가능), 필요에 따라 gstack 리뷰 확인.
 - **Step 2 · 증거**: CodeGraph로 영향 분석 — `codegraph_impact`·`codegraph_callers`로 영향 심볼·테스트 식별. 파일 직접 읽기 전에 먼저.
 - **Step 3 · 실행**: Superpowers TDD — Red → Green → Refactor → Verify. 작은 phase 단위 커밋. 각 phase에 `Goal/Scope/Tasks/DoD/Tests/Constraints` 명시. (디버깅 막히면 `gbrain search`로 유사 에러 패턴 검색 가능)
-- **Step 4 · 게이트**: `/gstack-review` → `/gstack-cso` → 영향 테스트(`dotnet build` + `dotnet test Easislides.Wpf.Tests`, green 유지) → `/gstack-qa` → 수동 송출 QA. Release 빌드 시 DLL/BAML 심볼 반영 확인. 실제 push/배포는 사람이 diff·테스트 승인 후 수행.
+- **Step 4 · 게이트**: `/gstack-review` → `/gstack-cso` → 영향 테스트(`dotnet build` + `dotnet test Axicultus.Wpf.Tests`, green 유지) → `/gstack-qa` → 수동 송출 QA. Release 빌드 시 DLL/BAML 심볼 반영 확인. 실제 push/배포는 사람이 diff·테스트 승인 후 수행.
 - **Step 5 · 아카이브**: `/opsx:sync` → `/opsx:archive`로 완료 변경 기록.
 - **Step 6 · 기억 승격 (GBrain write-back)**: 전체 게이트 통과 후에만 이번 사이클의 검증된 학습·구조 변경·핵심 의사결정 요약을 `gbrain put` / `mcp__gbrain__put_page`로 canonical 저장. 미검증 메모는 inbox 태그로만.
 
@@ -219,9 +219,9 @@ GBrain은 승인된 산출물·과거 의사결정·검증된 학습·회고·�
 
 ---
 
-## EasiSlides SDD 적용 보강
+## Axicultus SDD 적용 보강
 
-아래는 위 정책/가이드를 EasiSlides 송출 앱 현실에 맞춰 강화한 **이 저장소 전용 보강 규칙**이다. (위 관리 블록이 다루지 않는 EasiSlides 고유 게이트·질문·테스트·완화 규칙)
+아래는 위 정책/가이드를 Axicultus 송출 앱 현실에 맞춰 강화한 **이 저장소 전용 보강 규칙**이다. (위 관리 블록이 다루지 않는 Axicultus 고유 게이트·질문·테스트·완화 규칙)
 
 ### Phase 기반 실행 원칙
 변경은 작은 Phase 단위로 실행하며, Phase 계획은 OpenSpec `tasks.md`가 소유한다.
@@ -273,7 +273,7 @@ GBrain은 승인된 산출물·과거 의사결정·검증된 학습·회고·�
 - 새 기능·새 정책·새 예외·새 거부 조건은 먼저 실패 테스트 또는 명시적 테스트 전략으로 의도를 고정한다.
 - GBrain canonical 승격(write-back)은 전체 게이트 통과 후에만 — 미검증 메모는 inbox 태그만, GBrain 기록만으로 "완료" 선언 금지.
 
-> **범위 외(의도적 제외)**: EasiSlides는 1인·소규모 데스크톱 앱이므로 arkos의 다중 팀 엔터프라이즈 장치(PM Coordination · Portfolio/Initiative/Epic/Story 백로그 · Iteration · Release Package · master-tracker · CODEOWNERS/domain ownership)는 도입하지 않는다. 백로그·우선순위·일정은 `openspec/changes/` + `docs/`로 충분하다. 코드베이스가 다중 팀·대규모로 커지면 그때 arkos `## Enterprise Scale Addendum`을 참고해 확장한다.
+> **범위 외(의도적 제외)**: Axicultus는 1인·소규모 데스크톱 앱이므로 arkos의 다중 팀 엔터프라이즈 장치(PM Coordination · Portfolio/Initiative/Epic/Story 백로그 · Iteration · Release Package · master-tracker · CODEOWNERS/domain ownership)는 도입하지 않는다. 백로그·우선순위·일정은 `openspec/changes/` + `docs/`로 충분하다. 코드베이스가 다중 팀·대규모로 커지면 그때 arkos `## Enterprise Scale Addendum`을 참고해 확장한다.
 
 ### 작업 계약 (Context as a Contract)
 작업 요청 = 계약서. 모든 비자명 작업은 3조건을 **먼저 명시**한다(미명시 시 침묵 진행 금지):
@@ -287,14 +287,14 @@ GBrain은 승인된 산출물·과거 의사결정·검증된 학습·회고·�
 - 송출 좌표 계산 의도 → FormatText 0 나눗셈 가드 테스트
 - 새 의도 = 새 테스트.
 
-### EasiSlides OpenSpec change에 반드시 답할 것
+### Axicultus OpenSpec change에 반드시 답할 것
 사용자 흐름(찬양/성경/PPT/순서 중 무엇) · 송출 영향(미리보기만? 실제 송출도?) · 멀티모니터 케이스(PRIMARY/선택/수동좌표/None) · Office Interop COM 생성·해제 영향 · DB 경유 원칙 준수 · 책임 파일(FrmMain partial / gf*.cs) · 검증 방법.
 
 ### 검증 = 실제 게이트 (도구 + 빌드/테스트)
 이 저장소에서 "완료" 증거 = **빌드 + 테스트 + 리뷰 + 수동 QA**.
 ```powershell
-dotnet build Easislides\Easislides.csproj -nologo -v minimal   # dotnet 없으면 PATH 재로딩 후 재실행
-dotnet test Easislides.Wpf.Tests                                # 전체 green 유지
+dotnet build Axicultus\Axicultus.csproj -nologo -v minimal   # dotnet 없으면 PATH 재로딩 후 재실행
+dotnet test Axicultus.Wpf.Tests                                # 전체 green 유지
 ```
 - 구현 후 `code-reviewer` 에이전트 또는 `/gstack-review`·`/gstack-cso`. Release 빌드 시 DLL/BAML 심볼 반영 확인.
 - 수동 송출 QA: 찬양·성경 검색 / WorshipList 전환 / PPT 썸네일 생성 / 싱글·멀티·None·수동좌표 송출 / PowerPoint·Word 좀비 프로세스 미발생 / SQLite·MariaDB 동기화 회귀 없음.
@@ -317,7 +317,7 @@ Codex는 구현 에이전트로 동작한다. 기본 순서:
 2. **계약 확인**: `openspec/changes/<change-id>/{proposal,design,tasks,codegraph-impact}.md`를 먼저 확인. 새 change는 `<prefix><NNN>-short-kebab-intent` 형식으로 만들고, `a001`~`a999` 다음은 `b001`, 그 다음은 `c001` 규칙을 따른다. 앞으로 외부/legacy 무번호 change가 발견되면 참조 안정성을 위해 별도 승인 없이 rename하지 않는다.
 3. **영향 증거**: 구조 질문·공유 심볼 영향은 CodeGraph(`codegraph_context`·`codegraph_impact`·`codegraph_callers`)로 확인.
 4. **TDD 실행**: 새 동작·버그 수정은 실패 테스트를 먼저 만들고 expected fail 확인 후 최소 구현.
-5. **게이트**: `openspec validate --all --no-interactive`, `dotnet build` + `dotnet test Easislides.Wpf.Tests`(green 유지), `/gstack-review`·`/gstack-cso`·`/gstack-qa`, 수동 송출 QA 증거.
+5. **게이트**: `openspec validate --all --no-interactive`, `dotnet build` + `dotnet test Axicultus.Wpf.Tests`(green 유지), `/gstack-review`·`/gstack-cso`·`/gstack-qa`, 수동 송출 QA 증거.
 6. **종결 + 기억 승격**: 완료 change는 `/opsx:sync`·`/opsx:archive` 대상인지 확인하고, 전체 게이트 통과 후 이번 사이클 교훈·구조·의사결정을 `gbrain put` / `mcp__gbrain__put_page`(미구성 시 `MEMORY.md`)로 canonical 저장.
 7. **Single Writer**: Claude와 같은 브랜치의 같은 파일을 동시에 수정하지 않는다.
 
@@ -326,14 +326,14 @@ Codex는 구현 에이전트로 동작한다. 기본 순서:
 ## 2. 프로젝트 구조 (압축)
 
 ```
-Easislides/Easislides/   FrmMain + 모든 다이얼로그(Frm*.cs ~40개)
-Easislides/Global/       기능별 정적 헬퍼 gf*.cs (gf→Gf 리네이밍 진행 중)
-Easislides/Module/       도메인 모델(CommonEnum, SongFormat, SongLyrics, SongSettings)
-Easislides/Util/         공통 유틸(CommonUtil, DisplayInfo, FileUtil, RegUtil 등)
-Easislides/SQLite/       SQLiteController (로컬 DB 접근)
-Easislides/HookManager/  전역 키보드/마우스 후킹
+Axicultus/Axicultus/   FrmMain + 모든 다이얼로그(Frm*.cs ~40개)
+Axicultus/Global/       기능별 정적 헬퍼 gf*.cs (gf→Gf 리네이밍 진행 중)
+Axicultus/Module/       도메인 모델(CommonEnum, SongFormat, SongLyrics, SongSettings)
+Axicultus/Util/         공통 유틸(CommonUtil, DisplayInfo, FileUtil, RegUtil 등)
+Axicultus/SQLite/       SQLiteController (로컬 DB 접근)
+Axicultus/HookManager/  전역 키보드/마우스 후킹
 OfficeLib/               PPT/Word Interop 래퍼(BuildScreenPreDumps 등)
-Easislides.Wpf/          WPF 포팅(신규) + Easislides.Wpf.Tests
+Axicultus.Wpf/          WPF 포팅(신규) + Axicultus.Wpf.Tests
 docs/adr/, docs/wpf-migration/   ADR·갭분석·로드맵(포팅 설계 산출물)
 openspec/                SDD 산출물(OpenSpec change · proposal/design/tasks/codegraph-impact)
 ```
@@ -377,12 +377,12 @@ WorshipList 선택 → WorshipListIndexChanged → LoadItem
 
 | 무엇 | 어디 |
 | --- | --- |
-| 앱 진입점 | `Easislides/Easislides/Program.cs` |
-| 메인 폼 | `Easislides/Easislides/FrmMain.cs` |
-| 송출 캔버스 | `Easislides/Easislides/ImageCanvas.cs` |
+| 앱 진입점 | `Axicultus/Axicultus/Program.cs` |
+| 메인 폼 | `Axicultus/Axicultus/FrmMain.cs` |
+| 송출 캔버스 | `Axicultus/Axicultus/ImageCanvas.cs` |
 | PPT Interop | `OfficeLib/PowerPoint.cs` (BuildScreenPreDumps, IsBuildedFileCheck) |
 | DB 접근 | `SQLite/SQLiteController.cs`, `Global/gfDatabase.cs` |
 | 전역 키보드 후킹 | `HookManager/HookManager.cs` |
-| 다이얼로그 | `Easislides/Easislides/Frm*.cs` (Bible/Find/Import/Export/Options 등) |
+| 다이얼로그 | `Axicultus/Axicultus/Frm*.cs` (Bible/Find/Import/Export/Options 등) |
 | 포팅 설계 | `docs/adr/*`, `docs/wpf-migration/*` |
 | SDD 산출물 | `openspec/changes/*` (proposal/design/tasks/codegraph-impact) |

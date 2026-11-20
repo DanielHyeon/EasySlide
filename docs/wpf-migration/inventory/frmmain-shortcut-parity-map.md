@@ -1,7 +1,7 @@
 # FrmMain Shortcut Parity Map
 
 작성일: 2026-06-04
-대상: `Easislides.Wpf/Input/CommandCatalog.cs`, `Easislides.Wpf/MainWindow.xaml`, `Easislides.Wpf/Shell/MainViewModel.cs`
+대상: `Axicultus.Wpf/Input/CommandCatalog.cs`, `Axicultus.Wpf/MainWindow.xaml`, `Axicultus.Wpf/Shell/MainViewModel.cs`
 
 ## 목적
 
@@ -36,7 +36,7 @@ FrmMain 기반 운영자가 예배 송출 중 기대하는 키보드 조작을 W
 - `MainWindow.OnPreviewKeyDown` routes focused Preview/Output surfaces before global shortcut fallback.
 - `MainWindow.IsTextInputFocused()` blocks final live shortcut routing while the operator is typing in QuickFind, Bible lookup, live message, or editable setting fields.
 - `VerseJumpKeyMap` covers digit and Shift verse mappings (`Shift+B/W/P/Q/T`) without allowing Ctrl/Alt/Win fallthrough.
-- Focused test command passed: `dotnet test Easislides.Wpf.Tests --filter "FullyQualifiedName~CommandCatalogTests|FullyQualifiedName~ShortcutRegistryTests|FullyQualifiedName~GlobalInputServiceTests|FullyQualifiedName~VerseJumpKeyMapTests|FullyQualifiedName~MediaPlayerKeyMapTests|FullyQualifiedName~WorshipListKeyMapTests|FullyQualifiedName~BindShortcuts_|FullyQualifiedName~MainWindow_UsesFocusedPreviewOutputKeyboardBeforeGlobalShortcuts|FullyQualifiedName~MainWindow_BlocksGlobalShortcutsWhenTextInputFocused|FullyQualifiedName~MainWindow_PassesShiftToVerseJumpKeyMap"`; result: 108 passed, 0 failed, 0 skipped.
+- Focused test command passed: `dotnet test Axicultus.Wpf.Tests --filter "FullyQualifiedName~CommandCatalogTests|FullyQualifiedName~ShortcutRegistryTests|FullyQualifiedName~GlobalInputServiceTests|FullyQualifiedName~VerseJumpKeyMapTests|FullyQualifiedName~MediaPlayerKeyMapTests|FullyQualifiedName~WorshipListKeyMapTests|FullyQualifiedName~BindShortcuts_|FullyQualifiedName~MainWindow_UsesFocusedPreviewOutputKeyboardBeforeGlobalShortcuts|FullyQualifiedName~MainWindow_BlocksGlobalShortcutsWhenTextInputFocused|FullyQualifiedName~MainWindow_PassesShiftToVerseJumpKeyMap"`; result: 108 passed, 0 failed, 0 skipped.
 
 ## Remaining Manual QA
 

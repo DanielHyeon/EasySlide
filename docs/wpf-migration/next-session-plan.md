@@ -12,7 +12,7 @@
 | EsDataGrid 베이스 컨트롤 (§5.1 마지막) | #10 | ✅ merged |
 | 접근성 전면 스윕 55건 + 가드 (§7.3) | #12 | ✅ merged |
 
-통합 검증: `dotnet build Easislides.sln` 0 errors, 테스트 418개 통과(WPF 398 + 분석기 20), EasiDS00x 위반 0.
+통합 검증: `dotnet build Axicultus.sln` 0 errors, 테스트 418개 통과(WPF 398 + 분석기 20), EasiDS00x 위반 0.
 
 ## 1. 남은 백로그 (모두 고위험 — 별도 세션·세심한 리뷰 필요)
 
@@ -31,9 +31,9 @@
 WPF 앱은 아직 production entrypoint가 아니다(데모/기반 단계).
 
 - **권장 접근**:
-  1. ✅ 산출물 분리: `Easislides.exe`(legacy) / `EasislidesNext.exe`(신규) — §9.4. **PR #26**: WPF `AssemblyName=EasislidesNext`(RootNamespace 유지), pack URI·app.manifest·문서 동기화, 산출물명 고정 테스트.
+  1. ✅ 산출물 분리: `Axicultus.exe`(legacy) / `AxicultusNext.exe`(신규) — §9.4. **PR #26**: WPF `AssemblyName=AxicultusNext`(RootNamespace 유지), pack URI·app.manifest·문서 동기화, 산출물명 고정 테스트.
   2. ✅ `--legacy-ui` CLI 안전망 구현(롤백 경로) — ADR-0007 active 단계. **PR #25**: `StartupArguments` 파서 + `LegacyUiLauncher`(legacy exe 별도 프로세스 실행, 실패해도 시작 미크래시) + App 시작 분기. 순수 additive(플래그 없으면 동작 무변경).
-  3. 공통 도메인 어셈블리 `Easislides.Core.dll` 추출 검토(양쪽 참조). 📋 **설계 완료** → [core-extraction-plan.md](core-extraction-plan.md) (Phase 1=CommonEnum 최저위험부터). 구현 미착수.
+  3. 공통 도메인 어셈블리 `Axicultus.Core.dll` 추출 검토(양쪽 참조). 📋 **설계 완료** → [core-extraction-plan.md](core-extraction-plan.md) (Phase 1=CommonEnum 최저위험부터). 구현 미착수.
   4. 1시간 예배 리허설 시나리오 통과를 전환 게이트로. ⏳ 미착수
 
 ### C. 스크린샷 회귀 자동화 (§9.1, Sprint 4+) — **중위험 (CI 인프라)**
@@ -62,8 +62,8 @@ WPF 앱은 아직 production entrypoint가 아니다(데모/기반 단계).
 # PATH 재로딩(필요 시)
 $env:Path = [Environment]::GetEnvironmentVariable('Path','Machine') + ';' + [Environment]::GetEnvironmentVariable('Path','User')
 # 기준선 green 확인
-dotnet build Easislides.sln -c Debug -nologo -v minimal
-dotnet test  Easislides.sln -c Debug -nologo -v minimal
+dotnet build Axicultus.sln -c Debug -nologo -v minimal
+dotnet test  Axicultus.sln -c Debug -nologo -v minimal
 ```
 
 - 기준선: 빌드 0 errors, 테스트 418개 통과(작업 D 3 PR 병합 후 429개 — a11y 가드 +11).

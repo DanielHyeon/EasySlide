@@ -28,17 +28,17 @@
 
 현재 WPF 기반:
 
-- `Easislides.Wpf/Interop/OfficePptSession.cs`
-- `Easislides.Wpf/Poc/PocBComStress.xaml`
-- `Easislides.Wpf/Rendering/PowerPointRenderService.cs`
-- `Easislides.Wpf/Rendering/ThumbnailCache.cs`
-- `Easislides.Wpf/Rendering/ImageAssetService.cs`
-- `Easislides.Wpf/Rendering/PreviewCanvas.cs`
-- `Easislides.Wpf/Rendering/TransitionEffectService.cs`
-- `Easislides.Wpf/Rendering/OutputRenderer.cs`
-- `Easislides.Wpf/Media/MediaPlaybackBackend.cs`
-- `Easislides.Wpf/Media/MediaPlaybackService.cs`
-- `Easislides.Wpf/Media/MediaPlaybackViewModel.cs`
+- `Axicultus.Wpf/Interop/OfficePptSession.cs`
+- `Axicultus.Wpf/Poc/PocBComStress.xaml`
+- `Axicultus.Wpf/Rendering/PowerPointRenderService.cs`
+- `Axicultus.Wpf/Rendering/ThumbnailCache.cs`
+- `Axicultus.Wpf/Rendering/ImageAssetService.cs`
+- `Axicultus.Wpf/Rendering/PreviewCanvas.cs`
+- `Axicultus.Wpf/Rendering/TransitionEffectService.cs`
+- `Axicultus.Wpf/Rendering/OutputRenderer.cs`
+- `Axicultus.Wpf/Media/MediaPlaybackBackend.cs`
+- `Axicultus.Wpf/Media/MediaPlaybackService.cs`
+- `Axicultus.Wpf/Media/MediaPlaybackViewModel.cs`
 
 ## 2. 핵심 리스크
 
@@ -190,19 +190,19 @@ Office 검증:
 
 2026-05-29 검증 결과:
 
-- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "MediaPlaybackServiceTests|MediaPlaybackViewModelTests"`: 15개 통과
-- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter MediaPlaybackServiceTests`: 11개 통과
-- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "ThumbnailCacheTests|PowerPointRenderServiceTests"`: 15개 통과
-- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter PowerPointRenderServiceTests`: 10개 통과
-- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter ImageAssetServiceTests`: 6개 통과
-- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter PreviewCanvasTests`: 5개 통과
-- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter SlidePreviewControlTests`: 3개 통과
-- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter TransitionEffectServiceTests`: 7개 통과
-- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug --filter "OutputRendererTests|OutputWindowViewModelTests"`: 21개 통과
-- `dotnet test Easislides.Wpf.Tests\Easislides.Wpf.Tests.csproj -c Debug`: 375개 통과
-- `dotnet test Easislides.sln -c Debug`: 375개 통과
-- `dotnet build Easislides.sln -c Release`: 성공
-- `dotnet test Easislides.sln -c Release --no-build`: 375개 통과
+- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter "MediaPlaybackServiceTests|MediaPlaybackViewModelTests"`: 15개 통과
+- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter MediaPlaybackServiceTests`: 11개 통과
+- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter "ThumbnailCacheTests|PowerPointRenderServiceTests"`: 15개 통과
+- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter PowerPointRenderServiceTests`: 10개 통과
+- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter ImageAssetServiceTests`: 6개 통과
+- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter PreviewCanvasTests`: 5개 통과
+- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter SlidePreviewControlTests`: 3개 통과
+- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter TransitionEffectServiceTests`: 7개 통과
+- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter "OutputRendererTests|OutputWindowViewModelTests"`: 21개 통과
+- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug`: 375개 통과
+- `dotnet test Axicultus.sln -c Debug`: 375개 통과
+- `dotnet build Axicultus.sln -c Release`: 성공
+- `dotnet test Axicultus.sln -c Release --no-build`: 375개 통과
 - `gstack /qa`, `GSD verify-work`: 현재 작업 환경 PATH에 도구가 없어 실행 불가. 동일 요구사항은 xUnit/Release build/산출물 확인으로 대체 검증
 
 통합 테스트:

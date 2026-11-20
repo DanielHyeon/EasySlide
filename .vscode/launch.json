@@ -2,15 +2,15 @@
     "version": "0.2.0",
     "configurations": [
         {
-            // EasiSlides v3.0 신규 WPF 진입점 (Sprint 0~)
-            "name": "Launch Easislides.Wpf (WPF/.NET 10)",
+            // Axicultus v3.0 신규 WPF 진입점 (Sprint 0~)
+            "name": "Launch Axicultus (WPF/.NET 11)",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build-wpf",
-            // 산출물 어셈블리명은 csproj 의 <AssemblyName>EasislidesNext</AssemblyName> 를 따른다.
-            "program": "${workspaceFolder}/Easislides.Wpf/bin/Debug/net10.0-windows/EasislidesNext.dll",
+            // 산출물 어셈블리명은 csproj 의 <AssemblyName>Axicultus</AssemblyName> 를 따른다.
+            "program": "${workspaceFolder}/Axicultus.Wpf/bin/Debug/net11.0-windows7.0/Axicultus.dll",
             "args": [],
-            "cwd": "${workspaceFolder}/Easislides.Wpf",
+            "cwd": "${workspaceFolder}/Axicultus.Wpf",
             "console": "internalConsole",
             "stopAtEntry": false,
             "justMyCode": false,
@@ -20,13 +20,13 @@
         },
         {
             // Legacy WinForms 진입점 (M3까지 유지 — ADR-0007)
-            "name": "Launch Easislides (Legacy WinForms)",
+            "name": "Launch Axicultuss (Legacy WinForms)",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}/Easislides/bin/Debug/net10.0-windows7.0/Easislides.dll",
+            "program": "${workspaceFolder}/Axicultus/bin/Debug/net11.0-windows7.0/Axicultuss.dll",
             "args": [],
-            "cwd": "${workspaceFolder}/Easislides",
+            "cwd": "${workspaceFolder}/Axicultus",
             "console": "internalConsole",
             "stopAtEntry": false
         },

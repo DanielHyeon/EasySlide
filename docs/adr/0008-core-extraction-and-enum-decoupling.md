@@ -1,4 +1,4 @@
-# ADR-0008: `Easislides.Core` 공통 도메인 추출 — 상속 분리 패턴 & WPF enum 디커플 유지
+# ADR-0008: `Axicultus.Core` 공통 도메인 추출 — 상속 분리 패턴 & WPF enum 디커플 유지
 
 * **상태**: Accepted
 * **결정일**: 2026-05-31
@@ -8,7 +8,7 @@
 
 ## 컨텍스트
 
-§9.4 산출물 분리 + ADR-0007 안전망에 따라 legacy WinForms(`Easislides.exe`)와 신규 WPF(`EasislidesNext.exe`) 두 빌드가 D-Day 이후까지 공존한다. 공통 도메인을 `Easislides.Core.dll`(net10.0 포터블, System.Drawing/WinForms 비의존)로 추출해 도메인 진실의 단일 출처를 만들되, **양쪽 빌드가 깨지지 않게** 단계적으로 옮긴다.
+§9.4 산출물 분리 + ADR-0007 안전망에 따라 legacy WinForms(`Axicultuss.exe`)와 신규 WPF(`Axicultus.exe`) 두 빌드가 D-Day 이후까지 공존한다. 공통 도메인을 `Axicultus.Core.dll`(net10.0 포터블, System.Drawing/WinForms 비의존)로 추출해 도메인 진실의 단일 출처를 만들되, **양쪽 빌드가 깨지지 않게** 단계적으로 옮긴다.
 
 이동 대상 도메인 타입은 결합도가 제각각이다:
 
@@ -45,7 +45,7 @@
 | `MediaBackgroundStyle` | `TransitionBackgroundMode` | 부분 | 상이 |
 | (없음) | `LiveState`, `*IssueKind`, `Import*`, `Asset*` 등 다수 | — | WPF 전용 |
 
-**X. WPF 가 Core enum 소비(통합)** — `Easislides.Wpf` 에 Core 참조 추가, `GapItemMode`→`GapType` 교체.
+**X. WPF 가 Core enum 소비(통합)** — `Axicultus.Wpf` 에 Core 참조 추가, `GapItemMode`→`GapType` 교체.
 - 단점: WPF→Core **신규 교차 결합**(WPF 는 의도적으로 Core 비참조). `GapItemMode` 는 영속화 키·레거시 마이그레이션·설정 UI 등 ~30곳 + 테스트에 박혀 있어 중간 규모 리팩토링 + 회귀 위험. 4값 enum 중복 제거 대비 이득 작음. 나머지 후보는 멤버가 달라 통합 불가.
 
 **Y. WPF enum 분리 유지(채택)** — WPF 는 `LegacySettingsMap` 으로 레거시와 경계를 긋는 자체 도메인을 유지. 중복은 우발적이 아니라 **의도적 디커플**로 본다.
@@ -55,7 +55,7 @@
 1. **비-포터블 도메인 타입은 상속 분리(대안 B)로 이동한다.**
    - `SongFormat` 은 색상 결합만 있어 ARGB `int` 로 디커플 후 통째로 Core 이동(Phase 2a).
    - `SongLyrics`/`SongSettings` 는 `SongLyricsBase`/`SongSettingsBase`(Core) + legacy 파생으로 분리(Phase 2b/3).
-   - **네임스페이스 `Easislides.Module` 유지** — 같은 네임스페이스가 Core+legacy 두 어셈블리에 걸친다(불변식: 동일 타입명은 단일 어셈블리에만).
+   - **네임스페이스 `Axicultus.Module` 유지** — 같은 네임스페이스가 Core+legacy 두 어셈블리에 걸친다(불변식: 동일 타입명은 단일 어셈블리에만).
    - 색상은 Core 에서 ARGB `int` 로 보관, 경계에서 `Color.FromArgb`/`.ToArgb` 변환(영속 정수 포맷 무변경).
 
 2. **WPF enum 은 Core enum 과 통합하지 않고 분리 유지한다(대안 Y).**
@@ -90,4 +90,4 @@
 - 계획서 §9.4 · [`core-extraction-plan.md`](../wpf-migration/core-extraction-plan.md)
 - ADR-0007 (`--legacy-ui` 안전망)
 - PR #28(Phase 1), #29/#30(Phase 2), #31(Phase 3)
-- 가드 테스트: `Easislides.Wpf.Tests/Startup/CoreExtractionTests.cs`
+- 가드 테스트: `Axicultus.Wpf.Tests/Startup/CoreExtractionTests.cs`

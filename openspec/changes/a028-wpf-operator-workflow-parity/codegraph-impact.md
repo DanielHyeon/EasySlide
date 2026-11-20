@@ -1,0 +1,1 @@
+기존 `.codegraph/codegraph.db`의 노드와 호출 간선을 조회했으나 변경 대상 WPF 심볼에 대한 결과가 없었다. 현재 소스와 XAML 바인딩을 직접 확인했다. `MainWindow`의 검색·찬양집·폴더 메뉴에서 `MainViewModel`, `LibraryViewModel`, `SearchUsageService`와 `BibleRepository`까지 추적했다. ESW 교체와 병합 경로, `ShortcutRegistry`의 조합 키 처리도 확인했다.

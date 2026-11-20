@@ -8,7 +8,7 @@ CodeGraph checks:
 
 - `codegraph_status`: healthy index, 508 files, 28063 nodes, 50729 edges.
 - `codegraph_context`: WPF source-browser parity centers on `MainWindow`, `WorshipListPanel`, `PowerPointLibraryViewModel`, and `MediaLibraryViewModel`.
-- `codegraph_impact MainWindow`: UI shell impact only; main touched surface is `Easislides.Wpf/MainWindow.xaml(.cs)`.
+- `codegraph_impact MainWindow`: UI shell impact only; main touched surface is `Axicultus.Wpf/MainWindow.xaml(.cs)`.
 - `codegraph_impact PowerPointLibraryViewModel`: existing VM and library tests; no VM behavior change planned.
 - `codegraph_impact MediaLibraryViewModel`: existing VM and library tests; no VM behavior change planned.
 - `codegraph_explore`: `WorshipListPanel` already accepts `DataFormats.FileDrop` and inserts through `MainViewModel.AddExternalFilesRelativeTo`, so inline PowerPoint/Media source lists can reuse the same drop contract.
@@ -45,13 +45,13 @@ Implementation boundary:
 
 Date: 2026-06-04
 
-Task: Make WPF data loaders discover the installed legacy `C:\EasiSlides` working folder when WPF settings are still on the untouched default.
+Task: Make WPF data loaders discover the installed legacy `C:\Axicultus` working folder when WPF settings are still on the untouched default.
 
 CodeGraph checks:
 
 - `codegraph_context`: Worship List and Bible gaps converge on `SettingsService`, `WorshipListStore`, `BibleViewModel`, and `BibleRepository`.
 - `codegraph_explore`: `WorshipListStore.LegacyDirectory()` reads `_settings.Current.General.WorkingFolder\Admin\WorshipLists`, while `BibleRepository.GetVersions()` reads `workingFolder\Admin\Database\EsBiblesList.db` and `workingFolder\HolyBibles`.
-- `codegraph_search WorkingFolder`: default WPF key is `Documents\EasiSlides`; WPF tests already cover explicit working-folder paths for Bible and legacy Worship List loading.
+- `codegraph_search WorkingFolder`: default WPF key is `Documents\Axicultus`; WPF tests already cover explicit working-folder paths for Bible and legacy Worship List loading.
 - `codegraph_impact WorkingFolder`: broad shared settings surface, so the change is restricted to default/runtime settings resolution and preserves explicit custom paths.
 
 Implementation boundary:
