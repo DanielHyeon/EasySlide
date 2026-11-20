@@ -5,7 +5,6 @@ using System.Windows.Threading;
 using Axicultus.Wpf.Data;
 using Axicultus.Wpf.Library;
 using Axicultus.Wpf.Media;
-using Axicultus.Wpf.Onboarding;
 using Axicultus.Wpf.Platform;
 using Axicultus.Wpf.Rendering;
 using Axicultus.Wpf.Settings;
@@ -50,8 +49,6 @@ public class AppServiceRegistrationTests
             var usageDeleteConfirmation = provider.GetRequiredService<IUsageDeleteConfirmation>();
             var bibleRepository = provider.GetRequiredService<IBibleRepository>();
             var rehearsal = provider.GetRequiredService<IOperationalDataRehearsalService>();
-            var onboarding = provider.GetRequiredService<IOnboardingCoordinator>();
-            var onboardingDialog = provider.GetRequiredService<IOnboardingDialogService>();
             var supportInfo = provider.GetRequiredService<ISupportInfoService>();
             var supportLauncher = provider.GetRequiredService<ISupportLauncher>();
             var libraryViewModel = provider.GetRequiredService<LibraryViewModel>();
@@ -99,8 +96,6 @@ public class AppServiceRegistrationTests
             usageDeleteConfirmation.Should().BeOfType<WpfUsageDeleteConfirmation>();
             bibleRepository.Should().BeOfType<BibleRepository>();
             rehearsal.Should().BeOfType<OperationalDataRehearsalService>();
-            onboarding.Should().BeOfType<OnboardingCoordinator>();
-            onboardingDialog.Should().BeOfType<WelcomeWindowDialogService>();
             supportInfo.Should().BeOfType<SupportInfoService>();
             supportLauncher.Should().BeOfType<SupportLauncher>();
             libraryViewModel.Should().NotBeNull();

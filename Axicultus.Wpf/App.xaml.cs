@@ -7,7 +7,6 @@ using Axicultus.Wpf.Demo;
 using Axicultus.Wpf.Input;
 using Axicultus.Wpf.Library;
 using Axicultus.Wpf.Media;
-using Axicultus.Wpf.Onboarding;
 using Axicultus.Wpf.Platform;
 using Axicultus.Wpf.Rendering;
 using Axicultus.Wpf.Settings;
@@ -63,8 +62,6 @@ public partial class App : Application
             sp.GetRequiredService<RegistryLegacySettingsSource>(),
             sp.GetRequiredService<FileLegacySettingsSource>()));
         services.AddSingleton<ISettingsBootstrapMigrationService, SettingsBootstrapMigrationService>();
-        services.AddSingleton<IOnboardingDialogService, WelcomeWindowDialogService>();
-        services.AddSingleton<IOnboardingCoordinator, OnboardingCoordinator>();
         services.AddSingleton<ISupportInfoService, SupportInfoService>();
         services.AddSingleton<ISupportLauncher, SupportLauncher>();
         services.AddSingleton<ISettingsPathPicker, SettingsPathPicker>();
@@ -236,11 +233,13 @@ public partial class App : Application
 
         // DI 컨테이너 구성
         var services = new ServiceCollection();
-        var settingsOptions = SettingsServiceOptions.CreateDefault();
-        var useDemo = startup.UseDemo;
-        ConfigureServices(services, settingsOptions, Current.Dispatcher);
+        ConfigureServices(services, SettingsServiceOptions.CreateDefault(), Current.Dispatcher);
+        await OpenShellAsync(services.BuildServiceProvider(), startup.UseDemo);
+    }
 
-        Services = services.BuildServiceProvider();
+    internal async Task OpenShellAsync(IServiceProvider services, bool useDemo)
+    {
+        Services = services;
         _ = Services.GetRequiredService<IOutputWindowHost>();
         // 스테이지(Preview) 모니터 호스트도 미리 띄워 세션·창 상태 구독을 시작한다(창은 사용자가 열기 전엔 닫힌 채 대기 — 160-D 에서 열기 명령 추가).
         _ = Services.GetRequiredService<PreviewWindowHost>();
@@ -269,6 +268,9 @@ public partial class App : Application
                     MessageBoxButton.OK,
                     MessageBoxImage.Warning);
             }
+
+            var size = Services.GetRequiredService<ISettingsService>().Get(AxicultusSettingKeys.InterfaceSize);
+            Services.GetRequiredService<IThemeService>().ApplyInterfaceSize(size);
         }
 
         Window window = useDemo
@@ -280,8 +282,6 @@ public partial class App : Application
 
         if (!useDemo)
         {
-            Services.GetRequiredService<IOnboardingCoordinator>().RunIfNeeded(window);
-
             var globalInput = Services.GetRequiredService<IGlobalInputService>();
             if (!globalInput.Start())
             {

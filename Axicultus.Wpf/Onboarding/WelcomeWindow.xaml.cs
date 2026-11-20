@@ -5,15 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Axicultus.Wpf.Onboarding;
 
 /// <summary>
-/// 시니어 모드 온보딩 윈도우 — 계획서 §7.4 Q2 확정.
-///
-/// 사용:
-///   var welcome = new WelcomeWindow();
-///   welcome.ShowDialog(); // 사용자 선택까지 차단
-///
-/// 최초 실행 시 1회만 표시 — 호출자가 settings.json에 "OnboardingShown=true" 저장 책임.
-///
-/// 레거시 대응: 신규 개념(온보딩). FrmSplashScreen(로딩 스플래시)과는 개념 상이.
+/// 데모 갤러리에서 인터페이스 크기를 미리 보는 창.
 /// </summary>
 public partial class WelcomeWindow : Window
 {

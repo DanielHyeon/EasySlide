@@ -8,6 +8,18 @@ namespace Axicultus.Wpf.Tests.Startup;
 public sealed class AppStartupTests
 {
     [Fact]
+    public void Startup_AppliesConfiguredInterfaceSizeBeforeOpeningTheConsoleWithoutShowingWelcome()
+    {
+        var code = File.ReadAllText(Path.Combine(XamlAccessibilityScanner.FindRepoRoot(), "Axicultus.Wpf/App.xaml.cs"));
+        code.Should().NotContain("IOnboardingCoordinator").And.NotContain("WelcomeWindow");
+        var read = code.IndexOf("Get(AxicultusSettingKeys.InterfaceSize)", System.StringComparison.Ordinal);
+        var apply = code.IndexOf("ApplyInterfaceSize(", System.StringComparison.Ordinal);
+        var main = code.IndexOf("Services.GetRequiredService<MainWindow>()", System.StringComparison.Ordinal);
+        read.Should().BeGreaterThan(code.IndexOf("await Services.GetRequiredService<ISettingsBootstrapMigrationService>()", System.StringComparison.Ordinal));
+        apply.Should().BeGreaterThan(read).And.BeLessThan(main);
+    }
+
+    [Fact]
     public void Startup_DefersAutomaticShutdown_UntilMainWindowIsAssigned()
     {
         var repoRoot = XamlAccessibilityScanner.FindRepoRoot();
