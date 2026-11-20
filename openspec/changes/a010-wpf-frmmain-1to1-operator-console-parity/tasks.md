@@ -667,3 +667,6 @@ On 2026-11-20 the context menu played AVI and AV1 MP4 test clips over a native P
 With a 4:3 slide setting, legacy custom width 1 and 50% background video size in an isolated profile, the previous WPF build opened a 575 × 400 player at desktop origin. After the fix, the AV1 MP4 produced two distinct frame colors near every corner of the 2560 × 1440 audience monitor and the 3440 × 1440 operator monitor. On the audience display the native slide occupied 1920 × 1440 before playback and was visible again after Escape and natural completion.
 
 - [x] Verify the reverse handoff from standalone media to a live Worship List PPT. With an isolated profile on two 125% displays, start a show after pausing or stopping the clip, then send a read-only deck. Check four colored corner markers on the frontmost native slide and the WPF slide surface. Both 4:3 and 16:9 decks passed.
+
+- [x] 운영자 빠른 검색, 현재 폴더 제목 필터, 상세 찾기와 곡 정렬을 WinForms 동작에 맞춘다. 격리된 WPF 메인 창에서 제목 필터 해제, 결과 목록 복귀, 성경 전체·책 검색과 상세 찾기 반복을 확인한다.
+- [x] 같은 곡 DB 사본으로 WinForms와 WPF 메인 창의 빠른 검색 결과를 대조했다. 은혜(530곡), 사랑(1,132곡), 가_안(19곡), 136(5곡), 일치하지 않는 구문(0곡) 모두 곡 ID와 표시 순서가 일치했다.

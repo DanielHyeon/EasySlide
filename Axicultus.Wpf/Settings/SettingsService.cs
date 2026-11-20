@@ -239,6 +239,14 @@ public static class AxicultusSettingKeys
     public static readonly SettingKey<string> LicenceNumber7 = new("general.licenceNumber7", "");
     public static readonly SettingKey<string> LicenceName8 = new("general.licenceName8", "");
     public static readonly SettingKey<string> LicenceNumber8 = new("general.licenceNumber8", "");
+    public static readonly SettingKey<bool> FindTitle = new("general.findTitle", true);
+    public static readonly SettingKey<bool> FindLyrics = new("general.findLyrics", true);
+    public static readonly SettingKey<bool> FindSongNumber = new("general.findSongNumber", true);
+    public static readonly SettingKey<bool> FindBookReference = new("general.findBookReference", true);
+    public static readonly SettingKey<bool> FindUserReference = new("general.findUserReference", true);
+    public static readonly SettingKey<bool> FindLicenceAdmin = new("general.findLicenceAdmin", true);
+    public static readonly SettingKey<bool> FindWriter = new("general.findWriter", true);
+    public static readonly SettingKey<bool> FindCopyright = new("general.findCopyright", true);
     public static readonly SettingKey<string> FindModifiedFrom = new("general.findModifiedFrom", "");
     public static readonly SettingKey<string> FindModifiedTo = new("general.findModifiedTo", "");
     public static readonly SettingKey<bool> FindUseModifiedDates = new("general.findUseModifiedDates", false);
@@ -501,6 +509,14 @@ public static class AxicultusSettingKeys
         LicenceNumber7,
         LicenceName8,
         LicenceNumber8,
+        FindTitle,
+        FindLyrics,
+        FindSongNumber,
+        FindBookReference,
+        FindUserReference,
+        FindLicenceAdmin,
+        FindWriter,
+        FindCopyright,
         FindModifiedFrom,
         FindModifiedTo,
         FindUseModifiedDates,
@@ -701,6 +717,14 @@ public sealed record GeneralSettings
     public string LicenceNumber7 { get; init; } = AxicultusSettingKeys.LicenceNumber7.DefaultValue;
     public string LicenceName8 { get; init; } = AxicultusSettingKeys.LicenceName8.DefaultValue;
     public string LicenceNumber8 { get; init; } = AxicultusSettingKeys.LicenceNumber8.DefaultValue;
+    public bool FindTitle { get; init; } = true;
+    public bool FindLyrics { get; init; } = true;
+    public bool FindSongNumber { get; init; } = true;
+    public bool FindBookReference { get; init; } = true;
+    public bool FindUserReference { get; init; } = true;
+    public bool FindLicenceAdmin { get; init; } = true;
+    public bool FindWriter { get; init; } = true;
+    public bool FindCopyright { get; init; } = true;
     public string FindModifiedFrom { get; init; } = "";
     public string FindModifiedTo { get; init; } = "";
     public bool FindUseModifiedDates { get; init; } = false;
@@ -1614,6 +1638,22 @@ public sealed class SettingsService : ISettingsService
         {
             General = next.General with { LicenceNumber8 = value },
         });
+        next = ApplyLegacyBool(legacySettings, LegacySettingsMap.GetAutomatedAliases(AxicultusSettingKeys.FindTitle.Id), next, issues, value => next with
+        { General = next.General with { FindTitle = value } });
+        next = ApplyLegacyBool(legacySettings, LegacySettingsMap.GetAutomatedAliases(AxicultusSettingKeys.FindLyrics.Id), next, issues, value => next with
+        { General = next.General with { FindLyrics = value } });
+        next = ApplyLegacyBool(legacySettings, LegacySettingsMap.GetAutomatedAliases(AxicultusSettingKeys.FindSongNumber.Id), next, issues, value => next with
+        { General = next.General with { FindSongNumber = value } });
+        next = ApplyLegacyBool(legacySettings, LegacySettingsMap.GetAutomatedAliases(AxicultusSettingKeys.FindBookReference.Id), next, issues, value => next with
+        { General = next.General with { FindBookReference = value } });
+        next = ApplyLegacyBool(legacySettings, LegacySettingsMap.GetAutomatedAliases(AxicultusSettingKeys.FindUserReference.Id), next, issues, value => next with
+        { General = next.General with { FindUserReference = value } });
+        next = ApplyLegacyBool(legacySettings, LegacySettingsMap.GetAutomatedAliases(AxicultusSettingKeys.FindLicenceAdmin.Id), next, issues, value => next with
+        { General = next.General with { FindLicenceAdmin = value } });
+        next = ApplyLegacyBool(legacySettings, LegacySettingsMap.GetAutomatedAliases(AxicultusSettingKeys.FindWriter.Id), next, issues, value => next with
+        { General = next.General with { FindWriter = value } });
+        next = ApplyLegacyBool(legacySettings, LegacySettingsMap.GetAutomatedAliases(AxicultusSettingKeys.FindCopyright.Id), next, issues, value => next with
+        { General = next.General with { FindCopyright = value } });
         next = ApplyLegacyString(legacySettings, LegacySettingsMap.GetAutomatedAliases(AxicultusSettingKeys.FindModifiedFrom.Id), next, value => next with
         { General = next.General with { FindModifiedFrom = value } });
         next = ApplyLegacyString(legacySettings, LegacySettingsMap.GetAutomatedAliases(AxicultusSettingKeys.FindModifiedTo.Id), next, value => next with
@@ -2145,6 +2185,14 @@ public sealed class SettingsService : ISettingsService
             "general.licenceNumber7" => snapshot.General.LicenceNumber7,
             "general.licenceName8" => snapshot.General.LicenceName8,
             "general.licenceNumber8" => snapshot.General.LicenceNumber8,
+            "general.findTitle" => snapshot.General.FindTitle,
+            "general.findLyrics" => snapshot.General.FindLyrics,
+            "general.findSongNumber" => snapshot.General.FindSongNumber,
+            "general.findBookReference" => snapshot.General.FindBookReference,
+            "general.findUserReference" => snapshot.General.FindUserReference,
+            "general.findLicenceAdmin" => snapshot.General.FindLicenceAdmin,
+            "general.findWriter" => snapshot.General.FindWriter,
+            "general.findCopyright" => snapshot.General.FindCopyright,
             "general.findModifiedFrom" => snapshot.General.FindModifiedFrom,
             "general.findModifiedTo" => snapshot.General.FindModifiedTo,
             "general.findUseModifiedDates" => snapshot.General.FindUseModifiedDates,
@@ -2375,6 +2423,14 @@ public sealed class SettingsService : ISettingsService
             "general.licenceNumber7" => snapshot with { General = snapshot.General with { LicenceNumber7 = Cast<string>(keyId, value) } },
             "general.licenceName8" => snapshot with { General = snapshot.General with { LicenceName8 = Cast<string>(keyId, value) } },
             "general.licenceNumber8" => snapshot with { General = snapshot.General with { LicenceNumber8 = Cast<string>(keyId, value) } },
+            "general.findTitle" => snapshot with { General = snapshot.General with { FindTitle = Cast<bool>(keyId, value) } },
+            "general.findLyrics" => snapshot with { General = snapshot.General with { FindLyrics = Cast<bool>(keyId, value) } },
+            "general.findSongNumber" => snapshot with { General = snapshot.General with { FindSongNumber = Cast<bool>(keyId, value) } },
+            "general.findBookReference" => snapshot with { General = snapshot.General with { FindBookReference = Cast<bool>(keyId, value) } },
+            "general.findUserReference" => snapshot with { General = snapshot.General with { FindUserReference = Cast<bool>(keyId, value) } },
+            "general.findLicenceAdmin" => snapshot with { General = snapshot.General with { FindLicenceAdmin = Cast<bool>(keyId, value) } },
+            "general.findWriter" => snapshot with { General = snapshot.General with { FindWriter = Cast<bool>(keyId, value) } },
+            "general.findCopyright" => snapshot with { General = snapshot.General with { FindCopyright = Cast<bool>(keyId, value) } },
             "general.findModifiedFrom" => snapshot with { General = snapshot.General with { FindModifiedFrom = Cast<string>(keyId, value) } },
             "general.findModifiedTo" => snapshot with { General = snapshot.General with { FindModifiedTo = Cast<string>(keyId, value) } },
             "general.findUseModifiedDates" => snapshot with { General = snapshot.General with { FindUseModifiedDates = Cast<bool>(keyId, value) } },

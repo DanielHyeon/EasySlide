@@ -12943,6 +12943,7 @@ public class MainViewModelTests
     {
         public UsageAddRequest? LastAddRequest { get; private set; }
 
+        public Task<(string[] Keys, string[] Timings)> GetFilterChoicesAsync(string databasePath) => Task.FromResult((Array.Empty<string>(), Array.Empty<string>()));
         public Task<IReadOnlyList<SongFolderSummary>> GetFoldersAsync(string databasePath)
             => Task.FromResult<IReadOnlyList<SongFolderSummary>>([]);
 

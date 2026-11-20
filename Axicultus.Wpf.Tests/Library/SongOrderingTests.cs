@@ -39,6 +39,17 @@ public class SongOrderingTests
     }
 
     [Fact]
+    public void OperatorListUsesSavedSortKeysAndGlobalNumberingPlacesZeroFirst()
+    {
+        var first = Song("A", 1) with { StrokeSortKey = "02", WordSortKey = "01" };
+        var second = Song("Z") with { StrokeSortKey = "01", WordSortKey = "02" };
+        SongOrdering.Order([first, second], LibrarySortMode.StrokeCount).Should().Equal(second, first);
+        SongOrdering.Order([second, first], LibrarySortMode.WordCount).Should().Equal(first, second);
+        SongOrdering.Order([first, second], LibrarySortMode.Number, useSongNumbering: true).Should().Equal(second, first);
+        SongOrdering.Order([first, second], LibrarySortMode.Number).Should().Equal(first, second);
+    }
+
+    [Fact]
     public void Order_Number_SortsByNumberThenTitle_ZeroLast()
     {
         var songs = new[] { Song("을", 5), Song("번호없음", 0), Song("갑", 5), Song("처음", 1) };

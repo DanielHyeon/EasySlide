@@ -277,8 +277,18 @@ public class BibleViewModelTests
         sut.SearchSelectedBookOnly = true;
         await sut.SearchAsync();
         repository.LastSearchBook.Should().Be(1);
+        await sut.QuickFindAsync("the light");
+        repository.LastSearchText.Should().Be("the light");
+        repository.LastSearchMode.Should().Be(BibleSearchMatchMode.ExactPhrase);
+        repository.LastSearchBook.Should().BeNull();
+        sut.SearchSelectedBookOnly.Should().BeTrue();
+        sut.SearchText.Should().Be("beginning");
         sut.PassageText.Should().Be("Genesis 1:1 In the beginning");
         sut.StatusMessage.Should().Be("1개 구절을 찾았습니다.");
+        sut.SelectedBrowserBook!.Name.Should().Be("Search Results:");
+        sut.SelectedBrowserBook = sut.Books[0];
+        sut.BrowserBooks.Should().Equal(sut.Books);
+        sut.SelectedBrowserBook.Should().Be(sut.Books[0]);
     }
 
     [Fact]
@@ -874,6 +884,7 @@ public class BibleViewModelTests
 
         public string LastSearchText { get; private set; } = "";
         public int? LastSearchBook { get; private set; }
+        public BibleSearchMatchMode LastSearchMode { get; private set; }
 
         public BibleVersion? LastRegion1 { get; private set; }
 
@@ -930,8 +941,12 @@ public class BibleViewModelTests
         {
             LastSearchText = searchText;
             LastSearchBook = bookNumber;
+            LastSearchMode = matchMode;
             return SearchOverride?.Invoke(searchText) ?? SearchResult;
         }
+
+        public BiblePassageResult RefreshSearchVerses(BibleVersion version, IReadOnlyList<BibleBook> books, BiblePassageResult original,
+            bool showVerses, System.Threading.CancellationToken cancellationToken) => original;
 
         public BibleSelection BuildSelection(
             BibleVersion version,

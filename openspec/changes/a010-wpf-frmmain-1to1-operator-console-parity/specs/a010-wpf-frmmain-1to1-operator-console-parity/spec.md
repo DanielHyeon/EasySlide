@@ -140,3 +140,29 @@ The WPF worship-list command SHALL play selected or linked media in a borderless
 - **WHEN** a native PowerPoint show and the console use the same monitor
 - **THEN** the operator can bring the console forward and launch the clip
 - **AND** dismissing the focused player returns to the running slide show
+
+### Requirement: 운영자 곡·성경 찾기와 폴더 제목 필터
+
+WPF 운영 콘솔은 WinForms에서 사용하는 검색 대상, 검색 조건, 결과 표시 위치와 곡 목록의 정렬 순서를 유지해야 한다(SHALL).
+
+#### Scenario: 상단 검색창에서 Enter를 누름
+
+- **WHEN** 운영자가 곡 폴더에서 검색어를 입력하고 Enter를 누르면
+- **THEN** 활성 폴더의 제목·대체 제목·가사·곡 번호·참조·라이선스·작사자·저작권을 검사해 같은 곡 목록에 결과를 표시한다.
+- **AND** 결과 목록은 기존 정렬을 유지하고 첫 곡을 자동으로 미리보기에 보내지 않는다. 일반 폴더로 돌아가면 제목 필터를 다시 쓸 수 있다.
+- **WHEN** 운영자가 성경에서 같은 동작을 수행하면
+- **THEN** 현재 번역본 전체에서 정확한 구문을 찾고 그 번역본의 부분 단어 설정을 적용한다. 다른 소스에서 Enter를 누르면 해당 소스와 목록을 유지한다.
+
+#### Scenario: 한 폴더의 제목 필터를 사용함
+
+- **WHEN** 운영자가 폴더 필터에 제목 일부를 입력하면
+- **THEN** 표시 제목에서 입력 문자를 그대로 찾고, 결과 수와 전체 곡 수를 표시한다. 남아 있는 선택은 유지한다.
+- **AND** Enter는 즉시 적용하고 Esc 또는 지우기 버튼은 필터를 해제한다. 아래 방향키가 전역 단축키로 지정되지 않았으면 목록으로 이동한다.
+
+#### Scenario: 상세 찾기를 반복함
+
+- **WHEN** 운영자가 찾기 창에서 곡 또는 성경을 검색하면
+- **THEN** 메인 창에서 결과를 확인하고 찾기 창을 열어 둔 채 조건을 바꿔 다시 검색할 수 있다.
+- **AND** 곡 검색은 선택한 폴더·검색 필드·조·박자·표기·수정일과 미디어 폴더에서 제목이나 대체 제목이 일치하는 실제 파일을 기준으로 한다. 성경은 번역본·책·모든 단어·한 단어 이상·정확한 구문을 선택할 수 있다.
+- **AND** 검색 결과에서 곡을 열 때에는 검색에 사용한 DB와 해당 곡의 원래 폴더를 사용한다.
+- **AND** 성경 결과를 보는 동안 번역본이나 본문 표시를 바꾸면 찾은 장절을 유지하고, 책을 선택하면 해당 책의 연속 본문으로 돌아간다.

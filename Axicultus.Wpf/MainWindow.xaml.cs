@@ -42,6 +42,9 @@ public partial class MainWindow : Window
     private bool _bibleLoadedOnce;
     private bool _searchLoadedOnce;
     private SearchUsageViewModel? _advancedSongSearch;
+    private SearchUsageWindow? _findWindow;
+    private int _quickFindRequest;
+    private HashSet<int>? _filterSelection;
     private bool _infoScreenSourceLoadedOnce;
     private bool _powerPointSourceLoadedOnce;
     private bool _imageSourceLoadedOnce;
@@ -74,6 +77,8 @@ public partial class MainWindow : Window
         _shortcuts = shortcuts;
         _services = services;
         _viewModel = viewModel;
+        viewModel.Library.TitleFilterApplying += CaptureFilterSelection;
+        viewModel.Library.TitleFilterApplied += RestoreFilterSelection;
         _wasShowRunning = viewModel.IsShowRunning;
         _liveMicrophones.Failed += message => viewModel.StatusText = message;
         if (services.GetService<Captions.CaptionRecoveryStore>() is { } recovery)
@@ -589,6 +594,13 @@ public partial class MainWindow : Window
         // 섞여 백그라운드에서 위험 명령이 실행되는 사고 방지(code-review MINOR). 팔레트 키는 검색창이 처리.
         if (_viewModel.CommandPalette.IsOpen)
         {
+            return;
+        }
+
+        if (FolderTitleFilterBox?.IsKeyboardFocusWithin == true && Keyboard.Modifiers == ModifierKeys.None
+            && HandleFolderFilterKey(e.Key))
+        {
+            e.Handled = true;
             return;
         }
 
@@ -1228,6 +1240,7 @@ public partial class MainWindow : Window
         }
 
         // 헤더 문구·다국어 변경에 견고하도록 Tag 로 식별(Header 리터럴 의존 회피). 탭별 1회 자동 로드.
+        _quickFindRequest++;
         if (!ReferenceEquals(tab, SearchSourceTab) && SearchSourceTab.Visibility == Visibility.Visible)
         {
             SearchSourceTab.Visibility = Visibility.Collapsed;
@@ -1446,7 +1459,7 @@ public partial class MainWindow : Window
 
     private void LibrarySongList_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (sender is ListBox { SelectedItem: SongSummary song } list && list.IsLoaded
+        if (_filterSelection is null && !_viewModel.Library.IsRefreshingSongs && sender is ListBox { SelectedItem: SongSummary song } list && list.IsLoaded
             && (list.IsKeyboardFocusWithin || list.IsMouseOver)) _viewModel.PreviewLibrarySong(song);
     }
 
@@ -1499,11 +1512,63 @@ public partial class MainWindow : Window
         }
     }
 
-    private void Main_Find_Click(object sender, RoutedEventArgs e)
+    private void CaptureFilterSelection()
+        => _filterSelection = LibrarySongList.SelectedItems.OfType<SongSummary>().Select(song => song.SongId).ToHashSet();
+
+    private void RestoreFilterSelection()
     {
-        if (Equals((LeftBrowserTabs.SelectedItem as TabItem)?.Tag, "Bibles")) OpenBible_Click(sender, e);
-        else OpenSearchUsage_Click(sender, e);
+        if (_filterSelection is { Count: > 0 } ids)
+            foreach (var song in _viewModel.Library.Songs)
+                if (ids.Contains(song.SongId) && !LibrarySongList.SelectedItems.Contains(song))
+                    LibrarySongList.SelectedItems.Add(song);
+        _filterSelection = null;
     }
+
+    private void FolderSort_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { ContextMenu: { } menu } button) return;
+        menu.PlacementTarget = button;
+        menu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
+        foreach (var item in menu.Items.OfType<MenuItem>())
+            item.IsChecked = Equals(item.Tag, _viewModel.Library.SortMode.ToString());
+        menu.IsOpen = true;
+    }
+
+    private async void FolderSortChoice_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is MenuItem { Tag: string tag } && Enum.TryParse<LibrarySortMode>(tag, out var mode))
+            await _viewModel.Library.SetBrowserSortAsync(mode);
+    }
+
+    private void FlushFolderFilter() => FolderTitleFilterBox.GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
+
+    private void FolderTitleFilter_LostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e) => FlushFolderFilter();
+
+    private void ClearFolderFilter_Click(object sender, RoutedEventArgs e)
+    {
+        FolderTitleFilterBox.Clear();
+        FlushFolderFilter();
+        FolderTitleFilterBox.Focus();
+    }
+
+    private bool HandleFolderFilterKey(Key key)
+    {
+        if (key == Key.Escape) FolderTitleFilterBox.Clear();
+        else if (key != Key.Enter && (key != Key.Down || _shortcuts.IsGlobalGesture(Key.Down, ModifierKeys.None))) return false;
+        FlushFolderFilter();
+        if (key == Key.Down && LibrarySongList.Items.Count > 0)
+        {
+            if (LibrarySongList.SelectedIndex < 0) LibrarySongList.SelectedIndex = 0;
+            LibrarySongList.ScrollIntoView(LibrarySongList.SelectedItem);
+            if (LibrarySongList.ItemContainerGenerator.ContainerFromItem(LibrarySongList.SelectedItem) is ListViewItem item)
+                item.Focus();
+            else LibrarySongList.Focus();
+            if (LibrarySongList.SelectedItem is SongSummary song) _viewModel.PreviewLibrarySong(song);
+        }
+        return true;
+    }
+
+    private void Main_Find_Click(object sender, RoutedEventArgs e) => OpenSearchUsage_Click(sender, e);
 
     private void FolderJump_Click(object sender, RoutedEventArgs e)
     {
@@ -1524,38 +1589,47 @@ public partial class MainWindow : Window
         await ExecuteMainQuickFindAsync().ConfigureAwait(true);
     }
 
+    private void Main_QuickFind_GotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
+    {
+        if (e.NewFocus is TextBox editor) editor.SelectAll();
+    }
+
     private async Task ExecuteMainQuickFindAsync()
     {
-        if (DataContext is not MainViewModel viewModel)
+        if (DataContext is not MainViewModel viewModel || LeftBrowserTabs.SelectedItem is not TabItem tab) return;
+        var phrase = Main_QuickFind.Text.Trim();
+        Main_QuickFind.Text = phrase;
+        if (phrase.Length == 0) return;
+        int request = ++_quickFindRequest;
+        if (Equals(tab.Tag, "Bibles"))
         {
-            return;
+            await EnsureBibleLoadedOnceAsync();
+            if (request != _quickFindRequest || viewModel.Bible.SelectedVersion is null) return;
         }
 
-        var phrase = (Main_QuickFind.Text ?? viewModel.Search.SearchText ?? string.Empty).Trim();
-        if (string.IsNullOrWhiteSpace(phrase))
+        if (Main_QuickFind.Items.Count == 0 || !Equals(Main_QuickFind.Items[0], phrase))
         {
-            viewModel.StatusText = "Search Phrase를 입력하세요.";
-            Main_QuickFind.Focus();
-            Main_QuickFind.IsDropDownOpen = true;
-            return;
+            Main_QuickFind.Items.Insert(0, phrase);
+            if (Main_QuickFind.Items.Count > 20) Main_QuickFind.Items.RemoveAt(20);
         }
-
-        viewModel.Search.SearchText = phrase;
-        await EnsureSearchLoadedOnceAsync(viewModel).ConfigureAwait(true);
-        SearchSourceTab.Visibility = Visibility.Visible;
-        LeftBrowserTabs.SelectedItem = SearchSourceTab;
-
-        await viewModel.Search.QuickFindAsync(phrase).ConfigureAwait(true);
-
-        Main_QuickFind.Items.Remove(phrase);
-        Main_QuickFind.Items.Insert(0, phrase);
-        while (Main_QuickFind.Items.Count > 20)
-        {
-            Main_QuickFind.Items.RemoveAt(Main_QuickFind.Items.Count - 1);
-        }
-
+        Main_QuickFind.Text = phrase;
         Main_QuickFind.IsDropDownOpen = false;
-        Main_QuickFind.Focus();
+        switch (tab.Tag)
+        {
+            case "Folders":
+                await EnsureLibraryLoadedOnceAsync();
+                if (!viewModel.Library.IsBrowsingConfiguredDatabase) await viewModel.Library.LoadAsync();
+                if (request != _quickFindRequest || !viewModel.Library.IsBrowsingConfiguredDatabase) return;
+                var revision = viewModel.Library.BrowserRevision;
+                var page = await viewModel.Search.QuickFindAsync(phrase, viewModel.Library.DatabasePath);
+                if (request != _quickFindRequest || revision != viewModel.Library.BrowserRevision) return;
+                if (page is not null) viewModel.Library.ShowSearchResults(page);
+                else viewModel.StatusText = viewModel.Search.StatusMessage;
+                break;
+            case "Bibles":
+                await viewModel.Bible.QuickFindAsync(phrase);
+                break;
+        }
     }
 
     // 본문에서 드래그 선택한 구절 범위를 BibleSelection 으로 만들어 예배 순서에 추가(BibleWindow Select_Click 과 동일).
@@ -2224,7 +2298,8 @@ public partial class MainWindow : Window
     private async Task OpenSelectedLibrarySongEditorAsync(MainViewModel viewModel)
     {
         var library = viewModel.Library;
-        if (library.SelectedFolder is null)
+        var folder = library.SelectedSongFolder;
+        if (folder is null)
         {
             library.StatusMessage = "편집할 폴더를 선택하세요.";
             return;
@@ -2244,7 +2319,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        await editorViewModel.LoadAsync(library.DatabasePath, library.SelectedFolder, library.SelectedSong)
+        await editorViewModel.LoadAsync(library.DatabasePath, folder, library.SelectedSong)
             .ConfigureAwait(true);
         if (editorWindow.ShowDialog() != true)
         {
@@ -3221,17 +3296,48 @@ public partial class MainWindow : Window
 
     private async void OpenSearchUsage_Click(object sender, RoutedEventArgs e)
     {
+        if (_findWindow is { } open)
+        {
+            if (open.WindowState == WindowState.Minimized) open.WindowState = WindowState.Normal;
+            open.Activate();
+            return;
+        }
         var search = _advancedSongSearch ??= _services.GetRequiredService<SearchUsageViewModel>();
-        search.SearchText = _viewModel.Search.SearchText;
-        var window = new SearchUsageWindow(search) { Owner = this, ReturnSongResults = true };
-        if (window.ShowDialog() != true) return;
-        await EnsureSearchLoadedOnceAsync(_viewModel);
-        _viewModel.Search.AcceptSearchResults(search);
-        SearchSourceTab.Visibility = Visibility.Visible;
-        LeftBrowserTabs.SelectedItem = SearchSourceTab;
-        SearchModeTabs.SelectedIndex = 0;
-        _viewModel.SelectedSearchResult = _viewModel.Search.SearchResults.FirstOrDefault();
-        SearchResultList.Focus();
+        var window = _findWindow = new SearchUsageWindow(search) { Owner = this };
+        await EnsureBibleLoadedOnceAsync();
+        window.ConfigureBibleFind(_viewModel.Bible, Equals((LeftBrowserTabs.SelectedItem as TabItem)?.Tag, "Bibles"));
+        search.SongsFound += SongsFound;
+        window.BibleFindRequested += BibleFindRequested;
+        window.Closed += (_, _) =>
+        {
+            search.CancelPendingFind();
+            if (search.IsBusy) _advancedSongSearch = null;
+            _findWindow = null;
+            search.SongsFound -= SongsFound;
+            window.BibleFindRequested -= BibleFindRequested;
+        };
+        window.Show();
+
+        async void SongsFound(object? sender, EventArgs args)
+        {
+            if (search.LastSearch is not { } page) return;
+            SelectSource("Folders");
+            int request = ++_quickFindRequest;
+            await EnsureLibraryLoadedOnceAsync();
+            if (!_viewModel.Library.IsBrowsingConfiguredDatabase)
+                await _viewModel.Library.LoadAsync();
+            if (request == _quickFindRequest) _viewModel.Library.ShowSearchResults(page);
+        }
+
+        async void BibleFindRequested(object? sender, EventArgs args)
+        {
+            SelectSource("Bibles");
+            ++_quickFindRequest;
+            await _viewModel.Bible.SearchAsync();
+        }
+
+        void SelectSource(string source) => LeftBrowserTabs.SelectedItem =
+            LeftBrowserTabs.Items.OfType<TabItem>().First(tab => Equals(tab.Tag, source));
     }
 
     private void AddExternalFile_Click(object sender, RoutedEventArgs e)
@@ -4490,17 +4596,17 @@ public partial class MainWindow : Window
     private void SongCopy_Click(object sender, RoutedEventArgs e)
         => LaunchSongContextWindow<SongCopyWindow, SongCopyViewModel>(
             "복사할 곡을 라이브러리 탭에서 선택하세요.",
-            (vm, lib) => vm.Load(lib.DatabasePath, lib.SelectedSong!, lib.SelectedFolder!, lib.Folders));
+            (vm, lib) => vm.Load(lib.DatabasePath, lib.SelectedSong!, lib.SelectedSongFolder!, lib.Folders));
 
     private void SongMove_Click(object sender, RoutedEventArgs e)
         => LaunchSongContextWindow<SongMoveWindow, SongMoveViewModel>(
             "이동할 곡을 라이브러리 탭에서 선택하세요.",
-            (vm, lib) => vm.Load(lib.DatabasePath, lib.SelectedSong!, lib.SelectedFolder!, lib.Folders));
+            (vm, lib) => vm.Load(lib.DatabasePath, lib.SelectedSong!, lib.SelectedSongFolder!, lib.Folders));
 
     private void SongDelete_Click(object sender, RoutedEventArgs e)
         => LaunchSongContextWindow<SongDeleteWindow, SongDeleteViewModel>(
             "삭제할 곡을 라이브러리 탭에서 선택하세요.",
-            (vm, lib) => vm.Load(lib.DatabasePath, lib.SelectedSong!, lib.SelectedFolder!));
+            (vm, lib) => vm.Load(lib.DatabasePath, lib.SelectedSong!, lib.SelectedSongFolder!));
 
     private async void FolderEditor_Click(object sender, RoutedEventArgs e)
     {
@@ -4529,7 +4635,7 @@ public partial class MainWindow : Window
         where TViewModel : class
     {
         var lib = _viewModel.Library;
-        if (lib.SelectedFolder is null || lib.SelectedSong is null)
+        if (lib.SelectedSongFolder is null || lib.SelectedSong is null)
         {
             lib.StatusMessage = noSelectionMessage;
             return;
@@ -4762,6 +4868,8 @@ public partial class MainWindow : Window
 
     protected override void OnClosed(EventArgs e)
     {
+        _viewModel.Library.TitleFilterApplying -= CaptureFilterSelection;
+        _viewModel.Library.TitleFilterApplied -= RestoreFilterSelection;
         CloseLiveDevices();
         Microsoft.Win32.SystemEvents.DisplaySettingsChanged -= OnDisplaySettingsChanged;
         _displayRefresh.Stop();

@@ -17,6 +17,59 @@ public sealed partial class LibraryViewModel : ObservableObject
     private readonly IAdminDatabaseRepository _adminDatabase;
     private IReadOnlyList<SongSummary> _loadedSongs = [];
     private bool _suppressSelectionLoad;
+    private bool _pendingFolderLoad;
+    private static readonly SongFolderSummary ResultFolder = new(-1, "Search Results:", false, 0);
+    private readonly ISearchUsageService _searchService;
+    private SongSearchRequest? _shownSearch;
+    internal int BrowserRevision { get; private set; }
+    internal bool IsRefreshingSongs { get; private set; }
+    internal event Action? TitleFilterApplying;
+    internal event Action? TitleFilterApplied;
+
+    [ObservableProperty] private string _folderTitleFilter = "";
+    public bool CanFilterFolder => _shownSearch is null && SelectedFolder is { IsEnabled: true };
+    public IEnumerable<SongFolderSummary> BrowserFolders
+    {
+        get
+        {
+            var active = Folders.Where(folder => folder.FolderNo > 0 && folder.IsEnabled);
+            return _shownSearch is null ? active : active.Append(ResultFolder);
+        }
+    }
+    public SongFolderSummary? SelectedBrowserFolder
+    {
+        get => _shownSearch is null ? SelectedFolder : ResultFolder;
+        set { if (value is not null && value != ResultFolder) SelectedFolder = value; }
+    }
+    internal SongFolderSummary? SelectedSongFolder => SelectedSong is { } song
+        ? Folders.FirstOrDefault(f => f.FolderNo == song.FolderNo) : SelectedFolder;
+
+    internal void ShowSearchResults(SongSearchPage page)
+    {
+        if (!IsBrowsingConfiguredDatabase || !string.Equals(DatabasePath, page.Request.DatabasePath, StringComparison.OrdinalIgnoreCase)) return;
+        BrowserRevision++;
+        _shownSearch = page.Request;
+        _suppressSelectionLoad = true;
+        try { SelectedFolder = null; }
+        finally { _suppressSelectionLoad = false; }
+        FolderTitleFilter = "";
+        SelectedSong = null;
+        _loadedSongs = page.Rows.Select(result => result.Song).ToArray();
+        TotalSongCount = _loadedSongs.Count;
+        ApplySearch(keepOnlyExistingSelection: true);
+        HasLoadedSongs = true;
+        UpdateStatus();
+        NotifyBrowserChanged();
+    }
+
+    private void NotifyBrowserChanged()
+    {
+        OnPropertyChanged(nameof(BrowserFolders));
+        OnPropertyChanged(nameof(SelectedBrowserFolder));
+        OnPropertyChanged(nameof(CanFilterFolder));
+        OnPropertyChanged(nameof(FolderTitleFilter));
+        RaiseLibraryEmptyStateChanged();
+    }
 
     [ObservableProperty] private string _databasePath = "";
     [ObservableProperty] private SongFolderSummary? _selectedFolder;
@@ -40,12 +93,18 @@ public sealed partial class LibraryViewModel : ObservableObject
     // 빈 목록이 "아직 안 불러옴"인지 "정말 비었음"인지 구분하는 핵심 플래그(검색 빈 상태 HasSearched 와 같은 취지).
     [ObservableProperty] private bool _hasLoadedSongs;
 
-    public LibraryViewModel(ISettingsService settings, IAdminDatabaseRepository adminDatabase)
+    public LibraryViewModel(ISettingsService settings, IAdminDatabaseRepository adminDatabase, ISearchUsageService? searchService = null)
     {
         _settings = settings ?? throw new ArgumentNullException(nameof(settings));
         _adminDatabase = adminDatabase ?? throw new ArgumentNullException(nameof(adminDatabase));
+        _searchService = searchService ?? new SearchUsageService(adminDatabase);
         // 표시 곡 수가 바뀌면 "곡 없음" 빈 상태 안내 표시 여부도 다시 평가하도록 통지.
-        Folders.CollectionChanged += (_, _) => RefreshJumpFolders();
+        Folders.CollectionChanged += (_, _) =>
+        {
+            RefreshJumpFolders();
+            OnPropertyChanged(nameof(BrowserFolders));
+            OnPropertyChanged(nameof(SelectedBrowserFolder));
+        };
         Songs.CollectionChanged += (_, _) => RaiseLibraryEmptyStateChanged();
         LoadCommand = new AsyncRelayCommand(LoadAsync, () => !IsBusy);
         LoadSongsForSelectedFolderCommand = new AsyncRelayCommand(LoadSongsForSelectedFolderAsync, () => !IsBusy);
@@ -65,6 +124,7 @@ public sealed partial class LibraryViewModel : ObservableObject
     partial void OnUseSongNumberingChanged(bool value)
     {
         _settings.Set(AxicultusSettingKeys.UseSongNumbering, value);
+        FolderTitleFilter = "";
         ApplySelectedFolderSortMode();
         OnPropertyChanged(nameof(IsFolderWordCountSortAvailable));
         OnPropertyChanged(nameof(IsWordCountSortEnabled));
@@ -88,7 +148,8 @@ public sealed partial class LibraryViewModel : ObservableObject
                 return "";
             }
 
-            var term = SearchText.Trim();
+            var term = (_shownSearch?.Phrase ?? (FolderTitleFilter.Length > 0 ? FolderTitleFilter : SearchText)).Trim();
+            if (_shownSearch is not null && term.Length == 0) return "검색 조건에 맞는 곡이 없습니다.";
             return term.Length > 0
                 ? $"'{term}'에 맞는 곡이 없습니다."   // 검색했는데 결과 0건.
                 : "이 폴더에 곡이 없습니다.";          // 폴더는 불러왔는데 곡이 0건.
@@ -173,7 +234,10 @@ public sealed partial class LibraryViewModel : ObservableObject
 
     public bool IsFolderWordCountSortAvailable => !UseSongNumbering;
 
-    public async Task SetFolderWordCountSortEnabledAsync(bool value)
+    public Task SetFolderWordCountSortEnabledAsync(bool value)
+        => SetBrowserSortAsync(value ? LibrarySortMode.WordCount : LibrarySortMode.StrokeCount);
+
+    internal async Task SetBrowserSortAsync(LibrarySortMode nextMode)
     {
         if (!IsFolderWordCountSortAvailable)
         {
@@ -181,13 +245,15 @@ public sealed partial class LibraryViewModel : ObservableObject
             return;
         }
 
-        var nextMode = value ? LibrarySortMode.WordCount : LibrarySortMode.StrokeCount;
-        if (SortMode != nextMode)
+        if (SortMode == nextMode) return;
+        SortMode = nextMode;
+        if (_shownSearch is not null) await LoadSongsForSelectedFolderAsync();
+        else await PersistSelectedFolderGroupStyleAsync(nextMode switch
         {
-            SortMode = nextMode;
-        }
-
-        await PersistSelectedFolderGroupStyleAsync(value ? 1 : 0).ConfigureAwait(true);
+            LibrarySortMode.WordCount => 1,
+            LibrarySortMode.Number => 2,
+            _ => 0
+        });
     }
 
     /// <summary>색인 머리글자로 점프 — 그 글자로 시작하는 첫 곡을 선택한다(레거시 FrmMain A/B/C 점프).</summary>
@@ -237,9 +303,9 @@ public sealed partial class LibraryViewModel : ObservableObject
             return;
         }
 
-        DatabasePath = resolvedPath;
         await RunBusyAsync(async () =>
         {
+            DatabasePath = resolvedPath;
             var folders = await _adminDatabase.GetSongFoldersAsync(DatabasePath).ConfigureAwait(true);
             Folders.ReplaceWith(folders);
             NotifyReorderCanExecuteChanged();
@@ -659,22 +725,39 @@ public sealed partial class LibraryViewModel : ObservableObject
 
     partial void OnSelectedFolderChanged(SongFolderSummary? value)
     {
+        BrowserRevision++;
+        if (value is not null)
+        {
+            _shownSearch = null;
+            FolderTitleFilter = "";
+        }
+        NotifyBrowserChanged();
         if (value is not null && _settings.Get(AxicultusSettingKeys.SelectedSongFolderNo) != value.FolderNo)
         {
             _settings.Set(AxicultusSettingKeys.SelectedSongFolderNo, value.FolderNo);
         }
 
-        ApplySelectedFolderSortMode();
+        if (_shownSearch is null) ApplySelectedFolderSortMode();
         NotifyReorderCanExecuteChanged();
         NotifyFolderActionCanExecuteChanged();
         if (!_suppressSelectionLoad)
         {
-            _ = LoadSongsForSelectedFolderAsync();
+            if (IsBusy) _pendingFolderLoad = true;
+            else _ = LoadSongsForSelectedFolderAsync();
         }
     }
 
     partial void OnSelectedSongChanged(SongSummary? value)
         => NotifyReorderCanExecuteChanged();
+
+    partial void OnFolderTitleFilterChanged(string value)
+    {
+        TitleFilterApplying?.Invoke();
+        ApplySearch(keepOnlyExistingSelection: true);
+        TitleFilterApplied?.Invoke();
+        UpdateStatus();
+        RaiseLibraryEmptyStateChanged();
+    }
 
     partial void OnSearchTextChanged(string value)
     {
@@ -722,7 +805,7 @@ public sealed partial class LibraryViewModel : ObservableObject
         var savedFolderNo = _settings.Get(AxicultusSettingKeys.SelectedSongFolderNo);
         if (savedFolderNo > 0)
         {
-            var saved = Folders.FirstOrDefault(folder => folder.FolderNo == savedFolderNo);
+            var saved = Folders.FirstOrDefault(folder => folder.FolderNo == savedFolderNo && folder.IsEnabled);
             if (saved is not null)
             {
                 return saved;
@@ -754,7 +837,6 @@ public sealed partial class LibraryViewModel : ObservableObject
             return;
         }
 
-        var normalizedGroupStyle = groupStyle == 1 ? 1 : 0;
         var selected = SelectedFolder;
         try
         {
@@ -766,7 +848,7 @@ public sealed partial class LibraryViewModel : ObservableObject
                         selected.FolderNo,
                         selected.Name,
                         selected.IsEnabled,
-                        normalizedGroupStyle))
+                        groupStyle))
                 .ConfigureAwait(true);
 
             if (!report.Succeeded)
@@ -775,10 +857,9 @@ public sealed partial class LibraryViewModel : ObservableObject
                 return;
             }
 
-            ReplaceSelectedFolder(selected with { GroupStyle = normalizedGroupStyle });
-            StatusMessage = normalizedGroupStyle == 1
-                ? "곡 목록 정렬: CJK Word Count"
-                : "곡 목록 정렬: CJK Stroke Count";
+            if (SelectedFolder != selected) return;
+            ReplaceSelectedFolder(selected with { GroupStyle = groupStyle });
+            StatusMessage = $"곡 목록 정렬: {SortOptions.First(option => option.Mode == SortMode).Label}";
         }
         catch (Exception ex) when (IsRecoverableLibraryException(ex))
         {
@@ -821,10 +902,23 @@ public sealed partial class LibraryViewModel : ObservableObject
         // 로딩이 끝나면(IsBusy=false) 비로소 "곡 없음" 안내를 평가해 띄운다.
         // (로딩 중에는 곡 목록이 갱신돼도 안내를 숨기므로, 끝나는 이 시점의 재평가가 꼭 필요하다.)
         RaiseLibraryEmptyStateChanged();
+        if (!value && _pendingFolderLoad)
+        {
+            _pendingFolderLoad = false;
+            if (_shownSearch is null) _ = LoadSongsForSelectedFolderAsync();
+        }
     }
 
     private async Task LoadSongsForSelectedFolderCoreAsync()
     {
+        if (_shownSearch is { } request)
+        {
+            int revision = BrowserRevision;
+            var rows = await _searchService.SearchSongsAsync(request).ConfigureAwait(true);
+            if (revision == BrowserRevision) ShowSearchResults(new(request, rows));
+            return;
+        }
+        FolderTitleFilter = "";
         if (SelectedFolder is null)
         {
             _loadedSongs = [];
@@ -834,9 +928,10 @@ public sealed partial class LibraryViewModel : ObservableObject
             return;
         }
 
-        _loadedSongs = await _adminDatabase
-            .GetSongsAsync(DatabasePath, SelectedFolder.FolderNo)
-            .ConfigureAwait(true);
+        var folder = SelectedFolder;
+        var songs = await _adminDatabase.GetSongsAsync(DatabasePath, folder.FolderNo).ConfigureAwait(true);
+        if (SelectedFolder != folder) return;
+        _loadedSongs = songs;
         TotalSongCount = _loadedSongs.Count;
         ApplySearch();
         UpdateStatus();
@@ -877,6 +972,9 @@ public sealed partial class LibraryViewModel : ObservableObject
         }
     }
 
+    internal bool IsBrowsingConfiguredDatabase => TryResolveDatabasePath(out var path, out _) &&
+        string.Equals(path, DatabasePath, StringComparison.OrdinalIgnoreCase);
+
     private bool TryResolveDatabasePath(out string databasePath, out string message)
     {
         var explicitPath = NormalizePath(_settings.Current.Data.AdminDatabasePath);
@@ -906,29 +1004,51 @@ public sealed partial class LibraryViewModel : ObservableObject
         return false;
     }
 
-    private void ApplySearch()
+    private void ApplySearch(bool keepOnlyExistingSelection = false)
     {
-        var term = SearchText.Trim();
-        var filtered = string.IsNullOrEmpty(term)
-            ? _loadedSongs
-            : _loadedSongs.Where(song => Matches(song, term)).ToArray();
-
-        // 검색으로 거른 뒤 선택한 정렬 방식으로 정렬해 표시(Original 이면 입력 순서 그대로 — 무회귀).
-        var ordered = SongOrdering.Order(filtered, SortMode);
-        Songs.ReplaceWith(ordered);
-        DisplayedSongCount = Songs.Count;
-        RefreshAvailableInitials();
         var selected = SelectedSong;
-        SelectedSong = selected is not null && Songs.Contains(selected)
-            ? selected
-            : Songs.FirstOrDefault();
-        NotifyReorderCanExecuteChanged();
+        IEnumerable<SongSummary> filtered = _loadedSongs;
+        var term = SearchText.Trim();
+        if (_shownSearch is null && term.Length > 0) filtered = filtered.Where(song => Matches(song, term));
+        var title = FolderTitleFilter.Trim();
+        if (CanFilterFolder && title.Length > 0) filtered = filtered.Where(song => TitleContains(song.Title, title));
+
+        IsRefreshingSongs = true;
+        try
+        {
+            Songs.ReplaceWith(SongOrdering.Order(filtered, SortMode, UseSongNumbering));
+            DisplayedSongCount = Songs.Count;
+            RefreshAvailableInitials();
+            SelectedSong = selected is not null && Songs.Contains(selected) ? selected :
+                keepOnlyExistingSelection || _shownSearch is not null ? null : Songs.FirstOrDefault();
+            NotifyReorderCanExecuteChanged();
+        }
+        finally { IsRefreshingSongs = false; }
     }
+
+    // SQLite LIKE folds only the ASCII alphabet. The folder filter treats every typed wildcard literally.
+    private static bool TitleContains(string title, string term)
+    {
+        for (int start = 0; start <= title.Length - term.Length; start++)
+        {
+            int index = 0;
+            while (index < term.Length && Fold(title[start + index]) == Fold(term[index])) index++;
+            if (index == term.Length) return true;
+        }
+        return false;
+
+        static char Fold(char c) => c is >= 'A' and <= 'Z' ? (char)(c + ('a' - 'A')) : c;
+    }
+
+    public string BrowserCountText => FolderTitleFilter.Trim().Length > 0
+        ? $"Folder: {DisplayedSongCount} of {TotalSongCount} items / " : $"Folder: {DisplayedSongCount} items / ";
 
     private void UpdateStatus()
     {
+        OnPropertyChanged(nameof(BrowserCountText));
         ActiveFolderCount = SelectedFolder is null ? Folders.Count : 1;
-        StatusMessage = $"{ActiveFolderCount}개 폴더, {DisplayedSongCount}개 곡 표시";
+        StatusMessage = FolderTitleFilter.Trim().Length > 0 ? $"{TotalSongCount}곡 중 {DisplayedSongCount}곡 표시" :
+            $"{ActiveFolderCount}개 폴더, {DisplayedSongCount}개 곡 표시";
     }
 
     private void ClearLibrary(string message)
@@ -936,6 +1056,9 @@ public sealed partial class LibraryViewModel : ObservableObject
         // DB 경로 실패 등으로 라이브러리를 비울 때는 "불러옴" 상태부터 해제한다.
         // 이래야 바로 아래 Songs.Clear() 통지 시점에도 빈 상태 안내가 잠깐조차 뜨지 않고,
         // 대신 상태바(StatusMessage)가 진짜 원인(경로 없음 등)을 알린다.
+        _shownSearch = null;
+        FolderTitleFilter = "";
+        NotifyBrowserChanged();
         HasLoadedSongs = false;
         Folders.Clear();
         Songs.Clear();
@@ -1070,6 +1193,7 @@ public sealed partial class LibraryViewModel : ObservableObject
         => ex is IOException
             or UnauthorizedAccessException
             or InvalidOperationException
+            or System.Data.Common.DbException
             or NotSupportedException;
 }
 

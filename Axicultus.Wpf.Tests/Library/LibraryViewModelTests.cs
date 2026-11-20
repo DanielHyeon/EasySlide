@@ -425,6 +425,73 @@ public class LibraryViewModelTests
     }
 
     [Fact]
+    public async Task ChoosingAnotherFolderDuringReloadDisplaysTheLastSelectedFolder()
+    {
+        using var fixture = TempLibrarySettings.Create();
+        fixture.CreateAdminDatabaseFile("custom.db");
+        fixture.Settings.Set(AxicultusSettingKeys.AdminDatabasePath, fixture.AdminDatabasePath);
+        var repository = new FakeAdminDatabaseRepository();
+        SongFolderSummary a = new(1, "A", true, 1), b = new(2, "B", true, 1);
+        repository.Folders.AddRange([a, b, new(3, "Hidden", false, 0)]);
+        repository.SongsByFolder[1] = [Song(1, "A", 1)];
+        repository.SongsByFolder[2] = [Song(2, "B", 2)];
+        var model = new LibraryViewModel(fixture.Settings, repository);
+        await model.LoadAsync();
+        model.BrowserFolders.Should().Equal(a, b);
+        var slow = new TaskCompletionSource<IReadOnlyList<SongSummary>>(TaskCreationOptions.RunContinuationsAsynchronously);
+        repository.NextLoad = slow.Task;
+        var pending = model.LoadSongsForSelectedFolderAsync();
+        model.SelectedBrowserFolder = b;
+        slow.SetResult(repository.SongsByFolder[1]);
+        await pending;
+        model.Songs.Should().Equal(repository.SongsByFolder[2]);
+    }
+
+    [Fact]
+    public async Task FolderFilterIsLiteralAndFolderSearchKeepsSongIdentityUntilReturningToFolder()
+    {
+        using var fixture = TempLibrarySettings.Create();
+        fixture.CreateAdminDatabaseFile("custom.db");
+        fixture.Settings.Set(AxicultusSettingKeys.AdminDatabasePath, fixture.AdminDatabasePath);
+        var repository = new FakeAdminDatabaseRepository();
+        SongFolderSummary first = new(1, "Morning", true, 2, GroupStyle: 1), second = new(2, "Evening", true, 1);
+        repository.Folders.AddRange([first, second]);
+        var a = Song(10, "100%_Grace", folderNo: 1);
+        var b = Song(11, "100xxGrace", folderNo: 1, lyrics: "100%_Grace");
+        var c = Song(22, "다른 곡", folderNo: 2, lyrics: "full lyrics");
+        repository.SongsByFolder[1] = [a, b];
+        repository.SongsByFolder[2] = [c];
+        var sut = new LibraryViewModel(fixture.Settings, repository);
+        await sut.LoadAsync();
+        sut.SelectedSong = b;
+        sut.FolderTitleFilter = " %_g ";
+        sut.Songs.Should().Equal(a);
+        sut.SelectedSong.Should().BeNull();
+        sut.TotalSongCount.Should().Be(2);
+        var page = new SongSearchPage(new(sut.DatabasePath, "other", [1, 2], SongSearchFields.All),
+            [new SongSearchResult(c, second.Name, ["Lyrics"], "short")]);
+        sut.ShowSearchResults(page);
+        sut.SelectedBrowserFolder!.Name.Should().Be("Search Results:");
+        sut.SelectedFolder.Should().BeNull();
+        sut.Folders.Should().Equal(first, second);
+        sut.SortMode.Should().Be(LibrarySortMode.WordCount);
+        sut.Songs.Should().Equal(c);
+        var wrongDb = page with { Request = page.Request with { DatabasePath = "different.db" }, Rows = [] };
+        sut.ShowSearchResults(wrongDb);
+        sut.Songs.Should().Equal(c);
+        sut.SelectedSong.Should().BeNull();
+        sut.CanFilterFolder.Should().BeFalse();
+        sut.SelectedSong = c;
+        sut.SelectedSongFolder.Should().Be(second);
+        fixture.Settings.Get(AxicultusSettingKeys.SelectedSongFolderNo).Should().Be(1);
+        sut.SelectedBrowserFolder = first;
+        sut.FolderTitleFilter.Should().BeEmpty();
+        sut.CanFilterFolder.Should().BeTrue();
+        sut.Songs.Should().BeEquivalentTo([a, b]);
+        sut.BrowserFolders.Should().Equal(first, second);
+    }
+
+    [Fact]
     public async Task SearchText_FiltersTitleAlternateCategoryAndLyrics()
     {
         using var fixture = TempLibrarySettings.Create();
@@ -789,9 +856,16 @@ public class LibraryViewModelTests
         public Task<IReadOnlyList<SongFolderSummary>> GetSongFoldersAsync(string databasePath)
             => Task.FromResult<IReadOnlyList<SongFolderSummary>>(Folders);
 
+        public Task<IReadOnlyList<SongSummary>>? NextLoad { get; set; }
+
         public Task<IReadOnlyList<SongSummary>> GetSongsAsync(string databasePath, int? folderNo = null)
         {
             RequestedFolderNos.Add(folderNo);
+            if (NextLoad is { } pending)
+            {
+                NextLoad = null;
+                return pending;
+            }
             if (folderNo is not null && SongsByFolder.TryGetValue(folderNo.Value, out var songs))
             {
                 return Task.FromResult<IReadOnlyList<SongSummary>>(songs

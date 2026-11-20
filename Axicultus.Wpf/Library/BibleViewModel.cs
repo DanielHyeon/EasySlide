@@ -17,6 +17,8 @@ public sealed partial class BibleViewModel : ObservableObject
     private readonly ISettingsService _settings;
     private readonly IBibleRepository _repository;
     private BiblePassageResult _currentResult = new("", [], IsSequential: true, WasLimited: false);
+    private BiblePassageResult? _searchReferences;
+    private bool _changingSearchVersion;
     private BibleSelection _baseSelection = new("", "");
     private int? _verseSelectionAnchorIndex;
     private System.Threading.CancellationTokenSource? _search;
@@ -71,6 +73,32 @@ public sealed partial class BibleViewModel : ObservableObject
         => Versions.Where(version => !Equals(version, SelectedVersion)).ToList();
 
     public ObservableCollection<BibleBook> Books { get; } = [];
+    private static readonly BibleBook ResultsBook = new(-1, "Search Results:");
+    public IEnumerable<BibleBook> BrowserBooks => _currentResult.IsSequential ? Books : Books.Append(ResultsBook);
+    public BibleBook? SelectedBrowserBook
+    {
+        get => _currentResult.IsSequential ? SelectedBook : ResultsBook;
+        set
+        {
+            if (value is null || value == ResultsBook) return;
+            if (value == SelectedBook && !_currentResult.IsSequential)
+            {
+                CancelSearch();
+                _ = LoadSelectedBookAsync();
+            }
+            else SelectedBook = value;
+        }
+    }
+
+    private void SetPassageResult(BiblePassageResult result)
+    {
+        var changedMode = _currentResult.IsSequential != result.IsSequential;
+        _currentResult = result;
+        if (result.IsSequential) _searchReferences = null;
+        PassageText = result.Text;
+        if (changedMode) OnPropertyChanged(nameof(BrowserBooks));
+        OnPropertyChanged(nameof(SelectedBrowserBook));
+    }
 
     public IReadOnlyList<BibleSearchMatchMode> MatchModes { get; } =
         [BibleSearchMatchMode.AllWords, BibleSearchMatchMode.AnyWord, BibleSearchMatchMode.ExactPhrase];
@@ -117,7 +145,7 @@ public sealed partial class BibleViewModel : ObservableObject
             PreviewRegion1Version = null;
             PreviewRegion2Version = null;
             PassageText = "";
-            _currentResult = new BiblePassageResult("", [], IsSequential: true, WasLimited: false);
+            SetPassageResult(new BiblePassageResult("", [], IsSequential: true, WasLimited: false));
             ClearSelection();
             ValidationMessage = $"성경 데이터를 불러오지 못했습니다: {ex.Message}";
             StatusMessage = "";
@@ -426,34 +454,60 @@ public sealed partial class BibleViewModel : ObservableObject
         });
     }
 
-    public async Task SearchAsync()
+    internal IReadOnlyList<BibleBook> SearchBooksFor(BibleVersion version)
+    {
+        try { return _repository.GetBooks(version); }
+        catch (Exception ex) when (IsRecoverableBibleException(ex))
+        {
+            ValidationMessage = ex.Message;
+            return [];
+        }
+    }
+
+    public Task SearchAsync() => SearchAsync(SearchText, MatchMode, SearchSelectedBookOnly);
+
+    internal Task QuickFindAsync(string phrase)
+        => SearchAsync(phrase, BibleSearchMatchMode.ExactPhrase, selectedBookOnly: false);
+
+    private async Task SearchAsync(string query, BibleSearchMatchMode mode, bool selectedBookOnly)
     {
         CancelSearch();
         if (IsBusy) return;
         var version = SelectedVersion;
-        var book = SearchSelectedBookOnly ? SelectedBook?.Number : null;
-        if (version is null || string.IsNullOrWhiteSpace(SearchText) || (SearchSelectedBookOnly && book is null))
+        var book = selectedBookOnly ? SelectedBook?.Number : null;
+        if (version is null || string.IsNullOrWhiteSpace(query) || (selectedBookOnly && book is null))
         {
             ValidationMessage = version is null ? "성경 버전을 선택하세요." :
-                string.IsNullOrWhiteSpace(SearchText) ? "검색어를 입력하세요." : "검색할 성경 책을 선택하세요.";
+                string.IsNullOrWhiteSpace(query) ? "검색어를 입력하세요." : "검색할 성경 책을 선택하세요.";
             NotifyCommands();
             return;
         }
+        var books = Books.ToArray();
+        bool showVerses = ShowVerses;
+        await RunVerseSearchAsync(token => _repository.Search(version, books, query, mode, showVerses,
+            bookNumber: book, cancellationToken: token), rememberReferences: true);
+    }
+
+    private Task RefreshSearchVersesAsync(BibleVersion version, BiblePassageResult original)
+    {
+        var books = Books.ToArray();
+        bool showVerses = ShowVerses;
+        return RunVerseSearchAsync(token => _repository.RefreshSearchVerses(version, books, original, showVerses, token),
+            rememberReferences: false);
+    }
+
+    private async Task RunVerseSearchAsync(Func<System.Threading.CancellationToken, BiblePassageResult> load, bool rememberReferences)
+    {
         using var search = new System.Threading.CancellationTokenSource();
         _search = search;
-        var books = Books.ToArray();
-        var query = SearchText;
-        var mode = MatchMode;
-        bool showVerses = ShowVerses;
         IsBusy = true;
         ValidationMessage = "";
         try
         {
-            var result = await Task.Run(() => _repository.Search(version, books, query, mode, showVerses,
-                bookNumber: book, cancellationToken: search.Token), search.Token);
+            var result = await Task.Run(() => load(search.Token), search.Token);
             if (search.IsCancellationRequested) return;
-            _currentResult = result;
-            PassageText = result.Text;
+            if (rememberReferences) _searchReferences = result;
+            SetPassageResult(result);
             ClearSelection();
             var suffix = result.WasLimited ? " 결과가 3000개로 제한되었습니다." : "";
             StatusMessage = $"{result.Locations.Count}개 구절을 찾았습니다.{suffix}";
@@ -518,8 +572,7 @@ public sealed partial class BibleViewModel : ObservableObject
         try
         {
             SelectedBook = book;
-            _currentResult = _repository.LoadBook(SelectedVersion, book.Number, ShowVerses);
-            PassageText = _currentResult.Text;
+            SetPassageResult(_repository.LoadBook(SelectedVersion, book.Number, ShowVerses));
         }
         catch (Exception ex) when (IsRecoverableBibleException(ex))
         {
@@ -759,7 +812,11 @@ public sealed partial class BibleViewModel : ObservableObject
     partial void OnSelectedVersionChanged(BibleVersion? value)
     {
         CancelSearch();
-        LoadBooksForSelectedVersion();
+        var original = _searchReferences;
+        _changingSearchVersion = original is not null && value is not null && !IsBusy;
+        try { LoadBooksForSelectedVersion(); }
+        finally { _changingSearchVersion = false; }
+        if (original is not null && value is not null && !IsBusy) _ = RefreshSearchVersesAsync(value, original);
         PreviewRegion1Version = value;
         if (PreviewRegion2Version is null || Equals(PreviewRegion2Version, value))
         {
@@ -774,6 +831,8 @@ public sealed partial class BibleViewModel : ObservableObject
 
     partial void OnSelectedBookChanged(BibleBook? value)
     {
+        OnPropertyChanged(nameof(SelectedBrowserBook));
+        if (_changingSearchVersion) return;
         CancelSearch();
         NotifyCommands();
         _ = ReloadSelectedBookAfterSelectionChangeAsync();
@@ -782,7 +841,8 @@ public sealed partial class BibleViewModel : ObservableObject
     partial void OnShowVersesChanged(bool value)
     {
         CancelSearch();
-        _ = ReloadSelectedBookAfterSelectionChangeAsync();
+        if (_searchReferences is { } original && SelectedVersion is { } version) _ = RefreshSearchVersesAsync(version, original);
+        else _ = ReloadSelectedBookAfterSelectionChangeAsync();
     }
 
     partial void OnPreviewRegion1VersionChanged(BibleVersion? value)
@@ -840,8 +900,7 @@ public sealed partial class BibleViewModel : ObservableObject
             return;
         }
 
-        _currentResult = _repository.LoadBook(SelectedVersion, SelectedBook.Number, ShowVerses);
-        PassageText = _currentResult.Text;
+        SetPassageResult(_repository.LoadBook(SelectedVersion, SelectedBook.Number, ShowVerses));
         ClearSelection();
     }
 
@@ -851,7 +910,7 @@ public sealed partial class BibleViewModel : ObservableObject
         if (SelectedVersion is null)
         {
             SelectedBook = null;
-            PassageText = "";
+            SetPassageResult(new("", [], IsSequential: true, WasLimited: false));
             return;
         }
 

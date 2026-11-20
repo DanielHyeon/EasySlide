@@ -101,6 +101,38 @@ public class BibleRepositoryTests
         anyTerm.IsSequential.Should().BeFalse();
     }
 
+    [Theory]
+    [InlineData(false, "light", 2)]
+    [InlineData(false, "l_ght  rests", 1)]
+    [InlineData(false, "light rests", 0)]
+    [InlineData(true, "light", 3)]
+    public void ExactPhraseHonorsTranslationBoundariesWildcardsAndSpaces(bool partial, string phrase, int count)
+    {
+        using var fixture = BibleDatabaseFixture.Create();
+        var version = fixture.CreateVersion("qa.db", "QA") with { SupportsPartialWordSearch = partial };
+        fixture.CreateBible("qa.db", verses: [(1,1,1,"light!"), (1,1,2,"The light  rests."), (2,1,1,"Twilight rests.")]);
+        var repository = new BibleRepository();
+        var result = repository.Search(version, repository.GetBooks(version), phrase, BibleSearchMatchMode.ExactPhrase, true);
+        result.Locations.Should().HaveCount(count);
+    }
+
+    [Fact]
+    public void ChangingTranslationOrHidingVerseTextKeepsTheMatchedReferences()
+    {
+        using var fixture = BibleDatabaseFixture.Create();
+        var original = fixture.CreateVersion("en.db", "EN");
+        var target = fixture.CreateVersion("ko.db", "KO");
+        fixture.CreateBible("en.db", verses: [(1,1,1,"light"), (1,1,2,"day"), (2,1,3,"light")]);
+        fixture.CreateBible("ko.db", verses: [(1,1,1,"빛"), (1,1,2,"낮"), (2,1,3,"밝음")]);
+        var repo = new BibleRepository();
+        var found = repo.Search(original, repo.GetBooks(original), "light", BibleSearchMatchMode.ExactPhrase, true);
+        var translated = repo.RefreshSearchVerses(target, repo.GetBooks(target), found, true, default);
+        translated.Text.Should().Contain("빛").And.Contain("밝음").And.NotContain("낮");
+        var hidden = repo.RefreshSearchVerses(target, repo.GetBooks(target), found, false, default);
+        hidden.Locations.Select(v => v.Verse).Should().Equal(1, 3);
+        hidden.Text.Should().NotContain("빛").And.Contain("1:3");
+    }
+
     [Fact]
     public void SearchSelectedBookAppliesScopeBeforeResultLimit()
     {

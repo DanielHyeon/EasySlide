@@ -69,7 +69,7 @@ public sealed partial class SearchUsageViewModel : ObservableObject
     [ObservableProperty] private bool _notationsOnly;
     [ObservableProperty] private bool _mediaOnly;
     [ObservableProperty] private bool _useModifiedDates;
-    [ObservableProperty] private DateTime _modifiedFrom = DateTime.Today.AddMonths(-3);
+    [ObservableProperty] private DateTime _modifiedFrom = DateTime.Today.AddDays(-91);
     [ObservableProperty] private DateTime _modifiedTo = DateTime.Today;
     [ObservableProperty] private DateTime _usageFrom = DateTime.Today.AddDays(-91);
     [ObservableProperty] private DateTime _usageTo = DateTime.Today;
@@ -117,6 +117,14 @@ public sealed partial class SearchUsageViewModel : ObservableObject
         var general = settings.Current.General;
         if (Axicultus.Util.StoredDate.TryParse(general.FindModifiedFrom, out var from)) _modifiedFrom = from.Date;
         if (Axicultus.Util.StoredDate.TryParse(general.FindModifiedTo, out var to)) _modifiedTo = to.Date;
+        _searchTitle = general.FindTitle;
+        _searchLyrics = general.FindLyrics;
+        _searchSongNumber = general.FindSongNumber;
+        _searchBookReference = general.FindBookReference;
+        _searchUserReference = general.FindUserReference;
+        _searchLicenceAdmin = general.FindLicenceAdmin;
+        _searchWriter = general.FindWriter;
+        _searchCopyright = general.FindCopyright;
         _useModifiedDates = general.FindUseModifiedDates;
         _service = service ?? throw new ArgumentNullException(nameof(service));
         _deleteConfirmation = deleteConfirmation ?? throw new ArgumentNullException(nameof(deleteConfirmation));
@@ -131,6 +139,12 @@ public sealed partial class SearchUsageViewModel : ObservableObject
         // 제목 조회 후보 수가 바뀌면 "제목" 서브탭 빈 상태 표시 여부도 다시 평가하도록 통지.
         LookupCandidates.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasNoLookupResults));
     }
+
+    public ObservableCollection<string> SearchKeys { get; } = [];
+    public ObservableCollection<string> SearchTimings { get; } = [];
+    private int _songSearchRevision;
+
+    internal void CancelPendingFind() => _songSearchRevision++;
 
     public ObservableCollection<SelectableSearchFolder> SearchFolders { get; } = [];
 
@@ -183,31 +197,30 @@ public sealed partial class SearchUsageViewModel : ObservableObject
                 })
                 .ToArray();
             SearchFolders.ReplaceWith(folders);
+            var choices = await _service.GetFilterChoicesAsync(DatabasePath);
+            SearchKeys.ReplaceWith(choices.Keys);
+            SearchTimings.ReplaceWith(choices.Timings);
             StatusMessage = $"{SearchFolders.Count} search folders loaded.";
         }).ConfigureAwait(true);
     }
 
-    internal async Task QuickFindAsync(string phrase)
-    {
-        if (!EnsureSearchDatabase()) return;
-        await RunBusyAsync(async () =>
-        {
-            var folders = await _service.GetFoldersAsync(DatabasePath);
-            var request = new SongSearchRequest(DatabasePath, phrase,
-                folders.Where(f => f.IsEnabled && f.FolderNo > 0).Select(f => f.FolderNo).ToArray(), SongSearchFields.All);
-            SearchResults.ReplaceWith(await _service.SearchSongsAsync(request));
-            HasSearched = true;
-            StatusMessage = $"{SearchResults.Count} songs found.";
-        });
-    }
+    internal SongSearchPage? LastSearch { get; private set; }
 
-    internal void AcceptSearchResults(SearchUsageViewModel search)
+    internal async Task<SongSearchPage?> QuickFindAsync(string phrase, string database)
     {
-        DatabasePath = search.DatabasePath;
-        SearchText = search.SearchText;
-        SearchResults.ReplaceWith(search.SearchResults);
-        HasSearched = true;
-        StatusMessage = search.StatusMessage;
+        if (string.IsNullOrWhiteSpace(database)) return null;
+        try
+        {
+            var folders = await _service.GetFoldersAsync(database).ConfigureAwait(true);
+            var request = new SongSearchRequest(database, phrase,
+                folders.Where(f => f.IsEnabled && f.FolderNo > 0).Select(f => f.FolderNo).ToArray(), SongSearchFields.All);
+            return new SongSearchPage(request, await _service.SearchSongsAsync(request).ConfigureAwait(true));
+        }
+        catch (Exception ex) when (IsRecoverable(ex))
+        {
+            StatusMessage = ex.Message;
+            return null;
+        }
     }
 
     public async Task SearchSongsAsync()
@@ -218,6 +231,11 @@ public sealed partial class SearchUsageViewModel : ObservableObject
             return;
         }
 
+        if (!string.Equals(DatabasePath, ResolveDatabasePath(), StringComparison.OrdinalIgnoreCase))
+        {
+            await LoadAsync();
+            if (!EnsureSearchDatabase()) return;
+        }
         await RunBusyAsync(async () =>
         {
             var folders = SelectedFolderNos();
@@ -249,11 +267,24 @@ public sealed partial class SearchUsageViewModel : ObservableObject
                 NotationsOnly,
                 MediaOnly,
                 useDates ? from : null,
-                useDates ? to : null);
+                useDates ? to : null,
+                WorkingFolder,
+                _settings.Get(AxicultusSettingKeys.MediaDirectory));
+            var revision = ++_songSearchRevision;
             var results = await _service.SearchSongsAsync(request).ConfigureAwait(true);
+            if (revision != _songSearchRevision) return;
+            LastSearch = new SongSearchPage(request, results);
             SearchResults.ReplaceWith(results);
             _settings.SetValues(new Dictionary<string, object>
             {
+                [AxicultusSettingKeys.FindTitle.Id] = request.Fields.HasFlag(SongSearchFields.Title),
+                [AxicultusSettingKeys.FindLyrics.Id] = request.Fields.HasFlag(SongSearchFields.Lyrics),
+                [AxicultusSettingKeys.FindSongNumber.Id] = request.Fields.HasFlag(SongSearchFields.SongNumber),
+                [AxicultusSettingKeys.FindBookReference.Id] = request.Fields.HasFlag(SongSearchFields.BookReference),
+                [AxicultusSettingKeys.FindUserReference.Id] = request.Fields.HasFlag(SongSearchFields.UserReference),
+                [AxicultusSettingKeys.FindLicenceAdmin.Id] = request.Fields.HasFlag(SongSearchFields.LicenceAdmin),
+                [AxicultusSettingKeys.FindWriter.Id] = request.Fields.HasFlag(SongSearchFields.Writer),
+                [AxicultusSettingKeys.FindCopyright.Id] = request.Fields.HasFlag(SongSearchFields.Copyright),
                 [AxicultusSettingKeys.FindModifiedFrom.Id] = Axicultus.Util.StoredDate.ToText(from),
                 [AxicultusSettingKeys.FindModifiedTo.Id] = Axicultus.Util.StoredDate.ToText(to),
                 [AxicultusSettingKeys.FindUseModifiedDates.Id] = useDates

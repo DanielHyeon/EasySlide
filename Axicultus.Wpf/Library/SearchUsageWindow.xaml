@@ -56,7 +56,7 @@
                     </Grid.ColumnDefinitions>
 
                     <!-- 곡 검색 쿼리 폼 — 재사용 컴포지트로 분리(§5.2). DataContext 상속. -->
-                    <composites:SongSearchQueryPanel />
+                    <composites:SongSearchQueryPanel x:Name="SongQuery" />
 
                     <DataGrid Grid.Column="2"
                               AutomationProperties.Name="검색 결과 목록"
@@ -78,6 +78,36 @@
                 </Grid>
             </TabItem>
 
+            <TabItem x:Name="BibleFindTab" Header="성경" Visibility="Collapsed">
+                <StackPanel Margin="12" MaxWidth="540" HorizontalAlignment="Left">
+                    <Label Content="번역본" Target="{Binding ElementName=FindVersion}" />
+                    <ComboBox x:Name="FindVersion" AutomationProperties.Name="검색할 성경 번역본" DisplayMemberPath="Name" SelectionChanged="FindVersion_Changed" />
+                    <Label Content="검색 범위" Target="{Binding ElementName=FindBook}" />
+                    <ComboBox x:Name="FindBook" AutomationProperties.Name="검색할 성경 책" DisplayMemberPath="Name" />
+                    <Label Content="검색어" Target="{Binding ElementName=FindPassage}" />
+                    <TextBox x:Name="FindPassage" AutomationProperties.Name="성경 검색어" MinWidth="320" KeyDown="FindPassage_KeyDown" />
+                    <Label Content="일치 조건" Target="{Binding ElementName=FindMode}" />
+                    <ComboBox x:Name="FindMode" AutomationProperties.Name="성경 검색 일치 조건" SelectedIndex="0">
+                        <ComboBoxItem Content="모든 단어" />
+                        <ComboBoxItem Content="하나 이상의 단어" />
+                        <ComboBoxItem Content="정확한 구문" />
+                    </ComboBox>
+                    <Button Content="성경 찾기" Click="FindBible_Click" HorizontalAlignment="Left" Margin="0,12,0,0">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource EsButton.Primary}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Text, ElementName=FindPassage}" Value="">
+                                        <Setter Property="IsEnabled" Value="False" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding SelectedItem, ElementName=FindVersion}" Value="{x:Null}">
+                                        <Setter Property="IsEnabled" Value="False" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                </StackPanel>
+            </TabItem>
             <TabItem Header="제목">
                 <Grid Margin="0,16,0,0">
                     <Grid.RowDefinitions>

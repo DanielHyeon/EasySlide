@@ -220,14 +220,13 @@ public class MainMenuBarTests
 
         toolStrip.Should().Contain("Click=\"Main_SourceEdit_Click\"", "editing must operate on the active source tab");
         toolStrip.Should().Contain("Click=\"Main_Refresh_Click\"", "Main_Refresh should reload the active left source");
-        toolStrip.Should().Contain("Click=\"Main_Find_Click\"", "Main_Find should execute the top QuickFind search");
+        toolStrip.Should().Contain("Click=\"Main_Find_Click\"", "Main_Find opens the detailed search window");
         toolStrip.Should().Contain("IsEditable=\"True\"", "FrmMain Main_QuickFind is a typed phrase box");
-        toolStrip.Should().Contain("Text=\"{Binding Search.SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}\"",
-            "QuickFind should use the existing SearchUsageViewModel phrase");
+        toolStrip.Should().NotContain("Text=\"{Binding Search.SearchText", "typing in QuickFind should leave the detailed query alone");
         toolStrip.Should().Contain("controls:FrmMainToolBar.IsPhraseBox=\"True\"", "Main_QuickFind receives spare toolbar width");
         toolStrip.Should().Contain("PreviewKeyDown=\"Main_QuickFind_PreviewKeyDown\"",
             "pressing Enter in QuickFind should run the search without opening a modal");
-        xaml.Should().Contain("x:Name=\"SearchSourceTab\"", "QuickFind should be able to switch to the inline Search source tab");
+        xaml.Should().Contain("x:Name=\"SearchSourceTab\"", "the auxiliary search tab remains available in the shell layout");
         SectionBetween(xaml, "x:Name=\"SearchSourceTab\"", "<TabItem.Header>")
             .Should().Contain("Visibility=\"Collapsed\"",
                 "the WPF-only inline Search tab should not push FrmMain's Default source tab out of the normal tab strip");
@@ -248,24 +247,16 @@ public class MainMenuBarTests
     }
 
     [Fact]
-    public void MainWindow_WiresFrmMainQuickFindToInlineSearch()
+    public void MainWindow_RoutesQuickFindToTheActiveSource()
     {
         var code = CodeBehind;
 
-        code.Should().Contain("private async Task EnsureSearchLoadedOnceAsync(MainViewModel viewModel)",
-            "Search tab and QuickFind should share a single awaited load guard");
-        code.Should().Contain("await viewModel.Search.LoadAsync().ConfigureAwait(true)",
-            "Search source data should be awaited instead of fire-and-forget");
         code.Should().Contain("private async Task ExecuteMainQuickFindAsync()",
-            "Main_Find and QuickFind Enter should share one execution path");
-        code.Should().Contain("SearchSourceTab.Visibility = Visibility.Visible",
-            "QuickFind should reveal the hidden inline Search tab only when the operator actually searches");
-        code.Should().Contain("LeftBrowserTabs.SelectedItem = SearchSourceTab",
-            "QuickFind should reveal the inline Search tab after running");
-        code.Should().Contain("SearchSourceTab.Visibility = Visibility.Collapsed",
-            "returning to a FrmMain source tab should hide the WPF-only Search tab again");
-        code.Should().Contain("await viewModel.Search.QuickFindAsync(phrase).ConfigureAwait(true)",
-            "QuickFind should execute the existing song search command");
+            "QuickFind should route a submitted phrase using the active source");
+        var quickFind = SectionBetween(code, "private async Task ExecuteMainQuickFindAsync()", "// 본문에서 드래그");
+        quickFind.Should().Contain("case \"Folders\":").And.Contain("viewModel.Library.ShowSearchResults(page)");
+        quickFind.Should().Contain("case \"Bibles\":").And.Contain("viewModel.Bible.QuickFindAsync(phrase)");
+        quickFind.Should().NotContain("LeftBrowserTabs.SelectedItem =");
         code.Should().Contain("Main_QuickFind.Items.Insert(0, phrase)",
             "successful phrases should be kept in the toolbar combo history");
         code.Should().Contain("private async void Main_QuickFind_PreviewKeyDown",
@@ -1024,8 +1015,8 @@ public class MainMenuBarTests
         xaml.Should().Contain("x:Name=\"ClassicFoldersToolStrip\"", "Folders toolbar should stay attached to SongFolder like FrmMain");
         xaml.Should().Contain("x:Name=\"Folders_WordCount\"", "Folders_WordCount should keep the exact FrmMain check-button name");
         xaml.Should().Contain("Tag=\"Folders_WordCount\"", "Folders_WordCount sorting role should be present on the first-screen toolbar");
-        xaml.Should().Contain("IsChecked=\"{Binding Library.IsWordCountSortEnabled, Mode=TwoWay}\"",
-            "Folders_WordCount should toggle FrmMain's alpha/word-count sort instead of using a WPF-only combo");
+        xaml.Should().Contain("Click=\"FolderSort_Click\"").And.Contain("Tag=\"Number\"",
+            "the Folders sort menu should include the song-number order");
         xaml.Should().Contain("IsEnabled=\"{Binding Library.IsFolderWordCountSortAvailable}\"",
             "FrmMain disables Folders_WordCount while Use Song Numbering is enabled");
         xaml.Should().NotContain("x:Name=\"ClassicFoldersWordCountMode\"",
@@ -1130,7 +1121,7 @@ public class MainMenuBarTests
         xaml.Should().Contain("Tag=\"Bibles\"", "FrmMain keeps Bibles as a source tab");
         xaml.Should().Contain("x:Name=\"BookLookup\"", "Bibles tab should expose the FrmMain book selector role");
         xaml.Should().Contain("Tag=\"BookLookup\"", "BookLookup role should be explicit for 1:1 mapping");
-        xaml.Should().Contain("SelectedItem=\"{Binding Bible.SelectedBook, Mode=TwoWay}\"",
+        xaml.Should().Contain("SelectedItem=\"{Binding Bible.SelectedBrowserBook, Mode=TwoWay}\"",
             "changing BookLookup should move the selected Bible book, not require a detached modal flow");
         xaml.Should().Contain("x:Name=\"BibleUserLookup\"", "Bibles tab should expose the FrmMain typed-reference textbox role");
         xaml.Should().Contain("Tag=\"BibleUserLookup\"", "typed reference input should keep the legacy BibleUserLookup role");

@@ -58,7 +58,7 @@ public static class SongOrdering
     /// 곡들을 <paramref name="mode"/> 로 정렬해 새 리스트로 돌려준다. Original 이면 입력 순서를 그대로 보존한다.
     /// 안정 정렬(OrderBy)이라 같은 키의 상대 순서는 입력 순서를 따른다.
     /// </summary>
-    public static IReadOnlyList<SongSummary> Order(IEnumerable<SongSummary> songs, LibrarySortMode mode)
+    public static IReadOnlyList<SongSummary> Order(IEnumerable<SongSummary> songs, LibrarySortMode mode, bool useSongNumbering = false)
     {
         ArgumentNullException.ThrowIfNull(songs);
 
@@ -74,21 +74,24 @@ public static class SongOrdering
 
             // 곡 번호 오름차순(번호 0=없음은 뒤로), 같은 번호는 제목 순, 그래도 같으면 SongId 로 결정적 정렬.
             LibrarySortMode.Number => [.. songs
-                .OrderBy(s => s.SongNumber <= 0)
-                .ThenBy(s => s.SongNumber)
+                .OrderBy(s => !useSongNumbering && s.SongNumber < 1)
+                .ThenBy(s => useSongNumbering ? s.SongNumber : Math.Max(0, s.SongNumber))
+                .ThenBy(s => s.StrokeSortKey, StringComparer.Ordinal)
                 .ThenBy(s => s.Title, StringComparer.Ordinal)
                 .ThenBy(s => s.SongId)],
 
             // 획수 정렬 — 한자를 획수 순으로(zh-Hant 콜레이션). 빈 제목은 뒤로, 동률은 SongId 로 결정적.
             LibrarySortMode.StrokeCount => [.. songs
-                .OrderBy(s => string.IsNullOrWhiteSpace(s.Title))
+                .OrderBy(s => s.StrokeSortKey, StringComparer.Ordinal)
+                .ThenBy(s => s.StrokeSortKey is null && string.IsNullOrWhiteSpace(s.Title))
                 .ThenBy(s => s.Title, StrokeComparer)
                 .ThenBy(s => s.SongId)],
 
             // FrmMain FillList WordCount 경로 — cjk_wordcount 로 먼저 묶고, 같은 글자 수는 cjk_strokecount 순서.
             LibrarySortMode.WordCount => [.. songs
-                .OrderBy(s => string.IsNullOrWhiteSpace(s.Title))
-                .ThenBy(s => BuildLegacyCjkWordCountKey(s.Title), StringComparer.Ordinal)
+                .OrderBy(s => s.WordSortKey is null && string.IsNullOrWhiteSpace(s.Title))
+                .ThenBy(s => s.WordSortKey ?? BuildLegacyCjkWordCountKey(s.Title), StringComparer.Ordinal)
+                .ThenBy(s => s.StrokeSortKey, StringComparer.Ordinal)
                 .ThenBy(s => s.Title, StrokeComparer)
                 .ThenBy(s => s.SongId)],
 

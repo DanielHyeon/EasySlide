@@ -37,6 +37,11 @@ public class SearchUsageViewModelTests
         var sut = fixture.CreateViewModel();
         await sut.LoadAsync();
         sut.SearchText = "grace";
+        sut.SearchKeys.Should().Contain("G");
+        sut.SearchTimings.Should().Contain("Slow");
+        sut.SearchCopyright.Should().BeTrue();
+        sut.SearchWriter.Should().BeTrue();
+        sut.SearchLicenceAdmin.Should().BeTrue();
         sut.SearchFolders[1].IsSelected = false;
         sut.SearchLyrics = false;
         sut.SearchBookReference = true;
@@ -49,6 +54,7 @@ public class SearchUsageViewModelTests
         fixture.Service.LastSearchRequest.Fields.Should().HaveFlag(SongSearchFields.Title);
         fixture.Service.LastSearchRequest.Fields.Should().HaveFlag(SongSearchFields.BookReference);
         fixture.Service.LastSearchRequest.Fields.Should().NotHaveFlag(SongSearchFields.Lyrics);
+        fixture.CreateViewModel().SearchLyrics.Should().BeFalse();
         fixture.Service.LastLookupPattern.Should().Be("grace");
         sut.SearchResults.Should().ContainSingle().Which.Title.Should().Be("Amazing Grace");
         sut.LookupCandidates.Should().ContainSingle().Which.Title.Should().Be("Amazing Grace");
@@ -71,12 +77,29 @@ public class SearchUsageViewModelTests
         main.ModifiedFrom.Should().Be(advanced.ModifiedFrom);
         main.ModifiedTo.Should().Be(advanced.ModifiedTo);
         main.UseModifiedDates.Should().BeTrue();
-        main.AcceptSearchResults(advanced);
-        main.SearchResults.Should().Equal(advanced.SearchResults);
-        await main.QuickFindAsync("grace");
+        advanced.LastSearch!.Rows.Should().Equal(advanced.SearchResults);
+        (await main.QuickFindAsync("grace", fixture.AdminDatabasePath))!.Rows.Should().ContainSingle();
         fixture.Service.LastSearchRequest!.FolderNos.Should().Equal(1, 2);
         fixture.Service.LastSearchRequest.ModifiedFrom.Should().BeNull();
         fixture.Service.LastSearchRequest.Fields.Should().Be(SongSearchFields.All);
+    }
+
+    [Fact]
+    public async Task ClosingFindPreventsLateResultsFromReachingTheOperator()
+    {
+        using var fixture = new SearchUsageViewModelFixture();
+        fixture.Settings.Set(AxicultusSettingKeys.AdminDatabasePath, fixture.AdminDatabasePath);
+        var model = fixture.CreateViewModel();
+        await model.LoadAsync();
+        fixture.Service.PendingSearch = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        var received = 0;
+        model.SongsFound += (_, _) => received++;
+        var pending = model.SearchSongsAsync();
+        model.CancelPendingFind();
+        fixture.Service.PendingSearch.SetResult([]);
+        await pending;
+        received.Should().Be(0);
+        model.LastSearch.Should().BeNull();
     }
 
     [Fact]
@@ -315,6 +338,7 @@ public class SearchUsageViewModelTests
 
         public string? LastExportPath { get; private set; }
 
+        public Task<(string[] Keys, string[] Timings)> GetFilterChoicesAsync(string databasePath) => Task.FromResult((new[] { "", "G" }, new[] { "", "Slow" }));
         public Task<IReadOnlyList<SongFolderSummary>> GetFoldersAsync(string databasePath)
             => Task.FromResult<IReadOnlyList<SongFolderSummary>>([
                 new SongFolderSummary(1, "Morning", IsEnabled: true, SongCount: 1),
@@ -323,10 +347,12 @@ public class SearchUsageViewModelTests
 
         /// <summary>설정하면 검색이 이 결과를 돌려준다(빈 리스트로 "결과 없음" 케이스 테스트). 기본은 Amazing Grace 한 건.</summary>
         public IReadOnlyList<SongSearchResult>? SearchResultsOverride { get; set; }
+        public TaskCompletionSource<IReadOnlyList<SongSearchResult>>? PendingSearch { get; set; }
 
         public Task<IReadOnlyList<SongSearchResult>> SearchSongsAsync(SongSearchRequest request)
         {
             LastSearchRequest = request;
+            if (PendingSearch is not null) return PendingSearch.Task;
             return Task.FromResult(SearchResultsOverride ?? (IReadOnlyList<SongSearchResult>)[
                 new SongSearchResult(10, 1, "Morning", "Amazing Grace", "", 7, "", "G", ["Title"], "Amazing Grace"),
             ]);

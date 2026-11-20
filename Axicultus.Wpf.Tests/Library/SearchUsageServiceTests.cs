@@ -80,6 +80,24 @@ public class SearchUsageServiceTests
     }
 
     [Fact]
+    public async Task Find_UsesSqlLikePatternsAndRealMediaForEitherTitle()
+    {
+        using var fixture = new SearchUsageFixture();
+        fixture.InsertSong(10, "Grace", alternateTitle: "은혜", folderNo: 1);
+        fixture.InsertSong(11, "Great", lyrics: "<<media>>", folderNo: 1, timing: "Slow", key: "G");
+        var media = Directory.CreateDirectory(Path.Combine(fixture.Root, "Media", "choir"));
+        File.WriteAllBytes(Path.Combine(media.FullName, "은혜.mp3"), []);
+        var request = new SongSearchRequest(fixture.AdminDatabasePath, "g_a%", [1], SongSearchFields.Title);
+        var service = fixture.CreateService();
+        var choices = await service.GetFilterChoicesAsync(fixture.AdminDatabasePath);
+        choices.Timings.Should().Contain("Slow");
+        choices.Keys.Should().Contain("G");
+        (await service.SearchSongsAsync(request)).Select(song => song.SongId).Should().Equal(10);
+        (await service.SearchSongsAsync(request with { Phrase = "", MediaOnly = true, WorkingFolder = fixture.Root }))
+            .Select(song => song.SongId).Should().Equal(10);
+    }
+
+    [Fact]
     public async Task ExplicitSearchRestrictionsDoNotFallBackToAllSongs()
     {
         using var fixture = new SearchUsageFixture();

@@ -15,15 +15,48 @@ public partial class SearchUsageWindow : Window
         DataContext = viewModel;
     }
 
-    internal bool ReturnSongResults { get; init; }
+    private BibleViewModel? _bible;
+    internal event System.EventHandler? BibleFindRequested;
 
-    protected override void OnClosed(System.EventArgs e)
+    internal void ConfigureBibleFind(BibleViewModel bible, bool selected)
     {
-        if (DataContext is SearchUsageViewModel search) search.SongsFound -= OnSongsFound;
-        base.OnClosed(e);
+        _bible = bible;
+        BibleFindTab.Visibility = Visibility.Visible;
+        FindVersion.ItemsSource = bible.Versions;
+        FindVersion.SelectedItem = bible.SelectedVersion;
+        if (bible.SearchSelectedBookOnly) FindBook.SelectedItem = bible.SelectedBook;
+        FindPassage.Text = bible.SearchText;
+        FindMode.SelectedIndex = (int)bible.MatchMode;
+        BibleFindTab.IsEnabled = bible.Versions.Count > 0;
+        if (selected && BibleFindTab.IsEnabled) BibleFindTab.IsSelected = true;
     }
 
-    private void OnSongsFound(object? sender, System.EventArgs e) => DialogResult = true;
+    private void FindVersion_Changed(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+    {
+        if (_bible is null || FindVersion.SelectedItem is not BibleVersion version) return;
+        BibleBook[] books = [new(0, "모든 책"), .. _bible.SearchBooksFor(version)];
+        FindBook.ItemsSource = books;
+        FindBook.SelectedIndex = 0;
+    }
+
+    private void FindPassage_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+    {
+        if (e.Key != System.Windows.Input.Key.Enter) return;
+        e.Handled = true;
+        FindBible_Click(sender, e);
+    }
+
+    private void FindBible_Click(object sender, RoutedEventArgs e)
+    {
+        if (_bible is null || FindVersion.SelectedItem is not BibleVersion version ||
+            FindBook.SelectedItem is not BibleBook book || string.IsNullOrWhiteSpace(FindPassage.Text)) return;
+        _bible.SelectedVersion = version;
+        _bible.SearchSelectedBookOnly = book.Number > 0;
+        if (book.Number > 0) _bible.SelectedBook = book;
+        _bible.SearchText = FindPassage.Text.Trim();
+        _bible.MatchMode = (BibleSearchMatchMode)FindMode.SelectedIndex;
+        BibleFindRequested?.Invoke(this, System.EventArgs.Empty);
+    }
 
     internal void SelectUsage() => UsageTab.IsSelected = true;
 
@@ -35,7 +68,12 @@ public partial class SearchUsageWindow : Window
         }
 
         _loadedOnce = true;
-        if (ReturnSongResults) viewModel.SongsFound += OnSongsFound;
+        if (_bible is not null)
+        {
+            var phrase = BibleFindTab.IsSelected ? FindPassage : SongQuery.PhraseBox;
+            phrase.Focus();
+            phrase.SelectAll();
+        }
         await viewModel.LoadAsync().ConfigureAwait(true);
         if (UsageTab.IsSelected) await viewModel.RefreshUsageAsync().ConfigureAwait(true);
     }

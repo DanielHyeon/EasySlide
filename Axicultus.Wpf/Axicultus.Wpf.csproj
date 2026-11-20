@@ -51,6 +51,8 @@
 
   <!-- ADR-0004 PoC-A: HookManager 소스를 file-link로 공유 (복사 X). Sprint 9에 라이브러리로 추출 후 ProjectReference로 교체 예정. -->
   <ItemGroup>
+    <Compile Include="..\Axicultus\SQLite\BoundQuery.cs" Link="Data\BoundQuery.cs" />
+    <Compile Include="..\Axicultus\SQLite\BibleSearchQuery.cs" Link="Data\BibleSearchQuery.cs" />
     <Compile Include="..\Axicultus\Global\LyricLineMeasurement.cs" Link="Rendering\LyricLineMeasurement.cs" />
     <Compile Include="..\Axicultus\Global\ModernIcons.Paths.cs" Link="Theme\ModernIcons.Paths.cs" />
     <Resource Include="..\Axicultus\favicon.ico" Link="Assets\Axicultus.ico" />
@@ -83,6 +85,8 @@
 
   <!-- 폰트 자산 (ADR-0003 / Q4). Pretendard Variable v1.3.9 번들. OFL 1.1 라이선스 동봉 의무. -->
   <ItemGroup>
+    <Content Include="..\AdminDB\Database\AudioExtensions.txt;..\AdminDB\Database\VideoExtensions.txt"
+             Link="Sys\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     <Resource Include="Assets\FrmMain\*.*" />
     <Resource Include="Assets\Fonts\PretendardVariable.ttf" />
     <Content Include="Assets\Fonts\Pretendard-OFL-1.1-LICENSE.txt">

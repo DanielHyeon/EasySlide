@@ -45,19 +45,27 @@ public sealed record SongSearchRequest(
     bool NotationsOnly = false,
     bool MediaOnly = false,
     DateTime? ModifiedFrom = null,
-    DateTime? ModifiedTo = null);
+    DateTime? ModifiedTo = null,
+    string WorkingFolder = "",
+    string MediaFolder = "");
 
-public sealed record SongSearchResult(
-    int SongId,
-    int FolderNo,
-    string FolderName,
-    string Title,
-    string AlternateTitle,
-    int SongNumber,
-    string Category,
-    string Key,
-    IReadOnlyList<string> MatchingFields,
-    string Snippet);
+public sealed record SongSearchResult(SongSummary Song, string FolderName, IReadOnlyList<string> MatchingFields, string Snippet)
+{
+    public int SongId => Song.SongId;
+    public int FolderNo => Song.FolderNo;
+    public string Title => Song.Title;
+    public string AlternateTitle => Song.AlternateTitle;
+    public int SongNumber => Song.SongNumber;
+    public string Category => Song.Category;
+    public string Key => Song.Key;
+
+    public SongSearchResult(int songId, int folderNo, string folderName, string title, string alternateTitle,
+        int songNumber, string category, string key, IReadOnlyList<string> matchingFields, string snippet)
+        : this(new SongSummary(songId, title, alternateTitle, folderNo, songNumber, category, key, ""),
+            folderName, matchingFields, snippet) { }
+}
+
+internal sealed record SongSearchPage(SongSearchRequest Request, IReadOnlyList<SongSearchResult> Rows);
 
 public sealed record LookupTitleCandidate(
     int SongId,
@@ -135,6 +143,8 @@ public interface ISearchUsageService
 {
     Task<IReadOnlyList<SongFolderSummary>> GetFoldersAsync(string databasePath);
 
+    Task<(string[] Keys, string[] Timings)> GetFilterChoicesAsync(string databasePath);
+
     Task<IReadOnlyList<SongSearchResult>> SearchSongsAsync(SongSearchRequest request);
 
     Task<IReadOnlyList<LookupTitleCandidate>> LookupTitlesAsync(string databasePath, string titlePattern);
@@ -159,7 +169,31 @@ public sealed class SearchUsageService(IAdminDatabaseRepository adminDatabase) :
     public Task<IReadOnlyList<SongFolderSummary>> GetFoldersAsync(string databasePath)
         => _adminDatabase.GetSongFoldersAsync(databasePath);
 
-    public async Task<IReadOnlyList<SongSearchResult>> SearchSongsAsync(SongSearchRequest request)
+    public Task<(string[] Keys, string[] Timings)> GetFilterChoicesAsync(string databasePath) => Task.Run(() =>
+    {
+        if (!File.Exists(databasePath)) return (Array.Empty<string>(), Array.Empty<string>());
+        using var connection = OpenReadOnly(databasePath);
+        using var command = connection.CreateCommand();
+        command.CommandText = "SELECT * FROM SONG LIMIT 0";
+        Dictionary<string, int> columns;
+        using (var reader = command.ExecuteReader()) columns = GetReaderColumns(reader);
+        return (Choices("KEY"), Choices("TIMING"));
+
+        string[] Choices(string column)
+        {
+            var choices = new List<string> { "" };
+            if (!columns.ContainsKey(column)) return [.. choices];
+            command.CommandText = $"SELECT DISTINCT [{column}] FROM SONG WHERE [{column}] <> '' ORDER BY [{column}]";
+            using var reader = command.ExecuteReader();
+            while (reader.Read()) choices.Add(reader.GetString(0).Trim());
+            return [.. choices];
+        }
+    });
+
+    public Task<IReadOnlyList<SongSearchResult>> SearchSongsAsync(SongSearchRequest request)
+        => Task.Run(() => FindSongsAsync(request));
+
+    private async Task<IReadOnlyList<SongSearchResult>> FindSongsAsync(SongSearchRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
         if (string.IsNullOrWhiteSpace(request.DatabasePath) || !File.Exists(request.DatabasePath))
@@ -193,7 +227,29 @@ public sealed class SearchUsageService(IAdminDatabaseRepository adminDatabase) :
             }
             folderFilter += $" AND FOLDERNO IN ({string.Join(",", names)})";
         }
-        command.CommandText = $"SELECT * FROM SONG WHERE {folderFilter} ORDER BY FOLDERNO, SONG_NUMBER, TITLE_1, SONGID;";
+        command.CommandText = "SELECT * FROM SONG LIMIT 0";
+        Dictionary<string, int> available;
+        using (var schema = command.ExecuteReader()) available = GetReaderColumns(schema);
+        var expressions = new List<string>();
+        foreach (var (field, names) in SearchColumns)
+        {
+            if (!fields.HasFlag(field)) continue;
+            var predicates = names.Where(available.ContainsKey).Select(name => $"lower([{name}]) LIKE @phrase").ToArray();
+            if (predicates.Length > 0)
+                expressions.Add($"CASE WHEN {string.Join(" OR ", predicates)} THEN {(int)field} ELSE 0 END");
+        }
+        command.Parameters.AddWithValue("@phrase", $"%{phrase.ToLowerInvariant()}%");
+        if (fields.HasFlag(SongSearchFields.SongNumber) && int.TryParse(phrase, NumberStyles.None,
+            CultureInfo.InvariantCulture, out var number) && number > 0)
+        {
+            expressions.Add($"CASE WHEN SONG_NUMBER = @number THEN {(int)SongSearchFields.SongNumber} ELSE 0 END");
+            command.Parameters.AddWithValue("@number", number);
+        }
+        if (expressions.Count == 0 && fields != SongSearchFields.None) return results;
+        var matchMask = expressions.Count == 0 ? "0" : string.Join(" | ", expressions);
+        if (expressions.Count > 0) folderFilter += " AND MatchedFields <> 0";
+        command.CommandText = $"SELECT *, ({matchMask}) AS MatchedFields FROM SONG WHERE {folderFilter} ORDER BY FOLDERNO, SONG_NUMBER, TITLE_1, SONGID;";
+        var mediaTitles = request.MediaOnly ? FindMediaTitles(request.WorkingFolder, request.MediaFolder) : null;
         using var reader = command.ExecuteReader();
         var columns = GetReaderColumns(reader);
         while (reader.Read())
@@ -205,31 +261,22 @@ public sealed class SearchUsageService(IAdminDatabaseRepository adminDatabase) :
             }
 
             var row = SongSearchRow.From(reader, columns);
-            if (!MatchesFilter(row, request))
+            if (!MatchesFilter(row, request, mediaTitles))
             {
                 continue;
             }
 
-            var matches = GetMatchingFields(row, phrase, fields);
-            if (matches.Count == 0)
-            {
-                if (fields != SongSearchFields.None && (phrase.Length != 0 || fields == SongSearchFields.SongNumber))
-                {
-                    continue;
-                }
-
-                matches.Add("Filter");
-            }
+            var mask = (SongSearchFields)reader.GetInt32(columns["MatchedFields"]);
+            var matches = mask == SongSearchFields.None ? ["Filter"] :
+                IndividualFields.Where(field => mask.HasFlag(field)).Select(field => field.ToString()).ToArray();
 
             results.Add(new SongSearchResult(
-                row.SongId,
-                row.FolderNo,
+                new SongSummary(row.SongId, row.Title, row.AlternateTitle, row.FolderNo, row.SongNumber, row.Category,
+                    row.Key, row.Lyrics, row.Copyright, row.BookReference, row.UserReference, row.Writer, row.Sequence,
+                    row.FormatData, row.LicenceAdmin1, row.LicenceAdmin2,
+                    columns.ContainsKey("CJK_STROKECOUNT") ? GetString(reader, columns, "CJK_STROKECOUNT") : null,
+                    columns.ContainsKey("CJK_WORDCOUNT") ? GetString(reader, columns, "CJK_WORDCOUNT") : null),
                 folderNames.GetValueOrDefault(row.FolderNo, $"Folder {row.FolderNo}"),
-                row.Title,
-                row.AlternateTitle,
-                row.SongNumber,
-                row.Category,
-                row.Key,
                 matches,
                 BuildSnippet(row, matches[0])));
         }
@@ -246,24 +293,23 @@ public sealed class SearchUsageService(IAdminDatabaseRepository adminDatabase) :
 
         var folders = await _adminDatabase.GetSongFoldersAsync(databasePath).ConfigureAwait(false);
         var folderNames = folders.ToDictionary(folder => folder.FolderNo, folder => folder.Name);
-        var pattern = titlePattern.Trim();
+        var pattern = $"%{titlePattern.Trim()}%";
         using var connection = OpenReadOnly(databasePath);
         using var command = new SQLiteCommand(
             """
             SELECT *
             FROM SONG
-            WHERE FOLDERNO > 0
+            WHERE FOLDERNO > 0 AND TITLE_1 LIKE @title
             ORDER BY CJK_StrokeCount, TITLE_1, SONGID;
             """,
             connection);
+        command.Parameters.AddWithValue("@title", pattern);
         using var reader = command.ExecuteReader();
         var columns = GetReaderColumns(reader);
         var candidates = new List<LookupTitleCandidate>();
         while (reader.Read())
         {
             string title = GetString(reader, columns, "TITLE_1");
-            if (!Contains(title, pattern))
-                continue;
             int folder = GetInt(reader, columns, "FOLDERNO");
             candidates.Add(new LookupTitleCandidate(
                 GetInt(reader, columns, "SONGID"), title, GetString(reader, columns, "TITLE_2"), folder,
@@ -523,26 +569,26 @@ public sealed class SearchUsageService(IAdminDatabaseRepository adminDatabase) :
             GetString(reader, columns, "ADMIN_1"),
             GetString(reader, columns, "ADMIN_2"));
 
-    private static bool MatchesFilter(SongSearchRow row, SongSearchRequest request)
+    private static bool MatchesFilter(SongSearchRow row, SongSearchRequest request, HashSet<string>? mediaTitles)
     {
         if (!string.IsNullOrWhiteSpace(request.Key) &&
-            !string.Equals(row.Key, request.Key.Trim(), StringComparison.OrdinalIgnoreCase))
+            !string.Equals(row.Key, request.Key.Trim(), StringComparison.Ordinal))
         {
             return false;
         }
 
         if (!string.IsNullOrWhiteSpace(request.Timing) &&
-            !string.Equals(row.Timing, request.Timing.Trim(), StringComparison.OrdinalIgnoreCase))
+            !string.Equals(row.Timing, request.Timing.Trim(), StringComparison.Ordinal))
         {
             return false;
         }
 
-        if (request.NotationsOnly && string.IsNullOrWhiteSpace(row.Notations))
+        if (request.NotationsOnly && row.Notations.Length == 0)
         {
             return false;
         }
 
-        if (request.MediaOnly && !ContainsMediaMarker(row))
+        if (mediaTitles is not null && !mediaTitles.Contains(row.Title) && !mediaTitles.Contains(row.AlternateTitle))
         {
             return false;
         }
@@ -560,60 +606,17 @@ public sealed class SearchUsageService(IAdminDatabaseRepository adminDatabase) :
         return true;
     }
 
-    private static List<string> GetMatchingFields(SongSearchRow row, string phrase, SongSearchFields fields)
-    {
-        var matches = new List<string>();
-        if (string.IsNullOrWhiteSpace(phrase))
-        {
-            return matches;
-        }
+    private static readonly (SongSearchFields Field, string[] Columns)[] SearchColumns =
+    [
+        (SongSearchFields.Title, ["TITLE_1", "TITLE_2"]), (SongSearchFields.Lyrics, ["LYRICS"]),
+        (SongSearchFields.BookReference, ["BOOK_REFERENCE"]), (SongSearchFields.UserReference, ["USER_REFERENCE"]),
+        (SongSearchFields.LicenceAdmin, ["LICENCE_ADMIN1", "LICENCE_ADMIN2"]), (SongSearchFields.Writer, ["WRITER"]),
+        (SongSearchFields.Copyright, ["COPYRIGHT"]),
+    ];
 
-        if (fields.HasFlag(SongSearchFields.Title) &&
-            (Contains(row.Title, phrase) || Contains(row.AlternateTitle, phrase)))
-        {
-            matches.Add("Title");
-        }
-
-        if (fields.HasFlag(SongSearchFields.Lyrics) && Contains(row.Lyrics, phrase))
-        {
-            matches.Add("Lyrics");
-        }
-
-        if (fields.HasFlag(SongSearchFields.SongNumber) &&
-            int.TryParse(phrase, NumberStyles.None, CultureInfo.InvariantCulture, out var number) && number > 0 &&
-            row.SongNumber == number)
-        {
-            matches.Add("SongNumber");
-        }
-
-        if (fields.HasFlag(SongSearchFields.BookReference) && Contains(row.BookReference, phrase))
-        {
-            matches.Add("BookReference");
-        }
-
-        if (fields.HasFlag(SongSearchFields.UserReference) && Contains(row.UserReference, phrase))
-        {
-            matches.Add("UserReference");
-        }
-
-        if (fields.HasFlag(SongSearchFields.LicenceAdmin) &&
-            (Contains(row.LicenceAdmin1, phrase) || Contains(row.LicenceAdmin2, phrase)))
-        {
-            matches.Add("LicenceAdmin");
-        }
-
-        if (fields.HasFlag(SongSearchFields.Writer) && Contains(row.Writer, phrase))
-        {
-            matches.Add("Writer");
-        }
-
-        if (fields.HasFlag(SongSearchFields.Copyright) && Contains(row.Copyright, phrase))
-        {
-            matches.Add("Copyright");
-        }
-
-        return matches;
-    }
+    private static readonly SongSearchFields[] IndividualFields =
+        [SongSearchFields.Title, SongSearchFields.Lyrics, SongSearchFields.SongNumber, SongSearchFields.BookReference,
+         SongSearchFields.UserReference, SongSearchFields.LicenceAdmin, SongSearchFields.Writer, SongSearchFields.Copyright];
 
     private static string BuildSnippet(SongSearchRow row, string field)
         => field switch
@@ -690,12 +693,24 @@ public sealed class SearchUsageService(IAdminDatabaseRepository adminDatabase) :
         return builder.ToString();
     }
 
-    private static bool Contains(string value, string phrase)
-        => string.IsNullOrWhiteSpace(phrase) ||
-           value.Contains(phrase, StringComparison.OrdinalIgnoreCase);
-
-    private static bool ContainsMediaMarker(SongSearchRow row)
-        => Contains(row.Lyrics, "<<") || Contains(row.Settings, "<<") || Contains(row.FormatData, "<<");
+    private static HashSet<string> FindMediaTitles(string workingFolder, string mediaFolder)
+    {
+        var titles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        if (string.IsNullOrWhiteSpace(workingFolder) && string.IsNullOrWhiteSpace(mediaFolder)) return titles;
+        var extensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (string file in new[] { "AudioExtensions.txt", "VideoExtensions.txt" })
+        {
+            var path = Path.Combine(workingFolder, "Admin", "Database", file);
+            if (!File.Exists(path)) path = Path.Combine(AppContext.BaseDirectory, "Sys", file);
+            if (!File.Exists(path)) continue;
+            foreach (var line in File.ReadLines(path))
+                if (!string.IsNullOrWhiteSpace(line)) extensions.Add("." + line.Trim().TrimStart('.'));
+        }
+        var mediaRoot = Directory.Exists(mediaFolder) ? mediaFolder : Path.Combine(workingFolder, "Media");
+        var files = Rendering.FolderFileEnumerator.Enumerate(mediaRoot, extensions, includeSubfolders: true);
+        foreach (var file in files) titles.Add(Path.GetFileNameWithoutExtension(file));
+        return titles;
+    }
 
     private static string TrimSnippet(string value)
     {

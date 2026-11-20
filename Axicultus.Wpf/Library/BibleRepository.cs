@@ -4,6 +4,7 @@ using System.Data.SQLite;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Axicultus.SQLite;
 
 namespace Axicultus.Wpf.Library;
 
@@ -66,6 +67,9 @@ public interface IBibleRepository
         bool showVerses,
         int maxResults = 3000,
         int? bookNumber = null, System.Threading.CancellationToken cancellationToken = default);
+
+    BiblePassageResult RefreshSearchVerses(BibleVersion version, IReadOnlyList<BibleBook> books,
+        BiblePassageResult original, bool showVerses, System.Threading.CancellationToken cancellationToken);
 
     BibleSelection BuildSelection(
         BibleVersion version,
@@ -226,8 +230,8 @@ public sealed class BibleRepository : IBibleRepository
         ArgumentNullException.ThrowIfNull(books);
 
         cancellationToken.ThrowIfCancellationRequested();
-        var terms = SplitTerms(searchText);
-        if (terms.Length == 0)
+        var query = BibleSearchQuery.Build(searchText ?? "", version.SupportsPartialWordSearch, bookNumber ?? 0, (int)matchMode);
+        if (query is null)
         {
             return new BiblePassageResult("", [], IsSequential: false, WasLimited: false);
         }
@@ -235,15 +239,31 @@ public sealed class BibleRepository : IBibleRepository
         var page = new List<BibleVerseRow>();
         int limit = Math.Max(maxResults, 1);
         bool limited = false;
-        string phrase = string.Join(' ', terms);
-        foreach (var row in ReadVerses(version.FilePath, bookNumber))
+        foreach (var row in ReadVerses(version.FilePath, bookNumber, query, cancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (!Matches(row.Text, terms, phrase, matchMode, version.SupportsPartialWordSearch)) continue;
             if (page.Count == limit) { limited = true; break; }
             page.Add(row);
         }
         return BuildResult(version, page, books, showVerses, isSequential: false, limit, limited);
+    }
+
+    public BiblePassageResult RefreshSearchVerses(BibleVersion version, IReadOnlyList<BibleBook> books,
+        BiblePassageResult original, bool showVerses, System.Threading.CancellationToken cancellationToken)
+    {
+        var locations = original.Locations.Select(v => (v.BookNumber, v.Chapter, v.Verse)).ToHashSet();
+        var rows = new List<BibleVerseRow>(locations.Count);
+        if (locations.Count > 0)
+        {
+            foreach (var row in ReadVerses(version.FilePath, null, cancellationToken: cancellationToken))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                if (!locations.Remove((row.Book, row.Chapter, row.Verse))) continue;
+                rows.Add(row);
+                if (locations.Count == 0) break;
+            }
+        }
+        return BuildResult(version, rows, books, showVerses, isSequential: false, int.MaxValue, original.WasLimited);
     }
 
     public BibleSelection BuildSelection(
@@ -527,7 +547,8 @@ public sealed class BibleRepository : IBibleRepository
             : $"{start} - {last.Chapter}:{last.Verse}";
     }
 
-    private static IEnumerable<BibleVerseRow> ReadVerses(string filePath, int? bookNumber)
+    private static IEnumerable<BibleVerseRow> ReadVerses(string filePath, int? bookNumber,
+        BoundQuery? search = null, System.Threading.CancellationToken cancellationToken = default)
     {
         if (!File.Exists(filePath))
         {
@@ -536,14 +557,20 @@ public sealed class BibleRepository : IBibleRepository
 
         using var connection = OpenConnection(filePath);
         using var command = connection.CreateCommand();
-        command.CommandText = bookNumber is null
+        command.CommandText = search?.Text ?? (bookNumber is null
             ? "SELECT book, chapter, verse, bibletext FROM Bible WHERE book > 0 ORDER BY book, chapter, verse;"
-            : "SELECT book, chapter, verse, bibletext FROM Bible WHERE book = @book ORDER BY chapter, verse;";
-        if (bookNumber is not null)
+            : "SELECT book, chapter, verse, bibletext FROM Bible WHERE book = @book ORDER BY chapter, verse;");
+        if (search is not null)
+        {
+            foreach (var (name, value) in search.Parameters) command.Parameters.AddWithValue(name, value);
+        }
+        else if (bookNumber is not null)
         {
             command.Parameters.AddWithValue("@book", bookNumber.Value);
         }
 
+        using var registration = cancellationToken.Register(command.Cancel);
+        cancellationToken.ThrowIfCancellationRequested();
         using var reader = command.ExecuteReader();
         while (reader.Read())
         {
@@ -554,37 +581,6 @@ public sealed class BibleRepository : IBibleRepository
                 GetString(reader, "bibletext"));
         }
     }
-
-    private static bool Matches(
-        string text,
-        IReadOnlyList<string> terms,
-        string phrase,
-        BibleSearchMatchMode matchMode,
-        bool supportsPartialWord)
-    {
-        var normalized = text.ToLowerInvariant();
-        return matchMode switch
-        {
-            BibleSearchMatchMode.AnyWord => terms.Any(term => ContainsTerm(normalized, term, supportsPartialWord)),
-            BibleSearchMatchMode.ExactPhrase => normalized.Contains(phrase, StringComparison.Ordinal),
-            _ => terms.All(term => ContainsTerm(normalized, term, supportsPartialWord)),
-        };
-    }
-
-    private static bool ContainsTerm(string normalizedText, string term, bool supportsPartialWord)
-    {
-        if (supportsPartialWord) return normalizedText.Contains(term, StringComparison.Ordinal);
-        ReadOnlySpan<char> text = normalizedText;
-        foreach (var range in text.SplitAny(" \t\r\n,.;:!?\u0022\u0027()[]".AsSpan()))
-            if (text[range].SequenceEqual(term)) return true;
-        return false;
-    }
-
-    private static string[] SplitTerms(string searchText)
-        => (searchText ?? "")
-            .Trim()
-            .ToLowerInvariant()
-            .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
     private static bool HasPartialWordSearchMarker(string filePath)
     {
