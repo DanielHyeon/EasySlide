@@ -100,6 +100,31 @@ public sealed class CaptionIntegrationTests
     }
 
     [Fact]
+    public async Task InvalidRecoveryEntriesFallBackBeforeReplacingTheQueue()
+    {
+        var dir = Directory.CreateTempSubdirectory();
+        try
+        {
+            using var store = new CaptionRecoveryStore(dir.FullName);
+            var item = new WorshipListItemDto("song:7", "찬양", "Song", 1, null, null);
+            var good = new CaptionRecovery(1, 1, "주일", "이전 초안", null, 1, "", new(), [], [item]);
+            await store.SaveAsync(good);
+            var latest = good with { Revision = 2, Draft = "새 초안" };
+            await store.SaveAsync(latest);
+            var file = Assert.Single(dir.GetFiles("*.json"));
+            foreach (var broken in new[] { latest with { Items = [null!] }, latest with { History = [null!] },
+                         latest with { Overrides = new() { [1] = null! } } })
+            {
+                await File.WriteAllTextAsync(file.FullName, JsonSerializer.Serialize(broken));
+                var result = Assert.IsType<CaptionRecovery>(store.Read(good.Plan));
+                Assert.Equal(good.Draft, result.Draft);
+                Assert.Equal(item, Assert.Single(result.Items));
+            }
+        }
+        finally { dir.Delete(true); }
+    }
+
+    [Fact]
     public async Task QueueEditsWhileConsoleIsClosedRetainCaptionDraftAndFormatting()
     {
         var dir = Directory.CreateTempSubdirectory();

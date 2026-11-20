@@ -13,15 +13,15 @@
                             <ScaleTransform ScaleY="{Binding DataContext.ScaleY, ElementName=CameraControls}"/>
                         </Image.RenderTransform>
                     </Image>
-                    <TextBlock Text="{Binding PublicText}" Foreground="White" Background="#B0101010" HorizontalAlignment="Center"
+                    <TextBlock Text="{Binding Session.PublicText}" Foreground="White" Background="#B0101010" HorizontalAlignment="Center"
                                VerticalAlignment="Bottom" TextAlignment="Center" TextWrapping="Wrap" MaxHeight="80"/>
                 </Grid>
             </Border>
             <WrapPanel>
-                <Button Content="자막 숨김" Click="HideCaption" Padding="10,4"/>
-                <Button Content="다시 표시" Click="ShowCaption" Padding="10,4" Margin="4,0"/>
+                <Button x:Name="HideButton" Content="자막 숨김" Command="{Binding HideCommand}" Padding="10,4"/>
+                <Button x:Name="ShowButton" Content="다시 표시" Command="{Binding ShowCommand}" Padding="10,4" Margin="4,0"/>
                 <Button x:Name="RecoverButton" Content="예배 편집 복구…" Click="Recover" Padding="10,4" IsEnabled="False"/>
-                <CheckBox Content="회중 화면에도 자막 표시" IsChecked="{Binding AudienceEnabled, Mode=TwoWay}"
+                <CheckBox Content="회중 화면에도 자막 표시" IsChecked="{Binding Session.AudienceEnabled, Mode=TwoWay}"
                           Margin="8,0" VerticalAlignment="Center"/>
             </WrapPanel>
             <TextBlock x:Name="Status" TextWrapping="Wrap" Margin="0,5,0,0" AutomationProperties.LiveSetting="Polite"/>
@@ -35,12 +35,13 @@
             <TabItem Header="직접 입력">
                 <DockPanel Margin="10">
                     <WrapPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
-                        <Button x:Name="TakeButton" Content="송출 (Ctrl+Enter)" Click="Take" Padding="12,5"/>
+                        <Button x:Name="TakeButton" Content="송출 (Ctrl+Enter)" Command="{Binding TakeCommand}" Padding="12,5"/>
                         <CheckBox x:Name="Instant" Content="실시간 반영" VerticalAlignment="Center" Margin="12,0"
+                                  IsChecked="{Binding IsInstant, Mode=TwoWay}"
                                   ToolTip="새로 입력하고 확정한 글자부터 송출합니다."/>
                     </WrapPanel>
                     <TextBox x:Name="Draft" AcceptsReturn="True" FontSize="20" TextWrapping="Wrap"
-                             VerticalScrollBarVisibility="Auto" TextChanged="DraftChanged" PreviewKeyDown="DraftKey"
+                             VerticalScrollBarVisibility="Auto" Text="{Binding DraftText, UpdateSourceTrigger=PropertyChanged}" PreviewKeyDown="DraftKey"
                              AutomationProperties.Name="직접 입력 자막"/>
                 </DockPanel>
             </TabItem>

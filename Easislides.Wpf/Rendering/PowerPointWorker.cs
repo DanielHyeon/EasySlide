@@ -40,7 +40,8 @@ public sealed class PowerPointWorker : IPowerPointRenderBackend, IDisposable
         try
         {
             var reply = await SendAsync(new(path, 0, 0, 0, true), limit.Token).ConfigureAwait(false);
-            return reply.Deck ?? throw new InvalidDataException("PPT 워커가 자막을 반환하지 않았습니다.");
+            return reply.Deck is { Slides.Length: > 0 } deck
+                ? deck : throw new InvalidDataException("PPT 워커가 읽을 수 있는 슬라이드를 반환하지 않았습니다.");
         }
         catch (OperationCanceledException) when (!ct.IsCancellationRequested && limit.IsCancellationRequested)
         {
@@ -72,7 +73,8 @@ public sealed class PowerPointWorker : IPowerPointRenderBackend, IDisposable
                 await process.StandardInput.WriteLineAsync(JsonSerializer.Serialize(job).AsMemory(), token).ConfigureAwait(false);
                 await process.StandardInput.FlushAsync(token).ConfigureAwait(false);
                 var line = await process.StandardOutput.ReadLineAsync(token).ConfigureAwait(false);
-                result = JsonSerializer.Deserialize<Reply>(line ?? throw new EndOfStreamException("PPT 워커가 종료되었습니다."))!;
+                result = JsonSerializer.Deserialize<Reply>(line ?? throw new EndOfStreamException("PPT 워커가 종료되었습니다."))
+                    ?? throw new InvalidDataException("PPT 워커가 빈 응답을 반환했습니다.");
             }
             catch
             {

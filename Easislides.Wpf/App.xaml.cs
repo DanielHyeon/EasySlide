@@ -183,11 +183,9 @@ public partial class App : Application
             RunPowerPointWorker();
             return;
         }
-        // 전역 예외 핸들러 — Sprint 0 PoC 중 silent crash 방지.
-        // Sprint 1 이후: Serilog 등 로깅 인프라로 교체 + 사용자에게 비차단 알림.
-        DispatcherUnhandledException += OnUiException;
-        AppDomain.CurrentDomain.UnhandledException += OnDomainException;
-        TaskScheduler.UnobservedTaskException += OnTaskException;
+        DispatcherUnhandledException += OperationalErrorLog.Default.OnUiException;
+        AppDomain.CurrentDomain.UnhandledException += OperationalErrorLog.Default.OnDomainException;
+        TaskScheduler.UnobservedTaskException += OperationalErrorLog.Default.OnTaskException;
 
         ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
@@ -288,29 +286,9 @@ public partial class App : Application
             disposable.Dispose();
         }
 
+        DispatcherUnhandledException -= OperationalErrorLog.Default.OnUiException;
+        AppDomain.CurrentDomain.UnhandledException -= OperationalErrorLog.Default.OnDomainException;
+        TaskScheduler.UnobservedTaskException -= OperationalErrorLog.Default.OnTaskException;
         base.OnExit(e);
-    }
-
-    private static void OnUiException(object sender, DispatcherUnhandledExceptionEventArgs e)
-    {
-        System.Diagnostics.Debug.WriteLine($"[UI EXCEPTION] {e.Exception}");
-        MessageBox.Show(
-            $"UI 스레드 예외:\n\n{e.Exception.GetType().Name}: {e.Exception.Message}\n\n계속 진행합니다.",
-            "EasiSlides — 디버그 알림",
-            MessageBoxButton.OK,
-            MessageBoxImage.Warning);
-        e.Handled = true; // 앱 종료 방지
-    }
-
-    private static void OnDomainException(object sender, UnhandledExceptionEventArgs e)
-    {
-        System.Diagnostics.Debug.WriteLine($"[DOMAIN EXCEPTION] {e.ExceptionObject}");
-        // AppDomain unhandled은 일반적으로 process 종료를 막을 수 없음. 로깅만.
-    }
-
-    private static void OnTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
-    {
-        System.Diagnostics.Debug.WriteLine($"[UNOBSERVED TASK] {e.Exception}");
-        e.SetObserved(); // GC 시점 process 종료 방지
     }
 }

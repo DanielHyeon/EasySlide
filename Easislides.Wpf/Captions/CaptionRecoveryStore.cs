@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -42,9 +43,12 @@ public sealed class CaptionRecoveryStore : IDisposable
         {
             using var input = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
             var entry = JsonSerializer.Deserialize<CaptionRecovery>(input);
-            if (entry is { Version: 1, Draft: not null, Overrides: not null, History: not null, Items: not null } && entry.Plan == plan)
-                return entry;
-            throw new InvalidDataException("지원하지 않는 복구 파일입니다.");
+            if (entry is not { Version: 1, Draft: not null, Overrides: not null, History: not null, Items: not null } || entry.Plan != plan)
+                throw new InvalidDataException("지원하지 않는 복구 파일입니다.");
+            if (entry.Items.Any(item => item is not { Id: not null, Title: not null, Kind: not null }) ||
+                entry.History.Any(take => take?.Text is null) || entry.Overrides.ContainsValue(null!))
+                throw new InvalidDataException("복구할 예배 순서 또는 자막이 손상되었습니다.");
+            return entry;
         }
         catch (Exception ex) when (ex is JsonException or IOException or InvalidDataException)
         {

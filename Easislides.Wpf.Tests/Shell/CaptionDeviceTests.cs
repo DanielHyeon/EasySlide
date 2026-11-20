@@ -54,6 +54,24 @@ public sealed class CaptionDeviceTests
     });
 
     [Fact]
+    public async Task LegacyDeckWithNoSlidesIsReportedAsAnInputError()
+    {
+        using var worker = new PowerPointWorker(() =>
+        {
+            var info = new ProcessStartInfo(Path.Combine(Environment.SystemDirectory, @"WindowsPowerShell\v1.0\powershell.exe"))
+            {
+                UseShellExecute = false, CreateNoWindow = true, RedirectStandardInput = true, RedirectStandardOutput = true
+            };
+            info.ArgumentList.Add("-NoProfile");
+            info.ArgumentList.Add("-NonInteractive");
+            info.ArgumentList.Add("-Command");
+            info.ArgumentList.Add("""$null = [Console]::ReadLine(); [Console]::WriteLine('{"Deck":{"Path":"empty.ppt","Slides":[]}}')""");
+            return Process.Start(info)!;
+        });
+        await Assert.ThrowsAsync<InvalidDataException>(() => worker.ReadLegacyDeckAsync("empty.ppt", CancellationToken.None));
+    }
+
+    [Fact]
     public async Task CancelledPowerPointConversionStopsUnresponsivePrivateWorker()
     {
         var started = new TaskCompletionSource<int>(TaskCreationOptions.RunContinuationsAsynchronously);
