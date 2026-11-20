@@ -8,7 +8,7 @@ namespace Axicultus.Wpf.Controls;
 
 public sealed record LyricParagraphStyle(string Text, Typeface Typeface, double Size, double Leading, Brush Ink,
     TextAlignment Alignment, FlowDirection Direction, bool Underline, bool Outline, bool Shadow, bool Indent,
-    bool FitLargest, double Width, double Height, int[] NotationLines, int NotationPercent);
+    bool FitLargest, double Width, double Height, int[] NotationLines, int NotationPercent, bool ShrinkToFit = false);
 
 public sealed class LyricParagraphSurface : FrameworkElement
 {
@@ -47,9 +47,10 @@ public sealed class LyricParagraphSurface : FrameworkElement
             return used;
         }
         double size = p.Size;
-        if (p.FitLargest && double.IsFinite(maxHeight) && maxHeight > 0)
+        if (double.IsFinite(maxHeight) && maxHeight > 0 &&
+            (p.FitLargest || (p.ShrinkToFit && Measure(size, false) > maxHeight)))
         {
-            int low = 1, high = Math.Max(1, (int)Math.Min(2048, maxHeight));
+            int low = 1, high = Math.Max(1, (int)(p.FitLargest ? Math.Min(2048, maxHeight) : size));
             while (low < high)
             {
                 int middle = (low + high + 1) / 2;

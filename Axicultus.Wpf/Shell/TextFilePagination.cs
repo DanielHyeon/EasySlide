@@ -6,7 +6,20 @@ using System.Windows.Media;
 
 namespace Axicultus.Wpf.Shell;
 
-internal sealed record TextFileLayout(double Width, double Height, string FontFamily, double FontSize, double LineHeight);
+internal sealed record TextFileLayout(double Width, double Height, string FontFamily, double FontSize, double LineHeight)
+{
+    // WinForms FormatText uses a 960-wide reference slide and reserves 2.2% above and 3% below the lyrics.
+    internal static int FontAtWidth(double referenceSize, double width) =>
+        Math.Max(1, (int)Math.Round(referenceSize * width / 960));
+
+    internal static int MarginAt(double dimension, int? percent, int fallback) =>
+        percent.HasValue ? (int)(dimension * percent.Value / 100) : fallback;
+
+    internal static int TopInset(double height, int? topPercent) =>
+        (int)(height * .022) + MarginAt(height, topPercent, 0);
+
+    internal static int BottomInset(double height) => (int)(height * .03);
+}
 
 internal static class TextFilePagination
 {

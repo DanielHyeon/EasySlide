@@ -820,8 +820,6 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     public OutputAlert? MessageAlert => _session.State == LiveState.Active ? _session.MessageAlert : null;
     public OutputAlert? ParentalAlert => _session.State == LiveState.Active ? _session.ParentalAlert : null;
     public bool FitExternalText => _session.IsExternalTextPage;
-    public double BodyLayoutHeight => FitExternalText ? double.PositiveInfinity : BodyMaxHeight;
-    public double RegionOneLayoutHeight => FitExternalText ? double.PositiveInfinity : BodyTextMaxHeight;
 
     public double BodyMaxWidth
     {
@@ -1092,7 +1090,7 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         // Region1↔Region2 세로 간격(FrmMain Ind_Reg2TopUpDown) — Region2 블록 위쪽 여백으로 적용. 기본 8=기존(무회귀).
         BodyText2Margin = new Thickness(0, scene.LyricsMonitorRegionGapPx, 0, 0);
         // 본문 세로 위치 오프셋(FrmMain Ind_Reg1TopUpDown) — TranslateTransform.Y 로 본문 묶음을 위(-)/아래(+)로 옮긴다. 기본 0=무이동.
-        BodyVerticalOffset = scene.LyricsMonitorBodyVerticalOffset;
+        BodyVerticalOffset = FitExternalText && _session.ItemDisplay?.Top1 != null ? 0 : scene.LyricsMonitorBodyVerticalOffset;
         BodyTextAlignment = ToTextAlignment(scene.LyricsMonitorTextAlignment);
         BodyHorizontalAlignment = ToHorizontalAlignment(scene.LyricsMonitorTextAlignment);
         BodyVerticalAlignment = ToVerticalAlignment(scene.LyricsMonitorVerticalAlignment);
@@ -1137,7 +1135,9 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         // 좌/우/아래는 FrmMain ShowLeftMargin/Right/Bottom 대응 — 가장자리에서 안쪽으로 들여써 잘림·치우침을 보정한다.
         // 기본값 0/0/0 이면 헤딩 유무에 따라 기존 Thickness(0,heading,0,0)/Thickness(0) 과 완전히 동일(무회귀).
         double headingTop = scene.ShowsTitleHeading ? TitleHeadingReservedHeight : 0;
-        if (_session.SongLayout is { } folder && scene.Kind == OutputSceneKind.Live)
+        if (FitExternalText && scene.Kind == OutputSceneKind.Live)
+            headingTop += TextFileLayout.TopInset(scene.Viewport.Height, _session.ItemDisplay?.Top1);
+        else if (_session.SongLayout is { } folder && scene.Kind == OutputSceneKind.Live)
             headingTop += scene.Viewport.Height * Math.Clamp(folder.TopPercent, 0, 100) / 100d;
         BodyContentMargin = new Thickness(
             scene.LyricsMonitorBodyLeftMargin,
@@ -1195,8 +1195,6 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         }
         OnPropertyChanged(nameof(RegionDividerVisibility));
         OnPropertyChanged(nameof(FitExternalText));
-        OnPropertyChanged(nameof(BodyLayoutHeight));
-        OnPropertyChanged(nameof(RegionOneLayoutHeight));
     }
 
     // 줄 교차(인터레이스) 줄 목록을 다시 만든다 — Region1·Region2 본문을 줄 단위로 번갈아 쌓는다.
@@ -1233,7 +1231,7 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         var folder = _session.SongLayout;
         string text = second ? BodyText2 : BodyText;
         int[] notes = second ? _session.NotationLines2 : _session.NotationLines;
-        if (!visible || text.Length == 0 || !(Options.LargestFont || Options.HangingIndent || notes.Length > 0 || folder?.Fields != null)) return null;
+        if (!visible || text.Length == 0 || !(FitExternalText || Options.LargestFont || Options.HangingIndent || notes.Length > 0 || folder?.Fields != null)) return null;
         var family = (second ? BodyFont2Family : BodyFontFamily) as FontFamily ?? BodyFontFamily as FontFamily ?? SystemFonts.MessageFontFamily;
         var face = new Typeface(family, second ? BodyFont2Style : BodyFontStyle, second ? BodyFont2Weight : BodyFontWeight, FontStretches.Normal);
         int flags = second ? folder?.Integer("BIU1") ?? 0 : folder?.FontStyleBits ?? 0;
@@ -1241,7 +1239,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         return new(text, face, second ? BodyFont2Size : BodyFontSize, leading, second ? SceneForegroundBrush2 : SceneForegroundBrush,
             second ? BodyText2Alignment : BodyTextAlignment, (flags & 64) != 0 ? FlowDirection.RightToLeft : FlowDirection.LeftToRight,
             (second ? BodyText2Decorations : BodyTextDecorations) != null, !second && BodyHasOutline, BodyHasShadow,
-            Options.HangingIndent, Options.LargestFont, BodyMaxWidth, second ? BodyText2MaxHeight : RegionOneLayoutHeight, notes, Options.NotationPercent);
+            Options.HangingIndent, Options.LargestFont, BodyMaxWidth, second ? BodyText2MaxHeight : BodyTextMaxHeight, notes, Options.NotationPercent,
+            ShrinkToFit: FitExternalText);
     }
 
     private void RebuildInterlacedLines(OutputSceneSnapshot scene)
@@ -1707,14 +1706,17 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         return false;
     }
 
-    private static int GetViewportWidth(OutputWindowState output)
+    private double ViewportScale(OutputWindowState output) =>
+        FitExternalText && output.Display is { DpiScale: > 0 } display ? display.DpiScale : 1;
+
+    private int GetViewportWidth(OutputWindowState output)
         => output.IsOpen && output.Placement.Width > 0
-            ? (int)output.Placement.Width
+            ? (int)Math.Round(output.Placement.Width / ViewportScale(output))
             : DefaultViewportWidth;
 
-    private static int GetViewportHeight(OutputWindowState output)
+    private int GetViewportHeight(OutputWindowState output)
         => output.IsOpen && output.Placement.Height > 0
-            ? (int)output.Placement.Height
+            ? (int)Math.Round(output.Placement.Height / ViewportScale(output))
             : DefaultViewportHeight;
 
     // 기본 GAP 로고 로더: 경로가 유효하면 BitmapImage로 로드 후 Freeze.

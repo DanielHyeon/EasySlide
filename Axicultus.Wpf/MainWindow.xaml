@@ -247,6 +247,9 @@
 
     <!-- 루트를 Grid 로 감싸 명령 팔레트 오버레이를 전체 위에 띄운다(평소엔 숨김). -->
     <Grid Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" TextElement.FontFamily="{DynamicResource {x:Static SystemFonts.MessageFontFamilyKey}}">
+        <Grid.Resources>
+            <ResourceDictionary Source="Controls/LyricBodyHost.xaml" />
+        </Grid.Resources>
     <DockPanel LastChildFill="True">
         <!-- FrmMain 메뉴바(File/Edit/View/Output/Tools/Help) 포팅.
              모든 항목은 실제 MainViewModel 명령 또는 DI 창 런처(Click)에 배선 — dead UI 없음.
@@ -4901,20 +4904,24 @@
                                     MouseDown="ClassicKeyboardSurface_MouseDown" Margin="0,0,16,16">
                                 <Grid ClipToBounds="True">
                                     <Rectangle Fill="{Binding PreviewSample.BackgroundImageBrush, RelativeSource={RelativeSource AncestorType=Window}}" Visibility="{Binding PreviewSample.BackgroundImageVisibility, RelativeSource={RelativeSource AncestorType=Window}}" />
-                                    <TextBlock x:Name="ClassicPreviewLargeLyricsText"
-                                               Tag="PreviewScreenLyrics"
-                                               Text="{Binding PreviewLyricsText}"
-                                               Visibility="{Binding HasPreviewLyricsText, Converter={StaticResource BoolToVis}}"
-                                               Margin="{Binding PreviewSample.BodyContentMargin, RelativeSource={RelativeSource AncestorType=Window}}"
-                                               VerticalAlignment="{Binding PreviewSample.BodyVerticalAlignment, RelativeSource={RelativeSource AncestorType=Window}}"
-                                               TextAlignment="{Binding PreviewSample.BodyTextAlignment, RelativeSource={RelativeSource AncestorType=Window}}"
-                                               TextWrapping="Wrap"
-                                               TextTrimming="CharacterEllipsis"
-                                               FontSize="{Binding PreviewSample.BodyFontSize, RelativeSource={RelativeSource AncestorType=Window}}"
-                                               FontFamily="{Binding PreviewSample.BodyFontFamily, RelativeSource={RelativeSource AncestorType=Window}}"
-                                               FontWeight="{Binding PreviewSample.BodyFontWeight, RelativeSource={RelativeSource AncestorType=Window}}"
-                                               Foreground="{Binding PreviewSample.SceneForegroundBrush, RelativeSource={RelativeSource AncestorType=Window}}"
-                                               AutomationProperties.Name="Preview 큰 화면 본문" />
+                                    <ContentControl Style="{StaticResource LyricBodyHost}"
+                                                    DataContext="{Binding PreviewSample, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    Margin="{Binding PreviewSample.BodyContentMargin, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    VerticalAlignment="{Binding BodyVerticalAlignment}">
+                                        <TextBlock x:Name="ClassicPreviewLargeLyricsText"
+                                                   DataContext="{Binding DataContext, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                   Tag="PreviewScreenLyrics"
+                                                   Text="{Binding PreviewLyricsText}"
+                                                   Visibility="{Binding HasPreviewLyricsText, Converter={StaticResource BoolToVis}}"
+                                                   TextAlignment="{Binding PreviewSample.BodyTextAlignment, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                   TextWrapping="Wrap"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   FontSize="{Binding PreviewSample.BodyFontSize, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                   FontFamily="{Binding PreviewSample.BodyFontFamily, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                   FontWeight="{Binding PreviewSample.BodyFontWeight, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                   Foreground="{Binding PreviewSample.SceneForegroundBrush, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                   AutomationProperties.Name="Preview 큰 화면 본문" />
+                                    </ContentControl>
                                     <TextBlock Text="{Binding PreviewNavigationPositionLabel}"
                                                Margin="20,0,0,18"
                                                HorizontalAlignment="Left"
@@ -5530,20 +5537,24 @@
                                                 </Style.Triggers>
                                             </Style>
                                         </Grid.Style>
-                                    <TextBlock x:Name="ClassicOutputLargeLyricsText"
-                                               Tag="OutputScreenLyrics"
-                                               Text="{Binding OutputLyricsText}"
-                                               Visibility="{Binding HasOutputLyricsText, Converter={StaticResource BoolToVis}}"
-                                               Margin="{Binding OutputSample.BodyContentMargin, RelativeSource={RelativeSource AncestorType=Window}}"
-                                               VerticalAlignment="{Binding OutputSample.BodyVerticalAlignment, RelativeSource={RelativeSource AncestorType=Window}}"
-                                               TextAlignment="{Binding OutputSample.BodyTextAlignment, RelativeSource={RelativeSource AncestorType=Window}}"
-                                               TextWrapping="Wrap"
-                                               TextTrimming="CharacterEllipsis"
-                                               FontSize="{Binding OutputSample.BodyFontSize, RelativeSource={RelativeSource AncestorType=Window}}"
-                                               FontFamily="{Binding OutputSample.BodyFontFamily, RelativeSource={RelativeSource AncestorType=Window}}"
-                                               FontWeight="{Binding OutputSample.BodyFontWeight, RelativeSource={RelativeSource AncestorType=Window}}"
-                                               Foreground="{Binding OutputSample.SceneForegroundBrush, RelativeSource={RelativeSource AncestorType=Window}}"
-                                               AutomationProperties.Name="Output 큰 화면 본문" />
+                                    <ContentControl Style="{StaticResource LyricBodyHost}"
+                                                    DataContext="{Binding OutputSample, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    Margin="{Binding OutputSample.BodyContentMargin, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    VerticalAlignment="{Binding BodyVerticalAlignment}">
+                                        <TextBlock x:Name="ClassicOutputLargeLyricsText"
+                                                   DataContext="{Binding DataContext, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                   Tag="OutputScreenLyrics"
+                                                   Text="{Binding OutputLyricsText}"
+                                                   Visibility="{Binding HasOutputLyricsText, Converter={StaticResource BoolToVis}}"
+                                                   TextAlignment="{Binding OutputSample.BodyTextAlignment, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                   TextWrapping="Wrap"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   FontSize="{Binding OutputSample.BodyFontSize, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                   FontFamily="{Binding OutputSample.BodyFontFamily, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                   FontWeight="{Binding OutputSample.BodyFontWeight, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                   Foreground="{Binding OutputSample.SceneForegroundBrush, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                   AutomationProperties.Name="Output 큰 화면 본문" />
+                                    </ContentControl>
                                     <TextBlock Text="{Binding OutputNavigationPositionLabel}"
                                                Margin="20,0,0,18"
                                                HorizontalAlignment="Left"

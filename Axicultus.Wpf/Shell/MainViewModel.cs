@@ -24,6 +24,8 @@ using Axicultus.Wpf.Settings;
 using Axicultus.Wpf.Theme;
 using Wpf.Ui.Controls;
 
+using static Axicultus.Wpf.Shell.LiveItemKindMatcher;
+
 namespace Axicultus.Wpf.Shell;
 
 public enum PreviewPanelMode
@@ -4052,10 +4054,23 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             var display = SelectedOutputDisplay ?? OutputDisplay.PrimaryFallback;
             var placement = _output.Current.IsOpen ? _output.Current.Placement
                 : new WindowPlacementService(_settings, _display).CreateOutputPlacement(display, false);
-            double scale = Math.Max(1, display.DpiScale);
-            layout = new(placement.Width / scale - options.LyricsMonitorBodyLeftMargin - options.LyricsMonitorBodyRightMargin,
-                placement.Height / scale - options.LyricsMonitorBodyBottomMargin, options.LyricsMonitorFontFamily,
-                options.LyricsMonitorFontSize, options.LyricsMonitorFontSize * options.LyricsMonitorLineSpacingPercent / 100d);
+            double scale = (_output.Current.Display ?? display).DpiScale;
+            double width = Math.Round(placement.Width / (scale > 0 ? scale : 1));
+            double height = Math.Round(placement.Height / (scale > 0 ? scale : 1));
+            string? raw = item.UseIndividualFormatting ? item.FormatData : null;
+            var format = SongFormatData.Parse(raw);
+            var itemDisplay = ItemDisplayFormat.Read(raw);
+            double size = TextFileLayout.FontAtWidth(LiveSessionService.LegacyPointToPixel(format?.FontSize1) ?? options.LyricsMonitorFontSize, width);
+            double left = TextFileLayout.MarginAt(width, format?.BodyLeftMargin, options.LyricsMonitorBodyLeftMargin);
+            double right = TextFileLayout.MarginAt(width, format?.BodyRightMargin, options.LyricsMonitorBodyRightMargin);
+            double bottom = TextFileLayout.MarginAt(height, format?.BodyBottomMargin, options.LyricsMonitorBodyBottomMargin)
+                + TextFileLayout.BottomInset(height);
+            if (options.LyricsMonitorShowDisplayPanel && itemDisplay?.Flag(64) != true)
+                bottom += height * options.PanelHeightPercent / 100;
+            double top = TextFileLayout.TopInset(height, itemDisplay?.Top1);
+            string family = string.IsNullOrWhiteSpace(format?.FontName1) ? options.LyricsMonitorFontFamily : format.FontName1;
+            layout = new(width - left - right, height - top - bottom, family, size,
+                size * options.LyricsMonitorLineSpacingPercent / 100d);
         }
         if (_textFilePages is { } cached && cached.Lyrics == item.Lyrics && cached.Sequence == item.Sequence && cached.Layout == layout)
             return cached.Pages;
@@ -4128,12 +4143,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 || LiveItemKindMatcher.IsBible(item.Kind)
                 || IsExternalTextFileItem(item))
             && !string.IsNullOrEmpty(item.Lyrics);
-
-    private static bool IsExternalTextFileItem(LiveQueueItem item)
-        => item.Id.StartsWith("esw:T:", StringComparison.OrdinalIgnoreCase)
-            || item.Id.StartsWith("text-file:", StringComparison.OrdinalIgnoreCase)
-            || LiveItemKindMatcher.IsNotice(InferLegacyKind(item))
-               && IsTextContentPath(ResolveExternalTextContentPath(item));
 
     // 페이지 라벨에서 중복을 제거(첫 등장 순서)해 점프 버튼 목록을 만든다.
     private void RebuildAvailableSectionLabels()
@@ -8145,82 +8154,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         return prepared;
     }
-
-    private static string InferLegacyKind(LiveQueueItem item)
-    {
-        if (!string.IsNullOrWhiteSpace(item.Kind)
-            && !string.Equals(item.Kind, LiveItemKinds.Item, StringComparison.OrdinalIgnoreCase))
-        {
-            return item.Kind;
-        }
-
-        var typeCode = ResolveLegacyTypeCode(item);
-        return typeCode switch
-        {
-            "D" => LiveItemKinds.Song,
-            "S" => LiveItemKinds.Song,
-            "B" => LiveItemKinds.Bible,
-            "T" => LiveItemKinds.Notice,
-            "I" => LiveItemKinds.Notice,
-            "W" => LiveItemKinds.Notice,
-            "P" => LiveItemKinds.PowerPoint,
-            "M" => LiveItemKinds.Media,
-            _ when item.Id.StartsWith("song:", StringComparison.OrdinalIgnoreCase) => LiveItemKinds.Song,
-            _ when item.Id.StartsWith("bible:", StringComparison.OrdinalIgnoreCase) => LiveItemKinds.Bible,
-            _ when item.Id.StartsWith("powerpoint:", StringComparison.OrdinalIgnoreCase) => LiveItemKinds.PowerPoint,
-            _ when item.Id.StartsWith("media:", StringComparison.OrdinalIgnoreCase) => LiveItemKinds.Media,
-            _ when item.Id.StartsWith("text-file:", StringComparison.OrdinalIgnoreCase) => LiveItemKinds.Notice,
-            _ => item.Kind,
-        };
-    }
-
-    private static string ResolveLegacyTypeCode(LiveQueueItem item)
-    {
-        if (item.Id.StartsWith("esw:", StringComparison.OrdinalIgnoreCase))
-        {
-            var start = "esw:".Length;
-            var end = item.Id.IndexOf(':', start);
-            return end > start
-                ? item.Id.Substring(start, end - start).ToUpperInvariant()
-                : string.Empty;
-        }
-
-        if (item.Id.Length >= 2 && char.IsLetter(item.Id[0]) && char.IsDigit(item.Id[1]))
-        {
-            return char.ToUpperInvariant(item.Id[0]).ToString();
-        }
-
-        return string.Empty;
-    }
-
-    private static string? ResolveExternalTextContentPath(LiveQueueItem item)
-    {
-        if (IsTextContentPath(item.ContentPath))
-        {
-            return item.ContentPath!.Trim();
-        }
-
-        if (item.Id.StartsWith("esw:T:", StringComparison.OrdinalIgnoreCase))
-        {
-            var path = item.Id.Substring("esw:T:".Length).Trim();
-            if (IsTextContentPath(path))
-            {
-                return path;
-            }
-        }
-
-        if (IsTextContentPath(item.Title))
-        {
-            return item.Title.Trim();
-        }
-
-        return null;
-    }
-
-    private static bool IsTextContentPath(string? path)
-        => !string.IsNullOrWhiteSpace(path)
-            && LooksLikeFilePath(path.Trim())
-            && string.Equals(Path.GetExtension(path.Trim()), ".txt", StringComparison.OrdinalIgnoreCase);
 
     private static string ResolveBibleSelectionId(LiveQueueItem item)
     {

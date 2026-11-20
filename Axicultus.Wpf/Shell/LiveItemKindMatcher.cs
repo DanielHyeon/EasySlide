@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 
 namespace Axicultus.Wpf.Shell;
 
@@ -55,6 +56,86 @@ public static class LiveItemKindMatcher
         => Eq(kind, "LiveCamera")
            || Eq(kind, "Live Camera")
            || Eq(kind, "CaptureDevice");
+
+    internal static bool IsExternalTextFileItem(LiveQueueItem item)
+        => item.Id.StartsWith("esw:T:", StringComparison.OrdinalIgnoreCase)
+            || item.Id.StartsWith("text-file:", StringComparison.OrdinalIgnoreCase)
+            || (IsNotice(InferLegacyKind(item)) && ResolveExternalTextContentPath(item) != null);
+
+    internal static string InferLegacyKind(LiveQueueItem item)
+    {
+        if (!string.IsNullOrWhiteSpace(item.Kind)
+            && !string.Equals(item.Kind, LiveItemKinds.Item, StringComparison.OrdinalIgnoreCase))
+        {
+            return item.Kind;
+        }
+
+        var typeCode = ResolveLegacyTypeCode(item);
+        return typeCode switch
+        {
+            "D" => LiveItemKinds.Song,
+            "S" => LiveItemKinds.Song,
+            "B" => LiveItemKinds.Bible,
+            "T" => LiveItemKinds.Notice,
+            "I" => LiveItemKinds.Notice,
+            "W" => LiveItemKinds.Notice,
+            "P" => LiveItemKinds.PowerPoint,
+            "M" => LiveItemKinds.Media,
+            _ when item.Id.StartsWith("song:", StringComparison.OrdinalIgnoreCase) => LiveItemKinds.Song,
+            _ when item.Id.StartsWith("bible:", StringComparison.OrdinalIgnoreCase) => LiveItemKinds.Bible,
+            _ when item.Id.StartsWith("powerpoint:", StringComparison.OrdinalIgnoreCase) => LiveItemKinds.PowerPoint,
+            _ when item.Id.StartsWith("media:", StringComparison.OrdinalIgnoreCase) => LiveItemKinds.Media,
+            _ when item.Id.StartsWith("text-file:", StringComparison.OrdinalIgnoreCase) => LiveItemKinds.Notice,
+            _ => item.Kind,
+        };
+    }
+
+    private static string ResolveLegacyTypeCode(LiveQueueItem item)
+    {
+        if (item.Id.StartsWith("esw:", StringComparison.OrdinalIgnoreCase))
+        {
+            var start = "esw:".Length;
+            var end = item.Id.IndexOf(':', start);
+            return end > start
+                ? item.Id.Substring(start, end - start).ToUpperInvariant()
+                : string.Empty;
+        }
+
+        if (item.Id.Length >= 2 && char.IsLetter(item.Id[0]) && char.IsDigit(item.Id[1]))
+        {
+            return char.ToUpperInvariant(item.Id[0]).ToString();
+        }
+
+        return string.Empty;
+    }
+
+    internal static string? ResolveExternalTextContentPath(LiveQueueItem item)
+    {
+        if (IsTextContentPath(item.ContentPath))
+        {
+            return item.ContentPath!.Trim();
+        }
+
+        if (item.Id.StartsWith("esw:T:", StringComparison.OrdinalIgnoreCase))
+        {
+            var path = item.Id.Substring("esw:T:".Length).Trim();
+            if (IsTextContentPath(path))
+            {
+                return path;
+            }
+        }
+
+        if (IsTextContentPath(item.Title))
+        {
+            return item.Title.Trim();
+        }
+
+        return null;
+    }
+
+    private static bool IsTextContentPath(string? path)
+        => !string.IsNullOrWhiteSpace(path)
+            && string.Equals(Path.GetExtension(path.Trim()), ".txt", StringComparison.OrdinalIgnoreCase);
 
     private static bool Eq(string? kind, string value)
         => string.Equals(kind, value, StringComparison.OrdinalIgnoreCase);

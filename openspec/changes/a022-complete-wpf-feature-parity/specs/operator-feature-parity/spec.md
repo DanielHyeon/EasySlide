@@ -18,6 +18,10 @@ The console SHALL support fitting a complete external text-file paragraph on a s
 - **WHEN** paragraph fitting is enabled and the operator advances a text file
 - **THEN** the following paragraph appears as a single page without truncating its contents
 
+#### Scenario: Display a formatted text file on screens of different sizes
+- **WHEN** a worship list specifies a text file's font size, region start, margins and vertical alignment
+- **THEN** the operator samples and audience output scale the font from the 960-wide reference slide and apply the saved percentages to their respective slide bounds
+- **AND** a paragraph that exceeds the available height rewraps at a smaller font size within the same margins
 
 ### Requirement: Route source edits and retain existing presentation settings
 The Edit menu and main toolbar SHALL act on the active source selection. Applying session defaults SHALL preserve an information screen's individual formatting.

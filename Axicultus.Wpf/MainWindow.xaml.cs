@@ -552,6 +552,10 @@ public partial class MainWindow : Window
             _services.GetService<Captions.CaptionSession>()?.BeginPlan(_viewModel.CurrentWorshipListName);
         if (e.PropertyName is nameof(MainViewModel.PreviewPanelItem) or nameof(MainViewModel.SampleScreenHeight)) RefreshSample(true);
         if (e.PropertyName is nameof(MainViewModel.OutputItem) or nameof(MainViewModel.OutputScreenStatus) or nameof(MainViewModel.SampleScreenHeight)) RefreshSample(false);
+        if (e.PropertyName == nameof(MainViewModel.PreviewLyricsText) && _viewModel.PreviewPanelItem is { } preview && LiveItemKindMatcher.IsExternalTextFileItem(preview))
+            RefreshSample(true);
+        if (e.PropertyName == nameof(MainViewModel.OutputLyricsText) && _viewModel.OutputItem is { } output && LiveItemKindMatcher.IsExternalTextFileItem(output))
+            RefreshSample(false);
         if (e.PropertyName is nameof(MainViewModel.IsAutoRotating) or nameof(MainViewModel.AutoRotateIntervalSeconds))
         {
             SyncAutoRotateTimer();
@@ -562,6 +566,8 @@ public partial class MainWindow : Window
     {
         var sample = preview ? PreviewSample : OutputSample;
         var item = preview ? _viewModel.PreviewPanelItem : _viewModel.OutputItem;
+        if (item != null && LiveItemKindMatcher.IsExternalTextFileItem(item))
+            item = item with { ProjectedTextPage = preview ? _viewModel.PreviewLyricsText : _viewModel.OutputLyricsText };
         var snapshot = !preview && _viewModel.Session.Current.State != LiveState.Off
             ? _viewModel.Session.Current
             : item is null ? LiveSessionSnapshot.Off with { State = LiveState.Active }

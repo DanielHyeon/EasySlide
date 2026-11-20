@@ -495,7 +495,15 @@ public sealed class OutputRenderer(IImageAssetService imageAssets, ITransitionEf
         var fontSizePx = isLive && request.Session.OverrideFontSizePx is int songFontPx
             ? songFontPx
             : liveOutput.LyricsMonitorFontSize;
-        if (isLive && request.Session.SongLayout is { } folder)
+        if (isLive && request.Session.IsExternalTextPage)
+        {
+            bodyLeftMargin = TextFileLayout.MarginAt(viewportWidth, request.Session.OverrideBodyLeftMargin, bodyLeftMargin);
+            bodyRightMargin = TextFileLayout.MarginAt(viewportWidth, request.Session.OverrideBodyRightMargin, bodyRightMargin);
+            bodyBottomMargin = TextFileLayout.MarginAt(viewportHeight, request.Session.OverrideBodyBottomMargin, bodyBottomMargin)
+                + TextFileLayout.BottomInset(viewportHeight);
+            fontSizePx = TextFileLayout.FontAtWidth(fontSizePx, viewportWidth);
+        }
+        else if (isLive && request.Session.SongLayout is { } folder)
         {
             // FOLDER and legacy song format store margins as percentages and fonts at a 960-pixel reference width.
             bodyLeftMargin = (int)Math.Round(viewportWidth * Math.Clamp(request.Session.OverrideBodyLeftMargin ?? folder.LeftPercent, 0, 100) / 100d);

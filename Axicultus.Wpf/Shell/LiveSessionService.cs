@@ -262,7 +262,7 @@ public sealed class LiveSessionService : ILiveSessionService
             ParentalAlert: previous.ParentalAlert,
             ItemDisplay: item.UseIndividualFormatting ? Library.ItemDisplayFormat.Read(item.FormatData) : null,
             CurrentItemId: item.Id,
-            IsExternalTextPage: IsExternalTextFileItem(item),
+            IsExternalTextPage: LiveItemKindMatcher.IsExternalTextFileItem(item),
             OverrideVerticalAlignment: format?.VerticalAlignment,
             OverrideBodyLeftMargin: format?.BodyLeftMargin,
             OverrideBodyRightMargin: format?.BodyRightMargin,
@@ -304,7 +304,7 @@ public sealed class LiveSessionService : ILiveSessionService
     // 레거시 폰트 크기(pt, WinForms 기본 단위)를 WPF px(DIP, 1/96")로 변환한다.
     // 1pt = 1/72", 1px(DIP) = 1/96" → px = pt × 96/72. 없으면 null(기본 크기 유지).
     // 디코더가 이미 6~100pt 로 검증하므로 변환 결과는 8~133px 범위 — 그래도 방어적으로 클램프.
-    private static int? LegacyPointToPixel(int? legacyPoint)
+    internal static int? LegacyPointToPixel(int? legacyPoint)
     {
         if (legacyPoint is not int pt)
         {
@@ -323,7 +323,7 @@ public sealed class LiveSessionService : ILiveSessionService
     {
         if (LiveItemKindMatcher.IsSong(item.Kind) && item.ProjectedTextPage is { } slide)
             return LyricsDisplayFormatter.FormatSongSlide(slide, item.ShowNotations, item.TransposeSemitones);
-        if (IsExternalTextFileItem(item))
+        if (LiveItemKindMatcher.IsExternalTextFileItem(item))
         {
             return item.ProjectedTextPage ?? TextOrTitle(
                 LyricsDisplayFormatter.GetVersePage(item.Lyrics, item.LyricsPageIndex, item.Sequence),
@@ -382,7 +382,7 @@ public sealed class LiveSessionService : ILiveSessionService
     // Region1 과 동일 인덱스·Sequence(GetRegionPage)라 두 영역이 같은 절로 짝지어진다.
     private static string ComputeBodyText2(LiveQueueItem item)
     {
-        if (LiveItemKindMatcher.IsNotice(item.Kind) || IsExternalTextFileItem(item))
+        if (LiveItemKindMatcher.IsNotice(item.Kind) || LiveItemKindMatcher.IsExternalTextFileItem(item))
         {
             return string.Empty;
         }
@@ -483,10 +483,6 @@ public sealed class LiveSessionService : ILiveSessionService
     // 화면 비우기(레거시 LiveClear) — 콘텐츠는 감추되 배경은 유지(완전 검정인 Black 과 구별).
     // State=Hidden + IsCleared=true 로 두어 출력 렌더러가 Cleared 씬(배경만)으로 해석한다.
     // 콘텐츠(가사·슬라이드 등)는 보존하므로 Restore 시 직전 항목이 그대로 다시 보인다.
-    private static bool IsExternalTextFileItem(LiveQueueItem item)
-        => item.Id.StartsWith("esw:T:", StringComparison.OrdinalIgnoreCase)
-            || item.Id.StartsWith("text-file:", StringComparison.OrdinalIgnoreCase);
-
     public void ClearOutput()
     {
         if (Current.State == LiveState.Off)
