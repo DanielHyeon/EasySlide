@@ -13,6 +13,26 @@ namespace Axicultus.Wpf.Tests.Media;
 
 public class DirectShowVideoTests
 {
+    [Theory]
+    [InlineData(true, System.Windows.Media.Stretch.Uniform)]
+    [InlineData(false, System.Windows.Media.Stretch.Fill)]
+    public void StandaloneVideoFillsBothRenderersWhileBackgroundVideoKeepsItsStretch(bool wide, System.Windows.Media.Stretch embedded)
+        => StaHelper.RunOnSta(() =>
+        {
+            var element = new MediaElement();
+            var image = new Image();
+            var backend = new WpfMediaElementPlaybackBackend(element, image);
+            var clip = MediaPlaybackSnapshot.Empty with { IsWidescreen = wide };
+
+            backend.ApplySettings(clip with { PlayerDisplay = Axicultus.Wpf.Shell.OutputDisplay.PrimaryFallback });
+            Assert.Equal(System.Windows.Media.Stretch.UniformToFill, element.Stretch);
+            Assert.Equal(element.Stretch, image.Stretch);
+
+            backend.ApplySettings(clip);
+            Assert.Equal(embedded, element.Stretch);
+            Assert.Equal(embedded, image.Stretch);
+        });
+
     [Fact]
     public void LocalFileFallbackPresentsVideoFramesAndEndsOnTheGraphClock() => StaHelper.RunOnSta(() =>
     {

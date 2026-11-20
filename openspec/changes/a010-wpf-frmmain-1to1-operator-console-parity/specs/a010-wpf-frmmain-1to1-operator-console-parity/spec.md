@@ -98,3 +98,38 @@ active OpenSpec change tree는 contract, evidence, execution phase status, gate 
 - **WHEN** completion을 review한다
 - **THEN** OpenSpec phase DoD와 verification evidence가 change tree에 존재한다
 - **AND** supporting docs에서만 complete를 주장하여 `partial` mapping row를 숨기지 않는다
+
+### Requirement: Play Media on Output Monitor
+
+The WPF worship-list command SHALL play selected or linked media in a borderless player that fills the audience monitor or custom output rectangle. Video SHALL scale proportionally and crop to fill. The player SHALL preserve the operator’s preview, live slide selection and configured PowerPoint aspect ratio.
+
+#### Scenario: A clip is started over a native PowerPoint slide
+
+- **GIVEN** the current slide is visible on the audience monitor
+- **WHEN** the operator invokes Play Media on Output Monitor
+- **THEN** moving video frames appear in front of that slide, including when the operator has selected another preview item
+- **AND** Escape or the end of a non-repeating clip reveals the same live slide
+- **AND** subsequent slide shortcuts control the show again
+
+#### Scenario: The slide window is closed or windowed
+
+- **WHEN** the operator invokes Play Media on Output Monitor
+- **THEN** the standalone player uses the full configured output area and preserves the slide window's state and placement
+
+#### Scenario: An imported profile contains the legacy default width
+
+- **GIVEN** an imported profile has no explicit placement mode and a stored custom width of 1
+- **WHEN** a clip plays on the output monitor with a 4:3 slide setting or a reduced background-video size
+- **THEN** the video fills the selected physical monitor, including its four corners
+- **AND** closing the player reveals the slide at its original 4:3 size
+
+#### Scenario: The output is interrupted
+
+- **WHEN** the operator blacks out, hides or closes the live output, or the selected audience display changes during playback
+- **THEN** the standalone video is taken off the previous output
+
+#### Scenario: The operator and audience share a monitor
+
+- **WHEN** a native PowerPoint show and the console use the same monitor
+- **THEN** the operator can bring the console forward and launch the clip
+- **AND** dismissing the focused player returns to the running slide show

@@ -8124,7 +8124,7 @@ public class MainViewModelTests
     }
 
     [Fact]
-    public void PlaySelectedWorshipMediaOnOutputCommand_MediaItem_OpensOutputAndStartsMedia()
+    public void PlaySelectedWorshipMediaOnOutputCommand_MediaItem_PresentsIndependentlyOfTheSlideWindow()
     {
         using var folder = TempSettingsFolder.Create();
         var mediaFile = Path.Combine(folder.Root, "welcome.mp4");
@@ -8137,10 +8137,79 @@ public class MainViewModelTests
         sut.PlaySelectedWorshipMediaOnOutputCommand.CanExecute(null).Should().BeTrue();
         sut.PlaySelectedWorshipMediaOnOutputCommand.Execute(null);
 
-        output.Current.IsOpen.Should().BeTrue("FrmMain Play on Output opens/uses the output target");
+        output.Current.IsOpen.Should().BeFalse("WinForms opens a separate player on the show monitor");
+        sut.Media.PlayerDisplay.Should().Be(sut.SelectedOutputDisplay);
         sut.Media.Source.Should().Be(mediaFile);
         sut.Media.State.Should().Be(MediaPlaybackState.Playing);
         sut.StatusText.Should().Contain("Output 미디어 재생").And.Contain("welcome.mp4");
+    }
+
+    [Fact]
+    public async Task StandaloneMedia_PreservesTheLiveItemAndReleasesSlideShortcutsOnEscape()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var file = Path.Combine(folder.Root, "welcome.avi");
+        File.WriteAllText(file, "media placeholder");
+        var slide = new LiveQueueItem("song:opening", "Opening", LiveItemKinds.Song) { Lyrics = "first\n\nsecond" };
+        var clip = new LiveQueueItem("media:welcome", "Welcome", LiveItemKinds.Media) { ContentPath = file };
+        var output = new OutputWindowService();
+        using var sut = CreateSut(output: output, seedSampleQueue: false);
+        var keys = new ShortcutRegistry();
+        sut.BindShortcuts(keys);
+        sut.LoadQueue([slide, clip]);
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        var before = output.Current;
+        sut.SelectedItem = clip;
+        sut.PlaySelectedWorshipMediaOnOutputCommand.Execute(null);
+        sut.SelectedItem = slide;
+
+        output.Current.Should().Be(before);
+        sut.Session.Current.CurrentItemId.Should().Be(slide.Id);
+        sut.Media.PlayerDisplay.Should().Be(before.Display);
+        sut.Media.State.Should().Be(MediaPlaybackState.Playing);
+        keys.TryInvoke(MainCommandIds.EndShow).Should().BeTrue();
+        sut.Media.State.Should().Be(MediaPlaybackState.Empty);
+        sut.IsShowRunning.Should().BeTrue();
+        keys.TryInvoke(MainCommandIds.OutputSpace).Should().BeTrue();
+        sut.Session.Current.CurrentLyricsPageIndex.Should().Be(1);
+        sut.Media.IsOutputPlayerVisible.Should().BeFalse();
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task StandaloneMedia_RetainsSlideWindowPlacementAndClosesWithOutput(bool windowed)
+    {
+        using var folder = TempSettingsFolder.Create();
+        var file = Path.Combine(folder.Root, "welcome.avi");
+        File.WriteAllText(file, "media placeholder");
+        var output = new OutputWindowService();
+        using var sut = CreateSut(output: output, seedSampleQueue: false);
+        output.Open(sut.SelectedOutputDisplay!, windowed);
+        var before = output.Current;
+        sut.LoadQueue([new LiveQueueItem("media:welcome", "Welcome", LiveItemKinds.Media) { ContentPath = file }]);
+        sut.PlaySelectedWorshipMediaOnOutputCommand.Execute(null);
+
+        output.Current.Should().Be(before);
+        sut.Media.PlayerDisplay.Should().Be(before.Display);
+        await sut.CloseOutputCommand.ExecuteAsync(null);
+        sut.Media.State.Should().Be(MediaPlaybackState.Empty);
+    }
+
+    [Fact]
+    public void StandaloneMedia_StopsWhenItsAudienceDisplayChanges()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var file = Path.Combine(folder.Root, "welcome.avi");
+        File.WriteAllText(file, "media placeholder");
+        using var sut = CreateSut(seedSampleQueue: false);
+        sut.LoadQueue([new LiveQueueItem("media:welcome", "Welcome", LiveItemKinds.Media) { ContentPath = file }]);
+        sut.PlaySelectedWorshipMediaOnOutputCommand.Execute(null);
+        sut.RefreshDisplays();
+        sut.Media.IsOutputPlayerVisible.Should().BeTrue();
+
+        sut.SelectedOutputDisplay = new OutputDisplay("new", "Projector", 2000, 0, 1920, 1080, 1.0);
+        sut.Media.State.Should().Be(MediaPlaybackState.Empty);
     }
 
     [Fact]

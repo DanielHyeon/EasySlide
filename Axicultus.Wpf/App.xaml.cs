@@ -97,7 +97,9 @@ public partial class App : Application
         // 미디어 백엔드 — 생명주기 브리지(출력 창의 MediaElement 가 만들어지면 실제 백엔드를 Attach).
         // 동일 인스턴스를 IMediaPlaybackBackend(서비스용)과 구체 타입(출력 창 Attach용) 양쪽으로 노출.
         services.AddSingleton<CameraOwnership>();
-        services.AddSingleton<AttachableMediaPlaybackBackend>();
+        services.AddSingleton(sp => new AttachableMediaPlaybackBackend(() => new OutputMonitorMediaPlayer(
+            sp.GetRequiredService<MediaPlaybackService>(), sp.GetRequiredService<IWindowPlacementService>(),
+            sp.GetRequiredService<ShortcutRegistry>(), sp.GetRequiredService<IPowerPointSlideShowControl>())));
         services.AddSingleton<IMediaPlaybackBackend>(sp => sp.GetRequiredService<AttachableMediaPlaybackBackend>());
         services.AddSingleton(sp => new MediaPlaybackService(
             sp.GetRequiredService<IMediaPlaybackBackend>(),

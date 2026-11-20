@@ -4,6 +4,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Axicultus.Wpf.Settings;
+using Axicultus.Wpf.Shell;
 
 namespace Axicultus.Wpf.Media;
 
@@ -36,7 +37,10 @@ public sealed record MediaPlaybackRequest(
     bool IsRepeatEnabled = false,
     bool IsWidescreen = true,
     string? OutputDisplayId = null,
-    ItemMediaOptions? ItemOptions = null);
+    ItemMediaOptions? ItemOptions = null)
+{
+    internal OutputDisplay? PlayerDisplay { get; init; }
+}
 
 public sealed record MediaPlaybackSnapshot(
     MediaPlaybackState State,
@@ -53,6 +57,7 @@ public sealed record MediaPlaybackSnapshot(
     string? OutputDisplayId,
     string? ErrorMessage)
 {
+    internal OutputDisplay? PlayerDisplay { get; init; }
     internal string? CameraDevicePath { get; init; }
 
     public static MediaPlaybackSnapshot Empty { get; } = new(
@@ -148,7 +153,7 @@ public sealed class MediaPlaybackService : IMediaPlaybackService, IDisposable
             effectiveRequest.IsRepeatEnabled,
             effectiveRequest.IsWidescreen,
             effectiveRequest.OutputDisplayId,
-            ErrorMessage: null);
+            ErrorMessage: null) { PlayerDisplay = request.PlayerDisplay };
 
         TryUpdate(snapshot, () => _backend.Load(snapshot));
     }
@@ -214,7 +219,7 @@ public sealed class MediaPlaybackService : IMediaPlaybackService, IDisposable
             IsMuted = camera?.CameraMuted ?? Current.IsMuted, IsWidescreen = camera?.CameraWide ?? Current.IsWidescreen,
             State = MediaPlaybackState.Playing, SourceKind = MediaSourceKind.CaptureDevice,
             MediaType = "Live Camera", Source = CreateLiveCameraSource(device.CameraNumber), CameraDevicePath = device.Id,
-            Duration = TimeSpan.Zero, Position = TimeSpan.Zero, OutputDisplayId = displayId, ErrorMessage = null
+            Duration = TimeSpan.Zero, Position = TimeSpan.Zero, OutputDisplayId = displayId, PlayerDisplay = null, ErrorMessage = null
         };
         if (_pendingCamera != null) throw new MediaPlaybackException("카메라를 전환하는 중입니다.");
         using var pending = CancellationTokenSource.CreateLinkedTokenSource(ct);
@@ -260,6 +265,11 @@ public sealed class MediaPlaybackService : IMediaPlaybackService, IDisposable
             return;
         }
 
+        if (Current.PlayerDisplay != null)
+        {
+            TryUpdate(MediaPlaybackSnapshot.Empty, _backend.Stop);
+            return;
+        }
         var next = Current with { State = MediaPlaybackState.Stopped, Position = TimeSpan.Zero };
         TryUpdate(next, _backend.Stop);
     }

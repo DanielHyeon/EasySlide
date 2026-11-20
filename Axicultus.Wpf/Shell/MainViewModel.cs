@@ -1050,7 +1050,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Media.PropertyChanged += OnMediaPropertyChanged;
 
         OpenOutputCommand = new RelayCommand(OpenOutput);
-        CloseOutputCommand = new AsyncRelayCommand(CloseOutputAsync, () => _output.Current.IsOpen);
+        CloseOutputCommand = new AsyncRelayCommand(CloseOutputAsync, () => _output.Current.IsOpen || Media.IsOutputPlayerVisible);
         OpenStageMonitorCommand = new RelayCommand(OpenStageMonitor);
         CloseStageMonitorCommand = new RelayCommand(CloseStageMonitor, () => IsStageMonitorOpen || _stageWaitingForDisplay);
         CopyPreviewToOutputCommand = new RelayCommand(CopyPreviewToOutput, CanCopyPreviewToOutput);
@@ -3470,17 +3470,22 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         registry.IsPowerPointOutputWindow = _powerPointSlideShow.OwnsOutputWindow;
         registry.ResolveOutputMediaKey = key =>
         {
-            if (!_output.Current.IsOpen || !Media.HasFilePlayback) return null;
+            if ((!_output.Current.IsOpen && !Media.IsOutputPlayerVisible) || !Media.HasFilePlayback) return null;
             var action = MediaPlayerKeyMap.MapKey(System.Windows.Input.KeyInterop.KeyFromVirtualKey((int)key));
             var command = Media.CommandFor(action);
             return command?.CanExecute(null) == true
-                ? () => { if (_output.Current.IsOpen && Media.HasFilePlayback && command.CanExecute(null)) command.Execute(null); }
+                ? () => { if ((_output.Current.IsOpen || Media.IsOutputPlayerVisible) && Media.HasFilePlayback && command.CanExecute(null)) command.Execute(null); }
                 : null;
         };
-        registry.Bind(MainCommandIds.EndShow, () => _ = EndShowAsync(), () => IsShowRunning);
+        registry.Bind(MainCommandIds.EndShow, () =>
+        {
+            if (Media.IsOutputPlayerVisible) Media.StopCommand.Execute(null);
+            else _ = EndShowAsync();
+        }, () => Media.IsOutputPlayerVisible || IsShowRunning);
         registry.Bind(MainCommandIds.OutputSpace, () =>
         {
-            if (_session.Current is { State: LiveState.Active, PptPath: { Length: > 0 } path }) _ = AdvanceLivePowerPointAsync(path);
+            if (Media.IsOutputPlayerVisible) Media.PlayPauseCommand.Execute(null);
+            else if (_session.Current is { State: LiveState.Active, PptPath: { Length: > 0 } path }) _ = AdvanceLivePowerPointAsync(path);
             else if (Media.HasFilePlayback && Media.PlayPauseCommand.CanExecute(null)) Media.PlayPauseCommand.Execute(null);
             else if (_session.Current.State == LiveState.Active) LiveNextShortcutCommand.Execute(null);
         }, () => IsShowRunning || (Media.HasFilePlayback && Media.PlayPauseCommand.CanExecute(null)));
@@ -3537,6 +3542,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             var audience = GetPreferredOutputDisplay(preferred, available);
             UpdateDisplayList(OutputDisplays, available);
             SelectedOutputDisplay = audience;
+            StopPlayerIfDisplayChanged(audience);
             if (_output.Current.IsOpen)
             {
                 _output.MoveTo(audience, _output.Current.Placement.IsWindowed);
@@ -3624,11 +3630,17 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             list.Add(display);
     }
 
+    private void StopPlayerIfDisplayChanged(OutputDisplay display)
+    {
+        if (Media.PlayerDisplay is { } playingOn && playingOn != display) Media.Unload();
+    }
+
     partial void OnSelectedOutputDisplayChanged(OutputDisplay? value)
     {
         if (_refreshingDisplays || value == null)
             return;
         _sessionOutputMonitorId = value.Id;
+        StopPlayerIfDisplayChanged(value);
         if (_output.Current.IsOpen)
         {
             _output.MoveTo(value, _output.Current.Placement.IsWindowed);
@@ -4669,6 +4681,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 PowerPoint.Clear();
             }
 
+            if (Media.IsOutputPlayerVisible) return;
             if (item is { Kind: LiveItemKinds.Media, ContentPath: { Length: > 0 } mediaPath })
             {
                 Media.Load(GetItemMediaRequest(item, mediaPath));
@@ -4969,12 +4982,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         var request = GetItemMediaRequest(item, mediaPath);
-        if (!OpenAssignedMediaDisplay(request) && !_output.Current.IsOpen)
+        if (request.SourceKind == MediaSourceKind.CaptureDevice)
         {
-            EnsureLiveOutputDisplay();
+            if (!OpenAssignedMediaDisplay(request) && !_output.Current.IsOpen) EnsureLiveOutputDisplay();
+            OutputItem = item;
         }
-
-        OutputItem = item;
+        else
+        {
+            var display = _output.Current.Display ?? SelectedOutputDisplay ?? GetPreferredOutputDisplay(null);
+            request = request with { OutputDisplayId = display.Id, PlayerDisplay = display };
+        }
         Media.Load(request);
 
         if (Media.PlayPauseCommand.CanExecute(null))
@@ -5010,7 +5027,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         OutputItem = item;
-        var shouldLoad = !string.Equals(Media.Source, mediaPath, StringComparison.OrdinalIgnoreCase)
+        var shouldLoad = Media.PlayerDisplay != null || !string.Equals(Media.Source, mediaPath, StringComparison.OrdinalIgnoreCase)
             || Media.State is MediaPlaybackState.Empty or MediaPlaybackState.Failed;
         if (shouldLoad)
         {
@@ -5807,6 +5824,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private void OnMediaPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
+        if (e.PropertyName == nameof(Media.State)) CloseOutputCommand.NotifyCanExecuteChanged();
+        if (e.PropertyName == nameof(Media.StatusText) && Media.PlayerDisplay != null && Media.State == MediaPlaybackState.Failed)
+            StatusText = Media.StatusText;
         if (e.PropertyName is nameof(Media.Source)
             or nameof(Media.State)
             or nameof(Media.StatusText)
@@ -5880,6 +5900,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             }
         }
 
+        if (Media.IsOutputPlayerVisible) Media.Unload();
         _output.Close();
         if (_session.Current.State != LiveState.Off)
         {
@@ -6212,6 +6233,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _endingShow = true;
         try
         {
+            if (Media.IsOutputPlayerVisible) Media.Unload();
             var powerPointStopError = await StopPowerPointSlideShowForLiveAsync().ConfigureAwait(true);
             _session.Stop();
             if (_output.Current.IsOpen && !_output.Current.Placement.IsWindowed) _output.Close();
@@ -6910,6 +6932,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             }
         }
 
+        if (Media.IsOutputPlayerVisible) Media.Unload();
         _session.HideOutput(blackout);
         StatusText = blackout ? "검은 화면 송출 중" : "출력 숨김";
         _telemetry.Record(actionName, succeeded: true, StatusText);
@@ -6930,6 +6953,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
+        if (Media.IsOutputPlayerVisible) Media.Unload();
         _session.ClearOutput();
         StatusText = "화면 비움(배경 유지)";
         _telemetry.Record(MainCommandIds.LiveClear, succeeded: true, StatusText);
@@ -8332,14 +8356,15 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         bool newAudiencePreference = ContainsKey(args.ChangedKeys, AxicultusSettingKeys.DefaultOutputMonitorId.Id);
         if (newAudiencePreference)
             _sessionOutputMonitorId = null;
-        if (newAudiencePreference || args.ChangedKeys.Any(key => key.StartsWith("operator.Stage", StringComparison.Ordinal) || key == "operator.OutputAsSingle")
-            || ContainsKey(args.ChangedKeys, AxicultusSettingKeys.PreviewMonitorId.Id)
-            || ContainsKey(args.ChangedKeys, AxicultusSettingKeys.OutputPlacementMode.Id)
+        bool outputBoundsChanged = ContainsKey(args.ChangedKeys, AxicultusSettingKeys.OutputPlacementMode.Id)
             || ContainsKey(args.ChangedKeys, AxicultusSettingKeys.IsMonitorWide.Id)
             || ContainsKey(args.ChangedKeys, AxicultusSettingKeys.DisplayAlwaysUseSecondaryMonitor.Id)
             || ContainsKey(args.ChangedKeys, AxicultusSettingKeys.DisplayCustomTop.Id)
             || ContainsKey(args.ChangedKeys, AxicultusSettingKeys.DisplayCustomLeft.Id)
-            || ContainsKey(args.ChangedKeys, AxicultusSettingKeys.DisplayCustomWidth.Id))
+            || ContainsKey(args.ChangedKeys, AxicultusSettingKeys.DisplayCustomWidth.Id);
+        if (outputBoundsChanged && Media.IsOutputPlayerVisible) Media.Unload();
+        if (outputBoundsChanged || newAudiencePreference || ContainsKey(args.ChangedKeys, AxicultusSettingKeys.PreviewMonitorId.Id)
+            || args.ChangedKeys.Any(key => key.StartsWith("operator.Stage", StringComparison.Ordinal) || key == "operator.OutputAsSingle"))
             RefreshDisplays();
 
         if (ContainsOperationalSetting(args.ChangedKeys))

@@ -79,21 +79,17 @@ public partial class OutputWindow : Window, IOutputSurface
     /// 출력 창의 MediaElement 를 실제 미디어 백엔드로 감싸 생명주기 브리지에 부착한다
     /// (실제 미디어 백엔드 트랙 2단계). DI 팩토리가 창 생성 시 호출. 창이 닫히면 OnClosed 에서 분리.
     /// </summary>
-    private readonly System.Windows.Threading.DispatcherTimer _playbackClock = new() { Interval = TimeSpan.FromMilliseconds(500) };
+    private FilePlaybackEvents? _fileEvents;
     private MediaPlaybackService? _playback;
-    private WpfMediaElementPlaybackBackend? _mediaBackend;
 
     public void AttachMedia(AttachableMediaPlaybackBackend bridge, MediaPlaybackService? playback = null, CameraOwnership? ownership = null)
     {
         _mediaBridge = bridge ?? throw new ArgumentNullException(nameof(bridge));
         _playback = playback;
         _playback?.PlaybackChanged += MediaChanged;
-        _playbackClock.Tick += PlaybackTick;
-        OutputMediaElement.MediaOpened += FileOpened;
-        OutputMediaElement.MediaEnded += FileEnded;
-        OutputMediaElement.MediaFailed += FileFailed;
-        _mediaBackend = new WpfMediaElementPlaybackBackend(OutputMediaElement, OutputCameraImage, ownership);
-        try { bridge.Attach(_mediaBackend); }
+        var backend = new WpfMediaElementPlaybackBackend(OutputMediaElement, OutputCameraImage, ownership);
+        if (playback != null) _fileEvents = new FilePlaybackEvents(OutputMediaElement, backend, playback, standalone: false);
+        try { bridge.Attach(backend); }
         catch (Exception ex) when (playback is not null)
         {
             bridge.Unload();
@@ -108,55 +104,6 @@ public partial class OutputWindow : Window, IOutputSurface
         bool hide = _playback?.Current is { SourceKind: MediaSourceKind.CaptureDevice, State: MediaPlaybackState.Playing }
             && _viewModel?.Options.CameraHidePanel == true;
         CameraPanelHost.Visibility = hide ? Visibility.Collapsed : Visibility.Visible;
-    }
-
-    private void PlaybackTick(object? sender, EventArgs e)
-    {
-        if (_playback != null && _mediaBackend?.FileGraph is { FileName: { } path } graph)
-        {
-            try
-            {
-                var clock = graph.ReadClock();
-                _playback.ReportFilePosition(path, clock.Position, clock.Duration);
-                if (clock.Ended) _playback.ReportFileEnded(path);
-            }
-            catch (Exception ex) { _playback.ReportFileFailure(path, ex); _playbackClock.Stop(); }
-            return;
-        }
-        if (_playback == null || OutputMediaElement.Source is not { IsFile: true } uri || !OutputMediaElement.NaturalDuration.HasTimeSpan)
-        {
-            _playbackClock.Stop();
-            return;
-        }
-        _playback.ReportFilePosition(uri.LocalPath, OutputMediaElement.Position, OutputMediaElement.NaturalDuration.TimeSpan);
-    }
-
-    private void FileOpened(object sender, RoutedEventArgs e)
-    {
-        if (_playback == null) return;
-        _playbackClock.Start();
-        PlaybackTick(sender, e);
-    }
-
-    private void FileEnded(object sender, RoutedEventArgs e)
-    {
-        if (OutputMediaElement.Source is { IsFile: true } uri) _playback?.ReportFileEnded(uri.LocalPath);
-    }
-
-    private void FileFailed(object? sender, ExceptionRoutedEventArgs e)
-    {
-        if (OutputMediaElement.Source is { IsFile: true } uri && _playback != null)
-        {
-            string? details = null;
-            if (_mediaBackend?.TryFileFallback(_playback.Current, _playback.Current.Position, out details) == true)
-            {
-                _playbackClock.Start();
-                return;
-            }
-            var error = details == null ? e.ErrorException : new MediaPlaybackException($"{e.ErrorException.Message} / DirectShow: {details}", e.ErrorException);
-            _playback.ReportFileFailure(uri.LocalPath, error);
-        }
-        _playbackClock.Stop();
     }
 
     [ThreadStatic]
@@ -964,7 +911,7 @@ public partial class OutputWindow : Window, IOutputSurface
         WindowState = WindowState.Normal;
         WindowStyle = placement.IsWindowed ? WindowStyle.SingleBorderWindow : WindowStyle.None;
         ResizeMode = placement.IsWindowed ? ResizeMode.CanResize : ResizeMode.NoResize;
-        Topmost = !placement.IsWindowed && !placement.AsSingleMonitor;
+        Topmost = !placement.IsWindowed && Platform.DesktopWindowPlacement.IsSeparateAudienceMonitor(placement);
         ShowInTaskbar = placement.IsWindowed;
         Platform.DesktopWindowPlacement.Apply(this, placement);
     }
@@ -1005,12 +952,8 @@ public partial class OutputWindow : Window, IOutputSurface
         }
 
         // 미디어 브리지 분리 — 이 창의 MediaElement 가 사라지므로 백엔드를 떼어 이후 호출이 죽은 컨트롤에 닿지 않게 한다.
-        _playbackClock.Stop();
-        _playbackClock.Tick -= PlaybackTick;
+        _fileEvents?.Dispose();
         _playback?.PlaybackChanged -= MediaChanged;
-        OutputMediaElement.MediaOpened -= FileOpened;
-        OutputMediaElement.MediaEnded -= FileEnded;
-        OutputMediaElement.MediaFailed -= FileFailed;
         _mediaBridge?.Detach();
         _mediaBridge = null;
 

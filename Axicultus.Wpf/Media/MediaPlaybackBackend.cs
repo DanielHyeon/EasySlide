@@ -153,11 +153,13 @@ public sealed partial class WpfMediaElementPlaybackBackend(MediaElement element,
     public void ApplySettings(MediaPlaybackSnapshot snapshot)
     {
         _directShow?.SetAudio(snapshot);
-        _videoSurface?.Stretch = snapshot.IsWidescreen ? Stretch.Uniform : Stretch.Fill;
+        var stretch = snapshot.PlayerDisplay != null ? Stretch.UniformToFill
+            : snapshot.IsWidescreen ? Stretch.Uniform : Stretch.Fill;
+        _videoSurface?.Stretch = stretch;
         _element.Volume = snapshot.Volume / 100d;
         _element.Balance = snapshot.Balance / 100d;
         _element.IsMuted = snapshot.IsMuted;
-        _element.Stretch = snapshot.IsWidescreen ? Stretch.Uniform : Stretch.Fill;
+        _element.Stretch = stretch;
     }
 
     private static Uri CreateSourceUri(MediaPlaybackSnapshot snapshot)

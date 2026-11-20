@@ -2,6 +2,8 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Axicultus.Wpf.Interop;
+using Axicultus.Wpf.Platform;
+using Axicultus.Wpf.Shell;
 
 namespace Axicultus.Wpf.Rendering;
 
@@ -32,6 +34,7 @@ public interface IPowerPointSlideShowControl
     bool HasOutputShow => false;
     Task SetBlackoutAsync(bool black) => Task.CompletedTask;
     bool OwnsOutputWindow(nint window) => false;
+    void RevealOutputAfterMedia(OutputWindowPlacement bounds, bool playerHadFocus) { }
     Task<int?> AdvanceOutputAsync(string path) => Task.FromResult<int?>(null);
 }
 
@@ -61,6 +64,8 @@ public sealed class NullPowerPointSlideShowControl : IPowerPointSlideShowControl
 public sealed class OfficePowerPointSlideShowControl : IPowerPointSlideShowControl, IDisposable
 {
     private readonly Lazy<OfficePptSession> _session;
+    private readonly IDisplayService? _displays;
+    private readonly IWindowPlacementService? _placement;
     private OfficePptSession.OutputShow? Output => _session.IsValueCreated ? _session.Value.CurrentOutput : null;
 
     public Task<int?> ReadOutputPositionAsync(string path) =>
@@ -73,13 +78,21 @@ public sealed class OfficePowerPointSlideShowControl : IPowerPointSlideShowContr
 
     public bool OwnsOutputWindow(nint window) => window != 0 && Output?.Handle == window;
 
+    public void RevealOutputAfterMedia(OutputWindowPlacement bounds, bool playerHadFocus)
+    {
+        if (Output is { Handle: not 0 } show)
+            DesktopWindowPlacement.RevealSlideShow(show.Handle, bounds, playerHadFocus);
+    }
+
     public Task<int?> AdvanceOutputAsync(string path) =>
         Output is { } show && string.Equals(System.IO.Path.GetFullPath(path), show.Path, StringComparison.OrdinalIgnoreCase)
             ? _session.Value.AdvanceShowAsync(show.Path) : Task.FromResult<int?>(null);
 
-    public OfficePowerPointSlideShowControl()
+    public OfficePowerPointSlideShowControl(IDisplayService? displays = null, IWindowPlacementService? placement = null)
         : this(static () => new OfficePptSession())
     {
+        _displays = displays;
+        _placement = placement;
     }
 
     internal OfficePowerPointSlideShowControl(Func<OfficePptSession> sessionFactory)
@@ -99,11 +112,15 @@ public sealed class OfficePowerPointSlideShowControl : IPowerPointSlideShowContr
         string outputMonitorName,
         CancellationToken cancellationToken)
     {
+        bool isOutput = request.Target == PowerPointSlideShowTarget.Output;
+        OutputWindowPlacement? bounds = isOutput && _displays != null && _placement != null
+            ? _placement.CreateOutputPlacement(_displays.GetPreferredDisplay(outputMonitorName), windowed: false)
+            : null;
         var started = await _session.Value.StartSlideShowAsync(
             request.FilePath,
             request.SlideNumber,
             outputMonitorName,
-            cancellationToken, request.Target == PowerPointSlideShowTarget.Output).ConfigureAwait(false);
+            cancellationToken, isOutput, bounds, bounds != null && DesktopWindowPlacement.IsSeparateAudienceMonitor(bounds)).ConfigureAwait(false);
         if (!started)
         {
             throw new InvalidOperationException("PowerPoint slide show window was not created.");

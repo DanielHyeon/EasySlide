@@ -8,6 +8,7 @@ namespace Axicultus.Wpf.Platform;
 public interface IWindowPlacementService
 {
     OutputWindowPlacement CreateOutputPlacement(OutputDisplay display, bool windowed);
+    OutputWindowPlacement CreateMediaPlacement(OutputDisplay display) => WindowPlacementService.PlaceOnDisplay(display, windowed: false);
     OutputWindowPlacement CreateStagePlacement(OutputDisplay display, bool windowed) =>
         WindowPlacementService.PlaceOnDisplay(display, windowed);
 }
@@ -39,6 +40,16 @@ public sealed class WindowPlacementService : IWindowPlacementService
         return PlaceConfiguredBounds(bounds, windowed) with
         {
             AsSingleMonitor = bounds.Custom && _settings?.Current.Operator.OutputAsSingle == true,
+        };
+    }
+
+    public OutputWindowPlacement CreateMediaPlacement(OutputDisplay display)
+    {
+        ArgumentNullException.ThrowIfNull(display);
+        var area = CreatePlacementBounds(display);
+        return new OutputWindowPlacement(area.Left, area.Top, area.Width, area.Height, IsWindowed: false)
+        {
+            AsSingleMonitor = area.Custom && _settings?.Current.Operator.OutputAsSingle == true,
         };
     }
 
@@ -135,9 +146,11 @@ public sealed class WindowPlacementService : IWindowPlacementService
     {
         0 => false,
         1 => true,
-        _ => options.DisplayCustomLeft != AxicultusSettingKeys.DisplayCustomLeft.DefaultValue
-            || options.DisplayCustomTop != AxicultusSettingKeys.DisplayCustomTop.DefaultValue
-            || options.DisplayCustomWidth != AxicultusSettingKeys.DisplayCustomWidth.DefaultValue,
+        // WinForms stores a width of 1 even when custom placement has never been selected.
+        _ => options.DisplayCustomWidth > 1 &&
+            (options.DisplayCustomLeft != AxicultusSettingKeys.DisplayCustomLeft.DefaultValue
+             || options.DisplayCustomTop != AxicultusSettingKeys.DisplayCustomTop.DefaultValue
+             || options.DisplayCustomWidth != AxicultusSettingKeys.DisplayCustomWidth.DefaultValue),
     };
 
     private sealed record DisplayBounds(double Left, double Top, double Width, double Height, bool Custom = false);

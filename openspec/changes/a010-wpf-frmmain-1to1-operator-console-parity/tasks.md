@@ -652,3 +652,16 @@ Evidence:
 - 2026-06-21 Release 배포 통과: `C:\EasiSlides\EasislidesNext`.
 - 2026-06-21 배포본 캡처 확인: `evidence/screenshots/2026-06-21/phase18-output-text-preview-header/wpf-output-text-preview-no-yellow-title-full.png`, `wpf-output-text-preview-no-yellow-title-crop.png`. 오른쪽 Output 텍스트 미리보기의 WPF 전용 노란 제목 header는 제거됐고, 노란색은 현재 행 강조로만 남는다.
 - 2026-06-21 좌우 위치 parity 재확인: `ClassicOutputLyricsScrollViewer` margin을 왼쪽 Preview content와 같은 `Thickness.Lg`로 맞췄고, 배포본 비교 캡처 `wpf-preview-output-text-position-parity-full.png`, `wpf-preview-output-text-position-parity-crop.png`에서 Preview/Output 텍스트 row가 같은 content inset으로 시작함을 확인했다.
+
+## Play Media on Output Monitor follow-up
+
+- [x] Open a dedicated WPF player in the configured audience area and retain the live slide when browsing the worship list.
+- [x] Place the native PowerPoint show and player on the same monitor. Keep the operator console accessible when it shares that monitor.
+- [x] Cover separate and windowed output, stopping playback, display changes and end-of-file in regression tests.
+- [x] Verify the worship-list context menu with a real PowerPoint show and isolated Axicultus settings.
+
+On 2026-11-20 the context menu played AVI and AV1 MP4 test clips over a native PowerPoint show. The secondary display measured 2560 × 1440 at 125% scaling. Sampling its center confirmed two changing video frames and the frontmost window. Escape and natural completion both revealed the same PowerPoint slide. Space paused and resumed playback. With global F9 and F10 enabled, blackout removed the video and restore returned to the slide. The AV1 clip also played when the console and the slide show shared the primary monitor.
+
+- [x] Correct inferred output placement for the WinForms default custom width of 1. Fill the automatic audience monitor independently of slide aspect ratio and background video size. Verify playback at all four corners and restore the original PowerPoint geometry.
+
+With a 4:3 slide setting, legacy custom width 1 and 50% background video size in an isolated profile, the previous WPF build opened a 575 × 400 player at desktop origin. After the fix, the AV1 MP4 produced two distinct frame colors near every corner of the 2560 × 1440 audience monitor and the 3440 × 1440 operator monitor. On the audience display the native slide occupied 1920 × 1440 before playback and was visible again after Escape and natural completion.

@@ -49,6 +49,8 @@ public sealed partial class MediaPlaybackViewModel : ObservableObject, IDisposab
         ApplySnapshot(_playback.Current);
     }
 
+    internal bool IsOutputPlayerVisible => _playback.Current is { PlayerDisplay: not null, State: MediaPlaybackState.Playing or MediaPlaybackState.Paused };
+    internal Shell.OutputDisplay? PlayerDisplay => _playback.Current.PlayerDisplay;
     internal bool HasFilePlayback => _playback.Current.SourceKind != MediaSourceKind.CaptureDevice && CanUsePlaybackControls();
 
     internal IRelayCommand? CommandFor(Input.MediaPlayerKeyAction action) => action switch

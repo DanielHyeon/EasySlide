@@ -13,6 +13,40 @@ namespace Axicultus.Wpf.Tests.Platform;
 
 public class WindowPlacementServiceTests
 {
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1200)]
+    public void ImportedDefaultWidthDoesNotActivateCustomPlacement(int savedLeft)
+    {
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        settings.Set(AxicultusSettingKeys.OutputPlacementMode, -1);
+        settings.Set(AxicultusSettingKeys.DisplayCustomWidth, 1);
+        settings.Set(AxicultusSettingKeys.DisplayCustomLeft, savedLeft);
+        settings.Set(AxicultusSettingKeys.IsMonitorWide, false);
+        var projector = new OutputDisplay("projector", "Projector", 3440, 0, 2560, 1440, 1.25);
+        var placement = new WindowPlacementService(settings);
+
+        placement.CreateOutputPlacement(projector, false).Should().Be(new OutputWindowPlacement(3760, 0, 1920, 1440, false));
+        WindowPlacementService.UsesCustomBounds(settings.Current.LiveOutput).Should().BeFalse();
+        placement.CreateMediaPlacement(projector).Should().Be(new OutputWindowPlacement(3440, 0, 2560, 1440, false));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void FullscreenMediaUsesTheWholeMonitorWhileSlidesKeepTheirAspectRatio(bool wide)
+    {
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        settings.Set(AxicultusSettingKeys.IsMonitorWide, wide);
+        var display = new OutputDisplay("left", "Left", -3440, 60, 3440, 1440, 1.5);
+        var placement = new WindowPlacementService(settings);
+
+        placement.CreateMediaPlacement(display).Should().Be(new OutputWindowPlacement(-3440, 60, 3440, 1440, false));
+        placement.CreateOutputPlacement(display, false).Width.Should().Be(wide ? 2560 : 1920);
+    }
+
     [Fact]
     public void ChangingAspectUpdatesTheCustomAudienceBoundsAtNegativeCoordinates()
     {
@@ -23,6 +57,7 @@ public class WindowPlacementServiceTests
         var service = new WindowPlacementService(settings);
         var display = new OutputDisplay("left", "Left", -1600, 0, 1600, 900, 1.5);
         service.CreateOutputPlacement(display, false).Height.Should().Be(1200);
+        service.CreateMediaPlacement(display).Should().Be(service.CreateOutputPlacement(display, false));
         settings.Set(AxicultusSettingKeys.IsMonitorWide, true);
         service.CreateOutputPlacement(display, false).Should().Be(new OutputWindowPlacement(-1600, 0, 1600, 900, false));
         ((IWindowPlacementService)service).CreateStagePlacement(display, false).Height.Should().Be(900);
@@ -164,6 +199,7 @@ public class WindowPlacementServiceTests
         var display = new OutputDisplay("stage", "side", -1920, 0, 1920, 1080, 1.5);
         placement.CreateStagePlacement(display, false).Should().Be(new OutputWindowPlacement(-1200,50,800,450,false));
         placement.CreateOutputPlacement(display, false).AsSingleMonitor.Should().BeTrue();
+        placement.CreateMediaPlacement(display).Should().Be(placement.CreateOutputPlacement(display, false));
     }
 
     private sealed class TempSettingsFolder : IDisposable

@@ -56,6 +56,21 @@ public class MediaPlaybackServiceTests
     }
 
     [Fact]
+    public void StandaloneFile_EndOfNonRepeatingClipReleasesTheAudiencePlayer()
+    {
+        using var playback = new MediaPlaybackService(new FakeMediaPlaybackBackend());
+        var path = Path.GetFullPath("welcome.mp4");
+        playback.Load(DefaultRequest() with { Source = path, IsRepeatEnabled = false, PlayerDisplay = Axicultus.Wpf.Shell.OutputDisplay.PrimaryFallback });
+        playback.Play();
+
+        playback.ReportFileEnded(path);
+
+        playback.Current.Should().Be(MediaPlaybackSnapshot.Empty);
+        playback.Play();
+        playback.Current.State.Should().Be(MediaPlaybackState.Empty);
+    }
+
+    [Fact]
     public void Load_CreatesReadySnapshotAndClampsAudioSettings()
     {
         var sut = new MediaPlaybackService();

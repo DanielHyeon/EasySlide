@@ -597,6 +597,11 @@ public partial class MainWindow : Window
             e.Handled = true;
             return;
         }
+        if (_viewModel.Media.IsOutputPlayerVisible && TryHandleMediaPlayerKey(e))
+        {
+            e.Handled = true;
+            return;
+        }
         if (IsShowArrow(e.Key))
         {
             e.Handled = true;

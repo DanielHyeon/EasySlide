@@ -28,6 +28,51 @@ public class AttachableMediaPlaybackBackendTests
     }
 
     [Fact]
+    public void StandaloneFile_KeepsItsPlayerWhenTheSlideWindowOpensOrCloses()
+    {
+        var player = new RecordingBackend();
+        var slides = new RecordingBackend();
+        int windowsCreated = 0;
+        using var bridge = new AttachableMediaPlaybackBackend(() => { windowsCreated++; return player; });
+        var clip = ReadyMedia("welcome.avi") with { PlayerDisplay = Axicultus.Wpf.Shell.OutputDisplay.PrimaryFallback };
+
+        bridge.Load(clip);
+        bridge.Play();
+        bridge.Attach(slides);
+        bridge.Detach();
+        bridge.Load(clip);
+        bridge.Play();
+
+        windowsCreated.Should().Be(1);
+        player.LoadCount.Should().Be(2);
+        player.PlayCount.Should().Be(2);
+        slides.LoadCount.Should().Be(0);
+        slides.PlayCount.Should().Be(0);
+
+        bridge.Attach(slides);
+        bridge.Load(ReadyMedia("background.avi"));
+        bridge.Play();
+        player.UnloadCount.Should().Be(1);
+        slides.LastLoaded!.Source.Should().Be("background.avi");
+        slides.PlayCount.Should().Be(1);
+    }
+
+    [Fact]
+    public void StoppingStandalonePlaybackDoesNotReattachTheFinishedClipToTheSlides()
+    {
+        var player = new RecordingBackend();
+        using var bridge = new AttachableMediaPlaybackBackend(() => player);
+        bridge.Load(ReadyMedia("welcome.mp4") with { PlayerDisplay = Axicultus.Wpf.Shell.OutputDisplay.PrimaryFallback });
+        bridge.Play();
+        bridge.Stop();
+
+        var slides = new RecordingBackend();
+        bridge.Attach(slides);
+        player.StopCount.Should().Be(1);
+        slides.LoadCount.Should().Be(0);
+    }
+
+    [Fact]
     public void AfterAttach_ForwardsCommandsToInner()
     {
         var inner = new RecordingBackend();

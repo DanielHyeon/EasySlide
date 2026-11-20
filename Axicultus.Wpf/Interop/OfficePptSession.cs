@@ -256,7 +256,7 @@ public sealed class OfficePptSession : IDisposable
         string filePath,
         int slideNumber,
         string outputMonitorName,
-        CancellationToken cancellationToken = default, bool isOutput = true)
+        CancellationToken cancellationToken = default, bool isOutput = true, Shell.OutputWindowPlacement? bounds = null, bool topmost = false)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
         ArgumentOutOfRangeException.ThrowIfLessThan(slideNumber, 1);
@@ -297,6 +297,12 @@ public sealed class OfficePptSession : IDisposable
             }
 
             ActivateShow(presentation, slideShowWindow, fullPath, isOutput);
+            // An already running Office instance may keep its previous monitor preference.
+            if (isOutput && bounds != null && _outputShow is { Handle: not 0 } show)
+            {
+                Platform.DesktopWindowPlacement.Apply(show.Handle, bounds);
+                Platform.DesktopWindowPlacement.SetTopmost(show.Handle, topmost);
+            }
             return true;
         });
     }
