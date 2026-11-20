@@ -29,9 +29,9 @@ public sealed class PreviewWindowTests
         var textBlocks = window.Descendants().Where(e => e.Name.LocalName == "TextBlock").ToArray();
 
         // 가사 Region1·Region2 본문 바인딩(이중 언어 곡도 스테이지에 보이도록).
-        var region1 = textBlocks.Single(
-            t => Attr(t, "Text").Contains("BodyText") && !Attr(t, "Text").Contains("BodyText2"));
-        var region2 = textBlocks.Single(t => Attr(t, "Text").Contains("BodyText2"));
+        var regions = window.Descendants().Where(e => e.Name.LocalName == "LyricParagraphSurface").ToArray();
+        var region1 = regions.Single(t => Attr(t, "Paragraph") == "{Binding StageParagraph}");
+        var region2 = regions.Single(t => Attr(t, "Paragraph") == "{Binding StageParagraph2}");
 
         // 본문 Visibility 는 효과 게이트(BodyTextVisibility — 외곽선/인터레이스 시 Collapsed)가 아니라 **본문 문자열 유무**로
         // 걸려야 한다 — 그래야 효과 켠 곡에서도 스테이지에 평문 가사가 계속 보인다(회귀 방지).
@@ -43,6 +43,6 @@ public sealed class PreviewWindowTests
         // 시계 자리 — 코드비하인드 타이머가 채우는 ClockText.
         textBlocks.Should().Contain(t => Attr(t, "Name") == "ClockText", "시계 TextBlock(ClockText) 존재");
         // 배경은 출력과 같은 SceneBackgroundBrush(회중 화면과 같은 톤).
-        Attr(window.Root!, "Background").Should().Contain("SceneBackgroundBrush");
+        Attr(window.Root!, "Background").Should().Contain("StageBackground");
     }
 }

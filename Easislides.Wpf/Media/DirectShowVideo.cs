@@ -1,5 +1,8 @@
 using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Linq;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -12,11 +15,22 @@ namespace Easislides.Wpf.Media;
 /// <summary>Displays decoded DirectShow video on a WPF image so blackout and alert overlays stay above it.</summary>
 internal sealed class DirectShowVideo : IDisposable
 {
-    private readonly Image _surface;
+    private Image _surface;
     private readonly DispatcherTimer _timer;
     private IFilterGraph2? _graph;
     private ISampleGrabber? _grabber;
-    private FrameBuffer? _frames;
+    private volatile FrameBuffer? _frames;
+    private FrameBuffer? _displayed;
+    private readonly CancellationTokenSource? _cameraStop;
+    private string? _devicePath;
+    private volatile bool _playing;
+    private readonly bool _embeddedAudio;
+    private volatile MediaPlaybackSnapshot? _cameraAudio;
+    private volatile string _cameraStatus = "";
+    internal Action<string>? SignalChanged { get; set; }
+    internal Action? FramePresented { get; set; }
+    internal Action<ImageSource?, bool>? PreviewChanged { get; set; }
+    private string? _lastSignal;
     private WriteableBitmap? _bitmap;
 
     private DirectShowVideo(Image surface)
@@ -26,10 +40,15 @@ internal sealed class DirectShowVideo : IDisposable
         _timer.Tick += DrawFrame;
     }
 
-    public DirectShowVideo(Image surface, int deviceNumber) : this(surface)
+    public DirectShowVideo(Image surface, int deviceNumber, string? devicePath = null, bool embeddedAudio = false) : this(surface)
     {
-        try { ConnectCamera(deviceNumber); }
-        catch { Dispose(); throw; }
+        _embeddedAudio = embeddedAudio;
+        _devicePath = devicePath;
+        _cameraStop = new CancellationTokenSource();
+        var token = _cameraStop.Token;
+        var thread = new Thread(() => CaptureCamera(deviceNumber, token)) { IsBackground = true, Name = "EasiSlides camera" };
+        thread.SetApartmentState(ApartmentState.MTA);
+        thread.Start();
     }
 
     public DirectShowVideo(Image surface, string file) : this(surface)
@@ -40,6 +59,66 @@ internal sealed class DirectShowVideo : IDisposable
     }
 
     internal string? FileName { get; }
+    internal string? CameraPath => Volatile.Read(ref _devicePath);
+
+    internal void PresentOn(Image surface)
+    {
+        var image = _surface.Source;
+        var transform = _surface.LayoutTransform;
+        _surface.Source = null;
+        _surface = surface;
+        _surface.LayoutTransform = transform;
+        _surface.Source = image;
+        PreviewChanged?.Invoke(image, _displayed?.BottomUp == true);
+    }
+    private void CaptureCamera(int deviceNumber, CancellationToken token)
+    {
+        try
+        {
+            while (!token.IsCancellationRequested)
+            {
+                try
+                {
+                    ConnectCamera(deviceNumber);
+                    MediaPlaybackSnapshot? previousAudio = null;
+                    bool running = false;
+                    _cameraStatus = "카메라 연결됨";
+                    while (!token.IsCancellationRequested)
+                    {
+                        var audio = _cameraAudio;
+                        if (audio != null && !ReferenceEquals(previousAudio, audio))
+                        {
+                            ApplyGraphAudio(audio);
+                            previousAudio = audio;
+                        }
+                        if (_playing != running)
+                        {
+                            running = _playing;
+                            var control = (IMediaControl)_graph!;
+                            DsError.ThrowExceptionForHR(running ? control.Run() : control.Pause());
+                        }
+                        var events = (IMediaEvent)_graph!;
+                        while (events.GetEvent(out var code, out var first, out var second, 0) == 0)
+                        {
+                            events.FreeEventParams(code, first, second);
+                            if (code is EventCode.DeviceLost or EventCode.ErrorAbort)
+                                throw new MediaPlaybackException("카메라 신호 없음");
+                        }
+                        if (token.WaitHandle.WaitOne(100)) break;
+                    }
+                }
+                catch (Exception ex) { _cameraStatus = "카메라 재연결 대기 · " + ex.Message; }
+                finally
+                {
+                    try { ReleaseGraph(); } catch (COMException ex) { _cameraStatus = ex.Message; }
+                    _frames = null;
+                }
+                if (token.WaitHandle.WaitOne(1500)) break;
+            }
+        }
+        finally { lock (_cameraStop!) _cameraStop.Dispose(); }
+    }
+
     private void ConnectCamera(int deviceNumber)
     {
         var devices = DsDevice.GetDevicesOfCat(FilterCategory.VideoInputDevice);
@@ -48,14 +127,23 @@ internal sealed class DirectShowVideo : IDisposable
         IBaseFilter? sink = null;
         try
         {
-            if (deviceNumber < 1 || deviceNumber > devices.Length) throw new MediaPlaybackException($"카메라 {deviceNumber}을(를) 찾을 수 없습니다.");
+            var device = _devicePath == null ? devices.ElementAtOrDefault(deviceNumber - 1)
+                : devices.FirstOrDefault(d => string.Equals(d.DevicePath, _devicePath, StringComparison.OrdinalIgnoreCase));
+            if (device == null) throw new MediaPlaybackException($"카메라 {deviceNumber}을(를) 찾을 수 없습니다.");
+            _devicePath = device.DevicePath;
             _graph = (IFilterGraph2)new FilterGraph();
             builder = (ICaptureGraphBuilder2)new CaptureGraphBuilder2();
             DsError.ThrowExceptionForHR(builder.SetFiltergraph(_graph));
-            var device = devices[deviceNumber - 1];
+
             DsError.ThrowExceptionForHR(_graph.AddSourceFilterForMoniker(device.Mon, null, device.Name, out source));
             sink = AddFrameSink();
             DsError.ThrowExceptionForHR(builder.RenderStream(PinCategory.Preview, MediaType.Video, source, (IBaseFilter)_grabber!, sink));
+            if (_embeddedAudio)
+            {
+                // A video-only device has no audio capture pin. Keep its video graph usable.
+                if (builder.RenderStream(PinCategory.Capture, MediaType.Audio, source, null, null) >= 0 && _graph is IBasicAudio audio)
+                    audio.put_Volume(-10000);
+            }
             BindFrames();
         }
         finally
@@ -95,11 +183,10 @@ internal sealed class DirectShowVideo : IDisposable
             if (header.BitCount != 24 || width is <= 0 or > 16384 || height is <= 0 or > 16384)
                 throw new MediaPlaybackException("영상 크기를 읽을 수 없습니다.");
             int stride = checked((width * 3 + 3) & ~3);
-            _bitmap = new WriteableBitmap(width, height, 96, 96, PixelFormats.Bgr24, null);
-            _frames = new FrameBuffer(stride, height);
-            DsError.ThrowExceptionForHR(_grabber.SetCallback(_frames, 1));
-            _surface.LayoutTransform = header.Height > 0 ? new ScaleTransform(1, -1) : Transform.Identity;
-            _surface.Source = _bitmap;
+            var frames = new FrameBuffer(width, stride, height, header.Height > 0, _cameraStop == null ? 0 : 30);
+            DsError.ThrowExceptionForHR(_grabber.SetCallback(frames, 1));
+            _frames = frames;
+            if (_cameraStop == null) AttachFrames(frames);
         }
         finally { DsUtils.FreeAMMediaType(format); }
     }
@@ -162,6 +249,12 @@ internal sealed class DirectShowVideo : IDisposable
 
     internal void SetAudio(MediaPlaybackSnapshot settings)
     {
+        if (_cameraStop != null) _cameraAudio = settings;
+        else ApplyGraphAudio(settings);
+    }
+
+    private void ApplyGraphAudio(MediaPlaybackSnapshot settings)
+    {
         if (_graph is not IBasicAudio audio) return;
         int volume = settings.IsMuted || settings.Volume == 0 ? -10000 : (int)(2000 * Math.Log10(settings.Volume / 100d));
         audio.put_Volume(volume);
@@ -186,41 +279,80 @@ internal sealed class DirectShowVideo : IDisposable
 
     public void Play()
     {
-        DsError.ThrowExceptionForHR(((IMediaControl)_graph!).Run());
+        if (_cameraStop != null) _playing = true;
+        else DsError.ThrowExceptionForHR(((IMediaControl)_graph!).Run());
         _timer.Start();
     }
 
     public void Pause()
     {
-        DsError.ThrowExceptionForHR(((IMediaControl)_graph!).Pause());
+        if (_cameraStop != null) _playing = false;
+        else DsError.ThrowExceptionForHR(((IMediaControl)_graph!).Pause());
         _timer.Stop();
     }
 
     public void Stop()
     {
         _timer.Stop();
-        if (_graph != null) DsError.ThrowExceptionForHR(((IMediaControl)_graph).Stop());
+        if (_cameraStop != null) _playing = false;
+        else if (_graph != null) DsError.ThrowExceptionForHR(((IMediaControl)_graph).Stop());
         if (FileName != null) Seek(TimeSpan.Zero);
     }
 
     private void DrawFrame(object? sender, EventArgs e)
     {
-        if (_bitmap != null) _frames?.Draw(_bitmap);
+        if (_cameraStop != null && _lastSignal != _cameraStatus)
+        {
+            _lastSignal = _cameraStatus;
+            SignalChanged?.Invoke(_cameraStatus);
+        }
+        var frames = _frames;
+        if (frames == null)
+        {
+            if (_displayed != null) { _displayed = null; _surface.Source = null; PreviewChanged?.Invoke(null, false); }
+            return;
+        }
+        if (!ReferenceEquals(frames, _displayed)) AttachFrames(frames);
+        if (frames.Draw(_bitmap!)) FramePresented?.Invoke();
     }
 
+    private void AttachFrames(FrameBuffer frames)
+    {
+        _bitmap = new WriteableBitmap(frames.Width, frames.Height, 96, 96, PixelFormats.Bgr24, null);
+        _surface.LayoutTransform = frames.BottomUp ? new ScaleTransform(1, -1) : Transform.Identity;
+        _surface.Source = _bitmap;
+        _displayed = frames;
+        PreviewChanged?.Invoke(_bitmap, frames.BottomUp);
+    }
+
+    private bool _disposed;
     public void Dispose()
     {
+        if (_disposed) return;
+        _disposed = true;
         _timer.Stop();
         _timer.Tick -= DrawFrame;
-        if (_graph != null) ((IMediaControl)_graph).Stop();
-        _grabber?.SetCallback(null, 1);
-        Release(_grabber);
-        Release(_graph);
-        _grabber = null;
-        _graph = null;
-        _frames = null;
+        if (_cameraStop != null) { lock (_cameraStop) _cameraStop.Cancel(); }
+        else ReleaseGraph();
         _surface.Source = null;
         _surface.LayoutTransform = Transform.Identity;
+        PreviewChanged?.Invoke(null, false);
+    }
+
+    private void ReleaseGraph()
+    {
+        try { if (_graph != null) ((IMediaControl)_graph).Stop(); }
+        finally
+        {
+            try { _grabber?.SetCallback(null, 1); }
+            finally
+            {
+                Release(_grabber);
+                Release(_graph);
+                _grabber = null;
+                _graph = null;
+            }
+        }
     }
 
     private static void Release(object? value)
@@ -229,9 +361,17 @@ internal sealed class DirectShowVideo : IDisposable
     }
 
     [ComVisible(true)]
-    private sealed class FrameBuffer(int stride, int height) : ISampleGrabberCB
+    internal sealed class FrameBuffer(int width, int stride, int height, bool bottomUp, int maxFrameRate = 0) : ISampleGrabberCB
     {
-        private readonly byte[] _pixels = new byte[checked(stride * height)];
+        public int Width => width;
+        public int Height => height;
+        public bool BottomUp => bottomUp;
+        private byte[] _pending = new byte[checked(stride * height)];
+        private byte[] _writing = new byte[checked(stride * height)];
+        private byte[] _reading = new byte[checked(stride * height)];
+        private int _writer;
+        private readonly long _minInterval = maxFrameRate > 0 ? Stopwatch.Frequency / maxFrameRate : 0;
+        private long _lastCopy;
         private readonly object _sync = new();
         private bool _updated;
 
@@ -239,23 +379,32 @@ internal sealed class DirectShowVideo : IDisposable
 
         public int BufferCB(double sampleTime, IntPtr buffer, int length)
         {
-            if (buffer == IntPtr.Zero || length < _pixels.Length) return 0;
-            lock (_sync)
+            if (buffer == IntPtr.Zero || length < _writing.Length || Interlocked.Exchange(ref _writer, 1) != 0) return 0;
+            try
             {
-                Marshal.Copy(buffer, _pixels, 0, _pixels.Length);
-                _updated = true;
+                if (_minInterval > 0)
+                {
+                    long now = Stopwatch.GetTimestamp();
+                    if (now - _lastCopy < _minInterval) return 0;
+                    _lastCopy = now;
+                }
+                Marshal.Copy(buffer, _writing, 0, _writing.Length);
+                lock (_sync) { (_writing, _pending) = (_pending, _writing); _updated = true; }
             }
+            finally { Volatile.Write(ref _writer, 0); }
             return 0;
         }
 
-        internal void Draw(WriteableBitmap target)
+        internal bool Draw(WriteableBitmap target)
         {
             lock (_sync)
             {
-                if (!_updated) return;
-                target.WritePixels(new Int32Rect(0, 0, target.PixelWidth, height), _pixels, stride, 0);
+                if (!_updated) return false;
+                (_reading, _pending) = (_pending, _reading);
                 _updated = false;
             }
+            target.WritePixels(new Int32Rect(0, 0, width, height), _reading, stride, 0);
+            return true;
         }
     }
 }

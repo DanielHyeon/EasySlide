@@ -33,6 +33,16 @@ public partial class OutputWindow : Window, IOutputSurface
     public OutputWindow()
     {
         InitializeComponent();
+        Loaded += (_, _) => UpdateScreenPower();
+        ContentArea.SizeChanged += (_, e) =>
+        {
+            var size = e.NewSize;
+            CameraCaption.MaxWidth = size.Width * .88;
+            CameraCaption.Margin = new Thickness(0, 0, 0, size.Height * .05);
+            var fontSize = Math.Max(12, size.Height * .05);
+            LowerThirdText.FontSize = fontSize;
+            CameraCaption.Padding = new Thickness(fontSize * .55, fontSize * .15, fontSize * .55, fontSize * .15);
+        };
     }
 
     /// <summary>
@@ -43,21 +53,31 @@ public partial class OutputWindow : Window, IOutputSurface
     private MediaPlaybackService? _playback;
     private WpfMediaElementPlaybackBackend? _mediaBackend;
 
-    public void AttachMedia(AttachableMediaPlaybackBackend bridge, MediaPlaybackService? playback = null)
+    public void AttachMedia(AttachableMediaPlaybackBackend bridge, MediaPlaybackService? playback = null, CameraOwnership? ownership = null)
     {
         _mediaBridge = bridge ?? throw new ArgumentNullException(nameof(bridge));
         _playback = playback;
+        if (_playback != null) _playback.PlaybackChanged += MediaChanged;
         _playbackClock.Tick += PlaybackTick;
         OutputMediaElement.MediaOpened += FileOpened;
         OutputMediaElement.MediaEnded += FileEnded;
         OutputMediaElement.MediaFailed += FileFailed;
-        _mediaBackend = new WpfMediaElementPlaybackBackend(OutputMediaElement, OutputCameraImage);
+        _mediaBackend = new WpfMediaElementPlaybackBackend(OutputMediaElement, OutputCameraImage, ownership);
         try { bridge.Attach(_mediaBackend); }
         catch (Exception ex) when (playback is not null)
         {
             bridge.Unload();
             playback.ReportBackendFailure(ex);
         }
+    }
+
+    private void MediaChanged(object? sender, MediaPlaybackChangedEventArgs args) => UpdateCameraPanel();
+
+    private void UpdateCameraPanel()
+    {
+        bool hide = _playback?.Current is { SourceKind: MediaSourceKind.CaptureDevice, State: MediaPlaybackState.Playing }
+            && _viewModel?.Options.CameraHidePanel == true;
+        CameraPanelHost.Visibility = hide ? Visibility.Collapsed : Visibility.Visible;
     }
 
     private void PlaybackTick(object? sender, EventArgs e)
@@ -109,11 +129,57 @@ public partial class OutputWindow : Window, IOutputSurface
         _playbackClock.Stop();
     }
 
+    private bool _keepDisplayOn;
+    private readonly System.Collections.Generic.List<System.Windows.Interop.HwndSource> _screenSaverSources = [];
+
+    [System.Runtime.InteropServices.DllImport("kernel32.dll")]
+    private static extern uint SetThreadExecutionState(uint flags);
+
+    private void OnOutputOptionChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(OutputWindowViewModel.Options)) { UpdateScreenPower(); UpdateCameraPanel(); }
+    }
+
+    private void UpdateScreenPower() => SetScreenPower(IsLoaded && _viewModel?.Options.PreventScreenSaver == true);
+
+    private void SetScreenPower(bool enable)
+    {
+        if (enable == _keepDisplayOn) return;
+        _keepDisplayOn = enable;
+        if (enable)
+        {
+            HookScreenSaver(this);
+            if (Application.Current?.MainWindow is { } main && main != this) HookScreenSaver(main);
+        }
+        else
+        {
+            foreach (var source in _screenSaverSources)
+                if (!source.IsDisposed) source.RemoveHook(FilterScreenSaver);
+            _screenSaverSources.Clear();
+        }
+        // ES_CONTINUOUS, with ES_DISPLAY_REQUIRED for the lifetime of the output window.
+        SetThreadExecutionState(enable ? 0x80000002u : 0x80000000u);
+    }
+
+    private void HookScreenSaver(Window window)
+    {
+        if (PresentationSource.FromVisual(window) is not System.Windows.Interop.HwndSource source) return;
+        source.AddHook(FilterScreenSaver);
+        _screenSaverSources.Add(source);
+    }
+
+    private static IntPtr FilterScreenSaver(IntPtr hwnd, int message, IntPtr wParam, IntPtr lParam, ref bool handled)
+    {
+        if (message == 0x0112 && (wParam.ToInt64() & 0xfff0) == 0xf140) handled = true;
+        return IntPtr.Zero;
+    }
+
     public void Bind(OutputWindowViewModel viewModel)
     {
         // 이전 ViewModel 구독 해제 — 윈도우 재바인딩 가능성에 대비.
         if (_viewModel is not null)
         {
+            _viewModel.PropertyChanged -= OnOutputOptionChanged;
             _viewModel.SceneChanging -= OnSceneChanging;
             _viewModel.SceneChanged -= OnSceneChanged;
         }
@@ -123,6 +189,8 @@ public partial class OutputWindow : Window, IOutputSurface
 
         if (_viewModel is not null)
         {
+            _viewModel.PropertyChanged += OnOutputOptionChanged;
+            UpdateScreenPower();
             _viewModel.SceneChanging += OnSceneChanging;
             _viewModel.SceneChanged += OnSceneChanged;
         }
@@ -855,7 +923,7 @@ public partial class OutputWindow : Window, IOutputSurface
         WindowState = WindowState.Normal;
         WindowStyle = placement.IsWindowed ? WindowStyle.SingleBorderWindow : WindowStyle.None;
         ResizeMode = placement.IsWindowed ? ResizeMode.CanResize : ResizeMode.NoResize;
-        Topmost = !placement.IsWindowed;
+        Topmost = !placement.IsWindowed && !placement.AsSingleMonitor;
         ShowInTaskbar = placement.IsWindowed;
         Platform.DesktopWindowPlacement.Apply(this, placement);
     }
@@ -885,6 +953,7 @@ public partial class OutputWindow : Window, IOutputSurface
 
     protected override void OnClosed(EventArgs e)
     {
+        SetScreenPower(false);
         StopWedge(); // 진행 중이던 시계 와이프 애니메이션 정리.
         if (_viewModel is not null)
         {
@@ -896,6 +965,7 @@ public partial class OutputWindow : Window, IOutputSurface
         // 미디어 브리지 분리 — 이 창의 MediaElement 가 사라지므로 백엔드를 떼어 이후 호출이 죽은 컨트롤에 닿지 않게 한다.
         _playbackClock.Stop();
         _playbackClock.Tick -= PlaybackTick;
+        if (_playback != null) _playback.PlaybackChanged -= MediaChanged;
         OutputMediaElement.MediaOpened -= FileOpened;
         OutputMediaElement.MediaEnded -= FileEnded;
         OutputMediaElement.MediaFailed -= FileFailed;

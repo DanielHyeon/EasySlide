@@ -106,10 +106,11 @@ public sealed class OutputWindowHost : IOutputWindowHost
             return;
         }
 
+        bool opening = _surface is null;
         EnsureSurface();
         _viewModel!.ApplyOutput(state);
         _surface!.ApplyPlacement(state.Placement);
-        _surface.Show();
+        if (opening) _surface.Show();
     }
 
     private void EnsureSurface()

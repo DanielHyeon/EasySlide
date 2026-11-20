@@ -402,6 +402,9 @@
                     <MenuItem.Icon><controls:FrmIcon Icon="closed_caption_off" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="Restart Current Item" Command="{Binding RestartCurrentItemCommand}" InputGestureText="F5" />
+                <MenuItem Header="카메라 하단 자막…" Click="OpenCameraCaptions_Click">
+                    <MenuItem.Icon><controls:FrmIcon Icon="closed_caption_off" Width="16" Height="16" /></MenuItem.Icon>
+                </MenuItem>
                 <Separator />
                 <MenuItem Header="More…">
                     <MenuItem Header="Preview를 Output으로 보내고 Black 해제"
@@ -3509,36 +3512,36 @@
                                         x:Name="PB_Manage"
                                         Tag="PB_Manage"
                                         Click="OpenPraiseBookIndex_Click"
-                                        Style="{StaticResource EsButton.Secondary}"
-                                        MinWidth="28"
-                                        MinHeight="28"
-                                        Padding="6,0"
+                                        Style="{StaticResource FrmMainButton}"
+                                        Width="28"
+                                        Height="28"
+                                        Padding="0"
                                         Margin="0,0,2,0"
                                         ToolTip="Manage PraiseBooks"
                                         AutomationProperties.Name="Manage PraiseBooks">
-                                    <controls:FrmIcon Icon="clipboard_task_list_ltr" Width="20" Height="20" />
+                                    <controls:FrmIcon Icon="clipboard_task_list_ltr" Width="18" Height="18" />
                                 </Button>
                                 <Button Grid.Column="2"
                                         x:Name="PB_Add"
                                         Tag="PB_Add"
                                         Click="InlinePraiseBookAddSelected_Click"
-                                        Style="{StaticResource EsButton.Secondary}"
-                                        MinWidth="28"
-                                        MinHeight="28"
-                                        Padding="6,0"
+                                        Style="{StaticResource FrmMainButton}"
+                                        Width="28"
+                                        Height="28"
+                                        Padding="0"
                                         Margin="0,0,2,0"
                                         ToolTip="Add selected song to PraiseBook"
                                         AutomationProperties.Name="Add to PraiseBook">
-                                    <controls:FrmIcon Icon="text_bullet_list_add" Width="20" Height="20" />
+                                    <controls:FrmIcon Icon="text_bullet_list_add" Width="18" Height="18" />
                                 </Button>
                                 <ToggleButton Grid.Column="3"
                                               x:Name="PB_WordCount"
                                               Tag="PB_WordCount"
                                               Click="PB_WordCount_Click"
-                                              Style="{StaticResource ClassicOutputToggleButton}"
+                                              Style="{StaticResource ClassicTopToolStripToggleButton}"
                                               Width="28"
                                               Height="28"
-                                              Padding="6,0"
+                                              Padding="0"
                                               Margin="0,0,2,0"
                                               IsChecked="{Binding IsWordCountSortEnabled, Mode=OneWay}"
                                               ToolTip="Sort by CJK Word Count"
@@ -3548,61 +3551,63 @@
                                 <Button Grid.Column="4"
                                         x:Name="InlinePraiseBookOpenBookButton"
                                         Click="InlinePraiseBookOpenBook_Click"
-                                        Style="{StaticResource EsButton.Secondary}"
+                                        Style="{StaticResource FrmMainButton}"
                                         Width="28"
                                         Height="28"
-                                        Padding="6,0"
+                                        Padding="0"
                                         Margin="0,0,2,0"
-                                        Content="O"
                                         ToolTip="Open selected Praise Book"
-                                        AutomationProperties.Name="Open selected Praise Book" />
+                                        AutomationProperties.Name="Open selected Praise Book">
+                                    <controls:FrmIcon Icon="folder_open" Width="18" Height="18" />
+                                </Button>
                                 <Button Grid.Column="5"
                                         Click="InlinePraiseBookRefresh_Click"
-                                        Style="{StaticResource EsButton.Secondary}"
+                                        Style="{StaticResource FrmMainButton}"
                                         Width="28"
                                         Height="28"
-                                        Padding="6,0"
+                                        Padding="0"
                                         Margin="0,0,2,0"
-                                        Content="R"
                                         ToolTip="Refresh Praise Book index"
-                                        AutomationProperties.Name="Refresh Praise Book index" />
+                                        AutomationProperties.Name="Refresh Praise Book index">
+                                    <controls:FrmIcon Icon="arrow_clockwise" Width="18" Height="18" />
+                                </Button>
                                 <Button Grid.Column="6"
                                         x:Name="PB_Delete"
                                         Tag="PB_Delete"
                                         Click="InlinePraiseBookDeleteSelected_Click"
-                                        Style="{StaticResource EsButton.Secondary}"
-                                        MinWidth="28"
-                                        MinHeight="28"
-                                        Padding="6,0"
+                                        Style="{StaticResource FrmMainButton}"
+                                        Width="28"
+                                        Height="28"
+                                        Padding="0"
                                         Margin="0,0,2,0"
                                         ToolTip="Delete"
                                         AutomationProperties.Name="Delete selected PraiseBook items">
-                                    <controls:FrmIcon Icon="delete" Width="20" Height="20" />
+                                    <controls:FrmIcon Icon="delete" Width="18" Height="18" />
                                 </Button>
                                 <Button Grid.Column="7"
                                         x:Name="PB_Word"
                                         Tag="PB_Word"
                                         Click="InlinePraiseBookExportRtf_Click"
-                                        Style="{StaticResource EsButton.Secondary}"
-                                        MinWidth="28"
-                                        MinHeight="28"
-                                        Padding="6,0"
+                                        Style="{StaticResource FrmMainButton}"
+                                        Width="28"
+                                        Height="28"
+                                        Padding="0"
                                         Margin="0,0,2,0"
                                         ToolTip="Generate RTF Document"
                                         AutomationProperties.Name="Generate PraiseBook RTF document">
-                                    <controls:FrmIcon Icon="document_text" Width="20" Height="20" />
+                                    <controls:FrmIcon Icon="document_text" Width="18" Height="18" />
                                 </Button>
                                 <Button Grid.Column="8"
                                         x:Name="PB_Html"
                                         Tag="PB_Html"
                                         Click="InlinePraiseBookExportHtml_Click"
-                                        Style="{StaticResource EsButton.Secondary}"
-                                        MinWidth="28"
-                                        MinHeight="28"
-                                        Padding="6,0"
+                                        Style="{StaticResource FrmMainButton}"
+                                        Width="28"
+                                        Height="28"
+                                        Padding="0"
                                         ToolTip="Generate HTML Document"
                                         AutomationProperties.Name="Generate PraiseBook HTML document">
-                                    <controls:FrmIcon Icon="code" Width="20" Height="20" />
+                                    <controls:FrmIcon Icon="code" Width="18" Height="18" />
                                 </Button>
                             </Grid>
 
@@ -3687,13 +3692,15 @@
                                            Foreground="{DynamicResource Brush.Text.Tertiary}" />
                                 <Button Grid.Column="1"
                                         Click="OpenPraiseBookIndex_Click"
-                                        Style="{StaticResource EsButton.Secondary}"
+                                        Style="{StaticResource FrmMainButton}"
                                         Width="28"
                                         Height="28"
-                                        Content="W"
+                                        Padding="0"
                                         ToolTip="Open Praise Book window"
                                         Margin="8,0,0,0"
-                                        AutomationProperties.Name="Open Praise Book window" />
+                                        AutomationProperties.Name="Open Praise Book window">
+                                    <controls:FrmIcon Icon="tab_desktop_multiple" Width="18" Height="18" />
+                                </Button>
                             </Grid>
                         </Grid>
                     </TabItem>
@@ -3909,12 +3916,12 @@
                                                                     <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Primary}" />
                                                                     <Style.Triggers>
                                                                         <DataTrigger Binding="{Binding IsCurrent}" Value="True">
-                                                                            <Setter Property="Foreground" Value="White" />
+                                                                            <Setter Property="Foreground" Value="{Binding DataContext.PreviewSelectionForeground, RelativeSource={RelativeSource AncestorType=ItemsControl}}" />
                                                                         </DataTrigger>
                                                                     </Style.Triggers>
                                                                 </Style>
                                                             </Button.Style>
-                                                            <Border BorderThickness="0"
+                                                            <Border BorderThickness="{Binding DataContext.PreviewDividerThickness, RelativeSource={RelativeSource AncestorType=ItemsControl}}" BorderBrush="{DynamicResource Brush.Border.Default}"
                                                                     Padding="4,3"
                                                                     MinHeight="24">
                                                                 <Border.Width>
@@ -3926,14 +3933,21 @@
                                                                     <Style TargetType="Border">
                                                                         <Setter Property="Background" Value="{DynamicResource Brush.Surface.Page}" />
                                                                         <Style.Triggers>
+                                                                        <MultiDataTrigger>
+                                                                            <MultiDataTrigger.Conditions>
+                                                                                <Condition Binding="{Binding DataContext.PreviewFocusColorEnabled, RelativeSource={RelativeSource AncestorType=ItemsControl}}" Value="True" />
+                                                                                <Condition Binding="{Binding IsKeyboardFocusWithin, RelativeSource={RelativeSource AncestorType=ItemsControl}}" Value="True" />
+                                                                            </MultiDataTrigger.Conditions>
+                                                                            <Setter Property="Background" Value="{Binding DataContext.PreviewFocusBrush, RelativeSource={RelativeSource AncestorType=ItemsControl}}" />
+                                                                        </MultiDataTrigger>
                                                                             <DataTrigger Binding="{Binding IsCurrent}" Value="True">
-                                                                                <Setter Property="Background" Value="#005FB8" />
+                                                                                <Setter Property="Background" Value="{Binding DataContext.PreviewSelectionBackground, RelativeSource={RelativeSource AncestorType=ItemsControl}}" />
                                                                             </DataTrigger>
                                                                         </Style.Triggers>
                                                                     </Style>
                                                                 </Border.Style>
                                                                 <StackPanel>
-                                                                    <TextBlock Text="{Binding SectionHeading}" FontSize="12" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}">
+                                                                    <TextBlock Text="{Binding SectionHeading}" FontSize="{Binding DataContext.PreviewFontDip, RelativeSource={RelativeSource AncestorType=ItemsControl}}" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}">
                                                                         <TextBlock.Style>
                                                                             <Style TargetType="TextBlock"><Style.Triggers>
                                                                                 <DataTrigger Binding="{Binding SectionHeading}" Value=""><Setter Property="Visibility" Value="Collapsed" /></DataTrigger>
@@ -3943,7 +3957,7 @@
                                                                     <TextBlock Text="{Binding BodyText}"
                                                                            TextWrapping="Wrap"
                                                                            FontFamily="Microsoft Sans Serif"
-                                                                           FontSize="13"
+                                                                           FontSize="{Binding DataContext.PreviewFontDip, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                                            Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
                                                                 </StackPanel>
                                                             </Border>
@@ -4969,6 +4983,16 @@
                                    x:Name="ClassicOutputTopStrip"
                                    Orientation="Horizontal"
                                    HorizontalAlignment="Right">
+                            <Button x:Name="OutputCameraDeviceButton" Click="OutputDevice_Click"
+                                    Style="{StaticResource FrmMainButton}" Padding="0" Margin="0" Width="26" Height="26"
+                                    ToolTip="송출 카메라 선택" AutomationProperties.Name="송출 카메라 선택">
+                                <ui:SymbolIcon Symbol="Video24" FontSize="16"/>
+                            </Button>
+                            <Button x:Name="OutputMicrophoneDeviceButton" Click="OutputDevice_Click"
+                                    Style="{StaticResource FrmMainButton}" Padding="0" Margin="0" Width="26" Height="26"
+                                    ToolTip="송출 마이크와 목적지 선택" AutomationProperties.Name="송출 마이크와 목적지 선택">
+                                <ui:SymbolIcon Symbol="Mic24" FontSize="16"/>
+                            </Button>
                             <ToggleButton x:Name="cbOutputBlack"
                                           Tag="cbOutputBlack"
                                           Command="{Binding ToggleOutputBlackCommand}"
@@ -5054,19 +5078,19 @@
                                                             <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Primary}" />
                                                             <Style.Triggers>
                                                                 <DataTrigger Binding="{Binding IsCurrent}" Value="True">
-                                                                    <Setter Property="Foreground" Value="#A33F00" />
+                                                                    <Setter Property="Foreground" Value="{Binding DataContext.PreviewSelectionForeground, RelativeSource={RelativeSource AncestorType=ItemsControl}}" />
                                                                 </DataTrigger>
                                                                 <MultiDataTrigger>
                                                                     <MultiDataTrigger.Conditions>
                                                                         <Condition Binding="{Binding IsCurrent}" Value="True" />
                                                                         <Condition Binding="{Binding DataContext.IsOutputLiveActive, RelativeSource={RelativeSource AncestorType=ItemsControl}}" Value="True" />
                                                                     </MultiDataTrigger.Conditions>
-                                                                    <Setter Property="Foreground" Value="White" />
+                                                                    <Setter Property="Foreground" Value="{Binding DataContext.PreviewSelectionForeground, RelativeSource={RelativeSource AncestorType=ItemsControl}}" />
                                                                 </MultiDataTrigger>
                                                             </Style.Triggers>
                                                         </Style>
                                                     </Button.Style>
-                                                    <Border BorderThickness="0"
+                                                    <Border BorderThickness="{Binding DataContext.PreviewDividerThickness, RelativeSource={RelativeSource AncestorType=ItemsControl}}" BorderBrush="{DynamicResource Brush.Border.Default}"
                                                             Padding="4,3"
                                                             MinHeight="24">
                                                         <Border.Width>
@@ -5078,21 +5102,28 @@
                                                             <Style TargetType="Border">
                                                                 <Setter Property="Background" Value="{DynamicResource Brush.Surface.Page}" />
                                                                 <Style.Triggers>
+                                                                        <MultiDataTrigger>
+                                                                            <MultiDataTrigger.Conditions>
+                                                                                <Condition Binding="{Binding DataContext.PreviewFocusColorEnabled, RelativeSource={RelativeSource AncestorType=ItemsControl}}" Value="True" />
+                                                                                <Condition Binding="{Binding IsKeyboardFocusWithin, RelativeSource={RelativeSource AncestorType=ItemsControl}}" Value="True" />
+                                                                            </MultiDataTrigger.Conditions>
+                                                                            <Setter Property="Background" Value="{Binding DataContext.PreviewFocusBrush, RelativeSource={RelativeSource AncestorType=ItemsControl}}" />
+                                                                        </MultiDataTrigger>
                                                                     <DataTrigger Binding="{Binding IsCurrent}" Value="True">
-                                                                        <Setter Property="Background" Value="#FDEDE3" />
+                                                                        <Setter Property="Background" Value="{Binding DataContext.PreviewSelectionBackground, RelativeSource={RelativeSource AncestorType=ItemsControl}}" />
                                                                     </DataTrigger>
                                                                     <MultiDataTrigger>
                                                                         <MultiDataTrigger.Conditions>
                                                                             <Condition Binding="{Binding IsCurrent}" Value="True" />
                                                                             <Condition Binding="{Binding DataContext.IsOutputLiveActive, RelativeSource={RelativeSource AncestorType=ItemsControl}}" Value="True" />
                                                                         </MultiDataTrigger.Conditions>
-                                                                        <Setter Property="Background" Value="#C4500A" />
+                                                                        <Setter Property="Background" Value="{Binding DataContext.PreviewSelectionBackground, RelativeSource={RelativeSource AncestorType=ItemsControl}}" />
                                                                     </MultiDataTrigger>
                                                                 </Style.Triggers>
                                                             </Style>
                                                         </Border.Style>
                                                         <StackPanel>
-                                                            <TextBlock Text="{Binding SectionHeading}" FontSize="12" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}">
+                                                            <TextBlock Text="{Binding SectionHeading}" FontSize="{Binding DataContext.PreviewFontDip, RelativeSource={RelativeSource AncestorType=ItemsControl}}" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}">
                                                                 <TextBlock.Style>
                                                                     <Style TargetType="TextBlock"><Style.Triggers>
                                                                         <DataTrigger Binding="{Binding SectionHeading}" Value=""><Setter Property="Visibility" Value="Collapsed" /></DataTrigger>
@@ -5102,7 +5133,7 @@
                                                             <TextBlock Text="{Binding BodyText}"
                                                                    TextWrapping="Wrap"
                                                                    FontFamily="Microsoft Sans Serif"
-                                                                   FontSize="13"
+                                                                   FontSize="{Binding DataContext.PreviewFontDip, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                                    Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
                                                         </StackPanel>
                                                     </Border>

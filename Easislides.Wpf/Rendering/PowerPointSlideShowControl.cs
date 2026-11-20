@@ -28,6 +28,7 @@ public interface IPowerPointSlideShowControl
         CancellationToken cancellationToken = default);
 
     Task StopAsync(CancellationToken cancellationToken = default);
+    Task<int?> ReadOutputPositionAsync(string path) => Task.FromResult<int?>(null);
 }
 
 public sealed class NullPowerPointSlideShowControl : IPowerPointSlideShowControl
@@ -56,6 +57,12 @@ public sealed class NullPowerPointSlideShowControl : IPowerPointSlideShowControl
 public sealed class OfficePowerPointSlideShowControl : IPowerPointSlideShowControl, IDisposable
 {
     private readonly Lazy<OfficePptSession> _session;
+    private volatile string? _outputPath;
+
+    public Task<int?> ReadOutputPositionAsync(string path) =>
+        _session.IsValueCreated && string.Equals(path, _outputPath, StringComparison.OrdinalIgnoreCase)
+            ? _session.Value.ReadShowPositionAsync(path)
+            : Task.FromResult<int?>(null);
 
     public OfficePowerPointSlideShowControl()
         : this(static () => new OfficePptSession())
@@ -88,6 +95,7 @@ public sealed class OfficePowerPointSlideShowControl : IPowerPointSlideShowContr
         {
             throw new InvalidOperationException("PowerPoint slide show window was not created.");
         }
+        _outputPath = request.Target == PowerPointSlideShowTarget.Output ? System.IO.Path.GetFullPath(request.FilePath) : null;
     }
 
     public Task TriggerNextAsync(
@@ -110,11 +118,13 @@ public sealed class OfficePowerPointSlideShowControl : IPowerPointSlideShowContr
         {
             throw new InvalidOperationException("PowerPoint slide show window was not available.");
         }
+        _outputPath = request.Target == PowerPointSlideShowTarget.Output ? System.IO.Path.GetFullPath(request.FilePath) : null;
     }
 
     public Task StopAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        _outputPath = null;
         return _session.IsValueCreated
             ? _session.Value.CloseAsync()
             : Task.CompletedTask;

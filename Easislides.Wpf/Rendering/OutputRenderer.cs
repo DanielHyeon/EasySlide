@@ -125,7 +125,8 @@ public sealed record LiveOutputRenderSettings(
     LyricsRegion2Emphasis LyricsMonitorRegion2Underline = LyricsRegion2Emphasis.FollowRegion1,
     bool ReferenceAlertScroll = true,
     bool ReferenceAlertFlash = false,
-    bool ReferenceAlertTransparent = false)
+    bool ReferenceAlertTransparent = false,
+    bool CameraHidePanel = false)
 {
     public static LiveOutputRenderSettings Default { get; } = new();
 
@@ -197,7 +198,7 @@ public sealed record LiveOutputRenderSettings(
             settings.Get(EasiSettingKeys.LyricsMonitorRegion2Underline),
             settings.Get(EasiSettingKeys.ReferenceAlertScroll),
             settings.Get(EasiSettingKeys.ReferenceAlertFlash),
-            settings.Get(EasiSettingKeys.ReferenceAlertTransparent));
+            settings.Get(EasiSettingKeys.ReferenceAlertTransparent), settings.Current.Operator.CameraHidePanel);
     }
 }
 
@@ -214,7 +215,8 @@ public sealed record OutputRenderRequest(
     TimeSpan TransitionDuration = default,
     TimeSpan TransitionElapsed = default,
     TransitionBackgroundMode BackgroundMode = TransitionBackgroundMode.BothBackgrounds,
-    LiveOutputRenderSettings? LiveOutputSettings = null);
+    LiveOutputRenderSettings? LiveOutputSettings = null,
+    GeneralSettings? General = null);
 
 public sealed record OutputSceneSnapshot(
     OutputSceneKind Kind,
@@ -447,6 +449,17 @@ public sealed class OutputRenderer : IOutputRenderer
         // 곡별 FormatData 색(있으면)은 Live 일 때만 운영 기본색을 이긴다(레거시 per-song 색).
         // 비-Live(숨김/블랙아웃/대기)에선 무시 → 운영 기본색 유지.
         var isLive = kind == OutputSceneKind.Live;
+        var copyright = isLive ? request.Session.CurrentItemCopyright : "";
+        var licenceLabel = "";
+        if (isLive && request.General is { } settings &&
+            (liveOutput.LyricsMonitorShowCopyright || (settings.LicenceOnFirstPage && request.Session.CurrentLyricsPageIndex == 0)))
+        {
+            var first = settings.FormatLicence(request.Session.LicenceAdmin1);
+            var second = settings.FormatLicence(request.Session.LicenceAdmin2);
+            licenceLabel = first.Length == 0 ? second : second.Length == 0 || first == second ? first : $"{first} · {second}";
+        }
+        if (licenceLabel.Length > 0)
+            copyright = liveOutput.LyricsMonitorShowCopyright && copyright.Length > 0 ? $"{copyright} · {licenceLabel}" : licenceLabel;
         var textColorArgb = isLive && request.Session.OverrideTextColorArgb is int songTextColor
             ? songTextColor
             : liveOutput.LyricsMonitorTextColorArgb;
@@ -542,6 +555,8 @@ public sealed class OutputRenderer : IOutputRenderer
                 ? liveOutput.LyricsMonitorFontSize2
                 : fontSizePx;
         // Region1 굵게/기울임 — 곡별 region1 비트(41)가 켜져 있으면 전역 설정을 덮어쓴다(없으면 전역 그대로).
+        if (isLive && request.Session.SongLayout != null && request.Session.OverrideFontSizePx2.HasValue)
+            fontSize2Px = Math.Max(1, (int)Math.Round(fontSize2Px * viewportWidth / 960d));
         var region1Bold = isLive && request.Session.OverrideBold1 == true ? true : liveOutput.LyricsMonitorBold;
         var region1Italic = isLive && request.Session.OverrideItalic1 == true ? true : liveOutput.LyricsMonitorItalic;
         // Region2 굵게 우선순위: 곡별 region2 비트(Live 한정) > 전역 region2 굵게(설정, FollowRegion1 아니면 On/Off) > Region1 효과 추종.
@@ -651,8 +666,8 @@ public sealed class OutputRenderer : IOutputRenderer
             liveOutput.LyricsMonitorShowTitleOnPanel,
             isLive && request.Session.CurrentItemNumber > 0 ? request.Session.CurrentItemNumber.ToString() : string.Empty,
             // 저작권 표시(설정) + 라벨(Live + 저작권 문자열). 비면 미표시.
-            liveOutput.LyricsMonitorShowCopyright,
-            isLive ? request.Session.CurrentItemCopyright : string.Empty,
+            liveOutput.LyricsMonitorShowCopyright || licenceLabel.Length > 0,
+            copyright,
             // 다음 항목 표시(설정) + 라벨(Live + 다음 항목 제목). 마지막 항목이면 빈 문자열 → 미표시.
             liveOutput.LyricsMonitorShowNextItem,
             isLive ? request.Session.CurrentItemNextTitle : string.Empty,
@@ -824,6 +839,10 @@ public sealed class OutputRenderer : IOutputRenderer
         {
             return false;
         }
+
+        if (string.Equals(session.CurrentItemKind, "CaptureDevice", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(session.CurrentItemKind, "Live Camera", StringComparison.OrdinalIgnoreCase))
+            return !settings.CameraHidePanel;
 
         if (settings.NoMediaPanelOverlay && IsMediaKind(session.CurrentItemKind))
         {

@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using LegacyKeys = System.Windows.Forms.Keys;
 using WpfKey = System.Windows.Input.Key;
@@ -35,6 +36,12 @@ public sealed class ShortcutRegistry
             var updated = new Registrations(current.Ordered.Add(shortcut), current.ByGesture.Add(gesture, shortcut));
             if (ReferenceEquals(Interlocked.CompareExchange(ref _registered, updated, current), current)) return;
         }
+    }
+
+    internal void ReplaceShortcuts(IEnumerable<Shortcut> shortcuts)
+    {
+        var list = shortcuts.DistinctBy(s => (s.Key, s.Modifiers)).ToImmutableList();
+        Volatile.Write(ref _registered, new Registrations(list, list.ToImmutableDictionary(s => (s.Key, s.Modifiers))));
     }
 
     public void Bind(string commandName, Action handler)

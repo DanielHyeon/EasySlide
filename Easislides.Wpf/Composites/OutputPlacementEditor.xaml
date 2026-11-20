@@ -46,5 +46,6 @@
                          AutomationProperties.Name="출력 모니터 폭" />
             </StackPanel>
         </Grid>
+        <TextBlock Text="{Binding AudienceHeight, StringFormat=송출 높이 {0} px}" />
     </StackPanel>
 </UserControl>

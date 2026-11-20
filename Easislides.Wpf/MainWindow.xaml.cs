@@ -73,6 +73,10 @@ public partial class MainWindow : Window
         _shortcuts = shortcuts;
         _services = services;
         _viewModel = viewModel;
+        _wasShowRunning = viewModel.IsShowRunning;
+        _liveMicrophones.Failed += message => viewModel.StatusText = message;
+        if (services.GetService<Captions.CaptionRecoveryStore>() is { } recovery)
+            _queueRecovery = new(viewModel, recovery);
         // 설정 서비스(창 배치 저장/복원). 해석 실패해도 창 동작에 지장 없도록 null 허용(복원/저장만 건너뜀).
         RefreshSample(true);
         RefreshSample(false);
@@ -94,6 +98,7 @@ public partial class MainWindow : Window
         // FrmMain식 멀티페인: 좌측 브라우저가 항상 보이므로 시작 시 곡 목록을 채운다(FrmMain 은 곡 목록을 즉시 표시).
         // 성경은 비용이 커 기존대로 "성경" 탭 첫 선택 시 지연 로드한다.
         Loaded += MainWindow_Loaded;
+        Loaded += StartObsControl;
     }
 
     // 창 런처(§7.4) — 명령 팔레트(⌘K)가 분리 창을 열 수 있도록 레지스트리에 등록.
@@ -118,10 +123,18 @@ public partial class MainWindow : Window
         Bind(MainCommandIds.ImportLegacyWorshipList, ImportLegacyWorshipList_Click);
     }
 
+    private readonly DispatcherTimer _displayRefresh = new() { Interval = TimeSpan.FromMilliseconds(250) };
+
+    private void RefreshAfterDisplayChange(object? sender, EventArgs e)
+    {
+        _displayRefresh.Stop();
+        if (IsLoaded) _viewModel.RefreshDisplays();
+    }
+
     private void OnDisplaySettingsChanged(object? sender, EventArgs e)
     {
         if (!Dispatcher.HasShutdownStarted)
-            Dispatcher.BeginInvoke(new Action(() => { if (IsLoaded) _viewModel.RefreshDisplays(); }));
+            Dispatcher.BeginInvoke(new Action(() => { if (IsLoaded) { _displayRefresh.Stop(); _displayRefresh.Start(); } }));
     }
 
     private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -524,6 +537,13 @@ public partial class MainWindow : Window
     // VM 의 자동 회전 상태/간격 변화를 받아 타이머를 시작·정지·재설정한다.
     private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
+        if (e.PropertyName == nameof(MainViewModel.IsShowRunning))
+        {
+            if (_wasShowRunning && !_viewModel.IsShowRunning) StopLocalLiveDevices();
+            _wasShowRunning = _viewModel.IsShowRunning;
+        }
+        if (e.PropertyName == nameof(MainViewModel.CurrentWorshipListName) && _captionConsole == null)
+            _services.GetService<Captions.CaptionSession>()?.BeginPlan(_viewModel.CurrentWorshipListName);
         if (e.PropertyName is nameof(MainViewModel.PreviewPanelItem) or nameof(MainViewModel.SampleScreenHeight)) RefreshSample(true);
         if (e.PropertyName is nameof(MainViewModel.OutputItem) or nameof(MainViewModel.OutputScreenStatus) or nameof(MainViewModel.SampleScreenHeight)) RefreshSample(false);
         if (e.PropertyName is nameof(MainViewModel.IsAutoRotating) or nameof(MainViewModel.AutoRotateIntervalSeconds))
@@ -574,6 +594,11 @@ public partial class MainWindow : Window
         // FrmMain 의 flowLayoutPreviewPowerPoint/flowLayoutOutputPowerPoint_KeyUp 대응:
         // PPT 썸네일 영역에 포커스가 있으면 방향키/Space/Home/End 는 전역 Space/F 단축키보다
         // 해당 Preview/Output 슬라이드 네비게이션으로 먼저 처리한다.
+        if (_services.GetService<Captions.ObsOperator>()?.TrySceneShortcut(e) == true)
+        {
+            e.Handled = true;
+            return;
+        }
         if (TryHandlePreviewOutputPowerPointKey(e))
         {
             e.Handled = true;
@@ -636,12 +661,12 @@ public partial class MainWindow : Window
 
         if (ClassicPreviewPowerPointThumbnailGrid.IsKeyboardFocusWithin || ClassicPreviewPowerPointSurface.IsKeyboardFocusWithin)
         {
-            return TryExecutePreviewPowerPointKey(e.Key, modifiers);
+            return TryExecutePreviewPowerPointKey(RemapNavigationKey(e.Key, _viewModel.AlternateKeyboard), modifiers);
         }
 
         if (ClassicOutputThumbnailGrid.IsKeyboardFocusWithin || ClassicOutputPowerPointSurface.IsKeyboardFocusWithin)
         {
-            return TryExecuteOutputPowerPointKey(e.Key, modifiers);
+            return TryExecuteOutputPowerPointKey(RemapNavigationKey(e.Key, _viewModel.AlternateKeyboard), modifiers);
         }
 
         return false;
@@ -655,18 +680,26 @@ public partial class MainWindow : Window
             return false;
         }
 
+        var key = RemapNavigationKey(e.Key, _viewModel.AlternateKeyboard);
         if (IsOutputLyricsKeyboardFocusWithin())
         {
-            return TryExecuteOutputLyricsKey(e.Key, modifiers);
+            return TryExecuteOutputLyricsKey(key, modifiers);
         }
 
         if (IsPreviewLyricsKeyboardFocusWithin())
         {
-            return TryExecutePreviewLyricsKey(e.Key, modifiers);
+            return TryExecutePreviewLyricsKey(key, modifiers);
         }
 
         return false;
     }
+
+    internal static Key RemapNavigationKey(Key key, bool alternate) => alternate ? key switch
+    {
+        Key.Home => Key.Left, Key.PageUp => Key.Up, Key.PageDown => Key.Down, Key.End => Key.Right,
+        Key.Left => Key.Home, Key.Up => Key.PageUp, Key.Down => Key.PageDown, Key.Right => Key.End,
+        _ => key,
+    } : key;
 
     private bool IsPreviewLyricsKeyboardFocusWithin()
         => ClassicPreviewInfo.IsKeyboardFocusWithin
@@ -700,6 +733,19 @@ public partial class MainWindow : Window
                 ExecuteCommand(_viewModel.JumpToNextNonRotatePreviewItemCommand);
                 return true;
 
+            case Key.Left:
+                _viewModel.GoToPreviewLyricsPageCommand.Execute(0);
+                return true;
+            case Key.Right:
+                ExecuteCommand(_viewModel.GoToLastPreviewLyricsPageCommand);
+                return true;
+            case Key.PageUp:
+                ExecuteCommand(_viewModel.PreviousPreviewItemCommand);
+                return true;
+            case Key.PageDown:
+            case Key.Tab:
+                ExecuteCommand(_viewModel.NextPreviewItemCommand);
+                return true;
             case Key.Home:
                 ExecuteCommand(_viewModel.FirstPreviewItemCommand);
                 return true;
@@ -728,6 +774,19 @@ public partial class MainWindow : Window
                 ExecuteCommand(_viewModel.ToggleGapItemOptionCommand);
                 return true;
 
+            case Key.Left:
+                _viewModel.GoToOutputLyricsPageCommand.Execute(0);
+                return true;
+            case Key.Right:
+                ExecuteCommand(_viewModel.GoToLastOutputLyricsPageCommand);
+                return true;
+            case Key.PageUp:
+                ExecuteCommand(_viewModel.PreviousOutputItemCommand);
+                return true;
+            case Key.PageDown:
+            case Key.Tab:
+                ExecuteCommand(_viewModel.NextOutputItemCommand);
+                return true;
             case Key.Home:
                 ExecuteCommand(_viewModel.FirstOutputItemCommand);
                 return true;
@@ -779,8 +838,6 @@ public partial class MainWindow : Window
         switch (key)
         {
             case Key.Up:
-            case Key.Left:
-            case Key.PageUp:
                 if (previousCommand.CanExecute(null))
                 {
                     previousCommand.Execute(null);
@@ -789,8 +846,6 @@ public partial class MainWindow : Window
                 return true;
 
             case Key.Down:
-            case Key.Right:
-            case Key.PageDown:
             case Key.Space:
                 if (nextCommand.CanExecute(null))
                 {
@@ -1392,7 +1447,7 @@ public partial class MainWindow : Window
             string path = song != null ? options.FileName : screen != null ? screen.MediaPath ?? "" : _viewModel.DefaultMediaPath;
             if (options.Mode < 0 && path.Length > 0) options = options with { Mode = 2, FileName = path };
             var window = new Media.MediaAssignmentWindow(song?.Title ?? info?.Name ?? "기본 미디어 설정",
-                options, ResolveMediaInitialFolder(), _viewModel.OutputDisplays) { Owner = this };
+                options, ResolveMediaInitialFolder(), _viewModel.OutputDisplays, _services.GetService<Media.CameraOwnership>()) { Owner = this };
             if (window.ShowDialog() != true || options == window.Options) return;
             var savedOptions = window.Options;
             if (song != null)
@@ -1415,7 +1470,7 @@ public partial class MainWindow : Window
     {
         if (_alertsWindow is null)
         {
-            _alertsWindow = new OutputAlertsWindow(_viewModel, _services.GetRequiredService<ISettingsService>().Current.General.WorkingFolder) { Owner = this };
+            _alertsWindow = new OutputAlertsWindow(_viewModel, _services.GetRequiredService<ISettingsService>()) { Owner = this };
             _alertsWindow.Closed += (_, _) => _alertsWindow = null;
             _alertsWindow.Show();
         }
@@ -2676,7 +2731,7 @@ public partial class MainWindow : Window
                 UseShellExecute = true
             });
             if (IsEditableExternalMedia(filePath))
-                _recentEdits.Record(new(ResolveSongEditorDatabasePath(_viewModel), "file", filePath, Path.GetFileName(filePath)));
+                _recentEdits.Record(new(ResolveSongEditorDatabasePath(_viewModel), "file", filePath, Path.GetFileName(filePath)), _viewModel.EditHistoryLimit);
             _viewModel.StatusText = $"{sourceName} edit opened: {Path.GetFileName(filePath)}";
             return true;
         }
@@ -3130,11 +3185,16 @@ public partial class MainWindow : Window
         return false;
     }
 
+    private int _lastOptionsTab;
+
     private void OpenSettings_Click(object sender, RoutedEventArgs e)
     {
         var settingsWindow = _services.GetRequiredService<SettingsWindow>();
         settingsWindow.Owner = this;
+        var options = (SettingsWindowViewModel)settingsWindow.DataContext;
+        options.SelectedTabIndex = _lastOptionsTab;
         settingsWindow.ShowDialog();
+        _lastOptionsTab = options.SelectedTabIndex;
     }
 
     private void OpenLibrary_Click(object sender, RoutedEventArgs e)
@@ -3654,6 +3714,34 @@ public partial class MainWindow : Window
     }
 
     // 공지 화면(InfoScreen) — 자유 텍스트 안내를 입력해 회중 출력으로 송출(FrmInfoScreen 포팅).
+    private Captions.CaptionConsole? _captionConsole;
+
+    private async void StartObsControl(object sender, RoutedEventArgs e)
+    {
+        Loaded -= StartObsControl;
+        if (_services.GetService<Captions.ObsOperator>() is not { } obs) return;
+        await obs.StartAsync();
+        if (obs.AutoConnect && IsLoaded)
+        {
+            try { await _services.GetRequiredService<Captions.CaptionBroadcastServer>().StartAsync(); }
+            catch (Exception ex) { _viewModel.StatusText = "OBS 자막 서버 시작 실패 · " + ex.Message; }
+        }
+    }
+    private readonly Captions.QueueRecoveryJournal? _queueRecovery;
+
+    private void OpenCameraCaptions_Click(object sender, RoutedEventArgs e)
+    {
+        if (_captionConsole == null)
+        {
+            _captionConsole = new Captions.CaptionConsole(_viewModel, _services.GetRequiredService<Captions.CaptionSession>(),
+                _services.GetRequiredService<Captions.CaptionBroadcastServer>(), _services.GetRequiredService<Captions.CaptionRecoveryStore>(),
+                _services.GetRequiredService<Media.CameraOwnership>(), _services.GetRequiredService<Captions.ObsOperator>()) { Owner = this };
+            _captionConsole.Closed += (_, _) => _captionConsole = null;
+        }
+        _captionConsole.Show();
+        _captionConsole.Activate();
+    }
+
     private void OpenNoticeScreen_Click(object sender, RoutedEventArgs e) => OpenNoticeScreen(initialText: null);
 
     // 공지 화면 편집기를 연다(초기 텍스트가 있으면 미리 채워서). 성경 "공지 화면으로 복사"에서 재사용.
@@ -3700,7 +3788,7 @@ public partial class MainWindow : Window
         var window = new NoticeScreenWindow(noticeViewModel) { Owner = this };
         window.ShowDialog();
         if (noticeViewModel.SelectedScreen is { Length: > 0 } name)
-            _recentEdits.Record(new(ResolveSongEditorDatabasePath(viewModel), "info", name, name));
+            _recentEdits.Record(new(ResolveSongEditorDatabasePath(viewModel), "info", name, name), _viewModel.EditHistoryLimit);
 
         if (_inlineInfoScreens?.LoadCommand.CanExecute(null) == true)
         {
@@ -4539,6 +4627,7 @@ public partial class MainWindow : Window
     protected override void OnSourceInitialized(EventArgs e)
     {
         base.OnSourceInitialized(e);
+        _displayRefresh.Tick += RefreshAfterDisplayChange;
         Microsoft.Win32.SystemEvents.DisplaySettingsChanged += OnDisplaySettingsChanged;
         _viewModel.RefreshDisplays();
         RestoreWindowPlacement();
@@ -4556,6 +4645,7 @@ public partial class MainWindow : Window
         }
 
         base.OnClosing(e);
+        if (!e.Cancel) _captionConsole?.EndSession();
     }
 
     private void RestoreBrowserSplit()
@@ -4694,8 +4784,12 @@ public partial class MainWindow : Window
 
     protected override void OnClosed(EventArgs e)
     {
+        CloseLiveDevices();
         Microsoft.Win32.SystemEvents.DisplaySettingsChanged -= OnDisplaySettingsChanged;
+        _displayRefresh.Stop();
+        _displayRefresh.Tick -= RefreshAfterDisplayChange;
         _autoRotateTimer.Stop();
+        _queueRecovery?.Dispose();
         PreviewSample.Dispose();
         OutputSample.Dispose();
         _viewModel.PropertyChanged -= OnViewModelPropertyChanged;

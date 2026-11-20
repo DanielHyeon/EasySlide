@@ -202,9 +202,21 @@ public sealed class HookManagerGlobalKeySource : IGlobalKeySource
         Easislides.HookManager.KeyDown -= OnHookKeyDown;
     }
 
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern IntPtr GetForegroundWindow();
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern uint GetWindowThreadProcessId(IntPtr window, out uint process);
+
     private void OnHookKeyDown(object? sender, LegacyKeyEventArgs e)
     {
         if (e.Handled) return;
+        // Let the focused WPF control route arrows while typing or editing options.
+        if (e.KeyCode is LegacyKeys.Up or LegacyKeys.Down)
+        {
+            GetWindowThreadProcessId(GetForegroundWindow(), out uint process);
+            if (process == Environment.ProcessId) return;
+        }
         var args = new GlobalKeyEventArgs(e.KeyCode, e.Modifiers);
         KeyDown?.Invoke(this, args);
         e.Handled |= args.Handled;

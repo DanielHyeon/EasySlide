@@ -36,11 +36,21 @@ public sealed class WindowPlacementService : IWindowPlacementService
     {
         ArgumentNullException.ThrowIfNull(display);
         var bounds = CreatePlacementBounds(display);
-        return PlaceConfiguredBounds(bounds, windowed);
+        return PlaceConfiguredBounds(bounds, windowed) with
+        {
+            AsSingleMonitor = bounds.Custom && _settings?.Current.Operator.OutputAsSingle == true,
+        };
     }
 
-    public OutputWindowPlacement CreateStagePlacement(OutputDisplay display, bool windowed) =>
-        PlaceConfiguredBounds(new(display.X, display.Y, display.Width, display.Height), windowed);
+    public OutputWindowPlacement CreateStagePlacement(OutputDisplay display, bool windowed)
+    {
+        if (_settings?.Current.Operator is { StageCustom: true } options)
+        {
+            int height = Easislides.Core.SlideAspectRatio.HeightForWidth(options.StageWidth, _settings.Current.LiveOutput.IsMonitorWide);
+            return PlaceConfiguredBounds(new(options.StageLeft, options.StageTop, options.StageWidth, height, true), windowed);
+        }
+        return PlaceConfiguredBounds(new(display.X, display.Y, display.Width, display.Height), windowed);
+    }
 
     private OutputWindowPlacement PlaceConfiguredBounds(DisplayBounds bounds, bool windowed)
     {

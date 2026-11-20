@@ -97,14 +97,8 @@ public class OutputPlacementEditorTests
         var host = window.Descendants().SingleOrDefault(e => e.Name.LocalName == "OutputPlacementEditor");
         host.Should().NotBeNull("SettingsWindow 는 OutputPlacementEditor 컴포지트를 호스트해야 함");
 
-        // 위치 보존 — 컴포지트는 "간격 화면 페이드 전환" CheckBox 바로 뒤에 와야 한다
-        // (송출 탭 StackPanel 내 원래 자리). 위치가 틀어지면 레이아웃 회귀.
-        var siblings = host!.Parent!.Elements().ToList();
-        var index = siblings.IndexOf(host);
-        index.Should().BeGreaterThan(0);
-        var previous = siblings[index - 1];
-        previous.Attributes().Any(a => a.Name.LocalName == "AutomationProperties.Name" && a.Value == "간격 화면 페이드 전환")
-            .Should().BeTrue("컴포지트는 간격 화면 페이드 CheckBox 바로 뒤 원래 위치에 있어야 함");
+        host!.Ancestors().First(element => element.Name.LocalName == "TabItem")
+            .Attribute("Header")!.Value.Should().Be("모니터");
 
         // 이동한 바인딩은 윈도우에 더 이상 인라인되지 않는다(중복 정의 방지).
         HasAttributeValueContaining(window, "IsChecked", "DisplayAlwaysUseSecondaryMonitor").Should().BeFalse("보조 모니터 바인딩은 컴포지트로 이동");

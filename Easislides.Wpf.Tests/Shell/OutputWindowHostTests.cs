@@ -30,6 +30,7 @@ public class OutputWindowHostTests
         surfaces[0].ViewModel.Should().NotBeNull();
         surfaces[0].ViewModel!.IsOutputOpen.Should().BeTrue();
         surfaces[0].ViewModel!.OutputMonitorName.Should().Be("Display 2");
+        surfaces[0].ShowCount.Should().Be(1, "재배치 중에는 운영자 입력 포커스를 유지해야 한다");
     }
 
     [Fact]

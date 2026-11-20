@@ -268,6 +268,30 @@ public class AdminDatabaseRepositoryTests
     }
 
     [Fact]
+    public async Task FolderFormatEdits_UpdateAvailableColumnsAndPreserveUneditedFields()
+    {
+        using var fixture = AdminDatabaseFixture.Create();
+        fixture.CreateLegacySchema();
+        fixture.InsertFolder(1, "Morning", use: "True");
+        using (var connection = new SQLiteConnection($"Data Source={fixture.DatabasePath}"))
+        {
+            connection.Open();
+            using var schema = new SQLiteCommand(
+                "ALTER TABLE FOLDER ADD COLUMN Size0 INTEGER DEFAULT 31; ALTER TABLE FOLDER ADD COLUMN BridgeHeading TEXT", connection);
+            schema.ExecuteNonQuery();
+        }
+        var repository = new AdminDatabaseRepository();
+        var changes = new Dictionary<string, string> { ["BridgeHeading"] = "Bridge's heading" };
+        var result = await repository.SaveFolderAsync(fixture.DatabasePath, fixture.BackupRoot,
+            new SongFolderWriteModel(1, "Morning", true, FormatChanges: changes));
+        result.Succeeded.Should().BeTrue();
+        var folder = (await repository.GetSongFoldersAsync(fixture.DatabasePath)).Single();
+        folder.FormatFields!["BridgeHeading"].Should().Be("Bridge's heading");
+        folder.FormatFields["Size0"].Should().Be("31");
+        folder.FormatFields.Should().NotContainKey("Size1");
+    }
+
+    [Fact]
     public async Task SaveFolderAsync_CreatesBackupAndUpsertsFolderInTransaction()
     {
         using var fixture = AdminDatabaseFixture.Create();

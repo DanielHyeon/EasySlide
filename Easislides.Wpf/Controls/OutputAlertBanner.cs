@@ -1,9 +1,11 @@
 using System;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Threading;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using Easislides.Wpf.Shell;
+using Easislides.Wpf.Settings;
 
 namespace Easislides.Wpf.Controls;
 
@@ -13,11 +15,19 @@ public sealed class OutputAlertBanner : Border
         typeof(OutputAlertBanner), new PropertyMetadata(null, (sender, _) => ((OutputAlertBanner)sender).Refresh()));
     public OutputAlert? Alert { get => (OutputAlert?)GetValue(AlertProperty); set => SetValue(AlertProperty, value); }
 
+    public static readonly DependencyProperty AppearanceProperty = DependencyProperty.Register(nameof(Appearance), typeof(AlertAppearance),
+        typeof(OutputAlertBanner), new PropertyMetadata(null, (sender, _) => ((OutputAlertBanner)sender).Refresh()));
+    public AlertAppearance? Appearance { get => (AlertAppearance?)GetValue(AppearanceProperty); set => SetValue(AppearanceProperty, value); }
+
+    private readonly DispatcherTimer _expiry = new();
     private readonly TranslateTransform _offset = new();
-    private readonly TextBlock _label = new() { FontSize = 28, Foreground = Brushes.White, Padding = new Thickness(6) };
+    private readonly StyledAlertText _label = new() { Margin = new Thickness(6) };
 
     public OutputAlertBanner()
     {
+        _expiry.Tick += (_, _) => Refresh();
+        Loaded += (_, _) => Refresh();
+        Unloaded += (_, _) => _expiry.Stop();
         ClipToBounds = true;
         Child = _label;
         _label.RenderTransform = _offset;
@@ -29,11 +39,26 @@ public sealed class OutputAlertBanner : Border
     {
         BeginAnimation(OpacityProperty, null);
         _offset.BeginAnimation(TranslateTransform.XProperty, null);
-        Visibility = Alert is null ? Visibility.Collapsed : Visibility.Visible;
+        _expiry.Stop();
+        Visibility = Visibility.Collapsed;
         if (Alert is not { } alert) return;
-        Background = alert.Transparent ? Brushes.Transparent : Brushes.Black;
+        if (alert.ExpiresAt is { } end)
+        {
+            var remaining = end - DateTimeOffset.UtcNow;
+            if (remaining <= TimeSpan.Zero) return;
+            if (IsLoaded)
+            {
+                _expiry.Interval = remaining;
+                _expiry.Start();
+            }
+        }
+        Visibility = Visibility.Visible;
+        var style = Appearance ?? new AlertAppearance();
+        Background = alert.Transparent ? Brushes.Transparent : OperatorBrush.FromArgb(style.BackgroundArgb);
+        _label.Appearance = style;
+        VerticalAlignment = StyledAlertText.Vertical(style.Vertical);
         _label.Text = alert.Text;
-        _label.HorizontalAlignment = alert.Scroll ? HorizontalAlignment.Left : HorizontalAlignment.Center;
+        _label.HorizontalAlignment = alert.Scroll ? HorizontalAlignment.Left : StyledAlertText.Horizontal(style.Horizontal);
         if (alert.Flash)
             BeginAnimation(OpacityProperty, new DoubleAnimation(1, 0.2, TimeSpan.FromMilliseconds(750))
                 { AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever });

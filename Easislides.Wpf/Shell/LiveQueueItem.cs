@@ -14,6 +14,8 @@ public sealed record LiveQueueItem(string Id, string Title, string Kind = LiveIt
 
     /// <summary>저작권(CCLI 등) — 출력 "저작권 표시"(Display Panel) 설정 on 일 때 표시. 비면 미표시.</summary>
     public string Copyright { get; init; } = "";
+    public string LicenceAdmin1 { get; init; } = "";
+    public string LicenceAdmin2 { get; init; } = "";
 
     /// <summary>레거시 BOOK_REFERENCE — FrmOptions Reference_Source3(Book Reference) 알림에 사용.</summary>
     public string BookReference { get; init; } = "";
@@ -46,6 +48,7 @@ public sealed record LiveQueueItem(string Id, string Title, string Kind = LiveIt
         }
     }
 
+    public int? SourceFolderNo { get; init; }
     public Easislides.Wpf.Data.SongPageLayout? SongLayout { get; init; }
     [System.Text.Json.Serialization.JsonIgnore]
     public string? ProjectedSectionLabel { get; init; }

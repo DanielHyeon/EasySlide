@@ -1219,6 +1219,11 @@ public class OutputWindowViewModelTests
         settings.Set(EasiSettingKeys.LyricsMonitorPanelColorArgb, unchecked((int)0x66102040)).Succeeded.Should().BeTrue();
         settings.Set(EasiSettingKeys.LyricsMonitorPanelTextColorFollowRegion1, false).Succeeded.Should().BeTrue();
         settings.Set(EasiSettingKeys.LyricsMonitorPanelTextColorArgb, unchecked((int)0xFF112233)).Succeeded.Should().BeTrue();
+        settings.SetValues(new System.Collections.Generic.Dictionary<string, object>
+        {
+            ["operator.ReferenceForegroundArgb"] = unchecked((int)0xFF112233),
+            ["operator.ReferenceBackgroundArgb"] = unchecked((int)0x66102040)
+        }).Succeeded.Should().BeTrue();
         var sut = new OutputWindowViewModel(new OutputRenderer(new ImageAssetService(), new TransitionEffectService()), settings);
 
         sut.ApplySession(new LiveSessionSnapshot(

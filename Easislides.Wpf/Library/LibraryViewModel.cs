@@ -193,6 +193,22 @@ public sealed partial class LibraryViewModel : ObservableObject
     /// <summary>곡 데이터베이스 압축·정리(레거시 Tools Compact &amp; Repair) — 백업 후 VACUUM. 실패 시 복원.</summary>
     public IAsyncRelayCommand CompactDatabaseCommand { get; }
 
+    internal async Task LoadFolderOptionsAsync()
+    {
+        if (!TryResolveDatabasePath(out var path, out var message))
+        {
+            Folders.Clear();
+            StatusMessage = message;
+            return;
+        }
+        DatabasePath = path;
+        await RunBusyAsync(async () =>
+        {
+            Folders.ReplaceWith(await _adminDatabase.GetSongFoldersAsync(path).ConfigureAwait(true));
+            StatusMessage = Folders.Count == 0 ? "찬양 폴더가 없습니다." : "";
+        }).ConfigureAwait(true);
+    }
+
     public async Task LoadAsync()
     {
         if (!TryResolveDatabasePath(out var resolvedPath, out var message))

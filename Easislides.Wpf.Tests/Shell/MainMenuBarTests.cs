@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Xml.Linq;
 using FluentAssertions;
 using Xunit;
 
@@ -359,9 +360,9 @@ public class MainMenuBarTests
             "Output lyrics rows should fill the scroller width like FrmMain docked RichTextBox controls");
         outputLyricsSurface.Should().Contain("Text=\"{Binding BodyText}\"",
             "Output lyrics rows should show the full RichTextBox body without a separate page badge");
-        outputLyricsSurface.Should().Contain("<Setter Property=\"Background\" Value=\"#C4500A\" />",
+        outputLyricsSurface.Should().Contain("DataContext.PreviewSelectionBackground",
             "the current Output lyrics row should use the active FrmMain slide accent");
-        outputLyricsSurface.Should().Contain("<Setter Property=\"Foreground\" Value=\"White\" />",
+        outputLyricsSurface.Should().Contain("DataContext.PreviewSelectionForeground",
             "the current Output lyrics row should use white text on the active slide accent");
         var outputInfoSurface = SectionBetween(xaml, "x:Name=\"ClassicOutputInfo\"", "x:Name=\"ClassicOutputPowerPointSurface\"");
         outputInfoSurface.Should().NotContain("IsOutputHeaderTextVisible",
@@ -844,13 +845,14 @@ public class MainMenuBarTests
             "focused key routing should capture the current modifier state before dispatch");
         code.Should().Contain("AllowsFrmMainVerseKeyModifiers(modifiers)",
             "focused FrmMain Preview/Output surfaces should allow Shift verse shortcuts while still blocking Ctrl/Alt/Win");
-        code.Should().Contain("TryExecutePreviewLyricsKey(e.Key, modifiers)",
+        code.Should().Contain("RemapNavigationKey(e.Key, _viewModel.AlternateKeyboard)");
+        code.Should().Contain("TryExecutePreviewLyricsKey(key, modifiers)",
             "Preview lyrics focus should pass Shift state into legacy verse shortcut mapping");
-        code.Should().Contain("TryExecuteOutputLyricsKey(e.Key, modifiers)",
+        code.Should().Contain("TryExecuteOutputLyricsKey(key, modifiers)",
             "Output lyrics focus should pass Shift state into legacy verse shortcut mapping");
-        code.Should().Contain("TryExecutePreviewPowerPointKey(e.Key, modifiers)",
+        code.Should().Contain("TryExecutePreviewPowerPointKey(RemapNavigationKey(e.Key, _viewModel.AlternateKeyboard), modifiers)",
             "Preview PPT thumbnail focus should preserve FrmMain shifted verse shortcut handling");
-        code.Should().Contain("TryExecuteOutputPowerPointKey(e.Key, modifiers)",
+        code.Should().Contain("TryExecuteOutputPowerPointKey(RemapNavigationKey(e.Key, _viewModel.AlternateKeyboard), modifiers)",
             "Output PPT thumbnail focus should preserve FrmMain shifted verse shortcut handling");
         code.Should().Contain("VerseJumpKeyMap.MapKeyToLabel(key, modifiers)",
             "legacy shortcut mapping should distinguish Shift+B/P/W/Q/T from bare letter keys");
@@ -1638,6 +1640,32 @@ public class MainMenuBarTests
     }
 
     [Fact]
+    public void PraiseBookTab_UsesSharedToolbarIconsForEveryAction()
+    {
+        var tab = XDocument.Parse(Xaml).Descendants()
+            .Single(element => element.Name.LocalName == "TabItem" && (string?)element.Attribute("Tag") == "PraiseBook");
+        var actions = tab.Descendants().Where(element => element.Name.LocalName is "Button" or "ToggleButton").ToArray();
+        var iconName = XName.Get("FrmIcon", "clr-namespace:Easislides.Wpf.Controls");
+        foreach (var action in actions)
+        {
+            var isSortToggle = action.Name.LocalName == "ToggleButton";
+            var expectedStyle = isSortToggle ? "ClassicTopToolStripToggleButton" : "FrmMainButton";
+            var expectedSize = isSortToggle ? "16" : "18";
+            Assert.Equal("{StaticResource " + expectedStyle + "}", (string?)action.Attribute("Style"));
+            var icon = Assert.Single(action.Elements());
+            Assert.Equal(iconName, icon.Name);
+            Assert.Equal(expectedSize, (string?)icon.Attribute("Width"));
+            Assert.Equal(expectedSize, (string?)icon.Attribute("Height"));
+        }
+
+        var glyphs = actions.ToDictionary(action => (string)action.Attribute("AutomationProperties.Name")!,
+            action => (string)action.Elements().Single().Attribute("Icon")!);
+        Assert.Equal("folder_open", glyphs["Open selected Praise Book"]);
+        Assert.Equal("arrow_clockwise", glyphs["Refresh Praise Book index"]);
+        Assert.Equal("tab_desktop_multiple", glyphs["Open Praise Book window"]);
+    }
+
+    [Fact]
     public void LowerLeftPane_ExposesInlinePraiseBookPeerOfWorshipList()
     {
         var xaml = Xaml;
@@ -1900,9 +1928,9 @@ public class MainMenuBarTests
             "Preview lyrics rows should fill the scroller width like FrmMain docked RichTextBox controls");
         previewLyricsSurface.Should().Contain("Text=\"{Binding BodyText}\"",
             "Preview lyrics rows should show the full RichTextBox body without a separate page badge");
-        previewLyricsSurface.Should().Contain("<Setter Property=\"Background\" Value=\"#005FB8\" />",
+        previewLyricsSurface.Should().Contain("DataContext.PreviewSelectionBackground",
             "the current Preview lyrics row should use the active FrmMain slide accent");
-        previewLyricsSurface.Should().Contain("<Setter Property=\"Foreground\" Value=\"White\" />",
+        previewLyricsSurface.Should().Contain("DataContext.PreviewSelectionForeground",
             "the current Preview lyrics row should use white text on the active slide accent");
         previewLyricsSurface.Should().NotContain("<WrapPanel />");
         previewLyricsSurface.Should().NotContain("Width=\"180\"");

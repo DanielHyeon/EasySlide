@@ -95,6 +95,7 @@ public interface IBibleRepository
     /// 고유성(이름 중복) 검증은 호출자(VM)가 한다.
     /// </summary>
     bool RenameVersion(string workingFolder, string fileName, string newName);
+    bool SetVersionLayout(string workingFolder, string fileName, int folder, int fontSize) => false;
 
     /// <summary>
     /// 보이는 성경 버전의 표시 순서를 바꾼다(Biblefolder.DISPLAYORDER 를 주어진 파일 순서대로 0,1,2,… 재기록).
@@ -123,7 +124,11 @@ public interface IBibleRepository
 
 public sealed class BibleRepository : IBibleRepository
 {
-    private const string BibleListRelativePath = @"Admin\Database\EsBiblesList.db";
+    private readonly string? _catalogOverride;
+    public BibleRepository() { }
+    internal BibleRepository(string catalogOverride) => _catalogOverride = catalogOverride;
+    internal const string BibleListRelativePath = @"Admin\Database\EsBiblesList.db";
+    private string CatalogPath(string root) => _catalogOverride ?? Path.Combine(root, BibleListRelativePath);
     private const string BibleFolderRelativePath = "HolyBibles";
 
     public IReadOnlyList<BibleVersion> GetVersions(string workingFolder)
@@ -134,7 +139,7 @@ public sealed class BibleRepository : IBibleRepository
         }
 
         var root = Path.GetFullPath(workingFolder);
-        var bibleListPath = Path.Combine(root, BibleListRelativePath);
+        var bibleListPath = CatalogPath(root);
         if (!File.Exists(bibleListPath))
         {
             return [];
@@ -592,6 +597,21 @@ public sealed class BibleRepository : IBibleRepository
         }
     }
 
+    public bool SetVersionLayout(string workingFolder, string fileName, int folder, int fontSize)
+    {
+        if (string.IsNullOrWhiteSpace(workingFolder) || string.IsNullOrWhiteSpace(fileName)
+            || folder is < 1 or > 40 || fontSize is < 5 or > 200) return false;
+        var path = CatalogPath(Path.GetFullPath(workingFolder));
+        if (!File.Exists(path)) return false;
+        using var connection = OpenConnection(path);
+        using var command = connection.CreateCommand();
+        command.CommandText = "UPDATE Biblefolder SET SONGFOLDER=@folder, SIZE=@size WHERE FILENAME=@file AND DISPLAYORDER >= 0";
+        command.Parameters.AddWithValue("@folder", folder);
+        command.Parameters.AddWithValue("@size", fontSize);
+        command.Parameters.AddWithValue("@file", fileName);
+        return command.ExecuteNonQuery() == 1;
+    }
+
     public bool RenameVersion(string workingFolder, string fileName, string newName)
     {
         // 입력이 비면 변경 없음(VM 이 사전 검증하지만 저장소도 방어).
@@ -602,7 +622,7 @@ public sealed class BibleRepository : IBibleRepository
             return false;
         }
 
-        var bibleListPath = Path.Combine(Path.GetFullPath(workingFolder), BibleListRelativePath);
+        var bibleListPath = CatalogPath(Path.GetFullPath(workingFolder));
         if (!File.Exists(bibleListPath))
         {
             return false;
@@ -631,7 +651,7 @@ public sealed class BibleRepository : IBibleRepository
             return false;
         }
 
-        var bibleListPath = Path.Combine(Path.GetFullPath(workingFolder), BibleListRelativePath);
+        var bibleListPath = CatalogPath(Path.GetFullPath(workingFolder));
         if (!File.Exists(bibleListPath))
         {
             return false;
@@ -673,7 +693,7 @@ public sealed class BibleRepository : IBibleRepository
             return false;
         }
 
-        var bibleListPath = Path.Combine(Path.GetFullPath(workingFolder), BibleListRelativePath);
+        var bibleListPath = CatalogPath(Path.GetFullPath(workingFolder));
         if (!File.Exists(bibleListPath))
         {
             return false;
@@ -699,7 +719,7 @@ public sealed class BibleRepository : IBibleRepository
         }
 
         var root = Path.GetFullPath(workingFolder);
-        var bibleListPath = Path.Combine(root, BibleListRelativePath);
+        var bibleListPath = CatalogPath(root);
         var bibleFolder = Path.Combine(root, BibleFolderRelativePath);
 
         // 현재 보이는 파일명·숨김 행(파일명→이름)을 모은다.
@@ -769,7 +789,7 @@ public sealed class BibleRepository : IBibleRepository
         }
 
         var root = Path.GetFullPath(workingFolder);
-        var bibleListPath = Path.Combine(root, BibleListRelativePath);
+        var bibleListPath = CatalogPath(root);
         if (!File.Exists(bibleListPath))
         {
             return false;

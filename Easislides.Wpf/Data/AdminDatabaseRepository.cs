@@ -54,7 +54,8 @@ public sealed record SongFolderSummary(
     bool IsEnabled,
     int SongCount,
     int GroupStyle = 0,
-    SongPageLayout? SlideLayout = null);
+    SongPageLayout? SlideLayout = null,
+    IReadOnlyDictionary<string, string>? FormatFields = null);
 
 public sealed record SongSummary(
     int SongId,
@@ -72,7 +73,9 @@ public sealed record SongSummary(
     string UserReference = "",
     string Writer = "",
     string? Sequence = null,
-    string? FormatData = null);
+    string? FormatData = null,
+    string LicenceAdmin1 = "",
+    string LicenceAdmin2 = "");
 
 public sealed record SongDetail(
     int SongId,
@@ -147,7 +150,8 @@ public sealed record SongFolderWriteModel(
     int FolderNo,
     string Name,
     bool IsEnabled,
-    int? GroupStyle = null);
+    int? GroupStyle = null,
+    IReadOnlyDictionary<string, string>? FormatChanges = null);
 
 public sealed record SongWriteModel(
     int? SongId,
@@ -227,6 +231,9 @@ public interface IAdminDatabaseRepository
         string databasePath,
         string backupRoot,
         SongFolderWriteModel folder);
+
+    Task<AdminDatabaseWriteReport> SaveFoldersAsync(string databasePath, string backupRoot, IReadOnlyList<SongFolderWriteModel> folders)
+        => folders.Count == 1 ? SaveFolderAsync(databasePath, backupRoot, folders[0]) : throw new NotSupportedException();
 
     Task<AdminDatabaseWriteReport> SoftDeleteFoldersAsync(
         string databasePath,
@@ -357,6 +364,13 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
             AdminDatabaseWriteOperation.SaveFolder,
             (connection, transaction, outcome) => SaveFolder(connection, transaction, folder, outcome)));
     }
+
+    public Task<AdminDatabaseWriteReport> SaveFoldersAsync(string databasePath, string backupRoot, IReadOnlyList<SongFolderWriteModel> folders)
+        => Task.FromResult(ExecuteWrite(databasePath, backupRoot, AdminDatabaseWriteOperation.SaveFolder,
+            (connection, transaction, outcome) =>
+            {
+                foreach (var folder in folders) SaveFolder(connection, transaction, folder, outcome);
+            }));
 
     public Task<AdminDatabaseWriteReport> SoftDeleteFoldersAsync(
         string databasePath,
@@ -568,7 +582,7 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
                 f.Name,
                 f.Use,
                 {SelectColumn(folderColumns, "GroupStyle", "GroupStyle", "f")},
-                {string.Join(", ", new[] { "Size0", "Fontname0", "VPos0", "LMargin", "RMargin", "BMargin", "LineSpacing", "HeadingSize", "BIU0" }.Select(column => SelectColumn(folderColumns, column, column, "f")))},
+                {string.Join(", ", FolderFormatField.All.Select(field => SelectColumn(folderColumns, field.Column, field.Column, "f")))},
                 COUNT(s.SONGID) AS SongCount
             FROM FOLDER f
             LEFT JOIN SONG s ON s.FOLDERNO = f.FolderNo
@@ -580,6 +594,8 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
         var folders = new List<SongFolderSummary>();
         while (reader.Read())
         {
+            var formatting = FolderFormatField.All.Where(field => folderColumns.ContainsKey(field.Column))
+                .ToDictionary(field => field.Column, field => GetString(reader, field.Column));
             folders.Add(new SongFolderSummary(
                 GetInt(reader, "FolderNo"),
                 GetString(reader, "Name"),
@@ -590,7 +606,8 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
                     GetInt(reader, "Size0"), GetString(reader, "Fontname0"), GetInt(reader, "VPos0"),
                     GetInt(reader, "LMargin"), GetInt(reader, "RMargin"), GetInt(reader, "BMargin"),
                     double.TryParse(GetString(reader, "LineSpacing"), CultureInfo.InvariantCulture, out var spacing) && spacing is >= 0.5 and <= 2 ? spacing : 1,
-                    GetInt(reader, "HeadingSize"), GetInt(reader, "BIU0")) : null));
+                    GetInt(reader, "HeadingSize"), GetInt(reader, "BIU0")) { Fields = formatting } : null,
+                formatting));
         }
 
         return folders;
@@ -613,6 +630,8 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
                 {SelectColumn(columns, "KEY", "KEY")},
                 {SelectColumn(columns, "LYRICS", "LYRICS")},
                 {SelectColumn(columns, "COPYRIGHT", "COPYRIGHT")},
+                {SelectColumn(columns, "LICENCE_ADMIN1", "LICENCE_ADMIN1")},
+                {SelectColumn(columns, "LICENCE_ADMIN2", "LICENCE_ADMIN2")},
                 {SelectColumn(columns, "FORMATDATA", "FORMATDATA")},
                 {SelectColumn(columns, "SEQUENCE", "SEQUENCE")},
                 {SelectColumn(columns, "WRITER", "WRITER")},
@@ -643,7 +662,8 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
                 GetString(reader, "USER_REFERENCE"),
                 GetString(reader, "WRITER"),
                 GetString(reader, "SEQUENCE"),
-                GetString(reader, "FORMATDATA")));
+                GetString(reader, "FORMATDATA"),
+                GetString(reader, "LICENCE_ADMIN1"), GetString(reader, "LICENCE_ADMIN2")));
         }
 
         return songs;
@@ -866,6 +886,24 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
         }
 
         command.ExecuteNonQuery();
+        if (folder.FormatChanges is { Count: > 0 } edits)
+        {
+            using var format = connection.CreateCommand();
+            format.Transaction = transaction;
+            var assignments = new List<string>();
+            foreach (var (column, value) in edits)
+            {
+                var field = Array.Find(FolderFormatField.All, f => f.Column == column);
+                if (field is null || !folderColumns.ContainsKey(column) || !field.IsValid(value))
+                    throw new InvalidOperationException($"폴더 서식 값을 저장할 수 없습니다: {column}");
+                string parameter = $"@format{assignments.Count}";
+                assignments.Add($"{QuoteIdentifier(field.Column)} = {parameter}");
+                format.Parameters.AddWithValue(parameter, value);
+            }
+            format.CommandText = $"UPDATE FOLDER SET {string.Join(", ", assignments)} WHERE FolderNo = @folder";
+            format.Parameters.AddWithValue("@folder", folder.FolderNo);
+            format.ExecuteNonQuery();
+        }
         outcome.FolderNos.Add(folder.FolderNo);
     }
 

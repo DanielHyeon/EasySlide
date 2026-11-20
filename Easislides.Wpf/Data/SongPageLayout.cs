@@ -10,6 +10,24 @@ namespace Easislides.Wpf.Data;
 public sealed record SongPageLayout(int FontPoints, string FontName, int TopPercent,
     int LeftPercent, int RightPercent, int BottomPercent, double LineSpacing, int HeadingPercent, int FontStyleBits)
 {
+    public IReadOnlyDictionary<string, string>? Fields { get; init; }
+    internal string? Field(string name) => Fields != null && Fields.TryGetValue(name, out var value) && !string.IsNullOrWhiteSpace(value) ? value : null;
+    internal int? Integer(string name) => int.TryParse(Field(name), out int value) ? value : null;
+    internal double? Decimal(string name) => double.TryParse(Field(name), System.Globalization.CultureInfo.InvariantCulture, out double value) ? value : null;
+
+    internal string Heading(string original)
+    {
+        var key = original.Trim().ToLowerInvariant() switch
+        {
+            "prechorus" or "pre-chorus" or "pre chorus" => "PreChorusHeading",
+            "chorus" or "c" => "ChorusHeading",
+            "bridge" or "b" => "BridgeHeading",
+            "ending" or "e" => "EndingHeading",
+            _ => null,
+        };
+        return key != null ? Field(key) ?? original : original;
+    }
+
     internal (List<string> Bodies, List<string> Labels) Paginate(string lyrics, string? sequence,
         SongFormatData? format, double height, int panelPercent)
     {

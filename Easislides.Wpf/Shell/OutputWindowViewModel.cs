@@ -779,6 +779,47 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>WinForms launch display buffer width equivalent for the live body block.</summary>
+    private static readonly OperatorOptions DefaultOperatorOptions = new();
+    public OperatorOptions Options => _settings?.Current.Operator ?? DefaultOperatorOptions;
+    public Brush StageBackground => OperatorBrush.FromArgb(Options.StageBackgroundArgb);
+    public Brush StageForeground => OperatorBrush.FromArgb(Options.StageTextArgb);
+    public Brush StageHighlight => OperatorBrush.FromArgb(_settings?.Current.LiveOutput.LyricsMonitorHighlightColorArgb ?? Options.StageTextArgb);
+    public Controls.LyricParagraphStyle? StageParagraph => StageBody(_session.StageRegion1, BodyText);
+    public Controls.LyricParagraphStyle? StageParagraph2 => StageBody(_session.StageRegion2, BodyText2);
+    private Controls.LyricParagraphStyle? StageBody(LiveSessionSnapshot.StageText? rich, string fallback)
+    {
+        if (fallback.Length == 0) return null;
+        string text = Options.StageShowNotations ? rich?.WithChords ?? fallback : rich?.Lyrics ?? fallback;
+        var face = new Typeface(SystemFonts.MessageFontFamily, Options.StageItalic ? FontStyles.Italic : FontStyles.Normal,
+            Options.StageBold ? FontWeights.Bold : FontWeights.Normal, FontStretches.Normal);
+        return new(text, face, Options.StageFontPoints * 96d / 72, 1.2, StageForeground, TextAlignment.Center,
+            FlowDirection.LeftToRight, Options.StageUnderline, false, false, false, false, GetViewportWidth(_output),
+            GetViewportHeight(_output), Options.StageShowNotations ? rich?.ChordLines ?? [] : [], Options.StageNotationPoints * 100 / Options.StageFontPoints);
+    }
+
+    public Controls.LyricParagraphStyle? PrimaryParagraph { get; private set; }
+    public Controls.LyricParagraphStyle? SecondaryParagraph { get; private set; }
+    public Visibility PlainBodyVisibility => PrimaryParagraph == null ? BodyTextVisibility : Visibility.Collapsed;
+    public Visibility PlainOutlineVisibility => PrimaryParagraph == null ? BodyOutlineVisibility : Visibility.Collapsed;
+    public Visibility PlainSecondVisibility => SecondaryParagraph == null ? BodyText2Visibility : Visibility.Collapsed;
+    public double PrimaryRegionHeight => _session.SongLayout?.Integer("Vpos1") != null && SecondaryParagraph != null ? BodyTextMaxHeight : 0;
+    public double FolderHeadingSize => _session.SongLayout is { HeadingPercent: > 0 } folder ? Math.Max(1, BodyFontSize * folder.HeadingPercent / 100) : 26;
+    private int HeadingBits => _session.SongLayout is { } folder ? folder.Integer("HeadingOption") switch
+    {
+        1 => (folder.Integer("BIUHeading") ?? 0) | folder.FontStyleBits,
+        2 => folder.FontStyleBits,
+        _ => folder.Integer("BIUHeading") ?? 0,
+    } : 1;
+    public FontWeight FolderHeadingWeight => (HeadingBits & (_session.CurrentPageIsChorus ? 8 : 1)) != 0 ? FontWeights.Bold : FontWeights.Normal;
+    public FontStyle FolderHeadingStyle => (HeadingBits & (_session.CurrentPageIsChorus ? 16 : 2)) != 0 ? FontStyles.Italic : FontStyles.Normal;
+    public TextDecorationCollection? FolderHeadingDecorations => (HeadingBits & (_session.CurrentPageIsChorus ? 32 : 4)) != 0 ? TextDecorations.Underline : null;
+
+    public double MediaScale => Options.BackgroundVideoPercent / 100d;
+    public Point MediaOrigin => new(0.5, Options.BackgroundVideoAlignment / 2d);
+    public HorizontalAlignment ReferenceHorizontal => Controls.StyledAlertText.Horizontal(Options.Reference.Horizontal);
+    public VerticalAlignment ReferenceVertical => Controls.StyledAlertText.Vertical(Options.Reference.Vertical);
+    public Visibility RegionDividerVisibility => Options.RegionDivider && BodyText2Visibility == Visibility.Visible
+        && BodyText.Length > 0 && BodyText2.Length > 0 && InterlaceVisibility != Visibility.Visible ? Visibility.Visible : Visibility.Collapsed;
     public OutputAlert? MessageAlert => _session.State == LiveState.Active ? _session.MessageAlert : null;
     public OutputAlert? ParentalAlert => _session.State == LiveState.Active ? _session.ParentalAlert : null;
     public bool FitExternalText => _session.IsExternalTextPage;
@@ -994,7 +1035,7 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
             ContentPixelWidth: _contentPixelWidth,
             ContentPixelHeight: _contentPixelHeight,
             FillMode: _contentFillMode,
-            LiveOutputSettings: GetLiveOutputSettings()));
+            LiveOutputSettings: GetLiveOutputSettings(), General: _settings?.Current.General));
 
     private void ApplyScene(OutputSceneSnapshot scene)
     {
@@ -1079,7 +1120,7 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         BodyUnderline = scene.LyricsMonitorUnderline;
         PositionLabel = scene.PositionLabel;
         PositionIndicatorVisibility = scene.ShowsPositionIndicator ? Visibility.Visible : Visibility.Collapsed;
-        VerseHeadingText = scene.VerseHeadingLabel;
+        VerseHeadingText = _session.SongLayout?.Heading(scene.VerseHeadingLabel) ?? scene.VerseHeadingLabel;
         VerseHeadingVisibility = scene.ShowsVerseHeading ? Visibility.Visible : Visibility.Collapsed;
         ItemNumberText = scene.ItemNumberLabel;
         ItemNumberVisibility = scene.ShowsItemNumber ? Visibility.Visible : Visibility.Collapsed;
@@ -1114,7 +1155,12 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         BodyTextVisibility = (bodyShown && !scene.UsesBodyOutline) ? Visibility.Visible : Visibility.Collapsed;
         BodyOutlineVisibility = (bodyShown && scene.UsesBodyOutline) ? Visibility.Visible : Visibility.Collapsed;
         // 줄 교차(인터레이스): on + 두 영역이 다 보이면 줄을 번갈아 쌓고 기존 두 밴드를 숨긴다(아래에서 가시성 재정의).
+        ApplyFolderTypography();
         RebuildInterlacedLines(scene);
+        PrimaryParagraph = BuildParagraph(false, bodyShown && !scene.ShowsInterlace);
+        SecondaryParagraph = BuildParagraph(true, scene.ShowsBodyText2 && !scene.ShowsInterlace);
+        foreach (var name in ParagraphProperties) OnPropertyChanged(name);
+        OnPropertyChanged(nameof(RegionDividerVisibility));
         var panelOverlay = scene.ShowsPanelOverlay ? Visibility.Visible : Visibility.Collapsed;
         PanelOverlayVisibility = panelOverlay;
         ApplyGapLogo(scene, panelOverlay, bodyShown);
@@ -1146,9 +1192,11 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         {
             var regionGap = Math.Max(0, scene.LyricsMonitorRegionGapPx);
             var availableTextHeight = Math.Max(0, maxHeight - regionGap);
-            BodyTextMaxHeight = availableTextHeight * 0.67;
+            BodyTextMaxHeight = _session.SongLayout?.Integer("Vpos1") is int split
+                ? Math.Clamp(viewportHeight * split / 100.0 - headingTop, 0, availableTextHeight) : availableTextHeight * .67;
             BodyText2MaxHeight = Math.Max(0, availableTextHeight - BodyTextMaxHeight);
         }
+        OnPropertyChanged(nameof(RegionDividerVisibility));
         OnPropertyChanged(nameof(FitExternalText));
         OnPropertyChanged(nameof(BodyLayoutHeight));
         OnPropertyChanged(nameof(RegionOneLayoutHeight));
@@ -1157,6 +1205,48 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     // 줄 교차(인터레이스) 줄 목록을 다시 만든다 — Region1·Region2 본문을 줄 단위로 번갈아 쌓는다.
     // 각 줄은 자기 영역의 색·글꼴·크기·굵게·기울임·밑줄·정렬을 그대로 지닌다(ApplyScene 이 이미 계산한 영역별 VM 값 사용).
     // 인터레이스 중엔 기존 두 밴드(Region1 일반/외곽선·Region2)를 숨겨 교차 목록만 보이게 한다.
+    private static readonly string[] ParagraphProperties = [nameof(PrimaryParagraph), nameof(SecondaryParagraph),
+        nameof(StageParagraph), nameof(StageParagraph2), nameof(StageBackground), nameof(StageForeground), nameof(StageHighlight),
+        nameof(PlainBodyVisibility), nameof(PlainOutlineVisibility), nameof(PlainSecondVisibility),
+        nameof(PrimaryRegionHeight), nameof(FolderHeadingSize), nameof(FolderHeadingWeight), nameof(FolderHeadingStyle), nameof(FolderHeadingDecorations)];
+
+    private void ApplyFolderTypography()
+    {
+        if (_session.SongLayout is not { Fields: not null } folder) return;
+        int flags = folder.FontStyleBits >> (_session.CurrentPageIsChorus ? 3 : 0);
+        if (_session.OverrideBold1 == null) BodyFontWeight = (flags & 1) != 0 ? FontWeights.Bold : FontWeights.Normal;
+        if (_session.OverrideItalic1 == null) BodyFontStyle = (flags & 2) != 0 ? FontStyles.Italic : FontStyles.Normal;
+        if (_session.OverrideUnderline1 == null)
+        {
+            BodyUnderline = (flags & 4) != 0;
+            BodyTextDecorations = BodyUnderline ? TextDecorations.Underline : null;
+        }
+        BodyLineHeight = BodyFontSize * Math.Clamp(folder.LineSpacing, .5, 2);
+        if (folder.Integer("BIU1") is int second)
+        {
+            second >>= _session.CurrentPageIsChorus ? 3 : 0;
+            if (_session.OverrideBold2 == null) BodyFont2Weight = (second & 1) != 0 ? FontWeights.Bold : FontWeights.Normal;
+            if (_session.OverrideItalic2 == null) BodyFont2Style = (second & 2) != 0 ? FontStyles.Italic : FontStyles.Normal;
+            if (_session.OverrideUnderline2 == null) BodyText2Decorations = (second & 4) != 0 ? TextDecorations.Underline : null;
+        }
+    }
+
+    private Controls.LyricParagraphStyle? BuildParagraph(bool second, bool visible)
+    {
+        var folder = _session.SongLayout;
+        string text = second ? BodyText2 : BodyText;
+        int[] notes = second ? _session.NotationLines2 : _session.NotationLines;
+        if (!visible || text.Length == 0 || !(Options.LargestFont || Options.HangingIndent || notes.Length > 0 || folder?.Fields != null)) return null;
+        var family = (second ? BodyFont2Family : BodyFontFamily) as FontFamily ?? BodyFontFamily as FontFamily ?? SystemFonts.MessageFontFamily;
+        var face = new Typeface(family, second ? BodyFont2Style : BodyFontStyle, second ? BodyFont2Weight : BodyFontWeight, FontStretches.Normal);
+        int flags = second ? folder?.Integer("BIU1") ?? 0 : folder?.FontStyleBits ?? 0;
+        double leading = second ? folder?.Decimal("LineSpacing2") ?? BodyLineHeight / BodyFontSize : BodyLineHeight / BodyFontSize;
+        return new(text, face, second ? BodyFont2Size : BodyFontSize, leading, second ? SceneForegroundBrush2 : SceneForegroundBrush,
+            second ? BodyText2Alignment : BodyTextAlignment, (flags & 64) != 0 ? FlowDirection.RightToLeft : FlowDirection.LeftToRight,
+            (second ? BodyText2Decorations : BodyTextDecorations) != null, !second && BodyHasOutline, BodyHasShadow,
+            Options.HangingIndent, Options.LargestFont, BodyMaxWidth, second ? BodyText2MaxHeight : RegionOneLayoutHeight, notes, Options.NotationPercent);
+    }
+
     private void RebuildInterlacedLines(OutputSceneSnapshot scene)
     {
         InterlacedLines.Clear();
@@ -1173,13 +1263,13 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         {
             if (i < region1Lines.Length)
             {
-                InterlacedLines.Add(new InterlacedLine(region1Lines[i], SceneForegroundBrush, BodyFontFamily, BodyFontSize,
+                InterlacedLines.Add(new InterlacedLine(region1Lines[i], SceneForegroundBrush, BodyFontFamily, BodyFontSize * (Array.BinarySearch(_session.NotationLines, i) >= 0 ? Options.NotationPercent / 100d : 1),
                     BodyFontWeight, BodyFontStyle, BodyTextDecorations, BodyTextAlignment, BodyLineHeight));
             }
 
             if (i < region2Lines.Length)
             {
-                InterlacedLines.Add(new InterlacedLine(region2Lines[i], SceneForegroundBrush2, BodyFont2Family, BodyFont2Size,
+                InterlacedLines.Add(new InterlacedLine(region2Lines[i], SceneForegroundBrush2, BodyFont2Family, BodyFont2Size * (Array.BinarySearch(_session.NotationLines2, i) >= 0 ? Options.NotationPercent / 100d : 1),
                     BodyFont2Weight, BodyFont2Style, BodyText2Decorations, BodyText2Alignment, BodyLineHeight));
             }
         }
@@ -1541,10 +1631,11 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
 
     private void ApplyReferenceAlertBrushes(OutputSceneSnapshot scene)
     {
-        var normalBackground = scene.ReferenceAlertTransparent ? Brushes.Transparent : PanelBackgroundBrush;
+        var normalBackground = scene.ReferenceAlertTransparent ? Brushes.Transparent :
+            _settings is null ? PanelBackgroundBrush : OperatorBrush.FromArgb(Options.Reference.BackgroundArgb);
         if (!scene.ReferenceAlertFlash || !_referenceAlertFlashAlternate)
         {
-            ReferenceAlertForegroundBrush = PanelForegroundBrush;
+            ReferenceAlertForegroundBrush = _settings is null ? PanelForegroundBrush : OperatorBrush.FromArgb(Options.Reference.ForegroundArgb);
             ReferenceAlertBackgroundBrush = normalBackground;
             return;
         }
@@ -1584,7 +1675,16 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
 
     private void OnSettingsChanged(object? sender, SettingsChangedEventArgs args)
     {
-        if (ContainsLiveOutputSetting(args.ChangedKeys))
+        bool operatorChanged = System.Linq.Enumerable.Any(args.ChangedKeys, key => key.StartsWith("operator.", StringComparison.Ordinal));
+        if (operatorChanged)
+        {
+            OnPropertyChanged(nameof(Options));
+            OnPropertyChanged(nameof(MediaScale));
+            OnPropertyChanged(nameof(MediaOrigin));
+            OnPropertyChanged(nameof(ReferenceHorizontal));
+            OnPropertyChanged(nameof(ReferenceVertical));
+        }
+        if (operatorChanged || ContainsLiveOutputSetting(args.ChangedKeys))
         {
             RefreshDisplayText();
         }
@@ -1805,6 +1905,7 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
                 // 정보 패널 곡 제목 표시 토글도 라이브 출력에 즉시 반영(Def_PanelTitle).
                 string.Equals(key, EasiSettingKeys.LyricsMonitorShowTitleOnPanel.Id, StringComparison.OrdinalIgnoreCase) ||
                 // 저작권 표시 토글도 라이브 출력에 즉시 반영(Display Panel).
+                key.StartsWith("general.licence", StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, EasiSettingKeys.LyricsMonitorShowCopyright.Id, StringComparison.OrdinalIgnoreCase) ||
                 // 다음 항목 표시 토글도 라이브 출력에 즉시 반영(Display Panel PrevNext).
                 string.Equals(key, EasiSettingKeys.LyricsMonitorShowNextItem.Id, StringComparison.OrdinalIgnoreCase) ||

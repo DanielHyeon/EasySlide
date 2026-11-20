@@ -98,6 +98,8 @@ public sealed class PowerPointRenderService : IPowerPointRenderService, IDisposa
     private readonly IThumbnailCache _cache;
     private readonly ISettingsService? _settings;
     private readonly ThumbnailCache? _settingsBackedCache;
+    private readonly PowerPointDiskCache? _diskCache;
+    private long _diskLimit;
 
     public PowerPointRenderService(IPowerPointRenderBackend backend)
         : this(backend, new ThumbnailCache())
@@ -110,13 +112,16 @@ public sealed class PowerPointRenderService : IPowerPointRenderService, IDisposa
         _cache = cache ?? throw new ArgumentNullException(nameof(cache));
     }
 
-    public PowerPointRenderService(IPowerPointRenderBackend backend, ISettingsService settings)
+    public PowerPointRenderService(IPowerPointRenderBackend backend, ISettingsService settings, string? diskDirectory = null)
     {
         ArgumentNullException.ThrowIfNull(settings);
 
         _backend = backend ?? throw new ArgumentNullException(nameof(backend));
         _settings = settings;
-        _settingsBackedCache = new ThumbnailCache(CreateThumbnailCacheOptions(settings));
+        var options = CreateThumbnailCacheOptions(settings);
+        _settingsBackedCache = new ThumbnailCache(options);
+        _diskCache = diskDirectory == null ? null : new PowerPointDiskCache(diskDirectory);
+        _diskLimit = options.MaxBytes;
         _cache = _settingsBackedCache;
         _settings.SettingsChanged += OnSettingsChanged;
     }
@@ -143,6 +148,17 @@ public sealed class PowerPointRenderService : IPowerPointRenderService, IDisposa
                 stopwatch.Elapsed);
         }
 
+        if (normalized.UseCache && _diskCache != null && Interlocked.Read(ref _diskLimit) > 0)
+        {
+            var stored = await _diskCache.ReadAsync(cacheKey, Interlocked.Read(ref _diskLimit)).ConfigureAwait(false);
+            if (cancellationToken.IsCancellationRequested) return Failure(PowerPointRenderErrorKind.Cancelled, "Cancelled", stopwatch.Elapsed);
+            if (stored != null)
+            {
+                var restored = stored with { FilePath = normalized.FilePath };
+                Store(cacheKey, restored);
+                return new(PowerPointRenderErrorKind.None, restored, null, true, stopwatch.Elapsed);
+            }
+        }
         if (!CanOpenForRead(normalized.FilePath, out var readFailure))
         {
             return Complete(readFailure, stopwatch.Elapsed);
@@ -169,6 +185,8 @@ public sealed class PowerPointRenderService : IPowerPointRenderService, IDisposa
 
             var slide = await renderTask.ConfigureAwait(false);
             Store(cacheKey, slide);
+            if (_diskCache != null && Interlocked.Read(ref _diskLimit) > 0)
+                await _diskCache.StoreAsync(cacheKey, slide, Interlocked.Read(ref _diskLimit)).ConfigureAwait(false);
             return new PowerPointRenderResult(
                 PowerPointRenderErrorKind.None,
                 slide,
@@ -207,7 +225,11 @@ public sealed class PowerPointRenderService : IPowerPointRenderService, IDisposa
         }
     }
 
-    public void ClearCache() => _cache.Clear();
+    public void ClearCache()
+    {
+        _cache.Clear();
+        _diskCache?.Trim(0);
+    }
 
     public void Dispose()
     {
@@ -273,7 +295,10 @@ public sealed class PowerPointRenderService : IPowerPointRenderService, IDisposa
             return;
         }
 
-        _settingsBackedCache.UpdateOptions(CreateThumbnailCacheOptions(_settings));
+        var options = CreateThumbnailCacheOptions(_settings);
+        _settingsBackedCache.UpdateOptions(options);
+        Interlocked.Exchange(ref _diskLimit, options.MaxBytes);
+        _diskCache?.Trim(options.MaxBytes);
     }
 
     private static bool CanOpenForRead(string path, out PowerPointRenderResult failure)

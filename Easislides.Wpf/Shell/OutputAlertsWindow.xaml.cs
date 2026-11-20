@@ -1,3 +1,5 @@
+using System;
+using Easislides.Wpf.Settings;
 using Easislides.Wpf.Controls;
 using System.IO;
 using System.Linq;
@@ -12,9 +14,21 @@ public partial class OutputAlertsWindow : Window
 
     private readonly string _historyDirectory;
 
-    public OutputAlertsWindow(MainViewModel model, string workingFolder)
+    private readonly ISettingsService _settings;
+
+    public OutputAlertsWindow(MainViewModel model, ISettingsService settings)
     {
         InitializeComponent();
+        _settings = settings;
+        var options = settings.Current.General;
+        var workingFolder = options.WorkingFolder;
+        Prefix.Text = options.ParentalAlertHeading;
+        MessageFlash.IsChecked = options.MessageAlertFlash;
+        MessageScroll.IsChecked = options.MessageAlertScroll;
+        MessageTransparent.IsChecked = options.MessageAlertTransparent;
+        ParentalFlash.IsChecked = options.ParentalAlertFlash;
+        ParentalScroll.IsChecked = options.ParentalAlertScroll;
+        ParentalTransparent.IsChecked = options.ParentalAlertTransparent;
         DataContext = model;
         _session = model.Session;
         _historyDirectory = string.IsNullOrWhiteSpace(workingFolder) ? "" : Path.Combine(workingFolder, "Admin", "Database");
@@ -37,7 +51,8 @@ public partial class OutputAlertsWindow : Window
         while (input.Items.Count > AlertHistory.Limit) input.Items.RemoveAt(input.Items.Count - 1);
         input.Text = text;
         SaveHistory(input, parental);
-        var banner = new OutputAlert((prefix + " " + text).Trim(), flash.IsChecked == true, scroll.IsChecked == true, transparent.IsChecked == true);
+        var banner = new OutputAlert((prefix + " " + text).Trim(), flash.IsChecked == true, scroll.IsChecked == true, transparent.IsChecked == true,
+            DateTimeOffset.UtcNow.AddSeconds(parental ? _settings.Current.General.ParentalAlertDuration : _settings.Current.General.MessageAlertDuration));
         _session.SetAudienceAlert(parental, banner);
     }
 

@@ -8,7 +8,7 @@ using Easislides.Wpf.Settings;
 
 namespace Easislides.Wpf.Shell;
 
-public sealed record OutputAlert(string Text, bool Flash, bool Scroll, bool Transparent);
+public sealed record OutputAlert(string Text, bool Flash, bool Scroll, bool Transparent, DateTimeOffset? ExpiresAt = null);
 
 public sealed record LiveSessionSnapshot(
     LiveState State,
@@ -99,8 +99,18 @@ public sealed record LiveSessionSnapshot(
     OutputAlert? MessageAlert = null,
     OutputAlert? ParentalAlert = null,
     Library.ItemDisplayFormat? ItemDisplay = null,
-    Data.SongPageLayout? SongLayout = null)
+    Data.SongPageLayout? SongLayout = null,
+    string? PptPath = null,
+    int PptSlideNumber = 0,
+    string LicenceAdmin1 = "",
+    string LicenceAdmin2 = "")
 {
+    public sealed record StageText(string Lyrics, string WithChords, int[] ChordLines);
+    public StageText? StageRegion1 { get; init; }
+    public StageText? StageRegion2 { get; init; }
+    public int[] NotationLines { get; init; } = [];
+    public int[] NotationLines2 { get; init; } = [];
+
     public static LiveSessionSnapshot Off { get; } = new(
         LiveState.Off,
         string.Empty,
@@ -179,6 +189,18 @@ public sealed class LiveSessionService : ILiveSessionService
         // 곡별 FormatData(레거시 v32)를 디코드해 region1 글자·배경색을 오버라이드로 싣는다(미리보기와 동일 규약).
         // 곡이 아니거나 색 항목이 없으면 null → 출력은 운영 기본색을 그대로 쓴다.
         var format = Library.SongFormatData.Parse(item.FormatData);
+        string body = ComputeBodyText(item), body2 = ComputeBodyText2(item);
+        bool hasChords = LiveItemKindMatcher.IsSong(item.Kind) && (item.ProjectedTextPage ?? item.Lyrics)?.Contains('»') == true;
+        LiveSessionSnapshot.StageText? StageContent(string displayed, Func<LiveQueueItem,string> project)
+        {
+            if (!hasChords || displayed.Length == 0) return null;
+            string other = project(item with { ShowNotations = !item.ShowNotations });
+            string withChords = item.ShowNotations ? displayed : other;
+            string plain = item.ShowNotations ? other : displayed;
+            return withChords != plain ? new(plain, withChords, FindNotationLines(withChords, plain)) : null;
+        }
+        var stage1 = StageContent(body, ComputeBodyText);
+        var stage2 = StageContent(body2, ComputeBodyText2);
         return new LiveSessionSnapshot(
             state,
             item.Title,
@@ -193,8 +215,8 @@ public sealed class LiveSessionService : ILiveSessionService
             // 원시 가사의 작성 마커( [1], [~코드] 등 )는 회중 화면에 보이면 안 되므로 표시용으로 정리한다.
             // LyricsPageIndex=0 이면 첫 절, GoLive 호출 전에 MainViewModel 이 현재 페이지를 얹어 전달한다.
             // 이중 언어([region 2]) 곡이면 Region1·Region2 를 각각 싣는다(출력이 영역별 스타일로 동시 송출).
-            CurrentItemBodyText: ComputeBodyText(item),
-            CurrentItemBodyText2: ComputeBodyText2(item),
+            CurrentItemBodyText: body,
+            CurrentItemBodyText2: body2,
             IsCleared: isCleared,
             CurrentItemPositionLabel: item.PositionLabel,
             // 현재 절 인덱스도 실어 출력 렌더러가 "제목 헤딩 첫 화면만" 표시를 판정하게 한다(§7.3-A).
@@ -203,6 +225,8 @@ public sealed class LiveSessionService : ILiveSessionService
             CurrentItemNumber: item.SongNumber,
             // 저작권(출력 "저작권 표시" 설정 on 일 때 표시).
             CurrentItemCopyright: item.Copyright,
+            LicenceAdmin1: item.LicenceAdmin1,
+            LicenceAdmin2: item.LicenceAdmin2,
             CurrentItemBookReference: item.BookReference,
             CurrentItemUserReference: item.UserReference,
             // 다음 항목 제목(출력 "다음 항목 표시" 설정 on 일 때 표시).
@@ -220,8 +244,8 @@ public sealed class LiveSessionService : ILiveSessionService
             OverrideFontName: NormalizeFontName(format?.FontName1) ?? NormalizeFontName(item.SongLayout?.FontName),
             OverrideFontSizePx: LegacyPointToPixel(format?.FontSize1 ?? item.SongLayout?.FontPoints),
             // region2 글꼴명(44)·크기(48) — 이중 언어 Region2 본문에 적용(없으면 Region1 글꼴 추종).
-            OverrideFontName2: NormalizeFontName(format?.FontName2),
-            OverrideFontSizePx2: LegacyPointToPixel(format?.FontSize2),
+            OverrideFontName2: NormalizeFontName(format?.FontName2) ?? item.SongLayout?.Field("FontName1"),
+            OverrideFontSizePx2: LegacyPointToPixel(format?.FontSize2 ?? item.SongLayout?.Integer("Size1")),
             // 곡별 배경 이미지(61). 비었으면 null(색 배경 유지). 경로 해석·로딩은 출력 VM 이 담당.
             OverrideBackgroundImagePath: NormalizeImagePath(format?.BackgroundImagePath),
             OverrideBackgroundImageMode: format?.BackgroundImageMode,
@@ -245,7 +269,30 @@ public sealed class LiveSessionService : ILiveSessionService
             OverrideBodyLeftMargin: format?.BodyLeftMargin,
             OverrideBodyRightMargin: format?.BodyRightMargin,
             OverrideBodyBottomMargin: format?.BodyBottomMargin,
-            SongLayout: item.SongLayout);
+            SongLayout: item.SongLayout,
+            PptPath: LiveItemKindMatcher.IsPowerPoint(item.Kind) ? item.ContentPath : null,
+            PptSlideNumber: LiveItemKindMatcher.IsPowerPoint(item.Kind) ? Math.Max(1, item.SlideNumber) : 0)
+        {
+            StageRegion1 = stage1, StageRegion2 = stage2,
+            NotationLines = item.ShowNotations ? stage1?.ChordLines ?? [] : [],
+            NotationLines2 = item.ShowNotations ? stage2?.ChordLines ?? [] : [],
+        };
+    }
+
+    internal static int[] FindNotationLines(string displayed, string lyricsOnly)
+    {
+        if (displayed == lyricsOnly) return [];
+        var lines = displayed.ReplaceLineEndings("\n").Split('\n');
+        var lyrics = lyricsOnly.ReplaceLineEndings("\n").Split('\n');
+        List<int> notes = [];
+        // Chords precede their lyric line, including when both have identical text.
+        for (int i = lines.Length - 1, j = lyrics.Length - 1; i >= 0; i--)
+        {
+            if (j >= 0 && lines[i] == lyrics[j]) j--;
+            else notes.Add(i);
+        }
+        notes.Reverse();
+        return notes.ToArray();
     }
 
     // 곡별 배경 이미지 경로 정리 — 공백뿐이거나 비었으면 null(색 배경 유지). 앞뒤 공백 제거.

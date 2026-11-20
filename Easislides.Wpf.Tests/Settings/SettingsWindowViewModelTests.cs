@@ -24,16 +24,17 @@ public class SettingsWindowViewModelTests
         var sut = fixture.CreateViewModel();
 
         sut.Sections.Select(section => section.Kind).Should().Equal(
-            SettingsSectionKind.General,
-            SettingsSectionKind.Appearance,
-            SettingsSectionKind.LiveOutput,
-            SettingsSectionKind.PowerPoint,
-            SettingsSectionKind.Media,
+            SettingsSectionKind.MainWindow,
+            SettingsSectionKind.Show,
+            SettingsSectionKind.Monitors,
+            SettingsSectionKind.Alerts,
+            SettingsSectionKind.Folders,
+            SettingsSectionKind.Bibles,
+            SettingsSectionKind.Licence,
             SettingsSectionKind.Shortcuts,
-            SettingsSectionKind.Data,
-            SettingsSectionKind.ImportExport,
-            SettingsSectionKind.Advanced);
-        sut.SelectedSection.Kind.Should().Be(SettingsSectionKind.General);
+            SettingsSectionKind.WpfTools,
+            SettingsSectionKind.DeviceCheck);
+        sut.SelectedSection.Kind.Should().Be(SettingsSectionKind.MainWindow);
     }
 
     [Fact]
@@ -485,6 +486,58 @@ public class SettingsWindowViewModelTests
         item.CustomGesture.Should().BeEmpty();
         item.EffectiveGesture.Should().Be("None");
         fixture.Settings.Current.Shortcuts.Should().NotContainKey(item.SlotId);
+    }
+
+    [Fact]
+    public void DialogEdits_AreDiscardedOnCloseAndMergedOnConfirmation()
+    {
+        using var fixture = SettingsFixture.Create();
+        var first = fixture.CreateViewModel();
+        first.BeginOptionsEdit();
+        first.BibleSequentialLimit = 219;
+        first.LicenceRows[2].Number = "120";
+        fixture.Settings.Get(EasiSettingKeys.LicenceNumber3).Should().BeEmpty();
+        var reopened = fixture.CreateViewModel();
+        reopened.BeginOptionsEdit();
+        reopened.BibleSequentialLimit.Should().Be(EasiSettingKeys.BibleSequentialLimit.DefaultValue);
+        reopened.BibleSequentialLimit = 150;
+        reopened.LicenceRows[2].Number = "345";
+        reopened.LicenceRows[2].Preview.Should().Be("CCLI#345");
+        fixture.Settings.Set(EasiSettingKeys.ReferenceAlertFlash, true);
+        reopened.ConfirmOptions().Should().BeTrue();
+
+        var reloaded = new SettingsService(new SettingsServiceOptions(
+            Path.Combine(fixture.Root, "settings.json"), Path.Combine(fixture.Root, "Backups")));
+        reloaded.Get(EasiSettingKeys.BibleSequentialLimit).Should().Be(150);
+        reloaded.Get(EasiSettingKeys.LicenceNumber3).Should().Be("345");
+        reloaded.Get(EasiSettingKeys.ReferenceAlertFlash).Should().BeTrue();
+    }
+
+    [Fact]
+    public void OperatorControls_MergeOnlyEditedPreferencesAndImportLicenceNamesOnce()
+    {
+        using var fixture = SettingsFixture.Create();
+        var editor = fixture.CreateViewModel();
+        editor.BeginOptionsEdit();
+        editor.WriteOperatorOption(OperatorOptionCatalog.ById["operator.PreviewFontPoints"], 16);
+        editor.WriteOperatorOption(OperatorOptionCatalog.ById["operator.ParentalBold"], true);
+        editor.WriteOperatorOption(OperatorOptionCatalog.ById["operator.GlobalArrow"], true);
+        editor.WriteOperatorOption(OperatorOptionCatalog.ById["operator.GlobalCtrlArrow"], true);
+        fixture.Settings.SetValues(new Dictionary<string,object>{ ["operator.MessageItalic"] = true });
+        fixture.Settings.Current.Operator.PreviewFontPoints.Should().Be(8);
+        editor.ImportLicenceNames("fixture.db", new Dictionary<int, string> { [4] = "사용자 관리자" });
+        editor.ConfirmOptions().Should().BeTrue();
+        var result = fixture.Settings.Current.Operator;
+        result.PreviewFontPoints.Should().Be(16);
+        result.Parental.Bold.Should().BeTrue();
+        result.Message.Italic.Should().BeTrue();
+        result.GlobalArrow.Should().BeFalse();
+        result.GlobalCtrlArrow.Should().BeTrue();
+        fixture.Settings.Get(EasiSettingKeys.LicenceName4).Should().Be("사용자 관리자");
+        editor.BeginOptionsEdit();
+        editor.LicenceRows[3].Name = "";
+        editor.ImportLicenceNames("fixture.db", new Dictionary<int, string> { [4] = "사용자 관리자" });
+        editor.LicenceRows[3].Name.Should().BeEmpty();
     }
 
     private sealed class SettingsFixture : IDisposable

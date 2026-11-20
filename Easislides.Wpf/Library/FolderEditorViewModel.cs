@@ -39,9 +39,15 @@ public sealed partial class FolderEditorViewModel : ObservableObject
         SaveCommand = new AsyncRelayCommand(SaveAsync, CanSave);
     }
 
+    internal Action<SongFolderWriteModel>? StageChanges { get; set; }
+    internal Task<AdminDatabaseWriteReport> CommitFoldersAsync(string databasePath, IReadOnlyList<SongFolderWriteModel> folders) =>
+        _adminDatabase.SaveFoldersAsync(databasePath, ResolveBackupRoot(), folders);
+
     public event EventHandler<FolderEditorSavedEventArgs>? Saved;
 
     public IAsyncRelayCommand SaveCommand { get; }
+
+    public IReadOnlyList<FolderFormatEdit> FormatFields { get; private set; } = [];
 
     public void Load(
         string databasePath,
@@ -68,6 +74,9 @@ public sealed partial class FolderEditorViewModel : ObservableObject
             IsEnabled = folder?.IsEnabled ?? true;
             ValidationMessage = "";
             StatusMessage = "";
+            FormatFields = FolderFormatField.All.Where(f => folder?.FormatFields?.ContainsKey(f.Column) == true)
+                .Select(f => new FolderFormatEdit(f, folder!.FormatFields![f.Column], MarkChanged)).ToArray();
+            OnPropertyChanged(nameof(FormatFields));
             IsNew = folder is null;
             HasChanges = false;
         }
@@ -98,7 +107,15 @@ public sealed partial class FolderEditorViewModel : ObservableObject
             var backupRoot = ResolveBackupRoot();
             // GroupStyle is left unset on purpose: the editor does not change the folder's sort order,
             // so an existing folder keeps its stored GroupStyle and a new folder gets 0.
-            var folder = new SongFolderWriteModel(FolderNo, Name.Trim(), IsEnabled);
+            var fields = FormatFields.Where(f => f.IsChanged).ToDictionary(f => f.Field.Column, f => f.Value);
+            var folder = new SongFolderWriteModel(FolderNo, Name.Trim(), IsEnabled, FormatChanges: fields.Count == 0 ? null : fields);
+            if (StageChanges != null)
+            {
+                StageChanges(folder);
+                HasChanges = false;
+                Saved?.Invoke(this, new FolderEditorSavedEventArgs(FolderNo));
+                return;
+            }
             var report = await _adminDatabase
                 .SaveFolderAsync(DatabasePath, backupRoot, folder)
                 .ConfigureAwait(true);
@@ -153,6 +170,12 @@ public sealed partial class FolderEditorViewModel : ObservableObject
 
     private bool Validate()
     {
+        var invalid = FormatFields.FirstOrDefault(f => f.IsChanged && !f.Field.IsValid(f.Value));
+        if (invalid is not null)
+        {
+            ValidationMessage = $"{invalid.Field.Label} 값을 확인하세요.";
+            return false;
+        }
         if (string.IsNullOrWhiteSpace(DatabasePath))
         {
             ValidationMessage = "AdminDB 경로를 설정해야 합니다.";

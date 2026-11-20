@@ -21,13 +21,13 @@ public partial class MainWindow
     private void RecordSongEdit(SongEditorViewModel editor)
     {
         if (editor.SongId is int id)
-            _recentEdits.Record(new(editor.DatabasePath, "song", id.ToString(CultureInfo.InvariantCulture), editor.Title));
+            _recentEdits.Record(new(editor.DatabasePath, "song", id.ToString(CultureInfo.InvariantCulture), editor.Title), _viewModel.EditHistoryLimit);
     }
 
     private void RecentEdits_Open(object sender, RoutedEventArgs e)
     {
         RecentEditsMenu.Items.Clear();
-        foreach (var entry in _recentEdits.Read(ResolveSongEditorDatabasePath(_viewModel)))
+        foreach (var entry in _recentEdits.Read(ResolveSongEditorDatabasePath(_viewModel), _viewModel.EditHistoryLimit))
         {
             var item = new MenuItem { Header = entry.Title, Tag = entry };
             item.Click += ReopenEdit_Click;

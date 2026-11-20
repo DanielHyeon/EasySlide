@@ -151,6 +151,21 @@ public class WindowPlacementServiceTests
     [DllImport("user32.dll")]
     private static extern bool GetWindowRect(IntPtr hwnd, out NativeRect rect);
 
+    [Fact]
+    public void StageAndAudience_ResolveIndependentPhysicalRectangles()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        settings.SetValues(new System.Collections.Generic.Dictionary<string,object> {
+            ["operator.StageCustom"] = true, ["operator.StageLeft"] = -1200, ["operator.StageTop"] = 50,
+            ["operator.StageWidth"] = 800, [EasiSettingKeys.IsMonitorWide.Id] = true,
+            [EasiSettingKeys.OutputPlacementMode.Id] = 1, ["operator.OutputAsSingle"] = true });
+        var placement = new WindowPlacementService(settings);
+        var display = new OutputDisplay("stage", "side", -1920, 0, 1920, 1080, 1.5);
+        placement.CreateStagePlacement(display, false).Should().Be(new OutputWindowPlacement(-1200,50,800,450,false));
+        placement.CreateOutputPlacement(display, false).AsSingleMonitor.Should().BeTrue();
+    }
+
     private sealed class TempSettingsFolder : IDisposable
     {
         private TempSettingsFolder(string root)

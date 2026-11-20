@@ -127,7 +127,8 @@ public class MediaPlaybackServiceTests
         using var fixture = TempSettingsFolder.Create();
         var settings = fixture.CreateService();
         settings.Set(EasiSettingKeys.LiveCameraNumber, 3).Succeeded.Should().BeTrue();
-        settings.Set(EasiSettingKeys.MediaVolume, 0.65).Succeeded.Should().BeTrue();
+        settings.Set(EasiSettingKeys.MediaVolume, 0.25).Succeeded.Should().BeTrue();
+        settings.SetValues(new System.Collections.Generic.Dictionary<string, object> { ["operator.CameraVolume"] = 65 }).Succeeded.Should().BeTrue();
         var backend = new FakeMediaPlaybackBackend();
         var sut = new MediaPlaybackService(backend, settings);
 

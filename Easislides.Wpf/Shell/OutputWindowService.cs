@@ -29,7 +29,10 @@ public sealed record OutputWindowPlacement(
     double Top,
     double Width,
     double Height,
-    bool IsWindowed);
+    bool IsWindowed)
+{
+    public bool AsSingleMonitor { get; init; }
+}
 
 public sealed record OutputWindowState(
     bool IsOpen,

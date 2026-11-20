@@ -59,17 +59,20 @@ public sealed class NoOpMediaPlaybackBackend : IMediaPlaybackBackend
     }
 }
 
-public sealed class WpfMediaElementPlaybackBackend : IMediaPlaybackBackend
+public sealed partial class WpfMediaElementPlaybackBackend : IMediaPlaybackBackend, ILiveCameraSwitchBackend
 {
     private readonly MediaElement _element;
 
     private readonly Image? _videoSurface;
     private DirectShowVideo? _directShow;
 
-    public WpfMediaElementPlaybackBackend(MediaElement element, Image? cameraSurface = null)
+    private readonly CameraOwnership? _ownership;
+
+    public WpfMediaElementPlaybackBackend(MediaElement element, Image? cameraSurface = null, CameraOwnership? ownership = null)
     {
         _element = element ?? throw new ArgumentNullException(nameof(element));
         _videoSurface = cameraSurface;
+        _ownership = ownership;
     }
 
     public void Load(MediaPlaybackSnapshot snapshot)
@@ -81,7 +84,12 @@ public sealed class WpfMediaElementPlaybackBackend : IMediaPlaybackBackend
             if (_videoSurface == null || !snapshot.Source.StartsWith(prefix, StringComparison.Ordinal)
                 || !int.TryParse(snapshot.Source.AsSpan(prefix.Length), out int index))
                 throw new MediaPlaybackException("카메라를 선택할 수 없습니다.");
-            _directShow = new DirectShowVideo(_videoSurface, index);
+            if (_ownership?.ObsOwnsCamera == true) throw new MediaPlaybackException("OBS 카메라 모드입니다.");
+            if (_ownership != null && !_ownership.TryAcquire(this))
+                throw new MediaPlaybackException("이미 로컬 카메라를 사용 중입니다. 카메라 하단 자막 창에서 미리보기를 확인하세요.");
+            try { _directShow = new DirectShowVideo(_videoSurface, index, snapshot.CameraDevicePath, embeddedAudio: true); }
+            catch { _ownership?.Release(this); throw; }
+            ObserveCamera(_directShow);
         }
         else _element.Source = CreateSourceUri(snapshot);
         ApplySettings(snapshot);
@@ -120,11 +128,13 @@ public sealed class WpfMediaElementPlaybackBackend : IMediaPlaybackBackend
 
     public void Pause()
     {
+        CancelSwitch();
         if (_directShow != null) _directShow.Pause(); else _element.Pause();
     }
 
     public void Stop()
     {
+        CancelSwitch();
         if (_directShow != null) { _directShow.Stop(); return; }
         _element.Stop();
         _element.Position = TimeSpan.Zero;
@@ -134,8 +144,16 @@ public sealed class WpfMediaElementPlaybackBackend : IMediaPlaybackBackend
 
     public void Unload()
     {
+        CancelSwitch();
+        ClearMedia(releaseCamera: true);
+    }
+
+    private void ClearMedia(bool releaseCamera)
+    {
+        if (_ownership != null) _ownership.ReleaseLocalCamera -= Unload;
         _directShow?.Dispose();
         _directShow = null;
+        if (releaseCamera) _ownership?.Release(this);
         // 소스를 비우면 OutputWindow.xaml 의 트리거(Source==null → Collapsed)가 작동해
         // 출력 창에서 미디어가 사라지고 그 아래의 가사/타이틀이 다시 보인다.
         _element.Stop();
@@ -145,7 +163,7 @@ public sealed class WpfMediaElementPlaybackBackend : IMediaPlaybackBackend
 
     public void ApplySettings(MediaPlaybackSnapshot snapshot)
     {
-        if (FileGraph != null) _directShow!.SetAudio(snapshot);
+        _directShow?.SetAudio(snapshot);
         if (_videoSurface != null) _videoSurface.Stretch = snapshot.IsWidescreen ? Stretch.Uniform : Stretch.Fill;
         _element.Volume = snapshot.Volume / 100d;
         _element.Balance = snapshot.Balance / 100d;

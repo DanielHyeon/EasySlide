@@ -45,6 +45,9 @@ public sealed partial class BibleViewModel : ObservableObject
     [ObservableProperty] private string _validationMessage = "";
     [ObservableProperty] private bool _isBusy;
 
+    internal BibleViewModel ForCatalog(string path) => new(_settings, new BibleRepository(path));
+    internal string CatalogRoot => _settings.Current.General.WorkingFolder;
+
     public BibleViewModel(ISettingsService settings, IBibleRepository repository)
     {
         _settings = settings ?? throw new ArgumentNullException(nameof(settings));
@@ -196,6 +199,35 @@ public sealed partial class BibleViewModel : ObservableObject
         ValidationMessage = "";
         StatusMessage = $"버전 이름 변경: {version.Name} → {to}";
         return true;
+    }
+
+    public bool SetVersionLayout(BibleVersion version, int folder, int fontSize)
+    {
+        var index = Versions.IndexOf(version);
+        if (index < 0) return false;
+        try
+        {
+            if (!_repository.SetVersionLayout(WorkingFolder, version.FileName, folder, fontSize))
+            {
+                ValidationMessage = "연결 폴더(1–40)와 글자 크기(5–200)를 확인하세요.";
+                return false;
+            }
+            var updated = version with { SongFolderNo = folder, Size = fontSize };
+            var region1 = PreviewRegion1Version == version;
+            var region2 = PreviewRegion2Version == version;
+            Versions[index] = updated;
+            SelectedVersion = updated;
+            if (region1) PreviewRegion1Version = updated;
+            if (region2) PreviewRegion2Version = updated;
+            ValidationMessage = "";
+            StatusMessage = "성경 표시 설정을 저장했습니다.";
+            return true;
+        }
+        catch (Exception ex) when (IsRecoverableBibleException(ex))
+        {
+            ValidationMessage = ex.Message;
+            return false;
+        }
     }
 
     /// <summary>선택 버전을 한 칸 위로 올린다(맨 위면 false). 레거시 성경 버전 순서 변경.</summary>
@@ -546,7 +578,9 @@ public sealed partial class BibleViewModel : ObservableObject
             Books,
             _currentResult,
             selectionStart,
-            selectionLength);
+            selectionLength,
+            _settings.Get(EasiSettingKeys.BibleSequentialLimit),
+            _settings.Get(EasiSettingKeys.BibleAdHocLimit));
         if (string.IsNullOrWhiteSpace(baseSelection.IdString))
         {
             ValidationMessage = "선택된 구절이 없습니다.";
@@ -582,7 +616,9 @@ public sealed partial class BibleViewModel : ObservableObject
             Books,
             _currentResult,
             selectionStart,
-            selectionLength);
+            selectionLength,
+            _settings.Get(EasiSettingKeys.BibleSequentialLimit),
+            _settings.Get(EasiSettingKeys.BibleAdHocLimit));
 
         _baseSelection = selection;
         UpdatePreviewSelection();

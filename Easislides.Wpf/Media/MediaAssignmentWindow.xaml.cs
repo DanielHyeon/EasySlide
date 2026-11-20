@@ -17,13 +17,13 @@ public partial class MediaAssignmentWindow : Window
     private MediaPlaybackSnapshot? _loaded;
     private readonly System.Windows.Threading.DispatcherTimer _clock = new() { Interval = TimeSpan.FromMilliseconds(500) };
 
-    public MediaAssignmentWindow(string title, ItemMediaOptions options, string directory, IEnumerable<OutputDisplay> displays)
+    public MediaAssignmentWindow(string title, ItemMediaOptions options, string directory, IEnumerable<OutputDisplay> displays, CameraOwnership? ownership = null)
     {
         InitializeComponent();
         Title = title;
         _initialOptions = Options = options;
         _initialDirectory = directory;
-        _preview = new(Player, CameraImage);
+        _preview = new(Player, CameraImage, ownership);
         SourcePath.Text = options.FileName;
         ModeBox.SelectedIndex = options.Mode < 0 && options.FileName.Length > 0 ? 3 : options.Mode + 1;
         CameraBox.ItemsSource = Enumerable.Range(1, 5);

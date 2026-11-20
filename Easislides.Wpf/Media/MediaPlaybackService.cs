@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using Easislides.Wpf.Settings;
 
 namespace Easislides.Wpf.Media;
@@ -51,6 +53,8 @@ public sealed record MediaPlaybackSnapshot(
     string? OutputDisplayId,
     string? ErrorMessage)
 {
+    internal string? CameraDevicePath { get; init; }
+
     public static MediaPlaybackSnapshot Empty { get; } = new(
         MediaPlaybackState.Empty,
         string.Empty,
@@ -126,11 +130,13 @@ public sealed class MediaPlaybackService : IMediaPlaybackService, IDisposable
     public MediaPlaybackSnapshot Current { get; private set; } = MediaPlaybackSnapshot.Empty;
 
     private ItemMediaOptions? _loadedItemOptions;
+    private CancellationTokenSource? _pendingCamera;
 
     public void Load(MediaPlaybackRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentException.ThrowIfNullOrWhiteSpace(request.Source);
+        _pendingCamera?.Cancel();
         _loadedItemOptions = request.ItemOptions;
         var effectiveRequest = ApplyConfiguredAudioDefaults(request);
 
@@ -203,6 +209,31 @@ public sealed class MediaPlaybackService : IMediaPlaybackService, IDisposable
             IsWidescreen: isWidescreen,
             OutputDisplayId: outputDisplayId));
 
+    internal async Task SwitchLiveCameraAsync(InputDevice device, string displayId, CancellationToken ct)
+    {
+        if (_backend is not ILiveCameraSwitchBackend output) throw new MediaPlaybackException("송출 창의 카메라를 사용할 수 없습니다.");
+        var camera = _settings?.Current.Operator;
+        var next = Current with
+        {
+            Volume = camera?.CameraVolume ?? Current.Volume, Balance = camera?.CameraBalance ?? Current.Balance,
+            IsMuted = camera?.CameraMuted ?? Current.IsMuted, IsWidescreen = camera?.CameraWide ?? Current.IsWidescreen,
+            State = MediaPlaybackState.Playing, SourceKind = MediaSourceKind.CaptureDevice,
+            MediaType = "Live Camera", Source = CreateLiveCameraSource(device.CameraNumber), CameraDevicePath = device.Id,
+            Duration = TimeSpan.Zero, Position = TimeSpan.Zero, OutputDisplayId = displayId, ErrorMessage = null
+        };
+        if (_pendingCamera != null) throw new MediaPlaybackException("카메라를 전환하는 중입니다.");
+        using var pending = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        _pendingCamera = pending;
+        try
+        {
+            await output.SwitchCameraAsync(device, next, pending.Token);
+            pending.Token.ThrowIfCancellationRequested();
+            _loadedItemOptions = null;
+            Update(next);
+        }
+        finally { _pendingCamera = null; }
+    }
+
     public void Play()
     {
         if (!HasLoadedMedia)
@@ -216,6 +247,7 @@ public sealed class MediaPlaybackService : IMediaPlaybackService, IDisposable
 
     public void Pause()
     {
+        _pendingCamera?.Cancel();
         if (Current.State != MediaPlaybackState.Playing)
         {
             return;
@@ -227,6 +259,7 @@ public sealed class MediaPlaybackService : IMediaPlaybackService, IDisposable
 
     public void Stop()
     {
+        _pendingCamera?.Cancel();
         if (!HasLoadedMedia)
         {
             return;
@@ -238,6 +271,7 @@ public sealed class MediaPlaybackService : IMediaPlaybackService, IDisposable
 
     public void Unload()
     {
+        _pendingCamera?.Cancel();
         // 이미 비어 있으면 할 일 없음(중복 백엔드 호출·이벤트 방지).
         if (Current.State == MediaPlaybackState.Empty)
         {
@@ -314,6 +348,7 @@ public sealed class MediaPlaybackService : IMediaPlaybackService, IDisposable
 
     public void Dispose()
     {
+        _pendingCamera?.Cancel();
         if (_settings is not null)
         {
             _settings.SettingsChanged -= OnSettingsChanged;
@@ -328,13 +363,14 @@ public sealed class MediaPlaybackService : IMediaPlaybackService, IDisposable
     private MediaPlaybackRequest ApplyConfiguredAudioDefaults(MediaPlaybackRequest request)
     {
         var item = request.ItemOptions;
+        var camera = request.SourceKind == MediaSourceKind.CaptureDevice ? _settings?.Current.Operator : null;
         return request with
         {
-            Volume = item?.Volume ?? (_settings == null ? request.Volume : ToPercent(_settings.Get(EasiSettingKeys.MediaVolume), 0, 100)),
-            Balance = item?.Balance ?? (_settings == null ? request.Balance : ToPercent(_settings.Get(EasiSettingKeys.MediaBalance), -100, 100)),
-            IsMuted = item?.Flags is int flags ? (flags & 1) != 0 : _settings?.Get(EasiSettingKeys.MediaMuted) ?? request.IsMuted,
+            Volume = item?.Volume ?? camera?.CameraVolume ?? (_settings == null ? request.Volume : ToPercent(_settings.Get(EasiSettingKeys.MediaVolume), 0, 100)),
+            Balance = item?.Balance ?? camera?.CameraBalance ?? (_settings == null ? request.Balance : ToPercent(_settings.Get(EasiSettingKeys.MediaBalance), -100, 100)),
+            IsMuted = item?.Flags is int flags ? (flags & 1) != 0 : camera?.CameraMuted ?? _settings?.Get(EasiSettingKeys.MediaMuted) ?? request.IsMuted,
             IsRepeatEnabled = item?.Flags is int repeat ? (repeat & 2) != 0 : request.IsRepeatEnabled,
-            IsWidescreen = item?.Flags is int wide ? (wide & 4) != 0 : request.IsWidescreen
+            IsWidescreen = item?.Flags is int wide ? (wide & 4) != 0 : camera?.CameraWide ?? request.IsWidescreen
         };
     }
 
@@ -350,7 +386,7 @@ public sealed class MediaPlaybackService : IMediaPlaybackService, IDisposable
             var next = Current with
             {
                 Source = CreateLiveCameraSource(GetConfiguredLiveCameraNumber()),
-                ErrorMessage = null
+                CameraDevicePath = null, ErrorMessage = null
             };
             TryUpdate(next, () =>
             {
@@ -359,6 +395,21 @@ public sealed class MediaPlaybackService : IMediaPlaybackService, IDisposable
             });
         }
 
+        if (Current.SourceKind == MediaSourceKind.CaptureDevice)
+        {
+            if (System.Linq.Enumerable.Any(args.ChangedKeys, key => key.StartsWith("operator.Camera", StringComparison.Ordinal)))
+            {
+                var camera = _settings.Current.Operator;
+                ApplySettings(Current with
+                {
+                    Volume = _loadedItemOptions?.Volume ?? camera.CameraVolume,
+                    Balance = _loadedItemOptions?.Balance ?? camera.CameraBalance,
+                    IsMuted = _loadedItemOptions?.Flags is int flagsOverride ? (flagsOverride & 1) != 0 : camera.CameraMuted,
+                    IsWidescreen = _loadedItemOptions?.Flags is int wide ? (wide & 4) != 0 : camera.CameraWide,
+                });
+            }
+            return;
+        }
         if (!ContainsAudioSetting(args.ChangedKeys))
         {
             return;

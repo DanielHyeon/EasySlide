@@ -472,6 +472,21 @@ public class OutputRendererTests
     }
 
     [Fact]
+    public void LicenceOption_ShowsConfiguredAdministratorOnFirstSongPage()
+    {
+        var renderer = CreateRenderer();
+        var session = new LiveSessionSnapshot(LiveState.Active, "찬양", "Display 2", IsBlackout: false,
+            CurrentItemCopyright: "작곡가", LicenceAdmin1: "CCLI");
+        var request = new OutputRenderRequest(session, OpenOutput("Display 2"), 1280, 720,
+            General: new Easislides.Wpf.Settings.GeneralSettings { LicenceNumber3 = "456" });
+        var first = renderer.CreateScene(request);
+        first.ShowsCopyright.Should().BeTrue();
+        first.CopyrightLabel.Should().Be("CCLI#456");
+        renderer.CreateScene(request with { Session = session with { CurrentLyricsPageIndex = 1 } })
+            .ShowsCopyright.Should().BeFalse();
+    }
+
+    [Fact]
     public void CreateScene_Active_ShowCopyright_ShowsCopyrightWhenLiveAndEnabled()
     {
         // 설정 on + Live + 저작권 문자열이 있을 때만 저작권을 노출(Display Panel).

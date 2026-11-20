@@ -1,4 +1,6 @@
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Easislides.Wpf.Media;
 
@@ -18,7 +20,7 @@ namespace Easislides.Wpf.Media;
 /// 스레드 전용이므로 이 브리지의 모든 멤버도 UI 스레드에서 호출돼야 한다(브리지는 마샬링하지 않음).
 /// 그래서 _inner/_lastLoad/_intent 는 동기화 없이 단일 스레드 접근을 전제한다.
 /// </summary>
-public sealed class AttachableMediaPlaybackBackend : IMediaPlaybackBackend
+public sealed class AttachableMediaPlaybackBackend : IMediaPlaybackBackend, ILiveCameraSwitchBackend
 {
     private IMediaPlaybackBackend? _inner;
     private MediaPlaybackSnapshot? _lastLoad;
@@ -26,6 +28,7 @@ public sealed class AttachableMediaPlaybackBackend : IMediaPlaybackBackend
 
     /// <summary>실제 백엔드가 부착됐는지.</summary>
     public bool IsAttached => _inner is not null;
+    internal string? CurrentCameraPath => (_inner as WpfMediaElementPlaybackBackend)?.CurrentCameraPath;
 
     /// <summary>실제 재생 백엔드를 부착한다. 진행 중 미디어가 있으면 재적재 + 재생 의도 복원.</summary>
     public void Attach(IMediaPlaybackBackend backend)
@@ -52,6 +55,15 @@ public sealed class AttachableMediaPlaybackBackend : IMediaPlaybackBackend
         var backend = _inner;
         _inner = null;
         backend?.Unload();
+    }
+
+    async Task ILiveCameraSwitchBackend.SwitchCameraAsync(InputDevice device, MediaPlaybackSnapshot next, CancellationToken ct)
+    {
+        if (_inner is not ILiveCameraSwitchBackend target) throw new MediaPlaybackException("송출 창이 닫혀 있습니다.");
+        await target.SwitchCameraAsync(device, next, ct);
+        if (!ReferenceEquals(target, _inner)) throw new OperationCanceledException("송출 창이 변경되었습니다.");
+        _lastLoad = next;
+        _intent = MediaPlaybackState.Playing;
     }
 
     public void Load(MediaPlaybackSnapshot snapshot)

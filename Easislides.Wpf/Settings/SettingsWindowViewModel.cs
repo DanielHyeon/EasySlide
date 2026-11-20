@@ -24,6 +24,15 @@ public enum SettingsSectionKind
     Data,
     ImportExport,
     Advanced,
+    DeviceCheck,
+    MainWindow,
+    Show,
+    Monitors,
+    Alerts,
+    Folders,
+    Bibles,
+    Licence,
+    WpfTools,
 }
 
 public sealed record SettingsSectionViewModel(
@@ -96,7 +105,8 @@ public sealed partial class ShortcutEditorItemViewModel : ObservableObject
 
 public sealed partial class SettingsWindowViewModel : ObservableObject
 {
-    private readonly ISettingsService _settings;
+    private ISettingsService _settings;
+    private readonly ISettingsService _applicationSettings;
     private readonly IThemeService _theme;
     private readonly IDatabaseMigrationService _databaseMigration;
     private readonly ISettingsPathPicker _pathPicker;
@@ -157,7 +167,7 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
         ICommandCatalog commandCatalog,
         IOperationalDataRehearsalService operationalDataRehearsal)
     {
-        _settings = settings;
+        _applicationSettings = _settings = settings;
         _theme = theme;
         _databaseMigration = databaseMigration;
         _pathPicker = pathPicker;
@@ -168,7 +178,7 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
         _selectedSection = Sections[0];
 
         RestoreDefaultsCommand = new RelayCommand(RestoreDefaults);
-        RefreshCommand = new RelayCommand(() => RefreshFromSettings(applyAppearance: true));
+        RefreshCommand = new RelayCommand(ReloadOptions);
         BrowseWorkingFolderCommand = new AsyncRelayCommand(BrowseWorkingFolderAsync);
         BrowseAdminDatabaseCommand = new AsyncRelayCommand(BrowseAdminDatabaseAsync);
         BrowseDataBackupRootCommand = new AsyncRelayCommand(BrowseDataBackupRootAsync);
@@ -239,7 +249,13 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
     public SettingsSectionViewModel SelectedSection
     {
         get => _selectedSection;
-        set => SetProperty(ref _selectedSection, value);
+        set { if (SetProperty(ref _selectedSection, value)) OnPropertyChanged(nameof(SelectedTabIndex)); }
+    }
+
+    public int SelectedTabIndex
+    {
+        get => Sections.IndexOf(SelectedSection);
+        set { if (value >= 0 && value < Sections.Count) SelectedSection = Sections[value]; }
     }
 
     public string Language
@@ -339,7 +355,7 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
     public bool IsMonitorWide
     {
         get => _isMonitorWide;
-        set => SetAndPersist(ref _isMonitorWide, value, EasiSettingKeys.IsMonitorWide);
+        set { SetAndPersist(ref _isMonitorWide, value, EasiSettingKeys.IsMonitorWide); OnPropertyChanged(nameof(StageHeight)); OnPropertyChanged(nameof(AudienceHeight)); }
     }
 
     public bool FitTextFileParagraphs
@@ -357,7 +373,7 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
     public int DisplayCustomWidth
     {
         get => _displayCustomWidth;
-        set => SetAndPersist(ref _displayCustomWidth, value, EasiSettingKeys.DisplayCustomWidth);
+        set { SetAndPersist(ref _displayCustomWidth, value, EasiSettingKeys.DisplayCustomWidth); OnPropertyChanged(nameof(AudienceHeight)); }
     }
 
     public int LyricsMonitorTextColorArgb
@@ -715,15 +731,16 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
     private static SettingsSectionViewModel[] CreateSections()
         =>
         [
-            new(SettingsSectionKind.General, "일반", "언어와 작업 폴더", EsIcons.Settings),
-            new(SettingsSectionKind.Appearance, "화면", "테마와 인터페이스 크기", EsIcons.Template),
-            new(SettingsSectionKind.LiveOutput, "송출", "출력 모니터와 라이브 동작", EsIcons.MonitorDual),
-            new(SettingsSectionKind.PowerPoint, "PowerPoint", "탭 표시와 렌더링", EsIcons.PowerPointSlide),
-            new(SettingsSectionKind.Media, "미디어", "탭 표시와 재생", EsIcons.MediaFile),
-            new(SettingsSectionKind.Shortcuts, "단축키", "키보드와 리모컨", EsIcons.Shortcuts),
-            new(SettingsSectionKind.Data, "데이터", "AdminDB와 백업", EsIcons.FolderOpen),
-            new(SettingsSectionKind.ImportExport, "가져오기/내보내기", "설정 파일 이동", EsIcons.ExportRtf),
-            new(SettingsSectionKind.Advanced, "고급", "진단과 호환성", EsIcons.Info),
+            new(SettingsSectionKind.MainWindow, "메인 화면", "미리보기와 파일 목록", EsIcons.Settings),
+            new(SettingsSectionKind.Show, "송출", "텍스트와 항목 전환", EsIcons.PowerPointSlide),
+            new(SettingsSectionKind.Monitors, "모니터", "화면 배치와 라이브 카메라", EsIcons.MonitorDual),
+            new(SettingsSectionKind.Alerts, "알림", "회중, 보호자 호출 및 항목 참조", EsIcons.Info),
+            new(SettingsSectionKind.Folders, "폴더", "찬양 폴더", EsIcons.FolderOpen),
+            new(SettingsSectionKind.Bibles, "성경", "성경 버전 관리", EsIcons.FolderOpen),
+            new(SettingsSectionKind.Licence, "라이선스", "관리자와 번호", EsIcons.Info),
+            new(SettingsSectionKind.Shortcuts, "키보드", "단축키와 전역 키", EsIcons.Shortcuts),
+            new(SettingsSectionKind.WpfTools, "WPF 설정", "일반, 화면 및 데이터 관리", EsIcons.Settings),
+            new(SettingsSectionKind.DeviceCheck, "장치 점검", "카메라, 마이크 및 OBS 연결 상태", SymbolRegular.Video24),
         ];
 
     private void RefreshFromSettings(bool applyAppearance)
@@ -778,12 +795,13 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
             _isRefreshing = false;
         }
 
-        if (applyAppearance)
+        if (applyAppearance && !IsEditing)
         {
             _theme.ApplyTheme(current.Appearance.Theme);
             _theme.ApplyInterfaceSize(current.Appearance.InterfaceSize);
         }
 
+        if (IsEditing) RefreshAdditionalOptions();
         AnalyzeDatabaseCommand.NotifyCanExecuteChanged();
     }
 
@@ -791,9 +809,10 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
         ref T field,
         T value,
         SettingKey<T> key,
-        Action<T>? afterSuccess = null)
+        Action<T>? afterSuccess = null,
+        [System.Runtime.CompilerServices.CallerMemberName] string? propertyName = null)
     {
-        if (!SetProperty(ref field, value) || _isRefreshing)
+        if (!SetProperty(ref field, value, propertyName) || _isRefreshing)
         {
             return;
         }
@@ -801,8 +820,8 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
         var result = _settings.Set(key, value);
         if (result.Succeeded)
         {
-            ApplyResult(result, "설정 저장됨");
-            afterSuccess?.Invoke(value);
+            ApplyResult(result, IsEditing ? "확인을 누르면 설정을 저장합니다." : "설정 저장됨");
+            if (!IsEditing) afterSuccess?.Invoke(value);
             return;
         }
 

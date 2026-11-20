@@ -149,8 +149,8 @@
                        TextAlignment="Center"
                        TextWrapping="NoWrap"
                        Margin="24,84,24,0"
-                       FontSize="26"
-                       FontWeight="SemiBold"
+                       FontSize="{Binding FolderHeadingSize}"
+                       FontWeight="{Binding FolderHeadingWeight}" FontStyle="{Binding FolderHeadingStyle}" TextDecorations="{Binding FolderHeadingDecorations}"
                        Opacity="0.85"
                        Foreground="{Binding SceneForegroundBrush}"
                        MaxWidth="1160"
@@ -212,6 +212,7 @@
                     <TranslateTransform Y="{Binding BodyVerticalOffset}" />
                 </StackPanel.RenderTransform>
                 <!-- Region1 일반 본문 — 외곽선 off 일 때. 정렬은 인-셸 가사 정렬 설정(§7.3-A, 기본 가운데). -->
+                <controls:LyricParagraphSurface Paragraph="{Binding PrimaryParagraph}" MinHeight="{Binding PrimaryRegionHeight}" />
                 <TextBlock Text="{Binding BodyText}"
                            TextAlignment="{Binding BodyTextAlignment}"
                            TextWrapping="Wrap"
@@ -224,7 +225,7 @@
                            LineHeight="{Binding BodyLineHeight}"
                            Foreground="{Binding SceneForegroundBrush}"
                            MaxHeight="{Binding RegionOneLayoutHeight}"
-                           Visibility="{Binding BodyTextVisibility}">
+                           Visibility="{Binding PlainBodyVisibility}">
                     <!-- 그림자 효과: BodyHasShadow=true 일 때만 DropShadowEffect 적용(어두운/영상 배경 위 가독성, §7.3-A). -->
                     <TextBlock.Style>
                         <Style TargetType="TextBlock">
@@ -263,9 +264,17 @@
                                             StrokeThickness="2"
                                             MaxTextWidth="{Binding BodyMaxWidth}"
                                             MaxHeight="{Binding RegionOneLayoutHeight}"
-                                            Visibility="{Binding BodyOutlineVisibility}" />
+                                            Visibility="{Binding PlainOutlineVisibility}" />
 
                 <!-- Region2(이중 언어 보조 언어) — 이중 언어 곡일 때만 Region1 아래에 표시. Region2 색·정렬 독립(없으면 Region1 추종). -->
+                <Border Height="1" Background="{Binding SceneForegroundBrush}" Visibility="{Binding RegionDividerVisibility}" />
+                <controls:LyricParagraphSurface Paragraph="{Binding SecondaryParagraph}" Margin="{Binding BodyText2Margin}" >
+                    <controls:LyricParagraphSurface.Style>
+                        <Style TargetType="controls:LyricParagraphSurface">
+                            <Style.Triggers><DataTrigger Binding="{Binding SecondaryParagraph}" Value="{x:Null}"><Setter Property="Visibility" Value="Collapsed"/></DataTrigger></Style.Triggers>
+                        </Style>
+                    </controls:LyricParagraphSurface.Style>
+                </controls:LyricParagraphSurface>
                 <TextBlock Text="{Binding BodyText2}"
                            TextAlignment="{Binding BodyText2Alignment}"
                            TextWrapping="Wrap"
@@ -279,7 +288,7 @@
                            LineHeight="{Binding BodyLineHeight}"
                            Foreground="{Binding SceneForegroundBrush2}"
                            MaxHeight="{Binding BodyText2MaxHeight}"
-                           Visibility="{Binding BodyText2Visibility}" />
+                           Visibility="{Binding PlainSecondVisibility}" />
 
                 <!-- 줄 교차(인터레이스) — on 이면 Region1·Region2 줄을 번갈아 송출(각 줄이 자기 영역 색·글꼴·효과·정렬·줄높이). 그때 위 두 밴드는 숨김.
                      그림자는 블록 모드와 동일하게 BodyHasShadow 일 때 목록 전체에 적용(어두운/영상 배경 가독성, 레거시 UseShadowFont 보존). -->
@@ -324,11 +333,12 @@
 
             <!-- 미디어 출력(영상/오디오) — WpfMediaElementPlaybackBackend 가 Source/재생을 제어한다.
                  Source 가 설정될 때만(미디어 항목 송출 시) 표시되어 가사/타이틀을 덮는다(실제 백엔드 트랙 2단계). -->
-            <MediaElement x:Name="OutputMediaElement"
+            <MediaElement x:Name="OutputMediaElement" RenderTransformOrigin="{Binding MediaOrigin}"
                           LoadedBehavior="Manual"
                           UnloadedBehavior="Manual"
                           Stretch="Uniform"
                           IsHitTestVisible="False">
+                <MediaElement.RenderTransform><ScaleTransform ScaleX="{Binding MediaScale}" ScaleY="{Binding MediaScale}" /></MediaElement.RenderTransform>
                 <MediaElement.Style>
                     <Style TargetType="MediaElement">
                         <Setter Property="Visibility" Value="Visible" />
@@ -340,32 +350,26 @@
                     </Style>
                 </MediaElement.Style>
             </MediaElement>
-            <Image x:Name="OutputCameraImage" Stretch="Uniform" IsHitTestVisible="False" />
+            <Image x:Name="OutputCameraImage" Stretch="Uniform" IsHitTestVisible="False" RenderTransformOrigin="{Binding MediaOrigin}">
+                <Image.RenderTransform><ScaleTransform ScaleX="{Binding MediaScale}" ScaleY="{Binding MediaScale}" /></Image.RenderTransform>
+            </Image>
 
             <!-- FrmMain OutputBtnRefAlert / ImageTransitionControl Ref overlay.
                  현재 송출 내용은 그대로 두고 제목/구절 한 줄만 임시로 띄우는 토글 오버레이다. -->
-            <Border HorizontalAlignment="Center"
-                    VerticalAlignment="Bottom"
-                    Margin="24,0,24,54"
+            <Border HorizontalAlignment="{Binding ReferenceHorizontal}"
+                    VerticalAlignment="{Binding ReferenceVertical}"
+                    Margin="24,12,24,54"
                     Padding="16,5"
                     CornerRadius="3"
                     Background="{Binding ReferenceAlertBackgroundBrush}"
                     ClipToBounds="True"
                     IsHitTestVisible="False"
                     Visibility="{Binding ReferenceAlertVisibility}">
-                <TextBlock Text="{Binding ReferenceAlertText}"
-                           FontSize="{Binding PanelPrimaryFontSize}"
-                           FontWeight="{Binding PanelPrimaryFontWeight}"
-                           FontStyle="{Binding PanelFontStyle}"
-                           TextDecorations="{Binding PanelTextDecorations}"
-                           TextTrimming="CharacterEllipsis"
-                           TextWrapping="NoWrap"
-                           MaxWidth="860"
-                           Foreground="{Binding ReferenceAlertForegroundBrush}">
-                    <TextBlock.RenderTransform>
+                <controls:StyledAlertText Text="{Binding ReferenceAlertText}" Appearance="{Binding Options.Reference}" Ink="{Binding ReferenceAlertForegroundBrush}">
+                    <controls:StyledAlertText.RenderTransform>
                         <TranslateTransform X="{Binding ReferenceAlertHorizontalOffset}" />
-                    </TextBlock.RenderTransform>
-                </TextBlock>
+                    </controls:StyledAlertText.RenderTransform>
+                </controls:StyledAlertText>
             </Border>
 
             <!-- 위치 인디케이터(절/슬라이드 "N/M") — 우측 하단 모서리. 설정 on + Live + 라벨 존재 시만 표시(§7.3-A). -->
@@ -465,7 +469,8 @@
             </Border>
         </Grid>
 
-        <Grid Grid.Row="2" MinHeight="{Binding PanelBandHeight}" TextElement.FontFamily="{Binding PanelFontFamily}"
+        <Grid Grid.Row="2" x:Name="CameraPanelHost">
+        <Grid MinHeight="{Binding PanelBandHeight}" TextElement.FontFamily="{Binding PanelFontFamily}"
               Margin="{StaticResource Thickness.Xl}"
               Visibility="{Binding PanelOverlayVisibility}">
             <Grid.ColumnDefinitions>
@@ -488,6 +493,23 @@
                        Foreground="{DynamicResource Brush.Live.Active}" />
         </Grid>
 
+        </Grid>
+        <Border x:Name="CameraCaption" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                Margin="28,0,28,32" Padding="18,7" Background="#CC101010" CornerRadius="4" IsHitTestVisible="False">
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding HasAudienceText}" Value="True">
+                            <Setter Property="Visibility" Value="Visible" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+            <TextBlock x:Name="LowerThirdText" Text="{Binding PublicText}" TextAlignment="Center" Foreground="White"
+                       FontSize="32" FontWeight="SemiBold" TextWrapping="Wrap" />
+        </Border>
+
         <!-- Blackout/Hidden 상태에서 모든 행을 덮는 검정 오버레이.
              사용자가 지정한 배경색이나 GAP 로고가 새는 것을 막는다. -->
         <Rectangle Grid.Row="0"
@@ -495,9 +517,9 @@
                    Fill="Black"
                    IsHitTestVisible="False"
                    Visibility="{Binding BlackoutOverlayVisibility}" />
-        <StackPanel Grid.Row="1" VerticalAlignment="Bottom" IsHitTestVisible="False">
-            <controls:OutputAlertBanner Alert="{Binding MessageAlert}" />
-            <controls:OutputAlertBanner Alert="{Binding ParentalAlert}" />
-        </StackPanel>
+        <controls:AlertOverlayPanel Grid.Row="1" IsHitTestVisible="False">
+            <controls:OutputAlertBanner Alert="{Binding MessageAlert}" Appearance="{Binding Options.Message}" />
+            <controls:OutputAlertBanner Alert="{Binding ParentalAlert}" Appearance="{Binding Options.Parental}" />
+        </controls:AlertOverlayPanel>
     </Grid>
 </Window>

@@ -120,6 +120,21 @@ public class BibleRepositoryTests
     }
 
     [Fact]
+    public void VersionLayout_UpdatesOnlyTheSelectedVisibleEdition()
+    {
+        using var fixture = BibleDatabaseFixture.Create();
+        fixture.CreateBibleList(("KJV", "kjv.db", "King James", "PD", 1, 80, 0),
+            ("NIV", "niv.db", "NIV", "", 2, 72, 1));
+        fixture.CreateBible("kjv.db");
+        fixture.CreateBible("niv.db");
+        var repository = new BibleRepository();
+        repository.SetVersionLayout(fixture.WorkingFolder, "kjv.db", 4, 63).Should().BeTrue();
+        repository.SetVersionLayout(fixture.WorkingFolder, "kjv.db", 0, 30).Should().BeFalse();
+        var editions = repository.GetVersions(fixture.WorkingFolder);
+        editions.Select(edition => (edition.SongFolderNo, edition.Size)).Should().Equal((4, 63), (2, 72));
+    }
+
+    [Fact]
     public void RenameVersion_UnknownFile_ReturnsFalse_AndLeavesNamesUnchanged()
     {
         using var fixture = BibleDatabaseFixture.Create();
@@ -423,6 +438,41 @@ public class BibleRepositoryTests
         var sut = new BibleRepository();
 
         sut.ExpandSelection(fixture.WorkingFolder, "쓰레기", showVerses: true).Should().BeEmpty();
+    }
+
+    [Fact]
+    public void OptionsCatalog_DiscardsDraftOrCommitsVersionEditsTogether()
+    {
+        using var files = BibleDatabaseFixture.Create();
+        files.CreateBibleList(("KJV", "kjv.db", "", "", 1, 80, 0), ("NIV", "niv.db", "", "", 2, 100, 1));
+        var live = new BibleRepository();
+        using (var cancelled = new BibleCatalogEdit(files.BibleListPath))
+            new BibleRepository(cancelled.DraftPath).DeleteVersion(files.WorkingFolder, "kjv.db").Should().BeTrue();
+        live.GetVersions(files.WorkingFolder).Should().HaveCount(2);
+
+        using var edit = new BibleCatalogEdit(files.BibleListPath);
+        var draft = new BibleRepository(edit.DraftPath);
+        draft.SetVersionLayout(files.WorkingFolder, "niv.db", 3, 125).Should().BeTrue();
+        draft.RenameVersion(files.WorkingFolder, "niv.db", "새 이름").Should().BeTrue();
+        draft.DeleteVersion(files.WorkingFolder, "kjv.db").Should().BeTrue();
+        live.GetVersions(files.WorkingFolder).Should().HaveCount(2);
+        edit.Commit().Should().BeTrue();
+        edit.Commit().Should().BeFalse();
+        var saved = live.GetVersions(files.WorkingFolder).Should().ContainSingle().Subject;
+        (saved.Name, saved.SongFolderNo, saved.Size).Should().Be(("새 이름", 3, 125));
+    }
+
+    [Fact]
+    public void OptionsCatalog_ProtectsConcurrentChanges()
+    {
+        using var files = BibleDatabaseFixture.Create();
+        files.CreateBibleList(("KJV", "kjv.db", "", "", 1, 80, 0));
+        using var edit = new BibleCatalogEdit(files.BibleListPath);
+        new BibleRepository(edit.DraftPath).SetVersionLayout(files.WorkingFolder, "kjv.db", 2, 120);
+        new BibleRepository().RenameVersion(files.WorkingFolder, "kjv.db", "external");
+        Action commit = () => edit.Commit();
+        commit.Should().Throw<InvalidOperationException>();
+        new BibleRepository().GetVersions(files.WorkingFolder)[0].Name.Should().Be("external");
     }
 
     private sealed class BibleDatabaseFixture : IDisposable

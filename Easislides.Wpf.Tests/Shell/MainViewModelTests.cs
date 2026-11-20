@@ -962,6 +962,25 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void BibleSelection_AppliesEachVersionsFolderAndFontPercentageToOutput()
+    {
+        var shell = CreateSut(seedSampleQueue: false);
+        shell.Bible.Versions.Add(new BibleVersion(0,"One","","","one.db","",3,80,false));
+        shell.Bible.Versions.Add(new BibleVersion(1,"Two","","","two.db","",4,120,false));
+        shell.Library.Folders.Add(new SongFolderSummary(3,"A",true,0,SlideLayout: new SongPageLayout(30,"Arial",5,2,2,3,1,100,0)));
+        shell.Library.Folders.Add(new SongFolderSummary(4,"B",true,0,SlideLayout: new SongPageLayout(40,"Tahoma",5,2,2,3,1,100,0)));
+        var selection = new BibleSelection("0;one.db;two.db;1;1;1;1;1;", "예배 말씀");
+        var preview = shell.PreviewBibleSelection(selection)!;
+        preview.SongLayout!.FontPoints.Should().Be(24);
+        var live = new LiveSessionService();
+        live.GoLive(shell.AddBibleSelection(selection)!, "projector");
+        live.Current.OverrideFontName.Should().Be("Arial");
+        live.Current.OverrideFontName2.Should().Be("Tahoma");
+        live.Current.OverrideFontSizePx.Should().Be(32);
+        live.Current.OverrideFontSizePx2.Should().Be(64);
+    }
+
+    [Fact]
     public void AddBibleSelection_WhenSelectionIsEmpty_DoesNotChangeQueue()
     {
         var sut = CreateSut();
@@ -5568,11 +5587,29 @@ public class MainViewModelTests
 
         sut.BindShortcuts(registry);
 
-        registry.All.Should().BeEquivalentTo(catalog.GetDefaultShortcuts().Where(s => s.Key != Key.None));
+        registry.All.Should().BeEquivalentTo(catalog.GetDefaultShortcuts().Where(s => s.Key != Key.None)
+            .Select(s => s.Key is Key.F7 or Key.F8 or Key.F10 ? s with { IsGlobal = false } : s));
         registry.All.Should().Contain(s => s.CommandName == MainCommandIds.LiveGo && !s.IsGlobal);
         registry.All.Should().NotContain(s => s.CommandName == MainCommandIds.LiveNext && s.IsGlobal);
         registry.All.Should().Contain(s => s.CommandName == MainCommandIds.LiveNext && !s.IsGlobal);
         registry.All.Should().Contain(s => s.CommandName == MainCommandIds.LivePrevious && !s.IsGlobal);
+    }
+
+    [Fact]
+    public void OptionsKeyboardChanges_RebindActiveGlobalSlotsAndLayout()
+    {
+        using var temp = TempSettingsFolder.Create();
+        var settings = temp.CreateSettings();
+        var shell = CreateSut(settings: settings, seedSampleQueue: false);
+        var shortcuts = new ShortcutRegistry();
+        shell.BindShortcuts(shortcuts);
+        settings.SetValues(new Dictionary<string, object> { ["operator.GlobalF9"] = true, ["operator.GlobalCtrlArrow"] = true,
+            ["operator.AlternateKeyboard"] = true }).Succeeded.Should().BeTrue();
+        shortcuts.All.Should().Contain(x => x.Key == Key.F9 && x.IsGlobal && x.CommandName == MainCommandIds.LiveBlack);
+        shortcuts.All.Should().Contain(x => x.Key == Key.Down && x.Modifiers == ModifierKeys.Control && x.IsGlobal);
+        MainWindow.RemapNavigationKey(Key.Home, shell.AlternateKeyboard).Should().Be(Key.Left);
+        settings.SetValues(new Dictionary<string, object> { ["operator.GlobalF9"] = false, ["operator.GlobalCtrlArrow"] = false }).Succeeded.Should().BeTrue();
+        shortcuts.All.Should().NotContain(x => x.Key == Key.F9 && x.IsGlobal || x.Key == Key.Down && x.Modifiers == ModifierKeys.Control);
     }
 
     [Fact]

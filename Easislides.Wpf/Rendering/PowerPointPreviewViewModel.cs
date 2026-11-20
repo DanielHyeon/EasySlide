@@ -58,7 +58,7 @@ public sealed partial class PowerPointPreviewViewModel : ObservableObject
     private const int MinimumThumbnailPixelHeight = LegacyPowerPointImageSize.Height;
 
     private readonly IPowerPointRenderService _render;
-    private readonly Func<byte[], ImageSource> _decode;
+    private readonly Func<byte[], Task<ImageSource>> _decodeAsync;
     private CancellationTokenSource? _thumbnailCts;
     private Task? _thumbnailTask;
     private StripKey? _stripKey;
@@ -102,7 +102,9 @@ public sealed partial class PowerPointPreviewViewModel : ObservableObject
     public PowerPointPreviewViewModel(IPowerPointRenderService render, Func<byte[], ImageSource>? imageDecoder = null)
     {
         _render = render ?? throw new ArgumentNullException(nameof(render));
-        _decode = imageDecoder ?? DecodePng;
+        _decodeAsync = imageDecoder == null
+            ? bytes => Task.Run(() => DecodePng(bytes))
+            : bytes => Task.FromResult(imageDecoder(bytes));
     }
 
     /// <summary>
@@ -177,16 +179,18 @@ public sealed partial class PowerPointPreviewViewModel : ObservableObject
             ImageSource image;
             try
             {
-                image = _decode(slide.ImageBytes);
+                image = await _decodeAsync(slide.ImageBytes);
             }
             catch (Exception ex) when (
                 ex is NotSupportedException or FileFormatException or ArgumentException or OverflowException or IOException)
             {
                 // 렌더는 성공했으나 바이트 디코드 실패 — 상태 머신이 Rendering 에 고착되지 않도록 Failed 로 마무리.
-                SetFailed($"이미지 디코드 실패: {ex.Message}");
+                if (generation == _previewGeneration) SetFailed($"이미지 디코드 실패: {ex.Message}");
                 return;
             }
 
+            if (generation != _previewGeneration) return;
+            if (cancellationToken.IsCancellationRequested) { SetFailed("렌더링 취소됨"); return; }
             PreviewImage = image;
             SlideNumber = slide.SlideNumber;
             SlideCount = slide.SlideCount;
@@ -296,7 +300,7 @@ public sealed partial class PowerPointPreviewViewModel : ObservableObject
                     ImageSource image;
                     try
                     {
-                        image = _decode(slideSnapshot.ImageBytes);
+                        image = await _decodeAsync(slideSnapshot.ImageBytes);
                     }
                     catch (Exception ex) when (
                         ex is NotSupportedException or FileFormatException or ArgumentException or OverflowException or IOException)

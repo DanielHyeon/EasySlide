@@ -81,17 +81,25 @@ public partial class App : Application
         services.AddSingleton<ISearchUsageService, SearchUsageService>();
         services.AddSingleton<IUsageDeleteConfirmation, WpfUsageDeleteConfirmation>();
         services.AddSingleton<IBibleRepository, BibleRepository>();
-        services.AddSingleton<IPowerPointRenderBackend, OfficePowerPointRenderBackend>();
+        services.AddSingleton<IPowerPointRenderBackend, PowerPointWorker>();
         services.AddSingleton<IPowerPointRenderService>(sp => new PowerPointRenderService(
             sp.GetRequiredService<IPowerPointRenderBackend>(),
-            sp.GetRequiredService<ISettingsService>()));
+            sp.GetRequiredService<ISettingsService>(),
+            System.IO.Path.Combine(System.IO.Path.GetDirectoryName(System.IO.Path.GetFullPath(settingsOptions.SettingsFilePath))!, "Cache", "PowerPoint")));
         services.AddSingleton<IPowerPointSlideShowControl, OfficePowerPointSlideShowControl>();
 
         // M1 운영 셸 — 라이브 세션, 출력 창 상태, 안전 확인, 명령 기록
         services.AddSingleton<ILiveSessionService, LiveSessionService>();
+        services.AddSingleton<Captions.CaptionSession>();
+        services.AddSingleton<Captions.CaptionBroadcastServer>();
+        services.AddSingleton(_ => new Captions.ObsOperator(
+            System.IO.Path.GetDirectoryName(System.IO.Path.GetFullPath(settingsOptions.SettingsFilePath))!, dispatcher));
+        services.AddSingleton(_ => new Captions.CaptionRecoveryStore(System.IO.Path.Combine(
+            System.IO.Path.GetDirectoryName(System.IO.Path.GetFullPath(settingsOptions.SettingsFilePath))!, "CaptionRecovery")));
         services.AddSingleton<IOutputWindowService, OutputWindowService>();
         // 미디어 백엔드 — 생명주기 브리지(출력 창의 MediaElement 가 만들어지면 실제 백엔드를 Attach).
         // 동일 인스턴스를 IMediaPlaybackBackend(서비스용)과 구체 타입(출력 창 Attach용) 양쪽으로 노출.
+        services.AddSingleton<CameraOwnership>();
         services.AddSingleton<AttachableMediaPlaybackBackend>();
         services.AddSingleton<IMediaPlaybackBackend>(sp => sp.GetRequiredService<AttachableMediaPlaybackBackend>());
         services.AddSingleton(sp => new MediaPlaybackService(
@@ -146,7 +154,8 @@ public partial class App : Application
         {
             // 출력 창 생성 시 MediaElement 를 미디어 브리지에 부착(실제 미디어 백엔드 트랙 2단계).
             var window = sp.GetRequiredService<OutputWindow>();
-            window.AttachMedia(sp.GetRequiredService<AttachableMediaPlaybackBackend>(), sp.GetRequiredService<MediaPlaybackService>());
+            window.CameraCaption.DataContext = sp.GetRequiredService<Captions.CaptionSession>();
+            window.AttachMedia(sp.GetRequiredService<AttachableMediaPlaybackBackend>(), sp.GetRequiredService<MediaPlaybackService>(), sp.GetRequiredService<CameraOwnership>());
             return window;
         });
         services.AddSingleton<IOutputWindowHost, OutputWindowHost>();
@@ -168,6 +177,12 @@ public partial class App : Application
 
     private void OnStartup(object sender, StartupEventArgs e)
     {
+        if (e.Args.Length == 1 && e.Args[0] == PowerPointWorker.Switch)
+        {
+            ShutdownMode = ShutdownMode.OnExplicitShutdown;
+            RunPowerPointWorker();
+            return;
+        }
         // 전역 예외 핸들러 — Sprint 0 PoC 중 silent crash 방지.
         // Sprint 1 이후: Serilog 등 로깅 인프라로 교체 + 사용자에게 비차단 알림.
         DispatcherUnhandledException += OnUiException;
@@ -258,6 +273,12 @@ public partial class App : Application
                     MessageBoxImage.Warning);
             }
         }
+    }
+
+    private async void RunPowerPointWorker()
+    {
+        try { await PowerPointWorker.RunAsync(); Shutdown(0); }
+        catch (Exception ex) { System.Diagnostics.Trace.WriteLine(ex); Shutdown(1); }
     }
 
     protected override void OnExit(ExitEventArgs e)

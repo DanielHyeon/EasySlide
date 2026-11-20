@@ -1593,9 +1593,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand<string> JumpToLyricsSectionCommand { get; }
     public IRelayCommand PreviousLyricsPageCommand { get; }
 
+    internal event Action? QueueReplacing;
+
     public void LoadQueue(IEnumerable<LiveQueueItem> items)
     {
         ArgumentNullException.ThrowIfNull(items);
+        QueueReplacing?.Invoke();
 
         Queue.Clear();
         foreach (var item in items)
@@ -1823,6 +1826,26 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     // 성경 선택을 큐 항목으로 만든다(본문 확장 포함). 빈 선택이면 안내 후 null — 삽입 위치는 호출자가 정한다.
+    private Data.SongPageLayout? ResolveBibleLayout(string id)
+    {
+        if (!BibleSelectionId.TryParse(id, out var parsed)) return null;
+        BibleVersion? Version(string file) => Bible.Versions.FirstOrDefault(v => string.Equals(v.FileName, file, StringComparison.OrdinalIgnoreCase));
+        Data.SongPageLayout? Layout(BibleVersion v) => Library.Folders.FirstOrDefault(f => f.FolderNo == v.SongFolderNo)?.SlideLayout;
+        if (Version(parsed.Region1FileName) is not { } first) return null;
+        var folder = Layout(first) ?? new Data.SongPageLayout(Math.Max(1, (int)Math.Round(_settings.Current.LiveOutput.LyricsMonitorFontSize * 0.75)),
+            "", 0, 0, 0, 0, 1, 100, 0);
+        var fields = (folder.Fields ?? new Dictionary<string,string>()).ToDictionary(p => p.Key, p => p.Value);
+        if (Version(parsed.Region2FileName) is { } second)
+        {
+            var secondFolder = Layout(second) ?? folder;
+            fields["Size1"] = Math.Max(1, (int)Math.Round(secondFolder.FontPoints * second.Size / 100d)).ToString();
+            fields["FontName1"] = secondFolder.FontName;
+            fields["BIU1"] = secondFolder.FontStyleBits.ToString();
+            fields["LineSpacing2"] = secondFolder.LineSpacing.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        }
+        return folder with { FontPoints = Math.Max(1, (int)Math.Round(folder.FontPoints * first.Size / 100d)), Fields = fields };
+    }
+
     private LiveQueueItem? CreateBibleItem(BibleSelection selection)
     {
         if (string.IsNullOrWhiteSpace(selection.IdString) || string.IsNullOrWhiteSpace(selection.Title))
@@ -1835,9 +1858,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         // 선택 구절을 실제 본문(절 단위 페이지·이중 언어면 보조 언어까지)으로 확장해 항목에 싣는다 —
         // 예전엔 성경 항목이 제목만 송출했으나 이제 회중 화면에 구절 본문이 보인다. 본문이 비면(파일 없음 등) 제목만(폴백).
         var body = Bible.ExpandSelectionBody(selection.IdString);
+        var layout = ResolveBibleLayout(selection.IdString);
         return new LiveQueueItem(selection.IdString, selection.Title, LiveItemKinds.Bible)
         {
             Lyrics = string.IsNullOrWhiteSpace(body) ? selection.Title : body,
+            SongLayout = layout,
         };
     }
 
@@ -1909,6 +1934,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             Sequence = normalizedSequence,
             SongNumber = song.SongNumber,
             Copyright = song.Copyright,
+            LicenceAdmin1 = song.LicenceAdmin1,
+            LicenceAdmin2 = song.LicenceAdmin2,
             BookReference = song.BookReference,
             UserReference = song.UserReference,
             // 이미 예배순서 항목에 서식이 있으면 .esw/항목별 override 로 보고 보존한다.
@@ -2181,7 +2208,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                             detail.Category,
                             detail.Key,
                             detail.Lyrics,
-                            detail.Copyright),
+                            detail.Copyright, LicenceAdmin1: detail.LicenceAdmin1, LicenceAdmin2: detail.LicenceAdmin2),
                         string.IsNullOrWhiteSpace(detail.Sequence) ? null : detail.Sequence,
                         string.IsNullOrWhiteSpace(detail.FormatData) ? null : detail.FormatData,
                         detail.BookReference,
@@ -2298,7 +2325,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 detail.Category,
                 detail.Key,
                 detail.Lyrics,
-                detail.Copyright), // 저작권 — 출력 "저작권 표시"에 쓰인다.
+                detail.Copyright, LicenceAdmin1: detail.LicenceAdmin1, LicenceAdmin2: detail.LicenceAdmin2), // 저작권 — 출력 "저작권 표시"에 쓰인다.
             detail.Sequence, // 곡 절 순서 — 있으면 절을 그 순서로 반복 송출(레거시 인코딩이면 매칭 0→선형 폴백).
             detail.FormatData, // 곡별 출력 색(레거시 v32) — 라이브 송출 시 그 곡의 글자·배경색 적용.
             detail.BookReference,
@@ -2953,6 +2980,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                         Lyrics = song.Lyrics,
                         SongNumber = song.SongNumber,
                         Copyright = song.Copyright,
+                        LicenceAdmin1 = song.LicenceAdmin1,
+                        LicenceAdmin2 = song.LicenceAdmin2,
                         BookReference = song.BookReference,
                         UserReference = song.UserReference,
                         FormatData = esw.FormatData,
@@ -3020,7 +3049,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                         detail.Category,
                         detail.Key,
                         detail.Lyrics,
-                        detail.Copyright),
+                        detail.Copyright, LicenceAdmin1: detail.LicenceAdmin1, LicenceAdmin2: detail.LicenceAdmin2),
                     string.IsNullOrWhiteSpace(detail.Sequence) ? null : detail.Sequence,
                     string.IsNullOrWhiteSpace(esw.FormatData) ? detail.FormatData : esw.FormatData,
                     detail.BookReference,
@@ -3041,9 +3070,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             Lyrics = song.Lyrics,
             Sequence = sequence ?? song.Sequence,
+            SourceFolderNo = song.FolderNo,
             SongLayout = Library.Folders.FirstOrDefault(folder => folder.FolderNo == song.FolderNo)?.SlideLayout,
             SongNumber = song.SongNumber,
             Copyright = song.Copyright,
+            LicenceAdmin1 = song.LicenceAdmin1,
+            LicenceAdmin2 = song.LicenceAdmin2,
             FormatData = formatData ?? song.FormatData,
             BookReference = bookReference ?? song.BookReference,
             UserReference = userReference ?? song.UserReference,
@@ -3146,7 +3178,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // 최근 예배 순서에 이름을 기록하고 메뉴 바인딩 컬렉션을 갱신한다(저장·불러오기 성공 시 호출).
     private void RecordRecentWorshipList(string name)
     {
-        CurrentWorshipListName = name;
+        if (CurrentWorshipListName != name)
+        {
+            CurrentWorshipListName = name;
+            OnPropertyChanged(nameof(CurrentWorshipListName));
+        }
         _settings.Set(EasiSettingKeys.CurrentWorshipListName, name);
         _recentWorshipLists.Record(name);
         RefreshRecentWorshipLists();
@@ -3356,12 +3392,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         // 명령 팔레트가 명령 id 로 실행할 수 있도록 레지스트리를 보관(아래 Bind 들이 id→동작을 등록).
         _shortcutRegistry = registry;
 
-        foreach (var shortcut in ShortcutSettings.ApplyOverrides(
-                     _commandCatalog.GetDefaultShortcuts(),
-                     _settings.Current.Shortcuts))
-        {
-            RegisterIfMissing(registry, shortcut);
-        }
+        RefreshShortcutBindings(registry);
 
         registry.Bind(MainCommandIds.OutputOpen, () => OpenOutputCommand.Execute(null));
         registry.Bind(MainCommandIds.OutputClose, () => _ = CloseOutputCommand.ExecuteAsync(null));
@@ -3443,11 +3474,19 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         try
         {
             var savedStage = _settings.Get(EasiSettingKeys.PreviewMonitorId);
+            var options = _settings.Current.Operator;
             var candidates = available.Where(display => !OverlapsOpenOutput(display)).ToArray();
+            if (options.StageCustom)
+            {
+                var rect = new System.Windows.Rect(options.StageLeft, options.StageTop, options.StageWidth,
+                    Easislides.Core.SlideAspectRatio.HeightForWidth(options.StageWidth, _settings.Current.LiveOutput.IsMonitorWide));
+                candidates = candidates.Where(d => DisplayIntersection(d, rect) > 0)
+                    .OrderByDescending(d => DisplayIntersection(d, rect)).Take(1).ToArray();
+            }
             var stage = candidates.FirstOrDefault(display => string.Equals(display.Id, savedStage, StringComparison.OrdinalIgnoreCase))
-                ?? candidates.FirstOrDefault(display => !display.IsPrimary && !string.Equals(display.Id, audience.Id, StringComparison.OrdinalIgnoreCase))
-                ?? candidates.FirstOrDefault(display => !string.Equals(display.Id, audience.Id, StringComparison.OrdinalIgnoreCase))
-                ?? candidates.FirstOrDefault();
+                ?? (options.StagePreferSecondary ? candidates.FirstOrDefault(display => !display.IsPrimary && !string.Equals(display.Id, audience.Id, StringComparison.OrdinalIgnoreCase)) : null)
+                ?? (options.StagePreferSecondary ? candidates.FirstOrDefault(display => !string.Equals(display.Id, audience.Id, StringComparison.OrdinalIgnoreCase)) : null)
+                ?? (options.StageCustom || options.StagePreferSecondary ? candidates.FirstOrDefault() : null);
             UpdateDisplayList(PreviewDisplays, candidates);
             SelectedPreviewDisplay = stage;
             if (stage == null && _preview.Current.IsOpen)
@@ -3471,11 +3510,23 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
+    private static double DisplayIntersection(OutputDisplay display, System.Windows.Rect rect)
+    {
+        rect.Intersect(new System.Windows.Rect(display.X, display.Y, display.Width, display.Height));
+        return rect.IsEmpty ? 0 : rect.Width * rect.Height;
+    }
+
     private bool OverlapsOpenOutput(OutputDisplay display)
     {
         if (!_output.Current.IsOpen)
             return false;
         var area = _output.Current.Placement;
+        if (_settings.Current.Operator is { StageCustom: true } stage)
+        {
+            int height = Easislides.Core.SlideAspectRatio.HeightForWidth(stage.StageWidth, _settings.Current.LiveOutput.IsMonitorWide);
+            return stage.StageLeft < area.Left + area.Width && stage.StageLeft + stage.StageWidth > area.Left &&
+                stage.StageTop < area.Top + area.Height && stage.StageTop + height > area.Top;
+        }
         return display.X < area.Left + area.Width && display.X + display.Width > area.Left
             && display.Y < area.Top + area.Height && display.Y + display.Height > area.Top;
     }
@@ -3922,7 +3973,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private (List<string> Bodies, List<string> Labels)? GetSongPages(LiveQueueItem item)
     {
-        if (item.SongLayout is not { } layout || item.Lyrics is not { Length: > 0 } lyrics ||
+        if (CurrentSongLayout(item) is not { } layout || item.Lyrics is not { Length: > 0 } lyrics ||
             !_settings.Get(EasiSettingKeys.AutoTextOverflow) || LyricsDisplayFormatter.HasRegion2(lyrics)) return null;
         string? format = item.UseIndividualFormatting ? item.FormatData : null;
         int panel = _settings.Get(EasiSettingKeys.PanelHeightPercent);
@@ -6252,6 +6303,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         NotifyCommandStates();
     }
 
+    internal OutputDisplay EnsureCameraOutputDisplay()
+        => _output.Current.IsOpen && _output.Current.Display is { } display ? display : EnsureLiveOutputDisplay();
+
     private OutputDisplay EnsureLiveOutputDisplay()
     {
         RefreshDisplays();
@@ -7892,8 +7946,19 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         };
     }
 
+    private Data.SongPageLayout? CurrentSongLayout(LiveQueueItem item) =>
+        item.SourceFolderNo is int folder ? Library.Folders.FirstOrDefault(f => f.FolderNo == folder)?.SlideLayout ?? item.SongLayout : item.SongLayout;
+
+    internal void RefreshLibraryFormatting()
+    {
+        if (PreviewItem is { } preview) RefreshLyricsPages(preview);
+        if (OutputItem is { } live && (LiveItemKindMatcher.IsSong(live.Kind) || LiveItemKindMatcher.IsBible(live.Kind)))
+            RefreshPreparedTextOutput(live);
+    }
+
     private LiveQueueItem PrepareLiveItemForOutput(LiveQueueItem item)
     {
+        if (item.SourceFolderNo.HasValue) item = item with { SongLayout = CurrentSongLayout(item) };
         var kind = InferLegacyKind(item);
         var prepared = string.Equals(kind, item.Kind, StringComparison.Ordinal)
             ? item
@@ -7919,9 +7984,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             }
         }
 
-        if (LiveItemKindMatcher.IsBible(prepared.Kind) && string.IsNullOrWhiteSpace(prepared.Lyrics))
+        if (LiveItemKindMatcher.IsBible(prepared.Kind))
         {
             var bibleId = ResolveBibleSelectionId(prepared);
+            if (!string.IsNullOrWhiteSpace(bibleId)) prepared = prepared with { SongLayout = ResolveBibleLayout(bibleId) ?? prepared.SongLayout };
+            if (!string.IsNullOrWhiteSpace(prepared.Lyrics)) return prepared;
             var body = string.IsNullOrWhiteSpace(bibleId) ? "" : Bible.ExpandSelectionBody(bibleId);
             if (!string.IsNullOrWhiteSpace(body))
             {
@@ -8106,8 +8173,28 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// </summary>
     public bool ResetAllSettingsToDefaults() => _settings.RestoreDefaults().Succeeded;
 
+    internal bool AlternateKeyboard => _settings.Current.Operator.AlternateKeyboard;
+    public int EditHistoryLimit => _settings.Current.Operator.EditHistoryLimit;
+    public double PreviewFontDip => _settings.Current.Operator.PreviewFontPoints * 96.0 / 72.0;
+    public System.Windows.Thickness PreviewDividerThickness => new(0, 0, 0, _settings.Current.Operator.PreviewDivider ? 1 : 0);
+    public bool PreviewFocusColorEnabled => _settings.Current.Operator.PreviewFocusColorEnabled;
+    public System.Windows.Media.Brush PreviewFocusBrush => OperatorBrush.FromArgb(_settings.Current.Operator.PreviewFocusArgb);
+    public System.Windows.Media.Brush PreviewSelectionForeground => OperatorBrush.FromArgb(_settings.Current.Operator.PreviewSelectionTextArgb);
+    public System.Windows.Media.Brush PreviewSelectionBackground => OperatorBrush.FromArgb(_settings.Current.Operator.PreviewSelectionBackgroundArgb);
+
     private void OnSettingsChanged(object? sender, SettingsChangedEventArgs args)
     {
+        if (_shortcutRegistry != null && args.ChangedKeys.Any(key => key == "shortcuts" || key.StartsWith("operator.Global", StringComparison.Ordinal)))
+            RefreshShortcutBindings(_shortcutRegistry);
+        if (args.ChangedKeys.Any(key => key.StartsWith("operator.Preview", StringComparison.Ordinal)))
+        {
+            OnPropertyChanged(nameof(PreviewFontDip));
+            OnPropertyChanged(nameof(PreviewDividerThickness));
+            OnPropertyChanged(nameof(PreviewFocusColorEnabled));
+            OnPropertyChanged(nameof(PreviewFocusBrush));
+            OnPropertyChanged(nameof(PreviewSelectionForeground));
+            OnPropertyChanged(nameof(PreviewSelectionBackground));
+        }
         if (ContainsKey(args.ChangedKeys, EasiSettingKeys.PanelFontFamily.Id)) OnPropertyChanged(nameof(PanelFontFamily));
         if (ContainsKey(args.ChangedKeys, EasiSettingKeys.PanelHeightPercent.Id)) OnPropertyChanged(nameof(PanelHeightPercent));
 
@@ -8131,7 +8218,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         bool newAudiencePreference = ContainsKey(args.ChangedKeys, EasiSettingKeys.DefaultOutputMonitorId.Id);
         if (newAudiencePreference)
             _sessionOutputMonitorId = null;
-        if (newAudiencePreference || ContainsKey(args.ChangedKeys, EasiSettingKeys.OutputPlacementMode.Id)
+        if (newAudiencePreference || args.ChangedKeys.Any(key => key.StartsWith("operator.Stage", StringComparison.Ordinal) || key == "operator.OutputAsSingle")
+            || ContainsKey(args.ChangedKeys, EasiSettingKeys.PreviewMonitorId.Id)
+            || ContainsKey(args.ChangedKeys, EasiSettingKeys.OutputPlacementMode.Id)
             || ContainsKey(args.ChangedKeys, EasiSettingKeys.IsMonitorWide.Id)
             || ContainsKey(args.ChangedKeys, EasiSettingKeys.DisplayAlwaysUseSecondaryMonitor.Id)
             || ContainsKey(args.ChangedKeys, EasiSettingKeys.DisplayCustomTop.Id)
@@ -10072,14 +10161,35 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ToggleAutoRotateCommand.NotifyCanExecuteChanged();
     }
 
-    private static void RegisterIfMissing(ShortcutRegistry registry, Shortcut shortcut)
+    private void RefreshShortcutBindings(ShortcutRegistry registry)
     {
-        if (registry.All.Any(s => s.CommandName == shortcut.CommandName && s.Key == shortcut.Key && s.Modifiers == shortcut.Modifiers))
+        var options = _settings.Current.Operator;
+        var configured = ShortcutSettings.ApplyOverrides(_commandCatalog.GetDefaultShortcuts(), _settings.Current.Shortcuts);
+        var shortcuts = new List<Shortcut>();
+        foreach (var shortcut in configured)
         {
-            return;
+            if (shortcut.Modifiers != System.Windows.Input.ModifierKeys.None || _settings.Current.Shortcuts.ContainsKey(ShortcutSettings.GetSlotId(shortcut)))
+            {
+                shortcuts.Add(shortcut);
+                continue;
+            }
+            bool global = shortcut.Key switch
+            {
+                System.Windows.Input.Key.F7 => options.GlobalF7,
+                System.Windows.Input.Key.F8 => options.GlobalF8,
+                System.Windows.Input.Key.F9 => options.GlobalF9,
+                System.Windows.Input.Key.F10 => options.GlobalF10,
+                _ => shortcut.IsGlobal,
+            };
+            shortcuts.Add(shortcut with { IsGlobal = global });
         }
-
-        registry.Register(shortcut);
+        foreach (var modifiers in new[] { System.Windows.Input.ModifierKeys.None, System.Windows.Input.ModifierKeys.Control })
+        {
+            if (!(modifiers == System.Windows.Input.ModifierKeys.None ? options.GlobalArrow : options.GlobalCtrlArrow)) continue;
+            shortcuts.Add(new(System.Windows.Input.Key.Up, modifiers, MainCommandIds.LivePrevious, true, "이전 슬라이드"));
+            shortcuts.Add(new(System.Windows.Input.Key.Down, modifiers, MainCommandIds.LiveNext, true, "다음 슬라이드"));
+        }
+        registry.ReplaceShortcuts(shortcuts);
     }
 
     public void Dispose()

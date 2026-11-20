@@ -10,8 +10,8 @@ internal sealed record EditedItem(string Library, string Kind, string Key, strin
 
 internal sealed class RecentItemEdits(string path)
 {
-    public IReadOnlyList<EditedItem> Read(string library) => ReadAll()
-        .Where(entry => string.Equals(entry.Library, library, StringComparison.OrdinalIgnoreCase)).Take(10).ToArray();
+    public IReadOnlyList<EditedItem> Read(string library, int limit = 10) => ReadAll()
+        .Where(entry => string.Equals(entry.Library, library, StringComparison.OrdinalIgnoreCase)).Take(Math.Clamp(limit, 0, 20)).ToArray();
 
     private IReadOnlyList<EditedItem> ReadAll()
     {
@@ -24,11 +24,11 @@ internal sealed class RecentItemEdits(string path)
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException) { return []; }
     }
 
-    public void Record(EditedItem item)
+    public void Record(EditedItem item, int limit = 10)
     {
         var entries = ReadAll().Where(old => !string.Equals(old.Library, item.Library, StringComparison.OrdinalIgnoreCase)
             || old.Kind != item.Kind || !string.Equals(old.Key, item.Key, StringComparison.OrdinalIgnoreCase))
-            .Prepend(item).GroupBy(entry => entry.Library, StringComparer.OrdinalIgnoreCase).SelectMany(group => group.Take(10));
+            .Prepend(item).GroupBy(entry => entry.Library, StringComparer.OrdinalIgnoreCase).SelectMany(group => group.Take(Math.Clamp(limit, 0, 20)));
         string temp = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
         try
         {

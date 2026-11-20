@@ -218,6 +218,30 @@ public static class EasiSettingKeys
     // 우측 출력 모양 인스펙터 펼침/접힘 상태 저장(레거시 FrmMain 패널 상태). 기본 true=펼침(무회귀). 접어 두면 다음 실행에도 접힌 채 시작.
     public static readonly SettingKey<bool> MainInspectorExpanded = new("general.mainInspectorExpanded", true);
     // 좌측 브라우저/예배순서 패널의 높이 비율(위 브라우저 패널 %, 레거시 splitter 위치 저장). 0=저장된 적 없음 → XAML 기본(반반).
+    public static readonly SettingKey<int> BibleSequentialLimit = new("general.bibleSequentialLimit", 100);
+    public static readonly SettingKey<int> BibleAdHocLimit = new("general.bibleAdHocLimit", 100);
+    public static readonly SettingKey<bool> MessageAlertFlash = new("general.messageAlertFlash", false);
+    public static readonly SettingKey<bool> MessageAlertScroll = new("general.messageAlertScroll", false);
+    public static readonly SettingKey<bool> MessageAlertTransparent = new("general.messageAlertTransparent", false);
+    public static readonly SettingKey<int> MessageAlertDuration = new("general.messageAlertDuration", 20);
+    public static readonly SettingKey<bool> ParentalAlertFlash = new("general.parentalAlertFlash", false);
+    public static readonly SettingKey<bool> ParentalAlertScroll = new("general.parentalAlertScroll", false);
+    public static readonly SettingKey<bool> ParentalAlertTransparent = new("general.parentalAlertTransparent", false);
+    public static readonly SettingKey<int> ParentalAlertDuration = new("general.parentalAlertDuration", 20);
+    public static readonly SettingKey<string> ParentalAlertHeading = new("general.parentalAlertHeading", "보호자 호출");
+    public static readonly SettingKey<bool> LicenceOnFirstPage = new("general.licenceOnFirstPage", true);
+    public static readonly SettingKey<string> LicenceNumberSymbol = new("general.licenceNumberSymbol", "#");
+    public static readonly SettingKey<string> LicenceNumber3 = new("general.licenceNumber3", "");
+    public static readonly SettingKey<string> LicenceName4 = new("general.licenceName4", "");
+    public static readonly SettingKey<string> LicenceNumber4 = new("general.licenceNumber4", "");
+    public static readonly SettingKey<string> LicenceName5 = new("general.licenceName5", "");
+    public static readonly SettingKey<string> LicenceNumber5 = new("general.licenceNumber5", "");
+    public static readonly SettingKey<string> LicenceName6 = new("general.licenceName6", "");
+    public static readonly SettingKey<string> LicenceNumber6 = new("general.licenceNumber6", "");
+    public static readonly SettingKey<string> LicenceName7 = new("general.licenceName7", "");
+    public static readonly SettingKey<string> LicenceNumber7 = new("general.licenceNumber7", "");
+    public static readonly SettingKey<string> LicenceName8 = new("general.licenceName8", "");
+    public static readonly SettingKey<string> LicenceNumber8 = new("general.licenceNumber8", "");
     public static readonly SettingKey<int> JumpToA = new("general.jumpToA", 1);
     public static readonly SettingKey<int> JumpToB = new("general.jumpToB", 2);
     public static readonly SettingKey<int> JumpToC = new("general.jumpToC", 3);
@@ -253,6 +277,7 @@ public static class EasiSettingKeys
     public static readonly SettingKey<bool> DisplayAlwaysUseSecondaryMonitor = new("liveOutput.displayAlwaysUseSecondaryMonitor", true);
     public static readonly SettingKey<bool> IsMonitorWide = new("liveOutput.isMonitorWide", false);
     public static readonly SettingKey<bool> FitTextFileParagraphs = new("liveOutput.fitTextFileParagraphs", true);
+    internal static readonly SettingKey<string> LicenceNamesImportedFrom = new("general.licenceNamesImportedFrom", "");
     public static readonly SettingKey<bool> PreviewAreaShowNotations = new("liveOutput.previewAreaShowNotations", false);
     public static readonly SettingKey<bool> AutoTextOverflow = new("liveOutput.autoTextOverflow", true);
     public static readonly SettingKey<int> DisplayCustomTop = new("liveOutput.displayCustomTop", 0);
@@ -452,6 +477,30 @@ public static class EasiSettingKeys
         MainWindowHeight,
         MainWindowMaximized,
         MainInspectorExpanded,
+        BibleSequentialLimit,
+        BibleAdHocLimit,
+        MessageAlertFlash,
+        MessageAlertScroll,
+        MessageAlertTransparent,
+        MessageAlertDuration,
+        ParentalAlertFlash,
+        ParentalAlertScroll,
+        ParentalAlertTransparent,
+        ParentalAlertDuration,
+        ParentalAlertHeading,
+        LicenceOnFirstPage,
+        LicenceNumberSymbol,
+        LicenceNumber3,
+        LicenceName4,
+        LicenceNumber4,
+        LicenceName5,
+        LicenceNumber5,
+        LicenceName6,
+        LicenceNumber6,
+        LicenceName7,
+        LicenceNumber7,
+        LicenceName8,
+        LicenceNumber8,
         JumpToA,
         JumpToB,
         JumpToC,
@@ -479,7 +528,9 @@ public static class EasiSettingKeys
         DisplayAlwaysUseSecondaryMonitor,
         IsMonitorWide,
         FitTextFileParagraphs,
+        LicenceNamesImportedFrom,
         PreviewAreaShowNotations,
+        .. OperatorOptionCatalog.All.Select(option => option.Key),
         AutoTextOverflow,
         DisplayCustomTop,
         DisplayCustomLeft,
@@ -582,6 +633,25 @@ public static class EasiSettingKeys
 
 public sealed record GeneralSettings
 {
+    public string LicenceNamesImportedFrom { get; init; } = "";
+    public string FormatLicence(string administrator)
+    {
+        var name = administrator.Trim();
+        if (name.Length == 0 || name == "None") return "";
+        var number = name switch
+        {
+            "CCLI" => LicenceNumber3,
+            _ when name == LicenceName4 => LicenceNumber4,
+            _ when name == LicenceName5 => LicenceNumber5,
+            _ when name == LicenceName6 => LicenceNumber6,
+            _ when name == LicenceName7 => LicenceNumber7,
+            _ when name == LicenceName8 => LicenceNumber8,
+            _ => null
+        };
+        if (number is null) return name;
+        return string.IsNullOrWhiteSpace(number) ? "" : string.Concat(name, LicenceNumberSymbol, number.Trim());
+    }
+
     public string Language { get; init; } = EasiSettingKeys.Language.DefaultValue;
 
     public string WorkingFolder { get; init; } = EasiSettingKeys.WorkingFolder.DefaultValue;
@@ -604,6 +674,30 @@ public sealed record GeneralSettings
 
     public bool MainInspectorExpanded { get; init; } = EasiSettingKeys.MainInspectorExpanded.DefaultValue;
 
+    public int BibleSequentialLimit { get; init; } = EasiSettingKeys.BibleSequentialLimit.DefaultValue;
+    public int BibleAdHocLimit { get; init; } = EasiSettingKeys.BibleAdHocLimit.DefaultValue;
+    public bool MessageAlertFlash { get; init; } = EasiSettingKeys.MessageAlertFlash.DefaultValue;
+    public bool MessageAlertScroll { get; init; } = EasiSettingKeys.MessageAlertScroll.DefaultValue;
+    public bool MessageAlertTransparent { get; init; } = EasiSettingKeys.MessageAlertTransparent.DefaultValue;
+    public int MessageAlertDuration { get; init; } = EasiSettingKeys.MessageAlertDuration.DefaultValue;
+    public bool ParentalAlertFlash { get; init; } = EasiSettingKeys.ParentalAlertFlash.DefaultValue;
+    public bool ParentalAlertScroll { get; init; } = EasiSettingKeys.ParentalAlertScroll.DefaultValue;
+    public bool ParentalAlertTransparent { get; init; } = EasiSettingKeys.ParentalAlertTransparent.DefaultValue;
+    public int ParentalAlertDuration { get; init; } = EasiSettingKeys.ParentalAlertDuration.DefaultValue;
+    public string ParentalAlertHeading { get; init; } = EasiSettingKeys.ParentalAlertHeading.DefaultValue;
+    public bool LicenceOnFirstPage { get; init; } = EasiSettingKeys.LicenceOnFirstPage.DefaultValue;
+    public string LicenceNumberSymbol { get; init; } = EasiSettingKeys.LicenceNumberSymbol.DefaultValue;
+    public string LicenceNumber3 { get; init; } = EasiSettingKeys.LicenceNumber3.DefaultValue;
+    public string LicenceName4 { get; init; } = EasiSettingKeys.LicenceName4.DefaultValue;
+    public string LicenceNumber4 { get; init; } = EasiSettingKeys.LicenceNumber4.DefaultValue;
+    public string LicenceName5 { get; init; } = EasiSettingKeys.LicenceName5.DefaultValue;
+    public string LicenceNumber5 { get; init; } = EasiSettingKeys.LicenceNumber5.DefaultValue;
+    public string LicenceName6 { get; init; } = EasiSettingKeys.LicenceName6.DefaultValue;
+    public string LicenceNumber6 { get; init; } = EasiSettingKeys.LicenceNumber6.DefaultValue;
+    public string LicenceName7 { get; init; } = EasiSettingKeys.LicenceName7.DefaultValue;
+    public string LicenceNumber7 { get; init; } = EasiSettingKeys.LicenceNumber7.DefaultValue;
+    public string LicenceName8 { get; init; } = EasiSettingKeys.LicenceName8.DefaultValue;
+    public string LicenceNumber8 { get; init; } = EasiSettingKeys.LicenceNumber8.DefaultValue;
     public int JumpToA { get; init; } = EasiSettingKeys.JumpToA.DefaultValue;
     public int JumpToB { get; init; } = EasiSettingKeys.JumpToB.DefaultValue;
     public int JumpToC { get; init; } = EasiSettingKeys.JumpToC.DefaultValue;
@@ -872,6 +966,8 @@ public sealed record EasiSettingsSnapshot
 
     public GeneralSettings General { get; init; } = new();
 
+    public OperatorOptions Operator { get; init; } = new();
+
     public AppearanceSettings Appearance { get; init; } = new();
 
     public LiveOutputSettings LiveOutput { get; init; } = new();
@@ -938,6 +1034,9 @@ public sealed class SettingsService : ISettingsService
     public static readonly JsonSerializerOptions JsonOptions = CreateJsonOptions();
 
     private readonly SettingsServiceOptions _options;
+    private readonly SettingsService? _owner;
+    private readonly EasiSettingsSnapshot? _baseline;
+    private bool _imported;
     private readonly object _sync = new();
 
     public SettingsService()
@@ -951,6 +1050,61 @@ public sealed class SettingsService : ISettingsService
         var loaded = LoadCurrent(options.SettingsFilePath);
         var initial = Validate(loaded).Succeeded ? loaded : EasiSettingsSnapshot.CreateDefault();
         Current = ApplyLegacyWorkingFolderFallback(initial, options.LegacyWorkingFolderPath);
+    }
+
+    private SettingsService(SettingsService owner)
+    {
+        _owner = owner;
+        _options = owner._options;
+        Current = _baseline = owner.Current;
+    }
+
+    internal SettingsService BeginEdit() => new(this);
+
+    internal SettingsResult CommitEdit()
+    {
+        if (_owner is null || _baseline is null)
+            throw new InvalidOperationException("Only an options draft can be committed.");
+
+        var changes = FindChangedKeys(_baseline, Current);
+        if (changes.Count == 0) return SettingsResult.Success();
+        lock (_owner._sync)
+        {
+            var merged = _owner.Current;
+            foreach (var key in changes)
+            {
+                if (key != "shortcuts")
+                {
+                    merged = SetValue(merged, key, GetValue(Current, key));
+                    continue;
+                }
+
+                var bindings = new Dictionary<string, string>(merged.Shortcuts, StringComparer.OrdinalIgnoreCase);
+                foreach (var slot in _baseline.Shortcuts.Keys.Union(Current.Shortcuts.Keys, StringComparer.OrdinalIgnoreCase))
+                {
+                    _baseline.Shortcuts.TryGetValue(slot, out var previous);
+                    Current.Shortcuts.TryGetValue(slot, out var edited);
+                    if (previous == edited) continue;
+                    if (edited is null) bindings.Remove(slot);
+                    else bindings[slot] = edited;
+                }
+                merged = merged with { Shortcuts = bindings };
+            }
+            try
+            {
+                string? backup = null;
+                if (_imported)
+                {
+                    backup = Path.Combine(_options.BackupRoot, $"settings-backup-{Guid.NewGuid():N}.json");
+                    WriteSnapshot(backup, _owner.Current);
+                }
+                return _owner.ApplySnapshot(merged, _imported ? SettingsChangeSource.Import : SettingsChangeSource.User, backup);
+            }
+            catch (Exception ex) when (IsFileSystemException(ex))
+            {
+                return SettingsResult.Failure([Error("settings", ex.Message)]);
+            }
+        }
     }
 
     public EasiSettingsSnapshot Current { get; private set; }
@@ -1025,11 +1179,24 @@ public sealed class SettingsService : ISettingsService
         var candidate = Normalize(snapshot);
         var issues = new List<SettingsIssue>();
 
+        foreach (var option in OperatorOptionCatalog.All)
+        {
+            var value = option.Read(candidate.Operator);
+            if (value is int number && option.Minimum is int min && option.Maximum is int max)
+                RequireRange(number, min, max, option.Id, issues);
+            if (option.Default is string && string.IsNullOrWhiteSpace(value as string))
+                issues.Add(Error(option.Id, "글꼴 이름을 입력하세요."));
+        }
+
         if (candidate.SchemaVersion != 1)
         {
             issues.Add(Error("schemaVersion", "Only schema version 1 is supported."));
         }
 
+        RequireRange(candidate.General.BibleSequentialLimit, 1, 1000, EasiSettingKeys.BibleSequentialLimit.Id, issues);
+        RequireRange(candidate.General.BibleAdHocLimit, 1, 500, EasiSettingKeys.BibleAdHocLimit.Id, issues);
+        RequireRange(candidate.General.MessageAlertDuration, 1, 999, EasiSettingKeys.MessageAlertDuration.Id, issues);
+        RequireRange(candidate.General.ParentalAlertDuration, 1, 999, EasiSettingKeys.ParentalAlertDuration.Id, issues);
         RequireText(candidate.General.Language, EasiSettingKeys.Language.Id, issues);
         RequireText(candidate.General.WorkingFolder, EasiSettingKeys.WorkingFolder.Id, issues);
         ValidatePath(candidate.General.WorkingFolder, EasiSettingKeys.WorkingFolder.Id, issues, allowEmpty: false);
@@ -1354,7 +1521,8 @@ public sealed class SettingsService : ISettingsService
                 return validation;
             }
 
-            var backupPath = await BackupCurrentAsync().ConfigureAwait(false);
+            if (_owner is not null) _imported = true;
+            var backupPath = _owner is null ? await BackupCurrentAsync().ConfigureAwait(false) : null;
             return ApplySnapshot(imported, SettingsChangeSource.Import, backupPath);
         }
         catch (JsonException ex)
@@ -1384,6 +1552,66 @@ public sealed class SettingsService : ISettingsService
         next = ApplyLegacyBool(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.OnboardingCompleted.Id), next, issues, value => next with
         {
             General = next.General with { OnboardingCompleted = value },
+        });
+        next = ApplyLegacyInt(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.BibleSequentialLimit.Id), next, issues, value => next with
+        {
+            General = next.General with { BibleSequentialLimit = Math.Clamp(value, 1, 1000) },
+        });
+        next = ApplyLegacyInt(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.BibleAdHocLimit.Id), next, issues, value => next with
+        {
+            General = next.General with { BibleAdHocLimit = Math.Clamp(value, 1, 500) },
+        });
+        next = ApplyLegacyInt(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.MessageAlertFlash.Id), next, issues, value => next with
+        {
+            General = next.General with { MessageAlertScroll = (value & 1) != 0, MessageAlertFlash = (value & 2) != 0, MessageAlertTransparent = (value & 4) != 0 },
+        });
+        next = ApplyLegacyInt(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.MessageAlertDuration.Id), next, issues, value => next with
+        {
+            General = next.General with { MessageAlertDuration = Math.Clamp(value, 1, 999) },
+        });
+        next = ApplyLegacyInt(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.ParentalAlertFlash.Id), next, issues, value => next with
+        {
+            General = next.General with { ParentalAlertScroll = (value & 1) != 0, ParentalAlertFlash = (value & 2) != 0, ParentalAlertTransparent = (value & 4) != 0 },
+        });
+        next = ApplyLegacyInt(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.ParentalAlertDuration.Id), next, issues, value => next with
+        {
+            General = next.General with { ParentalAlertDuration = Math.Clamp(value, 1, 999) },
+        });
+        next = ApplyLegacyString(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.ParentalAlertHeading.Id), next, value => next with
+        {
+            General = next.General with { ParentalAlertHeading = value },
+        });
+        next = ApplyLegacyBool(legacySettings, ["licEnforceDisplay"], next, issues, value => next with
+        {
+            General = next.General with { LicenceOnFirstPage = value },
+        });
+        next = ApplyLegacyString(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.LicenceNumberSymbol.Id), next, value => next with
+        {
+            General = next.General with { LicenceNumberSymbol = value },
+        });
+        next = ApplyLegacyString(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.LicenceNumber3.Id), next, value => next with
+        {
+            General = next.General with { LicenceNumber3 = value },
+        });
+        next = ApplyLegacyString(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.LicenceNumber4.Id), next, value => next with
+        {
+            General = next.General with { LicenceNumber4 = value },
+        });
+        next = ApplyLegacyString(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.LicenceNumber5.Id), next, value => next with
+        {
+            General = next.General with { LicenceNumber5 = value },
+        });
+        next = ApplyLegacyString(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.LicenceNumber6.Id), next, value => next with
+        {
+            General = next.General with { LicenceNumber6 = value },
+        });
+        next = ApplyLegacyString(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.LicenceNumber7.Id), next, value => next with
+        {
+            General = next.General with { LicenceNumber7 = value },
+        });
+        next = ApplyLegacyString(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.LicenceNumber8.Id), next, value => next with
+        {
+            General = next.General with { LicenceNumber8 = value },
         });
         next = ApplyLegacyInt(legacySettings, LegacySettingsMap.GetAutomatedAliases(EasiSettingKeys.JumpToA.Id), next, issues, value => next with
         {
@@ -1626,6 +1854,18 @@ public sealed class SettingsService : ISettingsService
         {
             Advanced = next.Advanced with { EnableDiagnostics = value },
         });
+        foreach (var option in OperatorOptionCatalog.All)
+        {
+            EasiSettingsSnapshot Apply(object value) => next with { Operator = option.Write(next.Operator, value) };
+            next = option.Default switch
+            {
+                bool when option.FormatBit != 0 => ApplyLegacyInt(legacySettings, option.LegacyKey, next, issues, bits => Apply((bits & option.FormatBit) != 0)),
+                bool => ApplyLegacyBool(legacySettings, option.LegacyKey, next, issues, value => Apply(value)),
+                int => ApplyLegacyInt(legacySettings, option.LegacyKey, next, issues, value =>
+                    option.Minimum.HasValue && (value < option.Minimum || value > option.Maximum) ? next : Apply(value)),
+                _ => ApplyLegacyString(legacySettings, option.LegacyKey, next, value => Apply(value)),
+            };
+        }
         next = ApplyLegacyShortcutOverrides(legacySettings, next, issues);
 
         var validation = Validate(next);
@@ -1662,7 +1902,7 @@ public sealed class SettingsService : ISettingsService
         {
             previous = Current;
             changedKeys = FindChangedKeys(previous, snapshot);
-            PersistSnapshot(snapshot);
+            if (_owner is null) PersistSnapshot(snapshot);
             Current = snapshot;
         }
 
@@ -1769,6 +2009,12 @@ public sealed class SettingsService : ISettingsService
         return snapshot with
         {
             General = snapshot.General ?? defaults.General,
+            Operator = (snapshot.Operator ?? defaults.Operator) with
+            {
+                Message = snapshot.Operator?.Message ?? defaults.Operator.Message,
+                Parental = snapshot.Operator?.Parental ?? defaults.Operator.Parental,
+                Reference = snapshot.Operator?.Reference ?? defaults.Operator.Reference,
+            },
             Appearance = snapshot.Appearance ?? defaults.Appearance,
             LiveOutput = snapshot.LiveOutput ?? defaults.LiveOutput,
             PowerPoint = snapshot.PowerPoint ?? defaults.PowerPoint,
@@ -1856,6 +2102,7 @@ public sealed class SettingsService : ISettingsService
     private static object GetValue(EasiSettingsSnapshot snapshot, string keyId)
         => keyId switch
         {
+            "general.licenceNamesImportedFrom" => snapshot.General.LicenceNamesImportedFrom,
             "general.language" => snapshot.General.Language,
             "general.workingFolder" => snapshot.General.WorkingFolder,
             "general.onboardingCompleted" => snapshot.General.OnboardingCompleted,
@@ -1867,6 +2114,30 @@ public sealed class SettingsService : ISettingsService
             "general.mainWindowHeight" => snapshot.General.MainWindowHeight,
             "general.mainWindowMaximized" => snapshot.General.MainWindowMaximized,
             "general.mainInspectorExpanded" => snapshot.General.MainInspectorExpanded,
+            "general.bibleSequentialLimit" => snapshot.General.BibleSequentialLimit,
+            "general.bibleAdHocLimit" => snapshot.General.BibleAdHocLimit,
+            "general.messageAlertFlash" => snapshot.General.MessageAlertFlash,
+            "general.messageAlertScroll" => snapshot.General.MessageAlertScroll,
+            "general.messageAlertTransparent" => snapshot.General.MessageAlertTransparent,
+            "general.messageAlertDuration" => snapshot.General.MessageAlertDuration,
+            "general.parentalAlertFlash" => snapshot.General.ParentalAlertFlash,
+            "general.parentalAlertScroll" => snapshot.General.ParentalAlertScroll,
+            "general.parentalAlertTransparent" => snapshot.General.ParentalAlertTransparent,
+            "general.parentalAlertDuration" => snapshot.General.ParentalAlertDuration,
+            "general.parentalAlertHeading" => snapshot.General.ParentalAlertHeading,
+            "general.licenceOnFirstPage" => snapshot.General.LicenceOnFirstPage,
+            "general.licenceNumberSymbol" => snapshot.General.LicenceNumberSymbol,
+            "general.licenceNumber3" => snapshot.General.LicenceNumber3,
+            "general.licenceName4" => snapshot.General.LicenceName4,
+            "general.licenceNumber4" => snapshot.General.LicenceNumber4,
+            "general.licenceName5" => snapshot.General.LicenceName5,
+            "general.licenceNumber5" => snapshot.General.LicenceNumber5,
+            "general.licenceName6" => snapshot.General.LicenceName6,
+            "general.licenceNumber6" => snapshot.General.LicenceNumber6,
+            "general.licenceName7" => snapshot.General.LicenceName7,
+            "general.licenceNumber7" => snapshot.General.LicenceNumber7,
+            "general.licenceName8" => snapshot.General.LicenceName8,
+            "general.licenceNumber8" => snapshot.General.LicenceNumber8,
             "general.jumpToA" => snapshot.General.JumpToA,
             "general.jumpToB" => snapshot.General.JumpToB,
             "general.jumpToC" => snapshot.General.JumpToC,
@@ -1985,6 +2256,7 @@ public sealed class SettingsService : ISettingsService
             "data.currentPraiseBookName" => snapshot.Data.CurrentPraiseBookName,
             "data.currentWorshipListName" => snapshot.Data.CurrentWorshipListName,
             "data.selectedSongFolderNo" => snapshot.Data.SelectedSongFolderNo,
+            _ when OperatorOptionCatalog.ById.TryGetValue(keyId, out var option) => option.Read(snapshot.Operator),
             "data.adminDatabasePath" => snapshot.Data.AdminDatabasePath,
             "data.backupRoot" => snapshot.Data.BackupRoot,
             "advanced.enableDiagnostics" => snapshot.Advanced.EnableDiagnostics,
@@ -1994,6 +2266,8 @@ public sealed class SettingsService : ISettingsService
     private static EasiSettingsSnapshot SetValue<T>(EasiSettingsSnapshot snapshot, string keyId, T value)
         => keyId switch
         {
+            _ when OperatorOptionCatalog.ById.TryGetValue(keyId, out var option) => snapshot with { Operator = option.Write(snapshot.Operator, value!) },
+            "general.licenceNamesImportedFrom" => snapshot with { General = snapshot.General with { LicenceNamesImportedFrom = Cast<string>(keyId, value) } },
             "general.language" => snapshot with
             {
                 General = snapshot.General with { Language = Cast<string>(keyId, value) },
@@ -2038,6 +2312,30 @@ public sealed class SettingsService : ISettingsService
             {
                 General = snapshot.General with { MainInspectorExpanded = Cast<bool>(keyId, value) },
             },
+            "general.bibleSequentialLimit" => snapshot with { General = snapshot.General with { BibleSequentialLimit = Cast<int>(keyId, value) } },
+            "general.bibleAdHocLimit" => snapshot with { General = snapshot.General with { BibleAdHocLimit = Cast<int>(keyId, value) } },
+            "general.messageAlertFlash" => snapshot with { General = snapshot.General with { MessageAlertFlash = Cast<bool>(keyId, value) } },
+            "general.messageAlertScroll" => snapshot with { General = snapshot.General with { MessageAlertScroll = Cast<bool>(keyId, value) } },
+            "general.messageAlertTransparent" => snapshot with { General = snapshot.General with { MessageAlertTransparent = Cast<bool>(keyId, value) } },
+            "general.messageAlertDuration" => snapshot with { General = snapshot.General with { MessageAlertDuration = Cast<int>(keyId, value) } },
+            "general.parentalAlertFlash" => snapshot with { General = snapshot.General with { ParentalAlertFlash = Cast<bool>(keyId, value) } },
+            "general.parentalAlertScroll" => snapshot with { General = snapshot.General with { ParentalAlertScroll = Cast<bool>(keyId, value) } },
+            "general.parentalAlertTransparent" => snapshot with { General = snapshot.General with { ParentalAlertTransparent = Cast<bool>(keyId, value) } },
+            "general.parentalAlertDuration" => snapshot with { General = snapshot.General with { ParentalAlertDuration = Cast<int>(keyId, value) } },
+            "general.parentalAlertHeading" => snapshot with { General = snapshot.General with { ParentalAlertHeading = Cast<string>(keyId, value) } },
+            "general.licenceOnFirstPage" => snapshot with { General = snapshot.General with { LicenceOnFirstPage = Cast<bool>(keyId, value) } },
+            "general.licenceNumberSymbol" => snapshot with { General = snapshot.General with { LicenceNumberSymbol = Cast<string>(keyId, value) } },
+            "general.licenceNumber3" => snapshot with { General = snapshot.General with { LicenceNumber3 = Cast<string>(keyId, value) } },
+            "general.licenceName4" => snapshot with { General = snapshot.General with { LicenceName4 = Cast<string>(keyId, value) } },
+            "general.licenceNumber4" => snapshot with { General = snapshot.General with { LicenceNumber4 = Cast<string>(keyId, value) } },
+            "general.licenceName5" => snapshot with { General = snapshot.General with { LicenceName5 = Cast<string>(keyId, value) } },
+            "general.licenceNumber5" => snapshot with { General = snapshot.General with { LicenceNumber5 = Cast<string>(keyId, value) } },
+            "general.licenceName6" => snapshot with { General = snapshot.General with { LicenceName6 = Cast<string>(keyId, value) } },
+            "general.licenceNumber6" => snapshot with { General = snapshot.General with { LicenceNumber6 = Cast<string>(keyId, value) } },
+            "general.licenceName7" => snapshot with { General = snapshot.General with { LicenceName7 = Cast<string>(keyId, value) } },
+            "general.licenceNumber7" => snapshot with { General = snapshot.General with { LicenceNumber7 = Cast<string>(keyId, value) } },
+            "general.licenceName8" => snapshot with { General = snapshot.General with { LicenceName8 = Cast<string>(keyId, value) } },
+            "general.licenceNumber8" => snapshot with { General = snapshot.General with { LicenceNumber8 = Cast<string>(keyId, value) } },
             "general.jumpToA" => snapshot with { General = snapshot.General with { JumpToA = Cast<int>(keyId, value) } },
             "general.jumpToB" => snapshot with { General = snapshot.General with { JumpToB = Cast<int>(keyId, value) } },
             "general.jumpToC" => snapshot with { General = snapshot.General with { JumpToC = Cast<int>(keyId, value) } },

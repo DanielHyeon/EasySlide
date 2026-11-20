@@ -36,6 +36,8 @@ public sealed class OfficePptSession : IDisposable
     private readonly CancellationTokenSource _cts;
     private Application? _ppt;
     private bool _disposed;
+    private readonly System.Collections.Generic.HashSet<string> _controlledShows = new(StringComparer.OrdinalIgnoreCase);
+    private readonly System.Collections.Generic.HashSet<string> _openedDecks = new(StringComparer.OrdinalIgnoreCase);
 
     public OfficePptSession()
     {
@@ -65,7 +67,7 @@ public sealed class OfficePptSession : IDisposable
     /// <summary>STA 워커 스레드에서 동작을 실행하고 결과를 비동기 반환.</summary>
     private Task<T> RunOnStaAsync<T>(Func<T> work)
     {
-        var tcs = new TaskCompletionSource<T>();
+        var tcs = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
         _workQueue.Add(() =>
         {
             try { tcs.SetResult(work()); }
@@ -105,6 +107,37 @@ public sealed class OfficePptSession : IDisposable
         return (Math.Max(1, (int)Math.Round(slideWidth * factor)), Math.Max(1, (int)Math.Round(slideHeight * factor)));
     }
 
+    internal Task<Captions.CaptionDeck> ReadCaptionDeckAsync(string path) => RunOnStaAsync(() =>
+    {
+        _ppt ??= new Application();
+        using var presentations = _ppt.Presentations;
+        using var deck = OpenConversionCopy(_ppt, presentations, path);
+        try
+        {
+            using var slides = deck.Slides;
+            var result = new Captions.CaptionSlide[slides.Count];
+            for (int i = 1; i <= slides.Count; i++)
+            {
+                using var slide = slides[i];
+                using var shapes = slide.Shapes;
+                var boxes = new System.Collections.Generic.List<Captions.CaptionBox>();
+                for (int j = 1; j <= shapes.Count; j++)
+                {
+                    using var shape = shapes[j];
+                    if (shape.HasTextFrame != MsoTriState.msoTrue) continue;
+                    using var frame = shape.TextFrame;
+                    if (frame.HasText != MsoTriState.msoTrue) continue;
+                    using var range = frame.TextRange;
+                    var text = range.Text.Replace('\r', '\n').Replace('\v', '\n').Trim();
+                    if (text.Length > 0) boxes.Add(new("shape:" + shape.Name, shape.Name, text));
+                }
+                result[i-1] = new(boxes.ToArray());
+            }
+            return new Captions.CaptionDeck(Path.GetFullPath(path), result);
+        }
+        finally { deck.Close(); }
+    });
+
     public Task<OfficePptSlideExport> ExportSlideAsync(string filePath, int slideNumber, int width, int height)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
@@ -115,15 +148,16 @@ public sealed class OfficePptSession : IDisposable
         return RunOnStaAsync(() =>
         {
             _ppt ??= new Application();
-            _ = _ppt.Presentations.Count;
+            using var presentations = _ppt.Presentations;
 
             _Presentation? presentation = null;
             var tempFile = Path.Combine(Path.GetTempPath(), $"EasiSlidesPpt_{Guid.NewGuid():N}.png");
 
             try
             {
-                presentation = _ppt.Presentations.Open(filePath, MsoTriState.msoFalse, MsoTriState.msoTrue, MsoTriState.msoFalse);
-                var slideCount = presentation.Slides.Count;
+                presentation = OpenConversionCopy(_ppt, presentations, filePath);
+                using var slides = presentation.Slides;
+                var slideCount = slides.Count;
                 if (slideNumber > slideCount)
                 {
                     throw new ArgumentOutOfRangeException(nameof(slideNumber), slideNumber, $"Slide number exceeds slide count {slideCount}.");
@@ -131,7 +165,6 @@ public sealed class OfficePptSession : IDisposable
 
                 using var page = presentation.PageSetup;
                 var size = FitSlideSize(page.SlideWidth, page.SlideHeight, width, height);
-                using var slides = presentation.Slides;
                 using var slide = slides[slideNumber];
                 slide.Export(tempFile, "PNG", size.Width, size.Height);
                 return new OfficePptSlideExport(slideCount, File.ReadAllBytes(tempFile), "image/png")
@@ -156,6 +189,34 @@ public sealed class OfficePptSession : IDisposable
             }
         });
     }
+
+    // An untitled conversion copy can be closed independently of an open operator document.
+    private static _Presentation OpenConversionCopy(Application application, Presentations presentations, string path)
+    {
+        var previous = application.AutomationSecurity;
+        try
+        {
+            application.AutomationSecurity = MsoAutomationSecurity.msoAutomationSecurityForceDisable;
+            return presentations.Open(path, MsoTriState.msoTrue, MsoTriState.msoTrue, MsoTriState.msoFalse);
+        }
+        finally { application.AutomationSecurity = previous; }
+    }
+
+    public Task<int?> ReadShowPositionAsync(string path) => RunOnStaAsync<int?>(() =>
+    {
+        if (_ppt == null || !_controlledShows.Contains(path)) return null;
+        using var windows = _ppt.SlideShowWindows;
+        for (int index = 1; index <= windows.Count; index++)
+        {
+            using var window = windows[index];
+            using var deck = window.Presentation;
+            if (!string.Equals(deck.FullName, path, StringComparison.OrdinalIgnoreCase)) continue;
+            using var view = window.View;
+            using var slide = view.Slide;
+            return slide.SlideIndex;
+        }
+        return null;
+    });
 
     /// <summary>Start a PowerPoint slide show on the configured output monitor.</summary>
     public Task<bool> StartSlideShowAsync(
@@ -201,6 +262,7 @@ public sealed class OfficePptSession : IDisposable
             }
 
             slideShowWindow.Activate();
+            _controlledShows.Add(fullPath);
             return true;
         });
     }
@@ -242,6 +304,7 @@ public sealed class OfficePptSession : IDisposable
             }
 
             slideShowWindow.Activate();
+            _controlledShows.Add(fullPath);
             var totalClicks = view.Slide.TimeLine.MainSequence.Count;
             var currentIndex = view.GetClickIndex();
             if (currentIndex < totalClicks)
@@ -274,11 +337,13 @@ public sealed class OfficePptSession : IDisposable
             }
         }
 
-        return _ppt.Presentations.Open(
+        var opened = _ppt.Presentations.Open(
             fullPath,
             MsoTriState.msoFalse,
             MsoTriState.msoFalse,
             MsoTriState.msoTrue);
+        _openedDecks.Add(fullPath);
+        return opened;
     }
 
     private static SlideShowWindow? TryGetSlideShowWindow(_Presentation presentation)
@@ -336,7 +401,23 @@ public sealed class OfficePptSession : IDisposable
     {
         if (_ppt is not null)
         {
-            try { _ppt.Quit(); }
+            try
+            {
+                using var decks = _ppt.Presentations;
+                for (int i = decks.Count; i > 0; i--)
+                {
+                    using var deck = decks[i];
+                    var path = deck.FullName;
+                    if (_controlledShows.Remove(path))
+                    {
+                        using var window = TryGetSlideShowWindow(deck);
+                        using var view = window?.View;
+                        view?.Exit();
+                    }
+                    if (_openedDecks.Remove(path) && deck.Saved == MsoTriState.msoTrue) deck.Close();
+                }
+                if (decks.Count == 0) _ppt.Quit();
+            }
             catch { /* COM 종료 시 발생 가능, 무시 */ }
 
             try { _ppt.Dispose(); }
@@ -345,6 +426,8 @@ public sealed class OfficePptSession : IDisposable
             try { Marshal.FinalReleaseComObject(_ppt); }
             catch { }
 
+            _controlledShows.Clear();
+            _openedDecks.Clear();
             _ppt = null;
             // 명시적 GC — COM 참조 카운트 즉시 해제 유도
             GC.Collect();
