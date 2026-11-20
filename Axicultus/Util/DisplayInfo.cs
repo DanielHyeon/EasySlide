@@ -25,8 +25,10 @@ internal class DisplayInfo
         var output = MonitorLayout.ResolveOutput(displays, Gf.OutputMonitorName, Gf.DMAlwaysUseSecondaryMonitor, wide,
             outputOrigin, Gf.DMOption1Width, Gf.DMOption1AsSingleMonitor);
         Point? lyricsOrigin = Gf.LMSelectAutoOption == 1 ? new Point(Gf.LMOption1Left, Gf.LMOption1Top) : null;
+        string operatorDisplayName = FrmMain.frmMain is { IsHandleCreated: true, IsDisposed: false } main
+            ? Screen.FromHandle(main.Handle).DeviceName : null;
         var lyrics = MonitorLayout.ResolveLyrics(displays, Gf.LyricsMonitorName, Gf.LMAlwaysUseSecondaryMonitor, wide,
-            output, lyricsOrigin, Gf.LMOption1Width);
+            output, lyricsOrigin, Gf.LMOption1Width, operatorDisplayName);
         return (output, lyrics);
     }
 

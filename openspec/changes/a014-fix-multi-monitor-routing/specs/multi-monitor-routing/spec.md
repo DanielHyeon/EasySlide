@@ -18,6 +18,12 @@ WinForms SHALL restore visible operator bounds, honor live media monitor choices
 - **WHEN** a live item selects a connected media display
 - **THEN** playback uses that display. A missing choice falls back to the session or audience display. Custom PowerPoint positions and sizes use the same unit conversion in single and dual modes.
 
+#### Scenario: The operator uses the secondary screen
+
+- **WHEN** the selected lyrics monitor is unavailable or already used for audience output
+- **THEN** automatic lyrics routing skips the monitor containing the main window and uses a spare stage monitor if available
+- **AND** when no spare stage monitor exists the main window stays visible throughout the show
+
 ### Requirement: Independent WPF audience and stage placement
 
 WPF SHALL honor explicit display preferences, use separate default screens when available, and place both windows in desktop pixel coordinates.

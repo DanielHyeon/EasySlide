@@ -6675,7 +6675,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private async Task PublishOutputItemAsync(LiveQueueItem item, string commandId, int lyricsPageIndex = 0)
     {
         var display = EnsureLiveOutputDisplay();
-        var monitorName = display.Name;
         var prepared = PrepareLiveItemForOutput(item);
         OutputItem = prepared;
         SetLiveItemId(prepared.Id);
@@ -6687,8 +6686,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             projection = projection with { SlideNumber = OutputPowerPoint.SlideNumber };
         }
 
-        _session.GoLive(ResolveLiveProjection(projection, OutputPowerPoint), monitorName);
-        if (!await StartPowerPointSlideShowForLiveAsync(projection, GetPowerPointOutputMonitorName(display)).ConfigureAwait(true))
+        if (!await PublishLiveProjectionAsync(projection, display).ConfigureAwait(true))
         {
             return;
         }
@@ -6696,6 +6694,19 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         StatusText = $"LIVE: {prepared.Title}";
         _telemetry.Record(commandId, succeeded: true, prepared.Title);
         NotifyCommandStates();
+    }
+
+    private Task<bool> PublishLiveProjectionAsync(LiveQueueItem projection, OutputDisplay display)
+    {
+        if (Media.PlayerDisplay is not null)
+        {
+            if (projection is { Kind: LiveItemKinds.Media, ContentPath: { Length: > 0 } path })
+                Media.Load(GetItemMediaRequest(projection, path));
+            else
+                Media.Unload();
+        }
+        _session.GoLive(ResolveLiveProjection(projection, OutputPowerPoint), display.Name);
+        return StartPowerPointSlideShowForLiveAsync(projection, GetPowerPointOutputMonitorName(display));
     }
 
     private async Task JumpToNextNonRotateOutputItemAsync()
@@ -7159,7 +7170,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         var display = EnsureLiveOutputDisplay();
-        var monitorName = display.Name;
         var prepared = PrepareLiveItemForOutput(item);
         OutputItem = prepared;
         SetLiveItemId(prepared.Id); // Output 전용 이동/상태 표시가 참조할 live 항목 기록.
@@ -7168,8 +7178,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         LiveTransposeSemitones = 0;
         // 가사 항목이면 현재 절 인덱스를 투영에 얹는다(절 단위 페이지네이션 — PR B).
         var projection = prepared with { LyricsPageIndex = GetPreviewLyricsPageIndex(item) };
-        _session.GoLive(ResolveLiveProjection(projection, OutputPowerPoint), monitorName);
-        if (!await StartPowerPointSlideShowForLiveAsync(projection, GetPowerPointOutputMonitorName(display)).ConfigureAwait(true))
+        if (!await PublishLiveProjectionAsync(projection, display).ConfigureAwait(true))
         {
             return;
         }

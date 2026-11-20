@@ -665,3 +665,5 @@ On 2026-11-20 the context menu played AVI and AV1 MP4 test clips over a native P
 - [x] Correct inferred output placement for the WinForms default custom width of 1. Fill the automatic audience monitor independently of slide aspect ratio and background video size. Verify playback at all four corners and restore the original PowerPoint geometry.
 
 With a 4:3 slide setting, legacy custom width 1 and 50% background video size in an isolated profile, the previous WPF build opened a 575 × 400 player at desktop origin. After the fix, the AV1 MP4 produced two distinct frame colors near every corner of the 2560 × 1440 audience monitor and the 3440 × 1440 operator monitor. On the audience display the native slide occupied 1920 × 1440 before playback and was visible again after Escape and natural completion.
+
+- [x] Verify the reverse handoff from standalone media to a live Worship List PPT. With an isolated profile on two 125% displays, start a show after pausing or stopping the clip, then send a read-only deck. Check four colored corner markers on the frontmost native slide and the WPF slide surface. Both 4:3 and 16:9 decks passed.

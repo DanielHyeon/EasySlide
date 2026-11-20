@@ -8144,6 +8144,45 @@ public class MainViewModelTests
         sut.StatusText.Should().Contain("Output 미디어 재생").And.Contain("welcome.mp4");
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task StandaloneMedia_HandsOutputToAnExplicitShowOrPowerPointPublish(bool copyToOutput)
+    {
+        using var folder = TempSettingsFolder.Create();
+        string file = Path.Combine(folder.Root, "opening.avi");
+        string deck = Path.Combine(folder.Root, "service.pptx");
+        File.WriteAllText(file, "media placeholder");
+        File.WriteAllText(deck, "deck placeholder");
+        var clip = new LiveQueueItem("media:opening", "Opening", LiveItemKinds.Media) { ContentPath = file };
+        var slides = new LiveQueueItem("ppt:service", "Service", LiveItemKinds.PowerPoint) { ContentPath = deck };
+        var show = new RecordingPowerPointSlideShowControl();
+        using var sut = CreateSut(seedSampleQueue: false, powerPointSlideShow: show);
+        sut.LoadQueue([clip, slides]);
+        sut.PlaySelectedWorshipMediaOnOutputCommand.Execute(null);
+        sut.Media.PlayPauseCommand.Execute(null);
+        sut.Media.State.Should().Be(MediaPlaybackState.Paused);
+
+        await sut.ToggleOutputLiveCommand.ExecuteAsync(null);
+        sut.IsShowRunning.Should().BeTrue();
+        sut.Media.PlayerDisplay.Should().BeNull();
+        sut.Media.State.Should().Be(MediaPlaybackState.Ready);
+        sut.Media.Source.Should().Be(file);
+
+        sut.SelectedItem = clip;
+        sut.PlaySelectedWorshipMediaOnOutputCommand.Execute(null);
+        sut.SelectedItem = slides;
+        sut.Media.IsOutputPlayerVisible.Should().BeTrue();
+        if (copyToOutput)
+            sut.CopyPreviewToOutputCommand.Execute(null);
+        else
+            await sut.GoLiveCommand.ExecuteAsync(null);
+
+        sut.Media.PlayerDisplay.Should().BeNull();
+        show.StartRequests.Should().ContainSingle().Which.Request.FilePath.Should().Be(deck);
+        sut.Session.Current.CurrentItemId.Should().Be(slides.Id);
+    }
+
     [Fact]
     public async Task StandaloneMedia_PreservesTheLiveItemAndReleasesSlideShortcutsOnEscape()
     {

@@ -43,6 +43,13 @@ public class MonitorLayoutTests
             Gf.PowerPointWindowPoints(new Rectangle(x, y, 1280, 720), dpi));
     }
 
+    [Theory]
+    [InlineData("PowerPoint 슬라이드 쇼  -  주일 예배.pptx  -  읽기 전용", "PowerPoint 슬라이드 쇼  -  주일 예배.pptx")]
+    [InlineData("PowerPoint Slide Show - Worship - Read-Only.pptx – Read-Only", "PowerPoint Slide Show - Worship - Read-Only.pptx")]
+    [InlineData("PowerPoint Slide Show - Another Worship.pptx", "PowerPoint Slide Show - Another Worship.pptx")]
+    public void PowerPointWindowLookupPreservesTheDeckNameWhenRemovingReadOnlyStatus(string caption, string expected)
+        => Assert.Equal(expected, OfficeLib.PowerPoint.WithoutReadOnlyCaption(caption));
+
     [Fact]
     public void ResolvesSelectionAgainAfterDisconnectAndReconnect()
     {
@@ -123,6 +130,18 @@ public class MonitorLayoutTests
         Assert.True(lyrics.Enabled);
         Assert.False(MonitorLayout.ResolveLyrics(screens, MonitorLayout.None, true, false, output).Enabled);
         Assert.False(MonitorLayout.ResolveLyrics([Primary, Secondary], "SECONDARY", true, false, output).Enabled);
+    }
+
+    [Fact]
+    public void AutomaticLyricsFallbackSkipsTheOperatorsActualMonitor()
+    {
+        var output = MonitorLayout.ResolveOutput([Primary, Secondary], Primary.Name, true, true);
+        Assert.False(MonitorLayout.ResolveLyrics([Primary, Secondary], Primary.Name, true, true, output,
+            operatorDisplayName: Secondary.Name).Enabled);
+        Assert.Equal(Third.Name, MonitorLayout.ResolveLyrics([Primary, Secondary, Third], Primary.Name, true, true,
+            output, operatorDisplayName: Secondary.Name).DeviceName);
+        Assert.Equal(Secondary.Name, MonitorLayout.ResolveLyrics([Primary, Secondary], Secondary.Name, true, true,
+            output, operatorDisplayName: Secondary.Name).DeviceName);
     }
 
     [Fact]

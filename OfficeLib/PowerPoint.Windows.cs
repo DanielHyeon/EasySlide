@@ -433,7 +433,7 @@ namespace OfficeLib
 				}
 				StringBuilder title = new StringBuilder(512);
 				GetWindowText(handle, title, title.Capacity);
-				string windowTitle = title.ToString().TrimEnd();
+				string windowTitle = WithoutReadOnlyCaption(title.ToString());
 				if (separated.IsMatch(windowTitle))
 				{
 					exact = handle;
@@ -451,6 +451,25 @@ namespace OfficeLib
 			}
 			return (allowLooseMatch && loose.Count == 1) ? loose[0] : IntPtr.Zero;
 		}
+
+		// Microsoft 365 appends a localized status field when the presentation was opened read-only.
+		internal static string WithoutReadOnlyCaption(string title)
+		{
+			var caption = title.AsSpan().TrimEnd();
+			// The English status itself contains a hyphen. Match the whole field before looking for its delimiter.
+			foreach (var status in ReadOnlyCaptions)
+			{
+				if (!caption.EndsWith(status, StringComparison.OrdinalIgnoreCase)) continue;
+				var prefix = caption[..^status.Length];
+				if (prefix.IsEmpty || !char.IsWhiteSpace(prefix[^1])) continue;
+				prefix = prefix.TrimEnd();
+				if (prefix.Length > 1 && prefix[^1] is '-' or '–' or '—' && char.IsWhiteSpace(prefix[^2]))
+					return prefix[..^1].TrimEnd().ToString();
+			}
+			return title.TrimEnd();
+		}
+
+		private static readonly string[] ReadOnlyCaptions = ["읽기 전용", "Read-Only", "Read Only"];
 
 		/// <summary>
 		/// Takes the topmost state off every visible or hidden PowerPoint slide show window ("screenClass") in this

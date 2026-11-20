@@ -83,7 +83,7 @@ internal static class MonitorLayout
 
     internal static MonitorPlacement ResolveLyrics(
         IReadOnlyList<MonitorDevice> displays, string preferredName, bool preferSecondary, bool wide,
-        MonitorPlacement output, Point? customOrigin = null, int customWidth = 1)
+        MonitorPlacement output, Point? customOrigin = null, int customWidth = 1, string operatorDisplayName = null)
     {
         if (customOrigin is Point origin)
         {
@@ -99,7 +99,9 @@ internal static class MonitorLayout
 
         var candidates = displays.Where(display => !display.IsPrimary && (!output.Enabled ||
             !display.Bounds.IntersectsWith(output.Bounds)));
-        var selected = FindDisplay(candidates, preferredName) ?? (preferSecondary ? candidates.FirstOrDefault() : null);
+        var selected = FindDisplay(candidates, preferredName) ?? (preferSecondary
+            ? candidates.FirstOrDefault(display => !string.Equals(display.Name, operatorDisplayName, StringComparison.OrdinalIgnoreCase))
+            : null);
         return selected != null ? new MonitorPlacement(selected.Name, Fit(selected.Bounds, wide), true) : default;
     }
 

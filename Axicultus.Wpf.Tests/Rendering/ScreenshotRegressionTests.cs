@@ -5,6 +5,9 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 using Axicultus.Wpf.Theme;
+using Axicultus.Wpf.Shell;
+using Axicultus.Wpf.Controls;
+using System.Windows.Media.Imaging;
 using FluentAssertions;
 using Xunit;
 
@@ -40,6 +43,44 @@ public class ScreenshotRegressionTests
 
     private const int SwatchWidth = 320;
     private const int SwatchHeight = 40;
+
+    [Fact]
+    public void OutputSlideFitsTheAvailableLogicalSizeAtHighDpi()
+    {
+        StaHelper.RunOnSta(() =>
+        {
+            using var viewModel = new OutputWindowViewModel();
+            var window = new OutputWindow();
+            try
+            {
+                // The physical scene is 300x200. At 150% the available WPF surface is 200x133 DIPs.
+                viewModel.ApplyOutput(new OutputWindowState(true, null, new OutputWindowPlacement(0, 0, 300, 200, false)));
+                int[] colors = [unchecked((int)0xFFFF0000), unchecked((int)0xFF00FF00),
+                                unchecked((int)0xFF0000FF), unchecked((int)0xFFFFFF00)];
+                var image = BitmapSource.Create(2, 2, 96, 96, PixelFormats.Bgra32, null, colors, 8);
+                viewModel.ApplySession(new LiveSessionSnapshot(LiveState.Active, "Slide", "", false,
+                    CurrentItemPreviewSource: image, CurrentItemPreviewPixelWidth: 2, CurrentItemPreviewPixelHeight: 2));
+                var area = (Grid)window.FindName("ContentArea");
+                ((Grid)area.Parent).Children.Remove(area);
+                var host = new Border { Child = area, DataContext = viewModel };
+                host.Dispatcher.Invoke(() => { }, System.Windows.Threading.DispatcherPriority.DataBind);
+                Assert.Equal(Visibility.Visible, viewModel.ContentVisibility);
+                var bitmap = VisualRenderHarness.RenderToBitmap(host, 200, 133);
+                int[] samples = new int[1];
+                for (int corner = 0; corner < colors.Length; corner++)
+                {
+                    int x = corner % 2 == 0 ? 40 : 160;
+                    int y = corner < 2 ? 8 : 125;
+                    bitmap.CopyPixels(new Int32Rect(x, y, 1, 1), samples, 4, 0);
+                    Assert.Equal(colors[corner], samples[0]);
+                }
+            }
+            finally
+            {
+                ((Window)window).Close();
+            }
+        });
+    }
 
     [Fact]
     public void RenderHarness_Produces_Valid_Png()

@@ -123,6 +123,13 @@ The WPF worship-list command SHALL play selected or linked media in a borderless
 - **THEN** the video fills the selected physical monitor, including its four corners
 - **AND** closing the player reveals the slide at its original 4:3 size
 
+#### Scenario: A standalone clip precedes the show or an explicit PPT publish
+
+- **WHEN** the operator starts the show or sends a Worship List PPT while the standalone clip is playing or paused
+- **THEN** the player releases the output and the selected live item takes over
+- **AND** a read-only PowerPoint deck appears in front with the entire slide visible, including on a scaled monitor
+- **AND** browsing the Worship List alone preserves standalone playback
+
 #### Scenario: The output is interrupted
 
 - **WHEN** the operator blacks out, hides or closes the live output, or the selected audience display changes during playback
