@@ -8,6 +8,7 @@ namespace OfficeLib
     {
         public string SourcePath = "";    // column 0
         public string CopyName = "";      // column 1
+        internal SlideImageManifest.SourceVersion OpenedVersion;
     }
 
     /// <summary>The copies the app opened in PowerPoint for the show. Rows are numbered from 1 and never move.</summary>

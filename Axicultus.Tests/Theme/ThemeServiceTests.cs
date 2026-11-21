@@ -28,6 +28,7 @@ public class ThemeServiceTests
 
     [Theory]
     [InlineData(InterfaceSize.Standard, 1.0)]
+    [InlineData(InterfaceSize.Small, 11.0 / 12.0)]
     [InlineData(InterfaceSize.Large, 1.2)]
     [InlineData(InterfaceSize.Senior, 1.4)]
     public void ScaleFactor_MapsCorrectly(InterfaceSize size, double expectedFactor)
@@ -68,6 +69,10 @@ public class ThemeServiceTests
 
         sut.ApplyInterfaceSize(InterfaceSize.Standard);
         var standardSize = Application.Current.Resources[bodyKey];
+
+        sut.ApplyInterfaceSize(InterfaceSize.Small);
+        Application.Current.Resources[bodyKey].Should().Be(11.0);
+        Application.Current.Resources["ControlContentThemeFontSize"].Should().Be(11.0);
 
         sut.ApplyInterfaceSize(InterfaceSize.Senior);
         var seniorSize = Application.Current.Resources[bodyKey];

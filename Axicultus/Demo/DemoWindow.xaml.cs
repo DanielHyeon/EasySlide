@@ -1,5 +1,4 @@
 using System.Windows;
-using Axicultus.Wpf.Onboarding;
 using Axicultus.Wpf.Poc;
 using Axicultus.Wpf.Theme;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,6 +19,7 @@ public partial class DemoWindow : Window
     private void OnDark_Click(object sender, RoutedEventArgs e) => _theme.ApplyTheme(ColorTheme.Dark);
 
     private void OnSizeStandard_Click(object sender, RoutedEventArgs e) => _theme.ApplyInterfaceSize(InterfaceSize.Standard);
+    private void OnSizeSmall_Click(object sender, RoutedEventArgs e) => _theme.ApplyInterfaceSize(InterfaceSize.Small);
     private void OnSizeLarge_Click(object sender, RoutedEventArgs e) => _theme.ApplyInterfaceSize(InterfaceSize.Large);
     private void OnSizeSenior_Click(object sender, RoutedEventArgs e) => _theme.ApplyInterfaceSize(InterfaceSize.Senior);
 
@@ -51,11 +51,5 @@ public partial class DemoWindow : Window
     {
         var demo = new LiveBarDemoWindow { Owner = this };
         demo.Show();
-    }
-
-    private void OnWelcomeDemo_Click(object sender, RoutedEventArgs e)
-    {
-        var welcome = new WelcomeWindow { Owner = this };
-        welcome.ShowDialog();
     }
 }

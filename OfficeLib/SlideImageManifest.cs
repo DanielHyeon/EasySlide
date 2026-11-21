@@ -35,6 +35,10 @@ namespace OfficeLib
 				LastWriteTicks = lastWriteTicks;
 				Length = length;
 			}
+
+			public bool Matches(SourceVersion other) => other != null
+				&& string.Equals(FullPath, other.FullPath, StringComparison.OrdinalIgnoreCase)
+				&& LastWriteTicks == other.LastWriteTicks && Length == other.Length;
 		}
 
 		/// <summary>

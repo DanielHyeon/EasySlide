@@ -6,7 +6,6 @@ using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
-using Axicultus.Wpf.Settings;
 
 namespace Axicultus.Wpf.Controls;
 
@@ -21,7 +20,7 @@ public sealed class OptionChoiceConverter : IValueConverter
         string choice = (string)parameter;
         if (bool.TryParse(choice, out var flag)) return flag;
         if (int.TryParse(choice, out var index)) return index;
-        return Enum.Parse<GapItemMode>(choice);
+        return Enum.Parse(targetType, choice);
     }
 }
 

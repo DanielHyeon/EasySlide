@@ -184,6 +184,29 @@ public class SettingsWindowViewModelTests
         sut.ValidationMessages.Should().BeEmpty();
     }
 
+    [Theory]
+    [InlineData(InterfaceSize.Small)]
+    [InlineData(InterfaceSize.Large)]
+    public void InterfaceSizeInOptions_IsAppliedAndSavedOnlyAfterConfirmation(InterfaceSize size)
+    {
+        using var fixture = SettingsFixture.Create();
+        var cancelled = fixture.CreateViewModel();
+        cancelled.BeginOptionsEdit();
+        cancelled.InterfaceSize = InterfaceSize.Senior;
+        fixture.Settings.Current.Appearance.InterfaceSize.Should().Be(InterfaceSize.Standard);
+        fixture.Theme.AppliedSizes.Should().NotContain(InterfaceSize.Senior);
+
+        var confirmed = fixture.CreateViewModel();
+        confirmed.BeginOptionsEdit();
+        confirmed.InterfaceSize.Should().Be(InterfaceSize.Standard);
+        confirmed.InterfaceSize = size;
+        confirmed.ConfirmOptions().Should().BeTrue();
+        fixture.Theme.AppliedSizes.Last().Should().Be(size);
+        var reopened = new SettingsService(new SettingsServiceOptions(
+            Path.Combine(fixture.Root, "settings.json"), Path.Combine(fixture.Root, "Backups")));
+        reopened.Current.Appearance.InterfaceSize.Should().Be(size);
+    }
+
     [Fact]
     public void InvalidSetting_RevertsPropertyAndReportsIssue()
     {

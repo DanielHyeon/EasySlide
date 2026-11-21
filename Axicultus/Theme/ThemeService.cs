@@ -16,6 +16,8 @@ public enum InterfaceSize
     Large,
     /// <summary>시니어 — 본문 20px, 타깃 52px+, 버튼 패딩 +50% (ScaleFactor 1.4)</summary>
     Senior,
+    /// <summary>작은 글꼴 — 본문 11 DIP.</summary>
+    Small,
 }
 
 /// <summary>색 테마 — Q3 결정. 다크는 Solid 강제(Mica 금지), 라이트는 Mica 허용.</summary>
@@ -83,6 +85,7 @@ public sealed partial class ThemeService : ObservableObject, IThemeService
 
     public double ScaleFactor => CurrentSize switch
     {
+        InterfaceSize.Small => 11.0 / 12.0,
         InterfaceSize.Standard => 1.0,
         InterfaceSize.Large => 1.2,
         InterfaceSize.Senior => 1.4,
@@ -193,7 +196,12 @@ public sealed partial class ThemeService : ObservableObject, IThemeService
         {
             resources[key] = baseValue * factor;
         }
-        double bodySize = size == InterfaceSize.Standard ? 12 : 14 * factor;
+        double bodySize = size switch
+        {
+            InterfaceSize.Small => 11,
+            InterfaceSize.Standard => 12,
+            _ => 14 * factor,
+        };
         resources["Type.Body.FontSize"] = resources["Type.Button.FontSize"] = bodySize;
         resources["ContentControlFontSize"] = resources["ControlContentThemeFontSize"] = bodySize;
         resources["DefaultDataGridFontSize"] = resources["TreeViewItemFontSize"] = bodySize;

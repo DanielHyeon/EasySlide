@@ -82,14 +82,12 @@ internal unsafe partial class Gf
 			{
 				// The title keeps the names readable; the path key keeps two items with the same title but
 				// different files from sharing (and showing each other's) slide images.
-				string prefixItemName = InvalidFileNameCharsRegex.Replace(InItem.Title, "") + "$" + OfficeLib.SlideImageManifest.PrefixKey(InItem.Path);
-
 				if (InItem.OutputStyleScreen)
 				{
-					OUTPPFullPath = OUTPPPrefix + "$" + prefixItemName + "$";
+					OUTPPFullPath = PowerpointImagePrefix(InItem, OUTPPPrefix);
 					return OUTPPFullPath;
 				}
-				PREPPFullPath = PREPPPrefix + "$" + prefixItemName + "$";
+				PREPPFullPath = PowerpointImagePrefix(InItem, PREPPPrefix);
 				return PREPPFullPath;
 			}
 
@@ -111,6 +109,9 @@ internal unsafe partial class Gf
 			PREPPFullPath = PREPPPrefix + PREPPSequence;
 			return PREPPFullPath;
 		}
+
+		internal static string PowerpointImagePrefix(SongSettings item, string prefix) =>
+			prefix + "$" + InvalidFileNameCharsRegex.Replace(item.Title, "") + "$" + SlideImageManifest.PrefixKey(item.Path) + "$";
 
 		public static void MinimizePowerPointWindows(ref PowerPoint InPPT)
 		{

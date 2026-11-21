@@ -2944,6 +2944,7 @@ public partial class FrmMain : Form
                 }
             }
             SyncNativePowerPointSlide();
+            _ = RefreshEditedLivePowerPointAsync();
             SetStatusBarMediaTimings();
         }
     }

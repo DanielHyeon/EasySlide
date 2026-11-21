@@ -29,6 +29,19 @@ public class OutputPlacementEditorTests
     }
 
     [Fact]
+    public void MainWindowOptionsOfferAllInterfaceSizesInline()
+    {
+        var window = Read("SettingsWindow.xaml");
+        var choices = window.Descendants().Where(e => (string?)e.Attribute("GroupName") == "InterfaceSize").ToArray();
+        choices.Select(e => (string?)e.Attribute("Content")).Should().Equal("작은 글꼴", "표준", "큰 글씨", "시니어");
+        foreach (var (choice, size) in choices.Zip(new[] { "Small", "Standard", "Large", "Senior" }))
+        {
+            choice.Ancestors().First(e => e.Name.LocalName == "TabItem").Attribute("Header")!.Value.Should().Be("Main Window");
+            choice.Attribute("IsChecked")!.Value.Should().Contain("Binding InterfaceSize, Mode=TwoWay").And.Contain("ConverterParameter=" + size);
+        }
+    }
+
+    [Fact]
     public void NativeOptionsPreserveTabOrderAndAlertToolbar()
     {
         var window = Read("SettingsWindow.xaml");

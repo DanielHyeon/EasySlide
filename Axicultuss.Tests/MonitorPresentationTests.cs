@@ -105,7 +105,7 @@ public class MonitorPresentationTests
         });
     }
 
-    internal static void RunOnSta(Action action)
+    internal static void RunOnSta(Action action, int timeoutSeconds = 15)
     {
         ExceptionDispatchInfo error = null;
         var thread = new Thread(() =>
@@ -121,7 +121,7 @@ public class MonitorPresentationTests
         }) { IsBackground = true };
         thread.SetApartmentState(ApartmentState.STA);
         thread.Start();
-        Assert.True(thread.Join(TimeSpan.FromSeconds(15)));
+        Assert.True(thread.Join(TimeSpan.FromSeconds(timeoutSeconds)));
         error?.Throw();
     }
 }

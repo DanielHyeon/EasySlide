@@ -126,25 +126,14 @@ namespace OfficeLib
 				{
 					if (!isShowCopyOpen)
 					{
+						var openedVersion = SlideImageManifest.ReadSource(InPowerpointFullPath);
 						openTarget = prePowerPointApp.Presentations;
-						presentation = openTarget.Open(InPowerpointFullPath, MsoTriState.msoTrue, MsoTriState.msoTrue);
+						presentation = OpenShowCopy(openTarget, InPowerpointFullPath, MsoTriState.msoTrue, IsFileOpenInPowerPoint(InPowerpointFullPath));
 						if (presentation != null)
 						{
 							// The mark that tells this copy from a user's presentation with the same "PresentationN"
 							// name (names start again from 1 when PowerPoint is restarted).
-							Tags tags = presentation.Tags;
-							try
-							{
-								tags.Add(ShowCopyTagName, ShowCopyMark(InPowerpointFullPath));
-							}
-							finally
-							{
-								ReleaseProxy(tags);
-							}
-							// Tags.Add marks the copy as changed: without this, closing it by hand in PowerPoint's own
-							// window asks the operator whether to save it (seen with PowerPoint 16). Presentation.Close
-							// called from the app does not ask either way.
-							presentation.Saved = MsoTriState.msoTrue;
+							MarkShowCopy(presentation, InPowerpointFullPath);
                             string copyName = presentation.FullName;
                             int row;
                             if (entry > 0)
@@ -157,6 +146,7 @@ namespace OfficeLib
                             {
                                 row = PowerpointList.Add(InPowerpointFullPath, copyName);
                             }
+                            PowerpointList[row].OpenedVersion = openedVersion;
                             ClearStaleRowsWithName(copyName, row, PowerpointList);
                             // The copy stays open in PowerPoint; the proxies are not needed any more (later calls look
                             // the copy up by name and mark).
@@ -267,22 +257,7 @@ namespace OfficeLib
 								PowerPointCallLimit.Progress();
 								LastRunStarted = true;
 								RememberRunPresentation(fullName, i, mark, app);
-								if (KeepSlideShowOnTop || TargetBounds.HasValue)
-								{
-									// The slide show window's title holds FullName ("PresentationN"); Name can be
-									// another text for these untitled copies (seen with PowerPoint 16: the first
-									// slide's title).
-									currentSlideShowWindow = FindSlideShowWindow(window, () => fullName);
-									currentSlideShowProcessId = 0;
-									if (currentSlideShowWindow != IntPtr.Zero)
-									{
-										GetWindowThreadProcessId(currentSlideShowWindow, out currentSlideShowProcessId);
-										if (TargetBounds is { } bounds && IsSameWindow(currentSlideShowWindow, currentSlideShowProcessId))
-											PositionedOnTarget = SetWindowPos(currentSlideShowWindow, IntPtr.Zero, bounds.Left, bounds.Top,
-												bounds.Width, bounds.Height, SWP_NOZORDER | SWP_NOACTIVATE);
-									}
-									if (KeepSlideShowOnTop) RaiseCurrentSlideShowWindow();
-								}
+								PositionRunWindow(window, fullName);
 							}
 							finally
 							{
@@ -1079,7 +1054,7 @@ namespace OfficeLib
 				using RunPresentation run = FindRunPresentation();
 				if (run == null) return null;
 				var view = run.Presentation.SlideShowWindow.View;
-				return view.State == PpSlideShowState.ppSlideShowRunning ? view.Slide.SlideIndex : null;
+				return IsSlideVisible(view.State) ? view.Slide.SlideIndex : null;
 			}
 			catch (Exception ex)
 			{
@@ -2533,12 +2508,10 @@ namespace OfficeLib
         /// </summary>
         private _Presentation OpenTemporary(string path, MsoTriState readOnly, MsoTriState untitled)
         {
-            if (untitled == MsoTriState.msoFalse && IsFileOpenInPowerPoint(path))
+            bool sourceIsOpen = IsFileOpenInPowerPoint(path);
+            if (untitled == MsoTriState.msoTrue || sourceIsOpen)
             {
-                // The file is open in PowerPoint already (the user's own window, most likely). A titled open could
-                // hand back that very presentation, and the caller closes what it opened: the user's document would
-                // be closed without a save prompt. An untitled copy is always a new presentation.
-                untitled = MsoTriState.msoTrue;
+                return OpenShowCopy(prePowerPointApp.Presentations, path, MsoTriState.msoFalse, sourceIsOpen);
             }
             try
             {

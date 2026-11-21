@@ -50,6 +50,8 @@
                            Style="{StaticResource Type.Body.Style}"
                            Foreground="{DynamicResource Brush.Text.Primary}"
                            Margin="0,0,8,0" />
+                <Button Content="작은 글꼴" Style="{StaticResource EsButton.Secondary}"
+                        Click="OnSizeSmall_Click" Margin="0,0,8,0" />
                 <Button Content="표준" Style="{StaticResource EsButton.Secondary}"
                         Click="OnSizeStandard_Click" Margin="0,0,8,0" />
                 <Button Content="큰 글씨" Style="{StaticResource EsButton.Secondary}"
@@ -98,9 +100,6 @@
             <Button Content="LiveBar 데모"
                     Style="{StaticResource EsButton.Secondary}"
                     Click="OnLiveBarDemo_Click" Margin="0,0,12,0" />
-            <Button Content="Welcome 온보딩"
-                    Style="{StaticResource EsButton.Secondary}"
-                    Click="OnWelcomeDemo_Click" Margin="0,0,12,0" />
             <Button Content="EsControls 갤러리"
                     Style="{StaticResource EsButton.Secondary}"
                     Click="OnControlsGallery_Click" Margin="0,0,12,0" />

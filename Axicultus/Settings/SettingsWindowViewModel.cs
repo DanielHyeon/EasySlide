@@ -205,8 +205,6 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
 
     public IReadOnlyList<ColorTheme> ThemeOptions { get; } = Enum.GetValues<ColorTheme>();
 
-    public IReadOnlyList<InterfaceSize> InterfaceSizeOptions { get; } = Enum.GetValues<InterfaceSize>();
-
     public IReadOnlyList<GapItemMode> GapItemModeOptions { get; } = Enum.GetValues<GapItemMode>();
 
     public IRelayCommand RestoreDefaultsCommand { get; }
