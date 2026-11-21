@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -126,7 +128,22 @@ public sealed partial class PowerPointLibraryViewModel : ObservableObject
 
     public ObservableCollection<PowerPointFolderItem> FolderGroups { get; } = [];
 
-    public ObservableCollection<PowerPointFileItem> Presentations { get; } = [];
+    private readonly PresentationCollection _presentations = [];
+    public ObservableCollection<PowerPointFileItem> Presentations => _presentations;
+
+    private sealed class PresentationCollection : ObservableCollection<PowerPointFileItem>
+    {
+        public void Reorder(IEnumerable<PowerPointFileItem> ordered)
+        {
+            // Recycling wrap panels need one reset after the final order is installed.
+            // Intermediate Move events can leave a recycled cell at the wrong index.
+            CheckReentrancy();
+            int index = 0;
+            foreach (var item in ordered) Items[index++] = item;
+            OnPropertyChanged(new PropertyChangedEventArgs("Item[]"));
+            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+        }
+    }
 
     public IRelayCommand LoadCommand { get; }
 
@@ -151,14 +168,7 @@ public sealed partial class PowerPointLibraryViewModel : ObservableObject
         var ordered = PowerPointSourceFiles.Sort(_allFiles, file => file.FilePath, value).ToArray();
         _allFiles.Clear();
         _allFiles.AddRange(ordered);
-        // Move the existing visible items. Both selectors keep their selections and decoded thumbnails.
-        int target = 0;
-        foreach (var file in ordered.Where(file => FileNameFilter.Matches(file.FileName, FilterText)))
-        {
-            if (Presentations[target] != file)
-                Presentations.Move(Presentations.IndexOf(file), target);
-            target++;
-        }
+        _presentations.Reorder(ordered.Where(file => FileNameFilter.Matches(file.FileName, FilterText)));
         _sortOrderChanged?.Invoke(value);
     }
 

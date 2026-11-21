@@ -34,7 +34,7 @@
         <ControlTemplate x:Key="FrmMainMenuHeader" TargetType="MenuItem">
             <Border x:Name="MenuHeader" Background="Transparent" Padding="8,0">
                 <Grid>
-                    <AccessText x:Name="MenuHeaderText" Text="{Binding Header, RelativeSource={RelativeSource TemplatedParent}, StringFormat=_{0}}" VerticalAlignment="Center" />
+                    <AccessText x:Name="MenuHeaderText" FontSize="{TemplateBinding FontSize}" Text="{Binding Header, RelativeSource={RelativeSource TemplatedParent}, StringFormat=_{0}}" VerticalAlignment="Center" />
                     <Popup x:Name="PART_Popup" Placement="Bottom" Focusable="False" AllowsTransparency="True"
                            IsOpen="{Binding IsSubmenuOpen, RelativeSource={RelativeSource TemplatedParent}}">
                         <Border Background="{DynamicResource {x:Static SystemColors.MenuBrushKey}}" TextElement.Foreground="{DynamicResource {x:Static SystemColors.MenuTextBrushKey}}" Padding="2"
@@ -134,6 +134,22 @@
                TargetType="Button"
                BasedOn="{StaticResource ClassicVerseJumpButton}">
             <Setter Property="Width" Value="23" />
+        </Style>
+        <Style x:Key="SourceFolderField" TargetType="ComboBox">
+            <Setter Property="MinWidth" Value="0" />
+            <Setter Property="MinHeight" Value="22" />
+            <Setter Property="Padding" Value="3,0" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="FontSize" Value="{DynamicResource Type.Body.FontSize}" />
+        </Style>
+        <Style x:Key="SourceToolButton" TargetType="Button" BasedOn="{StaticResource FrmMainButton}">
+            <Setter Property="Width" Value="22" />
+            <Setter Property="Height" Value="22" />
+            <Setter Property="MinWidth" Value="0" />
+            <Setter Property="MinHeight" Value="0" />
+            <Setter Property="Margin" Value="0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="BorderThickness" Value="0" />
         </Style>
         <Style x:Key="ClassicOperatorStripButton"
                TargetType="Button"
@@ -1465,9 +1481,7 @@
                                               Tag="Folders_WordCount"
                                               Click="FolderSort_Click"
                                               IsEnabled="{Binding Library.IsFolderWordCountSortAvailable}"
-                                              Style="{StaticResource ClassicTopToolStripButton}"
-                                              Width="28"
-                                              Height="28"
+                                              Style="{StaticResource SourceToolButton}"
                                               Margin="0,0,3,0"
                                               Padding="0"
                                               ToolTip="곡 목록 정렬 선택"
@@ -1618,41 +1632,52 @@
                     <TabItem.Header>
                         <TextBlock Text="InfoScr" FontSize="{Binding FontSize, RelativeSource={RelativeSource AncestorType=TabItem}}" />
                     </TabItem.Header>
-                    <Grid Margin="0,8,0,0">
+                    <Grid Margin="3,3,2,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
-                        <Grid Grid.Row="0" Margin="0,0,0,8">
+                        <Grid Grid.Row="0" Grid.ColumnSpan="2" Margin="0,0,0,3">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="8" />
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="8" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <ComboBox x:Name="InfoScreenFolder" ItemsSource="{Binding Folders}" DisplayMemberPath="Label"
+                            <ComboBox Style="{StaticResource SourceFolderField}" x:Name="InfoScreenFolder" ItemsSource="{Binding Folders}" DisplayMemberPath="Label"
                                       SelectedItem="{Binding SelectedFolder, Mode=TwoWay}" AutomationProperties.Name="정보 화면 폴더"/>
-                            <StackPanel Grid.Column="2" Orientation="Horizontal">
-                                <Button x:Name="InfoScreen_OpenFolder" Click="OpenSourceFolder_Click" Style="{StaticResource ClassicTopToolStripButton}" ToolTip="선택한 폴더 열기" AutomationProperties.Name="선택한 폴더 열기"><controls:FrmIcon Icon="folder_open" Width="16" Height="16"/></Button>
-                                <Button x:Name="InfoScreen_Import" Click="ImportSourceFiles_Click" Style="{StaticResource ClassicTopToolStripButton}" ToolTip="선택한 폴더로 가져오기" AutomationProperties.Name="선택한 폴더로 가져오기"><controls:FrmIcon Icon="document_arrow_down" Width="16" Height="16"/></Button>
-                                <Button
-                                    Command="{Binding LoadCommand}"
-                                    Style="{StaticResource EsButton.Secondary}"
-                                    Content="Refresh"
-                                    AutomationProperties.Name="Refresh InfoScreen list" />
+                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                <Button x:Name="InfoScreen_OpenFolder" Click="OpenSourceFolder_Click" Style="{StaticResource SourceToolButton}" ToolTip="선택한 폴더 열기" AutomationProperties.Name="선택한 폴더 열기"><controls:FrmIcon Icon="folder_open" Width="16" Height="16" /></Button>
+                                <Button x:Name="InfoScreen_Import" Click="ImportSourceFiles_Click" Style="{StaticResource SourceToolButton}" ToolTip="선택한 폴더로 가져오기" AutomationProperties.Name="선택한 폴더로 가져오기"><controls:FrmIcon Icon="document_arrow_down" Width="16" Height="16" /></Button>
                             </StackPanel>
-                            <Button Grid.Column="4"
-                                    Command="{Binding AddSelectedCommand}"
-                                    Style="{StaticResource EsButton.Primary}"
-                                    Content="Add"
-                                    AutomationProperties.Name="Add selected InfoScreen to Worship List" />
                         </Grid>
+
+                        <StackPanel Grid.Row="1" Grid.Column="1" Margin="2,0,0,0" VerticalAlignment="Top">
+                            <Button x:Name="InfoScreen_New" Tag="Main_New" Click="Main_SourceEdit_Click" Style="{StaticResource SourceToolButton}" ToolTip="새로 만들기" AutomationProperties.Name="InfoScreen 새로 만들기">
+                                <controls:FrmIcon Icon="document_add" Width="16" Height="16" />
+                            </Button>
+                            <Button x:Name="InfoScreen_Edit" Tag="Main_Edit" Click="Main_SourceEdit_Click" Style="{StaticResource SourceToolButton}" ToolTip="편집" AutomationProperties.Name="InfoScreen 편집">
+                                <controls:FrmIcon Icon="edit" Width="16" Height="16" />
+                            </Button>
+                            <Button x:Name="InfoScreen_Copy" Tag="Main_Copy" Click="Main_SourceEdit_Click" Style="{StaticResource SourceToolButton}" ToolTip="복사" AutomationProperties.Name="InfoScreen 복사">
+                                <controls:FrmIcon Icon="copy" Width="16" Height="16" />
+                            </Button>
+                            <Button x:Name="InfoScreen_Move" Tag="Main_Move" Click="Main_SourceEdit_Click" Style="{StaticResource SourceToolButton}" ToolTip="이동" AutomationProperties.Name="InfoScreen 이동">
+                                <controls:FrmIcon Icon="folder_arrow_right" Width="16" Height="16" />
+                            </Button>
+                            <Button x:Name="InfoScreen_Delete" Tag="Main_Delete" Click="Main_SourceEdit_Click" Style="{StaticResource SourceToolButton}" ToolTip="삭제" AutomationProperties.Name="InfoScreen 삭제">
+                                <controls:FrmIcon Icon="delete" Width="16" Height="16" />
+                            </Button>
+                        </StackPanel>
 
                         <ListBox Grid.Row="1"
                                  x:Name="InlineInfoScreenList"
+                                 Style="{x:Null}"
+                                 Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}"
+                                 BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}" BorderThickness="1"
                                  ItemsSource="{Binding Screens}"
                                  SelectedItem="{Binding SelectedScreen, Mode=TwoWay}"
                                  SelectionMode="Extended"
@@ -1712,7 +1737,10 @@
                     <TabItem.Header>
                         <TextBlock Text="PowerP" />
                     </TabItem.Header>
-                    <Grid Margin="0,8,0,0">
+                    <Grid Margin="3,3,2,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
@@ -1721,51 +1749,39 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
-                        <Grid Grid.Row="0" Margin="0,0,0,8">
+                        <Grid Grid.Row="0" Grid.ColumnSpan="2" Margin="0,0,0,3">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="8" />
                                 <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="4" />
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="8" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <ComboBox x:Name="PowerpointFolder"
+                            <ComboBox Style="{StaticResource SourceFolderField}" x:Name="PowerpointFolder"
                                       Tag="PowerpointFolder"
                                       ItemsSource="{Binding FolderGroups}"
                                       SelectedItem="{Binding SelectedFolder, Mode=TwoWay}"
                                       DisplayMemberPath="DisplayName"
-                                      MinHeight="34"
                                       VerticalContentAlignment="Center"
                                       ToolTip="{Binding FolderPath}"
                                       AutomationProperties.Name="PowerPoint folder selector" />
-                            <StackPanel Grid.Column="2" Orientation="Horizontal">
-                                <Button x:Name="PP_OpenFolder" Click="OpenSourceFolder_Click" Style="{StaticResource ClassicTopToolStripButton}" ToolTip="선택한 폴더 열기" AutomationProperties.Name="선택한 폴더 열기"><controls:FrmIcon Icon="folder_open" Width="16" Height="16"/></Button>
-                                <Button x:Name="PP_Import" Click="ImportSourceFiles_Click" Style="{StaticResource ClassicTopToolStripButton}" ToolTip="선택한 폴더로 가져오기" AutomationProperties.Name="선택한 폴더로 가져오기"><controls:FrmIcon Icon="document_arrow_down" Width="16" Height="16"/></Button>
-                                <Button
-                                    Command="{Binding LoadCommand}"
-                                    Style="{StaticResource EsButton.Secondary}"
-                                    Content="Refresh"
-                                    AutomationProperties.Name="Refresh PowerPoint list" />
-                            </StackPanel>
-                            <Button Grid.Column="4"
-                                    Command="{Binding AddSelectedCommand}"
-                                    Style="{StaticResource EsButton.Primary}"
-                                    Content="Add"
-                                    AutomationProperties.Name="Add selected PowerPoint to Worship List" />
-                            <Menu Grid.Column="6"
+                            <Menu Grid.Column="1" Background="Transparent" ToolTip="목록 또는 썸네일 보기"
                                   x:Name="PP_ListType"
                                   Tag="PP_ListType"
                                   VerticalAlignment="Center"
                                   AutomationProperties.Name="PowerPoint list type">
-                                <MenuItem>
+                                <MenuItem Padding="2,0" Height="22" AutomationProperties.Name="PowerPoint 보기 방식">
                                     <MenuItem.Header>
                                         <StackPanel Orientation="Horizontal">
-                                            <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.PptPreview}"
-                                                           FontSize="14"
-                                                           Margin="0,0,4,0" />
-                                            <TextBlock Text="{Binding ListingStyleLabel}" />
+                                            <controls:FrmIcon Width="16" Height="16">
+                                                <controls:FrmIcon.Style>
+                                                    <Style TargetType="controls:FrmIcon">
+                                                        <Setter Property="Icon" Value="text_bullet_list_ltr" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsPreviewStyle}" Value="True"><Setter Property="Icon" Value="grid" /></DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </controls:FrmIcon.Style>
+                                            </controls:FrmIcon>
+                                            <Path Data="M0,0 L5,0 2.5,3Z" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=MenuItem}}" VerticalAlignment="Center" Margin="2,0,0,0" />
                                         </StackPanel>
                                     </MenuItem.Header>
                                     <MenuItem x:Name="PP_ListStyle"
@@ -1786,10 +1802,14 @@
                                     </MenuItem>
                                 </MenuItem>
                             </Menu>
+                            <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                <Button x:Name="PP_OpenFolder" Click="OpenSourceFolder_Click" Style="{StaticResource SourceToolButton}" ToolTip="선택한 폴더 열기" AutomationProperties.Name="선택한 폴더 열기"><controls:FrmIcon Icon="folder_open" Width="16" Height="16" /></Button>
+                                <Button x:Name="PP_Import" Click="ImportSourceFiles_Click" Style="{StaticResource SourceToolButton}" ToolTip="선택한 폴더로 가져오기" AutomationProperties.Name="선택한 폴더로 가져오기"><controls:FrmIcon Icon="document_arrow_down" Width="16" Height="16" /></Button>
+                            </StackPanel>
                         </Grid>
 
-                        <DockPanel Grid.Row="1" Margin="0,0,0,8">
-                            <ComboBox DockPanel.Dock="Right" SelectedValuePath="Tag"
+                        <DockPanel Grid.Row="1" Grid.ColumnSpan="2" Margin="0,0,0,3">
+                            <ComboBox Style="{StaticResource SourceFolderField}" DockPanel.Dock="Right" SelectedValuePath="Tag"
                                       SelectedValue="{Binding SortOrder, Mode=TwoWay}"
                                       AutomationProperties.Name="PowerPoint 정렬" ToolTip="PowerPoint 정렬">
                                 <ComboBoxItem Content="장 번호순" Tag="{x:Static ppt:PowerPointSortOrder.HymnNumber}"/>
@@ -1801,15 +1821,31 @@
                                   AutomationProperties.Name="Include PowerPoint subfolders" />
                         </DockPanel>
 
-                        <TextBox Grid.Row="2"
+                        <TextBox Grid.Row="2" Grid.ColumnSpan="2"
                                  Text="{Binding FilterText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 MinHeight="34"
-                                 Margin="0,0,0,8"
+                                 Style="{x:Null}" MinHeight="22" Padding="3,1" VerticalContentAlignment="Center" Margin="0,0,0,3"
                                  ToolTip="Filter by file name"
                                  AutomationProperties.Name="PowerPoint file filter" />
 
+                        <StackPanel Grid.Row="3" Grid.Column="1" Margin="2,0,0,0" VerticalAlignment="Top">
+                            <Button x:Name="Powerpoint_Edit" Tag="Main_Edit" Click="Main_SourceEdit_Click" Style="{StaticResource SourceToolButton}" ToolTip="편집" AutomationProperties.Name="PowerPoint 편집">
+                                <controls:FrmIcon Icon="edit" Width="16" Height="16" />
+                            </Button>
+                            <Button x:Name="Powerpoint_Copy" Tag="Main_Copy" Click="Main_SourceEdit_Click" Style="{StaticResource SourceToolButton}" ToolTip="복사" AutomationProperties.Name="PowerPoint 복사">
+                                <controls:FrmIcon Icon="copy" Width="16" Height="16" />
+                            </Button>
+                            <Button x:Name="Powerpoint_Move" Tag="Main_Move" Click="Main_SourceEdit_Click" Style="{StaticResource SourceToolButton}" ToolTip="이동" AutomationProperties.Name="PowerPoint 이동">
+                                <controls:FrmIcon Icon="folder_arrow_right" Width="16" Height="16" />
+                            </Button>
+                            <Button x:Name="Powerpoint_Delete" Tag="Main_Delete" Click="Main_SourceEdit_Click" Style="{StaticResource SourceToolButton}" ToolTip="삭제" AutomationProperties.Name="PowerPoint 삭제">
+                                <controls:FrmIcon Icon="delete" Width="16" Height="16" />
+                            </Button>
+                        </StackPanel>
+
                         <ListBox Grid.Row="3"
                                  x:Name="InlinePowerPointList"
+                                 Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}"
+                                 BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}" BorderThickness="1"
                                  Tag="PowerpointList"
                                  ItemsSource="{Binding Presentations}"
                                  SelectedItem="{Binding SelectedFile, Mode=TwoWay}"
@@ -2046,13 +2082,10 @@
                                     x:Name="Bibles_Go"
                                     Tag="Bibles_Go"
                                     Click="JumpBibleReference_Click"
-                                    Style="{StaticResource FrmMainButton}"
-                                    Width="25"
-                                    Height="22"
-                                    Padding="4,0"
+                                    Style="{StaticResource SourceToolButton}"
                                     ToolTip="입력한 구절로 이동"
                                     AutomationProperties.Name="입력한 성경 구절로 이동">
-                                <controls:FrmIcon Icon="bible" Width="20" Height="20" />
+                                <controls:FrmIcon Icon="bible" Width="16" Height="16" />
                             </Button>
                         </Grid>
 
@@ -2161,8 +2194,8 @@
                         <Grid.RowDefinitions><RowDefinition Height="32" /><RowDefinition Height="*" /></Grid.RowDefinitions>
                         <DockPanel LastChildFill="True">
                             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Width="55" VerticalAlignment="Top">
-                                <Button x:Name="Image_OpenFolder" Click="OpenSourceFolder_Click" Style="{StaticResource DefaultStripButton}" ToolTip="Open Folder" AutomationProperties.Name="Open folder"><controls:FrmIcon Icon="folder_open" Width="19" Height="19" /></Button>
-                                <Button x:Name="Image_Import" Tag="Image_Import" Click="ImageImport_Click" Style="{StaticResource DefaultStripButton}" ToolTip="Import An Image" AutomationProperties.Name="Import image into selected Images folder"><controls:FrmIcon Icon="document_arrow_down" Width="19" Height="19" /></Button>
+                                <Button x:Name="Image_OpenFolder" Click="OpenSourceFolder_Click" Style="{StaticResource SourceToolButton}" ToolTip="Open Folder" AutomationProperties.Name="Open folder"><controls:FrmIcon Icon="folder_open" Width="16" Height="16" /></Button>
+                                <Button x:Name="Image_Import" Tag="Image_Import" Click="ImageImport_Click" Style="{StaticResource SourceToolButton}" ToolTip="Import An Image" AutomationProperties.Name="Import image into selected Images folder"><controls:FrmIcon Icon="document_arrow_down" Width="16" Height="16" /></Button>
                             </StackPanel>
                             <ComboBox x:Name="ImagesFolder" Tag="ImagesFolder" Style="{StaticResource DefaultFieldCombo}" Height="22" VerticalAlignment="Top" Margin="0,0,2,0" ItemsSource="{Binding FolderGroups}" SelectedItem="{Binding SelectedFolder, Mode=TwoWay}" ItemTemplate="{StaticResource DefaultChoiceText}" ToolTip="{Binding FolderPath}" AutomationProperties.Name="Images folder selector" />
                         </DockPanel>
@@ -2237,7 +2270,7 @@
                     <TabItem.Header>
                         <TextBlock Text="Media" />
                     </TabItem.Header>
-                    <Grid Margin="0,8,0,0">
+                    <Grid Margin="3,3,2,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
@@ -2246,37 +2279,23 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
-                        <Grid Grid.Row="0" Margin="0,0,0,8">
+                        <Grid Grid.Row="0" Margin="0,0,0,3">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="8" />
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="8" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <ComboBox x:Name="MediaFolder"
+                            <ComboBox Style="{StaticResource SourceFolderField}" x:Name="MediaFolder"
                                       Tag="MediaFolder"
                                       ItemsSource="{Binding FolderGroups}"
                                       SelectedItem="{Binding SelectedFolder, Mode=TwoWay}"
                                       DisplayMemberPath="DisplayName"
-                                      MinHeight="34"
                                       VerticalContentAlignment="Center"
                                       ToolTip="{Binding FolderPath}"
                                       AutomationProperties.Name="Media folder selector" />
-                            <StackPanel Grid.Column="2" Orientation="Horizontal">
-                                <Button x:Name="Media_OpenFolder" Click="OpenSourceFolder_Click" Style="{StaticResource ClassicTopToolStripButton}" ToolTip="선택한 폴더 열기" AutomationProperties.Name="선택한 폴더 열기"><controls:FrmIcon Icon="folder_open" Width="16" Height="16"/></Button>
-                                <Button x:Name="Media_Import" Click="ImportSourceFiles_Click" Style="{StaticResource ClassicTopToolStripButton}" ToolTip="선택한 폴더로 가져오기" AutomationProperties.Name="선택한 폴더로 가져오기"><controls:FrmIcon Icon="document_arrow_down" Width="16" Height="16"/></Button>
-                                <Button
-                                    Command="{Binding LoadCommand}"
-                                    Style="{StaticResource EsButton.Secondary}"
-                                    Content="Refresh"
-                                    AutomationProperties.Name="Refresh Media list" />
+                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                <Button x:Name="Media_OpenFolder" Click="OpenSourceFolder_Click" Style="{StaticResource SourceToolButton}" ToolTip="선택한 폴더 열기" AutomationProperties.Name="선택한 폴더 열기"><controls:FrmIcon Icon="folder_open" Width="16" Height="16" /></Button>
+                                <Button x:Name="Media_Import" Click="ImportSourceFiles_Click" Style="{StaticResource SourceToolButton}" ToolTip="선택한 폴더로 가져오기" AutomationProperties.Name="선택한 폴더로 가져오기"><controls:FrmIcon Icon="document_arrow_down" Width="16" Height="16" /></Button>
                             </StackPanel>
-                            <Button Grid.Column="4"
-                                    Command="{Binding AddSelectedCommand}"
-                                    Style="{StaticResource EsButton.Primary}"
-                                    Content="Add"
-                                    AutomationProperties.Name="Add selected Media to Worship List" />
                         </Grid>
 
                         <CheckBox Grid.Row="1"
@@ -2287,13 +2306,15 @@
 
                         <TextBox Grid.Row="2"
                                  Text="{Binding FilterText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 MinHeight="34"
-                                 Margin="0,0,0,8"
+                                 Style="{x:Null}" MinHeight="22" Padding="3,1" VerticalContentAlignment="Center" Margin="0,0,0,3"
                                  ToolTip="Filter by file name"
                                  AutomationProperties.Name="Media file filter" />
 
                         <ListBox Grid.Row="3"
                                  x:Name="InlineMediaList"
+                                 Style="{x:Null}"
+                                 Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}"
+                                 BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}" BorderThickness="1"
                                  ItemsSource="{Binding MediaFiles}"
                                  SelectedItem="{Binding SelectedFile, Mode=TwoWay}"
                                  SelectionMode="Extended"
@@ -2345,16 +2366,24 @@
                     <TabItem.Header>
                         <TextBlock Text="Default" FontSize="{Binding FontSize, RelativeSource={RelativeSource AncestorType=TabItem}}" />
                     </TabItem.Header>
-                    <ScrollViewer x:Name="DefPanel" Tag="DefPanel" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
-                        <StackPanel Width="238" TextElement.FontSize="12" HorizontalAlignment="Center" Margin="10,5,2,3">
-                            <StackPanel Orientation="Horizontal" Height="31" VerticalAlignment="Center">
-                                <Button x:Name="DefApplyDefaultsBtn" ContentTemplate="{StaticResource DefaultStripText}" Style="{StaticResource FrmMainButton}" FontSize="12" BorderBrush="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" Padding="1,0" Height="28" Width="184" Content="Apply to All Except InfoScreens" Command="{Binding ApplyGlobalFormatToAllCommand}" />
-                                <Button x:Name="Def_LoadTemplate" ToolTip="Load Template" Style="{StaticResource DefaultStripButton}" Click="LoadSessionTemplate_Click"><controls:FrmIcon Icon="folder_open" Width="19" Height="19" /></Button>
-                                <Button x:Name="Def_SaveTemplate" ToolTip="Save Template" Style="{StaticResource DefaultStripButton}" Click="SaveSessionTemplate_Click"><controls:FrmIcon Icon="save" Width="19" Height="19" /></Button>
-                            </StackPanel>
+                    <ScrollViewer x:Name="DefPanel" Tag="DefPanel" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
+                        <StackPanel MaxWidth="238" TextElement.FontSize="{DynamicResource Type.Body.FontSize}" Margin="4,5,4,3">
+                            <Grid MinHeight="31">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Button x:Name="DefApplyDefaultsBtn" Style="{StaticResource FrmMainButton}" BorderBrush="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"
+                                        Padding="1,0" MinHeight="28" Command="{Binding ApplyGlobalFormatToAllCommand}" AutomationProperties.Name="Apply to All Except InfoScreens">
+                                    <TextBlock Text="Apply to All Except InfoScreens" TextWrapping="Wrap" TextAlignment="Center" />
+                                </Button>
+                                <Button Grid.Column="1" x:Name="Def_LoadTemplate" ToolTip="Load Template" Style="{StaticResource DefaultStripButton}" Click="LoadSessionTemplate_Click"><controls:FrmIcon Icon="folder_open" Width="19" Height="19" /></Button>
+                                <Button Grid.Column="2" x:Name="Def_SaveTemplate" ToolTip="Save Template" Style="{StaticResource DefaultStripButton}" Click="SaveSessionTemplate_Click"><controls:FrmIcon Icon="save" Width="19" Height="19" /></Button>
+                            </Grid>
                             <GroupBox x:Name="DefgroupBox1" Tag="DefgroupBox1" Header="Default Layout" Style="{x:Null}" HeaderTemplate="{StaticResource DefaultStripText}" Padding="0,2,3,1" Margin="0,3,0,0" BorderBrush="{DynamicResource {x:Static SystemColors.ControlLightBrushKey}}">
                                 <StackPanel Margin="0,4,0,-4">
-                                    <StackPanel Orientation="Horizontal" Height="31" VerticalAlignment="Center">
+                                    <WrapPanel MinHeight="31" ItemHeight="31">
                                         <ComboBox x:Name="Def_Head" AutomationProperties.Name="Title heading" Style="{StaticResource DefaultIconChoice}" SelectedValuePath="Tag" SelectedValue="{Binding DefaultHeadingChoice, Mode=TwoWay}">
                                             <controls:FormatOption x:Name="Def_HeadNoTitles" Tag="None" Content="No Headings" Icon="heading_off" />
                                             <controls:FormatOption x:Name="Def_HeadAllTitles" Tag="All" Content="Show All Headings" Icon="heading" />
@@ -2375,8 +2404,8 @@
                                         <ToggleButton x:Name="Def_Interlace" ToolTip="Interlace Region1/Regions2" Style="{StaticResource DefaultStripToggle}" IsChecked="{Binding ActiveLyricsInterlace, Mode=OneWay}" Command="{Binding ToggleInterlaceCommand}"><controls:FrmIcon Icon="interlace" Width="19" Height="19" /></ToggleButton>
                                         <ToggleButton x:Name="Def_Notations" ToolTip="Show Notations" Style="{StaticResource DefaultStripToggle}" IsChecked="{Binding ActiveLyricsNotations, Mode=OneWay}" Command="{Binding ToggleLyricsNotationsCommand}"><controls:FrmIcon Icon="chords" Width="19" Height="19" /></ToggleButton>
                                         <ToggleButton x:Name="Def_ToZero" ToolTip="To Capo 0" Style="{StaticResource DefaultStripToggle}" IsChecked="{Binding DefaultCapoZero, Mode=OneWay}" Command="{Binding ToggleDefaultCapoCommand}"><controls:FrmIcon Icon="capo_zero" Width="19" Height="19" /></ToggleButton>
-                                    </StackPanel>
-                                    <StackPanel Orientation="Horizontal" Height="31" VerticalAlignment="Center">
+                                    </WrapPanel>
+                                    <WrapPanel MinHeight="31" ItemHeight="31">
                                         <ComboBox x:Name="Def_HeadAlign" AutomationProperties.Name="Heading alignment" Style="{StaticResource DefaultIconChoice}" SelectedValuePath="Tag" SelectedValue="{Binding DefaultHeadingAlignmentChoice, Mode=TwoWay}">
                                             <controls:FormatOption x:Name="Def_HeadAlignAsR1" Tag="AsR1" Content="Headings Align As Region 1" Icon="heading_align_r1" />
                                             <controls:FormatOption x:Name="Def_HeadAlignAsR2" Tag="AsR2" Content="Headings Align As Region 2" Icon="heading_align_r2" />
@@ -2398,12 +2427,12 @@
                                             <controls:FormatOption x:Name="Def_R2AlignRight" Tag="Right" Content="Region 2 Align Right" Icon="text_align_right" />
                                         </ComboBox>
                                         <Button x:Name="Def_R2Colour" Style="{StaticResource DefaultColourButton}" Click="PickDefaultRegion2Color_Click" Content="R2 Col" Foreground="{Binding DefaultRegion2ColorHex, Converter={StaticResource ColorValueToBrush}}" />
-                                    </StackPanel>
+                                    </WrapPanel>
                                 </StackPanel>
                             </GroupBox>
                             <GroupBox x:Name="DefgroupBox2" Tag="DefgroupBox2" Header="Default Background" Style="{x:Null}" HeaderTemplate="{StaticResource DefaultStripText}" Padding="0,2,3,1" Margin="0,3,0,0" BorderBrush="{DynamicResource {x:Static SystemColors.ControlLightBrushKey}}">
                                 <StackPanel Margin="0,4,0,-4">
-                                    <StackPanel Orientation="Horizontal" Height="31" VerticalAlignment="Center">
+                                    <WrapPanel MinHeight="31" ItemHeight="31">
                                         <ComboBox x:Name="Def_ImageMode" AutomationProperties.Name="Background picture format" Style="{StaticResource DefaultIconChoice}" SelectedValuePath="Tag" SelectedValue="{Binding DefaultImageModeChoice, Mode=TwoWay}">
                                             <controls:FormatOption x:Name="Def_ImageTile" Tag="Tile" Content="Tile Image" Icon="image_tile" />
                                             <controls:FormatOption x:Name="Def_ImageCentre" Tag="Fit" Content="Centre Image" Icon="image_border" />
@@ -2412,23 +2441,23 @@
                                         <Button x:Name="Def_NoImage" ToolTip="{Binding OutputBackgroundNoImageToolTip}" Style="{StaticResource DefaultStripButton}" Command="{Binding ClearOutputBackgroundImageCommand}"><controls:FrmIcon Icon="image_off" Width="19" Height="19" /></Button>
                                         <Button x:Name="Def_BackColour" Style="{StaticResource DefaultColourButton}" Click="PickDefaultBackgroundColor_Click" Content="Colours" Foreground="{Binding ActiveBackgroundColorHex, Converter={StaticResource ColorValueToBrush}}" />
                                         <Button x:Name="Def_AssignMedia" Style="{StaticResource DefaultStripButton}" Width="Auto" MaxWidth="100" Padding="4,0" Click="SelectDefaultMedia_Click" ToolTip="{Binding DefaultMediaToolTip}"><TextBlock Text="{Binding DefaultMediaCaption}" FontSize="12" TextTrimming="CharacterEllipsis" /></Button>
-                                    </StackPanel>
-                                    <StackPanel Orientation="Horizontal" Height="31" VerticalAlignment="Center">
+                                    </WrapPanel>
+                                    <WrapPanel MinHeight="31" ItemHeight="31">
                                         <ComboBox x:Name="Def_TransItem" Style="{StaticResource DefaultFieldCombo}" FontSize="12" Width="104" Height="22" Margin="0,0,2,0" VerticalAlignment="Center" ItemsSource="{Binding LegacyTransitionOptions}" ItemTemplate="{StaticResource DefaultChoiceText}" SelectedValuePath="Kind" SelectedValue="{Binding DefaultItemTransitionKindInput, Mode=TwoWay}" ToolTip="Item transition" />
                                         <ComboBox x:Name="Def_TransSlides" Style="{StaticResource DefaultFieldCombo}" FontSize="12" Width="104" Height="22" Margin="0,0,2,0" VerticalAlignment="Center" ItemsSource="{Binding LegacyTransitionOptions}" ItemTemplate="{StaticResource DefaultChoiceText}" SelectedValuePath="Kind" SelectedValue="{Binding DefaultSlideTransitionKindInput, Mode=TwoWay}" ToolTip="Slide transition" />
-                                    </StackPanel>
+                                    </WrapPanel>
                                 </StackPanel>
                             </GroupBox>
                             <GroupBox x:Name="DefgroupBox3" Tag="DefgroupBox3" Header="Display Panel" Style="{x:Null}" HeaderTemplate="{StaticResource DefaultStripText}" Padding="0,2,3,1" Margin="0,3,0,0" BorderBrush="{DynamicResource {x:Static SystemColors.ControlLightBrushKey}}">
                                 <StackPanel>
-                                    <StackPanel Orientation="Horizontal" Height="31" VerticalAlignment="Center">
+                                    <WrapPanel MinHeight="31" ItemHeight="31">
                                         <ToggleButton x:Name="Def_PanelAsR1" ToolTip="Use Region 1 text colour" Style="{StaticResource DefaultStripToggle}" IsChecked="{Binding ActivePanelTextColorAsRegion1, Mode=OneWay}" Command="{Binding TogglePanelTextColorAsRegion1Command}"><controls:FrmIcon Icon="number_circle_1" Width="19" Height="19" /></ToggleButton>
                                         <Button x:Name="Def_PanelTextColour" Style="{StaticResource DefaultColourButton}" Click="PickPanelTextColor_Click" Content="Text Colour" Foreground="{Binding ActivePanelTextColorHex, Converter={StaticResource ColorValueToBrush}}" />
                                         <Border Width="1" Height="16" Margin="2,0" Background="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}" />
                                         <ToggleButton x:Name="Def_PanelTransparent" ToolTip="Transparent background" Style="{StaticResource DefaultStripToggle}" IsChecked="{Binding ActiveLyricsPanelTransparent, Mode=OneWay}" Command="{Binding TogglePanelTransparentCommand}"><controls:FrmIcon Icon="transparency_square" Width="19" Height="19" /></ToggleButton>
                                         <Button x:Name="Def_PanelBackColour" Style="{StaticResource DefaultColourButton}" Click="PickPanelBackColor_Click" Content="Back Colour" Foreground="{Binding ActivePanelColorHex, Converter={StaticResource ColorValueToBrush}}" />
-                                    </StackPanel>
-                                    <StackPanel Orientation="Horizontal" Height="31" VerticalAlignment="Center">
+                                    </WrapPanel>
+                                    <WrapPanel MinHeight="31" ItemHeight="31">
                                         <ToggleButton x:Name="Def_PanelShow" ToolTip="Show Display Panel" Style="{StaticResource DefaultStripToggle}" IsChecked="{Binding ActiveLyricsDisplayPanel, Mode=OneWay}" Command="{Binding ToggleLyricsDisplayPanelCommand}"><controls:FrmIcon Icon="subtitles" Width="19" Height="19" /></ToggleButton>
                                         <ToggleButton x:Name="Def_PanelTitle" ToolTip="Show title" Style="{StaticResource DefaultStripToggle}" IsChecked="{Binding ActiveLyricsTitleOnPanel, Mode=OneWay}" Command="{Binding ToggleLyricsTitleOnPanelCommand}"><controls:FrmIcon Icon="text_case_title" Width="19" Height="19" /></ToggleButton>
                                         <ToggleButton x:Name="Def_PanelCopyright" ToolTip="Show copyright" Style="{StaticResource DefaultStripToggle}" IsChecked="{Binding ActiveLyricsCopyright, Mode=OneWay}" Command="{Binding ToggleLyricsCopyrightCommand}"><controls:FrmIcon Icon="copyright" Width="19" Height="19" /></ToggleButton>
@@ -2443,15 +2472,15 @@
                                             </UniformGrid>
                                             <TextBox x:Name="Def_PanelHeight" Style="{x:Null}" AutomationProperties.Name="Display panel height" Padding="1,0" VerticalContentAlignment="Center" Text="{Binding DefaultPanelHeight, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
                                         </DockPanel>
-                                    </StackPanel>
-                                    <StackPanel Orientation="Horizontal" Height="31" VerticalAlignment="Center">
+                                    </WrapPanel>
+                                    <WrapPanel MinHeight="31" ItemHeight="31">
                                         <ToggleButton x:Name="Def_PanelFontBold" ToolTip="Bold" Style="{StaticResource DefaultStripToggle}" IsChecked="{Binding ActivePanelFontBold, Mode=OneWay}" Command="{Binding TogglePanelFontBoldCommand}"><controls:FrmIcon Icon="text_bold" Width="19" Height="19" /></ToggleButton>
                                         <ToggleButton x:Name="Def_PanelFontItalics" ToolTip="Italics" Style="{StaticResource DefaultStripToggle}" IsChecked="{Binding ActivePanelFontItalic, Mode=OneWay}" Command="{Binding TogglePanelFontItalicCommand}"><controls:FrmIcon Icon="text_italic" Width="19" Height="19" /></ToggleButton>
                                         <ToggleButton x:Name="Def_PanelFontUnderline" ToolTip="Underline" Style="{StaticResource DefaultStripToggle}" IsChecked="{Binding ActivePanelFontUnderline, Mode=OneWay}" Command="{Binding TogglePanelFontUnderlineCommand}"><controls:FrmIcon Icon="text_underline" Width="19" Height="19" /></ToggleButton>
                                         <ToggleButton x:Name="Def_PanelFontShadow" ToolTip="Shadow" Style="{StaticResource DefaultStripToggle}" IsChecked="{Binding ActivePanelFontShadow, Mode=OneWay}" Command="{Binding TogglePanelFontShadowCommand}"><controls:FrmIcon Icon="text_shadow" Width="19" Height="19" /></ToggleButton>
                                         <ToggleButton x:Name="Def_PanelFontOutline" ToolTip="Outline" Style="{StaticResource DefaultStripToggle}" IsChecked="{Binding ActivePanelFontOutline, Mode=OneWay}" Command="{Binding TogglePanelFontOutlineCommand}"><controls:FrmIcon Icon="text_effects" Width="19" Height="19" /></ToggleButton>
                                         <ComboBox x:Name="Def_PanelFontList" Style="{StaticResource DefaultFieldCombo}" FontSize="12" Width="97" Height="22" Margin="0,0,2,0" VerticalAlignment="Center" ItemsSource="{Binding PanelFontOptions}" ItemTemplate="{StaticResource DefaultStripText}" SelectedItem="{Binding PanelFontFamily, Mode=TwoWay}" ToolTip="Display Panel font" />
-                                    </StackPanel>
+                                    </WrapPanel>
                                 </StackPanel>
                             </GroupBox>
                         </StackPanel>

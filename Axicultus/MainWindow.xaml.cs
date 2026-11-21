@@ -3880,6 +3880,11 @@ public partial class MainWindow : Window
             fontFamilies: viewModel.LyricsFontFamilyOptions);
         var window = new Axicultus.Wpf.Shell.NoticeScreenWindow(noticeViewModel) { Owner = this };
         window.ShowDialog();
+        if (_inlineInfoScreens is { } source && noticeViewModel.SelectedScreen is { Length: > 0 } screenName)
+        {
+            source.Load();
+            source.SelectedScreen = source.Screens.FirstOrDefault(screen => screen.Name == screenName);
+        }
     }
 
     private async Task OpenInfoScreenEditorAsync(string selectedScreenName)

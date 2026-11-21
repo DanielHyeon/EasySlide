@@ -1268,6 +1268,53 @@ public class MainMenuBarTests
         code.Should().Contain("UnselectAllBiblePassage_Click", "Unselect All should clear the Bible text selection");
     }
 
+    [Theory]
+    [InlineData("InfoScreen", "New,Edit,Copy,Move,Delete", "document_add,edit,copy,folder_arrow_right,delete")]
+    [InlineData("Powerpoint", "Edit,Copy,Move,Delete", "edit,copy,folder_arrow_right,delete")]
+    public void SourceFileList_RightToolbarHasWinFormsActionsInOrder(string prefix, string actions, string icons)
+    {
+        var document = XDocument.Parse(Xaml);
+        XNamespace names = "http://schemas.microsoft.com/winfx/2006/xaml";
+        var expected = actions.Split(',');
+        var first = document.Descendants().Single(e => (string?)e.Attribute(names + "Name") == $"{prefix}_{expected[0]}");
+        var toolbar = first.Parent!;
+        Assert.Equal("1", (string?)toolbar.Attribute("Grid.Column"));
+        var buttons = toolbar.Elements().ToArray();
+        buttons.Select(b => (string?)b.Attribute("Tag")).Should().Equal(expected.Select(action => $"Main_{action}"));
+        buttons.Select(b => (string?)b.Elements().Single().Attribute("Icon")).Should().Equal(icons.Split(','));
+        Assert.All(buttons, button =>
+        {
+            Assert.Equal("Main_SourceEdit_Click", (string?)button.Attribute("Click"));
+            Assert.Equal("{StaticResource SourceToolButton}", (string?)button.Attribute("Style"));
+        });
+    }
+
+    [Fact]
+    public void ShellLabelsAndMenuHeaders_UseTheirControlFontSize()
+    {
+        var app = XDocument.Load(Path.Combine(FindRepositoryRoot(), "Axicultus", "App.xaml"));
+        var labelStyle = app.Descendants().Single(e => e.Name.LocalName == "Style" && (string?)e.Attribute("TargetType") == "TextBlock");
+        var font = labelStyle.Elements().Single(e => (string?)e.Attribute("Property") == "FontSize");
+        ((string?)font.Attribute("Value")).Should().Contain("(TextElement.FontSize)").And.Contain("AncestorType=FrameworkElement");
+
+        var header = XDocument.Parse(Xaml).Descendants().Single(e => e.Name.LocalName == "AccessText"
+            && e.Attributes().Any(a => a.Name.LocalName == "Name" && a.Value == "MenuHeaderText"));
+        Assert.Equal("{TemplateBinding FontSize}", (string?)header.Attribute("FontSize"));
+    }
+
+    [Fact]
+    public void DefaultToolbar_ReservesSpaceForBothTemplateActionsAtNarrowWidths()
+    {
+        XNamespace names = "http://schemas.microsoft.com/winfx/2006/xaml";
+        var panel = XDocument.Parse(Xaml).Descendants().Single(e => (string?)e.Attribute(names + "Name") == "DefPanel");
+        Assert.Equal("Disabled", (string?)panel.Attribute("HorizontalScrollBarVisibility"));
+        var header = panel.Descendants().Single(e => (string?)e.Attribute(names + "Name") == "DefApplyDefaultsBtn").Parent!;
+        var columns = header.Elements().Single(e => e.Name.LocalName == "Grid.ColumnDefinitions").Elements();
+        columns.Select(c => (string?)c.Attribute("Width")).Should().Equal("*", "Auto", "Auto");
+        Assert.All(panel.Descendants().Where(e => e.Name.LocalName == "GroupBox")
+            .SelectMany(group => group.Elements().Single().Elements()), row => Assert.Equal("WrapPanel", row.Name.LocalName));
+    }
+
     [Fact]
     public void LeftBrowserTabs_ExposeInlinePowerPointAndMediaSources()
     {

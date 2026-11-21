@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using Axicultus.Module;
@@ -68,6 +70,28 @@ public class PowerPointLibraryServiceTests : IDisposable
         tab.SelectedFile = tab.Presentations[1];
         tab.AddSelectedCommand.Execute(null);
         added.Should().Be(sixties[1]);
+    }
+
+    [Fact]
+    public void ResortPublishesTheCompleteThumbnailOrderInOneReset()
+    {
+        string[] names = ["1장_만복.pptx", "6장_목소리.pptx", "10장_전능.pptx", "60장_영혼.pptx", "100장_미리암.pptx", "136장_가나.pptx"];
+        foreach (var name in names) Touch(name);
+        var tab = new PowerPointLibraryViewModel(new PowerPointLibraryService(), _ => { }, _dir);
+        tab.LoadCommand.Execute(null);
+        tab.UsePreviewStyleCommand.Execute(null);
+        var numbered = tab.Presentations.ToArray();
+        var changes = new List<NotifyCollectionChangedAction>();
+        PowerPointFileItem[] visibleAtReset = [];
+        tab.Presentations.CollectionChanged += (_, args) =>
+        {
+            changes.Add(args.Action);
+            visibleAtReset = tab.Presentations.ToArray();
+        };
+
+        tab.SortOrder = PowerPointSortOrder.Title;
+        changes.Should().Equal(NotifyCollectionChangedAction.Reset);
+        visibleAtReset.Should().Equal(numbered[5], numbered[0], numbered[1], numbered[4], numbered[3], numbered[2]);
     }
 
     [Fact]
