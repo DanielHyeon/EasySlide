@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<museScore version="4.60">
+  <Score>
+    <Division>480</Division>
+    <metaTag name="workTitle">두 손 찬양</metaTag>
+    <Part>
+      <Staff id="1"><StaffType group="pitched"><name>stdNormal</name></StaffType><bracket type="1" span="2"/></Staff>
+      <Staff id="2"><StaffType group="pitched"><name>stdNormal</name></StaffType><defaultClef>F</defaultClef></Staff>
+      <trackName>Piano</trackName>
+      <Instrument id="piano"><longName>Piano</longName><instrumentId>keyboard.piano</instrumentId>
+        <clef staff="2">F</clef><Channel><program value="0"/></Channel>
+      </Instrument>
+    </Part>
+    <Staff id="1">
+      <Measure><voice><TimeSig><sigN>4</sigN><sigD>4</sigD></TimeSig>
+        <Chord><durationType>whole</durationType><Lyrics><text>은혜</text></Lyrics><Lyrics><no>1</no><text>둘째 절</text></Lyrics>
+          <Note><pitch>60</pitch><tpc>14</tpc></Note><Note><pitch>67</pitch><tpc>15</tpc></Note></Chord>
+        </voice><LayoutBreak><subtype>page</subtype></LayoutBreak></Measure>
+      <Measure><voice><Chord><durationType>whole</durationType><Note><pitch>65</pitch><tpc>13</tpc></Note></Chord></voice></Measure>
+    </Staff>
+    <Staff id="2">
+      <Measure><voice><TimeSig><sigN>4</sigN><sigD>4</sigD></TimeSig>
+        <Chord><durationType>whole</durationType><Note><pitch>48</pitch><tpc>14</tpc></Note></Chord></voice></Measure>
+      <Measure><voice><Rest><durationType>measure</durationType><duration>4/4</duration></Rest></voice></Measure>
+    </Staff>
+  </Score>
+</museScore>

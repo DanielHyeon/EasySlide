@@ -8,6 +8,7 @@
   <ItemGroup>
     <Using Include="System.IO" />
     <EmbeddedResource Include="SlideTemplate.pptx" LogicalName="ScoreSlideTemplate" />
+    <EmbeddedResource Include="Native/ScoreBridge.js" LogicalName="MuseScoreBridge" />
     <None Update="Bravura.otf" CopyToOutputDirectory="PreserveNewest" />
     <None Update="Bravura-LICENSE.txt" CopyToOutputDirectory="PreserveNewest" />
     <None Update="MuseScore-LICENSE.txt" CopyToOutputDirectory="PreserveNewest" />

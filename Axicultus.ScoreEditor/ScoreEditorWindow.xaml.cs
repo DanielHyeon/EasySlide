@@ -154,6 +154,17 @@ public partial class ScoreEditorWindow : Window
         if (dialog.ShowDialog(this) == true && CanLeave())
             Run(() => Reset(MelodyScore.Open(dialog.FileName), dialog.FileName));
     }
+    private void OpenNativeClick(object sender, RoutedEventArgs e)
+    {
+        if (MuseScoreEngine.Find() is not { } engine)
+        {
+            MessageBox.Show(this, "MuseScore Studio 4.6.5를 설치한 뒤 다시 열어 주세요. 사용자 지정 설치는 AXICULTUS_MUSESCORE_EXE에 MuseScore4.exe 경로를 지정할 수 있습니다.", "MuseScore 악보 편집");
+            return;
+        }
+        var dialog = new OpenFileDialog { Filter = Filter };
+        if (dialog.ShowDialog(this) == true)
+            new NativeScoreWindow(engine, dialog.FileName) { Owner = this }.ShowDialog();
+    }
     private void NewClick(object sender, RoutedEventArgs e) { if (CanLeave()) Reset(MelodyScore.Create(songTitle), null); }
     private void Reset(MelodyScore next, string? file)
     {
@@ -196,14 +207,30 @@ public partial class ScoreEditorWindow : Window
         else return;
         e.Handled = true;
     }
-    private void ExportClick(object sender, RoutedEventArgs e)
+    private readonly CancellationTokenSource lifetime = new();
+    private async void ExportClick(object sender, RoutedEventArgs e)
     {
         var dialog = new SaveFileDialog { Filter = "PowerPoint|*.pptx", DefaultExt = ".pptx", FileName = SuggestedName() };
-        if (dialog.ShowDialog(this) == true) Run(() => ScoreSlides.Export(score, dialog.FileName));
+        if (dialog.ShowDialog(this) != true) return;
+        if (MuseScoreEngine.Find() is not { } engine) { Run(() => ScoreSlides.Export(score, dialog.FileName)); return; }
+        var temp = Directory.CreateTempSubdirectory("Axicultus-export-");
+        var token = lifetime.Token;
+        try
+        {
+            IsEnabled = false;
+            string source = Path.Combine(temp.FullName, "score.mscx");
+            score.Save(source);
+            var pages = await engine.RenderAsync(source, temp.FullName, token, forProjection: true);
+            await Task.Run(() => ScoreSlides.ExportPages(pages, dialog.FileName, token), token);
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested) { }
+        catch (Exception ex) { if (IsVisible) MessageBox.Show(this, ex.Message, "PPTX 내보내기"); }
+        finally { temp.Delete(true); IsEnabled = true; }
     }
     private bool CanLeave() => revision == savedRevision || MessageBox.Show(this, "편집한 악보를 저장할까요?", "악보 편집",
         MessageBoxButton.YesNoCancel) switch { MessageBoxResult.Yes => Save(false), MessageBoxResult.No => true, _ => false };
     protected override void OnClosing(CancelEventArgs e) { if (!CanLeave()) e.Cancel = true; base.OnClosing(e); }
+    protected override void OnClosed(EventArgs e) { lifetime.Cancel(); lifetime.Dispose(); base.OnClosed(e); }
     private bool Run(Action action)
     {
         try { action(); return true; }

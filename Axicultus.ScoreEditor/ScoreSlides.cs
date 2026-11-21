@@ -1,3 +1,4 @@
+using System.Buffers.Binary;
 using System.IO.Compression;
 using System.Windows;
 using System.Windows.Media;
@@ -12,6 +13,24 @@ public static class ScoreSlides
     private static readonly XNamespace Rel = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
 
     public static void Export(MelodyScore score, string path)
+        => WritePages(StaffDrawing.Lines(score).Chunk(2).Select(lines =>
+            new SlideImage(1920, 1080, output => Render(score.Title, lines, output))), path, default);
+
+    private sealed record SlideImage(int Width, int Height, Action<Stream> Write);
+
+    internal static void ExportPages(IEnumerable<string> paths, string path, CancellationToken token)
+        => WritePages(paths.Select(file =>
+        {
+            using var input = File.OpenRead(file);
+            Span<byte> header = stackalloc byte[24];
+            input.ReadExactly(header);
+            int width = BinaryPrimitives.ReadInt32BigEndian(header[16..]);
+            int height = BinaryPrimitives.ReadInt32BigEndian(header[20..]);
+            if (width <= 0 || height <= 0) throw new InvalidDataException("잘못된 페이지 크기입니다.");
+            return new SlideImage(width, height, output => { using var png = File.OpenRead(file); png.CopyTo(output); });
+        }), path, token);
+
+    private static void WritePages(IEnumerable<SlideImage> pages, string path, CancellationToken token)
     {
         var temp = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
         try
@@ -27,8 +46,13 @@ public static class ScoreSlides
                 var slideRelations = Read(zip, "ppt/slides/_rels/slide1.xml.rels");
                 var slideList = presentation.Root!.Element(Presentation + "sldIdLst")!;
                 int number = 0;
-                foreach (var lines in StaffDrawing.Lines(score).Chunk(2))
+                var size = presentation.Root.Element(Presentation + "sldSz")!;
+                int width = (int)size.Attribute("cx")!, height = (int)size.Attribute("cy")!;
+                XNamespace drawing = "http://schemas.openxmlformats.org/drawingml/2006/main";
+                var transform = slide.Descendants(Presentation + "pic").Single().Element(Presentation + "spPr")!.Element(drawing + "xfrm")!;
+                foreach (var page in pages)
                 {
+                    token.ThrowIfCancellationRequested();
                     number++;
                     if (number > 1)
                     {
@@ -38,20 +62,28 @@ public static class ScoreSlides
                             new XAttribute("Id", id), new XAttribute("Type", Rel.NamespaceName + "/slide"), new XAttribute("Target", $"slides/slide{number}.xml")));
                         types.Root!.Add(new XElement(types.Root.Name.Namespace + "Override", new XAttribute("PartName", $"/ppt/slides/slide{number}.xml"),
                             new XAttribute("ContentType", "application/vnd.openxmlformats-officedocument.presentationml.slide+xml")));
-                        Write(zip, $"ppt/slides/slide{number}.xml", slide);
                         var imageRelation = slideRelations.Root!.Elements().Single(e => ((string?)e.Attribute("Type"))!.EndsWith("/image", StringComparison.Ordinal));
                         imageRelation.SetAttributeValue("Target", $"../media/image{number}.png");
                         Write(zip, $"ppt/slides/_rels/slide{number}.xml.rels", slideRelations);
                     }
+                    double scale = Math.Min((double)width / page.Width, (double)height / page.Height);
+                    int cx = (int)Math.Round(page.Width * scale), cy = (int)Math.Round(page.Height * scale);
+                    transform.Element(drawing + "off")!.SetAttributeValue("x", (width - cx) / 2);
+                    transform.Element(drawing + "off")!.SetAttributeValue("y", (height - cy) / 2);
+                    transform.Element(drawing + "ext")!.SetAttributeValue("cx", cx);
+                    transform.Element(drawing + "ext")!.SetAttributeValue("cy", cy);
+                    Write(zip, $"ppt/slides/slide{number}.xml", slide);
                     string imagePath = $"ppt/media/image{number}.png";
                     zip.GetEntry(imagePath)?.Delete();
                     using var image = zip.CreateEntry(imagePath, CompressionLevel.NoCompression).Open();
-                    Render(score.Title, lines, image);
+                    page.Write(image);
                 }
+                if (number == 0) throw new InvalidDataException("출력할 악보 페이지가 없습니다.");
                 Write(zip, "ppt/presentation.xml", presentation);
                 Write(zip, "ppt/_rels/presentation.xml.rels", relations);
                 Write(zip, "[Content_Types].xml", types);
             }
+            token.ThrowIfCancellationRequested();
             File.Move(temp, path, true);
         }
         finally { File.Delete(temp); }

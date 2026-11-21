@@ -6,7 +6,8 @@
     <DockPanel>
         <WrapPanel DockPanel.Dock="Top" Margin="8">
             <Button Content="새 악보" Click="NewClick" Padding="10,4"/>
-            <Button Content="열기…" Click="OpenClick" Padding="10,4"/>
+            <Button Content="단선율 열기…" Click="OpenClick" Padding="10,4"/>
+            <Button Content="MuseScore 악보 열기…" Click="OpenNativeClick" ToolTip="피아노 2단·다성부 악보를 MuseScore Studio 엔진으로 편집" Padding="10,4"/>
             <Button Content="저장" Click="SaveClick" Padding="10,4"/>
             <Button Content="다른 이름으로 저장…" Click="SaveAsClick" Padding="10,4"/>
             <Button Content="PPTX 내보내기…" Click="ExportClick" Padding="10,4"/>
