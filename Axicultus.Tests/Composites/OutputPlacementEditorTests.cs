@@ -46,7 +46,7 @@ public class OutputPlacementEditorTests
     {
         var window = Read("SettingsWindow.xaml");
         var tabs = window.Descendants().First(e => e.Name.LocalName == "TabControl").Elements().ToArray();
-        var advanced = tabs.Single(tab => (string?)tab.Attribute("Header") == "WPF 설정");
+        var advanced = tabs.Single(tab => (string?)tab.Attribute("Header") == "추가 설정");
         var keyboard = tabs.Single(tab => (string?)tab.Attribute("Header") == "Keyboard");
         var shortcuts = window.Descendants().Single(e => (string?)e.Attribute("ItemsSource") == "{Binding ShortcutItems}");
         shortcuts.Ancestors().Should().Contain(keyboard);

@@ -739,7 +739,7 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
             new(SettingsSectionKind.Bibles, "성경", "성경 버전 관리", EsIcons.FolderOpen),
             new(SettingsSectionKind.Licence, "라이선스", "관리자와 번호", EsIcons.Info),
             new(SettingsSectionKind.Shortcuts, "키보드", "단축키와 전역 키", EsIcons.Shortcuts),
-            new(SettingsSectionKind.WpfTools, "WPF 설정", "일반, 화면 및 데이터 관리", EsIcons.Settings),
+            new(SettingsSectionKind.WpfTools, "추가 설정", "일반, 화면 및 데이터 관리", EsIcons.Settings),
             new(SettingsSectionKind.DeviceCheck, "장치 점검", "카메라, 마이크 및 OBS 연결 상태", SymbolRegular.Video24),
         ];
 

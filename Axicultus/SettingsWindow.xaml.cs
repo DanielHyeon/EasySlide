@@ -25,9 +25,7 @@ public partial class SettingsWindow : Window
     private readonly FolderEditorViewModel _folderEditor;
     private bool _foldersLoaded;
     private readonly ObservableCollection<OptionsFolderDraft> _folderChoices = [];
-    private int _lastOperatorTab;
-    private bool _advanced;
-    internal int LastOperatorTab => _advanced ? _lastOperatorTab : _options.SelectedTabIndex;
+    internal int LastOperatorTab => _options.SelectedTabIndex;
     public ObservableCollection<NumberedChoice> JumpFolders { get; } = [];
     private BibleCatalogEdit? _bibleCatalog;
     private BibleViewModel _liveBible;
@@ -49,7 +47,6 @@ public partial class SettingsWindow : Window
         DisplayChoices = choices;
         InitializeComponent();
         DataContext = options;
-        SetPageMode(false);
         _liveBible = bible;
         BiblePanel.Loaded += BiblePanel_Loaded;
         Closing += (_, e) => { if (_saving && DialogResult != true) e.Cancel = true; };
@@ -89,19 +86,6 @@ public partial class SettingsWindow : Window
         {
             _cameraNamesLoaded = false;
         }
-    }
-
-    private void ToggleOptions_Click(object sender, RoutedEventArgs e) => SetPageMode(!_advanced);
-
-    private void SetPageMode(bool advanced)
-    {
-        const int firstAdvancedTab = 8;
-        if (!_advanced && _options.SelectedTabIndex < firstAdvancedTab) _lastOperatorTab = _options.SelectedTabIndex;
-        _advanced = advanced;
-        for (int i = 0; i < OptionsTabs.Items.Count; i++)
-            ((TabItem)OptionsTabs.Items[i]).Visibility = (i >= firstAdvancedTab) == advanced ? Visibility.Visible : Visibility.Collapsed;
-        _options.SelectedTabIndex = advanced ? firstAdvancedTab : Math.Max(0, _lastOperatorTab);
-        MoreOptions.Content = advanced ? "Options" : "WPF 설정 및 장치 점검…";
     }
 
     private void MonitorInfo_Click(object sender, RoutedEventArgs e) =>
