@@ -1678,6 +1678,17 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         return item;
     }
 
+    internal void UnselectBiblePassage()
+    {
+        Bible.ClearSelection();
+        if (_sourcePreviewItem is not { } source || !LiveItemKindMatcher.IsBible(source.Kind)) return;
+        _sourcePreviewItem = null;
+        RefreshLyricsPages(PreviewItem);
+        UpdateContentTabForItem(PreviewItem);
+        NotifyPreviewItemProperties();
+        NotifyCommandStates();
+    }
+
     public LiveQueueItem? PreviewBibleSelection(BibleSelection selection)
     {
         var item = CreateBibleItem(selection);
@@ -2047,9 +2058,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         StatusText = $"예배 순서 항목 갱신: {updated.Title}";
         return true;
     }
-
-    public bool CanAddWorshipListSongsToUsages
-        => Queue.Any(item => item is { Kind: LiveItemKinds.Song } && TryGetSongDatabaseId(item, out _));
 
     /// <summary>
     /// FrmMain AddToUsages 대응: 현재 Worship List 전체를 훑어 DB 곡(song:{id})만 USAGE DB 에 기록한다.
@@ -2568,6 +2576,21 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     // 예배 순서 전체 비우기(레거시 Empty Worship List). 비우기 전에 현재 목록을 스냅샷으로 보관해
     // "되돌리기"로 복구할 수 있게 한다(실수로 다 지워도 한 번은 되살릴 수 있음).
+    internal void ArchiveAndClearCurrentWorshipList()
+    {
+        if (Queue.Count == 0 || string.IsNullOrWhiteSpace(CurrentWorshipListName)) return;
+        try
+        {
+            _worshipLists.MoveToTrash(CurrentWorshipListName);
+            ClearWorshipList();
+            RefreshSavedWorshipListNames();
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            StatusText = $"예배 순서를 휴지통으로 이동하지 못했습니다. {ex.Message}";
+        }
+    }
+
     private void ClearWorshipList()
     {
         if (Queue.Count == 0)
@@ -4001,6 +4024,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // 곡·성경이 아니거나 본문이 없으면 LyricsPageCount=0(절 이동 버튼 비활성).
     private void RefreshLyricsPages(LiveQueueItem? item)
     {
+        if (item?.SourceFolderNo is > 0 && !IsExternalTextFileItem(item))
+            _previewTextFolderNo = item.SourceFolderNo.Value;
         var (Count, Labels) = BuildLyricsPageModel(item);
         LyricsPageCount = Count;
         _pageLabels = Labels;
@@ -4065,16 +4090,17 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             var itemDisplay = ItemDisplayFormat.Read(raw);
             var folder = ResolveTextFileLayout(item);
             double size = TextFileLayout.FontAtWidth(LiveSessionService.LegacyPointToPixel(format?.FontSize1 ?? folder?.FontPoints) ?? options.LyricsMonitorFontSize, width);
-            double left = TextFileLayout.MarginAt(width, format?.BodyLeftMargin, options.LyricsMonitorBodyLeftMargin);
-            double right = TextFileLayout.MarginAt(width, format?.BodyRightMargin, options.LyricsMonitorBodyRightMargin);
-            double bottom = TextFileLayout.MarginAt(height, format?.BodyBottomMargin, options.LyricsMonitorBodyBottomMargin)
+            double left = TextFileLayout.MarginAt(width, format?.BodyLeftMargin ?? folder?.LeftPercent, options.LyricsMonitorBodyLeftMargin);
+            double right = TextFileLayout.MarginAt(width, format?.BodyRightMargin ?? folder?.RightPercent, options.LyricsMonitorBodyRightMargin);
+            double bottom = TextFileLayout.MarginAt(height, format?.BodyBottomMargin ?? folder?.BottomPercent, options.LyricsMonitorBodyBottomMargin)
                 + TextFileLayout.BottomInset(height);
             if (options.LyricsMonitorShowDisplayPanel && itemDisplay?.Flag(64) != true)
                 bottom += height * options.PanelHeightPercent / 100;
-            double top = TextFileLayout.TopInset(height, itemDisplay?.Top1);
+            double top = TextFileLayout.TopInset(height, itemDisplay?.Top1 ?? folder?.TopPercent);
             string family = string.IsNullOrWhiteSpace(format?.FontName1) ? folder?.FontName ?? options.LyricsMonitorFontFamily : format.FontName1;
             var lineSpacing = folder?.Fields != null ? Math.Clamp(folder.LineSpacing, .5, 2) : options.LyricsMonitorLineSpacingPercent / 100d;
-            layout = new(width - left - right, height - top - bottom, family, size, size * lineSpacing);
+            double advance = folder is null ? size * lineSpacing : TextFileLayout.LineAdvance(family, size, lineSpacing);
+            layout = new(width - left - right, height - top - bottom, family, size, advance);
         }
         if (_textFilePages is { } cached && cached.Lyrics == item.Lyrics && cached.Sequence == item.Sequence && cached.Layout == layout)
             return cached.Pages;
@@ -4276,9 +4302,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        if (!IsLyricsPaginated(SelectedItem) || target == LyricsPageIndex)
+        if (!IsLyricsPaginated(PreviewItem) || target == LyricsPageIndex)
         {
-            RebuildPreviewLyricsPages();
             return;
         }
 
@@ -7855,6 +7880,40 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// (배경색이 설정돼 있어도 이미지가 우선 — <see cref="SetSelectedItemBackgroundColor"/> 와 짝).
     /// (이미지 파일을 실제로 읽어 그리는 일은 출력 창 VM 이 맡는다 — 여기선 경로만 기록한다.)
     /// </summary>
+    internal async Task<bool> ApplyPreviewBackgroundAsync(string path, IReadOnlyList<LiveQueueItem> selectedRows)
+    {
+        if (PreviewItem is not { } preview || string.IsNullOrWhiteSpace(path)) return false;
+        LiveQueueItem Apply(LiveQueueItem item) => item with
+        {
+            FormatData = SongFormatData.WithBackgroundPath(item.FormatData, path), UseIndividualFormatting = true,
+        };
+
+        if (_sourcePreviewItem != null)
+        {
+            if (TryGetSongDatabaseId(preview, out int songId) && !await Library.SaveSongBackgroundAsync(songId, path)) return false;
+            if (_sourcePreviewItem?.Id == preview.Id)
+            {
+                _sourcePreviewItem = Apply(_sourcePreviewItem);
+                NotifyPreviewItemProperties();
+            }
+            return true;
+        }
+
+        var page = LyricsPageIndex;
+        LiveQueueItem? current = null;
+        foreach (var item in selectedRows.Count == 0 ? new[] { preview } : selectedRows)
+        {
+            int index = IndexOfReference(item);
+            if (index < 0 || IsPowerPointItem(item)) continue;
+            var updated = Apply(item);
+            Queue[index] = updated;
+            if (ReferenceEquals(preview, item)) current = updated;
+        }
+        if (current != null) { SelectedItem = current; GoToPreviewLyricsPage(page); }
+        RepublishLiveSongForBodyChange();
+        return true;
+    }
+
     public void SetSelectedItemBackgroundImage(string? path)
     {
         // 빈/공백 경로 = 배경 이미지 해제(전역 배경 추종). 앞뒤 공백은 다듬는다.
@@ -8089,22 +8148,28 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         StatusText = $"{changed}개 항목에 전역 기본 서식 적용";
     }
 
+    internal LiveQueueItem ProjectLyricsPage(LiveQueueItem item, int pageIndex)
+    {
+        if (IsExternalTextFileItem(item))
+        {
+            var pages = GetTextFilePages(item);
+            int index = Math.Clamp(pageIndex, 0, Math.Max(0, pages.Count - 1));
+            return item with { SongLayout = ResolveTextFileLayout(item), LyricsPageIndex = index, ProjectedTextPage = PageAt(pages, index) ?? item.Title };
+        }
+        if (GetSongPages(item) is { Bodies.Count: > 0 } songPages)
+        {
+            int index = Math.Clamp(pageIndex, 0, songPages.Bodies.Count - 1);
+            return item with { LyricsPageIndex = index, ProjectedTextPage = songPages.Bodies[index], ProjectedSectionLabel = songPages.Labels[index] };
+        }
+        return item with { LyricsPageIndex = pageIndex };
+    }
+
     private LiveQueueItem ResolveLiveProjection(
         LiveQueueItem item,
         Rendering.PowerPointPreviewViewModel? powerPoint = null)
     {
         item = ApplyOutputScript(PrepareLiveItemForOutput(item));
-        if (IsExternalTextFileItem(item))
-        {
-            var pages = GetTextFilePages(item);
-            int index = Math.Clamp(item.LyricsPageIndex, 0, Math.Max(0, pages.Count - 1));
-            item = item with { LyricsPageIndex = index, ProjectedTextPage = PageAt(pages, index) ?? item.Title };
-        }
-        else if (GetSongPages(item) is { Bodies.Count: > 0 } songPages)
-        {
-            int index = Math.Clamp(item.LyricsPageIndex, 0, songPages.Bodies.Count - 1);
-            item = item with { LyricsPageIndex = index, ProjectedTextPage = songPages.Bodies[index], ProjectedSectionLabel = songPages.Labels[index] };
-        }
+        item = ProjectLyricsPage(item, item.LyricsPageIndex);
         var ppt = powerPoint ?? PowerPoint;
         var positionLabel = ComputePositionLabel(item, ppt);
         var nextTitle = ComputeNextTitle(item);
@@ -8155,8 +8220,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             RefreshPreparedTextOutput(live);
     }
 
+    private int _previewTextFolderNo = 1;
+
     internal Data.SongPageLayout? ResolveTextFileLayout(LiveQueueItem item) =>
-        Library.Folders.FirstOrDefault(folder => folder.FolderNo == Math.Max(1, item.SourceFolderNo ?? 1))?.SlideLayout
+        Library.Folders.FirstOrDefault(folder => folder.FolderNo == Math.Max(1, item.SourceFolderNo ?? _previewTextFolderNo))?.SlideLayout
         ?? item.SongLayout
         ?? Library.Folders.FirstOrDefault(folder => folder.FolderNo == 0)?.SlideLayout;
 
@@ -8170,7 +8237,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         if (IsExternalTextFileItem(prepared))
         {
-            prepared = prepared with { SongLayout = ResolveTextFileLayout(prepared) };
+            prepared = prepared with { SongLayout = ResolveTextFileLayout(prepared), SourceFolderNo = prepared.SourceFolderNo ?? _previewTextFolderNo };
             var contentPath = ResolveExternalTextContentPath(prepared);
             var fileText = TryReadTextFile(contentPath ?? string.Empty);
             if (fileText is not null)

@@ -1546,6 +1546,7 @@
                             </ListView.InputBindings>
                             <ListView.ContextMenu>
                                 <ContextMenu x:Name="CMenuSongs"
+                                             Style="{StaticResource FrmMainListContextMenu}"
                                              Tag="CMenuSongs"
                                              Opened="CMenuSongs_Opened">
                                     <MenuItem x:Name="CMenuSongs_SelectAll"
@@ -1558,7 +1559,7 @@
                                               Click="CMenuSongs_UnselectAll_Click" />
                                     <MenuItem x:Name="CMenuSongs_AddShow"
                                               Tag="CMenuSongs_AddShow"
-                                              Header="Add &amp;&amp; _Show"
+                                              Header="Add &amp; _Show"
                                               Click="CMenuSongs_AddShow_Click" />
                                     <Separator />
                                     <MenuItem x:Name="CMenuSongs_Edit"
@@ -1569,10 +1570,6 @@
                                               Tag="CMenuSongs_Copy"
                                               Header="Copy item"
                                               Click="SongCopy_Click" />
-                                    <MenuItem x:Name="CMenuSongs_Delete"
-                                              Tag="CMenuSongs_Delete"
-                                              Header="Delete item"
-                                              Click="CMenuSongs_Delete_Click" />
                                     <Separator />
                                     <MenuItem x:Name="CMenuSongs_Refresh"
                                               Tag="CMenuSongs_Refresh"
@@ -1652,6 +1649,7 @@
                                  AutomationProperties.Name="InfoScreen source list">
                             <ListBox.ContextMenu>
                                 <ContextMenu x:Name="CMenuInfoScreenFiles"
+                                             Style="{StaticResource FrmMainListContextMenu}"
                                              Tag="CMenuFiles">
                                     <MenuItem x:Name="CMenuInfoScreenFiles_SelectAll"
                                               Tag="CMenuFiles_SelectAll"
@@ -1663,7 +1661,7 @@
                                               Click="CMenuInfoScreenFiles_UnselectAll_Click" />
                                     <MenuItem x:Name="CMenuInfoScreenFiles_AddShow"
                                               Tag="CMenuFiles_AddShow"
-                                              Header="Add &amp;&amp; _Show"
+                                              Header="Add &amp; _Show"
                                               Click="CMenuInfoScreenFiles_AddShow_Click" />
                                     <Separator />
                                     <MenuItem x:Name="CMenuInfoScreenFiles_Edit"
@@ -1674,10 +1672,6 @@
                                               Tag="CMenuFiles_Copy"
                                               Header="Copy"
                                               Click="CMenuInfoScreenFiles_Copy_Click" />
-                                    <MenuItem x:Name="CMenuInfoScreenFiles_Delete"
-                                              Tag="CMenuFiles_Delete"
-                                              Header="Delete"
-                                              Click="CMenuInfoScreenFiles_Delete_Click" />
                                     <Separator />
                                     <MenuItem x:Name="CMenuInfoScreenFiles_Refresh"
                                               Tag="CMenuFiles_Refresh"
@@ -1807,6 +1801,7 @@
                                  AutomationProperties.Name="PowerPoint source file list">
                             <ListBox.ContextMenu>
                                 <ContextMenu x:Name="CMenuPowerPointFiles"
+                                             Style="{StaticResource FrmMainListContextMenu}"
                                              Tag="CMenuFiles">
                                     <MenuItem x:Name="CMenuPowerPointFiles_SelectAll"
                                               Tag="CMenuFiles_SelectAll"
@@ -1818,7 +1813,7 @@
                                               Click="CMenuPowerPointFiles_UnselectAll_Click" />
                                     <MenuItem x:Name="CMenuPowerPointFiles_AddShow"
                                               Tag="CMenuFiles_AddShow"
-                                              Header="Add &amp;&amp; _Show"
+                                              Header="Add &amp; _Show"
                                               Click="CMenuPowerPointFiles_AddShow_Click" />
                                     <Separator />
                                     <MenuItem x:Name="CMenuPowerPointFiles_Edit"
@@ -1829,10 +1824,6 @@
                                               Tag="CMenuFiles_Copy"
                                               Header="Copy"
                                               Click="CMenuPowerPointFiles_Copy_Click" />
-                                    <MenuItem x:Name="CMenuPowerPointFiles_Delete"
-                                              Tag="CMenuFiles_Delete"
-                                              Header="Delete"
-                                              Click="CMenuPowerPointFiles_Delete_Click" />
                                     <Separator />
                                     <MenuItem x:Name="CMenuPowerPointFiles_Refresh"
                                               Tag="CMenuFiles_Refresh"
@@ -1868,6 +1859,7 @@
                                  AutomationProperties.Name="PowerPoint source preview list">
                             <ListBox.ContextMenu>
                                 <ContextMenu x:Name="CMenuPowerPointPreviewFiles"
+                                             Style="{StaticResource FrmMainListContextMenu}"
                                              Tag="CMenuFiles">
                                     <MenuItem x:Name="CMenuPowerPointPreviewFiles_SelectAll"
                                               Tag="CMenuFiles_SelectAll"
@@ -1879,7 +1871,7 @@
                                               Click="CMenuPowerPointFiles_UnselectAll_Click" />
                                     <MenuItem x:Name="CMenuPowerPointPreviewFiles_AddShow"
                                               Tag="CMenuFiles_AddShow"
-                                              Header="Add &amp;&amp; _Show"
+                                              Header="Add &amp; _Show"
                                               Click="CMenuPowerPointFiles_AddShow_Click" />
                                     <Separator />
                                     <MenuItem x:Name="CMenuPowerPointPreviewFiles_Edit"
@@ -1890,10 +1882,6 @@
                                               Tag="CMenuFiles_Copy"
                                               Header="Copy"
                                               Click="CMenuPowerPointFiles_Copy_Click" />
-                                    <MenuItem x:Name="CMenuPowerPointPreviewFiles_Delete"
-                                              Tag="CMenuFiles_Delete"
-                                              Header="Delete"
-                                              Click="CMenuPowerPointFiles_Delete_Click" />
                                     <Separator />
                                     <MenuItem x:Name="CMenuPowerPointPreviewFiles_Refresh"
                                               Tag="CMenuFiles_Refresh"
@@ -2012,7 +2000,8 @@
                                       ItemsSource="{Binding Bible.BrowserBooks}"
                                       SelectedItem="{Binding Bible.SelectedBrowserBook, Mode=TwoWay}"
                                       DisplayMemberPath="Name"
-                                      MinHeight="28"
+                                      Style="{x:Null}"
+                                      Height="22"
                                       FontSize="12"
                                       AutomationProperties.Name="성경 책" />
 
@@ -2021,7 +2010,9 @@
                                      Tag="BibleUserLookup"
                                      Text="{Binding Bible.TypedReference, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                      KeyDown="BibleReferenceBox_KeyDown"
-                                     MinHeight="28"
+                                     Style="{x:Null}"
+                                     VerticalContentAlignment="Center"
+                                     Height="22"
                                      FontSize="12"
                                      ToolTip="구절 직접 입력 (예: 창 1:1-2:3, John 3:16)"
                                      AutomationProperties.Name="성경 구절 직접 입력" />
@@ -2030,9 +2021,9 @@
                                     x:Name="Bibles_Go"
                                     Tag="Bibles_Go"
                                     Click="JumpBibleReference_Click"
-                                    Style="{StaticResource EsButton.Secondary}"
-                                    MinWidth="28"
-                                    MinHeight="28"
+                                    Style="{StaticResource FrmMainButton}"
+                                    Width="25"
+                                    Height="22"
                                     Padding="4,0"
                                     ToolTip="입력한 구절로 이동"
                                     AutomationProperties.Name="입력한 성경 구절로 이동">
@@ -2051,7 +2042,8 @@
                                  TextWrapping="Wrap"
                                  AcceptsReturn="True"
                                  VerticalScrollBarVisibility="Auto"
-                                 Margin="0,8,0,0"
+                                 Style="{x:Null}"
+                                 Padding="1,2"
                                  PreviewKeyDown="BiblePassageBox_PreviewKeyDown"
                                  PreviewMouseLeftButtonDown="BiblePassageBox_PreviewMouseLeftButtonDown"
                                  PreviewMouseMove="BiblePassageBox_PreviewMouseMove"
@@ -2059,6 +2051,7 @@
                             <!-- 본문 우클릭 메뉴(레거시 Bible 우클릭) — 전체 선택/복사 + 선택 구절을 예배 순서·공지 화면으로. -->
                             <TextBox.ContextMenu>
                                 <ContextMenu x:Name="CMenuBible"
+                                             Style="{StaticResource FrmMainListContextMenu}"
                                              Tag="CMenuBible"
                                              Opened="BibleContextMenu_Opened">
                                     <MenuItem x:Name="CMenuBible_SelectAll"
@@ -2074,14 +2067,13 @@
                                               Header="Add &amp; _Show"
                                               Click="AddBibleVerse_Click" />
                                     <Separator />
-                                    <!-- 레거시 인라인 성경 우클릭 "Add Region 2" — 선택 구절을 고른 보조 버전과 함께(이중 언어) 추가.
-                                         후보는 현재 주 버전을 뺀 나머지 버전들(Region2VersionOptions). PlacementTarget 경유로 VM 에 접근. -->
+                                    <!-- Region 2 uses the installed translations in their displayed order. -->
                                     <MenuItem x:Name="CMenuBible_AddRegion2"
                                               Tag="CMenuBible_AddRegion2"
                                               Header="Add _Region 2"
                                               ItemsSource="{Binding PlacementTarget.DataContext.Bible.Region2VersionOptions, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
                                         <MenuItem.ItemContainerStyle>
-                                            <Style TargetType="MenuItem">
+                                            <Style TargetType="MenuItem" BasedOn="{StaticResource FrmMainListMenuItem}">
                                                 <Setter Property="Header" Value="{Binding Name}" />
                                                 <EventSetter Event="Click" Handler="AddBibleVerseWithRegion2_Click" />
                                             </Style>
@@ -2221,6 +2213,7 @@
                             </ListBox.InputBindings>
                             <ListBox.ContextMenu>
                                 <ContextMenu x:Name="CMenuImages"
+                                             Style="{StaticResource FrmMainListContextMenu}"
                                              Tag="CMenuImages"
                                              Opened="CMenuImages_Opened">
                                     <MenuItem x:Name="CMenuImages_AddItem"
@@ -2236,8 +2229,6 @@
                                               Tag="CMenuImages_Refresh"
                                               Header="Refresh Images Lists"
                                               Command="{Binding PlacementTarget.DataContext.LoadCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
-                                    <MenuItem Header="Clear background"
-                                              Command="{Binding PlacementTarget.DataContext.ClearBackgroundCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
                                 </ContextMenu>
                             </ListBox.ContextMenu>
                             <ListBox.ItemsPanel>
@@ -2370,6 +2361,7 @@
                                  AutomationProperties.Name="Media source file list">
                             <ListBox.ContextMenu>
                                 <ContextMenu x:Name="CMenuFiles"
+                                             Style="{StaticResource FrmMainListContextMenu}"
                                              Tag="CMenuFiles">
                                     <MenuItem x:Name="CMenuFiles_SelectAll"
                                               Header="Select _All"
@@ -2378,7 +2370,7 @@
                                               Header="_Unselect All"
                                               Click="CMenuFiles_UnselectAll_Click" />
                                     <MenuItem x:Name="CMenuFiles_AddShow"
-                                              Header="Add &amp;&amp; _Show"
+                                              Header="Add &amp; _Show"
                                               Click="CMenuFiles_AddShow_Click" />
                                     <Separator />
                                     <MenuItem x:Name="CMenuFiles_Edit"
@@ -2387,10 +2379,6 @@
                                     <MenuItem x:Name="CMenuFiles_Copy"
                                               Header="Copy"
                                               Click="CMenuFiles_Copy_Click" />
-                                    <MenuItem x:Name="CMenuFiles_Delete"
-                                              Tag="CMenuFiles_Delete"
-                                              Header="Delete"
-                                              Click="CMenuFiles_Delete_Click" />
                                     <Separator />
                                     <MenuItem x:Name="CMenuFiles_Refresh"
                                               Header="Refresh"
@@ -3489,7 +3477,7 @@
                         <TabItem.Header>
                             <TextBlock Text="Worship List" FontSize="{Binding FontSize, RelativeSource={RelativeSource AncestorType=TabItem}}" />
                         </TabItem.Header>
-                        <composites:WorshipListPanel AddSelectedSourceRequested="WorshipListPanel_AddSelectedSourceRequested"
+                        <composites:WorshipListPanel x:Name="WorshipListPanel" AddSelectedSourceRequested="WorshipListPanel_AddSelectedSourceRequested"
                                                      ManageWorshipListsRequested="WorshipListPanel_ManageWorshipListsRequested"
                                                      OpenSessionNotesRequested="WorshipListPanel_OpenSessionNotesRequested"
                                                      EditSelectedItemRequested="WorshipListPanel_EditSelectedItemRequested" />
@@ -3522,13 +3510,11 @@
                                           ItemsSource="{Binding SavedBooks}"
                                           SelectedItem="{Binding CurrentBookName, Mode=TwoWay}"
                                           SelectionChanged="InlinePraiseBookSavedBooksCombo_SelectionChanged"
-                                          MinHeight="28"
+                                          Style="{x:Null}"
+                                          VerticalAlignment="Center"
+                                          Height="22"
                                           Margin="0,0,4,0"
-                                          AutomationProperties.Name="Saved Praise Book list">
-                                    <ComboBox.ContextMenu>
-                                        <ContextMenu><MenuItem Header="_Refresh" Click="InlinePraiseBookRefresh_Click" /></ContextMenu>
-                                    </ComboBox.ContextMenu>
-                                </ComboBox>
+                                          AutomationProperties.Name="Saved Praise Book list" />
                                 <Button Grid.Column="1"
                                         x:Name="PB_Manage"
                                         Tag="PB_Manage"
@@ -3656,6 +3642,7 @@
                                 </ListView.View>
                                 <ListView.ContextMenu>
                                     <ContextMenu x:Name="CMenuPraiseB"
+                                                 Style="{StaticResource FrmMainListContextMenu}"
                                                  Tag="CMenuPraiseB"
                                                  Opened="CMenuPraiseB_Opened">
                                         <MenuItem x:Name="CMenuPraiseB_SelectAll"
@@ -4876,6 +4863,7 @@
                                                    AutomationProperties.Name="Preview 큰 화면 본문" />
                                     </ContentControl>
                                     <TextBlock Text="{Binding PreviewNavigationPositionLabel}"
+                                               Visibility="{Binding PreviewSample.Scene.ShowLyricsPositionIndicator, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolToVis}}"
                                                Margin="20,0,0,18"
                                                HorizontalAlignment="Left"
                                                VerticalAlignment="Bottom"
@@ -5336,13 +5324,6 @@
                         <WrapPanel x:Name="ClassicOutputBottomStrip"
                                    Orientation="Horizontal"
                                    ButtonBase.Click="FocusOutputArea_Click">
-                            <WrapPanel.ContextMenu>
-                                <ContextMenu>
-                                    <MenuItem x:Name="OutputBtnStopLive" Header="라이브 중지" Command="{Binding StopLiveCommand}" />
-                                    <MenuItem x:Name="OutputBtnRestartCurrentItem" Header="현재 항목 처음으로" Command="{Binding RestartCurrentItemCommand}" />
-                                    <MenuItem x:Name="OutputBtnRefresh" Header="출력 새로고침" Command="{Binding RefreshOutputCommand}" />
-                                </ContextMenu>
-                            </WrapPanel.ContextMenu>
                             <Button x:Name="OutputBtnJumpToNonRotate"
                                     Tag="OutputBtnJumpToNonRotate"
                                     Command="{Binding JumpToNextNonRotateOutputItemCommand}"
@@ -5504,6 +5485,7 @@
                                                    AutomationProperties.Name="Output 큰 화면 본문" />
                                     </ContentControl>
                                     <TextBlock Text="{Binding OutputNavigationPositionLabel}"
+                                               Visibility="{Binding OutputSample.Scene.ShowLyricsPositionIndicator, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolToVis}}"
                                                Margin="20,0,0,18"
                                                HorizontalAlignment="Left"
                                                VerticalAlignment="Bottom"

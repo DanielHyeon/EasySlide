@@ -392,7 +392,7 @@ public sealed class BibleRepository : IBibleRepository
             var start = passageText.Length;
             if (isSequential)
             {
-                var prefix = $"{row.Chapter}:{row.Verse} ";
+                var prefix = $"{row.Chapter}:{row.Verse}  ";
                 passageText.Append(prefix);
             }
             else

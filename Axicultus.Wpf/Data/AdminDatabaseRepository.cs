@@ -123,6 +123,7 @@ public enum AdminDatabaseWriteOperation
     EmptyDeletedSongs,
     ClearSongFormatting,
     SaveSongMedia,
+    SaveSongBackground,
 }
 
 public enum AdminDatabaseWriteIssueKind
@@ -233,6 +234,9 @@ public interface IAdminDatabaseRepository
             (ids.Contains(s.SongId) || titles.Contains(s.Title))).ToArray();
 
     Task<IReadOnlyList<DeletedSongSummary>> GetDeletedSongsAsync(string databasePath);
+
+    Task<AdminDatabaseWriteReport> SaveSongBackgroundAsync(string databasePath, string backupRoot, int songId, string path)
+        => throw new NotSupportedException("This repository does not support song backgrounds.");
 
     Task<AdminDatabaseWriteReport> SaveSongMediaAsync(string databasePath, string backupRoot, int songId, string path, Media.ItemMediaOptions? options = null)
         => throw new NotSupportedException("This repository does not support song media assignments.");
@@ -351,17 +355,26 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
         => Task.FromResult(GetSongDetail(databasePath, songId));
 
     public Task<AdminDatabaseWriteReport> SaveSongMediaAsync(string databasePath, string backupRoot, int songId, string path, Media.ItemMediaOptions? options = null)
-        => Task.FromResult(ExecuteWrite(databasePath, backupRoot, AdminDatabaseWriteOperation.SaveSongMedia, (connection, transaction, outcome) =>
+        => Task.FromResult(UpdateSongFormat(databasePath, backupRoot, songId, AdminDatabaseWriteOperation.SaveSongMedia,
+            raw => options?.ApplyTo(raw) ?? Library.SongFormatData.WithMediaPath(raw, path)));
+
+    public Task<AdminDatabaseWriteReport> SaveSongBackgroundAsync(string databasePath, string backupRoot, int songId, string path)
+        => Task.Run(() => UpdateSongFormat(databasePath, backupRoot, songId, AdminDatabaseWriteOperation.SaveSongBackground,
+            raw => Library.SongFormatData.WithBackgroundPath(raw, path)));
+
+    private AdminDatabaseWriteReport UpdateSongFormat(string databasePath, string backupRoot, int songId,
+        AdminDatabaseWriteOperation operation, Func<string?, string> update)
+        => ExecuteWrite(databasePath, backupRoot, operation, (connection, transaction, outcome) =>
         {
             using var read = new SQLiteCommand("SELECT FORMATDATA FROM SONG WHERE SONGID = @id AND FOLDERNO > 0", connection, transaction);
             read.Parameters.AddWithValue("@id", songId);
             var format = read.ExecuteScalar() ?? throw new InvalidOperationException("선택한 곡이 없습니다.");
             using var save = new SQLiteCommand("UPDATE SONG SET FORMATDATA = @format WHERE SONGID = @id", connection, transaction);
-            save.Parameters.AddWithValue("@format", options?.ApplyTo(Convert.ToString(format)) ?? Library.SongFormatData.WithMediaPath(Convert.ToString(format), path));
+            save.Parameters.AddWithValue("@format", update(Convert.ToString(format)));
             save.Parameters.AddWithValue("@id", songId);
             save.ExecuteNonQuery();
             outcome.SongIds.Add(songId);
-        }));
+        });
 
     public Task<AdminDatabaseWriteReport> MaintainSongsAsync(string databasePath, string backupRoot, AdminDatabaseWriteOperation operation)
     {

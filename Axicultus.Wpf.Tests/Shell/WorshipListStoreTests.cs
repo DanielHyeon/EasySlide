@@ -14,6 +14,19 @@ public sealed class WorshipListStoreTests : IDisposable
     private readonly string _dir = Path.Combine(Path.GetTempPath(), $"Axicultus_WL_{Guid.NewGuid():N}");
 
     [Fact]
+    public async Task ArchiveKeepsEachVersionWhenTheSameWorshipListIsClearedTwice()
+    {
+        var store = new WorshipListStore(_dir);
+        foreach (var title in new[] { "첫 순서", "다음 순서" })
+        {
+            await store.SaveAsync("주일", [new LiveQueueItem("song:1", title, "Song")]);
+            store.MoveToTrash("주일");
+            store.ListNames().Should().BeEmpty();
+        }
+        Directory.GetFiles(Path.Combine(_dir, "Trash"), "*.json").Should().HaveCount(2);
+    }
+
+    [Fact]
     public async Task Save_Then_Load_RoundTripsPersistentFields()
     {
         var store = new WorshipListStore(_dir);
@@ -104,6 +117,9 @@ public sealed class WorshipListStoreTests : IDisposable
             store.ListNames().Should().Contain(new[] { "1.Sunday", "WpfJson" });
             var xml = await ((ILegacyWorshipListStore)store).LoadLegacyXmlAsync("1.Sunday");
             xml.Should().Contain("Axicultus");
+            store.MoveToTrash("1.Sunday");
+            File.Exists(Path.Combine(legacyDir, "Trash", "1.Sunday.esw")).Should().BeTrue();
+            store.ListNames().Should().Equal("WpfJson");
         }
         finally
         {

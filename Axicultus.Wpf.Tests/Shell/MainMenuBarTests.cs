@@ -519,6 +519,7 @@ public class MainMenuBarTests
         preview.Should().Contain("x:Name=\"ClassicPreviewBack\"", "Preview background should stay inside the fixed frame like FrmMain PreviewBack");
         preview.Should().Contain("x:Name=\"ClassicPreviewLargeLyricsText\"", "non-PPT Preview lyrics should render in the lower preview frame");
         preview.Should().Contain("Text=\"{Binding PreviewLyricsText}\"", "the lower Preview frame should follow the selected Preview page text");
+        preview.Should().Contain("PreviewSample.Scene.ShowLyricsPositionIndicator", "the slide number follows the projection setting");
         preview.Should().Contain("Text=\"{Binding PreviewNavigationPositionLabel}\"",
             "the lower Preview frame should show the selected Preview page/slide position");
         preview.Should().Contain("Visibility=\"{Binding HasPreviewLyricsText, Converter={StaticResource BoolToVis}}\"",
@@ -1046,7 +1047,7 @@ public class MainMenuBarTests
         xaml.Should().Contain("x:Name=\"CMenuSongs_AddShow\"");
         xaml.Should().Contain("x:Name=\"CMenuSongs_Edit\"");
         xaml.Should().Contain("x:Name=\"CMenuSongs_Copy\"");
-        xaml.Should().Contain("x:Name=\"CMenuSongs_Delete\"");
+        xaml.Should().NotContain("x:Name=\"CMenuSongs_Delete\"");
         xaml.Should().Contain("x:Name=\"CMenuSongs_Refresh\"");
 
         code.Should().Contain("private void LibrarySongList_PreviewMouseRightButtonDown",
@@ -1068,8 +1069,6 @@ public class MainMenuBarTests
         SectionBetween(code, "private async Task OpenSelectedLibrarySongEditorAsync", "private async void InlineInfoScreenList_MouseDoubleClick")
             .Should().Contain("library.SelectSongById(songId.Value)",
                 "after editing, SongsList should reselect the edited song");
-        code.Should().Contain("private void CMenuSongs_Delete_Click",
-            "CMenuSongs_Delete should reuse the main song delete launcher with the selected source song context");
         code.Should().Contain("SongDelete_Click(sender, e)",
             "Delete menu and Delete key should share the existing song delete dialog path");
     }
@@ -1248,7 +1247,7 @@ public class MainMenuBarTests
         xaml.Should().Contain("x:Name=\"CMenuInfoScreenFiles\"", "InfoScreenList should expose the FrmMain shared file context menu role");
         xaml.Should().Contain("Tag=\"CMenuFiles_SelectAll\"", "InfoScreen CMenuFiles should expose Select All with the legacy role");
         xaml.Should().Contain("x:Name=\"CMenuInfoScreenFiles_AddShow\"", "InfoScreen CMenuFiles should expose Add && Show");
-        xaml.Should().Contain("x:Name=\"CMenuInfoScreenFiles_Delete\"", "InfoScreen CMenuFiles should expose Delete like FrmMain");
+        xaml.Should().NotContain("x:Name=\"CMenuInfoScreenFiles_Delete\"");
         xaml.Should().Contain("x:Name=\"CMenuInfoScreenFiles_Refresh\"", "InfoScreen CMenuFiles should expose Refresh");
 
         xaml.Should().Contain("Tag=\"PowerPointSource\"", "FrmMain keeps PowerPoint as a main-console source tab");
@@ -1270,7 +1269,7 @@ public class MainMenuBarTests
         xaml.Should().Contain("PreviewMouseMove=\"InlinePowerPointList_PreviewMouseMove\"", "PowerPoint rows should drag into the Worship List");
         xaml.Should().Contain("x:Name=\"CMenuPowerPointFiles\"", "PowerpointList should expose the FrmMain shared file context menu role");
         xaml.Should().Contain("x:Name=\"CMenuPowerPointFiles_AddShow\"", "PowerPoint CMenuFiles should expose Add && Show");
-        xaml.Should().Contain("x:Name=\"CMenuPowerPointFiles_Delete\"", "PowerPoint CMenuFiles should expose Delete like FrmMain");
+        xaml.Should().NotContain("x:Name=\"CMenuPowerPointFiles_Delete\"");
         xaml.Should().Contain("x:Name=\"CMenuPowerPointFiles_Refresh\"", "PowerPoint CMenuFiles should expose Refresh");
         xaml.Should().Contain("x:Name=\"PP_ListType\"", "PowerPoint source needs the FrmMain PP_ListType dropdown role");
         xaml.Should().Contain("x:Name=\"PP_ListStyle\"", "PP_ListType should expose FrmMain list style");
@@ -1328,7 +1327,7 @@ public class MainMenuBarTests
         xaml.Should().Contain("x:Name=\"CMenuFiles_AddShow\"", "CMenuFiles should expose Add && Show");
         xaml.Should().Contain("x:Name=\"CMenuFiles_Edit\"", "CMenuFiles should keep the legacy Edit item");
         xaml.Should().Contain("x:Name=\"CMenuFiles_Copy\"", "CMenuFiles should keep the legacy Copy item");
-        xaml.Should().Contain("x:Name=\"CMenuFiles_Delete\"", "CMenuFiles should keep the legacy Delete item");
+        xaml.Should().NotContain("x:Name=\"CMenuFiles_Delete\"");
         xaml.Should().Contain("x:Name=\"CMenuFiles_Refresh\"", "CMenuFiles should expose Refresh");
         var rightMediaPreviewTab = SectionBetween(xaml, "AutomationProperties.Name=\"Media\"", "Media.FastReverseCommand");
         rightMediaPreviewTab.Should().NotContain("IsMediaTabVisible",
@@ -1610,7 +1609,7 @@ public class MainMenuBarTests
         code.Should().Contain("ImportImagesAsync(dialog.FileNames)", "Image_Import should import the selected files into the active ImagesFolder");
         code.Should().Contain("case \"ImagesSource\":", "Images source tab should participate in the shared Enter/add gesture route");
         code.Should().Contain("_inlineImages.ApplySelectedImageCommand.Execute(null)", "Images shared add gesture should follow FrmMain item-first/default-fallback semantics");
-        code.Should().Contain("viewModel.SetSelectedItemBackgroundImageCommand.Execute(path)", "Images Add to Item should reuse the selected-item background command");
+        code.Should().Contain("viewModel.ApplyPreviewBackgroundAsync(path", "the Images menu targets the preview source and selected Worship List rows");
         code.Should().Contain("CMenuImages_Opened", "Images context menu should mirror FrmMain CMenuImages_Opening timing");
         code.Should().Contain("_inlineImages?.RefreshItemBackgroundCommandState()", "opening CMenuImages should requery Add to Item enablement");
         code.Should().Contain("private ImageLibraryItem? _imageDragCandidate",
@@ -1998,9 +1997,6 @@ public class MainMenuBarTests
             "OutputBtnJumpToNonRotate",
             "OutputBtnMedia",
             "OutputBtnRefAlert",
-            "OutputBtnStopLive",
-            "OutputBtnRestartCurrentItem",
-            "OutputBtnRefresh",
             "OutputBtnItemUp",
             "OutputBtnItemDown",
             "OutputBtnSlideUp",
@@ -2264,11 +2260,12 @@ public class MainMenuBarTests
     }
 
     [Fact]
-    public void ClassicOutputBottomStrip_KeepsSecondaryCommandsInThePaneContextMenu()
+    public void ClassicOutputBottomStrip_MatchesFrmMainClickSurface()
     {
-        var menu = SectionBetween(Xaml, "<WrapPanel.ContextMenu>", "</WrapPanel.ContextMenu>");
+        var strip = SectionBetween(Xaml, "x:Name=\"ClassicOutputBottomStrip\"", "x:Name=\"ClassicOutputPositionLabel\"");
+        strip.Should().NotContain("ContextMenu");
         foreach (var command in new[] { "StopLiveCommand", "RestartCurrentItemCommand", "RefreshOutputCommand" })
-            menu.Should().Contain($"Command=\"{{Binding {command}}}\"");
+            OperatorBarXaml.Should().Contain($"Command=\"{{Binding {command}}}\"");
     }
 
     private static string OperatorBarXaml

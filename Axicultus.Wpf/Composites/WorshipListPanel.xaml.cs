@@ -297,45 +297,27 @@ public partial class WorshipListPanel : UserControl
 
     private void CMenuWorship_Opened(object sender, RoutedEventArgs e)
     {
-        var hasItems = QueueList.Items.Count > 0;
-        CMenuWorship_SelectAll.IsEnabled = hasItems;
-        CMenuWorship_UnselectAll.IsEnabled = hasItems;
-
-        if (DataContext is MainViewModel viewModel)
-        {
-            CMenuWorship_Clear.IsEnabled = viewModel.ClearWorshipListCommand.CanExecute(null);
-            CMenuWorship_Play.IsEnabled = viewModel.PlaySelectedWorshipMediaCommand.CanExecute(null);
-            CMenuWorship_PlayOnOutput.IsEnabled = viewModel.PlaySelectedWorshipMediaOnOutputCommand.CanExecute(null);
-            CMenuWorship_AddUsages.IsEnabled = viewModel.CanAddWorshipListSongsToUsages;
-        }
-        else
-        {
-            CMenuWorship_Clear.IsEnabled = false;
-            CMenuWorship_Play.IsEnabled = false;
-            CMenuWorship_PlayOnOutput.IsEnabled = false;
-            CMenuWorship_AddUsages.IsEnabled = false;
-        }
-
-        CMenuWorship_Edit.IsEnabled = DataContext is MainViewModel editViewModel
-            && CanEditSelectedWorshipItem(editViewModel.SelectedItem);
+        var selected = QueueList.SelectedItem as LiveQueueItem;
+        CMenuWorship_Edit.Header = MainWindow.EditItemMenuHeader(selected?.Title);
+        CMenuWorship_Edit.IsEnabled = !string.IsNullOrEmpty(selected?.Title);
+        bool mediaSelected = QueueList.SelectedItems.Count == 1 && selected != null && LiveItemKindMatcher.IsMedia(selected.Kind);
+        CMenuWorship_Play.IsEnabled = mediaSelected;
+        CMenuWorship_PlayOnOutput.IsEnabled = mediaSelected;
     }
 
-    private static bool CanEditSelectedWorshipItem(LiveQueueItem? item)
-        => CanEditDbSongItem(item) || CanEditTextQueueItem(item) || CanEditExternalQueueItem(item);
-
-    private static bool CanEditDbSongItem(LiveQueueItem? item)
-        => item is { Kind: LiveItemKinds.Song }
-           && item.Id.StartsWith("song:", StringComparison.Ordinal)
-           && int.TryParse(item.Id.AsSpan("song:".Length), out _);
-
-    private static bool CanEditTextQueueItem(LiveQueueItem? item)
-        => item is { Kind: LiveItemKinds.Bible or LiveItemKinds.Notice }
-           && !string.IsNullOrWhiteSpace(item.Lyrics);
-
-    private static bool CanEditExternalQueueItem(LiveQueueItem? item)
-        => item is not null
-           && (LiveItemKindMatcher.IsPowerPoint(item.Kind) || LiveItemKindMatcher.IsMedia(item.Kind))
-           && !string.IsNullOrWhiteSpace(item.ContentPath);
+    private void CMenuWorship_Clear_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainViewModel vm) return;
+        var owner = Window.GetWindow(this);
+        if (vm.Queue.Count == 0 || string.IsNullOrWhiteSpace(vm.CurrentWorshipListName))
+        {
+            MessageBox.Show(owner, vm.Queue.Count == 0 ? "Worship list is already empty." : "No worship list is currently loaded.", "Clear Worship List");
+            return;
+        }
+        if (MessageBox.Show(owner, $"Really clear the worship list '{vm.CurrentWorshipListName}'?\n\nThe current worship list will be moved to trash.",
+                "Clear Worship List", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No) == MessageBoxResult.Yes)
+            vm.ArchiveAndClearCurrentWorshipList();
+    }
 
     private void CMenuWorship_SelectAll_Click(object sender, RoutedEventArgs e)
     {
@@ -367,28 +349,6 @@ public partial class WorshipListPanel : UserControl
         e.Handled = true;
     }
 
-    // 우클릭 "이 항목 배경 이미지 → 이미지 선택..." — 파일 선택은 View(코드비하인드)에서, 경로 기록·서식 편집은 검증된 VM 이 맡는다.
-    private void SelectItemBackgroundImage_Click(object sender, RoutedEventArgs e)
-    {
-        if (DataContext is not MainViewModel viewModel || !viewModel.CanEditSelectedItemColor)
-        {
-            return; // 곡 항목이 아니면(메뉴는 비활성이지만 방어적으로) 무시.
-        }
-
-        var dialog = new Microsoft.Win32.OpenFileDialog
-        {
-            Title = "이 항목의 배경 이미지 선택",
-            Filter = "이미지 (*.jpg;*.jpeg;*.png;*.bmp;*.gif)|*.jpg;*.jpeg;*.png;*.bmp;*.gif"
-                + "|모든 파일 (*.*)|*.*",
-            CheckFileExists = true,
-        };
-
-        if (dialog.ShowDialog() == true)
-        {
-            viewModel.SetSelectedItemBackgroundImage(dialog.FileName);
-        }
-    }
-
     // 왼쪽 버튼 누름: 어느 항목 위인지 기억하되, 아직 드래그는 시작하지 않는다(클릭/선택과 공존).
     private void QueueList_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
@@ -400,7 +360,7 @@ public partial class WorshipListPanel : UserControl
     private void QueueList_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
     {
         var item = ItemFromPoint(e.GetPosition(QueueList));
-        if (item is null)
+        if (item is null || QueueList.SelectedItems.Contains(item))
         {
             return;
         }

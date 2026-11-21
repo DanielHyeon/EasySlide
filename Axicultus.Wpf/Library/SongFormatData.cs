@@ -53,6 +53,15 @@ public sealed record SongFormatData
         return string.IsNullOrWhiteSpace(path) ? remaining : remaining + $"50=2>51={path}>";
     }
 
+    internal static string WithBackgroundPath(string? raw, string path)
+    {
+        var previous = Parse(raw) ?? new SongFormatData();
+        var folder = System.IO.Path.GetFileName(System.IO.Path.GetDirectoryName(path));
+        var mode = string.Equals(folder, "Tiles", StringComparison.OrdinalIgnoreCase) ? LyricsBackgroundMode.Tile
+            : string.Equals(folder, "Scenery", StringComparison.OrdinalIgnoreCase) ? LyricsBackgroundMode.Fit : previous.BackgroundImageMode;
+        return ItemFormatFields.MergeEdits(raw, previous, previous with { BackgroundImagePath = path, BackgroundImageMode = mode });
+    }
+
     public static SongFormatData? Parse(string? formatData)
     {
         if (string.IsNullOrWhiteSpace(formatData))

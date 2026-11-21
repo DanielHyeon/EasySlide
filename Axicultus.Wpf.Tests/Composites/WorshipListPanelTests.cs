@@ -177,6 +177,30 @@ public class WorshipListPanelTests
         sessionCombo.Should().NotBeNull("saved worship list combo should retain the FrmMain SessionList role");
     }
 
+    [Theory]
+    [InlineData("CMenuSongs", "Select All|Unselect All|Add & Show|-|Edit item|Copy item|-|Refresh")]
+    [InlineData("CMenuBible", "Select All|Unselect All|Add & Show|-|Add Region 2|-|Copy|Copy to InfoScreen")]
+    [InlineData("CMenuImages", "Add to Item|Add to Default|-|Refresh Images Lists")]
+    [InlineData("CMenuPraiseB", "Select All|Unselect All|Clear PraiseBook List|-|Edit item")]
+    [InlineData("CMenuWorship", "Select All|Unselect All|Clear Worship List|-|Edit item|Play Media|Play Media on Output Monitor|-|Add Songs to Usages")]
+    public void LeftListMenusMatchFrmMainCaptionsAndGroups(string name, string captions)
+    {
+        var path = name == "CMenuWorship" ? "Axicultus.Wpf/Composites/WorshipListPanel.xaml" : "Axicultus.Wpf/MainWindow.xaml";
+        var menu = LoadXaml(path).Descendants().Single(e => Attr(e, "Name") == name);
+        Attr(menu, "Style").Should().Contain("FrmMainListContextMenu");
+        var rows = menu.Elements().Select(e => e.Name.LocalName == "Separator" ? "-" : Attr(e, "Header").Replace("_", ""));
+        rows.Should().Equal(captions.Split('|'));
+        menu.Elements().Should().OnlyContain(e => Attr(e, "Icon") == "");
+    }
+
+    [Theory]
+    [InlineData(null, "Edit Item")]
+    [InlineData("값비싼향유를주께드린211(새)", "Edit '값비싼향유를주께드린211(새)'")]
+    [InlineData("Rowley Jefferson's Awesome Friendly Adventure", "Edit 'Rowley Jefferson's A...'")]
+    [InlineData("A_B", "Edit 'A__B'")]
+    public void EditCaptionUsesTheSelectedTitle(string? title, string expected)
+        => MainWindow.EditItemMenuHeader(title).Should().Be(expected);
+
     [Fact]
     public void ContextMenu_ExposesFrmMainWorshipCommands()
     {
@@ -191,12 +215,16 @@ public class WorshipListPanelTests
         {
             ("CMenuWorship_SelectAll", "Select All", "CMenuWorship_SelectAll_Click", ""),
             ("CMenuWorship_UnselectAll", "Unselect All", "CMenuWorship_UnselectAll_Click", ""),
-            ("CMenuWorship_Clear", "Clear Worship List", "", "ClearWorshipListCommand"),
+            ("CMenuWorship_Clear", "Clear Worship List", "CMenuWorship_Clear_Click", ""),
             ("CMenuWorship_Edit", "Edit item", "CMenuWorship_Edit_Click", ""),
             ("CMenuWorship_Play", "Play Media", "", "PlaySelectedWorshipMediaCommand"),
             ("CMenuWorship_PlayOnOutput", "Play Media on Output Monitor", "", "PlaySelectedWorshipMediaOnOutputCommand"),
             ("CMenuWorship_AddUsages", "Add Songs to Usages", "CMenuWorship_AddUsages_Click", "")
         };
+
+        menu.Elements().Select(e => e.Name.LocalName == "Separator" ? "|" : Attr(e, "Name"))
+            .Should().Equal("CMenuWorship_SelectAll", "CMenuWorship_UnselectAll", "CMenuWorship_Clear", "|",
+                "CMenuWorship_Edit", "CMenuWorship_Play", "CMenuWorship_PlayOnOutput", "|", "CMenuWorship_AddUsages");
 
         foreach (var (name, header, click, command) in expected)
         {
@@ -225,12 +253,10 @@ public class WorshipListPanelTests
                 "WL_Word should generate an actual RTF document instead of remaining a shell button")
             .And.Contain("public event RoutedEventHandler? EditSelectedItemRequested",
                 "Edit item should route to MainWindow, which owns modal window lifetime")
-            .And.Contain("CMenuWorship_Edit.IsEnabled = DataContext is MainViewModel editViewModel",
-                "Edit item should be enabled only for editable DB song queue rows")
+            .And.Contain("CMenuWorship_Edit.IsEnabled = !string.IsNullOrEmpty(selected?.Title)",
+                "FrmMain edits the selected row")
             .And.Contain("EditSelectedItemRequested?.Invoke(this, e)",
                 "the panel should not construct SongEditorWindow directly")
-            .And.Contain("CMenuWorship_AddUsages.IsEnabled = viewModel.CanAddWorshipListSongsToUsages",
-                "Add Songs to Usages should be enabled when the queue contains DB song rows")
             .And.Contain("AddWorshipListSongsToUsagesAsync()",
                 "the lower-left context menu should invoke the FrmMain AddToUsages parity path")
             .And.Contain("QueueList_PreviewMouseRightButtonDown",
@@ -479,15 +505,7 @@ public class WorshipListPanelTests
 
         panelCode.Should().Contain("private void CMenuWorship_Edit_Click",
             "FrmMain CMenuWorship_Edit should have a lower-left context menu click handler");
-        panelCode.Should().Contain("CanEditSelectedWorshipItem",
-            "DB song rows plus Bible/Notice text rows should enable the edit path");
-        panelCode.Should().Contain("CanEditTextQueueItem",
-            "Bible/Notice rows should no longer be disabled by the Worship List context menu");
-        panelCode.Should().Contain("CanEditExternalQueueItem",
-            "PowerPoint/Media rows with ContentPath should also enable the legacy Edit item path");
-        panelCode.Should().Contain("LiveItemKindMatcher.IsPowerPoint")
-            .And.Contain("LiveItemKindMatcher.IsMedia",
-                "external Worship items should be recognized with the same kind aliases used by the shell");
+        panelCode.Should().Contain("CMenuWorship_Edit.IsEnabled = !string.IsNullOrEmpty(selected?.Title)");
         panelCode.Should().Contain("viewModel.SelectedItem = item",
             "right-clicking a different row should retarget the selected Worship List item before Edit runs");
 

@@ -289,8 +289,8 @@ public partial class MainWindow : Window
             viewModel.SetOutputBackgroundImage,
             () => viewModel.ClearOutputBackgroundImageCommand.Execute(null),
             ResolveImageInitialFolder(),
-            path => viewModel.SetSelectedItemBackgroundImageCommand.Execute(path),
-            () => viewModel.SetSelectedItemBackgroundImageCommand.CanExecute(null));
+            canApplyItemBackground: () => viewModel.PreviewPanelItem != null,
+            applyItemBackgroundAsync: path => viewModel.ApplyPreviewBackgroundAsync(path, WorshipListPanel.QueueList.SelectedItems.OfType<LiveQueueItem>().ToArray()));
         ImagesSourceTab.DataContext = _inlineImages;
         _inlineImages.LoadCommand.Execute(null);
     }
@@ -518,9 +518,8 @@ public partial class MainWindow : Window
     {
         var sample = preview ? PreviewSample : OutputSample;
         var item = preview ? _viewModel.PreviewPanelItem : _viewModel.OutputItem;
-        if (item != null && LiveItemKindMatcher.IsExternalTextFileItem(item))
-            item = item with { SongLayout = _viewModel.ResolveTextFileLayout(item),
-                ProjectedTextPage = preview ? _viewModel.PreviewLyricsText : _viewModel.OutputLyricsText };
+        if (item != null && (preview || _viewModel.Session.Current.State == LiveState.Off))
+            item = _viewModel.ProjectLyricsPage(item, preview ? _viewModel.LyricsPageIndex : item.LyricsPageIndex);
         var snapshot = !preview && _viewModel.Session.Current.State != LiveState.Off
             ? _viewModel.Session.Current
             : item is null ? LiveSessionSnapshot.Off with { State = LiveState.Active }
@@ -1106,7 +1105,7 @@ public partial class MainWindow : Window
 
     private void FlowLayoutPreviewLyrics_MouseDown(object sender, MouseButtonEventArgs e)
     {
-        if (IsInsideButton(e.OriginalSource as DependencyObject))
+        if (e.ChangedButton != MouseButton.Left || IsInsideButton(e.OriginalSource as DependencyObject))
         {
             return;
         }
@@ -1118,7 +1117,7 @@ public partial class MainWindow : Window
 
     private void FlowLayoutOutputLyrics_MouseDown(object sender, MouseButtonEventArgs e)
     {
-        if (IsInsideButton(e.OriginalSource as DependencyObject))
+        if (e.ChangedButton != MouseButton.Left || IsInsideButton(e.OriginalSource as DependencyObject))
         {
             return;
         }
@@ -1610,7 +1609,7 @@ public partial class MainWindow : Window
         await EnsureInlinePraiseBookLoadedOnceAsync(viewModel).ConfigureAwait(true);
     }
 
-    private void AddBibleVerse_Click(object sender, RoutedEventArgs e)
+    private async void AddBibleVerse_Click(object sender, RoutedEventArgs e)
     {
         if (DataContext is not MainViewModel viewModel)
         {
@@ -1621,9 +1620,12 @@ public partial class MainWindow : Window
             viewModel.Bible,
             BiblePassageBox.SelectionStart,
             BiblePassageBox.SelectionLength);
-        if (PreviewAndAddBibleSelection(viewModel, selection) is not null)
+        if (PreviewAndAddBibleSelection(viewModel, selection) is { } added)
         {
             ShowWorshipListTab();
+            viewModel.SelectedItem = added;
+            if (viewModel.PreviewToLiveCommand.CanExecute(null))
+                await viewModel.PreviewToLiveCommand.ExecuteAsync(null).ConfigureAwait(true);
         }
     }
 
@@ -2137,22 +2139,17 @@ public partial class MainWindow : Window
         DragDrop.DoDragDrop(LibrarySongList, new DataObject(typeof(Axicultus.Wpf.Data.SongSummary), song), DragDropEffects.Copy);
     }
 
+    internal static string EditItemMenuHeader(string? title)
+    {
+        if (string.IsNullOrEmpty(title)) return "Edit Item";
+        string display = title.Length > 20 ? title[..20] + "..." : title;
+        return $"Edit '{display.Replace("_", "__")}'";
+    }
+
     private void CMenuSongs_Opened(object sender, RoutedEventArgs e)
     {
-        if (DataContext is not MainViewModel viewModel)
-        {
-            return;
-        }
-
-        var hasItems = LibrarySongList.Items.Count > 0;
-        var selectionCount = GetLibrarySongSelection(viewModel).Count;
-        CMenuSongs_SelectAll.IsEnabled = hasItems;
-        CMenuSongs_UnselectAll.IsEnabled = selectionCount > 0;
-        CMenuSongs_AddShow.IsEnabled = selectionCount > 0;
-        CMenuSongs_Edit.IsEnabled = selectionCount == 1;
-        CMenuSongs_Copy.IsEnabled = selectionCount == 1;
-        CMenuSongs_Delete.IsEnabled = selectionCount == 1;
-        CMenuSongs_Refresh.IsEnabled = true;
+        CMenuSongs_Edit.IsEnabled = LibrarySongList.SelectedItem is SongSummary;
+        CMenuSongs_Edit.Header = EditItemMenuHeader((LibrarySongList.SelectedItem as SongSummary)?.Title);
     }
 
     private void CMenuImages_Opened(object sender, RoutedEventArgs e)
@@ -2185,7 +2182,7 @@ public partial class MainWindow : Window
         var added = AddSelectedLibrarySongsToWorshipList(viewModel);
         if (added.Count == 0)
         {
-            viewModel.StatusText = "Add && Show 할 곡을 선택하세요.";
+            viewModel.StatusText = "Add & Show 할 곡을 선택하세요.";
             return;
         }
 
@@ -2211,9 +2208,6 @@ public partial class MainWindow : Window
             await viewModel.Library.LoadAsync().ConfigureAwait(true);
         }
     }
-
-    private void CMenuSongs_Delete_Click(object sender, RoutedEventArgs e)
-        => SongDelete_Click(sender, e);
 
     private IReadOnlyList<LiveQueueItem> AddSelectedLibrarySongsToWorshipList(MainViewModel viewModel)
     {
@@ -2495,9 +2489,6 @@ public partial class MainWindow : Window
         OpenExternalFileOperationWindow(ExternalFileItemKind.InfoScreen, ExternalFileOperationKind.Copy, sourceFiles);
         InlineInfoScreenList.Focus();
     }
-
-    private void CMenuInfoScreenFiles_Delete_Click(object sender, RoutedEventArgs e)
-        => DeleteInlineInfoScreenSelection();
 
     private void DeleteInlineInfoScreenSelection()
     {
@@ -2796,9 +2787,6 @@ public partial class MainWindow : Window
         activeList.Focus();
     }
 
-    private void CMenuPowerPointFiles_Delete_Click(object sender, RoutedEventArgs e)
-        => DeleteInlinePowerPointSelection();
-
     private void DeleteInlinePowerPointSelection(ListBox? powerPointList = null)
     {
         var activeList = powerPointList ?? GetActivePowerPointList();
@@ -3012,9 +3000,6 @@ public partial class MainWindow : Window
         InlineMediaList.Focus();
     }
 
-    private void CMenuFiles_Delete_Click(object sender, RoutedEventArgs e)
-        => DeleteInlineMediaSelection();
-
     private void DeleteInlineMediaSelection()
     {
         var selection = GetInlineMediaSelection();
@@ -3127,8 +3112,7 @@ public partial class MainWindow : Window
             DragDropEffects.Copy);
     }
 
-    // "Region 2(이중 언어)와 함께 추가" 서브메뉴 클릭 — 선택 구절을 클릭한 보조 버전과 합쳐(이중 언어) 예배 순서에 추가한다.
-    // 클릭한 메뉴 항목의 DataContext 가 고른 BibleVersion(Region2VersionOptions 의 한 항목)이다.
+    // Region 2 updates the selected passage. Add & Show is a separate action.
     private void AddBibleVerseWithRegion2_Click(object sender, RoutedEventArgs e)
     {
         if (DataContext is not MainViewModel viewModel)
@@ -3145,10 +3129,8 @@ public partial class MainWindow : Window
             BiblePassageBox.SelectionStart,
             BiblePassageBox.SelectionLength,
             region2);
-        if (PreviewAndAddBibleSelection(viewModel, selection) is not null)
-        {
-            ShowWorshipListTab();
-        }
+        if (viewModel.PreviewBibleSelection(selection) is not null)
+            BiblePassageBox.Focus();
     }
 
     // 입력창에서 Enter 를 누르면 "이동"과 동일하게 처리(타이핑→Enter 한 번에 추가).
@@ -3882,11 +3864,16 @@ public partial class MainWindow : Window
     }
 
     // 성경 본문 전체 선택(우클릭 메뉴).
-    private void SelectAllBiblePassage_Click(object sender, RoutedEventArgs e) => BiblePassageBox.SelectAll();
+    private void SelectAllBiblePassage_Click(object sender, RoutedEventArgs e)
+    {
+        BiblePassageBox.SelectAll();
+        _viewModel.PreviewBibleSelection(_viewModel.Bible.BuildSelection(0, BiblePassageBox.SelectionLength));
+    }
 
     private void UnselectAllBiblePassage_Click(object sender, RoutedEventArgs e)
     {
         BiblePassageBox.SelectionLength = 0;
+        _viewModel.UnselectBiblePassage();
         BiblePassageBox.Focus();
     }
 
@@ -3899,15 +3886,14 @@ public partial class MainWindow : Window
         }
     }
 
-    // 성경 본문에서 선택한(없으면 전체) 구절을 공지 화면 편집기로 복사해 연다(레거시 Bible 우클릭 Copy to InfoScreen).
     private void CopyBibleToInfoScreen_Click(object sender, RoutedEventArgs e)
     {
-        // 선택 우선·없으면 전체·둘 다 비면 null — 순수 결정 로직은 NoticeScreenViewModel.ResolveCopyText(테스트됨).
-        var passageText = Axicultus.Wpf.Shell.NoticeScreenViewModel.ResolveCopyText(BiblePassageBox.SelectedText, BiblePassageBox.Text);
-        if (passageText is not null)
-        {
-            OpenNoticeScreen(passageText);
-        }
+        var selection = ResolveBibleSelectionForAdd(_viewModel.Bible, BiblePassageBox.SelectionStart, BiblePassageBox.SelectionLength);
+        var text = _viewModel.PreviewBibleSelection(selection)?.Lyrics?.Replace("\u0098", string.Empty);
+        if (string.IsNullOrEmpty(text)) return;
+        try { Clipboard.SetText(text); }
+        catch (System.Runtime.InteropServices.ExternalException) { _viewModel.StatusText = "클립보드를 사용할 수 없습니다."; }
+        OpenNoticeScreen(text);
     }
 
     // 찬양집 색인 — 현재 곡 라이브러리를 머리글자(초성/영문/숫자)별로 묶어 보여 준다(FrmMain PraiseBook/Listing 포팅).
@@ -3936,21 +3922,6 @@ public partial class MainWindow : Window
         {
             await viewModel.AddPraiseBookSongAsync(entry);
         }
-    }
-
-    // 이미지 갤러리 — 폴더의 이미지를 썸네일로 보고 출력 배경으로 적용(FrmMain Images 탭 포팅).
-    private async void InlinePraiseBookRefresh_Click(object sender, RoutedEventArgs e)
-    {
-        if (DataContext is not MainViewModel viewModel)
-        {
-            return;
-        }
-
-        _inlinePraiseBook = CreatePraiseBookIndexViewModel(viewModel);
-        _praiseBookSourceLoadedOnce = true;
-        _inlinePraiseBookSelectionRestored = false;
-        PraiseBookTab.DataContext = _inlinePraiseBook;
-        await RestoreInlinePraiseBookSelection().ConfigureAwait(true);
     }
 
     private async void InlinePraiseBookSavedBooksCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -4213,12 +4184,9 @@ public partial class MainWindow : Window
     {
         var hasItems = _inlinePraiseBook?.Entries.Count > 0;
         var hasSelection = PraiseBookItems.SelectedItems.Count > 0;
-        var hasSingleSelection = PraiseBookItems.SelectedItems.Count == 1;
 
-        CMenuPraiseB_SelectAll.IsEnabled = hasItems;
-        CMenuPraiseB_UnselectAll.IsEnabled = hasItems;
-        CMenuPraiseB_Clear.IsEnabled = hasItems;
-        CMenuPraiseB_Edit.IsEnabled = hasSingleSelection;
+        CMenuPraiseB_Edit.IsEnabled = hasSelection;
+        CMenuPraiseB_Edit.Header = EditItemMenuHeader((PraiseBookItems.SelectedItem as PraiseBookIndexEntry)?.Title);
         PB_Delete.IsEnabled = hasSelection;
         PB_Word.IsEnabled = hasItems;
         PB_Html.IsEnabled = hasItems;

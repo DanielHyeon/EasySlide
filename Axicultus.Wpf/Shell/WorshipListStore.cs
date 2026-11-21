@@ -35,6 +35,8 @@ public interface IWorshipListStore
 
     void Delete(string name);
 
+    void MoveToTrash(string name);
+
     /// <summary>저장된 예배 순서의 이름을 바꾼다. 새 이름이 이미 있으면 덮어쓰지 않고 예외(호출자가 고유성 검증).</summary>
     void Rename(string oldName, string newName);
 }
@@ -173,6 +175,26 @@ public sealed class WorshipListStore(string directory, ISettingsService? setting
         return !string.IsNullOrWhiteSpace(path)
             && string.Equals(Path.GetExtension(path), ".esw", StringComparison.OrdinalIgnoreCase)
             && File.Exists(path);
+    }
+
+    public void MoveToTrash(string name)
+    {
+        var source = ResolvePath(name);
+        if (!File.Exists(source))
+        {
+            var legacy = ResolveLegacyPath(name);
+            if (legacy == null || !File.Exists(legacy)) return;
+            source = legacy;
+        }
+
+        var trash = Path.Combine(Path.GetDirectoryName(source)!, "Trash");
+        Directory.CreateDirectory(trash);
+        var destination = Path.Combine(trash, Path.GetFileName(source));
+        try { File.Move(source, destination); }
+        catch (IOException) when (File.Exists(destination) && File.Exists(source))
+        {
+            File.Move(source, Path.Combine(trash, $"{Path.GetFileNameWithoutExtension(source)}_{Guid.NewGuid():N}{Path.GetExtension(source)}"));
+        }
     }
 
     public void Delete(string name)

@@ -602,6 +602,28 @@ public sealed partial class LibraryViewModel : ObservableObject
         }
     }
 
+    internal async Task<bool> SaveSongBackgroundAsync(int songId, string path)
+    {
+        if (!TryEnsureWritableDatabasePath(out var error)) { StatusMessage = error; return false; }
+        var database = DatabasePath;
+        var report = await _adminDatabase.SaveSongBackgroundAsync(database, ResolveBackupRoot(), songId, path);
+        if (!report.Succeeded) { StatusMessage = FormatWriteFailure("배경 이미지 저장 실패", report); return false; }
+        if (DatabasePath == database)
+        {
+            SongSummary Update(SongSummary song) => song with { FormatData = SongFormatData.WithBackgroundPath(song.FormatData, path) };
+            _loadedSongs = _loadedSongs.Select(song => song.SongId == songId ? Update(song) : song).ToArray();
+            var row = Songs.FirstOrDefault(song => song.SongId == songId);
+            if (row != null)
+            {
+                var updated = Update(row);
+                bool selected = SelectedSong?.SongId == songId;
+                Songs[Songs.IndexOf(row)] = updated;
+                if (selected) SelectedSong = updated;
+            }
+        }
+        return true;
+    }
+
     public async Task<bool> SaveSongMediaAsync(SongSummary song, string path, Media.ItemMediaOptions? options = null)
     {
         var report = await _adminDatabase.SaveSongMediaAsync(DatabasePath, ResolveBackupRoot(), song.SongId, path, options);

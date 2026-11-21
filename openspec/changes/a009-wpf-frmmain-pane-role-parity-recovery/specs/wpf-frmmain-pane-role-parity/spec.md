@@ -43,5 +43,16 @@ The WPF main shell SHALL keep the right upper thumbnail pane and right lower lar
 
 #### Scenario: Read an unformatted creed text file in Preview and Output
 - **WHEN** a text file has indented lines and no individual font override
-- **THEN** Preview and Output preserve its indentation and use the first song folder’s projection font when available
+- **THEN** Preview and Output preserve its indentation and use the projection font, margins and line spacing of the last previewed song folder, falling back to the first song folder on startup
 - **AND** upper text lists use the operator preview font setting independently of the standard 12 DIP console font
+
+#### Scenario: Select another paragraph from a source preview
+- **WHEN** the operator clicks a different paragraph in the upper text preview with the Worship List empty or another item selected
+- **THEN** the selection and lower sample show the clicked page while the audience stays on its current page until the operator sends it
+
+#### Scenario: Open a left list context menu
+- **WHEN** the operator opens the Folders, Bible, Images, Worship List or Praise Book list menu
+- **THEN** its visible commands, groups, blank icon gutter and selected title follow the corresponding WinForms menu
+- **AND** the Worship List enables playback for a single media row, and clearing a named list requires confirmation before moving the saved file to Trash
+- **AND** Bible Add & Show adds and sends the selected passage while Add Region 2 previews the secondary translation
+- **AND** clicking the right text pane selects a page and clicking the sample background leaves the selection unchanged

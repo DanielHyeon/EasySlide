@@ -586,9 +586,8 @@ public class BibleViewModelTests
     }
 
     [Fact]
-    public async Task BuildSelectionWithRegion2_SameAsPrimary_FallsBackToSingleLanguage()
+    public async Task BuildSelectionWithRegion2_CanUseTheSameTranslationInBothRegions()
     {
-        // 보조로 주 버전과 같은 것을 고르면 이중 언어가 아니라 단일로 둔다(무의미한 자기 짝 방지).
         using var fixture = TempBibleSettings.Create();
         fixture.Settings.Set(AxicultusSettingKeys.WorkingFolder, fixture.WorkingFolder);
         var baseSelection = new BibleSelection("0;kjv.db;;1;1;1;1;1;", "Genesis 1:1 (KJV)");
@@ -607,14 +606,15 @@ public class BibleViewModelTests
         await sut.LoadAsync();
         await sut.LoadSelectedBookAsync();
 
-        var single = sut.BuildSelectionWithRegion2(selectionStart: 3, selectionLength: 8, fixture.Kjv);
+        var dual = sut.BuildSelectionWithRegion2(selectionStart: 3, selectionLength: 8, fixture.Kjv);
 
-        single.IdString.Should().Be("0;kjv.db;;1;1;1;1;1;"); // 보조 버전 칸이 비어 단일.
-        single.Title.Should().Be("Genesis 1:1 (KJV)");
+        dual.IdString.Should().Be("0;kjv.db;kjv.db;1;1;1;1;1;");
+        sut.SelectedSelection.Should().Be(dual);
+        dual.Title.Should().Be("Genesis 1:1 (KJV/KJV)");
     }
 
     [Fact]
-    public async Task Region2VersionOptions_ExcludesSelectedPrimaryVersion()
+    public async Task Region2VersionOptions_ListEveryInstalledTranslation()
     {
         using var fixture = TempBibleSettings.Create();
         fixture.Settings.Set(AxicultusSettingKeys.WorkingFolder, fixture.WorkingFolder);
@@ -626,11 +626,9 @@ public class BibleViewModelTests
         var sut = new BibleViewModel(fixture.Settings, repository);
         await sut.LoadAsync();
 
-        // 기본 주 버전 = KJV → 보조 후보엔 NIV 만.
-        sut.Region2VersionOptions.Should().ContainSingle().Which.Should().Be(fixture.Niv);
-
-        sut.SelectedVersion = fixture.Niv; // 주 버전을 NIV 로 바꾸면 후보는 KJV 만.
-        sut.Region2VersionOptions.Should().ContainSingle().Which.Should().Be(fixture.Kjv);
+        sut.Region2VersionOptions.Should().Equal(fixture.Kjv, fixture.Niv);
+        sut.SelectedVersion = fixture.Niv;
+        sut.Region2VersionOptions.Should().Equal(fixture.Kjv, fixture.Niv);
     }
 
     [Fact]

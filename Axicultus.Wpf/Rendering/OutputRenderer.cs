@@ -497,9 +497,9 @@ public sealed class OutputRenderer(IImageAssetService imageAssets, ITransitionEf
             : liveOutput.LyricsMonitorFontSize;
         if (isLive && request.Session.IsExternalTextPage)
         {
-            bodyLeftMargin = TextFileLayout.MarginAt(viewportWidth, request.Session.OverrideBodyLeftMargin, bodyLeftMargin);
-            bodyRightMargin = TextFileLayout.MarginAt(viewportWidth, request.Session.OverrideBodyRightMargin, bodyRightMargin);
-            bodyBottomMargin = TextFileLayout.MarginAt(viewportHeight, request.Session.OverrideBodyBottomMargin, bodyBottomMargin)
+            bodyLeftMargin = TextFileLayout.MarginAt(viewportWidth, request.Session.OverrideBodyLeftMargin ?? request.Session.SongLayout?.LeftPercent, bodyLeftMargin);
+            bodyRightMargin = TextFileLayout.MarginAt(viewportWidth, request.Session.OverrideBodyRightMargin ?? request.Session.SongLayout?.RightPercent, bodyRightMargin);
+            bodyBottomMargin = TextFileLayout.MarginAt(viewportHeight, request.Session.OverrideBodyBottomMargin ?? request.Session.SongLayout?.BottomPercent, bodyBottomMargin)
                 + TextFileLayout.BottomInset(viewportHeight);
             fontSizePx = TextFileLayout.FontAtWidth(fontSizePx, viewportWidth);
         }

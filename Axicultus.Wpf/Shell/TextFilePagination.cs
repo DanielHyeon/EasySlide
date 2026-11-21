@@ -17,6 +17,19 @@ internal sealed record TextFileLayout(double Width, double Height, string FontFa
         return alias.TryGetGlyphTypeface(out _) ? alias.FontFamily : family;
     }
 
+    // WinForms measures a line of the GDI point font on its slide bitmap, including font leading.
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, double> LineAdvances = new(StringComparer.OrdinalIgnoreCase);
+
+    internal static double LineAdvance(string fontName, double em, double spacing) => em * (spacing + .05) *
+        LineAdvances.GetOrAdd(fontName, static family =>
+        {
+            const float referencePoints = 96;
+            using var bitmap = new System.Drawing.Bitmap(1, 1);
+            using var graphics = System.Drawing.Graphics.FromImage(bitmap);
+            using var font = new System.Drawing.Font(family, referencePoints);
+            return graphics.MeasureString("A", font).Height / (referencePoints * 96d / 72d);
+        });
+
     // WinForms FormatText uses a 960-wide reference slide and reserves 2.2% above and 3% below the lyrics.
     internal static int FontAtWidth(double referenceSize, double width) =>
         Math.Max(1, (int)Math.Round(referenceSize * width / 960));

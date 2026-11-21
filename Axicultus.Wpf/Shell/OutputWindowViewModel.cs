@@ -1136,7 +1136,7 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         // 기본값 0/0/0 이면 헤딩 유무에 따라 기존 Thickness(0,heading,0,0)/Thickness(0) 과 완전히 동일(무회귀).
         double headingTop = scene.ShowsTitleHeading ? TitleHeadingReservedHeight : 0;
         if (FitExternalText && scene.Kind == OutputSceneKind.Live)
-            headingTop += TextFileLayout.TopInset(scene.Viewport.Height, _session.ItemDisplay?.Top1);
+            headingTop += TextFileLayout.TopInset(scene.Viewport.Height, _session.ItemDisplay?.Top1 ?? _session.SongLayout?.TopPercent);
         else if (_session.SongLayout is { } folder && scene.Kind == OutputSceneKind.Live)
             headingTop += scene.Viewport.Height * Math.Clamp(folder.TopPercent, 0, 100) / 100d;
         BodyContentMargin = new Thickness(
@@ -1216,7 +1216,10 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
             BodyUnderline = (flags & 4) != 0;
             BodyTextDecorations = BodyUnderline ? TextDecorations.Underline : null;
         }
-        BodyLineHeight = BodyFontSize * Math.Clamp(folder.LineSpacing, .5, 2);
+        double spacing = Math.Clamp(folder.LineSpacing, .5, 2);
+        BodyLineHeight = FitExternalText
+            ? TextFileLayout.LineAdvance(_session.OverrideFontName ?? folder.FontName, BodyFontSize, spacing)
+            : BodyFontSize * spacing;
         if (folder.Integer("BIU1") is int second)
         {
             second >>= _session.CurrentPageIsChorus ? 3 : 0;
@@ -1240,7 +1243,7 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
             second ? BodyText2Alignment : BodyTextAlignment, (flags & 64) != 0 ? FlowDirection.RightToLeft : FlowDirection.LeftToRight,
             (second ? BodyText2Decorations : BodyTextDecorations) != null, !second && BodyHasOutline, BodyHasShadow,
             Options.HangingIndent, Options.LargestFont, BodyMaxWidth, second ? BodyText2MaxHeight : BodyTextMaxHeight, notes, Options.NotationPercent,
-            ShrinkToFit: FitExternalText);
+            ShrinkToFit: FitExternalText, UseSlideFontMetrics: FitExternalText && folder?.Fields != null);
     }
 
     private void RebuildInterlacedLines(OutputSceneSnapshot scene)

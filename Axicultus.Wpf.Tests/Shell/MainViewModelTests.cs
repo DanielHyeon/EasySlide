@@ -9274,6 +9274,8 @@ public class MainViewModelTests
 
         public IReadOnlyList<string> ListNames() => Array.Empty<string>();
 
+        public void MoveToTrash(string name) => throw new System.NotSupportedException();
+
         public void Delete(string name)
         {
         }
@@ -11264,6 +11266,40 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task TextFileKeepsTheLastPreviewedSongFolderWhenAnotherFolderIsPrepared()
+    {
+        using var sut = CreateSut(seedSampleQueue: false);
+        var layout = new SongPageLayout(50, "Arial", 5, 4, 4, 0, 1, 100, 0);
+        sut.Library.Folders.Add(new SongFolderSummary(1, "Folder 1", false, 0, SlideLayout: layout with { FontPoints = 40 }));
+        sut.Library.Folders.Add(new SongFolderSummary(2, "Folder 2", false, 0, SlideLayout: layout));
+        sut.PreviewLibrarySong(new SongSummary(7, "찬양", "", 2, 1, "", "", "1절"));
+        sut.AddTextFileItem("사도신경.txt", "신앙 고백\n\n나는 전능하신");
+        sut.ResolveTextFileLayout(sut.PreviewPanelItem!).Should().Be(layout);
+        await sut.PreviewToLiveCommand.ExecuteAsync(null);
+        sut.PreviewLibrarySong(new SongSummary(8, "다른 찬양", "", 1, 1, "", "", "2절"));
+        sut.Session.Current.SongLayout.Should().Be(layout);
+    }
+
+    [Fact]
+    public void SourcePreviewCanSelectLaterParagraphsWithAnEmptyWorshipList()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.PreviewLibrarySong(new SongSummary(1, "신앙 고백", "", 1, 1, "", "", "[1]\n첫 문단\n[2]\n둘째 문단\n[3]\n셋째 문단"));
+
+        foreach (var index in new[] { 1, 2, 0 })
+        {
+            sut.GoToPreviewLyricsPageCommand.Execute(index);
+            sut.PreviewLyricsPages.Single(card => card.IsCurrent).PageIndex.Should().Be(index);
+            sut.PreviewLyricsText.Should().Be(sut.PreviewLyricsPages[index].BodyText);
+            var sample = LiveSessionService.CreateSnapshot(LiveSessionSnapshot.Off,
+                sut.ProjectLyricsPage(sut.PreviewPanelItem!, index), string.Empty, LiveState.Active, false, false);
+            sample.CurrentItemBodyText.Should().Be(sut.PreviewLyricsText);
+        }
+        sut.Queue.Should().BeEmpty();
+        sut.OutputItem.Should().BeNull();
+    }
+
+    [Fact]
     public void GoToPreviewLyricsPageCommand_UpdatesPreviewPageCardsOnly()
     {
         var sut = CreateSut();
@@ -13011,6 +13047,8 @@ public class MainViewModelTests
                 : (IReadOnlyList<LiveQueueItem>)Array.Empty<LiveQueueItem>());
 
         public IReadOnlyList<string> ListNames() => _store.Keys.OrderBy(k => k, StringComparer.OrdinalIgnoreCase).ToArray();
+
+        public void MoveToTrash(string name) => _store.Remove(name);
 
         public void Delete(string name) => _store.Remove(name);
 

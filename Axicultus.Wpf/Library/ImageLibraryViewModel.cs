@@ -40,7 +40,7 @@ public sealed partial class ImageLibraryViewModel : ObservableObject
     private readonly IImageLibraryService _service;
     private readonly Func<string, ImageSource?> _thumbnailLoader;
     private readonly Action<string> _applyBackground;
-    private readonly Action<string> _applyItemBackground;
+    private readonly Func<string, Task<bool>> _applyItemBackground;
     private readonly Func<bool> _canApplyItemBackground;
     private readonly Action _clearBackground;
     private readonly string _rootFolderPath;
@@ -92,12 +92,13 @@ public sealed partial class ImageLibraryViewModel : ObservableObject
         Action clearBackground,
         string initialFolder,
         Action<string>? applyItemBackground = null,
-        Func<bool>? canApplyItemBackground = null)
+        Func<bool>? canApplyItemBackground = null,
+        Func<string, Task<bool>>? applyItemBackgroundAsync = null)
     {
         _service = service ?? throw new ArgumentNullException(nameof(service));
         _thumbnailLoader = thumbnailLoader ?? throw new ArgumentNullException(nameof(thumbnailLoader));
         _applyBackground = applyBackground ?? throw new ArgumentNullException(nameof(applyBackground));
-        _applyItemBackground = applyItemBackground ?? (_ => { });
+        _applyItemBackground = applyItemBackgroundAsync ?? (path => { applyItemBackground?.Invoke(path); return Task.FromResult(true); });
         _canApplyItemBackground = canApplyItemBackground ?? (() => false);
         _clearBackground = clearBackground ?? throw new ArgumentNullException(nameof(clearBackground));
         _rootFolderPath = initialFolder ?? string.Empty;
@@ -105,9 +106,9 @@ public sealed partial class ImageLibraryViewModel : ObservableObject
 
         LoadCommand = new AsyncRelayCommand(LoadAsync);
         // AsyncRelayCommand 가 재실행 시 이전 실행의 토큰을 취소한다 → LoadAsync 가 중복 실행돼도 경쟁하지 않는다.
-        ApplySelectedImageCommand = new RelayCommand(ApplySelectedImage, () => SelectedImage is not null);
+        ApplySelectedImageCommand = new AsyncRelayCommand(ApplySelectedImageAsync, () => SelectedImage is not null);
         ApplyAsBackgroundCommand = new RelayCommand(ApplyAsBackground, () => SelectedImage is not null);
-        ApplyToItemBackgroundCommand = new RelayCommand(ApplyToItemBackground, () => SelectedImage is not null && _canApplyItemBackground());
+        ApplyToItemBackgroundCommand = new AsyncRelayCommand(ApplyToItemBackgroundAsync, () => SelectedImage is not null && _canApplyItemBackground());
         ClearBackgroundCommand = new RelayCommand(ClearBackground);
 
         BuildFolderGroups();
@@ -369,7 +370,7 @@ public sealed partial class ImageLibraryViewModel : ObservableObject
 
     // FrmMain ThumbImage_MouseUp → ApplyBackground(..., 2) 대응:
     // 선택된 예배 항목이 있으면 항목 배경에, 없으면 기본 배경에 적용한다.
-    private void ApplySelectedImage()
+    private async Task ApplySelectedImageAsync()
     {
         if (SelectedImage is null)
         {
@@ -378,7 +379,7 @@ public sealed partial class ImageLibraryViewModel : ObservableObject
 
         if (_canApplyItemBackground())
         {
-            ApplyToItemBackground();
+            await ApplyToItemBackgroundAsync();
         }
         else
         {
@@ -387,15 +388,22 @@ public sealed partial class ImageLibraryViewModel : ObservableObject
     }
 
     // 선택한 이미지를 현재 선택된 예배 항목 배경으로 적용(FrmMain CMenuImages_AddItem).
-    private void ApplyToItemBackground()
+    private async Task ApplyToItemBackgroundAsync()
     {
         if (SelectedImage is null || !_canApplyItemBackground())
         {
             return;
         }
 
-        _applyItemBackground(SelectedImage.FilePath);
-        StatusText = $"항목 배경 적용: {SelectedImage.FileName}";
+        var image = SelectedImage;
+        try
+        {
+            StatusText = await _applyItemBackground(image.FilePath) ? $"항목 배경 적용: {image.FileName}" : "항목 배경을 적용하지 못했습니다.";
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException)
+        {
+            StatusText = $"항목 배경 적용 실패: {ex.Message}";
+        }
     }
 
     // 출력 배경 이미지 해제(색 배경으로 복귀).

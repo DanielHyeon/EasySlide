@@ -15,6 +15,25 @@ namespace Axicultus.Wpf.Tests.Data;
 public class AdminDatabaseRepositoryTests
 {
     [Fact]
+    public async Task ChangingTheLibrarySongBackgroundPreservesOtherFormatFieldsAndOtherRows()
+    {
+        using var fixture = AdminDatabaseFixture.Create();
+        fixture.CreateLegacySchema();
+        fixture.InsertFolder(1, "Songs", "True");
+        fixture.InsertSong(7, "First", 1, 1, formatData: "99=retain>50=2>51=test.mp4>");
+        fixture.InsertSong(8, "Second", 1, 2, formatData: "99=untouched>");
+        var repository = new AdminDatabaseRepository();
+        var path = Path.Combine(fixture.BackupRoot, "Tiles", "하늘.jpg");
+        var report = await repository.SaveSongBackgroundAsync(fixture.DatabasePath, fixture.BackupRoot, 7, path);
+        report.Succeeded.Should().BeTrue();
+        var rows = await repository.GetSongsAsync(fixture.DatabasePath, 1);
+        rows[0].FormatData.Should().Contain("99=retain>").And.Contain("51=test.mp4>");
+        SongFormatData.Parse(rows[0].FormatData)!.BackgroundImagePath.Should().Be(path);
+        SongFormatData.Parse(rows[0].FormatData)!.BackgroundImageMode.Should().Be(LyricsBackgroundMode.Tile);
+        rows[1].FormatData.Should().Be("99=untouched>");
+    }
+
+    [Fact]
     public async Task MatchingCatalogLoadsRequestedIdsAndOrdinalUnicodeTitlesAndKeepsFirstDuplicate()
     {
         using var fixture = AdminDatabaseFixture.Create();

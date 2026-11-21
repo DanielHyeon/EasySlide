@@ -68,8 +68,8 @@ public class BibleRepositoryTests
         var result = sut.LoadBook(version, books[0].Number, showVerses: true);
         var selection = sut.BuildSelection(version, books, result, selectionStart: 5, selectionLength: 64);
 
-        result.Text.Should().Contain("1:1 In the beginning");
-        result.Text.Should().Contain("1:2 And the earth");
+        result.Text.Should().Contain("1:1  In the beginning");
+        result.Text.Should().Contain("1:2  And the earth");
         result.IsSequential.Should().BeTrue();
         selection.IdString.Should().Be("0;kjv.db;;1;1;1;1;2;");
         selection.Title.Should().Be("Genesis 1:1-2 (KJV)");
