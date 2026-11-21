@@ -1,3 +1,4 @@
+using Axicultus.Core;
 using Axicultus.Global;
 using Axicultus.Module;
 using System;
@@ -38,6 +39,7 @@ public partial class FrmMain
     // in a "Word" folder, or lyrics ending with a scripture reference), normal and highlight, like the other
     // type pairs.
     private const int WordItemIndex = 53;
+    private const int ServiceOrderItemIndex = WordItemIndex + 2;
 
     /// <summary>
     /// Folder name parts that make a database item a "Word" item (scripture text) instead of a song
@@ -63,6 +65,7 @@ public partial class FrmMain
         // Database item that is scripture text (D25: in a "Word" folder, or its lyrics end with a
         // scripture reference): the Bible book, like the Bible items.
         (WordItemIndex, "bible", (string)null, Color.Empty),
+        (ServiceOrderItemIndex, "clipboard_task_list_ltr", (string)null, Color.Empty),
     ];
 
     /// <summary>
@@ -264,23 +267,23 @@ public partial class FrmMain
     }
 
     /// <summary>
-    /// The image index the worship list painter draws for a row (design D25): the row's own index, except
-    /// that a database row (0 / 1) that is scripture text (its folder, SubItems[7], is a "Word" folder, or
-    /// the song's lyrics end with a scripture reference, by its id in SubItems[1]) shows the Word pair at
-    /// the same parity. Without the new list, or without the Word pair, the row's own index (song).
-    /// ImageIndex itself is never changed, so the flash, the moves and the show icons work as before.
+    /// Selects the worship row picture at paint time. The stored type and live flash index still belong
+    /// to the original item, so moving, editing and projecting it keep their normal behaviour.
     /// </summary>
     private int WorshipRowPictureIndex(ListViewItem item)
     {
-        int index = item.ImageIndex;
-        if ((index == 0 || index == 1) && modernImageListApplied && WorshipListItems.SmallImageList == modernImageList
-            && modernImageList.Images.Count > WordItemIndex + 1 && item.SubItems.Count > 7
-            && (IsWordFolder(item.SubItems[7].Text) || IsScriptureItemId(item.SubItems[1].Text)))
-        {
-            return WordItemIndex + index;
-        }
-        return index;
+        return modernImageListApplied && WorshipListItems.SmallImageList == modernImageList
+            ? ModernWorshipRowPictureIndex(item) : item.ImageIndex;
     }
+
+    internal static int ModernWorshipRowPictureIndex(ListViewItem item) => item.ImageIndex switch
+    {
+        6 or 7 => (WorshipRowTitle.UsesBibleIcon(item.Text) ? WordItemIndex : ServiceOrderItemIndex) + item.ImageIndex - 6,
+        0 or 1 when WorshipRowTitle.UsesBibleIcon(item.Text)
+            || (item.SubItems.Count > 7 && (IsWordFolder(item.SubItems[7].Text) || IsScriptureItemId(item.SubItems[1].Text)))
+            => WordItemIndex + item.ImageIndex,
+        _ => item.ImageIndex,
+    };
 
     /// <summary>
     /// Design D25 for the two title lists: called at the end of DisplaySettingsLabel. When the new list is
@@ -336,7 +339,7 @@ public partial class FrmMain
         }
         // An ImageList keeps the images it is given (it reads them when its handle is created, and
         // again whenever the handle is recreated): they stay alive as long as the list.
-        var cells = new Image[WordItemIndex + 2];
+        var cells = new Image[ServiceOrderItemIndex + 2];
         ImageList images = null;
         try
         {
@@ -349,13 +352,15 @@ public partial class FrmMain
             {
                 cells[index] = IconCell(icon, style, colour, cell);
             }
-            for (int i = 0; i < cells.Length; i++)
+            for (int i = 0; i < count; i++)
             {
-                // Not replaced: a copy of the old picture (Images[i] returns a new bitmap each time).
-                // Extra index without its icon: the show picture, or for the Word pair the song pair,
-                // so nothing ever goes blank.
-                cells[i] ??= i < count ? imageListSys.Images[i] : i == ModernShowCheckedIndex ? imageListSys.Images[ShowButtonIndex]
-                    : (Image)(cells[i - WordItemIndex]?.Clone() ?? imageListSys.Images[i - WordItemIndex]);
+                cells[i] ??= imageListSys.Images[i];
+            }
+            cells[ModernShowCheckedIndex] ??= imageListSys.Images[ShowButtonIndex];
+            for (int flash = 0; flash <= 1; flash++)
+            {
+                cells[WordItemIndex + flash] ??= (Image)cells[4 + flash].Clone();
+                cells[ServiceOrderItemIndex + flash] ??= (Image)cells[6 + flash].Clone();
             }
             images = new ImageList { ColorDepth = ColorDepth.Depth32Bit, ImageSize = cell, TransparentColor = Color.Transparent };
             foreach (Image image in cells)

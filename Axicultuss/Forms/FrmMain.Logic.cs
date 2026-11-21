@@ -1918,7 +1918,7 @@ public partial class FrmMain : Form
         SaveWorshipList(PreloadPowerpoint: false);
     }
 
-    private void SaveWorshipList(bool PreloadPowerpoint)
+    private bool SaveWorshipList(bool PreloadPowerpoint)
     {
         // Diagnostic: Log save attempt to file
         WriteDebugLog($"SaveWorshipList() called - Items count: {WorshipListItems.Items.Count}, UpdatingFormatFields: {UpdatingFormatFields}");
@@ -1975,11 +1975,13 @@ public partial class FrmMain : Form
             {
                 gfFileHelpers.PreLoadPowerpointFiles(ref Gf.LivePP, ref Gf.WorshipSongs);
             }
+            return saveResult;
         }
         else
         {
             // Diagnostic: Log when save is skipped due to UpdatingFormatFields flag
             WriteDebugLog("WARNING: SaveWorshipList() skipped - UpdatingFormatFields is true");
+            return false;
         }
     }
 

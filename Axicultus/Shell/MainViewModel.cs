@@ -66,7 +66,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private readonly IWorshipListStore _worshipLists;
     private readonly System.Threading.SemaphoreSlim _worshipListSaveGate = new(1, 1);
     private long _queueRevision;
-    internal bool HasPendingWorshipItemRemoval { get; private set; }
+    internal bool HasPendingWorshipListSave { get; private set; }
     private readonly IRecentWorshipLists _recentWorshipLists;
     private readonly Func<string, bool> _worshipMediaLauncher;
     private readonly Func<string, bool> _worshipItemEditLauncher;
@@ -640,7 +640,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     internal async Task OpenLegacySessionAsync(string name, string xml, bool importCopy = false)
     {
-        if (!await SavePendingWorshipItemRemovalAsync()) return;
+        if (!await SavePendingWorshipListChangesAsync()) return;
         var items = EswWorshipListParser.Parse(xml, out var sessionFormat, out var sessionNotes);
         if (items.Count == 0 && sessionNotes is null)
         {
@@ -1766,7 +1766,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         RefreshPowerPointLimitState(updateStatus: true);
         // 전체 교체(불러오기/시작 시드)는 "깨끗한" 상태 — 위 Add 들이 켠 미저장 표시를 끈다(사용자 편집만 미저장으로 남게).
         WorshipListHasUnsavedChanges = false;
-        HasPendingWorshipItemRemoval = false;
+        HasPendingWorshipListSave = false;
         NotifyCommandStates();
     }
 
@@ -2276,13 +2276,17 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     public async Task<LiveQueueItem?> AddPraiseBookSongAsync(PraiseBookIndexEntry? entry)
     {
+        ++_praiseBookPreviewRequest; // An earlier single-click preview must not replace the added row.
+        var destination = CurrentWorshipListName;
         var resolved = await ResolvePraiseBookSongAsync(entry).ConfigureAwait(true);
-        if (resolved is null)
+        if (resolved is null || destination != CurrentWorshipListName)
         {
             return null;
         }
 
-        return AddSong(resolved.Song, resolved.Sequence, resolved.FormatData);
+        var added = AddSong(resolved.Song, resolved.Sequence, resolved.FormatData, resolved.BookReference, resolved.UserReference);
+        if (added is not null && !string.IsNullOrWhiteSpace(destination)) HasPendingWorshipListSave = true;
+        return added;
     }
 
     private int _praiseBookPreviewRequest;
@@ -2366,6 +2370,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             if (!string.IsNullOrWhiteSpace(databasePath))
             {
                 var detail = await _songDetail.GetSongDetailAsync(databasePath, entry.SongId).ConfigureAwait(true);
+                if (detail is { FolderNo: <= 0 })
+                {
+                    StatusText = $"라이브러리에서 삭제된 찬양집 곡입니다: {entry.Title}";
+                    return null;
+                }
                 if (detail is not null)
                 {
                     return new ResolvedPraiseBookSong(
@@ -2670,7 +2679,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         Queue.RemoveAt(index); // 참조로 찾은 정확한 인덱스를 제거(동일-값 중복 안전)
-        HasPendingWorshipItemRemoval = !string.IsNullOrWhiteSpace(CurrentWorshipListName);
+        HasPendingWorshipListSave = !string.IsNullOrWhiteSpace(CurrentWorshipListName);
 
         // 라이브 송출 중인 바로 그 항목을 큐에서 뺐다면, 슬라이드 이동 가드(_liveItemId)가
         // 큐에 없는 고아 Id 를 기준으로 판단하지 않도록 라이브 추적을 정리한다(세션 송출 자체는 유지).
@@ -2696,7 +2705,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         try
         {
             _worshipLists.MoveToTrash(CurrentWorshipListName);
-            HasPendingWorshipItemRemoval = false;
+            HasPendingWorshipListSave = false;
             ClearWorshipList();
             RefreshSavedWorshipListNames();
         }
@@ -2945,16 +2954,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public Task SaveWorshipListAsync(string name) => SaveWorshipListCoreAsync(name);
 
     // Save to the list that owns the queue, even when the combo already points to the next list.
-    internal async Task<bool> SavePendingWorshipItemRemovalAsync()
+    internal async Task<bool> SavePendingWorshipListChangesAsync()
     {
-        while (HasPendingWorshipItemRemoval)
+        while (HasPendingWorshipListSave)
         {
-            if (!await SaveWorshipListCoreAsync(CurrentWorshipListName, pendingRemovalOnly: true)) return false;
+            if (!await SaveWorshipListCoreAsync(CurrentWorshipListName, pendingChangesOnly: true)) return false;
         }
         return true;
     }
 
-    private async Task<bool> SaveWorshipListCoreAsync(string name, bool pendingRemovalOnly = false)
+    private async Task<bool> SaveWorshipListCoreAsync(string name, bool pendingChangesOnly = false)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -2967,7 +2976,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         await _worshipListSaveGate.WaitAsync();
         try
         {
-            if (owner != CurrentWorshipListName || (pendingRemovalOnly && !HasPendingWorshipItemRemoval)) return true;
+            if (owner != CurrentWorshipListName || (pendingChangesOnly && !HasPendingWorshipListSave)) return true;
             var revision = _queueRevision;
             var notes = CurrentSessionNotes;
             await _worshipLists.SaveSessionAsync(name, Queue.ToArray(), _sessionTemplateFormat is null ? null : GetSessionFormat()).ConfigureAwait(true);
@@ -2981,7 +2990,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             RefreshSavedWorshipListNames(); // 새로 저장한 목록이 세션 콤보에 바로 보이도록.
             if (revision == _queueRevision)
             {
-                HasPendingWorshipItemRemoval = false;
+                HasPendingWorshipListSave = false;
                 WorshipListHasUnsavedChanges = false;
             }
             StatusText = $"예배 순서 저장됨: {name} ({Queue.Count}개)";
@@ -3025,7 +3034,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         try
         {
-            if (!await SavePendingWorshipItemRemovalAsync()) return;
+            if (!await SavePendingWorshipListChangesAsync()) return;
             if (await TryLoadLegacyWorshipListAsync(name.Trim()).ConfigureAwait(true))
             {
                 return;
@@ -3568,7 +3577,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         _worshipLists.Delete(name.Trim());
         if (string.Equals(CurrentWorshipListName, name.Trim(), StringComparison.OrdinalIgnoreCase))
-            HasPendingWorshipItemRemoval = false;
+            HasPendingWorshipListSave = false;
         RefreshSavedWorshipListNames(); // 삭제한 목록이 세션 콤보에서 바로 빠지도록(저장 경로와 대칭).
         StatusText = $"예배 순서 삭제됨: {name.Trim()}";
     }

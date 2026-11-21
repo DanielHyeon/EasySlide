@@ -102,7 +102,7 @@ public static class LiveItemKindMatcher
         };
     }
 
-    private static string ResolveLegacyTypeCode(LiveQueueItem item)
+    internal static string ResolveLegacyTypeCode(LiveQueueItem item)
     {
         if (item.Id.StartsWith("esw:", StringComparison.OrdinalIgnoreCase))
         {

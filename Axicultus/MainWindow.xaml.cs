@@ -3950,7 +3950,7 @@ public partial class MainWindow : Window
         // 곡을 더블클릭해 닫혔으면(SelectedEntryForLive) 그 곡을 라이브러리에서 찾아 예배 순서에 추가(인터랙티브 목록).
         if (window.ShowDialog() == true && window.SelectedEntryForLive is { } entry)
         {
-            await viewModel.AddPraiseBookSongAsync(entry);
+            await AddPraiseBookEntriesToWorshipListAsync([entry]);
         }
     }
 
@@ -4048,7 +4048,12 @@ public partial class MainWindow : Window
     }
 
     private async void InlinePraiseBookItems_MouseDoubleClick(object sender, MouseButtonEventArgs e)
-        => await AddSelectedPraiseBookEntryToWorshipListAsync().ConfigureAwait(true);
+    {
+        if (e.ChangedButton != MouseButton.Left || e.OriginalSource is not DependencyObject source
+            || ItemsControl.ContainerFromElement(PraiseBookItems, source) is not ListViewItem { DataContext: PraiseBookIndexEntry clicked }) return;
+        e.Handled = true;
+        await AddPraiseBookEntriesToWorshipListAsync(GetPraiseBookSelection(clicked)).ConfigureAwait(true);
+    }
 
     private async void PraiseBookItems_KeyDown(object sender, KeyEventArgs e)
     {
@@ -4074,10 +4079,10 @@ public partial class MainWindow : Window
         }
 
         e.Handled = true;
-        await AddSelectedPraiseBookEntryToWorshipListAsync().ConfigureAwait(true);
+        await AddPraiseBookEntriesToWorshipListAsync(GetPraiseBookSelection()).ConfigureAwait(true);
     }
 
-    private async Task AddSelectedPraiseBookEntryToWorshipListAsync()
+    private async Task AddPraiseBookEntriesToWorshipListAsync(IReadOnlyList<PraiseBookIndexEntry> entries)
     {
         if (DataContext is not MainViewModel viewModel)
         {
@@ -4085,17 +4090,25 @@ public partial class MainWindow : Window
         }
 
         var added = new List<LiveQueueItem>();
-        foreach (var entry in GetPraiseBookSelection())
+        int missing = 0;
+        var destination = viewModel.CurrentWorshipListName;
+        foreach (var entry in entries)
         {
             if (await viewModel.AddPraiseBookSongAsync(entry).ConfigureAwait(true) is { } item)
             {
                 added.Add(item);
             }
+            else missing++;
+            if (destination != viewModel.CurrentWorshipListName) return;
         }
 
         if (added.Count > 0)
         {
+            ShowWorshipListTab();
             viewModel.SelectedItem = added[0];
+            WorshipListPanel.QueueList.ScrollIntoView(added[0]);
+            if (await viewModel.SavePendingWorshipListChangesAsync() && missing > 0)
+                viewModel.StatusText = $"예배 순서에 {added.Count}곡 추가됨. 찾을 수 없는 곡 {missing}개.";
         }
     }
 
@@ -4196,18 +4209,6 @@ public partial class MainWindow : Window
                 return index < 0 ? int.MaxValue : index;
             })
             .ToArray();
-    }
-
-    private async void InlinePraiseBookEntry_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-    {
-        if (e.ClickCount != 2
-            || sender is not FrameworkElement { DataContext: PraiseBookIndexEntry entry }
-            || DataContext is not MainViewModel viewModel)
-        {
-            return;
-        }
-
-        await viewModel.AddPraiseBookSongAsync(entry).ConfigureAwait(true);
     }
 
     private void CMenuPraiseB_Opened(object sender, RoutedEventArgs e)
@@ -4435,7 +4436,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        if (!await viewModel.SavePendingWorshipItemRemovalAsync())
+        if (!await viewModel.SavePendingWorshipListChangesAsync())
         {
             MessageBox.Show(this, viewModel.StatusText, "예배 순서 저장", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
@@ -4693,7 +4694,7 @@ public partial class MainWindow : Window
     {
         base.OnClosing(e);
         if (e.Cancel) return;
-        if (_waitingForWorshipListSave || (!_discardWorshipListChangesOnClose && _viewModel.HasPendingWorshipItemRemoval))
+        if (_waitingForWorshipListSave || (!_discardWorshipListChangesOnClose && _viewModel.HasPendingWorshipListSave))
         {
             e.Cancel = true;
             if (!_waitingForWorshipListSave)
@@ -4717,7 +4718,7 @@ public partial class MainWindow : Window
     {
         try
         {
-            if (!await _viewModel.SavePendingWorshipItemRemovalAsync())
+            if (!await _viewModel.SavePendingWorshipListChangesAsync())
             {
                 if (MessageBox.Show(this, _viewModel.StatusText + "\n\n변경 사항을 저장하지 않고 종료하시겠습니까?",
                     "예배 순서 저장", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No)

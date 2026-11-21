@@ -31,6 +31,23 @@ public class FrmMainPresentationTests
         Assert.Equal(icon, converter.Convert(item, typeof(string), null, System.Globalization.CultureInfo.InvariantCulture));
     }
 
+    [Theory]
+    [InlineData("song:1", "Song", "우리교회말씀", "bible")]
+    [InlineData("esw:T:1", "Notice", "★★★사도신경★★★.txt", "bible")]
+    [InlineData("text-file:1", "Notice", "주 기 도 문.TXT", "bible")]
+    [InlineData("T1", "Item", "■봉헌찬양", "clipboard_task_list_ltr")]
+    [InlineData("text-file:2", "Notice", "찬양대.txt", "clipboard_task_list_ltr")]
+    [InlineData("text:1", "Notice", "광고", "clipboard_task_list_ltr")]
+    [InlineData("song:2", "Song", "주기도문송", "music_note_2")]
+    [InlineData("powerpoint:1", "PowerPoint", "사도신경", "powerpoint_badge")]
+    [InlineData("esw:I:1", "Notice", "광고", "info")]
+    public void WorshipListDistinguishesPrayerAndServiceText(string id, string kind, string title, string icon)
+    {
+        var converter = new Axicultus.Wpf.Converters.KindToFrmIconConverter { ForWorshipList = true };
+        Assert.Equal(icon, converter.Convert(new LiveQueueItem(id, title, kind), typeof(string), null,
+            System.Globalization.CultureInfo.InvariantCulture));
+    }
+
     [Fact]
     public void ResizingToolbarKeepsSearchAndButtonsOnOneRowAndRestoresCaptions()
     {
@@ -77,6 +94,8 @@ public class FrmMainPresentationTests
     [InlineData("chevron_double_down", false)]
     [InlineData("powerpoint_badge", false)]
     [InlineData("word_badge", false)]
+    [InlineData("bible", false)]
+    [InlineData("clipboard_task_list_ltr", false)]
     public void SharedFrmMainIconPaintsInsideItsSlot(string name, bool filled)
     {
         StaHelper.RunOnSta(() =>

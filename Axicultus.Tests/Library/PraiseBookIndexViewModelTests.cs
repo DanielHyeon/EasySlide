@@ -77,6 +77,22 @@ public class PraiseBookIndexViewModelTests
     }
 
     [Fact]
+    public async Task SavingAddedSongKeepsTheActiveBookInTheComboBox()
+    {
+        var store = new FakePraiseBookStore();
+        var sut = CreateSut(store);
+        await sut.SaveAsCommand.ExecuteAsync("주일");
+        bool namesChanged = false;
+        sut.SavedBooks.CollectionChanged += (_, _) => namesChanged = true;
+        var entry = new PraiseBookIndexEntry("찬양", 42, SongId: 7);
+        sut.AddEntry(entry);
+        await sut.SaveAsCommand.ExecuteAsync(sut.CurrentBookName);
+        namesChanged.Should().BeFalse("resetting the bound collection clears the active ComboBox selection");
+        sut.CurrentBookName.Should().Be("주일");
+        (await store.LoadAsync("주일")).Should().Equal(entry);
+    }
+
+    [Fact]
     public async Task SaveAs_BlankName_DoesNothing()
     {
         var store = new FakePraiseBookStore();

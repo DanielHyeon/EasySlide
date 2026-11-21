@@ -1117,7 +1117,7 @@ public class MainMenuBarTests
             "Bible passage Enter should be handled before the read-only TextBox consumes it");
         code.Should().Contain("private async void PraiseBookItems_KeyDown",
             "PraiseBook Enter should be explicitly mapped");
-        code.Should().Contain("AddSelectedPraiseBookEntryToWorshipList",
+        code.Should().Contain("AddPraiseBookEntriesToWorshipListAsync",
             "PraiseBook Enter and double-click should share the same add path");
     }
 
@@ -1630,8 +1630,10 @@ public class MainMenuBarTests
             "inline PraiseBook drag should preserve multi-selected rows instead of collapsing to the pressed row");
         code.Should().Contain("new DataObject(typeof(PraiseBookIndexEntry[]), selection.ToArray())",
             "multi-selected PraiseBook rows should travel to Worship List as one ordered payload");
-        code.Should().Contain("foreach (var entry in GetPraiseBookSelection())",
-            "PraiseBook Enter/double-click should add all selected rows in list order");
+        code.Should().Contain("AddPraiseBookEntriesToWorshipListAsync(GetPraiseBookSelection(clicked))",
+            "double-click should target the row under the pointer and preserve an existing multiple selection");
+        code.Should().Contain("AddPraiseBookEntriesToWorshipListAsync(GetPraiseBookSelection())",
+            "Enter should transfer selected rows in list order");
         code.Should().Contain("_inlinePraiseBook.Entries.IndexOf(entry)",
             "multi-selected PraiseBook rows should be ordered by the visible PraiseBook list, not by click history");
         code.Should().Contain("private void PraiseBookItems_PreviewMouseRightButtonDown", "PraiseBook context menu should select the row under the pointer");

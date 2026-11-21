@@ -1570,6 +1570,7 @@ public partial class FrmMain : Form
 
     private void PraiseBookItems_MouseUp(object sender, MouseEventArgs e)
     {
+        if (tabControlLists.SelectedTab != tabPraiseBook) return;
         if (e.Button == MouseButtons.Right)
         {
             ListViewItem itemAt = PraiseBookItems.GetItemAt(e.X, e.Y);
@@ -1590,6 +1591,31 @@ public partial class FrmMain : Form
             PraiseBookListIndexChanged();
         }
         PraiseBookItems.Focus();
+    }
+
+    private void PraiseBookItems_MouseDoubleClick(object sender, MouseEventArgs e)
+    {
+        if (e.Button != MouseButtons.Left || PraiseBookItems.GetItemAt(e.X, e.Y) is not { } entry) return;
+        string id = entry.SubItems[3].Text;
+        using var connection = DbController.GetDbConnection(Gf.ConnectStringMainDB);
+        var song = connection == null ? null : SongQueries.FindPraiseBookSong(connection, id);
+        if (song == null)
+        {
+            ReportErrorNotice("Cannot find the selected Praise Book song in the song database.");
+            return;
+        }
+
+        int index = GetWorshipListNextSelectedLoc();
+        tabControlLists.SelectedTab = tabWorshipList;
+        Gf.TotalMusicFiles = -1;
+        WorshipListItems.Items.Insert(index, CreateWorshipSongRow(song, id));
+        var saved = SaveWorshipList(PreloadPowerpoint: false);
+        SetWorshipPraiseListColWidth();
+        SelectWorshipListItem(index, 1);
+        WorshipListItems.EnsureVisible(index);
+        UpdateOutputCurItemNo();
+        ShowStatusBarSummary();
+        if (!saved) ReportErrorNotice("Song added but the Worship List could not be saved.");
     }
 
     private void PraiseBookListIndexChanged()
@@ -1697,8 +1723,6 @@ public partial class FrmMain : Form
         {
             return false;
         }
-        ListViewItem listViewItem = new();
-        string formatData = "";
         Cursor = Cursors.WaitCursor;
         if (AddToLocation < 0 || AddToLocation > WorshipListItems.Items.Count)
         {
@@ -1718,31 +1742,12 @@ public partial class FrmMain : Form
             {
                 string idString = SongsList.SelectedItems[i].SubItems[1].Text;
                 string songId = DataUtil.Mid(idString, 1, idString.Length - 1);
-                long songIdNumber = DataUtil.StringToInt(songId);
-                string idPrefix = DataUtil.Left(idString, 0);
                 try
                 {
                     DataRow dr = dt.Rows.Find(songId);
                     if (dr != null)
                     {
-                        string title = DataUtil.GetDataString(dr, "Title_1");
-                        string dataString = DataUtil.GetDataString(dr, "Title_2");
-                        if (Gf.MusicFound(title, dataString))
-                        {
-                            title += " <#>";
-                        }
-                        formatData = DataUtil.GetDataString(dr, "FORMATDATA");
-                        listViewItem = WorshipListItems.Items.Insert(AddToLocation, title);
-                        listViewItem.ImageIndex = 0;
-                        listViewItem.SubItems.Add(SongsList.SelectedItems[i].SubItems[1].Text);
-                        listViewItem.SubItems.Add(formatData);
-                        listViewItem.SubItems.Add(SongsList.SelectedItems[i].SubItems[4].Text);
-                        listViewItem.SubItems.Add(SongsList.SelectedItems[i].SubItems[5].Text);
-                        listViewItem.SubItems.Add(SongsList.SelectedItems[i].SubItems[6].Text);
-                        listViewItem.SubItems.Add("");
-                        // The item's own folder (not the browsing text, e.g. "Search Results:"): saved as <Folder>.
-                        int folderNo = DataUtil.GetDataInt(dr, "FolderNo");
-                        listViewItem.SubItems.Add(folderNo > 0 && folderNo < Gf.Folders.Length ? Gf.Folders[folderNo].Name : SongFolder.Text);
+                        WorshipListItems.Items.Insert(AddToLocation, CreateWorshipSongRow(dr, idString));
                         AddToLocation++;
                         addedCount++;
                     }
@@ -1767,6 +1772,18 @@ public partial class FrmMain : Form
         UpdateOutputCurItemNo();
         Cursor = Cursors.Default;
         return true;
+    }
+
+    private ListViewItem CreateWorshipSongRow(DataRow song, string id)
+    {
+        string title = DataUtil.GetDataString(song, "Title_1");
+        if (Gf.MusicFound(title, DataUtil.GetDataString(song, "Title_2"))) title += " <#>";
+        int folderNo = DataUtil.GetDataInt(song, "FolderNo");
+        return new ListViewItem(new[] {
+            title, id, DataUtil.GetDataString(song, "FORMATDATA"), DataUtil.GetDataInt(song, "song_number").ToString(),
+            DataUtil.GetDataString(song, "LICENCE_ADMIN1"), DataUtil.GetDataString(song, "LICENCE_ADMIN2"), "",
+            folderNo > 0 && folderNo < Gf.Folders.Length ? Gf.Folders[folderNo].Name : SongFolder.Text
+        }, 0);
     }
 
     private int GetWorshipListNextSelectedLoc()

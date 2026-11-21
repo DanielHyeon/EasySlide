@@ -120,10 +120,17 @@ public sealed partial class PraiseBookIndexViewModel : ObservableObject
     // 저장된 찬양집 이름 목록을 새로고침(저장/삭제/이름변경 후 호출).
     private void RefreshSavedBooks()
     {
-        SavedBooks.Clear();
-        foreach (var name in _store.ListNames())
+        var names = _store.ListNames();
+        for (int i = SavedBooks.Count - 1; i >= 0; i--)
         {
-            SavedBooks.Add(name);
+            if (!names.Contains(SavedBooks[i])) SavedBooks.RemoveAt(i);
+        }
+        for (int i = 0; i < names.Count; i++)
+        {
+            if (i < SavedBooks.Count && SavedBooks[i] == names[i]) continue;
+            var previous = SavedBooks.IndexOf(names[i]);
+            if (previous < 0) SavedBooks.Insert(i, names[i]);
+            else SavedBooks.Move(previous, i);
         }
     }
 
@@ -136,8 +143,8 @@ public sealed partial class PraiseBookIndexViewModel : ObservableObject
         }
 
         await _store.SaveAsync(name, _currentEntries.ToArray()).ConfigureAwait(true);
-        CurrentBookName = name;
         RefreshSavedBooks();
+        CurrentBookName = name;
         StatusText = $"찬양집 저장됨: {name} ({_currentEntries.Count}곡)";
     }
 

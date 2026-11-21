@@ -59,6 +59,7 @@ public class WorshipListPanelTests
         // 증분137 — 항목 한 줄은 종류 아이콘 + 제목. 종류 아이콘은 Kind→Fluent 변환기로 바인딩.
         var symbolIcon = list.Descendants().Single(e => e.Name.LocalName == "FrmIcon");
         Attr(symbolIcon, "Icon").Should().Be("{Binding Converter={StaticResource KindToFrmIcon}}", "항목 종류는 FrmMain 그림을 선택한다");
+        Attr(composite.Descendants().Single(e => e.Name.LocalName == "KindToFrmIconConverter"), "ForWorshipList").Should().Be("True");
         var titleBlock = list.Descendants().Single(
             e => e.Name.LocalName == "TextBlock" && (Attr(e, "Text")?.Contains("Title") ?? false));
         Attr(titleBlock, "Text").Should().Contain("Title", "제목은 TextBlock 에 그대로 바인딩");

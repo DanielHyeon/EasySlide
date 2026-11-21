@@ -8,7 +8,7 @@
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis" />
         <!-- 항목 종류(곡/성경/PPT/미디어/공지) → Fluent 아이콘 — 목록에서 한눈에 종류 구분(현대 UI). -->
-        <conv:KindToFrmIconConverter x:Key="KindToFrmIcon" />
+        <conv:KindToFrmIconConverter x:Key="KindToFrmIcon" ForWorshipList="True" />
         <!-- 항목 Id == 라이브 항목 Id → LIVE 표시 가시성(지금 송출 중인 항목 표시). -->
         <conv:LiveItemBadgeConverter x:Key="LiveBadge" />
         <!-- 항목 종류 → 한글 라벨 — 툴팁("종류 — 제목")에 쓴다. -->

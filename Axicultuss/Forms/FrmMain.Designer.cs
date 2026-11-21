@@ -6235,6 +6235,7 @@ namespace Axicultus
             PraiseBookItems.KeyUp += PraiseBookItems_KeyUp;
             PraiseBookItems.Leave += FormControl_Leave;
             PraiseBookItems.MouseUp += PraiseBookItems_MouseUp;
+            PraiseBookItems.MouseDoubleClick += PraiseBookItems_MouseDoubleClick;
             // 
             // columnHeader17
             // 

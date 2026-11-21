@@ -20,7 +20,8 @@ public sealed class DatabaseQueryTests
         connection.Open();
         using var create = new SQLiteCommand("""
             CREATE TABLE SONG (SongID INTEGER PRIMARY KEY, FolderNo INTEGER, Title_1 TEXT, Title_2 TEXT,
-                song_number INTEGER, LICENCE_ADMIN1 TEXT, LICENCE_ADMIN2 TEXT, [Key] TEXT, Timing TEXT, LastModified TEXT);
+                song_number INTEGER, LICENCE_ADMIN1 TEXT, LICENCE_ADMIN2 TEXT, [Key] TEXT, Timing TEXT, LastModified TEXT,
+                FORMATDATA TEXT DEFAULT '');
             """, connection);
         create.ExecuteNonQuery();
         return connection;
@@ -29,10 +30,28 @@ public sealed class DatabaseQueryTests
     private static void AddSong(SQLiteConnection connection, int id, int folder, string primary, string alternate = "")
     {
         using var insert = DbController.CreateCommand(connection,
-            "INSERT INTO SONG VALUES (@id, @folder, @primary, @alternate, 0, '', '', @key, @timing, @date)",
+            """
+            INSERT INTO SONG (SongID, FolderNo, Title_1, Title_2, song_number, LICENCE_ADMIN1, LICENCE_ADMIN2, [Key], Timing, LastModified)
+            VALUES (@id, @folder, @primary, @alternate, 0, '', '', @key, @timing, @date)
+            """,
             ("@id", id), ("@folder", folder), ("@primary", primary), ("@alternate", alternate),
             ("@key", "D'm"), ("@timing", "3/4"), ("@date", "2026-06-01"));
         insert.ExecuteNonQuery();
+    }
+
+    [Fact]
+    public void PraiseBookSongUsesClickedIdAndExcludesMissingOrDeletedSongs()
+    {
+        using var connection = OpenSongs();
+        AddSong(connection, 5, 2, Title, "First");
+        AddSong(connection, 7, 3, Title, "Second");
+        AddSong(connection, 8, 0, "Deleted");
+        var song = SongQueries.FindPraiseBookSong(connection, "D7");
+        Assert.Equal("Second", song["Title_2"]);
+        Assert.Equal(3L, song["FolderNo"]);
+        Assert.Equal("", song["FORMATDATA"]);
+        foreach (var missing in new[] { "D0", "D8", "D99", "T7", "D" })
+            Assert.Null(SongQueries.FindPraiseBookSong(connection, missing));
     }
 
     [Fact]

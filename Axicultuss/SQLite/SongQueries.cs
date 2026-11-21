@@ -25,6 +25,17 @@ internal static class SongQueries
                 ("@title", title.ToLower()), ("@folder", folder));
     }
 
+    internal static DataRow FindPraiseBookSong(SQLiteConnection connection, string itemId)
+    {
+        if (string.IsNullOrEmpty(itemId) || itemId[0] != 'D' || !int.TryParse(itemId.AsSpan(1), out int songId) || songId <= 0)
+            return null;
+
+        return DbController.GetDataRowScalar(connection, """
+            SELECT Title_1, Title_2, FolderNo, FORMATDATA, song_number, LICENCE_ADMIN1, LICENCE_ADMIN2
+            FROM SONG WHERE SongID = @id AND FolderNo > 0
+            """, ("@id", songId));
+    }
+
     internal readonly record struct MergePair(long SourceId, string SourceTitle, long TargetId, string TargetTitle);
 
     internal static IEnumerable<MergePair> FindMergePairs(SQLiteConnection connection, int sourceFolder, bool sourcePrimary,

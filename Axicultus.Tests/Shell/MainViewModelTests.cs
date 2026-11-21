@@ -1335,6 +1335,30 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task PraiseBookSongPersistsInTheActiveWorshipListAndMissingSongLeavesItIntact()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var path = Path.Combine(folder.Root, "Lists");
+        var store = new WorshipListStore(path);
+        await store.SaveAsync("주일", [new("first", "첫 항목")]);
+        using var vm = CreateSut(seedSampleQueue: false, settings: folder.CreateSettings(), worshipLists: store);
+        await vm.LoadWorshipListAsync("주일");
+        vm.Library.Songs.Add(new SongSummary(12, "찬양", "", 1, 42, "", "", "가사"));
+
+        var added = await vm.AddPraiseBookSongAsync(new("찬양", 42, 12));
+        added.Should().NotBeNull();
+        vm.SelectedItem.Should().BeSameAs(added);
+        vm.HasPendingWorshipListSave.Should().BeTrue();
+        (await vm.SavePendingWorshipListChangesAsync()).Should().BeTrue();
+        (await vm.AddPraiseBookSongAsync(new("없는 곡", 0))).Should().BeNull();
+        vm.HasPendingWorshipListSave.Should().BeFalse();
+
+        var reloaded = await new WorshipListStore(path).LoadAsync("주일");
+        reloaded.Select(item => item.Id).Should().Equal("first", "song:12");
+        reloaded[1].Lyrics.Should().Be("가사");
+    }
+
+    [Fact]
     public async Task MissingIdAndAmbiguousLegacyTitleCannotQueueAnotherSong()
     {
         var vm = CreateSut(seedSampleQueue: false);
@@ -1361,8 +1385,10 @@ public class MainViewModelTests
         sut.SelectedItem.Should().BeSameAs(added);
     }
 
-    [Fact]
-    public async Task AddPraiseBookSongAsync_WithSongIdLoadsDbDetail_WhenLibrarySongsMissing()
+    [Theory]
+    [InlineData(1)]
+    [InlineData(0)]
+    public async Task AddPraiseBookSongAsync_UsesActiveDbSong_WhenLibrarySongsMissing(int songFolder)
     {
         // 레거시 .esp 찬양책은 SongId 를 들고 들어온다. 현재 Folders 탭의 곡 목록에 없어도 Admin DB 에서 가사·순서·서식을 채워야 한다.
         using var folder = TempSettingsFolder.Create();
@@ -1377,11 +1403,18 @@ public class MainViewModelTests
             "DB 찬양",
             "[1]\n1절\n[C]\n후렴",
             sequence: "1 C",
-            formatData: "29=-65536>"));
+            formatData: "29=-65536>") with { FolderNo = songFolder });
         var sut = CreateSut(settings: settings, songDetail: repo, seedSampleQueue: false);
 
         var added = await sut.AddPraiseBookSongAsync(new PraiseBookIndexEntry("Legacy title", 0, SongId: 77));
 
+        if (songFolder == 0)
+        {
+            added.Should().BeNull();
+            sut.Queue.Should().BeEmpty();
+            sut.StatusText.Should().Contain("삭제");
+            return;
+        }
         added.Should().NotBeNull();
         added!.Id.Should().Be("song:77");
         added.Title.Should().Be("DB 찬양");
@@ -2548,7 +2581,7 @@ public class MainViewModelTests
             editor.Queue.Select(i => i.Title).Should().Equal("First", "Second");
             editor.RemoveSelectedItemCommand.Execute(null);
             if (removeLast) editor.RemoveSelectedItemCommand.Execute(null);
-            (await editor.SavePendingWorshipItemRemovalAsync()).Should().BeTrue();
+            (await editor.SavePendingWorshipListChangesAsync()).Should().BeTrue();
         }
 
         using var restarted = CreateSut(seedSampleQueue: false, settings: folder.CreateSettings(),
@@ -2575,7 +2608,7 @@ public class MainViewModelTests
         {
             await vm.LoadSelectedWorshipListCommand.ExecuteAsync(null);
             vm.CurrentWorshipListName.Should().Be("A");
-            vm.HasPendingWorshipItemRemoval.Should().BeTrue();
+            vm.HasPendingWorshipListSave.Should().BeTrue();
             vm.StatusText.Should().Contain("저장 실패");
         }
         await vm.LoadSelectedWorshipListCommand.ExecuteAsync(null);
