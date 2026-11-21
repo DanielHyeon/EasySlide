@@ -68,14 +68,14 @@ Q4 결정: **앱이 폰트를 번들로 제공해 시스템 의존 제거.** 어
 **A. Pretendard Variable 번들 (OFL 1.1).**
 
 세부:
-- **파일**: `Axicultus.Wpf/Assets/Fonts/PretendardVariable.ttf` (Variable Font 단일 파일, ~1.5MB)
+- **파일**: `Axicultus/Assets/Fonts/PretendardVariable.ttf` (Variable Font 단일 파일, ~1.5MB)
 - **WPF 등록**: `App.xaml`
   ```xml
   <FontFamily x:Key="Font.Primary">pack://application:,,,/Assets/Fonts/#Pretendard Variable</FontFamily>
   ```
 - **폴백 체인** (`Type.Body` 등 모든 토큰에 적용):
   `Pretendard Variable, Segoe UI Variable, Segoe UI, Malgun Gothic, sans-serif`
-- **라이선스 동봉**: `Axicultus.Wpf/Assets/Fonts/PretendardVariable-OFL-1.1-LICENSE.txt` (원본 LICENSE 그대로 복사)
+- **라이선스 동봉**: `Axicultus/Assets/Fonts/PretendardVariable-OFL-1.1-LICENSE.txt` (원본 LICENSE 그대로 복사)
 - **금지**: `Malgun Gothic` 직접 지정 금지(폴백으로만), `Microsoft Sans Serif`/`Tahoma` 사용 금지 (마이그레이션 시 모두 제거 — 계획서 §4.2)
 - **모노스페이스**: `Cascadia Code` 시스템 폰트 사용 (Windows 11 기본). 미설치 PC를 위해 폴백 `Consolas` 지정.
 

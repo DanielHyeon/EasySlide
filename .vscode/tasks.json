@@ -2,13 +2,13 @@
     "version": "2.0.0",
     "tasks": [
         {
-            // 빠른 WPF 단독 빌드 — F5(Axicultus.Wpf) 시 자동 실행
+            // 빠른 WPF 단독 빌드 — F5(Axicultus) 시 자동 실행
             "label": "build-wpf",
             "command": "dotnet",
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/Axicultus.Wpf/Axicultus.Wpf.csproj",
+                "${workspaceFolder}/Axicultus/Axicultus.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary;ForceNoAlign"
             ],
@@ -44,7 +44,7 @@
             "args": [
                 "watch",
                 "--project",
-                "${workspaceFolder}/Axicultus.Wpf/Axicultus.Wpf.csproj",
+                "${workspaceFolder}/Axicultus/Axicultus.csproj",
                 "run"
             ],
             "problemMatcher": "$msCompile",

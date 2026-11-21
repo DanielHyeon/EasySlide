@@ -1,7 +1,7 @@
 # FrmMain Shortcut Parity Map
 
 작성일: 2026-06-04
-대상: `Axicultus.Wpf/Input/CommandCatalog.cs`, `Axicultus.Wpf/MainWindow.xaml`, `Axicultus.Wpf/Shell/MainViewModel.cs`
+대상: `Axicultus/Input/CommandCatalog.cs`, `Axicultus/MainWindow.xaml`, `Axicultus/Shell/MainViewModel.cs`
 
 ## 목적
 

@@ -293,7 +293,7 @@ FrmMain의 성경은 **메인 창에 인라인**(Bibles 탭)이고, 운영 중 �
 
 1. **P0 — Phase 5 완료**: first-screen/default/individual formatting, background, transition, live-safety controls의 남은 row를 mapping table에 맞춰 닫는다.
 2. **P0 — Phase 6 완료**: shortcut/focus parity를 자동 테스트와 수동 UAT로 나눈다. 전역키, ListBox 포커스, TextBox 입력 중 키 충돌을 별도 케이스로 둔다.
-3. **P0 — Phase 7 검증 증거 확보**: `dotnet test Axicultus.Wpf.Tests`, `dotnet build Axicultus\Axicultus.csproj`, WPF launch, 멀티모니터 Preview/Output/Region1/2/Validate UAT를 한 번에 묶어 기록한다.
+3. **P0 — Phase 7 검증 증거 확보**: `dotnet test Axicultus.Wpf.Tests`, `dotnet build Axicultuss\Axicultuss.csproj`, WPF launch, 멀티모니터 Preview/Output/Region1/2/Validate UAT를 한 번에 묶어 기록한다.
 4. **P1 — ValidateWorshipListItems 동등성 보강**: 파일 검증 이후 곡 DB 존재, 성경/공지/세션 항목 검증 범위를 legacy와 대조한다.
 5. **P1 — live 보조 갭 정리**: Lyrics Monitor 메시지, 중국어 변환, AssignMedia, media output/top-most/global keys/remote bus를 별도 OpenSpec slice로 분리한다.
 6. **P1 — 운영 보조 창 동등성**: Worship Sessions bundle, InfoScreen legacy editor, PowerPoint thumbnail/import gallery, Bible notes/edit 계열을 기능별 phase로 나눈다.

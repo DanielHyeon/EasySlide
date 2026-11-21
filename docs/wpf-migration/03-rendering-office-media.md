@@ -28,17 +28,17 @@
 
 현재 WPF 기반:
 
-- `Axicultus.Wpf/Interop/OfficePptSession.cs`
-- `Axicultus.Wpf/Poc/PocBComStress.xaml`
-- `Axicultus.Wpf/Rendering/PowerPointRenderService.cs`
-- `Axicultus.Wpf/Rendering/ThumbnailCache.cs`
-- `Axicultus.Wpf/Rendering/ImageAssetService.cs`
-- `Axicultus.Wpf/Rendering/PreviewCanvas.cs`
-- `Axicultus.Wpf/Rendering/TransitionEffectService.cs`
-- `Axicultus.Wpf/Rendering/OutputRenderer.cs`
-- `Axicultus.Wpf/Media/MediaPlaybackBackend.cs`
-- `Axicultus.Wpf/Media/MediaPlaybackService.cs`
-- `Axicultus.Wpf/Media/MediaPlaybackViewModel.cs`
+- `Axicultus/Interop/OfficePptSession.cs`
+- `Axicultus/Poc/PocBComStress.xaml`
+- `Axicultus/Rendering/PowerPointRenderService.cs`
+- `Axicultus/Rendering/ThumbnailCache.cs`
+- `Axicultus/Rendering/ImageAssetService.cs`
+- `Axicultus/Rendering/PreviewCanvas.cs`
+- `Axicultus/Rendering/TransitionEffectService.cs`
+- `Axicultus/Rendering/OutputRenderer.cs`
+- `Axicultus/Media/MediaPlaybackBackend.cs`
+- `Axicultus/Media/MediaPlaybackService.cs`
+- `Axicultus/Media/MediaPlaybackViewModel.cs`
 
 ## 2. 핵심 리스크
 
@@ -190,16 +190,16 @@ Office 검증:
 
 2026-05-29 검증 결과:
 
-- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter "MediaPlaybackServiceTests|MediaPlaybackViewModelTests"`: 15개 통과
-- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter MediaPlaybackServiceTests`: 11개 통과
-- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter "ThumbnailCacheTests|PowerPointRenderServiceTests"`: 15개 통과
-- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter PowerPointRenderServiceTests`: 10개 통과
-- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter ImageAssetServiceTests`: 6개 통과
-- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter PreviewCanvasTests`: 5개 통과
-- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter SlidePreviewControlTests`: 3개 통과
-- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter TransitionEffectServiceTests`: 7개 통과
-- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter "OutputRendererTests|OutputWindowViewModelTests"`: 21개 통과
-- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug`: 375개 통과
+- `dotnet test Axicultus.Tests\Axicultus.Tests.csproj -c Debug --filter "MediaPlaybackServiceTests|MediaPlaybackViewModelTests"`: 15개 통과
+- `dotnet test Axicultus.Tests\Axicultus.Tests.csproj -c Debug --filter MediaPlaybackServiceTests`: 11개 통과
+- `dotnet test Axicultus.Tests\Axicultus.Tests.csproj -c Debug --filter "ThumbnailCacheTests|PowerPointRenderServiceTests"`: 15개 통과
+- `dotnet test Axicultus.Tests\Axicultus.Tests.csproj -c Debug --filter PowerPointRenderServiceTests`: 10개 통과
+- `dotnet test Axicultus.Tests\Axicultus.Tests.csproj -c Debug --filter ImageAssetServiceTests`: 6개 통과
+- `dotnet test Axicultus.Tests\Axicultus.Tests.csproj -c Debug --filter PreviewCanvasTests`: 5개 통과
+- `dotnet test Axicultus.Tests\Axicultus.Tests.csproj -c Debug --filter SlidePreviewControlTests`: 3개 통과
+- `dotnet test Axicultus.Tests\Axicultus.Tests.csproj -c Debug --filter TransitionEffectServiceTests`: 7개 통과
+- `dotnet test Axicultus.Tests\Axicultus.Tests.csproj -c Debug --filter "OutputRendererTests|OutputWindowViewModelTests"`: 21개 통과
+- `dotnet test Axicultus.Tests\Axicultus.Tests.csproj -c Debug`: 375개 통과
 - `dotnet test Axicultus.sln -c Debug`: 375개 통과
 - `dotnet build Axicultus.sln -c Release`: 성공
 - `dotnet test Axicultus.sln -c Release --no-build`: 375개 통과

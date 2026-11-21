@@ -73,7 +73,7 @@ Axicultus는 .NET 10 WinForms로 동작하지만 시각·상호작용 시스템�
 - 단순 `ColorDialog` 래퍼 + `Microsoft Sans Serif` 폴백
 
 ### 2.4 접근성
-- `AccessibleName/AccessibleDescription/AccessibleRole` 사용 **0건** (`Axicultus/Axicultus` 전체)
+- `AccessibleName/AccessibleDescription/AccessibleRole` 사용 **0건** (`Axicultuss/Forms` 전체)
 - 단축키(`&` 액세스 키) **0건** — 메뉴/버튼 키 접근 불가
 - `HookManager` 5파일로 전역 Win32 후킹 → 표준 키 라우팅 대체 (이식 시 보존 필요)
 
@@ -167,7 +167,7 @@ Axicultus는 .NET 10 WinForms로 동작하지만 시각·상호작용 시스템�
 **폰트 패밀리** (Q4 확정: Pretendard Variable 번들 필수)
 - **UI 기본**: `Segoe UI Variable` (영문/Windows 11 디폴트), 폴백 `Segoe UI`
 - **한글 기본**: **`Pretendard Variable` (앱 리소스 번들, OFL 1.1)** — 시스템 폰트 의존 금지. WPF ClearType 렌더링 한계 + Malgun Gothic weight 부족 + UI 스케일링 시 글자 뭉개짐 회피. 모든 사용자 PC에서 100% 동일 레이아웃 보장.
-- **번들 위치**: `Axicultus.Wpf/Assets/Fonts/PretendardVariable.ttf` + `App.xaml`에 `pack://application:,,,/Assets/Fonts/#Pretendard Variable` 등록. OFL 1.1 라이선스 파일 함께 동봉.
+- **번들 위치**: `Axicultus/Assets/Fonts/PretendardVariable.ttf` + `App.xaml`에 `pack://application:,,,/Assets/Fonts/#Pretendard Variable` 등록. OFL 1.1 라이선스 파일 함께 동봉.
 - **폴백 체인**: `Pretendard Variable, Segoe UI Variable, Segoe UI, Malgun Gothic, sans-serif`
 - **모노**: `Cascadia Code` (가사 코드 표기 등)
 - **금지**: `Microsoft Sans Serif`, `Tahoma` (현재 잔재) — 마이그레이션 시 제거. `Malgun Gothic` 직접 지정도 금지(폴백으로만).
@@ -212,7 +212,7 @@ Axicultus는 .NET 10 WinForms로 동작하지만 시각·상호작용 시스템�
 - **포맷**: WPF UI 라이브러리의 `SymbolIcon` 우선(Fluent 시스템 아이콘 내장) → 부족분만 SVG → XAML `DrawingImage` 빌드 변환 (Inkscape CLI 또는 SvgToXaml 빌드 태스크)
 - **사이즈**: 16, 20, 24, 32 — 컨트롤별 고정
 - **상태 표현**: 베이스 1개 SVG + 색·투명도 토큰으로 hover/pressed/disabled → **상태별 별파일 제거**
-- **레거시 자산 정책 (Q6)**: `Axicultus/Resources/` + `AxicultusImages/` 모든 raster(60+ PNG/BMP) **100% 폐기**. Fluent 셋에 메타포가 정확히 일치하지 않으면 가장 유사한 SVG 차용 또는 여러 아이콘 조합으로라도 SVG 통일. **부분 잔존 금지** — 10%만 남아도 시스템 전체가 낡아 보임.
+- **레거시 자산 정책 (Q6)**: `Axicultuss/Resources/` + `AxicultusImages/` 모든 raster(60+ PNG/BMP) **100% 폐기**. Fluent 셋에 메타포가 정확히 일치하지 않으면 가장 유사한 SVG 차용 또는 여러 아이콘 조합으로라도 SVG 통일. **부분 잔존 금지** — 10%만 남아도 시스템 전체가 낡아 보임.
 - **자산 매핑 (현재 → 신규)** — 부록 §11.B 참조 (전체 60+개), 1:1 매핑 미정인 항목은 ADR-002 작성 시 확정
 
 ---
@@ -404,22 +404,22 @@ Axicultus는 .NET 10 WinForms로 동작하지만 시각·상호작용 시스템�
 유지 (수정 거의 없음):
 - `OfficeLib/` PowerPoint·Word interop
 - `DirectShow/` 비디오
-- `Axicultus/SQLite/SQLiteController.cs` DB
-- `Axicultus/Global/gf*.cs` 도메인 헬퍼 (Bible/Lyrics/Media/Database/Config 등)
-- `Axicultus/HookManager/` 전역 후킹
-- `Axicultus/Module/` 도메인 모델 (`SongFormat`, `SongLyrics`, `SongSettings`, `CommonEnum`)
-- `Axicultus/Util/` 공통 유틸
+- `Axicultuss/SQLite/SQLiteController.cs` DB
+- `Axicultuss/Global/gf*.cs` 도메인 헬퍼 (Bible/Lyrics/Media/Database/Config 등)
+- `Axicultuss/HookManager/` 전역 후킹
+- `Axicultuss/Module/` 도메인 모델 (`SongFormat`, `SongLyrics`, `SongSettings`, `CommonEnum`)
+- `Axicultuss/Util/` 공통 유틸
 
 대체:
-- `Axicultus/Axicultus/Frm*.cs` 및 `Frm*.Designer.cs` (40개) → WPF `Window`/`Page` + `ViewModel`
-- `Axicultus/Global/gfColorsFonts.cs` → `EasiDS` 토큰 + `IThemeService`
+- `Axicultuss/Forms/Frm*.cs` 및 `Frm*.Designer.cs` (40개) → WPF `Window`/`Page` + `ViewModel`
+- `Axicultuss/Global/gfColorsFonts.cs` → `EasiDS` 토큰 + `IThemeService`
 - `AxicultusImages/` raster + `Resources/` 이미지 일부 → SVG/XAML 아이콘 + 단일 자산
 
 ### 8.3 단계적 이식 (Strangler Fig)
 **바로 전체 재작성은 비추**. 다음 순서로 점진 이식 — 사용자 결정이 "동시 진행"이라도 **빌드/배포는 점진**:
 
 1. **Sprint 0 (1주) — 기술 PoC 최우선**:
-   - 새 프로젝트 `Axicultus.Wpf/` 생성, WPF UI + Toolkit MVVM 설치
+   - 새 프로젝트 `Axicultus/` 생성, WPF UI + Toolkit MVVM 설치
    - `EasiDS` 토큰 ResourceDictionary 작성, 첫 컨트롤 `EsButton` 3변종
    - **PoC-A (필수)**: HookManager 전역 후킹 ↔ WPF `PreviewKeyDown` 충돌 검증. 후킹 결과를 `e.Handled = true`로 처리하면 라우티드 이벤트가 차단되는지 확인. 실패 시 InputBinding 라우팅 우선순위 재설계 — 라이브 단축키 누락 = 운영 마비 직결.
    - **PoC-B (필수)**: PowerPoint COM 객체 수명주기 래퍼(`OfficePptSession`) — `Task.Run` 백그라운드에서 COM 생성/사용/`Marshal.ReleaseComObject` 호출이 좀비 프로세스 없이 종료되는지 stress 테스트 (100회 순회). STA 스레드 어피니티 보장 패턴 확정 (§10.3 신규 리스크 참조).
@@ -479,7 +479,7 @@ Axicultus는 .NET 10 WinForms로 동작하지만 시각·상호작용 시스템�
 - PR CI에 위 체크리스트 일부 자동 검증
 
 ### 9.3 디자인 토큰 단일 소스
-`Axicultus.Wpf/Theme/` 디렉터리:
+`Axicultus/Theme/` 디렉터리:
 ```
 Theme/
   Tokens/

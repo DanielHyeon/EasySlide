@@ -178,27 +178,27 @@ UX 검증:
 
 2026-05-29 현재 추가 검증:
 
-- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter "AdminDatabaseRepositoryTests|LibraryViewModelTests"`: 30개 통과
+- `dotnet test Axicultus.Tests\Axicultus.Tests.csproj -c Debug --filter "AdminDatabaseRepositoryTests|LibraryViewModelTests"`: 30개 통과
 - `LibraryViewModelTests`: AdminDB 경로 해석, 폴더/곡 목록 로드, 선택 폴더 재조회, 제목/대체 제목/분류/가사 검색, 경로 누락 메시지, 폴더 삭제/복구 command와 reload/선택 복원, 폴더/곡 순서 변경 요청 매핑, target index reorder와 reload/선택 복원 검증
-- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter "FolderEditorViewModelTests|AppServiceRegistrationTests"`: 5개 통과
+- `dotnet test Axicultus.Tests\Axicultus.Tests.csproj -c Debug --filter "FolderEditorViewModelTests|AppServiceRegistrationTests"`: 5개 통과
 - `FolderEditorViewModelTests`: 기존 폴더 로드/dirty state, 저장 매핑/백업 루트, 새 폴더 번호 산정, 이름 validation 검증
-- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter "SongEditorViewModelTests|AppServiceRegistrationTests"`: 9개 통과
+- `dotnet test Axicultus.Tests\Axicultus.Tests.csproj -c Debug --filter "SongEditorViewModelTests|AppServiceRegistrationTests"`: 9개 통과
 - `SongEditorViewModelTests`: 기존 곡 로드/dirty state, 상세 legacy metadata 보존, preview 색상/font/format 상태, 라이브 중 저장 확인, 저장 매핑/백업 루트, 제목 validation, 신규 곡 id 반영 검증
-- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter "SongCopyViewModelTests|AppServiceRegistrationTests"`: 5개 통과
+- `dotnet test Axicultus.Tests\Axicultus.Tests.csproj -c Debug --filter "SongCopyViewModelTests|AppServiceRegistrationTests"`: 5개 통과
 - `SongCopyViewModelTests`: 기본 복사 제목/대상 폴더/곡 번호 산정, 저장 매핑/백업 루트, 제목 validation, 신규 곡 id 반영 검증
-- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter "SongMoveViewModelTests|AppServiceRegistrationTests"`: 5개 통과
+- `dotnet test Axicultus.Tests\Axicultus.Tests.csproj -c Debug --filter "SongMoveViewModelTests|AppServiceRegistrationTests"`: 5개 통과
 - `SongMoveViewModelTests`: 대상 폴더 목록, 이동 요청 매핑, 백업 루트 fallback, 대상 폴더 validation 검증
-- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter "AdminDatabaseRepositoryTests|SongDeleteViewModelTests|SongRecoveryViewModelTests|AppServiceRegistrationTests"`: 28개 통과
+- `dotnet test Axicultus.Tests\Axicultus.Tests.csproj -c Debug --filter "AdminDatabaseRepositoryTests|SongDeleteViewModelTests|SongRecoveryViewModelTests|AppServiceRegistrationTests"`: 28개 통과
 - `SongDeleteViewModelTests`/`SongRecoveryViewModelTests`: soft delete/recover request 매핑, 백업 루트 fallback, validation 검증
-- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter "AdminDatabaseRepositoryTests|LibraryViewModelTests|SongMergeServiceTests|SongMergeViewModelTests|AppServiceRegistrationTests"`: 37개 통과
+- `dotnet test Axicultus.Tests\Axicultus.Tests.csproj -c Debug --filter "AdminDatabaseRepositoryTests|LibraryViewModelTests|SongMergeServiceTests|SongMergeViewModelTests|AppServiceRegistrationTests"`: 37개 통과
 - `SongMergeViewModelTests`/`SongMergeServiceTests`: Source A/B 제목 매칭 후보, 후보 미선택 validation, 병합 저장 metadata fallback, `[region 2]` 가사 병합과 notation remap 검증
-- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter "ExternalFileOperationServiceTests|ExternalFileOperationViewModelTests|AppServiceRegistrationTests"`: 8개 통과
+- `dotnet test Axicultus.Tests\Axicultus.Tests.csproj -c Debug --filter "ExternalFileOperationServiceTests|ExternalFileOperationViewModelTests|AppServiceRegistrationTests"`: 8개 통과
 - `ExternalFileOperationServiceTests`/`ExternalFileOperationViewModelTests`: legacy 외부 폴더 목록, copy/move 충돌 파일명, InfoScreen `.esi` 곡 폴더 import, source/destination validation, 완료 이벤트와 MainWindow DI 연결 검증
-- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter "BibleRepositoryTests|BibleViewModelTests|MainViewModelTests|AppServiceRegistrationTests"`: 30개 통과
+- `dotnet test Axicultus.Tests\Axicultus.Tests.csproj -c Debug --filter "BibleRepositoryTests|BibleViewModelTests|MainViewModelTests|AppServiceRegistrationTests"`: 30개 통과
 - `BibleRepositoryTests`/`BibleViewModelTests`/`MainViewModelTests`: Biblefolder display order, 숨김 제외, 책 목록, 본문 로드, 전체/일부/구문 검색, 선택 구절 ID/title, Region 1/2 버전 변경, dual-region preview ID/title/summary 갱신, 성경 구절 예배 순서 삽입과 성경 창 DI 연결 검증
-- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter "ImportExportServiceTests|ImportExportViewModelTests|AppServiceRegistrationTests"`: 18개 통과
+- `dotnet test Axicultus.Tests\Axicultus.Tests.csproj -c Debug --filter "ImportExportServiceTests|ImportExportViewModelTests|AppServiceRegistrationTests"`: 18개 통과
 - `ImportExportServiceTests`/`ImportExportViewModelTests`: legacy ESN/EST folder preview, 중복 정책별 import, XML replace import, TXT/DOC/DOCX folder import, Word COM `.doc` 추출 seam, Access MDB schema/suggested mapping/default preview/custom lyrics merge import, MDB helper mapping 전달, MDB 경로 변경 시 schema reset, XML/ESN/ESF/HTML/RTF export 산출물, praise-book metadata/style/index/page 옵션, 설정 기반 경로 해석, source folder 선택, export candidate 선택과 MainWindow/DI 연결 검증
-- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter "SearchUsageServiceTests|SearchUsageViewModelTests|AppServiceRegistrationTests"`: 12개 통과
+- `dotnet test Axicultus.Tests\Axicultus.Tests.csproj -c Debug --filter "SearchUsageServiceTests|SearchUsageViewModelTests|AppServiceRegistrationTests"`: 12개 통과
 - `SearchUsageServiceTests`/`SearchUsageViewModelTests`: legacy song search field/folder/key/timing/notation/date filter, Title2 lookup 후보, usage 기간/세션 조회, occurrence summary, record delete 확인 승인/취소, 삭제 후 usage refresh, RTF report, 설정 기반 경로 해석과 MainWindow/DI 연결 검증
 - `dotnet test Axicultus.sln -c Debug`: 375개 통과
 

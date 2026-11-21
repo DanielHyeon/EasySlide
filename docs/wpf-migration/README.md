@@ -1,7 +1,7 @@
 # WPF 이식 계획 문서 인덱스
 
 > 기준일: 2026-05-29
-> 참조: `.serena/memories/project_structure.md`, `docs/` 기준 문서, `Axicultus.Wpf/README.md`
+> 참조: `.serena/memories/project_structure.md`, `docs/` 기준 문서, `Axicultus/README.md`
 > 목적: WinForms 기반 Axicultus v2.6.4의 모든 운영 기능을 WPF/Fluent 2 기반 v3.0으로 이식하기 위한 부문별 실행 계획, 완료 기준, 검증 및 테스트 방안을 정의한다.
 
 ## 0. 기준 문서
@@ -54,7 +54,7 @@ dotnet test Axicultus.sln -c Debug
 
 | 기존 구조 | WPF 이식 분류 | 계획 문서 |
 |---|---|---|
-| `Axicultus/Axicultus/FrmMain*.cs`, `FrmInfoScreen`, `FrmLyricsScreen`, `FrmLaunchShow`, alert/media control forms | 운영 셸 및 라이브 송출 | `01-shell-live-operations.md` |
+| `Axicultuss/Forms/FrmMain*.cs`, `FrmInfoScreen`, `FrmLyricsScreen`, `FrmLaunchShow`, alert/media control forms | 운영 셸 및 라이브 송출 | `01-shell-live-operations.md` |
 | `FrmEditItem`, `FrmEditBibleItem`, `FrmImport*`, `FrmExport`, `FrmGenerate*`, `FrmFind`, `FrmManageItemLists`, `gfBible`, `gfLyrics`, `gfFolder` | 콘텐츠 편집/라이브러리 | `02-content-authoring-library.md` |
 | `ImageCanvas`, `ImageTransitionControl`, `gfImages`, `gfMedia`, `gfPowerPoint`, `OfficeLib`, `DirectShow` | 렌더링, Office, 미디어 | `03-rendering-office-media.md` |
 | `FrmOptions`, `FrmBackground`, `FrmGetWorkingFolder`, `FrmRegister`, `Settings`, `SQLite`, `AdminDB`, `Resources` | 설정, 데이터, 자산 마이그레이션 | `04-settings-data-assets.md` |

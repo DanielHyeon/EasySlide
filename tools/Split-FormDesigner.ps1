@@ -170,7 +170,7 @@ function Split-LinesWithEndings {
         ForEach-Object { $_.Value }
 }
 
-$formsDir = Join-Path $ProjectRoot 'Axicultus\Axicultus'
+$formsDir = Join-Path $ProjectRoot 'Axicultuss\Forms'
 $formFiles = Get-ChildItem -Path $formsDir -Filter 'Frm*.cs' |
     Where-Object { $_.Name -notmatch '\.(Designer|Events|Fields|Layout|Logic)\.cs$' } |
     Sort-Object Name

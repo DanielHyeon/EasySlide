@@ -122,7 +122,7 @@
 |---|---|---|
 | ThemeService | 1차 완료 | 다크/라이트/Senior 테스트 있음 |
 | Pretendard/EasiDS | 1차 완료 | WPF resource 반영 |
-| SettingsService | 부분 구현 | `ISettingsService`, `SettingsService`, `AxicultusSettingsSnapshot`, typed `AxicultusSettingKeys`, `RegistryLegacySettingsSource`, `FileLegacySettingsSource`, `CompositeLegacySettingsSource`, `SettingsBootstrapMigrationService` 추가. typed get/set, validation, 변경 이벤트, default restore, JSON import/export, 현재 설정 backup, legacy settings source 변환 경계를 자동 검증 완료. `LegacySettingsMap` 별칭 기반으로 `root_directory`/`RootAxicultusDir`/`RegistrationUser`/`OutputMonitorName`/`LiveCamVolume`/`LiveCamBalance`/`LiveCamMute`/`DBFileName` 이식, 미디어 0..100 scale 정규화, legacy `KeyBoardOption`/`GlobalHookKey_*` shortcut override 변환, PowerPoint/media/display/alert/gap/lyrics monitor operational setting migration을 구현했다. 실제 HKCU legacy registry section(`config`/`options`/`monitors`) 읽기와 누락 key 생성 방지 검증 완료. WPF production 시작 시 settings.json이 없을 때 registry 우선, 파일 fallback composite migration을 1회 적용하고 기존 settings.json이 있으면 사용자 값을 보존하도록 연결했다. legacy file source는 INI/key-value/XML `.config`/`user.config`/appSettings/JSON 경계와 `Properties.Settings` 호환 XML 읽기를 검증 완료. `general.onboardingCompleted`, `general.registrationUser`와 운영 데이터 dry-run 리허설 서비스 연결 완료. 실제 운영 수동 리허설은 후속 필요 |
+| SettingsService | 부분 구현 | `ISettingsService`, `SettingsService`, `AxicultusSettingsSnapshot`, typed `AxicultusSettingKeys`, `RegistryLegacySettingsSource`, `FileLegacySettingsSource`, `CompositeLegacySettingsSource`, `SettingsBootstrapMigrationService` 추가. typed get/set, validation, 변경 이벤트, default restore, JSON import/export, 현재 설정 backup, legacy settings source 변환 경계를 자동 검증 완료. `LegacySettingsMap` 별칭 기반으로 `root_directory`/`RootAxicultusDir`/`RegistrationUser`/`OutputMonitorName`/`LiveCamVolume`/`LiveCamBalance`/`LiveCamMute`/`DBFileName` 이식, 미디어 0..100 scale 정규화, legacy `KeyBoardOption`/`GlobalHookKey_*` shortcut override 변환, PowerPoint/media/display/alert/gap/lyrics monitor operational setting migration을 구현했다. 실제 HKCU legacy registry section(`config`/`options`/`monitors`) 읽기와 누락 key 생성 방지 검증 완료. WPF는 시작 시 자체 JSON과 이전 WPF 프로필을 사용한다. WinForms는 JSON이 없는 첫 실행에만 기존 레지스트리를 읽어 별도 JSON으로 이전한다. legacy file source는 INI/key-value/XML `.config`/`user.config`/appSettings/JSON 경계와 `Properties.Settings` 호환 XML 읽기를 검증 완료. `general.onboardingCompleted`, `general.registrationUser`와 운영 데이터 dry-run 리허설 서비스 연결 완료. 실제 운영 수동 리허설은 후속 필요 |
 | SettingsWindow | 부분 구현 | `SettingsWindow`, `SettingsWindowViewModel` 추가. ADR-0005 기준 9개 섹션(일반/화면/송출/PowerPoint/미디어/단축키/데이터/가져오기·내보내기/고급), typed setting 즉시 저장, 다크/라이트 및 Standard/Large/Senior 적용, default restore, import/export, AdminDB 분석, 검증 메시지 표시, MainWindow 설정 진입 버튼 자동 검증 완료. 작업 폴더/AdminDB/백업 루트/설정 가져오기/내보내기 파일 선택 dialog, shortcut editor 목록/저장/복원/충돌 검증, runtime shortcut override 반영, media volume/balance/mute/directory/live camera runtime 반영, PowerPoint render timeout/thumbnail cache/tab/max file/panel overlay runtime 반영, display/window placement runtime 반영, alert/gap/lyrics monitor output runtime 반영, GAP(User) 로고 이미지 표시/텍스트 fallback/동일 경로 캐시 반영, PowerPoint/media/display/alert/gap/lyrics monitor operational setting 로드/저장/rollback 및 XAML 노출 검증 완료. 데이터 탭에서 운영 데이터 리허설 실행 버튼, 요약 상태, DB table inventory 표시, warning/error 검증 메시지 연결을 완료했다. WPF focus/screenshot 회귀와 데이터 마이그레이션 온보딩 UI는 후속 필요 |
 | 최초 실행 온보딩 | 1차 구현 완료 | `WelcomeWindow`, `IOnboardingCoordinator`, `IOnboardingDialogService` 추가. 첫 실행 시 Standard/Large/Senior 크기 선택 화면을 표시하고, 선택한 `InterfaceSize`를 저장/적용한 뒤 `general.onboardingCompleted`로 재표시를 차단한다. 취소 시 완료 플래그를 저장하지 않는 경계를 자동 검증했다. 실제 설치/업그레이드 패키지 첫 실행 수동 확인은 후속 필요 |
 | legacy settings map | 부분 구현 | `docs/wpf-migration/inventory/settings-map.md`와 `LegacySettingsMap` 추가. 현행 `AxicultusSettingKeys` 전체 inventory, `FrmOptions.SaveVariables` 고위험 key 문서화, `RegistrationUser` 포함 핵심 legacy alias 자동 이식, bool 호환 parsing, media scale 정규화, legacy shortcut 자동 이식, PowerPoint/media/display/alert/gap/lyrics monitor 세부 typed key 자동 이식 검증 완료. media audio/default output monitor/PowerPoint render timeout/thumbnail cache/display window placement/alert/gap/lyrics monitor/PowerPoint tab/max file/media tab/media directory/live camera/panel overlay runtime 소비처 연결 완료 |
@@ -193,31 +193,31 @@ DB 검증:
 
 2026-05-29 검증 결과:
 
-- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter SettingsServiceTests`: 7개 통과
-- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter LegacySettingsMapTests`: 9개 통과
-- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter RegistryLegacySettingsSourceTests`: 3개 통과
-- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter "FileLegacySettingsSourceTests|ConfigureServices_ResolvesPowerPointRenderServiceWithSettingsBackedConstructor"`: 6개 통과
-- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter SettingsBootstrapMigrationServiceTests`: 3개 통과
-- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter SettingsWindowViewModelTests`: 20개 통과
-- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter AssetMigrationServiceTests`: 5개 통과
-- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter DatabaseMigrationServiceTests`: 7개 통과
-- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter OperationalDataRehearsalServiceTests`: 3개 통과
-- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter "SettingsWindowViewModelTests|AppServiceRegistrationTests|ThemeServiceTests"`: 36개 통과
-- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter "OnboardingCoordinatorTests|AppServiceRegistrationTests|LegacySettingsMapTests"`: 13개 통과
-- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter "SupportInfoServiceTests|AppServiceRegistrationTests|LegacySettingsMapTests|MigrateLegacyAsync_ImportsRegistrationUser"`: 20개 통과
-- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter "AdminDatabaseRepositoryTests|LibraryViewModelTests"`: 30개 통과
-- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter "FolderEditorViewModelTests|AppServiceRegistrationTests"`: 5개 통과
-- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter "SongEditorViewModelTests|AppServiceRegistrationTests"`: 9개 통과
-- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter "SongCopyViewModelTests|AppServiceRegistrationTests"`: 5개 통과
-- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter "SongMoveViewModelTests|AppServiceRegistrationTests"`: 5개 통과
-- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter "AdminDatabaseRepositoryTests|SongDeleteViewModelTests|SongRecoveryViewModelTests|AppServiceRegistrationTests"`: 28개 통과
-- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter "AdminDatabaseRepositoryTests|LibraryViewModelTests|SongMergeServiceTests|SongMergeViewModelTests|AppServiceRegistrationTests"`: 37개 통과
-- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter "ExternalFileOperationServiceTests|ExternalFileOperationViewModelTests|AppServiceRegistrationTests"`: 8개 통과
-- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter "BibleRepositoryTests|BibleViewModelTests|MainViewModelTests|AppServiceRegistrationTests"`: 30개 통과
-- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter "ImportExportServiceTests|ImportExportViewModelTests|AppServiceRegistrationTests"`: 18개 통과
-- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter "OutputWindowViewModelTests"`: 11개 통과
-- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter "SearchUsageServiceTests|SearchUsageViewModelTests|AppServiceRegistrationTests"`: 12개 통과
-- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug`: 375개 통과
+- `dotnet test Axicultus.Tests\Axicultus.Tests.csproj -c Debug --filter SettingsServiceTests`: 7개 통과
+- `dotnet test Axicultus.Tests\Axicultus.Tests.csproj -c Debug --filter LegacySettingsMapTests`: 9개 통과
+- `dotnet test Axicultus.Tests\Axicultus.Tests.csproj -c Debug --filter RegistryLegacySettingsSourceTests`: 3개 통과
+- `dotnet test Axicultus.Tests\Axicultus.Tests.csproj -c Debug --filter "FileLegacySettingsSourceTests|ConfigureServices_ResolvesPowerPointRenderServiceWithSettingsBackedConstructor"`: 6개 통과
+- `dotnet test Axicultus.Tests\Axicultus.Tests.csproj -c Debug --filter SettingsBootstrapMigrationServiceTests`: 3개 통과
+- `dotnet test Axicultus.Tests\Axicultus.Tests.csproj -c Debug --filter SettingsWindowViewModelTests`: 20개 통과
+- `dotnet test Axicultus.Tests\Axicultus.Tests.csproj -c Debug --filter AssetMigrationServiceTests`: 5개 통과
+- `dotnet test Axicultus.Tests\Axicultus.Tests.csproj -c Debug --filter DatabaseMigrationServiceTests`: 7개 통과
+- `dotnet test Axicultus.Tests\Axicultus.Tests.csproj -c Debug --filter OperationalDataRehearsalServiceTests`: 3개 통과
+- `dotnet test Axicultus.Tests\Axicultus.Tests.csproj -c Debug --filter "SettingsWindowViewModelTests|AppServiceRegistrationTests|ThemeServiceTests"`: 36개 통과
+- `dotnet test Axicultus.Tests\Axicultus.Tests.csproj -c Debug --filter "OnboardingCoordinatorTests|AppServiceRegistrationTests|LegacySettingsMapTests"`: 13개 통과
+- `dotnet test Axicultus.Tests\Axicultus.Tests.csproj -c Debug --filter "SupportInfoServiceTests|AppServiceRegistrationTests|LegacySettingsMapTests|MigrateLegacyAsync_ImportsRegistrationUser"`: 20개 통과
+- `dotnet test Axicultus.Tests\Axicultus.Tests.csproj -c Debug --filter "AdminDatabaseRepositoryTests|LibraryViewModelTests"`: 30개 통과
+- `dotnet test Axicultus.Tests\Axicultus.Tests.csproj -c Debug --filter "FolderEditorViewModelTests|AppServiceRegistrationTests"`: 5개 통과
+- `dotnet test Axicultus.Tests\Axicultus.Tests.csproj -c Debug --filter "SongEditorViewModelTests|AppServiceRegistrationTests"`: 9개 통과
+- `dotnet test Axicultus.Tests\Axicultus.Tests.csproj -c Debug --filter "SongCopyViewModelTests|AppServiceRegistrationTests"`: 5개 통과
+- `dotnet test Axicultus.Tests\Axicultus.Tests.csproj -c Debug --filter "SongMoveViewModelTests|AppServiceRegistrationTests"`: 5개 통과
+- `dotnet test Axicultus.Tests\Axicultus.Tests.csproj -c Debug --filter "AdminDatabaseRepositoryTests|SongDeleteViewModelTests|SongRecoveryViewModelTests|AppServiceRegistrationTests"`: 28개 통과
+- `dotnet test Axicultus.Tests\Axicultus.Tests.csproj -c Debug --filter "AdminDatabaseRepositoryTests|LibraryViewModelTests|SongMergeServiceTests|SongMergeViewModelTests|AppServiceRegistrationTests"`: 37개 통과
+- `dotnet test Axicultus.Tests\Axicultus.Tests.csproj -c Debug --filter "ExternalFileOperationServiceTests|ExternalFileOperationViewModelTests|AppServiceRegistrationTests"`: 8개 통과
+- `dotnet test Axicultus.Tests\Axicultus.Tests.csproj -c Debug --filter "BibleRepositoryTests|BibleViewModelTests|MainViewModelTests|AppServiceRegistrationTests"`: 30개 통과
+- `dotnet test Axicultus.Tests\Axicultus.Tests.csproj -c Debug --filter "ImportExportServiceTests|ImportExportViewModelTests|AppServiceRegistrationTests"`: 18개 통과
+- `dotnet test Axicultus.Tests\Axicultus.Tests.csproj -c Debug --filter "OutputWindowViewModelTests"`: 11개 통과
+- `dotnet test Axicultus.Tests\Axicultus.Tests.csproj -c Debug --filter "SearchUsageServiceTests|SearchUsageViewModelTests|AppServiceRegistrationTests"`: 12개 통과
+- `dotnet test Axicultus.Tests\Axicultus.Tests.csproj -c Debug`: 375개 통과
 - `dotnet test Axicultus.sln -c Debug`: 375개 통과
 - `dotnet build Axicultus.sln -c Release`: 성공
 - `dotnet test Axicultus.sln -c Release --no-build`: 375개 통과

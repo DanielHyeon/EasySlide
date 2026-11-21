@@ -8,7 +8,6 @@ using Application = NetOffice.PowerPointApi.Application;
 using System.Runtime.InteropServices;
 using NetOffice.PowerPointApi.Enums;
 using System.Reflection;
-using Microsoft.Win32;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -35,9 +34,6 @@ namespace OfficeLib
 		public Application prePowerPointApp;
 
 		public string[,] ScreenDumpFullPath = new string[2, 0];
-
-		// Screen device name of the output monitor, written to PowerPoint's DisplayMonitor setting by Run.
-		public string displayName = "None";
 
 		/// <summary>
 		/// Attaches this wrapper to PowerPoint when it is not attached yet. A wrapper that already holds a live
@@ -212,6 +208,7 @@ namespace OfficeLib
 			SlideShowRaiseError = null;
 			SlideShowRaiseSkipped = null;
 			LastRunStarted = false;
+			PositionedOnTarget = false;
 			currentSlideShowWindow = IntPtr.Zero;
 			ForgetRunPresentation();
 			using PowerPointGate gate = PowerPointGate.Enter(PowerPointCallWeight.Heavy, "start the slide show of " + Path.GetFileName(InPowerpointFullPath));
@@ -221,15 +218,6 @@ namespace OfficeLib
 			}
 			try
 			{
-				string version = prePowerPointApp.Version;
-
-				// The output monitor for PowerPoint's slide show. "None" (no output monitor configured) is not a monitor:
-				// writing it would only overwrite the user's own PowerPoint setting.
-				if (!string.IsNullOrWhiteSpace(displayName) && !string.Equals(displayName, "None", StringComparison.OrdinalIgnoreCase))
-				{
-					SaveRegValue(version, @"PowerPoint\Options", "DisplayMonitor", displayName);
-				}
-
 				int entry = FindListedEntry(InPowerpointFullPath, PowerpointList);
 				showCopyName = (entry > 0) ? PowerpointList[entry].CopyName : "";
 				inspectedPresentations = "";
@@ -278,7 +266,7 @@ namespace OfficeLib
 								PowerPointCallLimit.Progress();
 								LastRunStarted = true;
 								RememberRunPresentation(fullName, i, mark, app);
-								if (KeepSlideShowOnTop)
+								if (KeepSlideShowOnTop || TargetBounds.HasValue)
 								{
 									// The slide show window's title holds FullName ("PresentationN"); Name can be
 									// another text for these untitled copies (seen with PowerPoint 16: the first
@@ -288,8 +276,11 @@ namespace OfficeLib
 									if (currentSlideShowWindow != IntPtr.Zero)
 									{
 										GetWindowThreadProcessId(currentSlideShowWindow, out currentSlideShowProcessId);
+										if (TargetBounds is { } bounds && IsSameWindow(currentSlideShowWindow, currentSlideShowProcessId))
+											PositionedOnTarget = SetWindowPos(currentSlideShowWindow, IntPtr.Zero, bounds.Left, bounds.Top,
+												bounds.Width, bounds.Height, SWP_NOZORDER | SWP_NOACTIVATE);
 									}
-									RaiseCurrentSlideShowWindow();
+									if (KeepSlideShowOnTop) RaiseCurrentSlideShowWindow();
 								}
 							}
 							finally
@@ -1195,22 +1186,6 @@ namespace OfficeLib
 			catch (Exception)
 			{
 				return 0;
-			}
-		}
-
-
-		public static void SaveRegValue(string Version, string Section, string Name, string Value)
-		{
-			try
-			{
-				using (RegistryKey registryKey = Registry.CurrentUser.CreateSubKey($@"Software\Microsoft\Office\{Version}\{Section}"))
-				{
-					registryKey.SetValue(Name, Value, RegistryValueKind.String);
-				}
-			}
-			catch (Exception ex)
-			{
-				Console.WriteLine($"Error saving registry value {Name}: {ex.Message}");
 			}
 		}
 

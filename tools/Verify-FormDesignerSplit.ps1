@@ -4,7 +4,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-$formsDir = Join-Path $ProjectRoot 'Axicultus\Axicultus'
+$formsDir = Join-Path $ProjectRoot 'Axicultuss\Forms'
 if (-not (Test-Path $formsDir)) {
     Write-Error "Forms directory not found: $formsDir"
 }

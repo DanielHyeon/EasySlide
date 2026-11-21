@@ -97,7 +97,7 @@ dotnet test Axicultus.sln -c Debug --no-build
 - `MediaPlaybackViewModelTests`
 
 현재 상태: `MainViewModelTests`, `MainWindowCopyTests`, `LiveSessionServiceTests`, `OutputWindowServiceTests`, `OutputWindowHostTests`, `OutputWindowViewModelTests`, `MediaPlaybackServiceTests`, `MediaPlaybackViewModelTests` 추가 완료. `BlackScreenCommand`, `HideOutputCommand`, `GoLiveCommand`, `StopLiveCommand`, 라이브 중 `CloseOutputCommand`는 `ILiveSafetyPrompt`를 통해 SafetyConfirm 연결 경계를 검증한다. 라이브 중 Next/Prev는 리모컨 운영 흐름을 막지 않도록 추가 확인 없이 현재 선택 항목을 송출하며, 저장/이식된 `AdvanceNextItem`은 현재 항목을 송출한 뒤 다음 항목을 운영 selection으로 준비한다. `MainWindowCopyTests`는 운영 셸 제목/출력/설정/예배 순서/상태 패널 한국어 라벨을 회귀 방지하고, `MainViewModelTests`는 샘플 큐와 빈 큐/PowerPoint 제한 상태 메시지의 readable Korean copy를 고정한다. `OutputWindowHost`/`OutputWindowViewModel`은 settings-backed lyrics monitor alert/color/notation visibility를 출력 창에 반영한다. 미디어 컨트롤은 `IMediaPlaybackBackend` fake/NoOp 경계 기준으로 load/play/pause/stop/seek/mute/repeat/volume/balance, 저장/이식된 media audio default와 runtime 변경 반영, backend 명령 위임, 모든 주요 backend 명령 실패 상태 전환, ViewModel command를 자동 검증한다.
-Release 산출물 `Axicultus.Wpf\bin\Release\net11.0-windows7.0\Axicultus.exe`(산출물 분리 §9.4 — 신규 빌드는 Axicultus.exe), `MainWindow.baml`, `OutputWindow.baml` 생성 확인.
+Release 산출물 `Axicultus\bin\Release\net11.0-windows7.0\Axicultus.exe`(산출물 분리 §9.4 — 신규 빌드는 Axicultus.exe), `MainWindow.baml`, `OutputWindow.baml` 생성 확인.
 
 수동 게이트:
 
@@ -283,12 +283,12 @@ Release 산출물 `Axicultus.Wpf\bin\Release\net11.0-windows7.0\Axicultus.exe`(�
 
 | 위치 | 목적 |
 |---|---|
-| `Axicultus.Wpf.Tests/Shell` | MainViewModel, LiveSession |
-| `Axicultus.Wpf.Tests/Library` | 목록/검색/편집 |
-| `Axicultus.Wpf.Tests/Rendering` | PPT/image/media service |
-| `Axicultus.Wpf.Tests/Settings` | 설정/migration |
-| `Axicultus.Wpf.Tests/Platform` | shortcut/display/window placement |
-| `Axicultus.Wpf.Tests/Fixtures` | 샘플 작업 폴더와 작은 테스트 자산 |
+| `Axicultus.Tests/Shell` | MainViewModel, LiveSession |
+| `Axicultus.Tests/Library` | 목록/검색/편집 |
+| `Axicultus.Tests/Rendering` | PPT/image/media service |
+| `Axicultus.Tests/Settings` | 설정/migration |
+| `Axicultus.Tests/Platform` | shortcut/display/window placement |
+| `Axicultus.Tests/Fixtures` | 샘플 작업 폴더와 작은 테스트 자산 |
 
 테스트 작성 규칙:
 
@@ -304,7 +304,7 @@ Release 산출물 `Axicultus.Wpf\bin\Release\net11.0-windows7.0\Axicultus.exe`(�
 dotnet restore Axicultus.sln
 dotnet build Axicultus.sln -c Release
 dotnet test Axicultus.sln -c Release --no-build
-dotnet run --project Axicultus.Wpf\Axicultus.Wpf.csproj -c Release
+dotnet run --project Axicultus\Axicultus.csproj -c Release
 ```
 
 추가 수동 확인:

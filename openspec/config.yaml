@@ -2,11 +2,11 @@
 
 context: |
   Project: Axicultus v2.6.x, a Windows worship-slide operator app for churches.
-  Stack: C#/.NET 10, WinForms legacy app, WPF migration in Axicultus.Wpf, SQLite plus optional MariaDB/MySQL sync, Office/PowerPoint interop.
+  Stack: C#/.NET 11, WinForms app in Axicultuss, WPF app in Axicultus, SQLite plus optional MariaDB/MySQL sync, Office/PowerPoint interop.
   Operating contract: OpenSpec is the only official product/change contract. CodeGraph is required evidence for structural impact. Superpowers-style TDD is the execution rule for behavior changes. gstack/code-review gates are quality evidence, not the source of requirements.
   Branch discipline: use a small feature/hotfix branch per approved OpenSpec change or approved implementation plan. Prefer branch names that include the change id, such as feat/a002-wpf-frmmain-shortcut-parity.
   Change id convention: new OpenSpec changes created from now on should use <prefix><NNN> followed by a short kebab-case intent, for example a001-wpf-mainwindow-shell, a002-wpf-shortcut-focus-parity. Use lowercase letter prefixes in sequence so a001~a999 are followed by b001, then c001. The leading letter satisfies the OpenSpec CLI requirement that change names start with a letter; NNN is ordering metadata, not priority.
-  Validation baseline: dotnet build Axicultus\Axicultus.csproj -nologo -v minimal, dotnet test Axicultus.Wpf.Tests, and targeted manual worship-output QA for monitor/Office/DB-sensitive changes.
+  Validation baseline: dotnet build Axicultuss\Axicultuss.csproj -nologo -v minimal, dotnet test Axicultus.Tests, and targeted manual worship-output QA for monitor/Office/DB-sensitive changes.
 
 rules:
   proposal:

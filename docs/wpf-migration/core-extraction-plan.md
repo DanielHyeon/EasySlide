@@ -12,10 +12,10 @@
 
 | 항목 | 사실 |
 |---|---|
-| legacy 프로젝트 | `Axicultus/Axicultus.csproj` — `net10.0-windows7.0`, `WinExe`, `UseWindowsForms=true` |
-| 신규 WPF | `Axicultus.Wpf/Axicultus.Wpf.csproj` — `net10.0-windows`, 산출물 `Axicultus.exe` |
+| legacy 프로젝트 | `Axicultuss/Axicultuss.csproj` — `net10.0-windows7.0`, `WinExe`, `UseWindowsForms=true` |
+| 신규 WPF | `Axicultus/Axicultus.csproj` — `net10.0-windows`, 산출물 `Axicultus.exe` |
 | 상호 참조 | **WPF는 legacy 를 ProjectReference 하지 않음** — 두 앱의 도메인 모델이 **현재 완전히 분리**(WPF는 `LegacySettingsMap` 등으로 매핑만) |
-| legacy 도메인 위치 | `Axicultus/Module/` — `CommonEnum.cs`(131줄), `SongFormat.cs`(97), `SongLyrics.cs`(79), `SongSettings.cs`(210) |
+| legacy 도메인 위치 | `Axicultuss/Module/` — `CommonEnum.cs`(131줄), `SongFormat.cs`(97), `SongLyrics.cs`(79), `SongSettings.cs`(210) |
 
 ### 2.1 Core 후보의 결합도 분류 (using 분석)
 
@@ -39,7 +39,7 @@
 
 ### Phase 1 — `CommonEnum` → Core (최저위험, 먼저)
 1. `Axicultus.Core` 프로젝트 생성(`net10.0`, 클래스 라이브러리), 솔루션에 추가.
-2. `Axicultus/Module/CommonEnum.cs` 를 `Axicultus.Core/` 로 이동(네임스페이스 `Axicultus.Module` 유지).
+2. `Axicultuss/Module/CommonEnum.cs` 를 `Axicultus.Core/` 로 이동(네임스페이스 `Axicultus.Module` 유지).
 3. `Axicultus.csproj` 에 `ProjectReference Axicultus.Core` 추가.
 4. **검증**: legacy 빌드 0 errors(사용처 코드 무수정 컴파일), 전체 테스트 green.
 5. **롤백**: 파일 되돌리기 + 참조 제거(독립적).
@@ -64,14 +64,14 @@
   - `Initialise()` 가 `Gf.DefaultForeColour`(static `Axicultus.Gf`) 를 참조 — 계획서 §2.1 분류(★★, Drawing만)와 달리 Gf 강결합 존재.
 - **결정: 상속 분리**(전체 원시값화 대신). Font 재생성 회귀 위험을 피하면서 포터블 도메인만 Core 로 옮긴다.
   - `Axicultus.Core/SongLyricsBase.cs`(namespace `Axicultus.Module`): 포터블 상태만 — 텍스트·표시여부·좌표 int·레이아웃 캐시 int·`FS_InterlaceLinePattern`. 색상 `BackColour`/`ForeColour` 는 ARGB `int` 로 디커플(SongFormat 과 동일 규칙, 기본값 0 == `default(Color).ToArgb()`).
-  - `Axicultus/Module/SongLyrics.cs` → `public class SongLyrics : SongLyricsBase`: GDI+ 캐시(`Font`×4, `StringAlignment TextAlign`)와 `Initialise()` 만 보유. 네임스페이스·클래스명 유지 → 사용처 무변경.
+  - `Axicultuss/Module/SongLyrics.cs` → `public class SongLyrics : SongLyricsBase`: GDI+ 캐시(`Font`×4, `StringAlignment TextAlign`)와 `Initialise()` 만 보유. 네임스페이스·클래스명 유지 → 사용처 무변경.
   - 색상 소비처 9곳(`gfDisplay` 6, `gfLyrics` 3) 만 `Color.FromArgb`/`.ToArgb` 변환. **Font/TextAlign 핫패스 무변경**.
 - 검증: Core 0 warnings, legacy 빌드 0 errors, 전체 테스트 453(WPF) green(SongLyricsBase 위치·색상 int·Font/TextAlign 비포함 고정 테스트 추가). code-reviewer Approve(Critical 0).
 
 ### Phase 3 — `SongSettings` (완료 · 상속 분리 채택)
 - **결정: 상속 분리**(Phase 2b 와 동일 패턴). WinForms/Gf 결합을 "디커플 선행"하는 대신, 포터블 부분만 base 로 떼어 Core 에 둔다.
   - `Axicultus.Core/SongSettingsBase.cs`(namespace `Axicultus.Module`): 포터블 필드 전체(string/int/bool/배열, `ItemSource Source`, `SongFormat Format`). 65개 필드, 초기값 그대로.
-  - `Axicultus/Module/SongSettings.cs` → `public class SongSettings : SongSettingsBase`: Core 로 못 옮기는 것만 보유 — `ListView LyricsAndNotationsList`(WinForms), `SongLyrics[] Lyrics`(legacy 렌더 상태), `Initialise()`(`static Gf.SetListViewColumns` 호출). 무관한 `SHFILEOPSTRUCT`(P/Invoke)도 이 파일에 잔류.
+  - `Axicultuss/Module/SongSettings.cs` → `public class SongSettings : SongSettingsBase`: Core 로 못 옮기는 것만 보유 — `ListView LyricsAndNotationsList`(WinForms), `SongLyrics[] Lyrics`(legacy 렌더 상태), `Initialise()`(`static Gf.SetListViewColumns` 호출). 무관한 `SHFILEOPSTRUCT`(P/Invoke)도 이 파일에 잔류.
   - **필드 타입 변경 없음(순수 relocation)** → 17개 `new SongSettings()` 포함 모든 사용처 무변경.
 - 검증: Core 0 warnings, legacy 빌드 0 errors, 전체 테스트 454(WPF) green(SongSettingsBase 위치·`Format`/`Source`·ListView/Lyrics/Initialise 비포함 고정 테스트 추가). code-reviewer Approve(Critical 0 — 필드 분할 67=65+2, 초기값·`Initialise()` 본문 byte-identical 교차검증).
 - 후속(비범위): `Initialise()` 의 local `songFormat` 미대입(기존 죽은 코드)은 relocation 계약 보존 위해 이번엔 손대지 않음 — relocation 단계 종료 후 별도 정리 검토.

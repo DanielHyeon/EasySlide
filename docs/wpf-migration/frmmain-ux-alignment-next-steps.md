@@ -1,11 +1,11 @@
 # FrmMain 기준 WPF UI/UX 정렬 문서
 
 작성일: 2026-06-04  
-대상: `Axicultus.Wpf/MainWindow.xaml`, `Axicultus/Axicultus/FrmMain.*`
+대상: `Axicultus/MainWindow.xaml`, `Axicultuss/Forms/FrmMain.*`
 
 ## 1. 결론
 
-`Axicultus.Wpf/MainWindow.xaml`의 최종 UI/UX 기준은 새롭게 재해석한 WPF 대시보드가 아니라, 기존 WinForms `FrmMain`의 운영 방식이어야 한다.
+`Axicultus/MainWindow.xaml`의 최종 UI/UX 기준은 새롭게 재해석한 WPF 대시보드가 아니라, 기존 WinForms `FrmMain`의 운영 방식이어야 한다.
 
 이 판단의 이유는 단순한 취향 문제가 아니다. Axicultus는 예배나 행사 중 실제 송출을 다루는 도구이고, 이 환경에서는 보기 좋은 화면보다 운영자가 실수 없이 빠르게 조작할 수 있는 화면이 더 중요하다. 기존 `FrmMain`은 시각적으로 낡았더라도, 운영자가 필요한 기능을 한 화면에서 바로 찾고 바로 누르는 "운영 콘솔" 구조를 갖고 있다.
 
@@ -27,20 +27,20 @@
 
 레거시 WinForms 기준:
 
-- `Axicultus/Axicultus/FrmMain.cs`
-- `Axicultus/Axicultus/FrmMain.Designer.cs`
-- `Axicultus/Axicultus/FrmMain.Events.cs`
-- `Axicultus/Axicultus/FrmMain.Fields.cs`
-- `Axicultus/Axicultus/FrmMain.Layout.cs`
-- `Axicultus/Axicultus/FrmMain.Logic.cs`
-- `Axicultus/Axicultus/FrmMain.resx`
+- `Axicultuss/Forms/FrmMain.cs`
+- `Axicultuss/Forms/FrmMain.Designer.cs`
+- `Axicultuss/Forms/FrmMain.Events.cs`
+- `Axicultuss/Forms/FrmMain.Fields.cs`
+- `Axicultuss/Forms/FrmMain.Layout.cs`
+- `Axicultuss/Forms/FrmMain.Logic.cs`
+- `Axicultuss/Forms/FrmMain.resx`
 
 WPF 대상:
 
-- `Axicultus.Wpf/MainWindow.xaml`
-- `Axicultus.Wpf/MainWindow.xaml.cs`
-- `Axicultus.Wpf/Shell/MainViewModel.cs`
-- `Axicultus.Wpf/Composites/*`
+- `Axicultus/MainWindow.xaml`
+- `Axicultus/MainWindow.xaml.cs`
+- `Axicultus/Shell/MainViewModel.cs`
+- `Axicultus/Composites/*`
 
 관련 기존 문서:
 
@@ -287,7 +287,7 @@ WPF에서 개선할 대상은 다음이다.
 
 완료 기준:
 
-- `dotnet test Axicultus.Wpf.Tests/Axicultus.Wpf.Tests.csproj -c Debug --no-restore` 통과.
+- `dotnet test Axicultus.Tests/Axicultus.Tests.csproj -c Debug --no-restore` 통과.
 - WPF 앱 실행 시 바인딩 관련 디버그 알림이 뜨지 않는다.
 
 ### P2. 시각 디자인 정돈

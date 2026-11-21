@@ -16,7 +16,7 @@ WinForms→WPF 이식·컴포지트 추출(작업 A) 시 "보이는 결과가 �
 | **DPI 96 고정 + Pbgra32** | 환경 간 동일 픽셀 치수·채널 정렬 보장. |
 | **허용오차 비교** (채널 ±2, 차이 픽셀 0%) | 미세 인코딩 잡음은 흡수, 실제 색·레이아웃 변경은 감지. |
 | **승인 테스트(approval) 방식** | 기준 이미지가 없으면 `AXICULTUS_APPROVE_BASELINES=1` 일 때만 생성·실패. CI에서는 미설정이라 "조용한 생성 후 통과" 위장 차단. |
-| **경로 분리** | 기준 이미지는 소스 트리(`Axicultus.Wpf.Tests/Rendering/baselines/`, 커밋 대상), 진단 산출물 `*.actual.png` 는 테스트 출력 폴더(`bin/.../screenshot-actuals/`, gitignore). |
+| **경로 분리** | 기준 이미지는 소스 트리(`Axicultus.Tests/Rendering/baselines/`, 커밋 대상), 진단 산출물 `*.actual.png` 는 테스트 출력 폴더(`bin/.../screenshot-actuals/`, gitignore). |
 
 ## 3. 구성 요소 (테스트 인프라)
 

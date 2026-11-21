@@ -8,7 +8,7 @@
 
 ## 컨텍스트
 
-`Axicultus/HookManager/` 에 5파일로 구성된 전역 Win32 키보드/마우스 후킹 시스템:
+`Axicultuss/HookManager/` 에 5파일로 구성된 전역 Win32 키보드/마우스 후킹 시스템:
 - `HookManager.cs` — 진입점
 - `HookManager.Callbacks.cs` — 후킹 콜백
 - `HookManager.Windows.cs` — Win32 API 바인딩 (`SetWindowsHookEx`, `WH_KEYBOARD_LL`, `WH_MOUSE_LL`)
@@ -57,7 +57,7 @@ WPF는 **표준 입력 라우팅**으로 `InputBinding`/`KeyBinding`/`PreviewKey
 
 세부 — **충돌 회피 프로토콜**:
 
-1. **단축키 등록 단일 소스**: `Axicultus.Wpf/Input/ShortcutRegistry.cs` 신설.
+1. **단축키 등록 단일 소스**: `Axicultus/Input/ShortcutRegistry.cs` 신설.
    - 단축키 정의를 `Shortcut` 레코드(키 조합 + Command + 글로벌 여부)로 단일 선언
    - HookManager는 `IsGlobal == true`인 항목만 처리
    - WPF `PreviewKeyDown`은 모든 항목 처리 (포커스 있을 때)
@@ -105,5 +105,5 @@ PoC-A 실패 시 Sprint 1 진입 차단 (계획서 §8.3).
 - 계획서 §7.5, §8.3 (Sprint 0 PoC-A), §10.3
 - [Win32 SetWindowsHookEx 문서](https://learn.microsoft.com/windows/win32/api/winuser/nf-winuser-setwindowshookex)
 - [WPF Input Routing](https://learn.microsoft.com/dotnet/desktop/wpf/advanced/input-overview)
-- `Axicultus/HookManager/HookManager.cs` (보존 대상)
+- `Axicultuss/HookManager/HookManager.cs` (보존 대상)
 - ADR-0001 (WPF UI)

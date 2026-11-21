@@ -1,7 +1,7 @@
 # Legacy 설정 매핑 인벤토리
 
 > 기준일: 2026-05-29
-> 코드 기준: `Axicultus.Wpf/Settings/LegacySettingsMap.cs`
+> 코드 기준: `Axicultus/Settings/LegacySettingsMap.cs`
 > 범위: `FrmOptions.SaveVariables`, `gfConfig.InitAxicultusDir`, WPF `AxicultusSettingKeys`
 
 ## 1. 목적

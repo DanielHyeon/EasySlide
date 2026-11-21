@@ -8,7 +8,7 @@
 
 | 열 | 의미 |
 |---|---|
-| **현행** | `Axicultus/Resources/` 또는 `AxicultusImages/`의 raster 파일명 |
+| **현행** | `Axicultuss/Resources/` 또는 `AxicultusImages/`의 raster 파일명 |
 | **EasiDS 키** | `Theme/Icons.xaml`에 정의할 통일된 키 (`Icon.도메인.역할`) |
 | **옵션 A (WPF UI Symbol)** | `<Ui:SymbolIcon Symbol="..." />` 즉시 사용 |
 | **옵션 B (Fluent SVG)** | WPF UI Symbol에 없으면 이 SVG 다운로드 → 변환 |
@@ -127,15 +127,15 @@
 ## 9. 적용 후 디렉터리 상태 (목표)
 
 **삭제 대상**:
-- `Axicultus/Resources/*.png` (전부)
-- `Axicultus/Resources/Image1.bmp`
+- `Axicultuss/Resources/*.png` (전부)
+- `Axicultuss/Resources/Image1.bmp`
 - `AxicultusImages/*.png` 및 `AxicultusImages/Original/*.png` (브랜드 자산 제외)
 
 **유지 (자체 자산)**:
-- `Axicultus.Wpf/Assets/Brand/AppIcon.svg` ← 신규, ES Icon 32 Blue 재작업
-- `Axicultus.Wpf/Assets/Brand/AppIcon.ico` ← 다중 사이즈 .ico
-- `Axicultus.Wpf/Assets/Brand/Logo.svg` ← logo2023 재작업
-- `Axicultus.Wpf/Theme/Icons.xaml` ← Fluent 아이콘 매핑 키 정의
+- `Axicultus/Assets/Brand/AppIcon.svg` ← 신규, ES Icon 32 Blue 재작업
+- `Axicultus/Assets/Brand/AppIcon.ico` ← 다중 사이즈 .ico
+- `Axicultus/Assets/Brand/Logo.svg` ← logo2023 재작업
+- `Axicultus/Theme/Icons.xaml` ← Fluent 아이콘 매핑 키 정의
 
 **금지** (Q6 100% 폐기 원칙):
 - 어떤 형태로든 PNG/BMP 형식의 UI 아이콘
@@ -146,6 +146,6 @@
 - [ ] 본 표의 모든 행에 `Icon.*` 키 할당됨
 - [ ] 옵션 A 컬럼의 모든 Symbol이 WPF UI 라이브러리에 실제 존재하는지 확인 (코드에서 `Wpf.Ui.Controls.SymbolRegular`/`SymbolFilled` enum 검사)
 - [ ] 옵션 B로 폴백한 항목은 SVG 다운로드 + 변환 + `Assets/Icons/` 등록
-- [ ] `Axicultus/Resources/`, `AxicultusImages/` 폴더 전체 삭제 (Q6)
+- [ ] `Axicultuss/Resources/`, `AxicultusImages/` 폴더 전체 삭제 (Q6)
 - [ ] 사용자 콘텐츠(`주일예배 썸네일.png` 등)는 `AssetMigrator`로 이동 (§10.5.1)
-- [ ] 모든 폼에서 더 이상 Legacy raster를 참조하지 않음 (`grep -r "\.png" Axicultus.Wpf/` 결과 0건, Assets/Brand 제외)
+- [ ] 모든 폼에서 더 이상 Legacy raster를 참조하지 않음 (`grep -r "\.png" Axicultus/` 결과 0건, Assets/Brand 제외)

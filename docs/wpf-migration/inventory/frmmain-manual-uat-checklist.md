@@ -116,7 +116,7 @@
 - Bibles 하단 UI 수정 후 캡처: `tabs/source-03-bibles-after-frmmain-bottom-fix.png`. 사용자 지적에 따라 WPF-only 하단 추가 버튼/상태 줄을 제거하고 FrmMain처럼 `BibleText` 바로 아래 `TabBibleVersions`가 오도록 맞춤.
 - Live/Output 캡처: `wpf-before-preview-go-live.png`, `wpf-after-preview-go-live.png`, `wpf-live-safety-contact-sheet.png`, `wpf-live-before-safety-actions.png`, `wpf-output-black.png`, `wpf-output-clear.png`, `wpf-output-restore.png`.
 - `C:\Axicultus` 존재 확인: `Admin`, `Backgrounds`, `HolyBibles`, `Images`, `InfoScreens`, `Media`, `Powerpoint` 폴더 확인.
-- `Axicultus.Wpf\bin\Debug\net10.0-windows\AxicultusNext.exe` 실행 확인: `MainWindowTitle=Axicultus`, `AutomationName=Axicultus`, `AutomationClassName=Window`, UIAutomation descendant 355개.
+- `Axicultus\bin\Debug\net10.0-windows\AxicultusNext.exe` 실행 확인: `MainWindowTitle=Axicultus`, `AutomationName=Axicultus`, `AutomationClassName=Window`, UIAutomation descendant 355개.
 - 실제 데이터 로딩 신호 확인: `Legacy worship list loaded: 1.주일예배 (23 .esw items)`.
 - 주요 UI 영역 노출 확인: `Folders`, `InfoScr`, `Bibles`, `Images`, `Default`, `Worship List`, `Praise Book`, `Preview`, `Output`, `Go Live`.
 - 주요 Output 안전 제어 노출 확인: `Output 검은 화면`, `Output 화면 비우기`, `Output 복귀`, `Output 새로고침`.
@@ -175,5 +175,5 @@ The WPF migration cannot be marked usable until:
 - every `PARTIAL` row has a linked implementation task;
 - every `FAIL` row has a bug/task and is not hidden;
 - `dotnet test Axicultus.Wpf.Tests` passes;
-- `dotnet build Axicultus\Axicultus.csproj -nologo -v minimal` passes;
+- `dotnet build Axicultuss\Axicultuss.csproj -nologo -v minimal` passes;
 - WPF is launched and manually checked with real legacy data.

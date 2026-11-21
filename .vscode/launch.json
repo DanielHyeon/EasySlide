@@ -8,9 +8,9 @@
             "request": "launch",
             "preLaunchTask": "build-wpf",
             // 산출물 어셈블리명은 csproj 의 <AssemblyName>Axicultus</AssemblyName> 를 따른다.
-            "program": "${workspaceFolder}/Axicultus.Wpf/bin/Debug/net11.0-windows7.0/Axicultus.dll",
+            "program": "${workspaceFolder}/Axicultus/bin/Debug/net11.0-windows7.0/Axicultus.dll",
             "args": [],
-            "cwd": "${workspaceFolder}/Axicultus.Wpf",
+            "cwd": "${workspaceFolder}/Axicultus",
             "console": "internalConsole",
             "stopAtEntry": false,
             "justMyCode": false,
@@ -24,9 +24,9 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}/Axicultus/bin/Debug/net11.0-windows7.0/Axicultuss.dll",
+            "program": "${workspaceFolder}/Axicultuss/bin/Debug/net11.0-windows7.0/Axicultuss.dll",
             "args": [],
-            "cwd": "${workspaceFolder}/Axicultus",
+            "cwd": "${workspaceFolder}/Axicultuss",
             "console": "internalConsole",
             "stopAtEntry": false
         },

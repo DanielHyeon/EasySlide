@@ -9,12 +9,12 @@
 
 | 지표 | 값 | 근거 |
 |---|---|---|
-| 레거시 폼 | **38개** (`Frm*.cs`, partial 제외) | `Axicultus/Axicultus/Frm*.cs` |
-| WPF 실제 앱 창 | **19개** (+데모/갤러리 5) | `Axicultus.Wpf/**/*Window.xaml` |
+| 레거시 폼 | **38개** (`Frm*.cs`, partial 제외) | `Axicultuss/Forms/Frm*.cs` |
+| WPF 실제 앱 창 | **19개** (+데모/갤러리 5) | `Axicultus/**/*Window.xaml` |
 | 빌드/테스트 | 0 errors · WPF 514 green (2026-05-30, 미디어 트랙3 포함) + 분석기 20 | — |
 | production entrypoint | **레거시(`Axicultuss.exe`)가 주력** | next-session-plan §B "WPF 아직 production 아님" |
 | 마일스톤(기능 기준) | **M1 도달 / M2 부분 / M3·M4 미달** | 아래 §3·§4 |
-| 알려진 문서 부채 | `Axicultus.Wpf/README.md` 가 "Sprint 0 PoC" 로 **stale** | 실제 90 커밋·~6,800줄 XAML |
+| 알려진 문서 부채 | `Axicultus/README.md` 가 "Sprint 0 PoC" 로 **stale** | 실제 90 커밋·~6,800줄 XAML |
 
 ## 1. 상태 범례
 
@@ -138,7 +138,7 @@
 
 ### G-γ. 횡단/인프라 갭
 - ✅ **스크린샷 회귀 자동화 구축 완료**(§9.1, [screenshot-regression.md](screenshot-regression.md)) — 헤드리스 렌더 하니스(`VisualRenderHarness`)·허용오차 비교기(`ImageComparer`)·승인 기준(`ScreenshotBaseline`)·light/dark 토큰 스와치 기준 + CI 워크플로우. 렌더 충실도/리팩토링 안전망의 전제 충족. **남은 것: 주요 컨트롤·창 레이아웃 기준 확대(후속), CI 1회차 헤드리스 렌더 확정.**
-- **문서 부채**: `Axicultus.Wpf/README.md` "Sprint 0 PoC" stale → 실제 진척 반영 필요.
+- **문서 부채**: `Axicultus/README.md` "Sprint 0 PoC" stale → 실제 진척 반영 필요.
 - **운영 전환 게이트 미통과**(B-4): 두 exe + Core.dll 동봉 패키징 + 1시간 예배 리허설.
 
 ## 5. 구현 계획

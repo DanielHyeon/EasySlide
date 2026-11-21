@@ -12,7 +12,7 @@
 
 ## 1. 범위
 
-이 문서는 기존 `Axicultus/Axicultus`의 메인 운영 화면과 라이브 송출 흐름을 WPF로 옮기는 계획이다.
+이 문서는 기존 `Axicultuss/Forms`의 메인 운영 화면과 라이브 송출 흐름을 WPF로 옮기는 계획이다.
 
 대상 legacy 파일:
 
@@ -28,12 +28,12 @@
 
 현재 WPF 기반:
 
-- `Axicultus.Wpf/Demo/DemoWindow.xaml`
-- `Axicultus.Wpf/Composites/LiveBar.xaml`
-- `Axicultus.Wpf/Composites/SafetyConfirm.cs`
-- `Axicultus.Wpf/Controls/*`
-- `Axicultus.Wpf/Input/ShortcutRegistry.cs`
-- `Axicultus.Wpf/Media/MediaPlaybackBackend.cs`
+- `Axicultus/Demo/DemoWindow.xaml`
+- `Axicultus/Composites/LiveBar.xaml`
+- `Axicultus/Composites/SafetyConfirm.cs`
+- `Axicultus/Controls/*`
+- `Axicultus/Input/ShortcutRegistry.cs`
+- `Axicultus/Media/MediaPlaybackBackend.cs`
 
 ## 2. 목표 UI 구조
 
@@ -202,12 +202,12 @@ UX 검증:
 
 2026-05-29 검증 결과:
 
-- `dotnet test Axicultus.Wpf.Tests\Axicultus.Wpf.Tests.csproj -c Debug --filter "MainViewModelTests|MainWindowCopyTests"`: 19개 통과
+- `dotnet test Axicultus.Tests\Axicultus.Tests.csproj -c Debug --filter "MainViewModelTests|MainWindowCopyTests"`: 19개 통과
 - `dotnet test Axicultus.sln -c Debug`: 375개 통과
 - `dotnet build Axicultus.sln -c Release`: 성공
 - `dotnet test Axicultus.sln -c Release --no-build`: 375개 통과
 - CodeGraph 동기화 및 `GlobalInputService`, `CommandCatalog`, `WindowPlacementService`, `PlatformDiagnosticsService`, `IMediaPlaybackService`, `IMediaPlaybackBackend`, `NoOpMediaPlaybackBackend`, `WpfMediaElementPlaybackBackend`, `MediaPlaybackService`, `MediaPlaybackViewModel`, `IPowerPointRenderService`, `PowerPointRenderService`, `IThumbnailCache`, `ThumbnailCache`, `ThumbnailCacheTests`, `IImageAssetService`, `ImageAssetService`, `PreviewCanvas`, `SlidePreviewControl`, `PreviewCanvasTests`, `SlidePreviewControlTests`, `ITransitionEffectService`, `TransitionEffectService`, `TransitionEffectServiceTests`, `IOutputRenderer`, `OutputRenderer`, `OutputRendererTests`, `LiveOutputRenderSettings`, `OutputWindowViewModel`, `OfficePptSession.ExportSlideAsync` 인식 확인 완료
-- Release 산출물 확인: `Axicultus.Wpf\bin\Release\net11.0-windows7.0\Axicultus.exe`, `MainWindow.baml`, `OutputWindow.baml` (산출물 분리 §9.4 — exe 명 Axicultus)
+- Release 산출물 확인: `Axicultus\bin\Release\net11.0-windows7.0\Axicultus.exe`, `MainWindow.baml`, `OutputWindow.baml` (산출물 분리 §9.4 — exe 명 Axicultus)
 - `gstack /qa`, `GSD verify-work`: 현재 작업 환경 PATH에 도구가 없어 실행 불가. 동일 요구사항은 xUnit/Release build/산출물 확인으로 대체 검증
 
 수동 테스트:

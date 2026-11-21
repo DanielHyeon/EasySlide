@@ -46,6 +46,7 @@ namespace OfficeLib
 		private const uint GA_ROOT = 2;
 		private const uint SWP_NOSIZE = 0x0001;
 		private const uint SWP_NOMOVE = 0x0002;
+		private const uint SWP_NOZORDER = 0x0004;
 		private const uint SWP_NOACTIVATE = 0x0010;
 		private const uint SWP_SHOWWINDOW = 0x0040;
 		private const uint SWP_ASYNCWINDOWPOS = 0x4000;
@@ -83,6 +84,9 @@ namespace OfficeLib
 				}
 			}
 		}
+
+		public (int Left, int Top, int Width, int Height)? TargetBounds { get; set; }
+		public bool PositionedOnTarget { get; private set; }
 
 		// The slide show window of the presentation this wrapper ran last (found once per Run, raised again
 		// after SetShowWindow), or zero, and the process that owned it when it was found: a handle Windows has

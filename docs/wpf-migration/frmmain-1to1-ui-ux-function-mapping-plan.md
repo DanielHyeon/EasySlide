@@ -4,14 +4,14 @@
 
 기준 파일:
 
-- `Axicultus/Axicultus/FrmMain.Designer.cs`
-- `Axicultus/Axicultus/FrmMain.cs`
-- `Axicultus/Axicultus/FrmMain.Events.cs`
-- `Axicultus/Axicultus/FrmMain.Logic.cs`
-- `Axicultus/Axicultus/FrmMain.Layout.cs`
-- `Axicultus/Axicultus/FrmMain.Fields.cs`
-- `Axicultus.Wpf/MainWindow.xaml`
-- `Axicultus.Wpf/MainWindow.xaml.cs`
+- `Axicultuss/Forms/FrmMain.Designer.cs`
+- `Axicultuss/Forms/FrmMain.cs`
+- `Axicultuss/Forms/FrmMain.Events.cs`
+- `Axicultuss/Forms/FrmMain.Logic.cs`
+- `Axicultuss/Forms/FrmMain.Layout.cs`
+- `Axicultuss/Forms/FrmMain.Fields.cs`
+- `Axicultus/MainWindow.xaml`
+- `Axicultus/MainWindow.xaml.cs`
 
 ## 1. 재수립 이유
 

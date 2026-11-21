@@ -148,8 +148,8 @@ bld/
 .vscode/
 *.suo
 *.user
-!Axicultus/Axicultus.csproj.user
-!Axicultus/Properties/PublishProfiles/FolderProfile.pubxml.user
+!Axicultuss/Axicultuss.csproj.user
+!Axicultuss/Properties/PublishProfiles/FolderProfile.pubxml.user
 *.userosscache
 *.sln.docstates
 *.userprefs

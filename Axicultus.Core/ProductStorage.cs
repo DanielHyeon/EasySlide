@@ -11,6 +11,15 @@ public static class ProductStorage
     // Existing installations keep their chosen data directory. Fresh installations use the new name.
     public static string WorkingDirectory(string parent) => SelectDirectory(parent, ProductName, LegacyName);
 
+    public static string WinFormsProfileDirectory(string parent) => Path.Combine(parent, "Axicultuss");
+
+    public static string WinFormsWorkingDirectory(string parent)
+    {
+        var current = WinFormsProfileDirectory(parent);
+        var previous = WorkingDirectory(parent);
+        return !Directory.Exists(current) && Directory.Exists(previous) ? previous : current;
+    }
+
     public static string WpfProfileDirectory(string parent) => Path.Combine(parent, ProductName);
 
     private static string SelectDirectory(string parent, string current, string previous)

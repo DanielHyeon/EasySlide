@@ -90,4 +90,4 @@
 - 계획서 §9.4 · [`core-extraction-plan.md`](../wpf-migration/core-extraction-plan.md)
 - ADR-0007 (`--legacy-ui` 안전망)
 - PR #28(Phase 1), #29/#30(Phase 2), #31(Phase 3)
-- 가드 테스트: `Axicultus.Wpf.Tests/Startup/CoreExtractionTests.cs`
+- 가드 테스트: `Axicultus.Tests/Startup/CoreExtractionTests.cs`

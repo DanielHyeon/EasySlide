@@ -8,7 +8,7 @@
 
 ## 컨텍스트
 
-현재 Axicultus는 `Axicultus/Resources/` + `AxicultusImages/`에 60+ 개의 raster (PNG/BMP) 아이콘을 사용:
+현재 Axicultus는 `Axicultuss/Resources/` + `AxicultusImages/`에 60+ 개의 raster (PNG/BMP) 아이콘을 사용:
 - 동일 의미 상태 3개를 별도 파일로 (`BlackScreen.png` / `BlackScreen-Pressed.png` / `BlackScreen-Red.png`)
 - 호버 듀얼 (`Bible.png` / `Bible - Hightlight.png` ← 오타 자산)
 - High-DPI 스케일 대응 없음, 벡터 자산 0개
@@ -64,7 +64,7 @@ Q6 결정: **레거시 raster 100% 폐기, 벡터 아이콘 셋으로 전면 교
 - **우선순위**: WPF UI 라이브러리의 `SymbolIcon` 사용. 라이브러리에 없거나 다른 weight 필요 시 SVG 다운로드 후 빌드 시 XAML 변환.
 - **사이즈 표준**: 컨트롤별 고정 (계획서 §4.5 — 16/20/24/32)
 - **상태 표현**: 단일 아이콘 + 색·투명도 토큰으로 hover/pressed/disabled. Regular(기본) ↔ Filled(active) 페어 활용.
-- **레거시 자산**: `Axicultus/Resources/` + `AxicultusImages/` 모든 raster 100% 폐기. 사용자 콘텐츠(예배 썸네일 등)는 자산 아니므로 분리 보존(`%AppData%\Axicultus\UserAssets\`, ADR 외 §10.5.1).
+- **레거시 자산**: `Axicultuss/Resources/` + `AxicultusImages/` 모든 raster 100% 폐기. 사용자 콘텐츠(예배 썸네일 등)는 자산 아니므로 분리 보존(`%AppData%\Axicultus\UserAssets\`, ADR 외 §10.5.1).
 - **메타포 부재 처리**: Fluent 셋에 정확한 메타포가 없으면 가장 유사한 아이콘 차용. 절대 raster 잔존 금지.
 - **매핑 표**: 계획서 §11.B에 초안, 전체 60+개 1:1 매핑은 별도 `docs/ui/icon-migration-map.md`로 확정.
 

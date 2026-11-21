@@ -43,7 +43,7 @@
 | --- | --- | --- |
 | 계약 하네스 | 변경 범위와 완료 조건을 문서로 고정 | `openspec/changes/*` |
 | 구조 하네스 | 변경 전 영향 범위를 AST 그래프로 확인 | `.codegraph/codegraph.db`, `codegraph-impact.md` |
-| 실행 하네스 | 위험한 외부 의존성을 fake, fixture, temp folder로 대체 | `Axicultus.Wpf.Tests/*` |
+| 실행 하네스 | 위험한 외부 의존성을 fake, fixture, temp folder로 대체 | `Axicultus.Tests/*` |
 | 회귀 하네스 | UI/렌더/접근성/DI drift를 자동 테스트로 잠금 | `VisualRenderHarness`, `ScreenshotBaseline`, XAML scanner tests |
 
 핵심은 "실제 예배 송출 환경을 그대로 테스트하지 않고, 예배 송출에 필요한 결정적인 계약을 작게 잘라 반복 가능하게 만든다"는 점이다.
@@ -118,7 +118,7 @@
 
 위치:
 
-- `Axicultus.Wpf.Tests/Axicultus.Wpf.Tests.csproj`
+- `Axicultus.Tests/Axicultus.Tests.csproj`
 
 확인 내용:
 
@@ -163,7 +163,7 @@
 
 위치:
 
-- `Axicultus.Wpf.Tests/StaHelper.cs`
+- `Axicultus.Tests/StaHelper.cs`
 
 현재 적용:
 
@@ -192,7 +192,7 @@
 
 위치:
 
-- `Axicultus.Wpf.Tests/Theme/WpfApplicationFixture.cs`
+- `Axicultus.Tests/Theme/WpfApplicationFixture.cs`
 
 현재 적용:
 
@@ -216,7 +216,7 @@
 
 위치:
 
-- `Axicultus.Wpf.Tests/Rendering/VisualRenderHarness.cs`
+- `Axicultus.Tests/Rendering/VisualRenderHarness.cs`
 
 현재 적용:
 
@@ -239,7 +239,7 @@
 
 위치:
 
-- `Axicultus.Wpf.Tests/Rendering/ImageComparer.cs`
+- `Axicultus.Tests/Rendering/ImageComparer.cs`
 
 현재 적용:
 
@@ -261,7 +261,7 @@
 
 위치:
 
-- `Axicultus.Wpf.Tests/Rendering/ScreenshotBaseline.cs`
+- `Axicultus.Tests/Rendering/ScreenshotBaseline.cs`
 
 현재 적용:
 
@@ -270,7 +270,7 @@
 
 역할:
 
-- 기준 이미지는 `Axicultus.Wpf.Tests/Rendering/baselines/`에 둔다.
+- 기준 이미지는 `Axicultus.Tests/Rendering/baselines/`에 둔다.
 - 실제 결과가 다르면 테스트 출력 폴더의 `screenshot-actuals`에 `*.actual.png`를 남긴다.
 - 기준 이미지가 없을 때는 `AXICULTUS_APPROVE_BASELINES=1`인 경우에만 생성하고, 그래도 테스트는 실패시켜 사람이 검토하게 한다.
 
@@ -285,13 +285,13 @@
 
 대표 위치:
 
-- `Axicultus.Wpf/App.xaml.cs`
-- `Axicultus.Wpf/Rendering/PowerPointRenderService.cs`
-- `Axicultus.Wpf/Media/MediaPlaybackService.cs`
-- `Axicultus.Wpf/Input/GlobalInputService.cs`
-- `Axicultus.Wpf/Data/AdminDatabaseRepository.cs`
-- `Axicultus.Wpf/Library/BibleRepository.cs`
-- `Axicultus.Wpf/Shell/OutputWindowHost.cs`
+- `Axicultus/App.xaml.cs`
+- `Axicultus/Rendering/PowerPointRenderService.cs`
+- `Axicultus/Media/MediaPlaybackService.cs`
+- `Axicultus/Input/GlobalInputService.cs`
+- `Axicultus/Data/AdminDatabaseRepository.cs`
+- `Axicultus/Library/BibleRepository.cs`
+- `Axicultus/Shell/OutputWindowHost.cs`
 
 현재 확인된 production interface:
 
@@ -312,8 +312,8 @@
 
 위치:
 
-- production: `Axicultus.Wpf/App.xaml.cs`
-- test: `Axicultus.Wpf.Tests/AppServiceRegistrationTests.cs`
+- production: `Axicultus/App.xaml.cs`
+- test: `Axicultus.Tests/AppServiceRegistrationTests.cs`
 
 현재 적용:
 
@@ -348,7 +348,7 @@
 
 위치:
 
-- `Axicultus.Wpf/Interop/OfficePptSession.cs`
+- `Axicultus/Interop/OfficePptSession.cs`
 
 역할:
 
@@ -366,9 +366,9 @@
 
 위치:
 
-- production: `Axicultus.Wpf/Rendering/PowerPointRenderService.cs`
-- tests: `Axicultus.Wpf.Tests/Rendering/PowerPointRenderServiceTests.cs`
-- shell tests: `Axicultus.Wpf.Tests/Shell/MainViewModelTests.cs`
+- production: `Axicultus/Rendering/PowerPointRenderService.cs`
+- tests: `Axicultus.Tests/Rendering/PowerPointRenderServiceTests.cs`
+- shell tests: `Axicultus.Tests/Shell/MainViewModelTests.cs`
 
 현재 적용:
 
@@ -404,10 +404,10 @@
 
 위치:
 
-- production: `Axicultus.Wpf/Shell/OutputWindowHost.cs`
-- production: `Axicultus.Wpf/Shell/PreviewWindowHost.cs`
-- tests: `Axicultus.Wpf.Tests/Shell/OutputWindowHostTests.cs`
-- tests: `Axicultus.Wpf.Tests/Shell/PreviewWindowHostTests.cs`
+- production: `Axicultus/Shell/OutputWindowHost.cs`
+- production: `Axicultus/Shell/PreviewWindowHost.cs`
+- tests: `Axicultus.Tests/Shell/OutputWindowHostTests.cs`
+- tests: `Axicultus.Tests/Shell/PreviewWindowHostTests.cs`
 
 현재 적용:
 
@@ -434,12 +434,12 @@
 
 위치:
 
-- production: `Axicultus.Wpf/Rendering/OutputRenderer.cs`
-- production: `Axicultus.Wpf/Shell/OutputWindowViewModel.cs`
-- tests: `Axicultus.Wpf.Tests/Rendering/OutputRendererTests.cs`
-- tests: `Axicultus.Wpf.Tests/Shell/OutputWindowViewModelTests.cs`
-- tests: `Axicultus.Wpf.Tests/Shell/OutputWindowTileClipTests.cs`
-- tests: `Axicultus.Wpf.Tests/Shell/OutputWindowClipGuardTests.cs`
+- production: `Axicultus/Rendering/OutputRenderer.cs`
+- production: `Axicultus/Shell/OutputWindowViewModel.cs`
+- tests: `Axicultus.Tests/Rendering/OutputRendererTests.cs`
+- tests: `Axicultus.Tests/Shell/OutputWindowViewModelTests.cs`
+- tests: `Axicultus.Tests/Shell/OutputWindowTileClipTests.cs`
+- tests: `Axicultus.Tests/Shell/OutputWindowClipGuardTests.cs`
 
 검증하는 것:
 
@@ -460,11 +460,11 @@
 
 위치:
 
-- production: `Axicultus.Wpf/Media/MediaPlaybackBackend.cs`
-- production: `Axicultus.Wpf/Media/MediaPlaybackService.cs`
-- tests: `Axicultus.Wpf.Tests/Media/MediaPlaybackServiceTests.cs`
-- tests: `Axicultus.Wpf.Tests/Media/AttachableMediaPlaybackBackendTests.cs`
-- tests: `Axicultus.Wpf.Tests/Media/MediaPlaybackViewModelTests.cs`
+- production: `Axicultus/Media/MediaPlaybackBackend.cs`
+- production: `Axicultus/Media/MediaPlaybackService.cs`
+- tests: `Axicultus.Tests/Media/MediaPlaybackServiceTests.cs`
+- tests: `Axicultus.Tests/Media/AttachableMediaPlaybackBackendTests.cs`
+- tests: `Axicultus.Tests/Media/MediaPlaybackViewModelTests.cs`
 
 현재 적용:
 
@@ -491,12 +491,12 @@
 
 위치:
 
-- production: `Axicultus.Wpf/Input/GlobalInputService.cs`
-- production: `Axicultus.Wpf/Input/ShortcutRegistry.cs`
-- production: `Axicultus.Wpf/Input/CommandCatalog.cs`
-- tests: `Axicultus.Wpf.Tests/Input/GlobalInputServiceTests.cs`
-- tests: `Axicultus.Wpf.Tests/Input/ShortcutRegistryTests.cs`
-- tests: `Axicultus.Wpf.Tests/Input/CommandCatalogTests.cs`
+- production: `Axicultus/Input/GlobalInputService.cs`
+- production: `Axicultus/Input/ShortcutRegistry.cs`
+- production: `Axicultus/Input/CommandCatalog.cs`
+- tests: `Axicultus.Tests/Input/GlobalInputServiceTests.cs`
+- tests: `Axicultus.Tests/Input/ShortcutRegistryTests.cs`
+- tests: `Axicultus.Tests/Input/CommandCatalogTests.cs`
 - docs: `docs/wpf-migration/inventory/frmmain-shortcut-parity-map.md`
 
 현재 적용:
@@ -526,10 +526,10 @@
 
 대표 위치:
 
-- `Axicultus.Wpf.Tests/Data/AdminDatabaseRepositoryTests.cs`
-- `Axicultus.Wpf.Tests/Data/DatabaseMigrationServiceTests.cs`
-- `Axicultus.Wpf.Tests/Library/BibleRepositoryTests.cs`
-- `Axicultus.Wpf.Tests/Settings/OperationalDataRehearsalServiceTests.cs`
+- `Axicultus.Tests/Data/AdminDatabaseRepositoryTests.cs`
+- `Axicultus.Tests/Data/DatabaseMigrationServiceTests.cs`
+- `Axicultus.Tests/Library/BibleRepositoryTests.cs`
+- `Axicultus.Tests/Settings/OperationalDataRehearsalServiceTests.cs`
 
 현재 적용:
 
@@ -558,12 +558,12 @@
 
 대표 위치:
 
-- `Axicultus.Wpf.Tests/Library/ImportExportServiceTests.cs`
-- `Axicultus.Wpf.Tests/Library/ExternalFileOperationServiceTests.cs`
-- `Axicultus.Wpf.Tests/Settings/AssetMigrationServiceTests.cs`
-- `Axicultus.Wpf.Tests/Settings/SettingsServiceTests.cs`
-- `Axicultus.Wpf.Tests/Shell/WorshipListStoreTests.cs`
-- `Axicultus.Wpf.Tests/Rendering/ThumbnailCacheTests.cs`
+- `Axicultus.Tests/Library/ImportExportServiceTests.cs`
+- `Axicultus.Tests/Library/ExternalFileOperationServiceTests.cs`
+- `Axicultus.Tests/Settings/AssetMigrationServiceTests.cs`
+- `Axicultus.Tests/Settings/SettingsServiceTests.cs`
+- `Axicultus.Tests/Shell/WorshipListStoreTests.cs`
+- `Axicultus.Tests/Rendering/ThumbnailCacheTests.cs`
 
 현재 적용:
 
@@ -583,13 +583,13 @@
 
 위치:
 
-- production: `Axicultus.Wpf/Settings/SettingsService.cs`
-- production: `Axicultus.Wpf/Settings/RegistryLegacySettingsSource.cs`
-- production: `Axicultus.Wpf/Settings/FileLegacySettingsSource.cs`
-- tests: `Axicultus.Wpf.Tests/Settings/RegistryLegacySettingsSourceTests.cs`
-- tests: `Axicultus.Wpf.Tests/Settings/FileLegacySettingsSourceTests.cs`
-- tests: `Axicultus.Wpf.Tests/Settings/LegacySettingsMapTests.cs`
-- tests: `Axicultus.Wpf.Tests/Settings/SettingsBootstrapMigrationServiceTests.cs`
+- production: `Axicultus/Settings/SettingsService.cs`
+- production: `Axicultus/Settings/RegistryLegacySettingsSource.cs`
+- production: `Axicultus/Settings/FileLegacySettingsSource.cs`
+- tests: `Axicultus.Tests/Settings/RegistryLegacySettingsSourceTests.cs`
+- tests: `Axicultus.Tests/Settings/FileLegacySettingsSourceTests.cs`
+- tests: `Axicultus.Tests/Settings/LegacySettingsMapTests.cs`
+- tests: `Axicultus.Tests/Settings/SettingsBootstrapMigrationServiceTests.cs`
 
 현재 적용:
 
@@ -615,13 +615,13 @@
 
 위치:
 
-- `Axicultus.Wpf.Tests/Accessibility/XamlAccessibilityScanner.cs`
-- `Axicultus.Wpf.Tests/Accessibility/LabeledByScanner.cs`
-- `Axicultus.Wpf.Tests/Accessibility/XamlAccessibilityTests.cs`
-- `Axicultus.Wpf.Tests/Accessibility/LabeledByTests.cs`
-- `Axicultus.Wpf.Tests/Accessibility/TemplatePartsTests.cs`
-- `Axicultus.Wpf.Tests/Accessibility/LiveRegionTests.cs`
-- `Axicultus.Wpf.Tests/Binding/XamlBindingModeTests.cs`
+- `Axicultus.Tests/Accessibility/XamlAccessibilityScanner.cs`
+- `Axicultus.Tests/Accessibility/LabeledByScanner.cs`
+- `Axicultus.Tests/Accessibility/XamlAccessibilityTests.cs`
+- `Axicultus.Tests/Accessibility/LabeledByTests.cs`
+- `Axicultus.Tests/Accessibility/TemplatePartsTests.cs`
+- `Axicultus.Tests/Accessibility/LiveRegionTests.cs`
+- `Axicultus.Tests/Binding/XamlBindingModeTests.cs`
 
 현재 적용:
 
@@ -644,7 +644,7 @@
 
 위치:
 
-- `Axicultus.Wpf.Tests/Shell/MainViewModelTests.cs`
+- `Axicultus.Tests/Shell/MainViewModelTests.cs`
 
 현재 적용:
 
@@ -681,9 +681,9 @@
 
 위치:
 
-- production: `Axicultus.Wpf/Shell/LiveSessionService.cs`
-- production: `Axicultus.Wpf/Shell/OutputWindowService.cs`
-- production: `Axicultus.Wpf/Shell/PreviewWindowService.cs`
+- production: `Axicultus/Shell/LiveSessionService.cs`
+- production: `Axicultus/Shell/OutputWindowService.cs`
+- production: `Axicultus/Shell/PreviewWindowService.cs`
 - tests: `LiveSessionServiceTests`
 - tests: `OutputWindowServiceTests`
 - tests: `PreviewWindowServiceTests`
@@ -709,10 +709,10 @@
 - `docs/wpf-migration/inventory/frmmain-to-wpf-1to1-map.md`
 - `docs/wpf-migration/inventory/frmmain-shortcut-parity-map.md`
 - `docs/wpf-migration/frmmain-1to1-ui-ux-function-mapping-plan.md`
-- `Axicultus.Wpf.Tests/Composites/WorshipListPanelTests.cs`
-- `Axicultus.Wpf.Tests/Shell/MainMenuBarTests.cs`
-- `Axicultus.Wpf.Tests/Shell/MainWindowCopyTests.cs`
-- `Axicultus.Wpf.Tests/Startup/AppStartupTests.cs`
+- `Axicultus.Tests/Composites/WorshipListPanelTests.cs`
+- `Axicultus.Tests/Shell/MainMenuBarTests.cs`
+- `Axicultus.Tests/Shell/MainWindowCopyTests.cs`
+- `Axicultus.Tests/Startup/AppStartupTests.cs`
 
 현재 적용:
 
@@ -730,11 +730,11 @@
 
 위치:
 
-- production: `Axicultus.Wpf/App.xaml.cs`
-- production: `Axicultus.Wpf/Startup/StartupArguments.cs`
-- tests: `Axicultus.Wpf.Tests/Startup/StartupArgumentsTests.cs`
-- tests: `Axicultus.Wpf.Tests/Startup/AppStartupTests.cs`
-- tests: `Axicultus.Wpf.Tests/AppServiceRegistrationTests.cs`
+- production: `Axicultus/App.xaml.cs`
+- production: `Axicultus/Startup/StartupArguments.cs`
+- tests: `Axicultus.Tests/Startup/StartupArgumentsTests.cs`
+- tests: `Axicultus.Tests/Startup/AppStartupTests.cs`
+- tests: `Axicultus.Tests/AppServiceRegistrationTests.cs`
 
 현재 적용:
 
@@ -753,9 +753,9 @@
 
 추천 파일:
 
-- `Axicultus.Wpf.Tests/StaHelper.cs`
-- `Axicultus.Wpf.Tests/Rendering/SlidePreviewControlTests.cs`
-- `Axicultus.Wpf.Tests/Rendering/PreviewCanvasTests.cs`
+- `Axicultus.Tests/StaHelper.cs`
+- `Axicultus.Tests/Rendering/SlidePreviewControlTests.cs`
+- `Axicultus.Tests/Rendering/PreviewCanvasTests.cs`
 
 강의 흐름:
 
@@ -991,7 +991,7 @@
 | --- | --- | --- |
 | OpenSpec contract | `openspec/changes/*` | WPF FrmMain parity, shortcut parity, visual parity |
 | CodeGraph impact | `openspec/changes/*/codegraph-impact.md` | MainWindow, MainViewModel, FrmMain reference 영향 분석 |
-| STA 실행 | `Axicultus.Wpf.Tests/StaHelper.cs` | WPF control, automation peer, render tests |
+| STA 실행 | `Axicultus.Tests/StaHelper.cs` | WPF control, automation peer, render tests |
 | WPF Application fixture | `Theme/WpfApplicationFixture.cs` | theme resource, Application.Current 의존 테스트 |
 | Headless render | `Rendering/VisualRenderHarness.cs` | screenshot regression, output render parity |
 | Image compare | `Rendering/ImageComparer.cs` | PNG pixel tolerance 비교 |

@@ -8,7 +8,7 @@
 
 ## 컨텍스트
 
-현재 `Axicultus/Axicultus/FrmOptions.cs` + `FrmOptions.Designer.cs`:
+현재 `Axicultuss/Forms/FrmOptions.cs` + `FrmOptions.Designer.cs`:
 - **491 디자이너 심볼** — `FrmMain` 다음으로 큰 폼
 - 단일 거대 모달 다이얼로그 (`ShowDialog()`)
 - 다중 `TabPage` 안에 모니터·송출, 폰트·색, 데이터베이스, 단축키, 미디어, 임포트/익스포트 등 8+개 카테고리 혼재

@@ -27,5 +27,7 @@ WinForms는 Axicultuss, WPF는 Axicultus를 앱 표시 이름과 어셈블리 �
 #### Scenario: 서로 다른 설정으로 두 앱 사용
 
 - **WHEN** 운영자가 WinForms와 WPF에서 서로 다른 송출 모니터와 예배 목록을 선택한 뒤 두 앱을 다시 시작한다.
-- **THEN** WinForms는 `HKCU\Software\Axicultuss`에서, WPF는 `%APPDATA%\Axicultus\settings.json`에서 각자의 선택을 복원한다.
+- **THEN** WinForms는 `%APPDATA%\Axicultuss\settings.json`에서, WPF는 `%APPDATA%\Axicultus\settings.json`에서 각자의 선택을 복원한다.
 - **AND** 처음 실행하는 WPF는 기존 WPF 프로필이 있으면 이전하고, 없으면 WPF 기본값을 사용한다.
+- **AND** WinForms 초기화는 빈 JSON 프로필을 저장하고 재실행 시 이전 레지스트리 값을 복원하지 않는다.
+- **AND** 두 앱은 선택한 송출 위치를 슬라이드 쇼 창에 적용하며 Office 레지스트리에 기록하지 않는다.

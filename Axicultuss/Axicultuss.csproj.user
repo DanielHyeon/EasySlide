@@ -1,0 +1,187 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <_LastSelectedProfileId>$(MSBuildProjectDirectory)\Properties\PublishProfiles\FolderProfile.pubxml</_LastSelectedProfileId>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Update="Forms\DShowLib.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmLaunchMediaPlayer.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmLaunchShow.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmLyricsScreen.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmMain.Events.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmMain.Fields.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmMain.Layout.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmMain.Logic.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmMain.ModernUi.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmMain.ModernUi.FormatIcons.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmMain.ModernUi.Icons.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmMain.ModernUi.ImageList.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmMain.ModernUi.SongList.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmMain.ModernUi.Surface.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmOptions.ModernUi.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmSplashScreen.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmMain.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmAbout.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmBackground.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmBibleRename.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmCopy.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmCopyMoveExternal.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmEditBibleItem.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmEditItem.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmEditNotes.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmExport.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmFind.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmGenerateDoc.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmGenerateHtml.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmGetWorkingFolder.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmHelp.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmImport.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmImportAccessHelper.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmImportFolder.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmInfoScreen.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmLookupTitles.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmManageItemLists.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmMediaPlayerControl.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmMove.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmOptions.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmPopupText.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmRearrangeFolderPositions.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmRecoverDeleted.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmRegister.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmShowAlert.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmSingleMonitorAlert.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmSmartMerge.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmUpdateFileName.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmUsages.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\ImageCanvas.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="Forms\ImageTransitionControl.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="Forms\ImageTransitionControl.TextOverlay.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="Forms\LyricsSlidePanel.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="Forms\PowerPointThumbnailPanel.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="Forms\RotationTimingPanel.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="Forms\SongFindBox.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="HookManager\GlobalEventProvider.cs">
+      <SubType>Component</SubType>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="Forms\FrmMain.resx">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Forms\FrmSplashScreen.resx">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+</Project>
