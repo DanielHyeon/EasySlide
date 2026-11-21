@@ -1793,7 +1793,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var item = new LiveQueueItem($"text-file:{Guid.NewGuid():N}", title, LiveItemKinds.Notice)
         {
             ContentPath = fileName,
-            Lyrics = text.Trim(),
+            Lyrics = text.Trim('\r', '\n'),
         };
 
         var selectedIndex = SelectedItem is null ? -1 : Queue.IndexOf(SelectedItem);
@@ -4063,7 +4063,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             string? raw = item.UseIndividualFormatting ? item.FormatData : null;
             var format = SongFormatData.Parse(raw);
             var itemDisplay = ItemDisplayFormat.Read(raw);
-            double size = TextFileLayout.FontAtWidth(LiveSessionService.LegacyPointToPixel(format?.FontSize1) ?? options.LyricsMonitorFontSize, width);
+            var folder = ResolveTextFileLayout(item);
+            double size = TextFileLayout.FontAtWidth(LiveSessionService.LegacyPointToPixel(format?.FontSize1 ?? folder?.FontPoints) ?? options.LyricsMonitorFontSize, width);
             double left = TextFileLayout.MarginAt(width, format?.BodyLeftMargin, options.LyricsMonitorBodyLeftMargin);
             double right = TextFileLayout.MarginAt(width, format?.BodyRightMargin, options.LyricsMonitorBodyRightMargin);
             double bottom = TextFileLayout.MarginAt(height, format?.BodyBottomMargin, options.LyricsMonitorBodyBottomMargin)
@@ -4071,9 +4072,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             if (options.LyricsMonitorShowDisplayPanel && itemDisplay?.Flag(64) != true)
                 bottom += height * options.PanelHeightPercent / 100;
             double top = TextFileLayout.TopInset(height, itemDisplay?.Top1);
-            string family = string.IsNullOrWhiteSpace(format?.FontName1) ? options.LyricsMonitorFontFamily : format.FontName1;
-            layout = new(width - left - right, height - top - bottom, family, size,
-                size * options.LyricsMonitorLineSpacingPercent / 100d);
+            string family = string.IsNullOrWhiteSpace(format?.FontName1) ? folder?.FontName ?? options.LyricsMonitorFontFamily : format.FontName1;
+            var lineSpacing = folder?.Fields != null ? Math.Clamp(folder.LineSpacing, .5, 2) : options.LyricsMonitorLineSpacingPercent / 100d;
+            layout = new(width - left - right, height - top - bottom, family, size, size * lineSpacing);
         }
         if (_textFilePages is { } cached && cached.Lyrics == item.Lyrics && cached.Sequence == item.Sequence && cached.Layout == layout)
             return cached.Pages;
@@ -8150,9 +8151,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     internal void RefreshLibraryFormatting()
     {
         if (PreviewItem is { } preview) RefreshLyricsPages(preview);
-        if (OutputItem is { } live && (LiveItemKindMatcher.IsSong(live.Kind) || LiveItemKindMatcher.IsBible(live.Kind)))
+        if (OutputItem is { } live && (IsExternalTextFileItem(live) || LiveItemKindMatcher.IsSong(live.Kind) || LiveItemKindMatcher.IsBible(live.Kind)))
             RefreshPreparedTextOutput(live);
     }
+
+    internal Data.SongPageLayout? ResolveTextFileLayout(LiveQueueItem item) =>
+        Library.Folders.FirstOrDefault(folder => folder.FolderNo == Math.Max(1, item.SourceFolderNo ?? 1))?.SlideLayout
+        ?? item.SongLayout
+        ?? Library.Folders.FirstOrDefault(folder => folder.FolderNo == 0)?.SlideLayout;
 
     private LiveQueueItem PrepareLiveItemForOutput(LiveQueueItem item)
     {
@@ -8164,6 +8170,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         if (IsExternalTextFileItem(prepared))
         {
+            prepared = prepared with { SongLayout = ResolveTextFileLayout(prepared) };
             var contentPath = ResolveExternalTextContentPath(prepared);
             var fileText = TryReadTextFile(contentPath ?? string.Empty);
             if (fileText is not null)
@@ -8298,6 +8305,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     internal bool AlternateKeyboard => _settings.Current.Operator.AlternateKeyboard;
     public int EditHistoryLimit => _settings.Current.Operator.EditHistoryLimit;
     public double PreviewFontDip => _settings.Current.Operator.PreviewFontPoints * 96.0 / 72.0;
+    // At the standard 8 pt preview font the WinForms Korean RichTextBox advances about 18 DIP per line.
+    public double PreviewListLineHeight => PreviewFontDip * 1.7;
     public System.Windows.Thickness PreviewDividerThickness => new(0, 0, 0, _settings.Current.Operator.PreviewDivider ? 1 : 0);
     public bool PreviewFocusColorEnabled => _settings.Current.Operator.PreviewFocusColorEnabled;
     public System.Windows.Media.Brush PreviewFocusBrush => OperatorBrush.FromArgb(_settings.Current.Operator.PreviewFocusArgb);
@@ -8311,6 +8320,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (args.ChangedKeys.Any(key => key.StartsWith("operator.Preview", StringComparison.Ordinal)))
         {
             OnPropertyChanged(nameof(PreviewFontDip));
+            OnPropertyChanged(nameof(PreviewListLineHeight));
             OnPropertyChanged(nameof(PreviewDividerThickness));
             OnPropertyChanged(nameof(PreviewFocusColorEnabled));
             OnPropertyChanged(nameof(PreviewFocusBrush));

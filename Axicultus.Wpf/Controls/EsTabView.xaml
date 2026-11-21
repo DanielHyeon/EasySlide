@@ -75,20 +75,20 @@
     <!-- =============== Pills Tab (알약 모양) =============== -->
     <Style x:Key="EsTabView.FrmMainBottomItem" TargetType="TabItem">
         <Setter Property="FontFamily" Value="{DynamicResource {x:Static SystemFonts.MessageFontFamilyKey}}" />
-        <Setter Property="FontSize" Value="11" />
+        <Setter Property="FontSize" Value="{DynamicResource {x:Static SystemFonts.MessageFontSizeKey}}" />
         <Setter Property="FontWeight" Value="Normal" />
         <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Primary}" />
-        <Setter Property="Cursor" Value="Hand" />
-        <Setter Property="Padding" Value="3,1" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Padding" Value="5,3" />
         <Setter Property="Margin" Value="0" />
-        <Setter Property="MinHeight" Value="20" />
+        <Setter Property="MinHeight" Value="22" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="TabItem">
                     <Border x:Name="Chrome"
-                            Background="#FFEFEFEF"
+                            Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"
                             BorderBrush="#FFB8B8B8"
-                            BorderThickness="1,1,1,0"
+                            BorderThickness="1,0,1,1"
                             Padding="{TemplateBinding Padding}">
                         <ContentPresenter ContentSource="Header"
                                           HorizontalAlignment="Center"
@@ -96,13 +96,13 @@
                                           RecognizesAccessKey="True" />
                     </Border>
                     <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Chrome" Property="Background" Value="#FFF8F8F8" />
+                        </Trigger>
                         <Trigger Property="IsSelected" Value="True">
                             <Setter TargetName="Chrome" Property="Background" Value="White" />
                             <Setter TargetName="Chrome" Property="BorderBrush" Value="#FF707070" />
                             <Setter Property="Panel.ZIndex" Value="1" />
-                        </Trigger>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Chrome" Property="Background" Value="#FFF8F8F8" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Disabled}" />
@@ -137,7 +137,7 @@
                                               SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
                         </Border>
                         <Border Grid.Row="1"
-                                Background="#FFF3F3F3"
+                                Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"
                                 BorderBrush="{DynamicResource Brush.Border.Default}"
                                 BorderThickness="1,0,1,1">
                             <ScrollViewer HorizontalScrollBarVisibility="Auto"

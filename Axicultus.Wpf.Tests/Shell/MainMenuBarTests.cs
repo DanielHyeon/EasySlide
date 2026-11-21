@@ -305,7 +305,7 @@ public class MainMenuBarTests
 
         xaml.Should().Contain("x:Name=\"ClassicSourceColumn\"", "left source/list column should be explicit for FrmMain 1:1 mapping");
         xaml.Should().Contain("x:Name=\"ClassicRightColumn\"", "right Preview/Output splitContainer2 column should be explicit");
-        xaml.Should().Contain("Width=\"33*\"", "left column should scale like the legacy splitter instead of staying a narrow fixed rail");
+        xaml.Should().Contain("Width=\"75*\"", "the two operator previews share three quarters of the initial console width");
         xaml.Should().Contain("MinWidth=\"205\"", "left column should keep the source browser usable at smaller sizes");
         xaml.Should().Contain("Tag=\"splitContainer1\"", "left source/list pane should keep the FrmMain splitContainer1 role");
         xaml.Should().Contain("Tag=\"tabControlSource\"", "upper-left source tabs should keep the FrmMain tabControlSource role");
@@ -341,7 +341,7 @@ public class MainMenuBarTests
             "non-PPT Output lyrics should only show when the Output target has lyrics/body text");
         var outputLyricsSurface = SectionBetween(xaml, "x:Name=\"flowLayoutOutputLyrics\"", "</ScrollViewer>");
         var outputLyricsScroller = SectionBetween(xaml, "x:Name=\"ClassicOutputLyricsScrollViewer\"", "x:Name=\"flowLayoutOutputLyrics\"");
-        outputLyricsScroller.Should().Contain("Margin=\"{StaticResource Thickness.Lg}\"",
+        outputLyricsScroller.Should().Contain("Margin=\"0\"",
             "Output text rows should use the same content inset as the left Preview text renderer");
         outputLyricsScroller.Should().NotContain("Margin=\"8\"",
             "Output text rows should not use an Output-only inset that drifts away from Preview positioning");
@@ -474,8 +474,8 @@ public class MainMenuBarTests
             "FrmMain OutputInfo needs a non-PPT visual flow surface instead of a blank top pane");
         visualSurface.Should().Contain("Visibility=\"{Binding IsOutputVisualContext, Converter={StaticResource BoolToVis}}\"",
             "visual cards should follow the prepared/live Output item only");
-        visualSurface.Should().Contain("<WrapPanel>",
-            "the non-PPT visual surface should keep the same flow layout shape as the legacy Output panes");
+        visualSurface.Should().Contain("HorizontalContentAlignment=\"Stretch\"",
+            "a single live image should occupy the available upper pane");
         visualSurface.Should().Contain("Command=\"{Binding RefreshOutputVisualCommand}\"",
             "clicking the non-PPT visual thumbnail should act on the current Output visual item instead of being static chrome");
         visualSurface.Should().Contain("Source=\"{Binding OutputVisualSource}\"",
@@ -555,6 +555,11 @@ public class MainMenuBarTests
         output.Should().Contain("Visibility=\"{Binding HasOutputLyricsText, Converter={StaticResource BoolToVis}}\"",
             "the lower Output lyrics layer should only appear for prepared/live text items");
         output.Should().Contain("x:Name=\"ClassicOutputLargeSlideImage\"", "the visual overlay stays inside the fixed frame");
+        foreach (var frame in new[] { preview, output })
+        {
+            frame.Should().Contain("<TranslateTransform", "the shadow is drawn behind the whole slide");
+            frame.Should().NotContain("Margin=\"0,0,16,16\"", "text and image layers use the full slide aspect");
+        }
         output.Should().Contain("Source=\"{Binding OutputVisualSource}\"",
             "the lower Output frame should use the prepared/live visual source rather than only the PPT VM");
         output.Should().Contain("FillMode=\"{Binding OutputVisualFillMode}\"",
@@ -713,10 +718,10 @@ public class MainMenuBarTests
 
         foreach (var pane in new[] { previewPowerPointPane, outputPowerPointPane })
         {
-            pane.Should().Contain("Path=ActualWidth",
-                "thumbnail size should react to the current flow panel width like FrmMain");
-            pane.Should().Contain("Converter={StaticResource LegacyPowerPointThumbnailSize}",
-                "thumbnail width should use the legacy (panelWidth - 35) / 3 formula");
+            pane.Should().Contain("Path=ViewportWidth",
+                "thumbnail sizing should account for the visible scrollbar");
+            pane.Should().Contain("ConverterParameter=Console",
+                "both right-hand strips should reduce the column count when narrowed");
             pane.Should().NotContain("ConverterParameter=Height",
                 "thumbnail height should follow the intrinsic slide aspect");
             pane.Should().Contain("Stretch=\"Uniform\"",
@@ -738,7 +743,7 @@ public class MainMenuBarTests
     }
 
     [Fact]
-    public void ClassicOutputVisualThumbnails_UseFrmMainThreeColumnSizing()
+    public void SingleOutputVisualUsesTheAvailablePaneAboveItsCaption()
     {
         var xaml = Xaml;
         var visualSurface = SectionBetween(
@@ -746,18 +751,10 @@ public class MainMenuBarTests
             "x:Name=\"ClassicOutputVisualSurface\"",
             "x:Name=\"ClassicOutputMediaSurface\"");
 
-        visualSurface.Should().Contain("Converter={StaticResource LegacyPowerPointThumbnailSize}",
-            "non-PPT Output visual thumbnails should use the same FrmMain three-column flow sizing as PPT thumbnails");
-        visualSurface.Should().Contain("ConverterParameter=Height",
-            "non-PPT Output visual thumbnails should keep the same 4:3 canvas as FrmMain thumbnail panes");
-        visualSurface.Should().Contain("Width=\"{Binding Path=ActualWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}, Converter={StaticResource LegacyPowerPointThumbnailSize}}\"",
-            "the visual card width should react to the current Output flow panel width");
-        visualSurface.Should().Contain("Height=\"{Binding Path=ActualWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}, Converter={StaticResource LegacyPowerPointThumbnailSize}, ConverterParameter=Height}\"",
-            "the visual preview image should share the legacy thumbnail height");
-        visualSurface.Should().NotContain("Width=\"190\"",
-            "fixed WPF visual cards leave the right Output pane unlike FrmMain's responsive thumbnail flow");
-        visualSurface.Should().NotContain("Height=\"102\"",
-            "fixed WPF visual preview height keeps image thumbnails too small and blurry");
+        visualSurface.Should().NotContain("LegacyPowerPointThumbnailSize");
+        visualSurface.Should().Contain("VerticalContentAlignment=\"Stretch\"");
+        visualSurface.Should().Contain("<RowDefinition Height=\"*\" />");
+        visualSurface.Should().Contain("FillMode=\"{Binding OutputVisualFillMode}\"");
     }
 
     [Fact]
@@ -952,9 +949,9 @@ public class MainMenuBarTests
         var tabs = TabViewXaml;
         tabs.Should().Contain("x:Key=\"EsTabView.FrmMainBottom\"", "FrmMain source/list tabs need their own compact bottom style");
         tabs.Should().Contain("x:Key=\"EsTabView.FrmMainBottomItem\"", "FrmMain tabs need compact item chrome");
-        tabs.Should().Contain("<Setter Property=\"FontSize\" Value=\"11\" />",
+        tabs.Should().Contain("<Setter Property=\"FontSize\" Value=\"{DynamicResource {x:Static SystemFonts.MessageFontSizeKey}}\" />",
             "FrmMain bottom tabs need WinForms-density labels so all source roles, including Default, fit in the left pane");
-        tabs.Should().Contain("<Setter Property=\"Padding\" Value=\"3,1\" />",
+        tabs.Should().Contain("<Setter Property=\"Padding\" Value=\"5,3\" />",
             "FrmMain bottom tabs should not carry WPF padding that pushes Default out of the visible strip");
         tabs.Should().Contain("PART_SelectedContentHost", "the FrmMain tab template should render selected content separately from the bottom tab strip");
         tabs.Should().Contain("Grid.Row=\"1\"", "the FrmMain tab template should dock the header strip below selected content");
@@ -1137,10 +1134,12 @@ public class MainMenuBarTests
             "typed Bible search fallback should reuse the Bible tab search text");
         code.Should().Contain("Bible.SearchCommand.ExecuteAsync",
             "typed Bible search fallback should run the same Bible search command as the main Bible search UI");
-        xaml.Should().Contain("x:Name=\"Bibles_ShowVerses\"", "Bibles tab should expose the FrmMain show-verses toggle role");
-        xaml.Should().Contain("Tag=\"Bibles_ShowVerses\"", "Show-verses toggle should keep the legacy role");
-        xaml.Should().Contain("IsChecked=\"{Binding Bible.ShowVerses, Mode=TwoWay}\"",
-            "Bibles_ShowVerses should drive the same VM state used by passage loading");
+        var versionStrip = SectionBetween(xaml, "x:Name=\"TabBibleVersions\"", "</TabControl>");
+        foreach (var count in new[] { 0, 1 })
+            versionStrip.Should().Contain($"Binding=\"{{Binding Bible.Versions.Count}}\" Value=\"{count}\"><Setter Property=\"Visibility\" Value=\"Collapsed\"");
+        var worship = File.ReadAllText(Path.Combine(FindRepositoryRoot(), "Axicultus.Wpf", "Composites", "WorshipListPanel.xaml"));
+        worship.Should().NotContain("SelectedItemSequenceInput").And.NotContain("비우면 순서대로");
+        xaml.Should().NotContain("Bibles_ShowVerses", "the compact browser toolbar contains book lookup, reference and Go");
         xaml.Should().Contain("x:Name=\"TabBibleVersions\"", "Bibles tab should expose the FrmMain version-tab role");
         xaml.Should().Contain("Tag=\"TabBibleVersions\"", "version selector should keep the legacy TabBibleVersions role");
         xaml.Should().Contain("ItemsSource=\"{Binding Bible.Versions}\"",
@@ -1651,9 +1650,10 @@ public class MainMenuBarTests
 
         var glyphs = actions.ToDictionary(action => (string)action.Attribute("AutomationProperties.Name")!,
             action => (string)action.Elements().Single().Attribute("Icon")!);
-        Assert.Equal("folder_open", glyphs["Open selected Praise Book"]);
-        Assert.Equal("arrow_clockwise", glyphs["Refresh Praise Book index"]);
-        Assert.Equal("tab_desktop_multiple", glyphs["Open Praise Book window"]);
+        Assert.Equal(6, glyphs.Count);
+        Assert.Equal("delete", glyphs["Delete selected PraiseBook items"]);
+        Assert.Equal("document_text", glyphs["Generate PraiseBook RTF document"]);
+        Assert.Equal("code", glyphs["Generate PraiseBook HTML document"]);
     }
 
     [Fact]
@@ -1687,27 +1687,18 @@ public class MainMenuBarTests
         xaml.Should().Contain("Click=\"PB_WordCount_Click\"", "PB_WordCount should toggle the inline PraiseBook CJK Word Count sort instead of being a placeholder");
         xaml.Should().Contain("<ToggleButton Grid.Column=\"3\"", "PB_WordCount should expose FrmMain CheckOnClick-style state");
         xaml.Should().Contain("IsChecked=\"{Binding IsWordCountSortEnabled, Mode=OneWay}\"", "PB_WordCount should show the current CJK Word Count sort state");
-        SectionBetween(xaml, "x:Name=\"PB_WordCount\"", "x:Name=\"InlinePraiseBookOpenBookButton\"")
+        SectionBetween(xaml, "x:Name=\"PB_WordCount\"", "x:Name=\"PB_Delete\"")
             .Should().NotContain("IsEnabled=\"False\"", "PB_WordCount must remain usable like FrmMain CheckOnClick");
-        SectionBetween(xaml, "x:Name=\"InlinePraiseBookOpenBookButton\"", "x:Name=\"PB_Delete\"")
-            .Should().Contain("Width=\"28\"", "Open and Refresh should stay compact in the narrow FrmMain Praise Book toolbar");
-        SectionBetween(xaml, "x:Name=\"InlinePraiseBookOpenBookButton\"", "x:Name=\"PB_Delete\"")
-            .Should().NotContain("Content=\"Refresh\"", "text-heavy toolbar buttons overflow the FrmMain-sized Praise Book rail");
         xaml.Should().Contain("x:Name=\"PB_Delete\"", "Praise Book toolbar should expose FrmMain PB_Delete");
         xaml.Should().Contain("Tag=\"PB_Delete\"", "PB_Delete should keep the legacy toolbar role tag");
         xaml.Should().Contain("x:Name=\"PB_Word\"", "Praise Book toolbar should expose FrmMain PB_Word");
         xaml.Should().Contain("Tag=\"PB_Word\"", "PB_Word should keep the legacy toolbar role tag");
         xaml.Should().Contain("x:Name=\"PB_Html\"", "Praise Book toolbar should expose FrmMain PB_Html");
         xaml.Should().Contain("Tag=\"PB_Html\"", "PB_Html should keep the legacy toolbar role tag");
-        xaml.Should().Contain("Grid.Column=\"8\"", "PB_Html should keep the FrmMain PB_Html button in the toolbar");
-        CountOccurrences(SectionBetween(xaml, "<TabItem Tag=\"PraiseBook\"", "x:Name=\"PraiseBookItems\""), "<ColumnDefinition Width=\"Auto\" />")
-            .Should().BeGreaterThanOrEqualTo(8, "PraiseBook toolbar columns must cover PB_Manage through PB_Html");
-        var praiseBookLayoutBeforeItems = SectionBetween(xaml, "<TabItem Tag=\"PraiseBook\"", "x:Name=\"PraiseBookItems\"");
-        xaml.Should().Contain("x:Name=\"PraiseBookItems\"", "Praise Book entries should render as a FrmMain-style ListView surface");
-        CountOccurrences(praiseBookLayoutBeforeItems, "<RowDefinition Height=\"Auto\" />")
-            .Should().BeGreaterThanOrEqualTo(2, "the Praise Book status/window row must not overlap the entry list");
-        SectionBetween(xaml, "AutomationProperties.Name=\"Open Praise Book window\"", "</Grid>")
-            .Should().NotContain("Content=\"Window\"", "the auxiliary Praise Book window launcher should not consume the entry-list area");
+        var praiseTab = XDocument.Parse(xaml).Descendants().Single(e => (string?)e.Attribute("Tag") == "PraiseBook" && e.Name.LocalName == "TabItem");
+        var rail = praiseTab.Descendants().Single(e => (string?)e.Attribute("Orientation") == "Vertical" && (string?)e.Attribute("Grid.Column") == "1");
+        rail.Elements().Select(e => (string?)e.Attribute("Tag")).Should().Equal("PB_Delete", "PB_Word", "PB_Html");
+        praiseTab.Descendants().Should().NotContain(e => (string?)e.Attribute("AutomationProperties.Name") == "Open Praise Book window");
         xaml.Should().Contain("Tag=\"PraiseBookItems\"", "PraiseBookItems role should remain explicit");
         xaml.Should().Contain("ItemsSource=\"{Binding Entries}\"", "flat PraiseBookItems should bind to the current book entries");
         xaml.Should().Contain("SelectionChanged=\"PraiseBookItems_SelectionChanged\"", "selecting a PraiseBook row should refresh the Preview item like FrmMain PraiseBookListIndexChanged");
@@ -1723,9 +1714,8 @@ public class MainMenuBarTests
 
         code.Should().Contain("EnsureInlinePraiseBookLoadedOnce(viewModel)", "Praise Book tab should lazy-load on first selection");
         code.Should().Contain("PraiseBookTab.DataContext = _inlinePraiseBook", "inline Praise Book tab should bind to PraiseBookIndexViewModel");
-        code.Should().Contain("InlinePraiseBookOpenBook_Click", "saved Praise Books should open from the inline tab");
         code.Should().Contain("InlinePraiseBookSavedBooksCombo_SelectionChanged", "selecting a saved PraiseBook should open it like FrmMain");
-        code.Should().Contain("OpenSelectedInlinePraiseBookAsync", "combo selection and Open button should share one open path");
+        code.Should().Contain("OpenSelectedInlinePraiseBookAsync", "selecting a saved book should open its entries");
         code.Should().Contain("await _inlinePraiseBook.OpenBookCommand.ExecuteAsync(name)", "inline PraiseBook selection should use the real ViewModel open command");
         code.Should().Contain("InlinePraiseBookAddSelected_Click", "PB_Add should add the selected Folders song to the inline PraiseBook");
         code.Should().Contain("InlinePraiseBookDeleteSelected_Click", "PB_Delete should remove selected PraiseBook rows");
@@ -1836,7 +1826,7 @@ public class MainMenuBarTests
             "ClassicOutputSlidePane",
         })
         {
-            var section = SectionBetween(xaml, $"x:Name=\"{pane}\"", "Padding=\"6\">");
+            var section = SectionBetween(xaml, $"x:Name=\"{pane}\"", "Padding=\"0\">");
             section.Should().Contain("Background=\"#808080\"",
                 $"{pane} keeps the legacy grey lower screen work area");
             section.Should().Contain("BorderThickness=\"1\"", $"{pane} keeps the WinForms-like splitter border");
@@ -1897,7 +1887,7 @@ public class MainMenuBarTests
         previewPowerPointSurface.Should().Contain("<WrapPanel />",
             "Preview PowerPoint top pane should wrap thumbnails like FrmMain flowLayoutPreviewPowerPoint");
         previewPowerPointSurface.Should().Contain("Converter={StaticResource LegacyPowerPointThumbnailSize}",
-            "Preview PowerPoint thumbnails should use the FrmMain three-column flow sizing formula");
+            "Preview PowerPoint thumbnails should resize as the pane width changes");
         previewPowerPointSurface.Should().NotContain("ConverterParameter=Height",
             "Preview thumbnail height follows the exported slide aspect");
         previewPowerPointSurface.Should().Contain("<Setter Property=\"BorderBrush\" Value=\"#005FB8\" />",

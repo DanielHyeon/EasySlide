@@ -72,7 +72,7 @@ public class ThemeServiceTests
         sut.ApplyInterfaceSize(InterfaceSize.Senior);
         var seniorSize = Application.Current.Resources[bodyKey];
 
-        standardSize.Should().Be(14.0); // Typography.xaml 기본값
+        standardSize.Should().Be(12.0);
         seniorSize.Should().Be(14.0 * 1.4); // ScaleFactor 1.4 적용
     }
 

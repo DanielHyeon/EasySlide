@@ -10,7 +10,7 @@ namespace Axicultus.Wpf.Theme;
 /// <summary>인터페이스 크기 — Q2 결정. 디폴트 Standard.</summary>
 public enum InterfaceSize
 {
-    /// <summary>표준 — 본문 14px, 타깃 44px (ScaleFactor 1.0)</summary>
+    /// <summary>표준 — 본문 12 DIP, 타깃 44 DIP.</summary>
     Standard,
     /// <summary>큰 글씨 — 본문 16px, 타깃 48px (ScaleFactor 1.2)</summary>
     Large,
@@ -60,10 +60,8 @@ public sealed partial class ThemeService : ObservableObject, IThemeService
         ("Type.Title2.FontSize", 20.0),
         ("Type.Title3.FontSize", 18.0),
         ("Type.BodyLarge.FontSize", 16.0),
-        ("Type.Body.FontSize", 14.0),
         ("Type.Caption.FontSize", 12.0),
         ("Type.ButtonLarge.FontSize", 16.0),
-        ("Type.Button.FontSize", 14.0),
     ];
 
     // 시니어 모드에 영향받는 간격 토큰 — 보더·반경은 제외 (ADR-0006).
@@ -195,6 +193,10 @@ public sealed partial class ThemeService : ObservableObject, IThemeService
         {
             resources[key] = baseValue * factor;
         }
+        double bodySize = size == InterfaceSize.Standard ? 12 : 14 * factor;
+        resources["Type.Body.FontSize"] = resources["Type.Button.FontSize"] = bodySize;
+        resources["ContentControlFontSize"] = resources["ControlContentThemeFontSize"] = bodySize;
+        resources["DefaultDataGridFontSize"] = resources["TreeViewItemFontSize"] = bodySize;
 
         foreach (var (key, baseValue) in ScaledSpacings)
         {

@@ -157,8 +157,8 @@ public sealed class BibleRepository : IBibleRepository
         command.CommandText = """
             SELECT NAME, FILENAME, DESCRIPTION, COPYRIGHT, SONGFOLDER, SIZE, DISPLAYORDER
             FROM Biblefolder
-            WHERE DISPLAYORDER >= 0
-            ORDER BY DISPLAYORDER, NAME;
+            WHERE DISPLAYORDER >= 0 AND NAME IS NOT NULL
+            ORDER BY DISPLAYORDER, NAME, rowid;
             """;
 
         using var reader = command.ExecuteReader();

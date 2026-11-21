@@ -7,6 +7,20 @@ namespace Axicultus.Wpf.Tests.Converters;
 
 public class LegacyPowerPointThumbnailSizeConverterTests
 {
+    [Theory]
+    [InlineData(0, 0)]
+    [InlineData(240, 236)]
+    [InlineData(327, 323)]
+    [InlineData(328, 160)]
+    [InlineData(491, 241)]
+    [InlineData(492, 160)]
+    [InlineData(935, 307)]
+    public void ConsoleCardsFitOneToThreeColumnsWithinTheViewport(double viewport, double expected)
+    {
+        var converter = new LegacyPowerPointThumbnailSizeConverter();
+        converter.Convert(viewport, typeof(double), "Console", CultureInfo.InvariantCulture).Should().Be(expected);
+    }
+
     [Fact]
     public void Convert_Width_UsesFrmMainThreeColumnFormula()
     {

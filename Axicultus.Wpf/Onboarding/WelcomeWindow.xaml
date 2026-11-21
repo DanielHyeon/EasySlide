@@ -53,7 +53,7 @@
                                Foreground="{DynamicResource Brush.Text.Primary}"
                                HorizontalAlignment="Center"
                                Margin="0,18,0,10" />
-                    <TextBlock Text="본문 14px"
+                    <TextBlock Text="본문 12px"
                                Style="{StaticResource Type.Body.Style}"
                                Foreground="{DynamicResource Brush.Text.Secondary}"
                                HorizontalAlignment="Center" />

@@ -519,7 +519,8 @@ public partial class MainWindow : Window
         var sample = preview ? PreviewSample : OutputSample;
         var item = preview ? _viewModel.PreviewPanelItem : _viewModel.OutputItem;
         if (item != null && LiveItemKindMatcher.IsExternalTextFileItem(item))
-            item = item with { ProjectedTextPage = preview ? _viewModel.PreviewLyricsText : _viewModel.OutputLyricsText };
+            item = item with { SongLayout = _viewModel.ResolveTextFileLayout(item),
+                ProjectedTextPage = preview ? _viewModel.PreviewLyricsText : _viewModel.OutputLyricsText };
         var snapshot = !preview && _viewModel.Session.Current.State != LiveState.Off
             ? _viewModel.Session.Current
             : item is null ? LiveSessionSnapshot.Off with { State = LiveState.Active }
@@ -3951,9 +3952,6 @@ public partial class MainWindow : Window
         PraiseBookTab.DataContext = _inlinePraiseBook;
         await RestoreInlinePraiseBookSelection().ConfigureAwait(true);
     }
-
-    private async void InlinePraiseBookOpenBook_Click(object sender, RoutedEventArgs e)
-        => await OpenSelectedInlinePraiseBookAsync().ConfigureAwait(true);
 
     private async void InlinePraiseBookSavedBooksCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {

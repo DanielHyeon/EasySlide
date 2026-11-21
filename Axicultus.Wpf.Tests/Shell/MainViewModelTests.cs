@@ -25,6 +25,32 @@ namespace Axicultus.Wpf.Tests.Shell;
 public class MainViewModelTests
 {
     [Fact]
+    public async Task ExternalTextWithoutItemFormattingUsesDatabaseFontForPreviewAndAudience()
+    {
+        using var temp = TempSettingsFolder.Create();
+        var settings = temp.CreateSettings();
+        settings.Set(AxicultusSettingKeys.LyricsMonitorFontSize, 24);
+        using var sut = CreateSut(settings: settings, seedSampleQueue: false);
+        var recycle = new SongPageLayout(40, "Microsoft Sans Serif", 0, 0, 0, 0, 1, 100, 0);
+        sut.Library.Folders.Add(new SongFolderSummary(0, "Recycle", false, 0, SlideLayout: recycle));
+        var layout = recycle with { FontPoints = 60, FontName = "다음_SemiBold" };
+        sut.Library.Folders.Add(new SongFolderSummary(1, "구찬송가", false, 0, SlideLayout: layout));
+        const string firstParagraph = "       신앙 고백\n      (사도신경)";
+        sut.AddTextFileItem("사도신경.txt", firstParagraph + "\n\n나는 전능하신");
+        sut.PreviewLyricsPages[0].BodyText.Should().Be(firstParagraph);
+        sut.ResolveTextFileLayout(sut.PreviewPanelItem!).Should().Be(layout);
+        await sut.PreviewToLiveCommand.ExecuteAsync(null);
+        sut.Session.Current.OverrideFontSizePx.Should().Be(80);
+        sut.Session.Current.OverrideFontName.Should().Be("다음_SemiBold");
+        sut.Session.Current.CurrentItemBodyText.Should().Be(firstParagraph);
+
+        sut.Library.Folders[1] = sut.Library.Folders[1] with { SlideLayout = layout with { FontPoints = 48 } };
+        sut.RefreshLibraryFormatting();
+        sut.Session.Current.OverrideFontSizePx.Should().Be(64);
+        sut.Session.Current.CurrentItemBodyText.Should().Be(firstParagraph);
+    }
+
+    [Fact]
     public async Task ChineseSwitchChangesOnlyOutputAndPreservesBlackoutAndPage()
     {
         using var sut = CreateSut(seedSampleQueue: false);

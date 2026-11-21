@@ -10,6 +10,7 @@
         xmlns:theme="clr-namespace:Axicultus.Wpf.Theme"
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
         Title="Axicultus"
+        FontSize="{DynamicResource Type.Body.FontSize}"
         Icon="/Axicultus;component/Assets/Axicultus.ico"
         UseLayoutRounding="True"
         Width="1180"
@@ -1383,11 +1384,11 @@
               Margin="0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition x:Name="ClassicSourceColumn"
-                                  Width="33*"
+                                  Width="25*"
                                   MinWidth="205" />
                 <ColumnDefinition Width="4" />
                 <ColumnDefinition x:Name="ClassicRightColumn"
-                                  Width="67*"
+                                  Width="75*"
                                   MinWidth="500" />
             </Grid.ColumnDefinitions>
 
@@ -1995,14 +1996,12 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
-                        <!-- FrmMain Bibles top strip: BookLookup + BibleUserLookup + Bibles_ShowVerses/Bibles_Go. -->
+                        <!-- FrmMain Bibles top strip: BookLookup + BibleUserLookup + Bibles_Go. -->
                         <Grid Grid.Row="0" Margin="0,0,0,4">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="7*" />
                                 <ColumnDefinition Width="2" />
                                 <ColumnDefinition Width="5*" />
-                                <ColumnDefinition Width="2" />
-                                <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="2" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
@@ -2027,20 +2026,7 @@
                                      ToolTip="구절 직접 입력 (예: 창 1:1-2:3, John 3:16)"
                                      AutomationProperties.Name="성경 구절 직접 입력" />
 
-                            <ToggleButton Grid.Column="4"
-                                          x:Name="Bibles_ShowVerses"
-                                          Tag="Bibles_ShowVerses"
-                                          IsChecked="{Binding Bible.ShowVerses, Mode=TwoWay}"
-                                          Style="{StaticResource ClassicOutputToggleButton}"
-                                          MinWidth="28"
-                                          MinHeight="28"
-                                          Padding="6,0"
-                                          ToolTip="절 번호 표시 전환"
-                                          AutomationProperties.Name="성경 절 번호 표시">
-                                <TextBlock Text="V" FontWeight="Bold" />
-                            </ToggleButton>
-
-                            <Button Grid.Column="6"
+                            <Button Grid.Column="4"
                                     x:Name="Bibles_Go"
                                     Tag="Bibles_Go"
                                     Click="JumpBibleReference_Click"
@@ -2120,15 +2106,22 @@
                                     ItemsSource="{Binding Bible.Versions}"
                                     SelectedItem="{Binding Bible.SelectedVersion, Mode=TwoWay}"
                                     TabStripPlacement="Bottom"
-                                    Style="{StaticResource EsTabView.FrmMainBottom}"
                                     BorderThickness="0"
                                     Background="Transparent"
                                     MinHeight="26"
                                     Margin="0,4,0,0"
                                     AutomationProperties.Name="성경 버전">
+                            <TabControl.Style>
+                                <Style TargetType="TabControl" BasedOn="{StaticResource EsTabView.FrmMainBottom}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Bible.Versions.Count}" Value="0"><Setter Property="Visibility" Value="Collapsed" /></DataTrigger>
+                                        <DataTrigger Binding="{Binding Bible.Versions.Count}" Value="1"><Setter Property="Visibility" Value="Collapsed" /></DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TabControl.Style>
                             <TabControl.ItemTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding Name}" />
+                                    <TextBlock Text="{Binding Name}" ToolTip="{Binding Description}" />
                                 </DataTemplate>
                             </TabControl.ItemTemplate>
                             <TabControl.ContentTemplate>
@@ -3507,21 +3500,19 @@
                         <TabItem.Header>
                             <TextBlock Text="Praise Book" FontSize="{Binding FontSize, RelativeSource={RelativeSource AncestorType=TabItem}}" />
                         </TabItem.Header>
-                        <Grid Margin="0,8,0,0">
+                        <Grid Margin="4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="*" />
-                                <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
 
-                            <Grid Grid.Row="0" Margin="0,0,0,8">
+                            <Grid Grid.Row="0" Grid.ColumnSpan="2" Margin="0,0,0,4">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="Auto" />
@@ -3533,7 +3524,11 @@
                                           SelectionChanged="InlinePraiseBookSavedBooksCombo_SelectionChanged"
                                           MinHeight="28"
                                           Margin="0,0,4,0"
-                                          AutomationProperties.Name="Saved Praise Book list" />
+                                          AutomationProperties.Name="Saved Praise Book list">
+                                    <ComboBox.ContextMenu>
+                                        <ContextMenu><MenuItem Header="_Refresh" Click="InlinePraiseBookRefresh_Click" /></ContextMenu>
+                                    </ComboBox.ContextMenu>
+                                </ComboBox>
                                 <Button Grid.Column="1"
                                         x:Name="PB_Manage"
                                         Tag="PB_Manage"
@@ -3574,31 +3569,10 @@
                                               AutomationProperties.Name="Sort by CJK Word Count">
                                     <controls:FrmIcon Icon="arrow_sort_down_lines" Width="16" Height="16" />
                                 </ToggleButton>
-                                <Button Grid.Column="4"
-                                        x:Name="InlinePraiseBookOpenBookButton"
-                                        Click="InlinePraiseBookOpenBook_Click"
-                                        Style="{StaticResource FrmMainButton}"
-                                        Width="28"
-                                        Height="28"
-                                        Padding="0"
-                                        Margin="0,0,2,0"
-                                        ToolTip="Open selected Praise Book"
-                                        AutomationProperties.Name="Open selected Praise Book">
-                                    <controls:FrmIcon Icon="folder_open" Width="18" Height="18" />
-                                </Button>
-                                <Button Grid.Column="5"
-                                        Click="InlinePraiseBookRefresh_Click"
-                                        Style="{StaticResource FrmMainButton}"
-                                        Width="28"
-                                        Height="28"
-                                        Padding="0"
-                                        Margin="0,0,2,0"
-                                        ToolTip="Refresh Praise Book index"
-                                        AutomationProperties.Name="Refresh Praise Book index">
-                                    <controls:FrmIcon Icon="arrow_clockwise" Width="18" Height="18" />
-                                </Button>
-                                <Button Grid.Column="6"
-                                        x:Name="PB_Delete"
+                            </Grid>
+
+                            <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Vertical" Margin="4,0,0,0">
+                                <Button x:Name="PB_Delete"
                                         Tag="PB_Delete"
                                         Click="InlinePraiseBookDeleteSelected_Click"
                                         Style="{StaticResource FrmMainButton}"
@@ -3610,8 +3584,7 @@
                                         AutomationProperties.Name="Delete selected PraiseBook items">
                                     <controls:FrmIcon Icon="delete" Width="18" Height="18" />
                                 </Button>
-                                <Button Grid.Column="7"
-                                        x:Name="PB_Word"
+                                <Button x:Name="PB_Word"
                                         Tag="PB_Word"
                                         Click="InlinePraiseBookExportRtf_Click"
                                         Style="{StaticResource FrmMainButton}"
@@ -3623,8 +3596,7 @@
                                         AutomationProperties.Name="Generate PraiseBook RTF document">
                                     <controls:FrmIcon Icon="document_text" Width="18" Height="18" />
                                 </Button>
-                                <Button Grid.Column="8"
-                                        x:Name="PB_Html"
+                                <Button x:Name="PB_Html"
                                         Tag="PB_Html"
                                         Click="InlinePraiseBookExportHtml_Click"
                                         Style="{StaticResource FrmMainButton}"
@@ -3635,7 +3607,7 @@
                                         AutomationProperties.Name="Generate PraiseBook HTML document">
                                     <controls:FrmIcon Icon="code" Width="18" Height="18" />
                                 </Button>
-                            </Grid>
+                            </StackPanel>
 
                             <ListView Grid.Row="1"
                                       x:Name="PraiseBookItems"
@@ -3707,27 +3679,6 @@
                                 </ListView.ContextMenu>
                             </ListView>
 
-                            <Grid Grid.Row="2" Margin="0,8,0,0">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Text="{Binding StatusText}"
-                                           TextTrimming="CharacterEllipsis"
-                                           Style="{StaticResource Type.Caption.Style}"
-                                           Foreground="{DynamicResource Brush.Text.Tertiary}" />
-                                <Button Grid.Column="1"
-                                        Click="OpenPraiseBookIndex_Click"
-                                        Style="{StaticResource FrmMainButton}"
-                                        Width="28"
-                                        Height="28"
-                                        Padding="0"
-                                        ToolTip="Open Praise Book window"
-                                        Margin="8,0,0,0"
-                                        AutomationProperties.Name="Open Praise Book window">
-                                    <controls:FrmIcon Icon="tab_desktop_multiple" Width="18" Height="18" />
-                                </Button>
-                            </Grid>
                         </Grid>
                     </TabItem>
                 </TabControl>
@@ -3748,11 +3699,11 @@
                   Grid.Column="2">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition x:Name="ClassicPreviewColumn"
-                                      Width="53*"
+                                      Width="50*"
                                       MinWidth="220" />
                     <ColumnDefinition Width="4" />
                     <ColumnDefinition x:Name="ClassicOutputColumn"
-                                      Width="47*"
+                                      Width="50*"
                                       MinWidth="240" />
                 </Grid.ColumnDefinitions>
                             <GridSplitter Grid.Column="1"
@@ -3768,11 +3719,11 @@
             <Grid x:Name="PreviewSplit" Grid.Column="0">
                 <Grid.RowDefinitions>
                     <RowDefinition x:Name="ClassicTopControlRow"
-                                   Height="3*"
+                                   Height="*"
                                    MinHeight="135" />
                     <RowDefinition Height="4" />
                     <RowDefinition x:Name="ClassicBottomScreenRow"
-                                   Height="2*"
+                                   Height="*"
                                    MinHeight="130" />
                 </Grid.RowDefinitions>
             <GridSplitter Grid.Row="1"
@@ -3884,7 +3835,7 @@
                                 </TabItem.Header>
                                 <!-- 이미지 파일을 탐색기에서 미리보기 영역에 끌어다 놓으면 출력 배경 이미지로 설정(레거시 이미지→배경 드래그).
                                      Background="Transparent" 라야 빈 여백까지 드롭을 받는다(배경 없는 Panel 은 빈 영역이 히트테스트 안 됨). -->
-                                <Grid Margin="{StaticResource Thickness.Lg}"
+                                <Grid Margin="0"
                                       Background="Transparent"
                                       AllowDrop="True"
                                       DragOver="PreviewArea_DragOver"
@@ -3973,7 +3924,7 @@
                                                                     </Style>
                                                                 </Border.Style>
                                                                 <StackPanel>
-                                                                    <TextBlock Text="{Binding SectionHeading}" FontSize="{Binding DataContext.PreviewFontDip, RelativeSource={RelativeSource AncestorType=ItemsControl}}" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}">
+                                                                    <TextBlock Text="{Binding SectionHeading}" FontSize="{Binding DataContext.PreviewFontDip, RelativeSource={RelativeSource AncestorType=ItemsControl}}" LineStackingStrategy="BlockLineHeight" LineHeight="{Binding DataContext.PreviewListLineHeight, RelativeSource={RelativeSource AncestorType=ItemsControl}}" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}">
                                                                         <TextBlock.Style>
                                                                             <Style TargetType="TextBlock"><Style.Triggers>
                                                                                 <DataTrigger Binding="{Binding SectionHeading}" Value=""><Setter Property="Visibility" Value="Collapsed" /></DataTrigger>
@@ -3983,7 +3934,7 @@
                                                                     <TextBlock Text="{Binding BodyText}"
                                                                            TextWrapping="Wrap"
                                                                            FontFamily="Microsoft Sans Serif"
-                                                                           FontSize="{Binding DataContext.PreviewFontDip, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                                           FontSize="{Binding DataContext.PreviewFontDip, RelativeSource={RelativeSource AncestorType=ItemsControl}}" LineStackingStrategy="BlockLineHeight" LineHeight="{Binding DataContext.PreviewListLineHeight, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                                            Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
                                                                 </StackPanel>
                                                             </Border>
@@ -4580,7 +4531,7 @@
                                                                           Command="{Binding DataContext.ReplayPreviewPowerPointSlideCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                                           CommandParameter="{Binding SlideNumber}" />
                                                         </Button.InputBindings>
-                                                        <Border Width="{Binding Path=ActualWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}, Converter={StaticResource LegacyPowerPointThumbnailSize}}"
+                                                        <Border Width="{Binding Path=ViewportWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}, Converter={StaticResource LegacyPowerPointThumbnailSize}, ConverterParameter=Console}"
                                                                 BorderThickness="5"
                                                                 Background="White"
                                                                 Padding="0"
@@ -4756,7 +4707,7 @@
                     BorderThickness="1"
                     Focusable="True"
                     MouseDown="ClassicKeyboardSurface_MouseDown"
-                    Padding="6">
+                    Padding="0">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -4767,7 +4718,7 @@
                             Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"
                             BorderBrush="{DynamicResource Brush.Border.Default}"
                             BorderThickness="0,0,0,1"
-                            Margin="-6,-6,-6,3"
+                            Margin="0,0,0,3"
                             Padding="1,1">
                         <WrapPanel x:Name="ClassicPreviewBottomStrip"
                                    Orientation="Horizontal"
@@ -4894,14 +4845,16 @@
                             </MultiBinding>
                         </Viewbox.Height>
                         <Grid Width="960" Height="{Binding SampleScreenHeight}">
-                            <Border Margin="16,16,0,0" Background="#141414" />
+                            <Border Background="#141414" IsHitTestVisible="False">
+                                <Border.RenderTransform><TranslateTransform X="16" Y="16" /></Border.RenderTransform>
+                            </Border>
                             <Border x:Name="ClassicPreviewBack"
                                     Tag="PreviewBack"
                                     Background="{Binding PreviewSample.SceneBackgroundBrush, RelativeSource={RelativeSource AncestorType=Window}}"
                                     BorderBrush="#182539"
                                     BorderThickness="0"
                                     Focusable="True"
-                                    MouseDown="ClassicKeyboardSurface_MouseDown" Margin="0,0,16,16">
+                                    MouseDown="ClassicKeyboardSurface_MouseDown">
                                 <Grid ClipToBounds="True">
                                     <Rectangle Fill="{Binding PreviewSample.BackgroundImageBrush, RelativeSource={RelativeSource AncestorType=Window}}" Visibility="{Binding PreviewSample.BackgroundImageVisibility, RelativeSource={RelativeSource AncestorType=Window}}" />
                                     <ContentControl Style="{StaticResource LyricBodyHost}"
@@ -4939,7 +4892,7 @@
                                                            SlideNumber="{Binding PreviewVisualSlideNumber}"
                                                            ShowSlideNumber="True"
                                                            IsSelected="True"
-                                                           Visibility="{Binding HasPreviewVisualSource, Converter={StaticResource BoolToVis}}" Margin="0,0,16,16" Background="#141414" />
+                                                           Visibility="{Binding HasPreviewVisualSource, Converter={StaticResource BoolToVis}}" Background="#141414" />
                         </Grid>
                     </Viewbox>
                     <DockPanel Background="{DynamicResource Brush.Surface.Card}"
@@ -4958,11 +4911,11 @@
             <Grid x:Name="OutputSplit" Grid.Column="2">
                 <Grid.RowDefinitions>
                     <RowDefinition x:Name="OutputTopControlRow"
-                                   Height="3*"
+                                   Height="*"
                                    MinHeight="135" />
                     <RowDefinition Height="4" />
                     <RowDefinition x:Name="OutputBottomScreenRow"
-                                   Height="2*"
+                                   Height="*"
                                    MinHeight="130" />
                 </Grid.RowDefinitions>
             <GridSplitter Grid.Row="1"
@@ -5084,7 +5037,7 @@
                                               Focusable="True"
                                               MouseDown="ClassicKeyboardSurface_MouseDown"
                                               VerticalScrollBarVisibility="Auto"
-                                              Margin="{StaticResource Thickness.Lg}"
+                                              Margin="0"
                                               Visibility="{Binding HasOutputLyricsText, Converter={StaticResource BoolToVis}}"
                                               AutomationProperties.Name="Output 가사 페이지 영역">
                                     <ItemsControl x:Name="flowLayoutOutputLyrics"
@@ -5159,7 +5112,7 @@
                                                             </Style>
                                                         </Border.Style>
                                                         <StackPanel>
-                                                            <TextBlock Text="{Binding SectionHeading}" FontSize="{Binding DataContext.PreviewFontDip, RelativeSource={RelativeSource AncestorType=ItemsControl}}" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}">
+                                                            <TextBlock Text="{Binding SectionHeading}" FontSize="{Binding DataContext.PreviewFontDip, RelativeSource={RelativeSource AncestorType=ItemsControl}}" LineStackingStrategy="BlockLineHeight" LineHeight="{Binding DataContext.PreviewListLineHeight, RelativeSource={RelativeSource AncestorType=ItemsControl}}" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}">
                                                                 <TextBlock.Style>
                                                                     <Style TargetType="TextBlock"><Style.Triggers>
                                                                         <DataTrigger Binding="{Binding SectionHeading}" Value=""><Setter Property="Visibility" Value="Collapsed" /></DataTrigger>
@@ -5169,7 +5122,7 @@
                                                             <TextBlock Text="{Binding BodyText}"
                                                                    TextWrapping="Wrap"
                                                                    FontFamily="Microsoft Sans Serif"
-                                                                   FontSize="{Binding DataContext.PreviewFontDip, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                                   FontSize="{Binding DataContext.PreviewFontDip, RelativeSource={RelativeSource AncestorType=ItemsControl}}" LineStackingStrategy="BlockLineHeight" LineHeight="{Binding DataContext.PreviewListLineHeight, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                                    Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
                                                         </StackPanel>
                                                     </Border>
@@ -5210,7 +5163,7 @@
                                                                       Command="{Binding DataContext.ReplayOutputPowerPointSlideCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                                       CommandParameter="{Binding SlideNumber}" />
                                                     </Button.InputBindings>
-                                                    <Border Width="{Binding Path=ActualWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}, Converter={StaticResource LegacyPowerPointThumbnailSize}}"
+                                                    <Border Width="{Binding Path=ViewportWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}, Converter={StaticResource LegacyPowerPointThumbnailSize}, ConverterParameter=Console}"
                                                             BorderThickness="5"
                                                             Background="White"
                                                             Padding="0"
@@ -5250,63 +5203,56 @@
                                     </ItemsControl>
                                 </ScrollViewer>
 
-                                <ScrollViewer x:Name="ClassicOutputVisualSurface"
+                                <Grid x:Name="ClassicOutputVisualSurface"
                                               Tag="flowLayoutOutputVisual"
                                               Focusable="True"
                                               MouseDown="ClassicKeyboardSurface_MouseDown"
-                                              HorizontalScrollBarVisibility="Disabled"
-                                              VerticalScrollBarVisibility="Auto"
-                                              Margin="8"
+                                              Margin="2"
                                               Visibility="{Binding IsOutputVisualContext, Converter={StaticResource BoolToVis}}"
                                               AutomationProperties.Name="Output 시각 자료 영역">
-                                    <WrapPanel>
-                                        <Button Command="{Binding RefreshOutputVisualCommand}"
-                                                Margin="6"
-                                                Padding="0"
-                                                Background="Transparent"
-                                                BorderThickness="0"
-                                                Cursor="Hand"
-                                                ToolTip="Output 시각 자료 새로고침"
-                                                AutomationProperties.Name="Output 시각 자료 새로고침">
-                                            <Border Width="{Binding Path=ActualWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}, Converter={StaticResource LegacyPowerPointThumbnailSize}}"
-                                                    MinHeight="{Binding Path=ActualWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}, Converter={StaticResource LegacyPowerPointThumbnailSize}, ConverterParameter=Height}"
-                                                    Padding="4"
-                                                    Background="{DynamicResource Brush.Surface.Page}"
-                                                    BorderBrush="Red"
-                                                    BorderThickness="5">
-                                                <Grid>
-                                                    <Grid.RowDefinitions>
-                                                        <RowDefinition Height="Auto" />
-                                                        <RowDefinition Height="Auto" />
-                                                        <RowDefinition Height="Auto" />
-                                                    </Grid.RowDefinitions>
-                                                    <rendering:SlidePreviewControl Title="{Binding OutputVisualTitle}"
-                                                                                   Kind="{Binding OutputVisualKind}"
-                                                                                   Source="{Binding OutputVisualSource}"
-                                                                                   FillMode="{Binding OutputVisualFillMode}"
-                                                                                   SlideNumber="{Binding OutputVisualSlideNumber}"
-                                                                                   Width="{Binding Path=ActualWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}, Converter={StaticResource LegacyPowerPointThumbnailSize}}"
-                                                                                   Height="{Binding Path=ActualWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}, Converter={StaticResource LegacyPowerPointThumbnailSize}, ConverterParameter=Height}"
-                                                                                   IsHitTestVisible="False"
-                                                                                   AutomationProperties.Name="Output 시각 자료 썸네일" />
-                                                    <TextBlock Grid.Row="1"
-                                                               Text="{Binding OutputVisualTitle}"
-                                                               Margin="0,5,0,0"
-                                                               TextWrapping="Wrap"
-                                                               TextTrimming="CharacterEllipsis"
-                                                               MaxHeight="32"
-                                                               Style="{StaticResource Type.Caption.StrongStyle}"
-                                                               Foreground="{DynamicResource Brush.Text.Primary}" />
-                                                    <TextBlock Grid.Row="2"
-                                                               Text="{Binding OutputVisualKind}"
-                                                               TextTrimming="CharacterEllipsis"
-                                                               Style="{StaticResource Type.Caption.Style}"
-                                                               Foreground="{DynamicResource Brush.Text.Secondary}" />
-                                                </Grid>
-                                            </Border>
-                                        </Button>
-                                    </WrapPanel>
-                                </ScrollViewer>
+                                    <Button Command="{Binding RefreshOutputVisualCommand}"
+                                            HorizontalContentAlignment="Stretch"
+                                            VerticalContentAlignment="Stretch"
+                                            Padding="0"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            Cursor="Hand"
+                                            ToolTip="Output 시각 자료 새로고침"
+                                            AutomationProperties.Name="Output 시각 자료 새로고침">
+                                        <Border Padding="4"
+                                                Background="{DynamicResource Brush.Surface.Page}"
+                                                BorderBrush="Red"
+                                                BorderThickness="5">
+                                            <Grid>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="*" />
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
+                                                </Grid.RowDefinitions>
+                                                <rendering:SlidePreviewControl Title="{Binding OutputVisualTitle}"
+                                                                               Kind="{Binding OutputVisualKind}"
+                                                                               Source="{Binding OutputVisualSource}"
+                                                                               FillMode="{Binding OutputVisualFillMode}"
+                                                                               SlideNumber="{Binding OutputVisualSlideNumber}"
+                                                                               IsHitTestVisible="False"
+                                                                               AutomationProperties.Name="Output 시각 자료 썸네일" />
+                                                <TextBlock Grid.Row="1"
+                                                           Text="{Binding OutputVisualTitle}"
+                                                           Margin="0,5,0,0"
+                                                           TextWrapping="Wrap"
+                                                           TextTrimming="CharacterEllipsis"
+                                                           MaxHeight="32"
+                                                           Style="{StaticResource Type.Caption.StrongStyle}"
+                                                           Foreground="{DynamicResource Brush.Text.Primary}" />
+                                                <TextBlock Grid.Row="2"
+                                                           Text="{Binding OutputVisualKind}"
+                                                           TextTrimming="CharacterEllipsis"
+                                                           Style="{StaticResource Type.Caption.Style}"
+                                                           Foreground="{DynamicResource Brush.Text.Secondary}" />
+                                            </Grid>
+                                        </Border>
+                                    </Button>
+                                </Grid>
                             </Grid>
                             <Border x:Name="ClassicOutputMediaSurface"
                                     Tag="flowLayoutOutputMedia"
@@ -5372,7 +5318,7 @@
                     BorderThickness="1"
                     Focusable="True"
                     MouseDown="ClassicKeyboardSurface_MouseDown"
-                    Padding="6">
+                    Padding="0">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -5385,7 +5331,7 @@
                             Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"
                             BorderBrush="{DynamicResource Brush.Border.Default}"
                             BorderThickness="0,0,0,1"
-                            Margin="-6,-6,-6,3"
+                            Margin="0,0,0,3"
                             Padding="1,1">
                         <WrapPanel x:Name="ClassicOutputBottomStrip"
                                    Orientation="Horizontal"
@@ -5488,7 +5434,7 @@
                         </WrapPanel>
                     </Border>
 
-                    <Border Grid.Row="1" Background="White" Margin="-6,-3,-6,2" Padding="5,2">
+                    <Border Grid.Row="1" Background="White" Margin="0,0,0,2" Padding="5,2">
                         <TextBlock Text="{Binding OutputScreenStatus}" FontSize="11" />
                     </Border>
 
@@ -5517,14 +5463,16 @@
                             </MultiBinding>
                         </Viewbox.Height>
                         <Grid Width="960" Height="{Binding SampleScreenHeight}">
-                            <Border Margin="16,16,0,0" Background="#141414" />
+                            <Border Background="#141414" IsHitTestVisible="False">
+                                <Border.RenderTransform><TranslateTransform X="16" Y="16" /></Border.RenderTransform>
+                            </Border>
                             <Border x:Name="ClassicOutputBack"
                                     Tag="OutputBack"
                                     Background="{Binding OutputSample.SceneBackgroundBrush, RelativeSource={RelativeSource AncestorType=Window}}"
                                     BorderBrush="#111111"
                                     Focusable="True"
                                     MouseDown="ClassicKeyboardSurface_MouseDown"
-                                    BorderThickness="0" Margin="0,0,16,16">
+                                    BorderThickness="0">
                                 <Grid ClipToBounds="True">
                                     <Rectangle Fill="{Binding OutputSample.BackgroundImageBrush, RelativeSource={RelativeSource AncestorType=Window}}" Visibility="{Binding OutputSample.BackgroundImageVisibility, RelativeSource={RelativeSource AncestorType=Window}}" />
                                     <Grid>
@@ -5586,9 +5534,9 @@
                                                            FillMode="{Binding OutputVisualFillMode}"
                                                            SlideNumber="{Binding OutputVisualSlideNumber}"
                                                            Visibility="{Binding HasOutputVisualSource, Converter={StaticResource BoolToVis}}"
-                                                           AutomationProperties.Name="Output 큰 시각 자료" Margin="0,0,16,16" Background="#141414" />
+                                                           AutomationProperties.Name="Output 큰 시각 자료" Background="#141414" />
                             </Grid>
-                            <Border Margin="0,0,16,16" Background="Black" IsHitTestVisible="False" Visibility="{Binding IsOutputBlackActive, Converter={StaticResource BoolToVis}}" />
+                            <Border Background="Black" IsHitTestVisible="False" Visibility="{Binding IsOutputBlackActive, Converter={StaticResource BoolToVis}}" />
                         </Grid>
                     </Viewbox>
                     </Grid>

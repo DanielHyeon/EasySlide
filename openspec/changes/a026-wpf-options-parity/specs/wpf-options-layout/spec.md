@@ -10,6 +10,12 @@ The WPF options dialog SHALL present the eight WinForms categories in their orig
 - **THEN** View → Options opens a native WPF options window with Main Window, Show, Monitors, Alerts, Folders, Bibles, Licence and Keyboard in this order, including the same control groups, positions and icons
 - **AND** the WPF settings and device diagnostics button switches pages within that window
 
+#### Scenario: Text file without an individual font size
+
+- **WHEN** a worship list references a text file with no individual font size or assigned song folder
+- **THEN** its preview, pagination and audience output use the stored default folder font when available
+- **AND** importing the WinForms lyrics monitor font size updates the stage display preference independently
+
 ### Requirement: Options edit lifetime
 
 The WPF options dialog SHALL stage changes to application preferences until confirmation.

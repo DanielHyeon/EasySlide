@@ -164,6 +164,31 @@ public class BibleViewModelTests
     }
 
     [Fact]
+    public async Task SwitchingVersionKeepsTheBookAndLoadsItsTextEvenWhenBookNamesMatch()
+    {
+        using var fixture = TempBibleSettings.Create();
+        var exodus = new BibleBook(2, "Exodus");
+        var repository = new FakeBibleRepository
+        {
+            Versions = [fixture.Kjv, fixture.Niv],
+            Books = [new BibleBook(1, "Genesis"), exodus],
+        };
+        var sut = new BibleViewModel(fixture.Settings, repository);
+        await sut.LoadAsync();
+        sut.SelectedBrowserBook = exodus;
+        repository.ResetLoadBookTracking();
+        repository.LoadedBook = new("second translation", [], true, false);
+
+        sut.SelectedVersion = fixture.Niv;
+
+        sut.SelectedBrowserBook.Should().Be(exodus);
+        repository.LastLoadedBookNumber.Should().Be(2);
+        repository.LoadBookCallCount.Should().Be(1);
+        sut.PassageText.Should().Be("second translation");
+        sut.SelectedSelection.IdString.Should().BeEmpty();
+    }
+
+    [Fact]
     public async Task ChangingShowVerses_ReloadsCurrentBookLikeBiblesShowVerses()
     {
         using var fixture = TempBibleSettings.Create();
@@ -868,7 +893,7 @@ public class BibleViewModelTests
 
         public Exception? GetVersionsException { get; init; }
 
-        public BiblePassageResult LoadedBook { get; init; } = new("", [], IsSequential: true, WasLimited: false);
+        public BiblePassageResult LoadedBook { get; set; } = new("", [], IsSequential: true, WasLimited: false);
 
         public Func<string, BiblePassageResult>? SearchOverride { get; init; }
 

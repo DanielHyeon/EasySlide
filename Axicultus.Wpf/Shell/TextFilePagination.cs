@@ -8,6 +8,15 @@ namespace Axicultus.Wpf.Shell;
 
 internal sealed record TextFileLayout(double Width, double Height, string FontFamily, double FontSize, double LineHeight)
 {
+    // The song database can contain GDI face names with underscores where WPF uses spaces.
+    internal static FontFamily ResolveFont(string name)
+    {
+        var family = new FontFamily(string.IsNullOrWhiteSpace(name) ? "Segoe UI" : name);
+        if (!family.Source.Contains('_') || new Typeface(family.Source).TryGetGlyphTypeface(out _)) return family;
+        var alias = new Typeface(family.Source.Replace('_', ' '));
+        return alias.TryGetGlyphTypeface(out _) ? alias.FontFamily : family;
+    }
+
     // WinForms FormatText uses a 960-wide reference slide and reserves 2.2% above and 3% below the lyrics.
     internal static int FontAtWidth(double referenceSize, double width) =>
         Math.Max(1, (int)Math.Round(referenceSize * width / 960));
@@ -29,7 +38,7 @@ internal static class TextFilePagination
         if (layout is null) return paragraphs;
 
         List<string> pages = [];
-        var typeface = new Typeface(string.IsNullOrWhiteSpace(layout.FontFamily) ? "Segoe UI" : layout.FontFamily);
+        var typeface = new Typeface(TextFileLayout.ResolveFont(layout.FontFamily), FontStyles.Normal, FontWeights.Normal, FontStretches.Normal);
         foreach (string paragraph in paragraphs)
         {
             if (Fits(paragraph))
@@ -77,7 +86,7 @@ internal static class TextFilePagination
                 typeface, layout.FontSize, Brushes.Black, 1)
             {
                 MaxTextWidth = Math.Clamp(layout.Width, 1, 100000),
-                LineHeight = layout.LineHeight,
+                LineHeight = Math.Max(layout.LineHeight, layout.FontSize * typeface.FontFamily.LineSpacing),
             };
             return measured.Height <= layout.Height;
         }

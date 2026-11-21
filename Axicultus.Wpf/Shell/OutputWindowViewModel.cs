@@ -1085,7 +1085,7 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         // Region2 글꼴명: 있으면 FontFamily, 없으면 UnsetValue → XAML 이 Region1/테마 글꼴을 상속.
         BodyFont2Family = string.IsNullOrWhiteSpace(scene.LyricsMonitorFontFamily2)
             ? DependencyProperty.UnsetValue
-            : new FontFamily(scene.LyricsMonitorFontFamily2);
+            : TextFileLayout.ResolveFont(scene.LyricsMonitorFontFamily2);
         BodyFont2Size = scene.LyricsMonitorFontSize2;
         // Region1↔Region2 세로 간격(FrmMain Ind_Reg2TopUpDown) — Region2 블록 위쪽 여백으로 적용. 기본 8=기존(무회귀).
         BodyText2Margin = new Thickness(0, scene.LyricsMonitorRegionGapPx, 0, 0);
@@ -1098,7 +1098,7 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         // 곡별 글꼴명 오버라이드: 있으면 FontFamily, 없으면 UnsetValue → XAML 이 테마 기본 글꼴을 상속(무회귀).
         BodyFontFamily = string.IsNullOrWhiteSpace(scene.LyricsMonitorFontFamily)
             ? DependencyProperty.UnsetValue
-            : new FontFamily(scene.LyricsMonitorFontFamily);
+            : TextFileLayout.ResolveFont(scene.LyricsMonitorFontFamily);
         // 줄 높이 = 폰트 크기 × 줄 간격 비율(설정 %). 기본 125% → 폰트×1.25(기존 동작 보존).
         BodyLineHeight = scene.LyricsMonitorFontSize * (scene.LyricsMonitorLineSpacingPercent / 100.0);
         // 폰트 효과: 굵게 off 는 기존 SemiBold 를 유지(완전 Normal 로 떨어뜨리지 않음).
