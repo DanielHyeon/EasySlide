@@ -346,6 +346,8 @@ namespace Axicultus
             PP_ListType = new ToolStripDropDownButton();
             PP_ListStyle = new ToolStripMenuItem();
             PP_PreviewStyle = new ToolStripMenuItem();
+            PP_SortByNumber = new ToolStripMenuItem("장 번호순");
+            PP_SortByTitle = new ToolStripMenuItem("가나다순");
             PP_OpenFolder = new ToolStripButton();
             PP_Import = new ToolStripButton();
             toolStripSeparator24 = new ToolStripSeparator();
@@ -3931,7 +3933,8 @@ namespace Axicultus
             // PP_ListType
             // 
             PP_ListType.DisplayStyle = ToolStripItemDisplayStyle.Image;
-            PP_ListType.DropDownItems.AddRange(new ToolStripItem[] { PP_ListStyle, PP_PreviewStyle });
+            PP_ListType.DropDownItems.AddRange(new ToolStripItem[] { PP_ListStyle, PP_PreviewStyle,
+                new ToolStripSeparator(), PP_SortByNumber, PP_SortByTitle });
             PP_ListType.Image = (System.Drawing.Image)resources.GetObject("PP_ListType.Image");
             PP_ListType.ImageTransparentColor = System.Drawing.Color.Magenta;
             PP_ListType.Name = "PP_ListType";
@@ -7050,6 +7053,8 @@ namespace Axicultus
         private ToolStripDropDownButton PP_ListType;
         private ToolStripMenuItem PP_ListStyle;
         private ToolStripMenuItem PP_PreviewStyle;
+        private ToolStripMenuItem PP_SortByNumber;
+        private ToolStripMenuItem PP_SortByTitle;
         private ToolStripButton PP_OpenFolder;
         private ToolStripButton PP_Import;
         private ToolStripSeparator toolStripSeparator24;

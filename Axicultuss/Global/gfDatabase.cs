@@ -551,6 +551,8 @@ namespace Axicultus;
 			}
 			NotationFontFactor = (float)notationFontFactor / 100f;
 			PowerpointListingStyle = DataUtil.ObjToInt(RegUtil.GetRegValue("options", "ExternalListing", 0));
+			PowerPointSourceOrder = DataUtil.ObjToInt(RegUtil.GetRegValue("options", "PowerPointSortByTitle", 0)) == 1
+				? PowerPointSortOrder.Title : PowerPointSortOrder.HymnNumber;
 			if (PowerpointListingStyle is < 0 or > 1)
 			{
 				PowerpointListingStyle = 0;

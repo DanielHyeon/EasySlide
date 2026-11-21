@@ -297,6 +297,16 @@ public class SettingsServiceTests
     }
 
     [Fact]
+    public void PowerPointTitleOrderIsOptInAndSurvivesReload()
+    {
+        using var fixture = TempSettingsFolder.Create();
+        var settings = fixture.CreateService();
+        settings.Get(AxicultusSettingKeys.PowerPointSortByTitle).Should().BeFalse();
+        settings.Set(AxicultusSettingKeys.PowerPointSortByTitle, true).Succeeded.Should().BeTrue();
+        fixture.CreateService().Get(AxicultusSettingKeys.PowerPointSortByTitle).Should().BeTrue();
+    }
+
+    [Fact]
     public void Set_PowerPointSourceListingStyle_PersistsFrmMainListPreviewMode()
     {
         using var fixture = TempSettingsFolder.Create();

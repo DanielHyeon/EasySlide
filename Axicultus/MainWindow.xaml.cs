@@ -1,4 +1,5 @@
 using System;
+using PowerPointSortOrder = Axicultus.Module.PowerPointSortOrder;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
@@ -233,7 +234,8 @@ public partial class MainWindow : Window
             _services.GetService<IPowerPointRenderService>(),
             initialListingStyle: ResolveInitialPowerPointListingStyle(),
             listingStyleChanged: SavePowerPointSourceListingStyle,
-            sourceFolder: _settings?.Get(AxicultusSettingKeys.PowerPointSourceFolder));
+            sourceFolder: _settings?.Get(AxicultusSettingKeys.PowerPointSourceFolder),
+            initialSortOrder: PowerPointSourceSortOrder(), sortOrderChanged: SavePowerPointSortOrder);
         PowerPointSourceTab.DataContext = _inlinePowerPoint;
         _inlinePowerPoint.LoadCommand.Execute(null);
     }
@@ -245,6 +247,18 @@ public partial class MainWindow : Window
     private void SavePowerPointSourceListingStyle(PowerPointListingStyle style)
     {
         _settings?.Set(AxicultusSettingKeys.PowerPointSourceListingStyle, (int)style);
+    }
+
+    private PowerPointSortOrder PowerPointSourceSortOrder() =>
+        _settings?.Get(AxicultusSettingKeys.PowerPointSortByTitle) == true
+            ? PowerPointSortOrder.Title : PowerPointSortOrder.HymnNumber;
+
+    private void SavePowerPointSortOrder(PowerPointSortOrder order)
+    {
+        if (PowerPointSourceSortOrder() != order)
+            _settings?.Set(AxicultusSettingKeys.PowerPointSortByTitle, order == PowerPointSortOrder.Title);
+        if (_inlinePowerPoint is { } tab && tab.SortOrder != order)
+            tab.SortOrder = order;
     }
 
     private void EnsureInlineInfoScreenLoadedOnce(MainViewModel viewModel)
@@ -3792,7 +3806,8 @@ public partial class MainWindow : Window
             _services.GetService<IPowerPointRenderService>(),
             initialListingStyle: ResolveInitialPowerPointListingStyle(),
             listingStyleChanged: SavePowerPointSourceListingStyle,
-            sourceFolder: _settings?.Get(AxicultusSettingKeys.PowerPointSourceFolder));
+            sourceFolder: _settings?.Get(AxicultusSettingKeys.PowerPointSourceFolder),
+            initialSortOrder: PowerPointSourceSortOrder(), sortOrderChanged: SavePowerPointSortOrder);
 
         var window = new Axicultus.Wpf.Library.PowerPointLibraryWindow(pptViewModel) { Owner = this };
         window.ShowDialog();

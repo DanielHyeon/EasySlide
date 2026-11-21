@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using Axicultus.Module;
 using Axicultus.Wpf.Library;
 using FluentAssertions;
 using Xunit;
@@ -43,6 +44,53 @@ public class PowerPointLibraryServiceTests : IDisposable
         media.ChangeSourceFolder(builtIn + Path.DirectorySeparatorChar);
         media.FolderGroups.Should().ContainSingle();
         media.MediaFiles.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void NumberedDecksKeepTheirOrderAcrossFoldersFilteringAndPreview()
+    {
+        string[] relativePaths = ["찬송1장.pptx", "찬송2장.pptx", "10부/찬송6장.pptx", "2부/찬송7장.ppt", "찬송10장.pptx",
+            "2부/찬송60장.pptx", "10부/찬송60장.pptx", "찬송100장.pptx"];
+        foreach (var path in relativePaths.Reverse()) Touch(path);
+        Touch("~$찬송1장.pptx");
+
+        string? added = null;
+        var tab = new PowerPointLibraryViewModel(new PowerPointLibraryService(), path => added = path, _dir);
+        tab.LoadCommand.Execute(null);
+        var expected = relativePaths.Select(path => Path.GetFullPath(Path.Combine(_dir, path))).ToArray();
+        tab.FolderGroups.Select(group => group.DisplayName).Should().Equal("Powerpoint Items", @"\2부", @"\10부");
+        tab.Presentations.Select(item => item.FilePath).Should().Equal(expected);
+        tab.UsePreviewStyleCommand.Execute(null);
+        tab.Presentations.Select(item => item.FilePath).Should().Equal(expected);
+        tab.FilterText = "60장";
+        var sixties = expected.Where(path => Path.GetFileName(path) == "찬송60장.pptx").ToArray();
+        tab.Presentations.Select(item => item.FilePath).Should().Equal(sixties);
+        tab.SelectedFile = tab.Presentations[1];
+        tab.AddSelectedCommand.Execute(null);
+        added.Should().Be(sixties[1]);
+    }
+
+    [Fact]
+    public void SortSelectorUsesTheSongTitleOrHymnNumberAndKeepsTheFilteredSelection()
+    {
+        string[] numberOrder = ["1장_하늘 찬송.pptx", "6장 찬송의 소리.ppt", "찬10장_감사 찬송.pptx",
+            "100장_나의 찬송.pptx", "가정 찬송.pptx"];
+        foreach (var name in numberOrder.Reverse()) Touch(name);
+        Touch("200장_별도 파일.pptx");
+        var tab = new PowerPointLibraryViewModel(new PowerPointLibraryService(), _ => { }, _dir);
+        tab.LoadCommand.Execute(null);
+        tab.FilterText = "찬송";
+        tab.Presentations.Select(file => file.FileName).Should().Equal(numberOrder);
+        var selected = tab.SelectedFile = tab.Presentations[2];
+
+        tab.SortOrder = PowerPointSortOrder.Title;
+        tab.Presentations.Select(file => file.FileName).Should().Equal(numberOrder[4], numberOrder[2], numberOrder[3], numberOrder[1], numberOrder[0]);
+        tab.SelectedFile.Should().BeSameAs(selected);
+        tab.UsePreviewStyleCommand.Execute(null);
+        tab.SortOrder = PowerPointSortOrder.HymnNumber;
+        tab.FilterText.Should().Be("찬송");
+        tab.SelectedFile.Should().BeSameAs(selected);
+        tab.Presentations.Select(file => file.FileName).Should().Equal(numberOrder);
     }
 
     [Fact]

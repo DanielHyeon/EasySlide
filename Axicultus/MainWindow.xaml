@@ -5,6 +5,7 @@
         xmlns:controls="clr-namespace:Axicultus.Wpf.Controls"
         xmlns:converters="clr-namespace:Axicultus.Wpf.Converters"
         xmlns:rendering="clr-namespace:Axicultus.Wpf.Rendering"
+        xmlns:ppt="clr-namespace:Axicultus.Module;assembly=Axicultus.Core"
         xmlns:settings="clr-namespace:Axicultus.Wpf.Settings"
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         xmlns:theme="clr-namespace:Axicultus.Wpf.Theme"
@@ -1787,11 +1788,18 @@
                             </Menu>
                         </Grid>
 
-                        <CheckBox Grid.Row="1"
+                        <DockPanel Grid.Row="1" Margin="0,0,0,8">
+                            <ComboBox DockPanel.Dock="Right" SelectedValuePath="Tag"
+                                      SelectedValue="{Binding SortOrder, Mode=TwoWay}"
+                                      AutomationProperties.Name="PowerPoint 정렬" ToolTip="PowerPoint 정렬">
+                                <ComboBoxItem Content="장 번호순" Tag="{x:Static ppt:PowerPointSortOrder.HymnNumber}"/>
+                                <ComboBoxItem Content="가나다순" Tag="{x:Static ppt:PowerPointSortOrder.Title}"/>
+                            </ComboBox>
+                            <CheckBox VerticalAlignment="Center"
                                   IsChecked="{Binding IncludeSubfolders, Mode=TwoWay}"
                                   Content="Include subfolders"
-                                  Margin="0,0,0,8"
                                   AutomationProperties.Name="Include PowerPoint subfolders" />
+                        </DockPanel>
 
                         <TextBox Grid.Row="2"
                                  Text="{Binding FilterText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"

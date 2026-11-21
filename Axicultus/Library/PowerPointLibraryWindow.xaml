@@ -1,6 +1,7 @@
 <Window x:Class="Axicultus.Wpf.Library.PowerPointLibraryWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ppt="clr-namespace:Axicultus.Module;assembly=Axicultus.Core"
         Title="PowerPoint 폴더 찾아보기"
         Width="560"
         Height="540"
@@ -54,6 +55,7 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <CheckBox VerticalAlignment="Center"
                       IsChecked="{Binding IncludeSubfolders, Mode=TwoWay}"
@@ -69,6 +71,12 @@
                      BorderThickness="1"
                      ToolTip="파일명으로 검색(대소문자 무시). 비우면 전체 보기."
                      AutomationProperties.Name="PowerPoint 파일 검색" />
+            <ComboBox Grid.Column="2" Margin="8,0,0,0" SelectedValuePath="Tag"
+                      SelectedValue="{Binding SortOrder, Mode=TwoWay}"
+                      AutomationProperties.Name="PowerPoint 정렬" ToolTip="PowerPoint 정렬">
+                <ComboBoxItem Content="장 번호순" Tag="{x:Static ppt:PowerPointSortOrder.HymnNumber}"/>
+                <ComboBoxItem Content="가나다순" Tag="{x:Static ppt:PowerPointSortOrder.Title}"/>
+            </ComboBox>
         </Grid>
 
         <ListBox Grid.Row="3"

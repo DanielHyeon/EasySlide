@@ -26,7 +26,8 @@ public class PowerPointLibraryViewModelTests
 
         public string? LastEnumeratedFolder { get; private set; }
 
-        public IReadOnlyList<string> EnumeratePresentations(string folderPath, bool includeSubfolders) => _paths;
+        public IReadOnlyList<string> EnumeratePresentations(string folderPath, bool includeSubfolders,
+            Axicultus.Module.PowerPointSortOrder order = Axicultus.Module.PowerPointSortOrder.HymnNumber) => _paths;
 
         public IReadOnlyList<PowerPointFolderItem> EnumerateFolders(string rootFolder) => _folders;
     }

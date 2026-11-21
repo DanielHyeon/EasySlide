@@ -11,6 +11,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Axicultus.Wpf.Rendering;
 using Axicultus.Wpf.Support;
+using Axicultus.Module;
 
 namespace Axicultus.Wpf.Library;
 
@@ -48,6 +49,7 @@ public sealed partial class PowerPointLibraryViewModel : ObservableObject
     private readonly IPowerPointRenderService? _render;
     private readonly Func<byte[], ImageSource> _decodeThumbnail;
     private readonly Action<PowerPointListingStyle>? _listingStyleChanged;
+    private readonly Action<PowerPointSortOrder>? _sortOrderChanged;
     private readonly Func<string, bool> _deleteFile;
     private readonly string _rootFolderPath;
     private bool _suppressSelectedFolderReload;
@@ -83,6 +85,9 @@ public sealed partial class PowerPointLibraryViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(ListingStyleLabel))]
     private PowerPointListingStyle _listingStyle = PowerPointListingStyle.List;
 
+    [ObservableProperty]
+    private PowerPointSortOrder _sortOrder;
+
     public PowerPointLibraryViewModel(
         IPowerPointLibraryService service,
         Action<string> addToQueue,
@@ -92,13 +97,17 @@ public sealed partial class PowerPointLibraryViewModel : ObservableObject
         PowerPointListingStyle initialListingStyle = PowerPointListingStyle.List,
         Action<PowerPointListingStyle>? listingStyleChanged = null,
         Func<string, bool>? deleteFile = null,
-        string? sourceFolder = null)
+        string? sourceFolder = null,
+        PowerPointSortOrder initialSortOrder = PowerPointSortOrder.HymnNumber,
+        Action<PowerPointSortOrder>? sortOrderChanged = null)
     {
         _service = service ?? throw new ArgumentNullException(nameof(service));
         _addToQueue = addToQueue ?? throw new ArgumentNullException(nameof(addToQueue));
         _render = render;
         _decodeThumbnail = thumbnailDecoder ?? DecodeImage;
         _listingStyleChanged = listingStyleChanged;
+        _sortOrder = initialSortOrder;
+        _sortOrderChanged = sortOrderChanged;
         _deleteFile = deleteFile ?? RecycleBinFileDeleter.Delete;
         _rootFolderPath = initialFolder ?? string.Empty;
         _folderPath = _rootFolderPath;
@@ -136,6 +145,22 @@ public sealed partial class PowerPointLibraryViewModel : ObservableObject
     public string ListingStyleLabel => IsPreviewStyle ? "Preview" : "List";
 
     partial void OnIncludeSubfoldersChanged(bool value) => Load();
+
+    partial void OnSortOrderChanged(PowerPointSortOrder value)
+    {
+        var ordered = PowerPointSourceFiles.Sort(_allFiles, file => file.FilePath, value).ToArray();
+        _allFiles.Clear();
+        _allFiles.AddRange(ordered);
+        // Move the existing visible items. Both selectors keep their selections and decoded thumbnails.
+        int target = 0;
+        foreach (var file in ordered.Where(file => FileNameFilter.Matches(file.FileName, FilterText)))
+        {
+            if (Presentations[target] != file)
+                Presentations.Move(Presentations.IndexOf(file), target);
+            target++;
+        }
+        _sortOrderChanged?.Invoke(value);
+    }
 
     partial void OnSelectedFolderChanged(PowerPointFolderItem? value)
     {
@@ -195,7 +220,7 @@ public sealed partial class PowerPointLibraryViewModel : ObservableObject
         _thumbnailCts?.Cancel();
         _thumbnailCts = null;
         _allFiles.Clear();
-        foreach (var path in _service.EnumeratePresentations(FolderPath, IncludeSubfolders))
+        foreach (var path in _service.EnumeratePresentations(FolderPath, IncludeSubfolders, SortOrder))
         {
             _allFiles.Add(new PowerPointFileItem(path));
         }

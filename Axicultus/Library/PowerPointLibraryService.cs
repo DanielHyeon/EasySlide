@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Axicultus.Wpf.Rendering;
+using Axicultus.Module;
 
 namespace Axicultus.Wpf.Library;
 
@@ -15,18 +15,17 @@ public sealed record PowerPointFolderItem(string DisplayName, string FolderPath)
 /// </summary>
 public interface IPowerPointLibraryService
 {
-    IReadOnlyList<string> EnumeratePresentations(string folderPath, bool includeSubfolders);
+    IReadOnlyList<string> EnumeratePresentations(string folderPath, bool includeSubfolders,
+        PowerPointSortOrder order = PowerPointSortOrder.HymnNumber);
 
     IReadOnlyList<PowerPointFolderItem> EnumerateFolders(string rootFolder);
 }
 
 public sealed class PowerPointLibraryService : IPowerPointLibraryService
 {
-    private static readonly IReadOnlySet<string> PresentationExtensions =
-        new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".ppt", ".pptx" };
-
-    public IReadOnlyList<string> EnumeratePresentations(string folderPath, bool includeSubfolders)
-        => FolderFileEnumerator.Enumerate(folderPath, PresentationExtensions, includeSubfolders, skipOfficeOwnerFiles: true);
+    public IReadOnlyList<string> EnumeratePresentations(string folderPath, bool includeSubfolders,
+        PowerPointSortOrder order = PowerPointSortOrder.HymnNumber)
+        => PowerPointSourceFiles.ListFiles(folderPath, includeSubfolders, order);
 
     public IReadOnlyList<PowerPointFolderItem> EnumerateFolders(string rootFolder)
     {
@@ -41,20 +40,8 @@ public sealed class PowerPointLibraryService : IPowerPointLibraryService
             new("Powerpoint Items", root),
         };
 
-        try
-        {
-            folders.AddRange(Directory
-                .EnumerateDirectories(root, "*", Axicultus.Module.SourceFileFolder.SearchOptions(true))
-                .OrderBy(path => RelativeFolderName(root, path), StringComparer.OrdinalIgnoreCase)
-                .Take(254)
-                .Select(path => new PowerPointFolderItem("\\" + RelativeFolderName(root, path), path)));
-        }
-        catch (IOException)
-        {
-        }
-        catch (UnauthorizedAccessException)
-        {
-        }
+        folders.AddRange(PowerPointSourceFiles.ListSubfolders(root)
+            .Select(path => new PowerPointFolderItem("\\" + RelativeFolderName(root, path), path)));
 
         return folders;
     }

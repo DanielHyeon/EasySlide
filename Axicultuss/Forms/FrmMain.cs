@@ -8140,6 +8140,18 @@ public partial class FrmMain : Form
 
     private void PP_Style_DropDownItemClicked(object sender, ToolStripItemClickedEventArgs e)
     {
+        if (e.ClickedItem == PP_SortByNumber || e.ClickedItem == PP_SortByTitle)
+        {
+            var order = e.ClickedItem == PP_SortByTitle ? PowerPointSortOrder.Title : PowerPointSortOrder.HymnNumber;
+            if (order != Gf.PowerPointSourceOrder)
+            {
+                Gf.PowerPointSourceOrder = order;
+                UpdatePowerPointSortMenu();
+                SortPowerPointFolderContents();
+            }
+            return;
+        }
+        if (e.ClickedItem != PP_ListStyle && e.ClickedItem != PP_PreviewStyle) return;
         Gf.AssignDropDownItem(ref PP_ListType, e.ClickedItem.Name, PP_ListStyle, PP_PreviewStyle);
         Gf.PowerpointListingStyle = DataUtil.ObjToInt(PP_ListType.Tag);
         PowerpointStyle_Changed(RebuildPowerpointFolders: false);
@@ -8147,6 +8159,7 @@ public partial class FrmMain : Form
 
     private void PowerpointStyle_Changed(bool RebuildPowerpointFolders)
     {
+        UpdatePowerPointSortMenu();
         PP_OpenFolder.ToolTipText = "Open Powerpoint Folder";
         if (Gf.PowerpointListingStyle == 0)
         {
@@ -8166,6 +8179,13 @@ public partial class FrmMain : Form
         {
             ShowPowerpointFolderContents((Gf.PowerpointListingStyle == 1) ? true : false);
         }
+    }
+
+    private void UpdatePowerPointSortMenu()
+    {
+        PP_SortByNumber.Checked = Gf.PowerPointSourceOrder == PowerPointSortOrder.HymnNumber;
+        PP_SortByTitle.Checked = Gf.PowerPointSourceOrder == PowerPointSortOrder.Title;
+        PP_ListType.ToolTipText = "PowerPoint 보기 및 정렬";
     }
 
     private void PP_Edit_Clicked()

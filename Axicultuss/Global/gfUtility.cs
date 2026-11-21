@@ -359,6 +359,7 @@ namespace Axicultus;
 			RegUtil.SaveRegValue("options", "AutoRotateStyle", AutoRotateStyle);
 			RegUtil.SaveRegValue("options", "NotationFontFactor", (int)(NotationFontFactor * 100.0));
 			RegUtil.SaveRegValue("options", "ExternalListing", PowerpointListingStyle);
+			RegUtil.SaveRegValue("options", "PowerPointSortByTitle", PowerPointSourceOrder == PowerPointSortOrder.Title ? 1 : 0);
 			RegUtil.SaveRegValue("options", "KeyBoardOption", KeyBoardOption);
 			// Global Hook F7, F8 (panel black) ??ï¿½ì??
 			RegUtil.SaveRegValue("options", "GlobalHookKey_F7", GlobalHookKey_F7 ? 1 : 0);

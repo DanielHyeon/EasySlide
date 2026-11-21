@@ -1295,6 +1295,7 @@ namespace Axicultus;
 		public static bool RestartItemActioned = false;
 
 		public static int PowerpointListingStyle = 0;
+		public static PowerPointSortOrder PowerPointSourceOrder = PowerPointSortOrder.HymnNumber;
 
 		public static bool Alert_Scroll = true;
 

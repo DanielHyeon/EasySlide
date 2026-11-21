@@ -232,6 +232,8 @@ public static class LegacySettingsMap
         Automated("PP_MaxFiles", AxicultusSettingKeys.PowerPointMaxFiles.Id, SettingsSectionKind.PowerPoint, LegacySettingValueKind.Integer, "FrmOptions.SaveVariables", "Legacy PowerPoint recent/max files limit."),
         Automated("PowerPointSourceListingStyle", AxicultusSettingKeys.PowerPointSourceListingStyle.Id, SettingsSectionKind.PowerPoint, LegacySettingValueKind.Integer, "WPF compatibility", "Current WPF source list/thumbnail mode alias."),
         Automated("ExternalListing", AxicultusSettingKeys.PowerPointSourceListingStyle.Id, SettingsSectionKind.PowerPoint, LegacySettingValueKind.Integer, "FrmMain PP_Style_DropDownItemClicked", "Legacy left PowerPoint list style: 0=list, 1=thumbnail preview."),
+        new("PowerPointSortByTitle", AxicultusSettingKeys.PowerPointSortByTitle.Id, SettingsSectionKind.PowerPoint,
+            LegacySettingValueKind.Boolean, LegacySettingMigrationStatus.WpfOnly, "PowerPoint source tab", "Stored separately in each application's JSON settings."),
 
         Automated("UseMediaTab", AxicultusSettingKeys.UseMediaTab.Id, SettingsSectionKind.Media, LegacySettingValueKind.Boolean, "FrmOptions.SaveVariables", "Legacy media tab visibility."),
         Automated("NoMediaPanelOverlay", AxicultusSettingKeys.NoMediaPanelOverlay.Id, SettingsSectionKind.Media, LegacySettingValueKind.Boolean, "FrmOptions.SaveVariables", "Legacy media overlay behavior."),

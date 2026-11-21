@@ -11,6 +11,48 @@ namespace Axicultus.Tests;
 
 public class PowerPointThumbnailPanelTests
 {
+    [Fact]
+    public void PowerPointListSortMovesTheSameSelectedFilesBetweenBothOrders()
+    {
+        MonitorPresentationTests.RunOnSta(() =>
+        {
+            using var list = new ListView { View = View.Details };
+            list.Columns.Add("곡");
+            _ = list.Handle;
+            string[] names = ["1장_다시", "2장_가을", "찬100장_나무"];
+            foreach (var name in names)
+                list.Items.Add(name).SubItems.Add(@"PC:\찬송\" + name + ".pptx");
+            list.Items[0].Selected = list.Items[2].Selected = true;
+            FrmMain.SortPowerPointList(list, Module.PowerPointSortOrder.Title);
+            Assert.Equal([names[1], names[2], names[0]], list.Items.Cast<ListViewItem>().Select(item => item.Text));
+            Assert.Equal([names[2], names[0]], list.SelectedItems.Cast<ListViewItem>().Select(item => item.Text));
+            FrmMain.SortPowerPointList(list, Module.PowerPointSortOrder.HymnNumber);
+            Assert.Equal(names, list.Items.Cast<ListViewItem>().Select(item => item.Text));
+            Assert.Equal([names[0], names[2]], list.SelectedItems.Cast<ListViewItem>().Select(item => item.Text));
+        });
+    }
+
+    [Fact]
+    public void PowerPointFileThumbnailsFollowHymnNumbersInsteadOfAlphabeticalOrder()
+    {
+        var folder = Directory.CreateTempSubdirectory("axicultuss-numbered-ppt-");
+        try
+        {
+            string[] names = ["1장.pptx", "2장.pptx", "6장.pptx", "7장.ppt", "10장.pptx", "60장.pptx", "100장.pptx"];
+            foreach (var name in names.Reverse()) File.WriteAllText(Path.Combine(folder.FullName, name), "");
+            MonitorPresentationTests.RunOnSta(() =>
+            {
+                var files = Module.PowerPointSourceFiles.ListFiles(folder.FullName, includeSubfolders: true);
+                using var panel = new FileThumbnailPanel { Size = new Size(420, 420) };
+                using var tip = new ToolTip();
+                panel.Display(files, 0, tip, null, null, true);
+                var cells = panel.Controls.OfType<ImageCanvas>().OrderBy(cell => (int)cell.Tag);
+                Assert.Equal(names, cells.Select(cell => Path.GetFileName(tip.GetToolTip(cell))));
+            });
+        }
+        finally { folder.Delete(recursive: true); }
+    }
+
     [Theory]
     [InlineData(2, 1, 1, 2, true)]
     [InlineData(2, 2, 1, 2, true)]

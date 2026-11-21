@@ -6,7 +6,7 @@ using System.Linq;
 namespace Axicultus.Wpf.Rendering;
 
 /// <summary>
-/// 폴더의 파일을 확장자로 걸러 이름순으로 돌려주는 공통 헬퍼(이미지 갤러리·PPT 브라우저 공유).
+/// 폴더의 파일을 확장자로 걸러 이름순으로 돌려주는 공통 헬퍼(이미지·미디어 브라우저 공유).
 /// 폴더가 없거나 접근 불가/읽기 중 사라지면 빈 목록(예외 없이 운영 중 안전 강등).
 /// </summary>
 internal static class FolderFileEnumerator
@@ -14,8 +14,7 @@ internal static class FolderFileEnumerator
     public static IReadOnlyList<string> Enumerate(
         string folderPath,
         IReadOnlySet<string> extensions,
-        bool includeSubfolders,
-        bool skipOfficeOwnerFiles = false)
+        bool includeSubfolders)
     {
         if (string.IsNullOrWhiteSpace(folderPath) || !Directory.Exists(folderPath))
         {
@@ -27,8 +26,7 @@ internal static class FolderFileEnumerator
             var option = Axicultus.Module.SourceFileFolder.SearchOptions(includeSubfolders);
             return Directory
                 .EnumerateFiles(folderPath, "*", option)
-                .Where(path => extensions.Contains(Path.GetExtension(path)) &&
-                    (!skipOfficeOwnerFiles || !Path.GetFileName(path).StartsWith("~$", StringComparison.Ordinal)))
+                .Where(path => extensions.Contains(Path.GetExtension(path)))
                 .OrderBy(path => Path.GetFileName(path), StringComparer.OrdinalIgnoreCase)
                 .ThenBy(path => path, StringComparer.OrdinalIgnoreCase)
                 .ToList();

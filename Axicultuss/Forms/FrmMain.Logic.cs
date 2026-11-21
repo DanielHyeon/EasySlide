@@ -446,7 +446,12 @@ public partial class FrmMain : Form
     {
         Gf.PowerpointGroups.Clear();
         Gf.PowerpointGroups.Add(new FolderGroup { Name = "Powerpoint Items", Path = Gf.PowerpointDir });
-        Gf.BuildSubFolderList(Gf.PowerpointDir, Gf.PowerpointDir, Gf.PowerpointGroups);
+        foreach (var path in PowerPointSourceFiles.ListSubfolders(Gf.PowerpointDir))
+            Gf.PowerpointGroups.Add(new FolderGroup
+            {
+                Name = "\\" + Path.GetRelativePath(Gf.PowerpointDir, path),
+                Path = path + Path.DirectorySeparatorChar
+            });
         var selected = SourceFileFolder.IncludeSelection(Gf.PowerpointGroups,
             RegUtil.GetRegValue("options", "PowerPointSourceFolder", ""), group => group.Path,
             path => new FolderGroup { Name = path, Path = Path.EndsInDirectorySeparator(path) ? path : path + Path.DirectorySeparatorChar });
@@ -929,22 +934,18 @@ public partial class FrmMain : Form
     {
         if (InitFormLoad) return;
         BackgroundCurImagePath = ImagesFolder.SelectedIndex >= 0 ? Gf.PictureGroups[ImagesFolder.SelectedIndex].Path : "";
-        BackgroundImagename = ListThumbnailFiles(BackgroundCurImagePath, false);
+        BackgroundImagename = ListImageFiles(BackgroundCurImagePath);
         FormatBackgroundThumbContainers();
     }
 
-    private static string[] ListThumbnailFiles(string directory, bool presentations)
+    private static string[] ListImageFiles(string directory)
     {
         if (string.IsNullOrEmpty(directory)) return [];
-        var options = new EnumerationOptions { RecurseSubdirectories = presentations, IgnoreInaccessible = true,
-            AttributesToSkip = presentations ? FileAttributes.ReparsePoint : 0 };
+        var options = new EnumerationOptions { IgnoreInaccessible = true, AttributesToSkip = 0 };
         try
         {
             return [.. Directory.EnumerateFiles(directory, "*", options)
-                .Where(path => presentations
-                    ? (path.EndsWith(".ppt", StringComparison.OrdinalIgnoreCase) || path.EndsWith(".pptx", StringComparison.OrdinalIgnoreCase))
-                        && !Path.GetFileName(path).StartsWith("~$", StringComparison.Ordinal)
-                    : Path.GetExtension(path).ToLowerInvariant() is ".jpg" or ".jpeg" or ".bmp" or ".gif" or ".ico")
+                .Where(path => Path.GetExtension(path).ToLowerInvariant() is ".jpg" or ".jpeg" or ".bmp" or ".gif" or ".ico")
                 .Order(StringComparer.CurrentCulture)];
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
@@ -962,7 +963,7 @@ public partial class FrmMain : Form
         try
         {
             ExternalPPCurImagePath = PowerpointFolder.SelectedIndex >= 0 ? Gf.PowerpointGroups[PowerpointFolder.SelectedIndex].Path : "";
-            var files = ListThumbnailFiles(ExternalPPCurImagePath, true);
+            var files = PowerPointSourceFiles.ListFiles(ExternalPPCurImagePath, includeSubfolders: true, Gf.PowerPointSourceOrder);
             ExternalPPImagename = Gf.PowerpointListingStyle == 1 ? files : [];
             PowerpointCurPreview = "";
             PowerpointList.BeginUpdate();
@@ -984,6 +985,37 @@ public partial class FrmMain : Form
 
     private void LoadExternalPowerpointThumbImages(int GotoSlide)
         => flowLayoutExternalPowerPoint.Display(ExternalPPImagename, GotoSlide, toolTip1, ExternalFilesPP_MouseUp, ExternalFilesPP_DoubleClick, true);
+
+    private void SortPowerPointFolderContents()
+    {
+        if (Gf.PowerpointListingStyle == 0)
+        {
+            SortPowerPointList(PowerpointList, Gf.PowerPointSourceOrder);
+            return;
+        }
+
+        ExternalPPImagename = PowerPointSourceFiles.Sort(ExternalPPImagename, path => path, Gf.PowerPointSourceOrder).ToArray();
+        Gf.ExternalPPT.BuildFirstScreenDump(ExternalPPImagename, ExternalPPImagename.Length, Gf.ExternalPreviewCacheDir);
+        int selected = PowerpointCurPreview.Length > 1 ? Array.IndexOf(ExternalPPImagename, PowerpointCurPreview[1..]) : -1;
+        LoadExternalPowerpointThumbImages(selected + 1);
+    }
+
+    internal static void SortPowerPointList(ListView list, PowerPointSortOrder order)
+    {
+        var sorted = PowerPointSourceFiles.Sort(list.Items.Cast<ListViewItem>(), item => item.SubItems[1].Text[1..], order).ToArray();
+        var selected = list.SelectedItems.Cast<ListViewItem>().ToArray();
+        var focused = list.FocusedItem;
+        list.BeginUpdate();
+        try
+        {
+            list.Items.Clear();
+            list.Items.AddRange(sorted);
+            foreach (var item in selected) item.Selected = true;
+            if (focused != null) focused.Focused = true;
+        }
+        finally { list.EndUpdate(); }
+        focused?.EnsureVisible();
+    }
 
     private void BookLookupChanged()
     {

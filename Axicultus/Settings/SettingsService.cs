@@ -458,6 +458,7 @@ public static class AxicultusSettingKeys
     public static readonly SettingKey<int> PowerPointMaxFiles = new("powerPoint.maxFiles", 20);
     public static readonly SettingKey<string> PowerPointSourceFolder = new("powerPoint.sourceFolder", "");
     public static readonly SettingKey<int> PowerPointSourceListingStyle = new("powerPoint.sourceListingStyle", -1);
+    public static readonly SettingKey<bool> PowerPointSortByTitle = new("powerPoint.sortByTitle", false);
     public static readonly SettingKey<bool> UseMediaTab = new("media.useMediaTab", false);
     public static readonly SettingKey<bool> NoMediaPanelOverlay = new("media.noPanelOverlay", false);
     public static readonly SettingKey<string> MediaSourceFolder = new("media.sourceFolder", "");
@@ -638,6 +639,7 @@ public static class AxicultusSettingKeys
         PowerPointMaxFiles,
         PowerPointSourceFolder,
         PowerPointSourceListingStyle,
+        PowerPointSortByTitle,
         UseMediaTab,
         NoMediaPanelOverlay,
         MediaSourceFolder,
@@ -960,6 +962,7 @@ public sealed record PowerPointSettings
     public int MaxFiles { get; init; } = AxicultusSettingKeys.PowerPointMaxFiles.DefaultValue;
 
     public int SourceListingStyle { get; init; } = AxicultusSettingKeys.PowerPointSourceListingStyle.DefaultValue;
+    public bool SortByTitle { get; init; }
 }
 
 public sealed record MediaSettings
@@ -2321,6 +2324,7 @@ public sealed class SettingsService : ISettingsService
             "powerPoint.thumbnailCacheMegabytes" => snapshot.PowerPoint.ThumbnailCacheMegabytes,
             "powerPoint.maxFiles" => snapshot.PowerPoint.MaxFiles,
             "powerPoint.sourceListingStyle" => snapshot.PowerPoint.SourceListingStyle,
+            "powerPoint.sortByTitle" => snapshot.PowerPoint.SortByTitle,
             "media.useMediaTab" => snapshot.Media.UseMediaTab,
             "media.noPanelOverlay" => snapshot.Media.NoPanelOverlay,
             "powerPoint.sourceFolder" => snapshot.PowerPoint.SourceFolder,
@@ -2850,6 +2854,10 @@ public sealed class SettingsService : ISettingsService
             "powerPoint.sourceListingStyle" => snapshot with
             {
                 PowerPoint = snapshot.PowerPoint with { SourceListingStyle = Cast<int>(keyId, value) },
+            },
+            "powerPoint.sortByTitle" => snapshot with
+            {
+                PowerPoint = snapshot.PowerPoint with { SortByTitle = Cast<bool>(keyId, value) },
             },
             "media.useMediaTab" => snapshot with
             {
