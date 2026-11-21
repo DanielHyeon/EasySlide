@@ -262,6 +262,7 @@ public sealed partial class NoticeScreenViewModel : ObservableObject
             return;
         }
 
+        NewScreenName = name;
         Text = dto.Text;
         _mediaPath = dto.MediaPath;
         _legacyFormatData = dto.LegacyFormatData;

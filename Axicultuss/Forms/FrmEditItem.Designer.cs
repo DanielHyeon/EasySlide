@@ -2002,11 +2002,10 @@ private void InitializeComponent()
             // SyncBtnDown
             //
             SyncBtnDown.FlatStyle = FlatStyle.Flat;
-            SyncBtnDown.Image = Resources.green_down;
-            SyncBtnDown.Location = new Point(0, 62);
+            SyncBtnDown.Location = new Point(0, 60);
             SyncBtnDown.Margin = new Padding(4, 5, 4, 5);
             SyncBtnDown.Name = "SyncBtnDown";
-            SyncBtnDown.Size = new Size(27, 34);
+            SyncBtnDown.Size = new Size(31, 35);
             SyncBtnDown.TabIndex = 1;
             SyncBtnDown.Tag = "1";
             toolTip1.SetToolTip(SyncBtnDown, "Highlight Next Slide");
@@ -2015,11 +2014,10 @@ private void InitializeComponent()
             // SyncBtnUp
             //
             SyncBtnUp.FlatStyle = FlatStyle.Flat;
-            SyncBtnUp.Image = Resources.green_up;
-            SyncBtnUp.Location = new Point(0, 28);
+            SyncBtnUp.Location = new Point(0, 25);
             SyncBtnUp.Margin = new Padding(4, 5, 4, 5);
             SyncBtnUp.Name = "SyncBtnUp";
-            SyncBtnUp.Size = new Size(27, 34);
+            SyncBtnUp.Size = new Size(31, 35);
             SyncBtnUp.TabIndex = 0;
             SyncBtnUp.Tag = "0";
             toolTip1.SetToolTip(SyncBtnUp, "Highlight Previous Slide");
@@ -2051,7 +2049,7 @@ private void InitializeComponent()
             panel1.Controls.Add(R2Btn3);
             panel1.Controls.Add(R2Btn2);
             panel1.Controls.Add(R2Btn1);
-            panel1.Location = new Point(28, 25);
+            panel1.Location = new Point(31, 25);
             panel1.Margin = new Padding(4, 5, 4, 5);
             panel1.Name = "panel1";
             panel1.Size = new Size(65, 428);

@@ -191,13 +191,13 @@ namespace Axicultus;
 
 		private int tbLyrics2MouseUpPos = 0;
 
-		private bool SplitterReAdjust = false;
-
 		public FrmInfoScreen()
 		{
 			InitializeComponent();
 			popupHelper = new PopupWindowHelper();
 			popupHelper.PopupClosed += popupHelper_PopupClosed;
+			RegionSlideNavigation.Apply(SyncBtnUp, SyncBtnDown);
+			ConfigureEditorLayout();
 			tbLyrics1.Focus();
 		}
 
@@ -208,45 +208,21 @@ namespace Axicultus;
 
 		private void Btn_Click(object sender, EventArgs e)
 		{
-			Point popupOffset = new(0, 0);
-			Button button = (Button)sender;
-			PopupBtnPressed = button.Name;
-			switch (PopupBtnPressed)
+			PopupBtnPressed = ((Button)sender).Name;
+			TextBox field = PopupBtnPressed switch
 			{
-			case "Btn_Title":
-				Gf.popUpText = SongTitle.Text;
-				Gf.popUpTextMaxLength = SongTitle.MaxLength;
-				popupOffset = new Point(splitContainerMain.Left + groupBox1.Left + panel7.Left + SongTitle.Left, splitContainerMain.Top + groupBox1.Top + panel7.Top + SongTitle.Top + SongTitle.Height);
-				break;
-			case "Btn_Title2":
-				Gf.popUpText = SongTitle2.Text;
-				Gf.popUpTextMaxLength = SongTitle2.MaxLength;
-				popupOffset = new Point(splitContainerMain.Left + groupBox1.Left + panel7.Left + SongTitle2.Left, splitContainerMain.Top + groupBox1.Top + panel7.Top + SongTitle2.Top + SongTitle2.Height);
-				break;
-			case "Btn_Writer":
-				Gf.popUpText = WriterInfo.Text;
-				Gf.popUpTextMaxLength = WriterInfo.MaxLength;
-				popupOffset = new Point(splitContainerMain.Left + groupBox1.Left + panel7.Left + WriterInfo.Left, splitContainerMain.Top + groupBox1.Top + panel7.Top + WriterInfo.Top + WriterInfo.Height);
-				break;
-			case "Btn_Copyright":
-				Gf.popUpText = CopyrightInfo.Text;
-				Gf.popUpTextMaxLength = CopyrightInfo.MaxLength;
-				popupOffset = new Point(splitContainerMain.Left + groupBox1.Left + panel7.Left + CopyrightInfo.Left, splitContainerMain.Top + groupBox1.Top + panel7.Top + CopyrightInfo.Top + CopyrightInfo.Height);
-				break;
-			case "Btn_BookRef":
-				Gf.popUpText = BookReference.Text;
-				Gf.popUpTextMaxLength = BookReference.MaxLength;
-				popupOffset = new Point(splitContainerMain.Left + groupBox1.Left + panel8.Left + BookReference.Left, splitContainerMain.Top + groupBox1.Top + panel8.Top + BookReference.Top + BookReference.Height);
-				break;
-			case "Btn_UserRef":
-				Gf.popUpText = UserReference.Text;
-				Gf.popUpTextMaxLength = UserReference.MaxLength;
-				popupOffset = new Point(splitContainerMain.Left + groupBox1.Left + panel8.Left + UserReference.Left, splitContainerMain.Top + groupBox1.Top + panel8.Top + UserReference.Top + UserReference.Height);
-				break;
-			}
-			FrmPopupText popup = new();
-			Point location = PointToScreen(popupOffset);
-			popupHelper.ShowPopup(this, popup, location);
+				"Btn_Title" => SongTitle,
+				"Btn_Title2" => SongTitle2,
+				"Btn_Writer" => WriterInfo,
+				"Btn_Copyright" => CopyrightInfo,
+				"Btn_BookRef" => BookReference,
+				"Btn_UserRef" => UserReference,
+				_ => null
+			};
+			if (field == null) return;
+			Gf.popUpText = field.Text;
+			Gf.popUpTextMaxLength = field.MaxLength;
+			popupHelper.ShowPopup(this, new FrmPopupText(), field.PointToScreen(new Point(0, field.Height)));
 		}
 
 		private void popupHelper_PopupClosed(object sender, PopupClosedEventArgs e)
@@ -278,8 +254,8 @@ namespace Axicultus;
 		{
 			int formLeft = DataUtil.ObjToInt(RegUtil.GetRegValue("settings", Reg_FormLeft, -1));
 			int formTop = DataUtil.ObjToInt(RegUtil.GetRegValue("settings", Reg_FormTop, -1));
-			int formWidth = DataUtil.ObjToInt(RegUtil.GetRegValue("settings", Reg_FormWidth, 620));
-			int formHeight = DataUtil.ObjToInt(RegUtil.GetRegValue("settings", Reg_FormHeight, 450));
+			int formWidth = DataUtil.ObjToInt(RegUtil.GetRegValue("settings", Reg_FormWidth, LogicalToDeviceUnits(820)));
+			int formHeight = DataUtil.ObjToInt(RegUtil.GetRegValue("settings", Reg_FormHeight, LogicalToDeviceUnits(620)));
 			FormState = DataUtil.ObjToInt(RegUtil.GetRegValue("settings", Reg_FormMax, 0));
 			int lyricsSplitPerMille = DataUtil.ObjToInt(RegUtil.GetRegValue("settings", Reg_FormLyricsSplit, 520));
 			int region2TabIndex = DataUtil.ObjToInt(RegUtil.GetRegValue("settings", Reg_FormRegion2Tab, 0));
@@ -319,7 +295,7 @@ namespace Axicultus;
 			{
 				base.WindowState = FormWindowState.Maximized;
 			}
-			splitContainerMain.SplitterDistance = splitContainerMain.Panel1MinSize;
+			splitContainerMain.SplitterDistance = Math.Max(splitContainerMain.Panel1MinSize, Math.Min(groupBox1.Height + LogicalToDeviceUnits(30), splitContainerMain.Height / 2));
 			lyricsSplitPerMille = ((lyricsSplitPerMille is < 0 or > 1000) ? 520 : lyricsSplitPerMille);
 			int lyricsSplitterDistance = splitContainer1.Width * lyricsSplitPerMille / 1000;
 			if (lyricsSplitterDistance < splitContainer1.Panel1MinSize)
@@ -1831,20 +1807,6 @@ namespace Axicultus;
 		private void FrmInfoScreen_Resize(object sender, EventArgs e)
 		{
 			SetTopPanel();
-			groupBox2.Left = base.Width - groupBox2.Width - 11;
-			int group1Width = groupBox2.Left - groupBox1.Left - 3;
-			group1Width = ((group1Width > 0) ? group1Width : 0);
-			groupBox1.Width = group1Width;
-			if (groupBox1.Width < 443)
-			{
-				panel7.Width = 216;
-			}
-			else
-			{
-				panel7.Width = groupBox1.Width - 227;
-			}
-			panel8.Left = panel7.Left + panel7.Width;
-			ResizeTitleFields();
 			SetRotatePanel();
 		}
 
@@ -1983,19 +1945,7 @@ namespace Axicultus;
 
 		private void splitContainerMain_SplitterMoved(object sender, SplitterEventArgs e)
 		{
-			if (!SplitterReAdjust)
-			{
-				SetTopPanel();
-				if (splitContainerMain.SplitterDistance < 130)
-				{
-					SplitterReAdjust = true;
-					splitContainerMain.SplitterDistance = 130;
-					SplitterReAdjust = false;
-				}
-				groupBox2.Height = splitContainerMain.Panel1.Height - 1;
-				panelVerses.Height = groupBox2.Height - 15;
-				panelOrderList.Height = panelVerses.Height;
-			}
+			SetTopPanel();
 		}
 
 		private void SetTopPanel()

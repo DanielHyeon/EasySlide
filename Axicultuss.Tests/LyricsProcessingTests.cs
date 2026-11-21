@@ -585,6 +585,33 @@ public class LyricsProcessingTests
     }
 
     [Fact]
+    public void MovingAcrossBlankLineBeforeVerseSelectsTextAndSynchronizesTheSecondRegion()
+    {
+        OnSta(() =>
+        {
+            Gf.InitializeVerseHeadings();
+            const string text = "[1]하나\n\n[2]둘";
+            using var editor = new RichTextBox { Text = text };
+            using var breaks = new ListView();
+            var lyrics = editor;
+            var rows = breaks;
+            bool complete = false;
+            Gf.MapLyricsBreak(ref rows, ref lyrics, ref complete);
+            int start = 0, length = text.IndexOf("[2]", StringComparison.Ordinal), page = 0;
+            string heading = "";
+            Gf.GetBreakPosition(rows, start, 1, ref start, ref length, ref heading, ref page);
+            Assert.Equal((text.IndexOf("[2]", StringComparison.Ordinal), -1, "[2]", 0), (start, length, heading, page));
+
+            lyrics.Text = "[1]First\n\n[2]Second";
+            Gf.MapLyricsBreak(ref rows, ref lyrics, ref complete);
+            Gf.GetBreakPosition(rows, ref start, ref length, heading, page);
+            Assert.Equal("[2]Second", lyrics.Text[start..]);
+            Gf.GetBreakPosition(rows, start, 0, ref start, ref length, ref heading, ref page);
+            Assert.Equal((0, "[1]", 0), (start, heading, page));
+        });
+    }
+
+    [Fact]
     public void ScreenBreakHeadingsIncludeBothPrechorusesAndExcludeOtherBracketedText()
     {
         Gf.InitializeVerseHeadings();

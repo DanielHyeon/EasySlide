@@ -2980,6 +2980,11 @@ namespace Axicultus;
 				}
 			}
 			NewPosition = DataUtil.StringToInt(InListView.Items[breakIndex].SubItems[0].Text);
+			// A blank-line break and the following verse heading can share an offset.
+			// Select the verse that actually contains text and use its heading for Region 2.
+			while (breakIndex + 1 < InListView.Items.Count &&
+				DataUtil.StringToInt(InListView.Items[breakIndex + 1].Text) == NewPosition)
+				breakIndex++;
 			LookupVerseSym = InListView.Items[breakIndex].SubItems[1].Text;
 			LookupScreenCount = DataUtil.StringToInt(InListView.Items[breakIndex].SubItems[2].Text);
 			if (breakIndex < InListView.Items.Count - 1)

@@ -736,7 +736,7 @@ private void InitializeComponent()
             //
             // statusStrip1
             //
-            statusStrip1.BackColor = Color.LimeGreen;
+            statusStrip1.BackColor = SystemColors.Control;
             statusStrip1.ImageScalingSize = new Size(20, 20);
             statusStrip1.Items.AddRange(new ToolStripItem[] { toolStripStatusLabel1 });
             statusStrip1.Location = new Point(0, 841);
@@ -747,9 +747,9 @@ private void InitializeComponent()
             //
             // toolStripStatusLabel1
             //
-            toolStripStatusLabel1.BackColor = Color.FromArgb(0, 192, 0);
-            toolStripStatusLabel1.Font = new Font("Microsoft Sans Serif", 11.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            toolStripStatusLabel1.ForeColor = Color.Black;
+            toolStripStatusLabel1.BackColor = SystemColors.Control;
+            toolStripStatusLabel1.Font = SystemFonts.MessageBoxFont;
+            toolStripStatusLabel1.ForeColor = SystemColors.ControlText;
             toolStripStatusLabel1.Name = "toolStripStatusLabel1";
             toolStripStatusLabel1.Size = new Size(0, 16);
             //
@@ -1328,7 +1328,7 @@ private void InitializeComponent()
             panel1.Controls.Add(panelR2LeftBottom);
             panel1.Controls.Add(panelR2LeftMiddle);
             panel1.Controls.Add(panelR2LeftTop);
-            panel1.Location = new Point(28, 23);
+            panel1.Location = new Point(31, 23);
             panel1.Margin = new Padding(4, 5, 4, 5);
             panel1.Name = "panel1";
             panel1.Size = new Size(64, 431);
@@ -1693,11 +1693,10 @@ private void InitializeComponent()
             // SyncBtnDown
             //
             SyncBtnDown.FlatStyle = FlatStyle.Flat;
-            SyncBtnDown.Image = Resources.green_down;
-            SyncBtnDown.Location = new Point(0, 62);
+            SyncBtnDown.Location = new Point(0, 60);
             SyncBtnDown.Margin = new Padding(4, 5, 4, 5);
             SyncBtnDown.Name = "SyncBtnDown";
-            SyncBtnDown.Size = new Size(27, 34);
+            SyncBtnDown.Size = new Size(31, 35);
             SyncBtnDown.TabIndex = 1;
             SyncBtnDown.Tag = "1";
             toolTip1.SetToolTip(SyncBtnDown, "Highlight Next Slide");
@@ -1706,11 +1705,10 @@ private void InitializeComponent()
             // SyncBtnUp
             //
             SyncBtnUp.FlatStyle = FlatStyle.Flat;
-            SyncBtnUp.Image = Resources.green_up;
-            SyncBtnUp.Location = new Point(0, 28);
+            SyncBtnUp.Location = new Point(0, 25);
             SyncBtnUp.Margin = new Padding(4, 5, 4, 5);
             SyncBtnUp.Name = "SyncBtnUp";
-            SyncBtnUp.Size = new Size(27, 34);
+            SyncBtnUp.Size = new Size(31, 35);
             SyncBtnUp.TabIndex = 0;
             SyncBtnUp.Tag = "0";
             toolTip1.SetToolTip(SyncBtnUp, "Highlight Previous Slide");

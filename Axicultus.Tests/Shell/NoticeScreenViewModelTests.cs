@@ -35,12 +35,17 @@ public class NoticeScreenViewModelTests
 
             // 편집기를 바꾼 뒤 다시 불러오면 저장된 내용으로 복원.
             vm.Text = "다른 내용";
+            vm.NewScreenName = string.Empty;
             vm.FontSizePt = 40;
             vm.SelectedScreen = "환영 인사";
             await vm.OpenCommand.ExecuteAsync(null);
 
             vm.Text.Should().Be("예배에 오신 것을 환영합니다");
             vm.FontSizePt.Should().Be(60);
+            vm.NewScreenName.Should().Be("환영 인사");
+            vm.Text = "수정된 공지";
+            await vm.SaveAsCommand.ExecuteAsync(null);
+            (await new InfoScreenStore(dir).LoadAsync("환영 인사"))!.Text.Should().Be("수정된 공지");
         }
         finally
         {

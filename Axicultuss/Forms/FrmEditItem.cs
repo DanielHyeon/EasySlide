@@ -214,6 +214,7 @@ namespace Axicultus;
 			InitializeComponent();
 			popupHelper = new PopupWindowHelper();
 			popupHelper.PopupClosed += popupHelper_PopupClosed;
+			RegionSlideNavigation.Apply(SyncBtnUp, SyncBtnDown);
 		}
 
 		protected override void OnHandleCreated(EventArgs e)
