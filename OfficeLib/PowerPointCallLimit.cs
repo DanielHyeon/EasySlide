@@ -1,3 +1,7 @@
+using Windows.Win32;
+using Windows.Win32.Foundation;
+using Windows.Win32.System.Com;
+using IOleMessageFilter = Windows.Win32.Media.Audio.IMessageFilter;
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -33,24 +37,6 @@ namespace OfficeLib
 		private const int AbandonedPumpIntervalMs = 10;
 		private const uint WM_NULL = 0;
 
-		[ComImport, Guid("00000016-0000-0000-C000-000000000046"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-		internal interface IOleMessageFilter
-		{
-			[PreserveSig] int HandleInComingCall(int dwCallType, IntPtr hTaskCaller, int dwTickCount, IntPtr lpInterfaceInfo);
-			[PreserveSig] int RetryRejectedCall(IntPtr hTaskCallee, int dwTickCount, int dwRejectType);
-			[PreserveSig] int MessagePending(IntPtr hTaskCallee, int dwTickCount, int dwPendingType);
-		}
-
-		[DllImport("ole32.dll")]
-		private static extern int CoRegisterMessageFilter(IOleMessageFilter lpMessageFilter, out IOleMessageFilter lplpMessageFilter);
-
-		[DllImport("kernel32.dll")]
-		private static extern uint GetCurrentThreadId();
-
-		[DllImport("user32.dll")]
-		[return: MarshalAs(UnmanagedType.Bool)]
-		private static extern bool PostThreadMessage(uint idThread, uint msg, IntPtr wParam, IntPtr lParam);
-
 		[ComVisible(true)]
 		internal sealed class Filter : IOleMessageFilter
 		{
@@ -65,19 +51,19 @@ namespace OfficeLib
 				this.owner = owner;
 			}
 
-			public int HandleInComingCall(int dwCallType, IntPtr hTaskCaller, int dwTickCount, IntPtr lpInterfaceInfo)
+			public unsafe uint HandleInComingCall(uint dwCallType, HTASK hTaskCaller, uint dwTickCount, INTERFACEINFO_unmanaged* lpInterfaceInfo)
 			{
 				IOleMessageFilter previous = owner.previousFilter;
 				return previous != null ? previous.HandleInComingCall(dwCallType, hTaskCaller, dwTickCount, lpInterfaceInfo) : SERVERCALL_ISHANDLED;
 			}
 
-			public int RetryRejectedCall(IntPtr hTaskCallee, int dwTickCount, int dwRejectType)
+			public uint RetryRejectedCall(HTASK hTaskCallee, uint dwTickCount, uint dwRejectType)
 			{
 				IOleMessageFilter previous = owner.previousFilter;
-				return previous != null ? previous.RetryRejectedCall(hTaskCallee, dwTickCount, dwRejectType) : -1;
+				return previous != null ? previous.RetryRejectedCall(hTaskCallee, dwTickCount, dwRejectType) : uint.MaxValue;
 			}
 
-			public int MessagePending(IntPtr hTaskCallee, int dwTickCount, int dwPendingType)
+			public uint MessagePending(HTASK hTaskCallee, uint dwTickCount, uint dwPendingType)
 			{
 				if (owner.Expired())
 				{
@@ -123,7 +109,7 @@ namespace OfficeLib
 		{
 			this.stallMs = stallMs;
 			this.capMs = capMs;
-			threadId = GetCurrentThreadId();
+			threadId = PInvoke.GetCurrentThreadId();
 		}
 
 		/// <summary>
@@ -143,7 +129,7 @@ namespace OfficeLib
 				limit.filter = new Filter(limit);
 				try
 				{
-					int hr = CoRegisterMessageFilter(limit.filter, out IOleMessageFilter previous);
+					int hr = PInvoke.CoRegisterMessageFilter(limit.filter, out IOleMessageFilter previous);
 					if (hr == 0)
 					{
 						limit.previousFilter = previous;
@@ -162,7 +148,7 @@ namespace OfficeLib
 			if (limit.registered)
 			{
 				uint target = limit.threadId;
-				limit.pump = new Timer(_ => PostThreadMessage(target, WM_NULL, IntPtr.Zero, IntPtr.Zero), null, PumpIntervalMs, PumpIntervalMs);
+				limit.pump = new Timer(_ => PInvoke.PostThreadMessage(target, WM_NULL, default, default), null, PumpIntervalMs, PumpIntervalMs);
 			}
 			current = limit;
 			return limit;
@@ -217,7 +203,7 @@ namespace OfficeLib
 				registered = false;
 				try
 				{
-					int hr = CoRegisterMessageFilter(previousFilter, out _);
+					int hr = PInvoke.CoRegisterMessageFilter(previousFilter, out _);
 					if (hr != 0)
 					{
 						Console.WriteLine($"PowerPointCallLimit: restoring the previous message filter failed, HRESULT 0x{hr:X8}");

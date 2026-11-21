@@ -1,3 +1,7 @@
+using static Axicultus.Interop.DesktopWindows;
+using Windows.Win32;
+using Windows.Win32.Foundation;
+using Windows.Win32.UI.WindowsAndMessaging;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -63,8 +67,8 @@ internal unsafe partial class Gf
 
 		internal static bool HasAssociatedExecutable(string path)
 		{
-			var executablePath = new StringBuilder(ExecutableBufferSize);
-			return FindExecutable(path, null, executablePath) > 32;
+			Span<char> executablePath = stackalloc char[ExecutableBufferSize];
+			return (nint)PInvoke.FindExecutable(path, null, executablePath) > 32;
 		}
 
 		public static string SetPowerpointPreviewPrefix(SongSettings InItem, bool useTitlePrefix = false)
@@ -1126,12 +1130,11 @@ internal unsafe partial class Gf
 
 			EnumWindows((hWnd, lParam) =>
 			{
-				if (!IsWindowVisible(hWnd))
+				if (!PInvoke.IsWindowVisible((HWND)hWnd))
 					return true;
 
-				StringBuilder sb = new(WindowTitleBufferSize);
-				if (GetWindowText(hWnd, sb, WindowTitleBufferSize) <= 0) return true;
-				string windowTitle = sb.ToString().ToLower();
+				string windowTitle = ReadWindowTitle(hWnd, WindowTitleBufferSize).ToLower();
+				if (windowTitle.Length == 0) return true;
 
 
 				if (!string.IsNullOrEmpty(windowTitle))
@@ -1247,7 +1250,7 @@ internal unsafe partial class Gf
 							targetBounds.Width, targetBounds.Height,
 							SWP_SHOWWINDOW);
 						SetForegroundWindow(foundHandle);
-						ShowWindow(foundHandle, SW_MAXIMIZE);
+						PInvoke.ShowWindow((HWND)foundHandle, (SHOW_WINDOW_CMD)SW_MAXIMIZE);
 						return true;
 					}
 					else
@@ -1293,11 +1296,11 @@ internal unsafe partial class Gf
 
 
 				Thread.Sleep(ForegroundDelayMs);
-				ShowWindow(handle, SW_MAXIMIZE);
+				PInvoke.ShowWindow((HWND)handle, (SHOW_WINDOW_CMD)SW_MAXIMIZE);
 
 
 				Thread.Sleep(WindowSettleDelayMs);
-				RECT windowRect;
+				Rectangle windowRect;
 				if (GetWindowRect(handle, out windowRect))
 				{
 
@@ -1311,7 +1314,7 @@ internal unsafe partial class Gf
 							bounds.Width, bounds.Height,
 							SWP_SHOWWINDOW);
 						Thread.Sleep(MainWindowWaitDelayMs);
-						ShowWindow(handle, SW_MAXIMIZE);
+						PInvoke.ShowWindow((HWND)handle, (SHOW_WINDOW_CMD)SW_MAXIMIZE);
 					}
 				}
 

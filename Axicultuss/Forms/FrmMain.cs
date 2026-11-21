@@ -1,3 +1,4 @@
+using static Axicultus.Interop.DesktopWindows;
 using Axicultus.Properties;
 using OfficeLib;
 using System;

@@ -1,7 +1,9 @@
+using Windows.Win32;
+using Windows.Win32.Foundation;
+using Windows.Win32.UI.WindowsAndMessaging;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using Xunit;
@@ -182,35 +184,34 @@ public sealed class GlobalHookTests : IDisposable
     }
 
     [Theory]
-    [InlineData("KeyboardHookStruct", 20, 24, 16, 16)]
-    [InlineData("MouseLLHookStruct", 24, 32, 20, 24)]
-    public void HookDataMatchesWindowsLayout(string name, int x86, int x64, int extra32, int extra64)
+    [InlineData(typeof(KBDLLHOOKSTRUCT), 20, 24, 16, 16)]
+    [InlineData(typeof(MSLLHOOKSTRUCT), 24, 32, 20, 24)]
+    public void HookDataMatchesWindowsLayout(Type type, int x86, int x64, int extra32, int extra64)
     {
-        var type = typeof(HookManager).GetNestedType(name, BindingFlags.NonPublic);
         Assert.Equal(IntPtr.Size == 8 ? x64 : x86, Marshal.SizeOf(type));
-        Assert.Equal(IntPtr.Size == 8 ? extra64 : extra32, Marshal.OffsetOf(type, "ExtraInfo").ToInt32());
+        Assert.Equal(IntPtr.Size == 8 ? extra64 : extra32, Marshal.OffsetOf(type, "dwExtraInfo").ToInt32());
     }
 
     [Fact]
     public void NativeSignaturesPreserveHandleMessageAndResultWidths()
     {
-        const BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Static;
-        var type = typeof(HookManager);
-        var next = type.GetMethod("CallNextHookEx", flags);
-        var callback = typeof(HookManager.HookProc).GetMethod("Invoke");
-        Assert.Equal(typeof(nint), type.GetMethod("SetWindowsHookEx", flags).ReturnType);
-        Assert.Equal(typeof(nint), type.GetMethod("UnhookWindowsHookEx", flags).GetParameters()[0].ParameterType);
-        Assert.Equal(typeof(nint), next.ReturnType);
-        Assert.Equal(typeof(nint), next.GetParameters()[0].ParameterType);
-        Assert.Equal(typeof(nuint), next.GetParameters()[2].ParameterType);
-        Assert.Equal(typeof(nint), callback.ReturnType);
-        Assert.Equal(typeof(nuint), callback.GetParameters()[1].ParameterType);
+        var next = typeof(PInvoke).GetMethod(nameof(PInvoke.CallNextHookEx));
+        var callback = typeof(HOOKPROC).GetMethod("Invoke");
+        Assert.Equal(typeof(HHOOK), typeof(PInvoke).GetMethod(nameof(PInvoke.SetWindowsHookEx)).ReturnType);
+        Assert.Equal(typeof(HHOOK), typeof(PInvoke).GetMethod(nameof(PInvoke.UnhookWindowsHookEx)).GetParameters()[0].ParameterType);
+        Assert.Equal(typeof(LRESULT), next.ReturnType);
+        Assert.Equal(typeof(HHOOK), next.GetParameters()[0].ParameterType);
+        Assert.Equal(typeof(WPARAM), next.GetParameters()[2].ParameterType);
+        Assert.Equal(typeof(LRESULT), callback.ReturnType);
+        Assert.Equal(typeof(WPARAM), callback.GetParameters()[1].ParameterType);
+        Assert.Equal(IntPtr.Size, Marshal.SizeOf<LRESULT>());
+        Assert.Equal(UIntPtr.Size, Marshal.SizeOf<WPARAM>());
     }
 
     private sealed class FakeHookApi : HookManager.HookApi, IDisposable
     {
         private const int KeyboardHook = 13, MouseHook = 14;
-        private readonly Dictionary<int, HookManager.HookProc> _callbacks = new();
+        private readonly Dictionary<int, HOOKPROC> _callbacks = new();
         private readonly nint _data = Marshal.AllocHGlobal(32);
         internal readonly HashSet<Keys> Held = new();
         internal readonly List<nint> Releases = new();
@@ -221,7 +222,7 @@ public sealed class GlobalHookTests : IDisposable
 
         internal FakeHookApi() => Marshal.Copy(new byte[32], 0, _data, 32);
 
-        internal override nint Install(int type, HookManager.HookProc callback)
+        internal override nint Install(int type, HOOKPROC callback)
         {
             _callbacks[type] = callback;
             Installs++;

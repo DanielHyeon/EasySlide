@@ -1,3 +1,7 @@
+using static Axicultus.Interop.DesktopWindows;
+using Windows.Win32;
+using Windows.Win32.Foundation;
+using Windows.Win32.UI.Input.KeyboardAndMouse;
 using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
@@ -31,15 +35,6 @@ namespace Axicultus;
 
 		public event PopupCancelEventHandler PopupCancel;
 
-		[DllImport("user32", CharSet = CharSet.Auto)]
-		private static extern IntPtr SendMessage(IntPtr handle, int msg, IntPtr wParam, IntPtr lParam);
-
-		[DllImport("user32", CharSet = CharSet.Auto, SetLastError = true)]
-		private static extern bool PostMessage(IntPtr handle, int msg, IntPtr wParam, IntPtr lParam);
-
-		[DllImport("user32")]
-		private static extern void keybd_event(byte bVk, byte bScan, int dwFlags, int dwExtraInfo);
-
 		public void ShowPopup(Form owner, Form popup, Point location)
 		{
 			this.owner = owner;
@@ -53,12 +48,12 @@ namespace Axicultus;
 			popupShowing = true;
 			popup.Show();
 			popup.Activate();
-			keybd_event(9, 0, 0, 0);
-			keybd_event(9, 0, 2, 0);
-			keybd_event(16, 0, 0, 0);
-			keybd_event(9, 0, 0, 0);
-			keybd_event(9, 0, 2, 0);
-			keybd_event(16, 0, 2, 0);
+			PInvoke.keybd_event(9, 0, 0, 0);
+			PInvoke.keybd_event(9, 0, KEYBD_EVENT_FLAGS.KEYEVENTF_KEYUP, 0);
+			PInvoke.keybd_event(16, 0, 0, 0);
+			PInvoke.keybd_event(9, 0, 0, 0);
+			PInvoke.keybd_event(9, 0, KEYBD_EVENT_FLAGS.KEYEVENTF_KEYUP, 0);
+			PInvoke.keybd_event(16, 0, KEYBD_EVENT_FLAGS.KEYEVENTF_KEYUP, 0);
 			filter.Popup = popup;
 		}
 
@@ -85,7 +80,7 @@ namespace Axicultus;
 			else if (m.Msg == 28 && (int)m.WParam == 0)
 			{
 				ClosePopup();
-				if (Handle != IntPtr.Zero && !PostMessage(Handle, WM_NCACTIVATE, IntPtr.Zero, IntPtr.Zero))
+				if (Handle != IntPtr.Zero && !PInvoke.PostMessage((HWND)Handle, WM_NCACTIVATE, default, default))
 					System.Diagnostics.Trace.TraceWarning($"Could not post popup deactivation, Win32 error {Marshal.GetLastPInvokeError()}.");
 			}
 		}

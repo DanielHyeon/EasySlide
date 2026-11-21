@@ -1,0 +1,10 @@
+AMGetErrorTextW
+CreateItemMoniker
+DMOEnum
+DMOGetName
+DMOGetTypes
+DMORegister
+DMOUnregister
+GetRunningObjectTable
+MoCopyMediaType
+MoInitMediaType

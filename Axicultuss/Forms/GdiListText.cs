@@ -1,6 +1,9 @@
+using static Axicultus.Interop.DesktopDrawing;
+using Windows.Win32;
+using Windows.Win32.Foundation;
+using Windows.Win32.Graphics.Gdi;
 using System;
 using System.Drawing;
-using System.Runtime.InteropServices;
 
 namespace Axicultus;
 
@@ -17,7 +20,7 @@ internal static class GdiListText
             DrawCore(hdc, text, font, rect, colour, flags);
     }
 
-    private static int DrawCore(IntPtr hdc, string text, IntPtr font, Rectangle rect, Color colour, int flags)
+    private static unsafe int DrawCore(IntPtr hdc, string text, IntPtr font, Rectangle rect, Color colour, int flags)
     {
         int saved = SaveDC(hdc);
         if (saved == 0) throw new InvalidOperationException("Cannot save the list drawing context.");
@@ -29,13 +32,17 @@ internal static class GdiListText
             if (font != IntPtr.Zero && SelectObject(hdc, font) == IntPtr.Zero)
                 throw new InvalidOperationException("Cannot select the list font.");
             if ((flags & CalculateRectangle) == 0 &&
-                (SetBkMode(hdc, 1) == 0 || SetTextColor(hdc, ColorTranslator.ToWin32(colour)) == -1))
+                (PInvoke.SetBkMode((HDC)hdc, BACKGROUND_MODE.TRANSPARENT) == 0 ||
+                 PInvoke.SetTextColor((HDC)hdc, (COLORREF)(uint)ColorTranslator.ToWin32(colour)).Value == uint.MaxValue))
                 throw new InvalidOperationException("Cannot set the list text colours.");
 
-            NativeRect bounds = new() { Left = rect.Left, Top = rect.Top, Right = rect.Right, Bottom = rect.Bottom };
-            if (DrawText(hdc, text, text.Length, ref bounds, flags) == 0)
-                throw new InvalidOperationException("Windows could not draw or measure the list text.");
-            width = bounds.Right - bounds.Left;
+            RECT bounds = rect;
+            fixed (char* characters = text)
+            {
+                if (PInvoke.DrawText((HDC)hdc, characters, text.Length, ref bounds, (DRAW_TEXT_FORMAT)flags) == 0)
+                    throw new InvalidOperationException("Windows could not draw or measure the list text.");
+            }
+            width = bounds.Width;
         }
         finally
         {
@@ -45,19 +52,4 @@ internal static class GdiListText
         return width;
     }
 
-    [StructLayout(LayoutKind.Sequential)]
-    private struct NativeRect { public int Left, Top, Right, Bottom; }
-
-    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
-    private static extern int DrawText(IntPtr hdc, string text, int count, ref NativeRect rect, int flags);
-    [DllImport("gdi32.dll")]
-    private static extern int SaveDC(IntPtr hdc);
-    [DllImport("gdi32.dll")]
-    private static extern bool RestoreDC(IntPtr hdc, int saved);
-    [DllImport("gdi32.dll")]
-    private static extern IntPtr SelectObject(IntPtr hdc, IntPtr obj);
-    [DllImport("gdi32.dll")]
-    private static extern int SetTextColor(IntPtr hdc, int colour);
-    [DllImport("gdi32.dll")]
-    private static extern int SetBkMode(IntPtr hdc, int mode);
 }

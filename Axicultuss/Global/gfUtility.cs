@@ -1812,7 +1812,7 @@ namespace Axicultus;
 
 		public static bool FormInUse(string InFormName)
 		{
-			return (FindWindow(null, InFormName).ToInt32() > 0) ? true : false;
+			return !Windows.Win32.PInvoke.FindWindow(null, InFormName).IsNull;
 		}
 
 		public static void SetMenuItem(ref ToolStripMenuItem InMenuItem, string ItemName, string DefaultText, string MergedText, bool DisableWhenBlank)

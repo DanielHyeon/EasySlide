@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using Axicultus.Wpf.Shell;
 
@@ -98,10 +97,10 @@ public sealed class SystemDisplayReader : IDisplayReader
     private static double GetDpiScale(Rectangle bounds)
     {
         var center = new Point(bounds.Left + bounds.Width / 2, bounds.Top + bounds.Height / 2);
-        var monitor = MonitorFromPoint(center, 2);
+        var monitor = Windows.Win32.PInvoke.MonitorFromPoint(center, Windows.Win32.Graphics.Gdi.MONITOR_FROM_FLAGS.MONITOR_DEFAULTTONEAREST);
         try
         {
-            if (GetDpiForMonitor(monitor, 0, out uint dpi, out _) == 0 && dpi != 0)
+            if (Windows.Win32.PInvoke.GetDpiForMonitor(monitor, 0, out uint dpi, out _) == 0 && dpi != 0)
                 return dpi / 96d;
         }
         catch (DllNotFoundException) { }
@@ -109,11 +108,5 @@ public sealed class SystemDisplayReader : IDisplayReader
         using var graphics = Graphics.FromHwnd(IntPtr.Zero);
         return graphics.DpiX / 96d;
     }
-
-    [DllImport("user32.dll")]
-    private static extern IntPtr MonitorFromPoint(Point point, uint flags);
-
-    [DllImport("shcore.dll")]
-    private static extern int GetDpiForMonitor(IntPtr monitor, int type, out uint x, out uint y);
 
 }

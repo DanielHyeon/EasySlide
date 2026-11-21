@@ -1,3 +1,7 @@
+using static Axicultus.Interop.DesktopWindows;
+using Windows.Win32;
+using Windows.Win32.Foundation;
+using Windows.Win32.UI.WindowsAndMessaging;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -15,28 +19,14 @@ namespace OfficeLib
 	/// </summary>
 	public partial class PowerPoint
 	{
-		[DllImport("user32.dll", SetLastError = true)]
-		[return: MarshalAs(UnmanagedType.Bool)]
-		private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
-
-		[DllImport("user32.dll")]
-		[return: MarshalAs(UnmanagedType.Bool)]
-		private static extern bool IsWindow(IntPtr hWnd);
-
-		[DllImport("user32.dll")]
-		private static extern IntPtr GetAncestor(IntPtr hWnd, uint gaFlags);
-
-		[DllImport("user32.dll", EntryPoint = "GetWindowLongPtrW")]
-		private static extern IntPtr GetWindowLongPtr64(IntPtr hWnd, int nIndex);
-
-		[DllImport("user32.dll", EntryPoint = "GetWindowLongW")]
-		private static extern int GetWindowLong32(IntPtr hWnd, int nIndex);
 
 		private static bool IsTopMost(IntPtr handle)
 		{
-			const int GWL_EXSTYLE = -20;
+			const WINDOW_LONG_PTR_INDEX index = WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE;
 			const long WS_EX_TOPMOST = 0x0008;
-			long exStyle = (IntPtr.Size == 8) ? GetWindowLongPtr64(handle, GWL_EXSTYLE).ToInt64() : GetWindowLong32(handle, GWL_EXSTYLE);
+			long exStyle = IntPtr.Size == 8
+				? PInvoke.GetWindowLongPtr((HWND)handle, index)
+				: PInvoke.GetWindowLong((HWND)handle, index);
 			return (exStyle & WS_EX_TOPMOST) != 0;
 		}
 
@@ -132,9 +122,9 @@ namespace OfficeLib
 					handleError = ex.GetBaseException().Message;
 				}
 			}
-			if (handle != IntPtr.Zero && IsWindow(handle))
+			if (handle != IntPtr.Zero && PInvoke.IsWindow((HWND)handle))
 			{
-				IntPtr root = GetAncestor(handle, GA_ROOT);
+				IntPtr root = PInvoke.GetAncestor((HWND)handle, (GET_ANCESTOR_FLAGS)GA_ROOT);
 				return (root != IntPtr.Zero) ? root : handle;
 			}
 			string presentationName = null;
@@ -293,7 +283,7 @@ namespace OfficeLib
 		/// </summary>
 		private SlideShowPlacement GetPlacement(IntPtr handle, out string where)
 		{
-			if (!GetWindowRect(handle, out RECT rect))
+			if (!GetWindowRect(handle, out var rect))
 			{
 				where = "window position unknown";
 				return SlideShowPlacement.Unknown;
@@ -334,7 +324,7 @@ namespace OfficeLib
 		/// </summary>
 		public static bool IsTopMostWindow(IntPtr handle)
 		{
-			return handle != IntPtr.Zero && IsWindow(handle) && IsTopMost(handle);
+			return handle != IntPtr.Zero && PInvoke.IsWindow((HWND)handle) && IsTopMost(handle);
 		}
 
 		private static bool Contains((int Left, int Top, int Right, int Bottom) bounds, int x, int y)
@@ -350,13 +340,11 @@ namespace OfficeLib
 			IntPtr first = IntPtr.Zero;
 			EnumWindows((h, unused) =>
 			{
-				if (!IsWindowVisible(h) || !IsTopMost(h))
+				if (!PInvoke.IsWindowVisible((HWND)h) || !IsTopMost(h))
 				{
 					return true;
 				}
-				StringBuilder className = new StringBuilder(64);
-				GetClassName(h, className, className.Capacity);
-				if (className.ToString() != "screenClass")
+				if (!WindowHasClass(h, "screenClass"))
 				{
 					return true;
 				}
@@ -365,16 +353,6 @@ namespace OfficeLib
 			}, IntPtr.Zero);
 			return first == handle;
 		}
-
-		[StructLayout(LayoutKind.Sequential)]
-		private struct RECT
-		{
-			public int Left, Top, Right, Bottom;
-		}
-
-		[DllImport("user32.dll")]
-		[return: MarshalAs(UnmanagedType.Bool)]
-		private static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
 
 		private static HashSet<uint> GetPowerPointProcessIds()
 		{
@@ -425,19 +403,15 @@ namespace OfficeLib
 			EnumWindows((handle, unused) =>
 			{
 				GetWindowThreadProcessId(handle, out uint processId);
-				if (!powerPointProcessIds.Contains(processId) || !IsWindowVisible(handle))
+				if (!powerPointProcessIds.Contains(processId) || !PInvoke.IsWindowVisible((HWND)handle))
 				{
 					return true;
 				}
-				StringBuilder className = new StringBuilder(64);
-				GetClassName(handle, className, className.Capacity);
-				if (className.ToString() != "screenClass")
+				if (!WindowHasClass(handle, "screenClass"))
 				{
 					return true;
 				}
-				StringBuilder title = new StringBuilder(512);
-				GetWindowText(handle, title, title.Capacity);
-				string windowTitle = WithoutReadOnlyCaption(title.ToString());
+				string windowTitle = WithoutReadOnlyCaption(ReadWindowTitle(handle, 512));
 				if (separated.IsMatch(windowTitle))
 				{
 					exact = handle;
@@ -497,9 +471,7 @@ namespace OfficeLib
 				{
 					return true;
 				}
-				StringBuilder className = new StringBuilder(64);
-				GetClassName(handle, className, className.Capacity);
-				if (className.ToString() == "screenClass")
+				if (WindowHasClass(handle, "screenClass"))
 				{
 					topMost.Add(handle);
 				}
@@ -514,13 +486,6 @@ namespace OfficeLib
 			}
 			return topMost.Count;
 		}
-
-		[DllImport("user32.dll")]
-		[return: MarshalAs(UnmanagedType.Bool)]
-		private static extern bool IsHungAppWindow(IntPtr hWnd);
-
-		[DllImport("user32.dll", SetLastError = true)]
-		private static extern IntPtr SendMessageTimeout(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam, uint fuFlags, uint uTimeout, out IntPtr lpdwResult);
 
 		private const uint WM_NULL = 0x0000;
 		private const uint SMTO_ABORTIFHUNG = 0x0002;
@@ -569,9 +534,7 @@ namespace OfficeLib
 				{
 					return true;
 				}
-				StringBuilder className = new StringBuilder(64);
-				GetClassName(handle, className, className.Capacity);
-				if (className.ToString() == "PPTFrameClass")
+				if (WindowHasClass(handle, "PPTFrameClass"))
 				{
 					if (!frames.TryGetValue(processId, out List<IntPtr> list))
 					{
@@ -620,13 +583,13 @@ namespace OfficeLib
 				foreach (IntPtr target in targets)
 				{
 					Stopwatch one = Stopwatch.StartNew();
-					if (SendMessageTimeout(target, WM_NULL, IntPtr.Zero, IntPtr.Zero, SMTO_ABORTIFHUNG, (uint)timeoutMs, out _) != IntPtr.Zero)
+					if (PInvoke.SendMessageTimeout((HWND)target, WM_NULL, default, default, (SEND_MESSAGE_TIMEOUT_FLAGS)SMTO_ABORTIFHUNG, (uint)timeoutMs, out _) != IntPtr.Zero)
 					{
 						answered = true;
 						break;
 					}
 					lastError = Marshal.GetLastWin32Error();
-					if (lastError == ERROR_TIMEOUT || one.ElapsedMilliseconds >= timeoutMs * 9L / 10 || IsHungAppWindow(target))
+					if (lastError == ERROR_TIMEOUT || one.ElapsedMilliseconds >= timeoutMs * 9L / 10 || PInvoke.IsHungAppWindow((HWND)target))
 					{
 						timedOut = true;
 						break;
@@ -672,8 +635,8 @@ namespace OfficeLib
 			{
 				flags |= SWP_ASYNCWINDOWPOS;
 			}
-			else if (IsHungAppWindow(handle)
-				|| SendMessageTimeout(handle, WM_NULL, IntPtr.Zero, IntPtr.Zero, SMTO_ABORTIFHUNG, LowerAnswerTimeoutMs, out _) == IntPtr.Zero)
+			else if (PInvoke.IsHungAppWindow((HWND)handle)
+				|| PInvoke.SendMessageTimeout((HWND)handle, WM_NULL, default, default, (SEND_MESSAGE_TIMEOUT_FLAGS)SMTO_ABORTIFHUNG, LowerAnswerTimeoutMs, out _) == IntPtr.Zero)
 			{
 				// A sent SetWindowPos waits until the window's thread handles it; a suspended PowerPoint is not
 				// reported hung by IsHungAppWindow (measured), so the window is asked first (WM_NULL, a short wait).
@@ -687,25 +650,9 @@ namespace OfficeLib
 			return SetWindowPos(handle, HWND_NOTOPMOST, 0, 0, 0, 0, flags) && SetWindowPos(handle, HWND_BOTTOM, 0, 0, 0, 0, flags);
 		}
 
-		private delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
-
-		[DllImport("user32.dll")]
-		[return: MarshalAs(UnmanagedType.Bool)]
-		private static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
-
-		[DllImport("user32.dll")]
-		[return: MarshalAs(UnmanagedType.Bool)]
-		private static extern bool IsWindowVisible(IntPtr hWnd);
-
-		[DllImport("user32.dll", CharSet = CharSet.Unicode)]
-		private static extern int GetClassName(IntPtr hWnd, StringBuilder lpClassName, int nMaxCount);
-
-		[DllImport("user32.dll", CharSet = CharSet.Unicode)]
-		private static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
-
 		private static bool IsSameWindow(IntPtr handle, uint processId)
 		{
-			if (!IsWindow(handle))
+			if (!PInvoke.IsWindow((HWND)handle))
 			{
 				return false;
 			}

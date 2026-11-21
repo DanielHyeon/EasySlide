@@ -5,7 +5,7 @@
     <TargetFramework>net11.0-windows7.0</TargetFramework>
     <UseWindowsForms>false</UseWindowsForms>
     <Platforms>AnyCPU;x64</Platforms>
-    <AllowUnsafeBlocks>False</AllowUnsafeBlocks>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <IsPublishable>True</IsPublishable>
     <ProduceReferenceAssembly>True</ProduceReferenceAssembly>
   </PropertyGroup>
@@ -33,4 +33,7 @@
     <PackageReference Include="NetOffice.Word" Version="1.7.4.11" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Axicultus.Win32\Axicultus.Win32.csproj" />
+  </ItemGroup>
 </Project>

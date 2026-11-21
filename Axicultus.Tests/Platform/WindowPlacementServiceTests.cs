@@ -1,6 +1,6 @@
+using static Axicultus.Interop.DesktopWindows;
 using System;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
 using Axicultus.Wpf.Platform;
@@ -179,12 +179,6 @@ public class WindowPlacementServiceTests
         (rect.Left, rect.Top, rect.Right - rect.Left, rect.Bottom - rect.Top)
             .Should().Be(((int)placement.Left, (int)placement.Top, (int)placement.Width, (int)placement.Height));
     }
-
-    [StructLayout(LayoutKind.Sequential)]
-    private struct NativeRect { public int Left, Top, Right, Bottom; }
-
-    [DllImport("user32.dll")]
-    private static extern bool GetWindowRect(IntPtr hwnd, out NativeRect rect);
 
     [Fact]
     public void StageAndAudience_ResolveIndependentPhysicalRectangles()

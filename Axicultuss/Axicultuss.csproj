@@ -91,6 +91,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Axicultus.Win32\Axicultus.Win32.csproj" />
     <ProjectReference Include="..\DirectShow\src\DirectShowLib.csproj">
       <Private>True</Private>
     </ProjectReference>

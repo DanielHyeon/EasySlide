@@ -1,3 +1,4 @@
+using static Axicultus.Interop.DesktopWindows;
 using System;
 using System.IO;
 using System.Security.Cryptography;
@@ -2782,9 +2783,6 @@ namespace OfficeLib
 				}
 			}
 		}
-
-		[DllImport("user32.dll")]
-		private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
 
 		/// <summary>
 		/// The number of files open in Protected View in the given PowerPoint (they are not in Presentations), or -1

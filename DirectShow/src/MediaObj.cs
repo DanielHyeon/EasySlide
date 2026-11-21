@@ -22,6 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #endregion
 
+using Windows.Win32;
+using Dmo = Windows.Win32.Media.DxMediaObjects;
 using System;
 using System.Text;
 using System.Runtime.InteropServices;
@@ -228,65 +230,100 @@ namespace DirectShowLib.DMO
 
     #region API Declares
 
-    sealed public class DMOUtils
+    sealed public unsafe class DMOUtils
     {
-        [DllImport("msdmo.dll", ExactSpelling = true), SuppressUnmanagedCodeSecurity]
-        public static extern int DMOEnum(
-            [MarshalAs(UnmanagedType.LPStruct)] Guid DMOCategory,
-            DMOEnumerator dwFlags,
-            int cInTypes,
-            [In] DMOPartialMediatype[] pInTypes,
-            int cOutTypes,
-            [In] DMOPartialMediatype[] pOutTypes,
-            out IEnumDMO ppEnum
-            );
+        private static Span<DMOPartialMediatype> Types(DMOPartialMediatype[] types, int count)
+            => types.AsSpan(0, count);
 
-        [DllImport("msdmo.dll", ExactSpelling = true), SuppressUnmanagedCodeSecurity]
-        public static extern int MoInitMediaType(
-            [Out] DirectShowLib.AMMediaType pmt,
-            int i
-            );
+        public static int DMOEnum(Guid DMOCategory, DMOEnumerator dwFlags, int cInTypes, DMOPartialMediatype[] pInTypes,
+            int cOutTypes, DMOPartialMediatype[] pOutTypes, out IEnumDMO ppEnum)
+        {
+            Dmo.IEnumDMO* result = null;
+            int hr;
+            fixed (DMOPartialMediatype* input = Types(pInTypes, cInTypes), output = Types(pOutTypes, cOutTypes))
+                hr = PInvoke.DMOEnum(&DMOCategory, (uint)dwFlags, (uint)cInTypes, (Dmo.DMO_PARTIAL_MEDIATYPE*)input,
+                    (uint)cOutTypes, (Dmo.DMO_PARTIAL_MEDIATYPE*)output, &result);
+            ppEnum = NativeComResult.Take<IEnumDMO>((nint)result);
+            return hr;
+        }
 
-        [DllImport("msdmo.dll", ExactSpelling = true), SuppressUnmanagedCodeSecurity]
-        public static extern int MoCopyMediaType(
-            [Out, MarshalAs(UnmanagedType.LPStruct)] AMMediaType dst,
-            [In, MarshalAs(UnmanagedType.LPStruct)] AMMediaType src
-            );
+        public static int MoInitMediaType(AMMediaType pmt, int i)
+        {
+            ArgumentNullException.ThrowIfNull(pmt);
+            if (i < 0) return unchecked((int)0x80070057); // E_INVALIDARG
+            Dmo.DMO_MEDIA_TYPE media = default;
+            int hr = PInvoke.MoInitMediaType(&media, (uint)i);
+            CopyBack(media, pmt);
+            return hr;
+        }
 
-        [DllImport("MSDmo.dll", CharSet = CharSet.Unicode, ExactSpelling = true), SuppressUnmanagedCodeSecurity]
-        static extern public int DMORegister(
-            [MarshalAs(UnmanagedType.LPWStr)] string szName,
-            [In, MarshalAs(UnmanagedType.LPStruct)] Guid clsidDMO,
-            [In, MarshalAs(UnmanagedType.LPStruct)] Guid DMOCategory,
-            DMORegisterFlags dwFlags,
-            int cInTypes,
-            [In] DMOPartialMediatype[] pInTypes,
-            int cOutTypes,
-            [In] DMOPartialMediatype[] pOutTypes
-            );
+        public static int MoCopyMediaType(AMMediaType dst, AMMediaType src)
+        {
+            ArgumentNullException.ThrowIfNull(dst);
+            ArgumentNullException.ThrowIfNull(src);
+            Dmo.DMO_MEDIA_TYPE source = new()
+            {
+                majortype = src.majorType, subtype = src.subType, bFixedSizeSamples = src.fixedSizeSamples,
+                bTemporalCompression = src.temporalCompression, lSampleSize = (uint)src.sampleSize,
+                formattype = src.formatType, pUnk = (Windows.Win32.System.Com.IUnknown*)src.unkPtr,
+                cbFormat = (uint)src.formatSize, pbFormat = (byte*)src.formatPtr
+            };
+            Dmo.DMO_MEDIA_TYPE destination = default;
+            int hr = PInvoke.MoCopyMediaType(&destination, &source);
+            CopyBack(destination, dst);
+            return hr;
+        }
 
-        [DllImport("MSDmo.dll", ExactSpelling = true), SuppressUnmanagedCodeSecurity]
-        static extern public int DMOUnregister(
-            [In, MarshalAs(UnmanagedType.LPStruct)] Guid clsidDMO,
-            [In, MarshalAs(UnmanagedType.LPStruct)] Guid guidCategory
-            );
+        private static void CopyBack(Dmo.DMO_MEDIA_TYPE source, AMMediaType destination)
+        {
+            destination.majorType = source.majortype;
+            destination.subType = source.subtype;
+            destination.fixedSizeSamples = source.bFixedSizeSamples;
+            destination.temporalCompression = source.bTemporalCompression;
+            destination.sampleSize = (int)source.lSampleSize;
+            destination.formatType = source.formattype;
+            destination.unkPtr = (nint)source.pUnk;
+            destination.formatSize = (int)source.cbFormat;
+            destination.formatPtr = (nint)source.pbFormat;
+        }
 
-        [DllImport("MSDmo.dll", CharSet = CharSet.Unicode, ExactSpelling = true), SuppressUnmanagedCodeSecurity]
-        static extern public int DMOGetName(
-            [In, MarshalAs(UnmanagedType.LPStruct)] Guid clsidDMO,
-            [Out, MarshalAs(UnmanagedType.LPWStr, SizeConst = 80)] StringBuilder szName
-            );
+        public static int DMORegister(string szName, Guid clsidDMO, Guid DMOCategory, DMORegisterFlags dwFlags,
+            int cInTypes, DMOPartialMediatype[] pInTypes, int cOutTypes, DMOPartialMediatype[] pOutTypes)
+        {
+            fixed (char* name = szName)
+            fixed (DMOPartialMediatype* input = Types(pInTypes, cInTypes), output = Types(pOutTypes, cOutTypes))
+                return PInvoke.DMORegister(name, &clsidDMO, &DMOCategory, (uint)dwFlags,
+                    (uint)cInTypes, (Dmo.DMO_PARTIAL_MEDIATYPE*)input, (uint)cOutTypes, (Dmo.DMO_PARTIAL_MEDIATYPE*)output);
+        }
 
-        [DllImport("MSDmo.dll", ExactSpelling = true), SuppressUnmanagedCodeSecurity]
-        static extern public int DMOGetTypes(
-            [In, MarshalAs(UnmanagedType.LPStruct)] Guid clsidDMO,
-            int ulInputTypesRequested,
-            out int pulInputTypesSupplied,
-            [Out] DMOPartialMediatype[] pInTypes,
-            int ulOutputTypesRequested,
-            out int pulOutputTypesSupplied,
-            [Out] DMOPartialMediatype[] pOutTypes
-            );
+        public static int DMOUnregister(Guid clsidDMO, Guid guidCategory)
+            => PInvoke.DMOUnregister(&clsidDMO, &guidCategory);
+
+        public static int DMOGetName(Guid clsidDMO, StringBuilder szName)
+        {
+            ArgumentNullException.ThrowIfNull(szName);
+            Span<char> name = stackalloc char[80]; // DMO_MAX_NAME_SIZE
+            int hr = PInvoke.DMOGetName(clsidDMO, name);
+            if (hr >= 0)
+            {
+                int end = name.IndexOf('\0');
+                szName.Clear().Append(end < 0 ? name : name[..end]);
+            }
+            return hr;
+        }
+
+        public static int DMOGetTypes(Guid clsidDMO, int ulInputTypesRequested, out int pulInputTypesSupplied,
+            DMOPartialMediatype[] pInTypes, int ulOutputTypesRequested, out int pulOutputTypesSupplied, DMOPartialMediatype[] pOutTypes)
+        {
+            uint inputs = 0, outputs = 0;
+            int hr;
+            fixed (DMOPartialMediatype* input = Types(pInTypes, ulInputTypesRequested), output = Types(pOutTypes, ulOutputTypesRequested))
+                hr = PInvoke.DMOGetTypes(&clsidDMO, (uint)ulInputTypesRequested, &inputs, (Dmo.DMO_PARTIAL_MEDIATYPE*)input,
+                    (uint)ulOutputTypesRequested, &outputs, (Dmo.DMO_PARTIAL_MEDIATYPE*)output);
+            pulInputTypesSupplied = (int)inputs;
+            pulOutputTypesSupplied = (int)outputs;
+            return hr;
+        }
 
         private DMOUtils()
         {

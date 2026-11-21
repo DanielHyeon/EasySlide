@@ -181,9 +181,6 @@ public class DesktopAnalyzerRegressionTests
         finally { Assert.NotEqual(0, DiNative.SetupDiDestroyDeviceInfoList(devices)); }
     }
 
-    [DllImport("shell32.dll", CharSet = CharSet.Unicode, ExactSpelling = true)]
-    private static extern nint FindExecutableW(string file, string directory, [Out] StringBuilder result);
-
     [Fact]
     public void PowerPointAssociationAgreesForAsciiAndUnicodePaths()
     {
@@ -194,7 +191,7 @@ public class DesktopAnalyzerRegressionTests
             string unicode = Path.Combine(directory.FullName, "가사 🎵.ppt");
             File.WriteAllText(ascii, "");
             File.WriteAllText(unicode, "");
-            bool expected = FindExecutableW(ascii, null, new StringBuilder(260)) > 32;
+            bool expected = (nint)Windows.Win32.PInvoke.FindExecutable(ascii, null, new char[260]) > 32;
             Assert.Equal(expected, Gf.HasAssociatedExecutable(ascii));
             Assert.Equal(expected, Gf.HasAssociatedExecutable(unicode));
             Assert.False(Gf.HasAssociatedExecutable(Path.Combine(directory.FullName, "missing.ppt")));

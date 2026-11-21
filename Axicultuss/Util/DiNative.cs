@@ -1,4 +1,9 @@
-﻿using System;
+﻿using Windows.Win32;
+using Windows.Win32.Devices.DeviceAndDriverInstallation;
+using Windows.Win32.Foundation;
+using Windows.Win32.UI.WindowsAndMessaging;
+using DeviceInfo = Windows.Win32.Devices.DeviceAndDriverInstallation.SP_DEVINFO_DATA;
+using System;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -6,26 +11,29 @@ namespace Axicultus.Util;
 
 #region Unmanaged
 
-public class DiNative
+public unsafe class DiNative
 {
     public static IntPtr RegisterDeviceNotification(IntPtr hRecipient, DEV_BROADCAST_DEVICEINTERFACE NotificationFilter, uint Flags)
     {
         ArgumentNullException.ThrowIfNull(NotificationFilter);
         // The native header includes the interface GUID and the first WCHAR of its variable-length name.
-        var filter = new DeviceInterfaceFilter
+        var filter = new DEV_BROADCAST_DEVICEINTERFACE_W
         {
-            Size = Marshal.SizeOf<DeviceInterfaceFilter>(),
-            DeviceType = NotificationFilter.dbcc_devicetype,
-            ClassGuid = NotificationFilter.dbcc_classguid
+            dbcc_size = (uint)sizeof(DEV_BROADCAST_DEVICEINTERFACE_W),
+            dbcc_devicetype = (uint)NotificationFilter.dbcc_devicetype,
+            dbcc_classguid = NotificationFilter.dbcc_classguid
         };
-        return NativeMethods.RegisterDeviceNotification(hRecipient, ref filter, Flags);
+        return PInvoke.RegisterDeviceNotification((HANDLE)hRecipient, &filter, (REGISTER_NOTIFICATION_FLAGS)Flags);
     }
 
-    public static uint UnregisterDeviceNotification(IntPtr hHandle) => NativeMethods.UnregisterDeviceNotification(hHandle);
+    public static uint UnregisterDeviceNotification(IntPtr hHandle) => (uint)PInvoke.UnregisterDeviceNotification((HDEVNOTIFY)hHandle).Value;
 
     // The original API used a DWORD for the optional enumerator pointer. Zero is valid at either pointer size.
     public static IntPtr SetupDiGetClassDevs(ref Guid gClass, uint iEnumerator, IntPtr hParent, uint nFlags)
-        => NativeMethods.SetupDiGetClassDevs(ref gClass, OptionalPointer(iEnumerator), hParent, nFlags);
+    {
+        fixed (Guid* id = &gClass)
+            return PInvoke.SetupDiGetClassDevs(id, (char*)OptionalPointer(iEnumerator), (HWND)hParent, (SETUP_DI_GET_CLASS_DEVS_FLAGS)nFlags);
+    }
 
     private static nint OptionalPointer(uint value)
     {
@@ -34,15 +42,36 @@ public class DiNative
         return (nint)(nuint)value;
     }
 
-    public static int SetupDiDestroyDeviceInfoList(IntPtr lpInfoSet) => NativeMethods.SetupDiDestroyDeviceInfoList(lpInfoSet);
+    public static int SetupDiDestroyDeviceInfoList(IntPtr lpInfoSet) => PInvoke.SetupDiDestroyDeviceInfoList((HDEVINFO)lpInfoSet).Value;
 
     public static bool SetupDiEnumDeviceInfo(IntPtr lpInfoSet, uint dwIndex, SP_DEVINFO_DATA devInfoData)
-        => NativeMethods.SetupDiEnumDeviceInfo(lpInfoSet, dwIndex, devInfoData);
+    {
+        var entry = ToNative(devInfoData);
+        bool success = PInvoke.SetupDiEnumDeviceInfo((HDEVINFO)lpInfoSet, dwIndex, devInfoData == null ? null : &entry);
+        if (success)
+        {
+            devInfoData.cbSize = (int)entry.cbSize;
+            devInfoData.classGuid = entry.ClassGuid;
+            devInfoData.devInst = (int)entry.DevInst;
+            devInfoData.reserved = entry.Reserved;
+        }
+        return success;
+    }
 
     public static bool SetupDiGetDeviceRegistryProperty(IntPtr deviceSet, SP_DEVINFO_DATA device, uint property,
         byte[] buffer, out uint propertyType, out uint requiredSize)
-        => NativeMethods.SetupDiGetDeviceRegistryProperty(deviceSet, device, property, out propertyType,
-            buffer, (uint)(buffer?.Length ?? 0), out requiredSize);
+    {
+        var entry = ToNative(device);
+        fixed (byte* data = buffer)
+        fixed (uint* type = &propertyType, size = &requiredSize)
+            return PInvoke.SetupDiGetDeviceRegistryProperty((HDEVINFO)deviceSet, device == null ? null : &entry,
+                (SETUP_DI_REGISTRY_PROPERTY)property, type, data, (uint)(buffer?.Length ?? 0), size);
+    }
+
+    private static DeviceInfo ToNative(SP_DEVINFO_DATA device) => device == null ? default : new()
+    {
+        cbSize = (uint)device.cbSize, ClassGuid = device.classGuid, DevInst = (uint)device.devInst, Reserved = device.reserved
+    };
 
     public static bool SetupDiGetDeviceRegistryProperty(IntPtr lpInfoSet, SP_DEVINFO_DATA DeviceInfoData, uint Property,
         uint PropertyRegDataType, StringBuilder PropertyBuffer, uint PropertyBufferSize, IntPtr RequiredSize)
@@ -86,61 +115,29 @@ public class DiNative
     public static unsafe bool SetupDiSetClassInstallParams(IntPtr DeviceInfoSet, ref SP_DEVINFO_DATA DeviceInfoData,
         ref SP_PROPCHANGE_PARAMS ClassInstallParams, int ClassInstallParamsSize)
     {
+        var entry = ToNative(DeviceInfoData);
+        DeviceInfo* device = DeviceInfoData == null ? null : &entry;
         if (ClassInstallParams is null)
         {
             ArgumentOutOfRangeException.ThrowIfNotEqual(ClassInstallParamsSize, 0);
-            return NativeMethods.SetupDiSetClassInstallParams(DeviceInfoSet, DeviceInfoData, null, 0);
+            return PInvoke.SetupDiSetClassInstallParams((HDEVINFO)DeviceInfoSet, device, null, 0);
         }
-        ArgumentOutOfRangeException.ThrowIfNotEqual(ClassInstallParamsSize, Marshal.SizeOf<NativePropertyChange>());
-        var parameters = new NativePropertyChange(ClassInstallParams.ClassInstallHeader.cbSize,
-            ClassInstallParams.ClassInstallHeader.InstallFunction, ClassInstallParams.StateChange,
-            ClassInstallParams.Scope, ClassInstallParams.HwProfile);
-        return NativeMethods.SetupDiSetClassInstallParams(DeviceInfoSet, DeviceInfoData, &parameters, ClassInstallParamsSize);
+        ArgumentOutOfRangeException.ThrowIfNotEqual(ClassInstallParamsSize, sizeof(Windows.Win32.Devices.DeviceAndDriverInstallation.SP_PROPCHANGE_PARAMS));
+        var parameters = new Windows.Win32.Devices.DeviceAndDriverInstallation.SP_PROPCHANGE_PARAMS
+        {
+            ClassInstallHeader = new() { cbSize = (uint)ClassInstallParams.ClassInstallHeader.cbSize,
+                InstallFunction = (DI_FUNCTION)ClassInstallParams.ClassInstallHeader.InstallFunction },
+            StateChange = (SETUP_DI_STATE_CHANGE)ClassInstallParams.StateChange,
+            Scope = (SETUP_DI_PROPERTY_CHANGE_SCOPE)ClassInstallParams.Scope,
+            HwProfile = (uint)ClassInstallParams.HwProfile
+        };
+        return PInvoke.SetupDiSetClassInstallParams((HDEVINFO)DeviceInfoSet, device, &parameters.ClassInstallHeader, (uint)ClassInstallParamsSize);
     }
 
     public static bool SetupDiCallClassInstaller(uint InstallFunction, IntPtr DeviceInfoSet, ref SP_DEVINFO_DATA DeviceInfoData)
-        => NativeMethods.SetupDiCallClassInstaller(InstallFunction, DeviceInfoSet, DeviceInfoData);
-
-    [StructLayout(LayoutKind.Sequential)]
-    private struct DeviceInterfaceFilter
     {
-        public int Size;
-        public int DeviceType;
-        public int Reserved;
-        public Guid ClassGuid;
-        public ushort Name;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    private readonly record struct NativePropertyChange(int HeaderSize, int Function, int StateChange, int Scope, int HardwareProfile);
-
-    private static class NativeMethods
-    {
-        [DllImport("user32.dll", EntryPoint = "RegisterDeviceNotificationW", ExactSpelling = true, SetLastError = true)]
-        internal static extern IntPtr RegisterDeviceNotification(IntPtr recipient, ref DeviceInterfaceFilter filter, uint flags);
-
-        [DllImport("user32.dll", ExactSpelling = true, SetLastError = true)]
-        internal static extern uint UnregisterDeviceNotification(IntPtr handle);
-
-        [DllImport("setupapi.dll", EntryPoint = "SetupDiGetClassDevsW", ExactSpelling = true, SetLastError = true)]
-        internal static extern IntPtr SetupDiGetClassDevs(ref Guid classGuid, nint enumerator, IntPtr parent, uint flags);
-
-        [DllImport("setupapi.dll", ExactSpelling = true, SetLastError = true)]
-        internal static extern int SetupDiDestroyDeviceInfoList(IntPtr deviceSet);
-
-        [DllImport("setupapi.dll", ExactSpelling = true, SetLastError = true)]
-        internal static extern bool SetupDiEnumDeviceInfo(IntPtr deviceSet, uint index, [In, Out] SP_DEVINFO_DATA device);
-
-        [DllImport("setupapi.dll", EntryPoint = "SetupDiGetDeviceRegistryPropertyW", ExactSpelling = true, SetLastError = true)]
-        internal static extern bool SetupDiGetDeviceRegistryProperty(IntPtr deviceSet, SP_DEVINFO_DATA device,
-            uint property, out uint propertyType, [Out] byte[] buffer, uint bufferSize, out uint requiredSize);
-
-        [DllImport("setupapi.dll", EntryPoint = "SetupDiSetClassInstallParamsW", ExactSpelling = true, SetLastError = true)]
-        internal static extern unsafe bool SetupDiSetClassInstallParams(IntPtr deviceSet, SP_DEVINFO_DATA device,
-            NativePropertyChange* parameters, int size);
-
-        [DllImport("setupapi.dll", ExactSpelling = true, SetLastError = true)]
-        internal static extern bool SetupDiCallClassInstaller(uint function, IntPtr deviceSet, SP_DEVINFO_DATA device);
+        var entry = ToNative(DeviceInfoData);
+        return PInvoke.SetupDiCallClassInstaller((DI_FUNCTION)InstallFunction, (HDEVINFO)DeviceInfoSet, DeviceInfoData == null ? null : &entry);
     }
 
     // Structure with information for RegisterDeviceNotification.

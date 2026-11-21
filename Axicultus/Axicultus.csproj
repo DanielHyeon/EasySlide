@@ -43,6 +43,7 @@
 
   <ItemGroup>
     <!-- PoC-B: PowerPoint COM 호출용. NetOffice 타입이 transitively 전파됨. -->
+    <ProjectReference Include="..\Axicultus.Win32\Axicultus.Win32.csproj" />
     <ProjectReference Include="..\DirectShow\src\DirectShowLib.csproj" />
     <ProjectReference Include="..\OfficeLib\OfficeLib.csproj" />
     <ProjectReference Include="..\Axicultus.Core\Axicultus.Core.csproj" />
@@ -66,9 +67,6 @@
     </Compile>
     <Compile Include="..\Axicultuss\HookManager\HookManager.Windows.cs">
       <Link>External\HookManager\HookManager.Windows.cs</Link>
-    </Compile>
-    <Compile Include="..\Axicultuss\HookManager\HookManager.Structures.cs">
-      <Link>External\HookManager\HookManager.Structures.cs</Link>
     </Compile>
     <Compile Include="..\Axicultuss\HookManager\GlobalEventProvider.cs">
       <Link>External\HookManager\GlobalEventProvider.cs</Link>

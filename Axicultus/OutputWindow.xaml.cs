@@ -122,8 +122,8 @@ public partial class OutputWindow : Window, IOutputSurface
     }
     private readonly System.Collections.Generic.List<System.Windows.Interop.HwndSource> _screenSaverSources = [];
 
-    [System.Runtime.InteropServices.DllImport("kernel32.dll")]
-    private static extern uint SetThreadExecutionState(uint flags);
+    private static uint SetThreadExecutionState(uint flags)
+        => (uint)Windows.Win32.PInvoke.SetThreadExecutionState((Windows.Win32.System.Power.EXECUTION_STATE)flags);
 
     private void OnOutputOptionChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {

@@ -1,3 +1,6 @@
+using static Axicultus.Interop.DesktopDrawing;
+using Windows.Win32;
+using Windows.Win32.Graphics.Gdi;
 using System;
 using System.Drawing;
 using System.IO;
@@ -74,10 +77,10 @@ public class DesktopCallResultTests
         var font = SystemFonts.DefaultFont.ToHfont();
         try
         {
-            int original = GetTextColor(hdc);
+            int original = unchecked((int)PInvoke.GetTextColor((HDC)hdc).Value);
             Assert.True(GdiListText.Measure(hdc, "Praise", font) > 0);
             GdiListText.Draw(hdc, "Praise", font, new Rectangle(0, 0, 120, 35), Color.Blue, 0x20);
-            Assert.Equal(original, GetTextColor(hdc));
+            Assert.Equal(original, unchecked((int)PInvoke.GetTextColor((HDC)hdc).Value));
         }
         finally
         {
@@ -87,6 +90,4 @@ public class DesktopCallResultTests
         Assert.Contains(System.Linq.Enumerable.Range(0, 120 * 35), i => bitmap.GetPixel(i % 120, i / 120).ToArgb() != Color.White.ToArgb());
     }
 
-    [DllImport("gdi32.dll")] private static extern int GetTextColor(IntPtr hdc);
-    [DllImport("gdi32.dll")] private static extern bool DeleteObject(IntPtr handle);
 }

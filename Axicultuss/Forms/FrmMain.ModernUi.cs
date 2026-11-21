@@ -1,8 +1,11 @@
+using Windows.Win32;
+using Windows.Win32.Graphics.Gdi;
+using static Axicultus.Interop.DesktopDrawing;
+using static Axicultus.Interop.DesktopWindows;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
-using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using Axicultus.Module;
 
@@ -1229,15 +1232,6 @@ internal sealed class WorshipListPainter : IDisposable
         }
     }
 
-    [DllImport("gdi32.dll")]
-    private static extern int SaveDC(IntPtr hdc);
-
-    [DllImport("gdi32.dll")]
-    private static extern bool RestoreDC(IntPtr hdc, int savedDC);
-
-    [DllImport("gdi32.dll")]
-    private static extern int ExcludeClipRect(IntPtr hdc, int left, int top, int right, int bottom);
-
     public void Dispose()
     {
         if (attached)
@@ -1435,8 +1429,8 @@ internal sealed class WorshipListPainter : IDisposable
             if (hasFocus && item.Focused && ShowFocusCues())
             {
                 // The list's own focus rectangle (DrawFocusRect), from the label to the row's right end.
-                RECT focus = new() { Left = label.Left, Top = bounds.Top, Right = bounds.Right, Bottom = bounds.Bottom };
-                DrawFocusRect(hdc, ref focus);
+                var focus = Rectangle.FromLTRB(label.Left, bounds.Top, bounds.Right, bounds.Bottom);
+                DrawFocusRect(hdc, focus);
             }
             EndRowBuffer(target, hdc, bounds);
         }
@@ -1495,7 +1489,7 @@ internal sealed class WorshipListPainter : IDisposable
             }
             bufferSize = size;
         }
-        return SetViewportOrgEx(bufferDC, -bounds.X, -bounds.Y, IntPtr.Zero) ? bufferDC : target;
+        return SetViewportOrigin(bufferDC, -bounds.X, -bounds.Y) ? bufferDC : target;
     }
 
     private static void EndRowBuffer(IntPtr target, IntPtr hdc, Rectangle bounds)
@@ -1532,31 +1526,10 @@ internal sealed class WorshipListPainter : IDisposable
 
     private void Fill(IntPtr hdc, Rectangle rect, Color colour)
     {
-        RECT r = new() { Left = rect.Left, Top = rect.Top, Right = rect.Right, Bottom = rect.Bottom };
-        if (rect.Width > 0 && rect.Height > 0 && FillRect(hdc, ref r, Brush(colour)) == 0)
+
+        if (rect.Width > 0 && rect.Height > 0 && FillRect(hdc, rect, Brush(colour)) == 0)
             throw new InvalidOperationException("Cannot fill the list background.");
     }
-
-    [DllImport("gdi32.dll")]
-    private static extern IntPtr CreateCompatibleDC(IntPtr hdc);
-
-    [DllImport("gdi32.dll")]
-    private static extern IntPtr CreateCompatibleBitmap(IntPtr hdc, int width, int height);
-
-    [DllImport("gdi32.dll")]
-    private static extern bool DeleteDC(IntPtr hdc);
-
-    [DllImport("gdi32.dll")]
-    private static extern bool SetViewportOrgEx(IntPtr hdc, int x, int y, IntPtr oldOrigin);
-
-    [DllImport("gdi32.dll")]
-    private static extern bool BitBlt(IntPtr dest, int x, int y, int width, int height, IntPtr source, int sx, int sy, int rop);
-
-    [DllImport("user32.dll")]
-    private static extern int FillRect(IntPtr hdc, ref RECT rect, IntPtr brush);
-
-    [DllImport("gdi32.dll")]
-    private static extern IntPtr CreateSolidBrush(int colour);
 
     // Left offset of the title inside the label rectangle, as the list draws it.
     private int TitleTextOffset => list.LogicalToDeviceUnits(2);
@@ -1579,20 +1552,20 @@ internal sealed class WorshipListPainter : IDisposable
     }
 
     // Bold copy of the list's font, created only when the list's font handle changes.
-    private IntPtr BoldFontHandle(IntPtr regular)
+    private unsafe IntPtr BoldFontHandle(IntPtr regular)
     {
         if (boldFontHandle != IntPtr.Zero && boldFontSource == regular)
         {
             return boldFontHandle;
         }
         DisposeFonts();
-        var logFont = new LOGFONT();
-        if (regular == IntPtr.Zero || GetObject(regular, Marshal.SizeOf<LOGFONT>(), ref logFont) == 0)
+        var logFont = new LOGFONTW();
+        if (regular == IntPtr.Zero || PInvoke.GetObject((HGDIOBJ)regular, sizeof(LOGFONTW), &logFont) == 0)
         {
             return regular;
         }
         logFont.lfWeight = 700; // FW_BOLD
-        boldFontHandle = CreateFontIndirect(ref logFont);
+        boldFontHandle = PInvoke.CreateFontIndirect(&logFont);
         boldFontSource = regular;
         return boldFontHandle == IntPtr.Zero ? regular : boldFontHandle;
     }
@@ -1606,36 +1579,6 @@ internal sealed class WorshipListPainter : IDisposable
         }
         return width;
     }
-
-    [StructLayout(LayoutKind.Sequential)]
-    private struct RECT
-    {
-        public int Left, Top, Right, Bottom;
-    }
-
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-    private struct LOGFONT
-    {
-        public int lfHeight, lfWidth, lfEscapement, lfOrientation, lfWeight;
-        public byte lfItalic, lfUnderline, lfStrikeOut, lfCharSet, lfOutPrecision, lfClipPrecision, lfQuality, lfPitchAndFamily;
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
-        public string lfFaceName;
-    }
-
-    [DllImport("user32.dll")]
-    private static extern bool DrawFocusRect(IntPtr hdc, ref RECT rect);
-
-    [DllImport("gdi32.dll")]
-    private static extern IntPtr SelectObject(IntPtr hdc, IntPtr obj);
-
-    [DllImport("gdi32.dll", CharSet = CharSet.Unicode)]
-    private static extern int GetObject(IntPtr obj, int size, ref LOGFONT logFont);
-
-    [DllImport("gdi32.dll", CharSet = CharSet.Unicode)]
-    private static extern IntPtr CreateFontIndirect(ref LOGFONT logFont);
-
-    [DllImport("gdi32.dll")]
-    private static extern bool DeleteObject(IntPtr obj);
 
     private const int ILD_NORMAL = 0x0, ILD_BLEND25 = 0x2, ILD_BLEND50 = 0x4;
     private const int CLR_NONE = unchecked((int)0xFFFFFFFF), CLR_DEFAULT = unchecked((int)0xFF000000);
@@ -1659,9 +1602,6 @@ internal sealed class WorshipListPainter : IDisposable
         // CLR_DEFAULT foreground: blend with the system highlight colour, as the list does.
         ImageList_DrawEx(images.Handle, index, hdc, iconRect.X, y, 0, 0, CLR_NONE, CLR_DEFAULT, style);
     }
-
-    [DllImport("comctl32.dll")]
-    private static extern bool ImageList_DrawEx(IntPtr himl, int index, IntPtr hdc, int x, int y, int dx, int dy, int rgbBk, int rgbFg, int style);
 
     private string TagText(ListViewItem item, int mark, bool section)
     {
@@ -1730,6 +1670,4 @@ internal sealed class WorshipListPainter : IDisposable
         return ((int)SendMessage(list.Handle, WM_QUERYUISTATE, IntPtr.Zero, IntPtr.Zero) & UISF_HIDEFOCUS) == 0;
     }
 
-    [DllImport("user32.dll")]
-    private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
 }

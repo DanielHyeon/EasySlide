@@ -1,3 +1,6 @@
+using Windows.Win32;
+using Windows.Win32.Foundation;
+using Windows.Win32.UI.WindowsAndMessaging;
 using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
@@ -7,11 +10,9 @@ namespace Axicultus;
 
 public static partial class HookManager
 {
-    internal delegate nint HookProc(int nCode, nuint wParam, nint lParam);
-
     // Windows can still reference a callback when unhooking fails.
-    private static readonly HookProc s_MouseDelegate = MouseHookProc;
-    private static readonly HookProc s_KeyboardDelegate = KeyboardHookProc;
+    private static readonly HOOKPROC s_MouseDelegate = (code, message, data) => (LRESULT)MouseHookProc(code, message, data);
+    private static readonly HOOKPROC s_KeyboardDelegate = (code, message, data) => (LRESULT)KeyboardHookProc(code, message, data);
     private static nint s_MouseHookHandle;
     private static nint s_KeyboardHookHandle;
 
@@ -23,10 +24,10 @@ public static partial class HookManager
         if (nCode >= 0)
         {
             //Marshall the data from callback.
-            MouseLLHookStruct mouseHookStruct = Marshal.PtrToStructure<MouseLLHookStruct>(lParam);
+            MSLLHOOKSTRUCT mouseHookStruct = Marshal.PtrToStructure<MSLLHOOKSTRUCT>(lParam);
 
             if (wParam == WM_MOUSEMOVE && ((s_MouseMove == null && s_MouseMoveExt == null)
-                || (m_OldX == mouseHookStruct.Point.X && m_OldY == mouseHookStruct.Point.Y)))
+                || (m_OldX == mouseHookStruct.pt.X && m_OldY == mouseHookStruct.pt.Y)))
                 return Platform.Next(nCode, wParam, lParam);
 
             //detect button clicked
@@ -70,7 +71,7 @@ public static partial class HookManager
                     //If the message is WM_MOUSEWHEEL, the high-order word of MouseData member is the wheel delta.
                     //One wheel click is defined as WHEEL_DELTA, which is 120.
                     //(value >> 16) & 0xffff; retrieves the high-order word from the given 32-bit value
-                    mouseDelta = (short)((mouseHookStruct.MouseData >> 16) & 0xffff);
+                    mouseDelta = (short)((mouseHookStruct.mouseData >> 16) & 0xffff);
 
                 //TODO: X BUTTONS (I havent them so was unable to test)
                     //If the message is WM_XBUTTONDOWN, WM_XBUTTONUP, WM_XBUTTONDBLCLK, WM_NCXBUTTONDOWN, WM_NCXBUTTONUP,
@@ -84,8 +85,8 @@ public static partial class HookManager
             MouseEventExtArgs e = new(
                                                button,
                                                clickCount,
-                                               mouseHookStruct.Point.X,
-                                               mouseHookStruct.Point.Y,
+                                               mouseHookStruct.pt.X,
+                                               mouseHookStruct.pt.Y,
                                                mouseDelta);
 
             //Mouse up
@@ -125,10 +126,10 @@ public static partial class HookManager
             }
 
             //If someone listens to move and there was a change in coordinates raise move event
-            if ((s_MouseMove!=null || s_MouseMoveExt!=null) && (m_OldX != mouseHookStruct.Point.X || m_OldY != mouseHookStruct.Point.Y))
+            if ((s_MouseMove!=null || s_MouseMoveExt!=null) && (m_OldX != mouseHookStruct.pt.X || m_OldY != mouseHookStruct.pt.Y))
             {
-                m_OldX = mouseHookStruct.Point.X;
-                m_OldY = mouseHookStruct.Point.Y;
+                m_OldX = mouseHookStruct.pt.X;
+                m_OldY = mouseHookStruct.pt.Y;
                 s_MouseMove?.Invoke(null, e);
 
                 s_MouseMoveExt?.Invoke(null, e);
@@ -147,7 +148,7 @@ public static partial class HookManager
     private static void EnsureSubscribedToGlobalMouseEvents() =>
         EnsureInstalled(ref s_MouseHookHandle, WH_MOUSE_LL, s_MouseDelegate);
 
-    private static void EnsureInstalled(ref nint handle, int type, HookProc callback)
+    private static void EnsureInstalled(ref nint handle, int type, HOOKPROC callback)
     {
         if (handle != 0) return;
         handle = Platform.Install(type, callback);
@@ -195,14 +196,14 @@ public static partial class HookManager
         return Platform.AsyncState(combined) < 0;
     }
 
-    private static Keys ReadModifiers(KeyboardHookStruct input, bool down)
+    private static Keys ReadModifiers(KBDLLHOOKSTRUCT input, bool down)
     {
-        bool extended = (input.Flags & 1) != 0;
-        Keys current = (Keys)input.VirtualKeyCode switch
+        bool extended = (input.flags & KBDLLHOOKSTRUCT_FLAGS.LLKHF_EXTENDED) != 0;
+        Keys current = (Keys)input.vkCode switch
         {
             Keys.ControlKey => extended ? Keys.RControlKey : Keys.LControlKey,
             Keys.Menu => extended ? Keys.RMenu : Keys.LMenu,
-            Keys.ShiftKey => input.ScanCode == 0x36 ? Keys.RShiftKey : Keys.LShiftKey,
+            Keys.ShiftKey => input.scanCode == 0x36 ? Keys.RShiftKey : Keys.LShiftKey,
             var key => key
         };
         Control = ModifierDown(current, down, Keys.ControlKey, Keys.LControlKey, Keys.RControlKey);
@@ -223,11 +224,11 @@ public static partial class HookManager
             if (handler == null && !keyPress)
                 return Platform.Next(nCode, wParam, lParam);
 
-            var input = Marshal.PtrToStructure<KeyboardHookStruct>(lParam);
+            var input = Marshal.PtrToStructure<KBDLLHOOKSTRUCT>(lParam);
             Keys modifiers = ReadModifiers(input, down);
             if (handler != null)
             {
-                var args = new KeyEventArgs((Keys)input.VirtualKeyCode | modifiers);
+                var args = new KeyEventArgs((Keys)input.vkCode | modifiers);
                 handler(null, args);
                 handled = args.Handled;
             }
@@ -237,17 +238,16 @@ public static partial class HookManager
             {
                 bool isDownShift = (modifiers & Keys.Shift) != 0;
 
-                bool isDownCapslock = (GetKeyState(VK_CAPITAL) & 1) != 0;
+                bool isDownCapslock = (PInvoke.GetKeyState(VK_CAPITAL) & 1) != 0;
 
-                byte[] keyState = new byte[256];
-                byte[] inBuffer = new byte[2];
-                if (GetKeyboardState(keyState) != 0 && ToAscii(input.VirtualKeyCode,
-                          input.ScanCode,
+                Span<byte> keyState = stackalloc byte[256];
+                if (PInvoke.GetKeyboardState(keyState) && PInvoke.ToAscii(input.vkCode,
+                          input.scanCode,
                           keyState,
-                          inBuffer,
-                          input.Flags) == 1)
+                          out ushort translated,
+                          (uint)input.flags) == 1)
                 {
-                    char key = (char)inBuffer[0];
+                    char key = (char)(byte)translated;
                     if ((isDownCapslock ^ isDownShift) && Char.IsLetter(key)) key = Char.ToUpper(key);
                     KeyPressEventArgs e = new(key);
                     s_KeyPress?.Invoke(null, e);

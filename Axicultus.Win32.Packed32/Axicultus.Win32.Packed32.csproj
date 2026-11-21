@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net11.0-windows7.0</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <CsWin32PlatformTarget>x86</CsWin32PlatformTarget>
+    <DefineConstants>$(DefineConstants);SHELL_X86</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.371" PrivateAssets="all" />
+    <Compile Include="..\Axicultus.Win32\ShellFiles.cs" Link="ShellFiles.cs" />
+  </ItemGroup>
+</Project>

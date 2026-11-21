@@ -1,3 +1,4 @@
+using static Axicultus.Interop.DesktopWindows;
 using System;
 using System.Diagnostics;
 using System.Windows.Threading;
@@ -198,12 +199,6 @@ public sealed class HookManagerGlobalKeySource : IGlobalKeySource
         Axicultus.HookManager.KeyUp -= OnHookKeyUp;
     }
 
-    [System.Runtime.InteropServices.DllImport("user32.dll")]
-    private static extern IntPtr GetForegroundWindow();
-
-    [System.Runtime.InteropServices.DllImport("user32.dll")]
-    private static extern uint GetWindowThreadProcessId(IntPtr window, out uint process);
-
     private void OnHookKeyDown(object? sender, LegacyKeyEventArgs e)
     {
         if (e.KeyCode is not (LegacyKeys.Up or LegacyKeys.Down)) Forward(e, arrow: false);
@@ -221,7 +216,7 @@ public sealed class HookManagerGlobalKeySource : IGlobalKeySource
         bool external = false;
         if (arrow || e.KeyCode is LegacyKeys.Escape or LegacyKeys.Space or LegacyKeys.Enter or LegacyKeys.S or LegacyKeys.M or LegacyKeys.F7 or LegacyKeys.F8)
         {
-            foreground = GetForegroundWindow();
+            foreground = Windows.Win32.PInvoke.GetForegroundWindow();
             if (foreground == 0 || GetWindowThreadProcessId(foreground, out var process) == 0) return;
             external = process != Environment.ProcessId;
             // Shell, output and modal windows handle their own Esc and arrow releases.

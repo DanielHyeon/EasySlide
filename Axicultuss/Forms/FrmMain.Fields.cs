@@ -18,7 +18,6 @@ using Axicultus.Module;
 using MethodInvoker = System.Windows.Forms.MethodInvoker;
 using Type = System.Type;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Resources;
 using System.Collections;
@@ -43,11 +42,6 @@ namespace Axicultus;
 public partial class FrmMain : Form
 {
     // Win32 API for window management
-    [DllImport("user32.dll")]
-    private static extern bool SetForegroundWindow(IntPtr hWnd);
-
-    [DllImport("user32.dll")]
-    private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
 
     private static readonly IntPtr HWND_TOPMOST = new(-1);
     private const uint SWP_NOMOVE = 0x0002;

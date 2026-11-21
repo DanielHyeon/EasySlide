@@ -24,6 +24,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #endregion
 
+using Windows.Win32;
+using NativeCom = Windows.Win32.System.Com;
 using System;
 using System.Collections;
 using System.Drawing;
@@ -40,6 +42,17 @@ using System.Runtime.InteropServices.ComTypes;
 
 namespace DirectShowLib
 {
+    internal static class NativeComResult
+    {
+        // A successful COM out parameter owns one reference in addition to the managed wrapper's reference.
+        internal static T Take<T>(nint pointer) where T : class
+        {
+            if (pointer == 0) return null;
+            try { return (T)Marshal.GetObjectForIUnknown(pointer); }
+            finally { Marshal.Release(pointer); }
+        }
+    }
+
     #region Declarations
 
     /// <summary>
@@ -925,9 +938,15 @@ namespace DirectShowLib
 
     static public class DsError
     {
-        [DllImport("quartz.dll", CharSet = CharSet.Unicode, ExactSpelling = true, EntryPoint = "AMGetErrorTextW"),
-        SuppressUnmanagedCodeSecurity]
-        public static extern int AMGetErrorText(int hr, StringBuilder buf, int max);
+        public static int AMGetErrorText(int hr, StringBuilder buf, int max)
+        {
+            ArgumentNullException.ThrowIfNull(buf);
+            ArgumentOutOfRangeException.ThrowIfNegative(max);
+            Span<char> text = max <= 512 ? stackalloc char[max] : new char[max];
+            int length = checked((int)PInvoke.AMGetErrorText((Windows.Win32.Foundation.HRESULT)hr, text));
+            buf.Clear().Append(text[..length].TrimEnd('\0'));
+            return length;
+        }
 
         /// <summary>
         /// If hr has a "failed" status code (E_*), throw an exception.  Note that status
@@ -1072,19 +1091,23 @@ namespace DirectShowLib
         private int m_cookie = 0;
 
         #region APIs
-        [DllImport("ole32.dll", ExactSpelling = true), SuppressUnmanagedCodeSecurity]
-#if USING_NET11
-        private static extern int GetRunningObjectTable(int r, out UCOMIRunningObjectTable pprot);
-#else
-        private static extern int GetRunningObjectTable(int r, out IRunningObjectTable pprot);
-#endif
+        private static unsafe int GetRunningObjectTable(int reserved, out IRunningObjectTable table)
+        {
+            NativeCom.IRunningObjectTable* pointer = null;
+            int hr = PInvoke.GetRunningObjectTable((uint)reserved, &pointer);
+            table = NativeComResult.Take<IRunningObjectTable>((nint)pointer);
+            return hr;
+        }
 
-        [DllImport("ole32.dll", CharSet = CharSet.Unicode, ExactSpelling = true), SuppressUnmanagedCodeSecurity]
-#if USING_NET11
-        private static extern int CreateItemMoniker(string delim, string item, out UCOMIMoniker ppmk);
-#else
-        private static extern int CreateItemMoniker(string delim, string item, out IMoniker ppmk);
-#endif
+        private static unsafe int CreateItemMoniker(string delimiter, string item, out IMoniker moniker)
+        {
+            NativeCom.IMoniker* pointer = null;
+            int hr;
+            fixed (char* prefix = delimiter, name = item)
+                hr = PInvoke.CreateItemMoniker(prefix, name, &pointer);
+            moniker = NativeComResult.Take<IMoniker>((nint)pointer);
+            return hr;
+        }
         #endregion
 
         public DsROTEntry(IFilterGraph graph)

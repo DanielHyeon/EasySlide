@@ -1,3 +1,4 @@
+using static Axicultus.Interop.DesktopWindows;
 using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
@@ -51,18 +52,10 @@ internal static class DesktopWindowPlacement
             rect.Right - rect.Left != (int)placement.Width || rect.Bottom - rect.Top != (int)placement.Height) return;
         bool separate = IsSeparateAudienceMonitor(placement);
         if (!separate && !playerHadFocus) return;
-        var windowClass = new System.Text.StringBuilder(32);
-        if (GetClassName(handle, windowClass, windowClass.Capacity) == 0 ||
-            !windowClass.ToString().Equals("screenClass", StringComparison.OrdinalIgnoreCase)) return;
+        if (!WindowHasClass(handle, "screenClass", StringComparison.OrdinalIgnoreCase)) return;
         SetTopmost(handle, separate);
         if (!separate) SetForegroundWindow(handle);
     }
-
-    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
-    private static extern int GetClassName(nint window, System.Text.StringBuilder name, int count);
-
-    [DllImport("user32.dll")]
-    private static extern bool SetForegroundWindow(nint window);
 
     internal static void SetTopmost(nint handle, bool topmost)
     {
@@ -71,13 +64,4 @@ internal static class DesktopWindowPlacement
             throw new Win32Exception(Marshal.GetLastWin32Error());
     }
 
-    [StructLayout(LayoutKind.Sequential)]
-    private struct NativeRect { public int Left, Top, Right, Bottom; }
-
-    [DllImport("user32.dll")]
-    private static extern bool GetWindowRect(IntPtr window, out NativeRect rect);
-
-    [DllImport("user32.dll", SetLastError = true)]
-    private static extern bool SetWindowPos(IntPtr window, IntPtr insertAfter, int x, int y,
-        int width, int height, uint flags);
 }

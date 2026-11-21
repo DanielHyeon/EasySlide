@@ -1,3 +1,7 @@
+using static Axicultus.Interop.DesktopWindows;
+using Windows.Win32;
+using Windows.Win32.Foundation;
+using Windows.Win32.UI.WindowsAndMessaging;
 //using JRO;
 //using Axicultus.Model.AxicultusDbDataSetTableAdapters;
 using Axicultus.Global;
@@ -866,10 +870,7 @@ namespace Axicultus;
 
 		public static int AbsoluteMaxHitoryItems = 20;
 
-
-
         public static EditHistoryList TempEditHistoryList = new();
-
 
         public static EditHistoryList MainEditHistoryList = new();
 
@@ -1770,9 +1771,7 @@ namespace Axicultus;
 
 		public static bool AppCloseDown = false;
 
-
         public static WorshipItemList WorshipSongs = new();
-
 
         public static DocumentItemList DocumentSongs = new();
 
@@ -1856,9 +1855,7 @@ namespace Axicultus;
 
 		public static PowerPoint ExternalPPT = new();
 
-
         public static ShowCopyList PowerpointList = new();
-
 
 		public static bool ShowLiveBlack = false;
 
@@ -1923,15 +1920,6 @@ namespace Axicultus;
 		{
 		}
 
-		[DllImport("user32.dll")]
-		private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
-
-		[DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-		private static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
-
-		[DllImport("shell32.dll", EntryPoint = "FindExecutableW", ExactSpelling = true, CharSet = CharSet.Unicode)]
-		private static extern nint FindExecutable(string file, string directory, [Out] StringBuilder result);
-
 		// SWP_HIDEWINDOW / SWP_SHOWWINDOW, posted to Explorer's thread (SWP_ASYNCWINDOWPOS): the task bar belongs to
 		// another process, and a SetWindowPos sent to it waits until Explorer handles it. Both are posted, so a hide
 		// and a later show reach it in that order.
@@ -1940,63 +1928,39 @@ namespace Axicultus;
 
 		public static void HideTaskBar()
 		{
-			IntPtr hWnd = FindWindow("Shell_TrayWnd", "");
+			IntPtr hWnd = PInvoke.FindWindow("Shell_TrayWnd", "");
 			SetWindowPos(hWnd, IntPtr.Zero, 0, 0, 0, 0, TaskBarHideFlags);
 		}
 
 		public static void ShowTaskBar()
 		{
-			IntPtr hWnd = FindWindow("Shell_TrayWnd", "");
+			IntPtr hWnd = PInvoke.FindWindow("Shell_TrayWnd", "");
 			SetWindowPos(hWnd, IntPtr.Zero, 0, 0, 0, 0, TaskBarShowFlags);
 		}
 
-		[DllImport("shell32.dll", CharSet = CharSet.Auto)]
-		public static extern int SHFileOperation(ref SHFILEOPSTRUCT lpFileOp);
+		public static int SendMessageW(nint hwnd, uint msg, uint wParam, uint lParam)
+            => unchecked((int)PInvoke.SendMessage((HWND)hwnd, msg, wParam, (nint)(nuint)lParam).Value);
 
-		[DllImport("user32.dll")]
-		public static extern int SendMessageW(IntPtr hwnd, uint msg, uint wParam, uint lParam);
+        public static int SendMessage(nint hwnd, uint msg, uint wParam, uint lParam)
+            => SendMessageW(hwnd, msg, wParam, lParam);
 
-		[DllImport("user32", CharSet = CharSet.Auto)]
-		public static extern bool SystemParametersInfo(int uAction, int uParam, ref bool lpvParam, int fuWinIni);
+        public static bool SystemParametersInfo(int uAction, int uParam, ref bool lpvParam, int fuWinIni)
+        {
+            BOOL value = lpvParam;
+            bool success = PInvoke.SystemParametersInfo((SYSTEM_PARAMETERS_INFO_ACTION)uAction,
+                (uint)uParam, &value, (SYSTEM_PARAMETERS_INFO_UPDATE_FLAGS)fuWinIni);
+            lpvParam = value;
+            return success;
+        }
 
-		[DllImport("user32.dll")]
-		public static extern bool InvalidateRect(IntPtr hwnd, IntPtr lpRect, bool bErase);
+        public static bool InvalidateRect(nint hwnd, nint lpRect, bool bErase)
+            => PInvoke.InvalidateRect((HWND)hwnd, (RECT*)lpRect, bErase);
 
-		public static delegate* unmanaged[Stdcall]<IntPtr, uint, uint, uint, int> SendMessage = (delegate* unmanaged[Stdcall]<IntPtr, uint, uint, uint, int>)(delegate*<IntPtr, uint, uint, uint, int>)&Gf.SendMessageW;
-
+        public static int SHFileOperation(ref SHFILEOPSTRUCT op)
+            => Axicultus.Interop.ShellFiles.Operate(op.hwnd, op.wFunc, op.pFrom, op.pTo, op.fFlags,
+                ref op.fAnyOperationsAborted, ref op.hNameMappings, op.lpszProgressTitle);
 
 		// Win32 API ?좎뼵 - ShowWindow, SetForegroundWindow 異붽?
-		[DllImport("user32.dll")]
-		private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
-
-		[DllImport("user32.dll")]
-		private static extern bool SetForegroundWindow(IntPtr hWnd);
-
-		[DllImport("user32.dll")]
-		private static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
-
-		[DllImport("user32.dll")]
-		private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
-
-		[DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-		private static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
-
-		[DllImport("user32.dll")]
-		private static extern bool IsWindowVisible(IntPtr hWnd);
-
-		[DllImport("user32.dll")]
-		private static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
-
-		[StructLayout(LayoutKind.Sequential)]
-		private struct RECT
-		{
-			public int Left;
-			public int Top;
-			public int Right;
-			public int Bottom;
-		}
-
-		private delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
 
 		private static readonly IntPtr HWND_TOP = new(0);
 		private static readonly IntPtr HWND_TOPMOST = new(-1);

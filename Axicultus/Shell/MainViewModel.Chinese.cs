@@ -1,6 +1,5 @@
 using CommunityToolkit.Mvvm.Input;
 using System;
-using System.Runtime.InteropServices;
 
 namespace Axicultus.Wpf.Shell;
 
@@ -11,18 +10,14 @@ public sealed partial class MainViewModel
     private const uint TraditionalChinese = 0x04000000;
     private uint? _outputScript;
 
-    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, ExactSpelling = true)]
-    private static extern int LCMapStringEx(string locale, uint flags, string source, int length,
-        [Out] char[]? result, int capacity, IntPtr version, IntPtr reserved, IntPtr sortHandle);
-
     private static string ConvertScript(string value, uint script)
     {
         if (value.Length == 0) return value;
         const string locale = "zh-CN";
-        int count = LCMapStringEx(locale, script, value, value.Length, null, 0, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
+        int count = Windows.Win32.PInvoke.LCMapStringEx(locale, script, value, value.Length, Span<char>.Empty, null, default);
         if (count <= 0) return value;
         var result = new char[count];
-        return LCMapStringEx(locale, script, value, value.Length, result, count, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero) == count
+        return Windows.Win32.PInvoke.LCMapStringEx(locale, script, value, value.Length, result, null, default) == count
             ? new string(result) : value;
     }
 

@@ -1,8 +1,9 @@
-﻿using System;
+﻿using static Axicultus.Interop.DesktopDrawing;
+using static Axicultus.Interop.DesktopWindows;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
-using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
 namespace Axicultus;
@@ -212,8 +213,8 @@ internal sealed class SongListPainter : IDisposable
             if (hasFocus && item.Focused && ShowFocusCues())
             {
                 // The list's own focus rectangle, from the label to the row's right end.
-                RECT focus = new() { Left = label.Left, Top = bounds.Top, Right = bounds.Right, Bottom = bounds.Bottom };
-                DrawFocusRect(hdc, ref focus);
+                var focus = Rectangle.FromLTRB(label.Left, bounds.Top, bounds.Right, bounds.Bottom);
+                DrawFocusRect(hdc, focus);
             }
             EndRowBuffer(target, hdc, bounds);
         }
@@ -271,9 +272,6 @@ internal sealed class SongListPainter : IDisposable
 
     private const int ILD_NORMAL = 0x0;
     private const int CLR_NONE = unchecked((int)0xFFFFFFFF);
-
-    [DllImport("comctl32.dll")]
-    private static extern bool ImageList_DrawEx(IntPtr himl, int index, IntPtr hdc, int x, int y, int dx, int dy, int rgbBk, int rgbFg, int style);
 
     // ----- No background erase under painted rows (see WorshipListPainter.EraseFilter) -----
 
@@ -394,7 +392,7 @@ internal sealed class SongListPainter : IDisposable
             }
             bufferSize = size;
         }
-        return SetViewportOrgEx(bufferDC, -bounds.X, -bounds.Y, IntPtr.Zero) ? bufferDC : target;
+        return SetViewportOrigin(bufferDC, -bounds.X, -bounds.Y) ? bufferDC : target;
     }
 
     private static void EndRowBuffer(IntPtr target, IntPtr hdc, Rectangle bounds)
@@ -454,8 +452,8 @@ internal sealed class SongListPainter : IDisposable
             if (brush == IntPtr.Zero) throw new InvalidOperationException("Cannot create the list background brush.");
             brushes[argb] = brush;
         }
-        RECT r = new() { Left = rect.Left, Top = rect.Top, Right = rect.Right, Bottom = rect.Bottom };
-        if (rect.Width > 0 && rect.Height > 0 && FillRect(hdc, ref r, brush) == 0)
+
+        if (rect.Width > 0 && rect.Height > 0 && FillRect(hdc, rect, brush) == 0)
             throw new InvalidOperationException("Cannot fill the list background.");
     }
 
@@ -467,51 +465,4 @@ internal sealed class SongListPainter : IDisposable
         return ((int)SendMessage(list.Handle, WM_QUERYUISTATE, IntPtr.Zero, IntPtr.Zero) & UISF_HIDEFOCUS) == 0;
     }
 
-    [StructLayout(LayoutKind.Sequential)]
-    private struct RECT
-    {
-        public int Left, Top, Right, Bottom;
-    }
-
-    [DllImport("user32.dll")]
-    private static extern bool DrawFocusRect(IntPtr hdc, ref RECT rect);
-
-    [DllImport("user32.dll")]
-    private static extern int FillRect(IntPtr hdc, ref RECT rect, IntPtr brush);
-
-    [DllImport("user32.dll")]
-    private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
-
-    [DllImport("gdi32.dll")]
-    private static extern IntPtr CreateSolidBrush(int colour);
-
-    [DllImport("gdi32.dll")]
-    private static extern IntPtr SelectObject(IntPtr hdc, IntPtr obj);
-
-    [DllImport("gdi32.dll")]
-    private static extern bool DeleteObject(IntPtr obj);
-
-    [DllImport("gdi32.dll")]
-    private static extern IntPtr CreateCompatibleDC(IntPtr hdc);
-
-    [DllImport("gdi32.dll")]
-    private static extern IntPtr CreateCompatibleBitmap(IntPtr hdc, int width, int height);
-
-    [DllImport("gdi32.dll")]
-    private static extern bool DeleteDC(IntPtr hdc);
-
-    [DllImport("gdi32.dll")]
-    private static extern bool SetViewportOrgEx(IntPtr hdc, int x, int y, IntPtr oldOrigin);
-
-    [DllImport("gdi32.dll")]
-    private static extern bool BitBlt(IntPtr dest, int x, int y, int width, int height, IntPtr source, int sx, int sy, int rop);
-
-    [DllImport("gdi32.dll")]
-    private static extern int SaveDC(IntPtr hdc);
-
-    [DllImport("gdi32.dll")]
-    private static extern bool RestoreDC(IntPtr hdc, int savedDC);
-
-    [DllImport("gdi32.dll")]
-    private static extern int ExcludeClipRect(IntPtr hdc, int left, int top, int right, int bottom);
 }
