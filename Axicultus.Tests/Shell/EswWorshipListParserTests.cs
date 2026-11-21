@@ -61,6 +61,21 @@ public class EswWorshipListParserTests
     }
 
     [Fact]
+    public void ParsesCompactXmlWithTypedReferencesAndPreservesUnknownCode()
+    {
+        const string xml = """<Axicultus><ListItem><ListHeader><Notes>예배</Notes></ListHeader><Item><ItemID>d42</ItemID></Item><Item><ItemID>P1</ItemID><Title1>E:\예배 자료\설교.pptx</Title1></Item><Item><ItemID>B창1:1</ItemID></Item><Item><ItemID>X17</ItemID></Item></ListItem></Axicultus>""";
+        var items = EswWorshipListParser.Parse(xml, out _, out var notes);
+        notes.Should().Be("예배");
+        items[0].Reference.SongId.Should().Be(42);
+        items[1].Reference.ContentPath.Should().Be(@"E:\예배 자료\설교.pptx");
+        items[2].Reference.BibleReference.Should().Be("창1:1");
+        items[3].Reference.Kind.Should().Be(Axicultus.Module.LegacyListItemKind.Unknown);
+        items[3].Id.Should().Be("17");
+        items[3].Reference.ContentPath.Should().BeNull();
+        EswWorshipListParser.Parse(xml + "<").Should().BeEmpty();
+    }
+
+    [Fact]
     public void Parse_NullEmptyOrWhitespace_ReturnsEmpty()
     {
         EswWorshipListParser.Parse(null).Should().BeEmpty();

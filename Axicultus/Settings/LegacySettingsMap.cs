@@ -217,6 +217,10 @@ public static class LegacySettingsMap
         Automated("AutoRotateIntervalSeconds", AxicultusSettingKeys.AutoRotateIntervalSeconds.Id, SettingsSectionKind.LiveOutput, LegacySettingValueKind.Integer, "WPF compatibility", "Auto-rotate verse/slide interval in seconds (2-600) — §7.3-B."),
         Automated("AutoRotateMode", AxicultusSettingKeys.AutoRotateMode.Id, SettingsSectionKind.LiveOutput, LegacySettingValueKind.Enum, "WPF compatibility", "Auto-rotate mode (OneRepeat/One/Group/GroupRepeat) — FrmMain One/One-Repeat/Group/Group-Repeat."),
 
+        new("PowerPointSourceFolder", AxicultusSettingKeys.PowerPointSourceFolder.Id, SettingsSectionKind.PowerPoint,
+            LegacySettingValueKind.Path, LegacySettingMigrationStatus.DocumentedOnly, "Options / Folders", "Selected in each application's own JSON profile."),
+        new("MediaSourceFolder", AxicultusSettingKeys.MediaSourceFolder.Id, SettingsSectionKind.Media,
+            LegacySettingValueKind.Path, LegacySettingMigrationStatus.DocumentedOnly, "Options / Folders", "Selected in each application's own JSON profile."),
         Automated("UsePowerpointTab", AxicultusSettingKeys.UsePowerPointTab.Id, SettingsSectionKind.PowerPoint, LegacySettingValueKind.Boolean, "FrmOptions.SaveVariables", "Legacy tab visibility."),
         Automated("UsePowerPointTab", AxicultusSettingKeys.UsePowerPointTab.Id, SettingsSectionKind.PowerPoint, LegacySettingValueKind.Boolean, "WPF compatibility", "Current WPF setting import/export alias."),
         Automated("NoPowerpointPanelOverlay", AxicultusSettingKeys.NoPowerPointPanelOverlay.Id, SettingsSectionKind.PowerPoint, LegacySettingValueKind.Boolean, "FrmOptions.SaveVariables", "Legacy live overlay behavior."),

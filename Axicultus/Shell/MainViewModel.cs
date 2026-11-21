@@ -25,6 +25,7 @@ using Axicultus.Wpf.Theme;
 using Wpf.Ui.Controls;
 
 using static Axicultus.Wpf.Shell.LiveItemKindMatcher;
+using LegacyListItemKind = Axicultus.Module.LegacyListItemKind;
 
 namespace Axicultus.Wpf.Shell;
 
@@ -3201,10 +3202,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private LiveQueueItem BuildEswQueueItem(EswWorshipListItem esw)
     {
         var title = string.IsNullOrWhiteSpace(esw.Title) ? esw.Id : esw.Title;
-        switch (esw.TypeCode.ToUpperInvariant())
+        switch (esw.Reference.Kind)
         {
-            case "D": // DB 곡 — 라이브러리에 같은 곡(가사 포함)이 있으면 가사·번호·저작권까지, 없으면 제목만(가사 해석은 후속).
-                if (int.TryParse(esw.Id, out var songId)
+            case LegacyListItemKind.DatabaseSong: // DB 곡 — 라이브러리에 같은 곡(가사 포함)이 있으면 가사·번호·저작권까지, 없으면 제목만(가사 해석은 후속).
+                if (esw.Reference.SongId is int songId
                     && Library.Songs.FirstOrDefault(s => s.SongId == songId) is { } song)
                 {
                     return new LiveQueueItem($"song:{song.SongId}", song.Title, LiveItemKinds.Song)
@@ -3223,25 +3224,25 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
                 return new LiveQueueItem($"song:{esw.Id}", title, LiveItemKinds.Song) { FormatData = esw.FormatData };
 
-            case "P": // PowerPoint — 식별자가 파일 참조. 경로가 안 맞으면 검증이 잡아 운영자가 보정.
-                var powerPointPath = ResolveLegacyExternalPath(esw);
+            case LegacyListItemKind.PowerPoint: // PowerPoint — 식별자가 파일 참조. 경로가 안 맞으면 검증이 잡아 운영자가 보정.
+                var powerPointPath = esw.Reference.ContentPath ?? esw.Id;
                 return new LiveQueueItem($"powerpoint:{powerPointPath}", DisplayTitleForPath(title, powerPointPath), LiveItemKinds.PowerPoint)
                 { ContentPath = powerPointPath, FormatData = esw.FormatData };
 
-            case "M": // 미디어 — 식별자가 파일 참조.
-                var mediaPath = ResolveLegacyExternalPath(esw);
+            case LegacyListItemKind.Media: // 미디어 — 식별자가 파일 참조.
+                var mediaPath = esw.Reference.ContentPath ?? esw.Id;
                 return new LiveQueueItem($"media:{mediaPath}", DisplayTitleForPath(title, mediaPath), LiveItemKinds.Media)
                 { ContentPath = mediaPath, FormatData = esw.FormatData };
 
-            case "B": // 성경 — 참조+제목(본문 확장은 후속).
+            case LegacyListItemKind.BiblePassage: // 성경 — 참조+제목(본문 확장은 후속).
                 return new LiveQueueItem($"bible:{esw.Id}", title, LiveItemKinds.Bible)
                 {
-                    Lyrics = Bible.ExpandSelectionBody(esw.Id),
+                    Lyrics = Bible.ExpandSelectionBody(esw.Reference.BibleReference!),
                     FormatData = esw.FormatData,
                 };
 
             default: // T(텍스트)·I(InfoScreen)·W(Word)·미상 → 텍스트(공지) 항목으로 제목 표시(정확한 내용 재구성은 후속).
-                var contentPath = ResolveLegacyExternalPath(esw);
+                var contentPath = esw.Reference.ContentPath ?? esw.Id;
                 return new LiveQueueItem($"esw:{esw.TypeCode}:{contentPath}", DisplayTitleForPath(title, contentPath), LiveItemKinds.Notice)
                 { ContentPath = contentPath, Lyrics = TryReadTextFile(contentPath) ?? title, FormatData = esw.FormatData };
         }
@@ -3260,8 +3261,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private async Task<LiveQueueItem> BuildEswQueueItemAsync(EswWorshipListItem esw)
     {
-        if (!string.Equals(esw.TypeCode, "D", StringComparison.OrdinalIgnoreCase)
-            || !int.TryParse(esw.Id, out var songId))
+        if (esw.Reference.SongId is not int songId)
         {
             return BuildEswQueueItem(esw);
         }
@@ -3338,18 +3338,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         return "";
-    }
-
-    /// <summary>현재 예배 세션(마지막으로 저장/불러온 예배 순서) 이름 — 세션 메모 키로 쓰인다. 없으면 빈 문자열.</summary>
-    private static string ResolveLegacyExternalPath(EswWorshipListItem esw)
-    {
-        var title = esw.Title?.Trim() ?? string.Empty;
-        if (LooksLikeFilePath(title))
-        {
-            return title;
-        }
-
-        return esw.Id?.Trim() ?? string.Empty;
     }
 
     private static string DisplayTitleForPath(string title, string path)

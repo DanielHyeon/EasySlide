@@ -1,28 +1,20 @@
 using System.Collections.Generic;
 using System.Xml.Linq;
+using Axicultus.Module;
 
 namespace Axicultus.Wpf.Shell;
 
-/// <summary>
-/// 레거시 .esw(Axicultus v3.2 예배 순서) 파일의 한 항목 원시 필드.
-/// <para><see cref="TypeCode"/> 는 항목 종류 코드(레거시 ItemID 첫 글자 — D=DB 곡, P=PowerPoint, B=성경 등),
-/// <see cref="Id"/> 는 나머지(곡 번호/파일명/성경 참조 등). 코드 의미 해석·내용 채우기는 가져오기 2단계가 맡는다.</para>
-/// </summary>
-public sealed record EswWorshipListItem(string TypeCode, string Id, string Title, string Folder, string FormatData);
+/// <summary>XML 항목의 형식화된 참조와 원본 표시 정보.</summary>
+public sealed record EswWorshipListItem(LegacyListReference Reference, string Title, string Folder, string FormatData)
+{
+    public EswWorshipListItem(string TypeCode, string Id, string Title, string Folder, string FormatData)
+        : this(LegacyListReference.FromFields(TypeCode, Id, Title), Title, Folder, FormatData) { }
 
-/// <summary>
-/// 레거시 .esw 예배 순서 파일(XML)을 읽어 항목 원시 데이터를 추출한다(가져오기 1단계 — 순수 파서).
-/// <para>
-/// .esw 는 바이너리가 아니라 XML 이다(레거시 FrmMain.LoadIndexFile 가 XmlTextReader 로 읽는다):
-/// <c>&lt;Axicultus&gt;&lt;ListItem&gt;&lt;ListHeader&gt;…&lt;/ListHeader&gt;
-/// &lt;Item&gt;&lt;ItemID&gt;D123&lt;/ItemID&gt;&lt;Title1&gt;…&lt;/Title1&gt;&lt;Folder&gt;…&lt;/Folder&gt;&lt;FormatData&gt;…&lt;/FormatData&gt;&lt;/Item&gt;…</c>.
-/// ItemID 첫 글자=종류 코드, 나머지=식별자(레거시 <c>Left(itemID,1)</c>/<c>Right(itemID,len-1)</c>).
-/// </para>
-/// <para>
-/// 이 단계는 종류 코드를 WPF 항목으로 매핑하거나 가사·본문을 채우지 않는다 — 원시 필드만 돌려주고,
-/// 매핑·내용 해석(곡 가사 DB 조회, 성경 본문 확장 등)은 가져오기 2단계가 맡는다. 손상된 XML 은 빈 목록(graceful).
-/// </para>
-/// </summary>
+    public string TypeCode => Reference.Code;
+    public string Id => Reference.Id;
+}
+
+/// <summary>WinForms 목록 XML의 헤더와 항목을 문서 순서대로 읽는다.</summary>
 public static class EswWorshipListParser
 {
     /// <summary>.esw XML 문자열에서 항목 원시 데이터를 순서대로 추출한다. ItemID 가 비면 그 항목은 건너뛴다.</summary>
@@ -33,44 +25,48 @@ public static class EswWorshipListParser
         => Parse(xml, out sessionFormat, out _);
 
     internal static IReadOnlyList<EswWorshipListItem> Parse(string? xml, out string? sessionFormat, out string? sessionNotes)
+        => ReadItems(xml, static (reference, title, folder, format) =>
+            new EswWorshipListItem(reference, title, folder, format), out sessionFormat, out sessionNotes);
+
+    internal static IReadOnlyList<T> ReadItems<T>(string? xml,
+        System.Func<LegacyListReference, string, string, string, T?> project,
+        out string? sessionFormat, out string? sessionNotes) where T : class
     {
         sessionFormat = null;
         sessionNotes = null;
-        var items = new List<EswWorshipListItem>();
-        if (string.IsNullOrWhiteSpace(xml))
-        {
-            return items;
-        }
+        var items = new List<T>();
+        if (string.IsNullOrWhiteSpace(xml)) return items;
 
-        XDocument document;
+        using var input = new System.IO.StringReader(xml);
+        using var reader = System.Xml.XmlReader.Create(input);
         try
         {
-            document = XDocument.Parse(xml);
+            while (!reader.EOF)
+            {
+                if (reader.NodeType == System.Xml.XmlNodeType.Element && reader.Name == "Item")
+                {
+                    var element = (XElement)XNode.ReadFrom(reader);
+                    var itemId = (string?)element.Element("ItemID");
+                    if (string.IsNullOrWhiteSpace(itemId)) continue;
+                    var title = (string?)element.Element("Title1") ?? "";
+                    var reference = LegacyListReference.Parse(itemId, title);
+                    var item = project(reference, title, (string?)element.Element("Folder") ?? "",
+                        (string?)element.Element("FormatData") ?? "");
+                    if (item is not null) items.Add(item);
+                }
+                else if (reader.NodeType == System.Xml.XmlNodeType.Element && reader.Name == "ListHeader")
+                {
+                    var header = (XElement)XNode.ReadFrom(reader);
+                    sessionFormat = (string?)header.Element("FormatData");
+                    sessionNotes = (string?)header.Element("Notes");
+                }
+                else reader.Read();
+            }
         }
         catch (System.Xml.XmlException)
         {
-            return items; // 손상·비-XML 파일은 빈 목록 — 호출 측이 "읽을 수 없음"을 안내한다.
-        }
-
-        var header = document.Root?.Element("ListItem")?.Element("ListHeader");
-        sessionFormat = (string?)header?.Element("FormatData");
-        sessionNotes = (string?)header?.Element("Notes");
-        foreach (var element in document.Descendants("Item"))
-        {
-            var itemId = ((string?)element.Element("ItemID") ?? string.Empty).Trim();
-            if (itemId.Length == 0)
-            {
-                continue; // 레거시도 ItemID 가 비면 항목을 쓰지 않는다(빈 항목 무시).
-            }
-
-            // 첫 글자=종류 코드, 나머지=식별자(레거시 Left/Right 규칙). 1글자뿐이면 식별자는 빈 문자열.
-            var typeCode = itemId.Substring(0, 1);
-            var id = itemId.Length > 1 ? itemId.Substring(1) : string.Empty;
-            var title = (string?)element.Element("Title1") ?? string.Empty;
-            var folder = (string?)element.Element("Folder") ?? string.Empty;
-            var formatData = (string?)element.Element("FormatData") ?? string.Empty;
-
-            items.Add(new EswWorshipListItem(typeCode, id, title, folder, formatData));
+            sessionFormat = sessionNotes = null;
+            return [];
         }
 
         return items;

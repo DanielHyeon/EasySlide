@@ -111,7 +111,8 @@ public sealed class PraiseBookStoreTests : IDisposable
             var legacyDir = Path.Combine(root, "Admin", "PraiseBooks");
             Directory.CreateDirectory(legacyDir);
             await File.WriteAllTextAsync(Path.Combine(legacyDir, "주일예배.esp"),
-                SampleLegacyEsp("D123", "은혜로다", ("D0", "■예배찬송 <Error - Item Not Found>")));
+                SampleLegacyEsp("D123", "은혜로다", ("D0", "■예배찬송 <Error - Item Not Found>"))
+                    .Replace("<FormatData>0</FormatData>", "<FormatData>305</FormatData>", StringComparison.Ordinal));
             var store = new PraiseBookStore(_dir, settings);
 
             var loaded = await store.LoadAsync("주일예배");
@@ -119,7 +120,7 @@ public sealed class PraiseBookStoreTests : IDisposable
             loaded.Should().HaveCount(2);
             loaded[0].Title.Should().Be("은혜로다");
             loaded[0].SongId.Should().Be(123);
-            loaded[0].Number.Should().Be(0, "legacy .esp stores ItemID/SongId, not WPF JSON song number");
+            loaded[0].Number.Should().Be(305, "찬양집에 저장한 곡 번호와 DB 식별자는 서로 독립적이다");
             loaded[1].Title.Should().Be("■예배찬송 <Error - Item Not Found>");
             loaded[1].SongId.Should().Be(0);
         }

@@ -889,6 +889,12 @@
                         <GroupBox Style="{StaticResource ClassicOptionsGroup}" Canvas.Left="8" Canvas.Top="27"
                             Width="367" Height="179" Header="Select Folder to Update">
                             <Canvas>
+                                <Button Style="{x:Null}" Canvas.Left="247" Canvas.Top="102" Width="104" Height="28"
+                                    Click="BrowseSourceFolder_Click" Tag="PowerPoint" Content="PPT folder…"
+                                    ToolTip="{Binding PowerPointSourceFolder}" AutomationProperties.Name="Choose PowerPoint source folder" />
+                                <Button Style="{x:Null}" Canvas.Left="247" Canvas.Top="134" Width="104" Height="28"
+                                    Click="BrowseSourceFolder_Click" Tag="Media" Content="Media folder…"
+                                    ToolTip="{Binding MediaSourceFolder}" AutomationProperties.Name="Choose audio and video source folder" />
                                 <Button Style="{x:Null}" Canvas.Left="247" Canvas.Top="59" Width="104" Height="39"
                                     Click="RenameFolder_Click" Content="Rename" AutomationProperties.Name="Rename" />
                                 <CheckBox Style="{x:Null}" Canvas.Left="247" Canvas.Top="29" Width="101" Height="24"

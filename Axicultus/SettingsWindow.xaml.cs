@@ -236,6 +236,25 @@ public partial class SettingsWindow : Window
         }
     }
 
+    private void BrowseSourceFolder_Click(object sender, RoutedEventArgs e)
+    {
+        var powerPoint = sender is Button { Tag: "PowerPoint" };
+        var current = powerPoint ? _options.PowerPointSourceFolder : _options.MediaSourceFolder;
+        var picker = new Microsoft.Win32.OpenFolderDialog { Title = powerPoint ? "PowerPoint 폴더 선택" : "음원·동영상 폴더 선택" };
+        if (Directory.Exists(current)) picker.InitialDirectory = current;
+        if (picker.ShowDialog(this) != true) return;
+        if (powerPoint)
+        {
+            _options.PowerPointSourceFolder = picker.FolderName;
+            _options.UsePowerPointTab = true;
+        }
+        else
+        {
+            _options.MediaSourceFolder = picker.FolderName;
+            _options.UseMediaTab = true;
+        }
+    }
+
     private void BrowseMediaFolder_Click(object sender, RoutedEventArgs e)
     {
         var picker = new Microsoft.Win32.OpenFolderDialog { Title = "미디어 폴더 선택" };

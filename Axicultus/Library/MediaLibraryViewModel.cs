@@ -58,7 +58,8 @@ public sealed partial class MediaLibraryViewModel : ObservableObject
         IMediaLibraryService service,
         Action<string> addToQueue,
         string initialFolder,
-        Func<string, bool>? deleteFile = null)
+        Func<string, bool>? deleteFile = null,
+        string? sourceFolder = null)
     {
         _service = service ?? throw new ArgumentNullException(nameof(service));
         _addToQueue = addToQueue ?? throw new ArgumentNullException(nameof(addToQueue));
@@ -70,7 +71,7 @@ public sealed partial class MediaLibraryViewModel : ObservableObject
         AddSelectedCommand = new RelayCommand(AddSelected, () => SelectedFile is not null);
         DeleteSelectedCommand = new RelayCommand(DeleteSelected, () => SelectedFile is not null);
 
-        BuildFolderGroups();
+        BuildFolderGroups(sourceFolder);
     }
 
     public ObservableCollection<MediaFolderItem> FolderGroups { get; } = [];
@@ -102,7 +103,13 @@ public sealed partial class MediaLibraryViewModel : ObservableObject
         }
     }
 
-    private void BuildFolderGroups()
+    internal void ChangeSourceFolder(string? sourceFolder)
+    {
+        BuildFolderGroups(sourceFolder);
+        Load();
+    }
+
+    private void BuildFolderGroups(string? sourceFolder)
     {
         _suppressSelectedFolderReload = true;
         try
@@ -113,7 +120,9 @@ public sealed partial class MediaLibraryViewModel : ObservableObject
                 FolderGroups.Add(folder);
             }
 
-            SelectedFolder = FolderGroups.FirstOrDefault();
+            var index = Axicultus.Module.SourceFileFolder.IncludeSelection(FolderGroups, sourceFolder,
+                group => group.FolderPath, path => new MediaFolderItem(path, path));
+            SelectedFolder = index < 0 ? null : FolderGroups[index];
             FolderPath = SelectedFolder?.FolderPath ?? _rootFolderPath;
         }
         finally

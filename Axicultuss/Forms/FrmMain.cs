@@ -5651,6 +5651,8 @@ public partial class FrmMain : Form
         Gf.Options_DMChanged = false;
         // A modal form is not disposed when it closes: dispose it here. Nothing below reads the dialog itself
         // (its results are in the Gf.Options_* flags), so only the result needs to leave the using block.
+        var previousPptFolder = RegUtil.GetRegValue("options", "PowerPointSourceFolder", "");
+        var previousMediaFolder = RegUtil.GetRegValue("options", "MediaSourceFolder", "");
         bool previousParagraphSetting = Gf.FitTextFileParagraphs;
         DialogResult optionsResult;
         using (FrmOptions frmOptions = new())
@@ -5661,6 +5663,8 @@ public partial class FrmMain : Form
         {
             return;
         }
+        if (previousPptFolder != RegUtil.GetRegValue("options", "PowerPointSourceFolder", "")) BuildPowerpointFolderList();
+        if (!Gf.Options_MediaDirChanged && previousMediaFolder != RegUtil.GetRegValue("options", "MediaSourceFolder", "")) BuildMediaFolderList();
         if (Gf.Options_FolderListChanged || Gf.Options_MediaDirChanged)
         {
             Refresh();
@@ -8360,49 +8364,27 @@ public partial class FrmMain : Form
 
     private void ShowMediaFolderContents()
     {
-        if (MediaFolder.Items.Count > 0)
+        Cursor = Cursors.WaitCursor;
+        MediaList.BeginUpdate();
+        try
         {
-            Cursor = Cursors.WaitCursor;
-            ListBox listBox = new();
-            listBox.Items.Clear();
-            listBox.Sorted = false;
-            ListViewItem listViewItem = new();
-            try
-            {
-                string path = Gf.MediaGroups[MediaFolder.SelectedIndex].Path;
-                for (int i = 0; i < Gf.MediaFileExtensions.Count; i++)
-                {
-                    try
-                    {
-                        string[] files = Directory.GetFiles(path, "*" + Gf.MediaFileExtensions[i].Extension);
-                        string[] mediaFiles = files;
-                        foreach (string filePath in mediaFiles)
-                        {
-                            if (filePath != "")
-                            {
-                                listBox.Items.Add(filePath);
-                            }
-                        }
-                    }
-                    catch
-                    {
-                    }
-                }
-            }
-            catch
-            {
-            }
-            listBox.Sorted = true;
             MediaList.Items.Clear();
-            string fileName = "";
-            for (int i = 0; i < listBox.Items.Count; i++)
+            var index = MediaFolder.SelectedIndex;
+            if (index < 0 || index >= Gf.MediaGroups.Count) return;
+            var extensions = Gf.MediaFileExtensions.Select(media => media.Extension).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            foreach (var path in Directory.EnumerateFiles(Gf.MediaGroups[index].Path)
+                         .Where(path => extensions.Contains(Path.GetExtension(path))).Order(StringComparer.CurrentCultureIgnoreCase))
             {
-                fileName = listBox.Items[i].ToString();
-                listViewItem = MediaList.Items.Add(Gf.GetDisplayNameOnly(ref fileName, UpdateByRef: false, KeepExt: true));
-                listViewItem.SubItems.Add("M" + listBox.Items[i]);
+                var row = MediaList.Items.Add(Path.GetFileName(path));
+                row.SubItems.Add("M" + path);
             }
+        }
+        catch (IOException) { } // The selected drive can disappear between choosing it and listing its files.
+        catch (UnauthorizedAccessException) { }
+        finally
+        {
+            MediaList.EndUpdate();
             SetMediaListColWidth();
-            listBox.Dispose();
             Cursor = Cursors.Default;
         }
     }

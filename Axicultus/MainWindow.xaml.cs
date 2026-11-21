@@ -232,7 +232,8 @@ public partial class MainWindow : Window
             ResolvePowerPointInitialFolder(),
             _services.GetService<IPowerPointRenderService>(),
             initialListingStyle: ResolveInitialPowerPointListingStyle(),
-            listingStyleChanged: SavePowerPointSourceListingStyle);
+            listingStyleChanged: SavePowerPointSourceListingStyle,
+            sourceFolder: _settings?.Get(AxicultusSettingKeys.PowerPointSourceFolder));
         PowerPointSourceTab.DataContext = _inlinePowerPoint;
         _inlinePowerPoint.LoadCommand.Execute(null);
     }
@@ -272,7 +273,7 @@ public partial class MainWindow : Window
         _inlineMedia = new MediaLibraryViewModel(
             new MediaLibraryService(),
             path => viewModel.AddMedia(path),
-            ResolveMediaInitialFolder());
+            ResolveMediaInitialFolder(), sourceFolder: _settings?.Get(AxicultusSettingKeys.MediaSourceFolder));
         MediaSourceTab.DataContext = _inlineMedia;
         _inlineMedia.LoadCommand.Execute(null);
     }
@@ -3241,7 +3242,15 @@ public partial class MainWindow : Window
         {
             window.Owner = this;
             ((SettingsWindowViewModel)window.DataContext).SelectedTabIndex = _lastOptionsTab;
-            window.ShowDialog();
+            var previousFolders = _settings?.Current;
+            if (window.ShowDialog() == true && _settings is not null)
+            {
+                var current = _settings.Current;
+                if (previousFolders?.PowerPoint.SourceFolder != current.PowerPoint.SourceFolder)
+                    _inlinePowerPoint?.ChangeSourceFolder(current.PowerPoint.SourceFolder);
+                if (previousFolders?.Media.SourceFolder != current.Media.SourceFolder)
+                    _inlineMedia?.ChangeSourceFolder(current.Media.SourceFolder);
+            }
             _lastOptionsTab = window.LastOperatorTab;
         }
         finally { _openOptions = null; }
@@ -3774,7 +3783,8 @@ public partial class MainWindow : Window
             ResolvePowerPointInitialFolder(),
             _services.GetService<IPowerPointRenderService>(),
             initialListingStyle: ResolveInitialPowerPointListingStyle(),
-            listingStyleChanged: SavePowerPointSourceListingStyle);
+            listingStyleChanged: SavePowerPointSourceListingStyle,
+            sourceFolder: _settings?.Get(AxicultusSettingKeys.PowerPointSourceFolder));
 
         var window = new Axicultus.Wpf.Library.PowerPointLibraryWindow(pptViewModel) { Owner = this };
         window.ShowDialog();
@@ -3791,7 +3801,7 @@ public partial class MainWindow : Window
         var mediaViewModel = new Axicultus.Wpf.Library.MediaLibraryViewModel(
             new Axicultus.Wpf.Library.MediaLibraryService(),
             path => viewModel.AddMedia(path), // AddMedia 는 LiveQueueItem 을 반환하므로 람다로 감싼다
-            ResolveMediaInitialFolder());
+            ResolveMediaInitialFolder(), sourceFolder: _settings?.Get(AxicultusSettingKeys.MediaSourceFolder));
 
         var window = new Axicultus.Wpf.Library.MediaLibraryWindow(mediaViewModel) { Owner = this };
         window.ShowDialog();

@@ -19,11 +19,39 @@ public class PowerPointLibraryServiceTests : IDisposable
     }
 
     [Fact]
+    public void MixedSourceFolderFeedsBothLibrariesAndAddUsesTheSelectedFilePath()
+    {
+        var builtIn = Path.Combine(_dir, "built-in");
+        var external = Path.Combine(_dir, "주일 예배");
+        Directory.CreateDirectory(builtIn);
+        foreach (var name in new[] { "1.PPT", "2.pptx", "~$2.pptx", "3.mp3", "4.MP4", "5.txt" })
+            Touch(Path.Combine("주일 예배", name));
+
+        var added = new System.Collections.Generic.List<string>();
+        var presentations = new PowerPointLibraryViewModel(new PowerPointLibraryService(), added.Add, builtIn, sourceFolder: external);
+        var media = new MediaLibraryViewModel(new MediaLibraryService(), added.Add, builtIn);
+        presentations.LoadCommand.Execute(null);
+        media.ChangeSourceFolder(external);
+        presentations.Presentations.Select(file => file.FileName).Should().Equal("1.PPT", "2.pptx");
+        media.MediaFiles.Select(file => file.FileName).Should().Equal("3.mp3", "4.MP4");
+        added.Should().BeEmpty();
+        presentations.SelectedFile = presentations.Presentations[1];
+        presentations.AddSelectedCommand.Execute(null);
+        media.SelectedFile = media.MediaFiles[0];
+        media.AddSelectedCommand.Execute(null);
+        added.Should().Equal(Path.Combine(external, "2.pptx"), Path.Combine(external, "3.mp3"));
+        media.ChangeSourceFolder(builtIn + Path.DirectorySeparatorChar);
+        media.FolderGroups.Should().ContainSingle();
+        media.MediaFiles.Should().BeEmpty();
+    }
+
+    [Fact]
     public void EnumeratePresentations_ReturnsOnlyPptFiles_SortedByName()
     {
         Touch("b.pptx");
         Touch("a.ppt");
         Touch("notes.txt");
+        Touch("~$b.pptx");
         Touch("image.png");
         var sut = new PowerPointLibraryService();
 

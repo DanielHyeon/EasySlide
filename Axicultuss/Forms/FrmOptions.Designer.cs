@@ -312,6 +312,8 @@ namespace Axicultus
         private TabPage tabPageAlerts;
         private TabPage tabPageBibles;
         private TabPage tabPageFolders;
+        private Button choosePowerPointFolder;
+        private Button chooseMediaFolder;
         private TabPage tabPageKeyboard;
         private TabPage tabPageLicence;
         private TabPage tabPageMainWindow;
@@ -5032,6 +5034,12 @@ private void InitializeComponent()
             //
             // GroupBoxFolder
             //
+            choosePowerPointFolder = new Button { Name = "choosePowerPointFolder", Text = "PPT folder…", Location = new Point(247, 102), Size = new Size(104, 28), TabIndex = 3 };
+            chooseMediaFolder = new Button { Name = "chooseMediaFolder", Text = "Media folder…", Location = new Point(247, 134), Size = new Size(104, 28), TabIndex = 4 };
+            choosePowerPointFolder.Click += BrowseSourceFolder_Click;
+            chooseMediaFolder.Click += BrowseSourceFolder_Click;
+            GroupBoxFolder.Controls.Add(choosePowerPointFolder);
+            GroupBoxFolder.Controls.Add(chooseMediaFolder);
             GroupBoxFolder.Controls.Add(SongFolder_Rename);
             GroupBoxFolder.Controls.Add(cbFolderUse);
             GroupBoxFolder.Controls.Add(SongFolder);

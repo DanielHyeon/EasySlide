@@ -447,6 +447,9 @@ public partial class FrmMain : Form
         Gf.PowerpointGroups.Clear();
         Gf.PowerpointGroups.Add(new FolderGroup { Name = "Powerpoint Items", Path = Gf.PowerpointDir });
         Gf.BuildSubFolderList(Gf.PowerpointDir, Gf.PowerpointDir, Gf.PowerpointGroups);
+        var selected = SourceFileFolder.IncludeSelection(Gf.PowerpointGroups,
+            RegUtil.GetRegValue("options", "PowerPointSourceFolder", ""), group => group.Path,
+            path => new FolderGroup { Name = path, Path = Path.EndsInDirectorySeparator(path) ? path : path + Path.DirectorySeparatorChar });
         PowerpointFolder.Items.Clear();
         for (int i = 0; i < Gf.PowerpointGroups.Count; i++)
         {
@@ -454,7 +457,7 @@ public partial class FrmMain : Form
         }
         if (PowerpointFolder.Items.Count > 0)
         {
-            PowerpointFolder.SelectedIndex = 0;
+            PowerpointFolder.SelectedIndex = selected;
         }
     }
 
@@ -463,6 +466,9 @@ public partial class FrmMain : Form
         Gf.MediaGroups.Clear();
         Gf.MediaGroups.Add(new FolderGroup { Name = "Media Files", Path = Gf.MediaDir });
         Gf.BuildSubFolderList(Gf.MediaDir, Gf.MediaDir, Gf.MediaGroups);
+        var selected = SourceFileFolder.IncludeSelection(Gf.MediaGroups,
+            RegUtil.GetRegValue("options", "MediaSourceFolder", ""), group => group.Path,
+            path => new FolderGroup { Name = path, Path = Path.EndsInDirectorySeparator(path) ? path : path + Path.DirectorySeparatorChar });
         MediaFolder.Items.Clear();
         for (int i = 0; i < Gf.MediaGroups.Count; i++)
         {
@@ -470,7 +476,7 @@ public partial class FrmMain : Form
         }
         if (MediaFolder.Items.Count > 0)
         {
-            MediaFolder.SelectedIndex = 0;
+            MediaFolder.SelectedIndex = selected;
         }
     }
 
@@ -606,7 +612,7 @@ public partial class FrmMain : Form
                         }
                         string displayName = DataUtil.Mid(entry, idEnd + 1, nameEnd - (idEnd + 1));
                         Gf.WorshipListIDOK = true;
-                        WriteItemtoPraiseBook(connection, DataUtil.Left(entry, 1), fNum_ID, displayName, "");
+                        WriteItemtoPraiseBook(connection, LegacyListReference.FromFields(DataUtil.Left(entry, 1), fNum_ID, displayName), displayName, "");
                     }
                     entry = "";
                     entryStart = entryEnd + 1;
@@ -620,26 +626,27 @@ public partial class FrmMain : Form
         }
     }
 
-    private void WriteItemtoPraiseBook(DbConnection connection, string InSym, string FNum_ID, string DisplayName1, string FolderName)
+    private void WriteItemtoPraiseBook(DbConnection connection, LegacyListReference reference, string DisplayName1, string FolderName)
     {
-        if (FNum_ID != "")
+        string listItemId = reference.Id;
+        if (listItemId != "")
         {
             ListViewItem listViewItem = new();
             string songNumber = "0";
             string FirstCharSym = "";
-            if (InSym == "D")
+            if (reference.Kind == LegacyListItemKind.DatabaseSong)
             {
                 bool found = false;
                 try
                 {
-                    DataRow dr = SongQueries.FindListEntry(connection, Gf.WorshipListIDOK, FNum_ID, DisplayName1, Gf.WorshipListIDOK ? 0 : Gf.GetFolderNumber(FolderName));
+                    DataRow dr = SongQueries.FindListEntry(connection, Gf.WorshipListIDOK, listItemId, DisplayName1, Gf.WorshipListIDOK ? 0 : Gf.GetFolderNumber(FolderName));
                     if (dr != null)
                     {
                         if (DataUtil.GetDataInt(dr, "FolderNo") > 0 && Gf.Folders[DataUtil.GetDataInt(dr, "FolderNo")].Use > 0)
                         {
                             DisplayName1 = DataUtil.GetDataString(dr, "Title_1");
                             FolderName = Gf.Folders[DataUtil.GetDataInt(dr, "FolderNo")].Name;
-                            FNum_ID = "D" + DataUtil.GetDataInt(dr, "songid");
+                            listItemId = "D" + DataUtil.GetDataInt(dr, "songid");
                             songNumber = ((DataUtil.GetDataString(dr, "song_number") != "") ? DataUtil.GetDataString(dr, "song_number") : "0");
                             found = true;
                         }
@@ -647,7 +654,7 @@ public partial class FrmMain : Form
 
                     if (!found)
                     {
-                        FNum_ID = "D0";
+                        listItemId = "D0";
                         DisplayName1 += " <Error - Item Not Found>";
                     }
                 }
@@ -655,19 +662,19 @@ public partial class FrmMain : Form
                 {
                     Console.WriteLine(ex.Message);
                     Console.WriteLine(ex.StackTrace);
-                    FNum_ID = "D0";
+                    listItemId = "D0";
                     DisplayName1 += " <Error - Item Not Found>";
                 }
             }
             else
             {
-                FNum_ID = "D0";
+                listItemId = "D0";
                 Gf.GetDisplayNameOnly(ref DisplayName1, UpdateByRef: true);
             }
             listViewItem = PraiseBookItems.Items.Add(DataUtil.GetCJKTitle(DisplayName1, Gf.PB_CJKGroupStyle, ref FirstCharSym));
             listViewItem.SubItems.Add("");
             listViewItem.SubItems.Add(DisplayName1);
-            listViewItem.SubItems.Add(FNum_ID);
+            listViewItem.SubItems.Add(listItemId);
             listViewItem.SubItems.Add(FirstCharSym);
             listViewItem.SubItems.Add(songNumber);
         }
@@ -1390,11 +1397,13 @@ public partial class FrmMain : Form
                                                 {
                                                     if (InMode == UsageMode.Worship)
                                                     {
-                                                        WriteItemtoWorshipList(connection, DataUtil.Left(itemId, 1), DataUtil.Right(itemId, itemId.Length - 1), displayName, folderName, formatString, -1);
+                                                        var reference = LegacyListReference.Parse(itemId, displayName);
+                                                        WriteItemtoWorshipList(connection, reference, reference.ContentPath ?? displayName, folderName, formatString, -1);
                                                     }
                                                     else
                                                     {
-                                                        WriteItemtoPraiseBook(connection, DataUtil.Left(itemId, 1), DataUtil.Right(itemId, itemId.Length - 1), displayName, folderName);
+                                                        var reference = LegacyListReference.Parse(itemId, displayName);
+                                                        WriteItemtoPraiseBook(connection, reference, displayName, folderName);
                                                     }
                                                     itemId = "";
                                                     displayName = "";
@@ -1509,7 +1518,7 @@ public partial class FrmMain : Form
                     Gf.WorshipListIDOK = true;
                     DataUtil.Convertv32FormatString(ref Gf.SongFormatData, '*');
 
-                    WriteItemtoWorshipList(connection, inSym, fNum_ID, displayName, "", Gf.SongFormatData, -1);
+                    WriteItemtoWorshipList(connection, LegacyListReference.FromFields(inSym, fNum_ID, displayName), displayName, "", Gf.SongFormatData, -1);
 
 
                 }
@@ -1652,7 +1661,8 @@ public partial class FrmMain : Form
                                                 if (itemId != "")
                                                 {
 
-                                                    WriteItemtoWorshipList(connection, DataUtil.Left(itemId, 1), DataUtil.Right(itemId, itemId.Length - 1), displayName, folderName, formatString, AddToLocation);
+                                                    var reference = LegacyListReference.Parse(itemId, displayName);
+                                                    WriteItemtoWorshipList(connection, reference, reference.ContentPath ?? displayName, folderName, formatString, AddToLocation);
 
                                                     itemId = "";
                                                     displayName = "";
@@ -1687,9 +1697,10 @@ public partial class FrmMain : Form
         return false;
     }
 
-    private void WriteItemtoWorshipList(DbConnection connection, string InSym, string FNum_ID, string DisplayName1, string FolderName, string FormatString, int AddToLocation)
+    private void WriteItemtoWorshipList(DbConnection connection, LegacyListReference reference, string DisplayName1, string FolderName, string FormatString, int AddToLocation)
     {
-        if (FNum_ID == "")
+        string listItemId = reference.Id;
+        if (listItemId == "")
         {
             return;
         }
@@ -1699,12 +1710,12 @@ public partial class FrmMain : Form
         string licenceAdmin1 = "";
         string licenceAdmin2 = "";
         string songNumber = "0";
-        if (InSym == "D")
+        if (reference.Kind == LegacyListItemKind.DatabaseSong)
         {
             bool found = false;
             try
             {
-                DataRow dr = SongQueries.FindListEntry(connection, Gf.WorshipListIDOK, FNum_ID, DisplayName1, Gf.WorshipListIDOK ? 0 : Gf.GetFolderNumber(FolderName));
+                DataRow dr = SongQueries.FindListEntry(connection, Gf.WorshipListIDOK, listItemId, DisplayName1, Gf.WorshipListIDOK ? 0 : Gf.GetFolderNumber(FolderName));
                 if (dr != null)
                 {
                     if (DataUtil.GetDataInt(dr, "FolderNo") > 0 && Gf.Folders[DataUtil.GetDataInt(dr, "FolderNo")].Use > 0)
@@ -1714,7 +1725,7 @@ public partial class FrmMain : Form
                         licenceAdmin1 = DataUtil.GetDataString(dr, "LICENCE_ADMIN1");
                         licenceAdmin2 = DataUtil.GetDataString(dr, "LICENCE_ADMIN2");
                         FolderName = Gf.Folders[DataUtil.GetDataInt(dr, "FolderNo")].Name;
-                        FNum_ID = "D" + DataUtil.GetDataInt(dr, "songid");
+                        listItemId = "D" + DataUtil.GetDataInt(dr, "songid");
                         songNumber = ((DataUtil.GetDataString(dr, "song_number") != "") ? DataUtil.GetDataString(dr, "song_number") : "0");
                         found = true;
                     }
@@ -1723,48 +1734,31 @@ public partial class FrmMain : Form
                 if (!found)
                 {
                     DisplayName1 += " <Error - Item Not Found>";
-                    FNum_ID = "D0";
+                    listItemId = "D0";
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
                 Console.WriteLine(ex.StackTrace);
-                FNum_ID = "D0";
+                listItemId = "D0";
                 DisplayName1 += " <Error - Item Not Found>";
             }
         }
-        else if (InSym == "P")
+        else if (reference.Kind == LegacyListItemKind.BiblePassage)
         {
-            FNum_ID = "P" + DisplayName1;
-            Gf.GetDisplayNameOnly(ref DisplayName1, UpdateByRef: true);
+            listItemId = "B" + listItemId;
         }
-        else if (InSym == "B")
+        else if (reference.ContentPath is not null)
         {
-            FNum_ID = "B" + FNum_ID;
-        }
-        else if (InSym == "T")
-        {
-            FNum_ID = "T" + DisplayName1;
-            Gf.GetDisplayNameOnly(ref DisplayName1, UpdateByRef: true);
-        }
-        else if (InSym == "I")
-        {
-            FNum_ID = "I" + DisplayName1;
-            string InTitle = "";
-            Gf.LoadIndividualData(ref Gf.TempItem1, FNum_ID, "", 1, ref InTitle);
-            musicTitle2 = Gf.TempItem1.Title;
-            musicTitle = Gf.TempItem1.Title2;
-            Gf.GetDisplayNameOnly(ref DisplayName1, UpdateByRef: true);
-        }
-        else if (InSym == "W")
-        {
-            FNum_ID = "W" + DisplayName1;
-            Gf.GetDisplayNameOnly(ref DisplayName1, UpdateByRef: true);
-        }
-        else if (InSym == "M")
-        {
-            FNum_ID = "M" + DisplayName1;
+            listItemId = reference.Code.ToUpperInvariant() + DisplayName1;
+            if (reference.Kind == LegacyListItemKind.InfoScreen)
+            {
+                string infoTitle = "";
+                Gf.LoadIndividualData(ref Gf.TempItem1, listItemId, "", 1, ref infoTitle);
+                musicTitle2 = Gf.TempItem1.Title;
+                musicTitle = Gf.TempItem1.Title2;
+            }
             Gf.GetDisplayNameOnly(ref DisplayName1, UpdateByRef: true);
         }
         if (DisplayName1 != "")
@@ -1788,35 +1782,18 @@ public partial class FrmMain : Form
                     listViewItem = WorshipListItems.Items.Add(DisplayName1);
                 }
             }
-            if (InSym == "D")
+            listViewItem.ImageIndex = reference.Kind switch
             {
-                listViewItem.ImageIndex = 0;
-            }
-            else if (InSym == "P")
-            {
-                listViewItem.ImageIndex = 2;
-            }
-            else if (InSym == "B")
-            {
-                listViewItem.ImageIndex = 4;
-            }
-            else if (InSym == "T")
-            {
-                listViewItem.ImageIndex = 6;
-            }
-            else if (InSym == "I")
-            {
-                listViewItem.ImageIndex = 8;
-            }
-            else if (InSym == "W")
-            {
-                listViewItem.ImageIndex = 10;
-            }
-            else if (InSym == "M")
-            {
-                listViewItem.ImageIndex = 28;
-            }
-            listViewItem.SubItems.Add(FNum_ID);
+                LegacyListItemKind.DatabaseSong => 0,
+                LegacyListItemKind.PowerPoint => 2,
+                LegacyListItemKind.BiblePassage => 4,
+                LegacyListItemKind.TextFile => 6,
+                LegacyListItemKind.InfoScreen => 8,
+                LegacyListItemKind.WordDocument => 10,
+                LegacyListItemKind.Media => 28,
+                _ => -1
+            };
+            listViewItem.SubItems.Add(listItemId);
             listViewItem.SubItems.Add(FormatString);
             listViewItem.SubItems.Add(songNumber);
             listViewItem.SubItems.Add(licenceAdmin1);

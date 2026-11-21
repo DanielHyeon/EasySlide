@@ -14,7 +14,8 @@ internal static class FolderFileEnumerator
     public static IReadOnlyList<string> Enumerate(
         string folderPath,
         IReadOnlySet<string> extensions,
-        bool includeSubfolders)
+        bool includeSubfolders,
+        bool skipOfficeOwnerFiles = false)
     {
         if (string.IsNullOrWhiteSpace(folderPath) || !Directory.Exists(folderPath))
         {
@@ -26,7 +27,8 @@ internal static class FolderFileEnumerator
             var option = includeSubfolders ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
             return Directory
                 .EnumerateFiles(folderPath, "*", option)
-                .Where(path => extensions.Contains(Path.GetExtension(path)))
+                .Where(path => extensions.Contains(Path.GetExtension(path)) &&
+                    (!skipOfficeOwnerFiles || !Path.GetFileName(path).StartsWith("~$", StringComparison.Ordinal)))
                 .OrderBy(path => Path.GetFileName(path), StringComparer.OrdinalIgnoreCase)
                 .ToList();
         }

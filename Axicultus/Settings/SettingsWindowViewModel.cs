@@ -133,6 +133,8 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
     private int _powerPointMaxFiles;
     private bool _useMediaTab;
     private bool _noMediaPanelOverlay;
+    private string _powerPointSourceFolder = "";
+    private string _mediaSourceFolder = "";
     private string _mediaDirectory = "";
     private double _mediaVolume;
     private double _mediaBalance;
@@ -435,6 +437,18 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
     {
         get => _noMediaPanelOverlay;
         set => SetAndPersist(ref _noMediaPanelOverlay, value, AxicultusSettingKeys.NoMediaPanelOverlay);
+    }
+
+    public string PowerPointSourceFolder
+    {
+        get => _powerPointSourceFolder;
+        set => SetAndPersist(ref _powerPointSourceFolder, value, AxicultusSettingKeys.PowerPointSourceFolder);
+    }
+
+    public string MediaSourceFolder
+    {
+        get => _mediaSourceFolder;
+        set => SetAndPersist(ref _mediaSourceFolder, value, AxicultusSettingKeys.MediaSourceFolder);
     }
 
     public string MediaDirectory
@@ -767,6 +781,8 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
             PowerPointMaxFiles = current.PowerPoint.MaxFiles;
             UseMediaTab = current.Media.UseMediaTab;
             NoMediaPanelOverlay = current.Media.NoPanelOverlay;
+            PowerPointSourceFolder = current.PowerPoint.SourceFolder;
+            MediaSourceFolder = current.Media.SourceFolder;
             MediaDirectory = current.Media.Directory;
             MediaVolume = current.Media.Volume;
             MediaBalance = current.Media.Balance;

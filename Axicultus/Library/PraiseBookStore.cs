@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 using Axicultus.Wpf.Settings;
 using Axicultus.Wpf.Shell;
 
@@ -243,40 +242,13 @@ public sealed class PraiseBookStore(string directory, ISettingsService? settings
 
     private static IReadOnlyList<PraiseBookIndexEntry> ParseLegacyEsp(string? xml)
     {
-        if (string.IsNullOrWhiteSpace(xml))
+        return EswWorshipListParser.ReadItems<PraiseBookIndexEntry>(xml, static (reference, title, _, format) =>
         {
-            return Array.Empty<PraiseBookIndexEntry>();
-        }
-
-        XDocument document;
-        try
-        {
-            document = XDocument.Parse(xml);
-        }
-        catch (System.Xml.XmlException)
-        {
-            return Array.Empty<PraiseBookIndexEntry>();
-        }
-
-        var entries = new List<PraiseBookIndexEntry>();
-        foreach (var element in document.Descendants("Item"))
-        {
-            var itemId = ((string?)element.Element("ItemID") ?? string.Empty).Trim();
-            var title = ((string?)element.Element("Title1") ?? string.Empty).Trim();
-            if (itemId.Length == 0 || title.Length == 0)
-            {
-                continue;
-            }
-
-            var songIdText = itemId.Length > 1 ? itemId[1..] : string.Empty;
-            var songId = itemId[0] is 'D' or 'd'
-                && int.TryParse(songIdText, out var parsedSongId)
-                    ? parsedSongId
-                    : 0;
-
-            entries.Add(new PraiseBookIndexEntry(title, Number: 0, SongId: songId));
-        }
-
-        return entries;
+            title = title.Trim();
+            if (title.Length == 0) return null;
+            // The WinForms ESP writer puts the displayed song number in FormatData (subitem 5).
+            int.TryParse(format, System.Globalization.CultureInfo.InvariantCulture, out var songNumber);
+            return new PraiseBookIndexEntry(title, songNumber, reference.SongId ?? 0);
+        }, out _, out _);
     }
 }

@@ -489,6 +489,28 @@ public class SettingsWindowViewModelTests
     }
 
     [Fact]
+    public void SourceFoldersAndTabVisibilityAreOnlySavedWhenOptionsAreConfirmed()
+    {
+        using var fixture = SettingsFixture.Create();
+        var editor = fixture.CreateViewModel();
+        editor.BeginOptionsEdit();
+        editor.MediaSourceFolder = Path.Combine(fixture.Root, "discard");
+        editor.BeginOptionsEdit();
+        editor.MediaSourceFolder.Should().BeEmpty();
+        editor.MediaSourceFolder = fixture.Root;
+        editor.PowerPointSourceFolder = fixture.Root;
+        editor.UseMediaTab = editor.UsePowerPointTab = true;
+        editor.ConfirmOptions().Should().BeTrue();
+
+        var reopened = new SettingsService(new SettingsServiceOptions(
+            Path.Combine(fixture.Root, "settings.json"), Path.Combine(fixture.Root, "Backups")));
+        reopened.Current.Media.SourceFolder.Should().Be(fixture.Root);
+        reopened.Current.PowerPoint.SourceFolder.Should().Be(fixture.Root);
+        reopened.Current.Media.UseMediaTab.Should().BeTrue();
+        reopened.Current.PowerPoint.UsePowerPointTab.Should().BeTrue();
+    }
+
+    [Fact]
     public void DialogEdits_AreDiscardedOnCloseAndMergedOnConfirmation()
     {
         using var fixture = SettingsFixture.Create();

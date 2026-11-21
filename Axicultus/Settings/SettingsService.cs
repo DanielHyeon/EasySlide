@@ -456,9 +456,11 @@ public static class AxicultusSettingKeys
     public static readonly SettingKey<int> PowerPointRenderTimeoutSeconds = new("powerPoint.renderTimeoutSeconds", 60);
     public static readonly SettingKey<int> ThumbnailCacheMegabytes = new("powerPoint.thumbnailCacheMegabytes", 256);
     public static readonly SettingKey<int> PowerPointMaxFiles = new("powerPoint.maxFiles", 20);
+    public static readonly SettingKey<string> PowerPointSourceFolder = new("powerPoint.sourceFolder", "");
     public static readonly SettingKey<int> PowerPointSourceListingStyle = new("powerPoint.sourceListingStyle", -1);
     public static readonly SettingKey<bool> UseMediaTab = new("media.useMediaTab", false);
     public static readonly SettingKey<bool> NoMediaPanelOverlay = new("media.noPanelOverlay", false);
+    public static readonly SettingKey<string> MediaSourceFolder = new("media.sourceFolder", "");
     public static readonly SettingKey<string> MediaDirectory = new("media.directory", "");
     public static readonly SettingKey<string> DefaultMediaFormat = new("media.defaultMediaFormat", "");
     public static readonly SettingKey<string> DefaultMediaPath = new("media.defaultMediaPath", "");
@@ -634,9 +636,11 @@ public static class AxicultusSettingKeys
         PowerPointRenderTimeoutSeconds,
         ThumbnailCacheMegabytes,
         PowerPointMaxFiles,
+        PowerPointSourceFolder,
         PowerPointSourceListingStyle,
         UseMediaTab,
         NoMediaPanelOverlay,
+        MediaSourceFolder,
         MediaDirectory,
         DefaultMediaPath,
         DefaultMediaFormat,
@@ -943,6 +947,8 @@ public sealed record LiveOutputSettings
 
 public sealed record PowerPointSettings
 {
+    public string SourceFolder { get; init; } = "";
+
     public bool UsePowerPointTab { get; init; } = AxicultusSettingKeys.UsePowerPointTab.DefaultValue;
 
     public bool NoPanelOverlay { get; init; } = AxicultusSettingKeys.NoPowerPointPanelOverlay.DefaultValue;
@@ -958,6 +964,8 @@ public sealed record PowerPointSettings
 
 public sealed record MediaSettings
 {
+    public string SourceFolder { get; init; } = "";
+
     public bool UseMediaTab { get; init; } = AxicultusSettingKeys.UseMediaTab.DefaultValue;
 
     public bool NoPanelOverlay { get; init; } = AxicultusSettingKeys.NoMediaPanelOverlay.DefaultValue;
@@ -1477,6 +1485,8 @@ public sealed class SettingsService : ISettingsService
             max: 1,
             AxicultusSettingKeys.PowerPointSourceListingStyle.Id,
             issues);
+        ValidatePath(candidate.PowerPoint.SourceFolder, AxicultusSettingKeys.PowerPointSourceFolder.Id, issues, allowEmpty: true);
+        ValidatePath(candidate.Media.SourceFolder, AxicultusSettingKeys.MediaSourceFolder.Id, issues, allowEmpty: true);
         ValidatePath(candidate.Media.Directory, AxicultusSettingKeys.MediaDirectory.Id, issues, allowEmpty: true);
         if (candidate.LiveOutput.PanelHeightPercent is < 0 or > 20)
             issues.Add(Error(AxicultusSettingKeys.PanelHeightPercent.Id, "Panel height must be between 0 and 20 percent."));
@@ -2313,6 +2323,8 @@ public sealed class SettingsService : ISettingsService
             "powerPoint.sourceListingStyle" => snapshot.PowerPoint.SourceListingStyle,
             "media.useMediaTab" => snapshot.Media.UseMediaTab,
             "media.noPanelOverlay" => snapshot.Media.NoPanelOverlay,
+            "powerPoint.sourceFolder" => snapshot.PowerPoint.SourceFolder,
+            "media.sourceFolder" => snapshot.Media.SourceFolder,
             "media.directory" => snapshot.Media.Directory,
             "media.defaultMediaPath" => snapshot.Media.DefaultMediaPath,
             "media.defaultMediaFormat" => snapshot.Media.DefaultMediaFormat,
@@ -2847,6 +2859,8 @@ public sealed class SettingsService : ISettingsService
             {
                 Media = snapshot.Media with { NoPanelOverlay = Cast<bool>(keyId, value) },
             },
+            "powerPoint.sourceFolder" => snapshot with { PowerPoint = snapshot.PowerPoint with { SourceFolder = Cast<string>(keyId, value) } },
+            "media.sourceFolder" => snapshot with { Media = snapshot.Media with { SourceFolder = Cast<string>(keyId, value) } },
             "media.directory" => snapshot with
             {
                 Media = snapshot.Media with { Directory = Cast<string>(keyId, value) },

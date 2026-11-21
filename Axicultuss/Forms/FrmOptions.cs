@@ -43,8 +43,35 @@ public partial class FrmOptions : Form
         InitModernUi();
     }
 
+    private string _powerPointSourceFolder;
+    private string _mediaSourceFolder;
+
+    private void BrowseSourceFolder_Click(object sender, EventArgs e)
+    {
+        bool powerPoint = sender == choosePowerPointFolder;
+        using var picker = new FolderBrowserDialog
+        {
+            Description = powerPoint ? "Choose PowerPoint source folder" : "Choose audio and video source folder",
+            UseDescriptionForTitle = true,
+            SelectedPath = powerPoint ? _powerPointSourceFolder : _mediaSourceFolder
+        };
+        if (picker.ShowDialog(this) != DialogResult.OK) return;
+        if (powerPoint)
+        {
+            _powerPointSourceFolder = picker.SelectedPath;
+            checkBoxPPTab.Checked = true;
+        }
+        else
+        {
+            _mediaSourceFolder = picker.SelectedPath;
+            checkBoxMediaTab.Checked = true;
+        }
+    }
+
     private void FrmOptions_Load(object sender, EventArgs e)
     {
+        _powerPointSourceFolder = RegUtil.GetRegValue("options", "PowerPointSourceFolder", "");
+        _mediaSourceFolder = RegUtil.GetRegValue("options", "MediaSourceFolder", "");
         for (int i = 1; i < Gf.MAXSONGSFOLDERS; i++)
         {
             // Name, GroupStyle, margins, heading size and option, line spacing, headings, font names, sizes and
@@ -212,6 +239,10 @@ public partial class FrmOptions : Form
             }
         }
         Gf.ComputeShowLineSpacing();
+        if (_powerPointSourceFolder != RegUtil.GetRegValue("options", "PowerPointSourceFolder", ""))
+            RegUtil.SaveRegValue("options", "PowerPointSourceFolder", _powerPointSourceFolder);
+        if (_mediaSourceFolder != RegUtil.GetRegValue("options", "MediaSourceFolder", ""))
+            RegUtil.SaveRegValue("options", "MediaSourceFolder", _mediaSourceFolder);
         Gf.UsePowerpointTab = checkBoxPPTab.Checked;
         Gf.NoPowerpointPanelOverlay = checkBoxPPNoPanel.Checked;
         Gf.UseMediaTab = checkBoxMediaTab.Checked;

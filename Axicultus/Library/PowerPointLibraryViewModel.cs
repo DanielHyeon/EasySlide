@@ -91,7 +91,8 @@ public sealed partial class PowerPointLibraryViewModel : ObservableObject
         Func<byte[], ImageSource>? thumbnailDecoder = null,
         PowerPointListingStyle initialListingStyle = PowerPointListingStyle.List,
         Action<PowerPointListingStyle>? listingStyleChanged = null,
-        Func<string, bool>? deleteFile = null)
+        Func<string, bool>? deleteFile = null,
+        string? sourceFolder = null)
     {
         _service = service ?? throw new ArgumentNullException(nameof(service));
         _addToQueue = addToQueue ?? throw new ArgumentNullException(nameof(addToQueue));
@@ -111,7 +112,7 @@ public sealed partial class PowerPointLibraryViewModel : ObservableObject
         UseListStyleCommand = new RelayCommand(UseListStyle);
         UsePreviewStyleCommand = new RelayCommand(UsePreviewStyle);
 
-        BuildFolderGroups();
+        BuildFolderGroups(sourceFolder);
     }
 
     public ObservableCollection<PowerPointFolderItem> FolderGroups { get; } = [];
@@ -160,7 +161,13 @@ public sealed partial class PowerPointLibraryViewModel : ObservableObject
         }
     }
 
-    private void BuildFolderGroups()
+    internal void ChangeSourceFolder(string? sourceFolder)
+    {
+        BuildFolderGroups(sourceFolder);
+        Load();
+    }
+
+    private void BuildFolderGroups(string? sourceFolder)
     {
         _suppressSelectedFolderReload = true;
         try
@@ -171,7 +178,9 @@ public sealed partial class PowerPointLibraryViewModel : ObservableObject
                 FolderGroups.Add(folder);
             }
 
-            SelectedFolder = FolderGroups.FirstOrDefault();
+            var index = Axicultus.Module.SourceFileFolder.IncludeSelection(FolderGroups, sourceFolder,
+                group => group.FolderPath, path => new PowerPointFolderItem(path, path));
+            SelectedFolder = index < 0 ? null : FolderGroups[index];
             FolderPath = SelectedFolder?.FolderPath ?? _rootFolderPath;
         }
         finally

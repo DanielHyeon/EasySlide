@@ -26,7 +26,7 @@ public sealed class PowerPointLibraryService : IPowerPointLibraryService
         new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".ppt", ".pptx" };
 
     public IReadOnlyList<string> EnumeratePresentations(string folderPath, bool includeSubfolders)
-        => FolderFileEnumerator.Enumerate(folderPath, PresentationExtensions, includeSubfolders);
+        => FolderFileEnumerator.Enumerate(folderPath, PresentationExtensions, includeSubfolders, skipOfficeOwnerFiles: true);
 
     public IReadOnlyList<PowerPointFolderItem> EnumerateFolders(string rootFolder)
     {
