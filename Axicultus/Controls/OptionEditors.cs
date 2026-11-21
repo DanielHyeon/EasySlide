@@ -29,7 +29,7 @@ public sealed class OptionChoiceConverter : IValueConverter
         string choice = (string)parameter;
         if (bool.TryParse(choice, out var flag)) return flag;
         if (int.TryParse(choice, out var index)) return index;
-        return Enum.Parse(targetType, choice);
+        return targetType == typeof(string) ? choice : Enum.Parse(targetType, choice);
     }
 }
 

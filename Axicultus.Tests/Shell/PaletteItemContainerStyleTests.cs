@@ -30,4 +30,18 @@ public sealed class PaletteItemContainerStyleTests
                 "BasedOn={x:Type ListBoxItem} 가 해석되려면 wpfui 암시적 ListBoxItem 스타일이 있어야 함");
         });
     }
+
+    // OutputFormatWindow 의 버튼 스타일이 BasedOn 으로 쓰는 타입들 — 없으면 '송출 서식…' 창이 열릴 때 XamlParseException.
+    [Theory]
+    [InlineData(typeof(Button))]
+    [InlineData(typeof(System.Windows.Controls.Primitives.ToggleButton))]
+    public void WpfUi_Provides_ImplicitStyles_UsedByOutputFormatWindow(System.Type control)
+    {
+        StaHelper.RunOnSta(() =>
+        {
+            var resources = new ResourceDictionary();
+            resources.MergedDictionaries.Add(new global::Wpf.Ui.Markup.ControlsDictionary());
+            resources[control].Should().BeOfType<Style>();
+        });
+    }
 }

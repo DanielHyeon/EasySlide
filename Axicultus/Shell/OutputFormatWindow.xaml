@@ -1,0 +1,234 @@
+<Window x:Class="Axicultus.Wpf.Shell.OutputFormatWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:settings="clr-namespace:Axicultus.Wpf.Settings"
+    xmlns:sys="clr-namespace:System;assembly=mscorlib"
+    Title="송출 서식" Width="760" Height="530" ResizeMode="NoResize" ShowInTaskbar="False" WindowStartupLocation="CenterOwner"
+    FontFamily="Segoe UI" FontSize="14" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"
+    Foreground="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}">
+    <!-- Same look as the Options window: classic controls inside titled groups, two columns per tab, button row at the bottom. -->
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries><ResourceDictionary Source="../Controls/OptionsLayout.xaml" /></ResourceDictionary.MergedDictionaries>
+            <Thickness x:Key="GroupPad">14,26,14,6</Thickness>
+            <Style TargetType="GroupBox" BasedOn="{StaticResource ClassicOptionsGroup}"><Setter Property="Margin" Value="0,0,0,10" /></Style>
+            <Style TargetType="CheckBox">
+                <Setter Property="Margin" Value="0,0,0,8" /><Setter Property="VerticalContentAlignment" Value="Center" />
+            </Style>
+            <Style TargetType="RadioButton">
+                <Setter Property="Margin" Value="0,0,0,8" /><Setter Property="VerticalContentAlignment" Value="Center" />
+            </Style>
+            <Style x:Key="Row" TargetType="DockPanel"><Setter Property="Margin" Value="0,0,0,8" /></Style>
+            <Style x:Key="Step" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                <Setter Property="DockPanel.Dock" Value="Right" /><Setter Property="Width" Value="30" /><Setter Property="Height" Value="26" />
+                <Setter Property="Padding" Value="0" /><Setter Property="Margin" Value="4,0,0,0" />
+            </Style>
+            <Style x:Key="Fill" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                <Setter Property="HorizontalAlignment" Value="Stretch" /><Setter Property="Height" Value="28" /><Setter Property="Padding" Value="0" />
+            </Style>
+            <Style x:Key="Seg" TargetType="RadioButton" BasedOn="{StaticResource {x:Type ToggleButton}}">
+                <Setter Property="HorizontalAlignment" Value="Stretch" /><Setter Property="Height" Value="28" /><Setter Property="Padding" Value="0" />
+            </Style>
+        </ResourceDictionary>
+    </Window.Resources>
+    <!-- Check boxes and radios keep their command in Tag: Toggle_Changed runs it for mouse, keyboard and UI Automation alike. -->
+    <Grid Margin="16" ToggleButton.Checked="Toggle_Changed" ToggleButton.Unchecked="Toggle_Changed">
+        <Grid.RowDefinitions><RowDefinition /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+        <TabControl Style="{x:Null}" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
+            <TabItem Style="{x:Null}" Padding="10,5" Header="가사">
+                <Grid Margin="8,14,8,0">
+                    <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="16" /><ColumnDefinition /></Grid.ColumnDefinitions>
+                    <DockPanel>
+                        <GroupBox DockPanel.Dock="Top" Header="표시">
+                            <StackPanel VerticalAlignment="Top" Margin="{StaticResource GroupPad}">
+                                <CheckBox Content="제목 헤딩" IsChecked="{Binding ActiveLyricsTitleHeading, Mode=OneWay}" Tag="{Binding ToggleLyricsTitleHeadingCommand}" />
+                                <CheckBox Content="가사 외곽선" IsChecked="{Binding ActiveLyricsOutline, Mode=OneWay}" Tag="{Binding ToggleLyricsOutlineCommand}" />
+                                <CheckBox Content="가사 그림자" IsChecked="{Binding ActiveLyricsShadow, Mode=OneWay}" Tag="{Binding ToggleLyricsShadowCommand}" />
+                                <CheckBox Content="강조는 후렴만(굵게·기울임·밑줄)" IsChecked="{Binding ActiveLyricsEmphasisChorusOnly, Mode=OneWay}" Tag="{Binding ToggleEmphasisChorusOnlyCommand}" />
+                                <CheckBox Content="이중 언어 줄 교차(원문/번역 번갈아)" IsChecked="{Binding ActiveLyricsInterlace, Mode=OneWay}" Tag="{Binding ToggleInterlaceCommand}" />
+                            </StackPanel>
+                        </GroupBox>
+                        <GroupBox DockPanel.Dock="Top" Header="이중 언어 영역 표시">
+                            <UniformGrid VerticalAlignment="Top" Columns="3" Margin="{StaticResource GroupPad}">
+                                <RadioButton Content="둘 다" IsChecked="{Binding DefaultRegionChoice, Mode=TwoWay, Converter={StaticResource OptionChoice}, ConverterParameter=Both}" />
+                                <RadioButton Content="주 언어만" IsChecked="{Binding DefaultRegionChoice, Mode=TwoWay, Converter={StaticResource OptionChoice}, ConverterParameter=Region1Only}" />
+                                <RadioButton Content="보조 언어만" IsChecked="{Binding DefaultRegionChoice, Mode=TwoWay, Converter={StaticResource OptionChoice}, ConverterParameter=Region2Only}" />
+                            </UniformGrid>
+                        </GroupBox>
+                        <GroupBox DockPanel.Dock="Top" Header="코드 조옮김">
+                            <DockPanel VerticalAlignment="Top" Margin="14,26,14,14">
+                                <Button Style="{StaticResource Step}" Width="84" Content="원조 복귀" Command="{Binding TransposeLiveResetCommand}" />
+                                <Button Style="{StaticResource Step}" Content="▼" Command="{Binding TransposeLiveDownCommand}" AutomationProperties.Name="반음 내림" ToolTip="반음 내림" />
+                                <Button Style="{StaticResource Step}" Content="▲" Command="{Binding TransposeLiveUpCommand}" AutomationProperties.Name="반음 올림" ToolTip="반음 올림" />
+                                <TextBlock Text="{Binding LiveTransposeLabel}" VerticalAlignment="Center" />
+                            </DockPanel>
+                        </GroupBox>
+                    </DockPanel>
+                    <DockPanel Grid.Column="2">
+                        <GroupBox DockPanel.Dock="Top" Header="정렬">
+                            <StackPanel VerticalAlignment="Top" Margin="{StaticResource GroupPad}">
+                                <DockPanel Style="{StaticResource Row}">
+                                    <TextBlock Text="가로" Width="44" VerticalAlignment="Center" />
+                                    <UniformGrid Rows="1">
+                                        <RadioButton Style="{StaticResource Seg}" Content="왼쪽" IsChecked="{Binding DefaultRegion1AlignmentChoice, Mode=TwoWay, Converter={StaticResource OptionChoice}, ConverterParameter=Left}" AutomationProperties.Name="가사 왼쪽 정렬" />
+                                        <RadioButton Style="{StaticResource Seg}" Content="가운데" IsChecked="{Binding DefaultRegion1AlignmentChoice, Mode=TwoWay, Converter={StaticResource OptionChoice}, ConverterParameter=Center}" AutomationProperties.Name="가사 가운데 정렬" Margin="4,0" />
+                                        <RadioButton Style="{StaticResource Seg}" Content="오른쪽" IsChecked="{Binding DefaultRegion1AlignmentChoice, Mode=TwoWay, Converter={StaticResource OptionChoice}, ConverterParameter=Right}" AutomationProperties.Name="가사 오른쪽 정렬" />
+                                    </UniformGrid>
+                                </DockPanel>
+                                <DockPanel Style="{StaticResource Row}">
+                                    <TextBlock Text="세로" Width="44" VerticalAlignment="Center" />
+                                    <UniformGrid Rows="1">
+                                        <RadioButton Style="{StaticResource Seg}" Content="위" IsChecked="{Binding DefaultVerticalChoice, Mode=TwoWay, Converter={StaticResource OptionChoice}, ConverterParameter=Top}" AutomationProperties.Name="가사 위 정렬" />
+                                        <RadioButton Style="{StaticResource Seg}" Content="가운데" IsChecked="{Binding DefaultVerticalChoice, Mode=TwoWay, Converter={StaticResource OptionChoice}, ConverterParameter=Center}" AutomationProperties.Name="가사 세로 가운데 정렬" Margin="4,0" />
+                                        <RadioButton Style="{StaticResource Seg}" Content="아래" IsChecked="{Binding DefaultVerticalChoice, Mode=TwoWay, Converter={StaticResource OptionChoice}, ConverterParameter=Bottom}" AutomationProperties.Name="가사 아래 정렬" />
+                                    </UniformGrid>
+                                </DockPanel>
+                            </StackPanel>
+                        </GroupBox>
+                        <GroupBox DockPanel.Dock="Top" Header="간격·여백">
+                            <StackPanel VerticalAlignment="Top" Margin="{StaticResource GroupPad}">
+                                <DockPanel Style="{StaticResource Row}">
+                                    <Button Style="{StaticResource Step}" Content="+" Command="{Binding IncreaseLyricsLineSpacingCommand}" AutomationProperties.Name="줄 간격 늘림" />
+                                    <Button Style="{StaticResource Step}" Content="−" Command="{Binding DecreaseLyricsLineSpacingCommand}" AutomationProperties.Name="줄 간격 줄임" />
+                                    <TextBlock Text="{Binding ActiveLyricsLineSpacing, StringFormat=줄 간격: {0}%}" VerticalAlignment="Center" />
+                                </DockPanel>
+                                <DockPanel Style="{StaticResource Row}">
+                                    <Button Style="{StaticResource Step}" Content="+" Command="{Binding IncreaseLyricsLeftMarginCommand}" AutomationProperties.Name="왼쪽 여백 넓게" />
+                                    <Button Style="{StaticResource Step}" Content="−" Command="{Binding DecreaseLyricsLeftMarginCommand}" AutomationProperties.Name="왼쪽 여백 좁게" />
+                                    <TextBlock Text="{Binding ActiveLyricsLeftMargin, StringFormat=왼쪽 여백: {0}px}" VerticalAlignment="Center" />
+                                </DockPanel>
+                                <DockPanel Style="{StaticResource Row}">
+                                    <Button Style="{StaticResource Step}" Content="+" Command="{Binding IncreaseLyricsRightMarginCommand}" AutomationProperties.Name="오른쪽 여백 넓게" />
+                                    <Button Style="{StaticResource Step}" Content="−" Command="{Binding DecreaseLyricsRightMarginCommand}" AutomationProperties.Name="오른쪽 여백 좁게" />
+                                    <TextBlock Text="{Binding ActiveLyricsRightMargin, StringFormat=오른쪽 여백: {0}px}" VerticalAlignment="Center" />
+                                </DockPanel>
+                                <DockPanel Style="{StaticResource Row}">
+                                    <Button Style="{StaticResource Step}" Content="+" Command="{Binding IncreaseLyricsBottomMarginCommand}" AutomationProperties.Name="아래 여백 넓게" />
+                                    <Button Style="{StaticResource Step}" Content="−" Command="{Binding DecreaseLyricsBottomMarginCommand}" AutomationProperties.Name="아래 여백 좁게" />
+                                    <TextBlock Text="{Binding ActiveLyricsBottomMargin, StringFormat=아래 여백: {0}px}" VerticalAlignment="Center" />
+                                </DockPanel>
+                                <DockPanel Style="{StaticResource Row}" ToolTip="원문과 번역 사이의 세로 간격">
+                                    <Button Style="{StaticResource Step}" Content="+" Command="{Binding IncreaseRegionGapCommand}" AutomationProperties.Name="영역 간격 넓게" />
+                                    <Button Style="{StaticResource Step}" Content="−" Command="{Binding DecreaseRegionGapCommand}" AutomationProperties.Name="영역 간격 좁게" />
+                                    <TextBlock Text="{Binding ActiveRegionGap, StringFormat=영역 간 간격: {0}px}" VerticalAlignment="Center" />
+                                </DockPanel>
+                                <DockPanel Style="{StaticResource Row}" ToolTip="정렬은 유지한 채 본문을 위·아래로 조금씩 옮깁니다">
+                                    <Button Style="{StaticResource Step}" Content="▼" Command="{Binding MoveBodyDownCommand}" AutomationProperties.Name="본문 아래로" />
+                                    <Button Style="{StaticResource Step}" Content="▲" Command="{Binding MoveBodyUpCommand}" AutomationProperties.Name="본문 위로" />
+                                    <TextBlock Text="{Binding ActiveBodyVerticalOffset, StringFormat=본문 세로 위치: {0}px}" VerticalAlignment="Center" />
+                                </DockPanel>
+                            </StackPanel>
+                        </GroupBox>
+                    </DockPanel>
+                </Grid>
+            </TabItem>
+            <TabItem Style="{x:Null}" Padding="10,5" Header="배경·전환">
+                <Grid Margin="8,14,8,0">
+                    <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="16" /><ColumnDefinition /></Grid.ColumnDefinitions>
+                    <DockPanel>
+                        <GroupBox DockPanel.Dock="Top" Header="배경 이미지">
+                            <StackPanel VerticalAlignment="Top" Margin="{StaticResource GroupPad}">
+                                <UniformGrid Rows="1" Margin="0,0,0,10">
+                                    <Button x:Name="Gallery" Style="{StaticResource Fill}" Content="갤러리…" ToolTip="이미지 갤러리에서 배경을 고릅니다" AutomationProperties.Name="갤러리에서 배경 선택" />
+                                    <Button x:Name="PickImage" Style="{StaticResource Fill}" Content="파일 선택…" ToolTip="이미지 파일을 배경으로 지정합니다" AutomationProperties.Name="배경 이미지 파일 선택" Margin="4,0" />
+                                    <Button Style="{StaticResource Fill}" Content="지우기" Command="{Binding ClearOutputBackgroundImageCommand}" AutomationProperties.Name="배경 지우기" />
+                                </UniformGrid>
+                                <UniformGrid Columns="2">
+                                    <RadioButton Content="채움(가득)" IsChecked="{Binding DefaultImageModeChoice, Mode=TwoWay, Converter={StaticResource OptionChoice}, ConverterParameter=Fill}" />
+                                    <RadioButton Content="맞춤(전체 보임)" IsChecked="{Binding DefaultImageModeChoice, Mode=TwoWay, Converter={StaticResource OptionChoice}, ConverterParameter=Fit}" />
+                                    <RadioButton Content="가운데(원본 크기)" IsChecked="{Binding DefaultImageModeChoice, Mode=TwoWay, Converter={StaticResource OptionChoice}, ConverterParameter=Center}" />
+                                    <RadioButton Content="타일(반복)" IsChecked="{Binding DefaultImageModeChoice, Mode=TwoWay, Converter={StaticResource OptionChoice}, ConverterParameter=Tile}" />
+                                </UniformGrid>
+                            </StackPanel>
+                        </GroupBox>
+                        <GroupBox DockPanel.Dock="Top" Header="그라데이션 방향">
+                            <UniformGrid VerticalAlignment="Top" Columns="2" Margin="{StaticResource GroupPad}">
+                                <RadioButton Content="세로 (위→아래)" IsChecked="{Binding GradientDirectionIsVertical, Mode=OneWay}" Tag="{Binding ApplyGradientDirectionCommand}" CommandParameter="{x:Static settings:LyricsGradientDirection.Vertical}" />
+                                <RadioButton Content="가로 (좌→우)" IsChecked="{Binding GradientDirectionIsHorizontal, Mode=OneWay}" Tag="{Binding ApplyGradientDirectionCommand}" CommandParameter="{x:Static settings:LyricsGradientDirection.Horizontal}" />
+                                <RadioButton Content="대각선 ↘" ToolTip="왼쪽 위에서 오른쪽 아래로" IsChecked="{Binding GradientDirectionIsDiagonalDown, Mode=OneWay}" Tag="{Binding ApplyGradientDirectionCommand}" CommandParameter="{x:Static settings:LyricsGradientDirection.DiagonalDown}" />
+                                <RadioButton Content="대각선 ↗" ToolTip="왼쪽 아래에서 오른쪽 위로" IsChecked="{Binding GradientDirectionIsDiagonalUp, Mode=OneWay}" Tag="{Binding ApplyGradientDirectionCommand}" CommandParameter="{x:Static settings:LyricsGradientDirection.DiagonalUp}" />
+                            </UniformGrid>
+                        </GroupBox>
+                    </DockPanel>
+                    <DockPanel Grid.Column="2">
+                        <GroupBox DockPanel.Dock="Top" Header="전환 효과">
+                            <StackPanel VerticalAlignment="Top" Margin="{StaticResource GroupPad}">
+                                <CheckBox Content="페이드 사용" IsChecked="{Binding ActiveFadeTransition, Mode=OneWay}" Tag="{Binding ToggleFadeTransitionCommand}" />
+                                <TextBlock x:Name="ItemMotionLabel" Text="항목 전환 (곡 → 곡)" />
+                                <ComboBox x:Name="ItemMotion" Style="{x:Null}" Height="27" ItemsSource="{Binding TransitionKindOptions}" SelectedValue="{Binding ActiveTransitionKind, Mode=OneWay}"
+                                          SelectedValuePath="Value" DisplayMemberPath="Key" SelectionChanged="ItemMotion_SelectionChanged"
+                                          AutomationProperties.LabeledBy="{Binding ElementName=ItemMotionLabel}" Margin="0,4,0,10" />
+                                <TextBlock x:Name="SlideMotionLabel" Text="슬라이드 전환 (같은 곡 안의 절 이동)" />
+                                <ComboBox Style="{x:Null}" Height="27" ItemsSource="{Binding TransitionKindOptions}" SelectedValue="{Binding SlideTransitionKindInput, Mode=TwoWay}"
+                                          SelectedValuePath="Value" DisplayMemberPath="Key"
+                                          AutomationProperties.LabeledBy="{Binding ElementName=SlideMotionLabel}" Margin="0,4,0,10" />
+                                <TextBlock Text="속도" Margin="0,0,0,6" />
+                                <UniformGrid Columns="3">
+                                    <RadioButton Content="빠르게" ToolTip="150ms" IsChecked="{Binding TransitionIsFast, Mode=OneWay}" Tag="{Binding ApplyTransitionDurationCommand}">
+                                        <RadioButton.CommandParameter><sys:Int32>150</sys:Int32></RadioButton.CommandParameter>
+                                    </RadioButton>
+                                    <RadioButton Content="보통" ToolTip="250ms" IsChecked="{Binding TransitionIsNormal, Mode=OneWay}" Tag="{Binding ApplyTransitionDurationCommand}">
+                                        <RadioButton.CommandParameter><sys:Int32>250</sys:Int32></RadioButton.CommandParameter>
+                                    </RadioButton>
+                                    <RadioButton Content="느리게" ToolTip="500ms" IsChecked="{Binding TransitionIsSlow, Mode=OneWay}" Tag="{Binding ApplyTransitionDurationCommand}">
+                                        <RadioButton.CommandParameter><sys:Int32>500</sys:Int32></RadioButton.CommandParameter>
+                                    </RadioButton>
+                                </UniformGrid>
+                            </StackPanel>
+                        </GroupBox>
+                    </DockPanel>
+                </Grid>
+            </TabItem>
+            <TabItem Style="{x:Null}" Padding="10,5" Header="정보 패널">
+                <Grid Margin="8,14,8,0">
+                    <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="16" /><ColumnDefinition /></Grid.ColumnDefinitions>
+                    <DockPanel>
+                        <GroupBox DockPanel.Dock="Top" Header="표시 항목">
+                            <StackPanel VerticalAlignment="Top" Margin="{StaticResource GroupPad}">
+                                <CheckBox Content="정보 패널 표시" IsChecked="{Binding ActiveLyricsDisplayPanel, Mode=OneWay}" Tag="{Binding ToggleLyricsDisplayPanelCommand}" />
+                                <CheckBox Content="위치 표시 (현재/전체)" IsChecked="{Binding ActiveLyricsPositionIndicator, Mode=OneWay}" Tag="{Binding ToggleLyricsPositionIndicatorCommand}" />
+                                <CheckBox Content="절 이름 (1절/후렴)" IsChecked="{Binding ActiveLyricsVerseHeading, Mode=OneWay}" Tag="{Binding ToggleLyricsVerseHeadingCommand}" />
+                                <CheckBox Content="곡 번호" IsChecked="{Binding ActiveLyricsItemNumber, Mode=OneWay}" Tag="{Binding ToggleLyricsItemNumberCommand}" />
+                                <CheckBox Content="제목" IsChecked="{Binding ActiveLyricsTitleOnPanel, Mode=OneWay}" Tag="{Binding ToggleLyricsTitleOnPanelCommand}"
+                                          ToolTip="현재 곡 제목을 송출 화면 왼쪽 위 정보 밴드에 작게 표시합니다." />
+                                <CheckBox Content="저작권" IsChecked="{Binding ActiveLyricsCopyright, Mode=OneWay}" Tag="{Binding ToggleLyricsCopyrightCommand}" />
+                                <CheckBox Content="다음 항목" IsChecked="{Binding ActiveLyricsNextItem, Mode=OneWay}" Tag="{Binding ToggleLyricsNextItemCommand}" />
+                            </StackPanel>
+                        </GroupBox>
+                    </DockPanel>
+                    <DockPanel Grid.Column="2">
+                        <GroupBox DockPanel.Dock="Top" Header="모양">
+                            <StackPanel VerticalAlignment="Top" Margin="{StaticResource GroupPad}">
+                                <CheckBox Content="투명 배경" IsChecked="{Binding ActiveLyricsPanelTransparent, Mode=OneWay}" Tag="{Binding TogglePanelTransparentCommand}"
+                                          ToolTip="곡 번호·저작권·다음 항목 밴드의 어두운 배경을 없앱니다." />
+                                <DockPanel Style="{StaticResource Row}">
+                                    <TextBlock Text="패널 색" Width="64" VerticalAlignment="Center" />
+                                    <UniformGrid Rows="1">
+                                        <Button Style="{StaticResource Fill}" Background="#000000" Command="{Binding ApplyPanelColorHexCommand}" CommandParameter="#000000" AutomationProperties.Name="정보 패널 색 검정" ToolTip="검정 (기본)" />
+                                        <Button Style="{StaticResource Fill}" Background="#102040" Command="{Binding ApplyPanelColorHexCommand}" CommandParameter="#102040" AutomationProperties.Name="정보 패널 색 남색" ToolTip="남색" Margin="4,0,0,0" />
+                                        <Button Style="{StaticResource Fill}" Background="#303030" Command="{Binding ApplyPanelColorHexCommand}" CommandParameter="#303030" AutomationProperties.Name="정보 패널 색 진회색" ToolTip="진회색" Margin="4,0,0,0" />
+                                        <Button Style="{StaticResource Fill}" Background="#3A1030" Command="{Binding ApplyPanelColorHexCommand}" CommandParameter="#3A1030" AutomationProperties.Name="정보 패널 색 자주" ToolTip="자주" Margin="4,0,0,0" />
+                                        <Button Style="{StaticResource Fill}" Background="#103020" Command="{Binding ApplyPanelColorHexCommand}" CommandParameter="#103020" AutomationProperties.Name="정보 패널 색 진녹색" ToolTip="진녹색" Margin="4,0,0,0" />
+                                    </UniformGrid>
+                                </DockPanel>
+                                <DockPanel Style="{StaticResource Row}">
+                                    <Button Style="{StaticResource Step}" Content="+" Command="{Binding IncreasePanelFontScaleCommand}" AutomationProperties.Name="정보 패널 글자 크게" />
+                                    <Button Style="{StaticResource Step}" Content="−" Command="{Binding DecreasePanelFontScaleCommand}" AutomationProperties.Name="정보 패널 글자 작게" />
+                                    <TextBlock Text="{Binding ActivePanelFontScale, StringFormat=글자 크기: {0}%}" VerticalAlignment="Center" />
+                                </DockPanel>
+                            </StackPanel>
+                        </GroupBox>
+                    </DockPanel>
+                </Grid>
+            </TabItem>
+        </TabControl>
+        <DockPanel Grid.Row="1" Margin="0,10,0,0" LastChildFill="False">
+            <Button DockPanel.Dock="Right" IsCancel="True" Content="닫기" Click="Close_Click" Width="104" Height="35" />
+            <TextBlock Text="예배 순서 전체에 적용:" VerticalAlignment="Center" Margin="0,0,8,0" />
+            <Button x:Name="ApplyGlobal" Content="전역 서식" Click="ApplyToAll_Click" Height="35" Padding="12,0" Margin="0,0,8,0"
+                    AutomationProperties.Name="정보 화면을 제외하고 전역 서식 적용"
+                    ToolTip="정보 화면을 제외한 모든 항목의 '개별 서식'을 끄고 전역 기본 서식으로 통일합니다." />
+            <Button x:Name="ApplyCopied" Content="복사한 서식" Click="ApplyToAll_Click" Height="35" Padding="12,0"
+                    AutomationProperties.Name="복사한 서식을 전 항목에 적용"
+                    ToolTip="우클릭 '이 항목 서식 복사'로 담아 둔 서식을 모든 곡·성경 항목에 한 번에 적용합니다." />
+        </DockPanel>
+    </Grid>
+</Window>

@@ -3903,6 +3903,19 @@ public partial class MainWindow : Window
         _captionConsole.Activate();
     }
 
+    private OutputFormatWindow? _outputFormat;
+
+    private void OpenOutputFormat_Click(object sender, RoutedEventArgs e)
+    {
+        if (_outputFormat == null)
+        {
+            _outputFormat = new OutputFormatWindow(OpenImageLibrary_Click, SelectOutputBackgroundImage_Click) { Owner = this, DataContext = DataContext };
+            _outputFormat.Closed += (_, _) => _outputFormat = null;
+        }
+        _outputFormat.Show();
+        _outputFormat.Activate();
+    }
+
     private void OpenNoticeScreen_Click(object sender, RoutedEventArgs e) => OpenNoticeScreen(initialText: null);
 
     // 공지 화면 편집기를 연다(초기 텍스트가 있으면 미리 채워서). 성경 "공지 화면으로 복사"에서 재사용.
@@ -4677,6 +4690,11 @@ public partial class MainWindow : Window
     private void SongRecover_Click(object sender, RoutedEventArgs e)
         => LaunchDatabaseContextWindow<SongRecoveryWindow, SongRecoveryViewModel>(
             (vm, lib) => vm.Load(lib.DatabasePath));
+
+    private void OpenScoreEditor_Click(object sender, RoutedEventArgs e) =>
+        Axicultus.ScoreEditor.SongScoreEditor.Show(
+            new System.Windows.Interop.WindowInteropHelper(this).Handle,
+            (DataContext as MainViewModel)?.Library.SelectedSong?.Title ?? "");
 
     private void SongMerge_Click(object sender, RoutedEventArgs e)
         => LaunchDatabaseContextWindow<SongMergeWindow, SongMergeViewModel>(

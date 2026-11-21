@@ -2385,15 +2385,25 @@ public class MainMenuBarTests
         => Xaml.Should().Contain($"{{Binding {command}}}", $"{command} 메뉴 배선");
 
     [Fact]
-    public void MenuBar_HasLyricsAlignmentSubmenu_WiredToAlignmentCommand()
+    public void OutputFormatWindow_HasLyricsAlignment_WiredToAlignmentChoice()
     {
-        var xaml = Xaml;
-        xaml.Should().Contain("Header=\"가사 정렬\"", "가사 정렬 서브메뉴가 있어야 함");
-        xaml.Should().Contain("{Binding ApplyLyricsAlignmentCommand}", "정렬 명령에 배선");
+        // 서식 항목은 Output 메뉴에서 '송출 서식…' 창으로 옮겼다(메뉴는 창 런처 하나만 남김).
+        Xaml.Should().Contain("Click=\"OpenOutputFormat_Click\"", "Output 메뉴에서 서식 창을 열 수 있어야 함");
+        var xaml = File.ReadAllText(Path.Combine(FindRepositoryRoot(), "Axicultus", "Shell", "OutputFormatWindow.xaml"), Encoding.UTF8);
+        // 정렬은 현재 상태가 보이도록 양방향 선택 속성(DefaultRegion1AlignmentChoice → ApplyLyricsAlignment)에 배선한다.
         foreach (var member in new[] { "Left", "Center", "Right" })
-        {
-            xaml.Should().Contain($"{{x:Static settings:LyricsTextAlignment.{member}}}", $"{member} 정렬 파라미터");
-        }
+            xaml.Should().Contain($"{{Binding DefaultRegion1AlignmentChoice, Mode=TwoWay, Converter={{StaticResource OptionChoice}}, ConverterParameter={member}}}", $"{member} 정렬 선택");
+    }
+
+    [Fact]
+    public void OptionChoiceConverter_ReturnsTheChoiceForStringProperties()
+    {
+        // 서식 창의 정렬·영역·배경 모드 라디오는 문자열 속성(Default…Choice)에 양방향 바인딩된다.
+        // Enum.Parse(typeof(string)) 로 던지면 라디오를 누르는 순간 앱이 죽는다.
+        var converter = new Axicultus.Wpf.Controls.OptionChoiceConverter();
+        var culture = System.Globalization.CultureInfo.InvariantCulture;
+        converter.ConvertBack(true, typeof(string), "Left", culture).Should().Be("Left");
+        converter.ConvertBack(true, typeof(DayOfWeek), "Monday", culture).Should().Be(DayOfWeek.Monday);
     }
 
     [Theory]
