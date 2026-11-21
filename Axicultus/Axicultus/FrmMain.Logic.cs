@@ -946,7 +946,7 @@ public partial class FrmMain : Form
     }
 
     private void LoadBackgroundThumbImages()
-        => flowLayoutImages.Display(BackgroundImagename, 0, toolTip1, ThumbImage_MouseUp, null, false);
+        => flowLayoutImages.Display(BackgroundImagename, 0, toolTip1, ThumbImage_MouseUp, ThumbImage_MouseDoubleClick, false);
 
     private void ShowPowerpointFolderContents(bool ShowThumbs)
     {

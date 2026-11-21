@@ -286,7 +286,7 @@ public partial class MainWindow : Window
         _inlineImages = new ImageLibraryViewModel(
             new Axicultus.Wpf.Rendering.ImageLibraryService(),
             LoadThumbnail,
-            viewModel.SetOutputBackgroundImage,
+            viewModel.ApplyDefaultGalleryImage,
             () => viewModel.ClearOutputBackgroundImageCommand.Execute(null),
             ResolveImageInitialFolder(),
             canApplyItemBackground: () => viewModel.PreviewPanelItem != null,
@@ -1962,6 +1962,7 @@ public partial class MainWindow : Window
     private bool _mediaDragArmed;
     private Point _imageDragStart;
     private ImageLibraryItem? _imageDragCandidate;
+    private bool _applyImageOnRelease;
     private Point _praiseBookDragStart;
     private PraiseBookIndexEntry? _praiseBookDragCandidate;
 
@@ -3088,6 +3089,27 @@ public partial class MainWindow : Window
             && ItemsControl.ContainerFromElement(InlineImagesList, source) is ListBoxItem { DataContext: ImageLibraryItem image }
                 ? image
                 : null;
+        _applyImageOnRelease = e.ClickCount == 2 && _imageDragCandidate != null && _inlineImages?.SelectedImage == _imageDragCandidate;
+    }
+
+    private void InlineImagesList_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        var pressed = _imageDragCandidate;
+        bool apply = _applyImageOnRelease;
+        _imageDragCandidate = null;
+        _applyImageOnRelease = false;
+        if (pressed is null || _inlineImages is null || e.OriginalSource is not DependencyObject source ||
+            ItemsControl.ContainerFromElement(InlineImagesList, source) is not ListBoxItem { DataContext: ImageLibraryItem released } || pressed != released) return;
+        _inlineImages.SelectedImage = released;
+        if (apply && _inlineImages.ApplySelectedImageCommand.CanExecute(null)) _inlineImages.ApplySelectedImageCommand.Execute(null);
+    }
+
+    private void InlineImagesList_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        _imageDragCandidate = null;
+        _applyImageOnRelease = false;
+        if (e.OriginalSource is DependencyObject source && ItemsControl.ContainerFromElement(InlineImagesList, source) is ListBoxItem item)
+            item.IsSelected = true;
     }
 
     private void InlineImagesList_PreviewMouseMove(object sender, MouseEventArgs e)
@@ -3449,25 +3471,22 @@ public partial class MainWindow : Window
 
     private void SelectDefaultMedia_Click(object sender, RoutedEventArgs e)
     {
-        if (DataContext is not MainViewModel viewModel)
-        {
-            return;
-        }
+        var options = Media.ItemMediaOptions.Read(_viewModel.DefaultMediaFormat);
+        if (options.Mode < 0 && !string.IsNullOrEmpty(_viewModel.DefaultMediaPath))
+            options = options with { Mode = 2, FileName = _viewModel.DefaultMediaPath };
+        var dialog = new Media.MediaAssignmentWindow("Default Media", options, ResolveMediaInitialFolder(),
+            _viewModel.OutputDisplays, _services.GetService<Media.CameraOwnership>()) { Owner = this };
+        if (dialog.ShowDialog() == true && options != dialog.Options)
+            _viewModel.SetDefaultMedia(dialog.Options.FileName, dialog.Options);
+    }
 
-        var dialog = new Microsoft.Win32.OpenFileDialog
-        {
-            Title = "Default media",
-            Filter = "Media (*.mp4;*.m4v;*.mov;*.avi;*.wmv;*.mpg;*.mpeg;*.mkv;*.webm;*.mp3;*.wav;*.wma;*.m4a;*.aac;*.flac;*.ogg)"
-                + "|*.mp4;*.m4v;*.mov;*.avi;*.wmv;*.mpg;*.mpeg;*.mkv;*.webm;*.mp3;*.wav;*.wma;*.m4a;*.aac;*.flac;*.ogg"
-                + "|All files (*.*)|*.*",
-            CheckFileExists = true,
-            InitialDirectory = ResolveMediaInitialFolder(),
-        };
+    private void IncreaseDefaultPanelHeight_Click(object sender, RoutedEventArgs e) => _viewModel.DefaultPanelHeight++;
+    private void DecreaseDefaultPanelHeight_Click(object sender, RoutedEventArgs e) => _viewModel.DefaultPanelHeight--;
 
-        if (dialog.ShowDialog(this) == true)
-        {
-            viewModel.SetDefaultMedia(dialog.FileName);
-        }
+    private void PickDefaultRegion2Color_Click(object sender, RoutedEventArgs e)
+    {
+        if (TryPickColor(_viewModel.DefaultRegion2ColorHex, out var hex))
+            _viewModel.LyricsTextColor2Input = System.Drawing.ColorTranslator.FromHtml(hex).ToArgb();
     }
 
     private void PickDefaultTextColor_Click(object sender, RoutedEventArgs e)
@@ -3480,10 +3499,17 @@ public partial class MainWindow : Window
 
     private void PickDefaultBackgroundColor_Click(object sender, RoutedEventArgs e)
     {
-        if (DataContext is MainViewModel viewModel && TryPickColor(viewModel.ActiveBackgroundColorHex, out var hex))
-        {
-            viewModel.ApplyBackgroundColorHexCommand.Execute(hex);
-        }
+        if (_settings is null) return;
+        var dialog = new DefaultBackgroundWindow(_settings.Current.LiveOutput) { Owner = this };
+        if (dialog.ShowDialog() == true)
+            _settings.SetValues(new Dictionary<string, object>
+            {
+                [AxicultusSettingKeys.LyricsMonitorBackgroundColorArgb.Id] = dialog.FirstColour,
+                [AxicultusSettingKeys.LyricsMonitorBackgroundColor2Argb.Id] = dialog.SecondColour,
+                [AxicultusSettingKeys.LyricsMonitorBackgroundPattern.Id] = dialog.Pattern,
+                [AxicultusSettingKeys.LyricsMonitorBackgroundIsGradient.Id] = dialog.Pattern != 11,
+                [AxicultusSettingKeys.LyricsMonitorBackgroundImagePath.Id] = string.Empty
+            });
     }
 
     private void PickPanelBackColor_Click(object sender, RoutedEventArgs e)

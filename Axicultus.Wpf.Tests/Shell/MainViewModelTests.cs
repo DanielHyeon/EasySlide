@@ -532,6 +532,30 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task DefaultCapo_UsesTheSongsCapoAndRoundTripsThroughSessionTemplates()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        settings.Set(AxicultusSettingKeys.LyricsMonitorShowNotations, true);
+        var sut = CreateSut(settings: settings, seedSampleQueue: false);
+        sut.DefaultHeadingChoice = "First";
+        sut.DefaultHeadingAlignmentChoice = "AsR2";
+        sut.ToggleDefaultCapoCommand.Execute(null);
+        var template = SessionFormatTemplate.Transfer(settings, null, false);
+        sut.ToggleDefaultCapoCommand.Execute(null);
+        sut.DefaultHeadingAlignmentChoice = "Left";
+        SessionFormatTemplate.Transfer(settings, template, true);
+        sut.DefaultHeadingAlignmentChoice.Should().Be("AsR2");
+        sut.DefaultHeadingChoice.Should().Be("First");
+        sut.LoadQueue([new LiveQueueItem("song:1", "Test", LiveItemKinds.Song)
+            { Capo = 2, Lyrics = "[1]\nVerse » C  G", UseIndividualFormatting = false }]);
+        sut.OpenOutputCommand.Execute(null);
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        sut.Session.Current.CurrentItemBodyText.Should().Be("D  A\nVerse");
+        sut.LiveTransposeSemitones.Should().Be(0);
+    }
+
+    [Fact]
     public void TransposeLive_ClampsToElevenSemitones()
     {
         var sut = CreateSut();
@@ -1095,7 +1119,7 @@ public class MainViewModelTests
 
         sut.ApplyGlobalFormatToAllCommand.Execute(null);
 
-        sut.Queue.Where(i => i != notice).Should().OnlyContain(i => !i.UseIndividualFormatting);
+        sut.Queue.Where(i => i != notice).Should().OnlyContain(i => !i.UseIndividualFormatting && i.FormatData == null);
         sut.Queue.Last().Should().BeSameAs(notice);
         sut.SelectedItem!.Id.Should().Be("song:2", "선택은 같은 자리(곡B)로 유지");
         sut.SelectedItem.UseIndividualFormatting.Should().BeFalse("선택 항목도 교체된 새 인스턴스");

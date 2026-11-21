@@ -239,6 +239,93 @@
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
+        <DataTemplate x:Key="DefaultStripText"><TextBlock Text="{Binding}" FontSize="12" Style="{x:Null}" /></DataTemplate>
+        <DataTemplate x:Key="DefaultChoiceText"><TextBlock Text="{Binding DisplayName}" FontSize="12" Style="{x:Null}" /></DataTemplate>
+        <Style x:Key="DefaultStripButton" TargetType="Button" BasedOn="{StaticResource FrmMainButton}">
+            <Setter Property="Width" Value="23" /><Setter Property="Height" Value="29" />
+            <Setter Property="Padding" Value="0" /><Setter Property="Margin" Value="0" />
+        </Style>
+        <Style x:Key="DefaultStripToggle" TargetType="ToggleButton" BasedOn="{StaticResource FrmMainToggleButton}">
+            <Setter Property="Width" Value="23" /><Setter Property="Height" Value="29" />
+            <Setter Property="Padding" Value="0" /><Setter Property="Margin" Value="0" />
+        </Style>
+        <Style x:Key="DefaultColourButton" TargetType="Button" BasedOn="{StaticResource FrmMainButton}">
+            <Setter Property="Padding" Value="2,0" /><Setter Property="Margin" Value="0" />
+            <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}" />
+            <Setter Property="Height" Value="18" /><Setter Property="ContentTemplate" Value="{StaticResource DefaultStripText}" />
+        </Style>
+        <Style x:Key="DefaultFieldCombo" TargetType="ComboBox">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Template"><Setter.Value>
+                <ControlTemplate TargetType="ComboBox">
+                    <Grid>
+                        <Border BorderBrush="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}" BorderThickness="1" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}">
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="15" /></Grid.ColumnDefinitions>
+                                <ContentPresenter Margin="4,0,1,0" VerticalAlignment="Center" Content="{TemplateBinding SelectionBoxItem}" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" />
+                                <Border Grid.Column="1" Margin="1" Background="{DynamicResource {x:Static SystemColors.ControlLightBrushKey}}">
+                                    <Path HorizontalAlignment="Center" VerticalAlignment="Center" Data="M0,0 L5,0 L2.5,3Z" Fill="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" />
+                                </Border>
+                            </Grid>
+                        </Border>
+                        <ToggleButton Focusable="False" ClickMode="Press" IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
+                            <ToggleButton.Template><ControlTemplate TargetType="ToggleButton"><Border Background="Transparent" /></ControlTemplate></ToggleButton.Template>
+                        </ToggleButton>
+                        <Popup x:Name="PART_Popup" Placement="Bottom" AllowsTransparency="True" Focusable="False" IsOpen="{TemplateBinding IsDropDownOpen}">
+                            <Border MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" BorderBrush="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}" BorderThickness="1">
+                                <ScrollViewer MaxHeight="{TemplateBinding MaxDropDownHeight}" CanContentScroll="True"><ItemsPresenter /></ScrollViewer>
+                            </Border>
+                        </Popup>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value></Setter>
+        </Style>
+        <Style x:Key="DefaultSpinnerButton" TargetType="RepeatButton">
+            <Setter Property="Template"><Setter.Value>
+                <ControlTemplate TargetType="RepeatButton">
+                    <Border Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" BorderBrush="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}" BorderThickness="1">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" TextElement.FontSize="8"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value></Setter>
+        </Style>
+        <Style x:Key="DefaultIconChoice" TargetType="ComboBox">
+            <Setter Property="Width" Value="30" /><Setter Property="Height" Value="29" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <ToggleButton Style="{StaticResource FrmMainToggleButton}" Focusable="False" Padding="0" Margin="0" ClickMode="Press" IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <controls:FrmIcon Icon="{Binding SelectedItem.Icon, RelativeSource={RelativeSource TemplatedParent}}" Width="19" Height="19" />
+                                    <Path Width="5" Height="3" Margin="2,0,0,0" Stretch="Fill" Fill="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" Data="M0,0 L5,0 L2.5,3 Z" />
+                                </StackPanel>
+                            </ToggleButton>
+                            <Popup x:Name="PART_Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}" AllowsTransparency="True" Focusable="False">
+                                <Border Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}" BorderThickness="1" Padding="2">
+                                    <ScrollViewer MaxHeight="{TemplateBinding MaxDropDownHeight}"><ItemsPresenter /></ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="ItemContainerStyle">
+                <Setter.Value>
+                    <Style TargetType="{x:Type controls:FormatOption}">
+                        <Setter Property="Template"><Setter.Value>
+                            <ControlTemplate TargetType="{x:Type controls:FormatOption}">
+                                <Border x:Name="Row" Background="Transparent" Padding="3,2"><StackPanel Orientation="Horizontal"><controls:FrmIcon Icon="{TemplateBinding Icon}" Width="16" Height="16" Margin="0,0,6,0" /><ContentPresenter VerticalAlignment="Center" /></StackPanel></Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsSelected" Value="True"><Setter TargetName="Row" Property="Background" Value="{DynamicResource {x:Static SystemColors.ControlLightBrushKey}}" /></Trigger>
+                                    <Trigger Property="IsHighlighted" Value="True"><Setter TargetName="Row" Property="Background" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" /><Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.HighlightTextBrushKey}}" /></Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value></Setter>
+                    </Style>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
 
     <!-- 전역 단축키: Ctrl+K 로 명령 팔레트 열기(§7.4 — FrmMain 136개 메뉴를 검색 가능한 단일 진입점으로 흡수). -->
@@ -2132,72 +2219,16 @@
                     <TabItem.Header>
                         <TextBlock Text="Images" FontSize="{Binding FontSize, RelativeSource={RelativeSource AncestorType=TabItem}}" />
                     </TabItem.Header>
-                    <Grid Margin="0,8,0,0">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="*" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
-
-                        <Grid Grid.Row="0" Margin="0,0,0,8">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="4" />
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="4" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <ComboBox x:Name="ImagesFolder"
-                                      Tag="ImagesFolder"
-                                      ItemsSource="{Binding FolderGroups}"
-                                      SelectedItem="{Binding SelectedFolder, Mode=TwoWay}"
-                                      DisplayMemberPath="DisplayName"
-                                      MinHeight="34"
-                                      VerticalContentAlignment="Center"
-                                      ToolTip="{Binding FolderPath}"
-                                      AutomationProperties.Name="Images folder selector" />
-                            <StackPanel Grid.Column="2" Orientation="Horizontal">
-                                <Button x:Name="Image_OpenFolder" Click="OpenSourceFolder_Click" Style="{StaticResource ClassicTopToolStripButton}" ToolTip="선택한 폴더 열기" AutomationProperties.Name="선택한 폴더 열기"><controls:FrmIcon Icon="folder_open" Width="16" Height="16"/></Button>
-                                <Button
-                                    x:Name="Image_Import"
-                                    Tag="Image_Import"
-                                    Click="ImageImport_Click"
-                                    Style="{StaticResource ClassicOperatorStripButton}"
-                                    ToolTip="Import image"
-                                    AutomationProperties.Name="Import image into selected Images folder">
-                                <controls:FrmIcon Icon="document_arrow_down" Width="20" Height="20" />
-                                </Button>
+                    <Grid Margin="5,7,5,0" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
+                        <Grid.RowDefinitions><RowDefinition Height="32" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+                        <DockPanel LastChildFill="True">
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Width="55" VerticalAlignment="Top">
+                                <Button x:Name="Image_OpenFolder" Click="OpenSourceFolder_Click" Style="{StaticResource DefaultStripButton}" ToolTip="Open Folder" AutomationProperties.Name="Open folder"><controls:FrmIcon Icon="folder_open" Width="19" Height="19" /></Button>
+                                <Button x:Name="Image_Import" Tag="Image_Import" Click="ImageImport_Click" Style="{StaticResource DefaultStripButton}" ToolTip="Import An Image" AutomationProperties.Name="Import image into selected Images folder"><controls:FrmIcon Icon="document_arrow_down" Width="19" Height="19" /></Button>
                             </StackPanel>
-                            <Button Grid.Column="4"
-                                    Command="{Binding LoadCommand}"
-                                    Style="{StaticResource EsButton.Secondary}"
-                                    Content="Refresh"
-                                    AutomationProperties.Name="Refresh Images list" />
-                        </Grid>
-
-                        <StackPanel Grid.Row="1"
-                                    Orientation="Horizontal"
-                                    Margin="0,0,0,8">
-                            <CheckBox IsChecked="{Binding IncludeSubfolders, Mode=TwoWay}"
-                                      Content="Subfolders"
-                                      Margin="0,0,12,0"
-                                      AutomationProperties.Name="Include Images subfolders" />
-                            <ComboBox ItemsSource="{Binding Categories}"
-                                      SelectedItem="{Binding SelectedCategory, Mode=TwoWay}"
-                                      MinWidth="110"
-                                      AutomationProperties.Name="Images category filter" />
-                        </StackPanel>
-
-                        <TextBox Grid.Row="2"
-                                 Text="{Binding FilterText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 MinHeight="34"
-                                 Margin="0,0,0,8"
-                                 ToolTip="Filter by file name"
-                                 AutomationProperties.Name="Images file filter" />
-
-                        <ListBox Grid.Row="3"
+                            <ComboBox x:Name="ImagesFolder" Tag="ImagesFolder" Style="{StaticResource DefaultFieldCombo}" Height="22" VerticalAlignment="Top" Margin="0,0,2,0" ItemsSource="{Binding FolderGroups}" SelectedItem="{Binding SelectedFolder, Mode=TwoWay}" ItemTemplate="{StaticResource DefaultChoiceText}" ToolTip="{Binding FolderPath}" AutomationProperties.Name="Images folder selector" />
+                        </DockPanel>
+                        <ListBox Grid.Row="1" Style="{x:Null}" BorderThickness="0" Background="Transparent"
                                  x:Name="InlineImagesList"
                                  Tag="flowLayoutImages"
                                  ItemsSource="{Binding Images}"
@@ -2205,12 +2236,10 @@
                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                  KeyDown="SourceListAddOnEnter_KeyDown"
                                  PreviewMouseLeftButtonDown="InlineImagesList_PreviewMouseLeftButtonDown"
+                                 PreviewMouseLeftButtonUp="InlineImagesList_PreviewMouseLeftButtonUp"
+                                 PreviewMouseRightButtonDown="InlineImagesList_PreviewMouseRightButtonDown"
                                  PreviewMouseMove="InlineImagesList_PreviewMouseMove"
                                  AutomationProperties.Name="Images source thumbnail list">
-                            <ListBox.InputBindings>
-                                <MouseBinding MouseAction="LeftDoubleClick"
-                                              Command="{Binding ApplySelectedImageCommand}" />
-                            </ListBox.InputBindings>
                             <ListBox.ContextMenu>
                                 <ContextMenu x:Name="CMenuImages"
                                              Style="{StaticResource FrmMainListContextMenu}"
@@ -2236,53 +2265,29 @@
                                     <WrapPanel />
                                 </ItemsPanelTemplate>
                             </ListBox.ItemsPanel>
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem">
+                                    <Setter Property="Padding" Value="0" /><Setter Property="Margin" Value="3" />
+                                    <Setter Property="Template"><Setter.Value>
+                                        <ControlTemplate TargetType="ListBoxItem">
+                                            <Grid><ContentPresenter /><Border x:Name="SelectedOutline" IsHitTestVisible="False" BorderThickness="1" /></Grid>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsSelected" Value="True"><Setter TargetName="SelectedOutline" Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" /></Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value></Setter>
+                                </Style>
+                            </ListBox.ItemContainerStyle>
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <StackPanel Width="{Binding Path=ActualWidth, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={StaticResource LegacyImageThumbnailSize}}"
-                                                Margin="4">
-                                        <Border Width="{Binding Path=ActualWidth, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={StaticResource LegacyImageThumbnailSize}}"
-                                                Height="{Binding Path=ActualWidth, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={StaticResource LegacyImageThumbnailSize}, ConverterParameter=Height}"
-                                                Background="{DynamicResource Brush.Surface.Subtle}"
-                                                BorderBrush="{DynamicResource Brush.Border.Default}"
-                                                BorderThickness="1">
-                                            <Image Source="{Binding Thumbnail}"
-                                                   Stretch="Uniform"
-                                                   RenderOptions.BitmapScalingMode="HighQuality"
-                                                   Margin="2" />
-                                        </Border>
-                                        <TextBlock Text="{Binding FileName}"
-                                                   TextTrimming="CharacterEllipsis"
-                                                   TextAlignment="Center"
-                                                   Style="{StaticResource Type.Caption.Style}"
-                                                   Foreground="{DynamicResource Brush.Text.Secondary}"
-                                                   Margin="0,4,0,0" />
-                                    </StackPanel>
+                                    <Grid Background="Transparent" ToolTip="{Binding FileName}" AutomationProperties.Name="{Binding FileName}"
+                                          Width="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={StaticResource LegacyImageThumbnailSize}}"
+                                          Height="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={StaticResource LegacyImageThumbnailSize}, ConverterParameter=Height}">
+                                        <Image Source="{Binding Thumbnail}" Stretch="Uniform" />
+                                    </Grid>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
                         </ListBox>
-
-                        <Grid Grid.Row="4" Margin="0,8,0,0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="{Binding StatusText}"
-                                       TextTrimming="CharacterEllipsis"
-                                       Style="{StaticResource Type.Caption.Style}"
-                                       Foreground="{DynamicResource Brush.Text.Tertiary}" />
-                            <StackPanel Grid.Column="1" Orientation="Horizontal">
-                                <Button Command="{Binding ClearBackgroundCommand}"
-                                        Style="{StaticResource EsButton.Secondary}"
-                                        Content="Clear"
-                                        Margin="8,0,0,0"
-                                        AutomationProperties.Name="Clear output background image" />
-                                <Button Command="{Binding ApplySelectedImageCommand}"
-                                        Style="{StaticResource EsButton.Primary}"
-                                        Content="Apply"
-                                        Margin="8,0,0,0"
-                                        AutomationProperties.Name="Apply selected image like FrmMain" />
-                            </StackPanel>
-                        </Grid>
                     </Grid>
                 </TabItem>
                 <TabItem Tag="MediaSource"
@@ -2400,812 +2405,115 @@
                     <TabItem.Header>
                         <TextBlock Text="Default" FontSize="{Binding FontSize, RelativeSource={RelativeSource AncestorType=TabItem}}" />
                     </TabItem.Header>
-                    <ScrollViewer x:Name="DefPanel"
-                                  Tag="DefPanel"
-                                  Margin="0,8,0,0"
-                                  VerticalScrollBarVisibility="Auto">
-                        <StackPanel>
-                            <GroupBox x:Name="DefgroupBox3"
-                                      Tag="DefgroupBox3"
-                                      Header="Apply"
-                                      Padding="8"
-                                      Margin="0,0,0,8">
+                    <ScrollViewer x:Name="DefPanel" Tag="DefPanel" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
+                        <StackPanel Width="238" TextElement.FontSize="12" HorizontalAlignment="Center" Margin="10,5,2,3">
+                            <StackPanel Orientation="Horizontal" Height="31" VerticalAlignment="Center">
+                                <Button x:Name="DefApplyDefaultsBtn" ContentTemplate="{StaticResource DefaultStripText}" Style="{StaticResource FrmMainButton}" FontSize="12" BorderBrush="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" Padding="1,0" Height="28" Width="184" Content="Apply to All Except InfoScreens" Command="{Binding ApplyGlobalFormatToAllCommand}" />
+                                <Button x:Name="Def_LoadTemplate" ToolTip="Load Template" Style="{StaticResource DefaultStripButton}" Click="LoadSessionTemplate_Click"><controls:FrmIcon Icon="folder_open" Width="19" Height="19" /></Button>
+                                <Button x:Name="Def_SaveTemplate" ToolTip="Save Template" Style="{StaticResource DefaultStripButton}" Click="SaveSessionTemplate_Click"><controls:FrmIcon Icon="save" Width="19" Height="19" /></Button>
+                            </StackPanel>
+                            <GroupBox x:Name="DefgroupBox1" Tag="DefgroupBox1" Header="Default Layout" Style="{x:Null}" HeaderTemplate="{StaticResource DefaultStripText}" Padding="0,2,3,1" Margin="0,3,0,0" BorderBrush="{DynamicResource {x:Static SystemColors.ControlLightBrushKey}}">
                                 <StackPanel>
-                                    <WrapPanel Margin="0,0,0,6">
-                                        <Button x:Name="Def_LoadTemplate" Content="세션 템플릿 열기…" Click="LoadSessionTemplate_Click" />
-                                        <Button x:Name="Def_SaveTemplate" Content="세션 템플릿 저장…" Click="SaveSessionTemplate_Click" Margin="6,0,0,0" />
-                                    </WrapPanel>
-                                    <Button Command="{Binding ApplyGlobalFormatToAllCommand}"
-                                            Style="{StaticResource EsButton.Secondary}"
-                                            HorizontalAlignment="Stretch"
-                                            Content="Apply to All Except InfoScreens"
-                                            AutomationProperties.Name="Apply current output format to all except InfoScreens" />
-                                    <Button Command="{Binding ResetOutputAppearanceCommand}"
-                                            Style="{StaticResource EsButton.Primary}"
-                                            HorizontalAlignment="Stretch"
-                                            Margin="0,8,0,0"
-                                            Content="Default Layout"
-                                            AutomationProperties.Name="Restore default output layout" />
-                                    <Button Command="{Binding ClearAllItemsFormattingCommand}"
-                                            Style="{StaticResource EsButton.Secondary}"
-                                            HorizontalAlignment="Stretch"
-                                            Margin="0,8,0,0"
-                                            Content="Clear Item Formats"
-                                            AutomationProperties.Name="Clear all item-specific formatting" />
-                                </StackPanel>
-                            </GroupBox>
-
-                            <GroupBox x:Name="DefgroupBox1"
-                                      Tag="DefgroupBox1"
-                                      Header="Text"
-                                      Padding="8"
-                                      Margin="0,0,0,8"
-                                      MaxHeight="180">
-                                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                                    <StackPanel>
-                                    <WrapPanel>
-                                        <ToggleButton x:Name="Def_Head"
-                                                      IsChecked="{Binding ActiveLyricsTitleHeading, Mode=OneWay}"
-                                                      Command="{Binding ToggleLyricsTitleHeadingCommand}"
-                                                      MinHeight="30"
-                                                      Padding="9,0"
-                                                      Margin="0,0,6,6"
-                                                      Content="Head"
-                                                      ToolTip="FrmMain Def_Head"
-                                                      AutomationProperties.Name="Def Head title heading" />
-                                        <ToggleButton x:Name="Def_Outline"
-                                                      IsChecked="{Binding ActiveLyricsOutline, Mode=OneWay}"
-                                                      Command="{Binding ToggleLyricsOutlineCommand}"
-                                                      MinHeight="30"
-                                                      Padding="9,0"
-                                                      Margin="0,0,6,6"
-                                                      ToolTip="FrmMain Def_Outline"
-                                                      AutomationProperties.Name="Def Outline lyrics effect">
-                                            <controls:FrmIcon Icon="text_effects" Width="16" Height="16" />
-                                        </ToggleButton>
-                                        <ToggleButton x:Name="Def_Shadow"
-                                                      IsChecked="{Binding ActiveLyricsShadow, Mode=OneWay}"
-                                                      Command="{Binding ToggleLyricsShadowCommand}"
-                                                      MinHeight="30"
-                                                      Padding="9,0"
-                                                      Margin="0,0,6,6"
-                                                      ToolTip="FrmMain Def_Shadow"
-                                                      AutomationProperties.Name="Def Shadow lyrics effect">
-                                            <controls:FrmIcon Icon="text_shadow" Width="16" Height="16" />
-                                        </ToggleButton>
-                                        <ToggleButton x:Name="Def_Notations"
-                                                      IsChecked="{Binding ActiveLyricsNotations, Mode=OneWay}"
-                                                      Command="{Binding ToggleLyricsNotationsCommand}"
-                                                      MinHeight="30"
-                                                      Padding="9,0"
-                                                      Margin="0,0,6,6"
-                                                      ToolTip="FrmMain Def_Notations"
-                                                      AutomationProperties.Name="Def Notations chord display">
-                                            <controls:FrmIcon Icon="chords" Width="16" Height="16" />
-                                        </ToggleButton>
-                                        <Button x:Name="Def_ToZero"
-                                                Command="{Binding TransposeLiveResetCommand}"
-                                                Style="{StaticResource EsButton.Secondary}"
-                                                MinHeight="30"
-                                                Padding="9,0"
-                                                Margin="0,0,6,6"
-                                                ToolTip="FrmMain Def_ToZero"
-                                                AutomationProperties.Name="Def ToZero transpose reset">
-                                            <controls:FrmIcon Icon="capo_zero" Width="16" Height="16" />
-                                        </Button>
-                                    </WrapPanel>
-
-                                    <TextBlock Text="Heading Align"
-                                               Style="{StaticResource Type.Caption.Style}"
-                                               Foreground="{DynamicResource Brush.Text.Tertiary}"
-                                               Margin="0,2,0,4" />
-                                    <WrapPanel x:Name="Def_HeadAlign"
-                                               Tag="Def_HeadAlign">
-                                        <Button x:Name="Def_HeadAlignAsR1"
-                                                Command="{Binding ApplyTitleHeadingLegacyModeCommand}"
-                                                CommandParameter="AsR1"
-                                                Style="{StaticResource EsButton.Secondary}"
-                                                MinHeight="30"
-                                                Padding="9,0"
-                                                Margin="0,0,6,6"
-                                                ToolTip="FrmMain Def_HeadAlignAsR1"
-                                                AutomationProperties.Name="Def heading align as Region 1">
-                                            <controls:FrmIcon Icon="heading_align_r1" Width="16" Height="16" />
-                                        </Button>
-                                        <Button x:Name="Def_HeadAlignAsR2"
-                                                Command="{Binding ApplyTitleHeadingLegacyModeCommand}"
-                                                CommandParameter="AsR2"
-                                                Style="{StaticResource EsButton.Secondary}"
-                                                MinHeight="30"
-                                                Padding="9,0"
-                                                Margin="0,0,6,6"
-                                                ToolTip="FrmMain Def_HeadAlignAsR2"
-                                                AutomationProperties.Name="Def heading align as Region 2">
-                                            <controls:FrmIcon Icon="heading_align_r2" Width="16" Height="16" />
-                                        </Button>
-                                        <Button x:Name="Def_HeadAlignLeft"
-                                                Command="{Binding ApplyTitleHeadingLegacyModeCommand}"
-                                                CommandParameter="Left"
-                                                Style="{StaticResource EsButton.Secondary}"
-                                                MinHeight="30"
-                                                Padding="9,0"
-                                                Margin="0,0,6,6"
-                                                ToolTip="FrmMain Def_HeadAlignLeft"
-                                                AutomationProperties.Name="Def heading align left">
-                                            <controls:FrmIcon Icon="heading_align_left" Width="16" Height="16" />
-                                        </Button>
-                                        <Button x:Name="Def_HeadAlignCentre"
-                                                Command="{Binding ApplyTitleHeadingLegacyModeCommand}"
-                                                CommandParameter="Centre"
-                                                Style="{StaticResource EsButton.Secondary}"
-                                                MinHeight="30"
-                                                Padding="9,0"
-                                                Margin="0,0,6,6"
-                                                ToolTip="FrmMain Def_HeadAlignCentre"
-                                                AutomationProperties.Name="Def heading align centre">
-                                            <controls:FrmIcon Icon="heading_align_center" Width="16" Height="16" />
-                                        </Button>
-                                        <Button x:Name="Def_HeadAlignRight"
-                                                Command="{Binding ApplyTitleHeadingLegacyModeCommand}"
-                                                CommandParameter="Right"
-                                                Style="{StaticResource EsButton.Secondary}"
-                                                MinHeight="30"
-                                                Padding="9,0"
-                                                Margin="0,0,6,6"
-                                                ToolTip="FrmMain Def_HeadAlignRight"
-                                                AutomationProperties.Name="Def heading align right">
-                                            <controls:FrmIcon Icon="heading_align_right" Width="16" Height="16" />
-                                        </Button>
-                                    </WrapPanel>
-
-                                    <TextBlock Text="Align"
-                                               Style="{StaticResource Type.Caption.Style}"
-                                               Foreground="{DynamicResource Brush.Text.Tertiary}"
-                                               Margin="0,2,0,4" />
-                                    <WrapPanel x:Name="Def_R1Align"
-                                               Tag="Def_R1Align">
-                                        <Button Command="{Binding ApplyLyricsAlignmentCommand}"
-                                                CommandParameter="{x:Static settings:LyricsTextAlignment.Left}"
-                                                Style="{StaticResource EsButton.Secondary}"
-                                                MinWidth="56"
-                                                MinHeight="30"
-                                                Margin="0,0,6,6"
-                                                Content="Left"
-                                                AutomationProperties.Name="Def Region1 left align" />
-                                        <Button Command="{Binding ApplyLyricsAlignmentCommand}"
-                                                CommandParameter="{x:Static settings:LyricsTextAlignment.Center}"
-                                                Style="{StaticResource EsButton.Secondary}"
-                                                MinWidth="56"
-                                                MinHeight="30"
-                                                Margin="0,0,6,6"
-                                                Content="Center"
-                                                AutomationProperties.Name="Def Region1 center align" />
-                                        <Button Command="{Binding ApplyLyricsAlignmentCommand}"
-                                                CommandParameter="{x:Static settings:LyricsTextAlignment.Right}"
-                                                Style="{StaticResource EsButton.Secondary}"
-                                                MinWidth="56"
-                                                MinHeight="30"
-                                                Margin="0,0,6,6"
-                                                Content="Right"
-                                                AutomationProperties.Name="Def Region1 right align" />
-                                    </WrapPanel>
-
-                                    <TextBlock Text="Region 1 Colour"
-                                               Style="{StaticResource Type.Caption.Style}"
-                                               Foreground="{DynamicResource Brush.Text.Tertiary}"
-                                               Margin="0,2,0,4" />
-                                    <WrapPanel x:Name="Def_R1Colour"
-                                               Tag="Def_R1Colour">
-                                        <Button Command="{Binding ApplyTextColorHexCommand}"
-                                                CommandParameter="#FFFFFF"
-                                                Style="{StaticResource EsButton.Secondary}"
-                                                MinHeight="30"
-                                                Padding="9,0"
-                                                Margin="0,0,6,6"
-                                                ToolTip="FrmMain Def_R1Colour white"
-                                                AutomationProperties.Name="Def Region1 text colour white">
-                                            <StackPanel Orientation="Horizontal"
-                                                        VerticalAlignment="Center">
-                                                <Border Style="{StaticResource ClassicColorSwatch}"
-                                                        Background="White" />
-                                                <TextBlock Text="White"
-                                                           VerticalAlignment="Center" />
-                                            </StackPanel>
-                                        </Button>
-                                        <Button Command="{Binding ApplyTextColorHexCommand}"
-                                                CommandParameter="#FFFF00"
-                                                Style="{StaticResource EsButton.Secondary}"
-                                                MinHeight="30"
-                                                Padding="9,0"
-                                                Margin="0,0,6,6"
-                                                ToolTip="FrmMain Def_R1Colour yellow"
-                                                AutomationProperties.Name="Def Region1 text colour yellow">
-                                            <StackPanel Orientation="Horizontal"
-                                                        VerticalAlignment="Center">
-                                                <Border Style="{StaticResource ClassicColorSwatch}"
-                                                        Background="Yellow" />
-                                                <TextBlock Text="Yellow"
-                                                           VerticalAlignment="Center" />
-                                            </StackPanel>
-                                        </Button>
-                                        <Button Command="{Binding ApplyTextColorHexCommand}"
-                                                CommandParameter="#000000"
-                                                Style="{StaticResource EsButton.Secondary}"
-                                                MinHeight="30"
-                                                Padding="9,0"
-                                                Margin="0,0,6,6"
-                                                ToolTip="FrmMain Def_R1Colour black"
-                                                AutomationProperties.Name="Def Region1 text colour black">
-                                            <StackPanel Orientation="Horizontal"
-                                                        VerticalAlignment="Center">
-                                                <Border Style="{StaticResource ClassicColorSwatch}"
-                                                        Background="Black" />
-                                                <TextBlock Text="Black"
-                                                           VerticalAlignment="Center" />
-                                            </StackPanel>
-                                        </Button>
-                                        <Button x:Name="Def_R1ColourCustom"
-                                                Tag="Def_R1ColourCustom"
-                                                Click="PickDefaultTextColor_Click"
-                                                Style="{StaticResource EsButton.Secondary}"
-                                                MinHeight="30"
-                                                Padding="9,0"
-                                                Margin="0,0,6,6"
-                                                ToolTip="FrmMain Def_R1Colour custom"
-                                                AutomationProperties.Name="Def Region1 custom text colour">
-                                            <StackPanel Orientation="Horizontal"
-                                                        VerticalAlignment="Center">
-                                                <Border Style="{StaticResource ClassicColorSwatch}"
-                                                        Background="{Binding ActiveTextColorHex, Converter={StaticResource ColorValueToBrush}}" />
-                                                <TextBlock Text="..."
-                                                           VerticalAlignment="Center" />
-                                            </StackPanel>
-                                        </Button>
-                                    </WrapPanel>
-
-                                    <TextBlock Text="Region 2 Align / Colour"
-                                               Style="{StaticResource Type.Caption.Style}"
-                                               Foreground="{DynamicResource Brush.Text.Tertiary}"
-                                               Margin="0,2,0,4" />
-                                    <WrapPanel Tag="toolStripDef2">
-                                        <ComboBox x:Name="Def_R2Align"
-                                                  Tag="Def_R2Align"
-                                                  ItemsSource="{Binding LyricsRegion2AlignmentPresets}"
-                                                  SelectedValue="{Binding LyricsRegion2AlignmentInput, Mode=TwoWay}"
-                                                  SelectedValuePath="Value"
-                                                  DisplayMemberPath="Key"
-                                                  MinWidth="118"
-                                                  Height="30"
-                                                  Margin="0,0,6,6"
-                                                  ToolTip="FrmMain Def_R2Align"
-                                                  AutomationProperties.Name="Def Region2 alignment" />
-                                        <ComboBox x:Name="Def_R2Colour"
-                                                  Tag="Def_R2Colour"
-                                                  ItemsSource="{Binding LyricsTextColor2Presets}"
-                                                  SelectedValue="{Binding LyricsTextColor2Input, Mode=TwoWay}"
-                                                  SelectedValuePath="Value"
-                                                  ItemTemplate="{StaticResource ColorPresetItemTemplate}"
-                                                  MinWidth="118"
-                                                  Height="30"
-                                                  Margin="0,0,6,6"
-                                                  ToolTip="FrmMain Def_R2Colour"
-                                                  AutomationProperties.Name="Def Region2 text colour" />
-                                    </WrapPanel>
-
-                                    <TextBlock Text="Vertical"
-                                               Style="{StaticResource Type.Caption.Style}"
-                                               Foreground="{DynamicResource Brush.Text.Tertiary}"
-                                               Margin="0,2,0,4" />
-                                    <WrapPanel x:Name="Def_VAlign"
-                                               Tag="Def_VAlign">
-                                        <Button x:Name="Def_VAlignTop"
-                                                Command="{Binding ApplyLyricsVerticalAlignmentCommand}"
-                                                CommandParameter="{x:Static settings:LyricsVerticalAlignment.Top}"
-                                                Style="{StaticResource EsButton.Secondary}"
-                                                MinWidth="56"
-                                                MinHeight="30"
-                                                Margin="0,0,6,6"
-                                                AutomationProperties.Name="Def vertical align top" ToolTip="Def vertical align top">
-                                            <controls:FrmIcon Icon="textbox_align_top" Width="16" Height="16" />
-                                        </Button>
-                                        <Button x:Name="Def_VAlignCentre"
-                                                Command="{Binding ApplyLyricsVerticalAlignmentCommand}"
-                                                CommandParameter="{x:Static settings:LyricsVerticalAlignment.Center}"
-                                                Style="{StaticResource EsButton.Secondary}"
-                                                MinWidth="56"
-                                                MinHeight="30"
-                                                Margin="0,0,6,6"
-                                                AutomationProperties.Name="Def vertical align centre" ToolTip="Def vertical align centre">
-                                            <controls:FrmIcon Icon="textbox_align_middle" Width="16" Height="16" />
-                                        </Button>
-                                        <Button x:Name="Def_VAlignBottom"
-                                                Command="{Binding ApplyLyricsVerticalAlignmentCommand}"
-                                                CommandParameter="{x:Static settings:LyricsVerticalAlignment.Bottom}"
-                                                Style="{StaticResource EsButton.Secondary}"
-                                                MinWidth="56"
-                                                MinHeight="30"
-                                                Margin="0,0,6,6"
-                                                AutomationProperties.Name="Def vertical align bottom" ToolTip="Def vertical align bottom">
-                                            <controls:FrmIcon Icon="textbox_align_bottom" Width="16" Height="16" />
-                                        </Button>
-                                    </WrapPanel>
-
-                                    <TextBlock Text="Region"
-                                               Style="{StaticResource Type.Caption.Style}"
-                                               Foreground="{DynamicResource Brush.Text.Tertiary}"
-                                               Margin="0,2,0,4" />
-                                    <WrapPanel x:Name="Def_Region"
-                                               Tag="Def_Region">
-                                        <Button Command="{Binding ApplyRegionDisplayCommand}"
-                                                CommandParameter="{x:Static settings:LyricsRegionDisplay.Both}"
-                                                Style="{StaticResource EsButton.Secondary}"
-                                                MinHeight="30"
-                                                Padding="9,0"
-                                                Margin="0,0,6,6"
-                                                Content="Both"
-                                                AutomationProperties.Name="Def Region both" />
-                                        <Button Command="{Binding ApplyRegionDisplayCommand}"
-                                                CommandParameter="{x:Static settings:LyricsRegionDisplay.Region1Only}"
-                                                Style="{StaticResource EsButton.Secondary}"
-                                                MinHeight="30"
-                                                Padding="9,0"
-                                                Margin="0,0,6,6"
-                                                Content="R1"
-                                                AutomationProperties.Name="Def Region one only" />
-                                        <Button Command="{Binding ApplyRegionDisplayCommand}"
-                                                CommandParameter="{x:Static settings:LyricsRegionDisplay.Region2Only}"
-                                                Style="{StaticResource EsButton.Secondary}"
-                                                MinHeight="30"
-                                                Padding="9,0"
-                                                Margin="0,0,6,6"
-                                                Content="R2"
-                                                AutomationProperties.Name="Def Region two only" />
-                                    </WrapPanel>
+                                    <StackPanel Orientation="Horizontal" Height="31" VerticalAlignment="Center">
+                                        <ComboBox x:Name="Def_Head" ToolTip="Song Headings" Style="{StaticResource DefaultIconChoice}" SelectedValuePath="Tag" SelectedValue="{Binding DefaultHeadingChoice, Mode=TwoWay}">
+                                            <controls:FormatOption x:Name="Def_HeadNoTitles" Tag="None" Content="No Headings" Icon="heading_off" />
+                                            <controls:FormatOption x:Name="Def_HeadAllTitles" Tag="All" Content="Show All Headings" Icon="heading" />
+                                            <controls:FormatOption x:Name="Def_HeadFirstScreen" Tag="First" Content="Heading At First Screen Only" Icon="heading_first" />
+                                        </ComboBox>
+                                        <ComboBox x:Name="Def_Region" ToolTip="Display Regions" Style="{StaticResource DefaultIconChoice}" SelectedValuePath="Tag" SelectedValue="{Binding DefaultRegionChoice, Mode=TwoWay}">
+                                            <controls:FormatOption x:Name="Def_ShowRegion1" Tag="Region1Only" Content="Region 1 Only" Icon="region_1" />
+                                            <controls:FormatOption x:Name="Def_ShowRegion2" Tag="Region2Only" Content="Region 2 Only" Icon="region_2" />
+                                            <controls:FormatOption x:Name="Def_ShowRegionBoth" Tag="Both" Content="Regions 1 and 2" Icon="region_both" />
+                                        </ComboBox>
+                                        <ComboBox x:Name="Def_VAlign" ToolTip="Vertical Alignment" Style="{StaticResource DefaultIconChoice}" SelectedValuePath="Tag" SelectedValue="{Binding DefaultVerticalChoice, Mode=TwoWay}">
+                                            <controls:FormatOption x:Name="Def_VAlignTop" Tag="Top" Content="Align Top" Icon="textbox_align_top" />
+                                            <controls:FormatOption x:Name="Def_VAlignCentre" Tag="Center" Content="Align Centre" Icon="textbox_align_middle" />
+                                            <controls:FormatOption x:Name="Def_VAlignBottom" Tag="Bottom" Content="Align Bottom" Icon="textbox_align_bottom" />
+                                        </ComboBox>
+                                        <ToggleButton x:Name="Def_Shadow" ToolTip="Shadow Font" Style="{StaticResource DefaultStripToggle}" IsChecked="{Binding ActiveLyricsShadow, Mode=OneWay}" Command="{Binding ToggleLyricsShadowCommand}"><controls:FrmIcon Icon="text_shadow" Width="19" Height="19" /></ToggleButton>
+                                        <ToggleButton x:Name="Def_Outline" ToolTip="Outline Font" Style="{StaticResource DefaultStripToggle}" IsChecked="{Binding ActiveLyricsOutline, Mode=OneWay}" Command="{Binding ToggleLyricsOutlineCommand}"><controls:FrmIcon Icon="text_effects" Width="19" Height="19" /></ToggleButton>
+                                        <ToggleButton x:Name="Def_Interlace" ToolTip="Interlace Region1/Regions2" Style="{StaticResource DefaultStripToggle}" IsChecked="{Binding ActiveLyricsInterlace, Mode=OneWay}" Command="{Binding ToggleInterlaceCommand}"><controls:FrmIcon Icon="interlace" Width="19" Height="19" /></ToggleButton>
+                                        <ToggleButton x:Name="Def_Notations" ToolTip="Show Notations" Style="{StaticResource DefaultStripToggle}" IsChecked="{Binding ActiveLyricsNotations, Mode=OneWay}" Command="{Binding ToggleLyricsNotationsCommand}"><controls:FrmIcon Icon="chords" Width="19" Height="19" /></ToggleButton>
+                                        <ToggleButton x:Name="Def_ToZero" ToolTip="To Capo 0" Style="{StaticResource DefaultStripToggle}" IsChecked="{Binding DefaultCapoZero, Mode=OneWay}" Command="{Binding ToggleDefaultCapoCommand}"><controls:FrmIcon Icon="capo_zero" Width="19" Height="19" /></ToggleButton>
                                     </StackPanel>
-                                </ScrollViewer>
-                            </GroupBox>
-
-                            <GroupBox x:Name="DefgroupBox2"
-                                      Tag="DefgroupBox2"
-                                      Header="Background / Transition"
-                                      Padding="8"
-                                      Margin="0,0,0,8">
-                                <StackPanel>
-                                    <WrapPanel x:Name="Def_ImageMode"
-                                               Tag="Def_ImageMode">
-                                        <Button x:Name="Def_NoImage"
-                                                Command="{Binding ClearOutputBackgroundImageCommand}"
-                                                IsEnabled="{Binding CanClearOutputBackgroundImage}"
-                                                Style="{StaticResource EsButton.Secondary}"
-                                                MinHeight="30"
-                                                Padding="9,0"
-                                                Margin="0,0,6,6"
-                                                ToolTip="{Binding OutputBackgroundNoImageToolTip}"
-                                                ToolTipService.ShowOnDisabled="True"
-                                                AutomationProperties.Name="Def NoImage clear output background">
-                                            <controls:FrmIcon Icon="image_off" Width="16" Height="16" />
-                                        </Button>
-                                        <Button x:Name="Def_ImageTile"
-                                                Command="{Binding ApplyBackgroundModeCommand}"
-                                                CommandParameter="{x:Static settings:LyricsBackgroundMode.Tile}"
-                                                Style="{StaticResource EsButton.Secondary}"
-                                                MinHeight="30"
-                                                Padding="9,0"
-                                                Margin="0,0,6,6"
-                                                AutomationProperties.Name="Def background tile" ToolTip="Def background tile">
-                                            <controls:FrmIcon Icon="image_tile" Width="16" Height="16" />
-                                        </Button>
-                                        <Button x:Name="Def_ImageCentre"
-                                                Command="{Binding ApplyBackgroundModeCommand}"
-                                                CommandParameter="{x:Static settings:LyricsBackgroundMode.Center}"
-                                                Style="{StaticResource EsButton.Secondary}"
-                                                MinHeight="30"
-                                                Padding="9,0"
-                                                Margin="0,0,6,6"
-                                                AutomationProperties.Name="Def background centre" ToolTip="Def background centre">
-                                            <controls:FrmIcon Icon="image_border" Width="16" Height="16" />
-                                        </Button>
-                                        <Button x:Name="Def_ImageBestFit"
-                                                Command="{Binding ApplyBackgroundModeCommand}"
-                                                CommandParameter="{x:Static settings:LyricsBackgroundMode.Fit}"
-                                                Style="{StaticResource EsButton.Secondary}"
-                                                MinHeight="30"
-                                                Padding="9,0"
-                                                Margin="0,0,6,6"
-                                                AutomationProperties.Name="Def background best fit" ToolTip="Def background best fit">
-                                            <controls:FrmIcon Icon="image" Width="16" Height="16" />
-                                        </Button>
-                                    </WrapPanel>
-
-                                    <TextBlock Text="Media"
-                                               Style="{StaticResource Type.Caption.Style}"
-                                               Foreground="{DynamicResource Brush.Text.Tertiary}"
-                                               Margin="0,2,0,4" />
-                                    <WrapPanel x:Name="Def_AssignMediaPanel"
-                                               Tag="Def_AssignMedia">
-                                        <TextBox x:Name="Def_MediaPath"
-                                                 Text="{Binding DefaultMediaPath, Mode=OneWay}"
-                                                 MinWidth="180"
-                                                 MinHeight="30"
-                                                 VerticalContentAlignment="Center"
-                                                 Margin="0,0,4,6"
-                                                 ToolTip="{Binding DefaultMediaPath}"
-                                                 AutomationProperties.Name="Def default media path" />
-                                        <Button x:Name="Def_AssignMedia"
-                                                Tag="Def_AssignMedia"
-                                                Click="SelectDefaultMedia_Click"
-                                                Style="{StaticResource EsButton.Secondary}"
-                                                MinHeight="30"
-                                                Padding="9,0"
-                                                Margin="0,0,4,6"
-                                                Content="Media..."
-                                                ToolTip="FrmMain Def_AssignMedia"
-                                                AutomationProperties.Name="Def assign media" />
-                                        <Button x:Name="Def_ClearMedia"
-                                                Tag="Def_ClearMedia"
-                                                Command="{Binding ClearDefaultMediaCommand}"
-                                                IsEnabled="{Binding CanClearDefaultMedia}"
-                                                Style="{StaticResource EsButton.Secondary}"
-                                                MinHeight="30"
-                                                Padding="9,0"
-                                                Margin="0,0,6,6"
-                                                Content="None"
-                                                ToolTip="{Binding DefaultMediaToolTip}"
-                                                ToolTipService.ShowOnDisabled="True"
-                                                AutomationProperties.Name="Def clear media" />
-                                    </WrapPanel>
-
-                                    <TextBlock Text="Background Colour"
-                                               Style="{StaticResource Type.Caption.Style}"
-                                               Foreground="{DynamicResource Brush.Text.Tertiary}"
-                                               Margin="0,2,0,4" />
-                                    <WrapPanel x:Name="Def_BackColour"
-                                               Tag="Def_BackColour">
-                                        <Button x:Name="Def_BackColourApply"
-                                                Tag="Def_BackColour"
-                                                Command="{Binding ApplyBackgroundColorHexCommand}"
-                                                CommandParameter="{Binding ActiveBackgroundColorHex}"
-                                                Style="{StaticResource EsButton.Secondary}"
-                                                MinHeight="30"
-                                                Padding="9,0"
-                                                Margin="0,0,4,6"
-                                                ToolTip="{Binding ActiveBackgroundColorHex}"
-                                                AutomationProperties.Name="Def background colour apply">
-                                            <StackPanel Orientation="Horizontal"
-                                                        VerticalAlignment="Center">
-                                                <Border x:Name="Def_BackColourSwatch"
-                                                        Style="{StaticResource ClassicColorSwatch}"
-                                                        Background="{Binding ActiveBackgroundColorHex, Converter={StaticResource ColorValueToBrush}}" />
-                                                <TextBlock Text="Back"
-                                                           VerticalAlignment="Center" />
-                                            </StackPanel>
-                                        </Button>
-                                        <Button x:Name="Def_BackColourCustom"
-                                                Tag="Def_BackColourCustom"
-                                                Click="PickDefaultBackgroundColor_Click"
-                                                Style="{StaticResource EsButton.Secondary}"
-                                                MinHeight="30"
-                                                Padding="9,0"
-                                                Margin="0,0,6,6"
-                                                Content="..."
-                                                ToolTip="FrmMain Def_BackColour custom"
-                                                AutomationProperties.Name="Def background custom colour" />
-                                    </WrapPanel>
-
-                                    <TextBlock Text="Transition"
-                                               Style="{StaticResource Type.Caption.Style}"
-                                               Foreground="{DynamicResource Brush.Text.Tertiary}"
-                                               Margin="0,2,0,4" />
-                                    <WrapPanel x:Name="Def_Transition"
-                                               Tag="Def_Transition">
-                                        <ComboBox x:Name="Def_TransItem"
-                                                  Tag="Def_TransItem"
-                                                  ItemsSource="{Binding LegacyTransitionOptions}"
-                                                  DisplayMemberPath="DisplayName"
-                                                  SelectedValuePath="Kind"
-                                                  SelectedValue="{Binding DefaultItemTransitionKindInput, Mode=TwoWay}"
-                                                  MinWidth="132"
-                                                  Height="30"
-                                                  Margin="0,0,6,6"
-                                                  ToolTip="Item Transition"
-                                                  AutomationProperties.Name="Def item transition" />
-                                        <ComboBox x:Name="Def_TransSlides"
-                                                  Tag="Def_TransSlides"
-                                                  ItemsSource="{Binding LegacyTransitionOptions}"
-                                                  DisplayMemberPath="DisplayName"
-                                                  SelectedValuePath="Kind"
-                                                  SelectedValue="{Binding DefaultSlideTransitionKindInput, Mode=TwoWay}"
-                                                  MinWidth="132"
-                                                  Height="30"
-                                                  Margin="0,0,6,6"
-                                                  ToolTip="Slide Transition"
-                                                  AutomationProperties.Name="Def slide transition" />
-                                        <ToggleButton IsChecked="{Binding ActiveFadeTransition, Mode=OneWay}"
-                                                      Command="{Binding ToggleFadeTransitionCommand}"
-                                                      MinHeight="30"
-                                                      Padding="9,0"
-                                                      Margin="0,0,6,6"
-                                                      Content="Fade"
-                                                      AutomationProperties.Name="Def fade transition" />
-                                        <Button Command="{Binding ApplyTransitionDurationCommand}"
-                                                Style="{StaticResource EsButton.Secondary}"
-                                                MinHeight="30"
-                                                Padding="9,0"
-                                                Margin="0,0,6,6"
-                                                Content="150">
-                                            <Button.CommandParameter>
-                                                <sys:Int32>150</sys:Int32>
-                                            </Button.CommandParameter>
-                                        </Button>
-                                        <Button Command="{Binding ApplyTransitionDurationCommand}"
-                                                Style="{StaticResource EsButton.Secondary}"
-                                                MinHeight="30"
-                                                Padding="9,0"
-                                                Margin="0,0,6,6"
-                                                Content="250">
-                                            <Button.CommandParameter>
-                                                <sys:Int32>250</sys:Int32>
-                                            </Button.CommandParameter>
-                                        </Button>
-                                        <Button Command="{Binding ApplyTransitionDurationCommand}"
-                                                Style="{StaticResource EsButton.Secondary}"
-                                                MinHeight="30"
-                                                Padding="9,0"
-                                                Margin="0,0,6,6"
-                                                Content="500">
-                                            <Button.CommandParameter>
-                                                <sys:Int32>500</sys:Int32>
-                                            </Button.CommandParameter>
-                                        </Button>
-                                    </WrapPanel>
-
-                                    <TextBlock Text="Display Panel"
-                                               Style="{StaticResource Type.Caption.Style}"
-                                               Foreground="{DynamicResource Brush.Text.Tertiary}"
-                                               Margin="0,8,0,4" />
-                                    <WrapPanel x:Name="Def_DisplayPanel"
-                                               Tag="toolStripDef6">
-                                        <ToggleButton x:Name="Def_PanelShow"
-                                                      IsChecked="{Binding ActiveLyricsDisplayPanel, Mode=OneWay}"
-                                                      Command="{Binding ToggleLyricsDisplayPanelCommand}"
-                                                      Style="{StaticResource ClassicOutputToggleButton}"
-                                                      MinHeight="30"
-                                                      Padding="9,0"
-                                                      Margin="0,0,6,6"
-                                                      ToolTip="Show Display Panel"
-                                                      AutomationProperties.Name="Def PanelShow display panel">
-                                            <controls:FrmIcon Icon="subtitles" Width="16" Height="16" />
-                                        </ToggleButton>
-                                        <ToggleButton x:Name="Def_PanelTitle"
-                                                      IsChecked="{Binding ActiveLyricsTitleOnPanel, Mode=OneWay}"
-                                                      Command="{Binding ToggleLyricsTitleOnPanelCommand}"
-                                                      Style="{StaticResource ClassicOutputToggleButton}"
-                                                      MinHeight="30"
-                                                      Padding="9,0"
-                                                      Margin="0,0,6,6"
-                                                      ToolTip="Show Title"
-                                                      AutomationProperties.Name="Def PanelTitle show title">
-                                            <controls:FrmIcon Icon="text_case_title" Width="16" Height="16" />
-                                        </ToggleButton>
-                                        <ToggleButton x:Name="Def_PanelSong"
-                                                      IsChecked="{Binding ActiveLyricsItemNumber, Mode=OneWay}"
-                                                      Command="{Binding ToggleLyricsItemNumberCommand}"
-                                                      Style="{StaticResource ClassicOutputToggleButton}"
-                                                      MinHeight="30"
-                                                      Padding="9,0"
-                                                      Margin="0,0,6,6"
-                                                      ToolTip="Show Item Number"
-                                                      AutomationProperties.Name="Def PanelSong show item number">
-                                            <controls:FrmIcon Icon="number_symbol" Width="16" Height="16" />
-                                        </ToggleButton>
-                                        <ToggleButton x:Name="Def_PanelSlides"
-                                                      IsChecked="{Binding ActiveLyricsPositionIndicator, Mode=OneWay}"
-                                                      Command="{Binding ToggleLyricsPositionIndicatorCommand}"
-                                                      Style="{StaticResource ClassicOutputToggleButton}"
-                                                      MinHeight="30"
-                                                      Padding="9,0"
-                                                      Margin="0,0,6,6"
-                                                      ToolTip="Show Verse/Slide Indicators"
-                                                      AutomationProperties.Name="Def PanelSlides show verse slide indicators">
-                                            <controls:FrmIcon Icon="number_row" Width="16" Height="16" />
-                                        </ToggleButton>
-                                        <ToggleButton x:Name="Def_PanelCopyright"
-                                                      IsChecked="{Binding ActiveLyricsCopyright, Mode=OneWay}"
-                                                      Command="{Binding ToggleLyricsCopyrightCommand}"
-                                                      Style="{StaticResource ClassicOutputToggleButton}"
-                                                      MinHeight="30"
-                                                      Padding="9,0"
-                                                      Margin="0,0,6,6"
-                                                      ToolTip="Show Copyright Information"
-                                                      AutomationProperties.Name="Def PanelCopyright show copyright">
-                                            <controls:FrmIcon Icon="copyright" Width="16" Height="16" />
-                                        </ToggleButton>
-                                        <ToggleButton x:Name="Def_PanelPrevNext"
-                                                      IsChecked="{Binding ActiveLyricsNextItem, Mode=OneWay}"
-                                                      Command="{Binding ToggleLyricsNextItemCommand}"
-                                                      Style="{StaticResource ClassicOutputToggleButton}"
-                                                      MinHeight="30"
-                                                      Padding="9,0"
-                                                      Margin="0,0,6,6"
-                                                      ToolTip="Show Previous/Next Item"
-                                                      AutomationProperties.Name="Def PanelPrevNext show previous next item">
-                                            <controls:FrmIcon Icon="arrow_bidirectional_left_right" Width="16" Height="16" />
-                                        </ToggleButton>
-                                        <ToggleButton x:Name="Def_PanelTransparent"
-                                                      IsChecked="{Binding ActiveLyricsPanelTransparent, Mode=OneWay}"
-                                                      Command="{Binding TogglePanelTransparentCommand}"
-                                                      Style="{StaticResource ClassicOutputToggleButton}"
-                                                      MinHeight="30"
-                                                      Padding="9,0"
-                                                      Margin="0,0,6,6"
-                                                      ToolTip="Display Panel Transparent"
-                                                      AutomationProperties.Name="Def PanelTransparent transparent background">
-                                            <controls:FrmIcon Icon="transparency_square" Width="16" Height="16" />
-                                        </ToggleButton>
-                                        <WrapPanel Tag="Def_PanelBackColour"
-                                                   Margin="0,0,6,6">
-                                            <Button x:Name="Def_PanelBackColour"
-                                                    Tag="Def_PanelBackColour"
-                                                    Command="{Binding ApplyPanelColorHexCommand}"
-                                                    CommandParameter="{Binding ActivePanelColorHex}"
-                                                    Style="{StaticResource EsButton.Secondary}"
-                                                    MinHeight="30"
-                                                    Padding="9,0"
-                                                    ToolTip="{Binding ActivePanelColorHex}"
-                                                    AutomationProperties.Name="Def PanelBackColour apply">
-                                                <StackPanel Orientation="Horizontal"
-                                                            VerticalAlignment="Center">
-                                                    <Border x:Name="Def_PanelBackColourSwatch"
-                                                            Style="{StaticResource ClassicColorSwatch}"
-                                                            Background="{Binding ActivePanelColorHex, Converter={StaticResource ColorValueToBrush}}" />
-                                                    <TextBlock Text="Back"
-                                                               VerticalAlignment="Center" />
-                                                </StackPanel>
-                                            </Button>
-                                            <Button x:Name="Def_PanelBackColourCustom"
-                                                    Tag="Def_PanelBackColourCustom"
-                                                    Click="PickPanelBackColor_Click"
-                                                    Style="{StaticResource EsButton.Secondary}"
-                                                    MinHeight="30"
-                                                    Padding="9,0"
-                                                    Margin="4,0,0,0"
-                                                    Content="..."
-                                                    ToolTip="Display Panel Back Colour custom"
-                                                    AutomationProperties.Name="Def PanelBackColour custom" />
-                                        </WrapPanel>
-                                        <ToggleButton x:Name="Def_PanelAsR1"
-                                                      IsChecked="{Binding ActivePanelTextColorAsRegion1, Mode=OneWay}"
-                                                      Command="{Binding TogglePanelTextColorAsRegion1Command}"
-                                                      Style="{StaticResource ClassicOutputToggleButton}"
-                                                      MinHeight="30"
-                                                      Padding="9,0"
-                                                      Margin="0,0,6,6"
-                                                      ToolTip="Display Panel Text Colour As Region 1"
-                                                      AutomationProperties.Name="Def PanelAsR1 text colour follows Region1">
-                                            <controls:FrmIcon Icon="number_circle_1" Width="16" Height="16" />
-                                        </ToggleButton>
-                                        <WrapPanel Tag="Def_PanelTextColour"
-                                                   Margin="0,0,6,6">
-                                            <Button x:Name="Def_PanelTextColour"
-                                                    Tag="Def_PanelTextColour"
-                                                    Command="{Binding ApplyPanelTextColorHexCommand}"
-                                                    CommandParameter="{Binding ActivePanelTextColorHex}"
-                                                    Style="{StaticResource EsButton.Secondary}"
-                                                    MinHeight="30"
-                                                    Padding="9,0"
-                                                    ToolTip="{Binding ActivePanelTextColorHex}"
-                                                    AutomationProperties.Name="Def PanelTextColour apply">
-                                                <StackPanel Orientation="Horizontal"
-                                                            VerticalAlignment="Center">
-                                                    <Border x:Name="Def_PanelTextColourSwatch"
-                                                            Style="{StaticResource ClassicColorSwatch}"
-                                                            Background="{Binding ActivePanelTextColorHex, Converter={StaticResource ColorValueToBrush}}" />
-                                                    <TextBlock Text="Text"
-                                                               VerticalAlignment="Center" />
-                                                </StackPanel>
-                                            </Button>
-                                            <Button x:Name="Def_PanelTextColourCustom"
-                                                    Tag="Def_PanelTextColourCustom"
-                                                    Click="PickPanelTextColor_Click"
-                                                    Style="{StaticResource EsButton.Secondary}"
-                                                    MinHeight="30"
-                                                    Padding="9,0"
-                                                    Margin="4,0,0,0"
-                                                    Content="..."
-                                                    ToolTip="Display Panel Text Colour custom"
-                                                    AutomationProperties.Name="Def PanelTextColour custom" />
-                                        </WrapPanel>
-                                        <ToggleButton x:Name="Def_PanelFontBold"
-                                                      IsChecked="{Binding ActivePanelFontBold, Mode=OneWay}"
-                                                      Command="{Binding TogglePanelFontBoldCommand}"
-                                                      Style="{StaticResource ClassicOutputToggleButton}"
-                                                      MinHeight="30"
-                                                      Padding="9,0"
-                                                      Margin="0,0,6,6"
-                                                      FontWeight="Bold"
-                                                      ToolTip="Display Panel Font Bold"
-                                                      AutomationProperties.Name="Def PanelFont bold">
-                                            <controls:FrmIcon Icon="text_bold" Width="16" Height="16" />
-                                        </ToggleButton>
-                                        <ToggleButton x:Name="Def_PanelFontItalics"
-                                                      IsChecked="{Binding ActivePanelFontItalic, Mode=OneWay}"
-                                                      Command="{Binding TogglePanelFontItalicCommand}"
-                                                      Style="{StaticResource ClassicOutputToggleButton}"
-                                                      MinHeight="30"
-                                                      Padding="9,0"
-                                                      Margin="0,0,6,6"
-                                                      FontStyle="Italic"
-                                                      ToolTip="Display Panel Font Italics"
-                                                      AutomationProperties.Name="Def PanelFont italics">
-                                            <controls:FrmIcon Icon="text_italic" Width="16" Height="16" />
-                                        </ToggleButton>
-                                        <ToggleButton x:Name="Def_PanelFontUnderline"
-                                                      IsChecked="{Binding ActivePanelFontUnderline, Mode=OneWay}"
-                                                      Command="{Binding TogglePanelFontUnderlineCommand}"
-                                                      Style="{StaticResource ClassicOutputToggleButton}"
-                                                      MinHeight="30"
-                                                      Padding="9,0"
-                                                      Margin="0,0,6,6"
-                                                      ToolTip="Display Panel Font Underline"
-                                                      AutomationProperties.Name="Def PanelFont underline">
-                                            <TextBlock Text="U"
-                                                       TextDecorations="Underline" />
-                                        </ToggleButton>
-                                        <ToggleButton x:Name="Def_PanelFontShadow"
-                                                      IsChecked="{Binding ActivePanelFontShadow, Mode=OneWay}"
-                                                      Command="{Binding TogglePanelFontShadowCommand}"
-                                                      Style="{StaticResource ClassicOutputToggleButton}"
-                                                      MinHeight="30"
-                                                      Padding="9,0"
-                                                      Margin="0,0,6,6"
-                                                      ToolTip="Display Panel Font Shadow"
-                                                      AutomationProperties.Name="Def PanelFont shadow">
-                                            <controls:FrmIcon Icon="text_shadow" Width="16" Height="16" />
-                                        </ToggleButton>
-                                        <ToggleButton x:Name="Def_PanelFontOutline"
-                                                      IsChecked="{Binding ActivePanelFontOutline, Mode=OneWay}"
-                                                      Command="{Binding TogglePanelFontOutlineCommand}"
-                                                      Style="{StaticResource ClassicOutputToggleButton}"
-                                                      MinHeight="30"
-                                                      Padding="9,0"
-                                                      Margin="0,0,6,6"
-                                                      ToolTip="Display Panel Font Outline"
-                                                      AutomationProperties.Name="Def PanelFont outline">
-                                            <controls:FrmIcon Icon="text_effects" Width="16" Height="16" />
-                                        </ToggleButton>
-                                        <TextBlock x:Name="PanelFamilyLabel" Text="정보 패널 글꼴"/>
-                                        <ComboBox x:Name="Def_PanelFontList" ItemsSource="{Binding LyricsFontFamilyOptions}" IsEditable="True"
-                                                  Text="{Binding PanelFontFamily, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" AutomationProperties.LabeledBy="{Binding ElementName=PanelFamilyLabel}"/>
-                                        <TextBlock x:Name="PanelHeightLabel" Text="정보 패널 높이 (0~20%)"/>
-                                        <TextBox x:Name="Def_PanelHeight" Text="{Binding PanelHeightPercent, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}"
-                                                 AutomationProperties.LabeledBy="{Binding ElementName=PanelHeightLabel}"/>
-                                        <WrapPanel x:Name="Def_PanelFont"
-                                                   Tag="Def_PanelFont"
-                                                   Margin="0,0,0,6">
-                                            <Button Command="{Binding DecreasePanelFontScaleCommand}"
-                                                    Style="{StaticResource EsButton.Secondary}"
-                                                    MinHeight="30"
-                                                    Padding="9,0"
-                                                    Margin="0,0,4,0"
-                                                    Content="A-"
-                                                    AutomationProperties.Name="Decrease Display Panel font" />
-                                            <TextBlock Text="{Binding ActivePanelFontScale, StringFormat={}{0}%}"
-                                                       MinWidth="44"
-                                                       VerticalAlignment="Center"
-                                                       TextAlignment="Center"
-                                                       Style="{StaticResource Type.Caption.Style}" />
-                                            <Button Command="{Binding IncreasePanelFontScaleCommand}"
-                                                    Style="{StaticResource EsButton.Secondary}"
-                                                    MinHeight="30"
-                                                    Padding="9,0"
-                                                    Margin="4,0,6,0"
-                                                    Content="A+"
-                                                    AutomationProperties.Name="Increase Display Panel font" />
-                                        </WrapPanel>
-                                    </WrapPanel>
+                                    <StackPanel Orientation="Horizontal" Height="31" VerticalAlignment="Center">
+                                        <ComboBox x:Name="Def_HeadAlign" ToolTip="Heading Alignment" Style="{StaticResource DefaultIconChoice}" SelectedValuePath="Tag" SelectedValue="{Binding DefaultHeadingAlignmentChoice, Mode=TwoWay}">
+                                            <controls:FormatOption x:Name="Def_HeadAlignAsR1" Tag="AsR1" Content="Headings Align As Region 1" Icon="heading_align_r1" />
+                                            <controls:FormatOption x:Name="Def_HeadAlignAsR2" Tag="AsR2" Content="Headings Align As Region 2" Icon="heading_align_r2" />
+                                            <controls:FormatOption x:Name="Def_HeadAlignLeft" Tag="Left" Content="Headings Align Left" Icon="heading_align_left" />
+                                            <controls:FormatOption x:Name="Def_HeadAlignCentre" Tag="Centre" Content="Headings Align Centre" Icon="heading_align_center" />
+                                            <controls:FormatOption x:Name="Def_HeadAlignRight" Tag="Right" Content="Headings Align Right" Icon="heading_align_right" />
+                                        </ComboBox>
+                                        <Border Width="1" Height="16" Margin="2,0" Background="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}" />
+                                        <ComboBox x:Name="Def_R1Align" ToolTip="Region 1 Alignment" Style="{StaticResource DefaultIconChoice}" SelectedValuePath="Tag" SelectedValue="{Binding DefaultRegion1AlignmentChoice, Mode=TwoWay}">
+                                            <controls:FormatOption x:Name="Def_R1AlignLeft" Tag="Left" Content="Region 1 Align Left" Icon="text_align_left" />
+                                            <controls:FormatOption x:Name="Def_R1AlignCentre" Tag="Center" Content="Region 1 Align Centre" Icon="text_align_center" />
+                                            <controls:FormatOption x:Name="Def_R1AlignRight" Tag="Right" Content="Region 1 Align Right" Icon="text_align_right" />
+                                        </ComboBox>
+                                        <Button x:Name="Def_R1Colour" Style="{StaticResource DefaultColourButton}" Click="PickDefaultTextColor_Click" Content="R1 Col" Foreground="{Binding ActiveTextColorHex, Converter={StaticResource ColorValueToBrush}}" />
+                                        <Border Width="1" Height="16" Margin="2,0" Background="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}" />
+                                        <ComboBox x:Name="Def_R2Align" ToolTip="Region 2 Alignment" Style="{StaticResource DefaultIconChoice}" SelectedValuePath="Tag" SelectedValue="{Binding DefaultRegion2AlignmentChoice, Mode=TwoWay}">
+                                            <controls:FormatOption x:Name="Def_R2AlignLeft" Tag="Left" Content="Region 2 Align Left" Icon="text_align_left" />
+                                            <controls:FormatOption x:Name="Def_R2AlignCentre" Tag="Center" Content="Region 2 Align Centre" Icon="text_align_center" />
+                                            <controls:FormatOption x:Name="Def_R2AlignRight" Tag="Right" Content="Region 2 Align Right" Icon="text_align_right" />
+                                        </ComboBox>
+                                        <Button x:Name="Def_R2Colour" Style="{StaticResource DefaultColourButton}" Click="PickDefaultRegion2Color_Click" Content="R2 Col" Foreground="{Binding DefaultRegion2ColorHex, Converter={StaticResource ColorValueToBrush}}" />
+                                    </StackPanel>
                                 </StackPanel>
                             </GroupBox>
-
+                            <GroupBox x:Name="DefgroupBox2" Tag="DefgroupBox2" Header="Default Background" Style="{x:Null}" HeaderTemplate="{StaticResource DefaultStripText}" Padding="0,2,3,1" Margin="0,3,0,0" BorderBrush="{DynamicResource {x:Static SystemColors.ControlLightBrushKey}}">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal" Height="31" VerticalAlignment="Center">
+                                        <ComboBox x:Name="Def_ImageMode" ToolTip="Background Image Mode" Style="{StaticResource DefaultIconChoice}" SelectedValuePath="Tag" SelectedValue="{Binding DefaultImageModeChoice, Mode=TwoWay}">
+                                            <controls:FormatOption x:Name="Def_ImageTile" Tag="Tile" Content="Tile Image" Icon="image_tile" />
+                                            <controls:FormatOption x:Name="Def_ImageCentre" Tag="Center" Content="Centre Image" Icon="image_border" />
+                                            <controls:FormatOption x:Name="Def_ImageBestFit" Tag="Fit" Content="Best Fit Image" Icon="image" />
+                                        </ComboBox>
+                                        <Button x:Name="Def_NoImage" ToolTip="{Binding OutputBackgroundNoImageToolTip}" Style="{StaticResource DefaultStripButton}" Command="{Binding ClearOutputBackgroundImageCommand}"><controls:FrmIcon Icon="image_off" Width="19" Height="19" /></Button>
+                                        <Button x:Name="Def_BackColour" Style="{StaticResource DefaultColourButton}" Click="PickDefaultBackgroundColor_Click" Content="Colours" Foreground="{Binding ActiveBackgroundColorHex, Converter={StaticResource ColorValueToBrush}}" />
+                                        <Button x:Name="Def_AssignMedia" Style="{StaticResource DefaultStripButton}" Width="Auto" MaxWidth="100" Padding="4,0" Click="SelectDefaultMedia_Click" ToolTip="{Binding DefaultMediaToolTip}"><TextBlock Text="{Binding DefaultMediaCaption}" FontSize="12" TextTrimming="CharacterEllipsis" /></Button>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Height="31" VerticalAlignment="Center">
+                                        <ComboBox x:Name="Def_TransItem" Style="{StaticResource DefaultFieldCombo}" FontSize="12" Width="104" Height="22" Margin="0,0,2,0" VerticalAlignment="Center" ItemsSource="{Binding LegacyTransitionOptions}" ItemTemplate="{StaticResource DefaultChoiceText}" SelectedValuePath="Kind" SelectedValue="{Binding DefaultItemTransitionKindInput, Mode=TwoWay}" ToolTip="Item transition" />
+                                        <ComboBox x:Name="Def_TransSlides" Style="{StaticResource DefaultFieldCombo}" FontSize="12" Width="104" Height="22" Margin="0,0,2,0" VerticalAlignment="Center" ItemsSource="{Binding LegacyTransitionOptions}" ItemTemplate="{StaticResource DefaultChoiceText}" SelectedValuePath="Kind" SelectedValue="{Binding DefaultSlideTransitionKindInput, Mode=TwoWay}" ToolTip="Slide transition" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </GroupBox>
+                            <GroupBox x:Name="DefgroupBox3" Tag="DefgroupBox3" Header="Display Panel" Style="{x:Null}" HeaderTemplate="{StaticResource DefaultStripText}" Padding="0,2,3,1" Margin="0,3,0,0" BorderBrush="{DynamicResource {x:Static SystemColors.ControlLightBrushKey}}">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal" Height="31" VerticalAlignment="Center">
+                                        <ToggleButton x:Name="Def_PanelAsR1" ToolTip="Use Region 1 text colour" Style="{StaticResource DefaultStripToggle}" IsChecked="{Binding ActivePanelTextColorAsRegion1, Mode=OneWay}" Command="{Binding TogglePanelTextColorAsRegion1Command}"><controls:FrmIcon Icon="number_circle_1" Width="19" Height="19" /></ToggleButton>
+                                        <Button x:Name="Def_PanelTextColour" Style="{StaticResource DefaultColourButton}" Click="PickPanelTextColor_Click" Content="Text Colour" Foreground="{Binding ActivePanelTextColorHex, Converter={StaticResource ColorValueToBrush}}" />
+                                        <Border Width="1" Height="16" Margin="2,0" Background="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}" />
+                                        <ToggleButton x:Name="Def_PanelTransparent" ToolTip="Transparent background" Style="{StaticResource DefaultStripToggle}" IsChecked="{Binding ActiveLyricsPanelTransparent, Mode=OneWay}" Command="{Binding TogglePanelTransparentCommand}"><controls:FrmIcon Icon="transparency_square" Width="19" Height="19" /></ToggleButton>
+                                        <Button x:Name="Def_PanelBackColour" Style="{StaticResource DefaultColourButton}" Click="PickPanelBackColor_Click" Content="Back Colour" Foreground="{Binding ActivePanelColorHex, Converter={StaticResource ColorValueToBrush}}" />
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Height="31" VerticalAlignment="Center">
+                                        <ToggleButton x:Name="Def_PanelShow" ToolTip="Show Display Panel" Style="{StaticResource DefaultStripToggle}" IsChecked="{Binding ActiveLyricsDisplayPanel, Mode=OneWay}" Command="{Binding ToggleLyricsDisplayPanelCommand}"><controls:FrmIcon Icon="subtitles" Width="19" Height="19" /></ToggleButton>
+                                        <ToggleButton x:Name="Def_PanelTitle" ToolTip="Show title" Style="{StaticResource DefaultStripToggle}" IsChecked="{Binding ActiveLyricsTitleOnPanel, Mode=OneWay}" Command="{Binding ToggleLyricsTitleOnPanelCommand}"><controls:FrmIcon Icon="text_case_title" Width="19" Height="19" /></ToggleButton>
+                                        <ToggleButton x:Name="Def_PanelCopyright" ToolTip="Show copyright" Style="{StaticResource DefaultStripToggle}" IsChecked="{Binding ActiveLyricsCopyright, Mode=OneWay}" Command="{Binding ToggleLyricsCopyrightCommand}"><controls:FrmIcon Icon="copyright" Width="19" Height="19" /></ToggleButton>
+                                        <ToggleButton x:Name="Def_PanelSong" ToolTip="Show song number" Style="{StaticResource DefaultStripToggle}" IsChecked="{Binding ActiveLyricsItemNumber, Mode=OneWay}" Command="{Binding ToggleLyricsItemNumberCommand}"><controls:FrmIcon Icon="number_symbol" Width="19" Height="19" /></ToggleButton>
+                                        <ToggleButton x:Name="Def_PanelSlides" ToolTip="Show slide number" Style="{StaticResource DefaultStripToggle}" IsChecked="{Binding ActiveLyricsPositionIndicator, Mode=OneWay}" Command="{Binding ToggleLyricsPositionIndicatorCommand}"><controls:FrmIcon Icon="number_row" Width="19" Height="19" /></ToggleButton>
+                                        <ToggleButton x:Name="Def_PanelPrevNext" ToolTip="Show previous/next" Style="{StaticResource DefaultStripToggle}" IsChecked="{Binding ActiveLyricsNextItem, Mode=OneWay}" Command="{Binding ToggleLyricsNextItemCommand}"><controls:FrmIcon Icon="arrow_bidirectional_left_right" Width="19" Height="19" /></ToggleButton>
+                                        <TextBlock Text="Height" FontSize="12" Margin="9,0,0,0" VerticalAlignment="Center" />
+                                        <DockPanel Width="39" Height="22" VerticalAlignment="Center">
+                                            <UniformGrid DockPanel.Dock="Right" Columns="1" Width="13">
+                                                <RepeatButton Style="{StaticResource DefaultSpinnerButton}" AutomationProperties.Name="Increase display panel height" Click="IncreaseDefaultPanelHeight_Click"><Path Fill="Black" Data="M0,4 L3,0 L6,4Z" /></RepeatButton>
+                                                <RepeatButton Style="{StaticResource DefaultSpinnerButton}" AutomationProperties.Name="Decrease display panel height" Click="DecreaseDefaultPanelHeight_Click"><Path Fill="Black" Data="M0,0 L3,4 L6,0Z" /></RepeatButton>
+                                            </UniformGrid>
+                                            <TextBox x:Name="Def_PanelHeight" Style="{x:Null}" AutomationProperties.Name="Display panel height" Padding="1,0" VerticalContentAlignment="Center" Text="{Binding DefaultPanelHeight, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+                                        </DockPanel>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Height="31" VerticalAlignment="Center">
+                                        <ToggleButton x:Name="Def_PanelFontBold" ToolTip="Bold" Style="{StaticResource DefaultStripToggle}" IsChecked="{Binding ActivePanelFontBold, Mode=OneWay}" Command="{Binding TogglePanelFontBoldCommand}"><controls:FrmIcon Icon="text_bold" Width="19" Height="19" /></ToggleButton>
+                                        <ToggleButton x:Name="Def_PanelFontItalics" ToolTip="Italics" Style="{StaticResource DefaultStripToggle}" IsChecked="{Binding ActivePanelFontItalic, Mode=OneWay}" Command="{Binding TogglePanelFontItalicCommand}"><controls:FrmIcon Icon="text_italic" Width="19" Height="19" /></ToggleButton>
+                                        <ToggleButton x:Name="Def_PanelFontUnderline" ToolTip="Underline" Style="{StaticResource DefaultStripToggle}" IsChecked="{Binding ActivePanelFontUnderline, Mode=OneWay}" Command="{Binding TogglePanelFontUnderlineCommand}"><controls:FrmIcon Icon="text_underline" Width="19" Height="19" /></ToggleButton>
+                                        <ToggleButton x:Name="Def_PanelFontShadow" ToolTip="Shadow" Style="{StaticResource DefaultStripToggle}" IsChecked="{Binding ActivePanelFontShadow, Mode=OneWay}" Command="{Binding TogglePanelFontShadowCommand}"><controls:FrmIcon Icon="text_shadow" Width="19" Height="19" /></ToggleButton>
+                                        <ToggleButton x:Name="Def_PanelFontOutline" ToolTip="Outline" Style="{StaticResource DefaultStripToggle}" IsChecked="{Binding ActivePanelFontOutline, Mode=OneWay}" Command="{Binding TogglePanelFontOutlineCommand}"><controls:FrmIcon Icon="text_effects" Width="19" Height="19" /></ToggleButton>
+                                        <ComboBox x:Name="Def_PanelFontList" Style="{StaticResource DefaultFieldCombo}" FontSize="12" Width="97" Height="22" Margin="0,0,2,0" VerticalAlignment="Center" ItemsSource="{Binding PanelFontOptions}" ItemTemplate="{StaticResource DefaultStripText}" SelectedItem="{Binding PanelFontFamily, Mode=TwoWay}" ToolTip="Display Panel font" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </GroupBox>
                         </StackPanel>
                     </ScrollViewer>
                 </TabItem>

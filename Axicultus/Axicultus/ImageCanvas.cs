@@ -280,6 +280,9 @@ namespace Axicultus;
 			return base.IsInputKey(keyData);
 		}
 
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		internal bool DrawGallerySelection { get; init; }
+
 		protected override void OnPaint(PaintEventArgs e)
 		{
 			if (!base.Visible)
@@ -304,6 +307,8 @@ namespace Axicultus;
 			}
 
 			DrawImage(e);
+			if (DrawGallerySelection && IsDrawnSelected)
+				ControlPaint.DrawBorder(e.Graphics, ClientRectangle, SystemColors.Highlight, ButtonBorderStyle.Solid);
 		}
 
 		private bool RetryPending()

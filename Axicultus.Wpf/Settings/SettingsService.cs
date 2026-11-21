@@ -347,6 +347,8 @@ public static class AxicultusSettingKeys
     // 이중 언어 줄 교차(인터레이스, 레거시 Def_Interlace). on 이면 Region1·Region2 본문을 줄 단위로 번갈아 송출한다
     // (원문 줄 → 번역 줄 → 원문 줄 …). 기본 off=영역별 블록(Region1 위, Region2 아래, 무회귀). 두 영역이 다 보일 때만 의미.
     public static readonly SettingKey<bool> LyricsMonitorInterlace = new("liveOutput.lyricsMonitorInterlace", false);
+    public static readonly SettingKey<int> LyricsMonitorBackgroundPattern = new("liveOutput.lyricsMonitorBackgroundPattern", -1);
+    public static readonly SettingKey<bool> LyricsMonitorCapoZero = new("liveOutput.lyricsMonitorCapoZero", false);
     // Display Panel 전체 표시(레거시 Def_PanelShow). off 이면 제목/상태/곡번호/저작권/다음항목/위치 밴드 전체를 숨긴다.
     // 기본 on=현재 WPF 오버레이 표시 동작 보존(무회귀).
     public static readonly SettingKey<bool> LyricsMonitorShowDisplayPanel = new("liveOutput.lyricsMonitorShowDisplayPanel", true);
@@ -578,6 +580,8 @@ public static class AxicultusSettingKeys
         LyricsMonitorUnderline,
         LyricsMonitorEmphasisChorusOnly,
         LyricsMonitorInterlace,
+        LyricsMonitorBackgroundPattern,
+        LyricsMonitorCapoZero,
         LyricsMonitorShowDisplayPanel,
         LyricsMonitorPanelTransparent,
         LyricsMonitorPanelColorArgb,
@@ -844,6 +848,8 @@ public sealed record LiveOutputSettings
     public bool LyricsMonitorEmphasisChorusOnly { get; init; } = AxicultusSettingKeys.LyricsMonitorEmphasisChorusOnly.DefaultValue;
 
     public bool LyricsMonitorInterlace { get; init; } = AxicultusSettingKeys.LyricsMonitorInterlace.DefaultValue;
+    public int LyricsMonitorBackgroundPattern { get; init; } = -1;
+    public bool LyricsMonitorCapoZero { get; init; } = AxicultusSettingKeys.LyricsMonitorCapoZero.DefaultValue;
 
     public bool LyricsMonitorShowDisplayPanel { get; init; } = AxicultusSettingKeys.LyricsMonitorShowDisplayPanel.DefaultValue;
 
@@ -1288,6 +1294,8 @@ public sealed class SettingsService : ISettingsService
         }
 
         // 그라데이션 방향도 잘못된 값을 거른다(enum 일관).
+        if (candidate.LiveOutput.LyricsMonitorBackgroundPattern is < -1 or > 11)
+            issues.Add(Error(AxicultusSettingKeys.LyricsMonitorBackgroundPattern.Id, "Select a background pattern between 0 and 11."));
         if (!Enum.IsDefined(candidate.LiveOutput.LyricsMonitorBackgroundGradientDirection))
         {
             issues.Add(Error(AxicultusSettingKeys.LyricsMonitorBackgroundGradientDirection.Id, "Background gradient direction value is not supported."));
@@ -2252,6 +2260,8 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorUnderline" => snapshot.LiveOutput.LyricsMonitorUnderline,
             "liveOutput.lyricsMonitorEmphasisChorusOnly" => snapshot.LiveOutput.LyricsMonitorEmphasisChorusOnly,
             "liveOutput.lyricsMonitorInterlace" => snapshot.LiveOutput.LyricsMonitorInterlace,
+            "liveOutput.lyricsMonitorBackgroundPattern" => snapshot.LiveOutput.LyricsMonitorBackgroundPattern,
+            "liveOutput.lyricsMonitorCapoZero" => snapshot.LiveOutput.LyricsMonitorCapoZero,
             "liveOutput.lyricsMonitorShowDisplayPanel" => snapshot.LiveOutput.LyricsMonitorShowDisplayPanel,
             "liveOutput.lyricsMonitorPanelTransparent" => snapshot.LiveOutput.LyricsMonitorPanelTransparent,
             "liveOutput.lyricsMonitorPanelColorArgb" => snapshot.LiveOutput.LyricsMonitorPanelColorArgb,
@@ -2633,6 +2643,11 @@ public sealed class SettingsService : ISettingsService
             "liveOutput.lyricsMonitorInterlace" => snapshot with
             {
                 LiveOutput = snapshot.LiveOutput with { LyricsMonitorInterlace = Cast<bool>(keyId, value) },
+            },
+            "liveOutput.lyricsMonitorBackgroundPattern" => snapshot with { LiveOutput = snapshot.LiveOutput with { LyricsMonitorBackgroundPattern = Cast<int>(keyId, value) } },
+            "liveOutput.lyricsMonitorCapoZero" => snapshot with
+            {
+                LiveOutput = snapshot.LiveOutput with { LyricsMonitorCapoZero = Cast<bool>(keyId, value) },
             },
             "liveOutput.lyricsMonitorShowDisplayPanel" => snapshot with
             {

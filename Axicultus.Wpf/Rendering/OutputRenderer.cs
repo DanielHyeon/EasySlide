@@ -126,7 +126,8 @@ public sealed record LiveOutputRenderSettings(
     bool ReferenceAlertScroll = true,
     bool ReferenceAlertFlash = false,
     bool ReferenceAlertTransparent = false,
-    bool CameraHidePanel = false)
+    bool CameraHidePanel = false,
+    int BackgroundPattern = -1)
 {
     public static LiveOutputRenderSettings Default { get; } = new();
 
@@ -198,7 +199,8 @@ public sealed record LiveOutputRenderSettings(
             settings.Get(AxicultusSettingKeys.LyricsMonitorRegion2Underline),
             settings.Get(AxicultusSettingKeys.ReferenceAlertScroll),
             settings.Get(AxicultusSettingKeys.ReferenceAlertFlash),
-            settings.Get(AxicultusSettingKeys.ReferenceAlertTransparent), settings.Current.Operator.CameraHidePanel);
+            settings.Get(AxicultusSettingKeys.ReferenceAlertTransparent), settings.Current.Operator.CameraHidePanel,
+            settings.Get(AxicultusSettingKeys.LyricsMonitorBackgroundPattern));
     }
 }
 
@@ -340,7 +342,8 @@ public sealed record OutputSceneSnapshot(
     string LyricsAlertMessage = "",
     bool ReferenceAlertScroll = true,
     bool ReferenceAlertFlash = false,
-    bool ReferenceAlertTransparent = false)
+    bool ReferenceAlertTransparent = false,
+    int BackgroundPattern = -1)
 {
     public bool ShowsContent => Kind == OutputSceneKind.Live && ContentPlacement.Width > 0 && ContentPlacement.Height > 0;
 
@@ -687,7 +690,8 @@ public sealed class OutputRenderer(IImageAssetService imageAssets, ITransitionEf
             isLive ? request.Session.LyricsAlertMessage : string.Empty,
             liveOutput.ReferenceAlertScroll,
             liveOutput.ReferenceAlertFlash,
-            liveOutput.ReferenceAlertTransparent);
+            liveOutput.ReferenceAlertTransparent,
+            hasBgOverride ? -1 : liveOutput.BackgroundPattern);
     }
 
     private ImagePlacement GetContentPlacement(

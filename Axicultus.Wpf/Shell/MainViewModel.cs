@@ -183,10 +183,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // 현재 적용된 가사 정렬(인-셸 인스펙터 강조용). 설정에서 유래.
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ActiveLyricsAlignmentLabel))]
+    [NotifyPropertyChangedFor(nameof(DefaultRegion1AlignmentChoice))]
+    [NotifyPropertyChangedFor(nameof(DefaultRegion2AlignmentChoice))]
     private LyricsTextAlignment _activeLyricsAlignment = AxicultusSettingKeys.LyricsMonitorTextAlignment.DefaultValue;
     // 현재 적용된 가사 세로 정렬.
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ActiveLyricsVerticalAlignmentLabel))]
+    [NotifyPropertyChangedFor(nameof(DefaultVerticalChoice))]
     private LyricsVerticalAlignment _activeLyricsVerticalAlignment = AxicultusSettingKeys.LyricsMonitorVerticalAlignment.DefaultValue;
     // 현재 적용된 배경 이미지 표시 모드(채움/맞춤/가운데/타일) — 메뉴 체크 표시에 쓰인다.
     [ObservableProperty]
@@ -194,6 +197,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [NotifyPropertyChangedFor(nameof(BackgroundModeIsFit))]
     [NotifyPropertyChangedFor(nameof(BackgroundModeIsCenter))]
     [NotifyPropertyChangedFor(nameof(BackgroundModeIsTile))]
+    [NotifyPropertyChangedFor(nameof(DefaultImageModeChoice))]
     private LyricsBackgroundMode _activeBackgroundMode = AxicultusSettingKeys.LyricsMonitorBackgroundMode.DefaultValue;
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanClearOutputBackgroundImage))]
@@ -212,6 +216,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [NotifyPropertyChangedFor(nameof(RegionDisplayIsBoth))]
     [NotifyPropertyChangedFor(nameof(RegionDisplayIsRegion1Only))]
     [NotifyPropertyChangedFor(nameof(RegionDisplayIsRegion2Only))]
+    [NotifyPropertyChangedFor(nameof(DefaultRegionChoice))]
     private LyricsRegionDisplay _activeRegionDisplay = AxicultusSettingKeys.LyricsMonitorRegionDisplay.DefaultValue;
     // 현재 적용된 가사 폰트 크기(px). +/- 커맨드 활성/비활성 판별에도 쓰인다.
     [ObservableProperty]
@@ -225,8 +230,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // 현재 적용된 보조 영역(Region2) 전역 글꼴명(FrmMain Ind_Reg2Font). 빈 문자열=본문(Region1) 글꼴 추종. 글꼴 선택 콤보에 바인딩.
     [ObservableProperty] private string _activeLyricsFontFamily2 = AxicultusSettingKeys.LyricsMonitorFontFamily2.DefaultValue;
     // 현재 적용된 보조 영역(Region2) 전역 글자색(ARGB). 0=본문(Region1) 색 추종. 색 선택 콤보에 바인딩.
+    [NotifyPropertyChangedFor(nameof(DefaultRegion2ColorHex))]
     [ObservableProperty] private int _activeLyricsTextColor2Argb = AxicultusSettingKeys.LyricsMonitorTextColor2Argb.DefaultValue;
     // 현재 적용된 보조 영역(Region2) 전역 가로 정렬. FollowRegion1=본문 정렬 추종. 정렬 선택 콤보에 바인딩.
+    [NotifyPropertyChangedFor(nameof(DefaultRegion2AlignmentChoice))]
     [ObservableProperty] private LyricsRegion2Alignment _activeLyricsRegion2Alignment = AxicultusSettingKeys.LyricsMonitorRegion2Alignment.DefaultValue;
     // 현재 적용된 보조 영역(Region2) 전역 굵게(3-상태). FollowRegion1=본문 굵게 추종. 굵게 선택 콤보에 바인딩.
     [ObservableProperty] private LyricsRegion2Emphasis _activeLyricsRegion2Bold = AxicultusSettingKeys.LyricsMonitorRegion2Bold.DefaultValue;
@@ -525,16 +532,21 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public bool TransitionKindIsWindMill => ActiveTransitionKind == LyricsTransitionKind.WindMill;
     public bool TransitionKindIsFanUp => ActiveTransitionKind == LyricsTransitionKind.FanUp;
     // 현재 제목 헤딩 표시 상태(인스펙터 ToggleButton IsChecked 바인딩용, §7.3-A).
+    [NotifyPropertyChangedFor(nameof(DefaultHeadingChoice))]
     [ObservableProperty] private bool _activeLyricsTitleHeading = AxicultusSettingKeys.LyricsMonitorShowTitleHeading.DefaultValue;
     // 현재 외곽선 효과 상태(인스펙터 ToggleButton IsChecked 바인딩용, §7.3-A 폰트 효과).
     [ObservableProperty] private bool _activeLyricsOutline = AxicultusSettingKeys.LyricsMonitorOutline.DefaultValue;
     // 현재 제목 헤딩 가로 정렬 상태(인스펙터 정렬 버튼 강조용, §7.3-A Heading Align).
+    [NotifyPropertyChangedFor(nameof(DefaultHeadingAlignmentChoice))]
     [ObservableProperty] private LyricsTextAlignment _activeTitleHeadingAlignment = AxicultusSettingKeys.LyricsMonitorTitleHeadingAlignment.DefaultValue;
     // 현재 "제목 헤딩 첫 화면만" 상태(인스펙터 ToggleButton IsChecked 바인딩용, §7.3-A).
+    [NotifyPropertyChangedFor(nameof(DefaultHeadingChoice))]
     [ObservableProperty] private bool _activeTitleHeadingFirstScreenOnly = AxicultusSettingKeys.LyricsMonitorTitleHeadingFirstScreenOnly.DefaultValue;
     // 현재 "헤딩이 본문 정렬 따름"(FrmMain AsR1) 상태 — on 이면 헤딩이 본문(Region1) 정렬을 그대로 사용.
+    [NotifyPropertyChangedFor(nameof(DefaultHeadingAlignmentChoice))]
     [ObservableProperty] private bool _activeTitleHeadingFollowBody = AxicultusSettingKeys.LyricsMonitorTitleHeadingFollowBody.DefaultValue;
     // 현재 "헤딩이 보조 영역(Region2) 정렬 따름"(FrmMain AsR2) 상태 — on 이면 헤딩이 Region2 정렬을 사용(AsR1 보다 우선).
+    [NotifyPropertyChangedFor(nameof(DefaultHeadingAlignmentChoice))]
     [ObservableProperty] private bool _activeTitleHeadingFollowRegion2 = AxicultusSettingKeys.LyricsMonitorTitleHeadingFollowRegion2.DefaultValue;
     // 자동 회전 활성 상태(View 가 이 값을 보고 DispatcherTimer 시작/정지). 라이브 종료 시 자동 해제.
     [ObservableProperty]
@@ -553,6 +565,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private GapItemMode _alternateGapItemOption = GapItemMode.None;
 
     // 현재 글자색/배경색/Display Panel 배경색의 hex 표기("#RRGGBB"). 인스펙터 hex 입력칸 표시·프리셋 너머 세분 색 지정용.
+    [NotifyPropertyChangedFor(nameof(DefaultRegion2ColorHex))]
     [ObservableProperty] private string _activeTextColorHex = "#000000";
     [ObservableProperty] private string _activeBackgroundColorHex = "#FFFFFF";
     [ObservableProperty] private string _activePanelColorHex = "#000000";
@@ -1224,7 +1237,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ToggleEmphasisChorusOnlyCommand = new RelayCommand(() => ToggleLyricsEffect(AxicultusSettingKeys.LyricsMonitorEmphasisChorusOnly, ActiveLyricsEmphasisChorusOnly));
         ToggleInterlaceCommand = new RelayCommand(() => ToggleLyricsEffect(AxicultusSettingKeys.LyricsMonitorInterlace, ActiveLyricsInterlace));
         ToggleUseIndividualFormattingCommand = new RelayCommand(ToggleUseIndividualFormatting, () => SelectedItem is not null);
-        ApplyGlobalFormatToAllCommand = new RelayCommand(ApplyGlobalFormatToAll);
+        ApplyGlobalFormatToAllCommand = new AsyncRelayCommand(ApplyGlobalFormatToAllAsync);
         ToggleLyricsDisplayPanelCommand = new RelayCommand(() => ToggleLyricsEffect(AxicultusSettingKeys.LyricsMonitorShowDisplayPanel, ActiveLyricsDisplayPanel));
         TogglePanelTransparentCommand = new RelayCommand(() => ToggleLyricsEffect(AxicultusSettingKeys.LyricsMonitorPanelTransparent, ActiveLyricsPanelTransparent));
         TogglePanelTextColorAsRegion1Command = new RelayCommand(() => ToggleLyricsEffect(AxicultusSettingKeys.LyricsMonitorPanelTextColorFollowRegion1, ActivePanelTextColorAsRegion1));
@@ -1416,9 +1429,72 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         : "No Default Background";
     public string PanelFontFamily
     {
-        get => _settings.Get(AxicultusSettingKeys.PanelFontFamily);
-        set => _settings.Set(AxicultusSettingKeys.PanelFontFamily, value?.Trim() ?? "");
+        get => _settings.Get(AxicultusSettingKeys.PanelFontFamily) is { Length: > 0 } name ? name : "Microsoft Sans Serif";
+        set { if (!string.IsNullOrWhiteSpace(value) && value != PanelFontFamily) _settings.Set(AxicultusSettingKeys.PanelFontFamily, value); }
     }
+
+    public string DefaultRegionChoice
+    {
+        get => ActiveRegionDisplay.ToString();
+        set { if (Enum.TryParse<LyricsRegionDisplay>(value, out var choice) && choice != ActiveRegionDisplay) ApplyRegionDisplay(choice); }
+    }
+
+    public string DefaultVerticalChoice
+    {
+        get => ActiveLyricsVerticalAlignment.ToString();
+        set { if (Enum.TryParse<LyricsVerticalAlignment>(value, out var choice) && choice != ActiveLyricsVerticalAlignment) ApplyLyricsVerticalAlignment(choice); }
+    }
+
+    public string DefaultRegion1AlignmentChoice
+    {
+        get => ActiveLyricsAlignment.ToString();
+        set { if (Enum.TryParse<LyricsTextAlignment>(value, out var choice) && choice != ActiveLyricsAlignment) ApplyLyricsAlignment(choice); }
+    }
+
+    public string DefaultRegion2AlignmentChoice
+    {
+        get => ActiveLyricsRegion2Alignment == LyricsRegion2Alignment.FollowRegion1 ? ActiveLyricsAlignment.ToString() : ActiveLyricsRegion2Alignment.ToString();
+        set { if (Enum.TryParse<LyricsRegion2Alignment>(value, out var choice) && choice != ActiveLyricsRegion2Alignment) LyricsRegion2AlignmentInput = choice; }
+    }
+
+    public string DefaultImageModeChoice
+    {
+        get => ActiveBackgroundMode == LyricsBackgroundMode.Fill ? nameof(LyricsBackgroundMode.Fit) : ActiveBackgroundMode.ToString();
+        set { if (Enum.TryParse<LyricsBackgroundMode>(value, out var choice) && choice != ActiveBackgroundMode) ApplyBackgroundMode(choice); }
+    }
+
+    public string DefaultHeadingChoice
+    {
+        get => !ActiveLyricsTitleHeading ? "None" : ActiveTitleHeadingFirstScreenOnly ? "First" : "All";
+        set
+        {
+            if (value is not ("None" or "First" or "All") || value == DefaultHeadingChoice) return;
+            _settings.SetValues(new Dictionary<string, object>
+            {
+                [AxicultusSettingKeys.LyricsMonitorShowTitleHeading.Id] = value != "None",
+                [AxicultusSettingKeys.LyricsMonitorTitleHeadingFirstScreenOnly.Id] = value == "First"
+            });
+        }
+    }
+
+    public string DefaultHeadingAlignmentChoice
+    {
+        get => ActiveTitleHeadingFollowBody ? "AsR1" : ActiveTitleHeadingFollowRegion2 ? "AsR2"
+            : ActiveTitleHeadingAlignment == LyricsTextAlignment.Center ? "Centre" : ActiveTitleHeadingAlignment.ToString();
+        set { if (!string.IsNullOrEmpty(value) && value != DefaultHeadingAlignmentChoice) ApplyTitleHeadingLegacyMode(value); }
+    }
+
+    public int DefaultPanelHeight
+    {
+        get => Math.Clamp(PanelHeightPercent, 6, 20);
+        set => PanelHeightPercent = Math.Clamp(value, 6, 20);
+    }
+
+    public string DefaultRegion2ColorHex => LyricsTextColor2Input == 0 ? ActiveTextColorHex : FormatColorHex(LyricsTextColor2Input);
+    public string DefaultMediaCaption => "Media: " + (ItemMediaOptions.Read(DefaultMediaFormat).Mode switch
+    {
+        1 => "As Title", 2 => "Specific", 3 => "Live Feed", _ => string.IsNullOrWhiteSpace(DefaultMediaPath) ? "None" : "Specific"
+    });
 
     public int PanelHeightPercent
     {
@@ -1545,11 +1621,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     public IRelayCommand ToggleEmphasisChorusOnlyCommand { get; }
 
+    [ObservableProperty] private bool _defaultCapoZero;
+    [RelayCommand] private void ToggleDefaultCapo() => _settings.Set(AxicultusSettingKeys.LyricsMonitorCapoZero, !DefaultCapoZero);
+
     public IRelayCommand ToggleInterlaceCommand { get; }
 
     /// <summary>선택 항목의 "개별 서식 사용"을 토글한다(레거시 Ind_checkBox). off 면 전역 기본 서식으로 송출.</summary>
     public IRelayCommand ToggleUseIndividualFormattingCommand { get; }
-    public IRelayCommand ApplyGlobalFormatToAllCommand { get; }
+    public IAsyncRelayCommand ApplyGlobalFormatToAllCommand { get; }
     /// <summary>Display Panel 전체 표시 토글(레거시 Def_PanelShow) — 설정→출력 VM 라이브 반영.</summary>
     public IRelayCommand ToggleLyricsDisplayPanelCommand { get; }
 
@@ -1989,6 +2068,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             Title = song.Title,
             Lyrics = song.Lyrics,
             Sequence = normalizedSequence,
+            Capo = song.Capo,
             SongNumber = song.SongNumber,
             Copyright = song.Copyright,
             LicenceAdmin1 = song.LicenceAdmin1,
@@ -2265,7 +2345,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                             detail.Category,
                             detail.Key,
                             detail.Lyrics,
-                            detail.Copyright, LicenceAdmin1: detail.LicenceAdmin1, LicenceAdmin2: detail.LicenceAdmin2),
+                            detail.Copyright, LicenceAdmin1: detail.LicenceAdmin1, LicenceAdmin2: detail.LicenceAdmin2, Capo: detail.Capo),
                         string.IsNullOrWhiteSpace(detail.Sequence) ? null : detail.Sequence,
                         string.IsNullOrWhiteSpace(detail.FormatData) ? null : detail.FormatData,
                         detail.BookReference,
@@ -2379,7 +2459,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 detail.Category,
                 detail.Key,
                 detail.Lyrics,
-                detail.Copyright, LicenceAdmin1: detail.LicenceAdmin1, LicenceAdmin2: detail.LicenceAdmin2);
+                detail.Copyright, LicenceAdmin1: detail.LicenceAdmin1, LicenceAdmin2: detail.LicenceAdmin2, Capo: detail.Capo);
         if (previewOnly)
         {
             if (SelectedSearchResult?.SongId == songId)
@@ -3060,6 +3140,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                     return new LiveQueueItem($"song:{song.SongId}", song.Title, LiveItemKinds.Song)
                     {
                         Lyrics = song.Lyrics,
+                        Capo = song.Capo,
                         SongNumber = song.SongNumber,
                         Copyright = song.Copyright,
                         LicenceAdmin1 = song.LicenceAdmin1,
@@ -3131,7 +3212,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                         detail.Category,
                         detail.Key,
                         detail.Lyrics,
-                        detail.Copyright, LicenceAdmin1: detail.LicenceAdmin1, LicenceAdmin2: detail.LicenceAdmin2),
+                        detail.Copyright, LicenceAdmin1: detail.LicenceAdmin1, LicenceAdmin2: detail.LicenceAdmin2, Capo: detail.Capo),
                     string.IsNullOrWhiteSpace(detail.Sequence) ? null : detail.Sequence,
                     string.IsNullOrWhiteSpace(esw.FormatData) ? detail.FormatData : esw.FormatData,
                     detail.BookReference,
@@ -3154,6 +3235,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             Sequence = sequence ?? song.Sequence,
             SourceFolderNo = song.FolderNo,
             SongLayout = Library.Folders.FirstOrDefault(folder => folder.FolderNo == song.FolderNo)?.SlideLayout,
+            Capo = song.Capo,
             SongNumber = song.SongNumber,
             Copyright = song.Copyright,
             LicenceAdmin1 = song.LicenceAdmin1,
@@ -3873,6 +3955,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         OnPropertyChanged(nameof(DefaultMediaPath));
         OnPropertyChanged(nameof(CanClearDefaultMedia));
+        OnPropertyChanged(nameof(DefaultMediaCaption));
         OnPropertyChanged(nameof(DefaultMediaToolTip));
         ClearDefaultMediaCommand.NotifyCanExecuteChanged();
         NotifyOutputMediaProperties();
@@ -5812,6 +5895,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         return item.Lyrics ?? string.Empty;
     }
 
+    private int ResolveChordTranspose(LiveQueueItem item, ItemDisplayFormat? format) =>
+        LiveTransposeSemitones + (format?.Transpose ?? (DefaultCapoZero && item.Capo > 0 ? item.Capo % 12 : 0));
+
     // Prepare the displayed content once. The card list and the live surface use the same index and fallback rules.
     private Func<int, string> PrepareLyricsPageText(LiveQueueItem item, bool preview = false)
     {
@@ -5825,10 +5911,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var itemDisplay = item.UseIndividualFormatting ? ItemDisplayFormat.Read(item.FormatData) : null;
         bool showChords = preview ? PreviewAreaShowNotations : itemDisplay?.Flag(4) ?? _settings.Get(AxicultusSettingKeys.LyricsMonitorShowNotations);
         if (GetSongPages(item) is { } songPages)
-            return index => LyricsDisplayFormatter.FormatSongSlide(PageAt(songPages.Bodies, index), showChords, LiveTransposeSemitones + (itemDisplay?.Transpose ?? 0));
+            return index => LyricsDisplayFormatter.FormatSongSlide(PageAt(songPages.Bodies, index), showChords, ResolveChordTranspose(item, itemDisplay));
         string lyrics = bible
             ? LyricsDisplayFormatter.GuardLiteralNotation(LyricsDisplayFormatter.NormalizeText(item.Lyrics ?? string.Empty))
-            : LyricsDisplayFormatter.ExpandNotations(item.Lyrics, showChords, LiveTransposeSemitones + (itemDisplay?.Transpose ?? 0));
+            : LyricsDisplayFormatter.ExpandNotations(item.Lyrics, showChords, ResolveChordTranspose(item, itemDisplay));
 
         string DisplayText(string? text) => bible
             ? TextOrTitle(LyricsDisplayFormatter.UnguardLiteralNotation(text), item.Title)
@@ -8105,10 +8191,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public void ToggleSelectedItemUnderline2()
         => ToggleSelectedItemEmphasis(f => f.Underline2, (f, v) => f with { Underline2 = v }, "보조 영역 밑줄");
 
-    // 모든 항목을 전역 기본 서식으로 적용(레거시 FrmMain "Apply to All Except InfoScreens" 대응).
-    // 각 항목의 UseIndividualFormatting 을 false 로 바꿔 곡별 FormatData 대신 운영 기본 서식으로 송출하게 한다.
-    // (이 플래그는 곡·성경 텍스트 항목 송출에만 영향 — PPT/미디어/공지엔 무영향. 레거시 "Except InfoScreens" 와 같은 취지.)
-    private void ApplyGlobalFormatToAll()
+    private async Task ApplyGlobalFormatToAllAsync()
     {
         if (Queue.Count == 0)
         {
@@ -8123,18 +8206,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         for (var i = 0; i < Queue.Count; i++)
         {
             var item = Queue[i];
-            if (item.UseIndividualFormatting && item.Kind != LiveItemKinds.Notice)
+            if ((item.UseIndividualFormatting || !string.IsNullOrEmpty(item.FormatData)) &&
+                (!LiveItemKindMatcher.IsNotice(item.Kind) || IsExternalTextFileItem(item)))
             {
-                Queue[i] = item with { UseIndividualFormatting = false };
+                Queue[i] = item with { UseIndividualFormatting = false, FormatData = null };
                 changed++;
             }
         }
 
-        if (changed == 0)
-        {
-            StatusText = "이미 모든 항목이 전역 기본 서식을 사용 중입니다.";
-            return;
-        }
 
         // 교체로 끊긴 선택을 같은 자리의 새 인스턴스로 복원(선택이 UI 에서 사라지지 않게).
         if (selectedIndex >= 0 && selectedIndex < Queue.Count)
@@ -8142,10 +8221,17 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             SelectedItem = Queue[selectedIndex];
         }
 
-        // 라이브 항목이면 세션 실제 절로 다시 송출해 새 서식을 즉시 반영(Id 로 큐의 교체 인스턴스를 찾는다).
+        GoToPreviewLyricsPage(0);
         RepublishLiveSongForBodyChange();
+        if (_session.Current.State == LiveState.Active && Queue.Any(item => item.Id == _liveItemId && !item.UseIndividualFormatting))
+            GoToOutputLyricsPage(0);
         NotifyCommandStates();
-        StatusText = $"{changed}개 항목에 전역 기본 서식 적용";
+        if (changed > 0 && !string.IsNullOrWhiteSpace(CurrentWorshipListName))
+        {
+            await QuickSaveWorshipListAsync();
+            if (WorshipListHasUnsavedChanges) return;
+        }
+        StatusText = changed == 0 ? "이미 모든 항목이 전역 기본 서식을 사용 중입니다." : $"{changed}개 항목에 전역 기본 서식 적용";
     }
 
     internal LiveQueueItem ProjectLyricsPage(LiveQueueItem item, int pageIndex)
@@ -8195,7 +8281,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 PositionLabel = positionLabel,
                 NextTitle = nextTitle,
                 ShowNotations = showNotations,
-                TransposeSemitones = LiveTransposeSemitones + (itemDisplay?.Transpose ?? 0),
+                TransposeSemitones = ResolveChordTranspose(item, itemDisplay),
                 FormatData = formatData,
             };
         }
@@ -8205,7 +8291,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             PositionLabel = positionLabel,
             NextTitle = nextTitle,
             ShowNotations = showNotations,
-            TransposeSemitones = LiveTransposeSemitones + (itemDisplay?.Transpose ?? 0),
+            TransposeSemitones = ResolveChordTranspose(item, itemDisplay),
             FormatData = formatData,
         };
     }
@@ -8395,7 +8481,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             OnPropertyChanged(nameof(PreviewSelectionBackground));
         }
         if (ContainsKey(args.ChangedKeys, AxicultusSettingKeys.PanelFontFamily.Id)) OnPropertyChanged(nameof(PanelFontFamily));
-        if (ContainsKey(args.ChangedKeys, AxicultusSettingKeys.PanelHeightPercent.Id)) OnPropertyChanged(nameof(PanelHeightPercent));
+        if (ContainsKey(args.ChangedKeys, AxicultusSettingKeys.PanelHeightPercent.Id))
+        {
+            OnPropertyChanged(nameof(PanelHeightPercent));
+            OnPropertyChanged(nameof(DefaultPanelHeight));
+        }
 
         if (ContainsKey(args.ChangedKeys, AxicultusSettingKeys.JumpToA.Id)
             || ContainsKey(args.ChangedKeys, AxicultusSettingKeys.JumpToB.Id)
@@ -8435,6 +8525,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         // "코드 표시"가 바뀌면 본문 자체(코드 줄 포함 여부)가 달라지므로, 색·정렬처럼 렌더 계층에서
         // 즉시 반영되지 않는다. 현재 라이브 곡을 같은 절로 다시 송출해 본문을 재계산한다(라이브 즉시 반영).
+        if (ContainsKey(args.ChangedKeys, AxicultusSettingKeys.LyricsMonitorCapoZero.Id))
+        {
+            DefaultCapoZero = _settings.Get(AxicultusSettingKeys.LyricsMonitorCapoZero);
+            RebuildPreviewLyricsPages();
+            RepublishLiveSongForBodyChange();
+        }
         if (ContainsKey(args.ChangedKeys, AxicultusSettingKeys.LyricsMonitorShowNotations.Id))
         {
             RepublishLiveSongForBodyChange();
@@ -8546,6 +8642,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _settings.Set(AxicultusSettingKeys.LyricsMonitorTextColorArgb, preset.TextArgb);
         _settings.Set(AxicultusSettingKeys.LyricsMonitorBackgroundColorArgb, preset.Background1Argb);
         _settings.Set(AxicultusSettingKeys.LyricsMonitorBackgroundColor2Argb, preset.Background2Argb);
+        _settings.Set(AxicultusSettingKeys.LyricsMonitorBackgroundPattern, -1);
         _settings.Set(AxicultusSettingKeys.LyricsMonitorBackgroundIsGradient, preset.IsGradient);
         RefreshActiveAppearance();
         StatusText = $"출력 모양: {preset.Name}";
@@ -8576,7 +8673,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // 배경 그라데이션 방향 적용 — 설정→출력 VM 이 SettingsChanged 로 LinearGradientBrush 를 다시 만들어 즉시 반영(FrmMain Def_BackColour 패턴).
     private void ApplyGradientDirection(LyricsGradientDirection direction)
     {
-        _settings.Set(AxicultusSettingKeys.LyricsMonitorBackgroundGradientDirection, direction);
+        _settings.SetValues(new Dictionary<string, object>
+        {
+            [AxicultusSettingKeys.LyricsMonitorBackgroundPattern.Id] = -1,
+            [AxicultusSettingKeys.LyricsMonitorBackgroundGradientDirection.Id] = direction
+        });
         ActiveGradientDirection = direction;
         StatusText = $"그라데이션 방향: {direction switch
         {
@@ -8758,6 +8859,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _settings.Set(AxicultusSettingKeys.LyricsMonitorBackgroundImagePath, AxicultusSettingKeys.LyricsMonitorBackgroundImagePath.DefaultValue);
         _settings.Set(AxicultusSettingKeys.LyricsMonitorRegionDisplay, AxicultusSettingKeys.LyricsMonitorRegionDisplay.DefaultValue);
         _settings.Set(AxicultusSettingKeys.LyricsMonitorEmphasisChorusOnly, AxicultusSettingKeys.LyricsMonitorEmphasisChorusOnly.DefaultValue);
+        _settings.Set(AxicultusSettingKeys.LyricsMonitorCapoZero, false);
         _settings.Set(AxicultusSettingKeys.LyricsMonitorInterlace, AxicultusSettingKeys.LyricsMonitorInterlace.DefaultValue);
         _settings.Set(AxicultusSettingKeys.LyricsMonitorShowDisplayPanel, AxicultusSettingKeys.LyricsMonitorShowDisplayPanel.DefaultValue);
         _settings.Set(AxicultusSettingKeys.LyricsMonitorPanelTransparent, AxicultusSettingKeys.LyricsMonitorPanelTransparent.DefaultValue);
@@ -9547,6 +9649,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     // 전역 출력 배경 이미지 설정(FrmMain Images 탭 — 배경으로 적용). 코드-비하인드의 파일 선택 결과를 받아 저장.
     // 라이브 출력 VM 이 설정 변경을 즉시 반영해 색 배경 위에 이미지를 깐다(곡별 배경 61 이 있으면 그 곡은 우선).
+    internal void ApplyDefaultGalleryImage(string path)
+    {
+        var mode = SongFormatData.GalleryImageMode(path);
+        if (mode.HasValue) ApplyBackgroundMode(mode.Value);
+        SetOutputBackgroundImage(path);
+    }
+
     public void SetOutputBackgroundImage(string imagePath)
     {
         if (string.IsNullOrWhiteSpace(imagePath))
@@ -9653,6 +9762,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// </summary>
     public ObservableCollection<string> LyricsFontFamilyOptions { get; } = [with(CuratedFontFavorites)];
 
+    public IReadOnlyList<string> PanelFontOptions { get; private set; } = ["Microsoft Sans Serif"];
+
     /// <summary>
     /// 설치된 시스템 글꼴을 콤보 목록에 합친다(추천 앞·설치 글꼴 가나다/ABC 순 뒤, 대소문자 무시 중복 제거).
     /// 시작 시 1회 View 가 <c>Fonts.SystemFontFamilies</c> 이름으로 호출한다. 순수 계산은 <see cref="SystemFontCatalog"/> 가
@@ -9660,7 +9771,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// </summary>
     public void MergeInstalledFonts(IEnumerable<string>? installedFamilies)
     {
-        var merged = SystemFontCatalog.BuildFontFamilyList(installedFamilies, CuratedFontFavorites);
+        PanelFontOptions = SystemFontCatalog.BuildFontFamilyList(installedFamilies, []);
+        OnPropertyChanged(nameof(PanelFontOptions));
+        OnPropertyChanged(nameof(PanelFontFamily));
+        var merged = SystemFontCatalog.BuildFontFamilyList(PanelFontOptions, CuratedFontFavorites);
         LyricsFontFamilyOptions.Clear();
         foreach (var name in merged)
         {
@@ -10099,6 +10213,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ActiveLyricsNotations = _settings.Get(AxicultusSettingKeys.LyricsMonitorShowNotations);
         ActiveLyricsUnderline = _settings.Get(AxicultusSettingKeys.LyricsMonitorUnderline);
         ActiveLyricsEmphasisChorusOnly = _settings.Get(AxicultusSettingKeys.LyricsMonitorEmphasisChorusOnly);
+        DefaultCapoZero = _settings.Get(AxicultusSettingKeys.LyricsMonitorCapoZero);
         ActiveLyricsInterlace = _settings.Get(AxicultusSettingKeys.LyricsMonitorInterlace);
         ActiveLyricsDisplayPanel = _settings.Get(AxicultusSettingKeys.LyricsMonitorShowDisplayPanel);
         ActiveLyricsPanelTransparent = _settings.Get(AxicultusSettingKeys.LyricsMonitorPanelTransparent);

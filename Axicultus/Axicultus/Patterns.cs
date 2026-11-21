@@ -94,7 +94,7 @@ namespace Axicultus;
 		public void FillDiagonalCentre(ref Graphics g, Color Colour1, Color Colour2, LinearGradientMode GradientMode)
 		{
 			Rectangle rect = new(0, 0, Width, Height);
-			LinearGradientBrush linearGradientBrush = new(rect, Colour1, Colour2, GradientMode);
+			using LinearGradientBrush linearGradientBrush = new(rect, Colour1, Colour2, GradientMode);
 			ColorBlend colorBlend = new(4);
 			colorBlend.Colors[0] = Colour2;
 			colorBlend.Colors[1] = Colour1;
@@ -111,7 +111,7 @@ namespace Axicultus;
 		public void FillDiagonalTopDown(ref Graphics g, Color Colour1, Color Colour2, LinearGradientMode GradientMode)
 		{
 			Rectangle rect = new(0, 0, Width, Height);
-			LinearGradientBrush linearGradientBrush = new(rect, Colour1, Colour2, GradientMode);
+			using LinearGradientBrush linearGradientBrush = new(rect, Colour1, Colour2, GradientMode);
 			ColorBlend colorBlend = new(2);
 			colorBlend.Colors[0] = Colour1;
 			colorBlend.Colors[1] = Colour2;
@@ -124,7 +124,7 @@ namespace Axicultus;
 		public void FillHortVertCentre(ref Graphics g, Color Colour1, Color Colour2, LinearGradientMode GradientMode)
 		{
 			Rectangle rect = new(0, 0, Width, Height);
-			LinearGradientBrush linearGradientBrush = new(rect, Colour1, Colour2, GradientMode);
+			using LinearGradientBrush linearGradientBrush = new(rect, Colour1, Colour2, GradientMode);
 			ColorBlend colorBlend = new(3);
 			colorBlend.Colors[0] = Colour2;
 			colorBlend.Colors[1] = Colour1;
@@ -139,7 +139,7 @@ namespace Axicultus;
 		public void FillHortVertTopDown(ref Graphics g, Color Colour1, Color Colour2, LinearGradientMode GradientMode)
 		{
 			Rectangle rect = new(0, 0, Width, Height);
-			LinearGradientBrush linearGradientBrush = new(rect, Colour1, Colour2, GradientMode);
+			using LinearGradientBrush linearGradientBrush = new(rect, Colour1, Colour2, GradientMode);
 			ColorBlend colorBlend = new(2);
 			colorBlend.Colors[0] = Colour1;
 			colorBlend.Colors[1] = Colour2;
@@ -156,9 +156,9 @@ namespace Axicultus;
 			rect.Height = Height * 2;
 			rect.X = -(int)((float)(rect.Width - Width) / 1.9f);
 			rect.Y = (AtBottom ? (-(int)((float)rect.Height / 13f)) : (-(int)((float)rect.Height / 2.5f)));
-			GraphicsPath graphicsPath = new();
+			using GraphicsPath graphicsPath = new();
 			graphicsPath.AddEllipse(rect);
-			PathGradientBrush pathGradientBrush = new(graphicsPath);
+			using PathGradientBrush pathGradientBrush = new(graphicsPath);
 			pathGradientBrush.SurroundColors =
         [
             Colour2
@@ -170,13 +170,13 @@ namespace Axicultus;
 		public void FillRect(ref Graphics g, Color Colour1, Color Colour2)
 		{
 			Rectangle rect = new(0, 0, Width, Height);
-			GraphicsPath graphicsPath = new();
+			using GraphicsPath graphicsPath = new();
 			rect.Width = (int)((float)Width * 1.5f);
 			rect.Height = (int)((float)Height * 1.5f);
 			rect.X = -(int)((float)(rect.Width - Width) / 2f);
 			rect.Y = -(int)((float)(rect.Height - Height) / 2f);
 			graphicsPath.AddRectangle(rect);
-			PathGradientBrush pathGradientBrush = new(graphicsPath);
+			using PathGradientBrush pathGradientBrush = new(graphicsPath);
 			pathGradientBrush.SurroundColors =
         [
             Colour2

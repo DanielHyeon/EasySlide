@@ -60,11 +60,26 @@ internal static class SessionFormatTemplate
             Set(LyricsMonitorTitleHeadingFirstScreenOnly, Parse(heading) >= 2);
         }
         else if (!load) fields[21] = !settings.Get(LyricsMonitorShowTitleHeading) ? "0" : settings.Get(LyricsMonitorTitleHeadingFirstScreenOnly) ? "2" : "1";
-        Bits(22, (2, LyricsMonitorShadow), (4, LyricsMonitorShowNotations), (16, LyricsMonitorInterlace), (32, LyricsMonitorOutline));
+        Bits(22, (2, LyricsMonitorShadow), (4, LyricsMonitorShowNotations), (8, LyricsMonitorCapoZero), (16, LyricsMonitorInterlace), (32, LyricsMonitorOutline));
+        if (load && fields.TryGetValue(23, out var headingAlign))
+        {
+            int index = Math.Clamp(Parse(headingAlign), 0, 4);
+            Set(LyricsMonitorTitleHeadingFollowBody, index == 0);
+            Set(LyricsMonitorTitleHeadingFollowRegion2, index == 1);
+            if (index >= 2) Set(LyricsMonitorTitleHeadingAlignment, (LyricsTextAlignment)(index - 2));
+        }
+        else if (!load) fields[23] = Number(settings.Get(LyricsMonitorTitleHeadingFollowBody) ? 0 : settings.Get(LyricsMonitorTitleHeadingFollowRegion2) ? 1 : 2 + (int)settings.Get(LyricsMonitorTitleHeadingAlignment));
         Map(25, LyricsMonitorRegionDisplay, v => v == LyricsRegionDisplay.Both ? "2" : Number((int)v - 1),
             v => v == "0" ? LyricsRegionDisplay.Region1Only : v == "1" ? LyricsRegionDisplay.Region2Only : LyricsRegionDisplay.Both);
         Integer(26, LyricsMonitorBackgroundColorArgb);
         Integer(27, LyricsMonitorBackgroundColor2Argb);
+        if (load && fields.TryGetValue(28, out var pattern))
+        {
+            int index = Math.Clamp(Parse(pattern), 0, 11);
+            Set(LyricsMonitorBackgroundPattern, index);
+            Set(LyricsMonitorBackgroundIsGradient, index != 11);
+        }
+        else if (!load) fields[28] = Number(Rendering.DefaultBackgroundPattern.SelectedIndex(settings.Current.LiveOutput));
         Integer(29, LyricsMonitorTextColorArgb);
         Integer(30, LyricsMonitorTextColor2Argb);
         Map(31, LyricsMonitorTextAlignment, v => Number(1 + (int)v), v => (LyricsTextAlignment)Math.Clamp(Parse(v) - 1, 0, 2));

@@ -47,6 +47,35 @@ internal sealed class FileThumbnailPanel : Panel
         }
     }
 
+    private void ThumbnailMouseUp(object sender, MouseEventArgs e)
+    {
+        if (!presentation && e.Button is MouseButtons.Left or MouseButtons.Right && sender is ImageCanvas { Tag: int index })
+            SelectImage(index);
+        clicked?.Invoke(sender, e);
+    }
+
+    private void ThumbnailDoubleClick(object sender, MouseEventArgs e)
+    {
+        if (e.Button == MouseButtons.Left && ((Control)sender).ClientRectangle.Contains(e.Location))
+            doubleClicked?.Invoke(sender, e);
+    }
+
+    private void SelectImage(int index)
+    {
+        if (presentation || (uint)index >= (uint)paths.Length || selected == index + 1) return;
+        int previous = selected;
+        selected = renderedSelection = index + 1;
+        UpdateCell(previous - 1);
+        UpdateCell(index);
+
+        void UpdateCell(int changed)
+        {
+            if (!cells.TryGetValue(changed, out var cell)) return;
+            cell.CurrentSelectedSlide = selected;
+            cell.Invalidate();
+        }
+    }
+
     protected override void OnMouseWheel(MouseEventArgs e)
     {
         base.OnMouseWheel(e);
@@ -94,9 +123,10 @@ internal sealed class FileThumbnailPanel : Panel
                 {
                     if (!recycled.TryPop(out cell))
                     {
-                        cell = new ImageCanvas { KeepThumbnailCellHeight = true };
-                        cell.MouseUp += clicked;
-                        if (doubleClicked != null) cell.DoubleClick += doubleClicked;
+                        cell = new ImageCanvas { KeepThumbnailCellHeight = true, DrawGallerySelection = !presentation };
+                        cell.MouseUp += ThumbnailMouseUp;
+                        if (presentation) cell.DoubleClick += doubleClicked;
+                        else cell.MouseDoubleClick += ThumbnailDoubleClick;
                         Controls.Add(cell);
                     }
                     cells.Add(index, cell);

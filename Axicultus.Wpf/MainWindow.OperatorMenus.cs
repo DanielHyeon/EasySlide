@@ -128,7 +128,7 @@ public partial class MainWindow
 
     private void LoadSessionTemplate_Click(object sender, RoutedEventArgs e)
     {
-        var dialog = new OpenFileDialog { Filter = IndividualFormatTemplateFile.DialogFilter, InitialDirectory = SessionTemplatesDirectory() };
+        var dialog = new OpenFileDialog { Title = "Load Session Settings from a Template", Filter = IndividualFormatTemplateFile.DialogFilter, InitialDirectory = SessionTemplatesDirectory() };
         if (dialog.ShowDialog(this) != true) return;
         try
         {
@@ -143,8 +143,10 @@ public partial class MainWindow
 
     private void SaveSessionTemplate_Click(object sender, RoutedEventArgs e)
     {
-        var dialog = new SaveFileDialog { Filter = IndividualFormatTemplateFile.DialogFilter, InitialDirectory = SessionTemplatesDirectory(),
-            DefaultExt = ".est", FileName = "Session.est" };
+        var name = Path.GetFileName(_viewModel.CurrentWorshipListName);
+        var dialog = new SaveFileDialog { Title = "Save Current Session Settings to a Template",
+            Filter = IndividualFormatTemplateFile.DialogFilter, InitialDirectory = SessionTemplatesDirectory(),
+            DefaultExt = ".est", FileName = $"{(string.IsNullOrWhiteSpace(name) ? "Session" : name)}.est" };
         if (dialog.ShowDialog(this) != true) return;
         try
         {

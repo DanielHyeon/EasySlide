@@ -22,7 +22,8 @@ public sealed record WorshipListItemDto(
     bool UseIndividualFormatting = true,
     string? Sequence = null,
     Data.SongPageLayout? SongLayout = null,
-    int? SourceFolderNo = null);
+    int? SourceFolderNo = null,
+    int Capo = 0);
 
 /// <summary>예배 순서(워십 리스트)를 이름으로 저장/불러오기/삭제한다(레거시 FrmManageItemLists 대응 — G2).</summary>
 public interface IWorshipListStore
@@ -85,7 +86,7 @@ public sealed class WorshipListStore(string directory, ISettingsService? setting
         Directory.CreateDirectory(_directory);
 
         var dtos = items
-            .Select(i => new WorshipListItemDto(i.Id, i.Title, i.Kind, i.SlideNumber, i.Lyrics, i.ContentPath, i.FormatData, i.UseIndividualFormatting, i.Sequence, i.SongLayout, i.SourceFolderNo))
+            .Select(i => new WorshipListItemDto(i.Id, i.Title, i.Kind, i.SlideNumber, i.Lyrics, i.ContentPath, i.FormatData, i.UseIndividualFormatting, i.Sequence, i.SongLayout, i.SourceFolderNo, i.Capo))
             .ToArray();
         var json = JsonSerializer.Serialize(dtos, JsonOptions);
 
@@ -126,6 +127,7 @@ public sealed class WorshipListStore(string directory, ISettingsService? setting
                 Sequence = d.Sequence,
                 SongLayout = d.SongLayout,
                 SourceFolderNo = d.SourceFolderNo,
+                Capo = d.Capo,
                 UseIndividualFormatting = d.UseIndividualFormatting,
             })
             .ToList();

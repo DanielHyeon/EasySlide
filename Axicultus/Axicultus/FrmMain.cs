@@ -796,15 +796,17 @@ public partial class FrmMain : Form
     {
         Control control = (Control)sender;
         ThumbImageClicked = Convert.ToInt32(control.Tag);
-        if (e.Button == MouseButtons.Left)
-        {
-            ApplyBackground(ThumbImageClicked, 2);
-        }
-        else if (e.Button == MouseButtons.Right)
+        if (e.Button == MouseButtons.Right)
         {
             Point position = control.PointToClient(Cursor.Position);
             CMenuImages.Show(control, position);
         }
+    }
+
+    private void ThumbImage_MouseDoubleClick(object sender, EventArgs e)
+    {
+        if (sender is ImageCanvas { Tag: int index })
+            ApplyBackground(index, 2);
     }
 
     private void ExternalFilesPP_DoubleClick(object sender, EventArgs e)

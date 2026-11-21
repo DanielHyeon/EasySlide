@@ -77,7 +77,8 @@ public sealed record SongSummary(
     string LicenceAdmin1 = "",
     string LicenceAdmin2 = "",
     string? StrokeSortKey = null,
-    string? WordSortKey = null);
+    string? WordSortKey = null,
+    int Capo = 0);
 
 public sealed record SongDetail(
     int SongId,
@@ -701,7 +702,8 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
                     {SelectColumn(columns, "BOOK_REFERENCE", "BOOK_REFERENCE")},
                     {SelectColumn(columns, "USER_REFERENCE", "USER_REFERENCE")},
                     {SelectColumn(columns, "CJK_STROKECOUNT", "CJK_STROKECOUNT")},
-                    {SelectColumn(columns, "CJK_WORDCOUNT", "CJK_WORDCOUNT")}
+                    {SelectColumn(columns, "CJK_WORDCOUNT", "CJK_WORDCOUNT")},
+                    {SelectColumn(columns, "CAPO", "CAPO")}
                 FROM SONG
                 {where}
                 ORDER BY {QuoteIdentifier(columns["FOLDERNO"])}, {QuoteIdentifier(columns["SONG_NUMBER"])}, {QuoteIdentifier(columns["TITLE_1"])}, {QuoteIdentifier(columns["SONGID"])};
@@ -730,7 +732,8 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
                     GetString(reader, "FORMATDATA"),
                     GetString(reader, "LICENCE_ADMIN1"), GetString(reader, "LICENCE_ADMIN2"),
                     columns.ContainsKey("CJK_STROKECOUNT") ? GetString(reader, "CJK_STROKECOUNT") : null,
-                    columns.ContainsKey("CJK_WORDCOUNT") ? GetString(reader, "CJK_WORDCOUNT") : null));
+                    columns.ContainsKey("CJK_WORDCOUNT") ? GetString(reader, "CJK_WORDCOUNT") : null,
+                    GetInt(reader, "CAPO")));
             }
         }
     }

@@ -600,7 +600,7 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     private const double PanelSecondaryBaseFontSize = 16.0;
 
     /// <summary>위치 인디케이터·곡 번호 글자 크기(기본 20 × 패널 비율). FrmMain Def_PanelFont 크기.</summary>
-    public object PanelFontFamily => _settings?.Get(AxicultusSettingKeys.PanelFontFamily) is { Length: > 0 } name ? new FontFamily(name) : BodyFontFamily;
+    public object PanelFontFamily => _settings?.Get(AxicultusSettingKeys.PanelFontFamily) is { Length: > 0 } name ? new FontFamily(name) : new FontFamily("Microsoft Sans Serif");
     public double PanelBandHeight => GetViewportHeight(_output) * (_settings?.Get(AxicultusSettingKeys.PanelHeightPercent) ?? 0) / 100d;
 
     public double PanelPrimaryFontSize
@@ -1041,7 +1041,9 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         StatusLabel = scene.StatusLabel;
         SceneForegroundBrush = CreateBrush(scene.LyricsMonitorTextColorArgb);
         SceneForegroundBrush2 = CreateBrush(scene.LyricsMonitorTextColor2Argb);
-        SceneBackgroundBrush = CreateBackgroundBrush(
+        SceneBackgroundBrush = scene.BackgroundPattern is >= 0 and < 11 && scene.LyricsMonitorBackgroundIsGradient
+            ? DefaultBackgroundPattern.CreateBrush(scene.LyricsMonitorBackgroundColorArgb, scene.LyricsMonitorBackgroundColor2Argb, scene.BackgroundPattern)
+            : CreateBackgroundBrush(
             scene.LyricsMonitorBackgroundColorArgb,
             scene.LyricsMonitorBackgroundColor2Argb,
             scene.LyricsMonitorBackgroundIsGradient,
@@ -1849,6 +1851,7 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
                 // 라이브로 즉시 반영되지 않는다(인-셸 출력 모양 인스펙터가 한 키씩 Set 하므로 마지막 키가
                 // 화이트리스트에 없으면 갱신을 못 받음). code-review CRITICAL 반영.
                 string.Equals(key, AxicultusSettingKeys.LyricsMonitorBackgroundColor2Argb.Id, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(key, AxicultusSettingKeys.LyricsMonitorBackgroundPattern.Id, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(key, AxicultusSettingKeys.LyricsMonitorBackgroundIsGradient.Id, StringComparison.OrdinalIgnoreCase) ||
                 // 주의: "코드 표시"(LyricsMonitorShowNotations)는 여기(렌더 계층 화이트리스트)에 두지 않는다 —
                 // 본문 텍스트 자체가 달라지는 설정이라, MainViewModel 이 라이브 곡을 재송출해 본문을 다시 계산한다.

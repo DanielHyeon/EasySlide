@@ -56,3 +56,19 @@ The WPF main shell SHALL keep the right upper thumbnail pane and right lower lar
 - **AND** the Worship List enables playback for a single media row, and clearing a named list requires confirmation before moving the saved file to Trash
 - **AND** Bible Add & Show adds and sends the selected passage while Add Region 2 previews the secondary translation
 - **AND** clicking the right text pane selects a page and clicking the sample background leaves the selection unchanged
+
+### Requirement: Image selection and default format controls
+Both main windows SHALL select an Images thumbnail on a single left click and apply its background once on a left double-click. The WPF Default tab SHALL expose the same grouped commands as FrmMain.
+
+#### Scenario: Choose a gallery background
+- **WHEN** the operator clicks an Images thumbnail once
+- **THEN** the gallery marks the selected thumbnail and retains the current item and default backgrounds
+- **WHEN** the operator double-clicks the thumbnail
+- **THEN** the selected image is applied to the current target using its gallery display mode
+- **AND** the context menu provides Add to Item and Add to Default as explicit alternatives
+
+#### Scenario: Change the session defaults
+- **WHEN** the operator opens Default
+- **THEN** the apply and template actions appear above Default Layout, Default Background and Display Panel in that order
+- **AND** the layout choices, colour and pattern dialog, media assignment, transitions, panel height and font controls edit the WPF session settings
+- **AND** cancelling the pattern dialog preserves the current image and colours
