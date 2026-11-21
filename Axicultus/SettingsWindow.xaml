@@ -205,8 +205,8 @@
                                     Minimum="25" Maximum="100" AutomationProperties.Name="Background Video Percent" />
                                 <TextBlock Canvas.Left="202" Canvas.Top="60" Width="39" Height="20" Text="Size:" TextWrapping="Wrap" />
                                 <options:OptionLayoutPreview Canvas.Left="8" Canvas.Top="31" Width="156" Height="135"
-                                    Mode="Video" First="{Binding [BackgroundVideoPercent]}"
-                                    Second="{Binding [BackgroundVideoAlignment]}" />
+                                    Mode="Video" First="{Binding [BackgroundVideoPercent], Mode=OneWay, Converter={StaticResource IntegerOption}}"
+                                    Second="{Binding [BackgroundVideoAlignment], Mode=OneWay, Converter={StaticResource IntegerOption}}" />
                             </Canvas>
                         </GroupBox>
                         <GroupBox Style="{StaticResource ClassicOptionsGroup}" Canvas.Left="8" Canvas.Top="23"
@@ -260,11 +260,11 @@
                                 <TextBlock Canvas.Left="119" Canvas.Top="149" Width="16" Height="20" Text="L" TextWrapping="Wrap" />
                                 <Slider Style="{x:Null}" Canvas.Left="139" Canvas.Top="146" Width="154" Height="30"
                                     Minimum="-100" Maximum="100" TickFrequency="1" IsSnapToTickEnabled="True"
-                                    Value="{Binding [CameraBalance], Mode=TwoWay}" VerticalAlignment="Center"
+                                    Value="{Binding [CameraBalance], Mode=TwoWay, Converter={StaticResource IntegerOption}}" VerticalAlignment="Center"
                                     AutomationProperties.Name="Camera Balance" />
                                 <Slider Style="{x:Null}" Canvas.Left="139" Canvas.Top="86" Width="154" Height="30"
                                     Minimum="0" Maximum="100" TickFrequency="1" IsSnapToTickEnabled="True"
-                                    Value="{Binding [CameraVolume], Mode=TwoWay}" VerticalAlignment="Center"
+                                    Value="{Binding [CameraVolume], Mode=TwoWay, Converter={StaticResource IntegerOption}}" VerticalAlignment="Center"
                                     AutomationProperties.Name="Camera Volume" />
                                 <CheckBox Style="{x:Null}" Canvas.Left="14" Canvas.Top="123" Width="110" Height="24"
                                     Content="WideScreen" IsChecked="{Binding [CameraWide], Mode=TwoWay}"
@@ -1122,136 +1122,177 @@
                 </ScrollViewer>
             </TabItem>
             <TabItem Style="{x:Null}" Padding="10,5" Header="Keyboard">
-                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                    <Canvas Width="719" Height="538" HorizontalAlignment="Left" VerticalAlignment="Top">
-                        <GroupBox Style="{StaticResource ClassicOptionsGroup}" Canvas.Left="173" Canvas.Top="435"
-                            Width="235" Height="87" Header="CopyPreviewToOutput" />
-                        <GroupBox Style="{StaticResource ClassicOptionsGroup}" Canvas.Left="414" Canvas.Top="435"
-                            Width="235" Height="87" Header="SlideUpDown" />
-                        <GroupBox Style="{StaticResource ClassicOptionsGroup}" Canvas.Left="8" Canvas.Top="435"
-                            Width="159" Height="87" Header="Black Screen" />
-                        <CheckBox Style="{x:Null}" Canvas.Left="207" Canvas.Top="463" Width="198" Height="24"
-                            Content="F7 (turn off Black Output)" IsChecked="{Binding [GlobalF7], Mode=TwoWay}"
-                            AutomationProperties.Name="F7 (turn off Black Output)" />
-                        <CheckBox Style="{x:Null}" Canvas.Left="207" Canvas.Top="492" Width="178" Height="24"
-                            Content="F8 (no control Output)" IsChecked="{Binding [GlobalF8], Mode=TwoWay}"
-                            AutomationProperties.Name="F8 (no control Output)" />
-                        <CheckBox Style="{x:Null}" Canvas.Left="418" Canvas.Top="489" Width="208" Height="24"
-                            Content="OutputView_CtrlArrowKeys" IsChecked="{Binding [GlobalCtrlArrow], Mode=TwoWay}"
-                            AutomationProperties.Name="OutputView_CtrlArrowKeys" />
-                        <CheckBox Style="{x:Null}" Canvas.Left="418" Canvas.Top="460" Width="185" Height="24"
-                            Content="OutputView_ArrowKeys" IsChecked="{Binding [GlobalArrow], Mode=TwoWay}"
-                            AutomationProperties.Name="OutputView_ArrowKeys" />
-                        <CheckBox Style="{x:Null}" Canvas.Left="95" Canvas.Top="476" Width="54" Height="24"
-                            Content="F10" IsChecked="{Binding [GlobalF10], Mode=TwoWay}" AutomationProperties.Name="F10" />
-                        <CheckBox Style="{x:Null}" Canvas.Left="29" Canvas.Top="476" Width="46" Height="24" Content="F9"
-                            IsChecked="{Binding [GlobalF9], Mode=TwoWay}" AutomationProperties.Name="F9" />
-                        <GroupBox Style="{StaticResource ClassicOptionsGroup}" Canvas.Left="8" Canvas.Top="23"
-                            Width="699" Height="401" Header="Keyboard Mapping during Show and in Preview.Output Areas">
-                            <Canvas>
-                                <TextBox Style="{x:Null}" Canvas.Left="407" Canvas.Top="338" Width="226" Height="27"
-                                    Text="End" IsReadOnly="True" IsTabStop="False" VerticalContentAlignment="Center"
-                                    TextAlignment="Center" AutomationProperties.Name="End" />
-                                <TextBox Style="{x:Null}" Canvas.Left="408" Canvas.Top="301" Width="226" Height="27"
-                                    Text="Page Down / Space Bar" IsReadOnly="True" IsTabStop="False"
-                                    VerticalContentAlignment="Center" TextAlignment="Center"
-                                    AutomationProperties.Name="Page Down / Space Bar" />
-                                <TextBox Style="{x:Null}" Canvas.Left="167" Canvas.Top="338" Width="226" Height="27"
-                                    Text="Right Arrow" IsReadOnly="True" IsTabStop="False"
-                                    VerticalContentAlignment="Center" TextAlignment="Center"
-                                    AutomationProperties.Name="Right Arrow" />
-                                <TextBox Style="{x:Null}" Canvas.Left="408" Canvas.Top="265" Width="226" Height="27"
-                                    Text="Page Up" IsReadOnly="True" IsTabStop="False" VerticalContentAlignment="Center"
-                                    TextAlignment="Center" AutomationProperties.Name="Page Up" />
-                                <TextBox Style="{x:Null}" Canvas.Left="167" Canvas.Top="301" Width="226" Height="27"
-                                    Text="Down Arrow / Space Bar" IsReadOnly="True" IsTabStop="False"
-                                    VerticalContentAlignment="Center" TextAlignment="Center"
-                                    AutomationProperties.Name="Down Arrow / Space Bar" />
-                                <TextBox Style="{x:Null}" Canvas.Left="408" Canvas.Top="228" Width="226" Height="27"
-                                    Text="Home" IsReadOnly="True" IsTabStop="False" VerticalContentAlignment="Center"
-                                    TextAlignment="Center" AutomationProperties.Name="Home" />
-                                <TextBox Style="{x:Null}" Canvas.Left="167" Canvas.Top="265" Width="226" Height="27"
-                                    Text="Up Arrow" IsReadOnly="True" IsTabStop="False"
-                                    VerticalContentAlignment="Center" TextAlignment="Center"
-                                    AutomationProperties.Name="Up Arrow" />
-                                <TextBox Style="{x:Null}" Canvas.Left="407" Canvas.Top="176" Width="226" Height="27"
-                                    Text="Right Arrow" IsReadOnly="True" IsTabStop="False"
-                                    VerticalContentAlignment="Center" TextAlignment="Center"
-                                    AutomationProperties.Name="Right Arrow" />
-                                <TextBox Style="{x:Null}" Canvas.Left="167" Canvas.Top="228" Width="226" Height="27"
-                                    Text="Left Arrow" IsReadOnly="True" IsTabStop="False"
-                                    VerticalContentAlignment="Center" TextAlignment="Center"
-                                    AutomationProperties.Name="Left Arrow" />
-                                <TextBox Style="{x:Null}" Canvas.Left="407" Canvas.Top="138" Width="226" Height="27"
-                                    Text="Down Arrow" IsReadOnly="True" IsTabStop="False"
-                                    VerticalContentAlignment="Center" TextAlignment="Center"
-                                    AutomationProperties.Name="Down Arrow" />
-                                <TextBox Style="{x:Null}" Canvas.Left="166" Canvas.Top="176" Width="226" Height="27"
-                                    Text="End" IsReadOnly="True" IsTabStop="False" VerticalContentAlignment="Center"
-                                    TextAlignment="Center" AutomationProperties.Name="End" />
-                                <TextBox Style="{x:Null}" Canvas.Left="407" Canvas.Top="101" Width="226" Height="27"
-                                    Text="Up Arrow" IsReadOnly="True" IsTabStop="False"
-                                    VerticalContentAlignment="Center" TextAlignment="Center"
-                                    AutomationProperties.Name="Up Arrow" />
-                                <TextBox Style="{x:Null}" Canvas.Left="166" Canvas.Top="138" Width="226" Height="27"
-                                    Text="Page down" IsReadOnly="True" IsTabStop="False"
-                                    VerticalContentAlignment="Center" TextAlignment="Center"
-                                    AutomationProperties.Name="Page down" />
-                                <TextBox Style="{x:Null}" Canvas.Left="166" Canvas.Top="101" Width="226" Height="27"
-                                    Text="Page Up" IsReadOnly="True" IsTabStop="False" VerticalContentAlignment="Center"
-                                    TextAlignment="Center" AutomationProperties.Name="Page Up" />
-                                <TextBox Style="{x:Null}" Canvas.Left="407" Canvas.Top="65" Width="226" Height="27"
-                                    Text="Left Arrow" IsReadOnly="True" IsTabStop="False"
-                                    VerticalContentAlignment="Center" TextAlignment="Center"
-                                    AutomationProperties.Name="Left Arrow" />
-                                <TextBox Style="{x:Null}" Canvas.Left="166" Canvas.Top="65" Width="226" Height="27"
-                                    Text="Home" IsReadOnly="True" IsTabStop="False" VerticalContentAlignment="Center"
-                                    TextAlignment="Center" AutomationProperties.Name="Home" />
-                                <RadioButton Style="{x:Null}" Canvas.Left="465" Canvas.Top="37" Width="102" Height="24"
-                                    Content="Alternative" GroupName="rbKeyBoardOpt"
-                                    IsChecked="{Binding [AlternateKeyboard], Mode=TwoWay, Converter={StaticResource OptionChoice}, ConverterParameter=True}"
-                                    AutomationProperties.Name="Alternative" />
-                                <RadioButton Style="{x:Null}" Canvas.Left="228" Canvas.Top="37" Width="79" Height="24"
-                                    Content="Default" GroupName="rbKeyBoardOpt"
-                                    IsChecked="{Binding [AlternateKeyboard], Mode=TwoWay, Converter={StaticResource OptionChoice}, ConverterParameter=False}"
-                                    AutomationProperties.Name="Default" />
-                                <TextBox Style="{x:Null}" Canvas.Left="14" Canvas.Top="338" Width="139" Height="27"
-                                    Text="Last Slide" IsReadOnly="True" IsTabStop="False"
-                                    VerticalContentAlignment="Center" TextAlignment="Left"
-                                    AutomationProperties.Name="Last Slide" />
-                                <TextBox Style="{x:Null}" Canvas.Left="14" Canvas.Top="301" Width="139" Height="27"
-                                    Text="Next Slide" IsReadOnly="True" IsTabStop="False"
-                                    VerticalContentAlignment="Center" TextAlignment="Left"
-                                    AutomationProperties.Name="Next Slide" />
-                                <TextBox Style="{x:Null}" Canvas.Left="14" Canvas.Top="265" Width="139" Height="27"
-                                    Text="Previous Slide" IsReadOnly="True" IsTabStop="False"
-                                    VerticalContentAlignment="Center" TextAlignment="Left"
-                                    AutomationProperties.Name="Previous Slide" />
-                                <TextBox Style="{x:Null}" Canvas.Left="14" Canvas.Top="228" Width="139" Height="27"
-                                    Text="First Slide" IsReadOnly="True" IsTabStop="False"
-                                    VerticalContentAlignment="Center" TextAlignment="Left"
-                                    AutomationProperties.Name="First Slide" />
-                                <TextBox Style="{x:Null}" Canvas.Left="13" Canvas.Top="176" Width="139" Height="27"
-                                    Text="Last Item" IsReadOnly="True" IsTabStop="False"
-                                    VerticalContentAlignment="Center" TextAlignment="Left"
-                                    AutomationProperties.Name="Last Item" />
-                                <TextBox Style="{x:Null}" Canvas.Left="13" Canvas.Top="138" Width="139" Height="27"
-                                    Text="Next Item" IsReadOnly="True" IsTabStop="False"
-                                    VerticalContentAlignment="Center" TextAlignment="Left"
-                                    AutomationProperties.Name="Next Item" />
-                                <TextBox Style="{x:Null}" Canvas.Left="13" Canvas.Top="101" Width="139" Height="27"
-                                    Text="Previous Item" IsReadOnly="True" IsTabStop="False"
-                                    VerticalContentAlignment="Center" TextAlignment="Left"
-                                    AutomationProperties.Name="Previous Item" />
-                                <TextBox Style="{x:Null}" Canvas.Left="13" Canvas.Top="65" Width="139" Height="27"
-                                    Text="First Item" IsReadOnly="True" IsTabStop="False"
-                                    VerticalContentAlignment="Center" TextAlignment="Left"
-                                    AutomationProperties.Name="First Item" />
-                                <TextBlock Canvas.Left="13" Canvas.Top="40" Width="55" Height="20" Text="Action:" TextWrapping="Wrap" />
+                <TabControl>
+                    <TabItem Header="기본 키 설정">
+                        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                            <Canvas Width="719" Height="538" HorizontalAlignment="Left" VerticalAlignment="Top">
+                                <GroupBox Style="{StaticResource ClassicOptionsGroup}" Canvas.Left="173" Canvas.Top="435"
+                                    Width="235" Height="87" Header="CopyPreviewToOutput" />
+                                <GroupBox Style="{StaticResource ClassicOptionsGroup}" Canvas.Left="414" Canvas.Top="435"
+                                    Width="235" Height="87" Header="SlideUpDown" />
+                                <GroupBox Style="{StaticResource ClassicOptionsGroup}" Canvas.Left="8" Canvas.Top="435"
+                                    Width="159" Height="87" Header="Black Screen" />
+                                <CheckBox Style="{x:Null}" Canvas.Left="207" Canvas.Top="463" Width="198" Height="24"
+                                    Content="F7 (turn off Black Output)" IsChecked="{Binding [GlobalF7], Mode=TwoWay}"
+                                    AutomationProperties.Name="F7 (turn off Black Output)" />
+                                <CheckBox Style="{x:Null}" Canvas.Left="207" Canvas.Top="492" Width="178" Height="24"
+                                    Content="F8 (no control Output)" IsChecked="{Binding [GlobalF8], Mode=TwoWay}"
+                                    AutomationProperties.Name="F8 (no control Output)" />
+                                <CheckBox Style="{x:Null}" Canvas.Left="418" Canvas.Top="489" Width="208" Height="24"
+                                    Content="OutputView_CtrlArrowKeys" IsChecked="{Binding [GlobalCtrlArrow], Mode=TwoWay}"
+                                    AutomationProperties.Name="OutputView_CtrlArrowKeys" />
+                                <CheckBox Style="{x:Null}" Canvas.Left="418" Canvas.Top="460" Width="185" Height="24"
+                                    Content="OutputView_ArrowKeys" IsChecked="{Binding [GlobalArrow], Mode=TwoWay}"
+                                    AutomationProperties.Name="OutputView_ArrowKeys" />
+                                <CheckBox Style="{x:Null}" Canvas.Left="95" Canvas.Top="476" Width="54" Height="24"
+                                    Content="F10" IsChecked="{Binding [GlobalF10], Mode=TwoWay}" AutomationProperties.Name="F10" />
+                                <CheckBox Style="{x:Null}" Canvas.Left="29" Canvas.Top="476" Width="46" Height="24" Content="F9"
+                                    IsChecked="{Binding [GlobalF9], Mode=TwoWay}" AutomationProperties.Name="F9" />
+                                <GroupBox Style="{StaticResource ClassicOptionsGroup}" Canvas.Left="8" Canvas.Top="23"
+                                    Width="699" Height="401" Header="Keyboard Mapping during Show and in Preview.Output Areas">
+                                    <Canvas>
+                                        <TextBox Style="{x:Null}" Canvas.Left="407" Canvas.Top="338" Width="226" Height="27"
+                                            Text="End" IsReadOnly="True" IsTabStop="False" VerticalContentAlignment="Center"
+                                            TextAlignment="Center" AutomationProperties.Name="End" />
+                                        <TextBox Style="{x:Null}" Canvas.Left="408" Canvas.Top="301" Width="226" Height="27"
+                                            Text="Page Down / Space Bar" IsReadOnly="True" IsTabStop="False"
+                                            VerticalContentAlignment="Center" TextAlignment="Center"
+                                            AutomationProperties.Name="Page Down / Space Bar" />
+                                        <TextBox Style="{x:Null}" Canvas.Left="167" Canvas.Top="338" Width="226" Height="27"
+                                            Text="Right Arrow" IsReadOnly="True" IsTabStop="False"
+                                            VerticalContentAlignment="Center" TextAlignment="Center"
+                                            AutomationProperties.Name="Right Arrow" />
+                                        <TextBox Style="{x:Null}" Canvas.Left="408" Canvas.Top="265" Width="226" Height="27"
+                                            Text="Page Up" IsReadOnly="True" IsTabStop="False" VerticalContentAlignment="Center"
+                                            TextAlignment="Center" AutomationProperties.Name="Page Up" />
+                                        <TextBox Style="{x:Null}" Canvas.Left="167" Canvas.Top="301" Width="226" Height="27"
+                                            Text="Down Arrow / Space Bar" IsReadOnly="True" IsTabStop="False"
+                                            VerticalContentAlignment="Center" TextAlignment="Center"
+                                            AutomationProperties.Name="Down Arrow / Space Bar" />
+                                        <TextBox Style="{x:Null}" Canvas.Left="408" Canvas.Top="228" Width="226" Height="27"
+                                            Text="Home" IsReadOnly="True" IsTabStop="False" VerticalContentAlignment="Center"
+                                            TextAlignment="Center" AutomationProperties.Name="Home" />
+                                        <TextBox Style="{x:Null}" Canvas.Left="167" Canvas.Top="265" Width="226" Height="27"
+                                            Text="Up Arrow" IsReadOnly="True" IsTabStop="False"
+                                            VerticalContentAlignment="Center" TextAlignment="Center"
+                                            AutomationProperties.Name="Up Arrow" />
+                                        <TextBox Style="{x:Null}" Canvas.Left="407" Canvas.Top="176" Width="226" Height="27"
+                                            Text="Right Arrow" IsReadOnly="True" IsTabStop="False"
+                                            VerticalContentAlignment="Center" TextAlignment="Center"
+                                            AutomationProperties.Name="Right Arrow" />
+                                        <TextBox Style="{x:Null}" Canvas.Left="167" Canvas.Top="228" Width="226" Height="27"
+                                            Text="Left Arrow" IsReadOnly="True" IsTabStop="False"
+                                            VerticalContentAlignment="Center" TextAlignment="Center"
+                                            AutomationProperties.Name="Left Arrow" />
+                                        <TextBox Style="{x:Null}" Canvas.Left="407" Canvas.Top="138" Width="226" Height="27"
+                                            Text="Down Arrow" IsReadOnly="True" IsTabStop="False"
+                                            VerticalContentAlignment="Center" TextAlignment="Center"
+                                            AutomationProperties.Name="Down Arrow" />
+                                        <TextBox Style="{x:Null}" Canvas.Left="166" Canvas.Top="176" Width="226" Height="27"
+                                            Text="End" IsReadOnly="True" IsTabStop="False" VerticalContentAlignment="Center"
+                                            TextAlignment="Center" AutomationProperties.Name="End" />
+                                        <TextBox Style="{x:Null}" Canvas.Left="407" Canvas.Top="101" Width="226" Height="27"
+                                            Text="Up Arrow" IsReadOnly="True" IsTabStop="False"
+                                            VerticalContentAlignment="Center" TextAlignment="Center"
+                                            AutomationProperties.Name="Up Arrow" />
+                                        <TextBox Style="{x:Null}" Canvas.Left="166" Canvas.Top="138" Width="226" Height="27"
+                                            Text="Page down" IsReadOnly="True" IsTabStop="False"
+                                            VerticalContentAlignment="Center" TextAlignment="Center"
+                                            AutomationProperties.Name="Page down" />
+                                        <TextBox Style="{x:Null}" Canvas.Left="166" Canvas.Top="101" Width="226" Height="27"
+                                            Text="Page Up" IsReadOnly="True" IsTabStop="False" VerticalContentAlignment="Center"
+                                            TextAlignment="Center" AutomationProperties.Name="Page Up" />
+                                        <TextBox Style="{x:Null}" Canvas.Left="407" Canvas.Top="65" Width="226" Height="27"
+                                            Text="Left Arrow" IsReadOnly="True" IsTabStop="False"
+                                            VerticalContentAlignment="Center" TextAlignment="Center"
+                                            AutomationProperties.Name="Left Arrow" />
+                                        <TextBox Style="{x:Null}" Canvas.Left="166" Canvas.Top="65" Width="226" Height="27"
+                                            Text="Home" IsReadOnly="True" IsTabStop="False" VerticalContentAlignment="Center"
+                                            TextAlignment="Center" AutomationProperties.Name="Home" />
+                                        <RadioButton Style="{x:Null}" Canvas.Left="465" Canvas.Top="37" Width="102" Height="24"
+                                            Content="Alternative" GroupName="rbKeyBoardOpt"
+                                            IsChecked="{Binding [AlternateKeyboard], Mode=TwoWay, Converter={StaticResource OptionChoice}, ConverterParameter=True}"
+                                            AutomationProperties.Name="Alternative" />
+                                        <RadioButton Style="{x:Null}" Canvas.Left="228" Canvas.Top="37" Width="79" Height="24"
+                                            Content="Default" GroupName="rbKeyBoardOpt"
+                                            IsChecked="{Binding [AlternateKeyboard], Mode=TwoWay, Converter={StaticResource OptionChoice}, ConverterParameter=False}"
+                                            AutomationProperties.Name="Default" />
+                                        <TextBox Style="{x:Null}" Canvas.Left="14" Canvas.Top="338" Width="139" Height="27"
+                                            Text="Last Slide" IsReadOnly="True" IsTabStop="False"
+                                            VerticalContentAlignment="Center" TextAlignment="Left"
+                                            AutomationProperties.Name="Last Slide" />
+                                        <TextBox Style="{x:Null}" Canvas.Left="14" Canvas.Top="301" Width="139" Height="27"
+                                            Text="Next Slide" IsReadOnly="True" IsTabStop="False"
+                                            VerticalContentAlignment="Center" TextAlignment="Left"
+                                            AutomationProperties.Name="Next Slide" />
+                                        <TextBox Style="{x:Null}" Canvas.Left="14" Canvas.Top="265" Width="139" Height="27"
+                                            Text="Previous Slide" IsReadOnly="True" IsTabStop="False"
+                                            VerticalContentAlignment="Center" TextAlignment="Left"
+                                            AutomationProperties.Name="Previous Slide" />
+                                        <TextBox Style="{x:Null}" Canvas.Left="14" Canvas.Top="228" Width="139" Height="27"
+                                            Text="First Slide" IsReadOnly="True" IsTabStop="False"
+                                            VerticalContentAlignment="Center" TextAlignment="Left"
+                                            AutomationProperties.Name="First Slide" />
+                                        <TextBox Style="{x:Null}" Canvas.Left="13" Canvas.Top="176" Width="139" Height="27"
+                                            Text="Last Item" IsReadOnly="True" IsTabStop="False"
+                                            VerticalContentAlignment="Center" TextAlignment="Left"
+                                            AutomationProperties.Name="Last Item" />
+                                        <TextBox Style="{x:Null}" Canvas.Left="13" Canvas.Top="138" Width="139" Height="27"
+                                            Text="Next Item" IsReadOnly="True" IsTabStop="False"
+                                            VerticalContentAlignment="Center" TextAlignment="Left"
+                                            AutomationProperties.Name="Next Item" />
+                                        <TextBox Style="{x:Null}" Canvas.Left="13" Canvas.Top="101" Width="139" Height="27"
+                                            Text="Previous Item" IsReadOnly="True" IsTabStop="False"
+                                            VerticalContentAlignment="Center" TextAlignment="Left"
+                                            AutomationProperties.Name="Previous Item" />
+                                        <TextBox Style="{x:Null}" Canvas.Left="13" Canvas.Top="65" Width="139" Height="27"
+                                            Text="First Item" IsReadOnly="True" IsTabStop="False"
+                                            VerticalContentAlignment="Center" TextAlignment="Left"
+                                            AutomationProperties.Name="First Item" />
+                                        <TextBlock Canvas.Left="13" Canvas.Top="40" Width="55" Height="20" Text="Action:" TextWrapping="Wrap" />
+                                    </Canvas>
+                                </GroupBox>
                             </Canvas>
-                        </GroupBox>
-                    </Canvas>
-                </ScrollViewer>
+                        </ScrollViewer>
+                    </TabItem>
+                    <TabItem Header="사용자 지정 단축키">
+                        <ListBox ItemsSource="{Binding ShortcutItems}" Margin="{StaticResource Thickness.Xl}" BorderBrush="{DynamicResource Brush.Border.Default}" AutomationProperties.Name="단축키 편집 목록">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid MinHeight="48" Margin="0,4">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="1.4*" />
+                                            <ColumnDefinition Width="96" />
+                                            <ColumnDefinition Width="112" />
+                                            <ColumnDefinition Width="150" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding DisplayName}" Style="{StaticResource Type.Body.Style}" FontWeight="SemiBold" Foreground="{DynamicResource Brush.Text.Primary}" />
+                                            <TextBlock Text="{Binding CommandId}" Style="{StaticResource Type.Caption.Style}" Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="1" Text="{Binding ScopeText}" VerticalAlignment="Center" Style="{StaticResource Type.Caption.Style}" Foreground="{DynamicResource Brush.Text.Secondary}" />
+                                        <TextBlock Grid.Column="2" Text="{Binding DefaultGesture}" TextWrapping="Wrap" VerticalAlignment="Center" Style="{StaticResource Type.Body.Style}" FontWeight="SemiBold" Foreground="{DynamicResource Brush.Text.Primary}" />
+                                        <TextBox Grid.Column="3" Text="{Binding CustomGesture, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource EsTextBox.Default}" AutomationProperties.Name="사용자 단축키" Margin="0,0,8,0" />
+                                        <Button Grid.Column="4" Command="{Binding DataContext.SaveShortcutCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}" Style="{StaticResource EsButton.Secondary}" AutomationProperties.Name="단축키 저장" Margin="0,0,8,0">
+                                            <StackPanel Orientation="Horizontal">
+                                                <ui:SymbolIcon Symbol="Save24" Margin="0,0,6,0" />
+                                                <TextBlock Text="저장" />
+                                            </StackPanel>
+                                        </Button>
+                                        <Button Grid.Column="5" Command="{Binding DataContext.ResetShortcutCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}" Style="{StaticResource EsButton.Secondary}" AutomationProperties.Name="단축키 기본값 복원">
+                                            <StackPanel Orientation="Horizontal">
+                                                <ui:SymbolIcon Symbol="Eraser24" Margin="0,0,6,0" />
+                                                <TextBlock Text="복원" />
+                                            </StackPanel>
+                                        </Button>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </TabItem>
+                </TabControl>
             </TabItem>
             <TabItem Header="WPF 설정">
                 <TabControl Margin="8">
@@ -1313,7 +1354,7 @@
                                     </GroupBox>
                                 </StackPanel>
                                 <StackPanel Grid.Column="1">
-                                    <GroupBox Header="미디어 재생" Padding="10" Margin="4">
+                                    <GroupBox Header="미디어 파일 재생" Padding="10" Margin="4">
                                         <StackPanel>
                                             <TextBlock Text="볼륨" Style="{StaticResource Type.Caption.Style}" Foreground="{DynamicResource Brush.Text.Tertiary}" />
                                             <Slider Value="{Binding MediaVolume, Mode=TwoWay}" Minimum="0" Maximum="1" TickFrequency="0.05" IsSnapToTickEnabled="True" AutomationProperties.Name="미디어 볼륨" Margin="0,4,0,16" />
@@ -1418,7 +1459,7 @@
                             </StackPanel>
                         </ScrollViewer>
                     </TabItem>
-                    <TabItem Header="가사·송출"><ScrollViewer><StackPanel><GroupBox Header="회중 가사 서식" Padding="10" Margin="4">
+                    <TabItem Header="가사·송출"><ScrollViewer><StackPanel><GroupBox Header="회중 송출 화면 가사 서식" Padding="10" Margin="4">
                                 <StackPanel>
                                     <Grid Margin="0,0,0,8">
                                         <Grid.ColumnDefinitions>
@@ -1427,19 +1468,19 @@
                                         </Grid.ColumnDefinitions>
                                         <StackPanel Grid.Column="0" Margin="0,0,8,0">
                                             <TextBlock Text="가사 글자 ARGB" Style="{StaticResource Type.Caption.Style}" Foreground="{DynamicResource Brush.Text.Tertiary}" />
-                                            <TextBox Text="{Binding LyricsMonitorTextColorArgb, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource EsTextBox.Default}" AutomationProperties.Name="가사 모니터 글자색" />
+                                            <TextBox Text="{Binding LyricsMonitorTextColorArgb, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource EsTextBox.Default}" AutomationProperties.Name="회중 송출 가사 글자색" />
                                         </StackPanel>
                                         <StackPanel Grid.Column="1">
                                             <TextBlock Text="가사 배경 ARGB" Style="{StaticResource Type.Caption.Style}" Foreground="{DynamicResource Brush.Text.Tertiary}" />
-                                            <TextBox Text="{Binding LyricsMonitorBackgroundColorArgb, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource EsTextBox.Default}" AutomationProperties.Name="가사 모니터 배경색" />
+                                            <TextBox Text="{Binding LyricsMonitorBackgroundColorArgb, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource EsTextBox.Default}" AutomationProperties.Name="회중 송출 가사 배경색" />
                                         </StackPanel>
                                     </Grid>
                                     <CheckBox IsChecked="{Binding LyricsMonitorBackgroundIsGradient, Mode=TwoWay}" Content="가사 배경 세로 그라데이션 사용" AutomationProperties.Name="가사 배경 그라데이션 사용" Margin="0,8,0,0" MinHeight="{DynamicResource Spacing.TargetMin}" />
                                     <StackPanel Margin="0,8,0,0">
                                         <TextBlock Text="가사 배경 그라데이션 끝색 ARGB (그라데이션 사용 시 배경색→끝색)" Style="{StaticResource Type.Caption.Style}" Foreground="{DynamicResource Brush.Text.Tertiary}" />
-                                        <TextBox Text="{Binding LyricsMonitorBackgroundColor2Argb, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource EsTextBox.Default}" AutomationProperties.Name="가사 모니터 배경 그라데이션 끝색" />
+                                        <TextBox Text="{Binding LyricsMonitorBackgroundColor2Argb, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource EsTextBox.Default}" AutomationProperties.Name="회중 송출 가사 배경 그라데이션 끝색" />
                                     </StackPanel>
-                                    <CheckBox IsChecked="{Binding LyricsMonitorShowNotations, Mode=TwoWay}" Content="회중 화면 코드 표기" AutomationProperties.Name="가사 모니터 코드 표기" MinHeight="{DynamicResource Spacing.TargetMin}" />
+                                    <CheckBox IsChecked="{Binding LyricsMonitorShowNotations, Mode=TwoWay}" Content="회중 화면 코드 표기" AutomationProperties.Name="회중 송출 가사 코드 표기" MinHeight="{DynamicResource Spacing.TargetMin}" />
                                     <TextBlock x:Name="LblLyricsMonitorFontSize" Text="글자 크기" />
                                     <TextBox Text="{Binding LyricsMonitorFontSize}" AutomationProperties.LabeledBy="{Binding ElementName=LblLyricsMonitorFontSize}" Margin="0,2,0,8" />
                                     <CheckBox Content="굵게" IsChecked="{Binding LyricsMonitorBold, Mode=TwoWay}" />
@@ -1452,41 +1493,6 @@
                             <TextBox AutomationProperties.LabeledBy="{Binding ElementName=ReferenceSeparatorLabel}" Text="{Binding ReferenceAlertPickSeparator}" />
                         </StackPanel></ScrollViewer>
                     </TabItem>
-                    <TabItem Header="단축키">                <ListBox ItemsSource="{Binding ShortcutItems}" Margin="{StaticResource Thickness.Xl}" BorderBrush="{DynamicResource Brush.Border.Default}" AutomationProperties.Name="단축키 편집 목록">
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <Grid MinHeight="48" Margin="0,4">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="1.4*" />
-                                    <ColumnDefinition Width="96" />
-                                    <ColumnDefinition Width="112" />
-                                    <ColumnDefinition Width="150" />
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <StackPanel>
-                                    <TextBlock Text="{Binding DisplayName}" Style="{StaticResource Type.Body.Style}" FontWeight="SemiBold" Foreground="{DynamicResource Brush.Text.Primary}" />
-                                    <TextBlock Text="{Binding CommandId}" Style="{StaticResource Type.Caption.Style}" Foreground="{DynamicResource Brush.Text.Tertiary}" />
-                                </StackPanel>
-                                <TextBlock Grid.Column="1" Text="{Binding ScopeText}" VerticalAlignment="Center" Style="{StaticResource Type.Caption.Style}" Foreground="{DynamicResource Brush.Text.Secondary}" />
-                                <TextBlock Grid.Column="2" Text="{Binding DefaultGesture}" VerticalAlignment="Center" Style="{StaticResource Type.Body.Style}" FontWeight="SemiBold" Foreground="{DynamicResource Brush.Text.Primary}" />
-                                <TextBox Grid.Column="3" Text="{Binding CustomGesture, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource EsTextBox.Default}" AutomationProperties.Name="사용자 단축키" Margin="0,0,8,0" />
-                                <Button Grid.Column="4" Command="{Binding DataContext.SaveShortcutCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}" Style="{StaticResource EsButton.Secondary}" AutomationProperties.Name="단축키 저장" Margin="0,0,8,0">
-                                    <StackPanel Orientation="Horizontal">
-                                        <ui:SymbolIcon Symbol="Save24" Margin="0,0,6,0" />
-                                        <TextBlock Text="저장" />
-                                    </StackPanel>
-                                </Button>
-                                <Button Grid.Column="5" Command="{Binding DataContext.ResetShortcutCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}" Style="{StaticResource EsButton.Secondary}" AutomationProperties.Name="단축키 기본값 복원">
-                                    <StackPanel Orientation="Horizontal">
-                                        <ui:SymbolIcon Symbol="Eraser24" Margin="0,0,6,0" />
-                                        <TextBlock Text="복원" />
-                                    </StackPanel>
-                                </Button>
-                            </Grid>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox></TabItem>
                     <TabItem Header="고급">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="8">
                             <StackPanel Margin="{StaticResource Thickness.Xl}">

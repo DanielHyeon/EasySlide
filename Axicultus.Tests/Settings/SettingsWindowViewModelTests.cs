@@ -454,12 +454,38 @@ public class SettingsWindowViewModelTests
 
         sut.ShortcutItems.Select(item => item.SlotId)
             .Should()
-            .BeEquivalentTo(defaults.Select(ShortcutSettings.GetSlotId));
+            .BeEquivalentTo(defaults.Select(ShortcutSettings.GetSlotId).Distinct());
         sut.ShortcutItems.Should().Contain(item =>
             item.CommandId == MainCommandIds.LiveNext &&
             item.IsGlobal &&
             item.DefaultGesture == "None" &&
             item.EffectiveGesture == "None");
+    }
+
+    [Theory]
+    [InlineData(MainCommandIds.LiveGo, "Ctrl+L / F12", "F12")]
+    [InlineData(MainCommandIds.LiveBlack, "Ctrl+B / F9", "F9")]
+    [InlineData(MainCommandIds.LiveRestart, "F5 / Ctrl+R", "Ctrl+R")]
+    public void ShortcutAliasesShareOneEditorAndKeepAllDefaultsAfterReset(string command, string label, string alias)
+    {
+        using var fixture = SettingsFixture.Create();
+        var vm = fixture.CreateViewModel();
+        var item = vm.ShortcutItems.Single(row => row.CommandId == command && !row.IsGlobal);
+        item.DefaultGesture.Should().Be(label);
+        var other = vm.ShortcutItems.Single(row => row.CommandId == MainCommandIds.LiveNext && row.IsGlobal);
+        other.CustomGesture = alias;
+        vm.SaveShortcut(other).Succeeded.Should().BeFalse();
+
+        item.CustomGesture = "F6";
+        vm.SaveShortcut(item).Succeeded.Should().BeTrue();
+        var reopened = fixture.CreateViewModel();
+        var saved = reopened.ShortcutItems.Single(row => row.SlotId == item.SlotId);
+        saved.EffectiveGesture.Should().Be("F6");
+        reopened.ResetShortcut(saved).Succeeded.Should().BeTrue();
+        saved.EffectiveGesture.Should().Be(label);
+        var effective = ShortcutSettings.ApplyOverrides(fixture.CommandCatalog.GetDefaultShortcuts(), fixture.Settings.Current.Shortcuts);
+        effective.Where(s => ShortcutSettings.GetSlotId(s) == item.SlotId).Select(s => s.DisplayText)
+            .Should().Equal(label.Split(" / "));
     }
 
     [Fact]

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
+using Axicultus.Core;
 using Axicultus.Wpf.Shell;
 
 namespace Axicultus.Wpf.Platform;
@@ -78,7 +79,7 @@ public sealed class SystemDisplayReader : IDisplayReader
         return Screen.AllScreens
             .Select(screen => new OutputDisplay(
                 screen.DeviceName,
-                CreateDisplayName(screen),
+                MonitorLabel.Connected(screen.DeviceName, screen.Primary, screen.Bounds.Width, screen.Bounds.Height),
                 screen.Bounds.X,
                 screen.Bounds.Y,
                 screen.Bounds.Width,
@@ -86,12 +87,6 @@ public sealed class SystemDisplayReader : IDisplayReader
                 GetDpiScale(screen.Bounds),
                 screen.Primary))
             .ToArray();
-    }
-
-    private static string CreateDisplayName(Screen screen)
-    {
-        var role = screen.Primary ? "주 모니터" : "출력 모니터";
-        return $"{role} {screen.DeviceName} ({screen.Bounds.Width}x{screen.Bounds.Height})";
     }
 
     private static double GetDpiScale(Rectangle bounds)

@@ -694,15 +694,16 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
         }
 
         var normalized = ShortcutSettings.NormalizeGesture(item.CustomGesture);
-        var collision = ShortcutItems.FirstOrDefault(other =>
-            !ReferenceEquals(other, item) &&
-            string.Equals(other.EffectiveGesture, normalized, StringComparison.OrdinalIgnoreCase));
+        var activeShortcuts = ShortcutSettings.ApplyOverrides(_commandCatalog.GetDefaultShortcuts(), _settings.Current.Shortcuts);
+        var collision = activeShortcuts.FirstOrDefault(shortcut =>
+            ShortcutSettings.GetSlotId(shortcut) != item.SlotId &&
+            string.Equals(shortcut.DisplayText, normalized, StringComparison.OrdinalIgnoreCase));
         if (collision is not null)
         {
             var issue = new SettingsIssue(
                 $"shortcuts.{item.SlotId}",
                 SettingsIssueSeverity.Error,
-                $"단축키 충돌: {collision.DisplayName} ({collision.ScopeText})");
+                $"단축키 충돌: {collision.Description} ({(collision.IsGlobal ? "전역" : "로컬")})");
             SetIssues([issue]);
             StatusMessage = "단축키 저장 실패";
             return SettingsResult.Failure([issue]);
@@ -841,19 +842,18 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
         ShortcutItems.Clear();
         foreach (var command in _commandCatalog.All)
         {
-            foreach (var shortcut in command.DefaultShortcuts)
+            foreach (var slot in command.DefaultShortcuts.GroupBy(ShortcutSettings.GetSlotId))
             {
-                var slotId = ShortcutSettings.GetSlotId(shortcut);
-                overrides.TryGetValue(slotId, out var customGesture);
+                overrides.TryGetValue(slot.Key, out var customGesture);
                 ShortcutItems.Add(new ShortcutEditorItemViewModel(
-                    slotId,
+                    slot.Key,
                     command.Id,
                     command.Category,
                     command.DisplayName,
                     command.Description,
                     command.IsDangerous,
-                    shortcut.IsGlobal,
-                    shortcut.DisplayText,
+                    slot.First().IsGlobal,
+                    string.Join(" / ", slot.Select(shortcut => shortcut.DisplayText)),
                     customGesture));
             }
         }

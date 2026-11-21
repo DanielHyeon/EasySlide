@@ -618,6 +618,13 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
         EnsureCompatible(databasePath);
         using var connection = OpenConnection(Path.GetFullPath(databasePath), readOnly: true);
         var folderColumns = ReadColumnMap(connection, "FOLDER");
+        using var transaction = connection.BeginTransaction(System.Data.IsolationLevel.ReadCommitted);
+        var songCounts = new Dictionary<int, int>();
+        using (var count = new SQLiteCommand("SELECT FOLDERNO, COUNT(SONGID) AS SongCount FROM SONG WHERE FOLDERNO IS NOT NULL GROUP BY FOLDERNO", connection, transaction))
+        using (var rows = count.ExecuteReader())
+        {
+            while (rows.Read()) songCounts[GetInt(rows, "FOLDERNO")] = GetInt(rows, "SongCount");
+        }
         using var command = new SQLiteCommand(
             $"""
             SELECT
@@ -625,14 +632,11 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
                 f.Name,
                 f.Use,
                 {SelectColumn(folderColumns, "GroupStyle", "GroupStyle", "f")},
-                {string.Join(", ", FolderFormatField.All.Select(field => SelectColumn(folderColumns, field.Column, field.Column, "f")))},
-                COUNT(s.SONGID) AS SongCount
+                {string.Join(", ", FolderFormatField.All.Select(field => SelectColumn(folderColumns, field.Column, field.Column, "f")))}
             FROM FOLDER f
-            LEFT JOIN SONG s ON s.FOLDERNO = f.FolderNo
-            GROUP BY f.FolderNo, f.Name, f.Use
             ORDER BY f.FolderNo, f.Name;
             """,
-            connection);
+            connection, transaction);
         using var reader = command.ExecuteReader();
         var folders = new List<SongFolderSummary>();
         while (reader.Read())
@@ -643,7 +647,7 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
                 GetInt(reader, "FolderNo"),
                 GetString(reader, "Name"),
                 ParseEnabled(GetString(reader, "Use")),
-                GetInt(reader, "SongCount"),
+                songCounts.GetValueOrDefault(GetInt(reader, "FolderNo")),
                 GetInt(reader, "GroupStyle"),
                 GetInt(reader, "Size0") is > 0 and <= 500 ? new SongPageLayout(
                     GetInt(reader, "Size0"), GetString(reader, "Fontname0"), GetInt(reader, "VPos0"),

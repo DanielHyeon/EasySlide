@@ -197,6 +197,7 @@ public sealed class LiveSessionService : ILiveSessionService
             string plain = item.ShowNotations ? other : displayed;
             return withChords != plain ? new(plain, withChords, FindNotationLines(withChords, plain)) : null;
         }
+        bool chorus = ComputeCurrentPageIsChorus(item);
         var stage1 = StageContent(body, ComputeBodyText);
         var stage2 = StageContent(body2, ComputeBodyText2);
         return new LiveSessionSnapshot(
@@ -248,14 +249,14 @@ public sealed class LiveSessionService : ILiveSessionService
             OverrideBackgroundImagePath: NormalizeImagePath(format?.BackgroundImagePath),
             OverrideBackgroundImageMode: format?.BackgroundImageMode,
             // 굵게/기울임 비트(41) — 켜진 영역만 true, 없으면 null(전역/Region1 추종). 출력이 영역별로 적용한다.
-            OverrideBold1: format?.Bold1 == true ? true : null,
-            OverrideItalic1: format?.Italic1 == true ? true : null,
-            OverrideBold2: format?.Bold2 == true ? true : null,
-            OverrideItalic2: format?.Italic2 == true ? true : null,
-            OverrideUnderline1: format?.Underline1 == true ? true : null,
-            OverrideUnderline2: format?.Underline2 == true ? true : null,
+            OverrideBold1: format?.StyleFlag(secondary: false, chorus, 1),
+            OverrideItalic1: format?.StyleFlag(secondary: false, chorus, 2),
+            OverrideBold2: format?.StyleFlag(secondary: true, chorus, 1),
+            OverrideItalic2: format?.StyleFlag(secondary: true, chorus, 2),
+            OverrideUnderline1: format?.StyleFlag(secondary: false, chorus, 4),
+            OverrideUnderline2: format?.StyleFlag(secondary: true, chorus, 4),
             // 현재 절이 후렴인지 — 강조 후렴만 효과가 켜졌을 때 출력 렌더가 이 절에 강조를 적용할지 판단한다.
-            CurrentPageIsChorus: ComputeCurrentPageIsChorus(item),
+            CurrentPageIsChorus: chorus,
             CurrentSectionLabel: ComputeCurrentSectionLabel(item),
             // 항목 식별자 — 출력 VM 의 "항목 전환 vs 슬라이드 전환" 판별 근거(같은 곡 안 절 이동은 같은 Id 로 재송출됨).
             MessageAlert: previous.MessageAlert,

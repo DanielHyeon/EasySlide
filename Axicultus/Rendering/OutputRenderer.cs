@@ -438,7 +438,7 @@ public sealed class OutputRenderer(IImageAssetService imageAssets, ITransitionEf
         var liveOutput = request.LiveOutputSettings ?? LiveOutputRenderSettings.Default;
         var kind = GetSceneKind(request.Session, request.Output);
         if (kind == OutputSceneKind.Live && request.Session.ItemDisplay is { } itemDisplay)
-            liveOutput = itemDisplay.Apply(liveOutput, (int)viewportHeight);
+            liveOutput = itemDisplay.Apply(liveOutput);
         var (Title, Status) = GetDisplayText(kind, request.Session, liveOutput);
         var placement = GetContentPlacement(kind, request, viewportWidth, viewportHeight);
         var transition = CreateTransitionFrame(request, viewportWidth, viewportHeight, kind, liveOutput);
@@ -466,10 +466,11 @@ public sealed class OutputRenderer(IImageAssetService imageAssets, ITransitionEf
         var bgColorArgb = hasBgOverride
             ? request.Session.OverrideBackgroundColorArgb!.Value
             : liveOutput.LyricsMonitorBackgroundColorArgb;
-        var bgColor2Argb = hasBgOverride
+        int? itemPattern = showItemBackground ? request.Session.ItemDisplay?.BackgroundPattern : null;
+        var bgColor2Argb = itemPattern.HasValue ? request.Session.ItemDisplay?.SecondBackgroundColour ?? bgColorArgb : hasBgOverride
             ? request.Session.OverrideBackgroundColorArgb!.Value
             : liveOutput.LyricsMonitorBackgroundColor2Argb;
-        var bgIsGradient = !hasBgOverride && liveOutput.LyricsMonitorBackgroundIsGradient;
+        var bgIsGradient = itemPattern.HasValue ? itemPattern < 11 : !hasBgOverride && liveOutput.LyricsMonitorBackgroundIsGradient;
 
         // 대기(Ready) 상태에서 Gap 모드가 Black 이면 화면을 실제 검은색으로 칠한다(레거시 Gap=Black 의 "검은 화면").
         // 단색 검정·그라데이션 해제 — 운영 기본 배경색 대신 진짜 검정이 보이게(아래에서 오버레이도 숨겨 깨끗한 검은 화면).
@@ -560,10 +561,10 @@ public sealed class OutputRenderer(IImageAssetService imageAssets, ITransitionEf
                 ? liveOutput.LyricsMonitorFontSize2
                 : fontSizePx;
         // Region1 굵게/기울임 — 곡별 region1 비트(41)가 켜져 있으면 전역 설정을 덮어쓴다(없으면 전역 그대로).
-        if (isLive && request.Session.SongLayout != null && request.Session.OverrideFontSizePx2.HasValue)
+        if (isLive && (request.Session.IsExternalTextPage || request.Session.SongLayout != null) && request.Session.OverrideFontSizePx2.HasValue)
             fontSize2Px = Math.Max(1, (int)Math.Round(fontSize2Px * viewportWidth / 960d));
-        var region1Bold = isLive && request.Session.OverrideBold1 == true ? true : liveOutput.LyricsMonitorBold;
-        var region1Italic = isLive && request.Session.OverrideItalic1 == true ? true : liveOutput.LyricsMonitorItalic;
+        var region1Bold = isLive ? request.Session.OverrideBold1 ?? liveOutput.LyricsMonitorBold : liveOutput.LyricsMonitorBold;
+        var region1Italic = isLive ? request.Session.OverrideItalic1 ?? liveOutput.LyricsMonitorItalic : liveOutput.LyricsMonitorItalic;
         // Region2 굵게 우선순위: 곡별 region2 비트(Live 한정) > 전역 region2 굵게(설정, FollowRegion1 아니면 On/Off) > Region1 효과 추종.
         // (정렬2·색2·글꼴2 의 "곡별 > 전역(추종 아니면) > Region1 추종" 우선순위와 동일한 구조.)
         var region2Bold = isLive && request.Session.OverrideBold2 is bool songBold2
@@ -574,7 +575,7 @@ public sealed class OutputRenderer(IImageAssetService imageAssets, ITransitionEf
             ? songItalic2
             : ResolveRegion2Emphasis(liveOutput.LyricsMonitorRegion2Italic, region1Italic);
         // 밑줄도 동일 캐스케이드 — Region1=곡별 비트∥전역.
-        var region1Underline = isLive && request.Session.OverrideUnderline1 == true ? true : liveOutput.LyricsMonitorUnderline;
+        var region1Underline = isLive ? request.Session.OverrideUnderline1 ?? liveOutput.LyricsMonitorUnderline : liveOutput.LyricsMonitorUnderline;
         // Region2 밑줄 우선순위도 굵게·기울임과 동일: 곡별 비트(Live 한정) > 전역(FollowRegion1 아니면) > Region1 추종.
         var region2Underline = isLive && request.Session.OverrideUnderline2 is bool songUnderline2
             ? songUnderline2
@@ -691,7 +692,7 @@ public sealed class OutputRenderer(IImageAssetService imageAssets, ITransitionEf
             liveOutput.ReferenceAlertScroll,
             liveOutput.ReferenceAlertFlash,
             liveOutput.ReferenceAlertTransparent,
-            hasBgOverride ? -1 : liveOutput.BackgroundPattern);
+            itemPattern ?? (hasBgOverride ? -1 : liveOutput.BackgroundPattern));
     }
 
     private ImagePlacement GetContentPlacement(

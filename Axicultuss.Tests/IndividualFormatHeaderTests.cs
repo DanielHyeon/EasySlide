@@ -1,5 +1,8 @@
 using System;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using Axicultus.Module;
 using Xunit;
@@ -9,6 +12,85 @@ namespace Axicultus.Tests;
 [Collection("Image rendering globals")]
 public class IndividualFormatHeaderTests
 {
+    [Fact]
+    public void XmlAndMigratedWorshipListRenderTheSamePreviewAndLiveSlide()
+    {
+        MonitorPresentationTests.RunOnSta(() =>
+        {
+            var directory = Directory.CreateTempSubdirectory();
+            var oldSize = new Size(Gf.Buffer_LS_Width, Gf.Buffer_LS_Height);
+            var oldFolder = Gf.Folders[0];
+            int oldBorder = Gf.ShowTopBorderSize;
+            try
+            {
+                string path = Path.Combine(directory.FullName, "Sunday.esw");
+                File.WriteAllText(path, """
+                    <EasiSlides><ListItem><Item><ItemID>T1</ItemID><Title1>sermon.txt</Title1>
+                    <FormatData>21=0&gt;22=64&gt;25=0&gt;26=-16776961&gt;27=-16776961&gt;28=11&gt;29=-256&gt;31=2&gt;43=Arial&gt;44=Arial&gt;45=5&gt;47=50&gt;48=24&gt;63=1&gt;64=6&gt;</FormatData>
+                    </Item></ListItem></EasiSlides>
+                    """);
+                string before = ServiceListDocument.ReadXml(File.ReadAllText(path)).Items.Single().FormatData;
+                string jsonDir = ServiceListDocument.WorkingDirectory(directory.FullName, ".esw");
+                string after = ServiceListDocument.ReadJson(File.ReadAllText(Path.Combine(jsonDir, "Sunday.json"))).Items.Single().FormatData;
+                Gf.Folders[0] = new();
+                foreach (bool live in new[] { false, true })
+                {
+                    Gf.Buffer_LS_Width = live ? 640 : 320;
+                    Gf.Buffer_LS_Height = live ? 360 : 180;
+                    Assert.Equal(RenderSlide(before, live), RenderSlide(after, live));
+                }
+            }
+            finally
+            {
+                (Gf.Buffer_LS_Width, Gf.Buffer_LS_Height) = (oldSize.Width, oldSize.Height);
+                Gf.Folders[0] = oldFolder;
+                Gf.ShowTopBorderSize = oldBorder;
+                directory.Delete(true);
+            }
+        });
+    }
+
+    private static byte[] RenderSlide(string format, bool live)
+    {
+        var item = new SongSettings();
+        using var lines = item.LyricsAndNotationsList;
+        item.Initialise();
+        item.Type = "T";
+        item.CompleteLyrics = "설교 말씀";
+        item.OutputStyleScreen = item.AtLiveScreen = live;
+        item.Show_LicAdim = false;
+        using var initialFrame = new Bitmap(Gf.Buffer_LS_Width, Gf.Buffer_LS_Height);
+        using var canvas = new ImageTransitionControl { Size = initialFrame.Size, BackgroundImage = initialFrame };
+        var screen = canvas;
+        try
+        {
+            Gf.LoadIndividualFormatData(ref item, format);
+            Gf.FormatText(ref item, Color.Black, 1, Color.White, 1, item.UseDefaultFormat);
+            Gf.FormatDisplayLyrics(ref item, PrepareSlides: true, UseStoredSequence: true);
+            Gf.DrawText(ref item, ref screen, lines, DoActiveIndicator: false, ClearAll: false);
+            using var bitmap = new Bitmap(screen.NewBackgroundPicture);
+            using (var g = Graphics.FromImage(bitmap)) g.DrawImageUnscaled(screen.NewTextImage, Point.Empty);
+            Assert.Contains(Enumerable.Range(0, bitmap.Width * bitmap.Height), i =>
+            {
+                var pixel = bitmap.GetPixel(i % bitmap.Width, i / bitmap.Width);
+                return pixel.R > 200 && pixel.G > 200 && pixel.B < 50;
+            });
+            using var stream = new MemoryStream();
+            bitmap.Save(stream, ImageFormat.Bmp);
+            return stream.ToArray();
+        }
+        finally
+        {
+            foreach (var region in item.Lyrics)
+            {
+                region.Font?.Dispose();
+                region.ChorusFont?.Dispose();
+                region.FS_Font?.Dispose();
+                region.FS_ChorusFont?.Dispose();
+            }
+        }
+    }
+
     [Fact]
     public void ApplyingDefaultsPreservesThePreviewedInfoScreenAndResetsTheOutputWordItem()
     {

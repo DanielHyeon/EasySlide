@@ -9,6 +9,15 @@ using System.Windows.Media;
 
 namespace Axicultus.Wpf.Controls;
 
+public sealed class IntegerOptionConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture) =>
+        value is int number ? (double)number : DependencyProperty.UnsetValue;
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) =>
+        value is double number ? System.Convert.ToInt32(number) : Binding.DoNothing;
+}
+
 public sealed class OptionChoiceConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture) =>
@@ -67,6 +76,15 @@ public sealed class OptionNumberBox : TextBox
     {
         CommandBindings.Add(new CommandBinding(Increase, (_, _) => Increment(Step)));
         CommandBindings.Add(new CommandBinding(Decrease, (_, _) => Increment(-Step)));
+    }
+
+    protected override void OnPreviewKeyDown(KeyEventArgs e)
+    {
+        base.OnPreviewKeyDown(e);
+        if (e.Key != Key.Enter || GetBindingExpression(TextProperty) is not { } binding) return;
+        binding.UpdateSource();
+        if (!Validation.GetHasError(this)) binding.UpdateTarget();
+        e.Handled = true;
     }
 
     private void Increment(decimal amount)

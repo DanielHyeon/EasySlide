@@ -2,9 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Text.Unicode;
 using System.Threading;
 using System.Threading.Tasks;
+using Axicultus.Module;
 using Axicultus.Wpf.Settings;
 
 namespace Axicultus.Wpf.Shell;
@@ -18,7 +22,7 @@ public sealed record WorshipListItemDto(
     string? Lyrics,
     string? ContentPath,
     // 곡별 서식·개별 서식 사용 — 저장/불러오기 시 보존. 구버전 JSON(이 필드 없음)은 기본값(FormatData null, 개별 서식 true)으로 안전 복원.
-    string? FormatData = null,
+    [property: JsonConverter(typeof(ListFormatJsonConverter))] string? FormatData = null,
     bool UseIndividualFormatting = true,
     string? Sequence = null,
     Data.SongPageLayout? SongLayout = null,
@@ -62,7 +66,11 @@ public interface ILegacyWorshipListStore
 /// </summary>
 public sealed class WorshipListStore(string directory, ISettingsService? settings) : IWorshipListStore, ILegacyWorshipListStore
 {
-    private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        WriteIndented = true,
+        Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
+    };
 
     private readonly string _directory = directory ?? throw new ArgumentNullException(nameof(directory));
     private readonly ISettingsService? _settings = settings;
@@ -85,7 +93,8 @@ public sealed class WorshipListStore(string directory, ISettingsService? setting
     private static string DefaultDirectory() => Path.Combine(ProductStorage.WpfProfileDirectory(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)),
         "WorshipLists");
 
-    private sealed record SavedSession(WorshipListItemDto[] Items, string Format);
+    private sealed record SavedSession(WorshipListItemDto[] Items,
+        [property: JsonConverter(typeof(ListFormatJsonConverter))] string Format);
 
     public Task SaveAsync(string name, IReadOnlyList<LiveQueueItem> items, CancellationToken cancellationToken = default)
         => SaveSessionAsync(name, items, null, cancellationToken);
@@ -132,21 +141,27 @@ public sealed class WorshipListStore(string directory, ISettingsService? setting
         var json = await File.ReadAllTextAsync(path, cancellationToken).ConfigureAwait(false);
         WorshipListItemDto[]? dtos;
         string? format = null;
-        try
+        JsonDocument document;
+        try { document = JsonDocument.Parse(json); }
+        catch (JsonException) { return (Array.Empty<LiveQueueItem>(), null); }
+
+        using (document)
         {
-            using var document = JsonDocument.Parse(json);
-            if (document.RootElement.ValueKind == JsonValueKind.Object)
+            try
             {
-                var session = document.RootElement.Deserialize<SavedSession>(JsonOptions);
-                dtos = session?.Items;
-                format = session?.Format;
+                if (document.RootElement.ValueKind == JsonValueKind.Object)
+                {
+                    var session = document.RootElement.Deserialize<SavedSession>(JsonOptions);
+                    dtos = session?.Items;
+                    format = session?.Format;
+                }
+                else dtos = document.RootElement.Deserialize<WorshipListItemDto[]>(JsonOptions);
             }
-            else dtos = document.RootElement.Deserialize<WorshipListItemDto[]>(JsonOptions);
-        }
-        catch (JsonException)
-        {
-            // 손상/비-JSON 파일은 빈 목록으로 우아하게 처리(호출자 크래시 방지).
-            return (Array.Empty<LiveQueueItem>(), null);
+            catch (JsonException ex)
+            {
+                // Keep the current queue if a newer file contains formatting this presenter cannot read.
+                throw new IOException($"예배 순서 '{name}'의 저장 형식을 읽을 수 없습니다.", ex);
+            }
         }
 
         dtos ??= [];

@@ -27,7 +27,7 @@ public sealed class LyricParagraphSurface : FrameworkElement
         _width = Math.Min(p.Width, available.Width);
         if (_width < 1) return default;
         double maxHeight = Math.Min(p.Height, available.Height);
-        var lines = p.Text.ReplaceLineEndings("\n").Split('\n');
+        var lines = Rendering.LyricWordWrapping.ForDisplay(p.Text).ReplaceLineEndings("\n").Split('\n');
         double Measure(double size, bool retain)
         {
             double used = 0;

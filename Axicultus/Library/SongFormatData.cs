@@ -9,7 +9,7 @@ namespace Axicultus.Wpf.Library;
 /// 레거시 v32 FormatData 를 디코드한 곡-레벨 포맷(색·폰트·크기·정렬·배경). 형식은 "코드=값&gt;코드=값&gt;...".
 /// 필드-코드 매핑은 레거시 gfLyrics(HeaderData[n] → 속성)의 권위를 따른다:
 ///   26/27 = 배경색 region1/2(ARGB int), 29/30 = 글자색 region1/2,
-///   43/44 = 폰트명, 47/48 = 글자 크기(6~100), 31/32 = 정렬(1~3), 41 = 글꼴 효과 비트(0-based: region1 bit0=Bold·bit1=Italic·bit2=Underline / region2 bit3=Bold·bit4=Italic·bit5=Underline),
+///   43/44 = 폰트명, 47/48 = 글자 크기(6~100), 31/32 = 정렬(1~3), 41/42 = 주·보조 언어별 본문 및 후렴 강조 비트,
 ///   61 = 배경 이미지 경로, 51 = 미디어 경로.
 /// 곡마다 두 영역(region1/region2 — 이중 언어 등)을 가질 수 있고, 가사의 [region 2] 마커로 줄을 region2 에 배정한다.
 /// 인식 못 한 키/형식은 무시한다(레거시 데이터 견고성). 비었으면 null.
@@ -32,6 +32,29 @@ public sealed record SongFormatData
     public bool Bold2 { get; init; }
     public bool Italic2 { get; init; }
     public bool Underline2 { get; init; }
+    private int PrimaryUpperBits { get; init; }
+    private int SecondaryUpperBits { get; init; }
+    private bool ExplicitPrimaryZero { get; init; }
+    private bool ExplicitSecondaryZero { get; init; }
+    private bool HasPrimaryStyle => ExplicitPrimaryZero || PrimaryFlags != 0;
+    private bool HasSecondaryStyle => ExplicitSecondaryZero || (!CombinedStyle && SecondaryFlags != 0);
+    // Early WPF lists packed secondary emphasis into 41 when 42 was absent.
+    private bool CombinedStyle { get; init; }
+    private int PrimaryFlags => PrimaryUpperBits | (Bold1 ? 1 : 0) | (Italic1 ? 2 : 0) | (Underline1 ? 4 : 0);
+    private int SecondaryFlags => SecondaryUpperBits | (Bold2 ? 1 : 0) | (Italic2 ? 2 : 0) | (Underline2 ? 4 : 0);
+
+    internal int? RegionStyle(bool secondary) => secondary
+        ? HasSecondaryStyle || CombinedStyle ? SecondaryFlags : null
+        : HasPrimaryStyle || CombinedStyle ? PrimaryFlags : null;
+
+    internal bool? StyleFlag(bool secondary, bool chorus, int mask)
+    {
+        int flags = secondary ? SecondaryFlags : PrimaryFlags;
+        if (secondary ? HasSecondaryStyle : HasPrimaryStyle && !CombinedStyle)
+            return (flags & mask) != 0 || (chorus && mask == 2 && (flags & 16) != 0);
+        return (flags & mask) != 0 ? true : null;
+    }
+
     public string BackgroundImagePath { get; init; } = "";
     public LyricsBackgroundMode? BackgroundImageMode { get; init; }
     public LyricsVerticalAlignment? VerticalAlignment { get; init; }
@@ -80,7 +103,7 @@ public sealed record SongFormatData
         string font1 = "", font2 = "", backgroundImage = "", media = "", itemTransition = "", slideTransition = "";
         LyricsBackgroundMode? backgroundImageMode = null;
         LyricsVerticalAlignment? verticalAlignment = null;
-        var effectBits = 0;
+        int? primaryStyle = null, secondaryStyle = null;
 
         foreach (var entry in formatData.Split('>'))
         {
@@ -104,7 +127,8 @@ public sealed record SongFormatData
                 case 30: textColor2 = ParseArgb(value); break;
                 case 31: align1 = ParseAlign(value); break;
                 case 32: align2 = ParseAlign(value); break;
-                case 41: effectBits = ParseInt(value) ?? 0; break; // 글꼴 효과 비트(레거시 HeaderData[41]).
+                case 41: primaryStyle = ParseInt(value); break;
+                case 42: secondaryStyle = ParseInt(value); break;
                 case 43: font1 = value; break;
                 case 44: font2 = value; break;
                 case 47: fontSize1 = ParseFontSize(value); break;
@@ -121,8 +145,10 @@ public sealed record SongFormatData
             }
         }
 
-        // 글꼴 효과 비트(레거시, 0-based): region1 bit0=Bold·bit1=Italic·bit2=Underline / region2 bit3=Bold·bit4=Italic·bit5=Underline. 범위 밖이면 무시.
-        var hasBits = effectBits is >= 0 and <= 127;
+        // WinForms stores one style per region, with chorus emphasis in bits 3–5. Older WPF lists packed both regions in code 41.
+        int first = primaryStyle is >= 0 and <= 127 ? primaryStyle.Value : 0;
+        bool separate = secondaryStyle is >= 0 and <= 127;
+        int second = separate ? secondaryStyle!.Value : (first >> 3) & 7;
 
         return new SongFormatData
         {
@@ -136,12 +162,13 @@ public sealed record SongFormatData
             FontSize2 = fontSize2,
             Alignment1 = align1,
             Alignment2 = align2,
-            Bold1 = hasBits && (effectBits & 0b0000_0001) != 0,      // bit0
-            Italic1 = hasBits && (effectBits & 0b0000_0010) != 0,    // bit1
-            Underline1 = hasBits && (effectBits & 0b0000_0100) != 0, // bit2
-            Bold2 = hasBits && (effectBits & 0b0000_1000) != 0,      // bit3
-            Italic2 = hasBits && (effectBits & 0b0001_0000) != 0,    // bit4
-            Underline2 = hasBits && (effectBits & 0b0010_0000) != 0, // bit5
+            Bold1 = (first & 1) != 0, Italic1 = (first & 2) != 0, Underline1 = (first & 4) != 0,
+            Bold2 = (second & 1) != 0, Italic2 = (second & 2) != 0, Underline2 = (second & 4) != 0,
+            ExplicitPrimaryZero = primaryStyle == 0,
+            ExplicitSecondaryZero = secondaryStyle == 0,
+            PrimaryUpperBits = separate ? first & ~7 : 0,
+            SecondaryUpperBits = second & ~7,
+            CombinedStyle = !separate && second != 0,
             BackgroundImagePath = backgroundImage,
             BackgroundImageMode = backgroundImageMode,
             VerticalAlignment = verticalAlignment,
@@ -172,15 +199,9 @@ public sealed record SongFormatData
         if (Alignment1 is int a1) Add(31, Num(a1));
         if (Alignment2 is int a2) Add(32, Num(a2));
 
-        // 글꼴 효과 비트(레거시 HeaderData[41], 0-based): region1 bit0=Bold·bit1=Italic·bit2=Underline /
-        // region2 bit3=Bold·bit4=Italic·bit5=Underline. (region1=하위 3비트, region2=상위 3비트로 대칭.)
-        var effectBits = (Bold1 ? 0b0000_0001 : 0)
-                       | (Italic1 ? 0b0000_0010 : 0)
-                       | (Underline1 ? 0b0000_0100 : 0)
-                       | (Bold2 ? 0b0000_1000 : 0)
-                       | (Italic2 ? 0b0001_0000 : 0)
-                       | (Underline2 ? 0b0010_0000 : 0);
-        if (effectBits != 0) Add(41, Num(effectBits));
+        int first = CombinedStyle ? PrimaryFlags | (SecondaryFlags << 3) : PrimaryFlags;
+        if (first != 0 || ExplicitPrimaryZero) Add(41, Num(first));
+        if (!CombinedStyle && (HasSecondaryStyle || SecondaryFlags != 0)) Add(42, Num(SecondaryFlags));
 
         if (!string.IsNullOrEmpty(FontName1)) Add(43, FontName1);
         if (!string.IsNullOrEmpty(FontName2)) Add(44, FontName2);

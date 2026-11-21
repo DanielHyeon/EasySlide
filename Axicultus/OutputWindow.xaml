@@ -192,7 +192,7 @@
                 </StackPanel.RenderTransform>
                 <!-- Region1 일반 본문 — 외곽선 off 일 때. 정렬은 인-셸 가사 정렬 설정(§7.3-A, 기본 가운데). -->
                 <controls:LyricParagraphSurface Paragraph="{Binding PrimaryParagraph}" MinHeight="{Binding PrimaryRegionHeight}" />
-                <TextBlock Text="{Binding BodyText}"
+                <TextBlock Text="{Binding BodyText, Converter={StaticResource LyricWordWrapping}}"
                            TextAlignment="{Binding BodyTextAlignment}"
                            TextWrapping="Wrap"
                            TextTrimming="CharacterEllipsis"
@@ -228,7 +228,7 @@
                 <!-- Region1 외곽선 본문(§7.3-A Outline Font) — 외곽선 on 일 때 일반 본문 대신(상호배타).
                      이 컨트롤은 내부에서 BodyMaxWidth 기준으로 글자를 자가정렬하므로, 정렬을 StackPanel 에 맡기지 않고
                      기존처럼 명시 HorizontalAlignment·MaxWidth 를 유지한다(외곽선 모드 정렬 시프트 방지, code-review MAJOR 반영). -->
-                <controls:OutlinedTextBlock Text="{Binding BodyText}"
+                <controls:OutlinedTextBlock Text="{Binding BodyText, Converter={StaticResource LyricWordWrapping}}"
                                             HorizontalAlignment="{Binding BodyHorizontalAlignment}"
                                             MaxWidth="{Binding BodyMaxWidth}"
                                             TextAlignment="{Binding BodyTextAlignment}"
@@ -254,7 +254,7 @@
                         </Style>
                     </controls:LyricParagraphSurface.Style>
                 </controls:LyricParagraphSurface>
-                <TextBlock Text="{Binding BodyText2}"
+                <TextBlock Text="{Binding BodyText2, Converter={StaticResource LyricWordWrapping}}"
                            TextAlignment="{Binding BodyText2Alignment}"
                            TextWrapping="Wrap"
                            TextTrimming="CharacterEllipsis"
@@ -293,7 +293,7 @@
                     </ItemsControl.Style>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <TextBlock Text="{Binding Text}"
+                            <TextBlock Text="{Binding Text, Converter={StaticResource LyricWordWrapping}}"
                                        TextAlignment="{Binding TextAlignment}"
                                        TextWrapping="Wrap"
                                        TextTrimming="CharacterEllipsis"

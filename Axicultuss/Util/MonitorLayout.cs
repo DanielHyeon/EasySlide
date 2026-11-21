@@ -5,7 +5,10 @@ using System.Linq;
 
 namespace Axicultus.Util;
 
-internal sealed record MonitorDevice(string Name, Rectangle Bounds, bool IsPrimary);
+internal sealed record MonitorDevice(string Name, Rectangle Bounds, bool IsPrimary)
+{
+    public string Label => Axicultus.Core.MonitorLabel.Connected(Name, IsPrimary, Bounds.Width, Bounds.Height);
+}
 
 internal readonly record struct MonitorPlacement(string DeviceName, Rectangle Bounds, bool Enabled, bool IsDual = false);
 

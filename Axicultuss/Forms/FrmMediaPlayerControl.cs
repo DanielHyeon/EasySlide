@@ -100,27 +100,7 @@ namespace Axicultus;
 
 		private void LoadOutputMonitors()
 		{
-			cbOutputMonitor.Items.Clear();
-			cbOutputMonitor.Items.Add("Default (Output Monitor)");
-			foreach (Screen screen in Screen.AllScreens)
-			{
-				cbOutputMonitor.Items.Add(screen.DeviceName);
-			}
-			SelectOutputMonitor(Gf.Temp_MediaOutputMonitorName);
-		}
-
-		private void SelectOutputMonitor(string monitorName)
-		{
-			if (!string.IsNullOrEmpty(monitorName))
-			{
-				int index = cbOutputMonitor.Items.IndexOf(monitorName);
-				if (index >= 0)
-				{
-					cbOutputMonitor.SelectedIndex = index;
-					return;
-				}
-			}
-			cbOutputMonitor.SelectedIndex = 0;
+			MonitorPicker.Populate(cbOutputMonitor, DisplayInfo.GetDisplays(), MonitorPurpose.Media, Gf.Temp_MediaOutputMonitorName);
 		}
 
 		private void EnableMediaControls(bool MediaOn)
@@ -392,7 +372,7 @@ namespace Axicultus;
 			Gf.Temp_MediaOption = GetSelectedSourceOption();
 			Gf.Temp_MediaLocation = DataUtil.Trim(tbSourceLocation.Text);
 			Gf.Temp_MediaCaptureDeviceNumber = cbCaptureDevices.SelectedIndex + 1;
-			Gf.Temp_MediaOutputMonitorName = (cbOutputMonitor.SelectedIndex > 0) ? cbOutputMonitor.SelectedItem.ToString() : "";
+			Gf.Temp_MediaOutputMonitorName = MonitorPicker.SelectedId(cbOutputMonitor) ?? "";
 			Gf.Temp_MediaVolume = TrackBarVolume.Value;
 			Gf.Temp_MediaBalance = TrackBarBalance.Value;
 			Gf.Temp_MediaMute = (cbMute.Checked ? 1 : 0);

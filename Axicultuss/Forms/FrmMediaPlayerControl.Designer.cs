@@ -210,16 +210,16 @@ private void InitializeComponent()
             //
             cbOutputMonitor.DropDownStyle = ComboBoxStyle.DropDownList;
             cbOutputMonitor.FormattingEnabled = true;
-            cbOutputMonitor.Location = new Point(136, 346);
+            cbOutputMonitor.Location = new Point(136, 361);
             cbOutputMonitor.Margin = new Padding(4, 5, 4, 5);
             cbOutputMonitor.Name = "cbOutputMonitor";
-            cbOutputMonitor.Size = new Size(200, 28);
+            cbOutputMonitor.Size = new Size(480, 28);
             cbOutputMonitor.TabIndex = 28;
             //
             // labelOutputMonitor
             //
             labelOutputMonitor.AutoSize = true;
-            labelOutputMonitor.Location = new Point(17, 350);
+            labelOutputMonitor.Location = new Point(17, 365);
             labelOutputMonitor.Margin = new Padding(4, 0, 4, 0);
             labelOutputMonitor.Name = "labelOutputMonitor";
             labelOutputMonitor.Size = new Size(115, 20);

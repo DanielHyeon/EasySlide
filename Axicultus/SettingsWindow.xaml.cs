@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Axicultus.Core;
 using Axicultus.Wpf.Captions;
 using Axicultus.Wpf.Data;
 using Axicultus.Wpf.Library;
@@ -41,10 +42,10 @@ public partial class SettingsWindow : Window
         options.BeginOptionsEdit();
         var displays = displayService.GetDisplays();
         var choices = new List<DisplayChoice> { new("", "자동 선택") };
-        choices.AddRange(displays.Select(d => new DisplayChoice(d.Id, $"{d.Name} ({d.Width:0} × {d.Height:0})")));
+        choices.AddRange(displays.Select(d => new DisplayChoice(d.Id, d.Name)));
         foreach (var id in new[] { options.DefaultOutputMonitorId, options.PreviewMonitorId })
             if (!string.IsNullOrEmpty(id) && !choices.Any(d => string.Equals(d.Id, id, StringComparison.OrdinalIgnoreCase)))
-                choices.Add(new DisplayChoice(id, $"{id} (연결 해제)"));
+                choices.Add(new DisplayChoice(id, MonitorLabel.Disconnected(id)));
         DisplayChoices = choices;
         InitializeComponent();
         DataContext = options;

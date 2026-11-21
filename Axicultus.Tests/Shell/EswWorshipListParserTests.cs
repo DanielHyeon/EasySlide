@@ -1,4 +1,6 @@
 using System.Linq;
+using System.IO;
+using Axicultus.Module;
 using Axicultus.Wpf.Shell;
 using FluentAssertions;
 using Xunit;
@@ -37,6 +39,23 @@ public class EswWorshipListParserTests
           </ListItem>
         </Axicultus>
         """;
+
+    [Fact]
+    public void ReadsWinFormsNamedJsonWithTheSameItemsAndDefaultsAsXml()
+    {
+        var directory = Directory.CreateTempSubdirectory();
+        try
+        {
+            var path = Path.Combine(directory.FullName, "Sunday.json");
+            ServiceListDocument.ReadXml(SampleEsw).Save(path);
+            var oldItems = EswWorshipListParser.Parse(SampleEsw, out var oldFormat, out var oldNotes);
+            var items = EswWorshipListParser.Parse(File.ReadAllText(path), out var format, out var notes);
+            Assert.Equal(oldFormat, format);
+            Assert.Equal(oldNotes, notes);
+            Assert.Equal(oldItems.ToArray(), items.ToArray());
+        }
+        finally { directory.Delete(true); }
+    }
 
     [Fact]
     public void Parse_SampleEsw_ExtractsItemsInOrder_WithTypeCodeAndIdSplit()

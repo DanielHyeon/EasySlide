@@ -7,6 +7,15 @@
     <Compile Update="Forms\DShowLib.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Update="Forms\FileThumbnailPanel.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmEditItem.Presentation.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmInfoScreen.Presentation.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="Forms\FrmLaunchMediaPlayer.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -44,6 +53,9 @@
       <SubType>Form</SubType>
     </Compile>
     <Compile Update="Forms\FrmMain.ModernUi.Surface.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmMain.PowerPointReload.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Update="Forms\FrmOptions.ModernUi.cs">

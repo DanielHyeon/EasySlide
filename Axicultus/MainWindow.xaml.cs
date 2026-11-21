@@ -506,7 +506,7 @@ public partial class MainWindow : Window
         if (e.PropertyName == nameof(MainViewModel.CurrentWorshipListName) && _captionConsole == null)
             _services.GetService<Captions.CaptionSession>()?.BeginPlan(_viewModel.CurrentWorshipListName);
         if (e.PropertyName is nameof(MainViewModel.PreviewPanelItem) or nameof(MainViewModel.AudiencePlacement) or nameof(MainViewModel.SampleScreenHeight)) RefreshSample(true);
-        if (e.PropertyName is nameof(MainViewModel.OutputItem) or nameof(MainViewModel.OutputScreenStatus) or nameof(MainViewModel.AudiencePlacement) or nameof(MainViewModel.SampleScreenHeight)) RefreshSample(false);
+        if (e.PropertyName is nameof(MainViewModel.OutputPanelItem) or nameof(MainViewModel.OutputScreenStatus) or nameof(MainViewModel.AudiencePlacement) or nameof(MainViewModel.SampleScreenHeight)) RefreshSample(false);
         if (e.PropertyName == nameof(MainViewModel.PreviewLyricsText) && _viewModel.PreviewPanelItem is { } preview && LiveItemKindMatcher.IsExternalTextFileItem(preview))
             RefreshSample(true);
         if (e.PropertyName == nameof(MainViewModel.OutputLyricsText) && _viewModel.OutputItem is { } output && LiveItemKindMatcher.IsExternalTextFileItem(output))
@@ -3553,12 +3553,20 @@ public partial class MainWindow : Window
 
     private void PickSelectedItemBackgroundColor_Click(object sender, RoutedEventArgs e)
     {
-        if (DataContext is MainViewModel viewModel
-            && viewModel.CanEditSelectedItemColor
-            && TryPickColor(viewModel.SelectedItemBackgroundColorHex, out var hex))
+        if (_settings is null || !_viewModel.CanEditSelectedItemColor) return;
+        var defaults = _settings.Current.LiveOutput;
+        var format = SongFormatData.Parse(_viewModel.SelectedItemFormatData);
+        var display = ItemDisplayFormat.Read(_viewModel.SelectedItemFormatData);
+        int pattern = display?.BackgroundPattern ?? (format?.BackgroundColorArgb1 != null ? 11 : DefaultBackgroundPattern.SelectedIndex(defaults));
+        var dialog = new DefaultBackgroundWindow(defaults with
         {
-            viewModel.SetSelectedItemBackgroundColorCommand.Execute(hex);
-        }
+            LyricsMonitorBackgroundColorArgb = format?.BackgroundColorArgb1 ?? defaults.LyricsMonitorBackgroundColorArgb,
+            LyricsMonitorBackgroundColor2Argb = format?.BackgroundColorArgb2 ?? format?.BackgroundColorArgb1 ?? defaults.LyricsMonitorBackgroundColor2Argb,
+            LyricsMonitorBackgroundPattern = pattern,
+            LyricsMonitorBackgroundIsGradient = pattern != 11
+        }) { Owner = this, Title = "항목 배경색 및 무늬" };
+        if (dialog.ShowDialog() == true)
+            _viewModel.SetItemBackgroundPattern(dialog.FirstColour, dialog.SecondColour, dialog.Pattern);
     }
 
     private static bool TryPickColor(string? currentHex, out string hex)
@@ -3651,7 +3659,7 @@ public partial class MainWindow : Window
             Title = "Save Current Individual Settings to a Template",
             Filter = IndividualFormatTemplateFile.DialogFilter,
             InitialDirectory = ResolveSettingsTemplateInitialFolder(),
-            FileName = BuildPreviewItemTemplateFileName(viewModel.SelectedItem?.Title, ".est"),
+            FileName = BuildPreviewItemTemplateFileName(viewModel.PreviewPanelItem?.Title, ".est"),
             OverwritePrompt = true,
             AddExtension = true,
             DefaultExt = ".est",

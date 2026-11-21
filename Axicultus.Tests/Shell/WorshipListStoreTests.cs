@@ -71,6 +71,18 @@ public sealed class WorshipListStoreTests : IDisposable
     }
 
     [Fact]
+    public async Task UnsupportedStructuredFormatIsReportedWithoutLoadingAnEmptyQueue()
+    {
+        Directory.CreateDirectory(_dir);
+        var path = Path.Combine(_dir, "future.json");
+        const string json = """[{"Id":"text:1","Title":"안내","Kind":"Notice","FormatData":{"futureStyle":{"x":2}}}]""";
+        await File.WriteAllTextAsync(path, json);
+        var store = new WorshipListStore(_dir);
+        await Assert.ThrowsAsync<IOException>(() => store.LoadAsync("future"));
+        Assert.Equal(json, await File.ReadAllTextAsync(path));
+    }
+
+    [Fact]
     public async Task Load_OldJsonWithoutIndividualFields_DefaultsSafely()
     {
         // 구버전 JSON(FormatData·UseIndividualFormatting 없음) → 기본값(null·true)으로 안전 복원.

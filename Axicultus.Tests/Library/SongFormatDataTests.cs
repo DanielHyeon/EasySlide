@@ -31,7 +31,7 @@ public sealed class SongFormatDataTests
         var display = ItemDisplayFormat.Read(updated)!;
         Assert.Equal(3, display.Transpose);
         Assert.True(display.Flag(4));
-        var rendered = display.Apply(Axicultus.Wpf.Rendering.LiveOutputRenderSettings.Default, 720);
+        var rendered = display.Apply(Axicultus.Wpf.Rendering.LiveOutputRenderSettings.Default);
         Assert.Equal(LyricsRegionDisplay.Region2Only, rendered.LyricsMonitorRegionDisplay);
         Assert.True(rendered.ShowLyricsOutline);
         Assert.False(rendered.LyricsMonitorShowDisplayPanel);
@@ -61,11 +61,11 @@ public sealed class SongFormatDataTests
         f.BodyBottomMargin.Should().Be(0, "66 = FrmMain Ind_BottomUpDown");
         f.ItemTransitionName.Should().Be("None", "72 = FrmMain item transition display text");
         f.SlideTransitionName.Should().Be("None", "73 = FrmMain slide transition display text");
-        // 실 샘플 41=16=0b10000=bit4 → region2 Italic 만 true(0-based; 레거시 HeaderData[41] 권위).
         f.Bold1.Should().BeFalse();
         f.Italic1.Should().BeFalse();
         f.Bold2.Should().BeFalse();
-        f.Italic2.Should().BeTrue("41=16 의 bit4 = region2 Italic");
+        f.Italic2.Should().BeFalse();
+        f.StyleFlag(secondary: true, chorus: true, 2).Should().BeTrue();
     }
 
     [Fact]
@@ -241,10 +241,9 @@ public sealed class SongFormatDataTests
     [Fact]
     public void Encode_BoldItalicBits_RoundTrip()
     {
-        // 효과 비트: region1 Bold+Italic, region2 Bold → 1|2|8 = 11.
         var encoded = new SongFormatData { Bold1 = true, Italic1 = true, Bold2 = true }.Encode();
 
-        encoded.Should().Contain("41=11");
+        encoded.Should().Contain("41=3>42=1");
         var f = SongFormatData.Parse(encoded)!;
         f.Bold1.Should().BeTrue();
         f.Italic1.Should().BeTrue();
@@ -255,10 +254,9 @@ public sealed class SongFormatDataTests
     [Fact]
     public void Encode_UnderlineBits_RoundTrip()
     {
-        // 밑줄 비트: region1 Underline=bit2(4), region2 Underline=bit5(32) → 4|32 = 36.
         var encoded = new SongFormatData { Underline1 = true, Underline2 = true }.Encode();
 
-        encoded.Should().Contain("41=36");
+        encoded.Should().Contain("41=4>42=4");
         var f = SongFormatData.Parse(encoded)!;
         f.Underline1.Should().BeTrue();
         f.Underline2.Should().BeTrue();

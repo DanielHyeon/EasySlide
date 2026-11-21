@@ -57,6 +57,33 @@ public class MainMenuBarTests
         return text[startIndex..endIndex];
     }
 
+    [Fact]
+    public void MenuBarKeepsOneOutputRefreshAndGroupsCommandsByPurpose()
+    {
+        var menu = XDocument.Parse(Xaml).Descendants().Single(e => e.Name.LocalName == "Menu" && (string?)e.Attribute("AutomationProperties.Name") == "주 메뉴");
+        var entries = menu.Descendants().Where(e => e.Name.LocalName == "MenuItem").ToList();
+        entries.Should().NotContain(e => ((string?)e.Attribute("Header") ?? "").StartsWith("More"));
+        entries.Count(e => (string?)e.Attribute("Command") == "{Binding RefreshOutputCommand}").Should().Be(1);
+        entries.Should().Contain(e => (string?)e.Attribute("Header") == "송출 조작");
+    }
+
+    [Fact]
+    public void ReadOnlyLicenceAndNumericShowOptionsUseTheExpectedBindingDirections()
+    {
+        var app = Path.Combine(FindRepositoryRoot(), "Axicultus");
+        var about = XDocument.Load(Path.Combine(app, "Support", "AboutWindow.xaml"));
+        var licence = about.Descendants().Single(e => e.Attribute("Text")?.Value.Contains("EulaText") == true);
+        licence.Attribute("Text")!.Value.Should().Contain("Mode=OneWay");
+        var settings = XDocument.Load(Path.Combine(app, "SettingsWindow.xaml"));
+        foreach (var (key, target, direction) in new[] { ("BackgroundVideoPercent", "First", "OneWay"),
+                 ("BackgroundVideoAlignment", "Second", "OneWay"), ("CameraVolume", "Value", "TwoWay"),
+                 ("CameraBalance", "Value", "TwoWay") })
+        {
+            var binding = settings.Descendants().Attributes(target).Single(a => a.Value.Contains("[" + key + "]"));
+            binding.Value.Should().Contain("Mode=" + direction).And.Contain("Converter={StaticResource IntegerOption}");
+        }
+    }
+
     [Theory]
     [InlineData("MainWindow.xaml", "BiblePassageBox")]
     [InlineData("Library/BibleWindow.xaml", "PassageTextBox")]
@@ -362,7 +389,7 @@ public class MainMenuBarTests
             "FrmMain flowLayoutOutputLyrics stacks RichTextBox rows vertically through DockStyle.Top");
         outputLyricsSurface.Should().Contain("Converter=\"{StaticResource LegacyLyricsRichTextBoxWidth}\"",
             "Output lyrics rows should fill the scroller width like FrmMain docked RichTextBox controls");
-        outputLyricsSurface.Should().Contain("Text=\"{Binding BodyText}\"",
+        outputLyricsSurface.Should().Contain("Text=\"{Binding BodyText, Converter={StaticResource LyricWordWrapping}}\"",
             "Output lyrics rows should show the full RichTextBox body without a separate page badge");
         outputLyricsSurface.Should().Contain("DataContext.PreviewSelectionBackground",
             "the current Output lyrics row should use the active FrmMain slide accent");
@@ -531,7 +558,7 @@ public class MainMenuBarTests
         preview.Should().Contain("Height=\"{Binding SampleScreenHeight}\"", "Preview screen should follow the monitor aspect");
         preview.Should().Contain("x:Name=\"ClassicPreviewBack\"", "Preview background should stay inside the fixed frame like FrmMain PreviewBack");
         preview.Should().Contain("x:Name=\"ClassicPreviewLargeLyricsText\"", "non-PPT Preview lyrics should render in the lower preview frame");
-        preview.Should().Contain("Text=\"{Binding PreviewLyricsText}\"", "the lower Preview frame should follow the selected Preview page text");
+        preview.Should().Contain("Text=\"{Binding PreviewLyricsText, Converter={StaticResource LyricWordWrapping}}\"", "the lower Preview frame should follow the selected Preview page text");
         preview.Should().Contain("PreviewSample.Scene.ShowLyricsPositionIndicator", "the slide number follows the projection setting");
         preview.Should().Contain("Text=\"{Binding PreviewNavigationPositionLabel}\"",
             "the lower Preview frame should show the selected Preview page/slide position");
@@ -563,7 +590,7 @@ public class MainMenuBarTests
         output.Should().Contain("Height=\"{Binding SampleScreenHeight}\"", "Output screen should follow the monitor aspect");
         output.Should().Contain("x:Name=\"ClassicOutputBack\"", "the output background stays inside the fixed frame");
         output.Should().Contain("x:Name=\"ClassicOutputLargeLyricsText\"", "non-PPT Output lyrics should render in the lower live preview frame");
-        output.Should().Contain("Text=\"{Binding OutputLyricsText}\"", "the lower Output frame should follow OutputItem/live lyrics, not selected Preview lyrics");
+        output.Should().Contain("Text=\"{Binding OutputLyricsText, Converter={StaticResource LyricWordWrapping}}\"", "the lower Output frame should follow OutputItem/live lyrics, not selected Preview lyrics");
         output.Should().Contain("Text=\"{Binding OutputNavigationPositionLabel}\"",
             "the lower Output frame should show prepared/live Output page or slide position");
         output.Should().Contain("Visibility=\"{Binding HasOutputLyricsText, Converter={StaticResource BoolToVis}}\"",
@@ -1796,7 +1823,7 @@ public class MainMenuBarTests
             "FrmMain flowLayoutPreviewLyrics stacks RichTextBox rows vertically through DockStyle.Top");
         previewLyricsSurface.Should().Contain("Converter=\"{StaticResource LegacyLyricsRichTextBoxWidth}\"",
             "Preview lyrics rows should fill the scroller width like FrmMain docked RichTextBox controls");
-        previewLyricsSurface.Should().Contain("Text=\"{Binding BodyText}\"",
+        previewLyricsSurface.Should().Contain("Text=\"{Binding BodyText, Converter={StaticResource LyricWordWrapping}}\"",
             "Preview lyrics rows should show the full RichTextBox body without a separate page badge");
         previewLyricsSurface.Should().Contain("DataContext.PreviewSelectionBackground",
             "the current Preview lyrics row should use the active FrmMain slide accent");
@@ -1962,7 +1989,7 @@ public class MainMenuBarTests
             "item-specific background colour custom should open a real colour picker");
         code.Should().Contain("private void PickSelectedItemBackgroundColor_Click",
             "item-specific background colour custom should have a code-behind handler");
-        code.Should().Contain("viewModel.SetSelectedItemBackgroundColorCommand.Execute(hex)",
+        code.Should().Contain("_viewModel.SetItemBackgroundPattern(dialog.FirstColour, dialog.SecondColour, dialog.Pattern)",
             "item-specific background colour custom should apply through the selected-item VM command");
         xaml.Should().Contain("Command=\"{Binding ClearSelectedItemFormattingCommand}\"",
             "IndPanel should expose item-specific formatting clear");
@@ -2232,7 +2259,6 @@ public class MainMenuBarTests
     [InlineData("OpenSearchUsage_Click")]
     [InlineData("OpenExternalFiles_Click")]
     [InlineData("OpenManageWorshipLists_Click")]
-    [InlineData("OpenBibleVersionManager_Click")]
     [InlineData("OpenHelp_Click")]
     [InlineData("OpenRegistration_Click")]
     [InlineData("OpenAbout_Click")]
@@ -2287,8 +2313,6 @@ public class MainMenuBarTests
 
     [Theory]
     [InlineData("ApplyLyricsVerticalAlignmentCommand")] // 세로 정렬
-    [InlineData("IncreaseLyricsFontSizeCommand")]       // 글자 크게
-    [InlineData("DecreaseLyricsFontSizeCommand")]       // 글자 작게
     [InlineData("IncreaseLyricsLineSpacingCommand")]    // 줄 간격 늘림
     [InlineData("DecreaseLyricsLineSpacingCommand")]    // 줄 간격 줄임
     public void MenuBar_OutputFormattingExtras_WiredToCommands(string command)
@@ -2312,8 +2336,6 @@ public class MainMenuBarTests
     [InlineData("ActiveLyricsTitleHeading", "ToggleLyricsTitleHeadingCommand")]
     [InlineData("ActiveLyricsOutline", "ToggleLyricsOutlineCommand")]
     [InlineData("ActiveLyricsShadow", "ToggleLyricsShadowCommand")]
-    [InlineData("ActiveLyricsBold", "ToggleLyricsBoldCommand")]
-    [InlineData("ActiveLyricsItalic", "ToggleLyricsItalicCommand")]
     public void MenuBar_OutputDisplayToggles_BindCheckedAndCommand(string activeProperty, string toggleCommand)
     {
         var xaml = Xaml;

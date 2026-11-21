@@ -42,6 +42,26 @@ public class OutputPlacementEditorTests
     }
 
     [Fact]
+    public void OperatorOptionsAndWpfSettingsHaveSeparateEditors()
+    {
+        var window = Read("SettingsWindow.xaml");
+        var tabs = window.Descendants().First(e => e.Name.LocalName == "TabControl").Elements().ToArray();
+        var advanced = tabs.Single(tab => (string?)tab.Attribute("Header") == "WPF 설정");
+        var keyboard = tabs.Single(tab => (string?)tab.Attribute("Header") == "Keyboard");
+        var shortcuts = window.Descendants().Single(e => (string?)e.Attribute("ItemsSource") == "{Binding ShortcutItems}");
+        shortcuts.Ancestors().Should().Contain(keyboard);
+
+        var classicControls = tabs.TakeWhile(tab => tab != advanced).SelectMany(tab => tab.Descendants())
+            .Concat(Read("Composites/OutputPlacementEditor.xaml").Descendants());
+        static string[] EditablePaths(System.Collections.Generic.IEnumerable<XElement> controls) => controls
+            .Where(e => (string?)e.Attribute("IsReadOnly") != "True").Attributes()
+            .Where(a => a.Name.LocalName is "Text" or "Value" or "SelectedItem" or "SelectedIndex" or "SelectedValue" or "IsChecked" or "Argb")
+            .Where(a => a.Value.StartsWith("{Binding ", System.StringComparison.Ordinal))
+            .Select(a => a.Value[9..].Split(',', '}')[0]).Distinct().ToArray();
+        EditablePaths(advanced.Descendants()).Intersect(EditablePaths(classicControls)).Should().BeEmpty();
+    }
+
+    [Fact]
     public void NativeOptionsPreserveTabOrderAndAlertToolbar()
     {
         var window = Read("SettingsWindow.xaml");

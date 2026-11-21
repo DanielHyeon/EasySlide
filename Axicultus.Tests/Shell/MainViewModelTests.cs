@@ -25,6 +25,77 @@ namespace Axicultus.Wpf.Tests.Shell;
 public partial class MainViewModelTests
 {
     [Fact]
+    public async Task SavedBibleUsesVersionTypographyAndPersistsIndividualEditsToTheCorrectItem()
+    {
+        using var temp = TempSettingsFolder.Create();
+        var settings = temp.CreateSettings();
+        settings.Set(AxicultusSettingKeys.LyricsMonitorFontSize, 24);
+        var store = new WorshipListStore(Path.Combine(temp.Root, "lists"));
+        var selection = new BibleSelection("0;kr.db;;1;1;1;1;1;", "창세기 1:1");
+        await store.SaveAsync("Sunday", [new LiveQueueItem("bible:" + selection.IdString, selection.Title, LiveItemKinds.Bible) { Lyrics = "태초에 하나님이" }]);
+        using var shell = CreateSut(settings: settings, worshipLists: store, seedSampleQueue: false);
+        shell.Bible.Versions.Add(new BibleVersion(0, "개역개정", "", "", "kr.db", "", 3, 100, false));
+        shell.Library.Folders.Add(new SongFolderSummary(3, "말씀", true, 0,
+            SlideLayout: new SongPageLayout(50, "Malgun Gothic", 8, 3, 3, 4, 1, 100, 0)));
+
+        await shell.LoadWorshipListAsync("Sunday");
+        shell.PrimaryFontPoints.Should().Be(50);
+        shell.PrimaryTopPercent.Should().Be(8);
+        shell.ProjectLyricsPage(shell.SelectedItem!, 0).SongLayout!.FontPoints.Should().Be(50);
+        await shell.PreviewToLiveCommand.ExecuteAsync(null);
+        shell.Session.Current.OverrideFontSizePx.Should().Be(67);
+        shell.PrimaryFontPoints = 60;
+        shell.PrimaryTopPercent = 17;
+        shell.Session.Current.OverrideFontSizePx.Should().Be(80);
+        shell.Session.Current.ItemDisplay!.Top1.Should().Be(17);
+        (await shell.SavePendingWorshipListChangesAsync()).Should().BeTrue();
+        await shell.LoadWorshipListAsync("Sunday");
+        shell.PrimaryFontPoints.Should().Be(60);
+        shell.PrimaryTopPercent.Should().Be(17);
+
+        var source = selection with { IdString = "0;kr.db;;1;1;2;1;2;", Title = "창세기 1:2" };
+        shell.PreviewBibleSelection(source);
+        shell.PrimaryFontPoints = 54;
+        shell.SecondaryTopPercent = 65;
+        shell.PreviewBibleSelection(source);
+        shell.PrimaryFontPoints.Should().Be(54);
+        SongFormatData.Parse(shell.Queue.Single().FormatData)!.FontSize1.Should().Be(60);
+        var added = shell.AddBibleSelection(source)!;
+        SongFormatData.Parse(added.FormatData)!.FontSize1.Should().Be(54);
+        (await shell.SavePendingWorshipListChangesAsync()).Should().BeTrue();
+        var saved = await store.LoadSessionAsync("Sunday");
+        saved.Items.Should().HaveCount(2);
+        ItemDisplayFormat.Read(saved.Items.Last().FormatData)!.Top2.Should().Be(65);
+    }
+
+    [Fact]
+    public void ExternalTextSupportsIndividualFontAndPositionInBothRegions()
+    {
+        using var shell = CreateSut(seedSampleQueue: false);
+        shell.AddTextFileItem("예배 순서.txt", "예배 말씀");
+        shell.CanEditSelectedItemColor.Should().BeTrue();
+        shell.ApplySelectedItemFormatDataTemplate("41=9>42=2>155=7>");
+        shell.PrimaryFontPoints = 51;
+        shell.SecondaryFontPoints = 43;
+        shell.PrimaryTopPercent = 15;
+        shell.SecondaryTopPercent = 64;
+        shell.SetItemBackgroundPattern(-65536, -16776961, 2);
+        var raw = shell.SelectedItem!.FormatData;
+        ItemDisplayFormat.Read(raw)!.BackgroundPattern.Should().Be(2);
+        ItemDisplayFormat.Read(raw)!.SecondBackgroundColour.Should().Be(-16776961);
+        var format = SongFormatData.Parse(raw)!;
+        format.FontSize1.Should().Be(51);
+        format.FontSize2.Should().Be(43);
+        ItemDisplayFormat.Read(raw)!.Top1.Should().Be(15);
+        ItemDisplayFormat.Read(raw)!.Top2.Should().Be(64);
+        format.StyleFlag(false, true, 1).Should().BeTrue();
+        format.StyleFlag(true, false, 2).Should().BeTrue();
+        format.StyleFlag(true, true, 2).Should().BeTrue();
+        format.StyleFlag(true, true, 1).Should().BeFalse();
+        raw.Should().Contain("155=7>");
+    }
+
+    [Fact]
     public async Task ExternalTextWithoutItemFormattingUsesDatabaseFontForPreviewAndAudience()
     {
         using var temp = TempSettingsFolder.Create();
@@ -221,7 +292,7 @@ public partial class MainViewModelTests
         sut.PreviewItemInfoText.Should().Contain("개별 서식: 끔");
         sut.PreviewItemInfoText.Should().Contain("곡 번호: 42");
         sut.PreviewItemInfoText.Should().Contain("절 순서: 1 C");
-        sut.PreviewItemInfoText.Should().Contain("서식 데이터: 29=-1");
+        sut.PreviewItemInfoText.Should().Contain("서식 데이터: {").And.Contain("\"region1TextColorArgb\": \"#FFFFFFFF\"");
         sut.PreviewItemInfoText.Should().Contain("가사 줄: 2");
     }
 
@@ -10758,7 +10829,7 @@ public partial class MainViewModelTests
         sut.ToggleSelectedItemBold(); // 다시 끄기.
 
         sut.SelectedItemBold.Should().BeFalse("다시 끄면 꺼짐");
-        (sut.SelectedItem!.FormatData ?? "").Should().NotContain("41=", "코드 41(강조 비트)이 제거됨");
+        sut.SelectedItem!.FormatData.Should().Contain("41=0", "기본 굵기를 명시적으로 해제한다");
     }
 
     [Fact]
@@ -11158,7 +11229,7 @@ public partial class MainViewModelTests
     // ── 이중 언어 보조 영역(Region2) 항목별 강조(굵게/기울임/밑줄, 코드41 상위비트 bit3/4/5) ──
 
     [Fact]
-    public void ToggleSelectedItemBold2_TogglesCode41Bit3_AndReflects()
+    public void ToggleSelectedItemBold2_TogglesRegion2Code42_AndReflects()
     {
         var sut = CreateSut(seedSampleQueue: false);
         sut.AddSong(new SongSummary(1, "은혜", "", 1, 1, "", "", "[1]\n가사"));
@@ -11166,19 +11237,18 @@ public partial class MainViewModelTests
 
         sut.ToggleSelectedItemBold2(); // 켜기.
 
-        sut.SelectedItem!.FormatData.Should().Contain("41=8", "코드 41 bit3(Region2 굵게) = 8");
+        sut.SelectedItem!.FormatData.Should().Contain("42=1");
         sut.SelectedItemBold2.Should().BeTrue();
         sut.SelectedItem!.UseIndividualFormatting.Should().BeTrue("켜면 개별 서식을 켠다");
 
         sut.ToggleSelectedItemBold2(); // 끄기.
         sut.SelectedItemBold2.Should().BeFalse();
-        (sut.SelectedItem!.FormatData ?? "").Should().NotContain("41=", "비트 0 → 코드41 제거");
+        sut.SelectedItem!.FormatData.Should().Be("42=0");
     }
 
     [Fact]
-    public void ToggleSelectedItemBold2_CoexistsWithRegion1Bold_InSameCode41()
+    public void ToggleSelectedItemBold2_CoexistsWithRegion1Bold_InSeparateFields()
     {
-        // 본문 굵게(bit0=1)와 보조 영역 굵게(bit3=8)는 같은 코드41 안에서 독립적으로 공존 → 41=9.
         var sut = CreateSut(seedSampleQueue: false);
         var item = new LiveQueueItem("song:1", "곡", LiveItemKinds.Song)
         {
@@ -11188,9 +11258,9 @@ public partial class MainViewModelTests
         sut.LoadQueue([item]);
         sut.SelectedItem = sut.Queue[0];
 
-        sut.ToggleSelectedItemBold2(); // 보조 영역 굵게 추가(bit3).
+        sut.ToggleSelectedItemBold2(); // 보조 영역 굵게 추가.
 
-        sut.SelectedItem!.FormatData.Should().Contain("41=9", "본문 굵게(1)+보조 굵게(8)=9");
+        sut.SelectedItem!.FormatData.Should().Contain("41=1>42=1");
         sut.SelectedItemBold.Should().BeTrue("본문 굵게 비트 보존");
         sut.SelectedItemBold2.Should().BeTrue("보조 영역 굵게 추가됨");
     }
@@ -11210,7 +11280,7 @@ public partial class MainViewModelTests
 
         sut.ToggleSelectedItemBold2(); // 보조 굵게만 끄기.
 
-        sut.SelectedItem!.FormatData.Should().Contain("41=17", "본문 굵게(1)+보조 기울임(16)=17만 남음");
+        sut.SelectedItem!.FormatData.Should().Be("41=1>42=2", "이전 WPF 단일 코드도 언어별 서식으로 편집한다");
         sut.SelectedItemBold.Should().BeTrue("본문 굵게(bit0) 보존");
         sut.SelectedItemItalic2.Should().BeTrue("보조 기울임(bit4) 보존");
         sut.SelectedItemBold2.Should().BeFalse("보조 굵게(bit3)만 꺼짐");
@@ -11231,7 +11301,7 @@ public partial class MainViewModelTests
         sut.ToggleSelectedItemItalic2();
 
         sut.SelectedItem!.FormatData.Should().Contain("29=-1", "기존 글자색 보존");
-        sut.SelectedItem!.FormatData.Should().Contain("41=16", "Region2 기울임 bit4=16");
+        sut.SelectedItem!.FormatData.Should().Contain("42=2");
     }
 
     [Fact]

@@ -53,7 +53,7 @@
                 <TextBlock Text="라이선스"
                            Style="{StaticResource Type.Caption.Style}"
                            Foreground="{DynamicResource Brush.Text.Tertiary}" />
-                <TextBox Text="{Binding EulaText}"
+                <TextBox Text="{Binding EulaText, Mode=OneWay}"
                          AutomationProperties.Name="라이선스 본문"
                          IsReadOnly="True"
                          AcceptsReturn="True"

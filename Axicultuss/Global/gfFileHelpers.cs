@@ -231,7 +231,7 @@ static class gfFileHelpers
                         entries.Add(new(id, title, folder, format));
                     }
                 }
-                new ServiceListDocument(1, Gf.SystemID, Gf.GetListFormat(InFormatString), InNotes, entries).Save(InFileName);
+                new ServiceListDocument(ServiceListDocument.CurrentVersion, Gf.SystemID, Gf.GetListFormat(InFormatString), InNotes, entries).Save(InFileName);
                 return true;
             }
             xtw = new XmlTextWriter(InFileName, Encoding.UTF8);

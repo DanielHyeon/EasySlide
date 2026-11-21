@@ -371,7 +371,7 @@
                 <Separator />
                 <MenuItem Header="Exit" Click="Exit_Click" InputGestureText="Alt+F4" />
                 <Separator />
-                <MenuItem Header="More…">
+                <MenuItem Header="예배 순서 및 자료 파일">
                     <MenuItem Header="예배 순서 저장" Command="{Binding QuickSaveWorshipListCommand}" InputGestureText="Ctrl+S">
                         <MenuItem.Icon><controls:FrmIcon Icon="save" Width="16" Height="16" /></MenuItem.Icon>
                     </MenuItem>
@@ -432,17 +432,8 @@
                 <MenuItem Header="Use Song Numbering" IsCheckable="True" IsChecked="{Binding Library.UseSongNumbering, Mode=TwoWay}" />
                 <MenuItem Header="Re-Arrange Song Folders" Click="FolderEditor_Click" />
                 <Separator />
-                <MenuItem Header="More…">
-                    <MenuItem Header="삭제 항목 복구" Click="SongRecover_Click">
-                        <MenuItem.Icon><controls:FrmIcon Icon="arrow_clockwise" Width="16" Height="16" /></MenuItem.Icon>
-                    </MenuItem>
-                    <MenuItem Header="스마트 병합" Click="SongMerge_Click">
-                        <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Template}" /></MenuItem.Icon>
-                    </MenuItem>
-                    <Separator />
-                    <MenuItem Header="곡 검색·사용처" Click="OpenSearchUsage_Click">
-                        <MenuItem.Icon><controls:FrmIcon Icon="search" Width="16" Height="16" /></MenuItem.Icon>
-                    </MenuItem>
+                <MenuItem Header="곡 검색·사용처" Click="OpenSearchUsage_Click">
+                    <MenuItem.Icon><controls:FrmIcon Icon="search" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
             </MenuItem>
 
@@ -459,16 +450,6 @@
                 </MenuItem>
                 <MenuItem Header="Show Notations in Preview" IsCheckable="True" IsChecked="{Binding PreviewAreaShowNotations, Mode=TwoWay}" />
                 <MenuItem Header="Status Bar" x:Name="ShowStatusMenu" IsCheckable="True" IsChecked="True" />
-                <Separator />
-                <MenuItem Header="More…">
-                    <MenuItem Header="출력 새로고침" Command="{Binding RefreshOutputCommand}" InputGestureText="Ctrl+F5">
-                        <MenuItem.Icon><controls:FrmIcon Icon="arrow_clockwise" Width="16" Height="16" /></MenuItem.Icon>
-                    </MenuItem>
-                    <Separator />
-                    <MenuItem Header="곡 번호 표시"
-                              IsCheckable="True"
-                              IsChecked="{Binding Library.UseSongNumbering, Mode=TwoWay}" />
-                </MenuItem>
             </MenuItem>
 
             <MenuItem Header="Output" Style="{x:Null}" Template="{StaticResource FrmMainMenuHeader}" Height="24">
@@ -478,7 +459,7 @@
                           IsChecked="{Binding IsShowRunning, Mode=OneWay}"
                           InputGestureText="F12" />
                 <MenuItem Header="Preview: Go Live, Move Next" Command="{Binding SendToOutputAndNextCommand}" InputGestureText="F11" />
-                <MenuItem Header="Refresh Output" Command="{Binding RefreshOutputCommand}" />
+                <MenuItem Header="Refresh Output" Command="{Binding RefreshOutputCommand}" InputGestureText="Ctrl+F5" />
                 <Separator />
                 <MenuItem Header="Black Screen"
                           Command="{Binding ToggleOutputBlackCommand}"
@@ -499,7 +480,7 @@
                     <MenuItem.Icon><controls:FrmIcon Icon="closed_caption_off" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
                 <Separator />
-                <MenuItem Header="More…">
+                <MenuItem Header="송출 조작">
                     <MenuItem Header="Preview를 Output으로 보내고 Black 해제"
                               Command="{Binding CopyPreviewToOutputAndClearBlackCommand}"
                               InputGestureText="F7">
@@ -513,25 +494,23 @@
                     <MenuItem Header="라이브 중지" Command="{Binding StopLiveCommand}">
                         <MenuItem.Icon><controls:FrmIcon Icon="arrow_repeat_all_off" Width="16" Height="16" /></MenuItem.Icon>
                     </MenuItem>
-                    <Separator />
                     <MenuItem Header="처음 항목" Command="{Binding FirstItemCommand}" />
                     <MenuItem Header="다음 슬라이드/절" Command="{Binding LiveNextShortcutCommand}" InputGestureText="Space">
                         <MenuItem.Icon><controls:FrmIcon Icon="arrow_enter" Width="16" Height="16" /></MenuItem.Icon>
                     </MenuItem>
                     <MenuItem Header="이전 슬라이드/절" Command="{Binding LivePreviousShortcutCommand}" InputGestureText="Shift+Space" />
                     <MenuItem Header="마지막 항목" Command="{Binding LastItemCommand}" />
-                    <Separator />
                     <MenuItem Header="출력 숨김" Command="{Binding HideOutputCommand}" InputGestureText="Ctrl+H">
                         <MenuItem.Icon><controls:FrmIcon Icon="closed_caption_off" Width="16" Height="16" /></MenuItem.Icon>
                     </MenuItem>
                     <MenuItem Header="복귀" Command="{Binding RestoreOutputCommand}" />
-                    <Separator />
                     <MenuItem Header="라이브 카메라 켜기/끄기" Command="{Binding ToggleOutputCameraCommand}" />
                     <MenuItem Header="스테이지 모니터 열기" Command="{Binding OpenStageMonitorCommand}">
                         <MenuItem.Icon><controls:FrmIcon Icon="tab_desktop_multiple" Width="16" Height="16" /></MenuItem.Icon>
                     </MenuItem>
                     <MenuItem Header="스테이지 모니터 닫기" Command="{Binding CloseStageMonitorCommand}" />
-                    <Separator />
+                </MenuItem>
+                <MenuItem Header="송출 정보 패널">
                     <MenuItem Header="정보 패널 표시"
                               IsChecked="{Binding ActiveLyricsDisplayPanel, Mode=OneWay}"
                               Command="{Binding ToggleLyricsDisplayPanelCommand}"
@@ -581,6 +560,8 @@
                         <MenuItem Header="크게 (+)" Command="{Binding IncreasePanelFontScaleCommand}" />
                         <MenuItem Header="작게 (−)" Command="{Binding DecreasePanelFontScaleCommand}" />
                     </MenuItem>
+                </MenuItem>
+                <MenuItem Header="가사·배경 서식">
                     <MenuItem Header="제목 헤딩"
                               IsChecked="{Binding ActiveLyricsTitleHeading, Mode=OneWay}"
                               Command="{Binding ToggleLyricsTitleHeadingCommand}" />
@@ -590,22 +571,12 @@
                     <MenuItem Header="가사 그림자"
                               IsChecked="{Binding ActiveLyricsShadow, Mode=OneWay}"
                               Command="{Binding ToggleLyricsShadowCommand}" />
-                    <MenuItem Header="가사 굵게"
-                              IsChecked="{Binding ActiveLyricsBold, Mode=OneWay}"
-                              Command="{Binding ToggleLyricsBoldCommand}" />
-                    <MenuItem Header="가사 기울임"
-                              IsChecked="{Binding ActiveLyricsItalic, Mode=OneWay}"
-                              Command="{Binding ToggleLyricsItalicCommand}" />
-                    <MenuItem Header="가사 밑줄"
-                              IsChecked="{Binding ActiveLyricsUnderline, Mode=OneWay}"
-                              Command="{Binding ToggleLyricsUnderlineCommand}" />
                     <MenuItem Header="강조는 후렴만(굵게·기울임·밑줄)"
                               IsChecked="{Binding ActiveLyricsEmphasisChorusOnly, Mode=OneWay}"
                               Command="{Binding ToggleEmphasisChorusOnlyCommand}" />
                     <MenuItem Header="이중 언어 줄 교차(원문/번역 번갈아)"
                               IsChecked="{Binding ActiveLyricsInterlace, Mode=OneWay}"
                               Command="{Binding ToggleInterlaceCommand}" />
-                    <Separator />
                     <MenuItem Header="전환 효과">
                         <MenuItem Header="페이드 사용"
                                   IsChecked="{Binding ActiveFadeTransition, Mode=OneWay}"
@@ -768,28 +739,6 @@
                             </MenuItem.CommandParameter>
                         </MenuItem>
                     </MenuItem>
-                    <MenuItem Header="대기 화면(Gap)">
-                        <MenuItem Header="모드"
-                                  StaysOpenOnClick="True"
-                                  ToolTip="대기(라이브 콘텐츠 없음) 상태에서 보여줄 화면: 없음/검정/기본/로고 이미지.">
-                            <ComboBox ItemsSource="{Binding GapItemModeOptions}"
-                                      SelectedValue="{Binding GapItemModeInput, Mode=TwoWay}"
-                                      SelectedValuePath="Value"
-                                      DisplayMemberPath="Key"
-                                      MinWidth="180"
-                                      Margin="4"
-                                      AutomationProperties.Name="대기 화면 Gap 모드" />
-                        </MenuItem>
-                        <MenuItem Header="전환 페이드 사용"
-                                  IsChecked="{Binding ActiveGapItemUseFade, Mode=OneWay}"
-                                  Command="{Binding ToggleGapItemUseFadeCommand}"
-                                  ToolTip="대기 화면으로 들어갈 때 부드럽게 페이드합니다." />
-                        <Separator />
-                        <MenuItem Header="로고 이미지 선택..." Click="SelectGapLogo_Click"
-                                  ToolTip="'로고' 모드에서 보여줄 이미지를 고릅니다(고르면 모드도 로고로 바뀜)." />
-                        <MenuItem Header="로고 지우기"
-                                  Command="{Binding ClearGapItemLogoFileCommand}" />
-                    </MenuItem>
                     <MenuItem Header="배경 이미지">
                         <MenuItem Header="갤러리에서 선택..."
                                   Click="OpenImageLibrary_Click" />
@@ -859,10 +808,6 @@
                                   Command="{Binding ApplyRegionDisplayCommand}"
                                   CommandParameter="{x:Static settings:LyricsRegionDisplay.Region2Only}" />
                     </MenuItem>
-                    <MenuItem Header="코드 표시"
-                              IsChecked="{Binding ActiveLyricsNotations, Mode=OneWay}"
-                              Command="{Binding ToggleLyricsNotationsCommand}"
-                              ToolTip="송출 가사에 코드(악보 기호) 줄을 함께 표시(레거시 Def_Notations). 아래 조옮김은 이게 켜져야 적용됨." />
                     <MenuItem Header="코드 조옮김">
                         <MenuItem Header="{Binding LiveTransposeLabel}" IsEnabled="False" />
                         <Separator />
@@ -873,14 +818,6 @@
                         <MenuItem Header="원조 복귀"
                                   Command="{Binding TransposeLiveResetCommand}" />
                     </MenuItem>
-                    <Separator />
-                    <MenuItem Header="정보 화면을 제외하고 전역 서식 적용"
-                              Command="{Binding ApplyGlobalFormatToAllCommand}"
-                              ToolTip="모든 예배 순서 항목의 '개별 서식'을 끄고 전역 기본(인스펙터) 서식으로 통일(레거시 Apply to All)." />
-                    <MenuItem Header="복사한 서식을 전 항목에 적용"
-                              Command="{Binding ApplyCopiedFormatToAllCommand}"
-                              ToolTip="우클릭 '이 항목 서식 복사'로 담아 둔 서식을 모든 곡·성경 항목에 한 번에 적용(같은 색·글꼴로 통일)." />
-                    <Separator />
                     <MenuItem Header="가사 정렬">
                         <MenuItem Header="왼쪽"
                                   Command="{Binding ApplyLyricsAlignmentCommand}"
@@ -903,12 +840,8 @@
                                   Command="{Binding ApplyLyricsVerticalAlignmentCommand}"
                                   CommandParameter="{x:Static settings:LyricsVerticalAlignment.Bottom}" />
                     </MenuItem>
-                    <Separator />
-                    <MenuItem Header="글자 크게" Command="{Binding IncreaseLyricsFontSizeCommand}" />
-                    <MenuItem Header="글자 작게" Command="{Binding DecreaseLyricsFontSizeCommand}" />
                     <MenuItem Header="줄 간격 늘림" Command="{Binding IncreaseLyricsLineSpacingCommand}" />
                     <MenuItem Header="줄 간격 줄임" Command="{Binding DecreaseLyricsLineSpacingCommand}" />
-                    <Separator />
                     <MenuItem Header="본문 여백">
                         <MenuItem Header="{Binding ActiveLyricsLeftMargin, StringFormat=왼쪽 여백: {0}px}" IsEnabled="False" />
                         <MenuItem Header="왼쪽 여백 넓게" Command="{Binding IncreaseLyricsLeftMarginCommand}" />
@@ -933,6 +866,14 @@
                         <MenuItem Header="본문 아래로 ▼" Command="{Binding MoveBodyDownCommand}" />
                     </MenuItem>
                 </MenuItem>
+                <MenuItem Header="예배 순서 서식 적용">
+                    <MenuItem Header="정보 화면을 제외하고 전역 서식 적용"
+                              Command="{Binding ApplyGlobalFormatToAllCommand}"
+                              ToolTip="모든 예배 순서 항목의 '개별 서식'을 끄고 전역 기본(인스펙터) 서식으로 통일(레거시 Apply to All)." />
+                    <MenuItem Header="복사한 서식을 전 항목에 적용"
+                              Command="{Binding ApplyCopiedFormatToAllCommand}"
+                              ToolTip="우클릭 '이 항목 서식 복사'로 담아 둔 서식을 모든 곡·성경 항목에 한 번에 적용(같은 색·글꼴로 통일)." />
+                </MenuItem>
             </MenuItem>
 
             <MenuItem Header="Tools" Style="{x:Null}" Template="{StaticResource FrmMainMenuHeader}" Height="24">
@@ -956,21 +897,9 @@
                           Click="ResetAllSettings_Click"
                           ToolTip="모든 설정을 기본값으로 되돌리고 앱을 다시 시작합니다(곡·성경 데이터는 영향 없음). 설정이 꼬였을 때 쓰는 복구 기능입니다." />
                 <Separator />
-                <MenuItem Header="More…">
-                    <MenuItem Header="가져오기·내보내기" Click="OpenImportExport_Click">
-                        <MenuItem.Icon><controls:FrmIcon Icon="document_text" Width="16" Height="16" /></MenuItem.Icon>
-                    </MenuItem>
+                <MenuItem Header="예배 자료 관리">
                     <MenuItem Header="외부 파일 복사·이동" Click="OpenExternalFiles_Click">
                         <MenuItem.Icon><controls:FrmIcon Icon="folder_open" Width="16" Height="16" /></MenuItem.Icon>
-                    </MenuItem>
-                    <MenuItem Header="예배 순서 관리" Click="OpenManageWorshipLists_Click">
-                        <MenuItem.Icon><controls:FrmIcon Icon="text_bullet_list_ltr" Width="16" Height="16" /></MenuItem.Icon>
-                    </MenuItem>
-                    <MenuItem Header="성경 버전 관리" Click="OpenBibleVersionManager_Click">
-                        <MenuItem.Icon><controls:FrmIcon Icon="bible" Width="16" Height="16" /></MenuItem.Icon>
-                    </MenuItem>
-                    <MenuItem Header="찬양집 색인..." Click="OpenPraiseBookIndex_Click">
-                        <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Template}" /></MenuItem.Icon>
                     </MenuItem>
                     <MenuItem Header="공지 화면(InfoScreen)..." Click="OpenNoticeScreen_Click">
                         <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Template}" /></MenuItem.Icon>
@@ -978,7 +907,6 @@
                     <MenuItem Header="세션 메모..." Click="OpenSessionNotes_Click">
                         <MenuItem.Icon><controls:FrmIcon Icon="edit" Width="16" Height="16" /></MenuItem.Icon>
                     </MenuItem>
-                    <Separator />
                     <MenuItem Header="예배 순서 검증"
                               Command="{Binding ValidateWorshipListCommand}"
                               ToolTip="라이브 송출 전 깨진 PowerPoint·미디어 파일이 없는지 점검합니다.">
@@ -998,10 +926,8 @@
                 <MenuItem Header="Register Use of Axicultus" Click="OpenRegistration_Click" />
                 <MenuItem Header="About Axicultus" Click="OpenAbout_Click" />
                 <Separator />
-                <MenuItem Header="More…">
-                    <MenuItem Header="도움말" Click="OpenHelp_Click">
-                        <MenuItem.Icon><controls:FrmIcon Icon="question_circle" Width="16" Height="16" /></MenuItem.Icon>
-                    </MenuItem>
+                <MenuItem Header="앱 사용 안내" Click="OpenHelp_Click">
+                    <MenuItem.Icon><controls:FrmIcon Icon="question_circle" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
             </MenuItem>
         </Menu>
@@ -3232,7 +3158,7 @@
                                                                             </Style.Triggers></Style>
                                                                         </TextBlock.Style>
                                                                     </TextBlock>
-                                                                    <TextBlock Text="{Binding BodyText}"
+                                                                    <TextBlock Text="{Binding BodyText, Converter={StaticResource LyricWordWrapping}}"
                                                                            TextWrapping="Wrap"
                                                                            FontFamily="Microsoft Sans Serif"
                                                                            FontSize="{Binding DataContext.PreviewFontDip, RelativeSource={RelativeSource AncestorType=ItemsControl}}" LineStackingStrategy="BlockLineHeight" LineHeight="{Binding DataContext.PreviewListLineHeight, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
@@ -3250,8 +3176,9 @@
                                                 <CheckBox x:Name="Ind_checkBox"
                                                           Tag="Ind_checkBox"
                                                           Command="{Binding ToggleUseIndividualFormattingCommand}"
-                                                          IsChecked="{Binding SelectedItem.UseIndividualFormatting, Mode=OneWay}"
+                                                          IsChecked="{Binding PreviewPanelItem.UseIndividualFormatting, Mode=OneWay}"
                                                           Content="Use Individual Settings"
+                                                          ToolTip="변경은 미리보기에 바로 적용됩니다. 이름이 있는 예배 순서의 항목은 자동 저장됩니다."
                                                           Margin="0,0,0,8"
                                                           AutomationProperties.Name="개별 서식 사용" />
 
@@ -3377,32 +3304,25 @@
                                                                     MinWidth="62"
                                                                     Margin="0,0,4,4" />
                                                         </WrapPanel>
-                                                        <WrapPanel>
-                                                            <Button Content="36"
-                                                                    Command="{Binding SetSelectedItemFontSizeCommand}"
-                                                                    CommandParameter="36"
-                                                                    Style="{StaticResource EsButton.Secondary}"
-                                                                    MinWidth="44"
-                                                                    Margin="0,0,4,4" />
-                                                            <Button Content="48"
-                                                                    Command="{Binding SetSelectedItemFontSizeCommand}"
-                                                                    CommandParameter="48"
-                                                                    Style="{StaticResource EsButton.Secondary}"
-                                                                    MinWidth="44"
-                                                                    Margin="0,0,4,4" />
-                                                            <Button Content="60"
-                                                                    Command="{Binding SetSelectedItemFontSizeCommand}"
-                                                                    CommandParameter="60"
-                                                                    Style="{StaticResource EsButton.Secondary}"
-                                                                    MinWidth="44"
-                                                                    Margin="0,0,4,4" />
-                                                            <Button Content="Default"
-                                                                    Command="{Binding SetSelectedItemFontSizeCommand}"
-                                                                    CommandParameter="{x:Null}"
-                                                                    Style="{StaticResource EsButton.Secondary}"
-                                                                    MinWidth="62"
-                                                                    Margin="0,0,4,4" />
-                                                        </WrapPanel>
+                                                        <StackPanel IsEnabled="{Binding CanEditSelectedItemColor}">
+                                                            <StackPanel.Resources><ResourceDictionary Source="Controls/OptionsLayout.xaml" /></StackPanel.Resources>
+                                                            <WrapPanel Margin="0,2">
+                                                                <TextBlock Text="주 언어" Width="62" VerticalAlignment="Center" />
+                                                                <TextBlock Text="크기 (pt)" VerticalAlignment="Center" />
+                                                                <controls:OptionNumberBox Width="60" Minimum="6" Maximum="100" Margin="4,0,8,0" Text="{Binding PrimaryFontPoints, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}" AutomationProperties.Name="주 언어 글자 크기" />
+                                                                <TextBlock Text="상단 (%)" VerticalAlignment="Center" />
+                                                                <controls:OptionNumberBox Width="60" Minimum="0" Maximum="100" Margin="4,0" Text="{Binding PrimaryTopPercent, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}" AutomationProperties.Name="주 언어 상단 위치" />
+                                                                <Button Content="크기 초기화" Command="{Binding SetSelectedItemFontSizeCommand}" Style="{StaticResource EsButton.Secondary}" ToolTip="주 언어 글자 크기를 기본 설정에서 가져옵니다." Margin="4,0" />
+                                                            </WrapPanel>
+                                                            <WrapPanel Margin="0,2">
+                                                                <TextBlock Text="보조 언어" Width="62" VerticalAlignment="Center" />
+                                                                <TextBlock Text="크기 (pt)" VerticalAlignment="Center" />
+                                                                <controls:OptionNumberBox Width="60" Minimum="6" Maximum="100" Margin="4,0,8,0" Text="{Binding SecondaryFontPoints, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}" AutomationProperties.Name="보조 언어 글자 크기" />
+                                                                <TextBlock Text="상단 (%)" VerticalAlignment="Center" />
+                                                                <controls:OptionNumberBox Width="60" Minimum="0" Maximum="100" Margin="4,0" Text="{Binding SecondaryTopPercent, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}" AutomationProperties.Name="보조 언어 상단 위치" />
+                                                                <Button Content="크기 초기화" Command="{Binding SetSelectedItemFontSize2Command}" Style="{StaticResource EsButton.Secondary}" ToolTip="보조 언어 글자 크기를 기본 설정에서 가져옵니다." Margin="4,0" />
+                                                            </WrapPanel>
+                                                        </StackPanel>
                                                     </StackPanel>
                                                 </GroupBox>
 
@@ -3576,7 +3496,7 @@
                                                                     Style="{StaticResource EsButton.Secondary}"
                                                                     MinWidth="38"
                                                                     Margin="0,0,4,4"
-                                                                    ToolTip="FrmMain Ind_BackColour custom"
+                                                                    ToolTip="이 항목의 배경색 두 가지와 무늬 선택"
                                                                     AutomationProperties.Name="선택 항목 사용자 배경색" />
                                                         </WrapPanel>
                                                         <Grid Margin="0,6,0,0"
@@ -4165,7 +4085,7 @@
                                         <TextBlock x:Name="ClassicPreviewLargeLyricsText"
                                                    DataContext="{Binding DataContext, RelativeSource={RelativeSource AncestorType=Window}}"
                                                    Tag="PreviewScreenLyrics"
-                                                   Text="{Binding PreviewLyricsText}"
+                                                   Text="{Binding PreviewLyricsText, Converter={StaticResource LyricWordWrapping}}"
                                                    Visibility="{Binding HasPreviewLyricsText, Converter={StaticResource BoolToVis}}"
                                                    TextAlignment="{Binding PreviewSample.BodyTextAlignment, RelativeSource={RelativeSource AncestorType=Window}}"
                                                    TextWrapping="Wrap"
@@ -4421,7 +4341,7 @@
                                                                     </Style.Triggers></Style>
                                                                 </TextBlock.Style>
                                                             </TextBlock>
-                                                            <TextBlock Text="{Binding BodyText}"
+                                                            <TextBlock Text="{Binding BodyText, Converter={StaticResource LyricWordWrapping}}"
                                                                    TextWrapping="Wrap"
                                                                    FontFamily="Microsoft Sans Serif"
                                                                    FontSize="{Binding DataContext.PreviewFontDip, RelativeSource={RelativeSource AncestorType=ItemsControl}}" LineStackingStrategy="BlockLineHeight" LineHeight="{Binding DataContext.PreviewListLineHeight, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
@@ -4787,7 +4707,7 @@
                                         <TextBlock x:Name="ClassicOutputLargeLyricsText"
                                                    DataContext="{Binding DataContext, RelativeSource={RelativeSource AncestorType=Window}}"
                                                    Tag="OutputScreenLyrics"
-                                                   Text="{Binding OutputLyricsText}"
+                                                   Text="{Binding OutputLyricsText, Converter={StaticResource LyricWordWrapping}}"
                                                    Visibility="{Binding HasOutputLyricsText, Converter={StaticResource BoolToVis}}"
                                                    TextAlignment="{Binding OutputSample.BodyTextAlignment, RelativeSource={RelativeSource AncestorType=Window}}"
                                                    TextWrapping="Wrap"

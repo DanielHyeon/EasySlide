@@ -8,6 +8,9 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Encodings.Web;
+using System.Text.Json;
+using System.Text.Unicode;
 using System.Threading.Tasks;
 using System.Windows.Media;
 using System.Windows.Threading;
@@ -1256,7 +1259,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ToggleLyricsUnderlineCommand = new RelayCommand(() => ToggleLyricsEffect(AxicultusSettingKeys.LyricsMonitorUnderline, ActiveLyricsUnderline));
         ToggleEmphasisChorusOnlyCommand = new RelayCommand(() => ToggleLyricsEffect(AxicultusSettingKeys.LyricsMonitorEmphasisChorusOnly, ActiveLyricsEmphasisChorusOnly));
         ToggleInterlaceCommand = new RelayCommand(() => ToggleLyricsEffect(AxicultusSettingKeys.LyricsMonitorInterlace, ActiveLyricsInterlace));
-        ToggleUseIndividualFormattingCommand = new RelayCommand(ToggleUseIndividualFormatting, () => SelectedItem is not null);
+        ToggleUseIndividualFormattingCommand = new RelayCommand(ToggleUseIndividualFormatting, () => PreviewItem is not null);
         ApplyGlobalFormatToAllCommand = new AsyncRelayCommand(ApplyGlobalFormatToAllAsync);
         ToggleLyricsDisplayPanelCommand = new RelayCommand(() => ToggleLyricsEffect(AxicultusSettingKeys.LyricsMonitorShowDisplayPanel, ActiveLyricsDisplayPanel));
         TogglePanelTransparentCommand = new RelayCommand(() => ToggleLyricsEffect(AxicultusSettingKeys.LyricsMonitorPanelTransparent, ActiveLyricsPanelTransparent));
@@ -1784,6 +1787,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var insertIndex = selectedIndex >= 0 ? selectedIndex + 1 : Queue.Count;
         Queue.Insert(insertIndex, item);
         SelectedItem = item;
+        if (!string.IsNullOrEmpty(item.FormatData) || !item.UseIndividualFormatting) SaveItemFormatting();
         StatusText = $"성경 구절 추가됨: {selection.Title}";
         NotifyCommandStates();
         return item;
@@ -1808,6 +1812,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return null;
         }
 
+        if (_sourcePreviewItem is { Kind: LiveItemKinds.Bible } current && current.Id == item.Id && current.Lyrics == item.Lyrics && current.Title == item.Title) return current;
         _sourcePreviewItem = item;
         RefreshLyricsPages(item);
         UpdateContentTabForItem(item);
@@ -1959,6 +1964,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var insertIndex = targetIndex >= 0 ? targetIndex : Queue.Count;
         Queue.Insert(insertIndex, item);
         SelectedItem = item;
+        if (!string.IsNullOrEmpty(item.FormatData) || !item.UseIndividualFormatting) SaveItemFormatting();
         StatusText = $"성경 구절 추가됨: {selection.Title}";
         NotifyCommandStates();
         return item;
@@ -1995,7 +2001,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         return item;
     }
 
-    // 성경 선택을 큐 항목으로 만든다(본문 확장 포함). 빈 선택이면 안내 후 null — 삽입 위치는 호출자가 정한다.
+    private LiveQueueItem RestoreBibleLayout(LiveQueueItem item)
+    {
+        if (!LiveItemKindMatcher.IsBible(item.Kind) || ResolveBibleLayout(ResolveBibleSelectionId(item)) is not { } layout)
+            return item;
+        return item with { SongLayout = layout };
+    }
+
     private Data.SongPageLayout? ResolveBibleLayout(string id)
     {
         if (!BibleSelectionId.TryParse(id, out var parsed)) return null;
@@ -2004,16 +2016,17 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (Version(parsed.Region1FileName) is not { } first) return null;
         var folder = Layout(first) ?? new Data.SongPageLayout(Math.Max(1, (int)Math.Round(_settings.Current.LiveOutput.LyricsMonitorFontSize * 0.75)),
             "", 0, 0, 0, 0, 1, 100, 0);
-        var fields = (folder.Fields ?? new Dictionary<string,string>()).ToDictionary(p => p.Key, p => p.Value);
-        if (Version(parsed.Region2FileName) is { } second)
-        {
-            var secondFolder = Layout(second) ?? folder;
-            fields["Size1"] = Math.Max(1, (int)Math.Round(secondFolder.FontPoints * second.Size / 100d)).ToString();
-            fields["FontName1"] = secondFolder.FontName;
-            fields["BIU1"] = secondFolder.FontStyleBits.ToString();
-            fields["LineSpacing2"] = secondFolder.LineSpacing.ToString(System.Globalization.CultureInfo.InvariantCulture);
-        }
-        return folder with { FontPoints = Math.Max(1, (int)Math.Round(folder.FontPoints * first.Size / 100d)), Fields = fields };
+        var primary = first.Size == 100 ? folder : folder with { FontPoints = Math.Max(1, (int)Math.Round(folder.FontPoints * first.Size / 100d)) };
+        if (Version(parsed.Region2FileName) is not { } second) return primary;
+        var fields = folder.Fields is null ? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            : new Dictionary<string, string>(folder.Fields, StringComparer.OrdinalIgnoreCase);
+
+        var secondFolder = Layout(second) ?? folder;
+        fields["Size1"] = Math.Max(1, (int)Math.Round(secondFolder.FontPoints * second.Size / 100d)).ToString();
+        fields["FontName1"] = secondFolder.FontName;
+        fields["BIU1"] = secondFolder.FontStyleBits.ToString();
+        fields["LineSpacing2"] = secondFolder.LineSpacing.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        return primary with { Fields = fields };
     }
 
     private LiveQueueItem? CreateBibleItem(BibleSelection selection)
@@ -2029,10 +2042,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         // 예전엔 성경 항목이 제목만 송출했으나 이제 회중 화면에 구절 본문이 보인다. 본문이 비면(파일 없음 등) 제목만(폴백).
         var body = Bible.ExpandSelectionBody(selection.IdString);
         var layout = ResolveBibleLayout(selection.IdString);
+        var preview = _sourcePreviewItem is { Kind: LiveItemKinds.Bible } current && current.Id == selection.IdString ? current : null;
         return new LiveQueueItem(selection.IdString, selection.Title, LiveItemKinds.Bible)
         {
             Lyrics = string.IsNullOrWhiteSpace(body) ? selection.Title : body,
             SongLayout = layout,
+            FormatData = preview?.FormatData,
+            UseIndividualFormatting = preview?.UseIndividualFormatting ?? true,
         };
     }
 
@@ -2987,8 +3003,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 return false;
             }
             if (owner != CurrentWorshipListName) return true;
-            RecordRecentWorshipList(name);
-            RefreshSavedWorshipListNames(); // 새로 저장한 목록이 세션 콤보에 바로 보이도록.
+            if (!pendingChangesOnly)
+            {
+                RecordRecentWorshipList(name);
+                RefreshSavedWorshipListNames();
+            }
             if (revision == _queueRevision)
             {
                 HasPendingWorshipListSave = false;
@@ -3042,7 +3061,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             }
 
             var (items, format) = await _worshipLists.LoadSessionAsync(name.Trim()).ConfigureAwait(true);
-            LoadQueue(items, format);
+            LoadQueue(items.Select(RestoreBibleLayout), format);
             RecordRecentWorshipList(name.Trim());
             StatusText = $"예배 순서 불러옴: {name.Trim()} ({items.Count}개)";
         }
@@ -3075,7 +3094,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             var wasEmpty = Queue.Count == 0;
             foreach (var item in items)
             {
-                Queue.Add(item);
+                Queue.Add(RestoreBibleLayout(item));
             }
 
             // 빈 큐에 병합했으면 불러오기처럼 첫 항목을 선택해 둔다(비어 있지 않았으면 현재 선택 유지).
@@ -3239,6 +3258,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 return new LiveQueueItem($"bible:{esw.Id}", title, LiveItemKinds.Bible)
                 {
                     Lyrics = Bible.ExpandSelectionBody(esw.Reference.BibleReference!),
+                    SongLayout = ResolveBibleLayout(esw.Reference.BibleReference!),
                     FormatData = esw.FormatData,
                 };
 
@@ -3936,6 +3956,23 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         // 절 순서 입력칸(곡만)·항목별 색(곡·성경)이 새로 선택된 항목을 따라가도록 통지(대상이면 활성, 아니면 비활성).
         OnPropertyChanged(nameof(SelectedItemSequenceInput));
         OnPropertyChanged(nameof(CanEditSelectedItemSequence));
+        NotifyItemFormattingProperties();
+        OnPropertyChanged(nameof(PreviewItemInfoText));
+        OnPropertyChanged(nameof(PreviewNavigationPositionLabel));
+        NotifyPreviewPanelDisplayProperties();
+        OnPropertyChanged(nameof(PreviewVisualSource));
+        OnPropertyChanged(nameof(PreviewVisualFillMode));
+        OnPropertyChanged(nameof(PreviewVisualSlideNumber));
+        OnPropertyChanged(nameof(PreviewVisualTitle));
+        OnPropertyChanged(nameof(PreviewVisualKind));
+        OnPropertyChanged(nameof(HasPreviewVisualSource));
+
+
+        NotifyCommandStates();
+    }
+
+    private void NotifyItemFormattingProperties()
+    {
         OnPropertyChanged(nameof(CanEditSelectedItemColor));
         OnPropertyChanged(nameof(SelectedItemTransitionKind));
         OnPropertyChanged(nameof(SelectedItemTransitionKindInput));
@@ -3947,17 +3984,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(CanPasteSelectedItemFormatting));
         OnPropertyChanged(nameof(CanApplyCopiedFormatToAll));
         OnPropertyChanged(nameof(CanClearAllItemsFormatting));
-        OnPropertyChanged(nameof(PreviewItemInfoText));
-        OnPropertyChanged(nameof(PreviewNavigationPositionLabel));
-        NotifyPreviewPanelDisplayProperties();
-        OnPropertyChanged(nameof(PreviewVisualSource));
-        OnPropertyChanged(nameof(PreviewVisualFillMode));
-        OnPropertyChanged(nameof(PreviewVisualSlideNumber));
-        OnPropertyChanged(nameof(PreviewVisualTitle));
-        OnPropertyChanged(nameof(PreviewVisualKind));
-        OnPropertyChanged(nameof(HasPreviewVisualSource));
         OnPropertyChanged(nameof(SelectedItemTextColorHex));
         OnPropertyChanged(nameof(SelectedItemAlignment));
+        OnPropertyChanged(nameof(PrimaryFontPoints));
+        OnPropertyChanged(nameof(SecondaryFontPoints));
+        OnPropertyChanged(nameof(PrimaryTopPercent));
+        OnPropertyChanged(nameof(SecondaryTopPercent));
         OnPropertyChanged(nameof(SelectedItemFontSize));
         OnPropertyChanged(nameof(SelectedItemFontName));
         OnPropertyChanged(nameof(SelectedItemBackgroundColorHex));
@@ -3989,8 +4021,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(SelectedItemBold2));
         OnPropertyChanged(nameof(SelectedItemItalic2));
         OnPropertyChanged(nameof(SelectedItemUnderline2));
-
-        NotifyCommandStates();
     }
 
     private void NotifyPreviewPanelDisplayProperties()
@@ -4028,6 +4058,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ClearDefaultMediaCommand.NotifyCanExecuteChanged();
         NotifyOutputMediaProperties();
     }
+
+    private static readonly JsonSerializerOptions FormatInfoOptions = new()
+    {
+        WriteIndented = true,
+        Encoder = JavaScriptEncoder.Create(UnicodeRanges.All),
+        Converters = { new Axicultus.Module.ListFormatJsonConverter() }
+    };
 
     private static string BuildPreviewItemInfoText(LiveQueueItem? item)
     {
@@ -4071,7 +4108,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         if (!string.IsNullOrWhiteSpace(item.FormatData))
         {
-            lines.Add($"서식 데이터: {item.FormatData}");
+            lines.Add($"서식 데이터: {JsonSerializer.Serialize(item.FormatData, FormatInfoOptions)}");
         }
 
         if (!string.IsNullOrWhiteSpace(item.Lyrics))
@@ -4270,7 +4307,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         int panel = _settings.Get(AxicultusSettingKeys.PanelHeightPercent);
         var key = (lyrics, item.Sequence, layout, format, SampleScreenHeight, panel);
         if (_songPages.TryGetValue(key, out var pages)) return pages;
-        pages = layout.Paginate(lyrics, item.Sequence, SongFormatData.Parse(format), SampleScreenHeight, panel);
+        pages = layout.Paginate(lyrics, item.Sequence, SongFormatData.Parse(format), SampleScreenHeight, panel, ItemDisplayFormat.Read(format)?.Top1);
         if (_songPages.Count >= 4) _songPages.Clear();
         _songPages.Add(key, pages);
         return pages;
@@ -4839,6 +4876,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private void NotifyPreviewItemProperties()
     {
+        NotifyItemFormattingProperties();
         OnPropertyChanged(nameof(PreviewItemInfoText));
         OnPropertyChanged(nameof(PreviewNavigationPositionLabel));
         NotifyPreviewPanelDisplayProperties();
@@ -7494,28 +7532,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // 라이브 항목이면 즉시 재송출해 서식 변화를 화면에 반영한다.
     private void ToggleUseIndividualFormatting()
     {
-        if (SelectedItem is not { } item)
-        {
-            return;
-        }
-
-        var index = IndexOfReference(item);
-        if (index < 0)
-        {
-            return;
-        }
-
+        if (PreviewItem is not { } item) return;
         var updated = item with { UseIndividualFormatting = !item.UseIndividualFormatting };
-        Queue[index] = updated;
-        SelectedItem = updated; // 주의: 선택 변경은 RefreshLyricsPages 로 VM 의 LyricsPageIndex 를 0 으로 리셋한다.
-        StatusText = updated.UseIndividualFormatting ? "개별 서식 사용" : "전역 기본 서식 사용";
-
-        // 라이브 송출 중인 항목이면 같은 절로 다시 송출해 서식(색·정렬·폰트·배경)을 즉시 반영한다.
-        // VM 의 LyricsPageIndex(방금 0 으로 리셋됨)가 아니라 세션의 실제 라이브 절을 쓰는 RepublishLiveSongForBodyChange 를
-        // 써야 라이브 화면이 0절로 튀지 않는다(큐의 교체된 인스턴스를 찾아 새 UseIndividualFormatting 플래그를 반영).
-        RepublishLiveSongForBodyChange();
-
-        NotifyCommandStates();
+        if (ReplacePreviewFormatting(item, updated))
+            StatusText = updated.UseIndividualFormatting ? "개별 서식 사용" : "전역 기본 서식 사용";
     }
 
     /// <summary>
@@ -7569,29 +7589,30 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>
-    /// 선택한 항목에 항목별 서식(색·정렬·크기·글꼴·배경·강조 — 이 항목만)을 편집할 수 있는지 — <b>곡 또는 성경</b> 항목이고 본문(가사/구절)이 있을 때.
+    /// 선택한 항목에 항목별 서식(색·정렬·크기·글꼴·배경·강조 — 이 항목만)을 편집할 수 있는지 — <b>곡·성경 구절·텍스트 파일</b> 항목이고 본문(가사/구절)이 있을 때.
     /// 성경도 본문(구절)을 회중 화면에 렌더하고 송출 경로(GoLive)가 Kind 무관이라, 곡과 똑같이 항목별 서식을 적용할 수 있다(레거시 Ind_* 도 항목 종류 무관).
     /// 우클릭 "이 항목 글자색"·"이 항목 정렬" 등 메뉴의 활성화에 공통으로 쓴다(이름은 호환을 위해 Color 유지). 절 순서 편집은 곡만이라 별도 조건(CanEditSelectedItemSequence).
     /// </summary>
     public bool CanEditSelectedItemColor
-        => SelectedItem is { } item && IsPerItemFormattable(item);
+        => PreviewItem is { } item && IsPerItemFormattable(item);
 
     /// <summary>
-    /// 항목별 서식(색·정렬·크기·글꼴·배경·강조)을 적용할 수 있는 항목인지 — <b>곡 또는 성경</b>이고 본문(가사/구절)이 있을 때.
+    /// 항목별 서식(색·정렬·크기·글꼴·배경·강조)을 적용할 수 있는 항목인지 — <b>곡·성경 구절·텍스트 파일</b>이고 본문(가사/구절)이 있을 때.
     /// 선택 항목 게이트(<see cref="CanEditSelectedItemColor"/>)와 전 항목 일괄 적용이 같은 기준을 쓰도록 한 곳에 모은다(중복 방지).
     /// </summary>
     private static bool IsPerItemFormattable(LiveQueueItem item)
-        => item.Kind is LiveItemKinds.Song or LiveItemKinds.Bible && !string.IsNullOrWhiteSpace(item.Lyrics);
+        => (LiveItemKindMatcher.IsSong(item.Kind) || LiveItemKindMatcher.IsBible(item.Kind) || IsExternalTextFileItem(item))
+            && !string.IsNullOrWhiteSpace(item.Lyrics);
 
     /// <summary>
     /// "이 항목 서식 모두 지우기"를 누를 수 있는지 — 서식 편집 대상(곡·성경)이면서 실제로 지울 항목별 서식(FormatData)이 있을 때만.
     /// 서식이 없으면 지울 게 없어 비활성(불필요한 재송출 방지).
     /// </summary>
     public bool CanClearSelectedItemFormatting
-        => CanEditSelectedItemColor && !string.IsNullOrEmpty(SelectedItem?.FormatData);
+        => CanEditSelectedItemColor && !string.IsNullOrEmpty(PreviewItem?.FormatData);
 
     /// <summary>현재 선택 항목의 원본 FormatData 문자열 — FrmMain 개별 설정 템플릿(.est) 저장에 사용한다.</summary>
-    public string SelectedItemFormatData => SelectedItem?.FormatData ?? string.Empty;
+    public string SelectedItemFormatData => PreviewItem?.FormatData ?? string.Empty;
 
     /// <summary>
     /// FrmMain Ind_LoadTemplate 경로: .est 의 ListHeader/FormatData 를 선택 항목에 그대로 적용한다.
@@ -7599,7 +7620,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// </summary>
     public bool ApplySelectedItemFormatDataTemplate(string? formatData)
     {
-        if (!CanEditSelectedItemColor || SelectedItem is not { } item)
+        if (!CanEditSelectedItemColor || PreviewItem is not { } item)
         {
             return false;
         }
@@ -7611,26 +7632,55 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return false;
         }
 
-        var index = IndexOfReference(item);
-        if (index < 0)
-        {
-            return false;
-        }
-
         var updated = item with
         {
             FormatData = encoded,
             UseIndividualFormatting = true,
         };
-        Queue[index] = updated;
-        SelectedItem = updated;
-
-        RepublishLiveSongForBodyChange();
-        NotifyCommandStates();
+        if (!ReplacePreviewFormatting(item, updated)) return false;
         StatusText = encoded is null
             ? "개별 설정 템플릿 적용: 빈 서식"
             : "개별 설정 템플릿 적용";
         return true;
+    }
+
+    private bool ReplacePreviewFormatting(LiveQueueItem original, LiveQueueItem edited)
+    {
+        int page = LyricsPageIndex;
+        bool source = ReferenceEquals(original, _sourcePreviewItem);
+        if (source)
+        {
+            _sourcePreviewItem = edited;
+            RefreshLyricsPages(edited);
+            NotifyPreviewItemProperties();
+        }
+        else
+        {
+            int index = IndexOfReference(original);
+            if (index < 0) return false;
+            Queue[index] = edited;
+            SelectedItem = edited;
+        }
+        GoToPreviewLyricsPage(page);
+
+        if (OutputItem is { } output && (ReferenceEquals(original, _outputFormatSource) || ReferenceEquals(original, output)))
+        {
+            _outputFormatSource = edited;
+            var updatedOutput = output with { FormatData = edited.FormatData, UseIndividualFormatting = edited.UseIndividualFormatting };
+            OutputItem = updatedOutput;
+            if (!IsPowerPointItem(output) && !IsMediaItem(output))
+                RefreshPreparedTextOutput(updatedOutput);
+        }
+        if (!source) SaveItemFormatting();
+        NotifyCommandStates();
+        return true;
+    }
+
+    private void SaveItemFormatting()
+    {
+        if (string.IsNullOrWhiteSpace(CurrentWorshipListName)) return;
+        HasPendingWorshipListSave = true;
+        _ = SavePendingWorshipListChangesAsync();
     }
 
     private static string NormalizeTemplateFormatData(string? formatData)
@@ -7667,7 +7717,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        _copiedItemFormatData = SelectedItem?.FormatData;
+        _copiedItemFormatData = PreviewItem?.FormatData;
         StatusText = "이 항목 서식 복사함(다른 항목에 붙여넣기 가능)";
         NotifyCommandStates(); // 붙여넣기 활성화 통지.
     }
@@ -7745,6 +7795,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         RepublishLiveSongForBodyChange();
         NotifyCommandStates();
+        SaveItemFormatting();
         StatusText = $"{changed}개 항목에 복사한 서식 적용";
     }
 
@@ -7795,6 +7846,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             SelectedItem = Queue[selectedIndex];
         }
 
+        SaveItemFormatting();
         RepublishLiveSongForBodyChange();
         NotifyCommandStates();
         StatusText = $"{cleared}개 항목 서식 지움(전역 기본)";
@@ -7802,7 +7854,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     /// <summary>현재 선택한 항목에 적용된 글자색(이 항목만, "#AARRGGBB"). 없으면 빈 문자열(전역 기본색 추종).</summary>
     public string SelectedItemTextColorHex
-        => SongFormatData.ArgbToHex(SongFormatData.Parse(SelectedItem?.FormatData)?.TextColorArgb1) ?? string.Empty;
+        => SongFormatData.ArgbToHex(SongFormatData.Parse(PreviewItem?.FormatData)?.TextColorArgb1) ?? string.Empty;
 
     /// <summary>
     /// 선택한 항목(<b>곡·성경</b>, 증분128)의 항목별 서식(FormatData) 중 한 가지만 바꾸는 공통 경로 — 항목별 색·정렬·크기·글꼴·배경·강조가 공유한다(이름은 호환을 위해 Song 유지).
@@ -7818,22 +7870,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         bool clearAll = false)
     {
         turnedOnIndividual = false;
-        if (!CanEditSelectedItemColor || SelectedItem is not { } item)
+        if (!CanEditSelectedItemColor || PreviewItem is not { } item)
         {
             return false; // 곡·성경이 아니거나 선택 없음 — 항목별 서식 편집 대상이 아님.
         }
 
         var current = SongFormatData.Parse(item.FormatData) ?? new SongFormatData();
         var next = mutate(current);
-        if (next == current && (!clearAll || string.IsNullOrWhiteSpace(item.FormatData)))
+        if (next == current && (!wantsIndividual || item.UseIndividualFormatting) && (!clearAll || string.IsNullOrWhiteSpace(item.FormatData)))
         {
             return false; // 레코드 동등 — 바뀐 게 없으면 무시(불필요한 교체·재송출 방지).
-        }
-
-        var index = IndexOfReference(item);
-        if (index < 0)
-        {
-            return false;
         }
 
         // 결과가 비면 FormatData 는 null(서식 없음). 서식을 켜는 변경이면 개별 서식도 켜서 송출에 보이게 한다.
@@ -7844,13 +7890,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             FormatData = string.IsNullOrEmpty(encoded) ? null : encoded,
             UseIndividualFormatting = wantsIndividual ? true : item.UseIndividualFormatting,
         };
-        Queue[index] = updated;
-        SelectedItem = updated; // 선택 변경 → 미리보기·메뉴 통지.
-
-        // 라이브 송출 중이면 같은 절로 다시 송출해 새 서식을 즉시 반영(세션 실제 라이브 절 사용 — 0절로 안 튀게).
-        RepublishLiveSongForBodyChange();
-
-        NotifyCommandStates();
+        if (!ReplacePreviewFormatting(item, updated)) return false;
         return true;
     }
 
@@ -7871,7 +7911,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     /// <summary>현재 선택한 항목의 가로 정렬(이 항목만) — 레거시 1=왼쪽/2=가운데/3=오른쪽, 없으면 0(전역 정렬 추종).</summary>
     public int SelectedItemAlignment
-        => SongFormatData.Parse(SelectedItem?.FormatData)?.Alignment1 ?? 0;
+        => SongFormatData.Parse(PreviewItem?.FormatData)?.Alignment1 ?? 0;
 
     /// <summary>
     /// 선택한 곡 항목의 가로 정렬(이 항목만)을 바꾼다(레거시 항목별 정렬, FormatData 코드 31). 파라미터 "1"/"2"/"3"=왼쪽/가운데/오른쪽,
@@ -7888,9 +7928,60 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
-    /// <summary>현재 선택한 항목의 글자 크기(이 항목만, 레거시 pt). 없으면 0(전역 크기 추종).</summary>
+    internal Data.SongPageLayout? PreviewFormatLayout => PreviewItem is not { } item ? null :
+        IsExternalTextFileItem(item) ? ResolveTextFileLayout(item) : RestoreBibleLayout(item).SongLayout;
+
+    public int PrimaryFontPoints
+    {
+        get => SelectedItemFontSize > 0 ? SelectedItemFontSize : PreviewFormatLayout?.FontPoints
+            ?? (int)Math.Round(_settings.Current.LiveOutput.LyricsMonitorFontSize * .75);
+        set
+        {
+            ArgumentOutOfRangeException.ThrowIfLessThan(value, 6);
+            ArgumentOutOfRangeException.ThrowIfGreaterThan(value, 100);
+            SetSelectedItemFontSize(value.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        }
+    }
+
+    public int SecondaryFontPoints
+    {
+        get => SelectedItemFontSize2 > 0 ? SelectedItemFontSize2 : PreviewFormatLayout?.Integer("Size1")
+            ?? (_settings.Current.LiveOutput.LyricsMonitorFontSize2 > 0 ? (int)Math.Round(_settings.Current.LiveOutput.LyricsMonitorFontSize2 * .75) : PrimaryFontPoints);
+        set
+        {
+            ArgumentOutOfRangeException.ThrowIfLessThan(value, 6);
+            ArgumentOutOfRangeException.ThrowIfGreaterThan(value, 100);
+            SetSelectedItemFontSize2(value.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        }
+    }
+
+    public int PrimaryTopPercent
+    {
+        get => ItemDisplayFormat.Read(SelectedItemFormatData)?.Top1 ?? PreviewFormatLayout?.TopPercent ?? 0;
+        set => SetRegionTop(45, value);
+    }
+
+    public int SecondaryTopPercent
+    {
+        get => ItemDisplayFormat.Read(SelectedItemFormatData)?.Top2 ?? PreviewFormatLayout?.Integer("Vpos1") ?? 50;
+        set => SetRegionTop(46, value);
+    }
+
+    private void SetRegionTop(int field, int value)
+    {
+        var fields = ItemFormatFields.Parse(SelectedItemFormatData);
+        var bottom = SongFormatData.Parse(SelectedItemFormatData)?.BodyBottomMargin ?? PreviewFormatLayout?.BottomPercent ?? 0;
+        int limit = 100 - Math.Clamp(bottom, 0, 100);
+        int top = Math.Clamp(value, field == 46 ? Math.Min(PrimaryTopPercent, limit) : 0, limit);
+        fields[field] = top.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        if (field == 45 && SecondaryTopPercent < top) fields[46] = fields[45];
+        ApplySelectedItemFormatDataTemplate(ItemFormatFields.Encode(fields));
+        OnPropertyChanged(nameof(PrimaryTopPercent));
+        OnPropertyChanged(nameof(SecondaryTopPercent));
+    }
+
     public int SelectedItemFontSize
-        => SongFormatData.Parse(SelectedItem?.FormatData)?.FontSize1 ?? 0;
+        => SongFormatData.Parse(PreviewItem?.FormatData)?.FontSize1 ?? 0;
 
     /// <summary>
     /// 선택한 곡 항목의 글자 크기(이 항목만)를 바꾼다(레거시 항목별 크기, FormatData 코드 47, pt 단위 6~100).
@@ -7911,7 +8002,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     /// <summary>현재 선택한 항목의 글꼴명(이 항목만). 없으면 빈 문자열(전역 글꼴 추종).</summary>
     public string SelectedItemFontName
-        => SongFormatData.Parse(SelectedItem?.FormatData)?.FontName1 ?? string.Empty;
+        => SongFormatData.Parse(PreviewItem?.FormatData)?.FontName1 ?? string.Empty;
 
     /// <summary>
     /// 선택한 곡 항목의 글꼴명(이 항목만)을 바꾼다(레거시 항목별 글꼴, FormatData 코드 43). 이름이 비거나 공백뿐이면 글꼴을 해제해 전역 글꼴을 따른다.
@@ -7931,7 +8022,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     /// <summary>현재 선택한 항목에 적용된 배경색(이 항목만, "#AARRGGBB"). 없으면 빈 문자열(전역 배경 추종).</summary>
     public string SelectedItemBackgroundColorHex
-        => SongFormatData.ArgbToHex(SongFormatData.Parse(SelectedItem?.FormatData)?.BackgroundColorArgb1) ?? string.Empty;
+        => SongFormatData.ArgbToHex(SongFormatData.Parse(PreviewItem?.FormatData)?.BackgroundColorArgb1) ?? string.Empty;
 
     /// <summary>
     /// 선택한 곡 항목의 배경색(이 항목만)을 바꾼다(레거시 항목별 배경, FormatData 코드 26). hex 가 비거나 형식 오류면 해제해 전역 배경을 따른다.
@@ -7941,6 +8032,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public void SetSelectedItemBackgroundColor(string? hex)
     {
         var argb = SongFormatData.HexToArgb(hex); // 비거나 형식 오류면 null = 배경 해제(전역 배경).
+        if (ItemDisplayFormat.Read(SelectedItemFormatData)?.BackgroundPattern != null)
+        {
+            SetItemBackgroundPattern(argb, argb, argb.HasValue ? 11 : null);
+            return;
+        }
         if (ApplySelectedSongFormatChange(format => format with { BackgroundColorArgb1 = argb }, wantsIndividual: argb is not null, out var turnedOn))
         {
             StatusText = argb is null
@@ -7949,9 +8045,20 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
+    internal void SetItemBackgroundPattern(int? first, int? second, int? pattern)
+    {
+        var fields = ItemFormatFields.Parse(SelectedItemFormatData);
+        foreach (var (key, value) in new[] { (26, first), (27, second), (28, pattern) })
+        {
+            if (value.HasValue) fields[key] = value.Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            else fields.Remove(key);
+        }
+        ApplySelectedItemFormatDataTemplate(ItemFormatFields.Encode(fields));
+    }
+
     /// <summary>현재 선택한 항목의 배경 이미지 경로(이 항목만). 없으면 빈 문자열(전역 배경 추종).</summary>
     public string SelectedItemBackgroundImagePath
-        => SongFormatData.Parse(SelectedItem?.FormatData)?.BackgroundImagePath ?? string.Empty;
+        => SongFormatData.Parse(PreviewItem?.FormatData)?.BackgroundImagePath ?? string.Empty;
     public bool CanClearSelectedItemBackgroundImage
         => CanEditSelectedItemColor && !string.IsNullOrWhiteSpace(SelectedItemBackgroundImagePath);
     public string SelectedItemBackgroundNoImageToolTip => CanClearSelectedItemBackgroundImage
@@ -7959,7 +8066,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         : "No Item Background";
 
     public string SelectedItemMediaPath
-        => SongFormatData.Parse(SelectedItem?.FormatData)?.MediaPath ?? string.Empty;
+        => SongFormatData.Parse(PreviewItem?.FormatData)?.MediaPath ?? string.Empty;
 
     public bool CanClearSelectedItemMedia
         => CanEditSelectedItemColor && !string.IsNullOrWhiteSpace(SelectedItemMediaPath);
@@ -7969,14 +8076,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         : "No Item Media";
 
     public LyricsBackgroundMode SelectedItemBackgroundImageMode
-        => SongFormatData.Parse(SelectedItem?.FormatData)?.BackgroundImageMode ?? LyricsBackgroundMode.Fill;
+        => SongFormatData.Parse(PreviewItem?.FormatData)?.BackgroundImageMode ?? LyricsBackgroundMode.Fill;
 
     public bool SelectedItemBackgroundModeIsFit => SelectedItemBackgroundImageMode == LyricsBackgroundMode.Fill;
     public bool SelectedItemBackgroundModeIsCenter => SelectedItemBackgroundImageMode == LyricsBackgroundMode.Fit;
     public bool SelectedItemBackgroundModeIsTile => SelectedItemBackgroundImageMode == LyricsBackgroundMode.Tile;
 
     public LyricsVerticalAlignment SelectedItemVerticalAlignment
-        => SongFormatData.Parse(SelectedItem?.FormatData)?.VerticalAlignment ?? ActiveLyricsVerticalAlignment;
+        => SongFormatData.Parse(PreviewItem?.FormatData)?.VerticalAlignment ?? ActiveLyricsVerticalAlignment;
 
     public bool SelectedItemVerticalAlignmentIsTop => SelectedItemVerticalAlignment == LyricsVerticalAlignment.Top;
     public bool SelectedItemVerticalAlignmentIsCenter => SelectedItemVerticalAlignment == LyricsVerticalAlignment.Center;
@@ -7984,19 +8091,19 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     public int SelectedItemLeftMarginInput
     {
-        get => SongFormatData.Parse(SelectedItem?.FormatData)?.BodyLeftMargin ?? 0;
+        get => SongFormatData.Parse(PreviewItem?.FormatData)?.BodyLeftMargin ?? PreviewFormatLayout?.LeftPercent ?? 0;
         set => SetSelectedItemLeftMargin(value.ToString(System.Globalization.CultureInfo.InvariantCulture));
     }
 
     public int SelectedItemRightMarginInput
     {
-        get => SongFormatData.Parse(SelectedItem?.FormatData)?.BodyRightMargin ?? 0;
+        get => SongFormatData.Parse(PreviewItem?.FormatData)?.BodyRightMargin ?? PreviewFormatLayout?.RightPercent ?? 0;
         set => SetSelectedItemRightMargin(value.ToString(System.Globalization.CultureInfo.InvariantCulture));
     }
 
     public int SelectedItemBottomMarginInput
     {
-        get => SongFormatData.Parse(SelectedItem?.FormatData)?.BodyBottomMargin ?? 0;
+        get => SongFormatData.Parse(PreviewItem?.FormatData)?.BodyBottomMargin ?? PreviewFormatLayout?.BottomPercent ?? 0;
         set => SetSelectedItemBottomMargin(value.ToString(System.Globalization.CultureInfo.InvariantCulture));
     }
 
@@ -8029,12 +8136,20 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             nameof(SelectedItemRightMarginInput));
 
     public void SetSelectedItemBottomMargin(string? marginParam)
-        => SetSelectedItemMargin(
-            marginParam,
-            max: 100,
-            (format, margin) => format with { BodyBottomMargin = margin },
-            "bottom margin",
-            nameof(SelectedItemBottomMarginInput));
+    {
+        if (ParseSelectedItemMargin(marginParam, 100) is int requested)
+        {
+            int bottom = Math.Min(requested, 100 - Math.Clamp(PrimaryTopPercent, 0, 100));
+            var fields = ItemFormatFields.Parse(SelectedItemFormatData);
+            fields[66] = bottom.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            if (SecondaryTopPercent > 100 - bottom)
+                fields[46] = (100 - bottom).ToString(System.Globalization.CultureInfo.InvariantCulture);
+            ApplySelectedItemFormatDataTemplate(ItemFormatFields.Encode(fields));
+            return;
+        }
+        SetSelectedItemMargin(marginParam, 100, (format, margin) => format with { BodyBottomMargin = margin },
+            "bottom margin", nameof(SelectedItemBottomMarginInput));
+    }
 
     private void SetSelectedItemMargin(
         string? marginParam,
@@ -8090,16 +8205,19 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         var page = LyricsPageIndex;
         LiveQueueItem? current = null;
+        bool changed = false;
         foreach (var item in selectedRows.Count == 0 ? new[] { preview } : selectedRows)
         {
             int index = IndexOfReference(item);
             if (index < 0 || IsPowerPointItem(item)) continue;
             var updated = Apply(item);
             Queue[index] = updated;
+            changed = true;
             if (ReferenceEquals(preview, item)) current = updated;
             RefreshGalleryOutput(item, updated);
         }
         if (current != null) { SelectedItem = current; GoToPreviewLyricsPage(page); }
+        if (changed) SaveItemFormatting();
         return true;
 
         void RefreshGalleryOutput(LiveQueueItem original, LiveQueueItem edited)
@@ -8167,47 +8285,51 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
-    /// <summary>현재 선택한 항목의 굵게(이 항목만) 적용 여부 — 우클릭 강조 메뉴 체크 표시에 바인딩.</summary>
-    public bool SelectedItemBold => SongFormatData.Parse(SelectedItem?.FormatData)?.Bold1 ?? false;
-
-    /// <summary>현재 선택한 항목의 기울임(이 항목만) 적용 여부.</summary>
-    public bool SelectedItemItalic => SongFormatData.Parse(SelectedItem?.FormatData)?.Italic1 ?? false;
-
-    /// <summary>현재 선택한 항목의 밑줄(이 항목만) 적용 여부.</summary>
-    public bool SelectedItemUnderline => SongFormatData.Parse(SelectedItem?.FormatData)?.Underline1 ?? false;
-
-    // 선택 곡 항목의 강조(굵게/기울임/밑줄, FormatData 코드41 비트 중 하나)를 켜고 끈다. 켜면 보이도록 개별 서식도 켠다.
-    // 나머지 강조 비트·다른 서식(색·정렬·크기·글꼴)은 그대로 보존(Encode 가 6비트를 다시 합산). 켜는 쪽일 때만 wantsIndividual=true.
-    // 참고: 출력 "강조 후렴만"(LyricsMonitorEmphasisChorusOnly) 전역 설정이 켜져 있으면, 후렴이 아닌 절에선 이 항목 강조도 가려진다
-    // (OutputRenderer 의 후렴 게이트는 항목별·전역 강조 모두에 동일 적용 — 의도된 전역 우선). 즉 강조가 안 보이면 후렴만 설정을 확인.
-    private void ToggleSelectedItemEmphasis(
-        Func<SongFormatData, bool> current,
-        Func<SongFormatData, bool, SongFormatData> withValue,
-        string label)
+    private int ItemRegionStyle(bool secondary)
     {
-        var parsed = SongFormatData.Parse(SelectedItem?.FormatData) ?? new SongFormatData();
-        var newValue = !current(parsed);
-        if (ApplySelectedSongFormatChange(format => withValue(format, newValue), wantsIndividual: newValue, out var turnedOn))
-        {
-            StatusText = $"항목 {label}: {(newValue ? "켜짐" : "꺼짐")}{(turnedOn ? " (개별 서식 켜짐)" : "")}";
-        }
+        var data = SongFormatData.Parse(SelectedItemFormatData);
+        if (data?.RegionStyle(secondary) is int style) return style;
+        if (PreviewFormatLayout is { } layout &&
+            (secondary ? layout.Integer("BIU1") : layout.FontStyleBits) is int folderStyle)
+            return folderStyle;
+        var output = _settings.Current.LiveOutput;
+        int primary = (output.LyricsMonitorBold ? 1 : 0) | (output.LyricsMonitorItalic ? 2 : 0)
+            | (output.LyricsMonitorUnderline ? 4 : 0);
+        if (!secondary) return primary;
+        bool Enabled(LyricsRegion2Emphasis option, int mask) => option == LyricsRegion2Emphasis.On ||
+            (option == LyricsRegion2Emphasis.FollowRegion1 && (primary & mask) != 0);
+        return (Enabled(output.LyricsMonitorRegion2Bold, 1) ? 1 : 0) |
+            (Enabled(output.LyricsMonitorRegion2Italic, 2) ? 2 : 0) |
+            (Enabled(output.LyricsMonitorRegion2Underline, 4) ? 4 : 0);
     }
 
-    /// <summary>선택한 곡 항목의 굵게(이 항목만)를 켜고 끈다(레거시 항목별 굵게, FormatData 코드41 bit0).</summary>
-    public void ToggleSelectedItemBold()
-        => ToggleSelectedItemEmphasis(f => f.Bold1, (f, v) => f with { Bold1 = v }, "굵게");
+    private void ToggleSelectedItemEmphasis(bool secondary, int mask)
+    {
+        if (!CanEditSelectedItemColor) return;
+        var fields = ItemFormatFields.Parse(SelectedItemFormatData);
+        int style = ItemRegionStyle(secondary);
+        // Disambiguate a sparse legacy WPF header before editing either region.
+        if (!fields.ContainsKey(42) && int.TryParse(fields.GetValueOrDefault(41), out int packed) && (packed & 56) != 0)
+        {
+            fields[41] = (packed & 7).ToString(System.Globalization.CultureInfo.InvariantCulture);
+            fields[42] = ((packed >> 3) & 7).ToString(System.Globalization.CultureInfo.InvariantCulture);
+        }
+        if (!secondary && (style & 56) != 0 && !fields.ContainsKey(42))
+            fields[42] = ItemRegionStyle(true).ToString(System.Globalization.CultureInfo.InvariantCulture);
+        fields[secondary ? 42 : 41] = (style ^ mask).ToString(System.Globalization.CultureInfo.InvariantCulture);
+        ApplySelectedItemFormatDataTemplate(ItemFormatFields.Encode(fields));
+    }
 
-    /// <summary>선택한 곡 항목의 기울임(이 항목만)을 켜고 끈다(레거시 항목별 기울임, FormatData 코드41 bit1).</summary>
-    public void ToggleSelectedItemItalic()
-        => ToggleSelectedItemEmphasis(f => f.Italic1, (f, v) => f with { Italic1 = v }, "기울임");
-
-    /// <summary>선택한 곡 항목의 밑줄(이 항목만)을 켜고 끈다(레거시 항목별 밑줄, FormatData 코드41 bit2).</summary>
-    public void ToggleSelectedItemUnderline()
-        => ToggleSelectedItemEmphasis(f => f.Underline1, (f, v) => f with { Underline1 = v }, "밑줄");
+    public bool SelectedItemBold => (ItemRegionStyle(false) & 1) != 0;
+    public bool SelectedItemItalic => (ItemRegionStyle(false) & 2) != 0;
+    public bool SelectedItemUnderline => (ItemRegionStyle(false) & 4) != 0;
+    public void ToggleSelectedItemBold() => ToggleSelectedItemEmphasis(false, 1);
+    public void ToggleSelectedItemItalic() => ToggleSelectedItemEmphasis(false, 2);
+    public void ToggleSelectedItemUnderline() => ToggleSelectedItemEmphasis(false, 4);
 
     /// <summary>현재 선택한 항목의 보조 영역(Region2) 글자색(이 항목만, "#AARRGGBB"). 없으면 빈 문자열(본문 색 추종).</summary>
     public string SelectedItemTextColor2Hex
-        => SongFormatData.ArgbToHex(SongFormatData.Parse(SelectedItem?.FormatData)?.TextColorArgb2) ?? string.Empty;
+        => SongFormatData.ArgbToHex(SongFormatData.Parse(PreviewItem?.FormatData)?.TextColorArgb2) ?? string.Empty;
 
     /// <summary>
     /// 선택한 곡 항목의 보조 영역(이중 언어 Region2) 글자색(이 항목만)을 바꾼다(레거시 항목별 Region2 색, FormatData 코드 30).
@@ -8227,7 +8349,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     /// <summary>현재 선택한 항목의 보조 영역(Region2) 가로 정렬(이 항목만) — 레거시 1=왼쪽/2=가운데/3=오른쪽, 없으면 0(본문 정렬 추종).</summary>
     public int SelectedItemAlignment2
-        => SongFormatData.Parse(SelectedItem?.FormatData)?.Alignment2 ?? 0;
+        => SongFormatData.Parse(PreviewItem?.FormatData)?.Alignment2 ?? 0;
 
     /// <summary>
     /// 선택한 곡 항목의 보조 영역(이중 언어 Region2) 가로 정렬(이 항목만)을 바꾼다(레거시 항목별 Region2 정렬, FormatData 코드 32).
@@ -8246,7 +8368,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     /// <summary>현재 선택한 항목의 보조 영역(Region2) 글자 크기(이 항목만, 레거시 pt). 없으면 0(본문 크기 추종).</summary>
     public int SelectedItemFontSize2
-        => SongFormatData.Parse(SelectedItem?.FormatData)?.FontSize2 ?? 0;
+        => SongFormatData.Parse(PreviewItem?.FormatData)?.FontSize2 ?? 0;
 
     /// <summary>
     /// 선택한 곡 항목의 보조 영역(이중 언어 Region2) 글자 크기(이 항목만)를 바꾼다(레거시 항목별 Region2 크기, FormatData 코드 48, pt 6~100).
@@ -8265,7 +8387,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     /// <summary>현재 선택한 항목의 보조 영역(Region2) 글꼴명(이 항목만). 없으면 빈 문자열(본문 글꼴 추종).</summary>
     public string SelectedItemFontName2
-        => SongFormatData.Parse(SelectedItem?.FormatData)?.FontName2 ?? string.Empty;
+        => SongFormatData.Parse(PreviewItem?.FormatData)?.FontName2 ?? string.Empty;
 
     /// <summary>
     /// 선택한 곡 항목의 보조 영역(이중 언어 Region2) 글꼴명(이 항목만)을 바꾼다(레거시 항목별 Region2 글꼴, FormatData 코드 44).
@@ -8284,26 +8406,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
-    /// <summary>현재 선택한 항목의 보조 영역(Region2) 굵게(이 항목만) 적용 여부 — 우클릭 메뉴 체크 표시에 바인딩.</summary>
-    public bool SelectedItemBold2 => SongFormatData.Parse(SelectedItem?.FormatData)?.Bold2 ?? false;
-
-    /// <summary>현재 선택한 항목의 보조 영역(Region2) 기울임(이 항목만) 적용 여부.</summary>
-    public bool SelectedItemItalic2 => SongFormatData.Parse(SelectedItem?.FormatData)?.Italic2 ?? false;
-
-    /// <summary>현재 선택한 항목의 보조 영역(Region2) 밑줄(이 항목만) 적용 여부.</summary>
-    public bool SelectedItemUnderline2 => SongFormatData.Parse(SelectedItem?.FormatData)?.Underline2 ?? false;
-
-    /// <summary>선택한 곡 항목의 보조 영역(Region2) 굵게(이 항목만)를 켜고 끈다(레거시 Region2 굵게, FormatData 코드41 bit3).</summary>
-    public void ToggleSelectedItemBold2()
-        => ToggleSelectedItemEmphasis(f => f.Bold2, (f, v) => f with { Bold2 = v }, "보조 영역 굵게");
-
-    /// <summary>선택한 곡 항목의 보조 영역(Region2) 기울임(이 항목만)을 켜고 끈다(레거시 Region2 기울임, FormatData 코드41 bit4).</summary>
-    public void ToggleSelectedItemItalic2()
-        => ToggleSelectedItemEmphasis(f => f.Italic2, (f, v) => f with { Italic2 = v }, "보조 영역 기울임");
-
-    /// <summary>선택한 곡 항목의 보조 영역(Region2) 밑줄(이 항목만)을 켜고 끈다(레거시 Region2 밑줄, FormatData 코드41 bit5).</summary>
-    public void ToggleSelectedItemUnderline2()
-        => ToggleSelectedItemEmphasis(f => f.Underline2, (f, v) => f with { Underline2 = v }, "보조 영역 밑줄");
+    public bool SelectedItemBold2 => (ItemRegionStyle(true) & 1) != 0;
+    public bool SelectedItemItalic2 => (ItemRegionStyle(true) & 2) != 0;
+    public bool SelectedItemUnderline2 => (ItemRegionStyle(true) & 4) != 0;
+    public void ToggleSelectedItemBold2() => ToggleSelectedItemEmphasis(true, 1);
+    public void ToggleSelectedItemItalic2() => ToggleSelectedItemEmphasis(true, 2);
+    public void ToggleSelectedItemUnderline2() => ToggleSelectedItemEmphasis(true, 4);
 
     private async Task ApplyGlobalFormatToAllAsync()
     {
@@ -8351,6 +8459,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     internal LiveQueueItem ProjectLyricsPage(LiveQueueItem item, int pageIndex)
     {
+        item = RestoreBibleLayout(item);
         if (IsExternalTextFileItem(item))
         {
             var pages = GetTextFilePages(item);
@@ -8470,7 +8579,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (LiveItemKindMatcher.IsBible(prepared.Kind))
         {
             var bibleId = ResolveBibleSelectionId(prepared);
-            if (!string.IsNullOrWhiteSpace(bibleId)) prepared = prepared with { SongLayout = ResolveBibleLayout(bibleId) ?? prepared.SongLayout };
             if (!string.IsNullOrWhiteSpace(prepared.Lyrics)) return prepared;
             var body = string.IsNullOrWhiteSpace(bibleId) ? "" : Bible.ExpandSelectionBody(bibleId);
             if (!string.IsNullOrWhiteSpace(body))
@@ -9255,12 +9363,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     public TransitionEffectKind SelectedItemTransitionKind
         => ResolveLegacyTransitionName(
-            SongFormatData.Parse(SelectedItem?.FormatData)?.ItemTransitionName,
+            SongFormatData.Parse(PreviewItem?.FormatData)?.ItemTransitionName,
             DefaultItemTransitionKind);
 
     public TransitionEffectKind SelectedSlideTransitionKind
         => ResolveLegacyTransitionName(
-            SongFormatData.Parse(SelectedItem?.FormatData)?.SlideTransitionName,
+            SongFormatData.Parse(PreviewItem?.FormatData)?.SlideTransitionName,
             DefaultSlideTransitionKind);
 
     public TransitionEffectKind SelectedItemTransitionKindInput

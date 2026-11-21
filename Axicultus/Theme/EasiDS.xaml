@@ -16,7 +16,8 @@
       Typography는 ScaleFactor(1.0/1.2/1.4)를 곱해 FontSize 토큰만 갱신.
 -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:rendering="clr-namespace:Axicultus.Wpf.Rendering">
 
     <ResourceDictionary.MergedDictionaries>
         <!-- 기본은 Light. ThemeService가 런타임에 Dark로 교체. -->
@@ -26,6 +27,8 @@
         <ResourceDictionary Source="Tokens/Radius.xaml" />
         <ResourceDictionary Source="Tokens/Motion.xaml" />
     </ResourceDictionary.MergedDictionaries>
+
+    <rendering:LyricWordWrapping x:Key="LyricWordWrapping" />
 
     <Style x:Key="FrmMainListMenuItem" TargetType="MenuItem">
         <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.MenuTextBrushKey}}" />

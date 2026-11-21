@@ -2,22 +2,32 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Unicode;
 using System.Xml.Linq;
 
 namespace Axicultus.Module;
 
-public sealed record ServiceListEntry(string ItemId, string Title, string Folder, string FormatData);
+public sealed record ServiceListEntry(string ItemId, string Title, string Folder,
+    [property: JsonConverter(typeof(ListEntryFormatJsonConverter))] string FormatData);
 
 /// <summary>Shared on-disk contract for .esw and .esp. Item order, reference spelling and formatting are significant.</summary>
-public sealed record ServiceListDocument(int Version, string? SystemId, string? FormatData, string? Notes,
+public sealed record ServiceListDocument(int Version, string? SystemId,
+    [property: JsonConverter(typeof(ListFormatJsonConverter))] string? FormatData, string? Notes,
     IReadOnlyList<ServiceListEntry> Items)
 {
+    public const int CurrentVersion = 2;
+
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? LegacyText { get; init; }
 
-    private static readonly JsonSerializerOptions Options = new(JsonSerializerDefaults.Web) { WriteIndented = true };
+    private static readonly JsonSerializerOptions Options = new(JsonSerializerDefaults.Web)
+    {
+        WriteIndented = true,
+        Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
+    };
 
     public static bool IsListPath(string path) =>
         Path.GetExtension(path).Equals(".esw", StringComparison.OrdinalIgnoreCase) ||
@@ -27,7 +37,7 @@ public sealed record ServiceListDocument(int Version, string? SystemId, string? 
     public static ServiceListDocument ReadJson(string text)
     {
         var document = JsonSerializer.Deserialize<ServiceListDocument>(text, Options);
-        if (document is not { Version: 1, Items: not null } ||
+        if (document is not { Version: 1 or CurrentVersion, Items: not null } ||
             document.Items.Any(i => i is not { ItemId: not null, Title: not null, Folder: not null, FormatData: not null }))
             throw new InvalidDataException("Unsupported or incomplete service list.");
         return document;
@@ -68,7 +78,7 @@ public sealed record ServiceListDocument(int Version, string? SystemId, string? 
                     string original = File.ReadAllText(source);
                     var start = original.AsSpan().TrimStart();
                     var document = start.StartsWith("<") || start.StartsWith("{") ? Read(original)
-                        : new ServiceListDocument(1, null, null, null, []) { LegacyText = original };
+                        : new ServiceListDocument(CurrentVersion, null, null, null, []) { LegacyText = original };
                     document.Write(destination, overwrite: false);
                 }
                 using var marker = File.Open(receipt, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite);
@@ -92,7 +102,7 @@ public sealed record ServiceListDocument(int Version, string? SystemId, string? 
                 ReadJson(File.ReadAllText(path)); // Leave damaged or newer documents available for recovery.
             using (var stream = new FileStream(temp, FileMode.CreateNew, FileAccess.Write, FileShare.None))
             {
-                JsonSerializer.Serialize(stream, this, Options);
+                JsonSerializer.Serialize(stream, this with { Version = CurrentVersion }, Options);
                 stream.Flush(true);
             }
             File.Move(temp, path, overwrite);

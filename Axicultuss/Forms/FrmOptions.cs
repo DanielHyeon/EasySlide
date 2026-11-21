@@ -297,8 +297,8 @@ public partial class FrmOptions : Form
         Gf.PreviewArea_ShowNotations = cbPreviewShowNotations.Checked;
         Gf.PreviewArea_LineBetweenScreens = cbLineBetweenScreens.Checked;
         Gf.PreviewArea_FontSize = (int)PreviewFontUpDown.Value;
-        string outputName = DualMonitorList.SelectedItem as string ?? Gf.OutputMonitorName;
-        string lyricsName = LyricsMonitorList.SelectedItem as string ?? Gf.LyricsMonitorName;
+        string outputName = MonitorPicker.SelectedId(DualMonitorList.ComboBox) ?? Gf.OutputMonitorName;
+        string lyricsName = MonitorPicker.SelectedId(LyricsMonitorList.ComboBox) ?? Gf.LyricsMonitorName;
         int outputMode = optDM0.Checked ? 0 : 1;
         int lyricsMode = optLM0.Checked ? 0 : 1;
         bool wide = optWide.Checked;
@@ -1276,7 +1276,6 @@ public partial class FrmOptions : Form
         DM1UpDownLeft.Value = Gf.DMOption1Left;
         DM1UpDownWidth.Value = (Gf.DMOption1Width < 1) ? 1 : Gf.DMOption1Width;
         DM_CustomAsSingleMonitor.Checked = Gf.DMOption1AsSingleMonitor;
-        DualMonitorList.SelectedIndex = DualMonitorList.FindStringExact(Gf.OutputMonitorName);
         LM_AlwaysUse.Checked = Gf.LMAlwaysUseSecondaryMonitor;
         if (Gf.LMSelectAutoOption == 1)
         {
@@ -1290,7 +1289,6 @@ public partial class FrmOptions : Form
         LM1UpDownLeft.Value = Gf.LMOption1Left;
         LM1UpDownWidth.Value = ((Gf.LMOption1Width < 1) ? 1 : Gf.LMOption1Width);
         UpdateCustomMonitorHeights();
-        LyricsMonitorList.SelectedIndex = LyricsMonitorList.FindStringExact(Gf.LyricsMonitorName);
         btnLMTextColour.ForeColor = Gf.LMTextColour;
         btnLMHighlightColour.ForeColor = Gf.LMHighlightColour;
         btnLMBackColour.ForeColor = Gf.LMBackColour;
@@ -1512,34 +1510,15 @@ public partial class FrmOptions : Form
 
     public void BuildMonitorsList()
     {
-        DualMonitorList.Items.Clear();
-        LyricsMonitorList.Items.Clear();
-
-        DualMonitorList.Items.Add(MonitorLayout.Auto);
-        foreach (var display in DisplayInfo.GetDisplays())
-        {
-            DualMonitorList.Items.Add(display.Name);
-            if (!display.IsPrimary)
-                LyricsMonitorList.Items.Add(display.Name);
-        }
-        DualMonitorList.Items.Add(MonitorLayout.None);
-        LyricsMonitorList.Items.Add(MonitorLayout.None);
-
-        // 연결이 끊긴 설정도 보존하여 다시 연결되면 사용한다.
-        AddSavedMonitor(DualMonitorList, Gf.OutputMonitorName);
-        AddSavedMonitor(LyricsMonitorList, Gf.LyricsMonitorName);
-    }
-
-    private static void AddSavedMonitor(ToolStripComboBox list, string name)
-    {
-        if (!string.IsNullOrWhiteSpace(name) && list.FindStringExact(name) < 0)
-            list.Items.Add(name);
+        var displays = DisplayInfo.GetDisplays();
+        MonitorPicker.Populate(DualMonitorList.ComboBox, displays, MonitorPurpose.Output, Gf.OutputMonitorName);
+        MonitorPicker.Populate(LyricsMonitorList.ComboBox, displays, MonitorPurpose.Lyrics, Gf.LyricsMonitorName);
     }
 
     private void Monitor_Info_Click(object sender, EventArgs e)
     {
         var displays = DisplayInfo.GetDisplays();
-        string name = DualMonitorList.SelectedItem as string;
+        string name = MonitorPicker.SelectedId(DualMonitorList.ComboBox);
         if (name == MonitorLayout.Auto)
             name = MonitorLayout.ResolveOutput(displays, name, DM_AlwaysUseSecondaryMonitor.Checked, optWide.Checked).DeviceName;
         ShowMonitorInfo(MonitorLayout.FindDisplay(displays, name), "No Output Monitor");
@@ -1547,7 +1526,7 @@ public partial class FrmOptions : Form
 
     private void LyricsMonitor_Info_Click(object sender, EventArgs e)
     {
-        var display = MonitorLayout.FindDisplay(DisplayInfo.GetDisplays(), LyricsMonitorList.SelectedItem as string);
+        var display = MonitorLayout.FindDisplay(DisplayInfo.GetDisplays(), MonitorPicker.SelectedId(LyricsMonitorList.ComboBox));
         ShowMonitorInfo(display is { IsPrimary: false } ? display : null, "No Lyrics Monitor");
     }
 
@@ -1559,7 +1538,7 @@ public partial class FrmOptions : Form
             return;
         }
         Rectangle bounds = display.Bounds;
-        MessageBox.Show($"{display.Name} Setup:\nTop:\t{bounds.Top}\nLeft:\t{bounds.Left}\nWidth:\t{bounds.Width}\nHeight:\t{bounds.Height}");
+        MessageBox.Show($"{display.Label}\nTop:\t{bounds.Top}\nLeft:\t{bounds.Left}\nWidth:\t{bounds.Width}\nHeight:\t{bounds.Height}");
     }
     private void btnTextRegionChangeColour_Click(object sender, EventArgs e)
     {

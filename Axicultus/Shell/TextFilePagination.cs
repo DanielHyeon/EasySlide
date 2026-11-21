@@ -95,7 +95,7 @@ internal static class TextFilePagination
 
         bool Fits(string text)
         {
-            var measured = new FormattedText(text, CultureInfo.CurrentUICulture, FlowDirection.LeftToRight,
+            var measured = new FormattedText(Rendering.LyricWordWrapping.ForDisplay(text), CultureInfo.CurrentUICulture, FlowDirection.LeftToRight,
                 typeface, layout.FontSize, Brushes.Black, 1)
             {
                 MaxTextWidth = Math.Clamp(layout.Width, 1, 100000),

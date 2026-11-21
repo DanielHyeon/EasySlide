@@ -8,15 +8,22 @@
             </Setter.Value>
         </Setter>
         <Style.Triggers>
-            <DataTrigger Binding="{Binding FitExternalText}" Value="True">
+            <DataTrigger Binding="{Binding UsesSampleParagraphs}" Value="True">
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="ContentControl">
-                            <controls:LyricParagraphSurface Paragraph="{Binding PrimaryParagraph}">
-                                <controls:LyricParagraphSurface.RenderTransform>
-                                    <TranslateTransform Y="{Binding BodyVerticalOffset}" />
-                                </controls:LyricParagraphSurface.RenderTransform>
-                            </controls:LyricParagraphSurface>
+                            <StackPanel>
+                                <StackPanel.RenderTransform><TranslateTransform Y="{Binding BodyVerticalOffset}" /></StackPanel.RenderTransform>
+                                <controls:LyricParagraphSurface Paragraph="{Binding PrimaryParagraph}" MinHeight="{Binding PrimaryRegionHeight}" />
+                                <controls:LyricParagraphSurface Paragraph="{Binding SecondaryParagraph}">
+                                    <controls:LyricParagraphSurface.Style>
+                                        <Style TargetType="controls:LyricParagraphSurface">
+                                            <Setter Property="Margin" Value="{Binding BodyText2Margin}" />
+                                            <Style.Triggers><DataTrigger Binding="{Binding SecondaryParagraph}" Value="{x:Null}"><Setter Property="Visibility" Value="Collapsed" /></DataTrigger></Style.Triggers>
+                                        </Style>
+                                    </controls:LyricParagraphSurface.Style>
+                                </controls:LyricParagraphSurface>
+                            </StackPanel>
                         </ControlTemplate>
                     </Setter.Value>
                 </Setter>

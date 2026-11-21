@@ -117,7 +117,7 @@ public partial class MainWindow
     {
         var settings = _services.GetRequiredService<ISettingsService>();
         var dialog = new ItemDisplayOptionsWindow(_viewModel.SelectedItemFormatData,
-            Rendering.LiveOutputRenderSettings.From(settings), settings.Get(AxicultusSettingKeys.LyricsMonitorShowNotations)) { Owner = this };
+            Rendering.LiveOutputRenderSettings.From(settings), settings.Get(AxicultusSettingKeys.LyricsMonitorShowNotations), _viewModel.PreviewFormatLayout) { Owner = this };
         if (dialog.ShowDialog() == true) _viewModel.ApplySelectedItemFormatDataTemplate(dialog.FormatData);
     }
 

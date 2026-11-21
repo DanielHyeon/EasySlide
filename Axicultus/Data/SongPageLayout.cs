@@ -29,7 +29,7 @@ public sealed record SongPageLayout(int FontPoints, string FontName, int TopPerc
     }
 
     internal (List<string> Bodies, List<string> Labels) Paginate(string lyrics, string? sequence,
-        SongFormatData? format, double height, int panelPercent)
+        SongFormatData? format, double height, int panelPercent, int? itemTop = null)
     {
         const int width = 960;
         var guarded = LyricsDisplayFormatter.GuardLiteralNotation(lyrics);
@@ -47,7 +47,7 @@ public sealed record SongPageLayout(int FontPoints, string FontName, int TopPerc
         double bodyHeight = height * Math.Clamp(1 - 0.022 - (Math.Clamp(panelPercent, 0, 100) / 100d + 0.03)
             - (format?.BodyBottomMargin ?? BottomPercent) / 100d, 0.01, 1);
         double reservedHeading = Math.Min(bodyHeight / 4, graphics.MeasureString("A", heading).Height * 1.1);
-        double availableHeight = (bodyHeight - height * Math.Clamp(TopPercent, 0, 100) / 100d - reservedHeading)
+        double availableHeight = (bodyHeight - height * Math.Clamp(itemTop ?? TopPercent, 0, 100) / 100d - reservedHeading)
             / (Math.Clamp(LineSpacing, 0.5, 2) + 0.05);
         var lineArea = new SizeF(textWidth, 32000);
         double lineHeight = graphics.MeasureString("A", font, lineArea).Height;

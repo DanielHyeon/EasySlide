@@ -716,7 +716,7 @@ public partial class FrmMain : Form
         else
         {
             Gf.CurSession = "Worship Service";
-            new ServiceListDocument(1, Gf.SystemID, Gf.GetListFormat(""), "", []).Save(Gf.WorshipDir + Gf.CurSession + ".json");
+            new ServiceListDocument(ServiceListDocument.CurrentVersion, Gf.SystemID, Gf.GetListFormat(""), "", []).Save(Gf.WorshipDir + Gf.CurSession + ".json");
             SessionList.Items.Add(Gf.CurSession);
             SessionList.SelectedIndex = 0;
         }
@@ -758,7 +758,7 @@ public partial class FrmMain : Form
         else
         {
             Gf.CurPraiseBook = "PraiseBook 1";
-            new ServiceListDocument(1, Gf.SystemID, Gf.GetListFormat(""), "", []).Save(Gf.PraiseBookDir + Gf.CurPraiseBook + ".json");
+            new ServiceListDocument(ServiceListDocument.CurrentVersion, Gf.SystemID, Gf.GetListFormat(""), "", []).Save(Gf.PraiseBookDir + Gf.CurPraiseBook + ".json");
             PraiseBook.Items.Add(Gf.CurPraiseBook);
             PraiseBook.SelectedIndex = 0;
         }

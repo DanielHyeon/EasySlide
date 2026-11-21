@@ -799,7 +799,9 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     public Visibility PlainBodyVisibility => PrimaryParagraph == null ? BodyTextVisibility : Visibility.Collapsed;
     public Visibility PlainOutlineVisibility => PrimaryParagraph == null ? BodyOutlineVisibility : Visibility.Collapsed;
     public Visibility PlainSecondVisibility => SecondaryParagraph == null ? BodyText2Visibility : Visibility.Collapsed;
-    public double PrimaryRegionHeight => _session.SongLayout?.Integer("Vpos1") != null && SecondaryParagraph != null ? BodyTextMaxHeight : 0;
+    private int? SecondaryTop => _session.ItemDisplay?.Top2 ?? _session.SongLayout?.Integer("Vpos1");
+    public bool UsesSampleParagraphs => PrimaryParagraph != null || SecondaryParagraph != null;
+    public double PrimaryRegionHeight => SecondaryTop.HasValue && PrimaryParagraph != null && SecondaryParagraph != null ? BodyTextMaxHeight : 0;
     public double FolderHeadingSize => _session.SongLayout is { HeadingPercent: > 0 } folder ? Math.Max(1, BodyFontSize * folder.HeadingPercent / 100) : 26;
     private int HeadingBits => _session.SongLayout is { } folder ? folder.Integer("HeadingOption") switch
     {
@@ -1093,9 +1095,9 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
             : TextFileLayout.ResolveFont(scene.LyricsMonitorFontFamily2);
         BodyFont2Size = scene.LyricsMonitorFontSize2;
         // Region1↔Region2 세로 간격(FrmMain Ind_Reg2TopUpDown) — Region2 블록 위쪽 여백으로 적용. 기본 8=기존(무회귀).
-        BodyText2Margin = new Thickness(0, scene.LyricsMonitorRegionGapPx, 0, 0);
+        BodyText2Margin = new Thickness(0, SecondaryTop.HasValue ? 0 : scene.LyricsMonitorRegionGapPx, 0, 0);
         // 본문 세로 위치 오프셋(FrmMain Ind_Reg1TopUpDown) — TranslateTransform.Y 로 본문 묶음을 위(-)/아래(+)로 옮긴다. 기본 0=무이동.
-        BodyVerticalOffset = FitExternalText && _session.ItemDisplay?.Top1 != null ? 0 : scene.LyricsMonitorBodyVerticalOffset;
+        BodyVerticalOffset = _session.ItemDisplay?.Top1 != null ? 0 : scene.LyricsMonitorBodyVerticalOffset;
         BodyTextAlignment = ToTextAlignment(scene.LyricsMonitorTextAlignment);
         BodyHorizontalAlignment = ToHorizontalAlignment(scene.LyricsMonitorTextAlignment);
         BodyVerticalAlignment = ToVerticalAlignment(scene.LyricsMonitorVerticalAlignment);
@@ -1106,11 +1108,11 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
             : TextFileLayout.ResolveFont(scene.LyricsMonitorFontFamily);
         // 줄 높이 = 폰트 크기 × 줄 간격 비율(설정 %). 기본 125% → 폰트×1.25(기존 동작 보존).
         BodyLineHeight = scene.LyricsMonitorFontSize * (scene.LyricsMonitorLineSpacingPercent / 100.0);
-        // 폰트 효과: 굵게 off 는 기존 SemiBold 를 유지(완전 Normal 로 떨어뜨리지 않음).
-        BodyFontWeight = scene.LyricsMonitorBold ? FontWeights.Bold : FontWeights.SemiBold;
+        // An explicit regular style overrides the default WPF sample weight.
+        BodyFontWeight = scene.LyricsMonitorBold ? FontWeights.Bold : _session.OverrideBold1 == false ? FontWeights.Normal : FontWeights.SemiBold;
         BodyFontStyle = scene.LyricsMonitorItalic ? FontStyles.Italic : FontStyles.Normal;
         // Region2(이중 언어 보조) 굵게/기울임 — 씬이 영역별로 해석한 값(없으면 Region1 추종)을 적용.
-        BodyFont2Weight = scene.LyricsMonitorBold2 ? FontWeights.Bold : FontWeights.SemiBold;
+        BodyFont2Weight = scene.LyricsMonitorBold2 ? FontWeights.Bold : _session.OverrideBold2 == false ? FontWeights.Normal : FontWeights.SemiBold;
         BodyFont2Style = scene.LyricsMonitorItalic2 ? FontStyles.Italic : FontStyles.Normal;
         BodyHasShadow = scene.LyricsMonitorShadow;
         // 밑줄 — on 이면 Underline 장식, off 면 null(무회귀). Region1/2 를 영역별로 해석한 값(곡별 비트∥전역∥Region1 추종).
@@ -1140,10 +1142,10 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         // 좌/우/아래는 FrmMain ShowLeftMargin/Right/Bottom 대응 — 가장자리에서 안쪽으로 들여써 잘림·치우침을 보정한다.
         // 기본값 0/0/0 이면 헤딩 유무에 따라 기존 Thickness(0,heading,0,0)/Thickness(0) 과 완전히 동일(무회귀).
         double headingTop = scene.ShowsTitleHeading ? TitleHeadingReservedHeight : 0;
-        if (FitExternalText && scene.Kind == OutputSceneKind.Live)
-            headingTop += TextFileLayout.TopInset(scene.Viewport.Height, _session.ItemDisplay?.Top1 ?? _session.SongLayout?.TopPercent);
-        else if (_session.SongLayout is { } folder && scene.Kind == OutputSceneKind.Live)
-            headingTop += scene.Viewport.Height * Math.Clamp(folder.TopPercent, 0, 100) / 100d;
+        var regionTop = !scene.ShowsBodyText && scene.ShowsBodyText2 ? SecondaryTop : _session.ItemDisplay?.Top1 ?? _session.SongLayout?.TopPercent;
+        if (scene.Kind == OutputSceneKind.Live)
+            headingTop += FitExternalText ? TextFileLayout.TopInset(scene.Viewport.Height, regionTop)
+                : scene.Viewport.Height * Math.Clamp(regionTop ?? 0, 0, 100) / 100d;
         BodyContentMargin = new Thickness(
             scene.LyricsMonitorBodyLeftMargin,
             headingTop,
@@ -1192,9 +1194,9 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
 
         else
         {
-            var regionGap = Math.Max(0, scene.LyricsMonitorRegionGapPx);
+            var regionGap = BodyText2Margin.Top;
             var availableTextHeight = Math.Max(0, maxHeight - regionGap);
-            BodyTextMaxHeight = _session.SongLayout?.Integer("Vpos1") is int split
+            BodyTextMaxHeight = !scene.ShowsBodyText ? 0 : SecondaryTop is int split
                 ? Math.Clamp(viewportHeight * split / 100.0 - headingTop, 0, availableTextHeight) : availableTextHeight * .67;
             BodyText2MaxHeight = Math.Max(0, availableTextHeight - BodyTextMaxHeight);
         }
@@ -1208,12 +1210,13 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     private static readonly string[] ParagraphProperties = [nameof(PrimaryParagraph), nameof(SecondaryParagraph),
         nameof(StageParagraph), nameof(StageParagraph2), nameof(StageBackground), nameof(StageForeground), nameof(StageHighlight),
         nameof(PlainBodyVisibility), nameof(PlainOutlineVisibility), nameof(PlainSecondVisibility),
-        nameof(PrimaryRegionHeight), nameof(FolderHeadingSize), nameof(FolderHeadingWeight), nameof(FolderHeadingStyle), nameof(FolderHeadingDecorations)];
+        nameof(PrimaryRegionHeight), nameof(UsesSampleParagraphs), nameof(FolderHeadingSize), nameof(FolderHeadingWeight), nameof(FolderHeadingStyle), nameof(FolderHeadingDecorations)];
 
     private void ApplyFolderTypography()
     {
         if (_session.SongLayout is not { Fields: not null } folder) return;
-        int flags = folder.FontStyleBits >> (_session.CurrentPageIsChorus ? 3 : 0);
+        int flags = folder.FontStyleBits;
+        if (_session.CurrentPageIsChorus) flags |= (flags & 16) >> 3;
         if (_session.OverrideBold1 == null) BodyFontWeight = (flags & 1) != 0 ? FontWeights.Bold : FontWeights.Normal;
         if (_session.OverrideItalic1 == null) BodyFontStyle = (flags & 2) != 0 ? FontStyles.Italic : FontStyles.Normal;
         if (_session.OverrideUnderline1 == null)
@@ -1227,7 +1230,7 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
             : BodyFontSize * spacing;
         if (folder.Integer("BIU1") is int second)
         {
-            second >>= _session.CurrentPageIsChorus ? 3 : 0;
+            if (_session.CurrentPageIsChorus) second |= (second & 16) >> 3;
             if (_session.OverrideBold2 == null) BodyFont2Weight = (second & 1) != 0 ? FontWeights.Bold : FontWeights.Normal;
             if (_session.OverrideItalic2 == null) BodyFont2Style = (second & 2) != 0 ? FontStyles.Italic : FontStyles.Normal;
             if (_session.OverrideUnderline2 == null) BodyText2Decorations = (second & 4) != 0 ? TextDecorations.Underline : null;
@@ -1239,7 +1242,7 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         var folder = _session.SongLayout;
         string text = second ? BodyText2 : BodyText;
         int[] notes = second ? _session.NotationLines2 : _session.NotationLines;
-        if (!visible || text.Length == 0 || !(FitExternalText || Options.LargestFont || Options.HangingIndent || notes.Length > 0 || folder?.Fields != null)) return null;
+        if (!visible || text.Length == 0 || !(FitExternalText || Options.LargestFont || Options.HangingIndent || _session.ItemDisplay?.Top2 != null || _session.NotationLines.Length > 0 || _session.NotationLines2.Length > 0 || folder?.Fields != null)) return null;
         var family = (second ? BodyFont2Family : BodyFontFamily) as FontFamily ?? BodyFontFamily as FontFamily ?? SystemFonts.MessageFontFamily;
         var face = new Typeface(family, second ? BodyFont2Style : BodyFontStyle, second ? BodyFont2Weight : BodyFontWeight, FontStretches.Normal);
         int flags = second ? folder?.Integer("BIU1") ?? 0 : folder?.FontStyleBits ?? 0;
@@ -1720,7 +1723,7 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     }
 
     private double ViewportScale(OutputWindowState output) =>
-        FitExternalText && output.Display is { DpiScale: > 0 } display ? display.DpiScale : 1;
+        (FitExternalText || _session.SongLayout != null) && output.Display is { DpiScale: > 0 } display ? display.DpiScale : 1;
 
     private int GetViewportWidth(OutputWindowState output)
         => output.IsOpen && output.Placement.Width > 0

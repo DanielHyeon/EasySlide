@@ -41,17 +41,24 @@ internal static class ItemFormatFields
 
 public sealed record ItemDisplayFormat(int? Effects, int? Heading, int? HeadingAlignment, int? Region, int? Top1, int? Top2, int Transpose)
 {
+    public int? BackgroundPattern { get; init; }
+    public int? SecondBackgroundColour { get; init; }
+
     internal static ItemDisplayFormat? Read(string? raw)
     {
         if (string.IsNullOrEmpty(raw)) return null;
         var fields = ItemFormatFields.Parse(raw);
         int? Number(int key, int max) => int.TryParse(fields.GetValueOrDefault(key), out int n) && n >= 0 && n <= max ? n : null;
-        return new(Number(22, 127), Number(21, 3), Number(23, 4), Number(25, 2), Number(45, 100), Number(46, 100), Number(71, 11) ?? 0);
+        return new(Number(22, 127), Number(21, 3), Number(23, 4), Number(25, 2), Number(45, 100), Number(46, 100), Number(71, 11) ?? 0)
+        {
+            BackgroundPattern = Number(28, 11),
+            SecondBackgroundColour = int.TryParse(fields.GetValueOrDefault(27), out int second) ? second : null,
+        };
     }
 
     internal bool? Flag(int bit) => Effects is int flags ? (flags & bit) != 0 : null;
 
-    internal LiveOutputRenderSettings Apply(LiveOutputRenderSettings settings, int viewportHeight) => settings with
+    internal LiveOutputRenderSettings Apply(LiveOutputRenderSettings settings) => settings with
     {
         LyricsMonitorShadow = Flag(2) ?? settings.LyricsMonitorShadow,
         ShowLyricsOutline = Flag(32) ?? settings.ShowLyricsOutline,
@@ -62,8 +69,6 @@ public sealed record ItemDisplayFormat(int? Effects, int? Heading, int? HeadingA
         LyricsMonitorTitleHeadingFollowBody = HeadingAlignment is int alignment ? alignment == 0 : settings.LyricsMonitorTitleHeadingFollowBody,
         LyricsMonitorTitleHeadingFollowRegion2 = HeadingAlignment is int region ? region == 1 : settings.LyricsMonitorTitleHeadingFollowRegion2,
         LyricsMonitorTitleHeadingAlignment = HeadingAlignment is >= 2 and <= 4 ? (LyricsTextAlignment)(HeadingAlignment.Value - 2) : settings.LyricsMonitorTitleHeadingAlignment,
-        LyricsMonitorRegionDisplay = Region switch { 0 => LyricsRegionDisplay.Region1Only, 1 => LyricsRegionDisplay.Region2Only, 2 => LyricsRegionDisplay.Both, _ => settings.LyricsMonitorRegionDisplay },
-        LyricsMonitorBodyVerticalOffset = Top1 is int top ? viewportHeight * top / 100 : settings.LyricsMonitorBodyVerticalOffset,
-        LyricsMonitorRegionGapPx = Top2 is int second ? viewportHeight * Math.Max(0, second - (Top1 ?? 0)) / 100 : settings.LyricsMonitorRegionGapPx
+        LyricsMonitorRegionDisplay = Region switch { 0 => LyricsRegionDisplay.Region1Only, 1 => LyricsRegionDisplay.Region2Only, 2 => LyricsRegionDisplay.Both, _ => settings.LyricsMonitorRegionDisplay }
     };
 }

@@ -2,6 +2,7 @@ using System;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Linq;
 using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Windows.Forms;
@@ -13,6 +14,103 @@ namespace Axicultus.Tests;
 
 public class MonitorPresentationTests
 {
+    private const string PrimaryId = @"\\.\DISPLAY1";
+    private const string SecondaryId = @"\\.\DISPLAY2";
+    private const string SavedId = @"\\.\DISPLAY3";
+    private static readonly MonitorDevice[] Connected =
+    [
+        new(SecondaryId, new Rectangle(-2560, 0, 2560, 1440), false),
+        new(PrimaryId, new Rectangle(0, 0, 3440, 1440), true)
+    ];
+
+    [Fact]
+    public void OptionsMonitorListsShowTheConnectedWindowsDisplays()
+    {
+        RunOnSta(() =>
+        {
+            using var options = new FrmOptions();
+            options.BuildMonitorsList();
+            var outputStrip = Assert.IsType<ToolStrip>(Assert.Single(options.Controls.Find("toolStripMonitorList", true)));
+            var lyricsStrip = Assert.IsType<ToolStrip>(Assert.Single(options.Controls.Find("toolStrip12", true)));
+            var output = Assert.IsType<ToolStripComboBox>(outputStrip.Items["DualMonitorList"]);
+            var lyrics = Assert.IsType<ToolStripComboBox>(lyricsStrip.Items["LyricsMonitorList"]);
+            foreach (var screen in Screen.AllScreens.Where(s => s.Bounds.Width > 0 && s.Bounds.Height > 0))
+            {
+                string expected = $"{(screen.Primary ? "주 모니터" : "출력 모니터")} {screen.DeviceName} ({screen.Bounds.Width}x{screen.Bounds.Height})";
+                Assert.True(output.FindStringExact(expected) >= 0);
+                Assert.Equal(!screen.Primary, lyrics.FindStringExact(expected) >= 0);
+            }
+        });
+    }
+
+    [Fact]
+    public void OutputPickerKeepsDisconnectedPreferenceAndRecognizesItAfterReconnect()
+    {
+        RunOnSta(() =>
+        {
+            using var item = new ToolStripComboBox();
+            var picker = item.ComboBox;
+            MonitorPicker.Populate(picker, Connected, MonitorPurpose.Output, SavedId);
+            Assert.Equal(new[] { "자동 선택", $"주 모니터 {PrimaryId} (3440x1440)",
+                $"출력 모니터 {SecondaryId} (2560x1440)", "사용 안 함", $"{SavedId} (연결 해제)" },
+                picker.Items.Cast<object>().Select(choice => choice.ToString()));
+            Assert.Equal(SavedId, MonitorPicker.SelectedId(picker));
+
+            DirectoryInfo temp = Directory.CreateTempSubdirectory("axicultuss-monitor-choice-");
+            try
+            {
+                string path = Path.Combine(temp.FullName, "settings.json");
+                var store = new JsonProfileStore(path, () => new());
+                store.WriteValue("options", "OutputmonitorName", MonitorPicker.SelectedId(picker), Microsoft.Win32.RegistryValueKind.String);
+                var reopened = new JsonProfileStore(path, () => new());
+                string saved = Assert.IsType<string>(reopened.ReadValue("options", "OutputmonitorName"));
+                Assert.Equal(SavedId, saved);
+                MonitorPicker.Populate(picker, [.. Connected, new(SavedId, new Rectangle(3440, 0, 1920, 1080), false)],
+                    MonitorPurpose.Output, saved);
+                Assert.Equal($"출력 모니터 {SavedId} (1920x1080)", picker.SelectedItem.ToString());
+                Assert.Equal(1, picker.Items.Cast<object>().Count(choice => choice.ToString().Contains(SavedId)));
+                picker.SelectedIndex = 0;
+                Assert.Equal(MonitorLayout.Auto, MonitorPicker.SelectedId(picker));
+                picker.SelectedIndex = picker.Items.Count - 1;
+                Assert.Equal(MonitorLayout.None, MonitorPicker.SelectedId(picker));
+            }
+            finally { temp.Delete(recursive: true); }
+        });
+    }
+
+    [Fact]
+    public void LyricsPickerDistinguishesAnIneligiblePrimaryFromADisconnectedMonitor()
+    {
+        RunOnSta(() =>
+        {
+            using var item = new ToolStripComboBox();
+            var picker = item.ComboBox;
+            MonitorPicker.Populate(picker, Connected, MonitorPurpose.Lyrics, PrimaryId);
+            Assert.Equal($"주 모니터 {PrimaryId} (3440x1440) (가사 모니터로 사용 불가)", picker.SelectedItem.ToString());
+            Assert.Equal(PrimaryId, MonitorPicker.SelectedId(picker));
+            MonitorPicker.Populate(picker, Connected, MonitorPurpose.Lyrics, SavedId);
+            Assert.Equal($"{SavedId} (연결 해제)", picker.SelectedItem.ToString());
+            Assert.DoesNotContain(picker.Items.Cast<object>(), choice => choice.ToString().Contains(PrimaryId));
+        });
+    }
+
+    [Fact]
+    public void MediaPickerUsesDeviceIdsAndKeepsTheDefaultOutputChoice()
+    {
+        RunOnSta(() =>
+        {
+            using var picker = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList };
+            MonitorPicker.Populate(picker, Connected, MonitorPurpose.Media, SecondaryId.ToLowerInvariant());
+            Assert.Equal($"출력 모니터 {SecondaryId} (2560x1440)", picker.SelectedItem.ToString());
+            Assert.Equal(SecondaryId, MonitorPicker.SelectedId(picker));
+            MonitorPicker.Populate(picker, Connected, MonitorPurpose.Media, SavedId);
+            Assert.Equal($"{SavedId} (연결 해제)", picker.SelectedItem.ToString());
+            Assert.Equal(SavedId, MonitorPicker.SelectedId(picker));
+            picker.SelectedIndex = 0;
+            Assert.Equal("", MonitorPicker.SelectedId(picker));
+        });
+    }
+
     [Theory]
     [InlineData(960, 540, 640, 360)]
     [InlineData(720, 540, 640, 480)]
