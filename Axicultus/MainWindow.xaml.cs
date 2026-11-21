@@ -63,6 +63,8 @@ public partial class MainWindow : Window
     // "모든 설정 초기화"(복구)로 닫는 중인가 — true 면 OnClosing 에서 창 위치·패널 비율을 저장하지 않는다
     // (안 그러면 방금 되돌린 기본값을 닫으면서 다시 덮어쓴다. 레거시 SaveToRegistryOnClosing=false 와 같은 취지).
     private bool _suppressSettingsSaveOnClose;
+    private bool _waitingForWorshipListSave;
+    private bool _discardWorshipListChangesOnClose;
 
     public OutputWindowViewModel PreviewSample { get; }
     public OutputWindowViewModel OutputSample { get; }
@@ -4412,7 +4414,7 @@ public partial class MainWindow : Window
 
     // 모든 설정 초기화(레거시 Tools "Clear Axicultus Registry Settings and Exit") — 설정이 꼬여 앱이 이상할 때
     // 쓰는 복구 탈출구. 파괴적(되돌릴 수 없음)이라 확인을 받은 뒤, 기본값으로 되돌리고 앱을 다시 시작한다.
-    private void ResetAllSettings_Click(object sender, RoutedEventArgs e)
+    private async void ResetAllSettings_Click(object sender, RoutedEventArgs e)
     {
         if (DataContext is not MainViewModel viewModel)
         {
@@ -4433,6 +4435,11 @@ public partial class MainWindow : Window
             return;
         }
 
+        if (!await viewModel.SavePendingWorshipItemRemovalAsync())
+        {
+            MessageBox.Show(this, viewModel.StatusText, "예배 순서 저장", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
         if (!viewModel.ResetAllSettingsToDefaults())
         {
             // 설정 파일 쓰기 실패(권한·잠김 등) — 알리고 앱은 그대로 둔다(엉뚱하게 재시작하지 않게).
@@ -4684,6 +4691,18 @@ public partial class MainWindow : Window
     // 닫기 직전에 현재 창 크기·위치·최대화 상태와 좌측 패널 높이 비율을 설정에 저장한다(다음 실행 때 복원).
     protected override void OnClosing(CancelEventArgs e)
     {
+        base.OnClosing(e);
+        if (e.Cancel) return;
+        if (_waitingForWorshipListSave || (!_discardWorshipListChangesOnClose && _viewModel.HasPendingWorshipItemRemoval))
+        {
+            e.Cancel = true;
+            if (!_waitingForWorshipListSave)
+            {
+                _waitingForWorshipListSave = true;
+                Dispatcher.InvokeAsync(SaveWorshipListAndCloseAsync);
+            }
+            return;
+        }
         // 모든 설정 초기화(복구)로 닫는 중이면 창 위치·패널 비율을 저장하지 않는다 — 방금 되돌린 기본값을 덮어쓰지 않게.
         if (!_suppressSettingsSaveOnClose)
         {
@@ -4691,8 +4710,25 @@ public partial class MainWindow : Window
             SaveBrowserSplit();
         }
 
-        base.OnClosing(e);
-        if (!e.Cancel) _captionConsole?.EndSession();
+        _captionConsole?.EndSession();
+    }
+
+    private async Task SaveWorshipListAndCloseAsync()
+    {
+        try
+        {
+            if (!await _viewModel.SavePendingWorshipItemRemovalAsync())
+            {
+                if (MessageBox.Show(this, _viewModel.StatusText + "\n\n변경 사항을 저장하지 않고 종료하시겠습니까?",
+                    "예배 순서 저장", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No)
+                    != MessageBoxResult.Yes) return;
+                _discardWorshipListChangesOnClose = true;
+            }
+        }
+        finally { _waitingForWorshipListSave = false; }
+
+        try { Close(); }
+        finally { _discardWorshipListChangesOnClose = false; }
     }
 
     private void RestoreBrowserSplit()

@@ -2518,6 +2518,72 @@ public class MainViewModelTests
         sut.WorshipListHasUnsavedChanges.Should().BeTrue("저장 안 했으니 여전히 미저장");
     }
 
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task DeletedWorshipRowsStayDeletedOnNextStartup(bool legacy, bool removeLast)
+    {
+        using var folder = TempSettingsFolder.Create();
+        const string name = "주일예배";
+        var settings = folder.CreateSettings();
+        settings.Set(AxicultusSettingKeys.WorkingFolder, folder.Root);
+        var lists = Path.Combine(folder.Root, "Lists");
+        var store = new WorshipListStore(lists, settings);
+        var legacyDir = Path.Combine(folder.Root, "Admin", "WorshipLists");
+        var legacyPath = Path.Combine(legacyDir, name + ".esw");
+        const string xml = "<Axicultus><ListItem><Item><ItemID>D1</ItemID><Title1>First</Title1></Item>"
+            + "<Item><ItemID>D2</ItemID><Title1>Second</Title1></Item></ListItem></Axicultus>";
+        if (legacy)
+        {
+            Directory.CreateDirectory(legacyDir);
+            await File.WriteAllTextAsync(legacyPath, xml);
+        }
+        else await store.SaveAsync(name, [new("first", "First"), new("second", "Second")]);
+
+        using (var editor = CreateSut(seedSampleQueue: false, settings: settings, worshipLists: store))
+        {
+            (await editor.LoadInitialSelectedWorshipListIfQueueEmptyAsync()).Should().BeTrue();
+            editor.Queue.Select(i => i.Title).Should().Equal("First", "Second");
+            editor.RemoveSelectedItemCommand.Execute(null);
+            if (removeLast) editor.RemoveSelectedItemCommand.Execute(null);
+            (await editor.SavePendingWorshipItemRemovalAsync()).Should().BeTrue();
+        }
+
+        using var restarted = CreateSut(seedSampleQueue: false, settings: folder.CreateSettings(),
+            worshipLists: new WorshipListStore(lists, settings));
+        (await restarted.LoadInitialSelectedWorshipListIfQueueEmptyAsync()).Should().BeTrue();
+        restarted.CurrentWorshipListName.Should().Be(name);
+        restarted.Queue.Select(i => i.Title).Should().Equal(removeLast ? Array.Empty<string>() : ["Second"]);
+        if (legacy) (await File.ReadAllTextAsync(legacyPath)).Should().Be(xml);
+    }
+
+    [Fact]
+    public async Task ChangingWorshipListsRetriesFailedRemovalSaveBeforeReplacingQueue()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var lists = Path.Combine(folder.Root, "Lists");
+        var store = new WorshipListStore(lists);
+        await store.SaveAsync("A", [new("first", "First"), new("second", "Second")]);
+        await store.SaveAsync("B", [new("other", "Other")]);
+        using var vm = CreateSut(seedSampleQueue: false, settings: folder.CreateSettings(), worshipLists: store);
+        await vm.LoadWorshipListAsync("A");
+        vm.RemoveSelectedItemCommand.Execute(null);
+        vm.SelectedSavedWorshipList = "B";
+        using (File.Open(Path.Combine(lists, "A.json"), FileMode.Open, FileAccess.Read, FileShare.Read))
+        {
+            await vm.LoadSelectedWorshipListCommand.ExecuteAsync(null);
+            vm.CurrentWorshipListName.Should().Be("A");
+            vm.HasPendingWorshipItemRemoval.Should().BeTrue();
+            vm.StatusText.Should().Contain("저장 실패");
+        }
+        await vm.LoadSelectedWorshipListCommand.ExecuteAsync(null);
+        vm.CurrentWorshipListName.Should().Be("B");
+        vm.Queue.Select(i => i.Id).Should().Equal("other");
+        (await store.LoadAsync("A")).Select(i => i.Id).Should().Equal("second");
+    }
+
     [Fact]
     public async Task SelectLiveItem_SnapsSelectionBackToLiveItem()
     {
