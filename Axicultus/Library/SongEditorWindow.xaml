@@ -592,6 +592,8 @@
             <StackPanel DockPanel.Dock="Right"
                         Orientation="Horizontal"
                         HorizontalAlignment="Right">
+                <Button Content="악보 편집…" Click="ScoreClick" Margin="0,0,8,0"
+                        Style="{StaticResource EsButton.Secondary}" />
                 <Button Command="{Binding SaveCommand}"
                         Style="{StaticResource EsButton.Primary}"
                         ToolTip="곡을 저장하고 닫기 (Ctrl+S)"

@@ -208,20 +208,20 @@ public sealed class WorshipListStore(string directory, ISettingsService? setting
     public bool IsLegacyWorshipListPath(string path)
     {
         return !string.IsNullOrWhiteSpace(path)
-            && string.Equals(Path.GetExtension(path), ".esw", StringComparison.OrdinalIgnoreCase)
+            && (string.Equals(Path.GetExtension(path), ".esw", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(Path.GetExtension(path), ".json", StringComparison.OrdinalIgnoreCase))
             && File.Exists(path);
     }
 
     public void MoveToTrash(string name)
     {
-        var source = ResolvePath(name);
-        if (!File.Exists(source))
-        {
-            var legacy = ResolveLegacyPath(name);
-            if (legacy == null || !File.Exists(legacy)) return;
-            source = legacy;
-        }
+        Archive(ResolveLegacyPath(name));
+        Archive(ResolvePath(name));
+    }
 
+    private static void Archive(string? source)
+    {
+        if (source is null || !File.Exists(source)) return;
         var trash = Path.Combine(Path.GetDirectoryName(source)!, "Trash");
         Directory.CreateDirectory(trash);
         var destination = Path.Combine(trash, Path.GetFileName(source));
@@ -239,36 +239,12 @@ public sealed class WorshipListStore(string directory, ISettingsService? setting
         {
             File.Delete(path);
         }
+        if (ResolveLegacyPath(name) is { } migrated) File.Delete(migrated);
     }
 
-    public void Rename(string oldName, string newName)
-    {
-        // 두 이름 모두 경로 안전 검증을 거친다(무효 문자/예약명/경로 탈출 차단).
-        var oldPath = ResolvePath(oldName);
-        var newPath = ResolvePath(newName);
+    public void Rename(string oldName, string newName) =>
+        StoreFileNaming.RenameList(ResolvePath(oldName), ResolvePath(newName), ResolveLegacyPath(oldName), ResolveLegacyPath(newName));
 
-        // 원본이 없으면 조용히 무시(Delete 와 동일하게 관대 — 이미 지워졌거나 잘못된 호출에도 크래시 없음).
-        if (!File.Exists(oldPath))
-        {
-            return;
-        }
-
-        // 같은 파일(대소문자만 다른 경우 포함)이면 바꿀 게 없다.
-        if (string.Equals(oldPath, newPath, StringComparison.OrdinalIgnoreCase))
-        {
-            return;
-        }
-
-        // 새 이름이 이미 있으면 덮어쓰지 않고 거부(기존 예배 순서 보호 — 호출자가 사전 검증하지만 스토어도 방어).
-        if (File.Exists(newPath))
-        {
-            throw new ArgumentException($"이미 있는 이름입니다: {newName}", nameof(newName));
-        }
-
-        File.Move(oldPath, newPath);
-    }
-
-    /// <summary>이름을 안전한 파일 경로로 해석(무효 문자/예약명/길이/경로 탈출 차단 — 공통 헬퍼 위임).</summary>
     private string ResolvePath(string name) => StoreFileNaming.ResolveJsonPath(_directory, name, "예배 순서");
 
     private IEnumerable<string> EnumerateLegacyNames()
@@ -279,7 +255,7 @@ public sealed class WorshipListStore(string directory, ISettingsService? setting
             return Array.Empty<string>();
         }
 
-        return Directory.GetFiles(legacyDirectory, "*.esw")
+        return Directory.GetFiles(legacyDirectory, "*.json")
             .Select(Path.GetFileNameWithoutExtension)
             .Where(n => !string.IsNullOrEmpty(n))
             .Select(n => n!);
@@ -301,7 +277,7 @@ public sealed class WorshipListStore(string directory, ISettingsService? setting
             throw new ArgumentException($"예배 순서 이름에 사용할 수 없는 문자/형식입니다: {name}", nameof(name));
         }
 
-        var full = Path.GetFullPath(Path.Combine(legacyDirectory, trimmed + ".esw"));
+        var full = Path.GetFullPath(Path.Combine(legacyDirectory, trimmed + ".json"));
         var root = Path.GetFullPath(legacyDirectory);
         var rootPrefix = root.EndsWith(Path.DirectorySeparatorChar) ? root : root + Path.DirectorySeparatorChar;
         if (!full.StartsWith(rootPrefix, StringComparison.OrdinalIgnoreCase))
@@ -320,6 +296,6 @@ public sealed class WorshipListStore(string directory, ISettingsService? setting
             return null;
         }
 
-        return Path.Combine(workingFolder, "Admin", "WorshipLists");
+        return Axicultus.Module.ServiceListDocument.WorkingDirectory(Path.Combine(workingFolder, "Admin", "WorshipLists"), ".esw");
     }
 }

@@ -44,7 +44,7 @@ public sealed class PowerPointLibraryService : IPowerPointLibraryService
         try
         {
             folders.AddRange(Directory
-                .EnumerateDirectories(root, "*", SearchOption.AllDirectories)
+                .EnumerateDirectories(root, "*", Axicultus.Module.SourceFileFolder.SearchOptions(true))
                 .OrderBy(path => RelativeFolderName(root, path), StringComparer.OrdinalIgnoreCase)
                 .Take(254)
                 .Select(path => new PowerPointFolderItem("\\" + RelativeFolderName(root, path), path)));

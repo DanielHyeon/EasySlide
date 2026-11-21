@@ -3196,7 +3196,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private static bool IsLegacyWorshipListFile(string? filePath)
         => !string.IsNullOrWhiteSpace(filePath)
-            && string.Equals(Path.GetExtension(filePath), ".esw", StringComparison.OrdinalIgnoreCase)
+            && (string.Equals(Path.GetExtension(filePath), ".esw", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(Path.GetExtension(filePath), ".json", StringComparison.OrdinalIgnoreCase))
             && File.Exists(filePath);
 
     private LiveQueueItem BuildEswQueueItem(EswWorshipListItem esw)

@@ -1,6 +1,5 @@
 using System.IO;
 using System.Windows.Forms;
-using System.Xml.Linq;
 using Axicultus.Module;
 using Xunit;
 
@@ -16,7 +15,7 @@ public class ListFileFormatTests
         MonitorPresentationTests.RunOnSta(() =>
         {
             var directory = Directory.CreateTempSubdirectory();
-            var path = Path.Combine(directory.FullName, mode == UsageMode.Worship ? "list.esw" : "list.esp");
+            var path = Path.Combine(directory.FullName, "list.json");
             using var rows = new ListView();
             var list = rows;
             try
@@ -25,12 +24,12 @@ public class ListFileFormatTests
                     ? new ListViewItem(new[] { "설교", "P" + title, format })
                     : new ListViewItem(new[] { "찬송", "", title, id, "", format }));
                 Assert.True(gfFileHelpers.SaveIndexFile(path, ref list, mode, true, "29=-1>", "주일"));
-                var document = XDocument.Load(path);
-                var item = Assert.Single(document.Descendants("Item"));
-                Assert.Equal(id, (string)item.Element("ItemID"));
-                Assert.Equal(title, (string)item.Element("Title1"));
-                Assert.Equal(format, (string)item.Element("FormatData"));
-                Assert.Equal("주일", (string)Assert.Single(document.Descendants("Notes")));
+                var document = ServiceListDocument.ReadJson(File.ReadAllText(path));
+                var item = Assert.Single(document.Items);
+                Assert.Equal(id, item.ItemId);
+                Assert.Equal(title, item.Title);
+                Assert.Equal(format, item.FormatData);
+                Assert.Equal("주일", document.Notes);
             }
             finally { directory.Delete(true); }
         });

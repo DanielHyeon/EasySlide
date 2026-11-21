@@ -150,41 +150,8 @@ public sealed class PraiseBookStore(string directory, ISettingsService? settings
         }
     }
 
-    public void Rename(string oldName, string newName)
-    {
-        var oldPath = ResolvePath(oldName);
-        var newPath = ResolvePath(newName);
-        var oldLegacyPath = ResolveLegacyPath(oldName);
-        var newLegacyPath = ResolveLegacyPath(newName);
-
-        var hasJson = File.Exists(oldPath);
-        var hasLegacy = oldLegacyPath is not null && File.Exists(oldLegacyPath);
-        if (!hasJson && !hasLegacy)
-        {
-            return;
-        }
-
-        if (hasJson && !string.Equals(oldPath, newPath, StringComparison.OrdinalIgnoreCase))
-        {
-            if (File.Exists(newPath))
-            {
-                throw new ArgumentException($"이미 있는 이름입니다: {newName}", nameof(newName));
-            }
-
-            File.Move(oldPath, newPath);
-        }
-
-        if (hasLegacy && oldLegacyPath is not null && newLegacyPath is not null
-            && !string.Equals(oldLegacyPath, newLegacyPath, StringComparison.OrdinalIgnoreCase))
-        {
-            if (File.Exists(newLegacyPath))
-            {
-                throw new ArgumentException($"이미 있는 이름입니다: {newName}", nameof(newName));
-            }
-
-            File.Move(oldLegacyPath, newLegacyPath);
-        }
-    }
+    public void Rename(string oldName, string newName) =>
+        StoreFileNaming.RenameList(ResolvePath(oldName), ResolvePath(newName), ResolveLegacyPath(oldName), ResolveLegacyPath(newName));
 
     private string ResolvePath(string name) => StoreFileNaming.ResolveJsonPath(_directory, name, "찬양집");
 
@@ -196,7 +163,7 @@ public sealed class PraiseBookStore(string directory, ISettingsService? settings
             return Array.Empty<string>();
         }
 
-        return Directory.GetFiles(legacyDirectory, "*.esp")
+        return Directory.GetFiles(legacyDirectory, "*.json")
             .Select(Path.GetFileNameWithoutExtension)
             .Where(n => !string.IsNullOrEmpty(n))
             .Select(n => n!);
@@ -218,7 +185,7 @@ public sealed class PraiseBookStore(string directory, ISettingsService? settings
             throw new ArgumentException($"찬양집 이름에 사용할 수 없는 문자/형식입니다: {name}", nameof(name));
         }
 
-        var full = Path.GetFullPath(Path.Combine(legacyDirectory, trimmed + ".esp"));
+        var full = Path.GetFullPath(Path.Combine(legacyDirectory, trimmed + ".json"));
         var root = Path.GetFullPath(legacyDirectory);
         var rootPrefix = root.EndsWith(Path.DirectorySeparatorChar) ? root : root + Path.DirectorySeparatorChar;
         if (!full.StartsWith(rootPrefix, StringComparison.OrdinalIgnoreCase))
@@ -237,7 +204,7 @@ public sealed class PraiseBookStore(string directory, ISettingsService? settings
             return null;
         }
 
-        return Path.Combine(workingFolder, "Admin", "PraiseBooks");
+        return Axicultus.Module.ServiceListDocument.WorkingDirectory(Path.Combine(workingFolder, "Admin", "PraiseBooks"), ".esp");
     }
 
     private static IReadOnlyList<PraiseBookIndexEntry> ParseLegacyEsp(string? xml)

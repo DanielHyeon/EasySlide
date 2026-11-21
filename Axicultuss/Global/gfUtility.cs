@@ -1514,6 +1514,15 @@ namespace Axicultus;
 
 		public static void WriteXMLSessionHeader(ref XmlTextWriter xtw, string InFormatString, string InNotes)
 		{
+			xtw.WriteStartElement("ListHeader");
+			xtw.WriteElementString("SystemID", SystemID);
+			xtw.WriteElementString("FormatData", GetListFormat(InFormatString));
+			xtw.WriteElementString("Notes", InNotes);
+			xtw.WriteEndElement();
+		}
+
+		public static string GetListFormat(string InFormatString)
+		{
 			int mediaFlags = MediaMute + MediaRepeat * 2 + MediaWidescreen * 4;
 			StringBuilder stringBuilder = new();
 			if (InFormatString != "")
@@ -1573,11 +1582,7 @@ namespace Axicultus;
 				stringBuilder.AppendFormat("{0}={1}>", 174, PB_CJKGroupStyle);
 				stringBuilder.AppendFormat("{0}={1}>", 180, PB_ShowNotations + PB_ShowTiming * 2 + PB_ShowKey * 4 + PB_ShowCapo * 8 + PB_CapoZero * 16);
 			}
-			xtw.WriteStartElement("ListHeader");
-			xtw.WriteElementString("SystemID", SystemID);
-			xtw.WriteElementString("FormatData", stringBuilder.ToString());
-			xtw.WriteElementString("Notes", InNotes);
-			xtw.WriteEndElement();
+			return stringBuilder.ToString();
 		}
 
 

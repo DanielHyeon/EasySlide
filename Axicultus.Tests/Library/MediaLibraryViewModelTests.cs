@@ -143,6 +143,7 @@ public class MediaLibraryViewModelTests
         var sut = CreateSut(out _, @"C:\media\a.mp4", @"C:\media\sub\b.mp4");
         sut.MediaFiles.Should().BeEmpty("아직 Load 전");
 
+        sut.IncludeSubfolders = false;
         sut.IncludeSubfolders = true;
 
         sut.MediaFiles.Should().HaveCount(2);
@@ -165,7 +166,7 @@ public class MediaLibraryViewModelTests
         sut.FolderGroups.Select(f => f.DisplayName).Should().Equal("Media Files", @"\찬양");
         sut.SelectedFolder.Should().Be(folders[0]);
         sut.FolderPath.Should().Be(@"C:\media");
-        sut.IncludeSubfolders.Should().BeFalse("FrmMain MediaFolder lists only the selected folder contents");
+        sut.IncludeSubfolders.Should().BeTrue();
         sut.MediaFiles.Should().BeEmpty("constructor should not load files before the Media tab is opened");
     }
 

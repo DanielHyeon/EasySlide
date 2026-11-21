@@ -570,13 +570,14 @@ public partial class FrmMain : Form
         }
     }
 
-    public void Load32PraiseBook(int DataType)
+    public void Load32PraiseBook(int DataType, string original = null)
     {
         if (DataUtil.Trim(PraiseBook.Text) != "")
         {
             ListViewItem listViewItem = new();
-            string inFileName = Gf.PraiseBookDir + Gf.CurPraiseBook + ".esp";
-            gfFileHelpers.LoadFileContents(inFileName, ref InContents);
+            string inFileName = Gf.PraiseBookDir + Gf.CurPraiseBook + ".json";
+            if (original == null) gfFileHelpers.LoadFileContents(inFileName, ref InContents);
+            else InContents = original;
             int headerLength = Gf.Load32HeaderData(inFileName, InContents, ref Gf.HeaderData);
             if (headerLength < 1)
             {
@@ -626,7 +627,7 @@ public partial class FrmMain : Form
         }
     }
 
-    private void WriteItemtoPraiseBook(DbConnection connection, LegacyListReference reference, string DisplayName1, string FolderName)
+    private void WriteItemtoPraiseBook(DbConnection connection, LegacyListReference reference, string DisplayName1, string FolderName, string storedNumber = null)
     {
         string listItemId = reference.Id;
         if (listItemId != "")
@@ -676,7 +677,7 @@ public partial class FrmMain : Form
             listViewItem.SubItems.Add(DisplayName1);
             listViewItem.SubItems.Add(listItemId);
             listViewItem.SubItems.Add(FirstCharSym);
-            listViewItem.SubItems.Add(songNumber);
+            listViewItem.SubItems.Add(string.IsNullOrEmpty(storedNumber) ? songNumber : storedNumber);
         }
     }
 
@@ -689,7 +690,7 @@ public partial class FrmMain : Form
             FileUtil.MakeDir(Gf.WorshipDir);
         }
         DirectoryInfo directoryInfo = new(Gf.WorshipDir);
-        FileInfo[] files = directoryInfo.GetFiles("*.esw");
+        FileInfo[] files = directoryInfo.GetFiles("*.json");
         foreach (FileInfo fileInfo in files)
         {
             string InFileName = fileInfo.Name;
@@ -715,7 +716,7 @@ public partial class FrmMain : Form
         else
         {
             Gf.CurSession = "Worship Service";
-            FileUtil.CreateNewFile(Gf.WorshipDir + Gf.CurSession + ".esw");
+            new ServiceListDocument(1, Gf.SystemID, Gf.GetListFormat(""), "", []).Save(Gf.WorshipDir + Gf.CurSession + ".json");
             SessionList.Items.Add(Gf.CurSession);
             SessionList.SelectedIndex = 0;
         }
@@ -731,7 +732,7 @@ public partial class FrmMain : Form
             FileUtil.MakeDir(Gf.PraiseBookDir);
         }
         DirectoryInfo directoryInfo = new(Gf.PraiseBookDir);
-        FileInfo[] files = directoryInfo.GetFiles("*.esp");
+        FileInfo[] files = directoryInfo.GetFiles("*.json");
         foreach (FileInfo fileInfo in files)
         {
             string InFileName = fileInfo.Name;
@@ -757,7 +758,7 @@ public partial class FrmMain : Form
         else
         {
             Gf.CurPraiseBook = "PraiseBook 1";
-            FileUtil.CreateNewFile(Gf.PraiseBookDir + Gf.CurPraiseBook + ".esp");
+            new ServiceListDocument(1, Gf.SystemID, Gf.GetListFormat(""), "", []).Save(Gf.PraiseBookDir + Gf.CurPraiseBook + ".json");
             PraiseBook.Items.Add(Gf.CurPraiseBook);
             PraiseBook.SelectedIndex = 0;
         }
@@ -1242,26 +1243,13 @@ public partial class FrmMain : Form
 
     private void LoadWorshipList(int DataType)
     {
-        string inFileName = Gf.WorshipDir + Gf.CurSession + ".esw";
+        string inFileName = Gf.WorshipDir + Gf.CurSession + ".json";
         LoadWorshipList(DataType, inFileName);
     }
 
     private string LoadWorshipList(int DataType, string InFileName)
     {
         Gf.StartPresAt = 0;
-        int itemCountInFileBefore = -1;
-        string lastWriteTime = "N/A";
-        try
-        {
-            if (System.IO.File.Exists(InFileName))
-            {
-                string fileContent = System.IO.File.ReadAllText(InFileName);
-                itemCountInFileBefore = System.Text.RegularExpressions.Regex.Count(fileContent, "<Item>");
-                lastWriteTime = System.IO.File.GetLastWriteTime(InFileName).ToString("yyyy-MM-dd HH:mm:ss.fff");
-            }
-        }
-        catch { }
-        WriteDebugLog($"LoadWorshipList() called - DataType: {DataType}, File: {InFileName}, Items in file: {itemCountInFileBefore}, File last modified: {lastWriteTime}");
         string result = LoadIndexFile(DataType, InFileName, ref WorshipListItems, UsageMode.Worship, ref Gf.CurSessionNotes);
         WriteDebugLog($"LoadWorshipList() completed - Items loaded in ListView: {WorshipListItems.Items.Count}");
         PreviewNotes.Text = Gf.CurSessionNotes;
@@ -1270,7 +1258,7 @@ public partial class FrmMain : Form
 
     private void LoadPraiseBook(int DataType)
     {
-        string inFileName = Gf.PraiseBookDir + Gf.CurPraiseBook + ".esp";
+        string inFileName = Gf.PraiseBookDir + Gf.CurPraiseBook + ".json";
         LoadIndexFile(DataType, inFileName, ref PraiseBookItems, UsageMode.PraiseBook, ref Gf.CurPraiseBookNotes);
     }
 
@@ -1281,185 +1269,61 @@ public partial class FrmMain : Form
     /// </summary>
     private string LoadIndexFile(int DataType, string InFileName, ref ListView InList, UsageMode InMode, ref string InNotes)
     {
-        string formatData = "";
-        // Set once the file was read as an Axicultus list: what to return after LoadIndexFilePostAction.
-        string loadedResult = null;
         try
         {
-            XmlTextReader xmlTextReader = new(InFileName);
-            try
+            if (!File.Exists(InFileName)) return "";
+            string text = File.ReadAllText(InFileName);
+            var start = text.AsSpan().TrimStart();
+            if (!start.StartsWith("<") && !start.StartsWith("{"))
             {
-                bool foundRoot = false;
-                bool foundListItem = false;
-                bool foundListHeader = false;
-                xmlTextReader.Read();
-                while (xmlTextReader.Read() && !foundRoot)
-                {
-                    if (xmlTextReader.NodeType == XmlNodeType.Element && ProductStorage.IsDocumentRoot(xmlTextReader.Name))
-                    {
-                        foundRoot = true;
-                    }
-                }
-                if (foundRoot)
-                {
-                    while (xmlTextReader.Read() && !foundListItem)
-                    {
-                        if (xmlTextReader.NodeType == XmlNodeType.Element && xmlTextReader.Name == "ListItem")
-                        {
-                            foundListItem = true;
-                        }
-                    }
-                    if (!foundListItem)
-                    {
-                        xmlTextReader?.Close();
-                    }
-                    else
-                    {
-                        while (xmlTextReader.Read() && !foundListHeader)
-                        {
-                            if (xmlTextReader.NodeType == XmlNodeType.Element && xmlTextReader.Name == "ListHeader")
-                            {
-                                foundListHeader = true;
-                            }
-                        }
-                        if (!foundListHeader)
-                        {
-                            xmlTextReader?.Close();
-                        }
-                        else
-                        {
-                            string itemId = "";
-                            string displayName = "";
-                            string folderName = "";
-                            string formatString = "";
-                            xmlTextReader.Read();
-                            Gf.WorshipListIDOK = false;
-                            if (xmlTextReader.NodeType == XmlNodeType.Element && xmlTextReader.Name == "SystemID")
-                            {
-                                if (Gf.SystemID == xmlTextReader.ReadElementContentAsString())
-                                {
-                                    Gf.WorshipListIDOK = true;
-                                }
-                                xmlTextReader.Read();
-                                if (xmlTextReader.NodeType == XmlNodeType.Element && xmlTextReader.Name == "FormatData")
-                                {
-                                    formatData = xmlTextReader.ReadElementContentAsString();
-                                    if (DataType == 2)
-                                    {
-                                        xmlTextReader.Close();
-                                        return formatData;
-                                    }
-                                    Gf.LoadHeaderData(formatData, ref Gf.HeaderData, '>');
-                                    if (DataType == 1)
-                                    {
-                                        Gf.ApplyHeaderData();
-                                        if (InMode == UsageMode.Worship)
-                                        {
-                                            UpdateDefaultFields();
-                                            UpdateDisplayPanelFields();
-                                        }
-                                        xmlTextReader.Close();
-                                        return formatData;
-                                    }
-                                    Gf.ApplyHeaderData();
-                                    InList.Items.Clear();
-                                    InNotes = "";
-                                    xmlTextReader.Read();
-                                    if (xmlTextReader.NodeType == XmlNodeType.Element && xmlTextReader.Name == "Notes")
-                                    {
-                                        InNotes = xmlTextReader.ReadElementContentAsString();
-                                    }
-                                    // GetDbConnection opens a new connection for each call: it is closed when this block ends.
-                                    using DbConnection connection = DbController.GetDbConnection(Gf.ConnectStringMainDB);
-                                    while (xmlTextReader.Read())
-                                    {
-                                        switch (xmlTextReader.NodeType)
-                                        {
-                                            case XmlNodeType.Element:
-                                                switch (xmlTextReader.Name)
-                                                {
-                                                    case "ItemID":
-                                                        itemId = xmlTextReader.ReadElementContentAsString();
-                                                        break;
-                                                    case "Title1":
-                                                        displayName = xmlTextReader.ReadElementContentAsString();
-                                                        break;
-                                                    case "Folder":
-                                                        folderName = xmlTextReader.ReadElementContentAsString();
-                                                        break;
-                                                    case "FormatData":
-                                                        formatString = xmlTextReader.ReadElementContentAsString();
-                                                        break;
-                                                }
-                                                break;
-                                            case XmlNodeType.EndElement:
-                                                if (itemId != "")
-                                                {
-                                                    if (InMode == UsageMode.Worship)
-                                                    {
-                                                        var reference = LegacyListReference.Parse(itemId, displayName);
-                                                        WriteItemtoWorshipList(connection, reference, reference.ContentPath ?? displayName, folderName, formatString, -1);
-                                                    }
-                                                    else
-                                                    {
-                                                        var reference = LegacyListReference.Parse(itemId, displayName);
-                                                        WriteItemtoPraiseBook(connection, reference, displayName, folderName);
-                                                    }
-                                                    itemId = "";
-                                                    displayName = "";
-                                                    folderName = "";
-                                                    formatString = "";
-                                                }
-                                                break;
-                                        }
-                                    }
-                                    xmlTextReader?.Close();
-                                    loadedResult = formatData;
-                                }
-                                else
-                                {
-                                    xmlTextReader?.Close();
-                                }
-                            }
-                            else
-                            {
-                                xmlTextReader?.Close();
-                            }
-                        }
-                    }
-                    // An Axicultus file without a complete list header is not read as a v3.2 file.
-                    loadedResult ??= "";
-                }
+                if (InMode == UsageMode.Worship) Load32WorshipList(DataType, text);
+                else Load32PraiseBook(DataType, text);
+                return "";
             }
-            catch
+            var document = ServiceListDocument.Read(text);
+            if (document.LegacyText != null)
             {
-                xmlTextReader?.Close();
+                if (InMode == UsageMode.Worship) Load32WorshipList(DataType, document.LegacyText);
+                else Load32PraiseBook(DataType, document.LegacyText);
+                return "";
             }
-        }
-        catch
-        {
-        }
-        if (loadedResult != null)
-        {
+            string format = document.FormatData ?? "";
+            Gf.WorshipListIDOK = Gf.SystemID == document.SystemId;
+            if (DataType == 2) return format;
+            Gf.LoadHeaderData(format, ref Gf.HeaderData, '>');
+            Gf.ApplyHeaderData();
+            if (DataType == 1)
+            {
+                if (InMode == UsageMode.Worship) { UpdateDefaultFields(); UpdateDisplayPanelFields(); }
+                return format;
+            }
+            using var connection = DbController.GetDbConnection(Gf.ConnectStringMainDB);
+            InList.Items.Clear();
+            InNotes = document.Notes ?? "";
+            foreach (var entry in document.Items)
+            {
+                var reference = LegacyListReference.Parse(entry.ItemId, entry.Title);
+                if (InMode == UsageMode.Worship)
+                    WriteItemtoWorshipList(connection, reference, reference.ContentPath ?? entry.Title, entry.Folder, entry.FormatData, -1);
+                else
+                    WriteItemtoPraiseBook(connection, reference, entry.Title, entry.Folder, entry.FormatData);
+            }
             LoadIndexFilePostAction(InMode);
-            return loadedResult;
+            return format;
         }
-        if (InMode == UsageMode.Worship)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException or XmlException or System.Text.Json.JsonException)
         {
-            Load32WorshipList(DataType);
+            WriteDebugLog($"Cannot read list {InFileName}: {ex.Message}");
+            return "";
         }
-        else
-        {
-            Load32PraiseBook(DataType);
-        }
-        return "";
     }
 
-    private void Load32WorshipList(int DataType)
+    private void Load32WorshipList(int DataType, string original = null)
     {
         Gf.TotalMusicFiles = -1;
-        string inFileName = Gf.WorshipDir + Gf.CurSession + ".esw";
-        gfFileHelpers.LoadFileContents(inFileName, ref InContents);
+        string inFileName = Gf.WorshipDir + Gf.CurSession + ".json";
+        if (original == null) gfFileHelpers.LoadFileContents(inFileName, ref InContents);
+        else InContents = original;
         int headerLength = Gf.Load32HeaderData(inFileName, InContents, ref Gf.HeaderData);
         if (headerLength < 1)
         {
@@ -1561,7 +1425,7 @@ public partial class FrmMain : Form
                 PraiseBookItems.Items[0].Selected = true;
                 //PraiseBookItems_SelectedIndexChanged(null, null);
             }
-            SavePraiseBook();
+            SavePraiseBook(persist: false);
         }
         Cursor = Cursors.Default;
     }
@@ -1570,131 +1434,22 @@ public partial class FrmMain : Form
     {
         try
         {
-            XmlTextReader xmlTextReader = new(InFileName);
-            try
+            var document = ServiceListDocument.Read(File.ReadAllText(InFileName));
+            using var connection = DbController.GetDbConnection(Gf.ConnectStringMainDB);
+            Gf.WorshipListIDOK = Gf.SystemID == document.SystemId;
+            InNotes += document.Notes;
+            foreach (var entry in document.Items)
             {
-                bool foundRoot = false;
-                bool foundListItem = false;
-                bool foundListHeader = false;
-                xmlTextReader.Read();
-                while (xmlTextReader.Read() && !foundRoot)
-                {
-                    if (xmlTextReader.NodeType == XmlNodeType.Element && ProductStorage.IsDocumentRoot(xmlTextReader.Name))
-                    {
-                        foundRoot = true;
-                    }
-                }
-                if (foundRoot)
-                {
-                    while (xmlTextReader.Read() && !foundListItem)
-                    {
-                        if (xmlTextReader.NodeType == XmlNodeType.Element && xmlTextReader.Name == "ListItem")
-                        {
-                            foundListItem = true;
-                        }
-                    }
-                    if (!foundListItem)
-                    {
-                        xmlTextReader?.Close();
-                    }
-                    else
-                    {
-                        while (xmlTextReader.Read() && !foundListHeader)
-                        {
-                            if (xmlTextReader.NodeType == XmlNodeType.Element && xmlTextReader.Name == "ListHeader")
-                            {
-                                foundListHeader = true;
-                            }
-                        }
-                        if (!foundListHeader)
-                        {
-                            xmlTextReader?.Close();
-                        }
-                        else
-                        {
-                            string itemId = "";
-                            string displayName = "";
-                            string folderName = "";
-                            string formatString = "";
-                            xmlTextReader.Read();
-                            Gf.WorshipListIDOK = false;
-                            if (xmlTextReader.NodeType == XmlNodeType.Element && xmlTextReader.Name == "SystemID")
-                            {
-                                if (Gf.SystemID == xmlTextReader.ReadElementContentAsString())
-                                {
-                                    Gf.WorshipListIDOK = true;
-                                }
-                                xmlTextReader.Read();
-                                if (xmlTextReader.NodeType == XmlNodeType.Element && xmlTextReader.Name == "FormatData")
-                                {
-                                    string formatData = xmlTextReader.ReadElementContentAsString();
-                                    xmlTextReader.Read();
-                                    if (xmlTextReader.NodeType == XmlNodeType.Element && xmlTextReader.Name == "Notes")
-                                    {
-                                        InNotes += xmlTextReader.ReadElementContentAsString();
-                                    }
-                                    // GetDbConnection opens a new connection for each call: it is closed when this block ends.
-                                    using DbConnection connection = DbController.GetDbConnection(Gf.ConnectStringMainDB);
-
-                                    while (xmlTextReader.Read())
-                                    {
-                                        switch (xmlTextReader.NodeType)
-                                        {
-                                            case XmlNodeType.Element:
-                                                switch (xmlTextReader.Name)
-                                                {
-                                                    case "ItemID":
-                                                        itemId = xmlTextReader.ReadElementContentAsString();
-                                                        break;
-                                                    case "Title1":
-                                                        displayName = xmlTextReader.ReadElementContentAsString();
-                                                        break;
-                                                    case "Folder":
-                                                        folderName = xmlTextReader.ReadElementContentAsString();
-                                                        break;
-                                                    case "FormatData":
-                                                        formatString = xmlTextReader.ReadElementContentAsString();
-                                                        break;
-                                                }
-                                                break;
-                                            case XmlNodeType.EndElement:
-                                                if (itemId != "")
-                                                {
-
-                                                    var reference = LegacyListReference.Parse(itemId, displayName);
-                                                    WriteItemtoWorshipList(connection, reference, reference.ContentPath ?? displayName, folderName, formatString, AddToLocation);
-
-                                                    itemId = "";
-                                                    displayName = "";
-                                                    folderName = "";
-                                                    formatString = "";
-                                                    AddToLocation++;
-                                                }
-                                                break;
-                                        }
-                                    }
-                                    xmlTextReader?.Close();
-                                    return true;
-                                }
-                                xmlTextReader?.Close();
-                            }
-                            else
-                            {
-                                xmlTextReader?.Close();
-                            }
-                        }
-                    }
-                }
+                var reference = LegacyListReference.Parse(entry.ItemId, entry.Title);
+                WriteItemtoWorshipList(connection, reference, reference.ContentPath ?? entry.Title, entry.Folder, entry.FormatData, AddToLocation++);
             }
-            catch
-            {
-                xmlTextReader?.Close();
-            }
+            return true;
         }
-        catch
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException or XmlException or System.Text.Json.JsonException)
         {
+            WriteDebugLog($"Cannot insert list {InFileName}: {ex.Message}");
+            return false;
         }
-        return false;
     }
 
     private void WriteItemtoWorshipList(DbConnection connection, LegacyListReference reference, string DisplayName1, string FolderName, string FormatString, int AddToLocation)
@@ -1912,7 +1667,7 @@ public partial class FrmMain : Form
             }
             Gf.TotalWorshipListItems = WorshipListItems.Items.Count;
 
-            string filePath = Gf.WorshipDir + Gf.CurSession + ".esw";
+            string filePath = Gf.WorshipDir + Gf.CurSession + ".json";
 
             // Get file size BEFORE save
             long fileSizeBefore = -1;
@@ -1922,31 +1677,7 @@ public partial class FrmMain : Form
             bool saveResult = gfFileHelpers.SaveIndexFile(filePath, ref WorshipListItems, UsageMode.Worship, SaveAllItems: true, "", Gf.CurSessionNotes);
 
             // Get file size AFTER save and count items in file
-            long fileSizeAfter = -1;
-            int itemCountInFile = -1;
-            try
-            {
-                if (System.IO.File.Exists(filePath))
-                {
-                    fileSizeAfter = new System.IO.FileInfo(filePath).Length;
-                    string fileContent = System.IO.File.ReadAllText(filePath);
-                    itemCountInFile = System.Text.RegularExpressions.Regex.Count(fileContent, "<Item>");
-                }
-            }
-            catch { }
-
-            string lastWriteAfter = "N/A";
-            try { if (System.IO.File.Exists(filePath)) lastWriteAfter = System.IO.File.GetLastWriteTime(filePath).ToString("yyyy-MM-dd HH:mm:ss.fff"); } catch { }
-            WriteDebugLog($"SaveIndexFile returned: {saveResult}, file size after: {fileSizeAfter} bytes, items in file: {itemCountInFile}, expected: {WorshipListItems.Items.Count}, file modified: {lastWriteAfter}");
-
-            if (!saveResult)
-            {
-                WriteDebugLog($"ERROR: SaveIndexFile returned FALSE - save FAILED!");
-            }
-            if (itemCountInFile != WorshipListItems.Items.Count)
-            {
-                WriteDebugLog($"ERROR: Item count mismatch! File has {itemCountInFile} items but expected {WorshipListItems.Items.Count}");
-            }
+            WriteDebugLog($"Saved {WorshipListItems.Items.Count} list entries to {filePath}: {saveResult}");
 
             if (PreloadPowerpoint)
             {

@@ -11,6 +11,8 @@ public partial class FrmEditItem
         SuspendLayout();
         try
         {
+            Menu_MainTools.DropDownItems.Add("악보 편집…", null, (_, _) =>
+                Axicultus.ScoreEditor.SongScoreEditor.Show(Handle, SongTitle.Text));
             LyricsEditorLayout.FileActions(Main_New, Main_Save, Main_SaveExit, Main_Import, Menu_Save);
             LyricsEditorLayout.AddFormattingRow(this, splitContainerMain, ComboFontName, ComboMainFontSize,
                 ComboNotationFontSize, toolStripSeparator4, Main_WordWrap, Main_ChordsMenu, toolStripSeparator2,

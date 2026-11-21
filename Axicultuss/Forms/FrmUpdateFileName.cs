@@ -95,7 +95,7 @@ namespace Axicultus;
 			string listExtension = "";
 			if (Gf.NameChangeAction == 1)
 			{
-				listExtension = ((InputDir == Gf.WorshipDir) ? ".esw" : ".esp");
+				listExtension = ".json";
 				if (!Gf.ValidateDirNameFormat(requestedName, ListText + " Title"))
 				{
 					return false;
@@ -119,7 +119,7 @@ namespace Axicultus;
 			}
 			else if (Gf.NameChangeAction == 2)
 			{
-				listExtension = ((InputDir == Gf.WorshipDir) ? ".esw" : ".esp");
+				listExtension = ".json";
 				if (!Gf.ValidateDirNameFormat(requestedName, ListText + " Title"))
 				{
 					return false;
@@ -149,7 +149,7 @@ namespace Axicultus;
 				}
 				if (Gf.NameChangeAction == 7)
 				{
-					string praiseBookPath = Gf.PraiseBookDir + DataUtil.Trim(tbFileName.Text) + ".esp";
+					string praiseBookPath = Gf.PraiseBookDir + DataUtil.Trim(tbFileName.Text) + ".json";
 					try
 					{
 						if (!File.Exists(praiseBookPath))
@@ -172,7 +172,7 @@ namespace Axicultus;
 				}
 				if (Gf.NameChangeAction == 8)
 				{
-					string worshipListPath = Gf.WorshipDir + DataUtil.Trim(tbFileName.Text) + ".esw";
+					string worshipListPath = Gf.WorshipDir + DataUtil.Trim(tbFileName.Text) + ".json";
 					try
 					{
 						if (!File.Exists(worshipListPath))

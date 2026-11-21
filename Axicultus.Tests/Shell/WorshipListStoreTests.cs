@@ -109,16 +109,17 @@ public sealed class WorshipListStoreTests : IDisposable
             settings.Set(AxicultusSettingKeys.WorkingFolder, root);
             var legacyDir = Path.Combine(root, "Admin", "WorshipLists");
             Directory.CreateDirectory(legacyDir);
-            await File.WriteAllTextAsync(Path.Combine(legacyDir, "1.Sunday.esw"), "<Axicultus />");
+            await File.WriteAllTextAsync(Path.Combine(legacyDir, "1.Sunday.esw"), "<Axicultus><ListItem><ListHeader><Notes>주일</Notes></ListHeader></ListItem></Axicultus>");
 
             var store = new WorshipListStore(_dir, settings);
             await store.SaveAsync("WpfJson", Array.Empty<LiveQueueItem>());
 
             store.ListNames().Should().Contain(new[] { "1.Sunday", "WpfJson" });
             var xml = await ((ILegacyWorshipListStore)store).LoadLegacyXmlAsync("1.Sunday");
-            xml.Should().Contain("Axicultus");
+            Axicultus.Module.ServiceListDocument.ReadJson(xml!).Notes.Should().Be("주일");
             store.MoveToTrash("1.Sunday");
-            File.Exists(Path.Combine(legacyDir, "Trash", "1.Sunday.esw")).Should().BeTrue();
+            File.Exists(Path.Combine(legacyDir, "Json", "Trash", "1.Sunday.json")).Should().BeTrue();
+            File.Exists(Path.Combine(legacyDir, "1.Sunday.esw")).Should().BeTrue();
             store.ListNames().Should().Equal("WpfJson");
         }
         finally
@@ -139,7 +140,7 @@ public sealed class WorshipListStoreTests : IDisposable
             var legacyRoot = Path.Combine(root, "LegacyRoot");
             var legacyDir = Path.Combine(legacyRoot, "Admin", "WorshipLists");
             Directory.CreateDirectory(legacyDir);
-            await File.WriteAllTextAsync(Path.Combine(legacyDir, "1.Sunday.esw"), "<Axicultus />");
+            await File.WriteAllTextAsync(Path.Combine(legacyDir, "1.Sunday.esw"), "<Axicultus><ListItem><ListHeader><Notes>주일</Notes></ListHeader></ListItem></Axicultus>");
             var settings = new SettingsService(new SettingsServiceOptions(
                 Path.Combine(root, "settings.json"),
                 Path.Combine(root, "Backups"),
@@ -149,7 +150,7 @@ public sealed class WorshipListStoreTests : IDisposable
 
             store.ListNames().Should().Contain("1.Sunday");
             var xml = await ((ILegacyWorshipListStore)store).LoadLegacyXmlAsync("1.Sunday");
-            xml.Should().Contain("Axicultus");
+            Axicultus.Module.ServiceListDocument.ReadJson(xml!).Notes.Should().Be("주일");
         }
         finally
         {

@@ -52,6 +52,9 @@ public partial class SongEditorWindow : Window
         Close();
     }
 
+    private void ScoreClick(object sender, RoutedEventArgs e) =>
+        Axicultus.ScoreEditor.SongScoreEditor.Show(new System.Windows.Interop.WindowInteropHelper(this).Handle, _viewModel.Title);
+
     private void Close_Click(object sender, RoutedEventArgs e)
     {
         Close();

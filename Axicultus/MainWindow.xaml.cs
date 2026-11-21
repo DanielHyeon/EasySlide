@@ -3374,7 +3374,7 @@ public partial class MainWindow : Window
         var dialog = new Microsoft.Win32.OpenFileDialog
         {
             Title = "가져올 레거시 예배 순서(.esw) 선택",
-            Filter = "Axicultus 예배 순서 (*.esw)|*.esw|모든 파일 (*.*)|*.*",
+            Filter = "Axicultus 예배 순서 (*.esw;*.json)|*.esw;*.json|모든 파일 (*.*)|*.*",
             CheckFileExists = true,
         };
 

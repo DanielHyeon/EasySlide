@@ -52,7 +52,7 @@ public sealed partial class MediaLibraryViewModel : ObservableObject
 
     // 하위 폴더 포함 토글 시 즉시 다시 읽는다.
     [ObservableProperty]
-    private bool _includeSubfolders;
+    private bool _includeSubfolders = true;
 
     public MediaLibraryViewModel(
         IMediaLibraryService service,

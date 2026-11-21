@@ -51,10 +51,8 @@ namespace Axicultus;
 
 		public static void CovertItemsTov4()
 		{
-			WorshipDir = RootAxicultusDir + "Admin\\WorshipLists\\";
-			RenameExtensions(WorshipDir, ".dat", ".esw");
-			PraiseBookDir = RootAxicultusDir + "Admin\\PraiseBooks\\";
-			RenameExtensions(PraiseBookDir, ".dat", ".esp");
+			RenameExtensions(Path.Combine(RootAxicultusDir, "Admin", "WorshipLists") + Path.DirectorySeparatorChar, ".dat", ".esw");
+			RenameExtensions(Path.Combine(RootAxicultusDir, "Admin", "PraiseBooks") + Path.DirectorySeparatorChar, ".dat", ".esp");
 			string name = "music_dir";
 			string regValue = RegUtil.GetRegValue("config", name, RootAxicultusDir + "Music\\");
 			if (regValue == RootAxicultusDir + "Music\\")
@@ -414,11 +412,7 @@ namespace Axicultus;
 				Folders[i].FindSongs = true;
 			}
 			RootAxicultusDir = RegUtil.GetRegValue("config", "root_directory", DefaultAxicultusDir);
-			WorshipDir = $@"{RootAxicultusDir}Admin\WorshipLists\";
-			if (!Directory.Exists(WorshipDir))
-			{
-				FileUtil.MakeDir(WorshipDir);
-			}
+			WorshipDir = Axicultus.Module.ServiceListDocument.WorkingDirectory(Path.Combine(RootAxicultusDir, "Admin", "WorshipLists"), ".esw") + Path.DirectorySeparatorChar;
 			InfoScreenDir = $@"{RootAxicultusDir}InfoScreens\";
 			if (!Directory.Exists(InfoScreenDir))
 			{
@@ -434,11 +428,7 @@ namespace Axicultus;
 			{
 				FileUtil.MakeDir(BibleDir);
 			}
-			PraiseBookDir = $@"{RootAxicultusDir}Admin\PraiseBooks\";
-			if (!Directory.Exists(PraiseBookDir))
-			{
-				FileUtil.MakeDir(PraiseBookDir);
-			}
+			PraiseBookDir = Axicultus.Module.ServiceListDocument.WorkingDirectory(Path.Combine(RootAxicultusDir, "Admin", "PraiseBooks"), ".esp") + Path.DirectorySeparatorChar;
 			WorshipTemplatesDir = $@"{RootAxicultusDir}Admin\Templates\WorshipListsTemplates\";
 			if (!Directory.Exists(WorshipTemplatesDir))
 			{

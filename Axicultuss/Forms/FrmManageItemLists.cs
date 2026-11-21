@@ -74,7 +74,7 @@ namespace Axicultus;
 			bool foundCurrentList = false;
 			ItemList.Items.Clear();
 			Gf.ValidateDir(InputDir, CreateDir: true);
-			Ext_ToUse = ((InputDir == Gf.WorshipDir) ? ".esw" : ".esp");
+			Ext_ToUse = ".json";
 			string[] files = Directory.GetFiles(InputDir, "*" + Ext_ToUse);
 			foreach (string listPath in files)
 			{
@@ -141,7 +141,7 @@ namespace Axicultus;
 			if (!Directory.Exists(TrashDir))
 				return;
 
-			Ext_ToUse = ((InputDir == Gf.WorshipDir) ? ".esw" : ".esp");
+			Ext_ToUse = ".json";
 			string[] files = Directory.GetFiles(TrashDir, "*" + Ext_ToUse);
 			foreach (string deletedListPath in files)
 			{

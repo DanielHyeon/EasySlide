@@ -24,12 +24,13 @@ internal static class FolderFileEnumerator
 
         try
         {
-            var option = includeSubfolders ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
+            var option = Axicultus.Module.SourceFileFolder.SearchOptions(includeSubfolders);
             return Directory
                 .EnumerateFiles(folderPath, "*", option)
                 .Where(path => extensions.Contains(Path.GetExtension(path)) &&
                     (!skipOfficeOwnerFiles || !Path.GetFileName(path).StartsWith("~$", StringComparison.Ordinal)))
                 .OrderBy(path => Path.GetFileName(path), StringComparer.OrdinalIgnoreCase)
+                .ThenBy(path => path, StringComparer.OrdinalIgnoreCase)
                 .ToList();
         }
         catch (IOException)

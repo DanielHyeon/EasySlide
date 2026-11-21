@@ -1284,7 +1284,7 @@ public partial class FrmMain : Form
         Cursor = Cursors.Default;
     }
 
-    private void SavePraiseBook()
+    private void SavePraiseBook(bool persist = true)
     {
         if (DataUtil.Trim(PraiseBook.Text) != "")
         {
@@ -1297,8 +1297,7 @@ public partial class FrmMain : Form
                 Gf.DocumentSongs[i].IdString = DataUtil.Trim(PraiseBookItems.Items[i - 1].SubItems[3].Text);
                 Gf.DocumentSongs[i].NumberAndInfo = "";
             }
-            FileUtil.CreateNewFile(Gf.PraiseBookDir + Gf.CurPraiseBook + ".esp");
-            gfFileHelpers.SaveIndexFile(Gf.PraiseBookDir + Gf.CurPraiseBook + ".esp", ref PraiseBookItems, UsageMode.PraiseBook, SaveAllItems: true, "", Gf.CurPraiseBookNotes);
+            if (persist) gfFileHelpers.SaveIndexFile(Gf.PraiseBookDir + Gf.CurPraiseBook + ".json", ref PraiseBookItems, UsageMode.PraiseBook, SaveAllItems: true, "", Gf.CurPraiseBookNotes);
         }
     }
 
@@ -3790,7 +3789,7 @@ public partial class FrmMain : Form
                 powerpointCount++;
             }
         }
-        string filter = "Valid External Files (*.ppt,*.pptx,*.doc,*.docx,*.txt,*.esi,*.esw)|*.ppt;*.pptx;*.doc;*.docx;*.txt;*.esi;*.esw|Powerpoint Files (*.ppt)|*.ppt|Powerpoint Files (*.pptx)|*.pptx|Word Documents (*.doc)|*.doc|Word Documents (*.docx)|*.docx|Text Files (*.txt)|*.txt|InfoScreens (*.esi)|*.esi|Worship Lists (*.esw)|*.esw";
+        string filter = "Valid External Files (*.ppt,*.pptx,*.doc,*.docx,*.txt,*.esi,*.esw,*.json)|*.ppt;*.pptx;*.doc;*.docx;*.txt;*.esi;*.esw;*.json|Powerpoint Files (*.ppt)|*.ppt|Powerpoint Files (*.pptx)|*.pptx|Word Documents (*.doc)|*.doc|Word Documents (*.docx)|*.docx|Text Files (*.txt)|*.txt|InfoScreens (*.esi)|*.esi|Worship Lists (*.esw;*.json)|*.esw;*.json";
         if (Gf.MediaFileExtensions.Count > 0)
         {
             string mediaLabel = "";
@@ -3876,7 +3875,7 @@ public partial class FrmMain : Form
             typeSymbol = "M";
             imageIndex = 28;
         }
-        else if (extension == ".esw")
+        else if (extension is ".esw" or ".json")
         {
             bool inserted = InsertIndexFileItems(FullPathFileName, ref WorshipListItems, AddToLocation, ref Gf.CurSessionNotes);
             if (inserted)
@@ -4162,7 +4161,7 @@ public partial class FrmMain : Form
                     bool isDoc = strExt is ".doc" or ".docx";
                     bool isText = strExt == ".txt";
                     bool isInfo = strExt == ".esi";
-                    bool isWorship = strExt == ".esw";
+                    bool isWorship = strExt is ".esw" or ".json";
                     bool isMedia = ValidMediaExt(strExt);
                     if ((!isPowerpoint && !isDoc && !isText && !isInfo && !isWorship && !isMedia) || (isPowerpoint && Gf.ShowRunning))
                     {
@@ -6382,7 +6381,7 @@ public partial class FrmMain : Form
         {
             try
             {
-                string sourceFile = Gf.WorshipDir + currentSession + ".esw";
+                string sourceFile = Gf.WorshipDir + currentSession + ".json";
                 string trashDir = Gf.WorshipDir + "Trash\\";
 
                 if (!Directory.Exists(trashDir))
@@ -6390,12 +6389,12 @@ public partial class FrmMain : Form
                     Directory.CreateDirectory(trashDir);
                 }
 
-                string destFile = trashDir + currentSession + ".esw";
+                string destFile = trashDir + currentSession + ".json";
 
                 if (File.Exists(destFile))
                 {
                     string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-                    destFile = trashDir + currentSession + "_" + timestamp + ".esw";
+                    destFile = trashDir + currentSession + "_" + timestamp + ".json";
                 }
 
                 if (File.Exists(sourceFile))
@@ -8372,7 +8371,7 @@ public partial class FrmMain : Form
             var index = MediaFolder.SelectedIndex;
             if (index < 0 || index >= Gf.MediaGroups.Count) return;
             var extensions = Gf.MediaFileExtensions.Select(media => media.Extension).ToHashSet(StringComparer.OrdinalIgnoreCase);
-            foreach (var path in Directory.EnumerateFiles(Gf.MediaGroups[index].Path)
+            foreach (var path in Directory.EnumerateFiles(Gf.MediaGroups[index].Path, "*", SourceFileFolder.SearchOptions(true))
                          .Where(path => extensions.Contains(Path.GetExtension(path))).Order(StringComparer.CurrentCultureIgnoreCase))
             {
                 var row = MediaList.Items.Add(Path.GetFileName(path));

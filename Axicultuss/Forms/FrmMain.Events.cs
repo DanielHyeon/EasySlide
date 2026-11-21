@@ -295,20 +295,8 @@ public partial class FrmMain : Form
         {
             try
             {
-                string filePath = Gf.WorshipDir + Gf.CurSession + ".esw";
-                int itemCountInFile = -1;
-                string lastWriteTime = "N/A";
-                try
-                {
-                    if (System.IO.File.Exists(filePath))
-                    {
-                        string fileContent = System.IO.File.ReadAllText(filePath);
-                        itemCountInFile = System.Text.RegularExpressions.Regex.Count(fileContent, "<Item>");
-                        lastWriteTime = System.IO.File.GetLastWriteTime(filePath).ToString("yyyy-MM-dd HH:mm:ss.fff");
-                    }
-                }
-                catch { }
-                WriteDebugLog($"=== FORM CLOSING === File: {filePath}, Items in file: {itemCountInFile}, Items in ListView: {WorshipListItems.Items.Count}, File last modified: {lastWriteTime}, UpdatingFormatFields: {UpdatingFormatFields}");
+                string filePath = Gf.WorshipDir + Gf.CurSession + ".json";
+                WriteDebugLog($"Closing with {WorshipListItems.Items.Count} items in {filePath}");
 
                 if (atSessionEnd)
                 {

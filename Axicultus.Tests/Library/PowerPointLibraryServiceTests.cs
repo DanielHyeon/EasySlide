@@ -25,7 +25,7 @@ public class PowerPointLibraryServiceTests : IDisposable
         var external = Path.Combine(_dir, "주일 예배");
         Directory.CreateDirectory(builtIn);
         foreach (var name in new[] { "1.PPT", "2.pptx", "~$2.pptx", "3.mp3", "4.MP4", "5.txt" })
-            Touch(Path.Combine("주일 예배", name));
+            Touch(Path.Combine("주일 예배", "주일", "2부", name));
 
         var added = new System.Collections.Generic.List<string>();
         var presentations = new PowerPointLibraryViewModel(new PowerPointLibraryService(), added.Add, builtIn, sourceFolder: external);
@@ -39,7 +39,7 @@ public class PowerPointLibraryServiceTests : IDisposable
         presentations.AddSelectedCommand.Execute(null);
         media.SelectedFile = media.MediaFiles[0];
         media.AddSelectedCommand.Execute(null);
-        added.Should().Equal(Path.Combine(external, "2.pptx"), Path.Combine(external, "3.mp3"));
+        added.Should().Equal(Path.Combine(external, "주일", "2부", "2.pptx"), Path.Combine(external, "주일", "2부", "3.mp3"));
         media.ChangeSourceFolder(builtIn + Path.DirectorySeparatorChar);
         media.FolderGroups.Should().ContainSingle();
         media.MediaFiles.Should().BeEmpty();

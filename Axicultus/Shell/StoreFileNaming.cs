@@ -10,6 +10,21 @@ namespace Axicultus.Wpf.Shell;
 /// </summary>
 internal static class StoreFileNaming
 {
+    public static void RenameList(string oldPath, string newPath, string? oldImport, string? newImport)
+    {
+        bool local = File.Exists(oldPath), imported = File.Exists(oldImport);
+        if ((!local && !imported) || string.Equals(oldPath, newPath, StringComparison.OrdinalIgnoreCase)) return;
+        if (File.Exists(newPath) || File.Exists(newImport))
+            throw new ArgumentException($"이미 있는 이름입니다: {Path.GetFileNameWithoutExtension(newPath)}");
+        if (imported) File.Move(oldImport!, newImport!);
+        try { if (local) File.Move(oldPath, newPath); }
+        catch
+        {
+            if (imported) File.Move(newImport!, oldImport!);
+            throw;
+        }
+    }
+
     /// <summary>이름을 안전한 "{directory}/{name}.json" 절대 경로로 해석. 위반 시 ArgumentException.</summary>
     /// <param name="kindLabel">오류 메시지에 쓸 대상 이름(예: "예배 순서", "찬양집").</param>
     public static string ResolveJsonPath(string directory, string name, string kindLabel)

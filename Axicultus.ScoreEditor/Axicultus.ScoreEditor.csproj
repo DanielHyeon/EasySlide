@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net11.0-windows7.0</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <Using Include="System.IO" />
+    <EmbeddedResource Include="SlideTemplate.pptx" LogicalName="ScoreSlideTemplate" />
+    <None Update="Bravura.otf" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Bravura-LICENSE.txt" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="MuseScore-LICENSE.txt" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

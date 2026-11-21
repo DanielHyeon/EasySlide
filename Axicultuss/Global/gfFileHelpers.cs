@@ -216,6 +216,24 @@ static class gfFileHelpers
         XmlTextWriter xtw = null;
         try
         {
+            if (ServiceListDocument.IsListPath(InFileName))
+            {
+                var entries = new System.Collections.Generic.List<ServiceListEntry>();
+                if (SaveAllItems)
+                {
+                    foreach (ListViewItem item in InList.Items)
+                    {
+                        string id, title, folder, format;
+                        if (InMode == UsageMode.Worship)
+                            ExtractWorshipItemData(item, out id, out title, out folder, out format);
+                        else
+                            ExtractPraiseBookItemData(item, out id, out title, out folder, out format);
+                        entries.Add(new(id, title, folder, format));
+                    }
+                }
+                new ServiceListDocument(1, Gf.SystemID, Gf.GetListFormat(InFormatString), InNotes, entries).Save(InFileName);
+                return true;
+            }
             xtw = new XmlTextWriter(InFileName, Encoding.UTF8);
             xtw.Formatting = Formatting.Indented;
             xtw.WriteStartDocument();

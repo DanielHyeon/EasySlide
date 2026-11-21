@@ -6,6 +6,11 @@ namespace Axicultus.Module;
 
 public static class SourceFileFolder
 {
+    public static EnumerationOptions SearchOptions(bool recursive) => new()
+    {
+        RecurseSubdirectories = recursive, IgnoreInaccessible = true, AttributesToSkip = FileAttributes.ReparsePoint
+    };
+
     // Keep the built-in folders in place, including their indices used by WinForms.
     public static int IncludeSelection<T>(IList<T> folders, string? configuredPath,
         Func<T, string> getPath, Func<string, T> create)

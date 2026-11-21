@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Xml.Linq;
 using Axicultus.Module;
@@ -36,6 +37,23 @@ public static class EswWorshipListParser
         sessionNotes = null;
         var items = new List<T>();
         if (string.IsNullOrWhiteSpace(xml)) return items;
+
+        if (xml.AsSpan().TrimStart().StartsWith("{"))
+        {
+            ServiceListDocument document;
+            try { document = ServiceListDocument.ReadJson(xml); }
+            catch (System.Text.Json.JsonException) { return items; }
+            catch (System.IO.InvalidDataException) { return items; }
+            sessionFormat = document.FormatData;
+            sessionNotes = document.Notes;
+            foreach (var entry in document.Items)
+            {
+                if (string.IsNullOrWhiteSpace(entry.ItemId)) continue;
+                var item = project(LegacyListReference.Parse(entry.ItemId, entry.Title), entry.Title, entry.Folder, entry.FormatData);
+                if (item is not null) items.Add(item);
+            }
+            return items;
+        }
 
         using var input = new System.IO.StringReader(xml);
         using var reader = System.Xml.XmlReader.Create(input);

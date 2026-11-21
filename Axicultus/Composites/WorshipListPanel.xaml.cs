@@ -119,11 +119,11 @@ public partial class WorshipListPanel : UserControl
         var dialog = new Microsoft.Win32.OpenFileDialog
         {
             Title = "예배 순서에 추가할 외부 파일 선택",
-            Filter = "Valid External Files (*.ppt;*.pptx;*.doc;*.docx;*.txt;*.esi;*.esw)|*.ppt;*.pptx;*.doc;*.docx;*.txt;*.esi;*.esw"
+            Filter = "Valid External Files (*.ppt;*.pptx;*.doc;*.docx;*.txt;*.esi;*.esw;*.json)|*.ppt;*.pptx;*.doc;*.docx;*.txt;*.esi;*.esw;*.json"
                 + "|PowerPoint (*.ppt;*.pptx)|*.ppt;*.pptx"
                 + "|Word 문서 (*.doc;*.docx)|*.doc;*.docx"
                 + "|Text/InfoScreen (*.txt;*.esi)|*.txt;*.esi"
-                + "|Worship Lists (*.esw)|*.esw"
+                + "|Worship Lists (*.esw;*.json)|*.esw;*.json"
                 + "|미디어 (*.mp4;*.avi;*.wmv;*.mov;*.mkv;*.mp3;*.wav;*.wma)|*.mp4;*.avi;*.wmv;*.mov;*.mkv;*.mp3;*.wav;*.wma"
                 + "|모든 파일 (*.*)|*.*",
             CheckFileExists = true,
