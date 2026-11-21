@@ -1164,6 +1164,9 @@
                               Margin="0,0,8,0"
                               ToolTip="Rotate Style"
                               AutomationProperties.Name="Main_RotateStyle Rotate Style" Width="38">
+                        <ComboBox.Resources>
+                            <Visibility x:Key="RotateOptionLabelVisibility">Collapsed</Visibility>
+                        </ComboBox.Resources>
                         <ComboBox.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal">
@@ -1185,23 +1188,15 @@
                                             </Style>
                                         </Image.Style>
                                     </Image>
-                                    <TextBlock Text="{Binding Text}" Margin="5,0,0,0">
-                                        <TextBlock.Style>
-                                            <Style TargetType="TextBlock">
-                                                <Setter Property="Visibility" Value="Visible" />
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=ComboBoxItem}}" Value="{x:Null}">
-                                                        <Setter Property="Visibility" Value="Collapsed" />
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </TextBlock.Style>
-                                    </TextBlock>
+                                    <TextBlock Text="{Binding Text}" Margin="5,0,0,0" Visibility="{DynamicResource RotateOptionLabelVisibility}" />
                                 </StackPanel>
                             </DataTemplate>
                         </ComboBox.ItemTemplate>
                         <ComboBox.ItemContainerStyle>
                             <Style TargetType="ComboBoxItem">
+                                <Style.Resources>
+                                    <Visibility x:Key="RotateOptionLabelVisibility">Visible</Visibility>
+                                </Style.Resources>
                                 <Setter Property="MinWidth" Value="200" />
                                 <Setter Property="Tag" Value="{Binding LegacyTag}" />
                                 <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
@@ -1628,6 +1623,7 @@
                 </TabItem>
                 <TabItem Tag="InfoScreenSource"
                          x:Name="InfoScreenSourceTab"
+                         DataContext="{x:Null}"
                          AutomationProperties.Name="InfoScr source">
                     <TabItem.Header>
                         <TextBlock Text="InfoScr" FontSize="{Binding FontSize, RelativeSource={RelativeSource AncestorType=TabItem}}" />
@@ -1682,6 +1678,7 @@
                                  SelectedItem="{Binding SelectedScreen, Mode=TwoWay}"
                                  SelectionMode="Extended"
                                  DisplayMemberPath="Name"
+                                 SelectionChanged="InlineInfoScreenList_SelectionChanged"
                                  KeyDown="InlineInfoScreenList_KeyDown"
                                  MouseDoubleClick="InlineInfoScreenList_MouseDoubleClick"
                                  PreviewMouseLeftButtonDown="InlineInfoScreenList_PreviewMouseLeftButtonDown"
@@ -1732,6 +1729,7 @@
                 </TabItem>
                 <TabItem Tag="PowerPointSource"
                          x:Name="PowerPointSourceTab"
+                         DataContext="{x:Null}"
                          Visibility="{Binding DataContext.IsPowerPointTabVisible, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolToVis}}"
                          AutomationProperties.Name="PowerPoint source">
                     <TabItem.Header>
@@ -1800,6 +1798,11 @@
                                               IsChecked="{Binding IsPreviewStyle, Mode=OneWay}">
                                         <MenuItem.Icon><controls:FrmIcon Icon="grid" Width="20" Height="20" /></MenuItem.Icon>
                                     </MenuItem>
+                                    <Separator />
+                                    <MenuItem Header="장 번호순" IsCheckable="True" IsChecked="{Binding IsHymnNumberSort, Mode=OneWay}"
+                                              Command="{Binding SelectSortOrderCommand}" CommandParameter="{x:Static ppt:PowerPointSortOrder.HymnNumber}" />
+                                    <MenuItem Header="가나다순" IsCheckable="True" IsChecked="{Binding IsTitleSort, Mode=OneWay}"
+                                              Command="{Binding SelectSortOrderCommand}" CommandParameter="{x:Static ppt:PowerPointSortOrder.Title}" />
                                 </MenuItem>
                             </Menu>
                             <StackPanel Grid.Column="2" Orientation="Horizontal">
@@ -2186,6 +2189,7 @@
                 <!-- Inline external source tabs restore the FrmMain left-browser PowerP/Media workflow. -->
                 <TabItem Tag="ImagesSource"
                          x:Name="ImagesSourceTab"
+                         DataContext="{x:Null}"
                          AutomationProperties.Name="Images">
                     <TabItem.Header>
                         <TextBlock Text="Images" FontSize="{Binding FontSize, RelativeSource={RelativeSource AncestorType=TabItem}}" />
@@ -2265,6 +2269,7 @@
                 </TabItem>
                 <TabItem Tag="MediaSource"
                          x:Name="MediaSourceTab"
+                         DataContext="{x:Null}"
                          Visibility="{Binding DataContext.IsMediaTabVisible, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolToVis}}"
                          AutomationProperties.Name="Media source">
                     <TabItem.Header>
@@ -2319,6 +2324,7 @@
                                  SelectedItem="{Binding SelectedFile, Mode=TwoWay}"
                                  SelectionMode="Extended"
                                  DisplayMemberPath="FileName"
+                                 SelectionChanged="InlineMediaList_SelectionChanged"
                                  KeyDown="InlineMediaList_KeyDown"
                                  MouseDoubleClick="InlineMediaList_MouseDoubleClick"
                                  PreviewMouseLeftButtonDown="InlineMediaList_PreviewMouseLeftButtonDown"
@@ -2761,6 +2767,7 @@
                     </TabItem>
                     <TabItem Tag="PraiseBook"
                              x:Name="PraiseBookTab"
+                             DataContext="{x:Null}"
                              AutomationProperties.Name="Praise Book">
                         <TabItem.Header>
                             <TextBlock Text="Praise Book" FontSize="{Binding FontSize, RelativeSource={RelativeSource AncestorType=TabItem}}" />

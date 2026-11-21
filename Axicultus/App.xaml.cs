@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
@@ -36,6 +37,7 @@ public partial class App : Application
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(settingsOptions);
         ArgumentNullException.ThrowIfNull(dispatcher);
+        string profileDirectory = Path.GetDirectoryName(Path.GetFullPath(settingsOptions.SettingsFilePath))!;
 
         // 디자인 시스템 — 런타임 테마/스케일 변경 (ADR-0006)
         services.AddSingleton<IThemeService, ThemeService>();
@@ -76,7 +78,7 @@ public partial class App : Application
         services.AddSingleton<IPowerPointRenderService>(sp => new PowerPointRenderService(
             sp.GetRequiredService<IPowerPointRenderBackend>(),
             sp.GetRequiredService<ISettingsService>(),
-            System.IO.Path.Combine(System.IO.Path.GetDirectoryName(System.IO.Path.GetFullPath(settingsOptions.SettingsFilePath))!, "Cache", "PowerPoint")));
+            Path.Combine(profileDirectory, "Cache", "PowerPoint")));
         services.AddSingleton<IPowerPointSlideShowControl, OfficePowerPointSlideShowControl>();
 
         // M1 운영 셸 — 라이브 세션, 출력 창 상태, 안전 확인, 명령 기록
@@ -84,9 +86,8 @@ public partial class App : Application
         services.AddSingleton<Captions.CaptionSession>();
         services.AddSingleton<Captions.CaptionBroadcastServer>();
         services.AddSingleton(_ => new Captions.ObsOperator(
-            System.IO.Path.GetDirectoryName(System.IO.Path.GetFullPath(settingsOptions.SettingsFilePath))!, dispatcher));
-        services.AddSingleton(_ => new Captions.CaptionRecoveryStore(System.IO.Path.Combine(
-            System.IO.Path.GetDirectoryName(System.IO.Path.GetFullPath(settingsOptions.SettingsFilePath))!, "CaptionRecovery")));
+            profileDirectory, dispatcher));
+        services.AddSingleton(_ => new Captions.CaptionRecoveryStore(Path.Combine(profileDirectory, "CaptionRecovery")));
         services.AddSingleton<IOutputWindowService, OutputWindowService>();
         // 미디어 백엔드 — 생명주기 브리지(출력 창의 MediaElement 가 만들어지면 실제 백엔드를 Attach).
         // 동일 인스턴스를 IMediaPlaybackBackend(서비스용)과 구체 타입(출력 창 Attach용) 양쪽으로 노출.
@@ -101,12 +102,14 @@ public partial class App : Application
         services.AddSingleton<IMediaPlaybackService>(sp => sp.GetRequiredService<MediaPlaybackService>());
         services.AddSingleton<ILiveSafetyPrompt, WpfLiveSafetyPrompt>();
         services.AddSingleton<ICommandTelemetry, InMemoryCommandTelemetry>();
-        services.AddSingleton<IWorshipListStore, WorshipListStore>();
+        services.AddSingleton<IWorshipListStore>(sp => new WorshipListStore(Path.Combine(profileDirectory, "WorshipLists"), sp.GetRequiredService<ISettingsService>()));
+        services.AddSingleton(_ => new WorshipSessionNotesService(Path.Combine(profileDirectory, "SessionNotes")));
+        services.AddSingleton(_ => new RecentItemEdits(Path.Combine(profileDirectory, "recent-item-edits.json")));
         services.AddSingleton<IPraiseBookIndexService, PraiseBookIndexService>();
-        services.AddSingleton<IPraiseBookStore, PraiseBookStore>();
-        services.AddSingleton<IInfoScreenStore, InfoScreenStore>();
-        services.AddSingleton<IRecentWorshipLists, RecentWorshipListsService>();
-        services.AddSingleton<IAppearanceTemplateStore, AppearanceTemplateStore>();
+        services.AddSingleton<IPraiseBookStore>(sp => new PraiseBookStore(Path.Combine(profileDirectory, "PraiseBooks"), sp.GetRequiredService<ISettingsService>()));
+        services.AddSingleton<IInfoScreenStore>(sp => new InfoScreenStore(Path.Combine(profileDirectory, "InfoScreens"), sp.GetRequiredService<ISettingsService>()));
+        services.AddSingleton<IRecentWorshipLists>(_ => new RecentWorshipListsService(Path.Combine(profileDirectory, "recent-worshiplists.json")));
+        services.AddSingleton<IAppearanceTemplateStore>(_ => new AppearanceTemplateStore(Path.Combine(profileDirectory, "AppearanceTemplates")));
         services.AddTransient<MediaPlaybackViewModel>();
         services.AddTransient<PowerPointPreviewViewModel>();
         services.AddTransient<LibraryViewModel>();

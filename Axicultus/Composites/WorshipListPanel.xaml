@@ -326,10 +326,14 @@
                                                     AutomationProperties.Name="{Binding Title}">
                                             <!-- 마우스 올리면 "종류 — 전체 제목" 툴팁 — 아이콘 뜻 설명 + 길어서 잘린 제목 전체 보기. -->
                                             <StackPanel.ToolTip>
-                                                <MultiBinding StringFormat="{}{0} — {1}">
-                                                    <Binding Path="Kind" Converter="{StaticResource KindToLabel}" />
-                                                    <Binding Path="Title" />
-                                                </MultiBinding>
+                                                <TextBlock>
+                                                    <TextBlock.Text>
+                                                        <MultiBinding StringFormat="{}{0} — {1}">
+                                                            <Binding Path="Kind" Converter="{StaticResource KindToLabel}" />
+                                                            <Binding Path="Title" />
+                                                        </MultiBinding>
+                                                    </TextBlock.Text>
+                                                </TextBlock>
                                             </StackPanel.ToolTip>
                                             <TextBlock Text="{Binding Title}"
                                                        VerticalAlignment="Center"

@@ -2805,7 +2805,10 @@ public partial class MainViewModelTests
         var notice = new LiveQueueItem("text:notice", "공지", LiveItemKinds.Notice) { Lyrics = "공지" };
         var malformed = new LiveQueueItem("song:not-number", "깨진 곡", LiveItemKinds.Song) { Lyrics = "[1]\n깨짐" };
         var second = new LiveQueueItem("song:11", "봉헌", LiveItemKinds.Song) { SongNumber = 9, Lyrics = "[1]\n봉헌" };
+        sut.LoadQueue([notice, malformed]);
+        Assert.False(sut.CanAddWorshipListSongsToUsages);
         sut.LoadQueue([first, notice, malformed, second]);
+        Assert.True(sut.CanAddWorshipListSongsToUsages);
         sut.SelectedItem = notice;
 
         var added = await sut.AddWorshipListSongsToUsagesAsync();
@@ -4841,6 +4844,30 @@ public partial class MainViewModelTests
         sut.SelectedItem.Should().BeSameAs(only, "다음 항목이 없으면 Preview 선택은 그대로 둔다");
         sut.Session.Current.State.Should().Be(LiveState.Off);
         sut.StatusText.Should().Be("Output 준비: 마지막 찬양");
+    }
+
+    [Fact]
+    public void BrowsingInfoScreenAndMedia_ChangesPreviewWithoutTakingOrStoppingLiveContent()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        var song = sut.AddTextItem("Live")!;
+        sut.CopyPreviewToOutputCommand.Execute(null);
+        var output = sut.OutputItem;
+        sut.PreviewMediaSource(@"C:\media\First.wav");
+        sut.Media.PlayPauseCommand.Execute(null);
+
+        var options = new NoticeOptions(Bold: true);
+        sut.PreviewInfoScreenSource(new InfoScreenSelection(@"Sunday\Notice", "Announcements", options));
+        sut.PreviewPanelTitleText.Should().Be("Notice");
+        sut.PreviewPanelItem!.Lyrics.Should().Be("Announcements");
+        sut.PreviewPanelItem.FormatData.Should().Be(MainViewModel.BuildNoticeFormatData(options));
+        sut.PreviewMediaSource(@"C:\media\Second.wav");
+        sut.PreviewPanelTitleText.Should().Be("Second");
+        sut.Media.State.Should().Be(MediaPlaybackState.Playing);
+        sut.Media.Source.Should().Be(@"C:\media\First.wav");
+        sut.Queue.Should().ContainSingle().Which.Should().BeSameAs(song);
+        sut.SelectedItem.Should().BeSameAs(song);
+        sut.OutputItem.Should().BeSameAs(output);
     }
 
     [Fact]

@@ -20,6 +20,24 @@ namespace Axicultus.Wpf.Tests;
 public class AppServiceRegistrationTests
 {
     [Fact]
+    public async System.Threading.Tasks.Task WorshipListAndRecentHistoryUseTheSelectedSettingsProfile()
+    {
+        using var temp = TempSettingsFolder.Create();
+        var services = new ServiceCollection();
+        App.ConfigureServices(services, new SettingsServiceOptions(temp.SettingsPath, temp.BackupRoot), Dispatcher.CurrentDispatcher);
+        using var provider = services.BuildServiceProvider();
+        var profile = Path.GetDirectoryName(temp.SettingsPath)!;
+        const string name = "profile-check";
+        Directory.CreateDirectory(Path.Combine(profile, "WorshipLists"));
+        await File.WriteAllTextAsync(Path.Combine(profile, "recent-worshiplists.json"), "[\"profile-check\"]");
+        await File.WriteAllTextAsync(Path.Combine(profile, "WorshipLists", name + ".json"), "[]");
+        provider.GetRequiredService<IRecentWorshipLists>().GetRecent().Should().Equal(name);
+        provider.GetRequiredService<IWorshipListStore>().ListNames().Should().Contain(name);
+        provider.GetRequiredService<IRecentWorshipLists>().Record("next");
+        (await File.ReadAllTextAsync(Path.Combine(profile, "recent-worshiplists.json"))).Should().Contain("next");
+    }
+
+    [Fact]
     public void ConfigureServices_ResolvesPowerPointRenderServiceWithSettingsBackedConstructor()
     {
         StaHelper.RunOnSta(() =>

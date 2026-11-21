@@ -19,7 +19,7 @@
         </Grid.RowDefinitions>
 
         <StackPanel Margin="0,0,0,18">
-            <TextBlock Text="외부 파일 복사/이동"
+            <TextBlock Text="{Binding Title, RelativeSource={RelativeSource AncestorType=Window}}"
                        Style="{StaticResource Type.Title1.Style}"
                        Foreground="{DynamicResource Brush.Text.Primary}" />
             <TextBlock Text="{Binding WorkingFolder}"
@@ -43,7 +43,7 @@
                 <TextBlock Text="파일 종류"
                            Style="{StaticResource Type.Caption.Style}"
                            Foreground="{DynamicResource Brush.Text.Tertiary}" />
-                <ComboBox ItemsSource="{Binding ItemKinds}"
+                <ComboBox x:Name="ItemKindPicker" ItemsSource="{Binding ItemKinds}"
                           SelectedItem="{Binding ItemKind, Mode=TwoWay}"
                           MinHeight="36"
                           Margin="0,4,0,0"
@@ -54,7 +54,7 @@
                 <TextBlock Text="작업"
                            Style="{StaticResource Type.Caption.Style}"
                            Foreground="{DynamicResource Brush.Text.Tertiary}" />
-                <ComboBox ItemsSource="{Binding OperationKinds}"
+                <ComboBox x:Name="OperationPicker" ItemsSource="{Binding OperationKinds}"
                           SelectedItem="{Binding OperationKind, Mode=TwoWay}"
                           MinHeight="36"
                           Margin="0,4,0,0"
@@ -84,7 +84,7 @@
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <DockPanel Grid.ColumnSpan="3"
+            <DockPanel Grid.ColumnSpan="3" x:Name="SourceActions"
                        Margin="0,0,0,8">
                 <Button DockPanel.Dock="Left"
                         Style="{StaticResource EsButton.Secondary}"

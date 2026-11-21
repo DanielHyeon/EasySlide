@@ -27,9 +27,7 @@
                 <ResourceDictionary Source="Controls/EsDataGrid.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <!-- Generated WPF UI labels otherwise take the theme's 14 DIP even inside a 12 DIP control. -->
-            <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
-                <Setter Property="FontSize" Value="{Binding Path=(TextElement.FontSize), RelativeSource={RelativeSource AncestorType=FrameworkElement}}" />
-            </Style>
+            <Style TargetType="TextBlock" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

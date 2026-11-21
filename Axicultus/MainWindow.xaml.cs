@@ -73,6 +73,7 @@ public partial class MainWindow : Window
     public MainWindow(MainViewModel viewModel, ShortcutRegistry shortcuts, IServiceProvider services)
     {
         var renderer = services.GetRequiredService<IOutputRenderer>();
+        _recentEdits = services.GetRequiredService<RecentItemEdits>();
         _settings = services.GetService<ISettingsService>();
         PreviewSample = new OutputWindowViewModel(renderer, _settings);
         OutputSample = new OutputWindowViewModel(renderer, _settings);
@@ -1273,8 +1274,8 @@ public partial class MainWindow : Window
             case ("PowerPointSource", "Main_Delete"): DeleteInlinePowerPointSelection(); break;
             case ("PowerPointSource", "Main_Move"):
                 var files = GetInlinePowerPointSelection(GetActivePowerPointList());
-                if (files.Count > 0 && OpenExternalFileOperationWindow(ExternalFileItemKind.PowerPoint,
-                    ExternalFileOperationKind.Move, files.Select(file => file.FilePath))) CMenuPowerPointFiles_Refresh_Click(sender, e);
+                if (files.Count > 0) OpenExternalFileOperationWindow(ExternalFileItemKind.PowerPoint,
+                    ExternalFileOperationKind.Move, files.Select(file => file.FilePath));
                 break;
         }
     }
@@ -1283,23 +1284,34 @@ public partial class MainWindow : Window
     {
         var screens = GetInlineInfoScreenSelection();
         if (screens.Count == 0) return;
-        var picker = new Microsoft.Win32.OpenFolderDialog { Title = "정보 화면을 이동할 폴더" };
+        var root = Path.Combine(_services.GetRequiredService<ISettingsService>().Current.General.WorkingFolder, "InfoScreens");
+        var picker = new Microsoft.Win32.OpenFolderDialog
+        {
+            Title = "정보 화면을 이동할 폴더",
+            RootDirectory = root,
+            InitialDirectory = SelectedSourceFolder() ?? root
+        };
         if (picker.ShowDialog(this) != true) return;
         var store = _services.GetRequiredService<IInfoScreenStore>();
+        var moved = new List<string>();
         try
         {
             foreach (var screen in screens)
             {
+                var sourceFolder = Path.Combine(root, Path.GetDirectoryName(screen.Name) ?? "");
+                if (string.Equals(Path.TrimEndingDirectorySeparator(sourceFolder), Path.TrimEndingDirectorySeparator(picker.FolderName),
+                    StringComparison.OrdinalIgnoreCase)) continue;
                 string? file = await store.PrepareCopySourceFileAsync(screen.Name, Path.Combine(Path.GetTempPath(), "Axicultus", "InfoScreenCopy"));
                 if (file is null) continue;
-                string target = Path.Combine(picker.FolderName, Path.GetFileName(file));
+                string target = ExternalFileOperationService.GetAvailableDestinationPath(file, picker.FolderName);
                 File.Copy(file, target, overwrite: false);
+                moved.Add(target);
                 if (!store.Delete(screen.Name)) { _viewModel.StatusText = $"복사 후 원본을 이동하지 못했습니다: {screen.Name}"; break; }
             }
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException)
         { _viewModel.StatusText = ex.Message; }
-        finally { _inlineInfoScreens?.LoadCommand.Execute(null); }
+        finally { ShowTransferredFiles(ExternalFileItemKind.InfoScreen, moved); }
     }
 
     private async void Main_New_Click(object sender, RoutedEventArgs e)
@@ -2588,6 +2600,36 @@ public partial class MainWindow : Window
         SourceListAddOnEnter_KeyDown(sender, e);
     }
 
+    private async void InlineInfoScreenList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (sender is not ListBox { SelectedItem: InfoScreenSourceItem screen } list
+            || !InfoScreenSourceTab.IsSelected || _inlineInfoScreens is null) return;
+
+        var previousPreview = _viewModel.PreviewPanelItem;
+        try
+        {
+            var notice = await _inlineInfoScreens.LoadSelectionAsync(screen);
+            if (InfoScreenSourceTab.IsSelected && ReferenceEquals(list.SelectedItem, screen)
+                && ReferenceEquals(previousPreview, _viewModel.PreviewPanelItem))
+            {
+                if (notice is not null) _viewModel.PreviewInfoScreenSource(notice);
+                else _viewModel.StatusText = _inlineInfoScreens.StatusText;
+            }
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            _viewModel.StatusText = ex.Message;
+        }
+    }
+
+    private void InlineMediaList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (MediaSourceTab.IsSelected && sender is ListBox { SelectedItem: MediaFileItem file })
+        {
+            _viewModel.PreviewMediaSource(file.FilePath);
+        }
+    }
+
     private async void InlinePowerPointList_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (_inlinePowerPoint?.SelectedFile is not { } file)
@@ -2841,7 +2883,7 @@ public partial class MainWindow : Window
         activeList.Focus();
     }
 
-    private bool OpenExternalFileOperationWindow(
+    private void OpenExternalFileOperationWindow(
         ExternalFileItemKind itemKind,
         ExternalFileOperationKind operationKind,
         IEnumerable<string> sourceFiles)
@@ -2854,9 +2896,11 @@ public partial class MainWindow : Window
             viewModel.OperationKind = operationKind;
             viewModel.DestinationKind = ExternalFileDestinationKind.ExternalFolder;
             viewModel.AddSourceFiles(sourceFiles);
+            externalFileWindow.UseSelectedSourceItems(itemKind, operationKind);
         }
 
-        return externalFileWindow.ShowDialog() == true;
+        if (externalFileWindow.ShowDialog() == true && externalFileWindow.DataContext is ExternalFileOperationViewModel result)
+            ShowTransferredFiles(itemKind, result.CreatedFilePaths);
     }
 
     private void CMenuPowerPointFiles_Refresh_Click(object sender, RoutedEventArgs e)

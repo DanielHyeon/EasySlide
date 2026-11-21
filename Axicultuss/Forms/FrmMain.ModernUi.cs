@@ -62,6 +62,7 @@ public partial class FrmMain
     {
         if (!IsModernUiActive)
         {
+            SizeMainColumns();
             return;
         }
 
@@ -74,8 +75,7 @@ public partial class FrmMain
         ApplyHeaderTint(panel10, OutputPanelDisplayName, ModernUiPalette.LiveTint);
 
         ApplyLiveHeaderButtons();
-        ApplyHeaderMinimumWidths(this, splitContainerMain, splitContainer2, panel9, panel10,
-            SizeFromClientSize(Size.Empty).Width);
+        SizeMainColumns();
         CreateLiveStatusRow();
         CaptureShortcutTooltipBases();
         RefreshShortcutTooltips();
@@ -130,13 +130,23 @@ public partial class FrmMain
 
     private static void HeaderFrame_SizeChanged(object sender, EventArgs e) => ((Panel)sender).Invalidate();
 
+    private void SizeMainColumns()
+    {
+        int contentWidth = Math.Max(DefgroupBox1.Width, DefApplyDefaultsBtn.Width + panelDefTemplate.Width);
+        int tabFrame = tabControlSource.Width - tabControlSource.DisplayRectangle.Width;
+        int sourceWidth = contentWidth + tabFrame + DefPanel.Padding.Horizontal + SystemInformation.VerticalScrollBarWidth;
+        ApplyHeaderMinimumWidths(this, splitContainerMain, splitContainer2, panel9, panel10,
+            SizeFromClientSize(Size.Empty).Width, sourceWidth);
+    }
+
     private static void ApplyHeaderMinimumWidths(Form form, SplitContainer main, SplitContainer panes,
-        Panel preview, Panel output, int windowFrameWidth)
+        Panel preview, Panel output, int windowFrameWidth, int sourceWidth)
     {
         int previewWidth = HeaderMinimumWidth(preview);
         int outputWidth = HeaderMinimumWidth(output);
         int panesWidth = previewWidth + panes.SplitterWidth + outputWidth;
-        int mainWidth = main.Panel1MinSize + main.SplitterWidth + panesWidth;
+        sourceWidth = Math.Max(sourceWidth, main.Panel1MinSize);
+        int mainWidth = sourceWidth + main.SplitterWidth + panesWidth;
         Rectangle restoredBounds = form.WindowState == FormWindowState.Normal ? form.Bounds : form.RestoreBounds;
         form.MinimumSize = new Size(Math.Max(form.MinimumSize.Width, mainWidth + windowFrameWidth),
             form.MinimumSize.Height);
@@ -154,7 +164,7 @@ public partial class FrmMain
         }
 
         // Clamp the restored positions from the outside in before raising the panel limits.
-        SetSplitterMinimumWidths(main, main.Panel1MinSize, panesWidth);
+        SetSplitterMinimumWidths(main, sourceWidth, panesWidth);
         SetSplitterMinimumWidths(panes, previewWidth, outputWidth);
     }
 

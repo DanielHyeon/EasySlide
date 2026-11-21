@@ -88,7 +88,15 @@ public sealed partial class PowerPointLibraryViewModel : ObservableObject
     private PowerPointListingStyle _listingStyle = PowerPointListingStyle.List;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsHymnNumberSort))]
+    [NotifyPropertyChangedFor(nameof(IsTitleSort))]
     private PowerPointSortOrder _sortOrder;
+
+    public bool IsHymnNumberSort => SortOrder == PowerPointSortOrder.HymnNumber;
+    public bool IsTitleSort => SortOrder == PowerPointSortOrder.Title;
+
+    [RelayCommand]
+    private void SelectSortOrder(PowerPointSortOrder order) => SortOrder = order;
 
     public PowerPointLibraryViewModel(
         IPowerPointLibraryService service,

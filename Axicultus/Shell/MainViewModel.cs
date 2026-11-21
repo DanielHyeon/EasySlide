@@ -1067,6 +1067,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             _queueRevision++;
             IsQueueEmpty = Queue.Count == 0;
+            OnPropertyChanged(nameof(CanAddWorshipListSongsToUsages));
             // 큐가 비거나 차면 "전체 비우기" 가능 여부가 바뀌므로 명령 활성 상태를 갱신(생성 도중엔 명령이 아직 null 일 수 있어 가드).
             ClearWorshipListCommand?.NotifyCanExecuteChanged();
             // 큐 내용이 바뀌면 미저장 변경으로 표시 — 불러오기(LoadQueue)·저장·시작은 끝에서 false 로 되돌려 깨끗한 상태로 만든다.
@@ -2189,6 +2190,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         return true;
     }
 
+    private static bool IsUsageSong(LiveQueueItem item)
+        => item is { Kind: LiveItemKinds.Song } && TryGetSongDatabaseId(item, out _);
+
+    public bool CanAddWorshipListSongsToUsages => Queue.Any(IsUsageSong);
+
     /// <summary>
     /// FrmMain AddToUsages 대응: 현재 Worship List 전체를 훑어 DB 곡(song:{id})만 USAGE DB 에 기록한다.
     /// 컨텍스트 메뉴가 선택 행에서 열려도 legacy 는 전체 목록을 기록하므로 WPF 도 같은 범위를 유지한다.
@@ -2202,9 +2208,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return 0;
         }
 
-        var songItems = Queue
-            .Where(item => item is { Kind: LiveItemKinds.Song } && TryGetSongDatabaseId(item, out _))
-            .ToArray();
+        var songItems = Queue.Where(IsUsageSong).ToArray();
         if (songItems.Length == 0)
         {
             StatusText = "예배 순서에 DB 곡 항목이 없습니다.";
@@ -8823,6 +8827,25 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public void PreviewLibrarySong(Data.SongSummary song)
     {
         SetSourcePreview(CreateSongQueueItem(song));
+    }
+
+    internal void PreviewInfoScreenSource(InfoScreenSelection notice)
+    {
+        SetSourcePreview(new LiveQueueItem($"infoscreen:{notice.Name}", Path.GetFileName(notice.Name), LiveItemKinds.Notice)
+        {
+            Lyrics = notice.Text,
+            FormatData = BuildNoticeFormatData(notice.Options),
+        });
+    }
+
+    internal void PreviewMediaSource(string filePath)
+    {
+        var item = CreateExternalFileItem(filePath, LiveItemKinds.Media);
+        SetSourcePreview(item);
+        if (Media.PlayerDisplay is null && Media.State is not (MediaPlaybackState.Playing or MediaPlaybackState.Paused))
+        {
+            Media.Load(GetItemMediaRequest(item, filePath));
+        }
     }
 
     private void SetSourcePreview(LiveQueueItem item)

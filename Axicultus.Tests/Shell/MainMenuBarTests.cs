@@ -1294,12 +1294,30 @@ public class MainMenuBarTests
     {
         var app = XDocument.Load(Path.Combine(FindRepositoryRoot(), "Axicultus", "App.xaml"));
         var labelStyle = app.Descendants().Single(e => e.Name.LocalName == "Style" && (string?)e.Attribute("TargetType") == "TextBlock");
-        var font = labelStyle.Elements().Single(e => (string?)e.Attribute("Property") == "FontSize");
-        ((string?)font.Attribute("Value")).Should().Contain("(TextElement.FontSize)").And.Contain("AncestorType=FrameworkElement");
+        Assert.Null(labelStyle.Attribute("BasedOn"));
+        Assert.DoesNotContain(labelStyle.Elements(), e => (string?)e.Attribute("Property") == "FontSize");
 
         var header = XDocument.Parse(Xaml).Descendants().Single(e => e.Name.LocalName == "AccessText"
             && e.Attributes().Any(a => a.Name.LocalName == "Name" && a.Value == "MenuHeaderText"));
         Assert.Equal("{TemplateBinding FontSize}", (string?)header.Attribute("FontSize"));
+    }
+
+    [Fact]
+    public void DeferredTabsWaitForTheirOwnDataContextAndQueueTooltipsFormatText()
+    {
+        XNamespace x = "http://schemas.microsoft.com/winfx/2006/xaml";
+        var shell = XDocument.Parse(Xaml);
+        foreach (string name in new[] { "InfoScreenSourceTab", "PowerPointSourceTab", "ImagesSourceTab", "MediaSourceTab", "PraiseBookTab" })
+        {
+            var tab = shell.Descendants().Single(e => (string?)e.Attribute(x + "Name") == name);
+            Assert.Equal("{x:Null}", (string?)tab.Attribute("DataContext"));
+        }
+
+        var queue = XDocument.Load(Path.Combine(FindRepositoryRoot(), "Axicultus", "Composites", "WorshipListPanel.xaml"));
+        var tooltip = queue.Descendants().Single(e => e.Name.LocalName == "StackPanel.ToolTip");
+        var format = tooltip.Descendants().Single(e => e.Name.LocalName == "MultiBinding");
+        Assert.Equal("TextBlock.Text", format.Parent!.Name.LocalName);
+        Assert.Equal(new[] { "Kind", "Title" }, format.Elements().Select(binding => (string?)binding.Attribute("Path")));
     }
 
     [Fact]
@@ -1722,7 +1740,8 @@ public class MainMenuBarTests
         code.Should().Contain("AddSelectedSourceToWorshipListAsync", "WL_Add should dispatch by active source tab");
         code.Should().Contain("GetRequiredService<IPraiseBookStore>()", "inline and modal PraiseBook surfaces should use the DI store wired to the legacy working folder");
         code.Should().NotContain("new PraiseBookStore()", "direct construction falls back to AppData and loses C:\\Axicultus legacy .esp files");
-        AppCode.Should().Contain("services.AddSingleton<IPraiseBookStore, PraiseBookStore>()", "DI must provide the WorkingFolder-aware PraiseBook store at runtime");
+        AppCode.Should().Contain("new PraiseBookStore(Path.Combine(profileDirectory, \"PraiseBooks\"), sp.GetRequiredService<ISettingsService>())",
+            "the inline Praise Book uses the selected profile and its working folder");
     }
 
     [Fact]

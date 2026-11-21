@@ -18,6 +18,13 @@ public partial class ExternalFileOperationWindow : Window
         viewModel.Completed += OnCompleted;
     }
 
+    internal void UseSelectedSourceItems(ExternalFileItemKind kind, ExternalFileOperationKind operation)
+    {
+        Title = $"{kind} {(operation == ExternalFileOperationKind.Move ? "이동" : "복사")}";
+        ItemKindPicker.IsEnabled = OperationPicker.IsEnabled = false;
+        SourceActions.Visibility = Visibility.Collapsed;
+    }
+
     protected override void OnClosed(EventArgs e)
     {
         if (DataContext is ExternalFileOperationViewModel viewModel)

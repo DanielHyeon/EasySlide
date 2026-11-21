@@ -337,7 +337,7 @@ public sealed class ExternalFileOperationService(IAdminDatabaseRepository adminD
         return true;
     }
 
-    private static string GetAvailableDestinationPath(string sourcePath, string targetFolder)
+    internal static string GetAvailableDestinationPath(string sourcePath, string targetFolder)
     {
         var extension = Path.GetExtension(sourcePath);
         var name = Path.GetFileNameWithoutExtension(sourcePath);

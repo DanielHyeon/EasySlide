@@ -73,7 +73,7 @@ public class ModernHeaderLayoutTests
             }
 
             typeof(FrmMain).GetMethod("ApplyHeaderMinimumWidths", BindingFlags.Static | BindingFlags.NonPublic)
-                .Invoke(null, [form, main, panes, preview, output, form.Width - form.ClientSize.Width]);
+                .Invoke(null, [form, main, panes, preview, output, form.Width - form.ClientSize.Width, Scale(240)]);
             form.WindowState = FormWindowState.Normal;
             Assert.True(form.MinimumSize.Width > 220);
             if (initialSplit == 0)
@@ -99,6 +99,7 @@ public class ModernHeaderLayoutTests
 
             void AssertAllHeadersFit()
             {
+                Assert.True(main.Panel1.Width >= Scale(240), "source toolbars must remain inside the left pane");
                 foreach (Panel header in new[] { preview, output })
                 {
                     Rectangle bounds = header.ClientRectangle;

@@ -89,7 +89,9 @@ public class PowerPointLibraryServiceTests : IDisposable
             visibleAtReset = tab.Presentations.ToArray();
         };
 
-        tab.SortOrder = PowerPointSortOrder.Title;
+        tab.SelectSortOrderCommand.Execute(PowerPointSortOrder.Title);
+        Assert.True(tab.IsTitleSort);
+        Assert.False(tab.IsHymnNumberSort);
         changes.Should().Equal(NotifyCollectionChangedAction.Reset);
         visibleAtReset.Should().Equal(numbered[5], numbered[0], numbered[1], numbered[4], numbered[3], numbered[2]);
     }

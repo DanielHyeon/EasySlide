@@ -55,6 +55,8 @@ public sealed partial class ExternalFileOperationViewModel : ObservableObject
 
     public event EventHandler<ExternalFileOperationCompletedEventArgs>? Completed;
 
+    public IReadOnlyList<string> CreatedFilePaths { get; private set; } = [];
+
     public ObservableCollection<ExternalFileItem> SourceFiles { get; } = [];
 
     public ObservableCollection<ExternalFileFolder> ExternalFolders { get; } = [];
@@ -138,6 +140,7 @@ public sealed partial class ExternalFileOperationViewModel : ObservableObject
             }
 
             var processed = report.CreatedFilePaths.Count + report.CreatedSongIds.Count;
+            CreatedFilePaths = report.CreatedFilePaths;
             ValidationMessage = "";
             StatusMessage = $"{processed}개 항목을 처리했습니다.";
             Completed?.Invoke(this, new ExternalFileOperationCompletedEventArgs(

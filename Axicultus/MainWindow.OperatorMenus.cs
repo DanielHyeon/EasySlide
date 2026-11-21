@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using Axicultus.Wpf.Data;
@@ -16,7 +18,7 @@ namespace Axicultus.Wpf;
 
 public partial class MainWindow
 {
-    private readonly RecentItemEdits _recentEdits = new(Path.Combine(ProductStorage.WpfProfileDirectory(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)), "recent-item-edits.json"));
+    private readonly RecentItemEdits _recentEdits;
 
     private void RecordSongEdit(SongEditorViewModel editor)
     {
@@ -98,19 +100,67 @@ public partial class MainWindow
             "PowerPointSource" => (ExternalFileItemKind.PowerPoint, "PowerPoint|*.ppt;*.pptx;*.pps;*.ppsx;*.pptm;*.ppsm"),
             _ => (ExternalFileItemKind.Media, "미디어|*.mp4;*.avi;*.wmv;*.mkv;*.webm;*.mpg;*.mpeg;*.mov;*.m4v;*.mp3;*.wav;*.m4a;*.aac;*.wma;*.ogg;*.flac")
         };
-        var picker = new OpenFileDialog { Multiselect = true, Filter = filter };
+        var picker = new OpenFileDialog { Multiselect = true, Filter = filter, Title = $"{kind} 가져오기 · {folder}" };
         if (picker.ShowDialog(this) != true) return;
+        var imported = new List<string>();
+        var errors = new List<string>();
+        var sources = picker.FileNames;
         try
         {
-            Directory.CreateDirectory(folder);
-            var report = await _services.GetRequiredService<IExternalFileOperationService>().ExecuteAsync(new(
-                ExternalFileOperationKind.Copy, kind, ExternalFileDestinationKind.ExternalFolder, picker.FileNames, folder));
-            _viewModel.StatusText = report.Succeeded ? $"{report.CreatedFilePaths.Count}개 파일을 가져왔습니다." : string.Join(" ", report.Issues.Select(i => i.Message));
-            if (kind == ExternalFileItemKind.InfoScreen) _inlineInfoScreens?.Load();
-            else if (kind == ExternalFileItemKind.PowerPoint) _inlinePowerPoint?.LoadCommand.Execute(null);
-            else _inlineMedia?.LoadCommand.Execute(null);
+            await Task.Run(() =>
+            {
+                Directory.CreateDirectory(folder);
+                foreach (var source in sources)
+                {
+                    var destination = Path.Combine(folder, Path.GetFileName(source));
+                    try
+                    {
+                        File.Copy(source, destination, overwrite: false);
+                        imported.Add(destination);
+                    }
+                    catch (Exception error) when (error is IOException or UnauthorizedAccessException)
+                    {
+                        errors.Add(error.Message);
+                    }
+                }
+            });
+            _viewModel.StatusText = errors.Count > 0 ? string.Join(Environment.NewLine, errors) : $"{imported.Count}개 파일을 가져왔습니다.";
+            if (!string.Equals(folder, SelectedSourceFolder(), StringComparison.OrdinalIgnoreCase)) return;
+            ShowTransferredFiles(kind, imported);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException) { _viewModel.StatusText = ex.Message; }
+    }
+
+    private void ShowTransferredFiles(ExternalFileItemKind kind, IReadOnlyList<string> paths)
+    {
+        if (paths.Count == 0 || Path.GetDirectoryName(paths[0]) is not { } folder) return;
+        var files = paths.ToHashSet(StringComparer.OrdinalIgnoreCase);
+        switch (kind)
+        {
+            case ExternalFileItemKind.InfoScreen when _inlineInfoScreens is { } info:
+                var root = Path.Combine(_services.GetRequiredService<ISettingsService>().Current.General.WorkingFolder, "InfoScreens");
+                var relative = Path.GetRelativePath(root, folder);
+                info.Load();
+                info.SelectedFolder = info.Folders.FirstOrDefault(item => string.Equals(item.RelativePath, relative == "." ? "" : relative, StringComparison.OrdinalIgnoreCase));
+                SelectFiles(InlineInfoScreenList, info.Screens.Where(item => files.Contains(Path.Combine(root, item.Name + ".esi"))));
+                break;
+            case ExternalFileItemKind.PowerPoint when _inlinePowerPoint is { } ppt:
+                ppt.ChangeSourceFolder(folder);
+                if (ppt.IsListStyle)
+                    SelectFiles(InlinePowerPointList, ppt.Presentations.Where(item => files.Contains(item.FilePath)));
+                break;
+            case ExternalFileItemKind.Media when _inlineMedia is { } media:
+                media.ChangeSourceFolder(folder);
+                SelectFiles(InlineMediaList, media.MediaFiles.Where(item => files.Contains(item.FilePath)));
+                break;
+        }
+
+        static void SelectFiles(ListBox list, IEnumerable<object> matches)
+        {
+            list.UnselectAll();
+            foreach (var item in matches) list.SelectedItems.Add(item);
+            if (list.SelectedItem is { } selected) list.ScrollIntoView(selected);
+        }
     }
 
     private void EditItemDisplay_Click(object sender, RoutedEventArgs e)
@@ -122,7 +172,7 @@ public partial class MainWindow
     }
 
     private string SessionTemplatesDirectory() =>
-        Path.Combine(_services.GetRequiredService<ISettingsService>().Current.General.WorkingFolder, "Templates", "WorshipListsTemplates");
+        Path.Combine(_services.GetRequiredService<ISettingsService>().Current.General.WorkingFolder, "Admin", "Templates", "WorshipListsTemplates");
 
     private async void LoadSessionTemplate_Click(object sender, RoutedEventArgs e)
     {
