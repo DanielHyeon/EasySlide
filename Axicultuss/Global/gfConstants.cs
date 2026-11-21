@@ -816,7 +816,7 @@ namespace Axicultus;
 		public static string PREPPPrefix;
 
 		// First-slide pictures of the presentations listed in the PowerPoint tab (thumbnail style), kept across
-		// listings and across restarts (a sibling of AxicultusTempDir, which is emptied at start-up and exit), so
+		// listings and across restarts, separate from the current process's slide images, so
 		// a presentation is exported once per version, not once per session. Pruned by OfficeLib.ExternalPreviewCache
 		// (other versions of a listed presentation, entries unused for 30 days, at most 2000 files, least recently
 		// used first; only the cache's own file names).
@@ -1580,7 +1580,14 @@ namespace Axicultus;
 
 		public static string MediaDir;
 
-		public static string AxicultusTempDir;
+		private static readonly Lazy<SessionTempDirectory> sessionTemp = new(() => new SessionTempDirectory());
+		public static string AxicultusTempDir => sessionTemp.Value.PathWithSeparator;
+
+		internal static void ReleaseSessionTempDirectory()
+		{
+			if (sessionTemp.IsValueCreated)
+				sessionTemp.Value.Dispose();
+		}
 
 		public static string WorshipDir;
 

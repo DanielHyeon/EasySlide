@@ -12,6 +12,81 @@ namespace Axicultus.Tests;
 public class PowerPointThumbnailPanelTests
 {
     [Fact]
+    public void SlideClicksRedrawSelectionFromTheLoadedPicturesUntilTheDeckIsReloaded()
+    {
+        using var session = new Global.SessionTempDirectory();
+        string prefix = Path.Combine(session.PathWithSeparator, "live-");
+        static void WriteSlide(string path, Color colour)
+        {
+            using var image = new Bitmap(160, 90);
+            using var graphics = Graphics.FromImage(image);
+            graphics.Clear(colour);
+            image.Save(path, ImageFormat.Png);
+        }
+        MonitorPresentationTests.RunOnSta(() =>
+        {
+            using var panel = new PowerPointThumbnailPanel { Width = 515 };
+            using var tip = new ToolTip();
+            panel.SetSlideCount(2, tip, _ => new ImageCanvas
+                { PowerPoint = true, ThinSelectedBorder = true, SelectedBorderColor = Color.Magenta });
+            string first = SlideImageManifest.ImagePath(prefix, 1);
+            string second = SlideImageManifest.ImagePath(prefix, 2);
+            WriteSlide(first, Color.Blue);
+            WriteSlide(second, Color.Green);
+            panel.Display(prefix, 1, tip);
+            foreach (var slide in panel.Controls.Cast<ImageCanvas>())
+                Assert.True(slide.CalculateImage());
+
+            File.Delete(first);
+            File.Delete(second);
+            foreach (int selected in new[] { 2, 1, 2 })
+            {
+                panel.Display(prefix, selected, tip);
+                for (int i = 0; i < 2; i++)
+                {
+                    var cell = panel.SlideAt(i);
+                    using var painted = new Bitmap(cell.Width, cell.Height);
+                    cell.DrawToBitmap(painted, cell.ClientRectangle);
+                    Assert.True(cell.IsImageReady);
+                    Assert.Equal(i + 1 == selected, cell.IsDrawnSelected);
+                    Assert.Equal((i == 0 ? Color.Blue : Color.Green).ToArgb(),
+                        painted.GetPixel(cell.Width / 2, cell.Height / 2).ToArgb());
+                    bool hasSelectionBorder = Enumerable.Range(0, cell.Width / 2)
+                        .Select(x => painted.GetPixel(x, cell.Height / 2))
+                        .Any(pixel => pixel.R > 180 && pixel.B > 180 && pixel.G < 100);
+                    Assert.Equal(i + 1 == selected, hasSelectionBorder);
+                }
+            }
+            WriteSlide(second, Color.Purple);
+            File.SetLastWriteTimeUtc(second, DateTime.UtcNow.AddMinutes(1));
+            panel.ResetSelection();
+            panel.Display(prefix, 2, tip);
+            var current = panel.SlideAt(1);
+            Assert.True(current.CalculateImage());
+            using var updated = new Bitmap(current.Width, current.Height);
+            current.DrawToBitmap(updated, current.ClientRectangle);
+            Assert.Equal(Color.Purple.ToArgb(), updated.GetPixel(current.Width / 2, current.Height / 2).ToArgb());
+        });
+    }
+
+    [Fact]
+    public void ClosingOneSessionPreservesTheOtherSessionsSlideWithTheSameName()
+    {
+        using var active = new Global.SessionTempDirectory();
+        string activeSlide = SlideImageManifest.ImagePath(Path.Combine(active.PathWithSeparator, "live-"), 1);
+        File.WriteAllText(activeSlide, "in use");
+        string otherPath;
+        using (var other = new Global.SessionTempDirectory())
+        {
+            otherPath = other.PathWithSeparator;
+            Assert.NotEqual(active.PathWithSeparator, otherPath);
+            File.WriteAllText(Path.Combine(otherPath, Path.GetFileName(activeSlide)), "other");
+        }
+        Assert.False(Directory.Exists(otherPath));
+        Assert.Equal("in use", File.ReadAllText(activeSlide));
+    }
+
+    [Fact]
     public void PowerPointListSortMovesTheSameSelectedFilesBetweenBothOrders()
     {
         MonitorPresentationTests.RunOnSta(() =>

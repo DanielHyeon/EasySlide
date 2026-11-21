@@ -439,11 +439,6 @@ namespace Axicultus;
 			{
 				FileUtil.MakeDir(SettingsTemplatesDir);
 			}
-			AxicultusTempDir = $@"{Path.GetTempPath()}Axicultus Files\";
-			if (!Directory.Exists(AxicultusTempDir))
-			{
-				FileUtil.MakeDir(AxicultusTempDir);
-			}
 			MediaDir = $@"{RootAxicultusDir}Media\";
 			if (!Directory.Exists(MediaDir))
 			{

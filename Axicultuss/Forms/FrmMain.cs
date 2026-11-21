@@ -92,7 +92,6 @@ public partial class FrmMain : Form
         RemoveHookSlideUpDown();
         AddHookSlideUpDown();
 
-        Gf.InitFolderFiles(Gf.AxicultusTempDir);
         // The PowerPoint gate's state changes are logged and told (before any PowerPoint call of the main form).
         Gf.HookPowerPointGate();
 
@@ -139,25 +138,82 @@ public partial class FrmMain : Form
         ResizetabControlLists();
     }
 
+    private void ConfigureSourceToolbars()
+    {
+        FitSourceToolbar(InfoScreentoolstrip2);
+        FitSourceToolbar(toolStripPowerpoint2);
+        FitSourceToolbar(toolStripFolders, SongFolder);
+        FitSourceToolbar(InfoScreentoolstrip1, InfoScreenFolder);
+        FitSourceToolbar(toolStripPowerpoint1, PowerpointFolder);
+        FitSourceToolbar(toolStripMedia1, MediaFolder);
+        FitSourceToolbar(toolStripImage1, ImagesFolder);
+        FitSourceToolbar(toolStripBible2, BibleUserLookup);
+        FitSourceToolbar(toolStripDefTemplates, DefApplyDefaultsBtn);
+    }
+
+    internal static void FitSourceToolbar(ToolStrip strip, Control headerField = null)
+    {
+        var host = strip.Parent;
+        bool vertical = headerField == null;
+        int slot = strip.LogicalToDeviceUnits(24);
+        int height = headerField?.Height ?? slot;
+        int icon = Math.Min(strip.LogicalToDeviceUnits(16), Math.Max(1, height - strip.LogicalToDeviceUnits(4)));
+        strip.SuspendLayout();
+        try
+        {
+            strip.AutoSize = false;
+            strip.Padding = Padding.Empty;
+            strip.Dock = DockStyle.Fill;
+            strip.LayoutStyle = vertical ? ToolStripLayoutStyle.VerticalStackWithOverflow : ToolStripLayoutStyle.HorizontalStackWithOverflow;
+            strip.ImageScalingSize = new Size(icon, icon);
+            int totalWidth = 0;
+            foreach (ToolStripItem item in strip.Items)
+            {
+                int width = slot + (item is ToolStripDropDownButton ? strip.LogicalToDeviceUnits(12) : 0);
+                item.AutoSize = false;
+                item.Padding = item.Margin = Padding.Empty;
+                item.Size = new Size(width, height);
+                item.ImageScaling = ToolStripItemImageScaling.SizeToFit;
+                totalWidth += width;
+            }
+            host.Size = vertical ? new Size(slot, height * strip.Items.Count) : new Size(totalWidth, height);
+            if (!vertical)
+                host.Top = headerField.Top;
+        }
+        finally
+        {
+            strip.ResumeLayout(true);
+        }
+    }
+
+    private void PlaceSourceToolbar(Control field, Panel toolbar)
+    {
+        int gap = LogicalToDeviceUnits(2);
+        int availableWidth = tabControlSource.DisplayRectangle.Width;
+        if (field.Parent.Dock == DockStyle.Top && field.Parent.Parent is TabPage page)
+            availableWidth -= page.Padding.Horizontal;
+        field.Width = Math.Max(0, availableWidth - field.Left - toolbar.Width - 2 * gap);
+        toolbar.Location = new Point(field.Right + gap, field.Top);
+    }
+
     private void ResizetabControlSouceItems()
     {
         ResizeTabList(tabControlSource, SongsList, ToolBarMargin: false);
         // The find box above the song list (new look only) takes its height from the list (design D26).
         LayoutSongFind(listHeightIsBase: true);
-        ResizeTabList(tabControlSource, InfoScreenList, ToolBarMargin: true);
-        ResizeTabList(tabControlSource, PowerpointList, ToolBarMargin: true);
+        InfoScreenList.Height = PowerpointList.Height = tabControlSource.Height - 58;
+        PlaceSourceToolbar(InfoScreenList, panelInfoScreen2);
+        PlaceSourceToolbar(PowerpointList, panelPowerpoint2);
         ResizeTabList(tabControlSource, MediaList, ToolBarMargin: false);
-        RelocateRightToolBar(InfoScreenList, ref panelInfoScreen2);
-        RelocateRightToolBar(PowerpointList, ref panelPowerpoint2);
         SetSongListColWidth();
         SetInfoScreenListColWidth();
         SetMediaListColWidth();
         SetPowerpointListColWidth();
-        ResizeComboAndToolBar(tabControlSource, ref SongFolder, ref panelFolders);
-        ResizeComboAndToolBar(tabControlSource, ref InfoScreenFolder, ref panelInfoScreen1);
-        ResizeComboAndToolBar(tabControlSource, ref MediaFolder, ref panelMedia1);
-        ResizeComboAndToolBar(tabControlSource, ref PowerpointFolder, ref panelExternalFiles1);
-        ResizeComboAndToolBar(tabControlSource, ref ImagesFolder, ref panelImage1);
+        PlaceSourceToolbar(SongFolder, panelFolders);
+        PlaceSourceToolbar(InfoScreenFolder, panelInfoScreen1);
+        PlaceSourceToolbar(MediaFolder, panelMedia1);
+        PlaceSourceToolbar(PowerpointFolder, panelExternalFiles1);
+        PlaceSourceToolbar(ImagesFolder, panelImage1);
         if (tabControlSource.SelectedTab != null && tabControlSource.SelectedTab.Name == "tabImages")
         {
             LoadBackgroundThumbImages();
@@ -179,34 +235,15 @@ public partial class FrmMain : Form
         lookupWidth = ((lookupWidth < 60) ? 60 : lookupWidth);
         BookLookup.Width = lookupWidth;
         BibleUserLookup.Left = BookLookup.Left + BookLookup.Width + 2;
-        lookupWidth = tabControlSource.Width - (BibleUserLookup.Left + 12);
-        if (lookupWidth > 0)
-        {
-            if (lookupWidth < 40)
-            {
-                BibleUserLookup.Width = lookupWidth;
-            }
-            else if (lookupWidth < 40 + panelBible2.Width)
-            {
-                BibleUserLookup.Width = 40;
-            }
-            else
-            {
-                BibleUserLookup.Width = lookupWidth - panelBible2.Width;
-            }
-        }
-        else
-        {
-            BibleUserLookup.Width = 0;
-        }
-        panelBible2.Left = BibleUserLookup.Left + BibleUserLookup.Width + 2;
+        PlaceSourceToolbar(BibleUserLookup, panelBible2);
         BibleText.Width = tabControlSource.Width - 15;
         BibleText.Height = tabControlSource.Height - 80;
         TabBibleVersions.Left = BibleText.Left;
         TabBibleVersions.Top = BibleText.Top + BibleText.Height;
         TabBibleVersions.Width = BibleText.Width;
-        int groupBoxLeft = tabControlSource.Width - DefgroupBox1.Width;
-        groupBoxLeft = ((groupBoxLeft > 0) ? (groupBoxLeft / 2) : 0);
+        int availableWidth = tabControlSource.DisplayRectangle.Width - SystemInformation.VerticalScrollBarWidth;
+        int contentWidth = Math.Max(DefgroupBox1.Width, DefApplyDefaultsBtn.Width + panelDefTemplate.Width);
+        int groupBoxLeft = Math.Max(0, (availableWidth - contentWidth) / 2) + DefPanel.AutoScrollPosition.X;
         DefApplyDefaultsBtn.Left = groupBoxLeft;
         panelDefTemplate.Left = DefApplyDefaultsBtn.Left + DefApplyDefaultsBtn.Width;
         DefgroupBox1.Left = groupBoxLeft;

@@ -12,6 +12,37 @@ namespace Axicultus.Tests;
 public class ModernHeaderLayoutTests
 {
     [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void SourceToolbarRendersFullSizeIconsInsideItsHost(bool vertical)
+    {
+        OnStaThread(() =>
+        {
+            using var host = new Panel { Size = new Size(22, 22) };
+            using var field = new ComboBox();
+            using var strip = new ToolStrip { GripStyle = ToolStripGripStyle.Hidden, CanOverflow = false };
+            host.Controls.Add(strip);
+            using var icon = new Bitmap(24, 24);
+            strip.Items.Add(new ToolStripButton { Image = icon });
+            strip.Items.Add(vertical ? new ToolStripButton { Image = icon } : new ToolStripDropDownButton { Image = icon });
+            FrmMain.FitSourceToolbar(strip, vertical ? null : field);
+            int rendered = 0;
+            var renderer = new ToolStripSystemRenderer();
+            strip.Renderer = renderer;
+            renderer.RenderItemImage += (_, e) =>
+            {
+                Assert.Equal(strip.ImageScalingSize, e.ImageRectangle.Size);
+                Assert.True(new Rectangle(Point.Empty, e.Item.Size).Contains(e.ImageRectangle));
+                Assert.True(host.ClientRectangle.Contains(e.Item.Bounds));
+                rendered++;
+            };
+            using var bitmap = new Bitmap(host.Width, host.Height);
+            host.DrawToBitmap(bitmap, host.ClientRectangle);
+            Assert.Equal(strip.Items.Count, rendered);
+        });
+    }
+
+    [Theory]
     [InlineData(false, 368)]
     [InlineData(true, 249)]
     public void TitleAndIconButtonsShareOneContinuousHeaderFrame(bool output, int width)

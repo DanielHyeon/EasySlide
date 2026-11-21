@@ -104,6 +104,14 @@ namespace Axicultus;
 		[Browsable(false)]
 		public bool IsDrawnSelected => CurrentSelectedSlide == PowerPointSlideNumbering;
 
+		internal void UpdateSlideSelection(int slide)
+		{
+			bool wasSelected = IsDrawnSelected;
+			CurrentSelectedSlide = slide;
+			if (IsDrawnSelected != wasSelected)
+				MarkMarkersDirty();
+		}
+
 		// Border colour of the selected PowerPoint thumbnail. Red is the previous look;
 		// FrmMain overrides it per column when the modern look is enabled.
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]

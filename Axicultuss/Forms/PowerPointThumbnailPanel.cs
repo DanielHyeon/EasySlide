@@ -67,8 +67,8 @@ internal sealed class PowerPointThumbnailPanel : FlowLayoutPanel
         }
         else if (selectedSlide != current)
         {
-            Render(selectedSlide);
-            Render(current);
+            SlideAt(selectedSlide - 1).UpdateSlideSelection(current);
+            SlideAt(current - 1).UpdateSlideSelection(current);
         }
         selectedSlide = current;
         imagePrefix = prefix;

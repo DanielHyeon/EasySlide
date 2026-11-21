@@ -324,7 +324,7 @@ public partial class FrmMain : Form
                 //daniel
                 //???? ??????????????
                 Gf.ShutdownPowerpoint(MainPPT);
-                gfFileHelpers.DeleteFolderFilesSafe(Gf.AxicultusTempDir);
+                Gf.ReleaseSessionTempDirectory();
 
                 WriteDebugLog("=== FORM CLOSED SUCCESSFULLY ===");
             }

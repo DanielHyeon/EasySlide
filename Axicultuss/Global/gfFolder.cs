@@ -38,67 +38,6 @@ namespace Axicultus;
 			FolderNameIndex = index;
 		}
 
-		private static void DeleteFolderContents(string folder)
-		{
-			try
-			{
-				Stack<string> toProcess = new();
-				Stack<string> toDelete = new();
-
-				toProcess.Push(folder);
-				while (toProcess.Count > 0)
-				{
-					string current = toProcess.Pop();
-					toDelete.Push(current);
-
-					try
-					{
-						foreach (string file in Directory.EnumerateFiles(current))
-						{
-							try
-							{
-								File.Delete(file);
-							}
-							catch (Exception ex)
-							{
-								Trace.WriteLine($"ERROR : {ex.Message}, {ex.StackTrace}");
-							}
-						}
-
-						foreach (string dir in Directory.EnumerateDirectories(current))
-						{
-							toProcess.Push(dir);
-						}
-					}
-					catch (Exception ex)
-					{
-						Trace.WriteLine($"ERROR : {ex.Message}, {ex.StackTrace}");
-					}
-				}
-
-				while (toDelete.Count > 0)
-				{
-					string dir = toDelete.Pop();
-					if (dir == folder)
-					{
-						continue;
-					}
-					try
-					{
-						Directory.Delete(dir);
-					}
-					catch (Exception ex)
-					{
-						Trace.WriteLine($"ERROR : {ex.Message}, {ex.StackTrace}");
-					}
-				}
-			}
-			catch (Exception ex)
-			{
-				Trace.WriteLine($"ERROR : {ex.Message}, {ex.StackTrace}");
-			}
-		}
-
 		public static bool ValidateDir(string FDir, bool CreateDir)
 		{
 			string directoryPath = DataUtil.Trim(FDir);
@@ -539,18 +478,6 @@ namespace Axicultus;
 			if (folderName.AsSpan().ContainsAny(InvalidDirNameChars))
 				folderName = string.Create(folderName.Length, folderName, static (destination, source) =>
 					source.AsSpan().ReplaceAny(destination, InvalidDirNameChars, '_'));
-		}
-
-		public static void InitFolderFiles(string InFolder)
-		{
-			try
-			{
-				DeleteFolderContents(InFolder);
-			}
-			catch (Exception ex)
-			{
-				Trace.WriteLine($"ERROR : {ex.Message}, {ex.StackTrace}");
-			}
 		}
 
 		public static void BuildSubFolderList(string InDir, string RemovePrefix, List<FolderGroup> InGroup)

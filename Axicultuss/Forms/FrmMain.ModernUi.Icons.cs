@@ -137,7 +137,7 @@ public partial class FrmMain
                     continue;
                 }
                 int size = ModernItemIcons.ToolbarIconPixelSize(item);
-                if (item == Folders_WordCount || item == PB_WordCount)
+                if (item == PB_WordCount)
                 {
                     // The sort/filter button beside the folder box looked too big next to the 16 px icons around
                     // it (find box, list rows): two thirds of the toolbar slot, 16 px at 100 % scaling.
@@ -203,7 +203,6 @@ public partial class FrmMain
         }
         try
         {
-            FitStripToCombo(toolStripFolders, panelFolders, SongFolder);
             FitStripToCombo(toolStripPraiseBook1, panelPraiseBook1, PraiseBook);
         }
         catch (Exception ex)

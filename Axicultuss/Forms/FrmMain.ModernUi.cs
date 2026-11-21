@@ -60,15 +60,16 @@ public partial class FrmMain
     /// </summary>
     private void ApplyModernUi()
     {
+        // Fonts, flat toolbars and menus, flat surfaces and buttons (design D21-D23). First, so the
+        // live status line and the toolbar measurements below see the final fonts.
+        if (IsModernUiActive)
+            ApplySurface();
+        ConfigureSourceToolbars();
         if (!IsModernUiActive)
         {
             SizeMainColumns();
             return;
         }
-
-        // Fonts, flat toolbars and menus, flat surfaces and buttons (design D21-D23). First, so the
-        // live status line and the toolbar measurements below see the final fonts.
-        ApplySurface();
 
         // Header rows: the title ListView fills the row, so it needs the tint too.
         ApplyHeaderTint(panel9, PreviewPanelDisplayName, ModernUiPalette.PreviewTint);
