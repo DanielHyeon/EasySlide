@@ -983,8 +983,11 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         RefreshDisplayText();
     }
 
-    public void ApplyOutput(OutputWindowState state)
+    internal Size BackgroundPixelSize { get; private set; } = new(1, 1);
+
+    public void ApplyOutput(OutputWindowState state, Size? backgroundPixelSize = null)
     {
+        BackgroundPixelSize = backgroundPixelSize ?? new Size(Math.Max(1, state.Placement.Width), Math.Max(1, state.Placement.Height));
         _output = state;
         RefreshDisplayText();
     }
@@ -1326,8 +1329,10 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     {
         var image = TryLoadBackgroundImage(scene.BackgroundImagePath);
         SceneBackgroundImageSource = image;
+        if (image != null && scene.BackgroundMode == Settings.LyricsBackgroundMode.Fit)
+            SceneBackgroundBrush = Brushes.Black;
         // 이미지가 있으면 표시 모드(채움/맞춤/가운데/타일)에 맞춘 브러시를 만들어 배경 Rectangle 이 칠한다.
-        BackgroundImageBrush = image is null ? null : BuildBackgroundImageBrush(image, scene.BackgroundMode);
+        BackgroundImageBrush = image is null ? null : BuildBackgroundImageBrush(image, scene.BackgroundMode, BackgroundPixelSize);
         BackgroundImageVisibility = image is not null ? Visibility.Visible : Visibility.Collapsed;
     }
 
@@ -1339,7 +1344,7 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     ///   - Tile: 원본 크기로 바둑판 반복 = TileMode.Tile + 이미지 픽셀 크기 뷰포트.
     /// 만든 브러시는 Freeze 해 렌더 스레드 공유·성능에 안전하게 한다.
     /// </summary>
-    internal static ImageBrush BuildBackgroundImageBrush(ImageSource image, Settings.LyricsBackgroundMode mode)
+    internal static ImageBrush BuildBackgroundImageBrush(ImageSource image, Settings.LyricsBackgroundMode mode, Size outputPixels)
     {
         var brush = new ImageBrush(image);
         switch (mode)
@@ -1353,14 +1358,17 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
                 brush.AlignmentY = AlignmentY.Center;
                 break;
             case Settings.LyricsBackgroundMode.Tile:
-                // 원본 픽셀 크기로 바둑판 반복. 절대 단위 뷰포트(이미지 크기)에 TileMode.Tile.
-                // 비-96dpi 이미지에서도 픽셀 단위로 반복되도록 PixelWidth/Height 를 우선 쓴다(없으면 DIP).
-                brush.Stretch = Stretch.None;
+                // Use the audience pixel grid for both console samples and the live surface.
+                var pixels = image as BitmapSource;
+                var tileWidth = pixels?.PixelWidth ?? image.Width;
+                var tileHeight = pixels?.PixelHeight ?? image.Height;
+                brush.Stretch = Stretch.Fill;
                 brush.TileMode = TileMode.Tile;
-                brush.ViewportUnits = BrushMappingMode.Absolute;
-                var tileWidth = image is BitmapSource tileBmp ? tileBmp.PixelWidth : image.Width;
-                var tileHeight = image is BitmapSource tileBmp2 ? tileBmp2.PixelHeight : image.Height;
-                brush.Viewport = new Rect(0, 0, tileWidth, tileHeight);
+                brush.ViewportUnits = BrushMappingMode.RelativeToBoundingBox;
+                // FrmMain renders smaller outputs into a proportional buffer at least 768 pixels high.
+                var bufferHeight = Math.Max(768, outputPixels.Height);
+                var bufferWidth = Math.Max(1, Math.Floor(outputPixels.Width * bufferHeight / outputPixels.Height));
+                brush.Viewport = new Rect(0, 0, tileWidth / bufferWidth, tileHeight / bufferHeight);
                 brush.AlignmentX = AlignmentX.Left;
                 brush.AlignmentY = AlignmentY.Top;
                 break;

@@ -161,39 +161,55 @@ public class OutputWindowViewModelTests
     [InlineData(LyricsBackgroundMode.Fill, Stretch.UniformToFill)]
     [InlineData(LyricsBackgroundMode.Fit, Stretch.Uniform)]
     [InlineData(LyricsBackgroundMode.Center, Stretch.None)]
-    [InlineData(LyricsBackgroundMode.Tile, Stretch.None)]
+    [InlineData(LyricsBackgroundMode.Tile, Stretch.Fill)]
     public void BuildBackgroundImageBrush_SetsStretchPerMode(LyricsBackgroundMode mode, Stretch expectedStretch)
     {
         var image = CreateStubBitmap();
 
-        var brush = OutputWindowViewModel.BuildBackgroundImageBrush(image, mode);
+        var brush = OutputWindowViewModel.BuildBackgroundImageBrush(image, mode, new System.Windows.Size(1920, 1080));
 
         brush.Stretch.Should().Be(expectedStretch);
         brush.ImageSource.Should().BeSameAs(image);
         brush.IsFrozen.Should().BeTrue("렌더 스레드 공유·성능을 위해 Freeze");
     }
 
-    [Fact]
-    public void BuildBackgroundImageBrush_Tile_UsesTileModeAndAbsoluteViewport()
+    [Theory]
+    [InlineData(2560, 1440, 2560, 1440)]
+    [InlineData(800, 600, 1024, 768)]
+    public void BuildBackgroundImageBrush_Tile_RepeatsSourcePixelsAcrossAudienceViewportRegardlessOfImageDpi(
+        int screenWidth, int screenHeight, int bufferWidth, int bufferHeight)
     {
-        var image = CreateStubBitmap(4, 3);
+        var image = CreateStubBitmap(160, 96, 120);
 
-        var brush = OutputWindowViewModel.BuildBackgroundImageBrush(image, LyricsBackgroundMode.Tile);
+        var brush = OutputWindowViewModel.BuildBackgroundImageBrush(image, LyricsBackgroundMode.Tile, new System.Windows.Size(screenWidth, screenHeight));
 
         brush.TileMode.Should().Be(TileMode.Tile);
-        brush.ViewportUnits.Should().Be(BrushMappingMode.Absolute);
-        // 타일 한 칸은 원본 픽셀 크기(96dpi 스텁이라 PixelWidth==Width).
-        brush.Viewport.Should().Be(new System.Windows.Rect(0, 0, image.PixelWidth, image.PixelHeight));
+        brush.ViewportUnits.Should().Be(BrushMappingMode.RelativeToBoundingBox);
+        brush.Viewport.Should().Be(new System.Windows.Rect(0, 0, 160d / bufferWidth, 96d / bufferHeight));
     }
 
     [Fact]
     public void BuildBackgroundImageBrush_Center_CentersWithoutStretch()
     {
-        var brush = OutputWindowViewModel.BuildBackgroundImageBrush(CreateStubBitmap(), LyricsBackgroundMode.Center);
+        var brush = OutputWindowViewModel.BuildBackgroundImageBrush(CreateStubBitmap(), LyricsBackgroundMode.Center, new System.Windows.Size(1920, 1080));
 
         brush.Stretch.Should().Be(Stretch.None);
         brush.AlignmentX.Should().Be(AlignmentX.Center);
         brush.AlignmentY.Should().Be(AlignmentY.Center);
+    }
+
+    [Fact]
+    public void CentreImageShowsBlackBesideThePictureAndRestoresTheBackgroundWhenCleared()
+    {
+        var source = CreateStubBitmap();
+        using var sut = new OutputWindowViewModel(
+            new OutputRenderer(new ImageAssetService(), new TransitionEffectService()), settings: null, _ => source);
+        var page = new LiveSessionSnapshot(LiveState.Active, "Title", "Output", IsBlackout: false,
+            OverrideBackgroundImageMode: LyricsBackgroundMode.Fit, OverrideBackgroundColorArgb: unchecked((int)0xff335577));
+        sut.ApplySession(page with { OverrideBackgroundImagePath = "image.jpg" });
+        sut.SceneBackgroundBrush.Should().BeSameAs(Brushes.Black);
+        sut.ApplySession(page);
+        sut.SceneBackgroundBrush.Should().NotBeSameAs(Brushes.Black);
     }
 
     [Fact]
@@ -1841,7 +1857,7 @@ public class OutputWindowViewModelTests
         sut.BlackoutOverlayVisibility.Should().Be(Visibility.Collapsed, "복귀 시 블랙아웃 오버레이 걷힘");
     }
 
-    private static BitmapSource CreateStubBitmap(int width = 1, int height = 1)
+    private static BitmapSource CreateStubBitmap(int width = 1, int height = 1, double dpi = 96)
     {
         var stride = width * 4;
         var pixels = new byte[stride * height];
@@ -1849,7 +1865,7 @@ public class OutputWindowViewModelTests
         {
             pixels[i] = 255;
         }
-        var bitmap = BitmapSource.Create(width, height, 96, 96, PixelFormats.Bgra32, palette: null, pixels, stride);
+        var bitmap = BitmapSource.Create(width, height, dpi, dpi, PixelFormats.Bgra32, palette: null, pixels, stride);
         bitmap.Freeze();
         return bitmap;
     }

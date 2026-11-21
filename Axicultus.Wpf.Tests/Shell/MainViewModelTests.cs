@@ -10504,6 +10504,32 @@ public class MainViewModelTests
         sut.SelectedItemBackgroundModeIsCenter.Should().BeTrue();
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task GalleryBackgroundChangesOnlyThePublishedRowAndKeepsPageAndVisibility(bool hidden)
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        var row = new LiveQueueItem("song:1", "Same song", LiveItemKinds.Song) { Lyrics = "[1]\nFirst\n\n[2]\nSecond" };
+        var other = row with { Title = "Other occurrence", Lyrics = "[1]\nUnrelated" };
+        sut.LoadQueue([other, row]);
+        sut.SelectedItem = row;
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        sut.GoToOutputLyricsPageCommand.Execute(1);
+        if (hidden) await sut.HideOutputCommand.ExecuteAsync(null);
+
+        sut.SelectedItem = other;
+        await sut.ApplyPreviewBackgroundAsync(@"C:\Tiles\other.jpg", [other]);
+        sut.Session.Current.OverrideBackgroundImagePath.Should().BeNullOrEmpty();
+        sut.SelectedItem = row;
+        await sut.ApplyPreviewBackgroundAsync(@"C:\Tiles\current.jpg", [row]);
+
+        sut.OutputItem!.FormatData.Should().Contain(@"C:\Tiles\current.jpg");
+        sut.Session.Current.OverrideBackgroundImagePath.Should().Be(@"C:\Tiles\current.jpg");
+        sut.Session.Current.CurrentItemBodyText.Should().Contain("Second");
+        sut.Session.Current.State.Should().Be(hidden ? LiveState.Hidden : LiveState.Active);
+    }
+
     [Fact]
     public void SetSelectedItemBackgroundImageMode_WhileLive_CarriesOverrideMode()
     {
@@ -10521,7 +10547,7 @@ public class MainViewModelTests
         sut.SetSelectedItemBackgroundImageMode(LyricsBackgroundMode.Center);
 
         session.Current.OverrideBackgroundImagePath.Should().Be(@"C:\bg\live.png");
-        session.Current.OverrideBackgroundImageMode.Should().Be(LyricsBackgroundMode.Center);
+        session.Current.OverrideBackgroundImageMode.Should().Be(LyricsBackgroundMode.Fit);
     }
 
     [Fact]

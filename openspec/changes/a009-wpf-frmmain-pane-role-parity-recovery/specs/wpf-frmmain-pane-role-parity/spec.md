@@ -65,6 +65,8 @@ Both main windows SHALL select an Images thumbnail on a single left click and ap
 - **THEN** the gallery marks the selected thumbnail and retains the current item and default backgrounds
 - **WHEN** the operator double-clicks the thumbnail
 - **THEN** the selected image is applied to the current target using its gallery display mode
+- **AND** when the target is on air, both console samples and the audience surface show the background while retaining the current page and visibility
+- **AND** applying a background to another queue entry leaves the on-air entry intact
 - **AND** the context menu provides Add to Item and Add to Default as explicit alternatives
 
 #### Scenario: Change the session defaults
@@ -72,3 +74,8 @@ Both main windows SHALL select an Images thumbnail on a single left click and ap
 - **THEN** the apply and template actions appear above Default Layout, Default Background and Display Panel in that order
 - **AND** the layout choices, colour and pattern dialog, media assignment, transitions, panel height and font controls edit the WPF session settings
 - **AND** cancelling the pattern dialog preserves the current image and colours
+
+#### Scenario: Compare image display modes across surfaces
+- **WHEN** the operator selects Tile Image, Centre Image or Best Fit Image
+- **THEN** Tile Image repeats the source pixels on the audience pixel grid, Centre Image fits the whole image, and Best Fit Image fills the slide with a centred crop
+- **AND** the samples and the audience window use the same framing at mixed display scales

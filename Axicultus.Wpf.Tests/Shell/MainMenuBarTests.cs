@@ -1996,7 +1996,7 @@ public class MainMenuBarTests
         indImageMode.IndexOf("x:Name=\"Ind_ImageCentre\"", StringComparison.Ordinal).Should()
             .BeLessThan(indImageMode.IndexOf("x:Name=\"Ind_ImageBestFit\"", StringComparison.Ordinal),
                 "FrmMain Ind_ImageMode dropdown order is Tile, Centre, Best Fit");
-        indImageMode.Should().NotContain("CommandParameter=\"{x:Static settings:LyricsBackgroundMode.Fill}\"",
+        indImageMode.Should().NotContain("CommandParameter=\"{x:Static settings:LyricsBackgroundMode.Center}\"",
             "FrmMain Ind_ImageMode FormatData 62 only supports Tile, Centre, and Best Fit");
         xaml.Should().Contain("Command=\"{Binding SetSelectedItemVerticalAlignmentCommand}\"",
             "Ind_VAlign should write FormatData code 63 through the selected-item VM command");

@@ -2871,6 +2871,12 @@ public partial class FrmMain : Form
                             UpdateFormatFields();
                             SaveInfoFilePreview(ReloadImageData: true);
                         }
+                        else
+                        {
+                            continue;
+                        }
+                        RefreshGalleryBackgroundOnOutput(ItemSource.WorshipList, i + 1, WorshipListItems.Items[i].SubItems[1].Text,
+                            InImageFileName, BackgroundImageMode, Gf.PreviewItem.Format.FormatString);
                     }
                     SaveWorshipList();
                     WorshipListIndexChanged(Gf.PreviewItem.CurSlide);
@@ -2905,6 +2911,8 @@ public partial class FrmMain : Form
                     }
                     Gf.SaveFormatStringToDatabase(Gf.PreviewItem.ItemID, GetNewFormatString());
                     SongsListIndexChanged(Gf.PreviewItem.CurSlide);
+                    RefreshGalleryBackgroundOnOutput(Gf.PreviewItem.Source, 0, Gf.PreviewItem.Type + Gf.PreviewItem.ItemID,
+                        InImageFileName, BackgroundImageMode, Gf.PreviewItem.Format.FormatString);
                 }
             }
             else if (Gf.PreviewItem.Source == ItemSource.HolyBible)
@@ -2919,6 +2927,8 @@ public partial class FrmMain : Form
                     Gf.PreviewItem.UseDefaultFormat = false;
                     Gf.PreviewItem.Format.FormatString = GetNewFormatString();
                     HB_CurSelectedFormat = Gf.PreviewItem.Format.FormatString;
+                    RefreshGalleryBackgroundOnOutput(ItemSource.HolyBible, 0, Gf.PreviewItem.Type + Gf.PreviewItem.ItemID,
+                        InImageFileName, BackgroundImageMode, HB_CurSelectedFormat);
                     Gf.SetShowBackground(Gf.PreviewItem, ref PreviewScreen);
                     Gf.DrawText(ref Gf.PreviewItem, ref PreviewScreen, Gf.PreviewItem.LyricsAndNotationsList, DoActiveIndicator: false, ClearAll: false);
                     AllowIndividualFormat(AllowFormat: true, BoxChecked: true);
@@ -2940,6 +2950,8 @@ public partial class FrmMain : Form
                 AllowIndividualFormat(AllowFormat: true, BoxChecked: true);
                 UpdateFormatFields();
                 SaveInfoFilePreview(ReloadImageData: true);
+                RefreshGalleryBackgroundOnOutput(ItemSource.ExternalFileInfoScreen, 0, Gf.PreviewItem.Type + Gf.PreviewItem.ItemID,
+                    InImageFileName, BackgroundImageMode, Gf.PreviewItem.Format.FormatString);
             }
         }
         Def_NoImage.Enabled = ((Gf.BackgroundPicture != "") ? true : false);
@@ -2950,6 +2962,31 @@ public partial class FrmMain : Form
         {
             Gf.SaveFormatStringToDatabase(Gf.PreviewItem.ItemID, Gf.PreviewItem.Format.FormatString);
         }
+    }
+
+    private void RefreshGalleryBackgroundOnOutput(ItemSource source, int row, string itemKey, string path, int mode, string format)
+    {
+        if (UpdateGalleryBackground(Gf.OutputItem, source, row, itemKey, path, mode, format))
+        {
+            Gf.SetShowBackground(Gf.OutputItem, ref OutputScreen);
+            DisplayLyrics(Gf.OutputItem, Gf.OutputItem.CurSlide, ImageTransitionControl.TransitionAction.None);
+        }
+        if (Gf.ShowRunning && UpdateGalleryBackground(Gf.LiveItem, source, row, itemKey, path, mode, format))
+            RemoteControlLiveShow(LiveShowAction.Remote_BackgroundChanged);
+    }
+
+    internal static bool UpdateGalleryBackground(SongSettings item, ItemSource source, int row, string itemKey, string path, int mode, string format)
+    {
+        if (item.Source != source || item.CurItemNo != row || string.IsNullOrEmpty(item.ItemID)
+            || !string.Equals(item.Type + item.ItemID, itemKey, StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        item.UseDefaultFormat = false;
+        item.Format.FormatString = format;
+        item.Format.BackgroundPicture = path;
+        if (mode is >= 0 and < 3) item.Format.BackgroundMode = (ImageMode)mode;
+        if (item.Type == "I") item.Format.TempImageFileName = path;
+        return true;
     }
 
     private void UpdateWorshipShowIcons()

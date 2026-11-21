@@ -57,7 +57,7 @@ public sealed record SongFormatData
     {
         var folder = System.IO.Path.GetFileName(System.IO.Path.GetDirectoryName(path));
         return string.Equals(folder, "Tiles", StringComparison.OrdinalIgnoreCase) ? LyricsBackgroundMode.Tile
-            : string.Equals(folder, "Scenery", StringComparison.OrdinalIgnoreCase) ? LyricsBackgroundMode.Fit : null;
+            : string.Equals(folder, "Scenery", StringComparison.OrdinalIgnoreCase) ? LyricsBackgroundMode.Fill : null;
     }
 
     internal static string WithBackgroundPath(string? raw, string path)
@@ -248,21 +248,21 @@ public sealed record SongFormatData
     private static int? ParseInt(string value)
         => int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var n) ? n : null;
 
-    private static LyricsBackgroundMode? ParseLegacyBackgroundImageMode(string value)
+    internal static LyricsBackgroundMode? ParseLegacyBackgroundImageMode(string value)
         => ParseInt(value) switch
         {
             0 => LyricsBackgroundMode.Tile,
-            1 => LyricsBackgroundMode.Center,
-            2 => LyricsBackgroundMode.Fit,
+            1 => LyricsBackgroundMode.Fit,
+            2 => LyricsBackgroundMode.Fill,
             _ => null,
         };
 
-    private static int? ToLegacyBackgroundImageMode(LyricsBackgroundMode? mode)
+    internal static int? ToLegacyBackgroundImageMode(LyricsBackgroundMode? mode)
         => mode switch
         {
             LyricsBackgroundMode.Tile => 0,
-            LyricsBackgroundMode.Center => 1,
-            LyricsBackgroundMode.Fit => 2,
+            LyricsBackgroundMode.Fit or LyricsBackgroundMode.Center => 1,
+            LyricsBackgroundMode.Fill => 2,
             _ => null,
         };
 

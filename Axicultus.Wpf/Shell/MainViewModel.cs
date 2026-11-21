@@ -253,6 +253,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     public bool IsShowRunning => _session.Current.State != LiveState.Off;
 
+    internal OutputWindowPlacement AudiencePlacement => _output.Current.IsOpen ? _output.Current.Placement
+        : new WindowPlacementService(_settings, _display).CreateOutputPlacement(SelectedOutputDisplay ?? OutputDisplay.PrimaryFallback, false);
+
     public double SampleScreenHeight => _settings.Get(AxicultusSettingKeys.IsMonitorWide) ? 540d : 720d;
 
     public string OutputScreenStatus =>
@@ -1459,7 +1462,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     public string DefaultImageModeChoice
     {
-        get => ActiveBackgroundMode == LyricsBackgroundMode.Fill ? nameof(LyricsBackgroundMode.Fit) : ActiveBackgroundMode.ToString();
+        get => ActiveBackgroundMode.ToString();
         set { if (Enum.TryParse<LyricsBackgroundMode>(value, out var choice) && choice != ActiveBackgroundMode) ApplyBackgroundMode(choice); }
     }
 
@@ -3747,6 +3750,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     partial void OnSelectedOutputDisplayChanged(OutputDisplay? value)
     {
+        OnPropertyChanged(nameof(AudiencePlacement));
         if (_refreshingDisplays || value == null)
             return;
         _sessionOutputMonitorId = value.Id;
@@ -3843,6 +3847,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     ];
 
     private LiveQueueItem? _sourcePreviewItem;
+    private LiveQueueItem? _outputFormatSource;
+    private bool _outputFromSourcePreview;
 
     private LiveQueueItem? PreviewItem => _sourcePreviewItem ?? SelectedItem;
 
@@ -4163,8 +4169,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (options.AutoTextOverflow && !options.FitTextFileParagraphs)
         {
             var display = SelectedOutputDisplay ?? OutputDisplay.PrimaryFallback;
-            var placement = _output.Current.IsOpen ? _output.Current.Placement
-                : new WindowPlacementService(_settings, _display).CreateOutputPlacement(display, false);
+            var placement = AudiencePlacement;
             double scale = (_output.Current.Display ?? display).DpiScale;
             double width = Math.Round(placement.Width / (scale > 0 ? scale : 1));
             double height = Math.Round(placement.Height / (scale > 0 ? scale : 1));
@@ -5007,6 +5012,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     partial void OnOutputItemChanged(LiveQueueItem? value)
     {
+        if (value is null)
+        {
+            _outputFormatSource = null;
+            _outputFromSourcePreview = false;
+        }
         if (value?.Id != _chineseOutputItemId) _outputScript = null;
         ToggleOutputChineseCommand.NotifyCanExecuteChanged();
         RefreshOutputSurfaceText();
@@ -5362,6 +5372,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private void OnOutputChanged(object? sender, OutputWindowChangedEventArgs e)
     {
+        OnPropertyChanged(nameof(AudiencePlacement));
         if (!_refreshingDisplays && (e.State.Display ?? SelectedOutputDisplay) is { } audience)
             RefreshStageSelection(OutputDisplays, audience);
         NotifyCommandStates();
@@ -5756,8 +5767,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             && OutputPowerPoint.SlideCount > 0;
 
     private LiveQueueItem? GetLiveQueueItem()
-        => Queue.FirstOrDefault(item =>
-            string.Equals(item.Id, _liveItemId, StringComparison.Ordinal));
+    {
+        if (_outputFormatSource is { } source && source.Id == _liveItemId)
+        {
+            if (_outputFromSourcePreview) return null;
+            if (IndexOfReference(source) >= 0) return source;
+        }
+        return Queue.FirstOrDefault(item => string.Equals(item.Id, _liveItemId, StringComparison.Ordinal));
+    }
 
     private LiveQueueItem? GetLivePowerPointItem()
         => Queue.FirstOrDefault(item =>
@@ -5939,8 +5956,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         => string.IsNullOrWhiteSpace(text) ? title : text;
 
     private LiveQueueItem? GetLiveLyricsItem()
-        => Queue.FirstOrDefault(item => item.Id == _liveItemId && IsLyricsPaginated(item))
-            ?? (OutputItem is { } prepared && prepared.Id == _liveItemId && IsLyricsPaginated(prepared) ? prepared : null);
+        => GetLiveQueueItem() is { } row && IsLyricsPaginated(row) ? row
+            : OutputItem is { } prepared && prepared.Id == _liveItemId && IsLyricsPaginated(prepared) ? prepared : null;
 
     // PPT 미리보기 VM 의 상태/슬라이드 변화에 슬라이드 이동 커맨드 활성 상태를 동기화.
     private void OnPowerPointPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -6228,7 +6245,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         var monitorName = _output.Current.Display?.Name ?? OutputDisplay.PrimaryFallback.Name;
-        var prepared = PrepareLiveItemForOutput(item);
+        var prepared = PrepareOutputFromSource(item);
         var lyricsPageIndex = ReferenceEquals(item, SelectedItem)
             ? LyricsPageIndex
             : prepared.LyricsPageIndex;
@@ -6253,7 +6270,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         var monitorName = _output.Current.Display?.Name ?? OutputDisplay.PrimaryFallback.Name;
-        var prepared = PrepareLiveItemForOutput(item);
+        var prepared = PrepareOutputFromSource(item);
         OutputItem = prepared;
         SetLiveItemId(prepared.Id);
         LiveTransposeSemitones = 0;
@@ -6276,7 +6293,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private LiveQueueItem PrepareOutputFromItem(LiveQueueItem item)
     {
-        var prepared = PrepareLiveItemForOutput(item);
+        var prepared = PrepareOutputFromSource(item);
         OutputItem = prepared;
         PrepareOutputPowerPointForPublish(prepared);
         return prepared;
@@ -6807,6 +6824,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private async Task PrepareOutputItemForNavigationAsync(LiveQueueItem item)
     {
+        _outputFormatSource = item;
+        _outputFromSourcePreview = false;
         OutputItem = item;
 
         if (!IsPowerPointItem(item) || string.IsNullOrEmpty(item.ContentPath))
@@ -6838,7 +6857,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private async Task PublishOutputItemAsync(LiveQueueItem item, string commandId, int lyricsPageIndex = 0)
     {
         var display = EnsureLiveOutputDisplay();
-        var prepared = PrepareLiveItemForOutput(item);
+        var prepared = PrepareOutputFromSource(item);
         OutputItem = prepared;
         SetLiveItemId(prepared.Id);
         LiveTransposeSemitones = 0;
@@ -7272,7 +7291,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         var monitorName = _output.Current.Display?.Name ?? OutputDisplay.PrimaryFallback.Name;
-        var prepared = PrepareLiveItemForOutput(item);
+        var prepared = PrepareOutputFromSource(item);
         if (_session.Current.State == LiveState.Active)
         {
             OutputItem = prepared;
@@ -7333,7 +7352,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         var display = EnsureLiveOutputDisplay();
-        var prepared = PrepareLiveItemForOutput(item);
+        var prepared = PrepareOutputFromSource(item);
         OutputItem = prepared;
         SetLiveItemId(prepared.Id); // Output 전용 이동/상태 표시가 참조할 live 항목 기록.
         PrepareOutputPowerPointForPublish(prepared);
@@ -7869,10 +7888,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         : "No Item Media";
 
     public LyricsBackgroundMode SelectedItemBackgroundImageMode
-        => SongFormatData.Parse(SelectedItem?.FormatData)?.BackgroundImageMode ?? LyricsBackgroundMode.Fit;
+        => SongFormatData.Parse(SelectedItem?.FormatData)?.BackgroundImageMode ?? LyricsBackgroundMode.Fill;
 
-    public bool SelectedItemBackgroundModeIsFit => SelectedItemBackgroundImageMode == LyricsBackgroundMode.Fit;
-    public bool SelectedItemBackgroundModeIsCenter => SelectedItemBackgroundImageMode == LyricsBackgroundMode.Center;
+    public bool SelectedItemBackgroundModeIsFit => SelectedItemBackgroundImageMode == LyricsBackgroundMode.Fill;
+    public bool SelectedItemBackgroundModeIsCenter => SelectedItemBackgroundImageMode == LyricsBackgroundMode.Fit;
     public bool SelectedItemBackgroundModeIsTile => SelectedItemBackgroundImageMode == LyricsBackgroundMode.Tile;
 
     public LyricsVerticalAlignment SelectedItemVerticalAlignment
@@ -7974,12 +7993,15 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             FormatData = SongFormatData.WithBackgroundPath(item.FormatData, path), UseIndividualFormatting = true,
         };
 
-        if (_sourcePreviewItem != null)
+        bool editingSourcePreview = _sourcePreviewItem != null;
+        if (editingSourcePreview)
         {
             if (TryGetSongDatabaseId(preview, out int songId) && !await Library.SaveSongBackgroundAsync(songId, path)) return false;
+            var edited = Apply(preview);
+            RefreshGalleryOutput(preview, edited);
             if (_sourcePreviewItem?.Id == preview.Id)
             {
-                _sourcePreviewItem = Apply(_sourcePreviewItem);
+                _sourcePreviewItem = edited;
                 NotifyPreviewItemProperties();
             }
             return true;
@@ -7994,10 +8016,21 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             var updated = Apply(item);
             Queue[index] = updated;
             if (ReferenceEquals(preview, item)) current = updated;
+            RefreshGalleryOutput(item, updated);
         }
         if (current != null) { SelectedItem = current; GoToPreviewLyricsPage(page); }
-        RepublishLiveSongForBodyChange();
         return true;
+
+        void RefreshGalleryOutput(LiveQueueItem original, LiveQueueItem edited)
+        {
+            if (OutputItem is not { } output || output.Id != original.Id) return;
+            bool sameSource = editingSourcePreview && _outputFromSourcePreview;
+            if (!sameSource && !ReferenceEquals(original, _outputFormatSource) && !ReferenceEquals(original, output)) return;
+            _outputFormatSource = edited;
+            var updated = Apply(output);
+            OutputItem = updated;
+            if (_liveItemId == output.Id) RefreshPreparedTextOutput(updated);
+        }
     }
 
     public void SetSelectedItemBackgroundImage(string? path)
@@ -8032,7 +8065,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// <summary>현재 선택한 항목의 배경 이미지 표시 모드(FormatData 62)를 바꾼다.</summary>
     public void SetSelectedItemBackgroundImageMode(LyricsBackgroundMode mode)
     {
-        if (mode is not (LyricsBackgroundMode.Fit or LyricsBackgroundMode.Center or LyricsBackgroundMode.Tile))
+        if (mode is not (LyricsBackgroundMode.Fill or LyricsBackgroundMode.Fit or LyricsBackgroundMode.Center or LyricsBackgroundMode.Tile))
         {
             return;
         }
@@ -8046,7 +8079,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             var label = mode switch
             {
                 LyricsBackgroundMode.Tile => "Tile Image",
-                LyricsBackgroundMode.Center => "Centre Image",
+                LyricsBackgroundMode.Fit or LyricsBackgroundMode.Center => "Centre Image",
                 _ => "Best Fit Image",
             };
             StatusText = $"Item background picture format: {label}{(turnedOn ? " (individual formatting on)" : "")}";
@@ -8312,6 +8345,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Library.Folders.FirstOrDefault(folder => folder.FolderNo == Math.Max(1, item.SourceFolderNo ?? _previewTextFolderNo))?.SlideLayout
         ?? item.SongLayout
         ?? Library.Folders.FirstOrDefault(folder => folder.FolderNo == 0)?.SlideLayout;
+
+    private LiveQueueItem PrepareOutputFromSource(LiveQueueItem item)
+    {
+        if (!ReferenceEquals(item, OutputItem) || _outputFormatSource is null)
+        {
+            _outputFormatSource = item;
+            _outputFromSourcePreview = ReferenceEquals(item, _sourcePreviewItem);
+        }
+        return PrepareLiveItemForOutput(item);
+    }
 
     private LiveQueueItem PrepareLiveItemForOutput(LiveQueueItem item)
     {

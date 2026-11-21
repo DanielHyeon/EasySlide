@@ -54,7 +54,7 @@ public sealed class SongFormatDataTests
         f.Alignment1.Should().Be(2, "31 = region1 정렬");
         f.Alignment2.Should().Be(1, "32 = region2 정렬");
         f.BackgroundImagePath.Should().Be(@"C:\Axicultus\Images\성경\bible-sermon.jpg", "61 = 배경 이미지");
-        f.BackgroundImageMode.Should().Be(LyricsBackgroundMode.Fit, "62=2 = legacy BestFit");
+        f.BackgroundImageMode.Should().Be(LyricsBackgroundMode.Fill, "62=2 crops to fill the slide in WinForms");
         f.VerticalAlignment.Should().Be(LyricsVerticalAlignment.Center, "63=1 = FrmMain Ind_VAlign centre");
         f.BodyLeftMargin.Should().Be(2, "64 = FrmMain Ind_LeftUpDown");
         f.BodyRightMargin.Should().Be(2, "65 = FrmMain Ind_RightUpDown");
@@ -131,7 +131,7 @@ public sealed class SongFormatDataTests
             Italic2 = true,
             Underline2 = false,
             BackgroundImagePath = @"C:\Axicultus\Images\성경\bible.jpg",
-            BackgroundImageMode = LyricsBackgroundMode.Center,
+            BackgroundImageMode = LyricsBackgroundMode.Fit,
             VerticalAlignment = LyricsVerticalAlignment.Bottom,
             BodyLeftMargin = 4,
             BodyRightMargin = 5,
@@ -148,8 +148,8 @@ public sealed class SongFormatDataTests
 
     [Theory]
     [InlineData("62=0>", LyricsBackgroundMode.Tile)]
-    [InlineData("62=1>", LyricsBackgroundMode.Center)]
-    [InlineData("62=2>", LyricsBackgroundMode.Fit)]
+    [InlineData("62=1>", LyricsBackgroundMode.Fit)]
+    [InlineData("62=2>", LyricsBackgroundMode.Fill)]
     public void Parse_BackgroundImageMode62_MapsLegacyImageMode(string raw, LyricsBackgroundMode expected)
     {
         SongFormatData.Parse(raw)!.BackgroundImageMode.Should().Be(expected);
@@ -158,7 +158,8 @@ public sealed class SongFormatDataTests
     [Theory]
     [InlineData(LyricsBackgroundMode.Tile, "62=0")]
     [InlineData(LyricsBackgroundMode.Center, "62=1")]
-    [InlineData(LyricsBackgroundMode.Fit, "62=2")]
+    [InlineData(LyricsBackgroundMode.Fit, "62=1")]
+    [InlineData(LyricsBackgroundMode.Fill, "62=2")]
     public void Encode_BackgroundImageMode62_MapsToLegacyImageMode(LyricsBackgroundMode mode, string expected)
     {
         new SongFormatData { BackgroundImageMode = mode }.Encode().Should().Be(expected);

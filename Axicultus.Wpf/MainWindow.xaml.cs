@@ -502,8 +502,8 @@ public partial class MainWindow : Window
         }
         if (e.PropertyName == nameof(MainViewModel.CurrentWorshipListName) && _captionConsole == null)
             _services.GetService<Captions.CaptionSession>()?.BeginPlan(_viewModel.CurrentWorshipListName);
-        if (e.PropertyName is nameof(MainViewModel.PreviewPanelItem) or nameof(MainViewModel.SampleScreenHeight)) RefreshSample(true);
-        if (e.PropertyName is nameof(MainViewModel.OutputItem) or nameof(MainViewModel.OutputScreenStatus) or nameof(MainViewModel.SampleScreenHeight)) RefreshSample(false);
+        if (e.PropertyName is nameof(MainViewModel.PreviewPanelItem) or nameof(MainViewModel.AudiencePlacement) or nameof(MainViewModel.SampleScreenHeight)) RefreshSample(true);
+        if (e.PropertyName is nameof(MainViewModel.OutputItem) or nameof(MainViewModel.OutputScreenStatus) or nameof(MainViewModel.AudiencePlacement) or nameof(MainViewModel.SampleScreenHeight)) RefreshSample(false);
         if (e.PropertyName == nameof(MainViewModel.PreviewLyricsText) && _viewModel.PreviewPanelItem is { } preview && LiveItemKindMatcher.IsExternalTextFileItem(preview))
             RefreshSample(true);
         if (e.PropertyName == nameof(MainViewModel.OutputLyricsText) && _viewModel.OutputItem is { } output && LiveItemKindMatcher.IsExternalTextFileItem(output))
@@ -525,8 +525,10 @@ public partial class MainWindow : Window
             : item is null ? LiveSessionSnapshot.Off with { State = LiveState.Active }
             : LiveSessionService.CreateSnapshot(LiveSessionSnapshot.Off,
                 item.UseIndividualFormatting ? item : item with { FormatData = null }, string.Empty, LiveState.Active, false, false);
-        if (sample.Scene.Viewport.Width != 960 || sample.Scene.Viewport.Height != _viewModel.SampleScreenHeight || !sample.IsOutputOpen)
-            sample.ApplyOutput(new OutputWindowState(true, null, new OutputWindowPlacement(0, 0, 960, _viewModel.SampleScreenHeight, true)));
+        var placement = _viewModel.AudiencePlacement;
+        var outputPixels = new Size(Math.Max(1, placement.Width), Math.Max(1, placement.Height));
+        if (sample.BackgroundPixelSize != outputPixels || sample.Scene.Viewport.Width != 960 || sample.Scene.Viewport.Height != _viewModel.SampleScreenHeight || !sample.IsOutputOpen)
+            sample.ApplyOutput(new OutputWindowState(true, null, new OutputWindowPlacement(0, 0, 960, _viewModel.SampleScreenHeight, true)), outputPixels);
         sample.ApplySession(snapshot);
     }
 

@@ -290,6 +290,7 @@
             </Setter.Value></Setter>
         </Style>
         <Style x:Key="DefaultIconChoice" TargetType="ComboBox">
+            <Setter Property="ToolTip" Value="{Binding SelectedItem.Content, RelativeSource={RelativeSource Self}}" />
             <Setter Property="Width" Value="30" /><Setter Property="Height" Value="29" />
             <Setter Property="Template">
                 <Setter.Value>
@@ -2413,19 +2414,19 @@
                                 <Button x:Name="Def_SaveTemplate" ToolTip="Save Template" Style="{StaticResource DefaultStripButton}" Click="SaveSessionTemplate_Click"><controls:FrmIcon Icon="save" Width="19" Height="19" /></Button>
                             </StackPanel>
                             <GroupBox x:Name="DefgroupBox1" Tag="DefgroupBox1" Header="Default Layout" Style="{x:Null}" HeaderTemplate="{StaticResource DefaultStripText}" Padding="0,2,3,1" Margin="0,3,0,0" BorderBrush="{DynamicResource {x:Static SystemColors.ControlLightBrushKey}}">
-                                <StackPanel>
+                                <StackPanel Margin="0,4,0,-4">
                                     <StackPanel Orientation="Horizontal" Height="31" VerticalAlignment="Center">
-                                        <ComboBox x:Name="Def_Head" ToolTip="Song Headings" Style="{StaticResource DefaultIconChoice}" SelectedValuePath="Tag" SelectedValue="{Binding DefaultHeadingChoice, Mode=TwoWay}">
+                                        <ComboBox x:Name="Def_Head" AutomationProperties.Name="Title heading" Style="{StaticResource DefaultIconChoice}" SelectedValuePath="Tag" SelectedValue="{Binding DefaultHeadingChoice, Mode=TwoWay}">
                                             <controls:FormatOption x:Name="Def_HeadNoTitles" Tag="None" Content="No Headings" Icon="heading_off" />
                                             <controls:FormatOption x:Name="Def_HeadAllTitles" Tag="All" Content="Show All Headings" Icon="heading" />
                                             <controls:FormatOption x:Name="Def_HeadFirstScreen" Tag="First" Content="Heading At First Screen Only" Icon="heading_first" />
                                         </ComboBox>
-                                        <ComboBox x:Name="Def_Region" ToolTip="Display Regions" Style="{StaticResource DefaultIconChoice}" SelectedValuePath="Tag" SelectedValue="{Binding DefaultRegionChoice, Mode=TwoWay}">
+                                        <ComboBox x:Name="Def_Region" AutomationProperties.Name="Text regions" Style="{StaticResource DefaultIconChoice}" SelectedValuePath="Tag" SelectedValue="{Binding DefaultRegionChoice, Mode=TwoWay}">
                                             <controls:FormatOption x:Name="Def_ShowRegion1" Tag="Region1Only" Content="Region 1 Only" Icon="region_1" />
                                             <controls:FormatOption x:Name="Def_ShowRegion2" Tag="Region2Only" Content="Region 2 Only" Icon="region_2" />
                                             <controls:FormatOption x:Name="Def_ShowRegionBoth" Tag="Both" Content="Regions 1 and 2" Icon="region_both" />
                                         </ComboBox>
-                                        <ComboBox x:Name="Def_VAlign" ToolTip="Vertical Alignment" Style="{StaticResource DefaultIconChoice}" SelectedValuePath="Tag" SelectedValue="{Binding DefaultVerticalChoice, Mode=TwoWay}">
+                                        <ComboBox x:Name="Def_VAlign" AutomationProperties.Name="Vertical alignment" Style="{StaticResource DefaultIconChoice}" SelectedValuePath="Tag" SelectedValue="{Binding DefaultVerticalChoice, Mode=TwoWay}">
                                             <controls:FormatOption x:Name="Def_VAlignTop" Tag="Top" Content="Align Top" Icon="textbox_align_top" />
                                             <controls:FormatOption x:Name="Def_VAlignCentre" Tag="Center" Content="Align Centre" Icon="textbox_align_middle" />
                                             <controls:FormatOption x:Name="Def_VAlignBottom" Tag="Bottom" Content="Align Bottom" Icon="textbox_align_bottom" />
@@ -2437,7 +2438,7 @@
                                         <ToggleButton x:Name="Def_ToZero" ToolTip="To Capo 0" Style="{StaticResource DefaultStripToggle}" IsChecked="{Binding DefaultCapoZero, Mode=OneWay}" Command="{Binding ToggleDefaultCapoCommand}"><controls:FrmIcon Icon="capo_zero" Width="19" Height="19" /></ToggleButton>
                                     </StackPanel>
                                     <StackPanel Orientation="Horizontal" Height="31" VerticalAlignment="Center">
-                                        <ComboBox x:Name="Def_HeadAlign" ToolTip="Heading Alignment" Style="{StaticResource DefaultIconChoice}" SelectedValuePath="Tag" SelectedValue="{Binding DefaultHeadingAlignmentChoice, Mode=TwoWay}">
+                                        <ComboBox x:Name="Def_HeadAlign" AutomationProperties.Name="Heading alignment" Style="{StaticResource DefaultIconChoice}" SelectedValuePath="Tag" SelectedValue="{Binding DefaultHeadingAlignmentChoice, Mode=TwoWay}">
                                             <controls:FormatOption x:Name="Def_HeadAlignAsR1" Tag="AsR1" Content="Headings Align As Region 1" Icon="heading_align_r1" />
                                             <controls:FormatOption x:Name="Def_HeadAlignAsR2" Tag="AsR2" Content="Headings Align As Region 2" Icon="heading_align_r2" />
                                             <controls:FormatOption x:Name="Def_HeadAlignLeft" Tag="Left" Content="Headings Align Left" Icon="heading_align_left" />
@@ -2445,14 +2446,14 @@
                                             <controls:FormatOption x:Name="Def_HeadAlignRight" Tag="Right" Content="Headings Align Right" Icon="heading_align_right" />
                                         </ComboBox>
                                         <Border Width="1" Height="16" Margin="2,0" Background="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}" />
-                                        <ComboBox x:Name="Def_R1Align" ToolTip="Region 1 Alignment" Style="{StaticResource DefaultIconChoice}" SelectedValuePath="Tag" SelectedValue="{Binding DefaultRegion1AlignmentChoice, Mode=TwoWay}">
+                                        <ComboBox x:Name="Def_R1Align" AutomationProperties.Name="Region 1 alignment" Style="{StaticResource DefaultIconChoice}" SelectedValuePath="Tag" SelectedValue="{Binding DefaultRegion1AlignmentChoice, Mode=TwoWay}">
                                             <controls:FormatOption x:Name="Def_R1AlignLeft" Tag="Left" Content="Region 1 Align Left" Icon="text_align_left" />
                                             <controls:FormatOption x:Name="Def_R1AlignCentre" Tag="Center" Content="Region 1 Align Centre" Icon="text_align_center" />
                                             <controls:FormatOption x:Name="Def_R1AlignRight" Tag="Right" Content="Region 1 Align Right" Icon="text_align_right" />
                                         </ComboBox>
                                         <Button x:Name="Def_R1Colour" Style="{StaticResource DefaultColourButton}" Click="PickDefaultTextColor_Click" Content="R1 Col" Foreground="{Binding ActiveTextColorHex, Converter={StaticResource ColorValueToBrush}}" />
                                         <Border Width="1" Height="16" Margin="2,0" Background="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}" />
-                                        <ComboBox x:Name="Def_R2Align" ToolTip="Region 2 Alignment" Style="{StaticResource DefaultIconChoice}" SelectedValuePath="Tag" SelectedValue="{Binding DefaultRegion2AlignmentChoice, Mode=TwoWay}">
+                                        <ComboBox x:Name="Def_R2Align" AutomationProperties.Name="Region 2 alignment" Style="{StaticResource DefaultIconChoice}" SelectedValuePath="Tag" SelectedValue="{Binding DefaultRegion2AlignmentChoice, Mode=TwoWay}">
                                             <controls:FormatOption x:Name="Def_R2AlignLeft" Tag="Left" Content="Region 2 Align Left" Icon="text_align_left" />
                                             <controls:FormatOption x:Name="Def_R2AlignCentre" Tag="Center" Content="Region 2 Align Centre" Icon="text_align_center" />
                                             <controls:FormatOption x:Name="Def_R2AlignRight" Tag="Right" Content="Region 2 Align Right" Icon="text_align_right" />
@@ -2462,12 +2463,12 @@
                                 </StackPanel>
                             </GroupBox>
                             <GroupBox x:Name="DefgroupBox2" Tag="DefgroupBox2" Header="Default Background" Style="{x:Null}" HeaderTemplate="{StaticResource DefaultStripText}" Padding="0,2,3,1" Margin="0,3,0,0" BorderBrush="{DynamicResource {x:Static SystemColors.ControlLightBrushKey}}">
-                                <StackPanel>
+                                <StackPanel Margin="0,4,0,-4">
                                     <StackPanel Orientation="Horizontal" Height="31" VerticalAlignment="Center">
-                                        <ComboBox x:Name="Def_ImageMode" ToolTip="Background Image Mode" Style="{StaticResource DefaultIconChoice}" SelectedValuePath="Tag" SelectedValue="{Binding DefaultImageModeChoice, Mode=TwoWay}">
+                                        <ComboBox x:Name="Def_ImageMode" AutomationProperties.Name="Background picture format" Style="{StaticResource DefaultIconChoice}" SelectedValuePath="Tag" SelectedValue="{Binding DefaultImageModeChoice, Mode=TwoWay}">
                                             <controls:FormatOption x:Name="Def_ImageTile" Tag="Tile" Content="Tile Image" Icon="image_tile" />
-                                            <controls:FormatOption x:Name="Def_ImageCentre" Tag="Center" Content="Centre Image" Icon="image_border" />
-                                            <controls:FormatOption x:Name="Def_ImageBestFit" Tag="Fit" Content="Best Fit Image" Icon="image" />
+                                            <controls:FormatOption x:Name="Def_ImageCentre" Tag="Fit" Content="Centre Image" Icon="image_border" />
+                                            <controls:FormatOption x:Name="Def_ImageBestFit" Tag="Fill" Content="Best Fit Image" Icon="image" />
                                         </ComboBox>
                                         <Button x:Name="Def_NoImage" ToolTip="{Binding OutputBackgroundNoImageToolTip}" Style="{StaticResource DefaultStripButton}" Command="{Binding ClearOutputBackgroundImageCommand}"><controls:FrmIcon Icon="image_off" Width="19" Height="19" /></Button>
                                         <Button x:Name="Def_BackColour" Style="{StaticResource DefaultColourButton}" Click="PickDefaultBackgroundColor_Click" Content="Colours" Foreground="{Binding ActiveBackgroundColorHex, Converter={StaticResource ColorValueToBrush}}" />
@@ -3641,7 +3642,7 @@
                                                                           Tag="1"
                                                                           IsChecked="{Binding SelectedItemBackgroundModeIsCenter, Mode=OneWay}"
                                                                           Command="{Binding SetSelectedItemBackgroundImageModeCommand}"
-                                                                          CommandParameter="{x:Static settings:LyricsBackgroundMode.Center}"
+                                                                          CommandParameter="{x:Static settings:LyricsBackgroundMode.Fit}"
                                                                           Style="{StaticResource ClassicOutputToggleButton}"
                                                                           MinWidth="62"
                                                                           Height="26"
@@ -3655,7 +3656,7 @@
                                                                           Tag="2"
                                                                           IsChecked="{Binding SelectedItemBackgroundModeIsFit, Mode=OneWay}"
                                                                           Command="{Binding SetSelectedItemBackgroundImageModeCommand}"
-                                                                          CommandParameter="{x:Static settings:LyricsBackgroundMode.Fit}"
+                                                                          CommandParameter="{x:Static settings:LyricsBackgroundMode.Fill}"
                                                                           Style="{StaticResource ClassicOutputToggleButton}"
                                                                           MinWidth="66"
                                                                           Height="26"

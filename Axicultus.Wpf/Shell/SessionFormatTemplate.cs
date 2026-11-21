@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using Axicultus.Wpf.Library;
 using Axicultus.Wpf.Media;
 using Axicultus.Wpf.Settings;
 using static Axicultus.Wpf.Settings.AxicultusSettingKeys;
@@ -85,8 +86,8 @@ internal static class SessionFormatTemplate
         Map(31, LyricsMonitorTextAlignment, v => Number(1 + (int)v), v => (LyricsTextAlignment)Math.Clamp(Parse(v) - 1, 0, 2));
         Map(32, LyricsMonitorRegion2Alignment, v => Number((int)v), v => (LyricsRegion2Alignment)Math.Clamp(Parse(v), 0, 3));
         Text(61, LyricsMonitorBackgroundImagePath);
-        Map(62, LyricsMonitorBackgroundMode, v => v == LyricsBackgroundMode.Tile ? "0" : v == LyricsBackgroundMode.Center ? "1" : "2",
-            v => v == "0" ? LyricsBackgroundMode.Tile : v == "1" ? LyricsBackgroundMode.Center : LyricsBackgroundMode.Fit);
+        Map(62, LyricsMonitorBackgroundMode, v => Number(SongFormatData.ToLegacyBackgroundImageMode(v) ?? 2),
+            v => SongFormatData.ParseLegacyBackgroundImageMode(v) ?? LyricsBackgroundMode.Fill);
         Map(63, LyricsMonitorVerticalAlignment, v => Number((int)v), v => (LyricsVerticalAlignment)Math.Clamp(Parse(v), 0, 2));
         Integer(64, LyricsMonitorBodyLeftMargin);
         Integer(65, LyricsMonitorBodyRightMargin);

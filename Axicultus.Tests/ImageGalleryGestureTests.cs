@@ -3,11 +3,35 @@ using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
 using Xunit;
+using Axicultus.Module;
 
 namespace Axicultus.Tests;
 
 public class ImageGalleryGestureTests
 {
+    [Fact]
+    public void LiveBackgroundMatchesSourceAndQueueRowAndKeepsCurrentSlide()
+    {
+        MonitorPresentationTests.RunOnSta(() =>
+        {
+            var live = new SongSettings { Source = ItemSource.WorshipList, CurItemNo = 2, Type = "I", ItemID = "info.rtf", CurSlide = 3, UseDefaultFormat = true };
+            using var list = live.LyricsAndNotationsList;
+            bool Apply(ItemSource source, int row, string key) =>
+                FrmMain.UpdateGalleryBackground(live, source, row, key, "tiles.jpg", 0, "61=tiles.jpg>62=0>");
+
+            Assert.False(Apply(ItemSource.PraiseBook, 2, "Iinfo.rtf"));
+            Assert.False(Apply(ItemSource.WorshipList, 1, "Iinfo.rtf"));
+            Assert.False(Apply(ItemSource.WorshipList, 2, "Iother.rtf"));
+            Assert.True(live.UseDefaultFormat);
+            Assert.True(Apply(ItemSource.WorshipList, 2, "Iinfo.rtf"));
+            Assert.False(live.UseDefaultFormat);
+            Assert.Equal(3, live.CurSlide);
+            Assert.Equal("tiles.jpg", live.Format.BackgroundPicture);
+            Assert.Equal("tiles.jpg", live.Format.TempImageFileName);
+            Assert.Equal(ImageMode.Tile, live.Format.BackgroundMode);
+        });
+    }
+
     [Fact]
     public void SelectionAndActivationAreSeparateEventsOnTheThumbnail()
     {
