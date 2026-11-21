@@ -32,6 +32,12 @@ public interface IWorshipListStore
 
     Task<IReadOnlyList<LiveQueueItem>> LoadAsync(string name, CancellationToken cancellationToken = default);
 
+    Task SaveSessionAsync(string name, IReadOnlyList<LiveQueueItem> items, string? format, CancellationToken cancellationToken = default)
+        => SaveAsync(name, items, cancellationToken);
+
+    async Task<(IReadOnlyList<LiveQueueItem> Items, string? Format)> LoadSessionAsync(string name, CancellationToken cancellationToken = default)
+        => (await LoadAsync(name, cancellationToken).ConfigureAwait(false), null);
+
     IReadOnlyList<string> ListNames();
 
     void Delete(string name);
@@ -79,7 +85,12 @@ public sealed class WorshipListStore(string directory, ISettingsService? setting
     private static string DefaultDirectory() => Path.Combine(ProductStorage.WpfProfileDirectory(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)),
         "WorshipLists");
 
-    public async Task SaveAsync(string name, IReadOnlyList<LiveQueueItem> items, CancellationToken cancellationToken = default)
+    private sealed record SavedSession(WorshipListItemDto[] Items, string Format);
+
+    public Task SaveAsync(string name, IReadOnlyList<LiveQueueItem> items, CancellationToken cancellationToken = default)
+        => SaveSessionAsync(name, items, null, cancellationToken);
+
+    public async Task SaveSessionAsync(string name, IReadOnlyList<LiveQueueItem> items, string? format, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(items);
         var path = ResolvePath(name);
@@ -88,7 +99,8 @@ public sealed class WorshipListStore(string directory, ISettingsService? setting
         var dtos = items
             .Select(i => new WorshipListItemDto(i.Id, i.Title, i.Kind, i.SlideNumber, i.Lyrics, i.ContentPath, i.FormatData, i.UseIndividualFormatting, i.Sequence, i.SongLayout, i.SourceFolderNo, i.Capo))
             .ToArray();
-        var json = JsonSerializer.Serialize(dtos, JsonOptions);
+        var json = format is null ? JsonSerializer.Serialize(dtos, JsonOptions)
+            : JsonSerializer.Serialize(new SavedSession(dtos, format), JsonOptions);
 
         // 원자적 쓰기 — temp 에 완전히 쓴 뒤 교체. 저장 중 중단돼도 기존 예배 순서가 손상되지 않는다(SettingsService 패턴).
         var tempPath = $"{path}.{Guid.NewGuid():N}.tmp";
@@ -97,27 +109,38 @@ public sealed class WorshipListStore(string directory, ISettingsService? setting
     }
 
     public async Task<IReadOnlyList<LiveQueueItem>> LoadAsync(string name, CancellationToken cancellationToken = default)
+        => (await LoadSessionAsync(name, cancellationToken).ConfigureAwait(false)).Items;
+
+    public async Task<(IReadOnlyList<LiveQueueItem> Items, string? Format)> LoadSessionAsync(string name, CancellationToken cancellationToken = default)
     {
         var path = ResolvePath(name);
         if (!File.Exists(path))
         {
-            return Array.Empty<LiveQueueItem>();
+            return (Array.Empty<LiveQueueItem>(), null);
         }
 
         var json = await File.ReadAllTextAsync(path, cancellationToken).ConfigureAwait(false);
         WorshipListItemDto[]? dtos;
+        string? format = null;
         try
         {
-            dtos = JsonSerializer.Deserialize<WorshipListItemDto[]>(json, JsonOptions);
+            using var document = JsonDocument.Parse(json);
+            if (document.RootElement.ValueKind == JsonValueKind.Object)
+            {
+                var session = document.RootElement.Deserialize<SavedSession>(JsonOptions);
+                dtos = session?.Items;
+                format = session?.Format;
+            }
+            else dtos = document.RootElement.Deserialize<WorshipListItemDto[]>(JsonOptions);
         }
         catch (JsonException)
         {
             // 손상/비-JSON 파일은 빈 목록으로 우아하게 처리(호출자 크래시 방지).
-            return Array.Empty<LiveQueueItem>();
+            return (Array.Empty<LiveQueueItem>(), null);
         }
 
         dtos ??= [];
-        return dtos
+        return (dtos
             .Select(d => new LiveQueueItem(d.Id, d.Title, d.Kind)
             {
                 SlideNumber = d.SlideNumber,
@@ -130,7 +153,7 @@ public sealed class WorshipListStore(string directory, ISettingsService? setting
                 Capo = d.Capo,
                 UseIndividualFormatting = d.UseIndividualFormatting,
             })
-            .ToList();
+            .ToList(), format);
     }
 
     public IReadOnlyList<string> ListNames()

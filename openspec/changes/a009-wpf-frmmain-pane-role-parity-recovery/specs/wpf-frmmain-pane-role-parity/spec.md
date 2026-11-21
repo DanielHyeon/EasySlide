@@ -79,3 +79,13 @@ Both main windows SHALL select an Images thumbnail on a single left click and ap
 - **WHEN** the operator selects Tile Image, Centre Image or Best Fit Image
 - **THEN** Tile Image repeats the source pixels on the audience pixel grid, Centre Image fits the whole image, and Best Fit Image fills the slide with a centred crop
 - **AND** the samples and the audience window use the same framing at mixed display scales
+
+#### Scenario: Apply session defaults with an InfoScreen selected
+- **WHEN** the operator clicks Apply to All Except InfoScreens in a mixed worship list
+- **THEN** each InfoScreen retains its individual formatting, including the selected InfoScreen
+- **AND** songs, Bible passages, text files, Word documents, media and presentations use the session defaults after saving and reopening the list
+
+#### Scenario: Exchange session templates between desktops
+- **WHEN** either desktop saves a session template and either desktop opens it
+- **THEN** the session margins, panel, transition effects, media settings and Praise Book formatting survive the round trip
+- **AND** opening a template preserves item overrides, and reopening the named list restores its session format

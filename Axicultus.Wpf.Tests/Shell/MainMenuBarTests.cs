@@ -1387,6 +1387,10 @@ public class MainMenuBarTests
         Controls(rows[3]).Should().Equal("Def_TransItem", "Def_TransSlides");
         Controls(rows[4]).Should().Equal("Def_PanelAsR1", "Def_PanelTextColour", "Def_PanelTransparent", "Def_PanelBackColour");
         Controls(rows[5]).Should().Equal("Def_PanelShow", "Def_PanelTitle", "Def_PanelCopyright", "Def_PanelSong", "Def_PanelSlides", "Def_PanelPrevNext");
+        var comboStyle = tab.Document!.Descendants().Single(e => (string?)e.Attribute(names + "Key") == "DefaultFieldCombo");
+        var selectedLabel = comboStyle.Descendants().Single(e => e.Name.LocalName == "ContentPresenter");
+        Assert.Equal("{TemplateBinding SelectedItem}", (string?)selectedLabel.Attribute("Content"));
+        Assert.Equal("{TemplateBinding ItemTemplate}", (string?)selectedLabel.Attribute("ContentTemplate"));
         Controls(rows[6]).Should().Equal("Def_PanelFontBold", "Def_PanelFontItalics", "Def_PanelFontUnderline", "Def_PanelFontShadow", "Def_PanelFontOutline", "Def_PanelFontList");
         tab.Descendants().Where(e => e.Name.LocalName == "FormatOption").Should().OnlyContain(e => e.Attribute("Icon") != null && e.Attribute("Tag") != null);
         tab.Descendants().Where(e => e.Name.LocalName == "Button" || e.Name.LocalName == "ToggleButton")

@@ -51,8 +51,10 @@ internal static class SessionFormatTemplate
         Bits(14, (1, LyricsMonitorPanelTextColorFollowRegion1));
         Bits(15, (1, LyricsMonitorShowDisplayPanel), (2, LyricsMonitorShowPositionIndicator), (4, LyricsMonitorShowItemNumber),
             (8, LyricsMonitorShowTitleOnPanel), (16, LyricsMonitorShowCopyright), (32, LyricsMonitorShowNextItem));
-        Integer(16, PanelHeightPercent);
-        Text(17, PanelFontFamily);
+        static int LegacyPanelHeight(int height) => height is >= 6 and <= 20 ? height : 8;
+        Map(16, PanelHeightPercent, height => Number(Math.Clamp(height, 6, 20)), value => LegacyPanelHeight(Parse(value)));
+        static string PanelFont(string name) => string.IsNullOrWhiteSpace(name) ? "Microsoft Sans Serif" : name;
+        Map(17, PanelFontFamily, PanelFont, PanelFont);
         Bits(18, (1, LyricsMonitorPanelBold), (2, LyricsMonitorPanelItalic), (4, LyricsMonitorPanelUnderline),
             (8, LyricsMonitorPanelShadow), (16, LyricsMonitorPanelOutline));
         if (load && fields.TryGetValue(21, out var heading))
@@ -92,10 +94,20 @@ internal static class SessionFormatTemplate
         Integer(64, LyricsMonitorBodyLeftMargin);
         Integer(65, LyricsMonitorBodyRightMargin);
         Integer(66, LyricsMonitorBodyBottomMargin);
-        Text(72, LyricsMonitorItemTransitionName);
-        Text(73, LyricsMonitorSlideTransitionName);
+        void Transition(int code, SettingKey<string> name, SettingKey<LyricsTransitionKind> motion)
+        {
+            if (load)
+            {
+                if (!fields.TryGetValue(code, out var value)) return;
+                Set(name, value);
+                Set(motion, MainViewModel.TemplateTransitionMotion(value));
+            }
+            else fields[code] = MainViewModel.TemplateTransitionName(settings.Get(name), settings.Get(motion));
+        }
+        Transition(72, LyricsMonitorItemTransitionName, LyricsMonitorTransitionKind);
+        Transition(73, LyricsMonitorSlideTransitionName, LyricsMonitorSlideTransitionKind);
 
-        string format = string.Join("", fields.Select(pair => $"{pair.Key}={pair.Value}>"));
+        string Encode() => string.Concat(fields.Select(pair => $"{pair.Key}={pair.Value}>"));
         if (load)
         {
             if (fields.Keys.Any(key => key is >= 50 and <= 56))
@@ -106,11 +118,18 @@ internal static class SessionFormatTemplate
             }
             var result = settings.SetValues(pending);
             if (!result.Succeeded) throw new InvalidDataException(string.Join(" ", result.Issues.Select(issue => issue.Message)));
-            return format;
+            return Encode();
         }
         string assigned = settings.Get(DefaultMediaPath);
         var options = ItemMediaOptions.Read(settings.Get(DefaultMediaFormat));
         if (options.Mode < 0 && assigned.Length > 0) options = options with { Mode = 2, FileName = assigned };
-        return options.ApplyTo(format);
+        fields[50] = Number(Math.Max(0, options.Mode));
+        fields[51] = options.FileName;
+        fields[52] = Number(options.Volume ?? 50);
+        fields[53] = Number(options.Balance ?? 0);
+        fields[54] = Number(options.Flags ?? 0);
+        fields[55] = Number(options.Camera);
+        fields[56] = options.Monitor;
+        return Encode();
     }
 }

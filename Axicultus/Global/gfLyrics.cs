@@ -4056,9 +4056,6 @@ namespace Axicultus;
 				{
 					Folders[0].FontSize[1] = 6;
 				}
-				Folders[0].BottomMargin = Folders[folderNo].BottomMargin;
-				Folders[0].LeftMargin = Folders[folderNo].LeftMargin;
-				Folders[0].RightMargin = Folders[folderNo].RightMargin;
 				Folders[0].FontVPosition[0] = Folders[folderNo].FontVPosition[0];
 				Folders[0].FontVPosition[1] = Folders[folderNo].FontVPosition[1];
 				Folders[0].HeadingFontBold[0] = Folders[folderNo].HeadingFontBold[0];
@@ -4151,12 +4148,13 @@ namespace Axicultus;
 			InItem.Format.BackgroundMode = (ImageMode)((headerValue is < 0 or > 2) ? ((int)BackgroundMode) : headerValue);
 			headerValue = ExtractNumericData(InItem.Format.HeaderData[63]);
 			InItem.Format.ShowVerticalAlign = ((headerValue is < 0 or > 2) ? ShowVerticalAlign : headerValue);
+			var marginFolder = Folders[Math.Max(0, folderNo)];
 			headerValue = ExtractNumericData(InItem.Format.HeaderData[64]);
-			InItem.Format.ShowLeftMargin = ((headerValue is < 0 or > 40) ? Folders[0].LeftMargin : headerValue);
+			InItem.Format.ShowLeftMargin = ((headerValue is < 0 or > 40) ? marginFolder.LeftMargin : headerValue);
 			headerValue = ExtractNumericData(InItem.Format.HeaderData[65]);
-			InItem.Format.ShowRightMargin = ((headerValue is < 0 or > 40) ? Folders[0].RightMargin : headerValue);
+			InItem.Format.ShowRightMargin = ((headerValue is < 0 or > 40) ? marginFolder.RightMargin : headerValue);
 			headerValue = ExtractNumericData(InItem.Format.HeaderData[66]);
-			InItem.Format.ShowBottomMargin = ((headerValue is < 0 or > 100) ? Folders[0].BottomMargin : headerValue);
+			InItem.Format.ShowBottomMargin = ((headerValue is < 0 or > 100) ? marginFolder.BottomMargin : headerValue);
 			if (InItem.Format.HeaderData[72] != "")
 			{
 				InItem.Format.ShowItemTransition = GlobalImageCanvas.GetTransitionType(InItem.Format.HeaderData[72]);

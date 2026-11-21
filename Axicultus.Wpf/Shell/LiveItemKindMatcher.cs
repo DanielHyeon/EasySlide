@@ -57,6 +57,18 @@ public static class LiveItemKindMatcher
            || Eq(kind, "Live Camera")
            || Eq(kind, "CaptureDevice");
 
+    internal static bool IsInfoScreenItem(LiveQueueItem item)
+    {
+        var legacyType = ResolveLegacyTypeCode(item);
+        if (item.Id.StartsWith("esw:", StringComparison.OrdinalIgnoreCase)) return legacyType == "I";
+        if (Eq(item.Kind, "I") || Eq(item.Kind, "Info") || Eq(item.Kind, "InfoScreen")) return true;
+        if (legacyType == "I") return true;
+        if (legacyType is "T" or "W") return false;
+        return Eq(item.Kind, LiveItemKinds.Notice)
+            && !item.Id.StartsWith("word:", StringComparison.OrdinalIgnoreCase)
+            && !IsExternalTextFileItem(item);
+    }
+
     internal static bool IsExternalTextFileItem(LiveQueueItem item)
         => item.Id.StartsWith("esw:T:", StringComparison.OrdinalIgnoreCase)
             || item.Id.StartsWith("text-file:", StringComparison.OrdinalIgnoreCase)

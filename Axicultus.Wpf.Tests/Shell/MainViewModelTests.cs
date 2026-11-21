@@ -1106,6 +1106,39 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task SessionDefaultsExcludeOnlyInfoScreensAndSurviveListReload()
+    {
+        using var temp = TempSettingsFolder.Create();
+        var store = new WorshipListStore(Path.Combine(temp.Root, "lists"));
+        var settings = temp.CreateSettings();
+        using var sut = CreateSut(settings: settings, worshipLists: store, seedSampleQueue: false);
+        Assert.Contains("17=Microsoft Sans Serif>", sut.GetSessionFormat());
+        Assert.Contains("73=Fade>", sut.GetSessionFormat());
+        var word = sut.AddWordTextItem("Word paragraph")!;
+        var info = new LiveQueueItem("esw:I:notice.esi", "InfoScreen", LiveItemKinds.Notice) { FormatData = "29=-7>" };
+        sut.LoadQueue([info, word with { FormatData = "29=-8>" },
+            new LiveQueueItem("esw:W:doc", "Imported Word", LiveItemKinds.Notice) { FormatData = "29=-9>" }]);
+        await sut.SaveWorshipListAsync("QA");
+        sut.MergeInstalledFonts(["Arial"]);
+        Assert.True(await sut.ApplySessionTemplateAsync("17=다음_SemiBold>19=13>73=Blinds Vertical>155=2>"));
+        Assert.Contains(sut.PanelFontFamily, sut.PanelFontOptions);
+        Assert.Equal("다음_SemiBold", sut.PanelFontFamily);
+        await sut.ApplyGlobalFormatToAllCommand.ExecuteAsync(null);
+        Assert.Same(info, sut.SelectedItem);
+        Assert.Equal("29=-7>", info.FormatData);
+        Assert.All(sut.Queue.Skip(1), row => Assert.False(row.UseIndividualFormatting));
+
+        using var reopened = CreateSut(settings: temp.CreateSettings(), worshipLists: store, seedSampleQueue: false);
+        await reopened.LoadWorshipListAsync("QA");
+        Assert.Equal("29=-7>", reopened.Queue[0].FormatData);
+        Assert.All(reopened.Queue.Skip(1), row => Assert.Null(row.FormatData));
+        Assert.Contains("19=13>", reopened.GetSessionFormat());
+        Assert.Contains("155=2>", reopened.GetSessionFormat());
+        Assert.Contains("55=1>", reopened.GetSessionFormat());
+        Assert.Equal(LyricsTransitionKind.BlindsVertical, reopened.ActiveSlideTransitionKind);
+    }
+
+    [Fact]
     public void ApplyGlobalFormatToAll_TurnsOffIndividualFormattingOnAllItems_AndKeepsSelection()
     {
         // FrmMain "Apply to All Except InfoScreens" — 모든 항목의 개별 서식을 끄고 전역 기본 서식으로 통일.

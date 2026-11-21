@@ -6,8 +6,55 @@ using Xunit;
 
 namespace Axicultus.Tests;
 
+[Collection("Image rendering globals")]
 public class IndividualFormatHeaderTests
 {
+    [Fact]
+    public void ApplyingDefaultsPreservesThePreviewedInfoScreenAndResetsTheOutputWordItem()
+    {
+        MonitorPresentationTests.RunOnSta(() =>
+        {
+            using var list = new System.Windows.Forms.ListView();
+            const string format = "21=2>29=-65281>";
+            list.Items.Add(new System.Windows.Forms.ListViewItem(new[] { "Notice", "Inotice", format }));
+            list.Items.Add(new System.Windows.Forms.ListViewItem(new[] { "Word", "Wdoc", format }));
+            var info = new SongSettings { FolderNo = -1, Source = ItemSource.WorshipList, CurItemNo = 1, Type = "I", ItemID = "notice" };
+            var word = new SongSettings { FolderNo = -1, Source = ItemSource.WorshipList, CurItemNo = 2, Type = "W", ItemID = "doc" };
+            using var infoLines = info.LyricsAndNotationsList;
+            using var wordLines = word.LyricsAndNotationsList;
+            Gf.LoadIndividualFormatData(ref info, format);
+            Gf.LoadIndividualFormatData(ref word, format);
+
+            Assert.Equal((false, true), FrmMain.ApplyWorshipListDefaults(list.Items, info, word));
+            Assert.Equal(format, info.Format.FormatString);
+            Assert.Equal(format, list.Items[0].SubItems[2].Text);
+            Assert.Equal("", word.Format.FormatString);
+            Assert.Equal("", list.Items[1].SubItems[2].Text);
+        });
+    }
+
+    [Fact]
+    public void ApplyingFolderMarginsLeavesTheSessionTemplateMarginsIntact()
+    {
+        var session = Gf.Folders[0];
+        var folder = Gf.Folders[1];
+        try
+        {
+            Gf.Folders[0] = new() { LeftMargin = 1, RightMargin = 2, BottomMargin = 3 };
+            Gf.Folders[1] = new() { LeftMargin = 4, RightMargin = 5, BottomMargin = 6 };
+            var song = new SongSettings { FolderNo = 1 };
+            using var lines = song.LyricsAndNotationsList;
+            Gf.LoadIndividualFormatData(ref song, "");
+            Assert.Equal((4, 5, 6), (song.Format.ShowLeftMargin, song.Format.ShowRightMargin, song.Format.ShowBottomMargin));
+            Assert.Equal((1, 2, 3), (Gf.Folders[0].LeftMargin, Gf.Folders[0].RightMargin, Gf.Folders[0].BottomMargin));
+        }
+        finally
+        {
+            Gf.Folders[0] = session;
+            Gf.Folders[1] = folder;
+        }
+    }
+
     [Theory]
     [InlineData("ko-KR")]
     [InlineData("en-US")]

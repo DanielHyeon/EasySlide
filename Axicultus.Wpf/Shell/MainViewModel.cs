@@ -616,6 +616,25 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         return true;
     }
 
+    private string? _sessionTemplateFormat;
+
+    internal void ApplySessionFormat(string format)
+    {
+        SessionFormatTemplate.Transfer(_settings, format, load: true);
+        _sessionTemplateFormat = format;
+    }
+
+    internal async Task<bool> ApplySessionTemplateAsync(string format)
+    {
+        ApplySessionFormat(format);
+        WorshipListHasUnsavedChanges = true;
+        if (string.IsNullOrWhiteSpace(CurrentWorshipListName)) return true;
+        await QuickSaveWorshipListAsync();
+        return !WorshipListHasUnsavedChanges;
+    }
+
+    internal string GetSessionFormat() => SessionFormatTemplate.Transfer(_settings, _sessionTemplateFormat, load: false);
+
     internal async Task OpenLegacySessionAsync(string name, string xml, bool importCopy = false)
     {
         var items = EswWorshipListParser.Parse(xml, out var sessionFormat, out var sessionNotes);
@@ -627,15 +646,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         if (importCopy) name = GetAvailableImportName(name);
         var queueItems = await BuildEswQueueItemsAsync(items).ConfigureAwait(true);
-        if (!string.IsNullOrWhiteSpace(sessionFormat))
-        {
-            try { SessionFormatTemplate.Transfer(_settings, sessionFormat, load: true); }
-            catch (Exception ex) when (ex is InvalidDataException or FormatException or OverflowException)
-            {
-                System.Diagnostics.Trace.WriteLine(ex.Message);
-            }
-        }
-        LoadQueue(queueItems);
+        LoadQueue(queueItems, sessionFormat);
         if (importCopy)
         {
             SetCurrentWorshipList(name, sessionNotes);
@@ -1723,10 +1734,21 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     internal event Action? QueueReplacing;
 
-    public void LoadQueue(IEnumerable<LiveQueueItem> items)
+    public void LoadQueue(IEnumerable<LiveQueueItem> items) => LoadQueue(items, null);
+
+    private void LoadQueue(IEnumerable<LiveQueueItem> items, string? sessionFormat)
     {
         ArgumentNullException.ThrowIfNull(items);
         QueueReplacing?.Invoke();
+        _sessionTemplateFormat = null;
+        if (!string.IsNullOrWhiteSpace(sessionFormat))
+        {
+            try { ApplySessionFormat(sessionFormat); }
+            catch (Exception ex) when (ex is InvalidDataException or FormatException or OverflowException)
+            {
+                System.Diagnostics.Trace.WriteLine(ex.Message);
+            }
+        }
 
         Queue.Clear();
         foreach (var item in items)
@@ -1793,9 +1815,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// 송출(GoLive)하면 공지 렌더 경로로 그 텍스트가 회중 화면에 표시된다 — NoticeScreen 즉시 송출과 달리 예배 순서에 저장돼
     /// 나중에 다른 항목처럼 골라 송출할 수 있다. 항목 종류는 Notice(공지)라 절·슬라이드 이동과 무관하다.
     /// </summary>
-    public LiveQueueItem? AddTextItem(string? text, NoticeOptions? options = null)
+    public LiveQueueItem? AddTextItem(string? text, NoticeOptions? options = null) => AddTextItem(text, options, "text");
+
+    private LiveQueueItem? AddTextItem(string? text, NoticeOptions? options, string idPrefix)
     {
-        var item = CreateTextQueueItem(text, options);
+        var item = CreateTextQueueItem(text, options, idPrefix);
         if (item is null)
         {
             NotifyCommandStates();
@@ -1833,7 +1857,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         return item;
     }
 
-    private LiveQueueItem? CreateTextQueueItem(string? text, NoticeOptions? options)
+    private LiveQueueItem? CreateTextQueueItem(string? text, NoticeOptions? options, string idPrefix = "text")
     {
         if (string.IsNullOrWhiteSpace(text))
         {
@@ -1848,7 +1872,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         // 서식이 없으면(options 미지정 또는 전부 기본) null → 전역 기본 서식으로 송출(무회귀). UseIndividualFormatting 기본 true 라 서식이 있으면 그대로 렌더.
         var formatData = options is null ? null : BuildNoticeFormatData(options);
         // 고유 Id(센티넬 NoticeLiveId 와 겹치지 않게) — 큐 내 다른 항목과 구별되는 새 식별자.
-        return new LiveQueueItem($"text:{Guid.NewGuid():N}", title, LiveItemKinds.Notice)
+        return new LiveQueueItem($"{idPrefix}:{Guid.NewGuid():N}", title, LiveItemKinds.Notice)
         {
             Lyrics = trimmed,
             FormatData = formatData,
@@ -1869,7 +1893,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return null;
         }
 
-        return AddTextItem(extractedText);
+        return AddTextItem(extractedText, null, "word");
     }
 
     // 큐 목록 표시용 짧은 제목 — 첫 줄을 쓰되 너무 길면 줄여 표시(본문 전체는 Lyrics 에 보존).
@@ -2921,7 +2945,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         try
         {
             var notes = CurrentSessionNotes;
-            await _worshipLists.SaveAsync(name.Trim(), Queue.ToArray()).ConfigureAwait(true);
+            await _worshipLists.SaveSessionAsync(name.Trim(), Queue.ToArray(), _sessionTemplateFormat is null ? null : GetSessionFormat()).ConfigureAwait(true);
             if (SessionNotes.GetNotes(name.Trim()) != notes && !SessionNotes.SetNotes(name.Trim(), notes))
             {
                 StatusText = "예배 순서를 저장했지만 세션 메모를 저장할 수 없습니다.";
@@ -2973,8 +2997,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 return;
             }
 
-            var items = await _worshipLists.LoadAsync(name.Trim()).ConfigureAwait(true);
-            LoadQueue(items);
+            var (items, format) = await _worshipLists.LoadSessionAsync(name.Trim()).ConfigureAwait(true);
+            LoadQueue(items, format);
             RecordRecentWorshipList(name.Trim());
             StatusText = $"예배 순서 불러옴: {name.Trim()} ({items.Count}개)";
         }
@@ -3849,11 +3873,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private LiveQueueItem? _sourcePreviewItem;
     private LiveQueueItem? _outputFormatSource;
     private bool _outputFromSourcePreview;
+    private bool _preserveSourcePreviewSelection;
 
     private LiveQueueItem? PreviewItem => _sourcePreviewItem ?? SelectedItem;
 
     partial void OnSelectedItemChanged(LiveQueueItem? value)
     {
+        if (_preserveSourcePreviewSelection) return;
         _sourcePreviewItem = null;
 
         if (_session.Current.State != LiveState.Active)
@@ -5036,9 +5062,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         NotifyCommandStates();
     }
 
-    private void RefreshPreparedTextOutput(LiveQueueItem output)
+    private void RefreshPreparedTextOutput(LiveQueueItem output, int? pageIndex = null)
     {
-        var projection = ResolveLiveProjection(output with { LyricsPageIndex = GetOutputLyricsPageIndex(output) });
+        var projection = ResolveLiveProjection(output with { LyricsPageIndex = pageIndex ?? GetOutputLyricsPageIndex(output) });
         string monitor = _output.Current.Display?.Name ?? OutputDisplay.PrimaryFallback.Name;
         if (_session.Current.State == LiveState.Active) _session.GoLive(projection, monitor);
         else if (_session.Current.State == LiveState.Hidden) _session.UpdateHiddenContent(projection, monitor);
@@ -8232,32 +8258,33 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        // 선택 항목은 인스턴스가 교체되므로 위치를 잡아 두었다가 같은 자리의 새 인스턴스로 다시 선택한다(선택 유지).
-        var selectedIndex = SelectedItem is { } sel ? IndexOfReference(sel) : -1;
-
+        var selected = SelectedItem;
+        var sourcePreview = _sourcePreviewItem;
+        var outputSource = _outputFromSourcePreview ? null : _outputFormatSource;
         var changed = 0;
         for (var i = 0; i < Queue.Count; i++)
         {
             var item = Queue[i];
-            if ((item.UseIndividualFormatting || !string.IsNullOrEmpty(item.FormatData)) &&
-                (!LiveItemKindMatcher.IsNotice(item.Kind) || IsExternalTextFileItem(item)))
+            if (LiveItemKindMatcher.IsInfoScreenItem(item) ||
+                (!item.UseIndividualFormatting && string.IsNullOrEmpty(item.FormatData))) continue;
+
+            var updated = item with { UseIndividualFormatting = false, FormatData = null };
+            _preserveSourcePreviewSelection = sourcePreview is not null;
+            try
             {
-                Queue[i] = item with { UseIndividualFormatting = false, FormatData = null };
-                changed++;
+                Queue[i] = updated;
+                if (ReferenceEquals(item, selected)) SelectedItem = updated;
+            }
+            finally { _preserveSourcePreviewSelection = false; }
+            changed++;
+            if (ReferenceEquals(item, outputSource) && OutputItem is { } output)
+            {
+                _outputFormatSource = updated;
+                OutputItem = output with { UseIndividualFormatting = false, FormatData = null, LyricsPageIndex = 0 };
+                if (!IsPowerPointItem(output) && !IsMediaItem(output))
+                    RefreshPreparedTextOutput(OutputItem, pageIndex: 0);
             }
         }
-
-
-        // 교체로 끊긴 선택을 같은 자리의 새 인스턴스로 복원(선택이 UI 에서 사라지지 않게).
-        if (selectedIndex >= 0 && selectedIndex < Queue.Count)
-        {
-            SelectedItem = Queue[selectedIndex];
-        }
-
-        GoToPreviewLyricsPage(0);
-        RepublishLiveSongForBodyChange();
-        if (_session.Current.State == LiveState.Active && Queue.Any(item => item.Id == _liveItemId && !item.UseIndividualFormatting))
-            GoToOutputLyricsPage(0);
         NotifyCommandStates();
         if (changed > 0 && !string.IsNullOrWhiteSpace(CurrentWorshipListName))
         {
@@ -8523,7 +8550,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             OnPropertyChanged(nameof(PreviewSelectionForeground));
             OnPropertyChanged(nameof(PreviewSelectionBackground));
         }
-        if (ContainsKey(args.ChangedKeys, AxicultusSettingKeys.PanelFontFamily.Id)) OnPropertyChanged(nameof(PanelFontFamily));
+        if (ContainsKey(args.ChangedKeys, AxicultusSettingKeys.PanelFontFamily.Id)) RefreshPanelFontSelection();
         if (ContainsKey(args.ChangedKeys, AxicultusSettingKeys.PanelHeightPercent.Id))
         {
             OnPropertyChanged(nameof(PanelHeightPercent));
@@ -9266,6 +9293,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         return NormalizeLegacyTransitionKind(fallback);
     }
 
+    internal static string TemplateTransitionName(string name, LyricsTransitionKind motion)
+        => string.IsNullOrWhiteSpace(name) ? LegacyTransitionDisplayName(MapLyricsTransitionToEffect(motion)) : name;
+
+    internal static LyricsTransitionKind TemplateTransitionMotion(string displayName)
+        => MapTransitionEffectToLyricsKind(ResolveLegacyTransitionName(displayName, TransitionEffectKind.None));
+
     private static LyricsTransitionKind MapTransitionEffectToLyricsKind(TransitionEffectKind kind)
         => NormalizeLegacyTransitionKind(kind) switch
         {
@@ -9805,7 +9838,18 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// </summary>
     public ObservableCollection<string> LyricsFontFamilyOptions { get; } = [with(CuratedFontFavorites)];
 
+    private IReadOnlyList<string> _installedPanelFonts = ["Microsoft Sans Serif"];
     public IReadOnlyList<string> PanelFontOptions { get; private set; } = ["Microsoft Sans Serif"];
+
+    private void RefreshPanelFontSelection()
+    {
+        // A template can use a localized name or a font installed on another computer.
+        var current = PanelFontFamily;
+        PanelFontOptions = _installedPanelFonts.Contains(current, StringComparer.Ordinal)
+            ? _installedPanelFonts : [.. _installedPanelFonts, current];
+        OnPropertyChanged(nameof(PanelFontOptions));
+        OnPropertyChanged(nameof(PanelFontFamily));
+    }
 
     /// <summary>
     /// 설치된 시스템 글꼴을 콤보 목록에 합친다(추천 앞·설치 글꼴 가나다/ABC 순 뒤, 대소문자 무시 중복 제거).
@@ -9814,10 +9858,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// </summary>
     public void MergeInstalledFonts(IEnumerable<string>? installedFamilies)
     {
-        PanelFontOptions = SystemFontCatalog.BuildFontFamilyList(installedFamilies, []);
-        OnPropertyChanged(nameof(PanelFontOptions));
-        OnPropertyChanged(nameof(PanelFontFamily));
-        var merged = SystemFontCatalog.BuildFontFamilyList(PanelFontOptions, CuratedFontFavorites);
+        _installedPanelFonts = SystemFontCatalog.BuildFontFamilyList(installedFamilies, []);
+        RefreshPanelFontSelection();
+        var merged = SystemFontCatalog.BuildFontFamilyList(_installedPanelFonts, CuratedFontFavorites);
         LyricsFontFamilyOptions.Clear();
         foreach (var name in merged)
         {

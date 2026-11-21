@@ -121,20 +121,17 @@ public partial class MainWindow
         if (dialog.ShowDialog() == true) _viewModel.ApplySelectedItemFormatDataTemplate(dialog.FormatData);
     }
 
-    private string? _sessionTemplateFormat;
-
     private string SessionTemplatesDirectory() =>
         Path.Combine(_services.GetRequiredService<ISettingsService>().Current.General.WorkingFolder, "Templates", "WorshipListsTemplates");
 
-    private void LoadSessionTemplate_Click(object sender, RoutedEventArgs e)
+    private async void LoadSessionTemplate_Click(object sender, RoutedEventArgs e)
     {
         var dialog = new OpenFileDialog { Title = "Load Session Settings from a Template", Filter = IndividualFormatTemplateFile.DialogFilter, InitialDirectory = SessionTemplatesDirectory() };
         if (dialog.ShowDialog(this) != true) return;
         try
         {
             string format = IndividualFormatTemplateFile.LoadFormatData(dialog.FileName);
-            SessionFormatTemplate.Transfer(_services.GetRequiredService<ISettingsService>(), format, load: true);
-            _sessionTemplateFormat = format;
+            if (!await _viewModel.ApplySessionTemplateAsync(format)) return;
             _viewModel.StatusText = $"세션 템플릿 적용: {Path.GetFileName(dialog.FileName)}";
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException or System.Xml.XmlException or FormatException or OverflowException)
@@ -150,9 +147,8 @@ public partial class MainWindow
         if (dialog.ShowDialog(this) != true) return;
         try
         {
-            var format = SessionFormatTemplate.Transfer(_services.GetRequiredService<ISettingsService>(), _sessionTemplateFormat, load: false);
+            var format = _viewModel.GetSessionFormat();
             IndividualFormatTemplateFile.SaveFormatData(dialog.FileName, format);
-            _sessionTemplateFormat = format;
             _viewModel.StatusText = $"세션 템플릿 저장: {Path.GetFileName(dialog.FileName)}";
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Xml.XmlException or ArgumentException)

@@ -173,9 +173,9 @@ public partial class FrmMain : Form
         if (openFileDialog1.ShowDialog() == DialogResult.OK)
         {
             string fileName = openFileDialog1.FileName;
-            LoadWorshipList(1, fileName);
-            ApplyDefaultData(StartAtFirstSlide: true);
-            LoadIndexFilePostAction(UsageMode.Worship);
+            if (LoadWorshipList(1, fileName).Length == 0) return;
+            SetMainDefaultBackScreen();
+            UpdateDisplayPanelData(RefreshSlides: true);
         }
     }
 

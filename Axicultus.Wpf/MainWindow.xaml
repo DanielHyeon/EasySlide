@@ -262,7 +262,7 @@
                         <Border BorderBrush="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}" BorderThickness="1" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}">
                             <Grid>
                                 <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="15" /></Grid.ColumnDefinitions>
-                                <ContentPresenter Margin="4,0,1,0" VerticalAlignment="Center" Content="{TemplateBinding SelectionBoxItem}" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" />
+                                <ContentPresenter Margin="4,0,1,0" VerticalAlignment="Center" Content="{TemplateBinding SelectedItem}" ContentTemplate="{TemplateBinding ItemTemplate}" />
                                 <Border Grid.Column="1" Margin="1" Background="{DynamicResource {x:Static SystemColors.ControlLightBrushKey}}">
                                     <Path HorizontalAlignment="Center" VerticalAlignment="Center" Data="M0,0 L5,0 L2.5,3Z" Fill="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" />
                                 </Border>

@@ -383,18 +383,36 @@ public partial class FrmMain : Form
 
     private void DefApplyDefaultsBtn_Click(object sender, EventArgs e)
     {
-        if (WorshipListItems.Items.Count > 0)
+        if (WorshipListItems.Items.Count == 0) return;
+        var (previewChanged, outputChanged) = ApplyWorshipListDefaults(WorshipListItems.Items, Gf.PreviewItem, Gf.OutputItem);
+        if (previewChanged)
         {
-            for (int i = 0; i < WorshipListItems.Items.Count; i++)
-            {
-                if (DataUtil.Left(WorshipListItems.Items[i].SubItems[1].Text, 1) != "I")
-                {
-                    WorshipListItems.Items[i].SubItems[2].Text = "";
-                }
-            }
+            AllowIndividualFormat(AllowFormat: true, BoxChecked: false);
+            UpdateFormatFields();
         }
-        Ind_checkBox.Checked = false;
-        ApplyDefaultData(StartAtFirstSlide: true);
+        SaveWorshipList();
+        if (previewChanged) RefreshDefaultPreview(true, ImageTransitionControl.TransitionAction.None);
+        if (outputChanged) RefreshDefaultOutput(true, ImageTransitionControl.TransitionAction.None);
+    }
+
+    internal static (bool Preview, bool Output) ApplyWorshipListDefaults(ListView.ListViewItemCollection rows,
+        SongSettings preview, SongSettings output)
+    {
+        foreach (ListViewItem row in rows)
+        {
+            if (!row.SubItems[1].Text.StartsWith("I", StringComparison.Ordinal))
+                row.SubItems[2].Text = "";
+        }
+        return (ResetFormat(preview), ResetFormat(output));
+
+        bool ResetFormat(SongSettings item)
+        {
+            int index = item.CurItemNo - 1;
+            if (item.Source != ItemSource.WorshipList || item.Type == "I" ||
+                index < 0 || index >= rows.Count || rows[index].SubItems[1].Text != item.Type + item.ItemID) return false;
+            Gf.LoadIndividualFormatData(ref item, "");
+            return true;
+        }
     }
 
     private void ApplyDefaultData(bool StartAtFirstSlide)
@@ -413,6 +431,12 @@ public partial class FrmMain : Form
             NoIndividualFormat();
         }
         SaveWorshipList();
+        RefreshDefaultPreview(StartAtFirstSlide, TransitionAction);
+        RefreshDefaultOutput(StartAtFirstSlide, TransitionAction);
+    }
+
+    private void RefreshDefaultPreview(bool StartAtFirstSlide, ImageTransitionControl.TransitionAction TransitionAction)
+    {
         Gf.SetShowBackground(Gf.PreviewItem, ref PreviewScreen);
         if (Gf.PreviewItem.ItemID != "")
         {
@@ -427,6 +451,10 @@ public partial class FrmMain : Form
         {
             ResetMainPictureBox(ref Gf.PreviewItem);
         }
+    }
+
+    private void RefreshDefaultOutput(bool StartAtFirstSlide, ImageTransitionControl.TransitionAction TransitionAction)
+    {
         if (!Gf.OutputItem.UseDefaultFormat || Gf.OutputItem.ItemID == "")
         {
             return;

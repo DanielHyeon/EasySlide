@@ -10,3 +10,4 @@
 - [x] Verify Bible and Praise Book behavior and click consecutive creed paragraphs in isolated WinForms and WPF windows; compare both samples and audience output on the same page.
 - [x] Match the Images and Default toolbars and verify single-click selection, double-click application and session format controls in isolated desktop windows.
 - [x] Verify live gallery changes, three background modes and the Default controls in both desktop apps with isolated settings.
+- [x] Verify the InfoScreen exclusion, named-list persistence and bidirectional session template exchange in isolated WinForms and WPF windows.
