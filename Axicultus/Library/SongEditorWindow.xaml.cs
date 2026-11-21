@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Windows.Controls;
 
 namespace Axicultus.Wpf.Library;
 
@@ -13,6 +14,29 @@ public partial class SongEditorWindow : Window
         _viewModel = viewModel;
         _viewModel.Saved += OnSaved;
         DataContext = viewModel;
+        for (int number = 1; number <= 10; number++)
+            VerseNumbers.Items.Add(new MenuItem { Header = $"{number}절", Tag = $"[{number}]" });
+    }
+
+    private void InsertSection_Click(object sender, RoutedEventArgs e)
+    {
+        if (e.OriginalSource is not MenuItem { Tag: string marker }) return;
+        InsertHeadingAtCurrentLine(LyricsEditor, marker);
+        LyricsEditor.Focus();
+        e.Handled = true;
+    }
+
+    internal static void InsertHeadingAtCurrentLine(TextBox lyrics, string marker)
+    {
+        string text = lyrics.Text;
+        int caret = lyrics.SelectionStart;
+        int lineStart = caret == 0 ? 0 : text.LastIndexOf('\n', caret - 1) + 1;
+        int firstBreak = text.IndexOf('\n');
+        string newline = firstBreak >= 0 && (firstBreak == 0 || text[firstBreak - 1] != '\r') ? "\n" : System.Environment.NewLine;
+        string heading = marker + newline;
+        lyrics.Select(lineStart, 0);
+        lyrics.SelectedText = heading;
+        lyrics.Select(lineStart + heading.Length, 0);
     }
 
     protected override void OnClosed(System.EventArgs e)

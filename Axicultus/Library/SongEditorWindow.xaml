@@ -1,6 +1,7 @@
 <Window x:Class="Axicultus.Wpf.Library.SongEditorWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:Axicultus.Wpf.Controls"
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
         Title="곡 편집기"
         Width="1040"
@@ -9,6 +10,19 @@
         MinHeight="620"
         Background="{DynamicResource Brush.Surface.Page}"
         WindowStartupLocation="CenterOwner">
+    <Window.InputBindings>
+        <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveCommand}" />
+    </Window.InputBindings>
+    <Window.Resources>
+        <DataTemplate x:Key="EditorActionCaption">
+            <StackPanel Orientation="Horizontal">
+                <controls:FrmIcon Width="16" Height="16" Margin="0,0,6,0" VerticalAlignment="Center"
+                                  Icon="{Binding Tag, RelativeSource={RelativeSource AncestorType=Button}}"
+                                  Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
+                <TextBlock Text="{Binding}" VerticalAlignment="Center" />
+            </StackPanel>
+        </DataTemplate>
+    </Window.Resources>
     <Grid Margin="{StaticResource Thickness.Xl}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -68,106 +82,43 @@
 
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="12" />
-                            <ColumnDefinition Width="150" />
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
-
-                        <StackPanel Grid.ColumnSpan="3"
-                                    Margin="0,0,0,14">
-                            <TextBlock x:Name="LblTitle"
-                                       Text="제목"
-                                       Style="{StaticResource Type.Caption.Style}"
-                                       Foreground="{DynamicResource Brush.Text.Tertiary}" />
-                            <TextBox Text="{Binding Title, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                     MinHeight="36"
-                                     Margin="0,4,0,0"
-                                     AutomationProperties.LabeledBy="{Binding ElementName=LblTitle}" />
-                        </StackPanel>
-
-                        <StackPanel Grid.Row="1"
-                                    Grid.Column="0"
-                                    Margin="0,0,0,14">
-                            <TextBlock x:Name="LblAlternateTitle"
-                                       Text="다른 제목"
-                                       Style="{StaticResource Type.Caption.Style}"
-                                       Foreground="{DynamicResource Brush.Text.Tertiary}" />
-                            <TextBox Text="{Binding AlternateTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                     MinHeight="36"
-                                     Margin="0,4,0,0"
-                                     AutomationProperties.LabeledBy="{Binding ElementName=LblAlternateTitle}" />
-                        </StackPanel>
-
-                        <StackPanel Grid.Row="1"
-                                    Grid.Column="2"
-                                    Margin="0,0,0,14">
-                            <TextBlock x:Name="LblNumber"
-                                       Text="번호"
-                                       Style="{StaticResource Type.Caption.Style}"
-                                       Foreground="{DynamicResource Brush.Text.Tertiary}" />
-                            <TextBox Text="{Binding SongNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                     MinHeight="36"
-                                     Margin="0,4,0,0"
-                                     AutomationProperties.LabeledBy="{Binding ElementName=LblNumber}" />
-                        </StackPanel>
-
-                        <StackPanel Grid.Row="2"
-                                    Grid.Column="0"
-                                    Margin="0,0,0,14">
-                            <TextBlock x:Name="LblCategory"
-                                       Text="분류"
-                                       Style="{StaticResource Type.Caption.Style}"
-                                       Foreground="{DynamicResource Brush.Text.Tertiary}" />
-                            <TextBox Text="{Binding Category, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                     MinHeight="36"
-                                     Margin="0,4,0,0"
-                                     AutomationProperties.LabeledBy="{Binding ElementName=LblCategory}" />
-                        </StackPanel>
-
-                        <Grid Grid.Row="2"
-                              Grid.Column="2"
-                              Margin="0,0,0,14">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="8" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <StackPanel>
-                                <TextBlock x:Name="LblKey"
-                                           Text="키"
-                                           Style="{StaticResource Type.Caption.Style}"
-                                           Foreground="{DynamicResource Brush.Text.Tertiary}" />
-                                <TextBox Text="{Binding Key, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                         MinHeight="36"
-                                         Margin="0,4,0,0"
-                                         AutomationProperties.LabeledBy="{Binding ElementName=LblKey}" />
-                            </StackPanel>
-                            <StackPanel Grid.Column="2">
-                                <TextBlock x:Name="LblCapo"
-                                           Text="카포"
-                                           Style="{StaticResource Type.Caption.Style}"
-                                           Foreground="{DynamicResource Brush.Text.Tertiary}" />
-                                <TextBox Text="{Binding Capo, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                         MinHeight="36"
-                                         Margin="0,4,0,0"
-                                         AutomationProperties.LabeledBy="{Binding ElementName=LblCapo}" />
-                            </StackPanel>
-                        </Grid>
-                    </Grid>
-
                     <StackPanel Margin="0,0,0,14">
-                        <TextBlock x:Name="LblLyrics"
-                                   Text="가사"
+                        <TextBlock x:Name="LblTitle"
+                                   Text="제목"
                                    Style="{StaticResource Type.Caption.Style}"
                                    Foreground="{DynamicResource Brush.Text.Tertiary}" />
-                        <TextBox Text="{Binding Lyrics, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        <TextBox Text="{Binding Title, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 MinHeight="36"
+                                 Margin="0,4,0,0"
+                                 AutomationProperties.LabeledBy="{Binding ElementName=LblTitle}" />
+                    </StackPanel>
+
+                    <StackPanel Margin="0,0,0,14">
+                        <DockPanel>
+                            <Menu DockPanel.Dock="Right" Background="Transparent">
+                                <MenuItem Header="가사 구분 삽입" Click="InsertSection_Click"
+                                          AutomationProperties.Name="가사 구분 삽입">
+                                    <MenuItem.Icon>
+                                        <controls:FrmIcon Icon="text_bullet_list_add" Width="16" Height="16" />
+                                    </MenuItem.Icon>
+                                    <MenuItem x:Name="VerseNumbers" Header="절 번호" />
+                                    <MenuItem Header="프리코러스" Tag="[prechorus]" />
+                                    <MenuItem Header="프리코러스 2" Tag="[prechorus 2]" />
+                                    <MenuItem Header="후렴" Tag="[chorus]" />
+                                    <MenuItem Header="후렴 2" Tag="[chorus 2]" />
+                                    <MenuItem Header="브리지" Tag="[bridge]" />
+                                    <MenuItem Header="브리지 2" Tag="[bridge 2]" />
+                                    <MenuItem Header="엔딩" Tag="[ending]" />
+                                    <Separator />
+                                    <MenuItem Header="기본 가사 (Region 1)" Tag="[region 1]" />
+                                    <MenuItem Header="보조 가사 (Region 2)" Tag="[region 2]" />
+                                </MenuItem>
+                            </Menu>
+                            <TextBlock x:Name="LblLyrics" Text="가사" VerticalAlignment="Center"
+                                       Style="{StaticResource Type.Caption.Style}"
+                                       Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                        </DockPanel>
+                        <TextBox x:Name="LyricsEditor" Text="{Binding Lyrics, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                  AcceptsReturn="True"
                                  TextWrapping="Wrap"
                                  VerticalScrollBarVisibility="Auto"
@@ -176,10 +127,108 @@
                                  AutomationProperties.LabeledBy="{Binding ElementName=LblLyrics}" />
                     </StackPanel>
 
-                    <Expander Header="추가 정보(레거시)"
-                              IsExpanded="True"
+                    <Grid Margin="0,0,0,14">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition />
+                            <ColumnDefinition Width="12" />
+                            <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <Label Target="{Binding ElementName=SongSequence}" Content="절 순서" Padding="0,0,0,4" />
+                            <TextBox x:Name="SongSequence" Text="{Binding Sequence, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     AutomationProperties.Name="절 순서(Sequence)" MinHeight="46" AcceptsReturn="True"
+                                     TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <Label Target="{Binding ElementName=SongNotations}" Content="코드 표기" Padding="0,0,0,4" />
+                            <TextBox x:Name="SongNotations" Text="{Binding Notations, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     AutomationProperties.Name="코드 표기(Notations)" MinHeight="46" AcceptsReturn="True"
+                                     TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" />
+                        </StackPanel>
+                    </Grid>
+                    <Expander Header="곡 정보 · 저작권" IsExpanded="False"
                               Margin="0,0,0,8">
                         <StackPanel Margin="0,10,0,0">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="12" />
+                                    <ColumnDefinition Width="150" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <StackPanel Grid.Row="0"
+                                    Grid.Column="0"
+                                    Margin="0,0,0,14">
+                                    <TextBlock x:Name="LblAlternateTitle"
+                                       Text="다른 제목"
+                                       Style="{StaticResource Type.Caption.Style}"
+                                       Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                                    <TextBox Text="{Binding AlternateTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     MinHeight="36"
+                                     Margin="0,4,0,0"
+                                     AutomationProperties.LabeledBy="{Binding ElementName=LblAlternateTitle}" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Row="0"
+                                    Grid.Column="2"
+                                    Margin="0,0,0,14">
+                                    <TextBlock x:Name="LblNumber"
+                                       Text="번호"
+                                       Style="{StaticResource Type.Caption.Style}"
+                                       Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                                    <TextBox Text="{Binding SongNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     MinHeight="36"
+                                     Margin="0,4,0,0"
+                                     AutomationProperties.LabeledBy="{Binding ElementName=LblNumber}" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Row="1"
+                                    Grid.Column="0"
+                                    Margin="0,0,0,14">
+                                    <TextBlock x:Name="LblCategory"
+                                       Text="분류"
+                                       Style="{StaticResource Type.Caption.Style}"
+                                       Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                                    <TextBox Text="{Binding Category, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     MinHeight="36"
+                                     Margin="0,4,0,0"
+                                     AutomationProperties.LabeledBy="{Binding ElementName=LblCategory}" />
+                                </StackPanel>
+
+                                <Grid Grid.Row="1"
+                              Grid.Column="2"
+                              Margin="0,0,0,14">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="8" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <TextBlock x:Name="LblKey"
+                                           Text="키"
+                                           Style="{StaticResource Type.Caption.Style}"
+                                           Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                                        <TextBox Text="{Binding Key, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         MinHeight="36"
+                                         Margin="0,4,0,0"
+                                         AutomationProperties.LabeledBy="{Binding ElementName=LblKey}" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock x:Name="LblCapo"
+                                           Text="카포"
+                                           Style="{StaticResource Type.Caption.Style}"
+                                           Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                                        <TextBox Text="{Binding Capo, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         MinHeight="36"
+                                         Margin="0,4,0,0"
+                                         AutomationProperties.LabeledBy="{Binding ElementName=LblCapo}" />
+                                    </StackPanel>
+                                </Grid>
+                            </Grid>
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
@@ -273,30 +322,12 @@
                                 </StackPanel>
                             </Grid>
 
-                            <TextBlock Text="절 순서 / 코드 표기 / 포맷 데이터"
-                                       Style="{StaticResource Type.Caption.Style}"
-                                       Foreground="{DynamicResource Brush.Text.Tertiary}"
-                                       Margin="0,2,0,4" />
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="12" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <TextBox Text="{Binding Sequence, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                         AutomationProperties.Name="절 순서(Sequence)"
-                                         AcceptsReturn="True"
-                                         TextWrapping="Wrap"
-                                         VerticalScrollBarVisibility="Auto"
-                                         MinHeight="78" />
-                                <TextBox Grid.Column="2"
-                                         Text="{Binding Notations, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                         AutomationProperties.Name="코드 표기(Notations)"
-                                         AcceptsReturn="True"
-                                         TextWrapping="Wrap"
-                                         VerticalScrollBarVisibility="Auto"
-                                         MinHeight="78" />
-                            </Grid>
+                        </StackPanel>
+                    </Expander>
+
+                    <Expander Header="고급 서식 데이터" Margin="0,0,0,8">
+                        <StackPanel>
+                            <TextBlock Text="서식 데이터" />
                             <TextBox Text="{Binding FormatData, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                      AutomationProperties.Name="포맷 데이터"
                                      AcceptsReturn="True"
@@ -304,6 +335,7 @@
                                      VerticalScrollBarVisibility="Auto"
                                      MinHeight="72"
                                      Margin="0,8,0,0" />
+                            <TextBlock Text="곡 설정 데이터" Margin="0,8,0,0" />
                             <TextBox Text="{Binding SongSettingsData, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                      AutomationProperties.Name="노래 설정 데이터"
                                      AcceptsReturn="True"
@@ -316,7 +348,7 @@
 
                     <!-- 영역별 스타일(Region 1=주 언어 / Region 2=보조 언어) — 이중 언어 곡의 두 본문에 글자색·정렬·굵게·기울임을
                          따로 지정한다. 빈 값/"상속"은 곡·전역 설정을 그대로 따른다. 출력 렌더가 FormatData 의 영역별 코드를 적용. -->
-                    <Expander Header="영역별 스타일(Region 1/2)"
+                    <Expander Header="기본 가사 · 보조 가사 서식"
                               IsExpanded="False"
                               Margin="0,0,0,8">
                         <Grid Margin="0,10,0,0">
@@ -328,7 +360,7 @@
 
                             <!-- Region 1 -->
                             <StackPanel>
-                                <TextBlock Text="Region 1 (주 언어)"
+                                <TextBlock Text="기본 가사 (Region 1)"
                                            Style="{StaticResource Type.Caption.Style}"
                                            FontWeight="SemiBold"
                                            Foreground="{DynamicResource Brush.Text.Secondary}" />
@@ -370,7 +402,7 @@
 
                             <!-- Region 2 -->
                             <StackPanel Grid.Column="2">
-                                <TextBlock Text="Region 2 (보조 언어)"
+                                <TextBlock Text="보조 가사 (Region 2)"
                                            Style="{StaticResource Type.Caption.Style}"
                                            FontWeight="SemiBold"
                                            Foreground="{DynamicResource Brush.Text.Secondary}" />
@@ -438,20 +470,27 @@
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="8" />
-                                <ColumnDefinition Width="92" />
+                                <ColumnDefinition Width="70" />
                                 <ColumnDefinition Width="8" />
-                                <ColumnDefinition Width="92" />
+                                <ColumnDefinition Width="70" />
                             </Grid.ColumnDefinitions>
-                            <ComboBox ItemsSource="{Binding PreviewFontFamilyOptions}"
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Label Content="글꼴" Target="{Binding ElementName=PreviewFont}" Padding="0,0,0,4" />
+                            <Label Grid.Column="2" Content="가사 크기" Target="{Binding ElementName=PreviewSize}" Padding="0,0,0,4" />
+                            <Label Grid.Column="4" Content="코드 크기" Target="{Binding ElementName=NotationSize}" Padding="0,0,0,4" />
+                            <ComboBox Grid.Row="1" x:Name="PreviewFont" ItemsSource="{Binding PreviewFontFamilyOptions}"
                                       SelectedItem="{Binding PreviewFontFamilyName, Mode=TwoWay}"
                                       MinHeight="32"
                                       AutomationProperties.Name="미리보기 글꼴" />
-                            <ComboBox Grid.Column="2"
+                            <ComboBox Grid.Row="1" Grid.Column="2" x:Name="PreviewSize"
                                       ItemsSource="{Binding PreviewFontSizeOptions}"
                                       SelectedItem="{Binding PreviewMainFontSize, Mode=TwoWay}"
                                       MinHeight="32"
                                       AutomationProperties.Name="미리보기 가사 글자 크기" />
-                            <ComboBox Grid.Column="4"
+                            <ComboBox Grid.Row="1" Grid.Column="4" x:Name="NotationSize"
                                       ItemsSource="{Binding PreviewFontSizeOptions}"
                                       SelectedItem="{Binding PreviewNotationFontSize, Mode=TwoWay}"
                                       MinHeight="32"
@@ -459,41 +498,25 @@
                         </Grid>
 
                         <!-- 코드 조옮김(레거시 Transpose Up/Down Semi-Tone) — 미리보기 코드만 ±반음 이동, 저장 가사 불변. -->
-                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0" VerticalAlignment="Center">
-                            <TextBlock Text="조옮김"
-                                       VerticalAlignment="Center"
-                                       Margin="0,0,8,0"
-                                       Style="{StaticResource Type.Caption.Style}"
+                        <DockPanel Margin="0,10,0,4">
+                            <TextBlock Text="코드 조옮김" Style="{StaticResource Type.Caption.Style}"
                                        Foreground="{DynamicResource Brush.Text.Secondary}" />
-                            <Button Command="{Binding TransposeDownCommand}"
-                                    Style="{StaticResource EsButton.Secondary}"
-                                    MinWidth="36"
-                                    Content="♭ −"
+                            <TextBlock Text="{Binding TransposeLabel}" HorizontalAlignment="Right"
+                                       Style="{StaticResource Type.Caption.Style}" />
+                        </DockPanel>
+                        <WrapPanel>
+                            <Button Command="{Binding TransposeDownCommand}" Style="{StaticResource EsButton.Secondary}" Margin="0,0,6,4"
+                                    Content="반음 내림" Tag="transpose_down" ContentTemplate="{StaticResource EditorActionCaption}"
                                     AutomationProperties.Name="반음 내림" />
-                            <TextBlock Text="{Binding TransposeLabel}"
-                                       VerticalAlignment="Center"
-                                       MinWidth="40"
-                                       Margin="8,0"
-                                       TextAlignment="Center"
-                                       Style="{StaticResource Type.Body.Style}"
-                                       Foreground="{DynamicResource Brush.Text.Primary}" />
-                            <Button Command="{Binding TransposeUpCommand}"
-                                    Style="{StaticResource EsButton.Secondary}"
-                                    MinWidth="36"
-                                    Margin="0,0,8,0"
-                                    Content="♯ +"
+                            <Button Command="{Binding TransposeUpCommand}" Style="{StaticResource EsButton.Secondary}" Margin="0,0,6,4"
+                                    Content="반음 올림" Tag="transpose_up" ContentTemplate="{StaticResource EditorActionCaption}"
                                     AutomationProperties.Name="반음 올림" />
-                            <Button Command="{Binding ResetTransposeCommand}"
-                                    Style="{StaticResource EsButton.Secondary}"
-                                    Margin="0,0,8,0"
-                                    Content="원조"
-                                    AutomationProperties.Name="조옮김 원조로" />
-                            <Button Command="{Binding ToCapoZeroCommand}"
-                                    Style="{StaticResource EsButton.Secondary}"
-                                    Content="To Capo 0"
-                                    ToolTip="카포 없이 치는 실제 코드로 표시"
+                            <Button Command="{Binding ResetTransposeCommand}" Style="{StaticResource EsButton.Secondary}" Margin="0,0,6,4"
+                                    Content="원래 조" AutomationProperties.Name="조옮김 원조로" />
+                            <Button Command="{Binding ToCapoZeroCommand}" Style="{StaticResource EsButton.Secondary}" Margin="0,0,0,4"
+                                    Content="카포 없이" ToolTip="카포 없이 연주하는 코드로 미리보기"
                                     AutomationProperties.Name="To Capo 0" />
-                        </StackPanel>
+                        </WrapPanel>
                     </StackPanel>
 
                     <Border Grid.Row="1"
@@ -566,7 +589,31 @@
 
         <DockPanel Grid.Row="2"
                    Margin="0,18,0,0">
-            <StackPanel DockPanel.Dock="Left">
+            <StackPanel DockPanel.Dock="Right"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Right">
+                <Button Command="{Binding SaveCommand}"
+                        Style="{StaticResource EsButton.Primary}"
+                        ToolTip="곡을 저장하고 닫기 (Ctrl+S)"
+                        AutomationProperties.Name="곡 저장"
+                        Margin="0,0,8,0">
+                    <StackPanel Orientation="Horizontal">
+                        <controls:FrmIcon Icon="save" Width="16" Height="16" Margin="0,0,6,0" />
+                        <TextBlock Text="저장 후 닫기" />
+                    </StackPanel>
+                </Button>
+                <Button Style="{StaticResource EsButton.Secondary}"
+                        Click="Close_Click"
+                        ToolTip="닫기"
+                        AutomationProperties.Name="곡 편집기 닫기">
+                    <StackPanel Orientation="Horizontal">
+                        <ui:SymbolIcon Symbol="Dismiss24" Margin="0,0,6,0" />
+                        <TextBlock Text="닫기" />
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+
+            <StackPanel>
                 <TextBlock Text="{Binding ValidationMessage}"
                            Style="{StaticResource Type.Caption.Style}"
                            Foreground="{DynamicResource Brush.Status.Danger}" />
@@ -580,30 +627,6 @@
                            Style="{StaticResource Type.Caption.Style}"
                            Foreground="{DynamicResource Brush.Text.Secondary}"
                            Margin="0,4,0,0" />
-            </StackPanel>
-
-            <StackPanel DockPanel.Dock="Right"
-                        Orientation="Horizontal"
-                        HorizontalAlignment="Right">
-                <Button Command="{Binding SaveCommand}"
-                        Style="{StaticResource EsButton.Primary}"
-                        ToolTip="곡 저장"
-                        AutomationProperties.Name="곡 저장"
-                        Margin="0,0,8,0">
-                    <StackPanel Orientation="Horizontal">
-                        <ui:SymbolIcon Symbol="Save24" Margin="0,0,6,0" />
-                        <TextBlock Text="저장" />
-                    </StackPanel>
-                </Button>
-                <Button Style="{StaticResource EsButton.Secondary}"
-                        Click="Close_Click"
-                        ToolTip="닫기"
-                        AutomationProperties.Name="곡 편집기 닫기">
-                    <StackPanel Orientation="Horizontal">
-                        <ui:SymbolIcon Symbol="Dismiss24" Margin="0,0,6,0" />
-                        <TextBlock Text="닫기" />
-                    </StackPanel>
-                </Button>
             </StackPanel>
         </DockPanel>
     </Grid>

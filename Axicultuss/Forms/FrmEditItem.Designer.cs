@@ -27,48 +27,10 @@ namespace Axicultus
 		private Button FastForwardBtn;
 		private Button FastReverseBtn;
 		private Button PlayPauseBtn;
-		private Button R1Btn1;
-		private Button R1Btn10;
-		private Button R1Btn2;
-		private Button R1Btn3;
-		private Button R1Btn4;
-		private Button R1Btn5;
-		private Button R1Btn6;
-		private Button R1Btn7;
-		private Button R1Btn8;
-		private Button R1Btn9;
-		private Button R1BtnBridge;
-		private Button R1BtnBridge2;
-		private Button R1BtnChorus;
-		private Button R1BtnChorus2;
-		private Button R1BtnEnding;
-		private Button R1BtnNewScreen;
-		private Button R1BtnNotations;
-		private Button R1BtnPreChorus;
-		private Button R1BtnPreChorus2;
 		private Button R1Chinese;
 		private Button R1Redo;
 		private Button R1Undo;
 		private Button R1VerseFormat;
-		private Button R2Btn1;
-		private Button R2Btn10;
-		private Button R2Btn2;
-		private Button R2Btn3;
-		private Button R2Btn4;
-		private Button R2Btn5;
-		private Button R2Btn6;
-		private Button R2Btn7;
-		private Button R2Btn8;
-		private Button R2Btn9;
-		private Button R2BtnBridge;
-		private Button R2BtnBridge2;
-		private Button R2BtnChorus;
-		private Button R2BtnChorus2;
-		private Button R2BtnEnding;
-		private Button R2BtnNewScreen;
-		private Button R2BtnNotations;
-		private Button R2BtnPreChorus;
-		private Button R2BtnPreChorus2;
 		private Button R2Chinese;
 		private Button R2Redo;
 		private Button R2Undo;
@@ -360,29 +322,10 @@ private void InitializeComponent()
             panelR1Left = new Panel();
             panel5 = new Panel();
             R1RightToLeft = new CheckBox();
-            R1BtnBridge2 = new Button();
-            R1BtnPreChorus2 = new Button();
-            R1BtnChorus2 = new Button();
-            R1BtnChorus = new Button();
             R1VerseFormat = new Button();
-            R1BtnNewScreen = new Button();
-            R1BtnPreChorus = new Button();
             R1Redo = new Button();
             R1Undo = new Button();
             R1Chinese = new Button();
-            R1BtnNotations = new Button();
-            R1BtnEnding = new Button();
-            R1BtnBridge = new Button();
-            R1Btn10 = new Button();
-            R1Btn9 = new Button();
-            R1Btn8 = new Button();
-            R1Btn7 = new Button();
-            R1Btn6 = new Button();
-            R1Btn5 = new Button();
-            R1Btn4 = new Button();
-            R1Btn3 = new Button();
-            R1Btn2 = new Button();
-            R1Btn1 = new Button();
             tabRightPane = new TabControl();
             tabRight_Region2 = new TabPage();
             panelR2All = new Panel();
@@ -397,29 +340,10 @@ private void InitializeComponent()
             SyncBtnUp = new Button();
             panel1 = new Panel();
             R2RightToLeft = new CheckBox();
-            R2BtnBridge2 = new Button();
-            R2BtnPreChorus2 = new Button();
-            R2BtnPreChorus = new Button();
             R2VerseFormat = new Button();
-            R2BtnChorus = new Button();
-            R2BtnChorus2 = new Button();
-            R2BtnNewScreen = new Button();
             R2Redo = new Button();
             R2Undo = new Button();
             R2Chinese = new Button();
-            R2BtnNotations = new Button();
-            R2BtnEnding = new Button();
-            R2BtnBridge = new Button();
-            R2Btn10 = new Button();
-            R2Btn9 = new Button();
-            R2Btn8 = new Button();
-            R2Btn7 = new Button();
-            R2Btn6 = new Button();
-            R2Btn5 = new Button();
-            R2Btn4 = new Button();
-            R2Btn3 = new Button();
-            R2Btn2 = new Button();
-            R2Btn1 = new Button();
             tabRight_Rotate = new TabPage();
             panelRotate = new Panel();
             splitContainerRotate = new SplitContainer();
@@ -724,9 +648,9 @@ private void InitializeComponent()
             //
             // toolStripStatusLabel1
             //
-            toolStripStatusLabel1.BackColor = Color.Red;
-            toolStripStatusLabel1.Font = new Font("Tahoma", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            toolStripStatusLabel1.ForeColor = Color.White;
+            toolStripStatusLabel1.BackColor = SystemColors.Control;
+            toolStripStatusLabel1.Font = SystemFonts.MessageBoxFont;
+            toolStripStatusLabel1.ForeColor = SystemColors.ControlText;
             toolStripStatusLabel1.Name = "toolStripStatusLabel1";
             toolStripStatusLabel1.Size = new Size(136, 21);
             toolStripStatusLabel1.Text = "Database Item";
@@ -1543,7 +1467,7 @@ private void InitializeComponent()
             LabeltbLyrics.Name = "LabeltbLyrics";
             LabeltbLyrics.Size = new Size(481, 20);
             LabeltbLyrics.TabIndex = 0;
-            LabeltbLyrics.Text = "Region 1";
+            LabeltbLyrics.Text = "Lyrics (Region 1)";
             //
             // panelR1Left
             //
@@ -1558,33 +1482,14 @@ private void InitializeComponent()
             // panel5
             //
             panel5.Controls.Add(R1RightToLeft);
-            panel5.Controls.Add(R1BtnBridge2);
-            panel5.Controls.Add(R1BtnPreChorus2);
-            panel5.Controls.Add(R1BtnChorus2);
-            panel5.Controls.Add(R1BtnChorus);
             panel5.Controls.Add(R1VerseFormat);
-            panel5.Controls.Add(R1BtnNewScreen);
-            panel5.Controls.Add(R1BtnPreChorus);
             panel5.Controls.Add(R1Redo);
             panel5.Controls.Add(R1Undo);
             panel5.Controls.Add(R1Chinese);
-            panel5.Controls.Add(R1BtnNotations);
-            panel5.Controls.Add(R1BtnEnding);
-            panel5.Controls.Add(R1BtnBridge);
-            panel5.Controls.Add(R1Btn10);
-            panel5.Controls.Add(R1Btn9);
-            panel5.Controls.Add(R1Btn8);
-            panel5.Controls.Add(R1Btn7);
-            panel5.Controls.Add(R1Btn6);
-            panel5.Controls.Add(R1Btn5);
-            panel5.Controls.Add(R1Btn4);
-            panel5.Controls.Add(R1Btn3);
-            panel5.Controls.Add(R1Btn2);
-            panel5.Controls.Add(R1Btn1);
             panel5.Location = new Point(4, 25);
             panel5.Margin = new Padding(4, 5, 4, 5);
             panel5.Name = "panel5";
-            panel5.Size = new Size(65, 428);
+            panel5.Size = new Size(65, 140);
             panel5.TabIndex = 0;
             //
             // R1RightToLeft
@@ -1592,7 +1497,7 @@ private void InitializeComponent()
             R1RightToLeft.Appearance = Appearance.Button;
             R1RightToLeft.FlatStyle = FlatStyle.Flat;
             R1RightToLeft.Image = Resources.LangRightLeft;
-            R1RightToLeft.Location = new Point(31, 389);
+            R1RightToLeft.Location = new Point(31, 105);
             R1RightToLeft.Margin = new Padding(4, 5, 4, 5);
             R1RightToLeft.Name = "R1RightToLeft";
             R1RightToLeft.Size = new Size(31, 35);
@@ -1602,96 +1507,18 @@ private void InitializeComponent()
             R1RightToLeft.Visible = false;
             R1RightToLeft.Click += RightToLeft_Click;
             //
-            // R1BtnBridge2
-            //
-            R1BtnBridge2.FlatStyle = FlatStyle.Flat;
-            R1BtnBridge2.Image = Resources.NumBridge2;
-            R1BtnBridge2.Location = new Point(31, 283);
-            R1BtnBridge2.Margin = new Padding(4, 5, 4, 5);
-            R1BtnBridge2.Name = "R1BtnBridge2";
-            R1BtnBridge2.Size = new Size(31, 35);
-            R1BtnBridge2.TabIndex = 23;
-            R1BtnBridge2.Tag = "103";
-            toolTip1.SetToolTip(R1BtnBridge2, "Bridge 2 Indicator");
-            R1BtnBridge2.Click += R1Btn_Click;
-            //
-            // R1BtnPreChorus2
-            //
-            R1BtnPreChorus2.FlatStyle = FlatStyle.Flat;
-            R1BtnPreChorus2.Image = Resources.NumPreChorus2;
-            R1BtnPreChorus2.Location = new Point(31, 212);
-            R1BtnPreChorus2.Margin = new Padding(4, 5, 4, 5);
-            R1BtnPreChorus2.Name = "R1BtnPreChorus2";
-            R1BtnPreChorus2.Size = new Size(31, 35);
-            R1BtnPreChorus2.TabIndex = 13;
-            R1BtnPreChorus2.Tag = "112";
-            toolTip1.SetToolTip(R1BtnPreChorus2, "Prechorus2 Indicator");
-            R1BtnPreChorus2.Click += R1Btn_Click;
-            //
-            // R1BtnChorus2
-            //
-            R1BtnChorus2.FlatStyle = FlatStyle.Flat;
-            R1BtnChorus2.Image = Resources.NumChorus2;
-            R1BtnChorus2.Location = new Point(31, 248);
-            R1BtnChorus2.Margin = new Padding(4, 5, 4, 5);
-            R1BtnChorus2.Name = "R1BtnChorus2";
-            R1BtnChorus2.Size = new Size(31, 35);
-            R1BtnChorus2.TabIndex = 15;
-            R1BtnChorus2.Tag = "102";
-            toolTip1.SetToolTip(R1BtnChorus2, "Chrous 2 Indicator");
-            R1BtnChorus2.Click += R1Btn_Click;
-            //
-            // R1BtnChorus
-            //
-            R1BtnChorus.FlatStyle = FlatStyle.Flat;
-            R1BtnChorus.Image = Resources.NumChorus;
-            R1BtnChorus.Location = new Point(0, 248);
-            R1BtnChorus.Margin = new Padding(4, 5, 4, 5);
-            R1BtnChorus.Name = "R1BtnChorus";
-            R1BtnChorus.Size = new Size(31, 35);
-            R1BtnChorus.TabIndex = 14;
-            R1BtnChorus.Tag = "0";
-            toolTip1.SetToolTip(R1BtnChorus, "Chorus Indicator");
-            R1BtnChorus.Click += R1Btn_Click;
-            //
             // R1VerseFormat
             //
             R1VerseFormat.FlatStyle = FlatStyle.Flat;
-            R1VerseFormat.Image = Resources.VerseFormat;
-            R1VerseFormat.Location = new Point(31, 354);
+            R1VerseFormat.Text = "Format";
+            R1VerseFormat.Location = new Point(0, 70);
             R1VerseFormat.Margin = new Padding(4, 5, 4, 5);
             R1VerseFormat.Name = "R1VerseFormat";
-            R1VerseFormat.Size = new Size(31, 35);
+            R1VerseFormat.Size = new Size(62, 35);
             R1VerseFormat.TabIndex = 21;
             R1VerseFormat.Tag = "";
             toolTip1.SetToolTip(R1VerseFormat, "Verses Format");
             R1VerseFormat.Click += R1VerseFormat_Click;
-            //
-            // R1BtnNewScreen
-            //
-            R1BtnNewScreen.FlatStyle = FlatStyle.Flat;
-            R1BtnNewScreen.Image = Resources.NumNewScreen;
-            R1BtnNewScreen.Location = new Point(31, 318);
-            R1BtnNewScreen.Margin = new Padding(4, 5, 4, 5);
-            R1BtnNewScreen.Name = "R1BtnNewScreen";
-            R1BtnNewScreen.Size = new Size(31, 35);
-            R1BtnNewScreen.TabIndex = 19;
-            R1BtnNewScreen.Tag = "151";
-            toolTip1.SetToolTip(R1BtnNewScreen, "New Screen Indicator");
-            R1BtnNewScreen.Click += R1Btn_Click;
-            //
-            // R1BtnPreChorus
-            //
-            R1BtnPreChorus.FlatStyle = FlatStyle.Flat;
-            R1BtnPreChorus.Image = Resources.NumPreChorus;
-            R1BtnPreChorus.Location = new Point(0, 212);
-            R1BtnPreChorus.Margin = new Padding(4, 5, 4, 5);
-            R1BtnPreChorus.Name = "R1BtnPreChorus";
-            R1BtnPreChorus.Size = new Size(31, 35);
-            R1BtnPreChorus.TabIndex = 12;
-            R1BtnPreChorus.Tag = "111";
-            toolTip1.SetToolTip(R1BtnPreChorus, "Prechorus Indicator");
-            R1BtnPreChorus.Click += R1Btn_Click;
             //
             // R1Redo
             //
@@ -1723,7 +1550,7 @@ private void InitializeComponent()
             //
             R1Chinese.FlatStyle = FlatStyle.Flat;
             R1Chinese.Image = Resources.Chinese;
-            R1Chinese.Location = new Point(0, 389);
+            R1Chinese.Location = new Point(0, 105);
             R1Chinese.Margin = new Padding(4, 5, 4, 5);
             R1Chinese.Name = "R1Chinese";
             R1Chinese.Size = new Size(31, 35);
@@ -1731,166 +1558,6 @@ private void InitializeComponent()
             R1Chinese.Tag = "";
             toolTip1.SetToolTip(R1Chinese, "Switch Trad/Simp Chinese");
             R1Chinese.Click += R1Chinese_Click;
-            //
-            // R1BtnNotations
-            //
-            R1BtnNotations.FlatStyle = FlatStyle.Flat;
-            R1BtnNotations.Image = Resources.NotationSym;
-            R1BtnNotations.Location = new Point(0, 354);
-            R1BtnNotations.Margin = new Padding(4, 5, 4, 5);
-            R1BtnNotations.Name = "R1BtnNotations";
-            R1BtnNotations.Size = new Size(31, 35);
-            R1BtnNotations.TabIndex = 18;
-            R1BtnNotations.Tag = "152";
-            toolTip1.SetToolTip(R1BtnNotations, "Notations Indicator (F8)");
-            R1BtnNotations.Click += R1Btn_Click;
-            //
-            // R1BtnEnding
-            //
-            R1BtnEnding.FlatStyle = FlatStyle.Flat;
-            R1BtnEnding.Image = Resources.NumEnding;
-            R1BtnEnding.Location = new Point(0, 318);
-            R1BtnEnding.Margin = new Padding(4, 5, 4, 5);
-            R1BtnEnding.Name = "R1BtnEnding";
-            R1BtnEnding.Size = new Size(31, 35);
-            R1BtnEnding.TabIndex = 17;
-            R1BtnEnding.Tag = "101";
-            toolTip1.SetToolTip(R1BtnEnding, "Ending Indicator");
-            R1BtnEnding.Click += R1Btn_Click;
-            //
-            // R1BtnBridge
-            //
-            R1BtnBridge.FlatStyle = FlatStyle.Flat;
-            R1BtnBridge.Image = Resources.NumBridge;
-            R1BtnBridge.Location = new Point(0, 283);
-            R1BtnBridge.Margin = new Padding(4, 5, 4, 5);
-            R1BtnBridge.Name = "R1BtnBridge";
-            R1BtnBridge.Size = new Size(31, 35);
-            R1BtnBridge.TabIndex = 16;
-            R1BtnBridge.Tag = "100";
-            toolTip1.SetToolTip(R1BtnBridge, "Bridge Indicator");
-            R1BtnBridge.Click += R1Btn_Click;
-            //
-            // R1Btn10
-            //
-            R1Btn10.FlatStyle = FlatStyle.Flat;
-            R1Btn10.Image = Resources.Num10;
-            R1Btn10.Location = new Point(31, 177);
-            R1Btn10.Margin = new Padding(4, 5, 4, 5);
-            R1Btn10.Name = "R1Btn10";
-            R1Btn10.Size = new Size(31, 35);
-            R1Btn10.TabIndex = 11;
-            R1Btn10.Tag = "10";
-            R1Btn10.Click += R1Btn_Click;
-            //
-            // R1Btn9
-            //
-            R1Btn9.FlatStyle = FlatStyle.Flat;
-            R1Btn9.Image = Resources.Num9;
-            R1Btn9.Location = new Point(0, 177);
-            R1Btn9.Margin = new Padding(4, 5, 4, 5);
-            R1Btn9.Name = "R1Btn9";
-            R1Btn9.Size = new Size(31, 35);
-            R1Btn9.TabIndex = 10;
-            R1Btn9.Tag = "9";
-            R1Btn9.Click += R1Btn_Click;
-            //
-            // R1Btn8
-            //
-            R1Btn8.FlatStyle = FlatStyle.Flat;
-            R1Btn8.Image = Resources.Num8;
-            R1Btn8.Location = new Point(31, 142);
-            R1Btn8.Margin = new Padding(4, 5, 4, 5);
-            R1Btn8.Name = "R1Btn8";
-            R1Btn8.Size = new Size(31, 35);
-            R1Btn8.TabIndex = 9;
-            R1Btn8.Tag = "8";
-            R1Btn8.Click += R1Btn_Click;
-            //
-            // R1Btn7
-            //
-            R1Btn7.FlatStyle = FlatStyle.Flat;
-            R1Btn7.Image = Resources.Num7;
-            R1Btn7.Location = new Point(0, 142);
-            R1Btn7.Margin = new Padding(4, 5, 4, 5);
-            R1Btn7.Name = "R1Btn7";
-            R1Btn7.Size = new Size(31, 35);
-            R1Btn7.TabIndex = 8;
-            R1Btn7.Tag = "7";
-            R1Btn7.Click += R1Btn_Click;
-            //
-            // R1Btn6
-            //
-            R1Btn6.FlatStyle = FlatStyle.Flat;
-            R1Btn6.Image = Resources.Num6;
-            R1Btn6.Location = new Point(31, 106);
-            R1Btn6.Margin = new Padding(4, 5, 4, 5);
-            R1Btn6.Name = "R1Btn6";
-            R1Btn6.Size = new Size(31, 35);
-            R1Btn6.TabIndex = 7;
-            R1Btn6.Tag = "6";
-            R1Btn6.Click += R1Btn_Click;
-            //
-            // R1Btn5
-            //
-            R1Btn5.FlatStyle = FlatStyle.Flat;
-            R1Btn5.Image = Resources.Num5;
-            R1Btn5.Location = new Point(0, 106);
-            R1Btn5.Margin = new Padding(4, 5, 4, 5);
-            R1Btn5.Name = "R1Btn5";
-            R1Btn5.Size = new Size(31, 35);
-            R1Btn5.TabIndex = 6;
-            R1Btn5.Tag = "5";
-            R1Btn5.Click += R1Btn_Click;
-            //
-            // R1Btn4
-            //
-            R1Btn4.FlatStyle = FlatStyle.Flat;
-            R1Btn4.Image = Resources.Num4;
-            R1Btn4.Location = new Point(31, 71);
-            R1Btn4.Margin = new Padding(4, 5, 4, 5);
-            R1Btn4.Name = "R1Btn4";
-            R1Btn4.Size = new Size(31, 35);
-            R1Btn4.TabIndex = 5;
-            R1Btn4.Tag = "4";
-            R1Btn4.Click += R1Btn_Click;
-            //
-            // R1Btn3
-            //
-            R1Btn3.FlatStyle = FlatStyle.Flat;
-            R1Btn3.Image = Resources.Num3;
-            R1Btn3.Location = new Point(0, 71);
-            R1Btn3.Margin = new Padding(4, 5, 4, 5);
-            R1Btn3.Name = "R1Btn3";
-            R1Btn3.Size = new Size(31, 35);
-            R1Btn3.TabIndex = 4;
-            R1Btn3.Tag = "3";
-            R1Btn3.Click += R1Btn_Click;
-            //
-            // R1Btn2
-            //
-            R1Btn2.FlatStyle = FlatStyle.Flat;
-            R1Btn2.Image = Resources.Num2;
-            R1Btn2.Location = new Point(31, 35);
-            R1Btn2.Margin = new Padding(4, 5, 4, 5);
-            R1Btn2.Name = "R1Btn2";
-            R1Btn2.Size = new Size(31, 35);
-            R1Btn2.TabIndex = 3;
-            R1Btn2.Tag = "2";
-            R1Btn2.Click += R1Btn_Click;
-            //
-            // R1Btn1
-            //
-            R1Btn1.FlatStyle = FlatStyle.Flat;
-            R1Btn1.Image = Resources.Num1;
-            R1Btn1.Location = new Point(0, 35);
-            R1Btn1.Margin = new Padding(4, 5, 4, 5);
-            R1Btn1.Name = "R1Btn1";
-            R1Btn1.Size = new Size(31, 35);
-            R1Btn1.TabIndex = 2;
-            R1Btn1.Tag = "1";
-            toolTip1.SetToolTip(R1Btn1, "Verse Indicator");
-            R1Btn1.Click += R1Btn_Click;
             //
             // tabRightPane
             //
@@ -1985,7 +1652,7 @@ private void InitializeComponent()
             LabeltbLyrics2.Name = "LabeltbLyrics2";
             LabeltbLyrics2.Size = new Size(503, 20);
             LabeltbLyrics2.TabIndex = 1;
-            LabeltbLyrics2.Text = "Region 2";
+            LabeltbLyrics2.Text = "Additional lyrics";
             //
             // panelR2Left
             //
@@ -2026,33 +1693,14 @@ private void InitializeComponent()
             // panel1
             //
             panel1.Controls.Add(R2RightToLeft);
-            panel1.Controls.Add(R2BtnBridge2);
-            panel1.Controls.Add(R2BtnPreChorus2);
-            panel1.Controls.Add(R2BtnPreChorus);
             panel1.Controls.Add(R2VerseFormat);
-            panel1.Controls.Add(R2BtnChorus);
-            panel1.Controls.Add(R2BtnChorus2);
-            panel1.Controls.Add(R2BtnNewScreen);
             panel1.Controls.Add(R2Redo);
             panel1.Controls.Add(R2Undo);
             panel1.Controls.Add(R2Chinese);
-            panel1.Controls.Add(R2BtnNotations);
-            panel1.Controls.Add(R2BtnEnding);
-            panel1.Controls.Add(R2BtnBridge);
-            panel1.Controls.Add(R2Btn10);
-            panel1.Controls.Add(R2Btn9);
-            panel1.Controls.Add(R2Btn8);
-            panel1.Controls.Add(R2Btn7);
-            panel1.Controls.Add(R2Btn6);
-            panel1.Controls.Add(R2Btn5);
-            panel1.Controls.Add(R2Btn4);
-            panel1.Controls.Add(R2Btn3);
-            panel1.Controls.Add(R2Btn2);
-            panel1.Controls.Add(R2Btn1);
             panel1.Location = new Point(31, 25);
             panel1.Margin = new Padding(4, 5, 4, 5);
             panel1.Name = "panel1";
-            panel1.Size = new Size(65, 428);
+            panel1.Size = new Size(65, 140);
             panel1.TabIndex = 1;
             //
             // R2RightToLeft
@@ -2060,7 +1708,7 @@ private void InitializeComponent()
             R2RightToLeft.Appearance = Appearance.Button;
             R2RightToLeft.FlatStyle = FlatStyle.Flat;
             R2RightToLeft.Image = Resources.LangRightLeft;
-            R2RightToLeft.Location = new Point(31, 389);
+            R2RightToLeft.Location = new Point(31, 105);
             R2RightToLeft.Margin = new Padding(4, 5, 4, 5);
             R2RightToLeft.Name = "R2RightToLeft";
             R2RightToLeft.Size = new Size(31, 35);
@@ -2070,96 +1718,18 @@ private void InitializeComponent()
             R2RightToLeft.Visible = false;
             R2RightToLeft.Click += RightToLeft_Click;
             //
-            // R2BtnBridge2
-            //
-            R2BtnBridge2.FlatStyle = FlatStyle.Flat;
-            R2BtnBridge2.Image = Resources.NumBridge2;
-            R2BtnBridge2.Location = new Point(31, 283);
-            R2BtnBridge2.Margin = new Padding(4, 5, 4, 5);
-            R2BtnBridge2.Name = "R2BtnBridge2";
-            R2BtnBridge2.Size = new Size(31, 35);
-            R2BtnBridge2.TabIndex = 22;
-            R2BtnBridge2.Tag = "103";
-            toolTip1.SetToolTip(R2BtnBridge2, "Bridge 2 Indicator");
-            R2BtnBridge2.Click += R2Btn_Click;
-            //
-            // R2BtnPreChorus2
-            //
-            R2BtnPreChorus2.FlatStyle = FlatStyle.Flat;
-            R2BtnPreChorus2.Image = Resources.NumPreChorus2;
-            R2BtnPreChorus2.Location = new Point(31, 212);
-            R2BtnPreChorus2.Margin = new Padding(4, 5, 4, 5);
-            R2BtnPreChorus2.Name = "R2BtnPreChorus2";
-            R2BtnPreChorus2.Size = new Size(31, 35);
-            R2BtnPreChorus2.TabIndex = 13;
-            R2BtnPreChorus2.Tag = "112";
-            toolTip1.SetToolTip(R2BtnPreChorus2, "Prechorus2 Indicator");
-            R2BtnPreChorus2.Click += R2Btn_Click;
-            //
-            // R2BtnPreChorus
-            //
-            R2BtnPreChorus.FlatStyle = FlatStyle.Flat;
-            R2BtnPreChorus.Image = Resources.NumPreChorus;
-            R2BtnPreChorus.Location = new Point(0, 212);
-            R2BtnPreChorus.Margin = new Padding(4, 5, 4, 5);
-            R2BtnPreChorus.Name = "R2BtnPreChorus";
-            R2BtnPreChorus.Size = new Size(31, 35);
-            R2BtnPreChorus.TabIndex = 12;
-            R2BtnPreChorus.Tag = "111";
-            toolTip1.SetToolTip(R2BtnPreChorus, "Prechorus Indicator");
-            R2BtnPreChorus.Click += R2Btn_Click;
-            //
             // R2VerseFormat
             //
             R2VerseFormat.FlatStyle = FlatStyle.Flat;
-            R2VerseFormat.Image = Resources.VerseFormat;
-            R2VerseFormat.Location = new Point(31, 354);
+            R2VerseFormat.Text = "Format";
+            R2VerseFormat.Location = new Point(0, 70);
             R2VerseFormat.Margin = new Padding(4, 5, 4, 5);
             R2VerseFormat.Name = "R2VerseFormat";
-            R2VerseFormat.Size = new Size(31, 35);
+            R2VerseFormat.Size = new Size(62, 35);
             R2VerseFormat.TabIndex = 21;
             R2VerseFormat.Tag = "";
             toolTip1.SetToolTip(R2VerseFormat, "Verses Format");
             R2VerseFormat.Click += R2VerseFormat_Click;
-            //
-            // R2BtnChorus
-            //
-            R2BtnChorus.FlatStyle = FlatStyle.Flat;
-            R2BtnChorus.Image = Resources.NumChorus;
-            R2BtnChorus.Location = new Point(0, 248);
-            R2BtnChorus.Margin = new Padding(4, 5, 4, 5);
-            R2BtnChorus.Name = "R2BtnChorus";
-            R2BtnChorus.Size = new Size(31, 35);
-            R2BtnChorus.TabIndex = 14;
-            R2BtnChorus.Tag = "0";
-            toolTip1.SetToolTip(R2BtnChorus, "Chorus Indicator");
-            R2BtnChorus.Click += R2Btn_Click;
-            //
-            // R2BtnChorus2
-            //
-            R2BtnChorus2.FlatStyle = FlatStyle.Flat;
-            R2BtnChorus2.Image = Resources.NumChorus2;
-            R2BtnChorus2.Location = new Point(31, 248);
-            R2BtnChorus2.Margin = new Padding(4, 5, 4, 5);
-            R2BtnChorus2.Name = "R2BtnChorus2";
-            R2BtnChorus2.Size = new Size(31, 35);
-            R2BtnChorus2.TabIndex = 15;
-            R2BtnChorus2.Tag = "102";
-            toolTip1.SetToolTip(R2BtnChorus2, "Chrous 2 Indicator");
-            R2BtnChorus2.Click += R2Btn_Click;
-            //
-            // R2BtnNewScreen
-            //
-            R2BtnNewScreen.FlatStyle = FlatStyle.Flat;
-            R2BtnNewScreen.Image = Resources.NumNewScreen;
-            R2BtnNewScreen.Location = new Point(31, 318);
-            R2BtnNewScreen.Margin = new Padding(4, 5, 4, 5);
-            R2BtnNewScreen.Name = "R2BtnNewScreen";
-            R2BtnNewScreen.Size = new Size(31, 35);
-            R2BtnNewScreen.TabIndex = 19;
-            R2BtnNewScreen.Tag = "151";
-            toolTip1.SetToolTip(R2BtnNewScreen, "New Screen Indicator");
-            R2BtnNewScreen.Click += R2Btn_Click;
             //
             // R2Redo
             //
@@ -2191,7 +1761,7 @@ private void InitializeComponent()
             //
             R2Chinese.FlatStyle = FlatStyle.Flat;
             R2Chinese.Image = Resources.Chinese;
-            R2Chinese.Location = new Point(0, 389);
+            R2Chinese.Location = new Point(0, 105);
             R2Chinese.Margin = new Padding(4, 5, 4, 5);
             R2Chinese.Name = "R2Chinese";
             R2Chinese.Size = new Size(31, 35);
@@ -2199,166 +1769,6 @@ private void InitializeComponent()
             R2Chinese.Tag = "";
             toolTip1.SetToolTip(R2Chinese, "Switch Trad/Simp Chinese");
             R2Chinese.Click += R2Chinese_Click;
-            //
-            // R2BtnNotations
-            //
-            R2BtnNotations.FlatStyle = FlatStyle.Flat;
-            R2BtnNotations.Image = Resources.NotationSym;
-            R2BtnNotations.Location = new Point(0, 354);
-            R2BtnNotations.Margin = new Padding(4, 5, 4, 5);
-            R2BtnNotations.Name = "R2BtnNotations";
-            R2BtnNotations.Size = new Size(31, 35);
-            R2BtnNotations.TabIndex = 18;
-            R2BtnNotations.Tag = "152";
-            toolTip1.SetToolTip(R2BtnNotations, "Notations Indicator (F8)");
-            R2BtnNotations.Click += R2Btn_Click;
-            //
-            // R2BtnEnding
-            //
-            R2BtnEnding.FlatStyle = FlatStyle.Flat;
-            R2BtnEnding.Image = Resources.NumEnding;
-            R2BtnEnding.Location = new Point(0, 318);
-            R2BtnEnding.Margin = new Padding(4, 5, 4, 5);
-            R2BtnEnding.Name = "R2BtnEnding";
-            R2BtnEnding.Size = new Size(31, 35);
-            R2BtnEnding.TabIndex = 17;
-            R2BtnEnding.Tag = "101";
-            toolTip1.SetToolTip(R2BtnEnding, "Ending Indicator");
-            R2BtnEnding.Click += R2Btn_Click;
-            //
-            // R2BtnBridge
-            //
-            R2BtnBridge.FlatStyle = FlatStyle.Flat;
-            R2BtnBridge.Image = Resources.NumBridge;
-            R2BtnBridge.Location = new Point(0, 283);
-            R2BtnBridge.Margin = new Padding(4, 5, 4, 5);
-            R2BtnBridge.Name = "R2BtnBridge";
-            R2BtnBridge.Size = new Size(31, 35);
-            R2BtnBridge.TabIndex = 16;
-            R2BtnBridge.Tag = "100";
-            toolTip1.SetToolTip(R2BtnBridge, "Bridge Indicator");
-            R2BtnBridge.Click += R2Btn_Click;
-            //
-            // R2Btn10
-            //
-            R2Btn10.FlatStyle = FlatStyle.Flat;
-            R2Btn10.Image = Resources.Num10;
-            R2Btn10.Location = new Point(31, 177);
-            R2Btn10.Margin = new Padding(4, 5, 4, 5);
-            R2Btn10.Name = "R2Btn10";
-            R2Btn10.Size = new Size(31, 35);
-            R2Btn10.TabIndex = 11;
-            R2Btn10.Tag = "10";
-            R2Btn10.Click += R2Btn_Click;
-            //
-            // R2Btn9
-            //
-            R2Btn9.FlatStyle = FlatStyle.Flat;
-            R2Btn9.Image = Resources.Num9;
-            R2Btn9.Location = new Point(0, 177);
-            R2Btn9.Margin = new Padding(4, 5, 4, 5);
-            R2Btn9.Name = "R2Btn9";
-            R2Btn9.Size = new Size(31, 35);
-            R2Btn9.TabIndex = 10;
-            R2Btn9.Tag = "9";
-            R2Btn9.Click += R2Btn_Click;
-            //
-            // R2Btn8
-            //
-            R2Btn8.FlatStyle = FlatStyle.Flat;
-            R2Btn8.Image = Resources.Num8;
-            R2Btn8.Location = new Point(31, 142);
-            R2Btn8.Margin = new Padding(4, 5, 4, 5);
-            R2Btn8.Name = "R2Btn8";
-            R2Btn8.Size = new Size(31, 35);
-            R2Btn8.TabIndex = 9;
-            R2Btn8.Tag = "8";
-            R2Btn8.Click += R2Btn_Click;
-            //
-            // R2Btn7
-            //
-            R2Btn7.FlatStyle = FlatStyle.Flat;
-            R2Btn7.Image = Resources.Num7;
-            R2Btn7.Location = new Point(0, 142);
-            R2Btn7.Margin = new Padding(4, 5, 4, 5);
-            R2Btn7.Name = "R2Btn7";
-            R2Btn7.Size = new Size(31, 35);
-            R2Btn7.TabIndex = 8;
-            R2Btn7.Tag = "7";
-            R2Btn7.Click += R2Btn_Click;
-            //
-            // R2Btn6
-            //
-            R2Btn6.FlatStyle = FlatStyle.Flat;
-            R2Btn6.Image = Resources.Num6;
-            R2Btn6.Location = new Point(31, 106);
-            R2Btn6.Margin = new Padding(4, 5, 4, 5);
-            R2Btn6.Name = "R2Btn6";
-            R2Btn6.Size = new Size(31, 35);
-            R2Btn6.TabIndex = 7;
-            R2Btn6.Tag = "6";
-            R2Btn6.Click += R2Btn_Click;
-            //
-            // R2Btn5
-            //
-            R2Btn5.FlatStyle = FlatStyle.Flat;
-            R2Btn5.Image = Resources.Num5;
-            R2Btn5.Location = new Point(0, 106);
-            R2Btn5.Margin = new Padding(4, 5, 4, 5);
-            R2Btn5.Name = "R2Btn5";
-            R2Btn5.Size = new Size(31, 35);
-            R2Btn5.TabIndex = 6;
-            R2Btn5.Tag = "5";
-            R2Btn5.Click += R2Btn_Click;
-            //
-            // R2Btn4
-            //
-            R2Btn4.FlatStyle = FlatStyle.Flat;
-            R2Btn4.Image = Resources.Num4;
-            R2Btn4.Location = new Point(31, 71);
-            R2Btn4.Margin = new Padding(4, 5, 4, 5);
-            R2Btn4.Name = "R2Btn4";
-            R2Btn4.Size = new Size(31, 35);
-            R2Btn4.TabIndex = 5;
-            R2Btn4.Tag = "4";
-            R2Btn4.Click += R2Btn_Click;
-            //
-            // R2Btn3
-            //
-            R2Btn3.FlatStyle = FlatStyle.Flat;
-            R2Btn3.Image = Resources.Num3;
-            R2Btn3.Location = new Point(0, 71);
-            R2Btn3.Margin = new Padding(4, 5, 4, 5);
-            R2Btn3.Name = "R2Btn3";
-            R2Btn3.Size = new Size(31, 35);
-            R2Btn3.TabIndex = 4;
-            R2Btn3.Tag = "3";
-            R2Btn3.Click += R2Btn_Click;
-            //
-            // R2Btn2
-            //
-            R2Btn2.FlatStyle = FlatStyle.Flat;
-            R2Btn2.Image = Resources.Num2;
-            R2Btn2.Location = new Point(31, 35);
-            R2Btn2.Margin = new Padding(4, 5, 4, 5);
-            R2Btn2.Name = "R2Btn2";
-            R2Btn2.Size = new Size(31, 35);
-            R2Btn2.TabIndex = 3;
-            R2Btn2.Tag = "2";
-            R2Btn2.Click += R2Btn_Click;
-            //
-            // R2Btn1
-            //
-            R2Btn1.FlatStyle = FlatStyle.Flat;
-            R2Btn1.Image = Resources.Num1;
-            R2Btn1.Location = new Point(0, 35);
-            R2Btn1.Margin = new Padding(4, 5, 4, 5);
-            R2Btn1.Name = "R2Btn1";
-            R2Btn1.Size = new Size(31, 35);
-            R2Btn1.TabIndex = 2;
-            R2Btn1.Tag = "1";
-            toolTip1.SetToolTip(R2Btn1, "Verse Indicator");
-            R2Btn1.Click += R2Btn_Click;
             //
             // tabRight_Rotate
             //
@@ -2370,7 +1780,7 @@ private void InitializeComponent()
             tabRight_Rotate.Padding = new Padding(4, 5, 4, 5);
             tabRight_Rotate.Size = new Size(531, 533);
             tabRight_Rotate.TabIndex = 1;
-            tabRight_Rotate.Text = "Rotate Style";
+            tabRight_Rotate.Text = "Timing and media";
             //
             // panelRotate
             //

@@ -95,6 +95,30 @@ public class LyricsProcessingTests
     }
 
     [Theory]
+    [InlineData(1, "Verse", "Verse 10", "[10]")]
+    [InlineData(2, null, "Chorus", "[chorus]")]
+    public void SongEditorInsertMenuTargetsTheChosenLyricsRegion(int region, string submenu, string action, string marker)
+    {
+        OnSta(() =>
+        {
+            using var form = new FrmEditItem();
+            using var font = new Font("Arial", 12);
+            SetEditorFontsAndHeadings(form, font, font);
+            RichTextBox Lyrics(int number) =>
+                (RichTextBox)form.Controls.Find($"tbLyrics{number}", true).Single();
+            var toolbar = (ToolStrip)form.Controls.Find($"Region{region}InsertTools", true).Single();
+            var insert = Assert.IsType<ToolStripDropDownButton>(Assert.Single(toolbar.Items.Cast<ToolStripItem>()));
+            var menu = submenu == null ? insert.DropDownItems :
+                insert.DropDownItems.OfType<ToolStripMenuItem>().Single(item => item.Text == submenu).DropDownItems;
+            Lyrics(region).Text = "First line\nSecond line";
+            Lyrics(region).Select("First line\n".Length, 0);
+            menu.OfType<ToolStripMenuItem>().Single(item => item.Text == action).PerformClick();
+            Assert.Equal($"First line\n{marker}\nSecond line", Lyrics(region).Text);
+            Assert.Empty(Lyrics(3 - region).Text);
+        });
+    }
+
+    [Theory]
     [InlineData(typeof(FrmEditItem), "tbLyrics1")]
     [InlineData(typeof(FrmInfoScreen), "tbLyrics2")]
     public void EditorTextChangedStylesMultilineInsertionAtTheCaret(Type type, string field)
