@@ -5518,7 +5518,7 @@ namespace Axicultus
             tabControlSource.Size = new System.Drawing.Size(344, 511);
             tabControlSource.TabIndex = 0;
             tabControlSource.SelectedIndexChanged += tabControlSource_SelectedIndexChanged;
-            tabControlSource.Resize += tabControlSource_Resize;
+            tabControlSource.SizeChanged += tabControlSource_Resize;
             // 
             // tabFolders
             // 

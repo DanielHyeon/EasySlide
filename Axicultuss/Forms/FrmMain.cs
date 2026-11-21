@@ -128,6 +128,8 @@ public partial class FrmMain : Form
     // ResizeSampleScreen methods and Focus/SetArea methods moved to FrmMain.Layout.cs
     // SaveFormStateToRegistry moved to FrmMain.Logic.cs
 
+    // Wired to SizeChanged, not Resize: TabControl raises Resize before it drops its cached
+    // DisplayRectangle, so the toolbars would be placed for the previous width.
     private void tabControlSource_Resize(object sender, EventArgs e)
     {
         ResizetabControlSouceItems();
