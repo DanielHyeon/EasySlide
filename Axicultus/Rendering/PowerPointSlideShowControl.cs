@@ -18,6 +18,8 @@ public sealed record PowerPointSlideShowRequest(
     int SlideNumber,
     PowerPointSlideShowTarget Target);
 
+public sealed record PowerPointOutputPosition(int Slide, int Count, OfficeLib.SlideImageManifest.SourceVersion? SourceVersion);
+
 public interface IPowerPointSlideShowControl
 {
     Task StartAsync(
@@ -31,6 +33,8 @@ public interface IPowerPointSlideShowControl
 
     Task StopAsync(CancellationToken cancellationToken = default);
     Task<int?> ReadOutputPositionAsync(string path) => Task.FromResult<int?>(null);
+    async Task<PowerPointOutputPosition?> PollOutputAsync(string path) =>
+        await ReadOutputPositionAsync(path).ConfigureAwait(false) is int slide ? new(slide, 0, null) : null;
     bool HasOutputShow => false;
     Task SetBlackoutAsync(bool black) => Task.CompletedTask;
     bool OwnsOutputWindow(nint window) => false;
@@ -66,6 +70,7 @@ public sealed class OfficePowerPointSlideShowControl : IPowerPointSlideShowContr
     private readonly Lazy<OfficePptSession> _session;
     private readonly IDisplayService? _displays;
     private readonly IWindowPlacementService? _placement;
+    private long _operatorAction;
     private OfficePptSession.OutputShow? Output => _session.IsValueCreated ? _session.Value.CurrentOutput : null;
 
     public Task<int?> ReadOutputPositionAsync(string path) =>
@@ -74,7 +79,18 @@ public sealed class OfficePowerPointSlideShowControl : IPowerPointSlideShowContr
             : Task.FromResult<int?>(null);
 
     public bool HasOutputShow => Output != null;
-    public Task SetBlackoutAsync(bool black) => Output is { } show ? _session.Value.SetBlackoutAsync(show.Path, black) : Task.CompletedTask;
+    public Task<PowerPointOutputPosition?> PollOutputAsync(string path)
+    {
+        long action = Volatile.Read(ref _operatorAction);
+        return Output is { } show && string.Equals(System.IO.Path.GetFullPath(path), show.Path, StringComparison.OrdinalIgnoreCase)
+            ? _session.Value.PollOutputAsync(show, () => Volatile.Read(ref _operatorAction) == action)
+            : Task.FromResult<PowerPointOutputPosition?>(null);
+    }
+    public Task SetBlackoutAsync(bool black)
+    {
+        Interlocked.Increment(ref _operatorAction);
+        return Output is { } show ? _session.Value.SetBlackoutAsync(show.Path, black) : Task.CompletedTask;
+    }
 
     public bool OwnsOutputWindow(nint window) => window != 0 && Output?.Handle == window;
 
@@ -84,9 +100,12 @@ public sealed class OfficePowerPointSlideShowControl : IPowerPointSlideShowContr
             DesktopWindowPlacement.RevealSlideShow(show.Handle, bounds, playerHadFocus);
     }
 
-    public Task<int?> AdvanceOutputAsync(string path) =>
-        Output is { } show && string.Equals(System.IO.Path.GetFullPath(path), show.Path, StringComparison.OrdinalIgnoreCase)
+    public Task<int?> AdvanceOutputAsync(string path)
+    {
+        Interlocked.Increment(ref _operatorAction);
+        return Output is { } show && string.Equals(System.IO.Path.GetFullPath(path), show.Path, StringComparison.OrdinalIgnoreCase)
             ? _session.Value.AdvanceShowAsync(show.Path) : Task.FromResult<int?>(null);
+    }
 
     public OfficePowerPointSlideShowControl(IDisplayService? displays = null, IWindowPlacementService? placement = null)
         : this(static () => new OfficePptSession())
@@ -104,6 +123,7 @@ public sealed class OfficePowerPointSlideShowControl : IPowerPointSlideShowContr
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
+        Interlocked.Increment(ref _operatorAction);
         return StartCoreAsync(request, outputMonitorName, cancellationToken);
     }
 
@@ -132,6 +152,7 @@ public sealed class OfficePowerPointSlideShowControl : IPowerPointSlideShowContr
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
+        Interlocked.Increment(ref _operatorAction);
         return TriggerNextCoreAsync(request, cancellationToken);
     }
 
@@ -152,6 +173,7 @@ public sealed class OfficePowerPointSlideShowControl : IPowerPointSlideShowContr
     public Task StopAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        Interlocked.Increment(ref _operatorAction);
         return _session.IsValueCreated
             ? _session.Value.CloseAsync()
             : Task.CompletedTask;
@@ -159,6 +181,7 @@ public sealed class OfficePowerPointSlideShowControl : IPowerPointSlideShowContr
 
     public void Dispose()
     {
+        Interlocked.Increment(ref _operatorAction);
         if (_session.IsValueCreated)
         {
             _session.Value.Dispose();

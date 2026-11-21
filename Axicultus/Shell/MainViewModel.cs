@@ -5626,35 +5626,54 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _readingNativePosition = true;
         try
         {
-            var slide = await _powerPointSlideShow.ReadOutputPositionAsync(path).ConfigureAwait(true);
-            await ApplyNativeSlidePositionAsync(session, slide).ConfigureAwait(true);
+            var position = await _powerPointSlideShow.PollOutputAsync(path).ConfigureAwait(true);
+            if (position == null || !ReferenceEquals(session, _session.Current)) return;
+            await ApplyNativeSlidePositionAsync(session, position.Slide, position.SourceVersion).ConfigureAwait(true);
+
+            if (!_disposed && position.SourceVersion is { } version && position.Count > 0 &&
+                _session.Current is { State: LiveState.Active } live && string.Equals(live.PptPath, path, StringComparison.OrdinalIgnoreCase) &&
+                PreviewItem is { Kind: LiveItemKinds.PowerPoint } preview && string.Equals(preview.ContentPath, path, StringComparison.OrdinalIgnoreCase) &&
+                PowerPoint.State != Rendering.PowerPointPreviewState.Rendering && !version.Matches(PowerPoint.LoadedSourceVersion))
+            {
+                var (width, height) = ResolvePptRenderSize();
+                int target = Math.Clamp(PowerPoint.SlideNumber, 1, position.Count);
+                await PowerPoint.LoadAsync(path, target, width, height, expectedVersion: version).ConfigureAwait(true);
+                if (version.Matches(PowerPoint.LoadedSourceVersion)) EnsurePowerPointThumbnails(PowerPoint, path);
+            }
         }
         catch (Exception ex) { System.Diagnostics.Debug.WriteLine(ex.Message); }
         finally { _readingNativePosition = false; }
     }
 
-    private async Task ApplyNativeSlidePositionAsync(LiveSessionSnapshot session, int? position)
+    private async Task ApplyNativeSlidePositionAsync(LiveSessionSnapshot session, int? position,
+        OfficeLib.SlideImageManifest.SourceVersion? version = null)
     {
         if (_disposed || position is not int slide || slide < 1 || !ReferenceEquals(session, _session.Current) ||
             GetOutputPowerPointNavigationItem() is not { ContentPath: { Length: > 0 } path } item ||
             !string.Equals(path, session.PptPath, StringComparison.OrdinalIgnoreCase)) return;
 
-        if (OutputPowerPoint.State == Rendering.PowerPointPreviewState.Failed &&
+        bool changed = version != null && !version.Matches(OutputPowerPoint.LoadedSourceVersion);
+        if (!changed && OutputPowerPoint.State == Rendering.PowerPointPreviewState.Failed &&
             session.PptSlideNumber == slide && OutputPowerPoint.SlideNumber == slide) return;
 
-        if (OutputPowerPoint.SlideNumber != slide ||
+        if (changed || OutputPowerPoint.SlideNumber != slide ||
             !string.Equals(path, OutputPowerPoint.LoadedContentPath, StringComparison.OrdinalIgnoreCase))
         {
             var (width, height) = ResolvePptRenderSize();
             int knownCount = OutputPowerPoint.SlideCount;
-            await OutputPowerPoint.LoadAsync(path, slide, width, height).ConfigureAwait(true);
+            await OutputPowerPoint.LoadAsync(path, slide, width, height, expectedVersion: version).ConfigureAwait(true);
             if (_disposed || !ReferenceEquals(session, _session.Current)) return;
-            if (OutputPowerPoint.State == Rendering.PowerPointPreviewState.Failed)
+            if (version != null && (!version.Matches(OutputPowerPoint.LoadedSourceVersion) || OutputPowerPoint.SlideNumber != slide))
+            {
+                if (!OutputPowerPoint.TryUseNativeThumbnail(slide, version)) return;
+            }
+            else if (OutputPowerPoint.State == Rendering.PowerPointPreviewState.Failed)
                 OutputPowerPoint.MarkNativeSlideAfterRenderFailure(path, slide, knownCount);
             else if (OutputPowerPoint.SlideNumber != slide) return;
             else EnsurePowerPointThumbnails(OutputPowerPoint, path);
         }
-        if (session.PptSlideNumber != slide)
+        if (session.PptSlideNumber != slide || (version != null &&
+            !ReferenceEquals(session.CurrentItemPreviewSource, OutputPowerPoint.PreviewImage)))
             _session.GoLive(ResolveLiveProjection(item with { SlideNumber = slide, PreviewSource = OutputPowerPoint.PreviewImage }, OutputPowerPoint), session.OutputMonitorName);
     }
 

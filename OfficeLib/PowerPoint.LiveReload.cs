@@ -15,7 +15,7 @@ public partial class PowerPoint
 
     // PowerPoint can return the user's open document even for an Untitled open of the same path.
     // A distinct on-disk name also ensures the copy contains precisely the saved edits.
-    private static Presentation OpenShowCopy(Presentations documents, string path, MsoTriState withWindow, bool sourceIsOpen)
+    internal static Presentation OpenShowCopy(Presentations documents, string path, MsoTriState withWindow, bool sourceIsOpen)
     {
         if (!sourceIsOpen)
         {
@@ -24,20 +24,37 @@ public partial class PowerPoint
             // The editor opened the file between our check and Open. Release only our reference to it.
             ReleaseProxy(copy);
         }
-        string snapshot = Path.Combine(Path.GetTempPath(), "Axicultus-" + Guid.NewGuid().ToString("N") + Path.GetExtension(path));
+        return OpenDiskCopy(documents, path, withWindow, MsoTriState.msoTrue, out _);
+    }
+
+    // A named, read-only copy has a stable slideshow caption on localized Office installations.
+    // The caller retains its backing file until PowerPoint releases the presentation.
+    internal static Presentation OpenDiskCopy(Presentations documents, string path, MsoTriState withWindow, MsoTriState untitled, out string snapshot)
+    {
+        snapshot = Path.Combine(Path.GetTempPath(), "Axicultus-" + Guid.NewGuid().ToString("N") + Path.GetExtension(path));
+        bool opened = false;
         try
         {
             File.Copy(path, snapshot);
             var attributes = File.GetAttributes(snapshot);
             if ((attributes & FileAttributes.ReadOnly) != 0)
                 File.SetAttributes(snapshot, attributes & ~FileAttributes.ReadOnly);
-            return documents.Open(snapshot, MsoTriState.msoTrue, MsoTriState.msoTrue, withWindow);
+            var copy = documents.Open(snapshot, MsoTriState.msoTrue, untitled, withWindow);
+            opened = true;
+            return copy;
         }
         finally
         {
-            try { File.Delete(snapshot); }
-            catch (IOException ex) { Console.WriteLine($"Removing the temporary PowerPoint copy: {ex.Message}"); }
-            catch (UnauthorizedAccessException ex) { Console.WriteLine($"Removing the temporary PowerPoint copy: {ex.Message}"); }
+            if (!opened || untitled == MsoTriState.msoTrue) DeleteDiskCopy(snapshot);
+        }
+    }
+
+    internal static void DeleteDiskCopy(string snapshot)
+    {
+        try { File.Delete(snapshot); }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            System.Diagnostics.Trace.WriteLine($"Removing the temporary PowerPoint copy: {ex.Message}");
         }
     }
 

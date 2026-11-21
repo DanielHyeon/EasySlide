@@ -92,6 +92,7 @@ public sealed partial class PowerPointPreviewViewModel(IPowerPointRenderService 
     /// 다른 항목의 stale 슬라이드가 잘못 송출되는 것을 막는다. SlideNumber 와 함께 신원을 이룬다.
     /// </summary>
     public string? LoadedContentPath { get; private set; }
+    internal OfficeLib.SlideImageManifest.SourceVersion? LoadedSourceVersion { get; private set; }
 
     /// <summary>
     /// 다른 PPT 미리보기 VM 의 현재 상태를 복사한다. FrmMain 의 PreviewItem/OutputItem 처럼
@@ -111,6 +112,7 @@ public sealed partial class PowerPointPreviewViewModel(IPowerPointRenderService 
         SlideNumber = source.SlideNumber;
         SlideCount = source.SlideCount;
         LoadedContentPath = source.LoadedContentPath;
+        LoadedSourceVersion = source.LoadedSourceVersion;
 
         if (_stripKey is { } key && key == source._stripKey &&
             (_thumbnailTask is not null || HasCompleteStrip(key)))
@@ -143,16 +145,19 @@ public sealed partial class PowerPointPreviewViewModel(IPowerPointRenderService 
         int slideNumber,
         int pixelWidth,
         int pixelHeight,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        OfficeLib.SlideImageManifest.SourceVersion? expectedVersion = null)
     {
+        var sourceVersion = OfficeLib.SlideImageManifest.ReadSource(filePath);
+        if (expectedVersion != null && !expectedVersion.Matches(sourceVersion)) return;
         long generation = ++_previewGeneration;
-        if (_stripKey is { } strip && strip != StripKey.TryCreate(filePath, strip.Count, strip.Width, strip.Height))
+        // A live reload keeps the last good frame and strip until the saved replacement has decoded.
+        if (expectedVersion == null)
         {
-            InvalidateThumbnailLoad();
-            Thumbnails.Clear();
+            ClearOutdatedStrip(filePath);
+            State = PowerPointPreviewState.Rendering;
+            StatusText = "렌더링 중…";
         }
-        State = PowerPointPreviewState.Rendering;
-        StatusText = "렌더링 중…";
 
         var result = await _render.RenderSlideAsync(
             new PowerPointRenderRequest(filePath, slideNumber, pixelWidth, pixelHeight, TimeSpan.FromSeconds(60)),
@@ -171,22 +176,41 @@ public sealed partial class PowerPointPreviewViewModel(IPowerPointRenderService 
                 ex is NotSupportedException or FileFormatException or ArgumentException or OverflowException or IOException)
             {
                 // 렌더는 성공했으나 바이트 디코드 실패 — 상태 머신이 Rendering 에 고착되지 않도록 Failed 로 마무리.
-                if (generation == _previewGeneration) SetFailed($"이미지 디코드 실패: {ex.Message}");
+                if (generation == _previewGeneration && expectedVersion == null) SetFailed($"이미지 디코드 실패: {ex.Message}");
                 return;
             }
 
             if (generation != _previewGeneration) return;
-            if (cancellationToken.IsCancellationRequested) { SetFailed("렌더링 취소됨"); return; }
+            if (cancellationToken.IsCancellationRequested)
+            {
+                if (expectedVersion == null) SetFailed("렌더링 취소됨");
+                return;
+            }
+            if (expectedVersion != null)
+            {
+                if (!expectedVersion.Matches(OfficeLib.SlideImageManifest.ReadSource(filePath))) return;
+                ClearOutdatedStrip(filePath);
+            }
             PreviewImage = image;
             SlideNumber = slide.SlideNumber;
             SlideCount = slide.SlideCount;
             LoadedContentPath = filePath; // 성공 렌더의 신원 기록(출력 송출 시 항목 일치 확인)
+            LoadedSourceVersion = sourceVersion;
             State = PowerPointPreviewState.Ready;
             StatusText = $"슬라이드 {slide.SlideNumber}/{slide.SlideCount}";
         }
-        else
+        else if (expectedVersion == null)
         {
             SetFailed(result.ErrorMessage ?? "PPT 렌더 실패");
+        }
+    }
+
+    private void ClearOutdatedStrip(string path)
+    {
+        if (_stripKey is { } strip && strip != StripKey.TryCreate(path, strip.Count, strip.Width, strip.Height))
+        {
+            InvalidateThumbnailLoad();
+            Thumbnails.Clear();
         }
     }
 
@@ -351,15 +375,31 @@ public sealed partial class PowerPointPreviewViewModel(IPowerPointRenderService 
         SlideNumber = slide;
         SlideCount = knownCount >= slide ? knownCount : 0;
         if (_stripKey is not { } key || key != StripKey.TryCreate(path, key.Count, key.Width, key.Height)) return;
+        UseThumbnail(path, slide, key.Count, OfficeLib.SlideImageManifest.ReadSource(path));
+    }
+
+    internal bool TryUseNativeThumbnail(int slide, OfficeLib.SlideImageManifest.SourceVersion version)
+    {
+        if (_stripKey is not { } strip || strip.LastWriteTicks != version.LastWriteTicks || strip.Length != version.Length ||
+            !string.Equals(strip.Path, version.FullPath, StringComparison.OrdinalIgnoreCase)) return false;
+        return UseThumbnail(version.FullPath, slide, strip.Count, version);
+    }
+
+    private bool UseThumbnail(string path, int slide, int count, OfficeLib.SlideImageManifest.SourceVersion? version)
+    {
         foreach (var thumbnail in Thumbnails)
         {
             if (thumbnail.SlideNumber != slide) continue;
             PreviewImage = thumbnail.Image;
             LoadedContentPath = path;
+            LoadedSourceVersion = version;
+            SlideNumber = slide;
+            SlideCount = count;
             State = PowerPointPreviewState.Ready;
             StatusText = $"슬라이드 {slide} (썸네일 사용)";
-            break;
+            return true;
         }
+        return false;
     }
 
     private void SetFailed(string status)
@@ -368,6 +408,7 @@ public sealed partial class PowerPointPreviewViewModel(IPowerPointRenderService 
         SlideNumber = 0;
         SlideCount = 0;
         LoadedContentPath = null; // 실패 시 신원 무효화 — 이전 성공 슬라이드가 잘못 송출되지 않도록
+        LoadedSourceVersion = null;
         State = PowerPointPreviewState.Failed;
         StatusText = status;
     }
@@ -383,6 +424,7 @@ public sealed partial class PowerPointPreviewViewModel(IPowerPointRenderService 
         SlideNumber = 0;
         SlideCount = 0;
         LoadedContentPath = null; // 신원 무효화
+        LoadedSourceVersion = null;
         Thumbnails.Clear();
     }
 

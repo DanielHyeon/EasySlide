@@ -328,7 +328,7 @@ public sealed class PowerPointRenderService : IPowerPointRenderService, IDisposa
                 request.SlideNumber,
                 request.PixelWidth,
                 request.PixelHeight,
-                Variant: "render"),
+                Variant: "saved-file"),
             fileInfo);
 
     private static PowerPointRenderResult Complete(PowerPointRenderResult result, TimeSpan elapsed)

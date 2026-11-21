@@ -22,7 +22,7 @@ using Xunit;
 
 namespace Axicultus.Wpf.Tests.Shell;
 
-public class MainViewModelTests
+public partial class MainViewModelTests
 {
     [Fact]
     public async Task ExternalTextWithoutItemFormattingUsesDatabaseFontForPreviewAndAudience()
