@@ -15,7 +15,7 @@ public sealed class AppStartupTests
         var read = code.IndexOf("Get(AxicultusSettingKeys.InterfaceSize)", System.StringComparison.Ordinal);
         var apply = code.IndexOf("ApplyInterfaceSize(", System.StringComparison.Ordinal);
         var main = code.IndexOf("Services.GetRequiredService<MainWindow>()", System.StringComparison.Ordinal);
-        read.Should().BeGreaterThan(code.IndexOf("await Services.GetRequiredService<ISettingsBootstrapMigrationService>()", System.StringComparison.Ordinal));
+        read.Should().BeGreaterThan(code.IndexOf("WpfProfileUpgrade.Import(", System.StringComparison.Ordinal));
         apply.Should().BeGreaterThan(read).And.BeLessThan(main);
     }
 

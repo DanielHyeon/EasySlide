@@ -232,6 +232,26 @@ public sealed partial class BibleViewModel : ObservableObject
         return true;
     }
 
+    public int SelectedFontPercent
+    {
+        get => SelectedVersion?.Size ?? 100;
+        set
+        {
+            if (SelectedVersion is { } selected && value != selected.Size)
+                SetVersionLayout(selected, selected.SongFolderNo, value);
+        }
+    }
+
+    public int SelectedFolderNumber
+    {
+        get => SelectedVersion?.SongFolderNo ?? 0;
+        set
+        {
+            if (SelectedVersion is { } selected && value > 0 && value != selected.SongFolderNo)
+                SetVersionLayout(selected, value, selected.Size);
+        }
+    }
+
     public bool SetVersionLayout(BibleVersion version, int folder, int fontSize)
     {
         var index = Versions.IndexOf(version);
@@ -811,6 +831,8 @@ public sealed partial class BibleViewModel : ObservableObject
 
     partial void OnSelectedVersionChanged(BibleVersion? value)
     {
+        OnPropertyChanged(nameof(SelectedFontPercent));
+        OnPropertyChanged(nameof(SelectedFolderNumber));
         CancelSearch();
         var original = _searchReferences;
         _changingSearchVersion = original is not null && value is not null && !IsBusy;

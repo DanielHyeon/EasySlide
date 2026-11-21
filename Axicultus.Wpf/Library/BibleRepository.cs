@@ -49,7 +49,7 @@ public sealed record BibleSelection(string IdString, string Title);
 /// <see cref="IsHidden"/>=true 면 이전에 숨긴(삭제 예정) 버전(재추가 시 기존 이름 제안),
 /// false 면 Biblefolder 에 행이 없는 신규 파일.
 /// </summary>
-public sealed record BibleAddableVersion(string FileName, string SuggestedName, bool IsHidden);
+public sealed record BibleAddableVersion(string FileName, string SuggestedName, bool IsHidden, string Description = "");
 
 public interface IBibleRepository
 {
@@ -729,12 +729,12 @@ public sealed class BibleRepository : IBibleRepository
 
         // 현재 보이는 파일명·숨김 행(파일명→이름)을 모은다.
         var visible = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var hidden = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var hidden = new Dictionary<string, (string Name, string Description)>(StringComparer.OrdinalIgnoreCase);
         if (File.Exists(bibleListPath))
         {
             using var connection = OpenConnection(bibleListPath);
             using var command = connection.CreateCommand();
-            command.CommandText = "SELECT NAME, FILENAME, DISPLAYORDER FROM Biblefolder;";
+            command.CommandText = "SELECT NAME, FILENAME, DESCRIPTION, DISPLAYORDER FROM Biblefolder;";
             using var reader = command.ExecuteReader();
             while (reader.Read())
             {
@@ -750,7 +750,7 @@ public sealed class BibleRepository : IBibleRepository
                 }
                 else
                 {
-                    hidden[fileName] = GetString(reader, "NAME");
+                    hidden[fileName] = (GetString(reader, "NAME"), GetString(reader, "DESCRIPTION"));
                 }
             }
         }
@@ -761,10 +761,10 @@ public sealed class BibleRepository : IBibleRepository
         {
             if (!visible.Contains(entry.Key))
             {
-                var suggested = string.IsNullOrWhiteSpace(entry.Value)
+                var suggested = string.IsNullOrWhiteSpace(entry.Value.Name)
                     ? Path.GetFileNameWithoutExtension(entry.Key)
-                    : entry.Value;
-                result.Add(new BibleAddableVersion(entry.Key, suggested, IsHidden: true));
+                    : entry.Value.Name;
+                result.Add(new BibleAddableVersion(entry.Key, suggested, IsHidden: true, entry.Value.Description));
             }
         }
 
@@ -776,12 +776,32 @@ public sealed class BibleRepository : IBibleRepository
                 var fileName = Path.GetFileName(path);
                 if (!visible.Contains(fileName) && !hidden.ContainsKey(fileName))
                 {
-                    result.Add(new BibleAddableVersion(fileName, Path.GetFileNameWithoutExtension(fileName), IsHidden: false));
+                    result.Add(ReadAddableBible(path));
                 }
             }
         }
 
         return result;
+    }
+
+    private static BibleAddableVersion ReadAddableBible(string path)
+    {
+        string name = Path.GetFileNameWithoutExtension(path), description = "";
+        try
+        {
+            using var connection = SqliteFile.Open(path, readOnly: true);
+            using var command = connection.CreateCommand();
+            command.CommandText = "SELECT VERSE, BIBLETEXT FROM Bible WHERE BOOK=0 AND CHAPTER=0 AND VERSE IN (0,1)";
+            using var rows = command.ExecuteReader();
+            while (rows.Read())
+            {
+                string text = GetString(rows, "BIBLETEXT");
+                if (GetInt(rows, "VERSE") == 0) description = text;
+                else if (text.Length > 0) name = text;
+            }
+        }
+        catch (SQLiteException) { /* Older files may contain only scripture rows or a different schema. */ }
+        return new(Path.GetFileName(path), name, IsHidden: false, description);
     }
 
     public bool AddVersion(string workingFolder, string fileName, string name)

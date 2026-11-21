@@ -5,7 +5,7 @@ namespace Axicultus.Wpf.Settings;
 
 internal static class WpfProfileUpgrade
 {
-    internal const string CompletionFile = ".profile-imported-v2";
+    private const string CompletionFile = ".profile-imported-v2";
 
     internal static void Import(string appData)
     {
@@ -26,22 +26,9 @@ internal static class WpfProfileUpgrade
 
         if (imported)
         {
-            // A content-only legacy profile can import WinForms preferences once.
-            WriteMarker(marker, File.Exists(Path.Combine(destination, "settings.json")) ? string.Empty : "null", overwrite: false);
+            try { using var completed = new FileStream(marker, FileMode.CreateNew, FileAccess.Write, FileShare.Read); }
+            catch (IOException) when (CheckPath(marker) is { } existing && !existing.HasFlag(FileAttributes.Directory)) { }
         }
-    }
-
-    internal static void WriteMarker(string marker, string contents, bool overwrite)
-    {
-        string temporary = Path.Combine(Path.GetDirectoryName(marker)!, Path.GetRandomFileName());
-        var stream = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None);
-        try
-        {
-            using (var writer = new StreamWriter(stream)) writer.Write(contents);
-            try { File.Move(temporary, marker, overwrite); }
-            catch (IOException) when (!overwrite && CheckPath(marker) is { } existing && !existing.HasFlag(FileAttributes.Directory)) { }
-        }
-        finally { File.Delete(temporary); }
     }
 
     private static void CopyDirectory(string source, string destination, bool profileRoot = false)

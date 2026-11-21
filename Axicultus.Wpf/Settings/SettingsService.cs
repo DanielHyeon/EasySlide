@@ -1475,7 +1475,7 @@ public sealed class SettingsService : ISettingsService
         ValidatePath(candidate.Media.DefaultMediaPath, AxicultusSettingKeys.DefaultMediaPath.Id, issues, allowEmpty: true);
         RequireRange(candidate.Media.Volume, min: 0.0, max: 1.0, AxicultusSettingKeys.MediaVolume.Id, issues);
         RequireRange(candidate.Media.Balance, min: -1.0, max: 1.0, AxicultusSettingKeys.MediaBalance.Id, issues);
-        RequireRange(candidate.Media.LiveCameraNumber, min: 1, max: 5, AxicultusSettingKeys.LiveCameraNumber.Id, issues);
+        RequireRange(candidate.Media.LiveCameraNumber, min: 1, max: 10, AxicultusSettingKeys.LiveCameraNumber.Id, issues);
         RequireRange(
             candidate.Data.PraiseBookCjkGroupStyle,
             min: 0,

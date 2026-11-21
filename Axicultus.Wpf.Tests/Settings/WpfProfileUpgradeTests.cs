@@ -6,6 +6,36 @@ namespace Axicultus.Wpf.Tests.Settings;
 
 public sealed class WpfProfileUpgradeTests
 {
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void WpfStartsFromItsOwnDefaultsOrExistingJsonAndKeepsItsEdits(bool upgrade)
+    {
+        var appData = Directory.CreateTempSubdirectory();
+        try
+        {
+            SettingsServiceOptions Profile(string name) => new(
+                Path.Combine(appData.FullName, name, "settings.json"), Path.Combine(appData.FullName, name, "Backups"));
+            var legacyFile = Path.Combine(appData.CreateSubdirectory("Axicultuss").FullName, "settings.ini");
+            File.WriteAllText(legacyFile, "OutputMonitorName=WinForms projector");
+            if (upgrade)
+                Assert.True(new SettingsService(Profile("AxicultusNext"))
+                    .Set(AxicultusSettingKeys.DefaultOutputMonitorId, "Previous WPF projector").Succeeded);
+
+            var current = Profile("Axicultus");
+            WpfProfileUpgrade.Import(appData.FullName);
+            var wpf = new SettingsService(current);
+            Assert.Equal(upgrade ? "Previous WPF projector" : AxicultusSettingKeys.DefaultOutputMonitorId.DefaultValue,
+                wpf.Get(AxicultusSettingKeys.DefaultOutputMonitorId));
+            Assert.True(wpf.Set(AxicultusSettingKeys.DefaultOutputMonitorId, "WPF projector").Succeeded);
+            File.WriteAllText(legacyFile, "OutputMonitorName=Different projector");
+
+            WpfProfileUpgrade.Import(appData.FullName);
+            Assert.Equal("WPF projector", new SettingsService(current).Get(AxicultusSettingKeys.DefaultOutputMonitorId));
+        }
+        finally { appData.Delete(recursive: true); }
+    }
+
     [Fact]
     public void MergesBothProfilesWithoutOverwritingOrReimportingDeletedSettings()
     {

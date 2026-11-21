@@ -21,5 +21,11 @@ WinForms는 Axicultuss, WPF는 Axicultus를 앱 표시 이름과 어셈블리 �
 
 #### Scenario: 기존 설정을 새 프로필로 복사
 - **WHEN** 기존 WinForms 레지스트리 또는 WPF 프로필이 있는 PC에서 새 버전을 시작한다.
-- **THEN** 새 프로필에 없는 설정과 파일을 복사하고 원본, 값 형식, 하위 경로 및 기존 대상 값을 보존한다.
+- **THEN** WinForms는 이전 WinForms 레지스트리에서, WPF는 이전 WPF 프로필 폴더에서 각 앱의 새 프로필에 없는 항목을 복사하고 원본, 값 형식, 하위 경로 및 기존 대상 값을 보존한다.
 - **AND** 완료 후 재실행해도 사용자가 수정하거나 삭제한 설정이 복구되지 않는다.
+
+#### Scenario: 서로 다른 설정으로 두 앱 사용
+
+- **WHEN** 운영자가 WinForms와 WPF에서 서로 다른 송출 모니터와 예배 목록을 선택한 뒤 두 앱을 다시 시작한다.
+- **THEN** WinForms는 `HKCU\Software\Axicultuss`에서, WPF는 `%APPDATA%\Axicultus\settings.json`에서 각자의 선택을 복원한다.
+- **AND** 처음 실행하는 WPF는 기존 WPF 프로필이 있으면 이전하고, 없으면 WPF 기본값을 사용한다.

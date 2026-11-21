@@ -8,6 +8,17 @@ namespace Axicultus.Wpf.Settings;
 
 public sealed partial class SettingsWindowViewModel
 {
+    public object this[string name]
+    {
+        get => ReadOperatorOption(OperatorOptionCatalog.ById["operator." + name]);
+        set
+        {
+            var option = OperatorOptionCatalog.ById["operator." + name];
+            WriteOperatorOption(option, Convert.ChangeType(value, option.Default.GetType(),
+                System.Globalization.CultureInfo.CurrentCulture));
+        }
+    }
+
     internal object ReadOperatorOption(OperatorOption option) => option.Read(_settings.Current.Operator);
 
     internal void WriteOperatorOption(OperatorOption option, object value)
@@ -20,6 +31,7 @@ public sealed partial class SettingsWindowViewModel
         ApplyResult(result, IsEditing ? "확인을 누르면 설정을 저장합니다." : "설정 저장됨");
         if (!result.Succeeded) throw new ArgumentException(result.Issues[0].Message);
         OnPropertyChanged(nameof(OperatorPreferences));
+        OnPropertyChanged(System.Windows.Data.Binding.IndexerName);
         OnPropertyChanged(nameof(KeyboardLayoutGuide));
         OnPropertyChanged(nameof(StageHeight));
     }

@@ -1,51 +1,35 @@
 <UserControl x:Class="Axicultus.Wpf.Composites.OutputPlacementEditor"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-
-    <!--
-        OutputPlacementEditor — 계획서 §5.2 재사용 컴포지트(MonitorMapper의 출력 배치 부분).
-        보조 모니터 우선 사용 + 수동 출력 위치(위/왼쪽/폭) 설정.
-        DataContext 는 호스트(SettingsWindow 등)에서 상속된 SettingsWindowViewModel 을 그대로 사용한다
-        (View만 분리, ViewModel·바인딩 동일 — 동작 동등성 우선).
-    -->
-    <StackPanel>
-        <CheckBox IsChecked="{Binding DisplayAlwaysUseSecondaryMonitor, Mode=TwoWay}"
-                  Content="보조 모니터 우선 사용"
-                  AutomationProperties.Name="보조 모니터 우선 사용"
-                  MinHeight="{DynamicResource Spacing.TargetMin}" />
-        <CheckBox Content="와이드스크린 (16:9, 해제 시 4:3)" IsChecked="{Binding IsMonitorWide, Mode=TwoWay}" />
-        <CheckBox Content="사용자 지정 송출 위치" IsChecked="{Binding UseCustomOutputBounds, Mode=TwoWay}" />
-        <Grid Margin="0,4,0,16" IsEnabled="{Binding UseCustomOutputBounds}">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-            <StackPanel Grid.Column="0" Margin="0,0,8,0">
-                <TextBlock Text="위"
-                           Style="{StaticResource Type.Caption.Style}"
-                           Foreground="{DynamicResource Brush.Text.Tertiary}" />
-                <TextBox Text="{Binding DisplayCustomTop, UpdateSourceTrigger=PropertyChanged}"
-                         Style="{StaticResource EsTextBox.Default}"
-                         AutomationProperties.Name="출력 모니터 위" />
-            </StackPanel>
-            <StackPanel Grid.Column="1" Margin="0,0,8,0">
-                <TextBlock Text="왼쪽"
-                           Style="{StaticResource Type.Caption.Style}"
-                           Foreground="{DynamicResource Brush.Text.Tertiary}" />
-                <TextBox Text="{Binding DisplayCustomLeft, UpdateSourceTrigger=PropertyChanged}"
-                         Style="{StaticResource EsTextBox.Default}"
-                         AutomationProperties.Name="출력 모니터 왼쪽" />
-            </StackPanel>
-            <StackPanel Grid.Column="2">
-                <TextBlock Text="폭"
-                           Style="{StaticResource Type.Caption.Style}"
-                           Foreground="{DynamicResource Brush.Text.Tertiary}" />
-                <TextBox Text="{Binding DisplayCustomWidth, UpdateSourceTrigger=PropertyChanged}"
-                         Style="{StaticResource EsTextBox.Default}"
-                         AutomationProperties.Name="출력 모니터 폭" />
-            </StackPanel>
-        </Grid>
-        <TextBlock Text="{Binding AudienceHeight, StringFormat=송출 높이 {0} px}" />
-    </StackPanel>
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:options="clr-namespace:Axicultus.Wpf.Controls">
+    <UserControl.Resources><ResourceDictionary Source="/Axicultus;component/Controls/OptionsLayout.xaml" /></UserControl.Resources>
+    <Canvas>
+        <CheckBox Style="{x:Null}" Canvas.Left="41" Canvas.Top="112" Width="216" Height="24"
+            Content="Act as Single Monitor Mode" IsChecked="{Binding [OutputAsSingle], Mode=TwoWay}"
+            IsEnabled="{Binding UseCustomOutputBounds}" AutomationProperties.Name="Act as Single Monitor Mode" />
+        <TextBox Style="{x:Null}" Canvas.Left="255" Canvas.Top="75" Width="65" Height="27" IsReadOnly="True"
+            IsTabStop="False" Text="{Binding AudienceHeight, Mode=OneWay}" IsEnabled="{Binding UseCustomOutputBounds}"
+            AutomationProperties.Name="Audience Height" />
+        <options:OptionNumberBox Canvas.Left="135" Canvas.Top="75" Width="65" Height="27"
+            Text="{Binding DisplayCustomLeft, Mode=TwoWay, ValidatesOnExceptions=True}" Minimum="-9999" Maximum="9999"
+            IsEnabled="{Binding UseCustomOutputBounds}" AutomationProperties.Name="Display Custom Left" />
+        <TextBlock Canvas.Left="95" Canvas.Top="40" Width="37" Height="20" Text="Top:" TextWrapping="Wrap" />
+        <options:OptionNumberBox Canvas.Left="255" Canvas.Top="36" Width="65" Height="27"
+            Text="{Binding DisplayCustomWidth, Mode=TwoWay, ValidatesOnExceptions=True}" Minimum="1" Maximum="9999"
+            IsEnabled="{Binding UseCustomOutputBounds}" AutomationProperties.Name="Display Custom Width" />
+        <options:OptionNumberBox Canvas.Left="135" Canvas.Top="36" Width="65" Height="27"
+            Text="{Binding DisplayCustomTop, Mode=TwoWay, ValidatesOnExceptions=True}" Minimum="-9999" Maximum="9999"
+            IsEnabled="{Binding UseCustomOutputBounds}" AutomationProperties.Name="Display Custom Top" />
+        <RadioButton Style="{x:Null}" Canvas.Left="14" Canvas.Top="36" Width="83" Height="24" Content="Custom:"
+            GroupName="optDM"
+            IsChecked="{Binding UseCustomOutputBounds, Mode=TwoWay, Converter={StaticResource OptionChoice}, ConverterParameter=True}"
+            AutomationProperties.Name="Custom:" />
+        <CheckBox Style="{x:Null}" Canvas.Left="14" Canvas.Top="7" Width="264" Height="24"
+            IsEnabled="{Binding UseCustomOutputBounds, Mode=OneWay, Converter={StaticResource OptionChoice}, ConverterParameter=False}"
+            Content="Prefer a secondary monitor" IsChecked="{Binding DisplayAlwaysUseSecondaryMonitor, Mode=TwoWay}"
+            AutomationProperties.Name="Prefer a secondary monitor" />
+        <TextBlock Canvas.Left="201" Canvas.Top="82" Width="57" Height="20" Text="Height:" TextWrapping="Wrap" />
+        <TextBlock Canvas.Left="96" Canvas.Top="79" Width="37" Height="20" Text="Left:" TextWrapping="Wrap" />
+        <TextBlock Canvas.Left="203" Canvas.Top="40" Width="52" Height="20" Text="Width:" TextWrapping="Wrap" />
+    </Canvas>
 </UserControl>

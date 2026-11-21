@@ -235,32 +235,9 @@ public partial class MainWindow : Window
         _inlinePowerPoint.LoadCommand.Execute(null);
     }
 
-    private PowerPointListingStyle ResolveInitialPowerPointListingStyle()
-    {
-        if (_settings is not null)
-        {
-            var saved = _settings.Get(AxicultusSettingKeys.PowerPointSourceListingStyle);
-            if (saved == (int)PowerPointListingStyle.Preview)
-            {
-                return PowerPointListingStyle.Preview;
-            }
-
-            if (saved == (int)PowerPointListingStyle.List)
-            {
-                return PowerPointListingStyle.List;
-            }
-        }
-
-        var legacy = _services.GetService<ILegacySettingsSource>();
-        if (legacy?.TryGetString("ExternalListing", out var raw) == true
-            && int.TryParse(raw, out var value)
-            && value == 1)
-        {
-            return PowerPointListingStyle.Preview;
-        }
-
-        return PowerPointListingStyle.List;
-    }
+    private PowerPointListingStyle ResolveInitialPowerPointListingStyle() =>
+        _settings?.Get(AxicultusSettingKeys.PowerPointSourceListingStyle) == (int)PowerPointListingStyle.Preview
+            ? PowerPointListingStyle.Preview : PowerPointListingStyle.List;
 
     private void SavePowerPointSourceListingStyle(PowerPointListingStyle style)
     {
@@ -440,18 +417,8 @@ public partial class MainWindow : Window
             wordCountSortChanged: SavePraiseBookCjkGroupStyle);
     }
 
-    private bool ResolveInitialPraiseBookWordCountSort()
-    {
-        if (_settings is not null)
-        {
-            return _settings.Get(AxicultusSettingKeys.PraiseBookCjkGroupStyle) == (int)PraiseBookSortMode.WordCount;
-        }
-
-        var legacy = _services.GetService<ILegacySettingsSource>();
-        return legacy?.TryGetString("PB_CJKGroupStyle", out var raw) == true
-            && int.TryParse(raw, out var value)
-            && value == (int)PraiseBookSortMode.WordCount;
-    }
+    private bool ResolveInitialPraiseBookWordCountSort() =>
+        _settings?.Get(AxicultusSettingKeys.PraiseBookCjkGroupStyle) == (int)PraiseBookSortMode.WordCount;
 
     private void SavePraiseBookCjkGroupStyle(bool isWordCountSortEnabled)
     {
@@ -460,26 +427,8 @@ public partial class MainWindow : Window
             isWordCountSortEnabled ? (int)PraiseBookSortMode.WordCount : (int)PraiseBookSortMode.Alpha);
     }
 
-    private string ResolveInitialPraiseBookName()
-    {
-        if (_settings is not null)
-        {
-            return _settings.Get(AxicultusSettingKeys.CurrentPraiseBookName);
-        }
-
-        var legacy = _services.GetService<ILegacySettingsSource>();
-        if (legacy?.TryGetString("current_praisebook", out var raw) == true)
-        {
-            return raw ?? string.Empty;
-        }
-
-        if (legacy?.TryGetString("CurPraiseBook", out raw) == true)
-        {
-            return raw ?? string.Empty;
-        }
-
-        return string.Empty;
-    }
+    private string ResolveInitialPraiseBookName() =>
+        _settings?.Get(AxicultusSettingKeys.CurrentPraiseBookName) ?? string.Empty;
 
     private void SaveCurrentInlinePraiseBookName(string name)
     {
@@ -3268,15 +3217,25 @@ public partial class MainWindow : Window
     }
 
     private int _lastOptionsTab;
+    private SettingsWindow? _openOptions;
 
     private void OpenSettings_Click(object sender, RoutedEventArgs e)
     {
-        var settingsWindow = _services.GetRequiredService<SettingsWindow>();
-        settingsWindow.Owner = this;
-        var options = (SettingsWindowViewModel)settingsWindow.DataContext;
-        options.SelectedTabIndex = _lastOptionsTab;
-        settingsWindow.ShowDialog();
-        _lastOptionsTab = options.SelectedTabIndex;
+        if (_openOptions is { } existing)
+        {
+            existing.Activate();
+            return;
+        }
+        var window = _services.GetRequiredService<SettingsWindow>();
+        _openOptions = window;
+        try
+        {
+            window.Owner = this;
+            ((SettingsWindowViewModel)window.DataContext).SelectedTabIndex = _lastOptionsTab;
+            window.ShowDialog();
+            _lastOptionsTab = window.LastOperatorTab;
+        }
+        finally { _openOptions = null; }
     }
 
     private void OpenLibrary_Click(object sender, RoutedEventArgs e)

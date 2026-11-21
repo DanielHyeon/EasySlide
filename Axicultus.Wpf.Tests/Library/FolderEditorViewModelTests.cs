@@ -13,6 +13,24 @@ namespace Axicultus.Wpf.Tests.Library;
 public class FolderEditorViewModelTests
 {
     [Fact]
+    public void InlineOptionsPreserveIndependentChorusFlagsAndReturnOnlyEditedColumns()
+    {
+        var fields = new Dictionary<string, string> { ["BIU0"] = "32", ["HeadingOption"] = "2" };
+        var folder = new OptionsFolderDraft(new SongFolderSummary(3, "찬양", true, 0, FormatFields: fields));
+        folder.GetChanges().Should().BeNull();
+        folder["BIU0_Bold"] = true;
+        folder["BIU0_Italic"] = 2;
+        folder["HeadingOption"] = 1;
+        folder.GetChanges()!.FormatChanges.Should().BeEquivalentTo(
+            new Dictionary<string, string> { ["BIU0"] = "49", ["HeadingOption"] = "1" });
+        fields["BIU0"].Should().Be("32");
+        folder["BIU0_Bold"] = false;
+        folder["BIU0_Italic"] = 0;
+        folder["HeadingOption"] = 2;
+        folder.GetChanges().Should().BeNull();
+    }
+
+    [Fact]
     public void Load_WithExistingFolder_PopulatesFieldsAndTracksChanges()
     {
         using var fixture = TempFolderEditorSettings.Create();

@@ -23,9 +23,11 @@ public partial class SettingsWindow : Window
     private readonly LibraryViewModel _library;
     private readonly FolderEditorViewModel _folderEditor;
     private bool _foldersLoaded;
-    private readonly Dictionary<int, SongFolderWriteModel> _pendingFolders = [];
-    private readonly ObservableCollection<SongFolderSummary> _folderChoices = [];
-    public ObservableCollection<FolderChoice> JumpFolders { get; } = [];
+    private readonly ObservableCollection<OptionsFolderDraft> _folderChoices = [];
+    private int _lastOperatorTab;
+    private bool _advanced;
+    internal int LastOperatorTab => _advanced ? _lastOperatorTab : _options.SelectedTabIndex;
+    public ObservableCollection<NumberedChoice> JumpFolders { get; } = [];
     private BibleCatalogEdit? _bibleCatalog;
     private BibleViewModel _liveBible;
     private bool _saving;
@@ -46,19 +48,69 @@ public partial class SettingsWindow : Window
         DisplayChoices = choices;
         InitializeComponent();
         DataContext = options;
+        SetPageMode(false);
         _liveBible = bible;
         BiblePanel.Loaded += BiblePanel_Loaded;
+        Closing += (_, e) => { if (_saving && DialogResult != true) e.Cancel = true; };
         Closed += (_, _) => _bibleCatalog?.Dispose();
         Loaded += async (_, _) =>
         {
-            if (Owner?.DataContext is MainViewModel shell) _liveBible = shell.Bible;
+            if (Owner?.DataContext is MainViewModel shell)
+            {
+                _liveBible = shell.Bible;
+                CanConfigureDisplays = !shell.IsShowRunning;
+            }
             await LoadFolderChoicesAsync();
             ImportLicenceNames();
         };
         DeviceCheck.Configure(ownership, new DeviceCheckBackend(), obs);
     }
 
-    public sealed record FolderChoice(int Id, string Name);
+    private static readonly DependencyPropertyKey CanConfigureDisplaysPropertyKey =
+        DependencyProperty.RegisterReadOnly(nameof(CanConfigureDisplays), typeof(bool), typeof(SettingsWindow), new PropertyMetadata(true));
+    public static readonly DependencyProperty CanConfigureDisplaysProperty = CanConfigureDisplaysPropertyKey.DependencyProperty;
+    public bool CanConfigureDisplays { get => (bool)GetValue(CanConfigureDisplaysProperty); private set => SetValue(CanConfigureDisplaysPropertyKey, value); }
+    public ObservableCollection<NumberedChoice> CameraChoices { get; } =
+        new(Enumerable.Range(1, 10).Select(id => new NumberedChoice(id, $"{id}.")));
+    private bool _cameraNamesLoaded;
+
+    private async void CameraList_Loaded(object sender, RoutedEventArgs e)
+    {
+        if (_cameraNamesLoaded) return;
+        _cameraNamesLoaded = true;
+        try
+        {
+            var devices = await Task.Run(() => new DeviceCheckBackend().Cameras());
+            foreach (var device in devices.Where(d => d.CameraNumber is >= 1 and <= 10))
+                CameraChoices[device.CameraNumber - 1].Name = $"{device.CameraNumber}. {device.Name}";
+        }
+        catch (System.Runtime.InteropServices.COMException)
+        {
+            _cameraNamesLoaded = false;
+        }
+    }
+
+    private void ToggleOptions_Click(object sender, RoutedEventArgs e) => SetPageMode(!_advanced);
+
+    private void SetPageMode(bool advanced)
+    {
+        const int firstAdvancedTab = 8;
+        if (!_advanced && _options.SelectedTabIndex < firstAdvancedTab) _lastOperatorTab = _options.SelectedTabIndex;
+        _advanced = advanced;
+        for (int i = 0; i < OptionsTabs.Items.Count; i++)
+            ((TabItem)OptionsTabs.Items[i]).Visibility = (i >= firstAdvancedTab) == advanced ? Visibility.Visible : Visibility.Collapsed;
+        _options.SelectedTabIndex = advanced ? firstAdvancedTab : Math.Max(0, _lastOperatorTab);
+        MoreOptions.Content = advanced ? "Options" : "WPF 설정 및 장치 점검…";
+    }
+
+    private void MonitorInfo_Click(object sender, RoutedEventArgs e) =>
+        MessageBox.Show(this, string.Join(Environment.NewLine, DisplayChoices.Skip(1).Select(d => d.Name)), "Monitors");
+
+    public sealed partial class NumberedChoice(int id, string name) : CommunityToolkit.Mvvm.ComponentModel.ObservableObject
+    {
+        public int Id { get; } = id;
+        [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty] private string _name = name;
+    }
     public sealed record DisplayChoice(string Id, string Name);
     public IReadOnlyList<DisplayChoice> DisplayChoices { get; }
 
@@ -87,38 +139,78 @@ public partial class SettingsWindow : Window
         if (_foldersLoaded) return;
         _foldersLoaded = true;
         await _library.LoadFolderOptionsAsync();
-        foreach (var folder in _library.Folders) _folderChoices.Add(folder);
+        foreach (var folder in _library.Folders.Where(f => f.FolderNo is >= 1 and <= 40)) _folderChoices.Add(new(folder));
         for (int number = 1; number <= 40; number++)
         {
-            var match = _folderChoices.FirstOrDefault(f => f.FolderNo == number);
+            var match = _folderChoices.FirstOrDefault(f => f.Id == number);
             JumpFolders.Add(new(number, match?.Name ?? $"폴더 {number}"));
         }
         FolderList.ItemsSource = _folderChoices;
-        FolderList.SelectedIndex = _library.Folders.Count > 0 ? 0 : -1;
+        FolderList.SelectedItem = _folderChoices.FirstOrDefault(f => f.Id == _library.SelectedFolder?.FolderNo) ?? _folderChoices.FirstOrDefault(f => f.IsEnabled) ?? _folderChoices.FirstOrDefault();
         FolderStatus.Text = _library.Folders.Count == 0 ? _library.StatusMessage : "";
     }
 
-    private void EditFolder_Click(object sender, RoutedEventArgs e)
+    private void RenameFolder_Click(object sender, RoutedEventArgs e)
     {
-        if (FolderList.SelectedItem is not SongFolderSummary selected) return;
-        _folderEditor.Load(_library.DatabasePath, selected, _folderChoices);
-        _folderEditor.StageChanges = edit =>
+        if (FolderList.SelectedItem is not OptionsFolderDraft selected) return;
+        var dialog = new NameEntryWindow(new NameEntryViewModel("폴더 이름 변경", "새 이름", selected.Name,
+            _folderChoices.Where(f => f != selected).Select(f => f.Name))) { Owner = this };
+        if (dialog.ShowDialog() != true) return;
+        selected.Name = dialog.EnteredName;
+        int index = JumpFolders.ToList().FindIndex(f => f.Id == selected.Id);
+        if (index >= 0) JumpFolders[index].Name = selected.Name;
+    }
+
+    private BibleViewModel? Catalog => BiblePanel.DataContext as BibleViewModel;
+
+    private void BibleInfo_Click(object sender, RoutedEventArgs e)
+    {
+        if (Catalog?.SelectedVersion is { } version)
+            MessageBox.Show(this, string.Join(Environment.NewLine, version.Description, version.Copyright, version.FileName), version.Name);
+    }
+
+    private void BibleUp_Click(object sender, RoutedEventArgs e)
+    {
+        if (Catalog?.SelectedVersion is { } version) Catalog.MoveVersionUp(version);
+    }
+
+    private void BibleDown_Click(object sender, RoutedEventArgs e)
+    {
+        if (Catalog?.SelectedVersion is { } version) Catalog.MoveVersionDown(version);
+    }
+
+    private void RenameBible_Click(object sender, RoutedEventArgs e)
+    {
+        if (Catalog?.SelectedVersion is not { } version) return;
+        var dialog = new NameEntryWindow(new NameEntryViewModel("성경 이름 변경", "새 이름", version.Name,
+            Catalog.Versions.Select(v => v.Name))) { Owner = this };
+        if (dialog.ShowDialog() == true) Catalog.RenameVersion(version, dialog.EnteredName);
+    }
+
+    private void RemoveBible_Click(object sender, RoutedEventArgs e)
+    {
+        if (Catalog?.SelectedVersion is not { } version) return;
+        if (MessageBox.Show(this, $"'{version.Name}' 버전을 목록에서 제거할까요?", "성경 목록", MessageBoxButton.OKCancel) == MessageBoxResult.OK)
         {
-            var changes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            if (_pendingFolders.TryGetValue(selected.FolderNo, out var prior) && prior.FormatChanges != null)
-                foreach (var pair in prior.FormatChanges) changes[pair.Key] = pair.Value;
-            if (edit.FormatChanges != null)
-                foreach (var pair in edit.FormatChanges) changes[pair.Key] = pair.Value;
-            _pendingFolders[selected.FolderNo] = edit with { FormatChanges = changes };
-            var fields = (selected.FormatFields ?? new Dictionary<string,string>()).ToDictionary(p => p.Key, p => p.Value);
-            foreach (var pair in changes) fields[pair.Key] = pair.Value;
-            _folderChoices[_folderChoices.IndexOf(selected)] = selected with { Name = edit.Name, IsEnabled = edit.IsEnabled, FormatFields = fields };
-            FolderList.SelectedItem = _folderChoices.First(f => f.FolderNo == selected.FolderNo);
-            int choice = JumpFolders.ToList().FindIndex(f => f.Id == selected.FolderNo);
-            if (choice >= 0) JumpFolders[choice] = new(selected.FolderNo, edit.Name);
-        };
-        try { new FolderEditorWindow(_folderEditor) { Owner = this }.ShowDialog(); }
-        finally { _folderEditor.StageChanges = null; }
+            Catalog.DeleteVersion(version);
+            RefreshBibleCandidates();
+        }
+    }
+
+    private void SearchBibles_Click(object sender, RoutedEventArgs e) => RefreshBibleCandidates();
+
+    private void RefreshBibleCandidates()
+    {
+        BibleSearchList.ItemsSource = Catalog?.GetAddableVersions();
+        if (BibleSearchList.Items.Count > 0) BibleSearchList.SelectedIndex = 0;
+    }
+
+    private void AddBible_Click(object sender, RoutedEventArgs e)
+    {
+        if (Catalog == null || BibleSearchList.SelectedItem is not BibleAddableVersion entry) return;
+        var dialog = new NameEntryWindow(new NameEntryViewModel("성경 추가", "표시할 이름", entry.SuggestedName,
+            Catalog.Versions.Select(v => v.Name))) { Owner = this };
+        if (dialog.ShowDialog() == true && Catalog.AddVersion(entry.FileName, dialog.EnteredName)) RefreshBibleCandidates();
     }
 
     private void ImportLicenceNames()
@@ -181,14 +273,16 @@ public partial class SettingsWindow : Window
         }
         if (_saving) return;
         _saving = true;
+        IsEnabled = false;
         try
         {
-            bool libraryChanged = _pendingFolders.Count != 0;
+            var folderEdits = _folderChoices.Select(f => f.GetChanges()).OfType<SongFolderWriteModel>().ToArray();
+            bool libraryChanged = folderEdits.Length > 0;
             if (libraryChanged)
             {
-                var report = await _folderEditor.CommitFoldersAsync(_library.DatabasePath, _pendingFolders.Values.ToArray());
+                var report = await _folderEditor.CommitFoldersAsync(_library.DatabasePath, folderEdits);
                 if (!report.Succeeded) { MessageBox.Show(this, string.Join("\n", report.Issues.Select(i => i.Message)), "폴더 저장"); return; }
-                _pendingFolders.Clear();
+                foreach (var folder in _folderChoices) folder.AcceptChanges();
                 await _library.LoadFolderOptionsAsync();
                 if (Owner?.DataContext is MainViewModel shell) await shell.Library.LoadAsync();
             }
@@ -200,6 +294,6 @@ public partial class SettingsWindow : Window
         {
             MessageBox.Show(this, ex.Message, "옵션 저장");
         }
-        finally { _saving = false; }
+        finally { _saving = false; IsEnabled = true; }
     }
 }

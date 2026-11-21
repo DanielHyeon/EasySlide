@@ -56,12 +56,6 @@ public partial class App : Application
         services.AddSingleton<IThumbnailCache, ThumbnailCache>();
         services.AddSingleton(settingsOptions);
         services.AddSingleton<ISettingsService>(sp => new SettingsService(sp.GetRequiredService<SettingsServiceOptions>()));
-        services.AddSingleton<RegistryLegacySettingsSource>();
-        services.AddSingleton(_ => FileLegacySettingsSource.CreateDefault());
-        services.AddSingleton<ILegacySettingsSource>(sp => new CompositeLegacySettingsSource(
-            sp.GetRequiredService<RegistryLegacySettingsSource>(),
-            sp.GetRequiredService<FileLegacySettingsSource>()));
-        services.AddSingleton<ISettingsBootstrapMigrationService, SettingsBootstrapMigrationService>();
         services.AddSingleton<ISupportInfoService, SupportInfoService>();
         services.AddSingleton<ISupportLauncher, SupportLauncher>();
         services.AddSingleton<ISettingsPathPicker, SettingsPathPicker>();
@@ -236,10 +230,10 @@ public partial class App : Application
         // DI 컨테이너 구성
         var services = new ServiceCollection();
         ConfigureServices(services, SettingsServiceOptions.CreateDefault(), Current.Dispatcher);
-        await OpenShellAsync(services.BuildServiceProvider(), startup.UseDemo);
+        OpenShell(services.BuildServiceProvider(), startup.UseDemo);
     }
 
-    internal async Task OpenShellAsync(IServiceProvider services, bool useDemo)
+    internal void OpenShell(IServiceProvider services, bool useDemo)
     {
         Services = services;
         _ = Services.GetRequiredService<IOutputWindowHost>();
@@ -248,29 +242,6 @@ public partial class App : Application
 
         if (!useDemo)
         {
-            SettingsResult? migrationResult;
-            try
-            {
-                migrationResult = await Services.GetRequiredService<ISettingsBootstrapMigrationService>().MigrateIfNeededAsync();
-            }
-            catch (Exception ex) when (ex is System.IO.IOException or UnauthorizedAccessException or System.Security.SecurityException)
-            {
-                OperationalErrorLog.Default.Write("Settings startup", ex);
-                MessageBox.Show($"저장된 설정을 읽지 못했습니다. 경로와 권한을 확인한 뒤 다시 시작해 주세요.\n\n{ex.Message}",
-                    "Axicultus — 설정 이전", MessageBoxButton.OK, MessageBoxImage.Error);
-                Shutdown(1);
-                return;
-            }
-
-            if (migrationResult is { Succeeded: false })
-            {
-                MessageBox.Show(
-                    "기존 설정을 자동으로 가져오지 못했습니다.\n\n기본 설정으로 계속 시작합니다.",
-                    "Axicultus — 설정 마이그레이션",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning);
-            }
-
             var size = Services.GetRequiredService<ISettingsService>().Get(AxicultusSettingKeys.InterfaceSize);
             Services.GetRequiredService<IThemeService>().ApplyInterfaceSize(size);
         }

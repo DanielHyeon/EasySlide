@@ -7,7 +7,8 @@ The WPF options dialog SHALL present the eight WinForms categories in their orig
 #### Scenario: Operator opens options
 
 - **WHEN** the operator opens Options
-- **THEN** the horizontal tabs begin with Main Window, Show, Monitors, Alerts, Folders, Bibles, Licence and Keyboard
+- **THEN** View → Options opens a native WPF options window with Main Window, Show, Monitors, Alerts, Folders, Bibles, Licence and Keyboard in this order, including the same control groups, positions and icons
+- **AND** the WPF settings and device diagnostics button switches pages within that window
 
 ### Requirement: Options edit lifetime
 

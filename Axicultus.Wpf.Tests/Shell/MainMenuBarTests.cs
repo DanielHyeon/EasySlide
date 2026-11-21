@@ -1566,10 +1566,10 @@ public class MainMenuBarTests
         code.Should().Contain("EnsureInlineMediaLoadedOnce(viewModel)", "Media source tab should lazy-load on first selection");
         code.Should().Contain("PowerPointSourceTab.DataContext = _inlinePowerPoint", "inline PowerPoint tab should bind to its library VM");
         code.Should().Contain("_services.GetService<IPowerPointRenderService>()", "inline PowerPoint preview mode should reuse the shared cached renderer");
-        code.Should().Contain("ResolveInitialPowerPointListingStyle()", "inline PowerPoint should honor legacy ExternalListing when choosing list vs preview mode");
+        code.Should().Contain("ResolveInitialPowerPointListingStyle()", "inline PowerPoint should restore the WPF list or preview mode");
         code.Should().Contain("AxicultusSettingKeys.PowerPointSourceListingStyle", "inline PowerPoint should persist the FrmMain list/preview style in WPF settings");
         code.Should().Contain("listingStyleChanged: SavePowerPointSourceListingStyle", "PP_ListType/PP_PreviewStyle clicks should survive the next WPF launch");
-        code.Should().Contain("TryGetString(\"ExternalListing\"", "FrmMain persists PP_ListType in options/ExternalListing");
+        code.Should().NotContain("ILegacySettingsSource", "the source tabs use the WPF JSON profile");
         code.Should().Contain("PreviewExternalPowerPointSourceAsync(file.FilePath)",
             "left PowerPoint selection should feed the Preview PowerPoint renderer without adding to Worship List");
         code.Should().Contain("AddInlinePowerPointSelectionToWorshipList", "PowerPoint Enter/WL_Add/context menu should route through the multi-select add path");

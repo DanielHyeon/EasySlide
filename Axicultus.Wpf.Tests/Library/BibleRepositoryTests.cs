@@ -513,6 +513,23 @@ public class BibleRepositoryTests
     }
 
     [Fact]
+    public void OptionsCatalogCommitsPhysicalRemovalFromSharedForm()
+    {
+        using var files = BibleDatabaseFixture.Create();
+        files.CreateBibleList(("KJV", "kjv.db", "", "", 1, 80, 0), ("NIV", "niv.db", "", "", 2, 100, 1));
+        using var edit = new BibleCatalogEdit(files.BibleListPath);
+        using (var connection = new SQLiteConnection(new SQLiteConnectionStringBuilder { DataSource = edit.DraftPath }.ToString()))
+        {
+            connection.Open();
+            using var command = connection.CreateCommand();
+            command.CommandText = "DELETE FROM Biblefolder WHERE FILENAME='kjv.db'";
+            command.ExecuteNonQuery();
+        }
+        edit.Commit().Should().BeTrue();
+        new BibleRepository().GetVersions(files.WorkingFolder).Should().ContainSingle().Which.Name.Should().Be("NIV");
+    }
+
+    [Fact]
     public void OptionsCatalog_ProtectsConcurrentChanges()
     {
         using var files = BibleDatabaseFixture.Create();

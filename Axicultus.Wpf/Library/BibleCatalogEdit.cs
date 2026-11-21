@@ -44,15 +44,16 @@ internal sealed class BibleCatalogEdit : IDisposable
         using var command = _source.CreateCommand();
         command.Transaction = transaction;
         command.CommandText = """
+            DELETE FROM main.Biblefolder WHERE rowid NOT IN (SELECT rowid FROM draft.Biblefolder);
             UPDATE main.Biblefolder AS live
-            SET (NAME, SONGFOLDER, SIZE, DISPLAYORDER) = (SELECT NAME, SONGFOLDER, SIZE, DISPLAYORDER
-                FROM draft.Biblefolder AS edited WHERE edited.FILENAME = live.FILENAME)
-            WHERE EXISTS (SELECT 1 FROM draft.Biblefolder AS edited WHERE edited.FILENAME = live.FILENAME
-                AND (edited.NAME, edited.SONGFOLDER, edited.SIZE, edited.DISPLAYORDER)
-                    IS NOT (live.NAME, live.SONGFOLDER, live.SIZE, live.DISPLAYORDER));
-            INSERT INTO main.Biblefolder (NAME,FILENAME,DESCRIPTION,COPYRIGHT,SONGFOLDER,SIZE,DISPLAYORDER)
-            SELECT NAME,FILENAME,DESCRIPTION,COPYRIGHT,SONGFOLDER,SIZE,DISPLAYORDER FROM draft.Biblefolder AS edited
-            WHERE NOT EXISTS (SELECT 1 FROM main.Biblefolder WHERE FILENAME = edited.FILENAME);
+            SET (NAME,FILENAME,DESCRIPTION,COPYRIGHT,SONGFOLDER,SIZE,DISPLAYORDER) =
+                (edited.NAME,edited.FILENAME,edited.DESCRIPTION,edited.COPYRIGHT,edited.SONGFOLDER,edited.SIZE,edited.DISPLAYORDER)
+            FROM draft.Biblefolder AS edited WHERE edited.rowid = live.rowid
+                AND (live.NAME,live.FILENAME,live.DESCRIPTION,live.COPYRIGHT,live.SONGFOLDER,live.SIZE,live.DISPLAYORDER)
+                    IS NOT (edited.NAME,edited.FILENAME,edited.DESCRIPTION,edited.COPYRIGHT,edited.SONGFOLDER,edited.SIZE,edited.DISPLAYORDER);
+            INSERT INTO main.Biblefolder (rowid,NAME,FILENAME,DESCRIPTION,COPYRIGHT,SONGFOLDER,SIZE,DISPLAYORDER)
+            SELECT rowid,NAME,FILENAME,DESCRIPTION,COPYRIGHT,SONGFOLDER,SIZE,DISPLAYORDER FROM draft.Biblefolder AS edited
+            WHERE NOT EXISTS (SELECT 1 FROM main.Biblefolder WHERE rowid = edited.rowid);
             """;
         command.ExecuteNonQuery();
         transaction.Commit();

@@ -34,7 +34,6 @@ public class AppServiceRegistrationTests
             var settings = provider.GetRequiredService<ISettingsService>();
             provider.GetRequiredService<Axicultus.Wpf.Input.ICommandCatalog>().GetDefaultShortcuts()
                 .Should().Contain(shortcut => shortcut.Key == System.Windows.Input.Key.F12);
-            var legacySettings = provider.GetRequiredService<ILegacySettingsSource>();
             var service = provider.GetRequiredService<IPowerPointRenderService>();
             var slideShowControl = provider.GetRequiredService<IPowerPointSlideShowControl>();
             var mediaPlayback = provider.GetRequiredService<IMediaPlaybackService>();
@@ -85,7 +84,7 @@ public class AppServiceRegistrationTests
             mediaSettingsField.Should().NotBeNull();
             mediaSettingsField!.GetValue(mediaPlayback).Should().BeSameAs(settings);
 
-            legacySettings.Should().BeOfType<CompositeLegacySettingsSource>();
+            provider.GetService<ILegacySettingsSource>().Should().BeNull();
             adminRepository.Should().BeOfType<AdminDatabaseRepository>();
             songDetails.Should().BeSameAs(adminRepository);
             songMergeService.Should().BeOfType<SongMergeService>();
