@@ -8,6 +8,7 @@
         xmlns:settings="clr-namespace:Axicultus.Wpf.Settings"
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         xmlns:theme="clr-namespace:Axicultus.Wpf.Theme"
+        xmlns:vwp="clr-namespace:WpfToolkit.Controls;assembly=VirtualizingWrapPanel"
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
         Title="Axicultus"
         FontSize="{DynamicResource Type.Body.FontSize}"
@@ -1944,6 +1945,8 @@
                                  PreviewMouseRightButtonDown="InlinePowerPointList_PreviewMouseRightButtonDown"
                                  PreviewMouseMove="InlinePowerPointList_PreviewMouseMove"
                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                 ScrollViewer.CanContentScroll="True"
+                                 VirtualizingPanel.VirtualizationMode="Recycling"
                                  AutomationProperties.Name="PowerPoint source preview list">
                             <ListBox.ContextMenu>
                                 <ContextMenu x:Name="CMenuPowerPointPreviewFiles"
@@ -1989,7 +1992,7 @@
                             </ListBox.Style>
                             <ListBox.ItemsPanel>
                                 <ItemsPanelTemplate>
-                                    <WrapPanel Orientation="Horizontal" />
+                                    <vwp:VirtualizingWrapPanel Orientation="Horizontal" AllowDifferentSizedItems="True" SpacingMode="None" />
                                 </ItemsPanelTemplate>
                             </ListBox.ItemsPanel>
                             <ListBox.ItemTemplate>
@@ -2043,7 +2046,7 @@
                                                        Margin="0,6,0,0"
                                                        TextWrapping="Wrap"
                                                        MaxHeight="34"
-                                                       FontSize="{StaticResource FontSize.Caption}"
+                                                       FontSize="{DynamicResource Type.Caption.FontSize}"
                                                        Foreground="{DynamicResource Brush.Text.Primary}" />
                                         </Grid>
                                     </Border>
@@ -2129,7 +2132,7 @@
                                  SelectionOpacity="0.55"
                                  TextWrapping="Wrap"
                                  AcceptsReturn="True"
-                                 VerticalScrollBarVisibility="Auto"
+                                 VerticalScrollBarVisibility="Visible"
                                  Style="{x:Null}"
                                  Padding="1,2"
                                  PreviewKeyDown="BiblePassageBox_PreviewKeyDown"
@@ -2235,6 +2238,8 @@
                                  ItemsSource="{Binding Images}"
                                  SelectedItem="{Binding SelectedImage, Mode=TwoWay}"
                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                 ScrollViewer.CanContentScroll="True"
+                                 VirtualizingPanel.VirtualizationMode="Recycling"
                                  KeyDown="SourceListAddOnEnter_KeyDown"
                                  PreviewMouseLeftButtonDown="InlineImagesList_PreviewMouseLeftButtonDown"
                                  PreviewMouseLeftButtonUp="InlineImagesList_PreviewMouseLeftButtonUp"
@@ -2263,7 +2268,7 @@
                             </ListBox.ContextMenu>
                             <ListBox.ItemsPanel>
                                 <ItemsPanelTemplate>
-                                    <WrapPanel />
+                                    <controls:ImageThumbnailPanel SpacingMode="None" />
                                 </ItemsPanelTemplate>
                             </ListBox.ItemsPanel>
                             <ListBox.ItemContainerStyle>

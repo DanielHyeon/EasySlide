@@ -263,7 +263,9 @@ public sealed partial class PowerPointLibraryViewModel : ObservableObject
                 {
                     try
                     {
-                        item.ThumbnailImage = _decodeThumbnail(slide.ImageBytes);
+                        var thumbnail = await Task.Run(() => _decodeThumbnail(slide.ImageBytes), token).ConfigureAwait(true);
+                        token.ThrowIfCancellationRequested();
+                        item.ThumbnailImage = thumbnail;
                         item.ThumbnailStatus = $"슬라이드 1/{slide.SlideCount}";
                     }
                     catch (Exception ex) when (

@@ -30,6 +30,7 @@
   <ItemGroup>
     <!-- ADR-0001: Fluent 2 컨트롤 라이브러리. EasiDS 토큰으로 비주얼 오버라이딩. -->
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="VirtualizingWrapPanel" Version="2.5.4" />
     <PackageReference Include="WPF-UI" Version="3.0.5" />
     <PackageReference Include="NAudio.Wasapi" Version="2.4.0" />
     <!-- MVVM 소스 제너레이터 (ObservableObject, RelayCommand) -->

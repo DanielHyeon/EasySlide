@@ -17,10 +17,14 @@ public sealed class LegacyImageThumbnailSizeConverter : IValueConverter
             _ => 0d,
         };
 
+        var size = GetThumbnailSize(panelWidth);
+        return string.Equals(parameter as string, "Height", StringComparison.OrdinalIgnoreCase) ? size.Height : size.Width;
+    }
+
+    internal static System.Windows.Size GetThumbnailSize(double panelWidth)
+    {
         var width = Math.Max(MinimumWidth, Math.Floor((panelWidth - 34d) / 3d));
-        return string.Equals(parameter as string, "Height", StringComparison.OrdinalIgnoreCase)
-            ? Math.Floor(width * 3d / 4d)
-            : width;
+        return new(width, Math.Floor(width * 3d / 4d));
     }
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)

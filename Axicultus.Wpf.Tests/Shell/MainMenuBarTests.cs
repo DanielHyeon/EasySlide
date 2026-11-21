@@ -57,6 +57,19 @@ public class MainMenuBarTests
         return text[startIndex..endIndex];
     }
 
+    [Theory]
+    [InlineData("MainWindow.xaml", "BiblePassageBox")]
+    [InlineData("Library/BibleWindow.xaml", "PassageTextBox")]
+    public void BibleTextBoxesAllowIncrementalLayoutOfLongBooks(string path, string name)
+    {
+        var view = XDocument.Load(Path.Combine(FindRepositoryRoot(), "Axicultus.Wpf", path));
+        XNamespace xaml = "http://schemas.microsoft.com/winfx/2006/xaml";
+        var passage = view.Descendants().Single(e => (string?)e.Attribute(xaml + "Name") == name);
+        ((string?)passage.Attribute("VerticalScrollBarVisibility")).Should().Be("Visible",
+            "automatic scrollbars force WPF to measure the entire wrapped book before processing input");
+        ((string?)passage.Attribute("TextWrapping")).Should().Be("Wrap");
+    }
+
     [Fact]
     public void MainWindow_HasMenuBarWithSixTopLevelMenus()
     {
@@ -1279,11 +1292,12 @@ public class MainMenuBarTests
         xaml.Should().Contain("x:Name=\"flowLayoutExternalPowerPoint\"", "preview mode should expose the FrmMain thumbnail-flow role");
         xaml.Should().Contain("Tag=\"flowLayoutExternalPowerPoint\"", "thumbnail flow role should remain explicit");
         xaml.Should().Contain("x:Name=\"CMenuPowerPointPreviewFiles\"", "PowerPoint preview flow should expose the same CMenuFiles actions");
-        xaml.Should().Contain("<WrapPanel Orientation=\"Horizontal\" />", "preview mode should use a flowing thumbnail layout");
         xaml.Should().Contain("Source=\"{Binding ThumbnailImage}\"", "PowerPoint preview style should render real first-slide thumbnails when available");
         xaml.Should().Contain("ToolTip=\"{Binding ThumbnailStatus}\"", "PowerPoint thumbnail cards should expose render status without replacing the file name");
         xaml.Should().Contain("IsPreviewStyle", "PowerpointList and flowLayoutExternalPowerPoint should toggle from the same listing style state");
         var sourcePowerPointPreviewFlow = SectionBetween(xaml, "x:Name=\"flowLayoutExternalPowerPoint\"", "<TextBlock Grid.Row=\"4\"");
+        sourcePowerPointPreviewFlow.Should().Contain("<vwp:VirtualizingWrapPanel", "offscreen presentation cards should not be built on tab selection");
+        sourcePowerPointPreviewFlow.Should().Contain("{DynamicResource Type.Caption.FontSize}", "use the caption size defined by the active theme");
         sourcePowerPointPreviewFlow.Should().Contain("Converter={StaticResource LegacyPowerPointThumbnailSize}",
             "left PowerPoint preview flow should use the same FrmMain three-column thumbnail sizing as the right panes");
         sourcePowerPointPreviewFlow.Should().Contain("ConverterParameter=Height",
@@ -1361,6 +1375,7 @@ public class MainMenuBarTests
         xaml.Should().Contain("x:Name=\"CMenuImages_AddDefault\"", "Images menu should expose Add to Default");
         xaml.Should().Contain("x:Name=\"CMenuImages_Refresh\"", "Images menu should expose Refresh Images Lists");
         var imagesSource = SectionBetween(xaml, "x:Name=\"InlineImagesList\"", "</TabItem>");
+        imagesSource.Should().Contain("<controls:ImageThumbnailPanel", "the gallery should realize only visible rows");
         imagesSource.Should().Contain("Converter={StaticResource LegacyImageThumbnailSize}",
             "FrmMain flowLayoutImages uses compact three-column thumbnails in the narrow source rail");
         imagesSource.Should().Contain("ConverterParameter=Height",

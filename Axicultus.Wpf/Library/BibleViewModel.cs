@@ -19,6 +19,7 @@ public sealed partial class BibleViewModel : ObservableObject
     private BiblePassageResult _currentResult = new("", [], IsSequential: true, WasLimited: false);
     private BiblePassageResult? _searchReferences;
     private bool _changingVersion;
+    private Task? _catalogLoad;
     private BibleSelection _baseSelection = new("", "");
     private int? _verseSelectionAnchorIndex;
     private System.Threading.CancellationTokenSource? _search;
@@ -104,25 +105,58 @@ public sealed partial class BibleViewModel : ObservableObject
 
     public Task LoadAsync()
     {
-        if (IsBusy)
-        {
-            return Task.CompletedTask;
-        }
+        if (_catalogLoad is { IsCompleted: false }) return _catalogLoad;
+        if (IsBusy) return Task.CompletedTask;
+        _catalogLoad = LoadCatalogAsync();
+        return _catalogLoad;
+    }
 
+    private async Task LoadCatalogAsync()
+    {
         IsBusy = true;
         try
         {
             ValidationMessage = "";
             WorkingFolder = NormalizePath(_settings.Current.General.WorkingFolder);
-            Versions.ReplaceWith(_repository.GetVersions(WorkingFolder));
-            var initialVersion = Versions.FirstOrDefault();
-            if (Equals(initialVersion, SelectedVersion)) LoadBooksForSelectedVersion();
-            else SelectedVersion = initialVersion;
-            PreviewRegion1Version = SelectedVersion;
-            PreviewRegion2Version = Versions.FirstOrDefault(version => !Equals(version, PreviewRegion1Version));
-            if (SelectedVersion is not null && SelectedBook is not null)
+            var folder = WorkingFolder;
+            var originalVersion = SelectedVersion;
+            var versions = await Task.Run(() => _repository.GetVersions(folder));
+            while (true)
             {
-                LoadSelectedBookCore();
+                var selection = SelectedVersion;
+                var bookNumber = SelectedBook?.Number;
+                var showVerses = ShowVerses;
+                var version = selection != originalVersion
+                    ? versions.FirstOrDefault(candidate => candidate.FileName == selection?.FileName)
+                    : null;
+                version ??= versions.FirstOrDefault();
+                var (books, book, passage) = await Task.Run(() =>
+                {
+                    IReadOnlyList<BibleBook> available = version is null ? [] : _repository.GetBooks(version);
+                    var selected = available.FirstOrDefault(candidate => candidate.Number == bookNumber) ?? available.FirstOrDefault();
+                    var result = version is not null && selected is not null
+                        ? _repository.LoadBook(version, selected.Number, showVerses)
+                        : new BiblePassageResult("", [], IsSequential: true, WasLimited: false);
+                    return (available, selected, result);
+                });
+
+                // A version, book or verse display change may arrive while SQLite is reading.
+                if (SelectedVersion != selection || SelectedBook?.Number != bookNumber || ShowVerses != showVerses) continue;
+
+                _changingVersion = true;
+                try
+                {
+                    Versions.ReplaceWith(versions);
+                    SelectedVersion = version;
+                    Books.ReplaceWith(books);
+                    SelectedBook = book;
+                }
+                finally { _changingVersion = false; }
+                ClearSelection();
+                SetPassageResult(passage);
+                PreviewRegion1Version = version;
+                PreviewRegion2Version = versions.FirstOrDefault(candidate => candidate != version);
+                break;
             }
 
             ValidationMessage = Versions.Count == 0
@@ -149,11 +183,8 @@ public sealed partial class BibleViewModel : ObservableObject
         finally
         {
             IsBusy = false;
-
             NotifyCommands();
         }
-
-        return Task.CompletedTask;
     }
 
     /// <summary>
@@ -822,6 +853,7 @@ public sealed partial class BibleViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(SelectedFontPercent));
         OnPropertyChanged(nameof(SelectedFolderNumber));
+        if (_changingVersion || _catalogLoad is { IsCompleted: false }) return;
         CancelSearch();
         var original = _searchReferences;
         _changingVersion = true;
@@ -851,6 +883,7 @@ public sealed partial class BibleViewModel : ObservableObject
 
     partial void OnShowVersesChanged(bool value)
     {
+        if (_catalogLoad is { IsCompleted: false }) return;
         CancelSearch();
         if (_searchReferences is { } original && SelectedVersion is { } version) _ = RefreshSearchVersesAsync(version, original);
         else _ = ReloadSelectedBookAfterSelectionChangeAsync();

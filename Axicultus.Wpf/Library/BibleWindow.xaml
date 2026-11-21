@@ -52,7 +52,7 @@
                      Text="{Binding PassageText, Mode=OneWay}"
                      AcceptsReturn="True"
                      TextWrapping="Wrap"
-                     VerticalScrollBarVisibility="Auto"
+                     VerticalScrollBarVisibility="Visible"
                      HorizontalScrollBarVisibility="Disabled"
                      FontSize="16"
                      Padding="{StaticResource Thickness.Md}"

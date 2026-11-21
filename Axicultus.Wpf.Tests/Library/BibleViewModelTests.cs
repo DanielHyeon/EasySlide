@@ -48,6 +48,41 @@ public class BibleViewModelTests
     }
 
     [Fact]
+    public async Task StartupAndTabSelectionShareThePendingCatalogReadAndUseLatestVerseDisplay()
+    {
+        using var fixture = TempBibleSettings.Create();
+        using var release = new System.Threading.ManualResetEventSlim();
+        var entered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var repository = new FakeBibleRepository
+        {
+            Versions = [fixture.Kjv], Books = [new BibleBook(1, "Genesis")],
+            BeforeGetVersions = () =>
+            {
+                entered.SetResult();
+                if (!release.Wait(TimeSpan.FromSeconds(5))) throw new TimeoutException();
+            },
+        };
+        var view = new BibleViewModel(fixture.Settings, repository);
+        var startup = view.LoadAsync();
+        try
+        {
+            await entered.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            view.LoadAsync().Should().BeSameAs(startup);
+            view.ShowVerses = false;
+        }
+        finally
+        {
+            release.Set();
+            await startup;
+        }
+
+        repository.LoadBookCallCount.Should().Be(1);
+        repository.LastLoadedShowVerses.Should().BeFalse();
+        view.SelectedBook!.Number.Should().Be(1);
+        view.IsBusy.Should().BeFalse();
+    }
+
+    [Fact]
     public async Task LoadAsync_DerivesWorkingFolderAndLoadsFirstVersionBooks()
     {
         using var fixture = TempBibleSettings.Create();
@@ -889,6 +924,7 @@ public class BibleViewModelTests
 
         public IReadOnlyList<BibleBook> Books { get; init; } = [];
 
+        public Action? BeforeGetVersions { get; init; }
         public Exception? GetVersionsException { get; init; }
 
         public BiblePassageResult LoadedBook { get; set; } = new("", [], IsSequential: true, WasLimited: false);
@@ -927,6 +963,7 @@ public class BibleViewModelTests
 
         public IReadOnlyList<BibleVersion> GetVersions(string workingFolder)
         {
+            BeforeGetVersions?.Invoke();
             if (GetVersionsException is not null)
             {
                 throw GetVersionsException;

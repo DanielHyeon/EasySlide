@@ -103,6 +103,34 @@ public class PowerPointLibraryViewModelTests
     }
 
     [Fact]
+    public Task CachedSlideDecodeLeavesTheDispatcherAndCancelledResultsAreDiscarded() => StaHelper.RunOnStaAsync(async () =>
+    {
+        var dispatcher = System.Windows.Threading.Dispatcher.CurrentDispatcher;
+        using var release = new ManualResetEventSlim();
+        using var cancellation = new CancellationTokenSource();
+        var decodingOnDispatcher = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var sut = CreateSut(out _, null, [@"C:\decks\cached.pptx"], new FakeRenderService(), _ =>
+        {
+            decodingOnDispatcher.SetResult(dispatcher.CheckAccess());
+            if (!release.Wait(TimeSpan.FromSeconds(5))) throw new TimeoutException();
+            return DummyImage;
+        });
+        sut.LoadCommand.Execute(null);
+        var load = sut.LoadThumbnailsAsync(cancellation.Token);
+        try
+        {
+            (await decodingOnDispatcher.Task.WaitAsync(TimeSpan.FromSeconds(5))).Should().BeFalse();
+            cancellation.Cancel();
+        }
+        finally
+        {
+            release.Set();
+            await load;
+        }
+        sut.Presentations.Single().ThumbnailImage.Should().BeNull();
+    });
+
+    [Fact]
     public async Task LoadThumbnailsAsync_RendersFirstSlideForVisiblePresentations()
     {
         var render = new FakeRenderService();

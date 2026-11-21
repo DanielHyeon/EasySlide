@@ -89,3 +89,19 @@ Both main windows SHALL select an Images thumbnail on a single left click and ap
 - **WHEN** either desktop saves a session template and either desktop opens it
 - **THEN** the session margins, panel, transition effects, media settings and Praise Book formatting survive the round trip
 - **AND** opening a template preserves item overrides, and reopening the named list restores its session format
+
+### Requirement: Responsive Bible and image tabs
+The operator console SHALL continue processing input while opening a full Bible book and SHALL limit thumbnail controls to the visible gallery and its scroll cache.
+
+#### Scenario: Open the Bible tab during startup
+- **WHEN** startup and the operator request the Bible catalog together
+- **THEN** both await the same background database read and the wrapped, selectable book text is laid out incrementally.
+
+#### Scenario: Scroll a large Images folder
+- **WHEN** the operator opens a folder of hundreds of images and scrolls to its last row
+- **THEN** the visible thumbnails retain their grid layout and the last image supports single-click selection and double-click background application.
+
+#### Scenario: Open the PowerPoint source in preview mode
+- **WHEN** an operator opens a large presentation folder in thumbnail view
+- **THEN** the preview cards use the active theme caption size and only visible or nearby cards are realized.
+- **AND** decoding a cached slide image runs off the UI thread.
