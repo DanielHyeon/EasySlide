@@ -103,6 +103,7 @@ public sealed class LiveMicrophoneSwitchTests
                             devices[id] = (string)args["inputSettings"]![prop]!;
                             writes.Add(id+"="+devices[id]); data = new {}; break;
                         case "GetInputMute": data = new { inputMuted = muted }; break;
+                        case "PressInputPropertiesButton": data = new {}; break; // the caption page reload on connect
                         case "SetInputMute":
                             Assert.Equal("mic", id);
                             muted = (bool)args!["inputMuted"]!;

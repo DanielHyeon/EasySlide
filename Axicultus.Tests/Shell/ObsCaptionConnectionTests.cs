@@ -186,7 +186,7 @@ public sealed class ObsCaptionConnectionTests
         Assert.Equal(("찬양", false), await client.AddCaptionSourceAsync(CaptionBroadcastServer.Url)); // the same source, not a second one
         Assert.Equal(["배경", "카메라", name], scenes["찬양"]);
         Assert.Single(inputs);
-        Assert.Equal(1, refreshes); // an existing source reloads its page (it may be from before an update)
+        Assert.Equal(2, refreshes); // on connect, and when an existing source is reused: its page may be from before an update
 
         program = "설교";
         scenes["설교"].Remove("카메라");
@@ -240,6 +240,10 @@ public sealed class ObsCaptionConnectionTests
                 await Send(7, new { requestId = (string?)request["requestId"], responseData = new
                     { currentProgramSceneName = current, scenes = new[] { new { sceneName = current } } } });
                 if (session > 1) { script.TrySetResult(); return; }
+                request = (await Read())["d"]!; // on connect: the caption page is reloaded, so it is never from before an update
+                Assert.Equal(("PressInputPropertiesButton", ObsConnection.CaptionSourceName, "refreshnocache"),
+                    ((string?)request["requestType"], (string?)request["requestData"]?["inputName"], (string?)request["requestData"]?["propertyName"]));
+                await Send(7, new { requestId = (string?)request["requestId"], requestStatus = new { result = false } }); // no such source: ignored
                 await Send(5, new { eventType = "CurrentProgramSceneChanged", eventData = new { sceneName = "설교" } });
                 request = (await Read())["d"]!;
                 Assert.Equal("GetSourceScreenshot", (string?)request["requestType"]);

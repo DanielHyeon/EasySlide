@@ -76,6 +76,7 @@ public sealed partial class ObsConnection(string host, int port, string password
                         Volatile.Write(ref _active, connection);
                         retry = 0;
                         status.Report(new("연결됨", scene, names) { Connected = true });
+                        _ = RefreshCaptionPageAsync(connection, ct);
                     }
                     else if (opcode is 7 or 9 && payload["requestId"] is JsonNode id &&
                         connection.Pending.TryRemove((string)id!, out var waiting))
@@ -177,6 +178,25 @@ public sealed partial class ObsConnection(string host, int port, string password
     }
 
     public const string CaptionSourceName = "Axicultus 자막";
+
+    // OBS keeps a browser page loaded across Axicultus restarts; a page from before an update would never learn new
+    // settings. Reload it on every connect. Fire and forget: the reply (a failure when there is no such source) is
+    // read and dropped by the receive loop, which must not wait on it.
+    private static async Task RefreshCaptionPageAsync(Connection connection, CancellationToken ct)
+    {
+        try
+        {
+            await SendAsync(connection, 6, new
+            {
+                requestType = "PressInputPropertiesButton", requestId = Guid.NewGuid().ToString("N"),
+                requestData = new { inputName = CaptionSourceName, propertyName = "refreshnocache" }
+            }, ct);
+        }
+        catch (Exception error) when (error is WebSocketException or OperationCanceledException or ObjectDisposedException or InvalidOperationException)
+        {
+            System.Diagnostics.Debug.WriteLine(error.Message);
+        }
+    }
 
     /// <summary>
     /// Puts the caption browser source on top of the current program scene, canvas-sized. An existing source of that
