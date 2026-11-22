@@ -17,12 +17,15 @@ namespace Axicultus.Wpf.Captions;
 /// <summary>Image is a JPEG data URL of a score half shown instead of the text.</summary>
 public sealed record PublishedCaption(long Revision, string Text, string Color = CaptionStyle.DefaultColor, bool Box = true, string? Image = null);
 public sealed record CaptionTake(DateTimeOffset Time, string Text);
-/// <summary>Look and destinations of the caption; Camera is the output screen's camera caption, Obs the browser source.</summary>
-public sealed record CaptionStyle(string Color = CaptionStyle.DefaultColor, bool Box = true, bool Camera = true, bool Obs = true)
+/// <summary>
+/// The caption console's kept choices: look and destinations (Camera is the output screen's camera caption, Obs
+/// the browser source), and Sync: the console's next/previous also turn the output screen.
+/// </summary>
+public sealed record CaptionStyle(string Color = CaptionStyle.DefaultColor, bool Box = true, bool Camera = true, bool Obs = true, bool Sync = false)
 {
     public const string DefaultColor = "#FFFFFF";
-    public static CaptionStyle Parse(string color, bool box, bool camera = true, bool obs = true) =>
-        new(System.Text.RegularExpressions.Regex.IsMatch(color, "^#[0-9A-Fa-f]{6}$") ? color.ToUpperInvariant() : DefaultColor, box, camera, obs);
+    public static CaptionStyle Parse(string color, bool box, bool camera = true, bool obs = true, bool sync = false) =>
+        new(System.Text.RegularExpressions.Regex.IsMatch(color, "^#[0-9A-Fa-f]{6}$") ? color.ToUpperInvariant() : DefaultColor, box, camera, obs, sync);
 }
 
 /// <summary>All mutations run on the operator Dispatcher. Remote observers receive only published text.</summary>
@@ -52,7 +55,7 @@ public sealed class CaptionSession : ObservableObject, IDisposable
         {
             if (stylePath != null && File.Exists(stylePath) &&
                 JsonSerializer.Deserialize<CaptionStyle>(File.ReadAllText(stylePath)) is { } saved)
-                Style = CaptionStyle.Parse(saved.Color, saved.Box, saved.Camera, saved.Obs);
+                Style = CaptionStyle.Parse(saved.Color, saved.Box, saved.Camera, saved.Obs, saved.Sync);
         }
         catch (Exception error) when (error is IOException or JsonException or UnauthorizedAccessException) { }
         if (show != null)
@@ -91,6 +94,7 @@ public sealed class CaptionSession : ObservableObject, IDisposable
         OnPropertyChanged(nameof(CaptionBackground));
         OnPropertyChanged(nameof(AudienceEnabled));
         OnPropertyChanged(nameof(ObsEnabled));
+        OnPropertyChanged(nameof(SyncShow));
         OnPropertyChanged(nameof(HasAudienceText));
         try { if (_stylePath != null) File.WriteAllText(_stylePath, JsonSerializer.Serialize(style)); }
         catch (Exception error) when (error is IOException or UnauthorizedAccessException) { System.Diagnostics.Debug.WriteLine(error.Message); }
@@ -136,6 +140,13 @@ public sealed class CaptionSession : ObservableObject, IDisposable
     {
         get => Style.Obs;
         set { if (value != Style.Obs) SetStyle(Style with { Obs = value }); }
+    }
+
+    /// <summary>The console's next/previous turn the output screen too; the caption then follows the screen.</summary>
+    public bool SyncShow
+    {
+        get => Style.Sync;
+        set { if (value != Style.Sync) SetStyle(Style with { Sync = value }); }
     }
 
     public bool HasAudienceText => AudienceEnabled && HasText;

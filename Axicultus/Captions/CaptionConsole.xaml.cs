@@ -761,13 +761,20 @@ public partial class CaptionConsole : Window
 
     private void Previous(object sender, RoutedEventArgs e) => Step(-1);
     private void Next(object sender, RoutedEventArgs e) => Step(1);
-    private void Step(int change)
+    private async void Step(int change)
     {
-        if (!_captions.Following) { Status.Text = "송출 화면 자막 따라가기에서 PPT를 따라갈 때 쓸 수 있습니다."; return; }
-        // A score goes top → bottom → next slide's top.
         // A score goes row by row, then to the next slide's first row.
         int next = _scoreRow + change;
-        if (ScoreOn && next >= 0 && next < _scoreRows) { SetScoreRow(next); return; }
+        if (_captions.Following && ScoreOn && next >= 0 && next < _scoreRows) { SetScoreRow(next); return; }
+        if (_captions.SyncShow)
+        {
+            // Sync: the output screen turns (a slide, a page of a song or passage) and the caption follows it.
+            var turn = change > 0 ? _main.NextOutputSlideCommand : _main.PreviousOutputSlideCommand;
+            if (!turn.CanExecute(null)) { Status.Text = change > 0 ? "송출 화면에 다음 장이 없습니다." : "송출 화면에 이전 장이 없습니다."; return; }
+            await turn.ExecuteAsync(null);
+            return;
+        }
+        if (!_captions.Following) { Status.Text = "송출 화면을 같이 넘기려면 싱크를 켜세요. 끄면 PPT 자막만 넘깁니다."; return; }
         _captions.MoveToSlide(_captions.CurrentSlide + change);
         Slides.SelectedItem = _captions.CurrentSlide;
         Changed();

@@ -1178,6 +1178,26 @@ internal static class Program
         Log("PPT", $"OCR after {(Environment.TickCount64 - ocrStarted) / 1000}s: deck=\"{console.DeckLabel.Text}\" box={captions.BoxKey} " + Aired());
         for (int n = 1; n <= captions.Deck!.Slides.Length; n++)
             Log("PPT", $"  slide {n} read: \"{captions.TextFor(n, Axicultus.Wpf.Captions.CaptionSession.RecognizedKey).Replace("\n", " / ")}\"");
+
+        // Sync: the console's next turns the output screen and the caption follows it.
+        console.SyncShow.IsChecked = true;
+        Log("PPT", $"sync, before: output={_vm.OutputPowerPoint.SlideNumber} " + Aired());
+        Call("Next", null, null);
+        await Settle(4000);
+        Log("PPT", $"sync, text, next: output={_vm.OutputPowerPoint.SlideNumber} " + Aired());
+        console.ScoreOnly.IsChecked = true;
+        await Settle(2000);
+        Call("Next", null, null);
+        await Settle(1500);
+        Log("PPT", $"sync, score, next (expect row 2, same slide): output={_vm.OutputPowerPoint.SlideNumber} rows=\"{console.ScoreRowLabel.Text}\" " + Aired());
+        Call("Next", null, null);
+        await Settle(4000);
+        Log("PPT", $"sync, score, next (expect next slide, row 1): output={_vm.OutputPowerPoint.SlideNumber} rows=\"{console.ScoreRowLabel.Text}\" " + Aired());
+        Call("Previous", null, null);
+        await Settle(4000);
+        Log("PPT", $"sync, score, previous (expect previous slide): output={_vm.OutputPowerPoint.SlideNumber} rows=\"{console.ScoreRowLabel.Text}\" " + Aired());
+        console.TextOnly.IsChecked = true;
+        console.SyncShow.IsChecked = false;
         console.ScoreOnly.IsChecked = true;
         await Settle(2000);
         Log("PPT", "score only, top: " + Aired() + $" rows=\"{console.ScoreRowLabel.Text}\"");

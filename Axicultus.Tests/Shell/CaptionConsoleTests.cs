@@ -326,9 +326,10 @@ public sealed class CaptionConsoleTests
                 session.AudienceEnabled = false; // OBS only
                 Assert.Equal(("자막", false), (session.ForObs.Text, session.HasAudienceText));
                 Assert.Equal("자막", sent[^1].Text);
+                session.SyncShow = true; // kept with the destinations
             }
             using var reopened = new CaptionSession(new LiveSessionService(), null, path);
-            Assert.Equal((false, true), (reopened.AudienceEnabled, reopened.ObsEnabled));
+            Assert.Equal((false, true, true), (reopened.AudienceEnabled, reopened.ObsEnabled, reopened.SyncShow));
         }
         finally { directory.Delete(true); }
     });
