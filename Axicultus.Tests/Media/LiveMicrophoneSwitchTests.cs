@@ -132,7 +132,7 @@ public sealed class LiveMicrophoneSwitchTests
         });
         await server.StartAsync(token);
         var ready = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        await using var connection = new ObsConnection(new Uri(server.Urls.Single()).Port, "",
+        await using var connection = new ObsConnection(ObsOperator.LocalHost, new Uri(server.Urls.Single()).Port, "",
             new Progress<ObsStatus>(s => { if (s.Connected) ready.TrySetResult(); }));
         connection.Start();
         await ready.Task.WaitAsync(token);

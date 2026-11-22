@@ -107,16 +107,19 @@ public sealed class CaptionDeviceTests
         try
         {
             using (var setup = new ObsOperator(dir.FullName, Dispatcher.CurrentDispatcher))
-                await setup.ConfigureAsync(port,"operator-obs-password",true,["설교","찬양","",""]);
+                await setup.ConfigureAsync("localhost",port,"operator-obs-password",true,["설교","찬양","",""]);
             var bytes = await File.ReadAllTextAsync(Path.Combine(dir.FullName,"obs.json"));
             Assert.DoesNotContain("operator-obs-password",bytes);
             using var reopened = new ObsOperator(dir.FullName, Dispatcher.CurrentDispatcher);
             await reopened.StartAsync();
             Assert.True(reopened.AutoConnect);
             Assert.Equal(port,reopened.Port);
+            Assert.Equal("localhost",reopened.Host);
             Assert.Equal("찬양",reopened.Shortcuts[1]);
             Assert.NotNull(reopened.Connection);
-            await reopened.ConfigureAsync(port,"",false,["","","",""]);
+            await Assert.ThrowsAsync<ArgumentException>(() => reopened.ConfigureAsync("bad host/x",port,"",false,["","","",""]));
+            await reopened.ConfigureAsync("",port,"",false,["","","",""]);
+            Assert.Equal(ObsOperator.LocalHost,reopened.Host);
             using var manual = new ObsOperator(dir.FullName, Dispatcher.CurrentDispatcher);
             await manual.StartAsync();
             Assert.False(manual.AutoConnect);

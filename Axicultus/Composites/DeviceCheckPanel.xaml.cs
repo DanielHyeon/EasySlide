@@ -84,7 +84,7 @@ public partial class DeviceCheckPanel : UserControl
 
     private void ObsChanged(ObsStatus status)
     {
-        ObsAddress.Text = $"WebSocket · 127.0.0.1:{_obs!.Port}";
+        ObsAddress.Text = $"WebSocket · {_obs!.Host}:{_obs.Port}";
         ObsStatusText.Text = "앱 연결 상태 · " + (status.Connected ? "연결됨" : status.Message);
         ObsSceneText.Text = status.Scene.Length == 0 ? "" : "현재 프로그램 씬 · " + status.Scene;
     }

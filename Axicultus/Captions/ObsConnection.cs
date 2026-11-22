@@ -18,7 +18,7 @@ public sealed record ObsStatus(string Message, string Scene, string[] Scenes)
 }
 
 /// <summary>One receive loop per identified OBS connection. Commands are never replayed on reconnect.</summary>
-public sealed partial class ObsConnection(int port, string password, IProgress<ObsStatus> status) : IAsyncDisposable
+public sealed partial class ObsConnection(string host, int port, string password, IProgress<ObsStatus> status) : IAsyncDisposable
 {
     private sealed class SessionRejected(string message) : IOException(message);
 
@@ -46,7 +46,7 @@ public sealed partial class ObsConnection(int port, string password, IProgress<O
             {
                 using var handshake = CancellationTokenSource.CreateLinkedTokenSource(ct);
                 handshake.CancelAfter(TimeSpan.FromSeconds(8));
-                await IdentifyAsync(connection, port, password, 4, handshake.Token);
+                await IdentifyAsync(connection, host, port, password, 4, handshake.Token);
                 var request = Guid.NewGuid().ToString("N");
                 await SendAsync(connection, 6, new { requestType = "GetSceneList", requestId = request }, handshake.Token);
                 string[] names = [];
@@ -98,9 +98,9 @@ public sealed partial class ObsConnection(int port, string password, IProgress<O
         }
     }
 
-    private static async Task IdentifyAsync(Connection connection, int port, string password, int subscriptions, CancellationToken ct)
+    private static async Task IdentifyAsync(Connection connection, string host, int port, string password, int subscriptions, CancellationToken ct)
     {
-        await connection.Socket.ConnectAsync(new Uri($"ws://127.0.0.1:{port}"), ct);
+        await connection.Socket.ConnectAsync(new UriBuilder("ws", host, port).Uri, ct);
         var hello = await ReadAsync(connection, ct);
         if ((int?)hello["op"] != 0) throw new InvalidDataException("OBS Hello 응답을 확인하세요.");
         var identify = new JsonObject { ["rpcVersion"] = 1, ["eventSubscriptions"] = subscriptions };
@@ -114,9 +114,9 @@ public sealed partial class ObsConnection(int port, string password, IProgress<O
     }
 
     internal Task<string> ProbeAsync(string? temporaryPassword, CancellationToken ct)
-        => ProbeProgramSceneAsync(port, temporaryPassword ?? password, ct);
+        => ProbeProgramSceneAsync(host, port, temporaryPassword ?? password, ct);
 
-    internal static async Task<string> ProbeProgramSceneAsync(int port, string password, CancellationToken ct)
+    internal static async Task<string> ProbeProgramSceneAsync(string host, int port, string password, CancellationToken ct)
     {
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
         timeout.CancelAfter(TimeSpan.FromSeconds(5));
@@ -124,7 +124,7 @@ public sealed partial class ObsConnection(int port, string password, IProgress<O
         var probe = new Connection(socket);
         try
         {
-            await IdentifyAsync(probe, port, password, 0, timeout.Token);
+            await IdentifyAsync(probe, host, port, password, 0, timeout.Token);
             var id = Guid.NewGuid().ToString("N");
             await SendAsync(probe, 6, new { requestId = id, requestType = "GetCurrentProgramScene" }, timeout.Token);
             var response = await ReadAsync(probe, timeout.Token);
@@ -142,7 +142,7 @@ public sealed partial class ObsConnection(int port, string password, IProgress<O
         }
         catch (WebSocketException ex) when (!ct.IsCancellationRequested)
         {
-            throw new IOException("OBS 실행 상태와 WebSocket 서버 포트를 확인하세요.", ex);
+            throw new IOException($"{host}:{port} · OBS 실행 상태, WebSocket 서버 포트, 원격이면 공유기 포트포워딩을 확인하세요.", ex);
         }
         finally { probe.Send.Dispose(); }
     }
@@ -184,7 +184,7 @@ public sealed partial class ObsConnection(int port, string password, IProgress<O
         var response = await ExchangeAsync(connection, 6, id => new
         {
             requestId = id, requestType = "GetSourceScreenshot",
-            requestData = new { sourceName = source, imageFormat = "jpg", imageWidth = 320, imageHeight = 180 }
+            requestData = new { sourceName = source, imageFormat = "jpg", imageWidth = 640, imageHeight = 360 }
         }, limit.Token).ConfigureAwait(false);
         if ((bool?)response["requestStatus"]?["result"] != true)
             throw new IOException((string?)response["requestStatus"]?["comment"] ?? "OBS 카메라 신호 없음");

@@ -79,8 +79,11 @@
                         </DockPanel>
                         <TextBlock Text="OBS의 카메라 소스 위에 이 주소를 브라우저 소스로 추가하세요." TextWrapping="Wrap"/>
                         <Separator Margin="0,10"/>
-                        <TextBlock Text="OBS WebSocket 연결 (이 PC)" FontWeight="SemiBold"/>
+                        <TextBlock Text="OBS WebSocket 연결" FontWeight="SemiBold"/>
                         <WrapPanel Margin="0,5">
+                            <TextBlock Text="주소" VerticalAlignment="Center"/>
+                            <TextBox x:Name="Host" Text="127.0.0.1" Width="170" Margin="4,0,10,0" AutomationProperties.Name="OBS WebSocket 주소"
+                                     ToolTip="같은 PC는 127.0.0.1. 다른 PC는 그 PC의 IP 또는 도메인 (원격 공유기에서 OBS 포트를 포트포워딩해야 합니다)."/>
                             <TextBlock Text="포트" VerticalAlignment="Center"/>
                             <TextBox x:Name="Port" Text="4455" Width="60" Margin="4,0,10,0" AutomationProperties.Name="OBS WebSocket 포트"/>
                             <TextBlock Text="암호" VerticalAlignment="Center"/>
@@ -93,6 +96,15 @@
                         <TextBlock Text="카메라 미리보기에 사용할 OBS 소스 이름" Margin="0,8,0,2"/>
                         <TextBox x:Name="CameraSource" AutomationProperties.Name="미리 볼 OBS 카메라 소스"/>
                         <CheckBox x:Name="PreviewObsCamera" Content="OBS 카메라 미리보기" Margin="0,4"/>
+                        <Border x:Name="ObsPreviewBox" Background="#232323" Visibility="Collapsed" Margin="0,2,0,6"
+                                AutomationProperties.Name="OBS 카메라 미리보기 화면">
+                            <Grid Height="320">
+                                <TextBlock Text="OBS에서 카메라 영상을 기다리는 중…" Foreground="#A0A0A0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Image Source="{Binding DataContext.Preview, ElementName=CameraControls}" Stretch="Uniform"/>
+                                <TextBlock Text="{Binding Session.PublicText}" Foreground="White" Background="#B0101010" HorizontalAlignment="Center"
+                                           VerticalAlignment="Bottom" TextAlignment="Center" TextWrapping="Wrap" Margin="12,0,12,16" Padding="8,2" FontSize="16"/>
+                            </Grid>
+                        </Border>
                         <ComboBox x:Name="Scenes" Margin="0,6" AutomationProperties.Name="전환할 OBS 프로그램 씬"/>
                         <TextBlock Text="함께 제어할 소스 이름 (선택)"/>
                         <TextBox x:Name="SourceName" AutomationProperties.Name="OBS 소스 이름"/>

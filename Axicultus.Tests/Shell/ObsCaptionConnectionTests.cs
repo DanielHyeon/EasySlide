@@ -54,7 +54,7 @@ public sealed class ObsCaptionConnectionTests
         try
         {
             using var cancellation = new CancellationTokenSource();
-            var probe = ObsConnection.ProbeProgramSceneAsync(new Uri(server.Urls.Single()).Port, "", cancellation.Token);
+            var probe = ObsConnection.ProbeProgramSceneAsync(ObsOperator.LocalHost, new Uri(server.Urls.Single()).Port, "", cancellation.Token);
             await opened.Task.WaitAsync(TimeSpan.FromSeconds(4));
             if (leaveSettings)
             {
@@ -118,7 +118,7 @@ public sealed class ObsCaptionConnectionTests
                 await Send(5, new { eventType = "CurrentProgramSceneChanged", eventData = new { sceneName = "설교" } });
                 request = (await Read())["d"]!;
                 Assert.Equal("GetSourceScreenshot", (string?)request["requestType"]);
-                Assert.Equal(320, (int?)request["requestData"]?["imageWidth"]);
+                Assert.Equal(640, (int?)request["requestData"]?["imageWidth"]);
                 await Send(7, new { requestId = (string?)request["requestId"], requestStatus = new { result = true },
                     responseData = new { imageData = "data:image/jpeg;base64,AQID" } });
                 request = (await Read())["d"]!;
@@ -153,7 +153,7 @@ public sealed class ObsCaptionConnectionTests
         });
         await server.StartAsync(token);
         var reports = new Reports();
-        await using var client = new ObsConnection(new Uri(server.Urls.Single()).Port, "secret", reports);
+        await using var client = new ObsConnection(ObsOperator.LocalHost, new Uri(server.Urls.Single()).Port, "secret", reports);
         client.Start();
         await reports.Connected.Task.WaitAsync(token);
         await reports.ManualScene.Task.WaitAsync(token);

@@ -57,6 +57,7 @@ public partial class CaptionConsole : Window
         DataContext = _editor;
         _editor.SaveRequested += Changed;
         CameraControls.DataContext = camera;
+        Host.Text = obs.Host;
         Port.Text = obs.Port.ToString();
         AutoObs.IsChecked = obs.AutoConnect;
         var shortcuts = obs.Shortcuts;
@@ -141,6 +142,7 @@ public partial class CaptionConsole : Window
     private void UpdatePreviewTimer()
     {
         _previewTimer.IsEnabled = !_closed && IsVisible && _camera.ObsOwnsCamera && PreviewObsCamera.IsChecked == true;
+        ObsPreviewBox.Visibility = PreviewObsCamera.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
         if (!_previewTimer.IsEnabled && _camera.ObsOwnsCamera) _camera.Preview = null;
     }
 
@@ -412,7 +414,7 @@ public partial class CaptionConsole : Window
         if (!int.TryParse(Port.Text, out int port) || port is < 1 or > 65535) { ObsLabel.Text = "포트를 확인하세요."; return; }
         try
         {
-            await _obs.ConfigureAsync(port, Password.Password, AutoObs.IsChecked == true,
+            await _obs.ConfigureAsync(Host.Text, port, Password.Password, AutoObs.IsChecked == true,
                 [Scene1.Text, Scene2.Text, Scene3.Text, Scene4.Text]);
             if (AutoObs.IsChecked == true) await _server.StartAsync();
         }
