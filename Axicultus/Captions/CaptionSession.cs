@@ -275,7 +275,8 @@ public sealed class CaptionSession : ObservableObject, IDisposable
             _lastSlidePath = current.PptPath;
             if (Deck != null && string.Equals(Deck.Path, current.PptPath, StringComparison.OrdinalIgnoreCase))
                 MoveToSlide(current.PptSlideNumber);
-            else if (trackedDeck) _text = "";
+            // Mirroring, the console hands over what replaced the deck; blanking first would flash an empty caption.
+            else if (trackedDeck && !Mirroring) _text = "";
         }
         Emit();
     }

@@ -1132,6 +1132,8 @@ internal static class Program
         var captions = _sp.GetRequiredService<Axicultus.Wpf.Captions.CaptionSession>();
         void Call(string name, params object?[] args) =>
             typeof(Axicultus.Wpf.Captions.CaptionConsole).GetMethod(name, BindingFlags.NonPublic | BindingFlags.Instance)!.Invoke(console, args);
+        // Every change of what goes on air, to see flicker (text → empty → text) and stale text.
+        captions.PublishedChanged += p => Log("AIR", $"rev={p.Revision} text=\"{Trim(p.Text.Replace("\n", "/"), 40)}\" image={p.Image?.Length ?? 0} live={_vm.Session.Current.State}");
         string Aired() => $"following={captions.Following} mirroring={captions.Mirroring} slide={captions.CurrentSlide} text=\"{Trim(captions.PublicText.Replace("\n", "/"), 40)}\" image={(captions.Published.Image?.Length ?? 0)} obs=\"{Trim(captions.ForObs.Text.Replace("\n", "/"), 20)}\" camera={captions.HasAudienceText} status=\"{console.Status.Text}\"";
 
         // Not live: what sits in the output panel still goes out.
@@ -1184,6 +1186,7 @@ internal static class Program
         Call("SetScoreRow", 1);
         await Settle(1000);
         Log("PPT", "score only, row 2: " + Aired() + $" rows=\"{console.ScoreRowLabel.Text}\"");
+        SaveImage(captions.PublicImage as System.Windows.Media.Imaging.BitmapSource, $"slide{captions.CurrentSlide}-row2.png");
         SaveWindowPicture(console, "pptcaption-row2.png");
         await Exec("NextOutputSlideCommand", null, 4000);
         Log("PPT", "after next slide (expect top of next): " + Aired());
@@ -1216,11 +1219,51 @@ internal static class Program
         console.TextOnly.IsChecked = true;
         await Settle(1000);
         Log("PPT", "text only again: " + Aired());
+
+        // Text only while the show runs: every caption change is logged ([AIR]) to see flicker.
+        Ctx("pptcaption text-only stability");
+        foreach (var step in new[] { "PreviousOutputSlideCommand", "NextOutputSlideCommand", "NextOutputSlideCommand",
+                     "BlackScreenCommand", "RestoreOutputCommand", "ClearOutputCommand", "RestoreOutputCommand" })
+        {
+            await Exec(step, null, 2500);
+            Log("PPT", $"text only · {step}: " + Aired());
+        }
+        if (_vm.Queue.FirstOrDefault(i => LiveItemKindMatcher.IsSong(LiveItemKindMatcher.InferLegacyKind(i))) is { } nextSong)
+        {
+            _vm.SelectedItem = nextSong;
+            await Settle(1500);
+            await Exec("GoLiveCommand", null, 4000);
+            Log("PPT", "text only · a song goes live: " + Aired());
+            await Exec("NextOutputSlideCommand", null, 2000);
+            Log("PPT", "text only · next verse: " + Aired());
+            _vm.SelectedItem = deck;
+            await Settle(3000);
+            await Exec("GoLiveCommand", null, 9000);
+            Log("PPT", "text only · the deck again: " + Aired());
+        }
+
+        // Worship-list text items: a text file (사도신경 and the like), a notice, a Bible passage.
+        var textItems = new[]
+        {
+            _vm.Queue.FirstOrDefault(LiveItemKindMatcher.IsExternalTextFileItem),
+            _vm.Queue.FirstOrDefault(i => LiveItemKindMatcher.IsNotice(LiveItemKindMatcher.InferLegacyKind(i)) && !LiveItemKindMatcher.IsExternalTextFileItem(i)),
+            _vm.Queue.FirstOrDefault(i => LiveItemKindMatcher.IsBible(LiveItemKindMatcher.InferLegacyKind(i))),
+        };
+        foreach (var item in textItems.OfType<LiveQueueItem>().Distinct())
+        {
+            _vm.SelectedItem = item;
+            await Settle(1500);
+            await Exec("GoLiveCommand", null, 3000);
+            Log("PPT", $"text item [{item.Kind}] {item.Title}: outputText=\"{Trim((_vm.OutputLyricsText ?? "").Replace("\n", "/"), 30)}\" " + Aired());
+            await Exec("NextOutputSlideCommand", null, 2000);
+            Log("PPT", $"text item next page: outputText=\"{Trim((_vm.OutputLyricsText ?? "").Replace("\n", "/"), 30)}\" " + Aired());
+        }
+        SaveWindowPicture(console, "compact-screen.png");
         console.DirectMode.IsChecked = true;
         console.Draft.Text = "주님은 나의 목자시니";
         Call("PickColor", new Button { Tag = "#FFE14D" }, null);
         await Settle(1000);
-        SaveWindowPicture(console, "pptcaption-direct.png");
+        SaveWindowPicture(console, "compact-direct.png");
         Log("PPT", "direct mode: " + Aired() + $" color={captions.Published.Color}");
         Call("PickColor", new Button { Tag = "#FFFFFF" }, null);
         Ctx("pptcaption stop");

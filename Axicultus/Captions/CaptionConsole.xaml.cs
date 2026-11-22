@@ -112,9 +112,9 @@ public partial class CaptionConsole : Window
                 _editor.HideCommand.Execute(null);
                 e.Handled = true;
             }
-            else if (e.Key is Key.Up or Key.Down && ScoreOn && ScreenPanel.IsVisible && e.OriginalSource is not TextBox)
+            else if (e.Key is Key.Up or Key.Down && ScreenPanel.IsVisible && e.OriginalSource is not TextBox and not ComboBox)
             {
-                SetScoreRow(_scoreRow + (e.Key == Key.Down ? 1 : -1));
+                Step(e.Key == Key.Down ? 1 : -1);
                 e.Handled = true;
             }
         };
@@ -387,6 +387,8 @@ public partial class CaptionConsole : Window
             UpdateScore();
             return;
         }
+        // A deck just put in the output panel goes live a moment later; its (empty) panel text is not a caption.
+        if (_main.OutputItem is { ContentPath.Length: > 0 } pending && LiveItemKindMatcher.IsPowerPoint(LiveItemKindMatcher.InferLegacyKind(pending))) return;
         _captions.ShowScreenText(_main.OutputLyricsText ?? "");
         UpdateScore();
         Status.Text = _main.HasOutputLyricsText ? "송출 화면의 자막을 따라가는 중" : "송출 화면에 자막으로 보낼 글자가 없습니다.";
@@ -432,13 +434,10 @@ public partial class CaptionConsole : Window
 
     private void ScoreChanged(object sender, RoutedEventArgs e)
     {
-        if (ScoreTop == null) return; // during InitializeComponent
+        if (ScoreRowLabel == null) return; // during InitializeComponent
         _scoreRow = 0;
-        ScoreTop.IsEnabled = ScoreBottom.IsEnabled = ScoreOn;
         UpdateScore();
     }
-    private void ScoreTopClick(object sender, RoutedEventArgs e) => SetScoreRow(_scoreRow - 1);
-    private void ScoreBottomClick(object sender, RoutedEventArgs e) => SetScoreRow(_scoreRow + 1);
     private void SetScoreRow(int row) { _scoreRow = Math.Clamp(row, 0, Math.Max(0, _scoreRows - 1)); UpdateScore(); }
 
     private void SlideImageChanged(object? sender, PropertyChangedEventArgs e)
@@ -452,7 +451,9 @@ public partial class CaptionConsole : Window
     {
         if (!ScoreOn || ScreenMode.IsChecked != true || !_captions.Following || _captions.Deck is not { } deck)
         {
-            ScoreRowLabel.Text = "";
+            ScoreRowLabel.Text = _captions.Following && _captions.Deck != null ? $"PPT {_captions.CurrentSlide}/{_captions.Deck.Slides.Length}장"
+                : _captions.Mirroring ? "송출 화면의 글자" : "";
+            DeckLabel.Visibility = _captions.Following ? Visibility.Visible : Visibility.Collapsed; // the deck name only while it is followed
             _captions.SetImage(null);
             return;
         }
@@ -477,9 +478,9 @@ public partial class CaptionConsole : Window
         string? rowLyrics = withText && _captions.BoxKey == CaptionSession.RecognizedKey && !_captions.Overrides.ContainsKey(_captions.CurrentSlide)
             && _rowLyrics.TryGetValue((deck.Path, _captions.CurrentSlide), out var lyrics) && lyrics.Length == rows ? lyrics[_scoreRow] : null;
         _captions.SetImage(cropped, withText, rowLyrics);
-        ScoreTop.IsChecked = _scoreRow == 0;
-        ScoreBottom.IsChecked = _scoreRow == rows - 1;
-        ScoreRowLabel.Text = found ? $"{_scoreRow + 1}/{rows}줄 · 자동 인식" : $"{(_scoreRow == 0 ? "상단" : "하단")} · 악보 줄을 찾지 못해 반으로 나눔";
+        DeckLabel.Visibility = Visibility.Visible;
+        ScoreRowLabel.Text = $"PPT {_captions.CurrentSlide}/{deck.Slides.Length}장 · " +
+            (found ? $"{_scoreRow + 1}/{rows}줄" : $"{(_scoreRow == 0 ? "위" : "아래")} 절반 (악보 줄을 찾지 못함)");
         Status.Text = $"악보 {_captions.CurrentSlide}장 {_scoreRow + 1}/{rows}{(withText ? " + 자막" : "")}";
     }
 
@@ -744,7 +745,8 @@ public partial class CaptionConsole : Window
     private void BoxSelected(object sender, SelectionChangedEventArgs e)
     {
         RefreshCue();
-        if (!IsLoaded) return;
+        // While another slide's boxes replace the list, nothing is selected for a moment: not a choice of "no box".
+        if (!IsLoaded || Boxes.SelectedItem == null) return;
         if (_captions.Following && SelectedKey != _captions.BoxKey) _captions.Follow(_captions.CurrentSlide, SelectedKey);
         Changed();
     }

@@ -202,6 +202,7 @@ public sealed class CaptionConsoleTests
             Fill(150, top + 80, 700, 34); // lyrics under it
         }
         Fill(100, 770, 450, 18); // the verse buttons at the foot of the slide
+        Fill(0, 300, 40, 470);   // a background picture beside the lower staves
         return System.Windows.Media.Imaging.BitmapSource.Create(width, height, 96, 96, System.Windows.Media.PixelFormats.Gray8, null, pixels, width);
     }
 
@@ -219,7 +220,7 @@ public sealed class CaptionConsoleTests
             var area = rows[k].Area;
             Assert.InRange(area.Y, 0, staffTop - 20);                   // the note above the staff is in
             Assert.True(area.Y + area.Height >= staffTop + 80 + 34);    // its lyrics are in
-            Assert.InRange(area.X, 1, 100);                             // empty slide left and right is left out
+            Assert.InRange(area.X, 60, 100);                            // empty slide and the background picture are left out
             Assert.InRange(area.X + area.Width, 1000, 1199);
             Assert.Equal((staffTop, staffTop + 48), (rows[k].StaffTop, rows[k].StaffBottom));
         }
