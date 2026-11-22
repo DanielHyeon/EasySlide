@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net11.0-windows7.0</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <!-- Same name as the test assembly so the product's InternalsVisibleTo applies to this driver.
+         Not part of Axicultus.sln for that reason: two projects of one assembly name cannot build together. -->
+    <AssemblyName>Axicultus.Tests</AssemblyName>
+    <RootNamespace>Harness</RootNamespace>
+    <NoWarn>$(NoWarn);NU1701;NU1510;NU1902;CS8002</NoWarn>
+    <ApplicationManifest>..\..\Axicultus\app.manifest</ApplicationManifest>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Axicultus\Axicultus.csproj" />
+  </ItemGroup>
+</Project>
