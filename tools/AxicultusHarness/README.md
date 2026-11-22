@@ -49,6 +49,7 @@ tools\AxicultusHarness\Run-All.ps1
 | `rows` | 실제 곡의 송출 줄 높이, 2개 언어 곡의 화면 분할(처음 세 화면) |
 | `ppt2`, `ppt2hang`, `ppt3` | 실제 PowerPoint: 블랙·숨김, 강제 종료, 멈춤, 블랙 중 이동 |
 | `pptown` | 운영자가 먼저 연 PowerPoint 보호 (`Run-OwnPowerPoint.ps1`로 실행) |
+| `pptcaption` | 카메라 하단 자막 창: 송출 PPT 찾기, 송출 화면 따라가기, 악보 상단·하단, 글자색. 창 그림을 `logs\pptcaption-*.png`로 저장 |
 | `editorscan` | 모든 곡을 편집기로 열어 수정 없는 저장 결과 비교 |
 | `bodyoffset`, `splitter` | 본문 세로 위치, 왼쪽 열 너비 |
 

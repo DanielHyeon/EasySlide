@@ -32,9 +32,18 @@ internal sealed partial class CaptionConsoleViewModel(CaptionSession session) : 
         PublishInstant();
     }
 
+    // An emptied box keeps the caption on air until the next words are typed.
     private void PublishInstant()
     {
-        if (IsInstant && CanTake()) Session.Publish(DraftText);
+        if (IsInstant && CanTake() && !string.IsNullOrWhiteSpace(DraftText)) Session.Publish(DraftText);
+    }
+
+    /// <summary>Sends the box and empties it for the next line; the caption stays on air.</summary>
+    internal void TakeAndClear()
+    {
+        if (!TakeCommand.CanExecute(null)) return;
+        Take();
+        DraftText = string.Empty;
     }
 
     private bool CanTake() => !IsComposing && !IsRestoring;

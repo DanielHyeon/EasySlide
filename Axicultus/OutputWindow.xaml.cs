@@ -71,6 +71,7 @@ public partial class OutputWindow : Window, IOutputSurface
         {
             var size = e.NewSize;
             CameraCaption.MaxWidth = size.Width * .88;
+            LowerThirdImage.MaxHeight = size.Height * .42;
             CameraCaption.Margin = new Thickness(0, 0, 0, size.Height * .05);
             var fontSize = Math.Max(12, size.Height * .05);
             LowerThirdText.FontSize = fontSize;

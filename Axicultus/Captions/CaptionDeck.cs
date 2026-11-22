@@ -10,7 +10,8 @@ using System.Xml.Linq;
 namespace Axicultus.Wpf.Captions;
 
 public sealed record CaptionBox(string Key, string Name, string Text);
-public sealed record CaptionSlide(CaptionBox[] Boxes);
+/// <summary>HasPicture: the slide holds a picture (a score, lyrics as an image); null when not known (.ppt).</summary>
+public sealed record CaptionSlide(CaptionBox[] Boxes, bool? HasPicture = null);
 public sealed record CaptionDeck(string Path, CaptionSlide[] Slides)
 {
     // Resolve OPC relationships in presentation order. ZIP entry names do not encode slide order.
@@ -47,7 +48,7 @@ public sealed record CaptionDeck(string Path, CaptionSlide[] Slides)
                     $"placeholder:{(string?)placeholder.Attribute("type") ?? "obj"}:{(string?)placeholder.Attribute("idx") ?? "0"}";
                 boxes.Add(new(key, name, text));
             }
-            slides.Add(new([.. boxes]));
+            slides.Add(new([.. boxes], shapeXml.Descendants().Any(e => e.Name.LocalName == "blip")));
         }
         if (slides.Count == 0) throw new InvalidDataException("슬라이드를 찾을 수 없습니다.");
         return new(System.IO.Path.GetFullPath(path), [.. slides]);

@@ -3950,7 +3950,8 @@ public partial class MainWindow : Window
         {
             _captionConsole = new Captions.CaptionConsole(_viewModel, _services.GetRequiredService<Captions.CaptionSession>(),
                 _services.GetRequiredService<Captions.CaptionBroadcastServer>(), _services.GetRequiredService<Captions.CaptionRecoveryStore>(),
-                _services.GetRequiredService<Media.CameraOwnership>(), _services.GetRequiredService<Captions.ObsOperator>()) { Owner = this };
+                _services.GetRequiredService<Media.CameraOwnership>(), _services.GetRequiredService<Captions.ObsOperator>(),
+                _services.GetService<Rendering.IPowerPointRenderService>()) { Owner = this };
             _captionConsole.Closed += (_, _) => _captionConsole = null;
         }
         _captionConsole.Show();

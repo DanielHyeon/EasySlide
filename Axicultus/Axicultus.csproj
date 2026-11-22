@@ -95,4 +95,19 @@
     </Content>
   </ItemGroup>
 
+  <!-- OCR helper for the caption console (Captions/LyricsReader.cs): it targets the Windows 10 SDK, which this
+       project cannot reference, so it is built on its own and copied into ocr\ next to Axicultus.exe. -->
+  <PropertyGroup>
+    <OcrHelperProject>$(MSBuildThisFileDirectory)..\Axicultus.Ocr\Axicultus.Ocr.csproj</OcrHelperProject>
+    <OcrHelperOutput>$(MSBuildThisFileDirectory)..\Axicultus.Ocr\bin\$(Configuration)\net11.0-windows10.0.19041.0\</OcrHelperOutput>
+  </PropertyGroup>
+  <Target Name="BuildOcrHelper" AfterTargets="Build" Condition="'$(DesignTimeBuild)' != 'true'">
+    <MSBuild Projects="$(OcrHelperProject)" Targets="Restore" Properties="Configuration=$(Configuration);MSBuildRestoreSessionId=$([System.Guid]::NewGuid())" />
+    <MSBuild Projects="$(OcrHelperProject)" Targets="Build" Properties="Configuration=$(Configuration)" />
+    <ItemGroup>
+      <OcrHelperFile Include="$(OcrHelperOutput)**\*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(OcrHelperFile)" DestinationFiles="@(OcrHelperFile->'$(OutDir)ocr\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+  </Target>
+
 </Project>

@@ -15,4 +15,11 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Axicultus\Axicultus.csproj" />
   </ItemGroup>
+  <!-- The app copies its OCR helper into its own ocr\ folder; the driver runs the app from here, so it needs one too. -->
+  <Target Name="CopyOcrHelper" AfterTargets="Build">
+    <ItemGroup>
+      <OcrHelperFile Include="..\..\Axicultus\bin\$(Configuration)\net11.0-windows7.0\ocr\**\*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(OcrHelperFile)" DestinationFiles="@(OcrHelperFile->'$(OutDir)ocr\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+  </Target>
 </Project>

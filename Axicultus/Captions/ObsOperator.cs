@@ -13,7 +13,7 @@ namespace Axicultus.Wpf.Captions;
 
 public sealed class ObsOperator(string directory, Dispatcher ui) : IDisposable
 {
-    private sealed record Profile(int Port, bool AutoConnect, string Secret, string[] Scenes, string? Host = null);
+    private sealed record Profile(int Port, bool AutoConnect, string Secret, string[] Scenes, string? Host = null, string? Camera = null);
     public const string LocalHost = "127.0.0.1";
     private readonly Dispatcher _ui = ui;
     private readonly string _path = Path.Combine(directory, "obs.json");
@@ -24,10 +24,13 @@ public sealed class ObsOperator(string directory, Dispatcher ui) : IDisposable
     private string _savedSecret = "";
     private string[] _scenes = new string[4];
     public string Host { get; private set; } = LocalHost;
+    public string CameraSource { get; private set; } = "";
+    internal string ProfilePath => _path;
     public int Port { get; private set; } = 4455;
     public bool AutoConnect { get; private set; }
     public string[] Shortcuts => (string[])_scenes.Clone();
     public ObsConnection? Connection { get; private set; }
+    public bool HasSavedPassword => _savedSecret.Length > 0;
     public ObsStatus Status { get; private set; } = new("연결 전", "", []);
     public event Action<ObsStatus>? Changed;
 
@@ -45,6 +48,7 @@ public sealed class ObsOperator(string directory, Dispatcher ui) : IDisposable
             if (Uri.CheckHostName(Host) == UriHostNameType.Unknown) Host = LocalHost;
             Port = profile.Port;
             AutoConnect = profile.AutoConnect;
+            CameraSource = profile.Camera ?? "";
             _scenes = profile.Scenes;
             _savedSecret = profile.Secret;
             if (AutoConnect)
@@ -66,16 +70,17 @@ public sealed class ObsOperator(string directory, Dispatcher ui) : IDisposable
         return ObsConnection.ProbeProgramSceneAsync(Host, Port, password.Length == 0 ? ReadSavedPassword() : password, ct);
     }
 
-    public async Task ConfigureAsync(string host, int port, string password, bool automatic, string[] scenes)
+    public async Task ConfigureAsync(string host, int port, string password, bool automatic, string[] scenes, string camera = "")
     {
+        camera = camera.Trim();
         host = string.IsNullOrWhiteSpace(host) ? LocalHost : host.Trim();
         if (Uri.CheckHostName(host) == UriHostNameType.Unknown) throw new ArgumentException("OBS 주소를 확인하세요. 예: 127.0.0.1, 192.168.0.10, example.asuscomm.com");
         if (port is < 1 or > 65535 || scenes.Length != 4) throw new ArgumentException("포트와 씬 단축키 설정을 확인하세요.");
         var configuration = ++_configurationVersion;
-        if (automatic && password.Length == 0) password = ReadSavedPassword();
-        string secret = automatic && password.Length > 0 ? Convert.ToBase64String(ProtectedData.Protect(
+        if (password.Length == 0) password = ReadSavedPassword();
+        string secret = password.Length > 0 ? Convert.ToBase64String(ProtectedData.Protect(
             Encoding.UTF8.GetBytes(password), null, DataProtectionScope.CurrentUser)) : "";
-        var profile = new Profile(port, automatic, secret, [.. scenes.Select(s => s.Trim())], host);
+        var profile = new Profile(port, automatic, secret, [.. scenes.Select(s => s.Trim())], host, camera);
         Directory.CreateDirectory(Path.GetDirectoryName(_path)!);
         var temp = _path + "." + Guid.NewGuid().ToString("N") + ".tmp";
         try
@@ -87,6 +92,7 @@ public sealed class ObsOperator(string directory, Dispatcher ui) : IDisposable
         finally { File.Delete(temp); }
         Host = host;
         Port = port;
+        CameraSource = camera;
         AutoConnect = automatic;
         _savedSecret = secret;
         _scenes = profile.Scenes;

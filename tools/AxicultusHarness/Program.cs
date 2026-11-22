@@ -56,6 +56,42 @@ internal static class Program
 {
     private static readonly object Gate = new();
     private static StreamWriter _log = null!;
+    private static string _logDirectory = ".";
+
+    private static void SaveImage(System.Windows.Media.Imaging.BitmapSource? image, string name)
+    {
+        if (image == null) { Log("PICTURE", name + ": no image"); return; }
+        void Save()
+        {
+            var encoder = new System.Windows.Media.Imaging.PngBitmapEncoder();
+            // A frozen frame decoded elsewhere still points to its decoder; copy the pixels first.
+            encoder.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(new System.Windows.Media.Imaging.WriteableBitmap(image)));
+            using var file = File.Create(Path.Combine(_logDirectory, name));
+            encoder.Save(file);
+        }
+        if (image.Dispatcher is { } owner && !owner.CheckAccess()) owner.Invoke(Save); else Save();
+        Log("PICTURE", $"{Path.Combine(_logDirectory, name)} {image.PixelWidth}x{image.PixelHeight} owner={(image.Dispatcher == null ? "frozen" : image.Dispatcher.Thread.Name ?? image.Dispatcher.Thread.ManagedThreadId.ToString())}");
+    }
+
+    // A picture of a window next to the log, for layout checks.
+    private static void SaveWindowPicture(Window window, string name)
+    {
+        if (window.Content is not FrameworkElement root || root.ActualWidth < 1) return;
+        var dpi = System.Windows.Media.VisualTreeHelper.GetDpi(window);
+        double width = root.ActualWidth + root.Margin.Left + root.Margin.Right, height = root.ActualHeight + root.Margin.Top + root.Margin.Bottom;
+        var bitmap = new System.Windows.Media.Imaging.RenderTargetBitmap((int)(width * dpi.DpiScaleX), (int)(height * dpi.DpiScaleY),
+            dpi.PixelsPerInchX, dpi.PixelsPerInchY, System.Windows.Media.PixelFormats.Pbgra32);
+        var background = new System.Windows.Media.DrawingVisual();
+        using (var context = background.RenderOpen())
+            context.DrawRectangle(System.Windows.Media.Brushes.White, null, new Rect(0, 0, width, height));
+        bitmap.Render(background);
+        bitmap.Render(root);
+        var encoder = new System.Windows.Media.Imaging.PngBitmapEncoder();
+        encoder.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(bitmap));
+        using var file = File.Create(Path.Combine(_logDirectory, name));
+        encoder.Save(file);
+        Log("PICTURE", Path.Combine(_logDirectory, name));
+    }
     private static volatile string _ctx = "startup";
     private static readonly Dictionary<string, int> Seen = new();
     private static long _lastProgress = Environment.TickCount64;
@@ -109,6 +145,7 @@ internal static class Program
         var phases = args.Length > 3 ? args[3].Split(',') : ["windows"];
         if (args.Length > 4) _dialogPolicy = args[4];
         _log = new StreamWriter(logPath, false, new UTF8Encoding(false));
+        _logDirectory = Path.GetDirectoryName(Path.GetFullPath(logPath))!;
 
         // Only a copy made by New-IsolatedCopy.ps1 carries the marker; the real profile never does.
         if (profile.Contains(@"\AppData\Roaming\", StringComparison.OrdinalIgnoreCase) || !File.Exists(Path.Combine(profile, IsolatedMarker)))
@@ -280,6 +317,7 @@ internal static class Program
                 case "ppt2hang": await Ppt2(true); break;
                 case "ppt3": await Ppt3(); break;
                 case "pptown": await PptOwn(); break;
+                case "pptcaption": await PptCaption(); break;
                 case "chords": await Chords(); break;
                 case "wlist": await WList(); break;
                 case "bible2": await Bible2(); break;
@@ -1068,6 +1106,129 @@ internal static class Program
     }
 
     // Review-fix checks against a real show: item or slide changes under Black/Clear, Black during start, quick keys.
+    // Caption console "현재 송출 PPT": the deck sent live from the worship list must be found.
+    private static async Task PptCaption()
+    {
+        Ctx("pptcaption open output");
+        await Exec("OpenOutputCommand", null, 2000);
+        var deck = _vm.Queue.FirstOrDefault(i => LiveItemKindMatcher.IsPowerPoint(LiveItemKindMatcher.InferLegacyKind(i)));
+        if (deck == null) { Log("WARN", "no PowerPoint item in the worship list"); return; }
+        Log("PPT", $"queue item kind={deck.Kind} id={deck.Id} contentPath={deck.ContentPath ?? "<null>"}");
+        var console = new Axicultus.Wpf.Captions.CaptionConsole(_vm, _sp.GetRequiredService<Axicultus.Wpf.Captions.CaptionSession>(),
+            _sp.GetRequiredService<Axicultus.Wpf.Captions.CaptionBroadcastServer>(), _sp.GetRequiredService<Axicultus.Wpf.Captions.CaptionRecoveryStore>(),
+            _sp.GetRequiredService<Axicultus.Wpf.Media.CameraOwnership>(), _sp.GetRequiredService<Axicultus.Wpf.Captions.ObsOperator>(),
+            _sp.GetService<Axicultus.Wpf.Rendering.IPowerPointRenderService>());
+        console.Show();
+        await Settle(1500);
+        var open = typeof(Axicultus.Wpf.Captions.CaptionConsole).GetMethod("OpenLiveDeck", BindingFlags.NonPublic | BindingFlags.Instance)!;
+        async Task Probe(string what)
+        {
+            var s = _vm.Session.Current;
+            Log("PPT", $"{what}: state={s.State} kind={s.CurrentItemKind} item=\"{s.CurrentItemTitle}\" pptPath={s.PptPath ?? "<null>"} slide={s.PptSlideNumber} output={_vm.OutputItem?.Kind}:{_vm.OutputItem?.ContentPath ?? "<null>"}");
+            open.Invoke(console, [null, null]);
+            await Settle(4000);
+            Log("PPT", $"{what}: console=\"{console.Status.Text}\"");
+        }
+        var captions = _sp.GetRequiredService<Axicultus.Wpf.Captions.CaptionSession>();
+        void Call(string name, params object?[] args) =>
+            typeof(Axicultus.Wpf.Captions.CaptionConsole).GetMethod(name, BindingFlags.NonPublic | BindingFlags.Instance)!.Invoke(console, args);
+        string Aired() => $"following={captions.Following} mirroring={captions.Mirroring} slide={captions.CurrentSlide} text=\"{Trim(captions.PublicText.Replace("\n", "/"), 40)}\" image={(captions.Published.Image?.Length ?? 0)} obs=\"{Trim(captions.ForObs.Text.Replace("\n", "/"), 20)}\" camera={captions.HasAudienceText} status=\"{console.Status.Text}\"";
+
+        // Not live: what sits in the output panel still goes out.
+        console.ScreenMode.IsChecked = true;
+        await Settle(1500);
+        if (_vm.Queue.FirstOrDefault(i => LiveItemKindMatcher.IsSong(LiveItemKindMatcher.InferLegacyKind(i))) is { } song)
+        {
+            _vm.SelectedItem = song;
+            await Settle(1500);
+            await Exec("CopyPreviewToOutputCommand", null, 2000);
+            Log("PPT", $"not live, song in output ({_vm.Session.Current.State}): {Aired()} outputText=\"{Trim((_vm.OutputLyricsText ?? "").Replace("\n", "/"), 30)}\"");
+        }
+        _vm.SelectedItem = deck;
+        await Settle(4000);
+        await Exec("CopyPreviewToOutputCommand", null, 7000);
+        Log("PPT", $"not live, deck in output ({_vm.Session.Current.State}): {Aired()}");
+        await Exec("NextOutputSlideCommand", null, 4000);
+        Log("PPT", $"not live, next output slide {_vm.OutputPowerPoint.SlideNumber}: {Aired()}");
+        captions.ObsEnabled = false;
+        Log("PPT", "camera only: " + Aired());
+        captions.ObsEnabled = true;
+        captions.AudienceEnabled = false;
+        Log("PPT", "OBS only: " + Aired());
+        captions.AudienceEnabled = true;
+        console.DirectMode.IsChecked = true;
+        await Settle(500);
+
+        await Probe("before live");
+        _vm.SelectedItem = deck;
+        await Settle(4000);
+        Log("PPT", $"goLive={await Exec("GoLiveCommand", null, 9000)} running={_vm.IsShowRunning} status=\"{_vm.StatusText}\"");
+        await Probe("after GoLive");
+        await Exec("NextOutputSlideCommand", null, 3000);
+        await Probe("after next output slide");
+
+        console.ScreenMode.IsChecked = true;
+        await Settle(5000);
+        Log("PPT", "screen mode: " + Aired());
+        var ocrStarted = Environment.TickCount64;
+        while (!console.DeckLabel.Text.Contains("읽음") && Environment.TickCount64 - ocrStarted < 120_000 && !console.Status.Text.Contains("읽지 못"))
+            await Settle(1000);
+        Log("PPT", $"OCR after {(Environment.TickCount64 - ocrStarted) / 1000}s: deck=\"{console.DeckLabel.Text}\" box={captions.BoxKey} " + Aired());
+        for (int n = 1; n <= captions.Deck!.Slides.Length; n++)
+            Log("PPT", $"  slide {n} read: \"{captions.TextFor(n, Axicultus.Wpf.Captions.CaptionSession.RecognizedKey).Replace("\n", " / ")}\"");
+        console.ScoreOnly.IsChecked = true;
+        await Settle(2000);
+        Log("PPT", "score only, top: " + Aired() + $" rows=\"{console.ScoreRowLabel.Text}\"");
+        SaveWindowPicture(console, "pptcaption-row1.png");
+        SaveImage(_vm.OutputPowerPoint.PreviewImage as System.Windows.Media.Imaging.BitmapSource, $"slide{_vm.OutputPowerPoint.SlideNumber}.png");
+        Call("SetScoreRow", 1);
+        await Settle(1000);
+        Log("PPT", "score only, row 2: " + Aired() + $" rows=\"{console.ScoreRowLabel.Text}\"");
+        SaveWindowPicture(console, "pptcaption-row2.png");
+        await Exec("NextOutputSlideCommand", null, 4000);
+        Log("PPT", "after next slide (expect top of next): " + Aired());
+        SaveImage(_vm.OutputPowerPoint.PreviewImage as System.Windows.Media.Imaging.BitmapSource, $"slide{_vm.OutputPowerPoint.SlideNumber}.png");
+        for (int more = 0; more < 4; more++)
+        {
+            await Exec("NextOutputSlideCommand", null, 5000);
+            var small = _vm.OutputPowerPoint.PreviewImage as System.Windows.Media.Imaging.BitmapSource;
+            string Rows(System.Windows.Media.Imaging.BitmapSource? image) => image == null ? "-" :
+                string.Join(" ", Axicultus.Wpf.Captions.ScoreLayout.FindRows(new System.Windows.Media.Imaging.WriteableBitmap(image)).Select(r => $"[{r.Area.Y}..{r.Area.Y + r.Area.Height}]"));
+            Log("PPT", $"slide {_vm.OutputPowerPoint.SlideNumber}: console=\"{console.ScoreRowLabel.Text}\" image={captions.PublicImage?.Width:0}x{captions.PublicImage?.Height:0} small640 rows={Rows(small)}");
+        }
+        SaveImage(captions.PublicImage as System.Windows.Media.Imaging.BitmapSource, "score-row1-sent.png");
+        Call("SetScoreRow", 1);
+        await Settle(800);
+        SaveImage(captions.PublicImage as System.Windows.Media.Imaging.BitmapSource, "score-row2-sent.png");
+        Log("PPT", "row 2 of the last slide: " + Aired() + $" rows=\"{console.ScoreRowLabel.Text}\"");
+        console.SettingsToggle.IsChecked = false;
+        await Settle(1000);
+        SaveWindowPicture(console, "pptcaption-score.png");
+        console.ScoreAndText.IsChecked = true;
+        await Settle(1500);
+        Log("PPT", "score + text, row 1: " + Aired());
+        Call("SetScoreRow", 1);
+        await Settle(800);
+        Log("PPT", "score + text, row 2: " + Aired());
+        Call("SetScoreRow", 0);
+        SaveWindowPicture(console, "pptcaption-score-text.png");
+        SaveWindowPicture(_app.Windows.Cast<Window>().First(w => w.GetType().Name == "OutputWindow" && w.IsVisible), "pptcaption-output-score-text.png");
+        console.TextOnly.IsChecked = true;
+        await Settle(1000);
+        Log("PPT", "text only again: " + Aired());
+        console.DirectMode.IsChecked = true;
+        console.Draft.Text = "주님은 나의 목자시니";
+        Call("PickColor", new Button { Tag = "#FFE14D" }, null);
+        await Settle(1000);
+        SaveWindowPicture(console, "pptcaption-direct.png");
+        Log("PPT", "direct mode: " + Aired() + $" color={captions.Published.Color}");
+        Call("PickColor", new Button { Tag = "#FFFFFF" }, null);
+        Ctx("pptcaption stop");
+        console.EndSession();
+        await Exec("StopLiveCommand", null, 2500);
+        await Exec("CloseOutputCommand", null, 2500);
+    }
+
     private static async Task Ppt3()
     {
         var settings = _sp.GetRequiredService<ISettingsService>();

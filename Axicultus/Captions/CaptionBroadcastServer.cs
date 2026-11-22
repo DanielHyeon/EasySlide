@@ -31,12 +31,13 @@ public sealed class CaptionBroadcastServer : IDisposable
     {
         _port = port;
         _session = session;
-        _latest = session.Published;
+        _latest = session.ForObs;
         _session.PublishedChanged += Publish;
     }
 
-    private void Publish(PublishedCaption state)
+    private void Publish(PublishedCaption _)
     {
+        var state = _session.ForObs;
         lock (_sync)
         {
             _latest = state;
@@ -127,14 +128,20 @@ public sealed class CaptionBroadcastServer : IDisposable
     private const string Page = """
         <!doctype html><html lang="ko"><meta charset="utf-8"><style>
         html,body{margin:0;height:100%;overflow:hidden;background:transparent}
-        body{display:flex;align-items:flex-end;justify-content:center}
+        body{display:flex;flex-direction:column;align-items:center;justify-content:flex-end}
         #caption{max-width:88%;margin-bottom:5vh;border-radius:.4em;padding:.15em .55em;background:#101010cf;
           color:white;text-align:center;font:600 5vh/1.28 'Malgun Gothic',sans-serif;white-space:pre-wrap;overflow-wrap:anywhere}
-        #caption:empty{display:none}</style><div id="caption"></div><script>
-        const caption=document.getElementById('caption');
+        #caption.plain{background:transparent;text-shadow:0 0 .12em #000,0 0 .12em #000,.05em .05em .1em #000}
+        #caption:empty{display:none}
+        #score{display:none;max-width:92%;max-height:42vh;margin-bottom:4vh;border-radius:.3em}</style>
+        <img id="score" alt=""><div id="caption"></div><script>
+        const caption=document.getElementById('caption'),score=document.getElementById('score');
+        function show(c){caption.textContent=c.Text;caption.style.color=c.Color;caption.className=c.Box?'':'plain';
+          if(c.Image){score.src=c.Image;score.style.display='block';score.style.marginBottom=c.Text?'1vh':'4vh';score.style.maxHeight=c.Text?'34vh':'42vh'}
+          else{score.removeAttribute('src');score.style.display='none'}}
         function connect(){const ws=new WebSocket('ws://'+location.host+'/captions');
-          ws.onmessage=e=>{caption.textContent=JSON.parse(e.data).Text};
-          ws.onclose=()=>{caption.textContent='';setTimeout(connect,1000)};
+          ws.onmessage=e=>show(JSON.parse(e.data));
+          ws.onclose=()=>{show({Text:'',Color:'#FFFFFF',Box:true});setTimeout(connect,1000)};
           ws.onerror=()=>ws.close()}connect();</script></html>
         """;
 }

@@ -476,7 +476,7 @@
 
         </Grid>
         <Border x:Name="CameraCaption" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Bottom"
-                Margin="28,0,28,32" Padding="18,7" Background="#CC101010" CornerRadius="4" IsHitTestVisible="False">
+                Margin="28,0,28,32" Padding="18,7" Background="{Binding CaptionBackground}" CornerRadius="4" IsHitTestVisible="False">
             <Border.Style>
                 <Style TargetType="Border">
                     <Setter Property="Visibility" Value="Collapsed" />
@@ -487,8 +487,22 @@
                     </Style.Triggers>
                 </Style>
             </Border.Style>
-            <TextBlock x:Name="LowerThirdText" Text="{Binding PublicText}" TextAlignment="Center" Foreground="White"
-                       FontSize="32" FontWeight="SemiBold" TextWrapping="Wrap" />
+            <!-- Score half above, caption text below; either may be absent. -->
+            <StackPanel>
+                <Image x:Name="LowerThirdImage" Source="{Binding PublicImage}" Stretch="Uniform" />
+                <TextBlock x:Name="LowerThirdText" Text="{Binding PublicText}" TextAlignment="Center" Foreground="{Binding CaptionForeground}"
+                           FontSize="32" FontWeight="SemiBold" TextWrapping="Wrap">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HasPublicText}" Value="False">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </StackPanel>
         </Border>
 
         <!-- Blackout/Hidden 상태에서 모든 행을 덮는 검정 오버레이.

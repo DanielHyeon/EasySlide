@@ -32,6 +32,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Axicultus.Win32.Packed32", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Axicultus.ScoreEditor", "Axicultus.ScoreEditor\Axicultus.ScoreEditor.csproj", "{E6D3D0DE-7B1D-43B4-9E2F-AEA0F541BDF4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Axicultus.Ocr", "Axicultus.Ocr\Axicultus.Ocr.csproj", "{66400220-B686-480E-A5F0-C1BB47DE72EC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -186,6 +188,18 @@ Global
 		{E6D3D0DE-7B1D-43B4-9E2F-AEA0F541BDF4}.Release|x64.Build.0 = Release|Any CPU
 		{E6D3D0DE-7B1D-43B4-9E2F-AEA0F541BDF4}.Release|x86.ActiveCfg = Release|Any CPU
 		{E6D3D0DE-7B1D-43B4-9E2F-AEA0F541BDF4}.Release|x86.Build.0 = Release|Any CPU
+		{66400220-B686-480E-A5F0-C1BB47DE72EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{66400220-B686-480E-A5F0-C1BB47DE72EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{66400220-B686-480E-A5F0-C1BB47DE72EC}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{66400220-B686-480E-A5F0-C1BB47DE72EC}.Debug|x64.Build.0 = Debug|Any CPU
+		{66400220-B686-480E-A5F0-C1BB47DE72EC}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{66400220-B686-480E-A5F0-C1BB47DE72EC}.Debug|x86.Build.0 = Debug|Any CPU
+		{66400220-B686-480E-A5F0-C1BB47DE72EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{66400220-B686-480E-A5F0-C1BB47DE72EC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{66400220-B686-480E-A5F0-C1BB47DE72EC}.Release|x64.ActiveCfg = Release|Any CPU
+		{66400220-B686-480E-A5F0-C1BB47DE72EC}.Release|x64.Build.0 = Release|Any CPU
+		{66400220-B686-480E-A5F0-C1BB47DE72EC}.Release|x86.ActiveCfg = Release|Any CPU
+		{66400220-B686-480E-A5F0-C1BB47DE72EC}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

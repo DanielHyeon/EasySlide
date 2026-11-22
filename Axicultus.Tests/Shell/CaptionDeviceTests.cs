@@ -124,6 +124,8 @@ public sealed class CaptionDeviceTests
             await manual.StartAsync();
             Assert.False(manual.AutoConnect);
             Assert.Null(manual.Connection);
+            Assert.True(manual.HasSavedPassword); // kept without auto-connect; an empty field reuses it
+            Assert.DoesNotContain("operator-obs-password", await File.ReadAllTextAsync(Path.Combine(dir.FullName,"obs.json")));
         }
         finally { dir.Delete(true); }
     });
