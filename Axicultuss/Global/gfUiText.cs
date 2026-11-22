@@ -142,6 +142,14 @@ namespace Axicultus;
 					break;
 				default:
 					GetCurPosInLine(InTextBox.Text, ref CurPos);
+					// A chord line belongs to the lyric line below it: the heading goes above the two, or the save
+					// would drop the chords.
+					string text = InTextBox.Text;
+					int aboveStart = CurPos < 2 ? 0 : text.LastIndexOf('\n', CurPos - 2) + 1;
+					if (CurPos > 0 && CurPos <= text.Length && text[aboveStart..CurPos].TrimEnd().EndsWith('»'))
+					{
+						CurPos = aboveStart;
+					}
 					InTextBox.SelectionStart = CurPos;
 					trailingLineBreak = (((DataUtil.Mid(InTextBox.Text, CurPos, 1) == "\r") | (DataUtil.Mid(InTextBox.Text, CurPos, 1) == "\n")) ? "" : "\r\n");
 					break;

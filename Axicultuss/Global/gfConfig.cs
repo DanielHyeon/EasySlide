@@ -809,7 +809,9 @@ namespace Axicultus;
 			var sequenceBuilder = new StringBuilder();
 			for (int i = 0; i < InItem.SongSequence.Length; i++)
 			{
-				if (InItem.VersePresent[InItem.SongSequence[i]])
+				// A sequence saved as text by another program can hold any character, not only verse codes.
+				int verse = InItem.SongSequence[i];
+				if (verse < InItem.VersePresent.Length && InItem.VersePresent[verse])
 				{
 					sequenceBuilder.Append(DataUtil.Mid(InItem.SongSequence, i, 1));
 				}

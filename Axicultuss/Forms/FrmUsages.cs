@@ -79,6 +79,28 @@ namespace Axicultus;
 			SessionList.Items.Add(InSession);
 		}
 
+		// The shipped EsUsage.db declares REC_ID INTEGER without a key, so the rows this program adds have no REC_ID
+		// (the insert leaves it out). Such a row is known by its rowid, negated so that it cannot be taken for
+		// another row's REC_ID. The WPF app reads and deletes usage rows by the same key.
+		private const string UsageRecordKey = "COALESCE([USAGE].REC_ID, -[USAGE].rowid)";
+
+		// WORSHIP_DATE is a TEXT column: "yyyy-MM-dd" in rows converted from the old database and
+		// "yyyy-MM-dd HH:mm:ss" in rows written with a DateTime parameter. The date part is compared,
+		// so both forms are found on the first and last day of the range.
+		internal static DbCommand CreateUsageQuery(DbConnection connection, DateTime from, DateTime to)
+		{
+			return DbController.CreateCommand(connection,
+				"SELECT WORSHIP_DATE, WORSHIP_LIST, SONG_TITLE, SONG_NUMBER, ADMIN_1, ADMIN_2, SONG_ID, " + UsageRecordKey + " AS REC_ID FROM [USAGE] "
+				+ "WHERE substr(WORSHIP_DATE, 1, 10) >= @from AND substr(WORSHIP_DATE, 1, 10) <= @to ORDER BY substr(WORSHIP_DATE, 1, 10), [USAGE].REC_ID IS NULL, [USAGE].REC_ID, rowid",
+				("@from", DataUtil.ToStoredDate(from)), ("@to", DataUtil.ToStoredDate(to)));
+		}
+
+		// The reader returns the stored text, not a DateTime (a cast threw, and no row was listed).
+		internal static string UsageDateText(object storedDate)
+		{
+			return DataUtil.TryParseStoredDate(storedDate, out DateTime date) ? DataUtil.ToStoredDate(date) : DataUtil.ObjToString(storedDate);
+		}
+
 		private bool LoadExtracts()
 		{
 			if (!Gf.ValidateDB(DatabaseType.Usages))
@@ -104,9 +126,7 @@ namespace Axicultus;
 				//using (OleDbConnection daoDb = DatabaseController.GetOleDbConnection(Gf.ConnectStringUsageDB))
 
 				using DbConnection connection = DbController.GetDbConnection(Gf.ConnectStringUsageDB);
-				using var command = DbController.CreateCommand(connection,
-					"SELECT WORSHIP_DATE, WORSHIP_LIST, SONG_TITLE, SONG_NUMBER, ADMIN_1, ADMIN_2, SONG_ID, REC_ID FROM [USAGE] WHERE WORSHIP_DATE >= @from AND WORSHIP_DATE <= @to ORDER BY WORSHIP_DATE",
-					("@from", CalendarFrom.SelectionStart.Date), ("@to", CalendarTo.SelectionStart.Date));
+				using var command = CreateUsageQuery(connection, CalendarFrom.SelectionStart, CalendarTo.SelectionStart);
 				using var dataTableReader = command.ExecuteReader();
 
 				while (dataTableReader.Read())
@@ -117,8 +137,7 @@ namespace Axicultus;
 						AddItemToSessionList(worshipListName);
 						if (SelectedSession == "" || worshipListName == SelectedSession)
 						{
-							DateTime dateTime = (DateTime)dataTableReader["WORSHIP_DATE"];
-							listViewItem = UsageDetails.Items.Add(dateTime.ToString("yyyy-MM-dd"));
+							listViewItem = UsageDetails.Items.Add(UsageDateText(dataTableReader["WORSHIP_DATE"]));
 							listViewItem.SubItems.Add(worshipListName);
 							listViewItem.SubItems.Add(Gf.RemoveMusicSym(DataUtil.ObjToString(dataTableReader["SONG_TITLE"])));
 							songNumber = DataUtil.ObjToString(dataTableReader["SONG_NUMBER"]);
@@ -299,7 +318,7 @@ namespace Axicultus;
 		internal static void DeleteUsageRecords(DbConnection connection, System.Collections.Generic.IEnumerable<long> ids)
 		{
 			using var transaction = connection.BeginTransaction();
-			using var command = new DbCommand("DELETE FROM [USAGE] WHERE REC_ID=@id", connection, transaction);
+			using var command = new DbCommand("DELETE FROM [USAGE] WHERE " + UsageRecordKey + "=@id", connection, transaction);
 			var idParameter = command.Parameters.Add("@id", DbType.Int64);
 			foreach (long id in ids)
 			{

@@ -291,6 +291,10 @@ namespace Axicultus;
 			return false;
 		}
 
+		// The folder each song is in, not the folder shown in the folder box: a search lists songs of several
+		// folders, and a deleted song is recovered into its OldFolder. (From the deleted folder it stays 0.)
+		private const string OldFolderOfRefiledSong = "CASE WHEN @old = 0 THEN 0 ELSE FolderNo END";
+
 		public static HashSet<int> ReFileSelectedSongs(ListView songs, int currentFolder, int newFolder, bool updateModifiedDate, string connectionString)
 		{
 			HashSet<int> movedIds = [];
@@ -303,8 +307,8 @@ namespace Axicultus;
 				using DbConnection connection = DbController.GetDbConnection(connectionString);
 				using DbTransaction transaction = connection.BeginTransaction();
 				string sql = updateModifiedDate
-					? "UPDATE SONG SET OldFolder = @old, FolderNo = @folder, LastModified = @date WHERE SongID = @id"
-					: "UPDATE SONG SET OldFolder = @old, FolderNo = @folder WHERE SongID = @id";
+					? "UPDATE SONG SET OldFolder = " + OldFolderOfRefiledSong + ", FolderNo = @folder, LastModified = @date WHERE SongID = @id"
+					: "UPDATE SONG SET OldFolder = " + OldFolderOfRefiledSong + ", FolderNo = @folder WHERE SongID = @id";
 				using DbCommand command = new(sql, connection, transaction);
 				command.Parameters.Add("@old", DbType.Int32).Value = currentFolder;
 				var folder = command.Parameters.Add("@folder", DbType.Int32);
@@ -383,18 +387,31 @@ namespace Axicultus;
 		{
 			try
 			{
+				// array[old folder number] = new folder number. The list holds folders 1 to MAXSONGSFOLDERS - 1.
+				// (The former test "Items.Count < MAXSONGSFOLDERS" was always true, so the array stayed empty and
+				// every song was given folder 0, the deleted songs folder.)
 				int[] array = new int[MAXSONGSFOLDERS];
+				if (InFolderOrder.Items.Count != MAXSONGSFOLDERS - 1)
+				{
+					return false;
+				}
 				for (int i = 1; i < MAXSONGSFOLDERS; i++)
 				{
-					//daniel if (InFolderOrder.Items.Count >= 41) break;
-					if (InFolderOrder.Items.Count < MAXSONGSFOLDERS)
-					{
-						break;
-					}
 					array[GetFolderNumber(InFolderOrder.Items[i - 1].SubItems[0].Text)] = i;
 				}
-				string fullSearchString = "select * from SONG WHERE FolderNo > 0 ";
+				for (int i = 1; i < MAXSONGSFOLDERS; i++)
+				{
+					if (array[i] == 0)
+					{
+						return false; // a folder is not in the list (two rows with one name): nothing is renumbered
+					}
+				}
+				// Deleted songs too: they are recovered into their OldFolder, so that number follows the folder.
+				string fullSearchString = "select * from SONG";
             using DbConnection connection = new(ConnectStringMainDB);
+            // One transaction: the songs and the folders are renumbered together, or not at all.
+            connection.Open();
+            using var transaction = connection.BeginTransaction();
 
             int originalFolderNumber = 0;
             DbDataAdapter sQLiteDataAdapter;
@@ -412,9 +429,14 @@ namespace Axicultus;
                 foreach (DataRow dr in dataTable.Rows)
                 {
                     originalFolderNumber = DataUtil.ObjToInt(dr["FolderNo"]);
-                    if (originalFolderNumber != array[originalFolderNumber])
+                    if (originalFolderNumber > 0 && originalFolderNumber < MAXSONGSFOLDERS && originalFolderNumber != array[originalFolderNumber])
                     {
                         dr["FolderNo"] = array[originalFolderNumber];
+                    }
+                    int oldFolderNumber = DataUtil.ObjToInt(dr["OldFolder"]);
+                    if (oldFolderNumber > 0 && oldFolderNumber < MAXSONGSFOLDERS && oldFolderNumber != array[oldFolderNumber])
+                    {
+                        dr["OldFolder"] = array[oldFolderNumber];
                     }
                 }
                 sQLiteDataAdapter.Update(dataTable);
@@ -422,7 +444,7 @@ namespace Axicultus;
                 sQLiteDataAdapter.Dispose();
             }
 
-            fullSearchString = "select * from FOLDER  where FolderNo > 0 ORDER BY FolderNo";
+            fullSearchString = "select * from FOLDER  where FolderNo > 0 and FolderNo < " + MAXSONGSFOLDERS + " ORDER BY FolderNo";
             (sQLiteDataAdapter, dataTable) = DbController.GetDataAdapter(connection, fullSearchString);
 
             string folderName = "";
@@ -463,6 +485,7 @@ namespace Axicultus;
                 dataTable.Dispose();
                 sQLiteDataAdapter.Dispose();
             }
+            transaction.Commit();
             return true;
 			}
 			catch (Exception ex)

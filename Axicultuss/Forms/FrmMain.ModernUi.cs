@@ -133,11 +133,10 @@ public partial class FrmMain
 
     private void SizeMainColumns()
     {
-        int contentWidth = Math.Max(DefgroupBox1.Width, DefApplyDefaultsBtn.Width + panelDefTemplate.Width);
-        int tabFrame = tabControlSource.Width - tabControlSource.DisplayRectangle.Width;
-        int sourceWidth = contentWidth + tabFrame + DefPanel.Padding.Horizontal + SystemInformation.VerticalScrollBarWidth;
+        // The source (left) pane keeps the designer minimum: the operator may drag it as narrow as before.
+        // Forcing it to the Default tab's content width stopped the splitter far from the edge.
         ApplyHeaderMinimumWidths(this, splitContainerMain, splitContainer2, panel9, panel10,
-            SizeFromClientSize(Size.Empty).Width, sourceWidth);
+            SizeFromClientSize(Size.Empty).Width, sourceWidth: 0);
     }
 
     private static void ApplyHeaderMinimumWidths(Form form, SplitContainer main, SplitContainer panes,

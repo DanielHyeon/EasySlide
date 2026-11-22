@@ -864,6 +864,23 @@ public class LyricsProcessingTests
     }
 
     [Fact]
+    public void SequenceCharactersThatAreNoVerseCodesAreSkippedNotUsedAsAnIndex()
+    {
+        OnSta(() =>
+        {
+            // The WPF program stored sequences as text for a while; "후" and U+00A0 lie past the 160 verse slots.
+            const string stored = "\u0001후 ";
+            Gf.InitializeVerseHeadings();
+            var song = new SongSettings { SongSequence = stored };
+            using var lines = song.LyricsAndNotationsList;
+            song.VersePresent[1] = true;
+            Gf.ValidateSequence(ref song);
+            Assert.Equal("\u0001", song.SongSequence);
+            Assert.Equal("1,,", Gf.ConvertSequenceToTextString(stored));
+        });
+    }
+
+    [Fact]
     public void FormattingRebuildsBothRegionsAndClearsRangesOfThePreviousSong()
     {
         OnSta(() =>
@@ -890,6 +907,26 @@ public class LyricsProcessingTests
             Assert.Equal(1, song.SongVerses[1]);
             Assert.Equal(-1, song.VerseLineLoc[112, 1]);
             Assert.Equal(-1, song.Slide[1, 4]);
+        });
+    }
+
+    [Theory]
+    // Verse 1 starts with an empty line: region 2 has a second screen that follows the only region 1 screen.
+    [InlineData("[chorus]\nc\n[1]\n\nEng a\n[region 2]\nKor a\n\nKor b", 3)]
+    // Verse 2 has nothing in region 1 but an empty line: its region 2 is a slide of its own.
+    [InlineData("[1]\nx\n[2]\n\n[region 2]\nKor", 2)]
+    public void AnEmptyLineAtTheStartOfAVerseDoesNotHideItsSecondRegion(string lyrics, int slides)
+    {
+        OnSta(() =>
+        {
+            Gf.InitializeVerseHeadings();
+            var song = new SongSettings { SplitScreens = false, CompleteLyrics = lyrics };
+            using var lines = song.LyricsAndNotationsList;
+            Gf.FormatDisplayLyrics(ref song, PrepareSlides: true, UseStoredSequence: false);
+
+            Assert.Equal(slides, song.TotalSlides);
+            Assert.Equal("Kor" + (slides == 3 ? " b" : ""), lines.Items[song.Slide[slides, 3]].SubItems[2].Text);
+            Assert.Equal(-1, song.Slide[slides, 1]);
         });
     }
 

@@ -1160,7 +1160,7 @@ namespace Axicultus;
 			Gf.EditItem1.Category = "";
 			Gf.EditItem1.Timing = SongTiming.Text;
 			Gf.EditItem1.MusicKey = SongKey.Text;
-			Gf.EditItem1.Capo = SongCapo.SelectedIndex - 1;
+			Gf.EditItem1.Capo = StoredCapo(SongCapo);
 			Gf.EditItem1.Show_LicAdminInfo1 = LicAdminInfo1.Text;
 			Gf.EditItem1.Show_LicAdminInfo2 = LicAdminInfo2.Text;
 			Gf.EditItem1.Book_Reference = BookReference.Text;
@@ -1214,7 +1214,7 @@ namespace Axicultus;
 				Gf.EditItem1.Show_LicAdminInfo1 = Gf.EditItem1.In_LicAdminInfo1;
 				Gf.EditItem1.Show_LicAdminInfo2 = Gf.EditItem1.In_LicAdminInfo2;
 				SongTitle.Text = Gf.EditItem1.Title;
-				SongFolder.Text = Gf.Folders[Gf.EditItem1.FolderNo].Name;
+				SelectSongFolder(SongFolder, Gf.EditItem1.FolderNo, Gf.Folders[Gf.EditItem1.FolderNo].Name);
 				Title2IgnoreChange = true;
 				SongTitle2.Text = Gf.EditItem1.Title2;
 				SongNumber.Text = Gf.EditItem1.SongNumber.ToString();
@@ -1288,6 +1288,21 @@ namespace Axicultus;
 				tbLyrics1.SelectionLength = 0;
 				ClearStack(0);
 			}
+		}
+
+		// -1 is "no capo". A new song is reset before the list is filled and has nothing selected (index -1);
+		// it was stored as -2.
+		internal static int StoredCapo(ComboBox capo) => Math.Max(capo.SelectedIndex, 0) - 1;
+
+		// The list only holds folders in use and ignores a name it does not have: a song from any other folder
+		// was shown with the first folder, and saving moved it there.
+		internal static void SelectSongFolder(ComboBox folders, int folderNo, string folderName)
+		{
+			if (folderNo > 0 && !string.IsNullOrEmpty(folderName) && !folders.Items.Contains(folderName))
+			{
+				folders.Items.Add(folderName);
+			}
+			folders.Text = folderName;
 		}
 
 		private void SongTitle2_Change()
@@ -1498,7 +1513,7 @@ namespace Axicultus;
 			verseIndex = 0;
 			int missingVerse = -1;
 			int firstVerseIndex = -1;
-			int firstVersePos = 30000;
+			int firstVersePos = int.MaxValue;
 			int foundIndicator = 0;
 			while (verseIndex < 160 && keepScanning)
 			{
@@ -1507,7 +1522,9 @@ namespace Axicultus;
 					int symbolPos = tbWorkspace.Text.IndexOf(Gf.VerseSymbol[verseIndex]);
 					if (symbolPos >= 0)
 					{
-						if (symbolPos < firstVersePos)
+						// The screen break (151) is no heading: an empty first line hid the lyrics above the first heading,
+						// and the pane was stored as text this check refuses the next time.
+						if (symbolPos < firstVersePos && verseIndex <= 112)
 						{
 							firstVersePos = symbolPos;
 							firstVerseIndex = verseIndex;
@@ -1581,7 +1598,7 @@ namespace Axicultus;
 				ShowMessage(Region, "Verse " + missingVerse + " indicator is missing.");
 				return false;
 			}
-			if (foundIndicator > 0 && firstVersePos != 0)
+			if (foundIndicator > 0 && tbWorkspace.Text.AsSpan(0, firstVersePos).Trim('\n').Length > 0)
 			{
 				if (firstVerseIndex is > 0 and < 13)
 				{

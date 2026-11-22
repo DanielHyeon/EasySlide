@@ -2254,15 +2254,7 @@ public partial class FrmMain : Form
             return;
         }
         bool showLyrics = true;
-        int clampedSlide = StartingSlide;
-        if (clampedSlide < 1)
-        {
-            clampedSlide = 1;
-        }
-        else if (InItem.TotalSlides > 0 && clampedSlide > InItem.TotalSlides)
-        {
-            clampedSlide = InItem.TotalSlides;
-        }
+        int clampedSlide = SlideToOpen(StartingSlide, InItem.TotalSlides);
         DisplaySettingsLabel(InItem);
         if (StartingSlide > 0)
         {

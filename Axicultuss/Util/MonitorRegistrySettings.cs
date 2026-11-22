@@ -60,6 +60,24 @@ internal static class MonitorRegistrySettings
         return size is >= 8 and <= 40 ? size : 20;
     }
 
+    // Seconds between rotated items; a stored value outside 0..999 is read as 0.
+    internal static int ReadRotateGap(RegistrySettings settings)
+    {
+        settings.TryReadValue(LegacySection, "RotateGap", out object stored);
+        int gap = stored != null ? DataUtil.ObjToInt(stored) : 0;
+        return gap is >= 0 and <= 999 ? gap : 0;
+    }
+
+    // A stored value outside the known gap screens means "None", which is what the options dialog shows for it.
+    internal static Axicultus.Module.GapType ReadGapItemOption(RegistrySettings settings)
+    {
+        settings.TryReadValue(LegacySection, RegUtil.Reg_GapItemOption, out object stored);
+        int value = stored != null ? DataUtil.ObjToInt(stored) : 0;
+        return value is >= (int)Axicultus.Module.GapType.None and <= (int)Axicultus.Module.GapType.User
+            ? (Axicultus.Module.GapType)value
+            : Axicultus.Module.GapType.None;
+    }
+
     internal static void SaveNotationsFontSize(RegistrySettings settings, int size) =>
         settings.TryWriteValue(MonitorSection, RegUtil.Reg_LMNotationsFontSize, size, RegistryValueKind.DWord);
 

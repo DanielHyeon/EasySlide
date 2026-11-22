@@ -1229,7 +1229,7 @@ namespace Axicultus;
 			Gf.InfoItem1.Category = "";
 			Gf.InfoItem1.Timing = SongTiming.Text;
 			Gf.InfoItem1.MusicKey = SongKey.Text;
-			Gf.InfoItem1.Capo = SongCapo.SelectedIndex - 1;
+			Gf.InfoItem1.Capo = FrmEditItem.StoredCapo(SongCapo); // nothing selected is "no capo" (-1), not -2
 			Gf.InfoItem1.Show_LicAdminInfo1 = LicAdminInfo1.Text;
 			Gf.InfoItem1.Show_LicAdminInfo2 = LicAdminInfo2.Text;
 			Gf.InfoItem1.Book_Reference = BookReference.Text;

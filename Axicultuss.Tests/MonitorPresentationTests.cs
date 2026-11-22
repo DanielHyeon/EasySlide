@@ -10,6 +10,11 @@ using Axicultus.Util;
 using OfficeLib;
 using Xunit;
 
+// The program has one UI thread and shares GDI+ objects on it (the ModernIcons bitmap cache, "UI thread only").
+// Test classes that build forms on their own STA threads at the same time put one cached bitmap on two threads:
+// "Object is currently in use elsewhere". So the classes of this assembly run one after another.
+[assembly: CollectionBehavior(DisableTestParallelization = true)]
+
 namespace Axicultus.Tests;
 
 public class MonitorPresentationTests

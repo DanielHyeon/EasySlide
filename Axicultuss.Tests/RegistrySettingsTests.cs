@@ -118,6 +118,31 @@ public class RegistrySettingsTests
     }
 
     [Theory]
+    [InlineData(45, 45)]
+    [InlineData(999, 999)]
+    [InlineData(1000, 0)]
+    [InlineData(-3, 0)]
+    public void RotateGapOutsideItsRangeIsReadAsZero(int stored, int expected)
+    {
+        var store = new MemoryStore();
+        store.Values[("options", "RotateGap")] = stored;
+
+        Assert.Equal(expected, MonitorRegistrySettings.ReadRotateGap(new RegistrySettings(store, _ => { })));
+    }
+
+    [Theory]
+    [InlineData(2, Axicultus.Module.GapType.Default)]
+    [InlineData(9, Axicultus.Module.GapType.None)]
+    [InlineData(-1, Axicultus.Module.GapType.None)]
+    public void UnknownGapScreenValueIsReadAsNone(int stored, Axicultus.Module.GapType expected)
+    {
+        var store = new MemoryStore();
+        store.Values[("options", "GapItemOption")] = stored;
+
+        Assert.Equal(expected, MonitorRegistrySettings.ReadGapItemOption(new RegistrySettings(store, _ => { })));
+    }
+
+    [Theory]
     [InlineData(null)]
     [InlineData("")]
     public void MissingPowerPointCanStillBeReported(string registeredPath)

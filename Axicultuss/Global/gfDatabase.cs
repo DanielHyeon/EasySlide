@@ -503,11 +503,8 @@ namespace Axicultus;
 			{
 				PP_MaxFiles = 100;
 			}
-			ShowRotateGap = DataUtil.ObjToInt(RegUtil.GetRegValue("options", "RotateGap", 0));
-			if ((ShowRotateGap < 0) & (ShowRotateGap > 999))
-			{
-				ShowRotateGap = 0;
-			}
+			// The old check used "&", which could never be true, so an out-of-range stored value was never repaired.
+			ShowRotateGap = MonitorRegistrySettings.ReadRotateGap(RegUtil.Settings);
 			UsePowerpointTab = ((DataUtil.ObjToInt(RegUtil.GetRegValue("options", "UsePowerpointTab", 0)) > 0) ? true : false);
 			NoPowerpointPanelOverlay = ((DataUtil.ObjToInt(RegUtil.GetRegValue("options", "NoPowerpointPanelOverlay", 0)) > 0) ? true : false);
 			UseMediaTab = ((DataUtil.ObjToInt(RegUtil.GetRegValue("options", "UseMediaTab", 0)) > 0) ? true : false);
@@ -518,11 +515,7 @@ namespace Axicultus;
 			UseLargestFontSize = ((DataUtil.ObjToInt(RegUtil.GetRegValue("options", "UseLargestFontSize", 0)) > 0) ? true : false);
 			AdvanceNextItem = ((DataUtil.ObjToInt(RegUtil.GetRegValue("options", "AdvanceNextItem", 0)) > 0) ? true : false);
 			LineBetweenRegions = ((DataUtil.ObjToInt(RegUtil.GetRegValue("options", "LineBetweenRegions", 1)) > 0) ? true : false);
-			GapItemOption = (GapType)DataUtil.ObjToInt(RegUtil.GetRegValue("options", "GapItemOption", 0));
-			if ((GapItemOption < GapType.None) & (GapItemOption > GapType.User))
-			{
-				GapItemOption = GapType.None;
-			}
+			GapItemOption = MonitorRegistrySettings.ReadGapItemOption(RegUtil.Settings);
 			AltGapItemOption = GapType.None;
 			GapItemLogoFile = RegUtil.GetRegValue("options", "GapItemLogoFile", "");
 			GapItemUseFade = ((DataUtil.ObjToInt(RegUtil.GetRegValue("options", "GapItemUseFade", 1)) > 0) ? true : false);

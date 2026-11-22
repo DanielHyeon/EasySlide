@@ -515,7 +515,9 @@ namespace Axicultus;
 			{
 				showNotations = ((showNotations <= 0) ? 1 : 0);
 			}
-			if (showNotations == 1)
+			// The chords the show displays (shown or not, transposed or not) belong to a list with slides. A list
+			// without slides is merged and saved (Merge_Songs, FrmSmartMerge) and keeps the chords of the item.
+			if (PrepareSlides && showNotations == 1)
 			{
 				if (transposeOffset > 0)
 				{
@@ -1356,14 +1358,26 @@ namespace Axicultus;
 				bool lastSubScreen = false;
 				if (verseIndex < InItem.VerseLineLoc.GetLength(0) && InItem.VersePresent[verseIndex])
 				{
-					int verseScreenCount = GetVerseScreenCount(LyricsLists, InItem.VerseLineLoc[verseIndex, 1], InItem.VerseLineLoc[verseIndex, 2]);
+					// Region 1 starts at its first line of text. An empty line before it is no screen: counted as one,
+					// the last screen was never reached and the screens region 2 has left over were not shown, and a
+					// verse with nothing else in region 1 lost its region 2 altogether.
+					int region1Start = InItem.VerseLineLoc[verseIndex, 1];
+					while (region1Start >= 0 && region1Start <= InItem.VerseLineLoc[verseIndex, 2] && LyricsLists.Items[region1Start].SubItems[2].Text == "")
+					{
+						region1Start++;
+					}
+					if (region1Start > InItem.VerseLineLoc[verseIndex, 2])
+					{
+						region1Start = -1;
+					}
+					int verseScreenCount = GetVerseScreenCount(LyricsLists, region1Start, InItem.VerseLineLoc[verseIndex, 2]);
 					if (verseScreenCount > 0)
 					{
 						try
 						{
 							for (int j = 1; j <= verseScreenCount; j++)
 							{
-								int verseScreenLoc = GetVerseScreenLoc(LyricsLists, InItem.VerseLineLoc[verseIndex, 1], InItem.VerseLineLoc[verseIndex, 2], j);
+								int verseScreenLoc = GetVerseScreenLoc(LyricsLists, region1Start, InItem.VerseLineLoc[verseIndex, 2], j);
 								if (verseScreenLoc >= 0)
 								{
 									AppendLyricSlide(ref Slide, ref CurSongMaxSlides);
@@ -2423,39 +2437,71 @@ namespace Axicultus;
 			ListViewItem listViewItem = new();
 			TempItem1.LyricsAndNotationsList.Items.Clear();
 			bool keepFirstHeading = false;
-			for (int i = 0; i < InItem1.SongSequence.Length; i++)
+			// The verses in the order of the first item, then those only the second item has, in its order. A heading
+			// of the first item places its verse even without lines under it: a song with one language in region 1
+			// and two in region 2 keeps some verses in the second item only, and they used to move behind the others.
+			// An item without lyrics still lists one empty line as verse 1; that is not a verse of the song.
+			string verses = "";
+			if (InItem1.CompleteLyrics != "")
 			{
-				int verseIndex = InItem1.SongSequence[i];
-				if (i == 0 && (InItem1.CompleteLyrics.Contains(VerseSymbol[verseIndex], StringComparison.CurrentCulture) || InItem2.CompleteLyrics.Contains(VerseSymbol[verseIndex], StringComparison.CurrentCulture)))
+				int verse = 1;
+				foreach (string line in InItem1.CompleteLyrics.Split('\n'))
+				{
+					if (verseNumbersByHeading.TryGetValue(line, out int heading))
+					{
+						if (heading == REGION2)
+						{
+							continue;
+						}
+						verse = heading;
+					}
+					if (!verses.Contains((char)verse))
+					{
+						verses += (char)verse;
+					}
+				}
+			}
+			if (InItem2.CompleteLyrics != "")
+			{
+				foreach (char verse in InItem2.SongSequence)
+				{
+					if (!verses.Contains(verse))
+					{
+						verses += verse;
+					}
+				}
+			}
+			for (int i = 0; i < verses.Length; i++)
+			{
+				int verseIndex = verses[i];
+				// Nothing but empty lines in the second item gets no region marker: a single marker right above a
+				// heading reads back as the form that keeps all of region 2 after one marker (IsNewR2Format).
+				bool inSecondItem = InItem2.CompleteLyrics != "" && InItem2.VersePresent[verseIndex] && InItem2.VerseLineLoc[verseIndex, 1] >= 0;
+				if (!InItem1.VersePresent[verseIndex] && !inSecondItem)
+				{
+					continue; // A heading without lines in either item is not stored.
+				}
+				// The heading of the first verse is stored when the lyrics have it as a line of their own. A symbol inside
+				// a line ("[1]  ", "[1] text") is lyric text: a heading added for it made the saved lyrics hold the symbol
+				// twice, which the editor refuses the next time.
+				string headingLine = "\n" + VerseSymbol[verseIndex] + "\n";
+				if (TempItem1.LyricsAndNotationsList.Items.Count == 0 && (("\n" + InItem1.CompleteLyrics + "\n").Contains(headingLine, StringComparison.Ordinal) || ("\n" + InItem2.CompleteLyrics + "\n").Contains(headingLine, StringComparison.Ordinal)))
 				{
 					keepFirstHeading = true;
 				}
 				listViewItem = TempItem1.LyricsAndNotationsList.Items.Add(VerseSymbol[verseIndex]);
 				listViewItem.SubItems.Add("");
-				for (int j = InItem1.VerseLineLoc[verseIndex, 1]; j >= 0 && j <= InItem1.VerseLineLoc[verseIndex, 2]; j++)
+				// VerseLineLoc only reaches as far as the highest verse of its own item.
+				if (InItem1.VersePresent[verseIndex] && InItem1.CompleteLyrics != "")
 				{
-					listViewItem = TempItem1.LyricsAndNotationsList.Items.Add(InItem1.LyricsAndNotationsList.Items[j].SubItems[2].Text);
-					listViewItem.SubItems.Add(InItem1.LyricsAndNotationsList.Items[j].SubItems[3].Text);
-				}
-				if (InItem2.VersePresent[verseIndex] && InItem2.CompleteLyrics != "")
-				{
-					listViewItem = TempItem1.LyricsAndNotationsList.Items.Add(VerseSymbol[150]);
-					listViewItem.SubItems.Add("");
-					for (int k = InItem2.VerseLineLoc[verseIndex, 1]; k >= 0 && k <= InItem2.VerseLineLoc[verseIndex, 2]; k++)
+					for (int j = InItem1.VerseLineLoc[verseIndex, 1]; j >= 0 && j <= InItem1.VerseLineLoc[verseIndex, 2]; j++)
 					{
-						listViewItem = TempItem1.LyricsAndNotationsList.Items.Add(InItem2.LyricsAndNotationsList.Items[k].SubItems[2].Text);
-						listViewItem.SubItems.Add(InItem2.LyricsAndNotationsList.Items[k].SubItems[3].Text);
+						listViewItem = TempItem1.LyricsAndNotationsList.Items.Add(InItem1.LyricsAndNotationsList.Items[j].SubItems[2].Text);
+						listViewItem.SubItems.Add(InItem1.LyricsAndNotationsList.Items[j].SubItems[3].Text);
 					}
-					InItem2.VersePresent[verseIndex] = false;
 				}
-			}
-			for (int i = 0; i <= 112; i++)
-			{
-				if (InItem2.VersePresent[i] && InItem2.CompleteLyrics != "")
+				if (inSecondItem)
 				{
-					int verseIndex = i;
-					listViewItem = TempItem1.LyricsAndNotationsList.Items.Add(VerseSymbol[verseIndex]);
-					listViewItem.SubItems.Add("");
 					listViewItem = TempItem1.LyricsAndNotationsList.Items.Add(VerseSymbol[150]);
 					listViewItem.SubItems.Add("");
 					for (int k = InItem2.VerseLineLoc[verseIndex, 1]; k >= 0 && k <= InItem2.VerseLineLoc[verseIndex, 2]; k++)
@@ -3321,7 +3367,8 @@ namespace Axicultus;
 				for (int i = 0; i < InSequence.Length; i++)
 				{
 					int verseCode = InSequence[i];
-					sequenceText = ((verseCode is <= 0 or >= 13) ? (sequenceText + SequenceSymbol[verseCode]) : (sequenceText + verseCode));
+					// A character that is no verse code (text saved by another program) has no symbol.
+					sequenceText = (verseCode is > 0 and < 13) ? (sequenceText + verseCode) : verseCode < SequenceSymbol.Length ? (sequenceText + SequenceSymbol[verseCode]) : sequenceText;
 					if (i < InSequence.Length - 1)
 					{
 						sequenceText += ",";

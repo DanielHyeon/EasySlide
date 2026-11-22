@@ -35,6 +35,23 @@ public class CopyMoveTests
     }
 
     [Fact]
+    public void MoveAndDeleteRecordEachSongsOwnFolderNotTheFolderBoxOne()
+    {
+        // A search lists songs of several folders; the folder box (currentFolder) names only one of them.
+        WithTempFolder(dir =>
+        {
+            using var db = CreateDatabase(dir);
+            Execute(db, "UPDATE SONG SET FolderNo=5 WHERE SongID=2");
+            using var list = CreateList("D1", "D2");
+
+            Gf.ReFileSelectedSongs(list, 1, 0, true, db.ConnectionString);
+
+            Assert.Equal("1|0", Scalar(db, "SELECT OldFolder || '|' || FolderNo FROM SONG WHERE SongID=1"));
+            Assert.Equal("5|0", Scalar(db, "SELECT OldFolder || '|' || FolderNo FROM SONG WHERE SongID=2"));
+        });
+    }
+
+    [Fact]
     public void RolledBackMoveKeepsBothSelectedRowsAndReturnsNoIds()
     {
         WithTempFolder(dir =>

@@ -202,6 +202,65 @@ public sealed class DatabaseQueryTests
     }
 
     [Fact]
+    public void FolderRearrangeMovesSongsAndTheOldFolderOfDeletedSongsWithTheirFolders()
+    {
+        MonitorPresentationTests.RunOnSta(() =>
+        {
+            string original = Gf.ConnectStringMainDB;
+            string[] names = Gf.Folders.Select(folder => folder.Name).ToArray();
+            string path = Path.GetTempFileName();
+            try
+            {
+                Gf.ConnectStringMainDB = DbController.ConnectionStringForFile(path);
+                using (var connection = DbController.GetDbConnection(Gf.ConnectStringMainDB))
+                using (var command = connection.CreateCommand())
+                {
+                    command.CommandText = """
+                        CREATE TABLE FOLDER (FolderNo INTEGER PRIMARY KEY, Name TEXT);
+                        CREATE TABLE SONG (SongID INTEGER PRIMARY KEY, FolderNo INTEGER, OldFolder INTEGER, Title_1 TEXT);
+                        INSERT INTO FOLDER VALUES (0, 'Recycle Folder');
+                        INSERT INTO SONG VALUES (1,1,0,'in one'), (2,2,0,'in two'), (3,0,1,'deleted from one'), (4,0,2,'deleted from two'), (5,3,0,'in three');
+                        """;
+                    command.ExecuteNonQuery();
+                    for (int i = 1; i < Gf.MAXSONGSFOLDERS; i++)
+                    {
+                        Gf.Folders[i].Name = "Test folder " + i;
+                        command.CommandText = $"INSERT INTO FOLDER VALUES ({i}, 'Test folder {i}')";
+                        command.ExecuteNonQuery();
+                    }
+                }
+                ResetFolderNameIndex();
+                // The operator moves folder 1 one place down: the list reads 2, 1, 3, 4, ...
+                using var order = new System.Windows.Forms.ListView();
+                foreach (int folder in new[] { 2, 1 }.Concat(Enumerable.Range(3, Gf.MAXSONGSFOLDERS - 3)))
+                    order.Items.Add("Test folder " + folder);
+
+                bool done = Gf.SwapFolderNumbers(order);
+
+                using var check = DbController.GetDbConnection(Gf.ConnectStringMainDB);
+                using var read = check.CreateCommand();
+                read.CommandText = "SELECT group_concat(SongID || ':' || FolderNo || ':' || OldFolder, ' ') FROM (SELECT * FROM SONG ORDER BY SongID)";
+                Assert.Equal("1:2:0 2:1:0 3:0:2 4:0:1 5:3:0", read.ExecuteScalar());
+                read.CommandText = "SELECT group_concat(FolderNo || '=' || Name, ';') FROM (SELECT * FROM FOLDER WHERE FolderNo BETWEEN 1 AND 3 ORDER BY FolderNo)";
+                Assert.Equal("1=Test folder 2;2=Test folder 1;3=Test folder 3", read.ExecuteScalar());
+                Assert.True(done);
+            }
+            finally
+            {
+                Gf.ConnectStringMainDB = original;
+                for (int i = 0; i < names.Length; i++) Gf.Folders[i].Name = names[i];
+                ResetFolderNameIndex();
+                System.Data.SQLite.SQLiteConnection.ClearAllPools();
+                try { File.Delete(path); } catch (IOException) { } // a failed swap leaves its data adapters open
+            }
+        });
+    }
+
+    // Gf.GetFolderNumber looks names up in an index it builds from Gf.Folders the first time it is asked.
+    private static void ResetFolderNameIndex()
+        => typeof(Gf).GetField("FolderNameIndex", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!.SetValue(null, null);
+
+    [Fact]
     public void ExportResetRecognizesTheSameDatabaseDespiteDifferentConnectionOptions()
     {
         string original = Gf.ConnectStringMainDB;
@@ -243,5 +302,63 @@ public sealed class DatabaseQueryTests
         FrmUsages.DeleteUsageRecords(connection, [1, 3]);
         command.CommandText = "SELECT REC_ID FROM USAGE";
         Assert.Equal(2L, command.ExecuteScalar());
+    }
+
+    [Fact]
+    public void UsageRowsThisProgramAddsHaveNoRecordIdAndAreStillListedAndDeletedOneByOne()
+    {
+        // The shipped EsUsage.db: REC_ID INTEGER without a key. FrmMain adds usage rows without REC_ID.
+        using var connection = OpenSongs();
+        using var command = connection.CreateCommand();
+        command.CommandText = """
+            CREATE TABLE USAGE (REC_ID INTEGER, WORSHIP_DATE TEXT, WORSHIP_LIST TEXT, SONG_TITLE TEXT,
+                SONG_NUMBER INTEGER, SONG_ID INTEGER, ADMIN_1 TEXT, ADMIN_2 TEXT);
+            INSERT INTO USAGE (REC_ID, WORSHIP_DATE, SONG_TITLE) VALUES (10, '2026-01-24', 'converted'), (2, '2026-01-24', 'has a rowid as REC_ID');
+            INSERT INTO USAGE (WORSHIP_DATE, SONG_TITLE) VALUES ('2026-01-24 00:00:00', 'added'), ('2026-01-24 00:00:00', 'added too');
+            """;
+        command.ExecuteNonQuery();
+        var day = new DateTime(2026, 1, 24);
+        System.Collections.Generic.Dictionary<string, long> List()
+        {
+            using var query = FrmUsages.CreateUsageQuery(connection, day, day);
+            using var rows = query.ExecuteReader();
+            var listed = new System.Collections.Generic.Dictionary<string, long>();
+            while (rows.Read()) listed.Add((string)rows["SONG_TITLE"], long.Parse(Convert.ToString(rows["REC_ID"])));
+            return listed;
+        }
+
+        var before = List();
+        Assert.Equal(4, before.Values.Distinct().Count()); // the form parses this value and deletes by it
+        FrmUsages.DeleteUsageRecords(connection, [before["added"]]);
+
+        Assert.Equal(["added too", "converted", "has a rowid as REC_ID"], List().Keys.Order().ToArray());
+    }
+
+    [Fact]
+    public void UsageListFindsBothStoredDateFormsOnTheFirstAndLastDay()
+    {
+        // As in the shipped EsUsage.db: WORSHIP_DATE is TEXT, "yyyy-MM-dd" in converted rows and
+        // "yyyy-MM-dd 00:00:00" in rows written with a DateTime parameter.
+        using var connection = OpenSongs();
+        using var command = connection.CreateCommand();
+        command.CommandText = """
+            CREATE TABLE USAGE (REC_ID INTEGER PRIMARY KEY, WORSHIP_DATE TEXT, WORSHIP_LIST TEXT, SONG_TITLE TEXT,
+                SONG_NUMBER INTEGER, SONG_ID INTEGER, ADMIN_1 TEXT, ADMIN_2 TEXT);
+            INSERT INTO USAGE (WORSHIP_DATE, SONG_TITLE) VALUES ('2026-01-23', 'before'), ('2026-01-24', 'converted'),
+                ('2026-01-24 00:00:00', 'written'), ('2026-01-25 00:00:00', 'after');
+            """;
+        command.ExecuteNonQuery();
+        var day = new DateTime(2026, 1, 24, 15, 0, 0);
+
+        using var query = FrmUsages.CreateUsageQuery(connection, day, day);
+        using var rows = query.ExecuteReader();
+        var listed = new System.Collections.Generic.List<string>();
+        while (rows.Read())
+        {
+            Assert.IsType<string>(rows["WORSHIP_DATE"]); // not a DateTime: the former cast listed no row at all
+            listed.Add(FrmUsages.UsageDateText(rows["WORSHIP_DATE"]) + " " + rows["SONG_TITLE"]);
+        }
+
+        Assert.Equal(["2026-01-24 converted", "2026-01-24 written"], listed);
     }
 }

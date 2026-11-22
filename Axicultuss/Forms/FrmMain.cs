@@ -2765,6 +2765,15 @@ public partial class FrmMain : Form
         return RemoveWorshipListSong(UpdateCurItemNo: true);
     }
 
+    /// <summary>
+    /// True when one of the removed worship-list rows (0-based) is the row on output. outputItemNo is
+    /// OutputItem.CurItemNo: 1-based, 0 when the output item does not come from the worship list. Comparing
+    /// with only the lowest removed row missed the output row in a multi-row removal, and matched an output
+    /// item from outside the list (0) when no row was selected, which then sent the preview to output.
+    /// </summary>
+    internal static bool RemovedRowsIncludeOutput(int outputItemNo, IEnumerable<int> removedRows)
+        => outputItemNo > 0 && removedRows.Contains(outputItemNo - 1);
+
     private bool RemoveWorshipListSong(bool UpdateCurItemNo)
     {
         WriteDebugLog($"RemoveWorshipListSong() called - Current count: {WorshipListItems.Items.Count}");
@@ -2776,12 +2785,14 @@ public partial class FrmMain : Form
             return false;
         }
         int removedCount = 0;
+        var removedRows = new List<int>();
         for (int i = WorshipListItems.Items.Count - 1; i >= 0; i--)
         {
             if (WorshipListItems.Items[i].Selected)
             {
                 WorshipListItems.Items[i].Remove();
                 lastRemovedIndex = i;
+                removedRows.Add(i);
                 removedCount++;
             }
         }
@@ -2790,7 +2801,7 @@ public partial class FrmMain : Form
         {
             return false;
         }
-        if (Gf.OutputItem.CurItemNo == lastRemovedIndex + 1)
+        if (RemovedRowsIncludeOutput(Gf.OutputItem.CurItemNo, removedRows))
         {
             removedOutputItem = true;
         }
@@ -3376,13 +3387,37 @@ public partial class FrmMain : Form
         }
     }
 
+    /// <summary>
+    /// Asks for the last slide of an item whose slide count is not known before it is loaded, as
+    /// FrmLaunchShow.MoveToSlideLiveItem does; the loaded item brings it into its own range (SlideToOpen).
+    /// </summary>
+    internal const int LastSlide = 30000;
+
+    /// <summary>
+    /// The slide an item with totalSlides slides shows when it is opened at startingSlide. LastSlide gives the
+    /// last slide, and slide 1 for an item without slides: the slide number is never left at LastSlide.
+    /// </summary>
+    internal static int SlideToOpen(int startingSlide, int totalSlides)
+    {
+        if (startingSlide < 1)
+        {
+            return 1;
+        }
+        if (totalSlides > 0)
+        {
+            return Math.Min(startingSlide, totalSlides);
+        }
+        return startingSlide >= LastSlide ? 1 : startingSlide;
+    }
+
     private void MoveToSlideOutputItem(SongSettings InItem, KeyDirection InDirection, bool NotifyLiveShow)
     {
         if (Gf.AdvanceNextItem)
         {
             if (InDirection == KeyDirection.PrevOne)
             {
-                int lastSlideNo = (InItem.TotalSlides > 0) ? InItem.TotalSlides : 1;
+                // The slide count of the item being left (or of the gap item) is not the previous item's.
+                int lastSlideNo = LastSlide;
                 if (InItem.Type == "G")
                 {
                     MoveToItem(InItem, KeyDirection.Refresh, lastSlideNo, NotifyLiveShow);
@@ -3679,6 +3714,11 @@ public partial class FrmMain : Form
         Gf.OutputItem.Source = ItemSource.WorshipList;
         Gf.OutputItem.OutputStyleScreen = true;
         LoadItem(ref Gf.OutputItem, idString, formatData, SlideNo, ref InTitle, ScrollToCaret: true);
+        if (Gf.OutputItem.CurSlide >= LastSlide)
+        {
+            // Asked for the last slide, and the item type did not bring the number into its range.
+            Gf.OutputItem.CurSlide = SlideToOpen(Gf.OutputItem.CurSlide, Gf.OutputItem.TotalSlides);
+        }
         if (Gf.ShowRunning && NotifyLiveShow)
         {
             Gf.MainAction_SongChanged_Transaction = ImageTransitionControl.TransitionAction.AsStored;
@@ -5112,6 +5152,8 @@ public partial class FrmMain : Form
         {
             Gf.Def_FormatString = " ";
         }
+        string sessionFile = Gf.WorshipDir + Gf.CurSession + ".json";
+        bool sessionFileExisted = File.Exists(sessionFile);
         FrmManageItemLists frmManageItemLists = new();
         frmManageItemLists.ShowDialog();
         if (Gf.PraiseBooksListChanged)
@@ -5131,8 +5173,20 @@ public partial class FrmMain : Form
         else if (Gf.WorshipListsChanged)
         {
             PopulateWorshipList();
+            if (SessionListWasRestored(sessionFileExisted, File.Exists(sessionFile)))
+            {
+                LoadWorshipList(0);
+            }
         }
     }
+
+    /// <summary>
+    /// The current session had no file when the list manager opened (it was cleared: its file is in Trash, the
+    /// list on screen is empty) and has one now: a list was restored from Trash under the session's name. That
+    /// list is shown; otherwise the next change would save the cleared list over it.
+    /// </summary>
+    internal static bool SessionListWasRestored(bool fileExistedBefore, bool fileExistsNow)
+        => !fileExistedBefore && fileExistsNow;
 
     private void Menu_PraiseBooks_Click(object sender, EventArgs e)
     {
