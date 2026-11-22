@@ -15,19 +15,24 @@ using Axicultus.Wpf.Controls;
 namespace Axicultus.Wpf.Captions;
 
 /// <summary>Image is a JPEG data URL of a score half shown instead of the text.</summary>
-public sealed record PublishedCaption(long Revision, string Text, string Color = CaptionStyle.DefaultColor, bool Box = true, string? Image = null, int Lines = 3);
+public sealed record PublishedCaption(long Revision, string Text, string Color = CaptionStyle.DefaultColor, bool Box = true, string? Image = null, int Lines = 3,
+    double ScoreHeight = .27);
 public sealed record CaptionTake(DateTimeOffset Time, string Text);
 /// <summary>
 /// The caption console's kept choices: look and destinations (Camera is the output screen's camera caption, Obs
 /// the browser source), Sync: the console's next/previous also turn the output screen, and Lines: the fixed
 /// height of the caption area (1 to 3 lines).
 /// </summary>
-public sealed record CaptionStyle(string Color = CaptionStyle.DefaultColor, bool Box = true, bool Camera = true, bool Obs = true, bool Sync = false, int Lines = 3)
+public sealed record CaptionStyle(string Color = CaptionStyle.DefaultColor, bool Box = true, bool Camera = true, bool Obs = true, bool Sync = false, int Lines = 3,
+    int Score = 1)
 {
     public const string DefaultColor = "#FFFFFF";
-    public static CaptionStyle Parse(string color, bool box, bool camera = true, bool obs = true, bool sync = false, int lines = 3) =>
+    public static CaptionStyle Parse(string color, bool box, bool camera = true, bool obs = true, bool sync = false, int lines = 3, int score = 1) =>
         new(System.Text.RegularExpressions.Regex.IsMatch(color, "^#[0-9A-Fa-f]{6}$") ? color.ToUpperInvariant() : DefaultColor, box, camera, obs, sync,
-            Math.Clamp(lines, 1, 3));
+            Math.Clamp(lines, 1, 3), Math.Clamp(score, 0, 2));
+
+    /// <summary>Most of the screen height a score row may take: 작게, 보통, 크게.</summary>
+    public static double ScoreHeight(int score) => score switch { 0 => .18, 2 => .42, _ => .27 };
 }
 
 /// <summary>All mutations run on the operator Dispatcher. Remote observers receive only published text.</summary>
@@ -57,7 +62,7 @@ public sealed class CaptionSession : ObservableObject, IDisposable
         {
             if (stylePath != null && File.Exists(stylePath) &&
                 JsonSerializer.Deserialize<CaptionStyle>(File.ReadAllText(stylePath)) is { } saved)
-                Style = CaptionStyle.Parse(saved.Color, saved.Box, saved.Camera, saved.Obs, saved.Sync, saved.Lines);
+                Style = CaptionStyle.Parse(saved.Color, saved.Box, saved.Camera, saved.Obs, saved.Sync, saved.Lines, saved.Score);
         }
         catch (Exception error) when (error is IOException or JsonException or UnauthorizedAccessException) { }
         if (show != null)
@@ -98,6 +103,7 @@ public sealed class CaptionSession : ObservableObject, IDisposable
         OnPropertyChanged(nameof(ObsEnabled));
         OnPropertyChanged(nameof(SyncShow));
         OnPropertyChanged(nameof(CaptionLines));
+        OnPropertyChanged(nameof(ScoreSize));
         OnPropertyChanged(nameof(HasAudienceText));
         try { if (_stylePath != null) File.WriteAllText(_stylePath, JsonSerializer.Serialize(style)); }
         catch (Exception error) when (error is IOException or UnauthorizedAccessException) { System.Diagnostics.Debug.WriteLine(error.Message); }
@@ -157,6 +163,13 @@ public sealed class CaptionSession : ObservableObject, IDisposable
     {
         get => Style.Lines;
         set { value = Math.Clamp(value, 1, 3); if (value != Style.Lines) SetStyle(Style with { Lines = value }); }
+    }
+
+    /// <summary>Score row size: 0 작게, 1 보통, 2 크게 (see <see cref="CaptionStyle.ScoreHeight"/>).</summary>
+    public int ScoreSize
+    {
+        get => Style.Score;
+        set { value = Math.Clamp(value, 0, 2); if (value != Style.Score) SetStyle(Style with { Score = value }); }
     }
 
     public bool HasAudienceText => AudienceEnabled && HasText;
@@ -311,8 +324,8 @@ public sealed class CaptionSession : ObservableObject, IDisposable
         var image = onAir ? _imageUrl : null;
         var rendered = !onAir ? "" : image == null ? _text : _imageWithText ? _imageCaption ?? _text : "";
         if (Published.Text == rendered && Published.Image == image && Published.Color == Style.Color && Published.Box == Style.Box
-            && Published.Lines == Style.Lines) return;
-        Published = new(Published.Revision + 1, rendered, Style.Color, Style.Box, image, Style.Lines);
+            && Published.Lines == Style.Lines && Published.ScoreHeight == CaptionStyle.ScoreHeight(Style.Score)) return;
+        Published = new(Published.Revision + 1, rendered, Style.Color, Style.Box, image, Style.Lines, CaptionStyle.ScoreHeight(Style.Score));
         PublicImage = image == null ? null : _image;
         OnPropertyChanged(nameof(PublicImage));
         OnPropertyChanged(nameof(PublicText));

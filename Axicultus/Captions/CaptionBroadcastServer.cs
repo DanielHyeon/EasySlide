@@ -145,7 +145,7 @@ public sealed class CaptionBroadcastServer : IDisposable
           if(text.offsetHeight>room+.5)caption.style.height=(text.offsetHeight+h*.015)+'px'}
         function show(c){text.textContent=c.Text;text.style.color=c.Color;caption.className=(c.Text?'':'empty ')+(c.Box?'':'plain');
           lines=Math.min(3,Math.max(1,c.Lines||3));
-          if(c.Image){score.src=c.Image;score.style.display='block';score.style.marginBottom=c.Text?'1vh':'4vh';score.style.maxHeight=c.Text?'34vh':'42vh'}
+          if(c.Image){score.src=c.Image;score.style.display='block';score.style.marginBottom=c.Text?'1vh':'4vh';score.style.maxHeight=(100*(c.ScoreHeight||.27))+'vh'}
           else{score.removeAttribute('src');score.style.display='none'}
           if(c.Text)fit()}
         addEventListener('resize',fit);

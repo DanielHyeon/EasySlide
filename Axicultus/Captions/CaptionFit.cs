@@ -24,6 +24,7 @@ internal static class CaptionFit
             text.Measure(new Size(width, double.PositiveInfinity));
             if (text.DesiredSize.Height <= height + .5 || size < baseSize * .35) break;
         }
-        area.Height = Math.Max(height, text.DesiredSize.Height);
+        var padding = area is Border border ? border.Padding.Top + border.Padding.Bottom : 0;
+        area.Height = Math.Max(height, text.DesiredSize.Height) + padding;
     }
 }

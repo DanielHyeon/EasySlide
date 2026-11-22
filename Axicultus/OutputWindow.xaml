@@ -476,7 +476,7 @@
 
         </Grid>
         <Border x:Name="CameraCaption" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Bottom"
-                Margin="28,0,28,32" Padding="18,7" Background="{Binding CaptionBackground}" CornerRadius="4" IsHitTestVisible="False">
+                Margin="28,0,28,32" IsHitTestVisible="False">
             <Border.Style>
                 <Style TargetType="Border">
                     <Setter Property="Visibility" Value="Collapsed" />
@@ -489,9 +489,10 @@
             </Border.Style>
             <!-- Score half above, caption text below; either may be absent. -->
             <StackPanel>
-                <Image x:Name="LowerThirdImage" Source="{Binding PublicImage}" Stretch="Uniform" />
-                <!-- Fixed-height text area; CaptionFit shrinks long text to fit it. -->
-                <Border x:Name="LowerThirdArea">
+                <Image x:Name="LowerThirdImage" Source="{Binding PublicImage}" Stretch="Uniform"
+                       Tag="{Binding ScoreSize, NotifyOnTargetUpdated=True}" TargetUpdated="LowerThirdText_TargetUpdated" />
+                <!-- Fixed-height text area; CaptionFit shrinks long text to fit it. Only the text gets the dark box, as on the OBS page. -->
+                <Border x:Name="LowerThirdArea" Background="{Binding CaptionBackground}" CornerRadius="4" Padding="18,7">
                     <Border.Style>
                         <Style TargetType="Border">
                             <Style.Triggers>

@@ -338,9 +338,12 @@ public sealed class CaptionConsoleTests
                 Assert.Equal(3, session.CaptionLines);
                 session.CaptionLines = 2;
                 Assert.Equal(2, sent[^1].Lines); // the OBS page sizes its area from it
+                Assert.Equal(.27, sent[^1].ScoreHeight); // 보통 by default
+                session.ScoreSize = 0;
+                Assert.Equal(.18, sent[^1].ScoreHeight);
             }
             using var reopened = new CaptionSession(new LiveSessionService(), null, path);
-            Assert.Equal((false, true, true, 2), (reopened.AudienceEnabled, reopened.ObsEnabled, reopened.SyncShow, reopened.CaptionLines));
+            Assert.Equal((false, true, true, 2, 0), (reopened.AudienceEnabled, reopened.ObsEnabled, reopened.SyncShow, reopened.CaptionLines, reopened.ScoreSize));
         }
         finally { directory.Delete(true); }
     });

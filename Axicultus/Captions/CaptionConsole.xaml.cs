@@ -62,6 +62,7 @@ public partial class CaptionConsole : Window
         captions.SetVisible(false); // a new console starts hidden; 표시 puts the caption on air
         InitializeComponent();
         LinesBox.SelectedIndex = captions.CaptionLines - 1;
+        ScoreSizeBox.SelectedIndex = captions.ScoreSize;
         ObsPreviewBox.SizeChanged += (_, _) => FitPreview();
         CameraControls.DataContext = camera; // before the window's own, or the camera bindings look at the editor first
         DataContext = _editor;
@@ -767,11 +768,20 @@ public partial class CaptionConsole : Window
     private void PreviewText_TargetUpdated(object? sender, System.Windows.Data.DataTransferEventArgs e) => FitPreview();
 
     // Preview box margin (12+12) and caption padding (8+8) leave this much width for the text.
-    private void FitPreview() => CaptionFit.Apply(PreviewText, PreviewTextArea, ObsPreviewBox.ActualWidth - 40, 16, _captions.CaptionLines);
+    private void FitPreview()
+    {
+        PreviewImage.MaxHeight = ObsPreviewBox.Height * CaptionStyle.ScoreHeight(_captions.ScoreSize); // same share of the height as on screen
+        CaptionFit.Apply(PreviewText, PreviewTextArea, ObsPreviewBox.ActualWidth - 40, 16, _captions.CaptionLines);
+    }
 
     private void LinesChanged(object sender, SelectionChangedEventArgs e)
     {
         if (LinesBox.SelectedIndex >= 0) _captions.CaptionLines = LinesBox.SelectedIndex + 1;
+    }
+
+    private void ScoreSizeChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (ScoreSizeBox.SelectedIndex >= 0) _captions.ScoreSize = ScoreSizeBox.SelectedIndex;
     }
 
     private async void Step(int change)

@@ -1243,6 +1243,16 @@ internal static class Program
         Call("SetScoreRow", 0);
         SaveWindowPicture(console, "pptcaption-score-text.png");
         SaveWindowPicture(_app.Windows.Cast<Window>().First(w => w.GetType().Name == "OutputWindow" && w.IsVisible), "pptcaption-output-score-text.png");
+        foreach (int size in new[] { 0, 1, 2 })
+        {
+            console.ScoreSizeBox.SelectedIndex = size;
+            await Settle(600);
+            var screen = _app.Windows.Cast<Window>().First(w => w.GetType().Name == "OutputWindow" && w.IsVisible);
+            var picture = (FrameworkElement)screen.FindName("LowerThirdImage");
+            Log("PPT", $"score size {size}: image={picture.ActualHeight:0}/{screen.ActualHeight:0} obs={captions.Published.ScoreHeight}");
+            SaveWindowPicture(screen, $"score-size-{size}.png");
+        }
+        console.ScoreSizeBox.SelectedIndex = 1;
         console.TextOnly.IsChecked = true;
         await Settle(1000);
         Log("PPT", "text only again: " + Aired());

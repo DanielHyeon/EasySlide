@@ -104,12 +104,13 @@
                         </Image.RenderTransform>
                     </Image>
                     <!-- Same fixed caption area as the camera screen; CaptionFit shrinks long text to fit. -->
-                    <Border x:Name="PreviewCaption" Background="{Binding Session.CaptionBackground}" VerticalAlignment="Bottom"
-                            Margin="12,0,12,6" Padding="8,2" CornerRadius="3"
+                    <Border x:Name="PreviewCaption" VerticalAlignment="Bottom" Margin="12,0,12,6"
                             Visibility="{Binding Session.HasText, Converter={StaticResource SettingsVisibility}}">
                         <StackPanel>
-                            <Image Source="{Binding Session.PublicImage}" MaxHeight="66" Stretch="Uniform"/>
-                            <Border x:Name="PreviewTextArea" Visibility="{Binding Session.HasPublicText, Converter={StaticResource SettingsVisibility}}">
+                            <Image x:Name="PreviewImage" Source="{Binding Session.PublicImage}" MaxHeight="40" Stretch="Uniform"
+                                   Tag="{Binding Session.ScoreSize, NotifyOnTargetUpdated=True}" TargetUpdated="PreviewText_TargetUpdated" Margin="0,0,0,3"/>
+                            <Border x:Name="PreviewTextArea" Background="{Binding Session.CaptionBackground}" Padding="8,2" CornerRadius="3"
+                                    Visibility="{Binding Session.HasPublicText, Converter={StaticResource SettingsVisibility}}">
                                 <TextBlock x:Name="PreviewText" Text="{Binding Session.PublicText, NotifyOnTargetUpdated=True}" TargetUpdated="PreviewText_TargetUpdated"
                                            Tag="{Binding Session.CaptionLines, NotifyOnTargetUpdated=True}"
                                            Foreground="{Binding Session.CaptionForeground}" FontSize="16" FontWeight="SemiBold"
@@ -168,6 +169,12 @@
                         <ComboBoxItem Content="1줄"/>
                         <ComboBoxItem Content="2줄"/>
                         <ComboBoxItem Content="3줄"/>
+                    </ComboBox>
+                    <ComboBox x:Name="ScoreSizeBox" Margin="6,0,0,0" VerticalAlignment="Center" SelectionChanged="ScoreSizeChanged"
+                              AutomationProperties.Name="악보 크기" ToolTip="카메라·OBS 화면에서 악보가 차지하는 높이">
+                        <ComboBoxItem Content="악보 작게"/>
+                        <ComboBoxItem Content="악보 보통"/>
+                        <ComboBoxItem Content="악보 크게"/>
                     </ComboBox>
                 </WrapPanel>
             </DockPanel>
