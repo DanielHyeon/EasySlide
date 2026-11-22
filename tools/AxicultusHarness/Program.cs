@@ -1136,9 +1136,16 @@ internal static class Program
         captions.PublishedChanged += p => Log("AIR", $"rev={p.Revision} text=\"{Trim(p.Text.Replace("\n", "/"), 40)}\" image={p.Image?.Length ?? 0} live={_vm.Session.Current.State}");
         string Aired() => $"following={captions.Following} mirroring={captions.Mirroring} slide={captions.CurrentSlide} text=\"{Trim(captions.PublicText.Replace("\n", "/"), 40)}\" image={(captions.Published.Image?.Length ?? 0)} obs=\"{Trim(captions.ForObs.Text.Replace("\n", "/"), 20)}\" camera={captions.HasAudienceText} status=\"{console.Status.Text}\"";
 
-        // Not live: what sits in the output panel still goes out.
+        // The console starts hidden: following the screen airs nothing until 표시.
         console.ScreenMode.IsChecked = true;
         await Settle(1500);
+        Log("PPT", $"console opened: visible={captions.Visible} badge={console.HiddenBadge.IsVisible} show={console.ShowButton.IsEnabled} hide={console.HideButton.IsEnabled} {Aired()}");
+        SaveWindowPicture(console, "caption-hidden-start.png");
+        console.ShowButton.Command.Execute(null);
+        await Settle(500);
+        Log("PPT", $"after 표시: visible={captions.Visible} badge={console.HiddenBadge.IsVisible} show={console.ShowButton.IsEnabled} hide={console.HideButton.IsEnabled}");
+
+        // Not live: what sits in the output panel still goes out.
         if (_vm.Queue.FirstOrDefault(i => LiveItemKindMatcher.IsSong(LiveItemKindMatcher.InferLegacyKind(i))) is { } song)
         {
             _vm.SelectedItem = song;
@@ -1285,6 +1292,24 @@ internal static class Program
         await Settle(1000);
         SaveWindowPicture(console, "compact-direct.png");
         Log("PPT", "direct mode: " + Aired() + $" color={captions.Published.Color}");
+        // A 4-line creed page must fit the same fixed caption area (smaller font) as a one-line caption.
+        var output = _app.Windows.Cast<Window>().First(w => w.GetType().Name == "OutputWindow" && w.IsVisible);
+        var area = (FrameworkElement)output.FindName("LowerThirdArea");
+        var line = (TextBlock)output.FindName("LowerThirdText");
+        Log("PPT", $"caption area one line: {area.ActualHeight:0} font={line.FontSize:0.#}");
+        SaveWindowPicture(output, "caption-one-line.png");
+        console.Draft.Text = "전능하사 천지를 만드신 하나님 아버지를 내가 믿사오며\n그 외아들 우리 주 예수 그리스도를 믿사오니\n이는 성령으로 잉태하사 동정녀 마리아에게 나시고\n본디오 빌라도에게 고난을 받으사 십자가에 못 박혀 죽으시고";
+        await Settle(1000);
+        Log("PPT", $"caption area four lines: {area.ActualHeight:0} font={line.FontSize:0.#} text={line.ActualHeight:0}");
+        SaveWindowPicture(console, "caption-four-lines-console.png");
+        SaveWindowPicture(output, "caption-four-lines-output.png");
+        foreach (int lines in new[] { 1, 2, 3 })
+        {
+            console.LinesBox.SelectedIndex = lines - 1;
+            await Settle(600);
+            Log("PPT", $"caption {lines} line(s): area={area.ActualHeight:0} font={line.FontSize:0.#} text={line.ActualHeight:0} obsLines={captions.Published.Lines}");
+            if (lines < 3) SaveWindowPicture(output, $"caption-lines-{lines}.png");
+        }
         Call("PickColor", new Button { Tag = "#FFFFFF" }, null);
         Ctx("pptcaption stop");
         console.EndSession();

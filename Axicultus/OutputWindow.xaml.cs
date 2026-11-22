@@ -70,14 +70,22 @@ public partial class OutputWindow : Window, IOutputSurface
         ContentArea.SizeChanged += (_, e) =>
         {
             var size = e.NewSize;
-            CameraCaption.MaxWidth = size.Width * .88;
+            CameraCaption.Width = size.Width * .88;
             LowerThirdImage.MaxHeight = size.Height * .42;
             CameraCaption.Margin = new Thickness(0, 0, 0, size.Height * .05);
-            var fontSize = Math.Max(12, size.Height * .05);
-            LowerThirdText.FontSize = fontSize;
-            CameraCaption.Padding = new Thickness(fontSize * .55, fontSize * .15, fontSize * .55, fontSize * .15);
+            _captionFont = Math.Max(12, size.Height * .05);
+            CameraCaption.Padding = new Thickness(_captionFont * .55, _captionFont * .15, _captionFont * .55, _captionFont * .15);
+            FitCaption();
         };
     }
+
+    private double _captionFont = 32;
+
+    private void LowerThirdText_TargetUpdated(object? sender, System.Windows.Data.DataTransferEventArgs e) => FitCaption();
+
+    private void FitCaption() => Captions.CaptionFit.Apply(LowerThirdText, LowerThirdArea,
+        CameraCaption.Width - CameraCaption.Padding.Left - CameraCaption.Padding.Right, _captionFont,
+        LowerThirdText.Tag is int lines ? lines : 3); // Tag carries the session's CaptionLines
 
     /// <summary>
     /// 출력 창의 MediaElement 를 실제 미디어 백엔드로 감싸 생명주기 브리지에 부착한다

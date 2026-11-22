@@ -32,10 +32,10 @@ internal sealed partial class CaptionConsoleViewModel(CaptionSession session) : 
         PublishInstant();
     }
 
-    // An emptied box keeps the caption on air until the next words are typed.
+    // An emptied box keeps the caption on air until the next words are typed; a hidden caption stays hidden.
     private void PublishInstant()
     {
-        if (IsInstant && CanTake() && !string.IsNullOrWhiteSpace(DraftText)) Session.Publish(DraftText);
+        if (IsInstant && CanTake() && !string.IsNullOrWhiteSpace(DraftText)) Session.Publish(DraftText, show: false);
     }
 
     /// <summary>Sends the box and empties it for the next line; the caption stays on air.</summary>
@@ -62,11 +62,7 @@ internal sealed partial class CaptionConsoleViewModel(CaptionSession session) : 
     }
 
     [RelayCommand]
-    private void Hide()
-    {
-        IsInstant = false;
-        Session.SetVisible(false);
-    }
+    private void Hide() => Session.SetVisible(false); // typing while hidden no longer reveals, so instant mode stays on
 
     [RelayCommand]
     private void Show() => Session.SetVisible(true);

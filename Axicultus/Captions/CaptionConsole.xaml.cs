@@ -59,7 +59,10 @@ public partial class CaptionConsole : Window
         _store = store;
         _plan = main.CurrentWorshipListName;
         captions.BeginPlan(_plan);
+        captions.SetVisible(false); // a new console starts hidden; 표시 puts the caption on air
         InitializeComponent();
+        LinesBox.SelectedIndex = captions.CaptionLines - 1;
+        ObsPreviewBox.SizeChanged += (_, _) => FitPreview();
         CameraControls.DataContext = camera; // before the window's own, or the camera bindings look at the editor first
         DataContext = _editor;
         _editor.SaveRequested += Changed;
@@ -420,7 +423,7 @@ public partial class CaptionConsole : Window
         else
         {
             _captions.SetImage(null);
-            _captions.Publish(_editor.DraftText);
+            _captions.Publish(_editor.DraftText, show: false);
             Status.Text = "직접 입력한 자막을 송출합니다.";
             Draft.Focus();
         }
@@ -761,6 +764,16 @@ public partial class CaptionConsole : Window
 
     private void Previous(object sender, RoutedEventArgs e) => Step(-1);
     private void Next(object sender, RoutedEventArgs e) => Step(1);
+    private void PreviewText_TargetUpdated(object? sender, System.Windows.Data.DataTransferEventArgs e) => FitPreview();
+
+    // Preview box margin (12+12) and caption padding (8+8) leave this much width for the text.
+    private void FitPreview() => CaptionFit.Apply(PreviewText, PreviewTextArea, ObsPreviewBox.ActualWidth - 40, 16, _captions.CaptionLines);
+
+    private void LinesChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (LinesBox.SelectedIndex >= 0) _captions.CaptionLines = LinesBox.SelectedIndex + 1;
+    }
+
     private async void Step(int change)
     {
         // A score goes row by row, then to the next slide's first row.

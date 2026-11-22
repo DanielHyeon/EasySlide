@@ -129,16 +129,26 @@ public sealed class CaptionBroadcastServer : IDisposable
         <!doctype html><html lang="ko"><meta charset="utf-8"><style>
         html,body{margin:0;height:100%;overflow:hidden;background:transparent}
         body{display:flex;flex-direction:column;align-items:center;justify-content:flex-end}
-        #caption{max-width:88%;margin-bottom:5vh;border-radius:.4em;padding:.15em .55em;background:#101010cf;
-          color:white;text-align:center;font:600 5vh/1.28 'Malgun Gothic',sans-serif;white-space:pre-wrap;overflow-wrap:anywhere}
+        /* Fixed caption area (1-3 lines of 6.4vh, same as the camera screen); fit() shrinks long text instead of growing it. */
+        #caption{box-sizing:border-box;width:88%;height:calc(19.2vh + 1.5vh);margin-bottom:5vh;padding:.75vh 2.75vh;border-radius:2vh;
+          background:#101010cf;display:flex;align-items:center;justify-content:center}
         #caption.plain{background:transparent;text-shadow:0 0 .12em #000,0 0 .12em #000,.05em .05em .1em #000}
-        #caption:empty{display:none}
+        #caption.empty{display:none}
+        #text{width:100%;color:white;text-align:center;font:600 5vh/1.28 'Malgun Gothic',sans-serif;white-space:pre-wrap;overflow-wrap:anywhere}
         #score{display:none;max-width:92%;max-height:42vh;margin-bottom:4vh;border-radius:.3em}</style>
-        <img id="score" alt=""><div id="caption"></div><script>
-        const caption=document.getElementById('caption'),score=document.getElementById('score');
-        function show(c){caption.textContent=c.Text;caption.style.color=c.Color;caption.className=c.Box?'':'plain';
+        <img id="score" alt=""><div id="caption" class="empty"><div id="text"></div></div><script>
+        const caption=document.getElementById('caption'),text=document.getElementById('text'),score=document.getElementById('score');
+        let lines=3;
+        function fit(){const h=innerHeight;caption.style.height='calc('+(6.4*lines)+'vh + 1.5vh)';
+          const room=caption.clientHeight-h*.015;let s=h*.05;text.style.fontSize=s+'px';
+          while(text.offsetHeight>room+.5&&s>h*.0175){s*=.94;text.style.fontSize=s+'px'}
+          if(text.offsetHeight>room+.5)caption.style.height=(text.offsetHeight+h*.015)+'px'}
+        function show(c){text.textContent=c.Text;text.style.color=c.Color;caption.className=(c.Text?'':'empty ')+(c.Box?'':'plain');
+          lines=Math.min(3,Math.max(1,c.Lines||3));
           if(c.Image){score.src=c.Image;score.style.display='block';score.style.marginBottom=c.Text?'1vh':'4vh';score.style.maxHeight=c.Text?'34vh':'42vh'}
-          else{score.removeAttribute('src');score.style.display='none'}}
+          else{score.removeAttribute('src');score.style.display='none'}
+          if(c.Text)fit()}
+        addEventListener('resize',fit);
         function connect(){const ws=new WebSocket('ws://'+location.host+'/captions');
           ws.onmessage=e=>show(JSON.parse(e.data));
           ws.onclose=()=>{show({Text:'',Color:'#FFFFFF',Box:true});setTimeout(connect,1000)};

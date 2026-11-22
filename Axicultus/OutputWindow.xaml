@@ -490,18 +490,22 @@
             <!-- Score half above, caption text below; either may be absent. -->
             <StackPanel>
                 <Image x:Name="LowerThirdImage" Source="{Binding PublicImage}" Stretch="Uniform" />
-                <TextBlock x:Name="LowerThirdText" Text="{Binding PublicText}" TextAlignment="Center" Foreground="{Binding CaptionForeground}"
-                           FontSize="32" FontWeight="SemiBold" TextWrapping="Wrap">
-                    <TextBlock.Style>
-                        <Style TargetType="TextBlock">
+                <!-- Fixed-height text area; CaptionFit shrinks long text to fit it. -->
+                <Border x:Name="LowerThirdArea">
+                    <Border.Style>
+                        <Style TargetType="Border">
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding HasPublicText}" Value="False">
                                     <Setter Property="Visibility" Value="Collapsed" />
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
-                    </TextBlock.Style>
-                </TextBlock>
+                    </Border.Style>
+                    <TextBlock x:Name="LowerThirdText" Text="{Binding PublicText, NotifyOnTargetUpdated=True}" TargetUpdated="LowerThirdText_TargetUpdated"
+                               Tag="{Binding CaptionLines, NotifyOnTargetUpdated=True}"
+                               TextAlignment="Center" VerticalAlignment="Center" Foreground="{Binding CaptionForeground}"
+                               FontSize="32" FontWeight="SemiBold" TextWrapping="Wrap" LineStackingStrategy="BlockLineHeight" />
+                </Border>
             </StackPanel>
         </Border>
 

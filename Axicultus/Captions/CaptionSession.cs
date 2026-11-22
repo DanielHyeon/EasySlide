@@ -15,17 +15,19 @@ using Axicultus.Wpf.Controls;
 namespace Axicultus.Wpf.Captions;
 
 /// <summary>Image is a JPEG data URL of a score half shown instead of the text.</summary>
-public sealed record PublishedCaption(long Revision, string Text, string Color = CaptionStyle.DefaultColor, bool Box = true, string? Image = null);
+public sealed record PublishedCaption(long Revision, string Text, string Color = CaptionStyle.DefaultColor, bool Box = true, string? Image = null, int Lines = 3);
 public sealed record CaptionTake(DateTimeOffset Time, string Text);
 /// <summary>
 /// The caption console's kept choices: look and destinations (Camera is the output screen's camera caption, Obs
-/// the browser source), and Sync: the console's next/previous also turn the output screen.
+/// the browser source), Sync: the console's next/previous also turn the output screen, and Lines: the fixed
+/// height of the caption area (1 to 3 lines).
 /// </summary>
-public sealed record CaptionStyle(string Color = CaptionStyle.DefaultColor, bool Box = true, bool Camera = true, bool Obs = true, bool Sync = false)
+public sealed record CaptionStyle(string Color = CaptionStyle.DefaultColor, bool Box = true, bool Camera = true, bool Obs = true, bool Sync = false, int Lines = 3)
 {
     public const string DefaultColor = "#FFFFFF";
-    public static CaptionStyle Parse(string color, bool box, bool camera = true, bool obs = true, bool sync = false) =>
-        new(System.Text.RegularExpressions.Regex.IsMatch(color, "^#[0-9A-Fa-f]{6}$") ? color.ToUpperInvariant() : DefaultColor, box, camera, obs, sync);
+    public static CaptionStyle Parse(string color, bool box, bool camera = true, bool obs = true, bool sync = false, int lines = 3) =>
+        new(System.Text.RegularExpressions.Regex.IsMatch(color, "^#[0-9A-Fa-f]{6}$") ? color.ToUpperInvariant() : DefaultColor, box, camera, obs, sync,
+            Math.Clamp(lines, 1, 3));
 }
 
 /// <summary>All mutations run on the operator Dispatcher. Remote observers receive only published text.</summary>
@@ -55,7 +57,7 @@ public sealed class CaptionSession : ObservableObject, IDisposable
         {
             if (stylePath != null && File.Exists(stylePath) &&
                 JsonSerializer.Deserialize<CaptionStyle>(File.ReadAllText(stylePath)) is { } saved)
-                Style = CaptionStyle.Parse(saved.Color, saved.Box, saved.Camera, saved.Obs, saved.Sync);
+                Style = CaptionStyle.Parse(saved.Color, saved.Box, saved.Camera, saved.Obs, saved.Sync, saved.Lines);
         }
         catch (Exception error) when (error is IOException or JsonException or UnauthorizedAccessException) { }
         if (show != null)
@@ -95,6 +97,7 @@ public sealed class CaptionSession : ObservableObject, IDisposable
         OnPropertyChanged(nameof(AudienceEnabled));
         OnPropertyChanged(nameof(ObsEnabled));
         OnPropertyChanged(nameof(SyncShow));
+        OnPropertyChanged(nameof(CaptionLines));
         OnPropertyChanged(nameof(HasAudienceText));
         try { if (_stylePath != null) File.WriteAllText(_stylePath, JsonSerializer.Serialize(style)); }
         catch (Exception error) when (error is IOException or UnauthorizedAccessException) { System.Diagnostics.Debug.WriteLine(error.Message); }
@@ -147,6 +150,13 @@ public sealed class CaptionSession : ObservableObject, IDisposable
     {
         get => Style.Sync;
         set { if (value != Style.Sync) SetStyle(Style with { Sync = value }); }
+    }
+
+    /// <summary>Height of the caption area in lines (1 to 3); longer text shrinks to fit it.</summary>
+    public int CaptionLines
+    {
+        get => Style.Lines;
+        set { value = Math.Clamp(value, 1, 3); if (value != Style.Lines) SetStyle(Style with { Lines = value }); }
     }
 
     public bool HasAudienceText => AudienceEnabled && HasText;
@@ -209,7 +219,6 @@ public sealed class CaptionSession : ObservableObject, IDisposable
         _poll?.Start();
         BoxKey = key;
         Following = true;
-        _visible = true;
         var live = _live.Current;
         if (live.State == LiveState.Active && string.Equals(Deck.Path, live.PptPath, StringComparison.OrdinalIgnoreCase)
             && live.PptSlideNumber >= 1 && live.PptSlideNumber <= Deck.Slides.Length)
@@ -233,8 +242,7 @@ public sealed class CaptionSession : ObservableObject, IDisposable
     public void Mirror(bool on)
     {
         Mirroring = on;
-        if (on) _visible = true;
-        else StopFollowing();
+        if (!on) StopFollowing();
         OnPropertyChanged(nameof(Mirroring));
         OnPropertyChanged(nameof(Following));
         Emit();
@@ -249,13 +257,17 @@ public sealed class CaptionSession : ObservableObject, IDisposable
         Emit();
     }
 
-    public void Publish(string text)
+    /// <summary>
+    /// Sets the typed caption. show puts it on air (the 송출 button); otherwise a hidden caption stays hidden until
+    /// 표시 — following the screen or typing never reveals it by itself.
+    /// </summary>
+    public void Publish(string text, bool show = true)
     {
         Mirroring = false;
         OnPropertyChanged(nameof(Mirroring));
         StopFollowing();
         _text = text.Trim();
-        _visible = true;
+        if (show) _visible = true;
         OnPropertyChanged(nameof(Following));
         Emit();
     }
@@ -298,8 +310,9 @@ public sealed class CaptionSession : ObservableObject, IDisposable
         bool onAir = _visible && _live.Current.State is not (LiveState.Hidden or LiveState.Standby);
         var image = onAir ? _imageUrl : null;
         var rendered = !onAir ? "" : image == null ? _text : _imageWithText ? _imageCaption ?? _text : "";
-        if (Published.Text == rendered && Published.Image == image && Published.Color == Style.Color && Published.Box == Style.Box) return;
-        Published = new(Published.Revision + 1, rendered, Style.Color, Style.Box, image);
+        if (Published.Text == rendered && Published.Image == image && Published.Color == Style.Color && Published.Box == Style.Box
+            && Published.Lines == Style.Lines) return;
+        Published = new(Published.Revision + 1, rendered, Style.Color, Style.Box, image, Style.Lines);
         PublicImage = image == null ? null : _image;
         OnPropertyChanged(nameof(PublicImage));
         OnPropertyChanged(nameof(PublicText));

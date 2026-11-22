@@ -50,20 +50,23 @@ public sealed class CaptionConsoleTests
     public Task HidingKeepsNewDraftOffAirAndHeldShortcutCannotAddHistory() => WithConsole(async (console, session, _) =>
     {
         var editor = Assert.IsType<CaptionConsoleViewModel>(console.DataContext);
+        Assert.False(session.Visible); // a new console starts hidden
         console.Draft.SetCurrentValue(TextBox.TextProperty, "송출 중");
-        editor.TakeFromShortcut(isRepeat: false);
+        Assert.Equal("", session.PublicText); // typing alone does not reveal it
+        editor.TakeFromShortcut(isRepeat: false); // 송출 (Enter) does
+        Assert.Equal("송출 중", session.PublicText);
         console.Instant.SetCurrentValue(CheckBox.IsCheckedProperty, true);
         await ClickAsync(console.HideButton);
         console.Draft.SetCurrentValue(TextBox.TextProperty, "대기 중");
         editor.TakeFromShortcut(isRepeat: true);
         Assert.Equal("", session.PublicText);
-        Assert.False(console.Instant.IsChecked);
+        Assert.True(console.Instant.IsChecked);
         Assert.Equal("송출 중", Assert.Single(session.History).Text);
         await ClickAsync(console.ShowButton);
-        Assert.Equal("송출 중", session.PublicText);
+        Assert.Equal("대기 중", session.PublicText); // what was typed while hidden goes out on 표시
         console.Close();
         Assert.False(console.IsVisible);
-        Assert.Equal("송출 중", session.PublicText);
+        Assert.Equal("대기 중", session.PublicText);
         console.Show();
         Assert.Equal("대기 중", console.Draft.Text);
     }, expectedSavedDraft: "대기 중");
@@ -111,6 +114,7 @@ public sealed class CaptionConsoleTests
     {
         using var session = new CaptionSession(new LiveSessionService());
         var editor = new CaptionConsoleViewModel(session) { IsInstant = true };
+        session.SetVisible(true); // 표시
         editor.DraftText = "주님은 나의 목자";
         Assert.Equal("주님은 나의 목자", session.PublicText);
         editor.TakeAndClear();
@@ -279,6 +283,7 @@ public sealed class CaptionConsoleTests
         using var session = new CaptionSession(new LiveSessionService());
         session.Prepare(new CaptionDeck("deck.pptx", [new([new("label", "버튼", "1.나의 맘")], true), new([new("label", "버튼", "1.나의 맘")], true)]));
         session.Follow(1, CaptionSession.RecognizedKey);
+        session.SetVisible(true);
         Assert.Equal("", session.PublicText);
         session.AddRecognized(1, "주가 기뻐하는");
         session.AddRecognized(1, "주가 기뻐하는\n주의 성전"); // read again: replaced, not added
@@ -296,6 +301,8 @@ public sealed class CaptionConsoleTests
         Assert.Equal("", session.PublicText);
         session.Mirror(true);
         session.ShowScreenText("내 영혼아 찬양하라");
+        Assert.Equal("", session.PublicText); // following the screen does not reveal a hidden caption
+        session.SetVisible(true); // 표시
         Assert.Equal("내 영혼아 찬양하라", session.PublicText);
         Assert.True(session.HasAudienceText);
         session.Publish("직접 입력");
@@ -327,9 +334,13 @@ public sealed class CaptionConsoleTests
                 Assert.Equal(("자막", false), (session.ForObs.Text, session.HasAudienceText));
                 Assert.Equal("자막", sent[^1].Text);
                 session.SyncShow = true; // kept with the destinations
+                session.CaptionLines = 9; // clamped to 3
+                Assert.Equal(3, session.CaptionLines);
+                session.CaptionLines = 2;
+                Assert.Equal(2, sent[^1].Lines); // the OBS page sizes its area from it
             }
             using var reopened = new CaptionSession(new LiveSessionService(), null, path);
-            Assert.Equal((false, true, true), (reopened.AudienceEnabled, reopened.ObsEnabled, reopened.SyncShow));
+            Assert.Equal((false, true, true, 2), (reopened.AudienceEnabled, reopened.ObsEnabled, reopened.SyncShow, reopened.CaptionLines));
         }
         finally { directory.Delete(true); }
     });

@@ -101,27 +101,72 @@
                             <ScaleTransform ScaleY="{Binding DataContext.ScaleY, ElementName=CameraControls}"/>
                         </Image.RenderTransform>
                     </Image>
-                    <Border Background="{Binding Session.CaptionBackground}" HorizontalAlignment="Center" VerticalAlignment="Bottom"
-                            Margin="12,0,12,8" Padding="8,2" CornerRadius="3"
+                    <!-- Same fixed caption area as the camera screen; CaptionFit shrinks long text to fit. -->
+                    <Border x:Name="PreviewCaption" Background="{Binding Session.CaptionBackground}" VerticalAlignment="Bottom"
+                            Margin="12,0,12,6" Padding="8,2" CornerRadius="3"
                             Visibility="{Binding Session.HasText, Converter={StaticResource SettingsVisibility}}">
                         <StackPanel>
-                            <Image Source="{Binding Session.PublicImage}" MaxHeight="80" Stretch="Uniform"/>
-                            <TextBlock Text="{Binding Session.PublicText}" Foreground="{Binding Session.CaptionForeground}" FontSize="16" FontWeight="SemiBold"
-                                       TextAlignment="Center" TextWrapping="Wrap" MaxHeight="64"
-                                       Visibility="{Binding Session.HasPublicText, Converter={StaticResource SettingsVisibility}}"/>
+                            <Image Source="{Binding Session.PublicImage}" MaxHeight="66" Stretch="Uniform"/>
+                            <Border x:Name="PreviewTextArea" Visibility="{Binding Session.HasPublicText, Converter={StaticResource SettingsVisibility}}">
+                                <TextBlock x:Name="PreviewText" Text="{Binding Session.PublicText, NotifyOnTargetUpdated=True}" TargetUpdated="PreviewText_TargetUpdated"
+                                           Tag="{Binding Session.CaptionLines, NotifyOnTargetUpdated=True}"
+                                           Foreground="{Binding Session.CaptionForeground}" FontSize="16" FontWeight="SemiBold"
+                                           TextAlignment="Center" VerticalAlignment="Center" TextWrapping="Wrap" LineStackingStrategy="BlockLineHeight"/>
+                            </Border>
                         </StackPanel>
+                    </Border>
+                    <!-- Captions start hidden; nothing reaches the camera or OBS until 표시. -->
+                    <Border x:Name="HiddenBadge" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="6" Padding="8,3"
+                            Background="#C0392B" CornerRadius="3">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Session.Visible}" Value="True">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <TextBlock Text="숨김 중 · 표시를 누르면 나갑니다" Foreground="White" FontWeight="SemiBold"/>
                     </Border>
                 </Grid>
             </Border>
             <DockPanel Margin="0,6,0,0">
-                <Button x:Name="ShowButton" DockPanel.Dock="Right" Content="다시 표시" Command="{Binding ShowCommand}" Padding="10,4" Margin="4,0,0,0"/>
-                <Button x:Name="HideButton" DockPanel.Dock="Right" Content="숨김 (Esc)" Command="{Binding HideCommand}" Padding="10,4"/>
+                <Button x:Name="ShowButton" DockPanel.Dock="Right" Content="표시" Command="{Binding ShowCommand}" Padding="14,4" Margin="4,0,0,0"
+                        FontWeight="SemiBold" ToolTip="자막을 카메라·OBS에 내보냅니다.">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Session.Visible}" Value="True">
+                                    <Setter Property="IsEnabled" Value="False"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+                <Button x:Name="HideButton" DockPanel.Dock="Right" Content="숨김 (Esc)" Command="{Binding HideCommand}" Padding="10,4">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Session.Visible}" Value="False">
+                                    <Setter Property="IsEnabled" Value="False"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
                 <WrapPanel VerticalAlignment="Center">
                     <TextBlock Text="내보낼 곳" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,8,0"/>
                     <CheckBox x:Name="ToCamera" Content="카메라" IsChecked="{Binding Session.AudienceEnabled, Mode=TwoWay}" VerticalAlignment="Center"
                               ToolTip="Axicultus 송출 화면의 카메라 하단 자막"/>
                     <CheckBox x:Name="ToObs" Content="OBS" IsChecked="{Binding Session.ObsEnabled, Mode=TwoWay}" Margin="10,0,0,0" VerticalAlignment="Center"
                               ToolTip="OBS 브라우저 소스 (http://127.0.0.1:17948/)"/>
+                    <ComboBox x:Name="LinesBox" Margin="10,0,0,0" VerticalAlignment="Center" SelectionChanged="LinesChanged"
+                              AutomationProperties.Name="자막 줄 수" ToolTip="자막 영역의 높이. 더 긴 글은 글자가 작아져 이 안에 들어갑니다.">
+                        <ComboBoxItem Content="1줄"/>
+                        <ComboBoxItem Content="2줄"/>
+                        <ComboBoxItem Content="3줄"/>
+                    </ComboBox>
                 </WrapPanel>
             </DockPanel>
             <TextBlock x:Name="Status" TextWrapping="Wrap" Margin="0,4,0,0" Foreground="#606060" AutomationProperties.LiveSetting="Polite"/>

@@ -176,6 +176,7 @@ public sealed class CaptionIntegrationTests
             using var captions = new CaptionSession(live);
             captions.Prepare(result);
             captions.Follow(1,"shape:가사");
+            captions.SetVisible(true);
             live.GoLive(new("ppt","찬양","PowerPoint"){ContentPath=path,SlideNumber=2},"audience");
             Assert.Equal("첫째\n말씀\n찬양",captions.PublicText);
         }
