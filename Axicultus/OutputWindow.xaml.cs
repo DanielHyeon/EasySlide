@@ -49,6 +49,9 @@ public partial class OutputWindow : Window, IOutputSurface
             }
             if (!e.Handled && key is Key.Up or Key.Down && (Keyboard.Modifiers == ModifierKeys.None || shortcuts.IsGlobalGesture(key, Keyboard.Modifiers)))
                 e.Handled = true; // Navigation runs on release.
+            // Every other show key of FrmLaunchShow (item keys, first/last slide, verse jumps, toggles) is the shell's.
+            if (!e.Handled && key is not (Key.Up or Key.Down))
+                e.Handled = shortcuts.OutputWindowKey?.Invoke(key, Keyboard.Modifiers) == true;
         };
         PreviewKeyUp += (sender, e) =>
         {
@@ -911,22 +914,28 @@ public partial class OutputWindow : Window, IOutputSurface
         WindowState = WindowState.Normal;
         WindowStyle = placement.IsWindowed ? WindowStyle.SingleBorderWindow : WindowStyle.None;
         ResizeMode = placement.IsWindowed ? ResizeMode.CanResize : ResizeMode.NoResize;
-        Topmost = !placement.IsWindowed && Platform.DesktopWindowPlacement.IsSeparateAudienceMonitor(placement);
+        _onSeparateMonitor = Platform.DesktopWindowPlacement.IsSeparateAudienceMonitor(placement);
+        Topmost = !placement.IsWindowed && _onSeparateMonitor;
         ShowInTaskbar = placement.IsWindowed;
         Platform.DesktopWindowPlacement.Apply(this, placement);
     }
+
+    // On its own monitor the audience window must not take the keyboard from the operator window: FrmMain.GoLive
+    // returns the focus to its output area in dual-monitor mode. On the operator's monitor it has to take it.
+    private bool _onSeparateMonitor;
 
     public new void Show()
     {
         if (_shown)
         {
-            Activate();
+            if (!_onSeparateMonitor) Activate();
             return;
         }
 
+        ShowActivated = !_onSeparateMonitor;
         base.Show();
         _shown = true;
-        Activate();
+        if (!_onSeparateMonitor) Activate();
     }
 
     public new void Close()

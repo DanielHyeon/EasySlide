@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Windows;
+using Axicultus.Wpf.Library;
 using Axicultus.Wpf.Shell;
 using Microsoft.Win32;
 
@@ -43,10 +44,13 @@ public partial class MediaAssignmentWindow : Window
 
     public ItemMediaOptions Options { get; private set; }
 
+    /// <summary>Where the operator's media extension lists are read from (Admin\Database under it).</summary>
+    public string? WorkingFolder { get; init; }
+
     private void Browse_Click(object sender, RoutedEventArgs e)
     {
         var dialog = new OpenFileDialog { InitialDirectory = _initialDirectory,
-            Filter = "미디어|*.mp4;*.m4v;*.mov;*.avi;*.wmv;*.mpg;*.mpeg;*.mkv;*.webm;*.mp3;*.wav;*.wma;*.m4a;*.aac;*.flac;*.ogg|모든 파일|*.*" };
+            Filter = SourceFileExtensions.DialogFilter("미디어", SourceFileExtensions.Media(WorkingFolder)) + "|모든 파일|*.*" };
         if (dialog.ShowDialog(this) == true) { SourcePath.Text = dialog.FileName; ModeBox.SelectedIndex = 3; }
     }
 
@@ -96,15 +100,24 @@ public partial class MediaAssignmentWindow : Window
         catch (Exception ex) { _loaded = null; Status.Text = ex.Message; }
     }
 
+    // The DirectShow fallback throws on a failing HRESULT (e.g. a non-seekable stream); report it like Play does.
     private void Pause_Click(object sender, RoutedEventArgs e)
     {
-        _preview.Pause();
-        if (_loaded != null) _loaded = _loaded with { State = MediaPlaybackState.Paused };
+        try
+        {
+            _preview.Pause();
+            if (_loaded != null) _loaded = _loaded with { State = MediaPlaybackState.Paused };
+        }
+        catch (Exception ex) { _loaded = null; Status.Text = ex.Message; }
     }
     private void Stop_Click(object sender, RoutedEventArgs e)
     {
-        _preview.Stop();
-        if (_loaded != null) _loaded = _loaded with { State = MediaPlaybackState.Stopped };
+        try
+        {
+            _preview.Stop();
+            if (_loaded != null) _loaded = _loaded with { State = MediaPlaybackState.Stopped };
+        }
+        catch (Exception ex) { _loaded = null; Status.Text = ex.Message; }
     }
     private void PlaybackFailed(object sender, ExceptionRoutedEventArgs e)
     {

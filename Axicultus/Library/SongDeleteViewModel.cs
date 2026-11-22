@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -15,6 +16,7 @@ public sealed partial class SongDeleteViewModel : ObservableObject
 {
     private readonly ISettingsService _settings;
     private readonly IAdminDatabaseRepository _adminDatabase;
+    private IReadOnlyList<SongSummary> _songs = [];
 
     [ObservableProperty] private string _databasePath = "";
     [ObservableProperty] private int _songId;
@@ -24,6 +26,7 @@ public sealed partial class SongDeleteViewModel : ObservableObject
     [ObservableProperty] private string _statusMessage = "";
     [ObservableProperty] private string _validationMessage = "";
     [ObservableProperty] private bool _isBusy;
+    [ObservableProperty] private string _confirmationText = "정말 삭제하시겠습니까?";
 
     public SongDeleteViewModel(ISettingsService settings, IAdminDatabaseRepository adminDatabase)
     {
@@ -41,11 +44,23 @@ public sealed partial class SongDeleteViewModel : ObservableObject
         ArgumentNullException.ThrowIfNull(song);
         ArgumentNullException.ThrowIfNull(sourceFolder);
 
+        Load(databasePath, [song with { FolderNo = sourceFolder.FolderNo }], [sourceFolder]);
+    }
+
+    /// <summary>Loads every selected song (FrmMain deletes the whole selection of its song list).</summary>
+    public void Load(string databasePath, IReadOnlyList<SongSummary> songs, IReadOnlyList<SongFolderSummary> allFolders)
+    {
+        ArgumentNullException.ThrowIfNull(songs);
+        ArgumentNullException.ThrowIfNull(allFolders);
+
+        _songs = songs;
         DatabasePath = NormalizePath(databasePath);
-        SongId = song.SongId;
-        SourceFolderNo = sourceFolder.FolderNo;
-        SourceFolderName = sourceFolder.Name;
-        SongTitle = song.Title;
+        SongId = songs.Count > 0 ? songs[0].SongId : 0;
+        SourceFolderNo = songs.Count > 0 ? songs[0].FolderNo : 0;
+        SourceFolderName = SongSelectionText.SourceFolderName(songs, allFolders);
+        SongTitle = SongSelectionText.Heading(songs);
+        // FrmMain asks about "the selected song" or "the N songs you have selected".
+        ConfirmationText = songs.Count > 1 ? $"선택한 {songs.Count}곡을 정말 삭제하시겠습니까?" : "정말 삭제하시겠습니까?";
         ValidationMessage = "";
         StatusMessage = "";
         DeleteCommand.NotifyCanExecuteChanged();
@@ -68,9 +83,29 @@ public sealed partial class SongDeleteViewModel : ObservableObject
         try
         {
             var backupRoot = ResolveBackupRoot();
-            var delete = new SongDeleteRequest(SongId, SourceFolderNo);
+            // The songs as they are now: FrmMain leaves out a selected song whose row is gone, and the folder a
+            // song is in (kept as OldFolder, where recovery puts it back) may have changed since the list was read.
+            var current = (await _adminDatabase
+                .GetMatchingSongsAsync(DatabasePath, _songs.Select(song => song.SongId).ToHashSet(), new HashSet<string>())
+                .ConfigureAwait(true)).ToDictionary(song => song.SongId);
+            var deletes = new List<SongDeleteRequest>();
+            var missing = new List<string>();
+            foreach (var song in _songs)
+            {
+                if (current.TryGetValue(song.SongId, out var stored)) deletes.Add(new SongDeleteRequest(song.SongId, stored.FolderNo));
+                else missing.Add(song.Title);
+            }
+
+            string skipped = SongSelectionText.Skipped(missing, "이미 삭제되었거나 라이브러리에 없음");
+            if (deletes.Count == 0)
+            {
+                StatusMessage = "삭제할 곡이 없습니다." + skipped;
+                return;
+            }
+
+            // One backup and one transaction for the whole selection: all the songs are deleted, or none.
             var report = await _adminDatabase
-                .SoftDeleteSongsAsync(DatabasePath, backupRoot, [delete])
+                .SoftDeleteSongsAsync(DatabasePath, backupRoot, deletes)
                 .ConfigureAwait(true);
 
             if (!report.Succeeded)
@@ -83,8 +118,8 @@ public sealed partial class SongDeleteViewModel : ObservableObject
             }
 
             ValidationMessage = "";
-            StatusMessage = "삭제되었습니다.";
-            Deleted?.Invoke(this, new SongDeletedEventArgs(SongId, SourceFolderNo));
+            StatusMessage = _songs.Count == 1 ? "삭제되었습니다." : $"{deletes.Count}곡을 삭제했습니다." + skipped;
+            Deleted?.Invoke(this, new SongDeletedEventArgs(deletes[0].SongId, deletes[0].OriginalFolderNo));
         }
         catch (Exception ex) when (IsRecoverableDeleteException(ex))
         {
@@ -114,7 +149,7 @@ public sealed partial class SongDeleteViewModel : ObservableObject
             return false;
         }
 
-        if (SongId <= 0 || SourceFolderNo <= 0)
+        if (_songs.Count == 0 || _songs.Any(song => song.SongId <= 0 || song.FolderNo <= 0))
         {
             ValidationMessage = "삭제할 곡을 선택하세요.";
             return false;
@@ -125,7 +160,7 @@ public sealed partial class SongDeleteViewModel : ObservableObject
     }
 
     private bool CanDelete()
-        => !IsBusy && SongId > 0 && SourceFolderNo > 0;
+        => !IsBusy && _songs.Count > 0 && _songs.All(song => song.SongId > 0 && song.FolderNo > 0);
 
     private string ResolveBackupRoot()
     {
@@ -148,5 +183,6 @@ public sealed partial class SongDeleteViewModel : ObservableObject
         => ex is IOException
             or UnauthorizedAccessException
             or InvalidOperationException
+            or System.Data.Common.DbException // reading the selected songs
             or NotSupportedException;
 }

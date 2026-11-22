@@ -368,11 +368,35 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         private set => SetProperty(ref _bodyFontSize, value);
     }
 
-    /// <summary>가사 본문 줄 높이 — 폰트 크기의 1.25배(가독성 비례).</summary>
+    /// <summary>The row height of the plain region-1 body: the WinForms row (<see cref="RowHeight"/>).</summary>
     public double BodyLineHeight
     {
         get => _bodyLineHeight;
         private set => SetProperty(ref _bodyLineHeight, value);
+    }
+
+    public double BodyLineHeight2 { get; private set; } = 60;
+
+    // The outline text block lays out with FormattedText, which lowers the text of a taller row; a TextBlock does not.
+    public double BodyTextLeadIn => Controls.LyricParagraphSurface.LeadIn(BodyFontFamily as FontFamily ?? SystemFonts.MessageFontFamily, BodyFontSize, BodyLineHeight);
+    private FontFamily Region2Family => BodyFont2Family as FontFamily ?? BodyFontFamily as FontFamily ?? SystemFonts.MessageFontFamily;
+    private double _lineSpacingPercent = 125, _fontScaleWidth;
+
+    // gfDisplay.DrawOneRegion: a row is (int)(MeasureString("A", font).Height * FontSpacingFactor), FontSpacingFactor =
+    // FOLDER LineSpacing (region 1) or LineSpacing2 (region 2) + 0.05, the font in whole points scaled from the
+    // 960 reference to the output width (DisplayFontSize). Without a folder layout the global spacing stands in.
+    private double RowHeight(bool second, double scale)
+    {
+        var folder = _session.SongLayout?.Fields != null ? _session.SongLayout : null;
+        double spacing = folder == null ? _lineSpacingPercent / 100 : second ? folder.Decimal("LineSpacing2") ?? folder.LineSpacing : folder.LineSpacing;
+        // LegacyPointToPixel rounded the FOLDER points to whole pixels; WinForms measures the point size itself.
+        double points = (second ? _session.OverrideFontSizePx2 : _session.OverrideFontSizePx) is int px && _fontScaleWidth > 0
+            ? (int)(Math.Round(px * 72 / 96d) * scale * _fontScaleWidth / 960)
+            : (second ? BodyFont2Size : BodyFontSize) * scale * 72 / 96;
+        // GDI knows a FOLDER face by its own name ("다음_SemiBold"), not by the WPF family it resolves to.
+        string name = (second ? _session.OverrideFontName2 : null) ?? _session.OverrideFontName
+            ?? (second ? Region2Family : BodyFontFamily as FontFamily ?? SystemFonts.MessageFontFamily).Source;
+        return (int)TextFileLayout.LineAdvance(name, points * 96 / 72, Math.Clamp(spacing, .5, 2));
     }
 
     /// <summary>
@@ -1004,6 +1028,22 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
             return;
         }
 
+        // The gap screen comes in by its own option (FrmLaunchShow: fade when GapItemUseFade, else a cut).
+        if (snapshot.State != LiveState.Off && snapshot.CurrentItemKind == LiveItemKinds.Gap)
+        {
+            ContentTransitionKind = LyricsTransitionKind.Fade;
+            ContentFadeDuration = _settings.Get(AxicultusSettingKeys.GapItemUseFade) ? GapFadeDuration : TimeSpan.Zero;
+            _gapTransitionApplied = true;
+            _previousLiveItemId = snapshot.CurrentItemId;
+            return;
+        }
+
+        if (_gapTransitionApplied)
+        {
+            _gapTransitionApplied = false;
+            ApplyTransitionSettings();
+        }
+
         var newId = snapshot.CurrentItemId;
         // 빈 Id(비-라이브·정지)는 항목 전환으로 치지 않는다 — 콘텐츠가 사라지는 경우라 슬라이드 전환으로 둔다.
         var itemChanged = !string.IsNullOrEmpty(newId)
@@ -1026,9 +1066,23 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         SceneChanged?.Invoke(this, EventArgs.Empty);
     }
 
+    // The renderer's own gap fade (OutputRenderer.CreateTransitionFrame) uses the same length.
+    private static readonly TimeSpan GapFadeDuration = TimeSpan.FromMilliseconds(500);
+    private bool _gapTransitionApplied;
+
+    // The gap screen between two worship items (FrmLaunchShow item "G1") is live, or shown under Clear, which
+    // changes nothing on a screen without text. Black and Hide cover it like any other item.
+    private bool IsGapOnDisplay => _session.CurrentItemKind == LiveItemKinds.Gap
+        && (_session.State == LiveState.Active || _session is { State: LiveState.Hidden, IsCleared: true, IsBlackout: false });
+
+    // It reuses the Cleared scene: the default background without text or panel. The Black option and the
+    // logo are laid over that scene in ApplyScene.
+    private LiveSessionSnapshot SceneSession()
+        => IsGapOnDisplay ? _session with { State = LiveState.Hidden, IsBlackout = false, IsCleared = true } : _session;
+
     private OutputSceneSnapshot CreateScene()
         => _renderer.CreateScene(new OutputRenderRequest(
-            _session,
+            SceneSession(),
             _output,
             GetViewportWidth(_output),
             GetViewportHeight(_output),
@@ -1159,7 +1213,17 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         BodyTextVisibility = (bodyShown && !scene.UsesBodyOutline) ? Visibility.Visible : Visibility.Collapsed;
         BodyOutlineVisibility = (bodyShown && scene.UsesBodyOutline) ? Visibility.Visible : Visibility.Collapsed;
         // 줄 교차(인터레이스): on + 두 영역이 다 보이면 줄을 번갈아 쌓고 기존 두 밴드를 숨긴다(아래에서 가시성 재정의).
+        _lineSpacingPercent = scene.LyricsMonitorLineSpacingPercent;
+        // OutputRenderer scales the fonts of a folder layout from the 960 reference to the viewport width.
+        _fontScaleWidth = scene.Kind == OutputSceneKind.Live && _session.SongLayout != null && !FitExternalText
+            ? scene.Viewport.Width > 0 ? scene.Viewport.Width : GetViewportWidth(_output) : 0;
         ApplyFolderTypography();
+        if (!FitExternalText)
+        {
+            BodyLineHeight = RowHeight(false, 1);
+            BodyLineHeight2 = RowHeight(true, 1);
+        }
+        else BodyLineHeight2 = BodyLineHeight;
         RebuildInterlacedLines(scene);
         PrimaryParagraph = BuildParagraph(false, bodyShown && !scene.ShowsInterlace);
         SecondaryParagraph = BuildParagraph(true, scene.ShowsBodyText2 && !scene.ShowsInterlace);
@@ -1168,7 +1232,9 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         var panelOverlay = scene.ShowsPanelOverlay ? Visibility.Visible : Visibility.Collapsed;
         PanelOverlayVisibility = panelOverlay;
         ApplyGapLogo(scene, panelOverlay, bodyShown);
-        BlackoutOverlayVisibility = IsBlackoutOrHidden(scene.Kind) ? Visibility.Visible : Visibility.Collapsed;
+        BlackoutOverlayVisibility = IsBlackoutOrHidden(scene.Kind) || (IsGapOnDisplay && scene.GapItemOption == GapItemMode.Black)
+            ? Visibility.Visible
+            : Visibility.Collapsed;
         ApplyContentPlacement(scene);
     }
 
@@ -1210,7 +1276,7 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     private static readonly string[] ParagraphProperties = [nameof(PrimaryParagraph), nameof(SecondaryParagraph),
         nameof(StageParagraph), nameof(StageParagraph2), nameof(StageBackground), nameof(StageForeground), nameof(StageHighlight),
         nameof(PlainBodyVisibility), nameof(PlainOutlineVisibility), nameof(PlainSecondVisibility),
-        nameof(PrimaryRegionHeight), nameof(UsesSampleParagraphs), nameof(FolderHeadingSize), nameof(FolderHeadingWeight), nameof(FolderHeadingStyle), nameof(FolderHeadingDecorations)];
+        nameof(PrimaryRegionHeight), nameof(UsesSampleParagraphs), nameof(BodyLineHeight2), nameof(BodyTextLeadIn), nameof(FolderHeadingSize), nameof(FolderHeadingWeight), nameof(FolderHeadingStyle), nameof(FolderHeadingDecorations)];
 
     private void ApplyFolderTypography()
     {
@@ -1224,10 +1290,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
             BodyUnderline = (flags & 4) != 0;
             BodyTextDecorations = BodyUnderline ? TextDecorations.Underline : null;
         }
-        double spacing = Math.Clamp(folder.LineSpacing, .5, 2);
-        BodyLineHeight = FitExternalText
-            ? TextFileLayout.LineAdvance(_session.OverrideFontName ?? folder.FontName, BodyFontSize, spacing)
-            : BodyFontSize * spacing;
+        if (FitExternalText)
+            BodyLineHeight = TextFileLayout.LineAdvance(_session.OverrideFontName ?? folder.FontName, BodyFontSize, Math.Clamp(folder.LineSpacing, .5, 2));
         if (folder.Integer("BIU1") is int second)
         {
             if (_session.CurrentPageIsChorus) second |= (second & 16) >> 3;
@@ -1242,16 +1306,23 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         var folder = _session.SongLayout;
         string text = second ? BodyText2 : BodyText;
         int[] notes = second ? _session.NotationLines2 : _session.NotationLines;
-        if (!visible || text.Length == 0 || !(FitExternalText || Options.LargestFont || Options.HangingIndent || _session.ItemDisplay?.Top2 != null || _session.NotationLines.Length > 0 || _session.NotationLines2.Length > 0 || folder?.Fields != null)) return null;
+        if (!visible || text.Length == 0 || !(FitExternalText || Options.LargestFont || Options.HangingIndent || _session.ItemDisplay?.Top2 != null || _session.NotationLines.Length > 0 || _session.NotationLines2.Length > 0 || folder?.Fields != null
+            || _session.BodyFontScale < 1 || _session.ShrinkBody || _session.ShrinkBody2)) return null;
         var family = (second ? BodyFont2Family : BodyFontFamily) as FontFamily ?? BodyFontFamily as FontFamily ?? SystemFonts.MessageFontFamily;
         var face = new Typeface(family, second ? BodyFont2Style : BodyFontStyle, second ? BodyFont2Weight : BodyFontWeight, FontStretches.Normal);
         int flags = second ? folder?.Integer("BIU1") ?? 0 : folder?.FontStyleBits ?? 0;
-        double leading = second ? folder?.Decimal("LineSpacing2") ?? BodyLineHeight / BodyFontSize : BodyLineHeight / BodyFontSize;
-        return new(text, face, second ? BodyFont2Size : BodyFontSize, leading, second ? SceneForegroundBrush2 : SceneForegroundBrush,
+        double scale = second ? 1 : Math.Min(1, _session.BodyFontScale), size = (second ? BodyFont2Size : BodyFontSize) * scale;
+        double leading = FitExternalText ? second ? folder?.Decimal("LineSpacing2") ?? BodyLineHeight / BodyFontSize : BodyLineHeight / BodyFontSize
+            : RowHeight(second, scale) / Math.Max(1, size);
+        return new(text, face, size, leading, second ? SceneForegroundBrush2 : SceneForegroundBrush,
             second ? BodyText2Alignment : BodyTextAlignment, (flags & 64) != 0 ? FlowDirection.RightToLeft : FlowDirection.LeftToRight,
             (second ? BodyText2Decorations : BodyTextDecorations) != null, !second && BodyHasOutline, BodyHasShadow,
             Options.HangingIndent, Options.LargestFont, BodyMaxWidth, second ? BodyText2MaxHeight : BodyTextMaxHeight, notes, Options.NotationPercent,
-            ShrinkToFit: FitExternalText, UseSlideFontMetrics: FitExternalText && folder?.Fields != null);
+            // The pages are cut without the chord rows (SongPageLayout.Paginate), so a full page with chords is
+            // drawn smaller instead of losing its last lines. FrmMain cuts more screens (gfLyrics.GetOneScreen).
+            // A page cut with a reduced font is drawn with that font (FrmLaunchShow), and never clipped; region 2 of a
+            // flowed Bible page is drawn as large as fits.
+            ShrinkToFit: FitExternalText || notes.Length > 0 || (second ? _session.ShrinkBody2 : _session.BodyFontScale < 1 || _session.ShrinkBody), UseSlideFontMetrics: FitExternalText && folder?.Fields != null);
     }
 
     private void RebuildInterlacedLines(OutputSceneSnapshot scene)
@@ -1277,7 +1348,7 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
             if (i < region2Lines.Length)
             {
                 InterlacedLines.Add(new InterlacedLine(region2Lines[i], SceneForegroundBrush2, BodyFont2Family, BodyFont2Size * (Array.BinarySearch(_session.NotationLines2, i) >= 0 ? Options.NotationPercent / 100d : 1),
-                    BodyFont2Weight, BodyFont2Style, BodyText2Decorations, BodyText2Alignment, BodyLineHeight));
+                    BodyFont2Weight, BodyFont2Style, BodyText2Decorations, BodyText2Alignment, BodyLineHeight2));
             }
         }
 
@@ -1320,7 +1391,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         var logo = TryLoadGapLogo(scene);
         GapLogoSource = logo;
         // 패널 오버레이가 숨겨진 상태(예: PPT 라이브)면 로고도 굳이 노출하지 않는다.
-        var gapLogoVisible = logo is not null && panelOverlay == Visibility.Visible;
+        // The gap screen during a show has no panel; its logo shows regardless.
+        var gapLogoVisible = logo is not null && (panelOverlay == Visibility.Visible || IsGapOnDisplay);
         GapLogoVisibility = gapLogoVisible ? Visibility.Visible : Visibility.Collapsed;
         // 가사 본문이 송출 중이면(곡 라이브) 타이틀은 숨겨 본문만 보이게 한다.
         DisplayTitleVisibility = (gapLogoVisible || bodyShown) ? Visibility.Collapsed : panelOverlay;
@@ -1427,7 +1499,7 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     private ImageSource? TryLoadGapLogo(OutputSceneSnapshot scene)
     {
         // 로고가 의미 있는 시점은 Ready(GAP) 상태 + User 모드 + 경로 존재.
-        if (scene.Kind != OutputSceneKind.Ready
+        if ((scene.Kind != OutputSceneKind.Ready && !IsGapOnDisplay)
             || scene.GapItemOption != GapItemMode.User
             || string.IsNullOrWhiteSpace(scene.GapItemLogoFile))
         {

@@ -40,6 +40,7 @@ public sealed class WindowPlacementService : IWindowPlacementService
         return PlaceConfiguredBounds(bounds, windowed) with
         {
             AsSingleMonitor = bounds.Custom && _settings?.Current.Operator.OutputAsSingle == true,
+            CustomAreaOffScreen = bounds.OffScreen,
         };
     }
 
@@ -50,6 +51,7 @@ public sealed class WindowPlacementService : IWindowPlacementService
         return new OutputWindowPlacement(area.Left, area.Top, area.Width, area.Height, IsWindowed: false)
         {
             AsSingleMonitor = area.Custom && _settings?.Current.Operator.OutputAsSingle == true,
+            CustomAreaOffScreen = area.OffScreen,
         };
     }
 
@@ -119,6 +121,9 @@ public sealed class WindowPlacementService : IWindowPlacementService
                 left < screen.X + screen.Width && left + (double)width > screen.X &&
                 top < screen.Y + screen.Height && top + height > screen.Y))
                 return new DisplayBounds(left, top, width, height, true);
+            // FrmMain shows nothing for an area off every screen (MonitorLayout.ResolveOutput); here the display
+            // is used and the operator is told (MainViewModel.OutputAreaNote).
+            return new DisplayBounds(display.X, display.Y, display.Width, display.Height, OffScreen: true);
         }
         return new DisplayBounds(display.X, display.Y, display.Width, display.Height);
     }
@@ -153,5 +158,5 @@ public sealed class WindowPlacementService : IWindowPlacementService
              || options.DisplayCustomWidth != AxicultusSettingKeys.DisplayCustomWidth.DefaultValue),
     };
 
-    private sealed record DisplayBounds(double Left, double Top, double Width, double Height, bool Custom = false);
+    private sealed record DisplayBounds(double Left, double Top, double Width, double Height, bool Custom = false, bool OffScreen = false);
 }

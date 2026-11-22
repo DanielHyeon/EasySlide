@@ -46,7 +46,7 @@
                                     AutomationProperties.Name="Show Powerpoint Tab" />
                                 <options:OptionNumberBox Canvas.Left="248" Canvas.Top="32" Width="72" Height="27"
                                     Text="{Binding PowerPointMaxFiles, Mode=TwoWay, ValidatesOnExceptions=True}"
-                                    Minimum="0" Maximum="100" AutomationProperties.Name="Power Point Max Files" />
+                                    Minimum="1" Maximum="100" AutomationProperties.Name="Power Point Max Files" />
                                 <TextBlock Canvas.Left="14" Canvas.Top="36" Width="209" Height="20"
                                     Text="Max Powerpoint Files allowed:" TextWrapping="Wrap" />
                             </Canvas>
@@ -331,7 +331,7 @@
                                     IsChecked="{Binding [StageCustom], Mode=TwoWay, Converter={StaticResource OptionChoice}, ConverterParameter=False}"
                                     AutomationProperties.Name="opt LM0" />
                                 <ComboBox Style="{x:Null}" Canvas.Left="39" Canvas.Top="28" Width="249" Height="28"
-                                    ItemsSource="{Binding DisplayChoices, ElementName=OptionsWindow}"
+                                    ItemsSource="{Binding StageDisplayChoices, ElementName=OptionsWindow}"
                                     DisplayMemberPath="Name" SelectedValuePath="Id"
                                     SelectedValue="{Binding PreviewMonitorId, Mode=TwoWay}"
                                     IsEnabled="{Binding [StageCustom], Mode=OneWay, Converter={StaticResource OptionChoice}, ConverterParameter=False}"
@@ -1312,7 +1312,7 @@
                                                     <ColumnDefinition Width="*" />
                                                     <ColumnDefinition Width="Auto" />
                                                 </Grid.ColumnDefinitions>
-                                                <TextBox Text="{Binding WorkingFolder, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource EsTextBox.Default}" AutomationProperties.LabeledBy="{Binding ElementName=LblWorkingFolder}" Margin="0,0,8,0" />
+                                                <TextBox Text="{Binding WorkingFolder}" Style="{StaticResource EsTextBox.Default}" AutomationProperties.LabeledBy="{Binding ElementName=LblWorkingFolder}" Margin="0,0,8,0" />
                                                 <Button Grid.Column="1" Command="{Binding BrowseWorkingFolderCommand}" Style="{StaticResource EsButton.Secondary}" ToolTip="작업 폴더 선택" AutomationProperties.Name="작업 폴더 선택">
                                                     <StackPanel Orientation="Horizontal">
                                                         <ui:SymbolIcon Symbol="FolderOpen24" Margin="0,0,6,0" />
@@ -1345,7 +1345,7 @@
                                     <GroupBox Header="PowerPoint 렌더링" Padding="10" Margin="4">
                                         <StackPanel>
                                             <TextBlock Text="렌더 타임아웃(초)" Style="{StaticResource Type.Caption.Style}" Foreground="{DynamicResource Brush.Text.Tertiary}" />
-                                            <TextBox Text="{Binding PowerPointRenderTimeoutSeconds, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource EsTextBox.Default}" AutomationProperties.Name="PowerPoint 렌더 타임아웃" Margin="0,4,0,16" />
+                                            <TextBox Text="{Binding PowerPointRenderTimeoutSeconds}" Style="{StaticResource EsTextBox.Default}" AutomationProperties.Name="PowerPoint 렌더 타임아웃" Margin="0,4,0,16" />
                                             <TextBlock Text="썸네일 캐시(MB)" Style="{StaticResource Type.Caption.Style}" Foreground="{DynamicResource Brush.Text.Tertiary}" />
                                             <TextBox Text="{Binding ThumbnailCacheMegabytes, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource EsTextBox.Default}" AutomationProperties.Name="썸네일 캐시" Margin="0,4,0,16" />
                                         </StackPanel>

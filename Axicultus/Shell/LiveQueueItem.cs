@@ -5,6 +5,11 @@ namespace Axicultus.Wpf;
 
 public sealed record LiveQueueItem(string Id, string Title, string Kind = LiveItemKinds.Item)
 {
+    // Identity, not value: the same song or notice is often in a list twice, and selection (the generated
+    // SelectedItem setter, the ListBox) and Queue.IndexOf must tell the two entries apart.
+    public bool Equals(LiveQueueItem? other) => ReferenceEquals(this, other);
+    public override int GetHashCode() => System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(this);
+
     public ImageSource? PreviewSource { get; init; }
 
     public ImageFillMode PreviewFillMode { get; init; } = ImageFillMode.Fit;
@@ -32,8 +37,29 @@ public sealed record LiveQueueItem(string Id, string Title, string Kind = LiveIt
     /// <summary>곡 항목의 가사(추가 시점에 적재 — 선택 시 미리보기에 표시). 라이브 큐 콘텐츠 plumbing.</summary>
     public string? Lyrics { get; init; }
 
+    /// <summary>
+    /// The chords of a song as the database keeps them, apart from the lyrics (MSC): "(line;chord;position;...)"
+    /// records, the line counted among all lines of <see cref="Lyrics"/> and the position among the characters
+    /// of that line. Null or empty for an item without stored chords.
+    /// </summary>
+    public string? Notations { get; init; }
+
+    /// <summary>
+    /// What the display works from: <see cref="Lyrics"/> with the stored chords written on their lines
+    /// (<see cref="Shell.LyricsDisplayFormatter.WithStoredChords"/>). The same text as Lyrics without stored chords.
+    /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public string? LyricsWithChords => Shell.LyricsDisplayFormatter.WithStoredChords(Lyrics, Notations);
+
     [System.Text.Json.Serialization.JsonIgnore]
     public string? ProjectedTextPage { get; init; }
+
+    /// <summary>
+    /// The part of the font size the projected page is drawn with. Below 1 when the page was cut with a reduced
+    /// font because its first line alone is higher than the screen (SongPageLayout, gfLyrics.GetOneScreen).
+    /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public double ProjectedFontScale { get; init; } = 1;
 
     /// <summary>
     /// 곡 절 순서(Sequence) — 절을 [라벨] 마커로 1회 정의하고 "1 C 2 C" 식으로 순서·반복을 지정(레거시 절 순서 모델).

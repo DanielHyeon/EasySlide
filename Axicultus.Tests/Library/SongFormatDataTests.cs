@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using Axicultus.Wpf.Library;
 using Axicultus.Wpf.Settings;
 using FluentAssertions;
@@ -18,6 +20,101 @@ public sealed class SongFormatDataTests
         "21=0>23=0>22=32>25=2>26=-16777056>27=-16777056>28=0>29=-16777216>30=-16744193>31=2>32=1>" +
         "41=16>42=16>43=Microsoft Sans Serif>44=HY견고딕>45=0>46=50>47=55>48=44>50=2>51=>52=50>53=-1>" +
         "54=2>55=1>61=C:\\Axicultus\\Images\\성경\\bible-sermon.jpg>62=2>63=1>64=2>65=2>66=0>71=0>72=None>73=None>";
+
+    [Theory]
+    [InlineData("de", "b,e")]             // bridge, ending: no chorus and no verse below 9, so only letters
+    [InlineData("dedf", "b,e,b,t")]
+    [InlineData("o", "p")]                // prechorus alone
+    [InlineData("e", "e")]                // ending alone reads the same either way
+    [InlineData("p", "p")]                // kept as text (prechorus); as a code it would be prechorus 2
+    [InlineData("\u0001\0\u0002", "1,c,2")]
+    [InlineData("1,c,2", "1,c,2")]
+    [InlineData("b,e", "b,e")]
+    [InlineData("d e", "d e")]            // with a separator it is text
+    [InlineData("", "")]
+    public void StoredSequenceOfLetterCodesIsDecodedOnceAndStaysStable(string stored, string tokens)
+    {
+        string decoded = Axicultus.Module.SongExchangeSequence.FromWpfDatabase(stored);
+        Assert.Equal(tokens, decoded);
+        // LiveQueueItem.Sequence decodes again on every copy of the record.
+        Assert.Equal(tokens, Axicultus.Module.SongExchangeSequence.FromWpfDatabase(decoded));
+    }
+
+    [Theory]
+    [InlineData("\t", "9")]               // verse 9 alone: a tab
+    [InlineData("\n\v", "10,11")]
+    [InlineData("\te", "9,e")]            // verse 9 + ending, not the token "e" after a separator
+    [InlineData("\u001f\u0001", "31,1")]
+    [InlineData(" \r\n", " \r\n")]        // blank text with a space in it: an empty sequence, not verses 32, 13, 10
+    [InlineData("V1 C V2", "V1 C V2")]    // verse headings the operator typed: left alone
+    [InlineData("1", "1")]                // ambiguous: as codes it is verse 49. Read as text.
+    public void AStoredValueWithACharacterBelow32_IsVerseCodes_AndPrintableTextStaysText(string stored, string tokens)
+    {
+        Assert.Equal(tokens, Axicultus.Module.SongExchangeSequence.FromWpfDatabase(stored));
+        Assert.Equal(tokens, Axicultus.Module.SongExchangeSequence.FromWpfDatabase(tokens));
+    }
+
+    [Theory]
+    [InlineData("\te")]                   // WinForms: verse 9, ending
+    [InlineData("\u0001\0\u0002\0")]
+    [InlineData("de")]
+    [InlineData("V1 C V2")]
+    public void AValueThatIsVerseCodesAlready_OrNamesHeadings_IsWrittenAsItIs(string value)
+        => Assert.Equal(value, Axicultus.Module.SongExchangeSequence.ToDatabase(value));
+
+    [Fact]
+    public void EveryOneAndTwoVerseSequence_IsStoredAsCodesWpfReadsBack_OrKeptAsTextTheEditorRefuses()
+    {
+        // From the review: all sequences of one or two of the tokens 1-99, c b e t w p q.
+        string[] tokens = [.. Enumerable.Range(1, 99).Select(n => n.ToString()), "c", "b", "e", "t", "w", "p", "q"];
+        var sequences = tokens.Select(t => new[] { t }).Concat(tokens.SelectMany(a => tokens.Select(b => new[] { a, b })));
+        var wrong = new List<string>();
+        var keptAsText = new List<string>();
+        foreach (var sequence in sequences)
+        {
+            string text = string.Join(',', sequence);
+            string codes = Axicultus.Module.SongExchangeSequence.ToLegacy(new Axicultus.Module.ExchangeSong { Sequence = text });
+            string stored = Axicultus.Module.SongExchangeSequence.ToDatabase(text);
+            if (stored == codes)
+            {
+                // Stored as WinForms reads it, and read back as the same verses.
+                string read = Axicultus.Module.SongExchangeSequence.FromWpfDatabase(codes);
+                if (read != text && !(text == "e" && read == "e")) wrong.Add(text);
+                continue;
+            }
+
+            // Not storable so that both apps read the same verses: the text is kept (SongEditorLyrics.SequenceProblem
+            // refuses to save it). Only printable code strings are in that case: no chorus and no verse below 32,
+            // or nothing but white space with a space in it (verse 32 with verses 9 to 13 or 28 to 31).
+            keptAsText.Add(text);
+            if (stored != text || !(codes.All(c => c >= ' ') || (string.IsNullOrWhiteSpace(codes) && codes.Contains(' ')))) wrong.Add(text);
+        }
+
+        Assert.Empty(wrong);
+        // Every sequence with a chorus or with a verse 1 to 31 next to anything but verse 32 is stored as codes.
+        Assert.DoesNotContain(keptAsText, text => text.Split(',').Any(token => token == "c" || (int.TryParse(token, out int verse) && verse < 9)));
+        Assert.Contains("q", keptAsText);       // code "p" would be read as prechorus
+        Assert.Contains("49", keptAsText);      // code "1" would be read as verse 1
+        Assert.Contains("9,32", keptAsText);    // a tab and a space: blank text
+        Assert.DoesNotContain("9", keptAsText);
+        Assert.DoesNotContain("10,11", keptAsText);
+        Assert.DoesNotContain("b,e", keptAsText);
+    }
+
+    [Theory]
+    [InlineData("b,e", "de")]
+    [InlineData("p", "o")]
+    [InlineData("q,e", "pe")]
+    [InlineData("e", "e")]
+    [InlineData("q", "q")]                // code "p" would be read back as prechorus, so it stays text
+    [InlineData("intro", "intro")]
+    [InlineData("9", "\t")]
+    [InlineData("10,11", "\n\v")]
+    public void SequenceIsStoredAsVerseCodesOnlyWhenTheReaderGetsTheSameTokensBack(string tokens, string stored)
+    {
+        Assert.Equal(stored, Axicultus.Module.SongExchangeSequence.ToDatabase(tokens));
+        Assert.Equal(tokens, Axicultus.Module.SongExchangeSequence.FromWpfDatabase(stored));
+    }
 
     [Fact]
     public void EditingOneFontPreservesAdvancedMediaAndSecondaryDisplaySettings()

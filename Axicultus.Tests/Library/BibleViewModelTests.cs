@@ -277,9 +277,9 @@ public class BibleViewModelTests
     }
 
     [Fact]
-    public async Task ExpandSelectionBody_DelegatesToRepositoryWithWorkingFolderAndShowVerses()
+    public async Task ExpandSelectionBody_DelegatesToRepositoryWithWorkingFolder_WhateverTheShowVersesTick()
     {
-        // 성경 항목 본문 확장은 저장소에 작업 폴더·절 번호 표시 설정을 그대로 넘겨 위임한다.
+        // The browse pane's "show verses" tick has no part in the projected text: the repository is not told about it.
         using var fixture = TempBibleSettings.Create();
         fixture.Settings.Set(AxicultusSettingKeys.WorkingFolder, fixture.WorkingFolder);
         var repository = new FakeBibleRepository
@@ -297,7 +297,6 @@ public class BibleViewModelTests
         body.Should().Be("1:1 In the beginning");
         repository.LastExpandWorkingFolder.Should().Be(Path.GetFullPath(fixture.WorkingFolder));
         repository.LastExpandIdString.Should().Be("0;kjv.db;;1;1;1;1;1;");
-        repository.LastExpandShowVerses.Should().BeFalse();
     }
 
     [Fact]
@@ -698,9 +697,9 @@ public class BibleViewModelTests
         result.Should().Be(selection);
         sut.SelectedBook.Should().Be(new BibleBook(1, "Genesis"), "참조의 책으로 선택을 옮긴다");
         repository.LastBuildStart.Should().Be(0, "시작 절(1:1)의 본문 시작 오프셋");
-        repository.LastBuildLength.Should().Be(37, "끝 절(1:2) 끝까지 = 21+16");
+        repository.LastBuildLength.Should().Be(35, "up to the end of 1:2 (21+16) without the blank line that closes it, so the next verse is not selected");
         sut.LastReferenceStart.Should().Be(0);
-        sut.LastReferenceLength.Should().Be(37);
+        sut.LastReferenceLength.Should().Be(35);
         raised.Should().NotBeNull();
         raised!.Selection.Should().Be(selection);
     }
@@ -1051,13 +1050,10 @@ public class BibleViewModelTests
 
         public string? LastExpandIdString { get; private set; }
 
-        public bool LastExpandShowVerses { get; private set; }
-
-        public string ExpandSelection(string workingFolder, string idString, bool showVerses)
+        public string ExpandSelection(string workingFolder, string idString)
         {
             LastExpandWorkingFolder = workingFolder;
             LastExpandIdString = idString;
-            LastExpandShowVerses = showVerses;
             return ExpandedBody;
         }
 

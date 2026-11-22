@@ -39,7 +39,7 @@
                            Text="현재 폴더"
                            Style="{StaticResource Type.Caption.Style}"
                            Foreground="{DynamicResource Brush.Text.Tertiary}" />
-                <TextBox Text="{Binding SourceFolderName}"
+                <TextBox Text="{Binding SourceFolderName, Mode=OneWay}"
                          IsReadOnly="True"
                          MinHeight="36"
                          Margin="0,4,0,0"

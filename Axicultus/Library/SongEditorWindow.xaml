@@ -40,10 +40,22 @@
                 <TextBlock Text="곡 편집기"
                            Style="{StaticResource Type.Title1.Style}"
                            Foreground="{DynamicResource Brush.Text.Primary}" />
-                <TextBlock Text="{Binding FolderName, StringFormat=폴더: {0}}"
-                           Style="{StaticResource Type.Caption.Style}"
-                           Foreground="{DynamicResource Brush.Text.Secondary}"
-                           Margin="0,6,0,0" />
+                <!-- FrmEditItem SongFolder: the folder the song is saved in; folders in use only, never folder 0. -->
+                <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                    <TextBlock x:Name="LblFolder"
+                               Text="폴더"
+                               VerticalAlignment="Center"
+                               Style="{StaticResource Type.Caption.Style}"
+                               Foreground="{DynamicResource Brush.Text.Secondary}"
+                               Margin="0,0,8,0" />
+                    <ComboBox ItemsSource="{Binding Folders}"
+                              DisplayMemberPath="Name"
+                              SelectedItem="{Binding SelectedFolder, Mode=TwoWay}"
+                              MinWidth="220"
+                              MinHeight="32"
+                              ToolTip="곡을 저장할 폴더"
+                              AutomationProperties.LabeledBy="{Binding ElementName=LblFolder}" />
+                </StackPanel>
             </StackPanel>
 
             <Border Grid.Column="1"
@@ -109,22 +121,62 @@
                                     <MenuItem Header="브리지" Tag="[bridge]" />
                                     <MenuItem Header="브리지 2" Tag="[bridge 2]" />
                                     <MenuItem Header="엔딩" Tag="[ending]" />
-                                    <Separator />
-                                    <MenuItem Header="기본 가사 (Region 1)" Tag="[region 1]" />
-                                    <MenuItem Header="보조 가사 (Region 2)" Tag="[region 2]" />
+                                </MenuItem>
+                                <!-- FrmEditItem chords menu: puts the chord over the caret of the pane last used. -->
+                                <MenuItem x:Name="ChordMenu" Header="코드 넣기" Click="InsertChord_Click"
+                                          ToolTip="커서가 있는 글자 위에 코드를 넣습니다"
+                                          AutomationProperties.Name="코드 넣기">
+                                    <MenuItem.Icon>
+                                        <controls:FrmIcon Icon="chords" Width="16" Height="16" />
+                                    </MenuItem.Icon>
                                 </MenuItem>
                             </Menu>
-                            <TextBlock x:Name="LblLyrics" Text="가사" VerticalAlignment="Center"
+                            <TextBlock x:Name="LblLyrics" Text="기본 가사 (Region 1)" VerticalAlignment="Center"
                                        Style="{StaticResource Type.Caption.Style}"
                                        Foreground="{DynamicResource Brush.Text.Tertiary}" />
                         </DockPanel>
-                        <TextBox x:Name="LyricsEditor" Text="{Binding Lyrics, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        <!-- FrmEditItem formatting row: transpose the song's chords, key and capo; wrap the lyric panes. -->
+                        <WrapPanel Margin="0,4,0,0">
+                            <Button Command="{Binding TransposeSongDownCommand}" Style="{StaticResource EsButton.Secondary}" Margin="0,0,8,0"
+                                    Content="코드 반음 내림" Tag="transpose_down" ContentTemplate="{StaticResource EditorActionCaption}"
+                                    ToolTip="두 가사 칸의 코드와 키·카포를 반음 내립니다(저장됨)" />
+                            <Button Command="{Binding TransposeSongUpCommand}" Style="{StaticResource EsButton.Secondary}" Margin="0,0,8,0"
+                                    Content="코드 반음 올림" Tag="transpose_up" ContentTemplate="{StaticResource EditorActionCaption}"
+                                    ToolTip="두 가사 칸의 코드와 키·카포를 반음 올립니다(저장됨)" />
+                            <CheckBox x:Name="WrapLyrics" Content="줄 바꿈" Click="WrapLyrics_Click" VerticalAlignment="Center"
+                                      ToolTip="긴 줄을 접어 보입니다. 코드 줄은 접히면 가사와 어긋나 보입니다." />
+                        </WrapPanel>
+                        <TextBlock Text="코드는 가사 줄 바로 윗줄에 쓰고 » 로 끝냅니다(F8). 코드가 놓인 글자 위치가 저장됩니다."
+                                   TextWrapping="Wrap"
+                                   Style="{StaticResource Type.Caption.Style}"
+                                   Foreground="{DynamicResource Brush.Text.Tertiary}"
+                                   Margin="0,4,0,0" />
+                        <TextBox x:Name="LyricsEditor" Text="{Binding LyricsRegion1, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                  AcceptsReturn="True"
-                                 TextWrapping="Wrap"
+                                 TextWrapping="NoWrap"
                                  VerticalScrollBarVisibility="Auto"
+                                 HorizontalScrollBarVisibility="Auto"
                                  MinHeight="280"
                                  Margin="0,4,0,0"
+                                 GotKeyboardFocus="Lyrics_GotKeyboardFocus"
+                                 PreviewKeyDown="Lyrics_PreviewKeyDown"
                                  AutomationProperties.LabeledBy="{Binding ElementName=LblLyrics}" />
+                        <!-- FrmEditItem "Additional lyrics": the second language, verse by verse under the same headings. -->
+                        <TextBlock x:Name="LblLyrics2" Text="보조 가사 (Region 2)"
+                                   Style="{StaticResource Type.Caption.Style}"
+                                   Foreground="{DynamicResource Brush.Text.Tertiary}"
+                                   Margin="0,12,0,0" />
+                        <TextBox x:Name="Lyrics2Editor" Text="{Binding LyricsRegion2, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 AcceptsReturn="True"
+                                 TextWrapping="NoWrap"
+                                 VerticalScrollBarVisibility="Auto"
+                                 HorizontalScrollBarVisibility="Auto"
+                                 MinHeight="140"
+                                 Margin="0,4,0,0"
+                                 ToolTip="기본 가사와 같은 절 표시([1], [chorus] …) 아래에 그 절의 보조 가사를 씁니다"
+                                 GotKeyboardFocus="Lyrics_GotKeyboardFocus"
+                                 PreviewKeyDown="Lyrics_PreviewKeyDown"
+                                 AutomationProperties.LabeledBy="{Binding ElementName=LblLyrics2}" />
                     </StackPanel>
 
                     <Grid Margin="0,0,0,14">
@@ -140,9 +192,10 @@
                                      TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" />
                         </StackPanel>
                         <StackPanel Grid.Column="2">
-                            <Label Target="{Binding ElementName=SongNotations}" Content="코드 표기" Padding="0,0,0,4" />
-                            <TextBox x:Name="SongNotations" Text="{Binding Notations, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                     AutomationProperties.Name="코드 표기(Notations)" MinHeight="46" AcceptsReturn="True"
+                            <!-- Read only: MSC is rebuilt from the chord lines of the lyric panes, as FrmEditItem does on save. -->
+                            <Label Target="{Binding ElementName=SongNotations}" Content="코드 표기(저장되는 값)" Padding="0,0,0,4" />
+                            <TextBox x:Name="SongNotations" Text="{Binding Notations, Mode=OneWay}" IsReadOnly="True"
+                                     AutomationProperties.Name="코드 표기(Notations)" MinHeight="46"
                                      TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" />
                         </StackPanel>
                     </Grid>
@@ -222,10 +275,14 @@
                                            Text="카포"
                                            Style="{StaticResource Type.Caption.Style}"
                                            Foreground="{DynamicResource Brush.Text.Tertiary}" />
-                                        <TextBox Text="{Binding Capo, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                         MinHeight="36"
-                                         Margin="0,4,0,0"
-                                         AutomationProperties.LabeledBy="{Binding ElementName=LblCapo}" />
+                                        <!-- FrmEditItem SongCapo: "no capo" is an entry of the list and is stored as -1. -->
+                                        <ComboBox ItemsSource="{Binding CapoOptions}"
+                                                  DisplayMemberPath="Value"
+                                                  SelectedValuePath="Key"
+                                                  SelectedValue="{Binding Capo, Mode=TwoWay}"
+                                                  MinHeight="36"
+                                                  Margin="0,4,0,0"
+                                                  AutomationProperties.LabeledBy="{Binding ElementName=LblCapo}" />
                                     </StackPanel>
                                 </Grid>
                             </Grid>
@@ -616,7 +673,13 @@
             </StackPanel>
 
             <StackPanel>
+                <!-- Why Save is off: the stored fields of the song could not be read, and saving would blank them. -->
+                <TextBlock Text="{Binding SaveBlockedReason}"
+                           TextWrapping="Wrap"
+                           Style="{StaticResource Type.Caption.Style}"
+                           Foreground="{DynamicResource Brush.Status.Danger}" />
                 <TextBlock Text="{Binding ValidationMessage}"
+                           TextWrapping="Wrap"
                            Style="{StaticResource Type.Caption.Style}"
                            Foreground="{DynamicResource Brush.Status.Danger}" />
                 <!-- 중복 절 라벨 경고(저장은 막지 않는 비차단 안내). 비면 공백. -->

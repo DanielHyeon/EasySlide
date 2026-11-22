@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -124,7 +125,7 @@ public partial class LibraryWindow : Window
 
     private async void CopySong_Click(object sender, RoutedEventArgs e)
     {
-        if (DataContext is not LibraryViewModel { SelectedSong: not null } viewModel)
+        if (DataContext is not LibraryViewModel viewModel)
         {
             return;
         }
@@ -134,7 +135,7 @@ public partial class LibraryWindow : Window
 
     private async void MoveSong_Click(object sender, RoutedEventArgs e)
     {
-        if (DataContext is not LibraryViewModel { SelectedSong: not null } viewModel)
+        if (DataContext is not LibraryViewModel viewModel)
         {
             return;
         }
@@ -144,12 +145,34 @@ public partial class LibraryWindow : Window
 
     private async void DeleteSong_Click(object sender, RoutedEventArgs e)
     {
-        if (DataContext is not LibraryViewModel { SelectedSong: not null } viewModel)
+        if (DataContext is not LibraryViewModel viewModel)
         {
             return;
         }
 
         await OpenSongDeleteAsync(viewModel);
+    }
+
+    // Every selected song, in the order of the list: copy, move and delete act on all of them, as in FrmMain.
+    private SongSummary[] SelectedSongs(LibraryViewModel viewModel)
+        => InListOrder(SongsGrid.SelectedItems, viewModel.Songs);
+
+    internal static SongSummary[] InListOrder(System.Collections.IEnumerable selected, IList<SongSummary> songs)
+        => [.. selected.OfType<SongSummary>().OrderBy(song => songs.IndexOf(song))];
+
+    // As FrmMain does after a copy or a move: the songs just filed are selected in their folder.
+    private void SelectSongs(LibraryViewModel viewModel, IReadOnlyList<int> songIds)
+    {
+        if (songIds.Count < 2)
+        {
+            return; // One song is selected through SelectedSong.
+        }
+
+        SongsGrid.SelectedItems.Clear();
+        foreach (var song in viewModel.Songs.Where(song => songIds.Contains(song.SongId)))
+        {
+            SongsGrid.SelectedItems.Add(song);
+        }
     }
 
     private async void RecoverSong_Click(object sender, RoutedEventArgs e)
@@ -175,8 +198,7 @@ public partial class LibraryWindow : Window
     private void Reorder_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
         _dragStartPoint = e.GetPosition(null);
-        _dragSourceItem = FindDataContext<SongFolderSummary>(e.OriginalSource as DependencyObject)
-            ?? (object?)FindDataContext<SongSummary>(e.OriginalSource as DependencyObject);
+        _dragSourceItem = FindDataContext<SongFolderSummary>(e.OriginalSource as DependencyObject);
     }
 
     private void FolderList_MouseMove(object sender, MouseEventArgs e)
@@ -184,10 +206,6 @@ public partial class LibraryWindow : Window
         TryStartDrag<SongFolderSummary>(FolderList, e);
     }
 
-    private void SongsGrid_MouseMove(object sender, MouseEventArgs e)
-    {
-        TryStartDrag<SongSummary>(SongsGrid, e);
-    }
 
     private void Reorder_DragOver(object sender, DragEventArgs e)
     {
@@ -220,25 +238,6 @@ public partial class LibraryWindow : Window
         await viewModel.MoveSelectedFolderToIndexAsync(targetIndex);
     }
 
-    private async void SongsGrid_Drop(object sender, DragEventArgs e)
-    {
-        e.Handled = true;
-        if (DataContext is not LibraryViewModel viewModel ||
-            e.Data.GetData(typeof(SongSummary)) is not SongSummary dragged)
-        {
-            return;
-        }
-
-        var target = FindDataContext<SongSummary>(e.OriginalSource as DependencyObject);
-        viewModel.SelectedSong = viewModel.Songs.FirstOrDefault(song => song.SongId == dragged.SongId) ?? dragged;
-        if (target is null)
-        {
-            await viewModel.MoveSelectedSongToEndAsync();
-            return;
-        }
-
-        await viewModel.MoveSelectedSongToSongAsync(target);
-    }
 
     private async Task OpenSongEditorAsync(SongSummary? song)
     {
@@ -302,7 +301,8 @@ public partial class LibraryWindow : Window
 
     private async Task OpenSongCopyAsync(LibraryViewModel viewModel)
     {
-        if (viewModel.SelectedFolder is null || viewModel.SelectedSong is null)
+        var songs = SelectedSongs(viewModel);
+        if (viewModel.SelectedFolder is null || songs.Length == 0)
         {
             viewModel.StatusMessage = "복사할 곡을 선택하세요.";
             return;
@@ -315,7 +315,7 @@ public partial class LibraryWindow : Window
             return;
         }
 
-        copyViewModel.Load(viewModel.DatabasePath, viewModel.SelectedSong, viewModel.SelectedFolder, viewModel.Folders);
+        copyViewModel.Load(viewModel.DatabasePath, songs, viewModel.Folders);
         var copied = copyWindow.ShowDialog() == true;
         if (!copied)
         {
@@ -323,11 +323,14 @@ public partial class LibraryWindow : Window
         }
 
         await ReloadLibraryToFolderAndSongAsync(viewModel, copyViewModel.SelectedTargetFolder?.FolderNo, copyViewModel.CreatedSongId);
+        SelectSongs(viewModel, copyViewModel.CreatedSongIds);
+        viewModel.StatusMessage = copyViewModel.StatusMessage; // The dialog has closed: how many were copied, and which were left out.
     }
 
     private async Task OpenSongMoveAsync(LibraryViewModel viewModel)
     {
-        if (viewModel.SelectedFolder is null || viewModel.SelectedSong is null)
+        var songs = SelectedSongs(viewModel);
+        if (viewModel.SelectedFolder is null || songs.Length == 0)
         {
             viewModel.StatusMessage = "이동할 곡을 선택하세요.";
             return;
@@ -340,19 +343,22 @@ public partial class LibraryWindow : Window
             return;
         }
 
-        moveViewModel.Load(viewModel.DatabasePath, viewModel.SelectedSong, viewModel.SelectedFolder, viewModel.Folders);
+        moveViewModel.Load(viewModel.DatabasePath, songs, viewModel.Folders);
         var moved = moveWindow.ShowDialog() == true;
         if (!moved)
         {
             return;
         }
 
-        await ReloadLibraryToFolderAndSongAsync(viewModel, moveViewModel.SelectedTargetFolder?.FolderNo, moveViewModel.SongId);
+        await ReloadLibraryToFolderAndSongAsync(viewModel, moveViewModel.SelectedTargetFolder?.FolderNo, moveViewModel.MovedSongIds.FirstOrDefault());
+        SelectSongs(viewModel, moveViewModel.MovedSongIds);
+        viewModel.StatusMessage = moveViewModel.StatusMessage;
     }
 
     private async Task OpenSongDeleteAsync(LibraryViewModel viewModel)
     {
-        if (viewModel.SelectedFolder is null || viewModel.SelectedSong is null)
+        var songs = SelectedSongs(viewModel);
+        if (viewModel.SelectedFolder is null || songs.Length == 0)
         {
             viewModel.StatusMessage = "삭제할 곡을 선택하세요.";
             return;
@@ -366,7 +372,7 @@ public partial class LibraryWindow : Window
         }
 
         var folderNo = viewModel.SelectedFolder.FolderNo;
-        deleteViewModel.Load(viewModel.DatabasePath, viewModel.SelectedSong, viewModel.SelectedFolder);
+        deleteViewModel.Load(viewModel.DatabasePath, songs, viewModel.Folders);
         var deleted = deleteWindow.ShowDialog() == true;
         if (!deleted)
         {
@@ -374,6 +380,7 @@ public partial class LibraryWindow : Window
         }
 
         await ReloadLibraryToFolderAndSongAsync(viewModel, folderNo, null);
+        viewModel.StatusMessage = deleteViewModel.StatusMessage;
     }
 
     private async Task OpenSongRecoveryAsync(LibraryViewModel viewModel)

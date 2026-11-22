@@ -55,6 +55,51 @@ public class MediaLibraryServiceTests : IDisposable
     }
 
     [Fact]
+    public void EnumerateMedia_UsesTheExtensionListsOfTheWorkingFolder()
+    {
+        // The WinForms app keeps AudioExtensions.txt and VideoExtensions.txt in <working folder>\Admin\Database.
+        var working = Path.Combine(_dir, "work");
+        var lists = Path.Combine(working, "Admin", "Database");
+        Directory.CreateDirectory(lists);
+        File.WriteAllLines(Path.Combine(lists, "AudioExtensions.txt"), [".xyz", "OGG", ""]);
+        File.WriteAllLines(Path.Combine(lists, "VideoExtensions.txt"), [".vid"]);
+        Touch("media/a.xyz");
+        Touch("media/b.vid");
+        Touch("media/c.ogg");
+        Touch("media/d.mp3"); // not in the operator's lists
+        var sut = new MediaLibraryService(working);
+
+        sut.EnumerateMedia(Path.Combine(_dir, "media"), includeSubfolders: false)
+            .Select(Path.GetFileName).Should().Equal("a.xyz", "b.vid", "c.ogg");
+    }
+
+    [Fact]
+    public void ExtensionLists_AreReadFromUtf16WithByteOrderMark_AsTheShippedFilesAre()
+    {
+        string working = Path.Combine(_dir, "utf16");
+        Directory.CreateDirectory(Path.Combine(working, "Admin", "Database"));
+        File.WriteAllText(Path.Combine(working, "Admin", "Database", "AudioExtensions.txt"), ".mp3\r\n.opus\r\n.aac\r\n", new System.Text.UnicodeEncoding(bigEndian: false, byteOrderMark: true));
+
+        SourceFileExtensions.Audio(working).Should().Equal(".mp3", ".opus", ".aac");
+    }
+
+    [Fact]
+    public void ExtensionLists_FallBackToTheBuiltInListWhenNoFileCanBeRead()
+    {
+        SourceFileExtensions.Read(Path.Combine(_dir, "no-working-folder"), Path.Combine(_dir, "no-sys"), "AudioExtensions.txt", [".mp3"])
+            .Should().Equal(".mp3");
+    }
+
+    [Fact]
+    public void FileDialogFilters_ListTheExtensionsTheBrowsersList()
+    {
+        ExternalFileOperationWindow.GetFileDialogFilter(ExternalFileItemKind.PowerPoint, workingFolder: null)
+            .Should().Be("PowerPoint (*.ppt;*.pptx)|*.ppt;*.pptx|All files (*.*)|*.*");
+        ExternalFileOperationWindow.GetFileDialogFilter(ExternalFileItemKind.Media, workingFolder: null)
+            .Should().Contain("*.mp3").And.Contain("*.mp4").And.Contain("*.m4v");
+    }
+
+    [Fact]
     public void EnumerateMedia_TopLevelOnly_ExcludesSubfolders()
     {
         Touch("top.mp4");

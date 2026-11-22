@@ -67,6 +67,54 @@ public class OutputWindowViewModelTests
         sut.ContentTransitionKind.Should().Be(LyricsTransitionKind.ZoomIn, "다른 항목 → 항목 전환");
     }
 
+    [Theory]
+    [InlineData(GapItemMode.Black)]
+    [InlineData(GapItemMode.Default)]
+    [InlineData(GapItemMode.User)]
+    public void GapScreenDuringAShow_IsBlackTheDefaultBackgroundOrTheLogo_WithoutTextOrPanel(GapItemMode option)
+    {
+        // FrmLaunchShow item "G1" (Gf.GapFormatString): black, the session background or the logo; fade by option.
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        var logoFile = Path.Combine(folder.Root, "logo.png");
+        File.WriteAllText(logoFile, "logo");
+        settings.Set(AxicultusSettingKeys.GapItemLogoFile, logoFile).Succeeded.Should().BeTrue();
+        settings.Set(AxicultusSettingKeys.GapItemOption, option).Succeeded.Should().BeTrue();
+        settings.Set(AxicultusSettingKeys.GapItemUseFade, option != GapItemMode.Black).Succeeded.Should().BeTrue();
+        settings.Set(AxicultusSettingKeys.LyricsMonitorShowDisplayPanel, true).Succeeded.Should().BeTrue();
+        var logo = CreateStubBitmap();
+        var sut = new OutputWindowViewModel(
+            new OutputRenderer(new ImageAssetService(), new TransitionEffectService()),
+            settings: settings,
+            (Func<string, ImageSource?>)(_ => logo));
+        var configuredFade = sut.ContentFadeDuration;
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active, "", "Display 2", IsBlackout: false,
+            CurrentItemKind: LiveItemKinds.Gap, CurrentItemId: LiveItemKinds.GapLiveId));
+
+        sut.Scene.Kind.Should().Be(OutputSceneKind.Cleared, "the default background without text");
+        sut.DisplayTitle.Should().BeEmpty();
+        sut.PanelOverlayVisibility.Should().Be(Visibility.Collapsed);
+        sut.BlackoutOverlayVisibility.Should().Be(option == GapItemMode.Black ? Visibility.Visible : Visibility.Collapsed);
+        sut.GapLogoVisibility.Should().Be(option == GapItemMode.User ? Visibility.Visible : Visibility.Collapsed);
+        sut.ContentFadeDuration.Should().Be(option == GapItemMode.Black ? TimeSpan.Zero : TimeSpan.FromMilliseconds(500));
+
+        // Black over the gap screen is Black; the next item comes in with the configured transition again.
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Hidden, "", "Display 2", IsBlackout: true,
+            CurrentItemKind: LiveItemKinds.Gap, CurrentItemId: LiveItemKinds.GapLiveId));
+        sut.Scene.Kind.Should().Be(OutputSceneKind.Blackout);
+        sut.GapLogoVisibility.Should().Be(Visibility.Collapsed);
+
+        sut.ApplySession(new LiveSessionSnapshot(
+            LiveState.Active, "곡", "Display 2", IsBlackout: false, CurrentItemBodyText: "1절", CurrentItemId: "item-A"));
+        sut.Scene.Kind.Should().Be(OutputSceneKind.Live);
+        sut.BlackoutOverlayVisibility.Should().Be(Visibility.Collapsed);
+        sut.GapLogoVisibility.Should().Be(Visibility.Collapsed);
+        sut.ContentFadeDuration.Should().Be(configuredFade);
+    }
+
     [Fact]
     public void ApplySession_ActiveSong_RendersBodyTextAndHidesTitle()
     {
@@ -889,7 +937,7 @@ public class OutputWindowViewModelTests
             LiveState.Active, "은혜로다", "Display 2", IsBlackout: false, CurrentItemBodyText: "1절"));
 
         sut.BodyFontSize.Should().Be(48);
-        sut.BodyLineHeight.Should().Be(60, "기본 48px → 줄높이 1.25배 = 60");
+        sut.BodyLineHeight.Should().Be(Axicultus.Wpf.Tests.Controls.LyricRowHeightTests.WinFormsRow(SystemFonts.MessageFontFamily.Source, 36, 1.25), "WinForms row of the 36pt font at 125%");
     }
 
     [Fact]
@@ -904,7 +952,7 @@ public class OutputWindowViewModelTests
             LiveState.Active, "은혜로다", "Display 2", IsBlackout: false, CurrentItemBodyText: "1절"));
 
         sut.BodyFontSize.Should().Be(80);
-        sut.BodyLineHeight.Should().Be(100, "80px → 1.25배 = 100");
+        sut.BodyLineHeight.Should().Be(Axicultus.Wpf.Tests.Controls.LyricRowHeightTests.WinFormsRow(SystemFonts.MessageFontFamily.Source, 60, 1.25), "80px = 60pt");
     }
 
     [Fact]
@@ -920,7 +968,7 @@ public class OutputWindowViewModelTests
         sut.ApplySession(new LiveSessionSnapshot(
             LiveState.Active, "은혜로다", "Display 2", IsBlackout: false, CurrentItemBodyText: "1절"));
 
-        sut.BodyLineHeight.Should().Be(72, "48 × 150% = 72");
+        sut.BodyLineHeight.Should().Be(Axicultus.Wpf.Tests.Controls.LyricRowHeightTests.WinFormsRow(SystemFonts.MessageFontFamily.Source, 36, 1.5), "48px at 150%");
     }
 
     [Fact]
@@ -935,7 +983,7 @@ public class OutputWindowViewModelTests
         settings.Set(AxicultusSettingKeys.LyricsMonitorFontSize, 40).Succeeded.Should().BeTrue();
         settings.Set(AxicultusSettingKeys.LyricsMonitorLineSpacingPercent, 200).Succeeded.Should().BeTrue();
 
-        sut.BodyLineHeight.Should().Be(80, "40 × 200% = 80");
+        sut.BodyLineHeight.Should().Be(Axicultus.Wpf.Tests.Controls.LyricRowHeightTests.WinFormsRow(SystemFonts.MessageFontFamily.Source, 30, 2), "40px at 200%");
     }
 
     [Fact]

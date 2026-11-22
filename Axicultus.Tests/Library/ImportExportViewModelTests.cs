@@ -33,6 +33,20 @@ public class ImportExportViewModelTests
     }
 
     [Fact]
+    public async Task LoadAsync_WhenDatabaseCannotBeRead_ReportsInsteadOfThrowing()
+    {
+        using var fixture = new ImportExportViewModelFixture();
+        fixture.Settings.Set(AxicultusSettingKeys.WorkingFolder, fixture.WorkingFolder);
+        fixture.Service.ReadError = new System.Data.SQLite.SQLiteException(System.Data.SQLite.SQLiteErrorCode.Busy, "database is locked");
+        var sut = fixture.CreateViewModel();
+
+        await sut.LoadAsync();
+
+        sut.StatusMessage.Should().Contain("database is locked");
+        sut.IsBusy.Should().BeFalse();
+    }
+
+    [Fact]
     public async Task PreviewAndImportAsync_UsesSelectedFolderDuplicatePolicyAndSourceFolders()
     {
         using var fixture = new ImportExportViewModelFixture();
@@ -217,8 +231,10 @@ public class ImportExportViewModelTests
 
         public AccessImportMapping? LastPreviewAccessMapping { get; private set; }
 
+        public Exception? ReadError { get; set; }
+
         public Task<IReadOnlyList<SongFolderSummary>> GetFoldersAsync(string databasePath)
-            => Task.FromResult<IReadOnlyList<SongFolderSummary>>(
+            => ReadError is not null ? throw ReadError : Task.FromResult<IReadOnlyList<SongFolderSummary>>(
             [
                 new SongFolderSummary(2, "Morning", true, 2),
                 new SongFolderSummary(3, "Evening", true, 0),

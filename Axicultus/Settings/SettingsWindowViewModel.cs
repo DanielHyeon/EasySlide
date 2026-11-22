@@ -166,7 +166,7 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
         Sections = [with(CreateSections())];
         _selectedSection = Sections[0];
 
-        RestoreDefaultsCommand = new RelayCommand(RestoreDefaults);
+        RestoreDefaultsCommand = new RelayCommand(() => { if (ConfirmRestoreDefaults()) RestoreDefaults(); });
         RefreshCommand = new RelayCommand(ReloadOptions);
         BrowseWorkingFolderCommand = new AsyncRelayCommand(BrowseWorkingFolderAsync);
         BrowseAdminDatabaseCommand = new AsyncRelayCommand(BrowseAdminDatabaseAsync);
@@ -208,6 +208,9 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
     public IReadOnlyList<GapItemMode> GapItemModeOptions { get; } = Enum.GetValues<GapItemMode>();
 
     public IRelayCommand RestoreDefaultsCommand { get; }
+
+    // Set by the window: the restore button asks the operator first.
+    internal Func<bool> ConfirmRestoreDefaults { get; set; } = () => true;
 
     public IRelayCommand RefreshCommand { get; }
 

@@ -21,13 +21,14 @@ public class SongMoveViewModelTests
         var source = new SongFolderSummary(1, "Morning", true, 2);
         var target = new SongFolderSummary(2, "Evening", true, 0);
         var disabled = new SongFolderSummary(3, "Archive", false, 1);
+        var recycle = new SongFolderSummary(0, "Recycle Folder", false, 4);
         var sut = new SongMoveViewModel(fixture.Settings, new FakeAdminDatabaseRepository());
 
-        sut.Load(fixture.AdminDatabasePath, Song(10, "Opening", source.FolderNo), source, [source, target, disabled]);
+        sut.Load(fixture.AdminDatabasePath, Song(10, "Opening", source.FolderNo), source, [recycle, source, target, disabled]);
 
         sut.SourceFolderName.Should().Be("Morning");
         sut.SongTitle.Should().Be("Opening");
-        sut.TargetFolders.Select(folder => folder.FolderNo).Should().Equal(2, 3);
+        sut.TargetFolders.Select(folder => folder.FolderNo).Should().Equal(new[] { 2 }, "folder 0 holds deleted songs and a disabled folder is not shown");
         sut.SelectedTargetFolder.Should().Be(target);
         sut.ValidationMessage.Should().Be("");
     }
@@ -42,6 +43,7 @@ public class SongMoveViewModelTests
         var source = new SongFolderSummary(1, "Morning", true, 1);
         var target = new SongFolderSummary(2, "Evening", true, 0);
         var sut = new SongMoveViewModel(fixture.Settings, repository);
+        repository.Songs.Add(Song(10, "Opening", source.FolderNo));
         sut.Load(fixture.AdminDatabasePath, Song(10, "Opening", source.FolderNo), source, [source, target]);
 
         await sut.MoveAsync();
@@ -77,11 +79,55 @@ public class SongMoveViewModelTests
         var source = new SongFolderSummary(1, "Morning", true, 1);
         var target = new SongFolderSummary(2, "Evening", true, 0);
         var sut = new SongMoveViewModel(fixture.Settings, repository);
+        repository.Songs.Add(Song(10, "Opening", source.FolderNo));
         sut.Load(fixture.AdminDatabasePath, Song(10, "Opening", source.FolderNo), source, [source, target]);
 
         await sut.MoveAsync();
 
         repository.LastBackupRoot.Should().Be(Path.Combine(fixture.Root, "Backups"));
+    }
+
+    [Fact]
+    public async Task MoveAsync_SeveralSongs_MovesThemInOneOperation_AndReportsTheSkipped()
+    {
+        // Songs picked from two folders (a search result): the one already in the target folder and the one
+        // whose row is gone are left out; the others move together.
+        using var fixture = TempSongMoveSettings.Create();
+        fixture.CreateAdminDatabaseFile("custom.db");
+        var morning = new SongFolderSummary(1, "Morning", true, 2);
+        var evening = new SongFolderSummary(2, "Evening", true, 1);
+        var repository = new FakeAdminDatabaseRepository();
+        repository.Songs.AddRange([Song(10, "A", 1), Song(11, "B", 1), Song(12, "C", 2)]);
+        var sut = new SongMoveViewModel(fixture.Settings, repository);
+        sut.Load(fixture.AdminDatabasePath,
+            [Song(10, "A", 1), Song(11, "B", 1), Song(12, "C", 2), Song(13, "D", 1)], [morning, evening]);
+
+        sut.SongTitle.Should().Be("4곡 선택: A, B, C 외 1곡");
+        sut.SourceFolderName.Should().Be("여러 폴더");
+        sut.TargetFolders.Should().Equal(morning, evening);
+        sut.SelectedTargetFolder = evening;
+
+        await sut.MoveAsync();
+
+        repository.MoveCalls.Should().Be(1, "one backup and one transaction for the whole selection");
+        repository.LastMoves.Should().Equal(new SongMoveRequest(10, 1, 2), new SongMoveRequest(11, 1, 2));
+        sut.MovedSongIds.Should().Equal(10, 11);
+        sut.StatusMessage.Should().Be(
+            "2곡을 이동했습니다. 건너뜀 1곡(이미 대상 폴더에 있음): C 건너뜀 1곡(라이브러리에 없음): D");
+    }
+
+    [Fact]
+    public void Load_SeveralSongsOfOneFolder_DoesNotOfferThatFolder()
+    {
+        using var fixture = TempSongMoveSettings.Create();
+        var morning = new SongFolderSummary(1, "Morning", true, 2);
+        var evening = new SongFolderSummary(2, "Evening", true, 0);
+        var sut = new SongMoveViewModel(fixture.Settings, new FakeAdminDatabaseRepository());
+
+        sut.Load(fixture.AdminDatabasePath, [Song(10, "A", 1), Song(11, "B", 1)], [morning, evening]);
+
+        sut.SourceFolderName.Should().Be("Morning");
+        sut.TargetFolders.Should().Equal(evening);
     }
 
     private static SongSummary Song(int id, string title, int folderNo)
@@ -95,6 +141,10 @@ public class SongMoveViewModelTests
 
         public List<SongMoveRequest> LastMoves { get; } = [];
 
+        public List<SongSummary> Songs { get; } = [];
+
+        public int MoveCalls { get; private set; }
+
         public Task<AdminDatabaseSchemaInventory> AnalyzeSchemaAsync(string databasePath)
             => throw new NotSupportedException();
 
@@ -102,7 +152,7 @@ public class SongMoveViewModelTests
             => throw new NotSupportedException();
 
         public Task<IReadOnlyList<SongSummary>> GetSongsAsync(string databasePath, int? folderNo = null)
-            => throw new NotSupportedException();
+            => Task.FromResult<IReadOnlyList<SongSummary>>(Songs);
 
         public Task<IReadOnlyList<DeletedSongSummary>> GetDeletedSongsAsync(string databasePath)
             => throw new NotSupportedException();
@@ -123,6 +173,7 @@ public class SongMoveViewModelTests
         {
             LastDatabasePath = databasePath;
             LastBackupRoot = backupRoot;
+            MoveCalls++;
             LastMoves.AddRange(moves);
             return Task.FromResult(new AdminDatabaseWriteReport(
                 Succeeded: true,

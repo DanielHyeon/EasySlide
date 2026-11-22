@@ -196,6 +196,33 @@ public class WindowPlacementServiceTests
         placement.CreateMediaPlacement(display).Should().Be(placement.CreateOutputPlacement(display, false));
     }
 
+    [Fact]
+    public void CustomAreaOffEveryScreenFallsBackToTheDisplayAndSaysSo()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        settings.SetValues(new System.Collections.Generic.Dictionary<string, object> {
+            [AxicultusSettingKeys.OutputPlacementMode.Id] = 1, [AxicultusSettingKeys.DisplayCustomLeft.Id] = 9000,
+            [AxicultusSettingKeys.DisplayCustomTop.Id] = 0, [AxicultusSettingKeys.DisplayCustomWidth.Id] = 800 });
+        var display = new OutputDisplay("secondary", "Secondary", 1920, 0, 1920, 1080, 1);
+        var sut = new WindowPlacementService(settings, new DisplayService(new FixedReader(display)));
+
+        var offScreen = sut.CreateOutputPlacement(display, windowed: false);
+        offScreen.CustomAreaOffScreen.Should().BeTrue();
+        offScreen.Left.Should().BeInRange(1920, 3839, "the display is used instead of the saved area");
+        sut.CreateMediaPlacement(display).CustomAreaOffScreen.Should().BeTrue();
+
+        settings.Set(AxicultusSettingKeys.DisplayCustomLeft, 2000).Succeeded.Should().BeTrue();
+        var onScreen = sut.CreateOutputPlacement(display, windowed: false);
+        onScreen.CustomAreaOffScreen.Should().BeFalse();
+        onScreen.Left.Should().Be(2000);
+    }
+
+    private sealed class FixedReader(params OutputDisplay[] displays) : IDisplayReader
+    {
+        public System.Collections.Generic.IReadOnlyList<OutputDisplay> ReadDisplays() => displays;
+    }
+
     private sealed class TempSettingsFolder : IDisposable
     {
         private TempSettingsFolder(string root)

@@ -33,7 +33,9 @@ public sealed class WpfLiveSafetyPrompt(ISettingsService settings) : ILiveSafety
         }
 
         var anchor = Mouse.DirectlyOver as FrameworkElement ?? Keyboard.FocusedElement as FrameworkElement;
-        if (anchor is null || !anchor.IsVisible)
+        // The prompt is for the operator: an anchor on the audience or stage window (pointer parked on the
+        // projector, or focus left there) would pop it up in front of the congregation.
+        if (anchor is null || !anchor.IsVisible || !ReferenceEquals(Window.GetWindow(anchor), mainWindow))
         {
             anchor = mainWindow;
         }

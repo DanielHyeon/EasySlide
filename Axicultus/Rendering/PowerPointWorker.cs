@@ -16,7 +16,9 @@ public sealed class PowerPointWorker : IPowerPointRenderBackend, IDisposable
 {
     public const string Switch = "--ppt-render-worker";
     private sealed record Job(string File, int Slide, int Width, int Height, bool TextOnly);
-    private sealed record Reply(OfficePptSlideExport? Image, CaptionDeck? Deck, PowerPointRenderErrorKind Error, string? Message);
+    // Restart: the child's PowerPoint reference is dead and the child exits after this reply.
+    private sealed record Reply(OfficePptSlideExport? Image, CaptionDeck? Deck, PowerPointRenderErrorKind Error, string? Message, bool Restart = false);
+    private static readonly TimeSpan DefaultRenderLimit = TimeSpan.FromSeconds(60);
     private readonly SemaphoreSlim _gate = new(1, 1);
     private readonly CancellationTokenSource _closing = new();
     private Process? _worker;
@@ -25,9 +27,15 @@ public sealed class PowerPointWorker : IPowerPointRenderBackend, IDisposable
     public PowerPointWorker() : this(Start) { }
     internal PowerPointWorker(Func<Process> start) => _start = start;
 
+    /// <summary>
+    /// Cancelling ct only stops waiting: the child finishes the export and closes its presentation, and the reply
+    /// is discarded. Killing it mid-export would leave that presentation open in PowerPoint. The child is killed
+    /// when the export exceeds the request's time limit, or when this worker is disposed.
+    /// </summary>
     public async Task<PowerPointSlideSnapshot> RenderSlideAsync(PowerPointRenderRequest request, CancellationToken ct)
     {
-        var reply = await SendAsync(new(request.FilePath, request.SlideNumber, request.PixelWidth, request.PixelHeight, false), ct).ConfigureAwait(false);
+        var reply = await SendAsync(new(request.FilePath, request.SlideNumber, request.PixelWidth, request.PixelHeight, false),
+            ct, CancellationToken.None, request.Timeout > TimeSpan.Zero ? request.Timeout : DefaultRenderLimit).ConfigureAwait(false);
         var image = reply.Image ?? throw new InvalidDataException("PPT 워커가 이미지를 반환하지 않았습니다.");
         return new(request.FilePath, request.SlideNumber, image.SlideCount, image.PixelWidth, image.PixelHeight,
             image.ImageBytes, image.ContentType, DateTimeOffset.UtcNow) { RenderBounds = (request.PixelWidth, request.PixelHeight) };
@@ -39,7 +47,8 @@ public sealed class PowerPointWorker : IPowerPointRenderBackend, IDisposable
         limit.CancelAfter(TimeSpan.FromSeconds(45));
         try
         {
-            var reply = await SendAsync(new(path, 0, 0, 0, true), limit.Token).ConfigureAwait(false);
+            // The caption console owns a worker for this one conversion: its cancellation ends the child.
+            var reply = await SendAsync(new(path, 0, 0, 0, true), limit.Token, limit.Token, Timeout.InfiniteTimeSpan).ConfigureAwait(false);
             return reply.Deck is { Slides.Length: > 0 } deck
                 ? deck : throw new InvalidDataException("PPT 워커가 읽을 수 있는 슬라이드를 반환하지 않았습니다.");
         }
@@ -49,43 +58,70 @@ public sealed class PowerPointWorker : IPowerPointRenderBackend, IDisposable
         }
     }
 
-    private async Task<Reply> SendAsync(Job job, CancellationToken ct)
+    // caller: stops waiting; an exchange already started runs to its end and its reply is discarded.
+    // kill and limit: end the child (a blocked synchronous pipe read ends only when its writer exits).
+    private async Task<Reply> SendAsync(Job job, CancellationToken caller, CancellationToken kill, TimeSpan limit)
     {
-        using var linked = CancellationTokenSource.CreateLinkedTokenSource(ct, _closing.Token);
-        var token = linked.Token;
-        await _gate.WaitAsync(token).ConfigureAwait(false);
+        using (var waiting = CancellationTokenSource.CreateLinkedTokenSource(caller, _closing.Token))
+            await _gate.WaitAsync(waiting.Token).ConfigureAwait(false);
+        var exchange = ExchangeAsync(job, kill, limit);
+        try { return await exchange.WaitAsync(caller).ConfigureAwait(false); }
+        catch (OperationCanceledException)
+        {
+            _ = exchange.ContinueWith(static done => _ = done.Exception, CancellationToken.None,
+                TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+            throw;
+        }
+    }
+
+    // Owns the gate from the first line to the last, also after its caller stopped waiting.
+    private async Task<Reply> ExchangeAsync(Job job, CancellationToken kill, TimeSpan limit)
+    {
         try
         {
-            token.ThrowIfCancellationRequested();
-            if (_worker is { HasExited: true } exited) { exited.Dispose(); _worker = null; }
-            var process = _worker ??= _start();
-            Reply result;
-            try
+            using var linked = CancellationTokenSource.CreateLinkedTokenSource(kill, _closing.Token);
+            if (limit > TimeSpan.Zero) linked.CancelAfter(limit);
+            var token = linked.Token;
+            for (bool resent = false; ; resent = true)
             {
-                // A blocked synchronous Windows pipe may not observe a cancelled read until its writer exits.
-                using var abort = token.Register(static state =>
-                {
-                    var child = (Process)state!;
-                    try { if (!child.HasExited) child.Kill(); }
-                    catch (InvalidOperationException) { }
-                    catch (System.ComponentModel.Win32Exception ex) { Trace.WriteLine(ex.Message); }
-                }, process);
-                await process.StandardInput.WriteLineAsync(JsonSerializer.Serialize(job).AsMemory(), token).ConfigureAwait(false);
-                await process.StandardInput.FlushAsync(token).ConfigureAwait(false);
-                var line = await process.StandardOutput.ReadLineAsync(token).ConfigureAwait(false);
-                result = JsonSerializer.Deserialize<Reply>(line ?? throw new EndOfStreamException("PPT 워커가 종료되었습니다."))
-                    ?? throw new InvalidDataException("PPT 워커가 빈 응답을 반환했습니다.");
-            }
-            catch
-            {
-                Discard(process);
-                _worker = null;
                 token.ThrowIfCancellationRequested();
-                throw;
+                if (_worker is { HasExited: true } exited) { exited.Dispose(); _worker = null; }
+                var process = _worker ??= _start();
+                Reply result;
+                try
+                {
+                    // A blocked synchronous Windows pipe may not observe a cancelled read until its writer exits.
+                    using var abort = token.Register(static state =>
+                    {
+                        var child = (Process)state!;
+                        try { if (!child.HasExited) child.Kill(); }
+                        catch (InvalidOperationException) { }
+                        catch (System.ComponentModel.Win32Exception ex) { Trace.WriteLine(ex.Message); }
+                    }, process);
+                    await process.StandardInput.WriteLineAsync(JsonSerializer.Serialize(job).AsMemory(), token).ConfigureAwait(false);
+                    await process.StandardInput.FlushAsync(token).ConfigureAwait(false);
+                    var line = await process.StandardOutput.ReadLineAsync(token).ConfigureAwait(false);
+                    result = JsonSerializer.Deserialize<Reply>(line ?? throw new EndOfStreamException("PPT 워커가 종료되었습니다."))
+                        ?? throw new InvalidDataException("PPT 워커가 빈 응답을 반환했습니다.");
+                }
+                catch
+                {
+                    Discard(process);
+                    _worker = null;
+                    token.ThrowIfCancellationRequested();
+                    throw;
+                }
+                if (result.Restart)
+                {
+                    Retire(process);
+                    _worker = null;
+                    // The child lost PowerPoint, the file is not at fault: the same job goes once to a new child.
+                    if (!resent && result.Error != PowerPointRenderErrorKind.None) continue;
+                }
+                if (result.Error != PowerPointRenderErrorKind.None)
+                    throw new PowerPointRenderException(result.Error, result.Message ?? "PPT 변환 실패");
+                return result;
             }
-            if (result.Error != PowerPointRenderErrorKind.None)
-                throw new PowerPointRenderException(result.Error, result.Message ?? "PPT 변환 실패");
-            return result;
         }
         finally { _gate.Release(); }
     }
@@ -116,12 +152,18 @@ public sealed class PowerPointWorker : IPowerPointRenderBackend, IDisposable
         try
         {
             if (_worker is not { } worker) return;
-            try { worker.StandardInput.Close(); }
-            catch (IOException) { }
-            if (!worker.WaitForExit(1200)) Discard(worker); else worker.Dispose();
+            Retire(worker);
             _worker = null;
         }
         finally { _gate.Release(); }
+    }
+
+    // Lets an idle child end by itself (it closes its PowerPoint session on end of input) before it is killed.
+    private static void Retire(Process worker)
+    {
+        try { worker.StandardInput.Close(); }
+        catch (IOException) { }
+        if (!worker.WaitForExit(1200)) Discard(worker); else worker.Dispose();
     }
 
     public static async Task RunAsync()
@@ -129,6 +171,12 @@ public sealed class PowerPointWorker : IPowerPointRenderBackend, IDisposable
         using var input = new StreamReader(Console.OpenStandardInput(), Encoding.UTF8);
         using var output = new StreamWriter(Console.OpenStandardOutput(), new UTF8Encoding(false)) { AutoFlush = true };
         using var office = new OfficePptSession();
+        await RunAsync(input, output, office.ExportSlideAsync, office.ReadCaptionDeckAsync).ConfigureAwait(false);
+    }
+
+    internal static async Task RunAsync(TextReader input, TextWriter output,
+        Func<string, int, int, int, Task<OfficePptSlideExport>> export, Func<string, Task<CaptionDeck>> readDeck)
+    {
         while (await input.ReadLineAsync().ConfigureAwait(false) is { } line)
         {
             Reply reply;
@@ -136,9 +184,9 @@ public sealed class PowerPointWorker : IPowerPointRenderBackend, IDisposable
             {
                 var job = JsonSerializer.Deserialize<Job>(line) ?? throw new InvalidDataException("빈 PPT 요청");
                 if (job.TextOnly)
-                    reply = new(null, await office.ReadCaptionDeckAsync(job.File).ConfigureAwait(false), PowerPointRenderErrorKind.None, null);
+                    reply = new(null, await readDeck(job.File).ConfigureAwait(false), PowerPointRenderErrorKind.None, null);
                 else
-                    reply = new(await office.ExportSlideAsync(job.File, job.Slide, job.Width, job.Height).ConfigureAwait(false),
+                    reply = new(await export(job.File, job.Slide, job.Width, job.Height).ConfigureAwait(false),
                         null, PowerPointRenderErrorKind.None, null);
             }
             catch (Exception ex)
@@ -146,9 +194,11 @@ public sealed class PowerPointWorker : IPowerPointRenderBackend, IDisposable
                 var cause = ex.GetBaseException();
                 var kind = cause.HResult == unchecked((int)0x80040154) ? PowerPointRenderErrorKind.MissingOffice :
                     cause is ArgumentOutOfRangeException ? PowerPointRenderErrorKind.InvalidRequest : PowerPointRenderErrorKind.CorruptFile;
-                reply = new(null, null, kind, cause.Message);
+                // PowerPoint is gone and every proxy of this process with it: exit, so the parent starts a new child.
+                reply = new(null, null, kind, cause.Message, OfficePptSession.IsPowerPointGone(ex));
             }
             await output.WriteLineAsync(JsonSerializer.Serialize(reply)).ConfigureAwait(false);
+            if (reply.Restart) return;
         }
     }
 }

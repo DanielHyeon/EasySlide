@@ -14,7 +14,7 @@ public sealed record LyricsRegionPage(string Region1, string Region2);
 /// 저장된 "원시 가사"(Axicultus 작성용 마크업 포함)를 송출 화면에 보일 "표시용 텍스트"로 바꾼다.
 /// 회중 화면에는 작성용 마커가 보이면 안 되므로 다음을 제거/정리한다:
 ///   - 맨 앞 코드(노테이션) 블록 <c>[~ ... ]</c> (ImportExportService 가 저장 시 쓰는 형식과 동일)
-///   - 절/페이지 마커만 있는 줄 (예: <c>[1]</c>, <c>[Chorus]</c>) → 절 경계로 보고 빈 줄로 대체
+///   - 절/페이지 마커만 있는 줄 (예: <c>[1]</c>, <c>[chorus]</c>) → 절 경계로 보고 빈 줄로 대체
 /// <para>
 /// LiveQueueItem.Lyrics 는 편집·저장을 위해 원시 그대로 두고, 출력 경로(GoLive)에서만 이 변환을 적용한다.
 /// 즉 "도메인 텍스트(작성 마크업)"와 "표시 텍스트(송출 글자)"를 분리한다.
@@ -53,7 +53,8 @@ public static class LyricsDisplayFormatter
             // 줄 안의 '»'(코드/노테이션 마커) 뒤는 회중 화면에 보이지 않게 잘라낸다 — 가사 본문만 남긴다.
             // (코드는 운영자/연주자용이며, 미리보기에선 흐리게 보여 주지만 출력에선 숨긴다. [~...] 블록 제거와 같은 원칙.)
             var line = StripInlineNotation(rawLine).TrimEnd();
-            if (IsMarkerOnlyLine(line) || string.IsNullOrWhiteSpace(line))
+            // This text is for reading (a printed song, not a slide): a heading counts with spaces around it too.
+            if (IsHiddenMarker(line.TrimStart()) || string.IsNullOrWhiteSpace(line))
             {
                 // 본문이 한 번이라도 나온 뒤의 경계만 빈 줄 후보로 기록.
                 pendingBlank = hasContent;
@@ -79,23 +80,23 @@ public static class LyricsDisplayFormatter
     /// sequence 가 비었거나 어떤 절 라벨과도 안 맞으면(예: 레거시 char-인코딩) 기존 선형 분할로 안전 폴백한다.
     /// </summary>
     public static IReadOnlyList<string> ToVersePages(string? rawLyrics, string? sequence)
-        => TryExpandBySequence(rawLyrics, sequence) ?? ToVersePages(rawLyrics);
+    {
+        var screens = ReadVerseScreens(rawLyrics, sequence);
+        var pages = new string[screens.Count];
+        for (var i = 0; i < pages.Length; i++)
+        {
+            pages[i] = screens[i].Text;
+        }
+
+        return pages;
+    }
 
     /// <summary>
     /// 가사 전체를 절 단위 페이지 리스트로 분할한다.
     /// 빈 문자열이거나 변환 결과가 없으면 빈 리스트를 반환한다.
     /// </summary>
     public static IReadOnlyList<string> ToVersePages(string? rawLyrics)
-    {
-        var displayLyrics = ToDisplayText(rawLyrics);
-        if (string.IsNullOrEmpty(displayLyrics))
-        {
-            return Array.Empty<string>();
-        }
-
-        // ToDisplayText 가 보장하는 절 구분자는 정확히 \n\n 하나.
-        return displayLyrics.Split("\n\n", StringSplitOptions.RemoveEmptyEntries);
-    }
+        => ToVersePages(rawLyrics, sequence: null);
 
     /// <summary>
     /// 지정 인덱스(0-based)의 절 텍스트를 반환한다(절 순서 Sequence 적용).
@@ -125,87 +126,7 @@ public static class LyricsDisplayFormatter
     /// <c>[region 2]</c> 가 없으면 Region2 는 빈 문자열이고 Region1 은 <see cref="ToVersePages(string?)"/> 와 동일하다(단일 영역 무회귀).
     /// </summary>
     public static IReadOnlyList<LyricsRegionPage> GetRegionPages(string? rawLyrics)
-    {
-        if (string.IsNullOrWhiteSpace(rawLyrics))
-        {
-            return Array.Empty<LyricsRegionPage>();
-        }
-
-        // ToDisplayText 1~2단계와 동일: 정규화 + 맨 앞 [~...] 노테이션 블록 제거.
-        var normalizedLyrics = NormalizeText(rawLyrics);
-        var leading = normalizedLyrics.TrimStart('\n', ' ', '\t');
-        if (leading.StartsWith("[~", StringComparison.Ordinal))
-        {
-            var end = leading.IndexOf(']');
-            if (end > 1)
-            {
-                normalizedLyrics = leading[(end + 1)..];
-            }
-        }
-
-        var pages = new List<LyricsRegionPage>();
-        var region1 = new StringBuilder();
-        var region2 = new StringBuilder();
-        var currentRegion = 1; // 절 시작 시 항상 region1.
-        var inVerse = false;
-
-        void Flush()
-        {
-            if (inVerse && (region1.Length > 0 || region2.Length > 0))
-            {
-                pages.Add(new LyricsRegionPage(region1.ToString(), region2.ToString()));
-            }
-
-            region1.Clear();
-            region2.Clear();
-            currentRegion = 1;
-            inVerse = false;
-        }
-
-        foreach (var rawLine in normalizedLyrics.Split('\n'))
-        {
-            var line = StripInlineNotation(rawLine).TrimEnd();
-
-            // [region 2]·[region 1] 영역 전환 마커 — 절 경계가 아니며(같은 절 안), 본문에 안 보인다.
-            if (IsRegionMarker(line, 2))
-            {
-                currentRegion = 2;
-                continue;
-            }
-
-            if (IsRegionMarker(line, 1))
-            {
-                currentRegion = 1;
-                continue;
-            }
-
-            // 절 라벨([1],[C] 등) = 절 경계(다음 절은 다시 region1 부터).
-            if (SectionLabel(line) is not null)
-            {
-                Flush();
-                continue;
-            }
-
-            // [~..] 노테이션·빈 줄 = 절 경계(라벨 없는 절 구분).
-            if (IsMarkerOnlyLine(line) || string.IsNullOrWhiteSpace(line))
-            {
-                Flush();
-                continue;
-            }
-
-            inVerse = true;
-            var target = currentRegion == 2 ? region2 : region1;
-            if (target.Length > 0)
-            {
-                target.Append('\n');
-            }
-
-            target.Append(line);
-        }
-
-        Flush();
-        return pages;
-    }
+        => GetRegionPages(rawLyrics, sequence: null);
 
     /// <summary>
     /// 가사에 region2 <b>본문(내용)</b>이 하나라도 있으면 true(= 이중 언어 곡). 마커 유무가 아니라 내용 유무로 판정 —
@@ -213,11 +134,14 @@ public static class LyricsDisplayFormatter
     /// </summary>
     public static bool HasRegion2(string? rawLyrics)
     {
-        foreach (var page in GetRegionPages(rawLyrics))
+        foreach (var (_, _, pages) in ReadVerses(rawLyrics))
         {
-            if (page.Region2.Length > 0)
+            foreach (var page in pages)
             {
-                return true;
+                if (page.Region2.Length > 0)
+                {
+                    return true;
+                }
             }
         }
 
@@ -233,7 +157,16 @@ public static class LyricsDisplayFormatter
     /// sequence 가 비었거나 어떤 라벨과도 안 맞으면 선형(GetRegionPages(lyrics))으로 안전 폴백(단일 영역 모델과 동일 규칙).
     /// </summary>
     public static IReadOnlyList<LyricsRegionPage> GetRegionPages(string? rawLyrics, string? sequence)
-        => TryExpandRegionBySequence(rawLyrics, sequence) ?? GetRegionPages(rawLyrics);
+    {
+        var screens = ReadScreens(rawLyrics, sequence);
+        var pages = new LyricsRegionPage[screens.Count];
+        for (var i = 0; i < pages.Length; i++)
+        {
+            pages[i] = screens[i].Page;
+        }
+
+        return pages;
+    }
 
     /// <summary>지정 인덱스(범위 밖 클램프)의 이중 언어 절 페이지(절 순서 Sequence 적용). 가사가 없으면 빈 페이지.</summary>
     public static LyricsRegionPage GetRegionPage(string? rawLyrics, int pageIndex, string? sequence)
@@ -248,171 +181,19 @@ public static class LyricsDisplayFormatter
     }
 
     /// <summary>
-    /// 이중 언어 절 페이지의 라벨 목록 — 라벨이 있는(시퀀스 또는 전부 라벨링된) 곡에서 절 점프에 쓴다.
-    /// 정렬 보장이 어려운 경우(라벨 없는 머리말 등)는 호출자가 GetRegionPages 수와 비교해 가드한다(불일치면 점프 비활성).
+    /// 이중 언어 절 페이지의 라벨 목록 — <see cref="GetRegionPages(string?,string?)"/> 와 1:1. 절 점프에 쓴다.
+    /// 제목(heading) 없이 시작한 절의 화면은 빈 문자열.
     /// </summary>
     public static IReadOnlyList<string> GetRegionSectionLabels(string? rawLyrics, string? sequence)
     {
-        var sections = ParseRegionSections(rawLyrics);
-        if (sections.Count == 0)
+        var screens = ReadScreens(rawLyrics, sequence);
+        var labels = new string[screens.Count];
+        for (var i = 0; i < labels.Length; i++)
         {
-            return Array.Empty<string>();
-        }
-
-        // 시퀀스: 토큰 매칭 섹션의 라벨(펼친 순서).
-        if (!string.IsNullOrWhiteSpace(sequence))
-        {
-            var tokens = sequence.Split([',', ' ', '\t', '\n', '\r'], StringSplitOptions.RemoveEmptyEntries);
-            var seqLabels = new List<string>();
-            foreach (var token in tokens)
-            {
-                foreach (var (Label, Region1, Region2) in sections)
-                {
-                    if (MatchesSection(Label, token)
-                        && (Region1.Length > 0 || Region2.Length > 0))
-                    {
-                        seqLabels.Add(Label);
-                        break;
-                    }
-                }
-            }
-
-            if (seqLabels.Count > 0)
-            {
-                return seqLabels;
-            }
-        }
-
-        // 선형: 내용이 있는 라벨 섹션의 라벨(순서대로) — 전부 라벨링된 곡이면 GetRegionPages 와 1:1.
-        var labels = new List<string>();
-        foreach (var (Label, Region1, Region2) in sections)
-        {
-            if (Region1.Length > 0 || Region2.Length > 0)
-            {
-                labels.Add(Label);
-            }
+            labels[i] = screens[i].Label;
         }
 
         return labels;
-    }
-
-    // 시퀀스로 이중 언어 절을 펼친다. sequence 가 비었거나 매칭 라벨이 없으면 null(→ 선형 폴백). TryExpandBySequence 와 동일 규칙.
-    private static List<LyricsRegionPage>? TryExpandRegionBySequence(string? rawLyrics, string? sequence)
-    {
-        if (string.IsNullOrWhiteSpace(sequence))
-        {
-            return null;
-        }
-
-        var sections = ParseRegionSections(rawLyrics);
-        if (sections.Count == 0)
-        {
-            return null;
-        }
-
-        var tokens = sequence.Split([',', ' ', '\t', '\n', '\r'], StringSplitOptions.RemoveEmptyEntries);
-        var pages = new List<LyricsRegionPage>();
-        foreach (var token in tokens)
-        {
-            foreach (var (Label, Region1, Region2) in sections)
-            {
-                if (MatchesSection(Label, token)
-                    && (Region1.Length > 0 || Region2.Length > 0))
-                {
-                    pages.Add(new LyricsRegionPage(Region1, Region2));
-                    break;
-                }
-            }
-        }
-
-        return pages.Count > 0 ? pages : null;
-    }
-
-    // 가사를 [라벨] 섹션으로 나누되 각 섹션 본문을 [region 2] 기준으로 Region1/Region2 로 분리한다(이중 언어 시퀀스 확장용).
-    // 라벨 없는 머리말·라벨 전 줄은 제외(시퀀스로 참조 불가). ParseLabeledSections 의 region-aware 판.
-    private static IReadOnlyList<(string Label, string Region1, string Region2)> ParseRegionSections(string? rawLyrics)
-    {
-        if (string.IsNullOrWhiteSpace(rawLyrics))
-        {
-            return Array.Empty<(string, string, string)>();
-        }
-
-        var normalizedLyrics = NormalizeText(rawLyrics);
-        var sections = new List<(string Label, string Region1, string Region2)>();
-        string? currentLabel = null;
-        var region1 = new StringBuilder();
-        var region2 = new StringBuilder();
-        var currentRegion = 1;
-
-        void Flush()
-        {
-            if (currentLabel is not null)
-            {
-                sections.Add((currentLabel, region1.ToString().Trim('\n'), region2.ToString().Trim('\n')));
-            }
-
-            region1.Clear();
-            region2.Clear();
-            currentRegion = 1; // 새 절은 다시 region1.
-        }
-
-        foreach (var rawLine in normalizedLyrics.Split('\n'))
-        {
-            var line = StripInlineNotation(rawLine).TrimEnd();
-
-            if (IsRegionMarker(line, 2))
-            {
-                currentRegion = 2;
-                continue;
-            }
-
-            if (IsRegionMarker(line, 1))
-            {
-                currentRegion = 1;
-                continue;
-            }
-
-            var label = SectionLabel(line);
-            if (label is not null)
-            {
-                Flush();
-                currentLabel = label;
-                continue;
-            }
-
-            if (currentLabel is null)
-            {
-                continue; // 첫 라벨 전의 줄은 시퀀스로 못 부르므로 건너뜀.
-            }
-
-            if (string.IsNullOrWhiteSpace(line))
-            {
-                continue; // 절 안 빈 줄은 모은 뒤 Trim 으로 정리.
-            }
-
-            var target = currentRegion == 2 ? region2 : region1;
-            if (target.Length > 0)
-            {
-                target.Append('\n');
-            }
-
-            target.Append(line);
-        }
-
-        Flush();
-        return sections;
-    }
-
-    // 줄이 [region N] 영역 전환 마커인지(대소문자·공백 무시: "[region 2]"·"[Region2]" 모두 인식).
-    private static bool IsRegionMarker(string line, int regionNumber)
-    {
-        if (!IsMarkerOnlyLine(line))
-        {
-            return false;
-        }
-
-        var inner = line.Trim()[1..^1].Trim().ToLowerInvariant().Replace(" ", "", StringComparison.Ordinal);
-        return inner == $"region{regionNumber}";
     }
 
     /// <summary>
@@ -422,62 +203,303 @@ public static class LyricsDisplayFormatter
     /// </summary>
     public static IReadOnlyList<string> GetSectionLabels(string? rawLyrics, string? sequence)
     {
-        var pages = BuildLabeledPages(rawLyrics, sequence);
-        var labels = new string[pages.Count];
-        for (var i = 0; i < pages.Count; i++)
+        var screens = ReadVerseScreens(rawLyrics, sequence);
+        var labels = new string[screens.Count];
+        for (var i = 0; i < labels.Length; i++)
         {
-            labels[i] = pages[i].Label;
+            labels[i] = screens[i].Label;
         }
 
         return labels;
     }
 
-    // 절 페이지를 (라벨, 본문)으로 만든다 — 본문 순서는 ToVersePages 와 동일하도록 보장(정렬 가드 테스트로 잠금).
-    private static IReadOnlyList<(string Label, string Content)> BuildLabeledPages(string? rawLyrics, string? sequence)
-        => TryExpandLabeledBySequence(rawLyrics, sequence) ?? BuildLinearLabeledPages(rawLyrics);
-
-    // 시퀀스 경로: 각 토큰을 섹션에 매칭 → (섹션 라벨, 본문). 매칭 0이면 null(→ 선형 폴백). TryExpandBySequence 와 동일 매칭 규칙.
-    private static List<(string Label, string Content)>? TryExpandLabeledBySequence(string? rawLyrics, string? sequence)
+    /// <summary>
+    /// The text with every line of nothing but spaces made empty, so that it ends a page. FrmMain does this to a
+    /// text file whose paragraphs are kept whole (gfLyrics.FormatDisplayLyrics, FitTextFileParagraphs); in a song
+    /// such a line is a line of the screen.
+    /// </summary>
+    internal static string? EmptyBlankLines(string? text)
     {
-        if (string.IsNullOrWhiteSpace(sequence))
+        if (string.IsNullOrEmpty(text))
         {
-            return null;
+            return text;
         }
 
-        var sections = ParseLabeledSections(rawLyrics);
-        if (sections.Count == 0)
+        var lines = NormalizeText(text).Split('\n');
+        for (var i = 0; i < lines.Length; i++)
         {
-            return null;
-        }
-
-        var tokens = sequence.Split([',', ' ', '\t', '\n', '\r'], StringSplitOptions.RemoveEmptyEntries);
-        var pages = new List<(string Label, string Content)>();
-        foreach (var token in tokens)
-        {
-            foreach (var (Label, Content) in sections)
+            if (string.IsNullOrWhiteSpace(lines[i]))
             {
-                if (MatchesSection(Label, token)
-                    && Content.Length > 0)
+                lines[i] = string.Empty;
+            }
+        }
+
+        return string.Join('\n', lines);
+    }
+
+    // The screens as single texts, for a caller that shows one region. A screen of two languages gives its
+    // region 1 text and then its region 2 text, so that no line is lost.
+    private static List<(string Label, string Text)> ReadVerseScreens(string? rawLyrics, string? sequence)
+    {
+        var screens = new List<(string Label, string Text)>();
+        foreach (var (label, page) in ReadScreens(rawLyrics, sequence))
+        {
+            if (page.Region1.Length > 0)
+            {
+                screens.Add((label, page.Region1));
+            }
+
+            if (page.Region2.Length > 0)
+            {
+                screens.Add((label, page.Region2));
+            }
+        }
+
+        return screens;
+    }
+
+    // The screens in show order. FrmMain keeps the verses of the stored sequence that the song has and, when none
+    // is left, shows every verse in the order it first appears (gfConfig.ValidateSequence).
+    private static List<(string Label, LyricsRegionPage Page)> ReadScreens(string? rawLyrics, string? sequence)
+    {
+        var screens = new List<(string Label, LyricsRegionPage Page)>();
+        foreach (var (label, pages) in ReadShownVerses(rawLyrics, sequence))
+        {
+            foreach (var page in pages)
+            {
+                screens.Add((label, page));
+            }
+        }
+
+        return screens;
+    }
+
+    // The verses in show order, each with its screens (a verse always has at least one). With keepSpaceRows a
+    // line of spaces stays a line of one space, also first or last on its screen: FrmMain counts it as a row when
+    // it cuts a screen and when it deals out region 2 (gfLyrics.GetOneScreen, BuildSlidesReg2).
+    internal static List<(string Label, List<LyricsRegionPage> Pages)> ReadShownVerses(string? rawLyrics, string? sequence, bool keepSpaceRows = false)
+    {
+        var verses = ReadVerses(rawLyrics, keepSpaceRows);
+        var shown = new List<(string Label, List<LyricsRegionPage> Pages)>();
+        if (!string.IsNullOrWhiteSpace(sequence))
+        {
+            foreach (var token in sequence.Split([',', ' ', '\t', '\n', '\r'], StringSplitOptions.RemoveEmptyEntries))
+            {
+                foreach (var (key, label, pages) in verses)
                 {
-                    pages.Add((Label, Content));
-                    break;
+                    if (MatchesSection(key, token))
+                    {
+                        shown.Add((label, pages));
+                        break;
+                    }
                 }
             }
         }
 
-        return pages.Count > 0 ? pages : null;
+        if (shown.Count == 0)
+        {
+            foreach (var (_, label, pages) in verses)
+            {
+                shown.Add((label, pages));
+            }
+        }
+
+        return shown;
     }
 
-    // 선형 경로: ToDisplayText 와 동일한 절 경계 규칙으로 분할하되 각 절의 라벨([X] 마커)을 함께 기록한다.
-    // 본문은 ToVersePages(선형)와 동일해야 한다(정렬 가드). 라벨은 절 시작 직전 마지막으로 본 [X] 마커.
-    private static IReadOnlyList<(string Label, string Content)> BuildLinearLabeledPages(string? rawLyrics)
+    private const string Region2Line = "[region 2]";
+
+    // The verses of a song with their screens, as FrmMain builds them (gfLyrics.ExtractLyricRegions,
+    // FormatDisplayLyrics and BuildSlides), in the order the verses first appear:
+    //  - a heading is a whole line, exactly as written; text before the first heading is verse 1, and every later
+    //    block under the same heading adds its lines to that verse;
+    //  - [region 2] puts the lines that follow into region 2 until the next heading; in the form that keeps all of
+    //    region 2 after a single marker (gfLyrics.IsNewR2Format) it does so to the end, each line under its verse;
+    //  - an empty line is a screen break; a line of spaces is a line of the screen;
+    //  - screen n of region 2 is shown with screen n of region 1, and the screens region 2 has left over follow
+    //    the last one alone (gfLyrics.BuildSlidesReg2).
+    // Key is what a sequence names the verse by; Label is empty for a verse 1 that has no heading.
+    private static List<(string Key, string Label, List<LyricsRegionPage> Pages)> ReadVerses(string? rawLyrics, bool keepSpaceRows = false)
+    {
+        var verses = new List<(string Key, string Label, List<LyricsRegionPage> Pages)>();
+        var lines = ReadLines(rawLyrics);
+        var markers = 0;
+        var hasHeading = false;
+        foreach (var line in lines)
+        {
+            hasHeading |= SectionLabel(line) is not null;
+            markers += IsRegionMarker(line, 2) ? 1 : 0;
+        }
+
+        if (!hasHeading && markers > 1)
+        {
+            var pages = new List<LyricsRegionPage>();
+            AddPassagePages(lines, pages);
+            if (pages.Count > 0)
+            {
+                verses.Add(("1", string.Empty, pages));
+            }
+
+            return verses;
+        }
+
+        var separateRegions = IsSeparateRegionFormat(string.Join('\n', lines));
+        var rows = new List<(string Verse, int Region, string Text)>();
+        var order = new List<string>();
+        var headed = new HashSet<string>(StringComparer.Ordinal);
+        var verse = "1";
+        var region = 1;
+        foreach (var line in lines)
+        {
+            if (IsRegionMarker(line, 2))
+            {
+                region = 2;
+            }
+            else if (IsRegionMarker(line, 1))
+            {
+                region = 1; // Not a FrmMain marker: text written for this program returns to region 1 with it.
+            }
+            else if (SectionLabel(line) is { } heading)
+            {
+                verse = heading;
+                headed.Add(heading);
+                region = separateRegions ? region : 1;
+            }
+            else
+            {
+                if (!order.Contains(verse))
+                {
+                    order.Add(verse);
+                }
+
+                rows.Add((verse, region, line));
+            }
+        }
+
+        // FrmMain lists the lines by verse code, region 1 before region 2, then drops the empty lines at the end,
+        // every second of two empty lines in a row and an empty first line (gfLyrics.FormatDisplayLyrics).
+        var sorted = new List<string>(order);
+        sorted.Sort((a, b) => VerseCode(a).CompareTo(VerseCode(b)));
+        var list = new List<(string Verse, int Region, string Text)>(rows.Count);
+        foreach (var key in sorted)
+        {
+            for (var part = 1; part <= 2; part++)
+            {
+                foreach (var row in rows)
+                {
+                    if (row.Verse == key && row.Region == part)
+                    {
+                        list.Add(row);
+                    }
+                }
+            }
+        }
+
+        while (list.Count > 0 && list[^1].Text.Length == 0)
+        {
+            list.RemoveAt(list.Count - 1);
+        }
+
+        for (var i = list.Count - 1; i >= 1; i--)
+        {
+            if (list[i].Text.Length == 0 && list[i - 1].Text.Length == 0)
+            {
+                list.RemoveAt(i);
+            }
+        }
+
+        if (list.Count > 0 && list[0].Text.Length == 0)
+        {
+            list.RemoveAt(0);
+        }
+
+        foreach (var key in order)
+        {
+            int start1 = -1, end1 = -1, start2 = -1, end2 = -1;
+            for (var i = 0; i < list.Count; i++)
+            {
+                if (list[i].Verse != key)
+                {
+                    continue;
+                }
+
+                if (list[i].Region == 1)
+                {
+                    // Region 1 starts at its first line of text: an empty line before it is no screen. Counted as
+                    // one, it kept the screens region 2 has left over from being shown (fixed in gfLyrics.BuildSlides).
+                    start1 = start1 < 0 && list[i].Text.Length > 0 ? i : start1;
+                    end1 = i;
+                }
+                else
+                {
+                    start2 = start2 < 0 ? i : start2;
+                    end2 = i;
+                }
+            }
+
+            // Each slide: first and last line of region 1, first and last line of region 2 (gfLyrics.BuildSlides).
+            var slides = new List<int[]>();
+            var count = CountScreens(list, start1, end1);
+            if (count > 0)
+            {
+                for (var screen = 1; screen <= count; screen++)
+                {
+                    var start = FindScreenStart(list, start1, end1, screen);
+                    if (start < 0)
+                    {
+                        continue;
+                    }
+
+                    slides.Add([start, FindScreenEnd(list, start, end1), -1, -1]);
+                    if (start2 >= 0)
+                    {
+                        AddSecondRegion(list, start2, end2, slides, screen, screen == count);
+                    }
+                }
+            }
+            else
+            {
+                count = CountScreens(list, start2, end2);
+                for (var screen = 1; screen <= count; screen++)
+                {
+                    var start = FindScreenStart(list, start2, end2, screen);
+                    if (start >= 0)
+                    {
+                        slides.Add([-1, -1, start, FindScreenEnd(list, start, end2)]);
+                    }
+                }
+            }
+
+            var pages = new List<LyricsRegionPage>(slides.Count);
+            foreach (var slide in slides)
+            {
+                // A screen of nothing but spaces is not shown.
+                var page = new LyricsRegionPage(JoinRows(list, slide[0], slide[1], keepSpaceRows), JoinRows(list, slide[2], slide[3], keepSpaceRows));
+                if (!string.IsNullOrWhiteSpace(page.Region1) || !string.IsNullOrWhiteSpace(page.Region2))
+                {
+                    pages.Add(page);
+                }
+            }
+
+            if (pages.Count > 0)
+            {
+                verses.Add((key, headed.Contains(key) ? key : string.Empty, pages));
+            }
+        }
+
+        return verses;
+    }
+
+    // The lines of the lyrics as the display reads them: without a leading [~...] notation block, each line cut
+    // at its chord marker, and a [~chords] line empty.
+    private static string[] ReadLines(string? rawLyrics)
     {
         if (string.IsNullOrWhiteSpace(rawLyrics))
         {
-            return Array.Empty<(string, string)>();
+            return [];
         }
 
-        // ToDisplayText 1~2단계와 동일: 정규화 + 맨 앞 [~...] 노테이션 블록 제거.
+        // Same first steps as ToDisplayText: normalise, then drop a leading [~...] notation block.
         var normalizedLyrics = NormalizeText(rawLyrics);
         var leading = normalizedLyrics.TrimStart('\n', ' ', '\t');
         if (leading.StartsWith("[~", StringComparison.Ordinal))
@@ -489,56 +511,227 @@ public static class LyricsDisplayFormatter
             }
         }
 
-        var pages = new List<(string Label, string Content)>();
-        var current = new StringBuilder();
-        var pendingLabel = ""; // 가장 최근에 본 [X] 라벨(다음 절의 라벨 후보) — 절 경계를 넘어도 유지.
-        var verseLabel = "";   // 현재 모으는 절의 라벨.
-        var inVerse = false;
+        var lines = normalizedLyrics.Split('\n');
+        for (var i = 0; i < lines.Length; i++)
+        {
+            // Text typed before a chord marker ends where the lyric ends; any other line is kept as stored,
+            // because FrmMain reads a heading with a space around it as a line of the verse.
+            var line = lines[i].Contains('»') ? StripInlineNotation(lines[i]).TrimEnd() : lines[i];
+            lines[i] = IsMarkerOnlyLine(line) && line.TrimStart().StartsWith("[~", StringComparison.Ordinal) ? string.Empty : line;
+        }
+
+        return lines;
+    }
+
+    // gfLyrics.IsNewR2Format: the text has two parts around a single [region 2] and the second starts with a heading.
+    private static bool IsSeparateRegionFormat(string lyrics)
+    {
+        var sections = lyrics.Split(Region2Line, StringSplitOptions.RemoveEmptyEntries);
+        if (sections.Length != 2)
+        {
+            return false;
+        }
+
+        var second = sections[1][0] == '\n' ? sections[1][1..] : sections[1];
+        var end = second.Length > 0 && second[0] == '[' ? second.IndexOfAny(['[', ']', '\n'], 1) : -1;
+        return end > 0 && second[end] == ']' && SectionLabel(second[..(end + 1)]) is not null;
+    }
+
+    // The order FrmMain keeps the verses in (gfConfig.InitializeVerseSymbols): the chorus, verses 1 to 99, then
+    // bridge, ending, chorus 2, bridge 2, prechorus and prechorus 2.
+    private static int VerseCode(string key) => key switch
+    {
+        "chorus" => 0,
+        "bridge" => 100,
+        "ending" => 101,
+        "chorus 2" => 102,
+        "bridge 2" => 103,
+        "prechorus" => 111,
+        "prechorus 2" => 112,
+        _ => int.Parse(key, System.Globalization.CultureInfo.InvariantCulture),
+    };
+
+    // gfLyrics.GetVerseScreenCount: every empty line and the last line end a screen.
+    private static int CountScreens(List<(string Verse, int Region, string Text)> list, int start, int end)
+    {
+        if (start > end || start < 0 || end < 0)
+        {
+            return -1;
+        }
+
+        var count = 0;
+        for (var i = start; i <= end; i++)
+        {
+            if (list[i].Text.Length == 0 || i == end)
+            {
+                count++;
+            }
+        }
+
+        return count;
+    }
+
+    // gfLyrics.GetVerseScreenLoc: the first line of the given screen, or -1 when the lines hold no such screen.
+    private static int FindScreenStart(List<(string Verse, int Region, string Text)> list, int start, int end, int screen)
+    {
+        if (start > end)
+        {
+            return -1;
+        }
+
+        if (start + 1 <= end && list[start].Text.Length == 0)
+        {
+            start++;
+        }
+
+        var current = 1;
+        for (var i = start; i <= end; i++)
+        {
+            if (list[i].Text.Length == 0)
+            {
+                current++;
+            }
+
+            if (screen == current)
+            {
+                return list[i].Text.Length > 0 ? i : i < end ? i + 1 : -1;
+            }
+        }
+
+        return -1;
+    }
+
+    // gfLyrics.GetVerseScreenEndLoc: the last line of the screen that starts at the given line.
+    private static int FindScreenEnd(List<(string Verse, int Region, string Text)> list, int start, int end)
+    {
+        if (start > end)
+        {
+            return -1;
+        }
+
+        if (start == end)
+        {
+            return end;
+        }
+
+        if (list[start].Text.Length == 0)
+        {
+            start++;
+        }
+
+        for (var i = start; i < end; i++)
+        {
+            if (list[i].Text.Length == 0)
+            {
+                return i - 1;
+            }
+        }
+
+        return end;
+    }
+
+    // gfLyrics.BuildSlidesReg2: the region 2 screen of the same number goes on the slide just added; after the last
+    // region 1 screen of the verse the region 2 screens that are left become slides of their own.
+    private static void AddSecondRegion(
+        List<(string Verse, int Region, string Text)> list, int first, int last, List<int[]> slides, int screen, bool lastScreen)
+    {
+        var start = FindScreenStart(list, first, last, screen);
+        if (start < 0)
+        {
+            return;
+        }
+
+        var end = FindScreenEnd(list, start, last);
+        slides[^1][2] = start;
+        slides[^1][3] = end;
+        if (last <= end || !lastScreen)
+        {
+            return;
+        }
+
+        var rest = end + 1;
+        var count = CountScreens(list, rest, last);
+        for (var extra = 1; extra <= count; extra++)
+        {
+            var at = FindScreenStart(list, rest, last, extra);
+            if (at >= 0)
+            {
+                slides.Add([-1, -1, at, FindScreenEnd(list, at, last)]);
+            }
+        }
+    }
+
+    private static string JoinRows(List<(string Verse, int Region, string Text)> list, int start, int end, bool keepSpaceRows)
+    {
+        if (start < 0 || end < start)
+        {
+            return string.Empty;
+        }
+
+        var text = new StringBuilder();
+        for (var i = start; i <= end; i++)
+        {
+            var line = list[i].Text.TrimEnd();
+            text.Append(keepSpaceRows && line.Length == 0 && list[i].Text.Length > 0 ? " " : line).Append('\n');
+        }
+
+        return text.ToString().Trim('\n');
+    }
+
+    // A two-language Bible passage (BiblePassageComposer): lyrics without a heading that carry a [region 2] for
+    // every verse. Each blank line ends the page and the next page starts in region 1 again. FrmMain has no such
+    // text; read its way, everything after the first marker would be region 2.
+    private static void AddPassagePages(string[] lines, List<LyricsRegionPage> pages)
+    {
+        StringBuilder[] regions = [new(), new()];
+        var region = 0;
 
         void Flush()
         {
-            if (inVerse && current.Length > 0)
+            if (regions[0].Length > 0 || regions[1].Length > 0)
             {
-                pages.Add((verseLabel, current.ToString()));
+                pages.Add(new LyricsRegionPage(regions[0].ToString(), regions[1].ToString()));
             }
 
-            current.Clear();
-            inVerse = false;
+            regions[0].Clear();
+            regions[1].Clear();
+            region = 0;
         }
 
-        foreach (var rawLine in normalizedLyrics.Split('\n'))
+        foreach (var line in lines)
         {
-            var line = StripInlineNotation(rawLine).TrimEnd();
-            var label = SectionLabel(line);
-            if (label is not null)
+            if (IsRegionMarker(line, 2))
             {
-                Flush();              // 새 라벨 = 절 경계.
-                pendingLabel = label;
-                continue;
+                region = 1;
             }
-
-            if (IsMarkerOnlyLine(line) || string.IsNullOrWhiteSpace(line))
+            else if (IsRegionMarker(line, 1))
             {
-                Flush();              // [~..]·빈 줄 = 절 경계(라벨은 유지).
-                continue;
+                region = 0;
             }
-
-            if (!inVerse)
+            else if (string.IsNullOrWhiteSpace(line))
             {
-                inVerse = true;
-                verseLabel = pendingLabel; // 절 시작 시점의 최근 라벨을 절 라벨로.
+                Flush();
             }
             else
             {
-                current.Append('\n');
-            }
+                var target = regions[region];
+                if (target.Length > 0)
+                {
+                    target.Append('\n');
+                }
 
-            current.Append(line);
+                target.Append(line.TrimEnd());
+            }
         }
 
         Flush();
-        return pages;
     }
+
+    // A [region N] line. Case and the space inside may differ (text written for this program); a space around
+    // the brackets makes it a line of the verse, as it is for FrmMain.
+    private static bool IsRegionMarker(string line, int regionNumber)
+        => line.Length > 2 && line[0] == '[' && line[^1] == ']'
+            && line[1..^1].Replace(" ", "", StringComparison.Ordinal).Equals($"region{regionNumber}", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
     /// 중복 정의된 절 라벨을 찾는다(대소문자 무시, 처음 본 표기로 한 번씩, 발견 순서).
@@ -579,100 +772,6 @@ public static class LyricsDisplayFormatter
         }
 
         return duplicates;
-    }
-
-    /// <summary>
-    /// 절 순서(Sequence)로 절을 펼친다. sequence 가 비었거나 매칭되는 절 라벨이 하나도 없으면 null(→ 선형 폴백).
-    /// </summary>
-    private static List<string>? TryExpandBySequence(string? rawLyrics, string? sequence)
-    {
-        if (string.IsNullOrWhiteSpace(sequence))
-        {
-            return null;
-        }
-
-        var sections = ParseLabeledSections(rawLyrics);
-        if (sections.Count == 0)
-        {
-            return null;
-        }
-
-        // 시퀀스 토큰: 쉼표/공백 구분, 대소문자 무시로 절 라벨과 매칭.
-        var tokens = sequence.Split([',', ' ', '\t', '\n', '\r'], StringSplitOptions.RemoveEmptyEntries);
-        var pages = new List<string>();
-        foreach (var token in tokens)
-        {
-            foreach (var (Label, Content) in sections)
-            {
-                if (MatchesSection(Label, token)
-                    && Content.Length > 0)
-                {
-                    pages.Add(Content);
-                    break;
-                }
-            }
-        }
-
-        // 매칭이 하나도 없으면(레거시 인코딩 등) 선형으로 폴백.
-        return pages.Count > 0 ? pages : null;
-    }
-
-    // 가사를 [라벨] 마커 기준 섹션으로 나눈다 — (라벨, 정리된 본문). 마커 앞 본문이나 라벨 없는 구역은 제외(시퀀스 참조 불가).
-    private static IReadOnlyList<(string Label, string Content)> ParseLabeledSections(string? rawLyrics)
-    {
-        if (string.IsNullOrWhiteSpace(rawLyrics))
-        {
-            return Array.Empty<(string, string)>();
-        }
-
-        var normalizedLyrics = NormalizeText(rawLyrics);
-
-        var sections = new List<(string Label, string Content)>();
-        string? currentLabel = null;
-        var body = new StringBuilder();
-
-        void Flush()
-        {
-            if (currentLabel is not null)
-            {
-                var content = body.ToString().Trim('\n');
-                sections.Add((currentLabel, content));
-            }
-
-            body.Clear();
-        }
-
-        foreach (var rawLine in normalizedLyrics.Split('\n'))
-        {
-            var label = SectionLabel(rawLine);
-            if (label is not null)
-            {
-                Flush();
-                currentLabel = label;
-                continue;
-            }
-
-            if (currentLabel is null)
-            {
-                continue; // 첫 라벨 마커 전의 줄(라벨 없는 머리말)은 시퀀스로 못 부르므로 건너뜀.
-            }
-
-            var line = StripInlineNotation(rawLine).TrimEnd();
-            if (string.IsNullOrWhiteSpace(line))
-            {
-                continue; // 절 안 빈 줄은 모은 뒤 Trim 으로 정리.
-            }
-
-            if (body.Length > 0)
-            {
-                body.Append('\n');
-            }
-
-            body.Append(line);
-        }
-
-        Flush();
-        return sections;
     }
 
     // 원시 가사 정규화 — 줄바꿈(\r\n, \r → \n)과 코드 마커를 단일 형태로 모은다.
@@ -733,18 +832,146 @@ public static class LyricsDisplayFormatter
             //  ① 가사 부분이 비었거나(코드 전용 줄) ② 코드가 비었거나
             //  ③ 가사 부분이 작성 마커( [1] » G 같은 드문 오작성 )이면 — 절 경계 판정이 RAW 와 같아야
             //     페이지 수(원시 기준)와 본문(전처리 기준)이 어긋나지 않는다.
-            if (lyric.Length == 0 || chord.Length == 0 || IsMarkerOnlyLine(lyric))
+            if (lyric.Length == 0 || chord.Length == 0 || IsHiddenMarker(lyric))
             {
                 sb.Append(lyric);
                 continue;
             }
 
             // 라이브 조옮김이 걸려 있으면 코드만 ±반음 이동(가사·저장 데이터는 불변). 0 이면 원본 코드 그대로.
-            var shownChord = transposeSemitones == 0 ? chord : ChordTransposer.TransposeLine(chord, transposeSemitones);
-            sb.Append(shownChord).Append('\n').Append(lyric); // 코드 줄을 가사 줄 "위"에.
+            var shownChord = chord[0] == PlacedChordMark ? PlaceStoredChords(chord[1..], lyric.Length, transposeSemitones)
+                : transposeSemitones == 0 ? chord : ChordTransposer.TransposeLine(chord, transposeSemitones);
+            if (shownChord.Length > 0)
+            {
+                sb.Append(shownChord).Append('\n'); // 코드 줄을 가사 줄 "위"에.
+            }
+
+            sb.Append(lyric);
         }
 
         return sb.ToString();
+    }
+
+    // Starts a chord line written from stored chords and, inside it, stands once before a chord for every
+    // character the chord before it pushed it to the right. U+2060 has no width: LyricWordWrapping already puts
+    // it into every displayed Hangul line, so a view that shows the line as plain text shows only the chords.
+    internal const char PlacedChordMark = '\u2060';
+
+    /// <summary>
+    /// The lyrics with the chords the database keeps apart from them (MSC, "(line;chord;position;...)" records)
+    /// written on their lines as "lyric»" + mark + "chord;position;...". From there they travel with the line
+    /// through verse splitting, the sequence, region pairing and pagination like chords typed after '»', and
+    /// <see cref="ExpandNotations"/> turns them into a chord line. A record names its line by the index among
+    /// all lines of the stored lyrics (headings, [region 2] and blank lines count), and the records are read in
+    /// their stored order, one at most per line (gfLyrics.ExtractLyricRegions). A heading or an empty line shows
+    /// no chords there; a line that also has typed chords shows the stored ones.
+    /// </summary>
+    public static string? WithStoredChords(string? lyrics, string? notations)
+    {
+        if (string.IsNullOrEmpty(lyrics) || string.IsNullOrEmpty(notations))
+        {
+            return lyrics;
+        }
+
+        var lines = lyrics.Replace("\r\n", "\n", StringComparison.Ordinal).Split('\n');
+        var remaining = notations;
+        var fields = string.Empty;
+        var recordLine = -1;
+        for (var index = 0; index < lines.Length; index++)
+        {
+            if (recordLine < index && remaining.Length > 0
+                && !Library.SongEditorChords.TryReadRecord(ref remaining, out recordLine, out fields))
+            {
+                remaining = string.Empty;
+            }
+
+            var line = StripInlineNotation(lines[index].Replace("Â»", "»", StringComparison.Ordinal)).TrimEnd();
+            if (recordLine == index && fields.Length > 0 && line.Length > 0 && !IsHiddenMarker(line))
+            {
+                lines[index] = string.Concat(line, "»", PlacedChordMark.ToString(), fields);
+            }
+        }
+
+        return string.Join('\n', lines);
+    }
+
+    // "chord;position;..." as a chord line: every chord starts in the column of the lyric character it stands
+    // over. A chord that would run into the one before it goes one space after it instead, with a mark for
+    // every column it gave way, so that ReadPlacedChords still tells its position.
+    private static string PlaceStoredChords(string fields, int lyricLength, int transposeSemitones)
+    {
+        var line = new StringBuilder().Append(PlacedChordMark);
+        var column = 0;
+        var parts = fields.Split(';');
+        for (var i = 0; i + 1 < parts.Length; i += 2)
+        {
+            // gfDisplay.DisplayTextByWidthOneLine skips a chord without a position. It also leaves out a chord
+            // placed after the end of the line; here that chord is shown at the end, as the song editor shows it.
+            if (parts[i].Length == 0 || parts[i] == "-1" || !int.TryParse(parts[i + 1], System.Globalization.NumberStyles.Integer,
+                    System.Globalization.CultureInfo.InvariantCulture, out var position) || position < 0)
+            {
+                continue;
+            }
+
+            position = Math.Min(position, lyricLength);
+            if (column > 0 && column >= position)
+            {
+                line.Append(' ');
+                column++;
+            }
+
+            line.Append(' ', Math.Max(0, position - column));
+            column = Math.Max(column, position);
+            line.Append(PlacedChordMark, column - position);
+            var chord = transposeSemitones == 0 ? parts[i] : ChordTransposer.Transpose(parts[i], transposeSemitones);
+            line.Append(chord);
+            column += chord.Length;
+        }
+
+        return column == 0 ? string.Empty : line.ToString();
+    }
+
+    /// <summary>
+    /// The chords of a chord line written from stored chords, each with the index of the lyric character it
+    /// stands over; null for any other line (a lyric line, or chords typed after '»', which have no position).
+    /// </summary>
+    internal static List<(string Chord, int Position)>? ReadPlacedChords(string line)
+    {
+        if (line.Length == 0 || line[0] != PlacedChordMark)
+        {
+            return null;
+        }
+
+        var chords = new List<(string Chord, int Position)>();
+        var column = 0;
+        for (var i = 1; i < line.Length;)
+        {
+            if (line[i] == ' ')
+            {
+                column++;
+                i++;
+                continue;
+            }
+
+            var pushed = 0;
+            for (; i < line.Length && line[i] == PlacedChordMark; i++)
+            {
+                pushed++;
+            }
+
+            var start = i;
+            for (; i < line.Length && line[i] != ' ' && line[i] != PlacedChordMark; i++)
+            {
+            }
+
+            if (i > start)
+            {
+                chords.Add((line[start..i], column - pushed));
+                column += i - start;
+            }
+        }
+
+        return chords;
     }
 
     /// <summary>
@@ -766,23 +993,35 @@ public static class LyricsDisplayFormatter
             || t.Equals("후렴", StringComparison.Ordinal);
     }
 
-    // 마커 줄이 라벨 마커( [1] [Chorus] [C] )면 그 라벨, 노테이션 블록([~...])이나 일반 줄이면 null.
-    private static bool MatchesSection(string label, string token) =>
+    // A sequence token names a verse by its heading text or by the FrmMain sequence symbol (c, b, e, p, t, w, q).
+    internal static bool MatchesSection(string label, string token) =>
         string.Equals(label, token, StringComparison.OrdinalIgnoreCase) ||
         (token.ToLowerInvariant(), label.ToLowerInvariant()) is
             ("c", "chorus") or ("b", "bridge") or ("e", "ending") or ("p", "prechorus") or
             ("t", "chorus 2") or ("w", "bridge 2") or ("q", "prechorus 2");
 
+    // Only the headings FrmMain knows start a verse (gfConfig.InitializeVerseHeadings: [1]..[99] and seven names,
+    // compared case-sensitively). Any other bracket-only line ([Chorus], [x2]) is lyric text, as it is there,
+    // and so is a heading with a space before or after it (gfLyrics.ExtractLyricRegions looks the whole line up).
     private static string? SectionLabel(string line)
     {
-        if (!IsMarkerOnlyLine(line))
+        if (line.Length < 3 || line[0] != '[' || line[^1] != ']')
         {
             return null;
         }
 
-        var inner = line.Trim()[1..^1].Trim(); // 대괄호 안.
-        return inner.StartsWith('~') || inner.Length == 0 ? null : inner;
+        var inner = line[1..^1];
+        return inner is "chorus" or "chorus 2" or "bridge" or "bridge 2" or "prechorus" or "prechorus 2" or "ending"
+            || (inner[0] != '0' && int.TryParse(inner, System.Globalization.NumberStyles.None,
+                System.Globalization.CultureInfo.InvariantCulture, out var verse) && verse <= 99)
+            ? inner
+            : null;
     }
+
+    // A bracket-only line the audience never sees: a verse heading, a region marker or a [~chords] block.
+    private static bool IsHiddenMarker(string line)
+        => SectionLabel(line) is not null || IsRegionMarker(line, 1) || IsRegionMarker(line, 2)
+            || (IsMarkerOnlyLine(line) && line.TrimStart().StartsWith("[~", StringComparison.Ordinal));
 
     // 코드 마커(»)를 쓰지 않는 "순수 본문"(성경 구절 등)을 절 분할에 안전하게 통과시키기 위한 사적 영역(PUA) 보호 문자.
     // 일부 번역의 인용부호 »…« 가 StripInlineNotation 에 코드 마커로 오인돼 잘리지 않도록, 분할 동안만 이 문자로
@@ -797,8 +1036,23 @@ public static class LyricsDisplayFormatter
     public static string UnguardLiteralNotation(string? text)
         => string.IsNullOrEmpty(text) ? string.Empty : text.Replace(LiteralNotationGuard, '»');
 
+    // A page of SongPageLayout.Paginate as it is shown. The page is display text already (a line such as "[2] "
+    // that FrmMain shows must stay); with the chords off only what follows a chord marker is dropped.
     internal static string FormatSongSlide(string? page, bool showNotations, int transpose)
-        => showNotations ? ExpandNotations(page, true, transpose) : ToDisplayText(page);
+    {
+        if (showNotations || string.IsNullOrEmpty(page))
+        {
+            return ExpandNotations(page, showNotations, transpose);
+        }
+
+        var lines = NormalizeText(page).Split('\n');
+        for (var i = 0; i < lines.Length; i++)
+        {
+            lines[i] = StripInlineNotation(lines[i]).TrimEnd();
+        }
+
+        return string.Join('\n', lines).Trim('\n');
+    }
 
     // 줄에서 '»'(코드/노테이션 마커) 이후를 잘라 본문만 남긴다. 마커가 없으면 줄 그대로.
     // ('»' 정규화는 호출 전에 끝나 있다고 가정 — ToDisplayText 가 "Â»"→"»"로 모은 뒤 호출.)

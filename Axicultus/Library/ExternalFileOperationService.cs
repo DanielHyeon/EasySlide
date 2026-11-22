@@ -54,8 +54,7 @@ public sealed record ExternalFileOperationRequest(
     string? TargetFolderPath = null,
     string? DatabasePath = null,
     int? TargetSongFolderNo = null,
-    string? BackupRoot = null,
-    int StartingSongNumber = 1);
+    string? BackupRoot = null);
 
 public sealed record ExternalFileOperationReport(
     bool Succeeded,
@@ -215,40 +214,34 @@ public sealed class ExternalFileOperationService(IAdminDatabaseRepository adminD
 
         var databasePath = Path.GetFullPath(request.DatabasePath);
         var backupRoot = ResolveBackupRoot(databasePath, request.BackupRoot);
-        var nextSongNumber = Math.Max(request.StartingSongNumber, 1);
+        // The songs are written together: one backup and one transaction for all the files.
+        var songs = new List<SongWriteModel>();
         foreach (var source in NormalizeSources(request.SourceFiles))
         {
-            if (!ValidateSource(source, issues))
+            if (ValidateSource(source, issues))
             {
-                continue;
+                songs.Add(CreateSongFromInfoScreen(source, request.TargetSongFolderNo.Value));
             }
-
-            var song = CreateSongFromInfoScreen(source, request.TargetSongFolderNo.Value, nextSongNumber);
-            var report = await _adminDatabase.SaveSongAsync(databasePath, backupRoot, song).ConfigureAwait(true);
-            if (!report.Succeeded)
-            {
-                var detail = string.Join("; ", report.Issues.Select(issue => issue.Message));
-                issues.Add(new ExternalFileOperationIssue(
-                    ExternalFileOperationIssueKind.WriteFailed,
-                    string.IsNullOrWhiteSpace(detail) ? "AdminDB 저장 실패" : detail,
-                    source));
-                continue;
-            }
-
-            if (report.AffectedSongIds.Count > 0)
-            {
-                createdIds.Add(report.AffectedSongIds[0]);
-            }
-
-            nextSongNumber++;
         }
 
+        var report = await _adminDatabase.SaveSongsAsync(databasePath, backupRoot, songs).ConfigureAwait(true);
+        if (!report.Succeeded)
+        {
+            var detail = string.Join("; ", report.Issues.Select(issue => issue.Message));
+            issues.Add(new ExternalFileOperationIssue(
+                ExternalFileOperationIssueKind.WriteFailed,
+                string.IsNullOrWhiteSpace(detail) ? "AdminDB 저장 실패" : detail));
+            return CreateReport(request, [], createdIds, issues);
+        }
+
+        createdIds.AddRange(report.AffectedSongIds);
         return CreateReport(request, [], createdIds, issues);
     }
 
-    private static SongWriteModel CreateSongFromInfoScreen(string sourcePath, int folderNo, int songNumber)
+    private static SongWriteModel CreateSongFromInfoScreen(string sourcePath, int folderNo)
     {
         var title = Path.GetFileNameWithoutExtension(sourcePath);
+        int songNumber = 0; // The file's own number, as in WinForms; 0 is "no number".
         try
         {
             var document = XDocument.Load(sourcePath, LoadOptions.PreserveWhitespace);
@@ -257,6 +250,7 @@ public sealed class ExternalFileOperationService(IAdminDatabaseRepository adminD
             if (item is not null)
             {
                 title = FirstNonEmpty(ReadElement(item, "Title1"), title);
+                songNumber = int.TryParse(ReadElement(item, "SongNumber"), out int number) && number > 0 ? number : 0;
                 return new SongWriteModel(
                     SongId: null,
                     title,

@@ -55,7 +55,9 @@ public sealed record SongFolderSummary(
     int SongCount,
     int GroupStyle = 0,
     SongPageLayout? SlideLayout = null,
-    IReadOnlyDictionary<string, string>? FormatFields = null);
+    IReadOnlyDictionary<string, string>? FormatFields = null,
+    // Deleted songs that recovery would file in this folder (their OldFolder).
+    int DeletedSongCount = 0);
 
 public sealed record SongSummary(
     int SongId,
@@ -78,7 +80,8 @@ public sealed record SongSummary(
     string LicenceAdmin2 = "",
     string? StrokeSortKey = null,
     string? WordSortKey = null,
-    int Capo = 0);
+    int Capo = 0,
+    string Notations = "");
 
 public sealed record SongDetail(
     int SongId,
@@ -155,7 +158,10 @@ public sealed record SongFolderWriteModel(
     string Name,
     bool IsEnabled,
     int? GroupStyle = null,
-    IReadOnlyDictionary<string, string>? FormatChanges = null);
+    IReadOnlyDictionary<string, string>? FormatChanges = null,
+    // A new folder in a row that exists already (a slot used before): the row's sort order and formatting
+    // are set to what the WinForms app gives a new folder.
+    bool ResetFormat = false);
 
 public sealed record SongWriteModel(
     int? SongId,
@@ -167,7 +173,8 @@ public sealed record SongWriteModel(
     string Sequence = "",
     string Writer = "",
     string Copyright = "",
-    int Capo = 0,
+    // -1 is "no capo", as WinForms stores it.
+    int Capo = -1,
     string Timing = "",
     string Key = "",
     string Notations = "",
@@ -177,7 +184,9 @@ public sealed record SongWriteModel(
     string BookReference = "",
     string UserReference = "",
     string Settings = "",
-    string FormatData = "");
+    string FormatData = "",
+    // True when Sequence is a stored SEQUENCE value (a copy): it is written as it is, not read as typed tokens.
+    bool SequenceIsStored = false);
 
 public sealed record SongMoveRequest(
     int SongId,
@@ -268,6 +277,25 @@ public interface IAdminDatabaseRepository
         string databasePath,
         string backupRoot,
         SongWriteModel song);
+
+    /// <summary>
+    /// Saves several songs as one operation: one backup and one transaction, so a failure saves none of them.
+    /// AffectedSongIds holds one id per song, in the order given. (This default, for test doubles, saves one by one.)
+    /// </summary>
+    async Task<AdminDatabaseWriteReport> SaveSongsAsync(string databasePath, string backupRoot, IReadOnlyList<SongWriteModel> songs)
+    {
+        var ids = new List<int>();
+        string? backupPath = null;
+        foreach (var song in songs)
+        {
+            var report = await SaveSongAsync(databasePath, backupRoot, song).ConfigureAwait(false);
+            if (!report.Succeeded) return report;
+            ids.AddRange(report.AffectedSongIds);
+            backupPath ??= report.BackupPath;
+        }
+
+        return new AdminDatabaseWriteReport(true, AdminDatabaseWriteOperation.SaveSong, databasePath, backupPath, ids, [], []);
+    }
 
     Task<AdminDatabaseWriteReport> MoveSongsAsync(
         string databasePath,
@@ -375,7 +403,7 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
             save.Parameters.AddWithValue("@id", songId);
             save.ExecuteNonQuery();
             outcome.SongIds.Add(songId);
-        });
+        }, backup: false); // One song's media or background file: assigned again in one step, not worth a database copy.
 
     public Task<AdminDatabaseWriteReport> MaintainSongsAsync(string databasePath, string backupRoot, AdminDatabaseWriteOperation operation)
     {
@@ -405,7 +433,28 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
             databasePath,
             backupRoot,
             AdminDatabaseWriteOperation.SaveFolder,
-            (connection, transaction, outcome) => SaveFolder(connection, transaction, folder, outcome)));
+            (connection, transaction, outcome) => SaveFolder(connection, transaction, folder, outcome),
+            backup: !ChangesSortOrderOnly(databasePath, folder)));
+    }
+
+    // The song list saves the folder each time its sort order is changed. One click puts the order back,
+    // so that write takes no database copy.
+    private static bool ChangesSortOrderOnly(string databasePath, SongFolderWriteModel folder)
+    {
+        if (folder.GroupStyle is null || folder.ResetFormat || folder.FormatChanges is { Count: > 0 })
+        {
+            return false;
+        }
+
+        try
+        {
+            var stored = GetSongFolders(databasePath).FirstOrDefault(item => item.FolderNo == folder.FolderNo);
+            return stored is not null && stored.Name == Normalize(folder.Name) && stored.IsEnabled == folder.IsEnabled;
+        }
+        catch (Exception ex) when (IsSqliteOpenException(ex) || IsFileSystemException(ex) || ex is InvalidOperationException)
+        {
+            return false; // ExecuteWrite reports what is wrong with the database.
+        }
     }
 
     public Task<AdminDatabaseWriteReport> SaveFoldersAsync(string databasePath, string backupRoot, IReadOnlyList<SongFolderWriteModel> folders)
@@ -454,12 +503,36 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
             (connection, transaction, outcome) => SaveSong(connection, transaction, song, outcome)));
     }
 
+    public Task<AdminDatabaseWriteReport> SaveSongsAsync(string databasePath, string backupRoot, IReadOnlyList<SongWriteModel> songs)
+    {
+        ArgumentNullException.ThrowIfNull(songs);
+        if (songs.Count == 0)
+        {
+            return Task.FromResult(new AdminDatabaseWriteReport(
+                true, AdminDatabaseWriteOperation.SaveSong, databasePath, BackupPath: null, [], [], []));
+        }
+
+        return Task.FromResult(ExecuteWrite(databasePath, backupRoot, AdminDatabaseWriteOperation.SaveSong,
+            (connection, transaction, outcome) =>
+            {
+                foreach (var song in songs) SaveSong(connection, transaction, song, outcome);
+            }));
+    }
+
     public Task<AdminDatabaseWriteReport> MoveSongsAsync(
         string databasePath,
         string backupRoot,
         IReadOnlyList<SongMoveRequest> moves)
     {
         ArgumentNullException.ThrowIfNull(moves);
+        // Folder 0 holds deleted songs; only SoftDeleteSongsAsync files a song there.
+        if (moves.Any(move => move.NewFolderNo <= 0))
+        {
+            return Task.FromResult(FailedWriteReport(
+                AdminDatabaseWriteOperation.MoveSongs, databasePath, backupPath: null, new AdminDatabaseWriteOutcome(),
+                [WriteIssue(AdminDatabaseWriteIssueKind.InvalidRequest, "Target folder number must be positive.")]));
+        }
+
         return Task.FromResult(ExecuteWrite(
             databasePath,
             backupRoot,
@@ -524,7 +597,7 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
         => Task.FromResult(CompactDatabase(databasePath, backupRoot));
 
     // 데이터베이스 압축(VACUUM) — 백업 후 실행. VACUUM 은 트랜잭션 안에서 못 돌리므로 ExecuteWrite(트랜잭션 래핑)를
-    // 쓰지 않고 전용 경로로 처리한다. 실패하면 백업으로 복원한다(다른 쓰기 작업과 동일한 안전 보장).
+    // 쓰지 않고 전용 경로로 처리한다.
     private static AdminDatabaseWriteReport CompactDatabase(string databasePath, string backupRoot)
     {
         var inventory = AnalyzeSchema(databasePath);
@@ -564,11 +637,11 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
         }
         catch (Exception ex) when (IsSqliteOpenException(ex))
         {
-            // 압축 실패 — 백업으로 복원하고 실패 보고.
-            return RestoreAndReportFailure(
+            // VACUUM writes the file back inside a journalled transaction, so a failure leaves the database as it was.
+            return FailedWriteReport(
                 AdminDatabaseWriteOperation.Compact, inventory.DatabasePath, backupPath,
-                new AdminDatabaseWriteOutcome(), AdminDatabaseWriteIssueKind.WriteFailed,
-                $"Database compaction failed: {ex.Message}");
+                new AdminDatabaseWriteOutcome(),
+                [WriteIssue(AdminDatabaseWriteIssueKind.WriteFailed, $"Database compaction failed: {ex.Message}")]);
         }
 
         return new AdminDatabaseWriteReport(
@@ -625,6 +698,16 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
         {
             while (rows.Read()) songCounts[GetInt(rows, "FOLDERNO")] = GetInt(rows, "SongCount");
         }
+        // Where recovery files the deleted songs: their OldFolder, or folder 1 without one (see GetDeletedSongs).
+        var deletedCounts = new Dictionary<int, int>();
+        if (ReadColumnMap(connection, "SONG").TryGetValue("OldFolder", out var oldFolderColumn))
+        {
+            using var deleted = new SQLiteCommand(
+                $"SELECT MAX(COALESCE({QuoteIdentifier(oldFolderColumn)}, 0), 1) AS OldFolder, COUNT(*) AS SongCount FROM SONG WHERE FOLDERNO = 0 GROUP BY 1",
+                connection, transaction);
+            using var rows = deleted.ExecuteReader();
+            while (rows.Read()) deletedCounts[GetInt(rows, "OldFolder")] = GetInt(rows, "SongCount");
+        }
         using var command = new SQLiteCommand(
             $"""
             SELECT
@@ -654,7 +737,8 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
                     GetInt(reader, "LMargin"), GetInt(reader, "RMargin"), GetInt(reader, "BMargin"),
                     double.TryParse(GetString(reader, "LineSpacing"), CultureInfo.InvariantCulture, out var spacing) && spacing is >= 0.5 and <= 2 ? spacing : 1,
                     GetInt(reader, "HeadingSize"), GetInt(reader, "BIU0")) { Fields = formatting } : null,
-                formatting));
+                formatting,
+                deletedCounts.GetValueOrDefault(GetInt(reader, "FolderNo"))));
         }
 
         return folders;
@@ -707,7 +791,8 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
                     {SelectColumn(columns, "USER_REFERENCE", "USER_REFERENCE")},
                     {SelectColumn(columns, "CJK_STROKECOUNT", "CJK_STROKECOUNT")},
                     {SelectColumn(columns, "CJK_WORDCOUNT", "CJK_WORDCOUNT")},
-                    {SelectColumn(columns, "CAPO", "CAPO")}
+                    {SelectColumn(columns, "CAPO", "CAPO")},
+                    {SelectColumn(columns, "MSC", "MSC")}
                 FROM SONG
                 {where}
                 ORDER BY {QuoteIdentifier(columns["FOLDERNO"])}, {QuoteIdentifier(columns["SONG_NUMBER"])}, {QuoteIdentifier(columns["TITLE_1"])}, {QuoteIdentifier(columns["SONGID"])};
@@ -737,7 +822,8 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
                     GetString(reader, "LICENCE_ADMIN1"), GetString(reader, "LICENCE_ADMIN2"),
                     columns.ContainsKey("CJK_STROKECOUNT") ? GetString(reader, "CJK_STROKECOUNT") : null,
                     columns.ContainsKey("CJK_WORDCOUNT") ? GetString(reader, "CJK_WORDCOUNT") : null,
-                    GetInt(reader, "CAPO")));
+                    GetInt(reader, "CAPO"),
+                    GetString(reader, "MSC")));
             }
         }
     }
@@ -847,7 +933,8 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
         string databasePath,
         string backupRoot,
         AdminDatabaseWriteOperation operation,
-        Action<SQLiteConnection, SQLiteTransaction, AdminDatabaseWriteOutcome> write)
+        Action<SQLiteConnection, SQLiteTransaction, AdminDatabaseWriteOutcome> write,
+        bool backup = true)
     {
         var inventory = AnalyzeSchema(databasePath);
         if (!inventory.Succeeded)
@@ -860,7 +947,7 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
                 ToWriteIssues(inventory.Issues));
         }
 
-        if (string.IsNullOrWhiteSpace(backupRoot))
+        if (backup && string.IsNullOrWhiteSpace(backupRoot))
         {
             return FailedWriteReport(
                 operation,
@@ -871,10 +958,10 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
         }
 
         var outcome = new AdminDatabaseWriteOutcome();
-        string backupPath;
+        string? backupPath = null;
         try
         {
-            backupPath = CreateBackup(inventory.DatabasePath, backupRoot);
+            if (backup) backupPath = CreateBackup(inventory.DatabasePath, backupRoot);
         }
         catch (Exception ex) when (IsFileSystemException(ex))
         {
@@ -901,19 +988,20 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
                 throw;
             }
         }
+        // A failed write needs no file restore: the transaction is atomic, so the database is as it was.
+        // Copying the backup over it would erase whatever the WinForms app committed since the backup was taken.
         catch (AdminDatabaseWriteException ex)
         {
-            return RestoreAndReportFailure(operation, inventory.DatabasePath, backupPath, outcome, ex.Kind, ex.Message);
+            return FailedWriteReport(operation, inventory.DatabasePath, backupPath, outcome, [WriteIssue(ex.Kind, ex.Message)]);
         }
         catch (Exception ex) when (IsSqliteOpenException(ex))
         {
-            return RestoreAndReportFailure(
+            return FailedWriteReport(
                 operation,
                 inventory.DatabasePath,
                 backupPath,
                 outcome,
-                AdminDatabaseWriteIssueKind.WriteFailed,
-                $"AdminDB write failed: {ex.Message}");
+                [WriteIssue(AdminDatabaseWriteIssueKind.WriteFailed, $"AdminDB write failed: {ex.Message}")]);
         }
 
         return new AdminDatabaseWriteReport(
@@ -925,6 +1013,9 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
             outcome.FolderNos,
             Array.Empty<AdminDatabaseWriteIssue>());
     }
+
+    // The WinForms app has folders 1 to 40 and reads no others, so a row outside them is a folder it never shows.
+    internal const int LastFolderNo = 40;
 
     private static void SaveFolder(
         SQLiteConnection connection,
@@ -939,6 +1030,13 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
             transaction);
         existsCommand.Parameters.AddWithValue("@folderNo", folder.FolderNo);
         var exists = Convert.ToInt32(existsCommand.ExecuteScalar(), CultureInfo.InvariantCulture) > 0;
+        if (!exists && folder.FolderNo is < 1 or > LastFolderNo)
+        {
+            throw new AdminDatabaseWriteException(
+                AdminDatabaseWriteIssueKind.InvalidRequest,
+                $"A new folder must be numbered 1 to {LastFolderNo}.");
+        }
+
         var hasGroupStyle = folderColumns.TryGetValue("GroupStyle", out var groupStyleColumn);
         // An existing folder saved without a sort order keeps its stored GroupStyle:
         // the column is left out of the UPDATE. A new folder always gets a value (0 by default).
@@ -959,6 +1057,11 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
         }
 
         command.ExecuteNonQuery();
+        if (!exists || folder.ResetFormat)
+        {
+            ResetFolderFormat(connection, transaction, folderColumns, folder);
+        }
+
         if (folder.FormatChanges is { Count: > 0 } edits)
         {
             using var format = connection.CreateCommand();
@@ -1017,6 +1120,49 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
         }
 
         return $"INSERT INTO FOLDER ({string.Join(", ", columns)}) VALUES ({string.Join(", ", values)});";
+    }
+
+    // What Gf.ResetFolder of the WinForms app gives a new folder. The other columns of the row are emptied, as in a
+    // row WinForms creates; a slot used before would otherwise pass its formatting on to the new folder.
+    private static readonly (string Column, object Value)[] NewFolderFormat =
+    [
+        ("PreChorusHeading", ""), ("ChorusHeading", "Chorus:"), ("BridgeHeading", ""), ("EndingHeading", ""),
+        ("BIUHeading", 4), ("HeadingSize", 100), ("HeadingOption", (int)Axicultus.Module.HeadingFormat.AsRegion1Plus),
+        ("BIU0", 0), ("Size0", 40), ("Bold0", 0), ("Align0", 2), ("FontName0", "Microsoft Sans Serif"), ("Vpos0", 0),
+        ("BIU1", 0), ("Size1", 40), ("Bold1", 0), ("Align1", 2), ("FontName1", "Microsoft Sans Serif"), ("Vpos1", 50),
+    ];
+
+    private static void ResetFolderFormat(
+        SQLiteConnection connection,
+        SQLiteTransaction transaction,
+        Dictionary<string, string> folderColumns,
+        SongFolderWriteModel folder)
+    {
+        using var command = new SQLiteCommand(connection) { Transaction = transaction };
+        var assignments = new List<string>();
+        foreach (var (name, column) in folderColumns)
+        {
+            if (name.Equals("FolderNo", StringComparison.OrdinalIgnoreCase) || name.Equals("Name", StringComparison.OrdinalIgnoreCase)
+                || name.Equals("Use", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            object value = name.Equals("GroupStyle", StringComparison.OrdinalIgnoreCase)
+                ? NormalizeLegacyFolderGroupStyle(folder.GroupStyle ?? 0)
+                : Array.Find(NewFolderFormat, item => item.Column.Equals(name, StringComparison.OrdinalIgnoreCase)).Value ?? DBNull.Value;
+            command.Parameters.AddWithValue($"@value{assignments.Count}", value);
+            assignments.Add($"{QuoteIdentifier(column)} = @value{assignments.Count}");
+        }
+
+        if (assignments.Count == 0)
+        {
+            return;
+        }
+
+        command.CommandText = $"UPDATE FOLDER SET {string.Join(", ", assignments)} WHERE {QuoteIdentifier(folderColumns["FolderNo"])} = @folderNo;";
+        command.Parameters.AddWithValue("@folderNo", folder.FolderNo);
+        command.ExecuteNonQuery();
     }
 
     // 0 = title, 1 = word count, 2 = song number (WinForms SortBy); anything else is title.
@@ -1118,7 +1264,8 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
         AdminDatabaseWriteOutcome outcome)
     {
         var columns = ReadColumnMap(connection, "SONG");
-        var values = BuildSongValues(song);
+        outcome.StrokeKeys ??= ReadStrokeKeys(connection, transaction, columns);
+        var values = BuildSongValues(song, outcome.StrokeKeys);
         var writable = values
             .Where(value => columns.ContainsKey(value.Key))
             .ToArray();
@@ -1214,7 +1361,7 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
             command.Parameters.AddWithValue("@newFolderNo", move.NewFolderNo);
             if (move.UpdateModifiedDate)
             {
-                command.Parameters.AddWithValue("@lastModified", DateTime.Now.Date);
+                command.Parameters.AddWithValue("@lastModified", Axicultus.Util.StoredDate.ToText(DateTime.Now));
             }
 
             var affected = command.ExecuteNonQuery();
@@ -1283,19 +1430,18 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
                 assignments.Add($"{QuoteIdentifier(lastModifiedColumn)} = @lastModified");
             }
 
+            // Only a song that is still deleted, as in WinForms (Gf.ReFileSelectedSongs): the list the operator chose
+            // from may be old, and the other app may have recovered the song and filed it elsewhere since.
             using var command = new SQLiteCommand(
-                $"UPDATE SONG SET {string.Join(", ", assignments)} WHERE {QuoteIdentifier(columns["SONGID"])} = @songId;",
+                $"UPDATE SONG SET {string.Join(", ", assignments)} WHERE {QuoteIdentifier(columns["SONGID"])} = @songId AND {QuoteIdentifier(columns["FOLDERNO"])} = 0;",
                 connection,
                 transaction);
             command.Parameters.AddWithValue("@songId", recovery.SongId);
             command.Parameters.AddWithValue("@targetFolderNo", recovery.TargetFolderNo);
-            command.Parameters.AddWithValue("@lastModified", DateTime.Now.Date);
-            var affected = command.ExecuteNonQuery();
-            if (affected == 0)
+            command.Parameters.AddWithValue("@lastModified", Axicultus.Util.StoredDate.ToText(DateTime.Now));
+            if (command.ExecuteNonQuery() == 0)
             {
-                throw new AdminDatabaseWriteException(
-                    AdminDatabaseWriteIssueKind.NotFound,
-                    $"Song was not found: {recovery.SongId}");
+                continue; // Not deleted any more, or gone: left as it is. The caller sees it is not in AffectedSongIds.
             }
 
             outcome.SongIds.Add(recovery.SongId);
@@ -1386,6 +1532,24 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
             songCommand.Parameters.AddWithValue("@stagedFolderNo", -item.FolderNo);
             songCommand.Parameters.AddWithValue("@newFolderNo", item.NewFolderNo);
             songCommand.ExecuteNonQuery();
+        }
+
+        // A deleted song is recovered into its OldFolder, so that number follows the folder too.
+        if (songColumns.TryGetValue("OldFolder", out var oldFolderColumn))
+        {
+            foreach (bool stage in new[] { true, false })
+            {
+                foreach (var item in order)
+                {
+                    using var oldFolderCommand = new SQLiteCommand(
+                        $"UPDATE SONG SET {QuoteIdentifier(oldFolderColumn)} = @to WHERE {QuoteIdentifier(oldFolderColumn)} = @from;",
+                        connection,
+                        transaction);
+                    oldFolderCommand.Parameters.AddWithValue("@from", stage ? item.FolderNo : -item.FolderNo);
+                    oldFolderCommand.Parameters.AddWithValue("@to", stage ? -item.FolderNo : item.NewFolderNo);
+                    oldFolderCommand.ExecuteNonQuery();
+                }
+            }
         }
 
         foreach (var item in order)
@@ -1490,7 +1654,7 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
         outcome.FolderNos.Add(folderNo);
     }
 
-    private static Dictionary<string, object?> BuildSongValues(SongWriteModel song)
+    private static Dictionary<string, object?> BuildSongValues(SongWriteModel song, StrokeKeys strokeKeys)
     {
         var title = Limit(song.Title, 100);
         return new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase)
@@ -1500,11 +1664,13 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
             ["SONG_NUMBER"] = song.SongNumber,
             ["FOLDERNO"] = song.FolderNo,
             ["LYRICS"] = Normalize(song.Lyrics),
-            ["SEQUENCE"] = Limit(song.Sequence, 100),
+            ["SEQUENCE"] = Limit(song.SequenceIsStored
+                ? Normalize(song.Sequence)
+                : Axicultus.Module.SongExchangeSequence.ToDatabase(Normalize(song.Sequence)), 100),
             ["WRITER"] = Limit(song.Writer, 100),
             ["COPYRIGHT"] = Limit(song.Copyright, 100),
             ["CJK_WordCount"] = ComputeLegacyCjkWordCount(title),
-            ["CJK_StrokeCount"] = ComputeLegacyCjkStrokeCount(title),
+            ["CJK_StrokeCount"] = ComputeLegacyCjkStrokeCount(title, strokeKeys),
             ["CAPO"] = song.Capo,
             ["TIMING"] = Limit(song.Timing, 50),
             ["KEY"] = Limit(song.Key, 20),
@@ -1516,7 +1682,7 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
             ["USER_REFERENCE"] = Normalize(song.UserReference),
             ["SETTINGS"] = Normalize(song.Settings),
             ["FORMATDATA"] = Normalize(song.FormatData),
-            ["LastModified"] = DateTime.Now.Date,
+            ["LastModified"] = Axicultus.Util.StoredDate.ToText(DateTime.Now), // yyyy-MM-dd, as WinForms writes it
             ["OldFolder"] = 0,
         };
     }
@@ -1531,31 +1697,57 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
         File.Copy(databasePath, backupPath, overwrite: false);
         CopySidecarIfExists(databasePath, backupPath, "-wal");
         CopySidecarIfExists(databasePath, backupPath, "-shm");
+        PruneBackups(root, fileName, extension, backupPath);
         return backupPath;
     }
 
-    private static void RestoreBackup(string backupPath, string databasePath)
+    // Every backed-up write adds a full copy of the database. Kept are the newest BackupsKept, the first copy of
+    // each of the last BackupDaysKept days (so many writes in a row cannot push out the copy from before a bad
+    // change made days earlier), the first copy of every month however old (what a church kept for years is
+    // thinned, not emptied), and always the copy just made.
+    internal const int BackupsKept = 20;
+    internal const int BackupDaysKept = 30;
+
+    private static void PruneBackups(string root, string fileName, string extension, string justMade)
     {
-        File.Copy(backupPath, databasePath, overwrite: true);
-        RestoreSidecar(backupPath, databasePath, "-wal");
-        RestoreSidecar(backupPath, databasePath, "-shm");
+        try
+        {
+            // The names sort by their UTC time stamp. Other files in the folder (schema backups, other databases) do not match.
+            var name = new System.Text.RegularExpressions.Regex(
+                "^" + System.Text.RegularExpressions.Regex.Escape(fileName) + @"\.\d{8}-\d{6}-\d{3}" +
+                System.Text.RegularExpressions.Regex.Escape(extension) + "$",
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            var backups = Directory.EnumerateFiles(root, fileName + ".*" + extension)
+                .Where(path => name.IsMatch(Path.GetFileName(path)))
+                .OrderByDescending(path => Path.GetFileName(path), StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+            // The clock may have been set back: the copy just made is then not among the newest names.
+            var keep = new HashSet<string>(backups.Take(BackupsKept), StringComparer.OrdinalIgnoreCase) { justMade };
+            string Day(string path) => Path.GetFileName(path).Substring(fileName.Length + 1, 8);
+            string firstDayKept = DateTime.UtcNow.AddDays(-BackupDaysKept).ToString("yyyyMMdd", CultureInfo.InvariantCulture);
+            foreach (var day in backups.GroupBy(Day).Where(day => string.CompareOrdinal(day.Key, firstDayKept) >= 0))
+            {
+                keep.Add(day.Last()); // newest first, so the last is the first copy of that day
+            }
+
+            foreach (var month in backups.GroupBy(path => Day(path)[..6]))
+            {
+                keep.Add(month.Last());
+            }
+
+            foreach (var old in backups.Where(path => !keep.Contains(path)))
+            {
+                File.Delete(old);
+                File.Delete(old + "-wal");
+                File.Delete(old + "-shm");
+            }
+        }
+        catch (Exception ex) when (IsFileSystemException(ex))
+        {
+            // A backup that cannot be removed now is removed after a later write.
+        }
     }
 
-    private static void RestoreSidecar(string backupPath, string databasePath, string suffix)
-    {
-        var backupSidecar = backupPath + suffix;
-        var databaseSidecar = databasePath + suffix;
-        if (File.Exists(backupSidecar))
-        {
-            File.Copy(backupSidecar, databaseSidecar, overwrite: true);
-            return;
-        }
-
-        if (File.Exists(databaseSidecar))
-        {
-            File.Delete(databaseSidecar);
-        }
-    }
 
     private static void CopySidecarIfExists(string databasePath, string backupPath, string suffix)
     {
@@ -1580,32 +1772,6 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
         return columns;
     }
 
-    private static AdminDatabaseWriteReport RestoreAndReportFailure(
-        AdminDatabaseWriteOperation operation,
-        string databasePath,
-        string backupPath,
-        AdminDatabaseWriteOutcome outcome,
-        AdminDatabaseWriteIssueKind kind,
-        string message)
-    {
-        var issues = new List<AdminDatabaseWriteIssue>
-        {
-            WriteIssue(kind, message),
-        };
-        try
-        {
-            RestoreBackup(backupPath, databasePath);
-        }
-        catch (Exception ex) when (IsFileSystemException(ex))
-        {
-            issues.Add(WriteIssue(
-                AdminDatabaseWriteIssueKind.RestoreFailed,
-                $"AdminDB backup restore failed: {ex.Message}",
-                AdminDatabaseIssueSeverity.Warning));
-        }
-
-        return FailedWriteReport(operation, databasePath, backupPath, outcome, issues);
-    }
 
     private static AdminDatabaseWriteIssue[] ToWriteIssues(IReadOnlyList<AdminDatabaseIssue> issues)
         => [.. issues.Select(issue => WriteIssue(MapWriteIssueKind(issue.Kind), issue.Message, issue.Severity))];
@@ -1845,8 +2011,9 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
             length = parenthesisIndex - 1;
         }
 
+        // WinForms (DataUtil.CJK_WordCount) takes the space only when more than one character precedes it.
         var spaceIndex = title.IndexOf(' ', StringComparison.Ordinal);
-        if (spaceIndex > 0 && spaceIndex - 1 < length)
+        if (spaceIndex > 1 && spaceIndex - 1 < length)
         {
             length = spaceIndex - 1;
         }
@@ -1854,11 +2021,87 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
         return Math.Max(length, 0).ToString("000", CultureInfo.InvariantCulture);
     }
 
-    private static string ComputeLegacyCjkStrokeCount(string title)
+    // DataUtil.CJK_StrokeCount of the WinForms app, which sorts its song list by this key: for each of the first six
+    // characters two digits of stroke count and five of character code, then the rest of the title; "000" and the
+    // title when the first character has no stroke count.
+    private static string ComputeLegacyCjkStrokeCount(string title, StrokeKeys strokeKeys)
     {
-        var value = "000" + title;
-        return value.Length <= 100 ? value : value[..100];
+        // A title some song already has with a stroke key keeps that key (an unchanged title, a copy, a merge).
+        // It is what WinForms computed for the title; and where the database conversion turned a character
+        // into "?", the stored key still holds the song's place in the list, which the title no longer gives.
+        if (strokeKeys.ByTitle.TryGetValue(title, out var stored))
+        {
+            return stored;
+        }
+
+        var strokeCounts = strokeKeys.Counts;
+        if (title.Length == 0 || !strokeCounts.ContainsKey(title[0]))
+        {
+            return "000" + title;
+        }
+
+        var key = new System.Text.StringBuilder();
+        for (int index = 0; index < title.Length && index < 6; index++)
+        {
+            key.Append(strokeCounts.GetValueOrDefault(title[index]).ToString("00", CultureInfo.InvariantCulture))
+                .Append(((int)title[index]).ToString("00000", CultureInfo.InvariantCulture));
+        }
+
+        if (title.Length > 6)
+        {
+            key.Append(title, 6, title.Length - 6);
+        }
+
+        return key.Length <= 100 ? key.ToString() : key.ToString(0, 100);
     }
+
+    // WinForms takes the stroke counts from its Sys\strokecount.dat, which this app does not have. Every key WinForms
+    // stored holds the count of each character it covers, so the counts are read back from the keys in the database.
+    // A character no stored key covers counts as having none: a new title that starts with one gets "000" and the
+    // title until WinForms saves the song.
+    private static StrokeKeys ReadStrokeKeys(
+        SQLiteConnection connection,
+        SQLiteTransaction transaction,
+        Dictionary<string, string> columns)
+    {
+        var keys = new StrokeKeys(new Dictionary<string, string>(StringComparer.Ordinal), new Dictionary<char, int>());
+        if (!columns.TryGetValue("CJK_StrokeCount", out var column))
+        {
+            return keys;
+        }
+
+        var counts = keys.Counts;
+        string key = QuoteIdentifier(column);
+        using var command = new SQLiteCommand(
+            $"SELECT {QuoteIdentifier(columns["TITLE_1"])}, {key} FROM SONG WHERE {key} GLOB '[0-9][0-9][0-9][0-9][0-9][0-9][0-9]*' AND {key} NOT LIKE '000%';",
+            connection,
+            transaction);
+        using var reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            string stored = Convert.ToString(reader.GetValue(1), CultureInfo.InvariantCulture) ?? "";
+            keys.ByTitle.TryAdd(Convert.ToString(reader.GetValue(0), CultureInfo.InvariantCulture) ?? "", stored);
+            // The first six characters of the title have a group each; the rest of the title follows as text.
+            string groups = stored.Length <= 42 ? stored : stored[..42];
+            for (int at = 0; at + 7 <= groups.Length; at += 7)
+            {
+                if (!int.TryParse(groups.AsSpan(at, 2), NumberStyles.None, CultureInfo.InvariantCulture, out int count) ||
+                    !int.TryParse(groups.AsSpan(at + 2, 5), NumberStyles.None, CultureInfo.InvariantCulture, out int code))
+                {
+                    break;
+                }
+
+                if (count > 0 && code <= char.MaxValue)
+                {
+                    counts[(char)code] = count;
+                }
+            }
+        }
+
+        return keys;
+    }
+
+    private sealed record StrokeKeys(Dictionary<string, string> ByTitle, Dictionary<char, int> Counts);
 
     private static AdminDatabaseSchemaInventory InventoryFailure(
         string databasePath,
@@ -1907,6 +2150,9 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
         public List<int> SongIds { get; } = [];
 
         public List<int> FolderNos { get; } = [];
+
+        // Read once for the songs saved in one write (see ReadStrokeKeys).
+        public StrokeKeys? StrokeKeys { get; set; }
     }
 
     private sealed class AdminDatabaseWriteException(AdminDatabaseWriteIssueKind kind, string message)

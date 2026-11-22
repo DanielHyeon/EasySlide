@@ -17,7 +17,7 @@ public sealed partial class SongCopyViewModel : ObservableObject
 {
     private readonly ISettingsService _settings;
     private readonly IAdminDatabaseRepository _adminDatabase;
-    private SongSummary? _sourceSong;
+    private IReadOnlyList<SongSummary> _sourceSongs = [];
 
     [ObservableProperty] private string _databasePath = "";
     [ObservableProperty] private string _sourceFolderName = "";
@@ -29,6 +29,8 @@ public sealed partial class SongCopyViewModel : ObservableObject
     [ObservableProperty] private string _statusMessage = "";
     [ObservableProperty] private string _validationMessage = "";
     [ObservableProperty] private bool _isBusy;
+    // One song: its copy can be given a title and a number. Several: each copy keeps its own, as in WinForms.
+    [ObservableProperty] private bool _isSingleSong = true;
 
     public SongCopyViewModel(ISettingsService settings, IAdminDatabaseRepository adminDatabase)
     {
@@ -43,6 +45,9 @@ public sealed partial class SongCopyViewModel : ObservableObject
 
     public IAsyncRelayCommand CopyCommand { get; }
 
+    /// <summary>The ids of the copies, in the order of the selection.</summary>
+    public IReadOnlyList<int> CreatedSongIds { get; private set; } = [];
+
     public void Load(
         string databasePath,
         SongSummary song,
@@ -53,16 +58,34 @@ public sealed partial class SongCopyViewModel : ObservableObject
         ArgumentNullException.ThrowIfNull(sourceFolder);
         ArgumentNullException.ThrowIfNull(allFolders);
 
-        _sourceSong = song;
-        DatabasePath = NormalizePath(databasePath);
+        Load(databasePath, [song], allFolders);
         SourceFolderName = sourceFolder.Name;
-        SongTitle = song.Title;
-        CopyTitle = BuildDefaultCopyTitle(song.Title);
-        TargetFolders.ReplaceWith(allFolders);
         SelectedTargetFolder = TargetFolders.FirstOrDefault(folder => folder.FolderNo == sourceFolder.FolderNo)
             ?? TargetFolders.FirstOrDefault();
-        SongNumber = NextSongNumber(SelectedTargetFolder);
+    }
+
+    /// <summary>Loads every selected song (FrmMain copies the whole selection of its song list).</summary>
+    public void Load(
+        string databasePath,
+        IReadOnlyList<SongSummary> songs,
+        IReadOnlyList<SongFolderSummary> allFolders)
+    {
+        ArgumentNullException.ThrowIfNull(songs);
+        ArgumentNullException.ThrowIfNull(allFolders);
+
+        _sourceSongs = songs;
+        IsSingleSong = songs.Count <= 1;
+        DatabasePath = NormalizePath(databasePath);
+        SourceFolderName = SongSelectionText.SourceFolderName(songs, allFolders);
+        SongTitle = SongSelectionText.Heading(songs);
+        CopyTitle = songs.Count == 1 ? BuildDefaultCopyTitle(songs[0].Title) : "";
+        // Folder 0 holds deleted songs, and a disabled folder is shown by neither app.
+        TargetFolders.ReplaceWith(allFolders.Where(folder => folder.FolderNo > 0 && folder.IsEnabled));
+        SelectedTargetFolder = TargetFolders.FirstOrDefault(folder => folder.FolderNo == SongSelectionText.CommonFolderNo(songs))
+            ?? TargetFolders.FirstOrDefault();
+        SongNumber = songs.Count == 1 ? songs[0].SongNumber : 0; // The copy keeps the number, as in WinForms; 0 is "no number".
         CreatedSongId = null;
+        CreatedSongIds = [];
         ValidationMessage = "";
         StatusMessage = "";
         CopyCommand.NotifyCanExecuteChanged();
@@ -84,20 +107,56 @@ public sealed partial class SongCopyViewModel : ObservableObject
         IsBusy = true;
         try
         {
-            var source = _sourceSong!;
             var targetFolderNo = SelectedTargetFolder!.FolderNo;
             var backupRoot = ResolveBackupRoot();
-            var song = new SongWriteModel(
-                null,
-                CopyTitle.Trim(),
-                source.AlternateTitle.Trim(),
-                targetFolderNo,
-                SongNumber <= 0 ? NextSongNumber(SelectedTargetFolder) : SongNumber,
-                source.Lyrics,
-                Key: source.Key.Trim(),
-                Category: source.Category.Trim());
+            var copies = new List<SongWriteModel>();
+            var missing = new List<string>();
+            foreach (var source in _sourceSongs)
+            {
+                // Of one song the dialog sets title and number; of several each copy keeps its own, as in WinForms.
+                string title = IsSingleSong ? CopyTitle.Trim() : source.Title;
+                int songNumber = IsSingleSong ? Math.Max(SongNumber, 0) : source.SongNumber;
+                // The list row holds only part of the song; WinForms copies every column.
+                if (_adminDatabase is not IAdminSongDetailRepository details)
+                {
+                    copies.Add(new SongWriteModel(
+                        null,
+                        title,
+                        source.AlternateTitle.Trim(),
+                        targetFolderNo,
+                        songNumber,
+                        source.Lyrics,
+                        Key: source.Key.Trim(),
+                        Category: source.Category.Trim()));
+                    continue;
+                }
+
+                var detail = await details.GetSongDetailAsync(DatabasePath, source.SongId).ConfigureAwait(true);
+                if (detail is null)
+                {
+                    // FrmMain leaves out a selected song whose row is gone.
+                    missing.Add(source.Title);
+                    continue;
+                }
+
+                copies.Add(new SongWriteModel(
+                    null, IsSingleSong ? title : detail.Title, detail.AlternateTitle, targetFolderNo,
+                    IsSingleSong ? songNumber : detail.SongNumber, detail.Lyrics,
+                    detail.Sequence, detail.Writer, detail.Copyright, detail.Capo, detail.Timing, detail.Key,
+                    detail.Notations, detail.Category, detail.LicenceAdmin1, detail.LicenceAdmin2,
+                    detail.BookReference, detail.UserReference, detail.Settings, detail.FormatData,
+                    SequenceIsStored: true));
+            }
+
+            if (copies.Count == 0)
+            {
+                StatusMessage = "복사 실패: 원본 곡을 찾을 수 없습니다.";
+                return;
+            }
+
+            // One backup and one transaction for the whole selection: all the copies are made, or none.
             var report = await _adminDatabase
-                .SaveSongAsync(DatabasePath, backupRoot, song)
+                .SaveSongsAsync(DatabasePath, backupRoot, copies)
                 .ConfigureAwait(true);
 
             if (!report.Succeeded)
@@ -109,9 +168,12 @@ public sealed partial class SongCopyViewModel : ObservableObject
                 return;
             }
 
+            CreatedSongIds = report.AffectedSongIds;
             CreatedSongId = report.AffectedSongIds.Count > 0 ? report.AffectedSongIds[0] : null;
             ValidationMessage = "";
-            StatusMessage = "복사되었습니다.";
+            StatusMessage = IsSingleSong
+                ? "복사되었습니다."
+                : $"{copies.Count}곡을 복사했습니다." + SongSelectionText.Skipped(missing, "라이브러리에 없음");
             Copied?.Invoke(this, new SongCopiedEventArgs(CreatedSongId, targetFolderNo));
         }
         catch (Exception ex) when (IsRecoverableCopyException(ex))
@@ -129,10 +191,7 @@ public sealed partial class SongCopyViewModel : ObservableObject
         => CopyCommand.NotifyCanExecuteChanged();
 
     partial void OnSelectedTargetFolderChanged(SongFolderSummary? value)
-    {
-        SongNumber = NextSongNumber(value);
-        CopyCommand.NotifyCanExecuteChanged();
-    }
+        => CopyCommand.NotifyCanExecuteChanged();
 
     partial void OnIsBusyChanged(bool value)
         => CopyCommand.NotifyCanExecuteChanged();
@@ -151,7 +210,7 @@ public sealed partial class SongCopyViewModel : ObservableObject
             return false;
         }
 
-        if (_sourceSong is null)
+        if (_sourceSongs.Count == 0)
         {
             ValidationMessage = "복사할 곡을 선택하세요.";
             return false;
@@ -163,7 +222,7 @@ public sealed partial class SongCopyViewModel : ObservableObject
             return false;
         }
 
-        if (string.IsNullOrWhiteSpace(CopyTitle))
+        if (IsSingleSong && string.IsNullOrWhiteSpace(CopyTitle))
         {
             ValidationMessage = "복사할 제목을 입력하세요.";
             return false;
@@ -174,7 +233,7 @@ public sealed partial class SongCopyViewModel : ObservableObject
     }
 
     private bool CanCopy()
-        => !IsBusy && SelectedTargetFolder is not null && !string.IsNullOrWhiteSpace(CopyTitle);
+        => !IsBusy && SelectedTargetFolder is not null && (!IsSingleSong || !string.IsNullOrWhiteSpace(CopyTitle));
 
     private string ResolveBackupRoot()
     {
@@ -190,9 +249,6 @@ public sealed partial class SongCopyViewModel : ObservableObject
             "Backups");
     }
 
-    private static int NextSongNumber(SongFolderSummary? folder)
-        => Math.Max((folder?.SongCount ?? 0) + 1, 1);
-
     private static string BuildDefaultCopyTitle(string title)
         => string.IsNullOrWhiteSpace(title) ? "복사본" : $"{title.Trim()} - 복사본";
 
@@ -203,5 +259,6 @@ public sealed partial class SongCopyViewModel : ObservableObject
         => ex is IOException
             or UnauthorizedAccessException
             or InvalidOperationException
+            or System.Data.Common.DbException // reading the source song
             or NotSupportedException;
 }

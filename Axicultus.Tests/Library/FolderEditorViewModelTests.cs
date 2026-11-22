@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Axicultus.Wpf.Data;
 using Axicultus.Wpf.Library;
@@ -75,22 +76,66 @@ public class FolderEditorViewModelTests
     }
 
     [Fact]
-    public async Task SaveAsync_WhenNewFolder_UsesNextFolderNumberAndDefaultBackupRoot()
+    public async Task SaveAsync_WhenNewFolder_UsesFirstUnusedFolderNumberAndDefaultBackupRoot()
     {
+        // WinForms has folders 1 to 40: 1 is in use, 2 is disabled but holds songs, 3 is disabled and empty.
         using var fixture = TempFolderEditorSettings.Create();
         fixture.CreateAdminDatabaseFile("custom.db");
         var repository = new FakeAdminDatabaseRepository();
-        var existing = new SongFolderSummary(6, "Morning", IsEnabled: true, SongCount: 2);
+        SongFolderSummary[] folders =
+        [
+            new(0, "Recycle Folder", IsEnabled: false, SongCount: 0),
+            new(1, "Morning", IsEnabled: true, SongCount: 2),
+            new(2, "Folder 2", IsEnabled: false, SongCount: 1),
+            new(3, "Folder 3", IsEnabled: false, SongCount: 0),
+            new(40, "Evening", IsEnabled: true, SongCount: 0),
+        ];
         var sut = new FolderEditorViewModel(fixture.Settings, repository);
-        sut.Load(fixture.AdminDatabasePath, null, [existing]);
+        sut.Load(fixture.AdminDatabasePath, null, folders);
         sut.Name = "New Folder";
 
         await sut.SaveAsync();
 
-        repository.LastFolder.Should().Be(new SongFolderWriteModel(7, "New Folder", true));
+        repository.LastFolder.Should().Be(new SongFolderWriteModel(3, "New Folder", true, ResetFormat: true),
+            "slot 3 was another folder before: the new folder does not take over its formatting");
         repository.LastBackupRoot.Should().Be(Path.Combine(fixture.Root, "Backups"));
-        sut.FolderNo.Should().Be(7);
+        sut.FolderNo.Should().Be(3);
         sut.IsNew.Should().BeFalse();
+    }
+
+    [Fact]
+    public void Load_ANewFolder_DoesNotTakeASlotThatDeletedSongsCameFrom()
+    {
+        // Slot 2 is unused and empty, but two deleted songs would be recovered into it.
+        using var fixture = TempFolderEditorSettings.Create();
+        SongFolderSummary[] folders =
+        [
+            new(1, "Morning", IsEnabled: true, SongCount: 2),
+            new(2, "Former folder", IsEnabled: false, SongCount: 0, DeletedSongCount: 2),
+            new(3, "Folder 3", IsEnabled: false, SongCount: 0),
+        ];
+        var sut = new FolderEditorViewModel(fixture.Settings, new FakeAdminDatabaseRepository());
+
+        sut.Load(fixture.AdminDatabasePath, null, folders);
+
+        sut.FolderNo.Should().Be(3);
+    }
+
+    [Fact]
+    public async Task SaveAsync_WhenNoFolderNumberIsFree_RefusesInsteadOfUsingNumber41()
+    {
+        using var fixture = TempFolderEditorSettings.Create();
+        fixture.CreateAdminDatabaseFile("custom.db");
+        var repository = new FakeAdminDatabaseRepository();
+        var folders = Enumerable.Range(1, 40).Select(number => new SongFolderSummary(number, $"Folder {number}", true, 0)).ToArray();
+        var sut = new FolderEditorViewModel(fixture.Settings, repository);
+        sut.Load(fixture.AdminDatabasePath, null, folders);
+        sut.Name = "New Folder";
+
+        await sut.SaveAsync();
+
+        sut.ValidationMessage.Should().Contain("40개까지");
+        repository.LastFolder.Should().BeNull();
     }
 
     [Theory]

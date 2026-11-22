@@ -115,6 +115,24 @@ public class ExternalFileOperationViewModelTests
     }
 
     [Fact]
+    public async Task LoadAsync_WhenDatabaseCannotBeRead_ReportsInsteadOfThrowing()
+    {
+        using var fixture = TempExternalOperationSettings.Create();
+        fixture.Settings.Set(AxicultusSettingKeys.WorkingFolder, fixture.WorkingFolder);
+        fixture.CreateAdminDatabase();
+        var repository = new FakeAdminRepository
+        {
+            ReadError = new System.Data.SQLite.SQLiteException(System.Data.SQLite.SQLiteErrorCode.Busy, "database is locked"),
+        };
+        var sut = new ExternalFileOperationViewModel(fixture.Settings, repository, new FakeExternalFileOperationService());
+
+        await sut.LoadAsync();
+
+        sut.StatusMessage.Should().StartWith("곡 폴더를 불러오지 못했습니다");
+        sut.SongFolders.Should().BeEmpty();
+    }
+
+    [Fact]
     public async Task ExecuteAsync_WhenCopyingInfoScreensToSongFolder_ForwardsImportRequest()
     {
         using var fixture = TempExternalOperationSettings.Create();
@@ -149,7 +167,6 @@ public class ExternalFileOperationViewModelTests
         service.LastRequest.DatabasePath.Should().Be(Path.GetFullPath(fixture.AdminDatabasePath));
         service.LastRequest.TargetSongFolderNo.Should().Be(7);
         service.LastRequest.BackupRoot.Should().Be(Path.GetFullPath(fixture.BackupRoot));
-        service.LastRequest.StartingSongNumber.Should().Be(4);
         sut.StatusMessage.Should().Be("1개 항목을 처리했습니다.");
     }
 
@@ -209,8 +226,10 @@ public class ExternalFileOperationViewModelTests
         public Task<AdminDatabaseSchemaInventory> AnalyzeSchemaAsync(string databasePath)
             => throw new NotSupportedException();
 
+        public Exception? ReadError { get; init; }
+
         public Task<IReadOnlyList<SongFolderSummary>> GetSongFoldersAsync(string databasePath)
-            => Task.FromResult(Folders);
+            => ReadError is null ? Task.FromResult(Folders) : throw ReadError;
 
         public Task<IReadOnlyList<SongSummary>> GetSongsAsync(string databasePath, int? folderNo = null)
             => throw new NotSupportedException();

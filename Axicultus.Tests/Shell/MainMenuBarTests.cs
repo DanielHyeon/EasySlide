@@ -346,7 +346,8 @@ public class MainMenuBarTests
         xaml.Should().Contain("x:Name=\"ClassicSourceColumn\"", "left source/list column should be explicit for FrmMain 1:1 mapping");
         xaml.Should().Contain("x:Name=\"ClassicRightColumn\"", "right Preview/Output splitContainer2 column should be explicit");
         xaml.Should().Contain("Width=\"75*\"", "the two operator previews share three quarters of the initial console width");
-        xaml.Should().Contain("MinWidth=\"205\"", "left column should keep the source browser usable at smaller sizes");
+        System.Text.RegularExpressions.Regex.IsMatch(xaml, "x:Name=\"ClassicSourceColumn\"\\s+Width=\"25\\*\"\\s+MinWidth=\"25\"").Should().BeTrue(
+            "the operator may drag the left column as narrow as FrmMain's splitContainerMain allows (Panel1MinSize 25)");
         xaml.Should().Contain("Tag=\"splitContainer1\"", "left source/list pane should keep the FrmMain splitContainer1 role");
         xaml.Should().Contain("Tag=\"tabControlSource\"", "upper-left source tabs should keep the FrmMain tabControlSource role");
         xaml.Should().Contain("Tag=\"tabControlLists\"", "lower-left list tabs should keep the FrmMain tabControlLists role");

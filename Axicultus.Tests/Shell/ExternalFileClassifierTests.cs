@@ -18,6 +18,9 @@ public class ExternalFileClassifierTests
     [InlineData(@"D:\clip.WmV", ExternalFileKind.Media)]
     [InlineData(@"D:\clip.MKV", ExternalFileKind.Media)]
     [InlineData(@"D:\song.WmA", ExternalFileKind.Media)]
+    [InlineData(@"D:\clip.m4v", ExternalFileKind.Media)]    // the shipped lists (SourceFileExtensions), not eight of its own
+    [InlineData(@"D:\song.flac", ExternalFileKind.Media)]
+    [InlineData(@"C:\decks\show.ppsx", ExternalFileKind.Unsupported)] // PowerPoint is what the PowerPoint tab lists
     [InlineData(@"C:\image.png", ExternalFileKind.Image)]   // 이미지 = 배경 드롭용(큐 아님)
     [InlineData(@"C:\photo.JPG", ExternalFileKind.Image)]   // 대소문자 무시
     [InlineData(@"C:\pic.jpeg", ExternalFileKind.Image)]

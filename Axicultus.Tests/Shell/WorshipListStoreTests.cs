@@ -27,6 +27,34 @@ public sealed class WorshipListStoreTests : IDisposable
     }
 
     [Fact]
+    public async Task TrashListsRestoresUnderAFreeNameAndDeletesForGood()
+    {
+        // FrmManageItemLists Trash tab: restore (a taken name gets a time stamp), delete permanently.
+        var store = new WorshipListStore(_dir);
+        await store.SaveAsync("주일", [new LiveQueueItem("song:1", "지난 주", "Song")]);
+        await store.SaveAsync("수요", [new LiveQueueItem("song:2", "수요", "Song")]);
+        store.MoveToTrash("주일");
+        store.MoveToTrash("수요");
+        store.ListTrashNames().Should().Equal("수요", "주일");
+
+        store.RestoreFromTrash("수요").Should().Be("수요");
+        store.ListNames().Should().Equal("수요");
+
+        await store.SaveAsync("주일", [new LiveQueueItem("song:3", "이번 주", "Song")]);
+        var restored = store.RestoreFromTrash("주일");
+        restored.Should().StartWith("주일_").And.NotBe("주일");
+        (await store.LoadAsync("주일"))[0].Title.Should().Be("이번 주", "the list that took the name stays");
+        (await store.LoadAsync(restored))[0].Title.Should().Be("지난 주");
+        store.ListTrashNames().Should().BeEmpty();
+
+        store.MoveToTrash("수요");
+        store.DeleteFromTrash("수요");
+        store.ListTrashNames().Should().BeEmpty();
+        store.ListNames().Should().NotContain("수요");
+        store.Invoking(s => s.DeleteFromTrash(@"..\주일")).Should().Throw<ArgumentException>("a trash name is a file name");
+    }
+
+    [Fact]
     public async Task Save_Then_Load_RoundTripsPersistentFields()
     {
         var store = new WorshipListStore(_dir);
@@ -97,6 +125,25 @@ public sealed class WorshipListStoreTests : IDisposable
         loaded.Should().ContainSingle();
         loaded[0].FormatData.Should().BeNull();
         loaded[0].UseIndividualFormatting.Should().BeTrue();
+        loaded[0].Notations.Should().BeNull("a list saved before the chords were kept has none");
+        loaded[0].LyricsWithChords.Should().Be("가사");
+    }
+
+    [Fact]
+    public async Task Save_Then_Load_KeepsTheStoredChordsOfASong()
+    {
+        var store = new WorshipListStore(_dir);
+        var song = new LiveQueueItem("song:3327", "주의 친절한 팔에 안기세", "Song")
+        {
+            Lyrics = "[1]\n주의 친절한 팔에 안기세", Notations = "(1;G;0;Am;6;)",
+        };
+
+        await store.SaveAsync("주일", [song]);
+        var loaded = await store.LoadAsync("주일");
+
+        loaded[0].Lyrics.Should().Be(song.Lyrics, "the lyrics are saved without the chords");
+        loaded[0].Notations.Should().Be("(1;G;0;Am;6;)");
+        loaded[0].LyricsWithChords.Should().Be(song.LyricsWithChords);
     }
 
     [Fact]
@@ -286,15 +333,14 @@ public sealed class WorshipListStoreTests : IDisposable
     }
 
     [Fact]
-    public async Task Load_CorruptFile_ReturnsEmpty()
+    public async Task Load_CorruptFile_IsAnIoError_NotAnEmptyList()
     {
+        // An empty list would replace the queue on screen and the next save would overwrite the damaged file.
         Directory.CreateDirectory(_dir);
         await File.WriteAllTextAsync(Path.Combine(_dir, "깨진목록.json"), "{ this is not valid json [[[");
         var store = new WorshipListStore(_dir);
 
-        var loaded = await store.LoadAsync("깨진목록");
-
-        loaded.Should().BeEmpty("손상 파일은 크래시 없이 빈 목록으로 처리");
+        await store.Invoking(s => s.LoadAsync("깨진목록")).Should().ThrowAsync<IOException>();
     }
 
     public void Dispose()

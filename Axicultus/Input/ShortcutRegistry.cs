@@ -26,6 +26,12 @@ public sealed class ShortcutRegistry
     internal Func<nint, bool>? IsPowerPointOutputWindow { get; set; }
     internal Func<LegacyKeys, Action?>? ResolveOutputMediaKey { private get; set; }
 
+    /// <summary>
+    /// Set by the shell: handles a key the focused audience window does not handle itself, with the shell's
+    /// output-area key routine (FrmLaunchShow handles the show keys when it has the focus on a single monitor).
+    /// </summary>
+    internal Func<WpfKey, WpfModifierKeys, bool>? OutputWindowKey { get; set; }
+
     internal bool TryResolveMedia(LegacyKeys key, LegacyKeys modifiers, [NotNullWhen(true)] out Action? handler)
     {
         handler = modifiers == LegacyKeys.None ? ResolveOutputMediaKey?.Invoke(key) : null;

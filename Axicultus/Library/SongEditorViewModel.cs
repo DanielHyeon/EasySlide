@@ -29,7 +29,22 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
     private readonly IAdminSongDetailRepository? _songDetails;
     private readonly ILiveSessionService? _liveSession;
     private readonly ILiveSafetyPrompt? _liveSafetyPrompt;
+    // One per pane: each remembers the chord records its pane was filled from.
+    private readonly SongEditorChords _chords1 = new();
+    private readonly SongEditorChords _chords2 = new();
+    // The panes as the song was opened: text the operator has not changed is not held to the rules that are
+    // stricter than FrmEditItem's.
+    private string _openedRegion1 = "";
+    private string _openedRegion2 = "";
+    // SEQUENCE as stored and as the sequence box showed it when the song was opened.
+    private string _storedSequence = "";
+    private string _shownSequence = "";
+    // The song as it was read; null for a new song.
+    private SongDetail? _openedDetail;
     private bool _loading;
+    private bool _syncingLyrics;
+    // Set while Lyrics/Notations may not be what the panes show: a pane edit that could not be read.
+    private bool _storedLyricsStale;
     private bool _disposed;
 
     [ObservableProperty] private string _databasePath = "";
@@ -41,7 +56,16 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _alternateTitle = "";
     [ObservableProperty] private string _category = "";
     [ObservableProperty] private string _key = "";
+
+    // Lyrics and Notations are the stored LYRICS and MSC, as FrmEditItem would save the two panes. The operator
+    // edits the panes (region 1 and region 2, chord lines above the lyric lines); each side follows the other.
     [ObservableProperty] private string _lyrics = "";
+    [ObservableProperty] private string _lyricsRegion1 = "";
+    [ObservableProperty] private string _lyricsRegion2 = "";
+    [ObservableProperty] private SongFolderSummary? _selectedFolder;
+
+    /// <summary>Why this song cannot be saved (its stored fields could not be read); empty when it can.</summary>
+    [ObservableProperty] private string _saveBlockedReason = "";
     [ObservableProperty] private string _sequence = "";
     [ObservableProperty] private string _writer = "";
     [ObservableProperty] private string _copyright = "";
@@ -126,12 +150,39 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
         ResetTransposeCommand = new RelayCommand(() => SetTranspose(0));
         // To Capo 0(레거시) — 카포로 올린 만큼(+Capo 반음) 올려 "카포 없이 치는 실제 코드"를 보여 준다.
         ToCapoZeroCommand = new RelayCommand(() => SetTranspose(Capo), () => Capo > 0);
+        TransposeSongUpCommand = new RelayCommand(() => TransposeSong(1));
+        TransposeSongDownCommand = new RelayCommand(() => TransposeSong(-1));
         RefreshPreview();
     }
 
     public event EventHandler<SongEditorSavedEventArgs>? Saved;
 
     public IAsyncRelayCommand SaveCommand { get; }
+
+    /// <summary>FrmEditItem "Transpose chord up/down": moves the chords of both panes, the key and the capo of the song itself.</summary>
+    public IRelayCommand TransposeSongUpCommand { get; }
+
+    public IRelayCommand TransposeSongDownCommand { get; }
+
+    /// <summary>The folders the song can be saved in (FrmEditItem.BuildFolderList): folders in use, never folder 0.</summary>
+    public ObservableCollection<SongFolderSummary> Folders { get; } = [];
+
+    /// <summary>FrmEditItem's capo list: no capo (stored as -1), then Capo 0 to Capo 11.</summary>
+    public IReadOnlyList<KeyValuePair<int, string>> CapoOptions { get; } =
+        [new(-1, "없음"), .. Enumerable.Range(0, 12).Select(fret => new KeyValuePair<int, string>(fret, $"Capo {fret}"))];
+
+    /// <summary>The chord names of FrmEditItem's chords menu: its top level (empty group name), then its sub menus.</summary>
+    public IReadOnlyList<(string Group, IReadOnlyList<string> Chords)> ChordMenu => SongEditorChords.Menu;
+
+    /// <summary>
+    /// Width of a text in the font of the lyric panes. A chord is stored with the lyric character it stands
+    /// over, so the window gives the measure of its own font; without one every character counts the same.
+    /// </summary>
+    public Func<string, double> MeasureEditorText
+    {
+        get => _chords1.Measure;
+        set => _chords1.Measure = _chords2.Measure = value ?? throw new ArgumentNullException(nameof(value));
+    }
 
     /// <summary>영역별 정렬 콤보 선택지 — 0=상속(곡 설정 추종)·1=왼쪽·2=가운데·3=오른쪽. Value 가 레거시 정렬 코드.</summary>
     public IReadOnlyList<KeyValuePair<int, string>> AlignmentOptions { get; } =
@@ -180,21 +231,28 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
         try
         {
             DatabasePath = NormalizePath(databasePath);
+            _openedDetail = null;
             SongId = song?.SongId;
             FolderNo = folder.FolderNo;
             FolderName = folder.Name;
-            SongNumber = song?.SongNumber ?? NextSongNumber(folder);
+            SongNumber = song?.SongNumber ?? 0; // 0 is "no number", as in WinForms.
             Title = song?.Title ?? "";
             AlternateTitle = song?.AlternateTitle ?? "";
             Category = song?.Category ?? "";
             Key = song?.Key ?? "";
-            Lyrics = song?.Lyrics ?? "";
+            SetStoredLyrics(song?.Lyrics ?? "", "");
+            Folders.Clear();
+            Folders.Add(folder);
+            SelectedFolder = folder;
+            // The list row lacks the sequence, MSC, settings and format of the song; saving before the detail is
+            // read would write them back empty.
+            SaveBlockedReason = song is null ? "" : "곡 상세를 불러오지 않아 저장할 수 없습니다.";
             Sequence = "";
+            _storedSequence = _shownSequence = "";
             Writer = "";
             Copyright = "";
-            Capo = 0;
+            Capo = Math.Max(song?.Capo ?? -1, -1); // -1 is "no capo", as WinForms stores it.
             Timing = "";
-            Notations = "";
             LicenceAdmin1 = "";
             LicenceAdmin2 = "";
             BookReference = "";
@@ -220,8 +278,15 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
     public async Task LoadAsync(string databasePath, SongFolderSummary folder, SongSummary? song)
     {
         Load(databasePath, folder, song);
-        if (song is null || _songDetails is null)
+        await LoadFoldersAsync().ConfigureAwait(true);
+        if (song is null)
         {
+            return;
+        }
+
+        if (_songDetails is null)
+        {
+            SaveBlockedReason = "곡 상세를 읽을 수 없어 저장할 수 없습니다.";
             return;
         }
 
@@ -230,6 +295,7 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
             var detail = await _songDetails.GetSongDetailAsync(DatabasePath, song.SongId).ConfigureAwait(true);
             if (detail is null)
             {
+                SaveBlockedReason = $"곡을 찾을 수 없어 저장할 수 없습니다(ID {song.SongId}).";
                 return;
             }
 
@@ -237,6 +303,7 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
             try
             {
                 ApplyDetail(detail);
+                SaveBlockedReason = "";
                 ValidationMessage = "";
                 StatusMessage = "";
                 HasChanges = false;
@@ -251,14 +318,70 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
         }
         catch (Exception ex) when (IsRecoverableSaveException(ex))
         {
-            StatusMessage = $"곡 상세를 불러오지 못했습니다: {ex.Message}";
+            SaveBlockedReason = $"곡 상세를 불러오지 못해 저장할 수 없습니다: {ex.Message}";
         }
+    }
+
+    // The folder list is a convenience: when it cannot be read the song keeps the folder it was opened with.
+    private async Task LoadFoldersAsync()
+    {
+        IReadOnlyList<SongFolderSummary> all;
+        try
+        {
+            all = await _adminDatabase.GetSongFoldersAsync(DatabasePath).ConfigureAwait(true);
+        }
+        catch (Exception ex) when (IsRecoverableSaveException(ex))
+        {
+            return;
+        }
+
+        // FrmEditItem lists folders 1 to 40 that are in use, or folder 1 when none is.
+        var usable = all.Where(folder => folder.FolderNo is >= 1 and <= 40 && folder.IsEnabled).ToList();
+        if (usable.Count == 0 && all.FirstOrDefault(folder => folder.FolderNo == 1) is { } firstFolder)
+        {
+            usable.Add(firstFolder);
+        }
+
+        _loading = true;
+        try
+        {
+            Folders.Clear();
+            foreach (var folder in usable)
+            {
+                Folders.Add(folder);
+            }
+
+            SelectFolder(FolderNo);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    // The song's own folder stays selectable even when it is not in use, so that saving never moves the song by itself.
+    private void SelectFolder(int folderNo)
+    {
+        var folder = Folders.FirstOrDefault(candidate => candidate.FolderNo == folderNo);
+        if (folder is null && folderNo > 0)
+        {
+            folder = new SongFolderSummary(folderNo, folderNo == FolderNo && FolderName.Length > 0 ? FolderName : $"Folder {folderNo}", IsEnabled: true, SongCount: 0);
+            Folders.Add(folder);
+        }
+
+        SelectedFolder = folder;
     }
 
     public async Task SaveAsync()
     {
         if (IsBusy)
         {
+            return;
+        }
+
+        if (SaveBlockedReason.Length > 0)
+        {
+            StatusMessage = SaveBlockedReason;
             return;
         }
 
@@ -280,23 +403,24 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
             var backupRoot = ResolveBackupRoot();
             var song = new SongWriteModel(
                 SongId,
-                Title.Trim(),
-                AlternateTitle.Trim(),
+                Stored(Title, _openedDetail?.Title),
+                Stored(AlternateTitle, _openedDetail?.AlternateTitle),
                 FolderNo,
                 SongNumber,
                 Lyrics,
-                Sequence: Sequence,
-                Writer: Writer.Trim(),
-                Copyright: Copyright.Trim(),
+                // A sequence box with only a stray space or line break is an empty sequence.
+                Sequence: Sequence == _shownSequence ? Sequence : Sequence.Trim(),
+                Writer: Stored(Writer, _openedDetail?.Writer),
+                Copyright: Stored(Copyright, _openedDetail?.Copyright),
                 Capo: Capo,
-                Timing: Timing.Trim(),
-                Key: Key.Trim(),
+                Timing: Stored(Timing, _openedDetail?.Timing),
+                Key: Stored(Key, _openedDetail?.Key),
                 Notations: Notations,
-                Category: Category.Trim(),
-                LicenceAdmin1: LicenceAdmin1.Trim(),
-                LicenceAdmin2: LicenceAdmin2.Trim(),
-                BookReference: BookReference.Trim(),
-                UserReference: UserReference.Trim(),
+                Category: Stored(Category, _openedDetail?.Category),
+                LicenceAdmin1: Stored(LicenceAdmin1, _openedDetail?.LicenceAdmin1),
+                LicenceAdmin2: Stored(LicenceAdmin2, _openedDetail?.LicenceAdmin2),
+                BookReference: Stored(BookReference, _openedDetail?.BookReference),
+                UserReference: Stored(UserReference, _openedDetail?.UserReference),
                 Settings: SongSettingsData,
                 FormatData: FormatData);
             var report = await _adminDatabase
@@ -317,6 +441,18 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
                 SongId = report.AffectedSongIds[0];
             }
 
+            // The fields show what was stored: the caller reads them for the song list.
+            _loading = true;
+            try
+            {
+                (Title, AlternateTitle, Writer, Copyright, Timing, Key) = (song.Title, song.AlternateTitle, song.Writer, song.Copyright, song.Timing, song.Key);
+                (Category, LicenceAdmin1, LicenceAdmin2, BookReference, UserReference) = (song.Category, song.LicenceAdmin1, song.LicenceAdmin2, song.BookReference, song.UserReference);
+            }
+            finally
+            {
+                _loading = false;
+            }
+
             IsNew = false;
             HasChanges = false;
             ValidationMessage = "";
@@ -334,6 +470,10 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
         }
     }
 
+    // A text field the operator edited is stored trimmed; one left alone is stored as it was read (FrmEditItem
+    // does not trim), so a save of something else does not rewrite it.
+    private static string Stored(string value, string? opened) => value == opened ? value : value.Trim();
+
     partial void OnTitleChanged(string value) => MarkChanged();
 
     partial void OnAlternateTitleChanged(string value) => MarkChanged();
@@ -342,7 +482,35 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
 
     partial void OnKeyChanged(string value) => MarkChanged();
 
-    partial void OnLyricsChanged(string value) => MarkChanged();
+    // New stored text (not the echo of a pane edit) is shown in the panes again.
+    partial void OnLyricsChanged(string value)
+    {
+        if (!_syncingLyrics)
+        {
+            ShowStoredLyrics(value, Notations);
+        }
+
+        MarkChanged();
+    }
+
+    partial void OnLyricsRegion1Changed(string value) => OnPaneChanged();
+
+    partial void OnLyricsRegion2Changed(string value) => OnPaneChanged();
+
+    partial void OnSelectedFolderChanged(SongFolderSummary? value)
+    {
+        // The list control clears its selection while the folder list is rebuilt.
+        if (value is null)
+        {
+            return;
+        }
+
+        FolderNo = value.FolderNo;
+        FolderName = value.Name;
+        MarkChanged();
+    }
+
+    partial void OnSaveBlockedReasonChanged(string value) => SaveCommand.NotifyCanExecuteChanged();
 
     partial void OnSongNumberChanged(int value) => MarkChanged();
 
@@ -360,7 +528,127 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
 
     partial void OnTimingChanged(string value) => MarkChanged();
 
-    partial void OnNotationsChanged(string value) => MarkChanged();
+    partial void OnNotationsChanged(string value)
+    {
+        if (!_syncingLyrics)
+        {
+            ShowStoredLyrics(Lyrics, value);
+        }
+
+        MarkChanged();
+    }
+
+    private void SetStoredLyrics(string lyrics, string notations)
+    {
+        _syncingLyrics = true;
+        try
+        {
+            Notations = notations;
+            Lyrics = lyrics;
+        }
+        finally
+        {
+            _syncingLyrics = false;
+        }
+
+        ShowStoredLyrics(lyrics, notations);
+        (_openedRegion1, _openedRegion2) = (LyricsRegion1, LyricsRegion2);
+    }
+
+    // Stored LYRICS/MSC into the two panes, as FrmEditItem.LoadSong fills its two lyric boxes.
+    private void ShowStoredLyrics(string lyrics, string notations)
+    {
+        var regions = SongEditorLyrics.Split(lyrics, notations);
+        _syncingLyrics = true;
+        try
+        {
+            LyricsRegion1 = _chords1.Combine(regions.Text1, regions.Notations1);
+            LyricsRegion2 = _chords2.Combine(regions.Text2, regions.Notations2);
+        }
+        finally
+        {
+            _syncingLyrics = false;
+        }
+
+        UpdateStoredLyrics();
+    }
+
+    private void OnPaneChanged()
+    {
+        if (_syncingLyrics)
+        {
+            return;
+        }
+
+        UpdateStoredLyrics();
+        MarkChanged();
+    }
+
+    // The panes as FrmEditItem saves them (ValidateAllDetails): chord lines become MSC records of the merged
+    // lyrics, so the chords stay with their lines whatever was inserted or removed above them.
+    private void UpdateStoredLyrics()
+    {
+        // An exception here reaches the binding of the pane, which swallows it; Validate then refuses the save
+        // instead of writing the text from before the edit.
+        _storedLyricsStale = true;
+        var first = _chords1.Read(LyricsRegion1);
+        var second = _chords2.Read(LyricsRegion2);
+        var stored = SongEditorLyrics.Merge(first.Lyrics, first.Notations, second.Lyrics, second.Notations);
+        _syncingLyrics = true;
+        try
+        {
+            Notations = stored.Notations;
+            Lyrics = stored.Lyrics;
+            _storedLyricsStale = false;
+        }
+        finally
+        {
+            _syncingLyrics = false;
+        }
+    }
+
+    // FrmEditItem.BtnChordsClick: the key and the capo move with the chords, and the key decides sharps or flats.
+    private void TransposeSong(int steps)
+    {
+        string key = Key;
+        int spelling = SongEditorChords.TransposeKey(ref key, steps);
+        Key = key;
+        if (Capo is >= 0 and <= 11)
+        {
+            Capo = SongEditorChords.Shift(Capo, -steps);
+        }
+
+        LyricsRegion1 = TransposePane(_chords1, LyricsRegion1, steps, spelling);
+        LyricsRegion2 = TransposePane(_chords2, LyricsRegion2, steps, spelling);
+    }
+
+    private static string TransposePane(SongEditorChords chords, string text, int steps, int spelling)
+    {
+        var (lyrics, notations) = chords.Read(text);
+        if (notations.Length == 0)
+        {
+            return text;
+        }
+
+        string display = chords.Combine(lyrics, SongEditorChords.Transpose(notations, steps, spelling));
+        return lyrics.EndsWith('\n') ? display + "\n" : display;
+    }
+
+    /// <summary>Puts a chord over the caret of a lyric pane (1 or 2) and returns where the caret is afterwards.</summary>
+    public int InsertChord(int region, int caret, string chord)
+    {
+        string updated = (region == 2 ? _chords2 : _chords1).InsertChord(region == 2 ? LyricsRegion2 : LyricsRegion1, ref caret, chord);
+        if (region == 2)
+        {
+            LyricsRegion2 = updated;
+        }
+        else
+        {
+            LyricsRegion1 = updated;
+        }
+
+        return caret;
+    }
 
     // 조옮김은 곡 내용을 바꾸지 않으므로 dirty(MarkChanged) 가 아니라 미리보기만 다시 그린다.
     partial void OnTransposeSemitonesChanged(int value) => RefreshPreview();
@@ -459,19 +747,26 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
 
     private void ApplyDetail(SongDetail detail)
     {
+        _openedDetail = detail;
         SongId = detail.SongId;
+        SelectFolder(detail.FolderNo);
         FolderNo = detail.FolderNo;
-        SongNumber = detail.SongNumber > 0 ? detail.SongNumber : SongNumber;
+        SongNumber = detail.SongNumber;
         Title = detail.Title;
         AlternateTitle = detail.AlternateTitle;
-        Lyrics = detail.Lyrics;
-        Sequence = detail.Sequence;
+        SetStoredLyrics(detail.Lyrics, detail.Notations);
+        // WinForms verse codes are control characters; show them as "1,c,2". Saving stores the codes again.
+        try { Sequence = Axicultus.Module.SongExchangeSequence.FromWpfDatabase(detail.Sequence); }
+        catch (InvalidDataException) { Sequence = detail.Sequence; }
+        _storedSequence = detail.Sequence;
+        _shownSequence = Sequence;
         Writer = detail.Writer;
         Copyright = detail.Copyright;
-        Capo = detail.Capo;
+        // FrmEditItem stored -2 for a song whose capo list was never touched. It shows any such song without a
+        // capo and stores -1 when the song is saved again.
+        Capo = Math.Max(detail.Capo, -1);
         Timing = detail.Timing;
         Key = detail.Key;
-        Notations = detail.Notations;
         Category = detail.Category;
         LicenceAdmin1 = detail.LicenceAdmin1;
         LicenceAdmin2 = detail.LicenceAdmin2;
@@ -521,14 +816,50 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
             return false;
         }
 
-        if (SongNumber <= 0)
+        // FrmEditItem.ValidateTitles, in its order.
+        if ((SongEditorLyrics.TitleProblem(Stored(Title, _openedDetail?.Title), "제목")
+            ?? SongEditorLyrics.TitleProblem(Stored(AlternateTitle, _openedDetail?.AlternateTitle), "다른 제목")
+            ?? SongEditorLyrics.TitleProblem(Stored(Copyright, _openedDetail?.Copyright), "저작권")
+            ?? SongEditorLyrics.TitleProblem(Stored(BookReference, _openedDetail?.BookReference), "교단 참조")
+            ?? SongEditorLyrics.TitleProblem(Stored(Writer, _openedDetail?.Writer), "작사·작곡")) is { } titleProblem)
         {
-            SongNumber = SongId ?? 1;
+            ValidationMessage = titleProblem;
+            return false;
         }
 
-        if (Capo < 0)
+        // 0 is "no number" and is saved as it is.
+        if (SongNumber < 0)
         {
-            ValidationMessage = "Capo(카포)는 음수가 될 수 없습니다.";
+            ValidationMessage = "곡 번호는 음수가 될 수 없습니다.";
+            return false;
+        }
+
+        if (LyricsRegion1.Length == 0 && LyricsRegion2.Length == 0)
+        {
+            ValidationMessage = "저장할 가사가 없습니다.";
+            return false;
+        }
+
+        if (_storedLyricsStale)
+        {
+            ValidationMessage = "마지막으로 고친 가사를 저장 형식으로 바꾸지 못했습니다. 그 줄을 다시 고친 뒤 저장하세요.";
+            return false;
+        }
+
+        // FrmEditItem.ValidateSequence, then ValidateContents for each pane.
+        var presentVerses = SongEditorLyrics.PresentVerses(LyricsRegion1, LyricsRegion2);
+        if ((SongEditorLyrics.SequenceProblem(Sequence, Sequence == _shownSequence ? _storedSequence : null, presentVerses)
+            ?? SongEditorLyrics.ContentProblem(LyricsRegion1, "기본 가사", presentVerses, _openedRegion1)
+            ?? SongEditorLyrics.ContentProblem(LyricsRegion2, "보조 가사", presentVerses, _openedRegion2)) is { } lyricsProblem)
+        {
+            ValidationMessage = lyricsProblem;
+            return false;
+        }
+
+        // -1 is "no capo".
+        if (Capo < -1)
+        {
+            ValidationMessage = "Capo(카포)는 -1(없음)보다 작을 수 없습니다.";
             return false;
         }
 
@@ -585,11 +916,12 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
         PreviewBackgroundHex = SongFormatData.ArgbToHex(format?.BackgroundColorArgb1)
             ?? ToArgbHex(_settings.Get(AxicultusSettingKeys.LyricsMonitorBackgroundColorArgb));
 
-        // 같은 절 라벨이 두 번 정의되면 경고(절은 1회 정의 + Sequence 로 반복). 비면 문제 없음.
-        var duplicates = Shell.LyricsDisplayFormatter.FindDuplicateSectionLabels(Lyrics);
+        // A heading that occurs twice is a warning: its blocks are shown together as one verse (FormatDisplayLyrics).
+        // From the pane the operator types in: the stored Lyrics is the merged text, where a repeated heading is already folded.
+        var duplicates = Shell.LyricsDisplayFormatter.FindDuplicateSectionLabels(LyricsRegion1);
         SectionWarning = duplicates.Count == 0
             ? ""
-            : $"중복된 절 표시: {string.Join(", ", duplicates)} — 절은 한 번만 정의하고 Sequence(예: 1 C 2 C)로 반복하세요.";
+            : $"중복된 절 표시: {string.Join(", ", duplicates)} — 같은 절 표시의 가사는 한 절로 합쳐져 표시됩니다. 절을 반복하려면 Sequence(예: 1 C 2 C)를 쓰세요.";
     }
 
     private string BuildPreviewMetadata()
@@ -643,7 +975,7 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
         => IsLiveEditWarningVisible = IsLive(e.Snapshot);
 
     private bool CanSave()
-        => !IsBusy && !string.IsNullOrWhiteSpace(Title);
+        => !IsBusy && !string.IsNullOrWhiteSpace(Title) && SaveBlockedReason.Length == 0;
 
     private string ResolveBackupRoot()
     {
@@ -659,38 +991,42 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
             "Backups");
     }
 
-    private static int NextSongNumber(SongFolderSummary folder)
-        => Math.Max(folder.SongCount + 1, 1);
-
     private static string NormalizePath(string? path)
         => string.IsNullOrWhiteSpace(path) ? "" : Path.GetFullPath(path);
 
     // 첫 화면(빈 줄로 나뉜 첫 단락)의 표시 줄들 — region 마커 제외, 최대 8줄. 미리보기 문자열·줄 목록의 공통 소스.
-    private static string[] BuildFirstScreenLines(string lyrics)
+    // Each line comes with its index in the stored lyrics, which is what a chord record of MSC refers to.
+    private static (string Text, int Index)[] BuildFirstScreenLines(string lyrics)
     {
         // 출력 렌더와 동일한 정규화 규칙을 공유해 미리보기·출력의 마커 해석이 코드로 일치하도록 한다
         // (이전엔 같은 Replace 블록을 따로 두어 주석으로만 일치를 보장했음 → LyricsDisplayFormatter.NormalizeText 로 단일화).
-        var normalized = LyricsDisplayFormatter.NormalizeText(lyrics ?? string.Empty);
-        var firstScreen = normalized
-            .Split(["\n\n"], StringSplitOptions.None)
-            .Select(screen => screen.Trim('\n'))
-            .FirstOrDefault(screen => !string.IsNullOrWhiteSpace(screen));
-        if (string.IsNullOrWhiteSpace(firstScreen))
+        var lines = LyricsDisplayFormatter.NormalizeText(lyrics ?? string.Empty).Split('\n');
+        var screen = new List<(string Text, int Index)>();
+        for (var index = 0; index < lines.Length; index++)
         {
-            return [];
+            if (lines[index].Length > 0)
+            {
+                screen.Add((lines[index].TrimEnd(), index));
+            }
+            else if (screen.Any(line => line.Text.Length > 0))
+            {
+                break; // The empty line that ends the first screen.
+            }
+            else
+            {
+                screen.Clear();
+            }
         }
 
-        return [.. firstScreen
-            .Split('\n')
-            .Select(line => line.TrimEnd())
-            .Where(line => !IsRegionMarker(line))
-            .Take(8)];
+        return screen.Any(line => line.Text.Length > 0)
+            ? [.. screen.Where(line => !IsRegionMarker(line.Text)).Take(8)]
+            : [];
     }
 
     private static string BuildPreviewLyrics(string lyrics)
     {
         var lines = BuildFirstScreenLines(lyrics);
-        return lines.Length == 0 ? "가사 없음" : string.Join(Environment.NewLine, lines);
+        return lines.Length == 0 ? "가사 없음" : string.Join(Environment.NewLine, lines.Select(line => line.Text));
     }
 
     // 미리보기 줄 목록을 다시 만든다 — 각 줄을 '»' 기준 본문/코드로 나눠 리치 per-line 렌더에 쓴다.
@@ -706,9 +1042,16 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
             return;
         }
 
-        foreach (var line in lines)
+        var chordsByLine = SongEditorChords.NamesByLine(Notations);
+        foreach (var (line, index) in lines)
         {
             var split = SplitNotation(line);
+            // Chords placed in the editor are in MSC, not in the lyric line.
+            if (split.Notation.Length == 0 && chordsByLine.TryGetValue(index, out var chords))
+            {
+                split = split with { Notation = chords };
+            }
+
             // 조옮김이 걸려 있고 코드가 있으면 미리보기 코드만 ±반음 이동(본문·저장 가사는 불변).
             if (TransposeSemitones != 0 && split.Notation.Length > 0)
             {
@@ -753,9 +1096,11 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
     private static bool IsLive(LiveSessionSnapshot? snapshot)
         => snapshot is { State: not LiveState.Off };
 
+    // DbException: SQLite reports a locked, damaged or unreadable database with it.
     private static bool IsRecoverableSaveException(Exception ex)
         => ex is IOException
             or UnauthorizedAccessException
             or InvalidOperationException
-            or NotSupportedException;
+            or NotSupportedException
+            or System.Data.Common.DbException;
 }

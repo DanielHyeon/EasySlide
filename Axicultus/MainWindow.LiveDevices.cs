@@ -57,6 +57,7 @@ public partial class MainWindow
                     AddChoice(menu, device.Name, selected, button, async change =>
                     {
                         if (ownership.ObsOwnsCamera) throw new MediaPlaybackException("OBS 카메라 모드로 바뀌었습니다. 목록을 다시 여세요.");
+                        if (_viewModel.IsOutputDisabled) throw new MediaPlaybackException("출력 모니터가 '없음'으로 설정되어 송출하지 않습니다.");
                         var display = _viewModel.EnsureCameraOutputDisplay();
                         await _services.GetRequiredService<MediaPlaybackService>().SwitchLiveCameraAsync(device, display.Id, change);
                         return "송출 카메라 · " + device.Name;

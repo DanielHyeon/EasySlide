@@ -76,6 +76,27 @@ public class BibleRepositoryTests
     }
 
     [Fact]
+    public void BuildSelection_RangeWithoutTheClosingBlankLine_SelectsOnlyThatVerse()
+    {
+        // The range a typed reference ("Genesis 1:1") passes: the verse's span less its closing blank line.
+        using var fixture = BibleDatabaseFixture.Create();
+        var version = fixture.CreateVersion("kjv.db", "KJV");
+        fixture.CreateBible("kjv.db", verses:
+        [
+            (1, 1, 1, "In the beginning God created the heaven and the earth."),
+            (1, 1, 2, "And the earth was without form."),
+        ]);
+        var sut = new BibleRepository();
+        var books = sut.GetBooks(version);
+        var result = sut.LoadBook(version, books[0].Number, showVerses: true);
+        var verse = result.Locations[0];
+
+        var selection = sut.BuildSelection(version, books, result, verse.Start, verse.Length - 2);
+
+        selection.IdString.Should().Be("0;kjv.db;;1;1;1;1;1;");
+    }
+
+    [Fact]
     public void Search_ReturnsAdHocResultsAndHonorsMatchMode()
     {
         using var fixture = BibleDatabaseFixture.Create();
@@ -405,7 +426,7 @@ public class BibleRepositoryTests
     }
 
     [Fact]
-    public void ExpandSelection_SingleLanguage_ReturnsVerseBodyPaginatedByVerse()
+    public void ExpandSelection_SingleLanguage_ReturnsThePassageAsOneBlockWithAVerseOnEachLine()
     {
         // 예전엔 성경 항목이 제목만 송출했다 — 이제 IdString 을 실제 구절 본문으로 확장해 회중 화면에 보인다.
         using var fixture = BibleDatabaseFixture.Create();
@@ -418,25 +439,57 @@ public class BibleRepositoryTests
         ]);
         var sut = new BibleRepository();
 
-        // 창세기 1:1-2 (절 번호 표시 on).
-        var body = sut.ExpandSelection(fixture.WorkingFolder, "0;kjv.db;;1;1;1;1;2;", showVerses: true);
+        // Genesis 1:1-2. As in WinForms, the chapter is printed with the first verse only.
+        var body = sut.ExpandSelection(fixture.WorkingFolder, "0;kjv.db;;1;1;1;1;2;");
 
-        body.Should().Be("1:1 In the beginning God created the heaven and the earth.\n\n1:2 And the earth was without form.");
+        body.Should().Be("1:1 In the beginning God created the heaven and the earth.\n2 And the earth was without form.");
         body.Should().NotContain("1:3"); // 범위 밖 절은 빠진다.
         body.Should().NotContain("[region 2]"); // 단일 언어 — 보조 밴드 없음.
     }
 
     [Fact]
-    public void ExpandSelection_HidesVerseNumbersWhenShowVersesOff()
+    public void ExpandSelection_PrintsTheChapterAgainForEachRangeAndChapter()
     {
         using var fixture = BibleDatabaseFixture.Create();
         fixture.CreateVersion("kjv.db", "KJV");
-        fixture.CreateBible("kjv.db", verses: [(1, 1, 1, "In the beginning.")]);
+        fixture.CreateBible("kjv.db", verses:
+        [
+            (1, 1, 30, "a"), (1, 1, 31, "b"), (1, 2, 1, "c"), (1, 2, 2, "d"),
+        ]);
         var sut = new BibleRepository();
 
-        var body = sut.ExpandSelection(fixture.WorkingFolder, "0;kjv.db;;1;1;1;1;1;", showVerses: false);
+        // The selection of Genesis 1:30 - 2:2, as both apps write it: one range for each chapter.
+        var body = sut.ExpandSelection(fixture.WorkingFolder, "0;kjv.db;;1;1;30;1;31;1;2;1;2;2;");
 
-        body.Should().Be("In the beginning."); // 절 번호 없이 본문만.
+        body.Should().Be("1:30 a\n31 b\n2:1 c\n2 d");
+    }
+
+    [Fact]
+    public void ExpandSelection_SearchResultVersesCarryTheBookName()
+    {
+        // An ad-hoc selection (kind 1) can hold verses of different books; WinForms prints "text (Book c:v)".
+        using var fixture = BibleDatabaseFixture.Create();
+        var version = fixture.CreateVersion("kjv.db", "KJV");
+        fixture.CreateBible("kjv.db", verses: [(1, 1, 1, "In the beginning."), (2, 3, 4, "The burning bush.")]);
+        var sut = new BibleRepository();
+        var books = sut.GetBooks(version);
+
+        var body = sut.ExpandSelection(fixture.WorkingFolder, "1;kjv.db;;1;1;1;1;1;2;3;4;3;4;");
+
+        body.Should().Be($"In the beginning. ({books[0].Name} 1:1)\nThe burning bush. ({books[1].Name} 3:4)");
+    }
+
+    [Fact]
+    public void ExpandSelection_ARangeWithEndZero_IsOpenEndedAsInWinForms()
+    {
+        using var fixture = BibleDatabaseFixture.Create();
+        fixture.CreateVersion("kjv.db", "KJV");
+        fixture.CreateBible("kjv.db", verses: [(1, 1, 30, "a"), (1, 1, 31, "b"), (1, 2, 1, "c")]);
+        var sut = new BibleRepository();
+
+        // From 1:31 to the end of the book; and chapter 1 from verse 30 to its end.
+        sut.ExpandSelection(fixture.WorkingFolder, "0;kjv.db;;1;1;31;0;0;").Should().Be("1:31 b\n2:1 c");
+        sut.ExpandSelection(fixture.WorkingFolder, "0;kjv.db;;1;1;30;1;0;").Should().Be("1:30 a\n31 b");
     }
 
     [Fact]
@@ -459,15 +512,72 @@ public class BibleRepositoryTests
         ]);
         var sut = new BibleRepository();
 
-        var body = sut.ExpandSelection(fixture.WorkingFolder, "0;kjv.db;krv.db;43;3;16;3;17;", showVerses: true);
+        var body = sut.ExpandSelection(fixture.WorkingFolder, "0;kjv.db;krv.db;43;3;16;3;17;");
 
         var page0 = LyricsDisplayFormatter.GetRegionPage(body, 0);
         page0.Region1.Should().Be("3:16 For God so loved the world.");
-        page0.Region2.Should().Be("하나님이 세상을 이처럼 사랑하사."); // 보조 언어엔 절 번호 중복 안 붙임.
+        page0.Region2.Should().Be("3:16 하나님이 세상을 이처럼 사랑하사."); // WinForms labels both versions.
         var page1 = LyricsDisplayFormatter.GetRegionPage(body, 1);
-        page1.Region1.Should().Be("3:17 For God sent not his Son.");
-        page1.Region2.Should().Be("하나님이 그 아들을 보내신 것은.");
+        page1.Region1.Should().Be("17 For God sent not his Son.");
+        page1.Region2.Should().Be("17 하나님이 그 아들을 보내신 것은.");
         LyricsDisplayFormatter.HasRegion2(body).Should().BeTrue();
+    }
+
+    // The screens of a passage in two versions (MainViewModel.GetSongPages): the verse pairs of the saved text,
+    // flowed by SongPageLayout.PaginateRegions.
+    private static List<(string Region1, string Region2)> TwoVersionScreens(string body, double height)
+        => new Axicultus.Wpf.Data.SongPageLayout(12, "Arial", 0, 5, 5, 0, 1, 100, 0)
+            .PaginateRegions(LyricsDisplayFormatter.GetRegionPages(body, null), null, height, 6, null, 50)
+            .ConvertAll(Axicultus.Wpf.Data.SongPageLayout.SplitRegions);
+
+    [Fact]
+    public void ExpandSelection_TwoVersions_AnOpenEndedRangeFlowsWithTheReferencesOfBothVersions()
+    {
+        // Gf.LoadSelectedBibleVerses loads both versions the same way; a range with end 0 runs to the end of the book.
+        using var fixture = BibleDatabaseFixture.Create();
+        fixture.CreateBibleList(
+            ("개역", "krv.db", "개역한글", "PD", 0, 100, 1),
+            ("KJV", "kjv.db", "King James", "PD", 0, 100, 2));
+        fixture.CreateBible("krv.db", verses:
+        [
+            (1, 1, 30, "또 땅의 모든 짐승과 공중의 모든 새에게 모든 푸른 풀을 식물로 주노라 하시니 그대로 되니라"),
+            (1, 1, 31, "하나님이 그 지으신 모든 것을 보시니 보시기에 심히 좋았더라"),
+            (1, 2, 1, "천지와 만물이 다 이루니라"),
+        ]);
+        fixture.CreateBible("kjv.db", verses:
+        [
+            (1, 1, 30, "And to every beast of the earth I have given every green herb for meat: and it was so."),
+            (1, 1, 31, "And God saw every thing that he had made, and, behold, it was very good."),
+            (1, 2, 1, "Thus the heavens and the earth were finished, and all the host of them."),
+        ]);
+
+        var body = new BibleRepository().ExpandSelection(fixture.WorkingFolder, "0;krv.db;kjv.db;1;1;31;0;0;");
+
+        TwoVersionScreens(body, height: 720).Should().Equal((
+            "1:31 하나님이 그 지으신 모든 것을 보시니 보시기에 심히 좋았더라\n2:1 천지와 만물이 다 이루니라",
+            "1:31 And God saw every thing that he had made, and, behold, it was very good.\n2:1 Thus the heavens and the earth were finished, and all the host of them."));
+        // On a screen with room for one line the passage is a verse a screen, still the same verse in both versions.
+        TwoVersionScreens(body, height: 60).Should().Equal(
+            ("1:31 하나님이 그 지으신 모든 것을 보시니 보시기에 심히 좋았더라", "1:31 And God saw every thing that he had made, and, behold, it was very good."),
+            ("2:1 천지와 만물이 다 이루니라", "2:1 Thus the heavens and the earth were finished, and all the host of them."));
+    }
+
+    [Fact]
+    public void ExpandSelection_TwoVersions_SearchResultVersesFlowWithTheBookNameInBothVersions()
+    {
+        // An ad-hoc selection: WinForms prints "text (Book c:v)" in each version (LoadBiblePassages, AdHocListing).
+        using var fixture = BibleDatabaseFixture.Create();
+        fixture.CreateBibleList(
+            ("개역", "krv.db", "개역한글", "PD", 0, 100, 1),
+            ("KJV", "kjv.db", "King James", "PD", 0, 100, 2));
+        fixture.CreateBible("krv.db", verses: [(1, 1, 1, "태초에 하나님이 천지를 창조하시니라"), (2, 3, 4, "하나님이 떨기나무 가운데서 그를 불러 가라사대 모세야 모세야 하시매")]);
+        fixture.CreateBible("kjv.db", verses: [(1, 1, 1, "In the beginning God created the heaven and the earth."), (2, 3, 4, "God called unto him out of the midst of the bush, and said, Moses, Moses.")]);
+
+        var body = new BibleRepository().ExpandSelection(fixture.WorkingFolder, "1;krv.db;kjv.db;1;1;1;1;1;2;3;4;3;4;");
+
+        TwoVersionScreens(body, height: 720).Should().Equal((
+            "태초에 하나님이 천지를 창조하시니라 (Genesis 1:1)\n하나님이 떨기나무 가운데서 그를 불러 가라사대 모세야 모세야 하시매 (Exodus 3:4)",
+            "In the beginning God created the heaven and the earth. (Genesis 1:1)\nGod called unto him out of the midst of the bush, and said, Moses, Moses. (Exodus 3:4)"));
     }
 
     [Fact]
@@ -477,7 +587,7 @@ public class BibleRepositoryTests
         var sut = new BibleRepository();
 
         // 버전 파일이 없으면 빈 본문 — 출력은 제목만(우아한 폴백, 예외 없음).
-        sut.ExpandSelection(fixture.WorkingFolder, "0;missing.db;;1;1;1;1;1;", showVerses: true)
+        sut.ExpandSelection(fixture.WorkingFolder, "0;missing.db;;1;1;1;1;1;")
             .Should().BeEmpty();
     }
 
@@ -487,7 +597,7 @@ public class BibleRepositoryTests
         using var fixture = BibleDatabaseFixture.Create();
         var sut = new BibleRepository();
 
-        sut.ExpandSelection(fixture.WorkingFolder, "쓰레기", showVerses: true).Should().BeEmpty();
+        sut.ExpandSelection(fixture.WorkingFolder, "쓰레기").Should().BeEmpty();
     }
 
     [Fact]

@@ -16,7 +16,10 @@ public sealed record BiblePassageRange(int Book, int StartChapter, int StartVers
     public bool Contains(int chapter, int verse)
     {
         var afterStart = chapter > StartChapter || (chapter == StartChapter && verse >= StartVerse);
-        var beforeEnd = chapter < EndChapter || (chapter == EndChapter && verse <= EndVerse);
+        // An end chapter or end verse of 0 is open-ended, as in WinForms (Gf.LoadBiblePassages: "@lastChapter<=0 or ...").
+        var beforeEnd = EndChapter <= 0
+            ? EndVerse <= 0 || verse <= EndVerse
+            : chapter < EndChapter || (chapter == EndChapter && (EndVerse <= 0 || verse <= EndVerse));
         return afterStart && beforeEnd;
     }
 }

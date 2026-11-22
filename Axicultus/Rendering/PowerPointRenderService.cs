@@ -86,7 +86,10 @@ public sealed class PowerPointRenderService : IPowerPointRenderService, IDisposa
         ".ppt",
         ".pptx",
         ".pps",
-        ".ppsx"
+        ".ppsx",
+        // Offered by the import dialogs too. The session opens every deck with macros disabled.
+        ".pptm",
+        ".ppsm"
     ];
 
     private readonly IPowerPointRenderBackend _backend;

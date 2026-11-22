@@ -97,8 +97,7 @@ public class ExternalFileOperationServiceTests
             [source],
             DatabasePath: database,
             TargetSongFolderNo: 7,
-            BackupRoot: fixture.BackupRoot,
-            StartingSongNumber: 4));
+            BackupRoot: fixture.BackupRoot));
 
         report.Succeeded.Should().BeTrue();
         report.CreatedSongIds.Should().ContainSingle().Which.Should().Be(101);
@@ -107,7 +106,7 @@ public class ExternalFileOperationServiceTests
         saved.Title.Should().Be("Service Notice");
         saved.AlternateTitle.Should().Be("Alt Notice");
         saved.FolderNo.Should().Be(7);
-        saved.SongNumber.Should().Be(4);
+        saved.SongNumber.Should().Be(9, "the file's own number is kept, as in WinForms");
         saved.Lyrics.Should().Be("[1]\nWelcome");
         saved.Notations.Should().Be("(1;note)");
         saved.Sequence.Should().Be("1");

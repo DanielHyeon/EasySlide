@@ -39,14 +39,20 @@ public partial class SettingsWindow : Window
         _folderEditor = folderEditor;
         options.BeginOptionsEdit();
         var displays = displayService.GetDisplays();
-        var choices = new List<DisplayChoice> { new("", "자동 선택") };
+        // "None" is the FrmOptions choice for no output; without it a saved None shows as a disconnected monitor.
+        var choices = new List<DisplayChoice> { new("", "자동 선택"), new("None", "출력 안 함") };
         choices.AddRange(displays.Select(d => new DisplayChoice(d.Id, d.Name)));
         foreach (var id in new[] { options.DefaultOutputMonitorId, options.PreviewMonitorId })
             if (!string.IsNullOrEmpty(id) && !choices.Any(d => string.Equals(d.Id, id, StringComparison.OrdinalIgnoreCase)))
                 choices.Add(new DisplayChoice(id, MonitorLabel.Disconnected(id)));
         DisplayChoices = choices;
+        // "No output" is a choice for the audience screen only.
+        StageDisplayChoices = choices.Where(d => d.Id != "None").ToList();
         InitializeComponent();
         DataContext = options;
+        options.ConfirmRestoreDefaults = () => MessageBox.Show(this,
+            "모든 설정을 기본값으로 되돌릴까요?\n\n다음은 그대로 둡니다: 작업·백업·PowerPoint·미디어 폴더와 데이터베이스 경로, 라이선스 정보, 등록 사용자,\n송출·무대 모니터 선택과 화면 위치, 현재 예배 순서와 창 위치.\n확인(OK)을 눌러야 저장됩니다.",
+            "기본값 복원", MessageBoxButton.OKCancel, MessageBoxImage.Warning) == MessageBoxResult.OK;
         _liveBible = bible;
         BiblePanel.Loaded += BiblePanel_Loaded;
         Closing += (_, e) => { if (_saving && DialogResult != true) e.Cancel = true; };
@@ -89,7 +95,7 @@ public partial class SettingsWindow : Window
     }
 
     private void MonitorInfo_Click(object sender, RoutedEventArgs e) =>
-        MessageBox.Show(this, string.Join(Environment.NewLine, DisplayChoices.Skip(1).Select(d => d.Name)), "Monitors");
+        MessageBox.Show(this, string.Join(Environment.NewLine, StageDisplayChoices.Skip(1).Select(d => d.Name)), "Monitors");
 
     public sealed partial class NumberedChoice(int id, string name) : CommunityToolkit.Mvvm.ComponentModel.ObservableObject
     {
@@ -98,6 +104,7 @@ public partial class SettingsWindow : Window
     }
     public sealed record DisplayChoice(string Id, string Name);
     public IReadOnlyList<DisplayChoice> DisplayChoices { get; }
+    public IReadOnlyList<DisplayChoice> StageDisplayChoices { get; }
 
     private async void BiblePanel_Loaded(object sender, RoutedEventArgs e)
     {

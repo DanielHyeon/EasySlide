@@ -63,7 +63,8 @@ public class AdminDatabaseRepositoryTests
         var repo = new AdminDatabaseRepository();
         var saved = await repo.SaveSongMediaAsync(fixture.DatabasePath, fixture.BackupRoot, 7, "O'Brien.mp4");
         saved.Succeeded.Should().BeTrue();
-        File.Exists(saved.BackupPath).Should().BeTrue();
+        saved.BackupPath.Should().BeNull("one song's media file is assigned again in one step: no database copy for it");
+        Directory.Exists(fixture.BackupRoot).Should().BeFalse();
         var songs = await repo.GetSongsAsync(fixture.DatabasePath, 1);
         songs.Single().FormatData.Should().Be("99=retain>50=2>51=O'Brien.mp4>");
         songs.Single().Sequence.Should().Be("1 C C");
@@ -110,7 +111,8 @@ public class AdminDatabaseRepositoryTests
         var saved = (await db.GetSongsAsync(fixture.DatabasePath, 3)).Single();
         var original = await db.GetSongDetailAsync(fixture.DatabasePath, 10);
         (await db.GetSongDetailAsync(fixture.DatabasePath, saved.SongId))
-            .Should().Be(original! with { SongId = saved.SongId, FolderNo = 3 });
+            // The imported row holds the sequence "1,c,12" as WinForms verse codes.
+            .Should().Be(original! with { SongId = saved.SongId, FolderNo = 3, Sequence = "\u0001\u0000\u000c" });
         (await service.ImportAsync(request)).Skipped.Should().Be(1);
     }
 
@@ -516,7 +518,7 @@ public class AdminDatabaseRepositoryTests
     }
 
     [Fact]
-    public async Task SoftDeleteFoldersAsync_WhenFolderMissing_RestoresBackupAndReportsNotFound()
+    public async Task SoftDeleteFoldersAsync_WhenFolderMissing_ReportsNotFoundAndChangesNothing()
     {
         using var fixture = AdminDatabaseFixture.Create();
         fixture.CreateLegacySchema();
@@ -610,8 +612,154 @@ public class AdminDatabaseRepositoryTests
         AdminDatabaseFixture.ReadSongText(report.BackupPath!, 20, "TITLE_1").Should().Be("Original");
     }
 
+    [Theory]
+    [InlineData("1 C 2", "\u0001\u0000\u0002")] // tokens become WinForms verse codes (0 is the chorus)
+    [InlineData("\u0001\u0000\u0002", "\u0001\u0000\u0002")] // verse codes are kept
+    [InlineData("V1 C", "V1 C")] // a label the codes cannot express stays as typed
+    public async Task SaveSongAsync_StoresSequenceAsWinFormsVerseCodes(string sequence, string stored)
+    {
+        using var fixture = AdminDatabaseFixture.Create();
+        fixture.CreateLegacySchema();
+        fixture.InsertFolder(1, "Morning", use: "True");
+        var sut = new AdminDatabaseRepository();
+
+        var report = await sut.SaveSongAsync(fixture.DatabasePath, fixture.BackupRoot,
+            new SongWriteModel(null, "Song", "", 1, 0, "[1]\nVerse", Sequence: sequence));
+
+        report.Succeeded.Should().BeTrue();
+        fixture.ReadSongText(report.AffectedSongIds[0], "SEQUENCE").Should().Be(stored);
+        fixture.ReadSongInt(report.AffectedSongIds[0], "CAPO").Should().Be(-1, "a song saved without a capo has none");
+    }
+
     [Fact]
-    public async Task MoveSongsAsync_WhenAnySongIsMissing_RollsBackAndRestoresBackup()
+    public async Task MoveSongsAsync_WhenTargetIsDeletedSongsFolder_RejectsWithoutWriting()
+    {
+        using var fixture = AdminDatabaseFixture.Create();
+        fixture.CreateLegacySchema();
+        fixture.InsertFolder(1, "Morning", use: "True");
+        fixture.InsertSong(10, "Opening", folderNo: 1, songNumber: 1);
+        var sut = new AdminDatabaseRepository();
+
+        var report = await sut.MoveSongsAsync(fixture.DatabasePath, fixture.BackupRoot,
+            [new SongMoveRequest(10, OldFolderNo: 1, NewFolderNo: 0)]);
+
+        report.Succeeded.Should().BeFalse();
+        report.Issues.Should().ContainSingle(issue => issue.Kind == AdminDatabaseWriteIssueKind.InvalidRequest);
+        report.BackupPath.Should().BeNull();
+        fixture.ReadSongInt(10, "FOLDERNO").Should().Be(1);
+    }
+
+    [Fact]
+    public async Task WhenAWriteFails_TheBackupIsNotCopiedOverTheDatabase()
+    {
+        // The rollback has undone the write; copying the backup back would erase what the other app committed
+        // meanwhile. A handle that denies writers makes the write fail and would also make that copy fail, which
+        // the report used to show as a second issue (RestoreFailed).
+        using var fixture = AdminDatabaseFixture.Create();
+        fixture.CreateLegacySchema();
+        fixture.InsertFolder(1, "Morning", use: "True");
+        fixture.InsertFolder(2, "Evening", use: "True");
+        fixture.InsertSong(10, "Opening", folderNo: 1, songNumber: 1);
+        var sut = new AdminDatabaseRepository();
+
+        AdminDatabaseWriteReport report;
+        using (new FileStream(fixture.DatabasePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+        {
+            report = await sut.MoveSongsAsync(fixture.DatabasePath, fixture.BackupRoot,
+                [new SongMoveRequest(10, OldFolderNo: 1, NewFolderNo: 2)]);
+        }
+
+        report.Succeeded.Should().BeFalse();
+        report.Issues.Should().ContainSingle().Which.Kind.Should().Be(AdminDatabaseWriteIssueKind.WriteFailed);
+        fixture.ReadSongInt(10, "FOLDERNO").Should().Be(1);
+    }
+
+    [Fact]
+    public async Task SaveSongsAsync_SavesAllSongsWithOneBackup_OrNoneOfThem()
+    {
+        using var fixture = AdminDatabaseFixture.Create();
+        fixture.CreateLegacySchema();
+        fixture.InsertFolder(1, "Morning", use: "True");
+        var sut = new AdminDatabaseRepository();
+        SongWriteModel Song(string title, int? id = null) => new(id, title, "", 1, 0, "Line");
+
+        var saved = await sut.SaveSongsAsync(fixture.DatabasePath, fixture.BackupRoot, [Song("A"), Song("B"), Song("C")]);
+
+        saved.Succeeded.Should().BeTrue();
+        saved.AffectedSongIds.Should().HaveCount(3).And.OnlyHaveUniqueItems();
+        Directory.GetFiles(fixture.BackupRoot).Should().ContainSingle("the three songs are one operation");
+
+        // The song with id 999 does not exist: nothing of the batch is kept.
+        var failed = await sut.SaveSongsAsync(fixture.DatabasePath, fixture.BackupRoot, [Song("D"), Song("E", 999)]);
+
+        failed.Succeeded.Should().BeFalse();
+        (await sut.GetSongsAsync(fixture.DatabasePath, 1)).Select(song => song.Title).Should().BeEquivalentTo("A", "B", "C");
+    }
+
+    [Fact]
+    public async Task ImportAsync_MakesOneBackupForTheWholeImport()
+    {
+        using var fixture = AdminDatabaseFixture.Create();
+        fixture.CreateLegacySchema();
+        fixture.InsertFolder(3, "Destination", "True");
+        var path = Path.Combine(fixture.Root, "songs.json");
+        File.WriteAllText(path, """[{"Title1":"A","Contents":"a"},{"Title1":"B","Contents":"b"},{"Title1":"C","Contents":"c"}]""");
+        var db = new AdminDatabaseRepository();
+
+        var report = await new ImportExportService(db, db).ImportAsync(
+            new ImportRequest(fixture.DatabasePath, fixture.BackupRoot, path, 3, ["Default Folder"], ImportDuplicatePolicy.SkipExisting));
+
+        report.ImportedNew.Should().Be(3);
+        Directory.GetFiles(fixture.BackupRoot).Should().ContainSingle();
+    }
+
+    [Fact]
+    public async Task Backups_OnlyTheNewestAreKept()
+    {
+        using var fixture = AdminDatabaseFixture.Create();
+        fixture.CreateLegacySchema();
+        fixture.InsertFolder(1, "Morning", use: "True");
+        Directory.CreateDirectory(fixture.BackupRoot);
+        string name = Path.GetFileNameWithoutExtension(fixture.DatabasePath);
+        string Old(int index) => Path.Combine(fixture.BackupRoot, $"{name}.20200101-000000-{index:000}.db");
+        for (int index = 0; index < AdminDatabaseRepository.BackupsKept + 4; index++) File.WriteAllText(Old(index), "old");
+        // Not backups of this kind: a schema backup and another database's backup.
+        string schemaBackup = Path.Combine(fixture.BackupRoot, $"{name}.schema3.20200101-000000-000.db");
+        string otherDatabase = Path.Combine(fixture.BackupRoot, "EsUsage.20200101-000000-000.db");
+        File.WriteAllText(schemaBackup, "keep");
+        File.WriteAllText(otherDatabase, "keep");
+        var sut = new AdminDatabaseRepository();
+
+        var report = await sut.SaveFolderAsync(fixture.DatabasePath, fixture.BackupRoot, new SongFolderWriteModel(1, "Renamed", true));
+
+        report.Succeeded.Should().BeTrue();
+        File.Exists(report.BackupPath).Should().BeTrue("the newest backup is the one just made");
+        Directory.GetFiles(fixture.BackupRoot, name + ".2*").Should().HaveCount(AdminDatabaseRepository.BackupsKept + 1);
+        File.Exists(Old(0)).Should().BeTrue("the first copy of a month is kept");
+        File.Exists(Old(1)).Should().BeFalse("the oldest of the others are removed");
+        File.Exists(Old(AdminDatabaseRepository.BackupsKept + 3)).Should().BeTrue();
+        File.Exists(schemaBackup).Should().BeTrue();
+        File.Exists(otherDatabase).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task SaveFolderAsync_WhenNewFolderIsNumberedBeyond40_Rejects()
+    {
+        // The WinForms app reads folders 1 to 40 only.
+        using var fixture = AdminDatabaseFixture.Create();
+        fixture.CreateLegacySchema();
+        fixture.InsertFolder(1, "Morning", use: "True");
+        var sut = new AdminDatabaseRepository();
+
+        var report = await sut.SaveFolderAsync(fixture.DatabasePath, fixture.BackupRoot, new SongFolderWriteModel(41, "Too far", true));
+
+        report.Succeeded.Should().BeFalse();
+        report.Issues.Should().ContainSingle(issue => issue.Kind == AdminDatabaseWriteIssueKind.InvalidRequest);
+        (await sut.GetSongFoldersAsync(fixture.DatabasePath)).Select(folder => folder.FolderNo).Should().Equal(1);
+    }
+
+    [Fact]
+    public async Task MoveSongsAsync_WhenAnySongIsMissing_RollsBack()
     {
         using var fixture = AdminDatabaseFixture.Create();
         fixture.CreateLegacySchema();
@@ -636,6 +784,332 @@ public class AdminDatabaseRepositoryTests
         fixture.ReadSongInt(10, "FOLDERNO").Should().Be(1);
         fixture.ReadSongInt(10, "OldFolder").Should().Be(0);
         AdminDatabaseFixture.ReadSongInt(report.BackupPath!, 10, "FOLDERNO").Should().Be(1);
+    }
+
+    [Fact]
+    public async Task MoveSongsAsync_SeveralSongs_AreOneOperationWithOneBackup()
+    {
+        // What the move dialog does with a selection: read the rows still there, then move them together.
+        using var fixture = AdminDatabaseFixture.Create();
+        fixture.CreateLegacySchema();
+        fixture.InsertFolder(1, "Morning", use: "True");
+        fixture.InsertFolder(2, "Evening", use: "True");
+        fixture.InsertSong(10, "A", folderNo: 1, songNumber: 1);
+        fixture.InsertSong(11, "B", folderNo: 1, songNumber: 2);
+        fixture.InsertSong(12, "C", folderNo: 0, songNumber: 3, oldFolder: 1);
+        var sut = new AdminDatabaseRepository();
+
+        var stored = await sut.GetMatchingSongsAsync(fixture.DatabasePath, new HashSet<int> { 10, 11, 12, 999 }, new HashSet<string>());
+        var report = await sut.MoveSongsAsync(fixture.DatabasePath, fixture.BackupRoot,
+            [.. stored.Select(song => new SongMoveRequest(song.SongId, song.FolderNo, 2))]);
+
+        stored.Select(song => song.SongId).Should().BeEquivalentTo([10, 11], "a deleted song and a missing one are not in the library");
+        report.Succeeded.Should().BeTrue();
+        report.AffectedSongIds.Should().BeEquivalentTo([10, 11]);
+        fixture.ReadSongInt(10, "FOLDERNO").Should().Be(2);
+        fixture.ReadSongInt(11, "FOLDERNO").Should().Be(2);
+        fixture.ReadSongInt(11, "OldFolder").Should().Be(1);
+        Directory.GetFiles(fixture.BackupRoot).Should().ContainSingle("the selection is one operation");
+    }
+
+    [Fact]
+    public async Task SoftDeleteSongsAsync_SeveralSongs_AreOneOperationWithOneBackup_OrNoneIsDeleted()
+    {
+        using var fixture = AdminDatabaseFixture.Create();
+        fixture.CreateLegacySchema();
+        fixture.InsertFolder(1, "Morning", use: "True");
+        fixture.InsertFolder(2, "Evening", use: "True");
+        fixture.InsertSong(10, "A", folderNo: 1, songNumber: 1);
+        fixture.InsertSong(11, "B", folderNo: 2, songNumber: 2);
+        var sut = new AdminDatabaseRepository();
+
+        var failed = await sut.SoftDeleteSongsAsync(fixture.DatabasePath, fixture.BackupRoot,
+            [new SongDeleteRequest(10, 1), new SongDeleteRequest(999, 1)]);
+
+        failed.Succeeded.Should().BeFalse();
+        fixture.ReadSongInt(10, "FOLDERNO").Should().Be(1, "nothing of a failed selection is deleted");
+        foreach (var backup in Directory.GetFiles(fixture.BackupRoot)) File.Delete(backup);
+
+        var report = await sut.SoftDeleteSongsAsync(fixture.DatabasePath, fixture.BackupRoot,
+            [new SongDeleteRequest(10, 1), new SongDeleteRequest(11, 2)]);
+
+        report.Succeeded.Should().BeTrue();
+        fixture.ReadSongInt(10, "FOLDERNO").Should().Be(0);
+        fixture.ReadSongInt(11, "FOLDERNO").Should().Be(0);
+        fixture.ReadSongInt(11, "OldFolder").Should().Be(2);
+        Directory.GetFiles(fixture.BackupRoot).Should().ContainSingle("the selection is one operation");
+    }
+
+    // ── Findings of the review, each on a small database of its own ──────────────────────────────────────
+
+    private static void Sql(string databasePath, string sql)
+    {
+        using var connection = new SQLiteConnection(new SQLiteConnectionStringBuilder { DataSource = databasePath }.ToString());
+        connection.Open();
+        using var command = new SQLiteCommand(sql, connection);
+        command.ExecuteNonQuery();
+        SQLiteConnection.ClearAllPools();
+    }
+
+    private static string Text(string databasePath, string sql)
+    {
+        using var connection = new SQLiteConnection(new SQLiteConnectionStringBuilder { DataSource = databasePath, ReadOnly = true }.ToString());
+        connection.Open();
+        using var command = new SQLiteCommand(sql, connection);
+        object? value = command.ExecuteScalar();
+        return value is null or DBNull ? "NULL" : Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture)!;
+    }
+
+    [Fact]
+    public async Task Backups_TheOneJustMadeIsKept_WhenTheClockWasSetBack()
+    {
+        using var fixture = AdminDatabaseFixture.Create();
+        fixture.CreateLegacySchema();
+        fixture.InsertFolder(1, "Morning", use: "True");
+        Directory.CreateDirectory(fixture.BackupRoot);
+        string name = Path.GetFileNameWithoutExtension(fixture.DatabasePath);
+        for (int index = 0; index < AdminDatabaseRepository.BackupsKept; index++)
+            File.WriteAllText(Path.Combine(fixture.BackupRoot, $"{name}.20990101-000000-{index:000}.db"), "made before the clock went back");
+
+        var report = await new AdminDatabaseRepository().SaveFolderAsync(fixture.DatabasePath, fixture.BackupRoot, new SongFolderWriteModel(1, "Renamed", true));
+
+        report.Succeeded.Should().BeTrue();
+        File.Exists(report.BackupPath).Should().BeTrue("it is the only copy of the database before this write");
+        AdminDatabaseFixture.ReadFolderName(report.BackupPath!, 1).Should().Be("Morning");
+    }
+
+    [Fact]
+    public async Task Backups_TheFirstOfARecentDayIsKept_BeyondTheNewestOnes()
+    {
+        // Twenty-two writes three days ago, then one today: the copy from before that day's work must survive.
+        using var fixture = AdminDatabaseFixture.Create();
+        fixture.CreateLegacySchema();
+        fixture.InsertFolder(1, "Morning", use: "True");
+        Directory.CreateDirectory(fixture.BackupRoot);
+        string name = Path.GetFileNameWithoutExtension(fixture.DatabasePath);
+        string day = DateTime.UtcNow.AddDays(-3).ToString("yyyyMMdd", System.Globalization.CultureInfo.InvariantCulture);
+        string Old(int index) => Path.Combine(fixture.BackupRoot, $"{name}.{day}-000000-{index:000}.db");
+        for (int index = 0; index < AdminDatabaseRepository.BackupsKept + 2; index++) File.WriteAllText(Old(index), "old");
+        // Older than the days that are kept, and not among the newest.
+        string longAgo = Path.Combine(fixture.BackupRoot, $"{name}.20200101-000000-000.db");
+        string longAgoLater = Path.Combine(fixture.BackupRoot, $"{name}.20200102-000000-000.db");
+        File.WriteAllText(longAgo, "old");
+        File.WriteAllText(longAgoLater, "old");
+
+        var report = await new AdminDatabaseRepository().SaveFolderAsync(fixture.DatabasePath, fixture.BackupRoot, new SongFolderWriteModel(1, "Renamed", true));
+
+        File.Exists(report.BackupPath).Should().BeTrue();
+        File.Exists(Old(0)).Should().BeTrue("the first copy of a day within the last 30 is kept");
+        File.Exists(Old(1)).Should().BeFalse();
+        File.Exists(Old(2)).Should().BeFalse();
+        File.Exists(Old(3)).Should().BeTrue("the newest 20 are kept");
+        File.Exists(longAgo).Should().BeTrue("the first copy of a month is kept however old it is");
+        File.Exists(longAgoLater).Should().BeFalse();
+        Directory.GetFiles(fixture.BackupRoot).Should().HaveCount(AdminDatabaseRepository.BackupsKept + 2);
+    }
+
+    [Fact]
+    public async Task SaveFolderAsync_WhenOnlyTheSortOrderChanges_MakesNoBackup()
+    {
+        // The song list saves the folder on every change of its sort order.
+        using var fixture = AdminDatabaseFixture.Create();
+        fixture.CreateLegacySchema();
+        fixture.AddFolderGroupStyleColumn();
+        fixture.InsertFolder(1, "Morning", use: "True");
+        var sut = new AdminDatabaseRepository();
+
+        var sorted = await sut.SaveFolderAsync(fixture.DatabasePath, fixture.BackupRoot, new SongFolderWriteModel(1, "Morning", true, GroupStyle: 2));
+
+        sorted.Succeeded.Should().BeTrue();
+        sorted.BackupPath.Should().BeNull();
+        Directory.Exists(fixture.BackupRoot).Should().BeFalse();
+        fixture.ReadFolderGroupStyle(1).Should().Be(2);
+
+        var renamed = await sut.SaveFolderAsync(fixture.DatabasePath, fixture.BackupRoot, new SongFolderWriteModel(1, "Evening", true, GroupStyle: 2));
+
+        File.Exists(renamed.BackupPath).Should().BeTrue("a change of name is backed up");
+    }
+
+    [Fact]
+    public async Task ReorderFoldersAsync_TakesOldFolderAlong_SoDeletedSongsAreRecoveredIntoTheirFolder()
+    {
+        using var fixture = AdminDatabaseFixture.Create();
+        fixture.CreateLegacySchema();
+        fixture.InsertFolder(1, "Morning", use: "True");
+        fixture.InsertFolder(2, "Evening", use: "True");
+        fixture.InsertSong(10, "Live in Morning", folderNo: 1, songNumber: 0);
+        fixture.InsertSong(11, "Deleted from Morning", folderNo: 0, songNumber: 0, oldFolder: 1);
+        fixture.InsertSong(12, "Deleted from Evening", folderNo: 0, songNumber: 0, oldFolder: 2);
+        var sut = new AdminDatabaseRepository();
+
+        var report = await sut.ReorderFoldersAsync(fixture.DatabasePath, fixture.BackupRoot,
+            [new FolderOrderRequest(1, 2), new FolderOrderRequest(2, 1)]);
+
+        report.Succeeded.Should().BeTrue();
+        fixture.ReadFolderName(2).Should().Be("Morning");
+        fixture.ReadSongInt(10, "FOLDERNO").Should().Be(2);
+        fixture.ReadSongInt(11, "OldFolder").Should().Be(2);
+        fixture.ReadSongInt(12, "OldFolder").Should().Be(1);
+        (await sut.GetDeletedSongsAsync(fixture.DatabasePath)).Single(song => song.SongId == 11).OriginalFolderName.Should().Be("Morning");
+    }
+
+    [Fact]
+    public async Task RecoverSongsAsync_RecoversOnlySongsThatAreStillDeleted()
+    {
+        using var fixture = AdminDatabaseFixture.Create();
+        fixture.CreateLegacySchema();
+        fixture.InsertFolder(1, "Morning", use: "True");
+        fixture.InsertFolder(2, "Evening", use: "True");
+        fixture.InsertSong(10, "Deleted", folderNo: 0, songNumber: 0, oldFolder: 1);
+        fixture.InsertSong(11, "Recovered by the other app and moved", folderNo: 2, songNumber: 0);
+        var sut = new AdminDatabaseRepository();
+
+        var report = await sut.RecoverSongsAsync(fixture.DatabasePath, fixture.BackupRoot,
+            [new SongRecoveryRequest(10, 1), new SongRecoveryRequest(11, 1), new SongRecoveryRequest(999, 1)]);
+
+        report.Succeeded.Should().BeTrue();
+        report.AffectedSongIds.Should().Equal([10], "the others are reported as skipped by the caller");
+        fixture.ReadSongInt(10, "FOLDERNO").Should().Be(1);
+        fixture.ReadSongInt(11, "FOLDERNO").Should().Be(2);
+        // yyyy-MM-dd, as the WinForms app writes LastModified (not "yyyy-MM-dd 00:00:00").
+        string today = DateTime.Now.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
+        fixture.ReadSongText(10, "LastModified").Should().Be(today);
+
+        var saved = await sut.SaveSongAsync(fixture.DatabasePath, fixture.BackupRoot, new SongWriteModel(null, "New", "", 1, 0, "Line"));
+        fixture.ReadSongText(saved.AffectedSongIds[0], "LastModified").Should().Be(today);
+        await sut.SoftDeleteSongsAsync(fixture.DatabasePath, fixture.BackupRoot, [new SongDeleteRequest(11, 2)]);
+        fixture.ReadSongText(11, "LastModified").Should().Be(today);
+    }
+
+    [Fact]
+    public async Task ANewFolderInASlotUsedBefore_StartsWithNewFolderFormatting_AndDeletedSongsAreCountedPerFolder()
+    {
+        using var fixture = AdminDatabaseFixture.Create();
+        fixture.CreateLegacySchema();
+        fixture.AddFolderGroupStyleColumn();
+        Sql(fixture.DatabasePath, """
+            ALTER TABLE FOLDER ADD COLUMN ChorusHeading TEXT; ALTER TABLE FOLDER ADD COLUMN Size0 INTEGER;
+            ALTER TABLE FOLDER ADD COLUMN Fontname0 TEXT; ALTER TABLE FOLDER ADD COLUMN LMargin TEXT;
+            """);
+        fixture.InsertFolder(2, "Evening", use: "False");
+        fixture.InsertFolder(3, "Former folder", use: "False");
+        Sql(fixture.DatabasePath, "UPDATE FOLDER SET GroupStyle = 2, ChorusHeading = 'Refrain', Size0 = 72, Fontname0 = 'Custom', LMargin = '9' WHERE FolderNo = 3");
+        fixture.InsertSong(20, "Deleted from Evening", folderNo: 0, songNumber: 0, oldFolder: 2);
+        var sut = new AdminDatabaseRepository();
+
+        var folders = await sut.GetSongFoldersAsync(fixture.DatabasePath);
+        folders.Single(folder => folder.FolderNo == 2).DeletedSongCount.Should().Be(1, "recovery would file that song in folder 2");
+        folders.Single(folder => folder.FolderNo == 3).DeletedSongCount.Should().Be(0);
+
+        var report = await sut.SaveFolderAsync(fixture.DatabasePath, fixture.BackupRoot, new SongFolderWriteModel(3, "New folder", true, ResetFormat: true));
+
+        report.Succeeded.Should().BeTrue();
+        Text(fixture.DatabasePath, "SELECT Name || '|' || GroupStyle || '|' || ChorusHeading || '|' || Size0 || '|' || Fontname0 || '|' || COALESCE(LMargin, 'NULL') FROM FOLDER WHERE FolderNo = 3")
+            .Should().Be("New folder|0|Chorus:|40|Microsoft Sans Serif|NULL", "what Gf.ResetFolder of the WinForms app gives a new folder");
+
+        // An existing folder that is only renamed keeps its formatting.
+        Sql(fixture.DatabasePath, "UPDATE FOLDER SET Size0 = 55 WHERE FolderNo = 3");
+        await sut.SaveFolderAsync(fixture.DatabasePath, fixture.BackupRoot, new SongFolderWriteModel(3, "Renamed", true));
+        Text(fixture.DatabasePath, "SELECT Size0 FROM FOLDER WHERE FolderNo = 3").Should().Be("55");
+    }
+
+    [Fact]
+    public async Task SortKeys_AreTheOnesWinFormsWrites()
+    {
+        using var fixture = AdminDatabaseFixture.Create();
+        fixture.CreateLegacySchema();
+        fixture.InsertFolder(1, "Chinese", use: "True");
+        // As WinForms stored them: two digits of stroke count and five of character code for each character.
+        fixture.InsertSong(1, "一件禮物", folderNo: 1, songNumber: 0);
+        fixture.InsertSong(2, "?是王", folderNo: 1, songNumber: 0); // the conversion lost the first character; the key still has it
+        Sql(fixture.DatabasePath, """
+            UPDATE SONG SET CJK_WordCount = '004', CJK_StrokeCount = '0119968062021418311500829289' WHERE SONGID = 1;
+            UPDATE SONG SET CJK_WordCount = '003', CJK_StrokeCount = '072032009261590429579' WHERE SONGID = 2;
+            """);
+        var sut = new AdminDatabaseRepository();
+        string[] titles = ["一物", "一件禮物一件禮物", "一件禮物", "?是王", "?件", "주 예수보다 더", "나의 갈길", "Amazing (Grace)", "王"];
+
+        var report = await sut.SaveSongsAsync(fixture.DatabasePath, fixture.BackupRoot,
+            [.. titles.Select(title => new SongWriteModel(null, title, "", 1, 0, "x"))]);
+
+        report.Succeeded.Should().BeTrue();
+        string[] keys = [.. report.AffectedSongIds.Select(id => fixture.ReadSongText(id, "CJK_WordCount") + " " + fixture.ReadSongText(id, "CJK_StrokeCount"))];
+        keys.Should().Equal(
+            "002 01199680829289",                                          // stroke counts read from the stored keys
+            "008 011996806202141831150082928901199680620214禮物",          // six characters, then the rest of the title
+            "004 0119968062021418311500829289",
+            "000 072032009261590429579",                                   // the title is one a song already has: its stroke key is kept
+            "000 000?件",                                                  // "?" has no stroke count, as in WinForms
+            "008 000주 예수보다 더",                                        // one character before the space: the whole length
+            "001 000나의 갈길",
+            "000 000Amazing (Grace)",
+            "001 0429579");                                                // 王 was in a stored key (four strokes)
+    }
+
+    [Fact]
+    public async Task Sequence_ChorusCodeAndWhitespaceCodes_GoThroughSqliteUnchanged()
+    {
+        using var fixture = AdminDatabaseFixture.Create();
+        fixture.CreateLegacySchema();
+        fixture.InsertFolder(1, "Morning", use: "True");
+        var sut = new AdminDatabaseRepository();
+        string Hex(int id) => Text(fixture.DatabasePath, $"SELECT hex(CAST(SEQUENCE AS BLOB)) FROM SONG WHERE SONGID = {id}");
+
+        var typed = await sut.SaveSongAsync(fixture.DatabasePath, fixture.BackupRoot, new SongWriteModel(null, "Typed", "", 1, 0, "x", Sequence: "1,c,2,c,9"));
+        Hex(typed.AffectedSongIds[0]).Should().Be("0100020009", "chorus is code 0, verse 9 a tab");
+        var detail = await sut.GetSongDetailAsync(fixture.DatabasePath, typed.AffectedSongIds[0]);
+        detail!.Sequence.Should().Be("\u0001\0\u0002\0\t");
+
+        // A copy writes the stored value as it is: verse 9 + ending is "\te", which as typed text would be just "e".
+        var copies = await sut.SaveSongsAsync(fixture.DatabasePath, fixture.BackupRoot,
+        [
+            new SongWriteModel(null, "Copy", "", 1, 0, "x", Sequence: detail.Sequence, SequenceIsStored: true),
+            new SongWriteModel(null, "Verse 9 and ending", "", 1, 0, "x", Sequence: "\te", SequenceIsStored: true),
+            new SongWriteModel(null, "Prechorus 2 alone", "", 1, 0, "x", Sequence: "p", SequenceIsStored: true),
+            new SongWriteModel(null, "Not marked as stored", "", 1, 0, "x", Sequence: "\te"),
+        ]);
+        copies.AffectedSongIds.Select(Hex).Should().Equal("0100020009", "0965", "70", "0965");
+    }
+
+    [Fact]
+    public async Task SongCopyViewModel_WithTheRealRepository_CopiesEveryStoredColumn()
+    {
+        using var fixture = AdminDatabaseFixture.Create();
+        fixture.CreateLegacySchema();
+        fixture.InsertFolder(1, "Morning", use: "True");
+        fixture.InsertFolder(2, "Evening", use: "True");
+        fixture.InsertSong(10, "한글 제목 It's 100%", 1, 28, title2: "Alt", category: "Call", key: "G", lyrics: "[1]\r\na\r\n[chorus]\r\nb",
+            sequence: "\u0001\0\u0001\0", writer: "W", copyright: "C", capo: 2, timing: "4/4", notations: "(0;C)", licenceAdmin1: "L1",
+            licenceAdmin2: "L2", bookReference: "B", userReference: "U", settings: "s", formatData: "50=2>");
+        fixture.InsertSong(11, "Nine", 1, 0, lyrics: "[9]\r\nnine\r\n[ending]\r\nend", sequence: "\te", capo: -1);
+        fixture.InsertSong(12, "一件禮物", 1, 0, lyrics: "x");
+        Sql(fixture.DatabasePath, """
+            UPDATE SONG SET CJK_WordCount = '001', CJK_StrokeCount = '000한글 제목 It''s 100%' WHERE SONGID = 10;
+            UPDATE SONG SET CJK_WordCount = '000', CJK_StrokeCount = '000Nine' WHERE SONGID = 11;
+            UPDATE SONG SET CJK_WordCount = '004', CJK_StrokeCount = '0119968062021418311500829289' WHERE SONGID = 12;
+            """);
+        var repository = new AdminDatabaseRepository();
+        var settings = new Axicultus.Wpf.Settings.SettingsService(new Axicultus.Wpf.Settings.SettingsServiceOptions(
+            Path.Combine(fixture.Root, "settings.json"), Path.Combine(fixture.Root, "SettingsBackups")));
+        var sut = new SongCopyViewModel(settings, repository);
+        sut.Load(fixture.DatabasePath, await repository.GetSongsAsync(fixture.DatabasePath, 1), await repository.GetSongFoldersAsync(fixture.DatabasePath));
+        sut.SelectedTargetFolder = sut.TargetFolders.Single(folder => folder.FolderNo == 2);
+
+        await sut.CopyAsync();
+
+        sut.StatusMessage.Should().Be("3곡을 복사했습니다.");
+        const string columns = "TITLE_1 || '|' || TITLE_2 || '|' || WRITER || '|' || COPYRIGHT || '|' || CJK_WordCount || '|' || CJK_StrokeCount || '|' || LYRICS"
+            + " || '|' || hex(CAST(SEQUENCE AS BLOB)) || '|' || KEY || '|' || CAPO || '|' || TIMING || '|' || MSC || '|' || CATEGORY || '|' || SONG_NUMBER"
+            + " || '|' || LICENCE_ADMIN1 || '|' || LICENCE_ADMIN2 || '|' || BOOK_REFERENCE || '|' || USER_REFERENCE || '|' || SETTINGS || '|' || FORMATDATA";
+        var copies = await repository.GetSongsAsync(fixture.DatabasePath, 2);
+        copies.Select(song => song.Title).Should().BeEquivalentTo("한글 제목 It's 100%", "Nine", "一件禮物");
+        foreach (var copy in copies)
+        {
+            int source = copy.Title switch { "Nine" => 11, "一件禮物" => 12, _ => 10 };
+            Text(fixture.DatabasePath, $"SELECT {columns} FROM SONG WHERE SONGID = {copy.SongId}")
+                .Should().Be(Text(fixture.DatabasePath, $"SELECT {columns} FROM SONG WHERE SONGID = {source}"), copy.Title);
+        }
+        Directory.GetFiles(Path.Combine(fixture.Root, "Backups")).Should().ContainSingle("one backup for the whole selection");
     }
 
     [Fact]
@@ -846,7 +1320,7 @@ public class AdminDatabaseRepositoryTests
     }
 
     [Fact]
-    public async Task ReorderSongsAsync_WhenSongIsOutsideFolder_RollsBackAndRestoresBackup()
+    public async Task ReorderSongsAsync_WhenSongIsOutsideFolder_RollsBack()
     {
         using var fixture = AdminDatabaseFixture.Create();
         fixture.CreateLegacySchema();

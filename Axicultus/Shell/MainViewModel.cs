@@ -70,7 +70,39 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private readonly IWorshipListStore _worshipLists;
     private readonly System.Threading.SemaphoreSlim _worshipListSaveGate = new(1, 1);
     private long _queueRevision;
-    internal bool HasPendingWorshipListSave { get; private set; }
+    private bool _hasPendingWorshipListSave;
+    private bool _worshipListSaveScheduled;
+    private bool _replacingQueue;
+    private Task? _worshipListWrite;
+
+    /// <summary>Rows were added to a queue that has no list name: nothing saves them, so closing asks first.</summary>
+    internal bool HasUnnamedWorshipListChanges
+        => Queue.Count > 0 && string.IsNullOrWhiteSpace(CurrentWorshipListName) && WorshipListHasUnsavedChanges;
+
+    /// <summary>
+    /// Runs an action once the UI is idle; the main window sets it. Without it (tests) the list is saved on
+    /// close and on a list switch only.
+    /// </summary>
+    internal Action<Action>? WorshipListSaveScheduler { get; set; }
+
+    internal bool HasPendingWorshipListSave
+    {
+        get => _hasPendingWorshipListSave;
+        private set
+        {
+            _hasPendingWorshipListSave = value;
+            // FrmMain saves the list after every add, move and remove, so a crash or power cut loses nothing.
+            // Here one save follows the edits of one UI action (a drag of many rows is one save); the save on
+            // close or list switch stays as the last flush.
+            if (!value || _worshipListSaveScheduled || WorshipListSaveScheduler is not { } schedule) return;
+            _worshipListSaveScheduled = true;
+            schedule(() =>
+            {
+                _worshipListSaveScheduled = false;
+                _ = SavePendingWorshipListChangesAsync();
+            });
+        }
+    }
     private readonly IRecentWorshipLists _recentWorshipLists;
     private readonly Func<string, bool> _worshipMediaLauncher;
     private readonly Func<string, bool> _worshipItemEditLauncher;
@@ -260,13 +292,48 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     public bool IsShowRunning => _session.Current.State != LiveState.Off;
 
+    /// <summary>FrmMain labelGapItem: the gap screen is on the output between two worship items.</summary>
+    public bool IsGapItemOnDisplay => IsShowRunning && _session.Current.CurrentItemKind == LiveItemKinds.Gap;
+
+    // FrmMain.MoveToOutputItem: with a gap option the show reaches the next item through the gap screen.
+    private bool UsesGapItem => _settings.Get(AxicultusSettingKeys.GapItemOption) != GapItemMode.None;
+
+    // Only a running show has a gap screen, and only after a worship-list row (FrmMain: StartPresAt > 0).
+    private bool CanShowGapItem()
+        => IsShowRunning && UsesGapItem && !IsGapItemOnDisplay && TryGetOutputNavigationIndex(out _);
+
+    // The gap screen (FrmLaunchShow item "G1") follows the output row, which stays the output item, so Next opens
+    // the row after it and Previous returns to it. The live id is a sentinel while the gap shows.
+    private async Task ShowGapItemAsync()
+    {
+        var gap = new LiveQueueItem(LiveItemKinds.GapLiveId, string.Empty, LiveItemKinds.Gap);
+        SetLiveItemId(gap.Id);
+        if (_session.Current.State == LiveState.Hidden)
+        {
+            // Nothing un-blacks a deck's native show once the session has no deck: it would cover the gap.
+            if (_powerPointSlideShow.HasOutputShow || _nativeShowMayExist) await StopPowerPointSlideShowForLiveAsync().ConfigureAwait(true);
+            _session.UpdateHiddenContent(gap, _output.Current.Display?.Name ?? OutputDisplay.PrimaryFallback.Name);
+        }
+        else if (!await PublishLiveProjectionAsync(gap, EnsureLiveOutputDisplay()).ConfigureAwait(true))
+        {
+            return;
+        }
+
+        StatusText = "Gap 화면 송출 중";
+        _telemetry.Record(MainCommandIds.LiveNext, succeeded: true, StatusText);
+        NotifyCommandStates();
+    }
+
     internal OutputWindowPlacement AudiencePlacement => _output.Current.IsOpen ? _output.Current.Placement
         : new WindowPlacementService(_settings, _display).CreateOutputPlacement(SelectedOutputDisplay ?? OutputDisplay.PrimaryFallback, false);
 
     public double SampleScreenHeight => _settings.Get(AxicultusSettingKeys.IsMonitorWide) ? 540d : 720d;
 
+    // Hide: the output is hidden and neither Black nor Clear is on.
+    private bool IsOutputHideActive => _session.Current is { State: LiveState.Hidden, IsBlackout: false, IsCleared: false };
+
     public string OutputScreenStatus =>
-        $"Show: {(_session.Current.State == LiveState.Off ? "OFF" : "ON")}     Text: {(IsOutputClearActive ? "hidden" : "shown")}     Screen: {(IsOutputBlackActive ? "black" : "normal")}";
+        $"Show: {(_session.Current.State == LiveState.Off ? "OFF" : "ON")}     Text: {(IsOutputClearActive ? "hidden" : "shown")}     Screen: {(IsOutputBlackActive ? "black" : IsOutputHideActive ? "hidden" : IsGapItemOnDisplay ? "gap" : "normal")}";
 
     /// <summary>FrmMain OutputBtnRefAlert 상태: 현재 라이브 출력의 구절/제목 알림 오버레이가 표시 중인가.</summary>
     public bool IsOutputReferenceAlertActive => _session.Current.IsReferenceAlertVisible;
@@ -653,18 +720,25 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         if (importCopy) name = GetAvailableImportName(name);
+        _songDatabaseError = null;
         var queueItems = await BuildEswQueueItemsAsync(items).ConfigureAwait(true);
+        // An edit made while the songs were read belongs to the list on screen and is saved there first.
+        if (!await SavePendingWorshipListChangesAsync()) return;
         LoadQueue(queueItems, sessionFormat);
         if (importCopy)
         {
             SetCurrentWorshipList(name, sessionNotes);
             WorshipListHasUnsavedChanges = true;
-            StatusText = $"예배 순서 가져옴: {name} ({items.Count}개 항목)";
+            // The copy exists only on screen: closing or switching lists must save it like any other edit,
+            // and the next start opens it once it has been saved.
+            HasPendingWorshipListSave = true;
+            _settings.Set(AxicultusSettingKeys.CurrentWorshipListName, name);
+            StatusText = $"예배 순서 가져옴: {name} ({items.Count}개 항목)" + SongDatabaseErrorSuffix();
             return;
         }
         RecordRecentWorshipList(name, sessionNotes);
         WorshipListHasUnsavedChanges = false;
-        StatusText = $"Legacy worship list loaded: {name} ({items.Count} .esw items)";
+        StatusText = $"Legacy worship list loaded: {name} ({items.Count} .esw items)" + SongDatabaseErrorSuffix();
     }
 
     private string GetAvailableImportName(string name)
@@ -709,8 +783,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return true;
         }
 
+        _songDatabaseError = null;
         var added = await InsertEswWorshipListItemsAsync(items, targetItem: null).ConfigureAwait(true);
-        StatusText = $"Legacy worship list merged: {name} ({added} added, total {Queue.Count})";
+        StatusText = $"Legacy worship list merged: {name} ({added} added, total {Queue.Count})" + SongDatabaseErrorSuffix();
         return true;
     }
 
@@ -755,6 +830,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// </summary>
     public string? LiveItemId => _liveItemId;
 
+    /// <summary>
+    /// The worship-list row that is live, for the LIVE badge: a row, not an id, so the second row of a song that
+    /// is in the list twice is not marked as well. Null for a notice, the gap screen and an item from outside the list.
+    /// </summary>
+    public LiveQueueItem? LiveRow => GetLiveQueueItem();
+
     // _liveItemId 를 바꾸는 단일 통로 — 값이 바뀌면 LiveItemId 변경을 알려 목록의 LIVE 표시가 갱신되게 한다(직접 대입 대신 이걸로).
     private void SetLiveItemId(string? id)
     {
@@ -765,6 +846,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         _liveItemId = id;
         OnPropertyChanged(nameof(LiveItemId));
+        OnPropertyChanged(nameof(LiveRow));
         OnPropertyChanged(nameof(CanSelectLiveItem)); // 라이브 항목이 바뀌면 "현재 송출 항목 선택" 활성/비활성도 바뀐다.
         OnPropertyChanged(nameof(IsOutputPowerPointContext));
         OnPropertyChanged(nameof(IsOutputHeaderTextVisible));
@@ -785,7 +867,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // 현재 송출 중인 큐 항목을 선택한다(LIVE 배지 항목으로 점프). 라이브가 아니거나 그 항목이 큐에 없으면(공지 센티넬 등) 아무 일도 안 한다.
     private void SelectLiveItem()
     {
-        var live = Queue.FirstOrDefault(q => string.Equals(q.Id, _liveItemId, StringComparison.Ordinal));
+        var live = GetLiveQueueItem();
         if (live is not null)
         {
             SelectedItem = live;
@@ -1063,17 +1145,23 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _preview.PreviewChanged += OnPreviewChanged;
         _settings.SettingsChanged += OnSettingsChanged;
         // 큐가 바뀔 때마다 "비어 있음" 상태를 갱신한다(추가·제거·로드 등 모든 변경 경로를 한 곳에서 반영).
-        Queue.CollectionChanged += (_, _) =>
+        Queue.CollectionChanged += (_, e) =>
         {
             _queueRevision++;
             IsQueueEmpty = Queue.Count == 0;
+            // A replacing load clears first and then adds; it checks once at its end.
+            if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Remove) EndShowIfQueueEmpty();
             OnPropertyChanged(nameof(CanAddWorshipListSongsToUsages));
             // 큐가 비거나 차면 "전체 비우기" 가능 여부가 바뀌므로 명령 활성 상태를 갱신(생성 도중엔 명령이 아직 null 일 수 있어 가드).
             ClearWorshipListCommand?.NotifyCanExecuteChanged();
             // 큐 내용이 바뀌면 미저장 변경으로 표시 — 불러오기(LoadQueue)·저장·시작은 끝에서 false 로 되돌려 깨끗한 상태로 만든다.
             WorshipListHasUnsavedChanges = true;
+            // FrmMain saves the list after every add/move/remove; here the named list is saved once the UI is idle
+            // (HasPendingWorshipListSave). A replacing load is not an edit of the list it replaces.
+            if (!_replacingQueue && !string.IsNullOrWhiteSpace(CurrentWorshipListName)) HasPendingWorshipListSave = true;
             // 라이브 항목이 큐에서 빠지면 "현재 송출 항목 선택" 가능 여부도 바뀐다.
             OnPropertyChanged(nameof(CanSelectLiveItem));
+            OnPropertyChanged(nameof(LiveRow));
             SelectLiveItemCommand?.NotifyCanExecuteChanged();
             // 항목이 들고 나면 "전 항목 서식 지우기" 가능 여부(큐에 지울 서식 있는 항목 유무)도 바뀐다 — RelayCommand 는 수동 통지 필요.
             OnPropertyChanged(nameof(CanClearAllItemsFormatting));
@@ -1315,6 +1403,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         PreviousLyricsPageCommand = new RelayCommand(PreviousLyricsPage, CanGoPreviousLyricsPage);
         // 라이브러리 선택 곡이 바뀌면 "예배 순서에 추가" 활성 상태를 맞춘다.
         Library.PropertyChanged += OnLibraryPropertyChanged;
+        // A version's size or folder changed in the Bible version manager: the passage on screen is cut anew.
+        Bible.Versions.CollectionChanged += OnBibleVersionsChanged;
         // 재검색으로 결과가 통째로 교체되면 부모의 선택을 비워 stale 방지(아래 OnSearchResultsChanged 참고).
         Search.SearchResults.CollectionChanged += OnSearchResultsChanged;
         // 제목 재조회로 후보가 통째로 교체될 때도 동일하게 stale 선택을 정리한다.
@@ -1621,7 +1711,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IRelayCommand SelectLiveItemCommand { get; }
 
     /// <summary>"현재 송출 항목 선택"을 누를 수 있는지 — 라이브 송출 중이고 그 항목이 큐에 있을 때만(공지 센티넬은 큐에 없어 false).</summary>
-    public bool CanSelectLiveItem => Queue.Any(q => string.Equals(q.Id, _liveItemId, StringComparison.Ordinal));
+    public bool CanSelectLiveItem => GetLiveQueueItem() is not null;
 
     /// <summary>FrmMain CMenuWorship_Play: 선택 Worship 항목의 미디어를 기본 앱으로 연다.</summary>
     public IRelayCommand PlaySelectedWorshipMediaCommand { get; }
@@ -1749,6 +1839,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private void LoadQueue(IEnumerable<LiveQueueItem> items, string? sessionFormat)
     {
         ArgumentNullException.ThrowIfNull(items);
+        // A source that fails must fail before the list on screen is touched.
+        var rows = items.ToList();
         QueueReplacing?.Invoke();
         _sessionTemplateFormat = null;
         if (!string.IsNullOrWhiteSpace(sessionFormat))
@@ -1760,19 +1852,49 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             }
         }
 
-        Queue.Clear();
-        foreach (var item in items)
+        _replacingQueue = true;
+        try
         {
-            Queue.Add(item);
+            Queue.Clear();
+            foreach (var item in rows)
+            {
+                Queue.Add(item);
+            }
+
+            SelectedItem = Queue.FirstOrDefault();
+        }
+        catch
+        {
+            // The rows on screen are not the named list any more: without a name no later edit saves them over it.
+            HasPendingWorshipListSave = false;
+            SetCurrentWorshipList("", null);
+            throw;
+        }
+        finally
+        {
+            _replacingQueue = false;
         }
 
-        SelectedItem = Queue.FirstOrDefault();
+        EndShowIfQueueEmpty();
         StatusText = Queue.Count == 0 ? "송출할 항목이 없습니다" : $"{Queue.Count}개 항목 로드됨";
         RefreshPowerPointLimitState(updateStatus: true);
         // 전체 교체(불러오기/시작 시드)는 "깨끗한" 상태 — 위 Add 들이 켠 미저장 표시를 끈다(사용자 편집만 미저장으로 남게).
         WorshipListHasUnsavedChanges = false;
         HasPendingWorshipListSave = false;
         NotifyCommandStates();
+    }
+
+    /// <summary>
+    /// Puts back the queue the caption console saved for the list <paramref name="listName"/>. The operator asked
+    /// for it, so it is an edit of that list and saved like one; rows saved for another list keep no name, so
+    /// they cannot be written over the list that is current now.
+    /// </summary>
+    internal void LoadRecoveredQueue(IEnumerable<LiveQueueItem> items, string listName)
+    {
+        LoadQueue(items);
+        WorshipListHasUnsavedChanges = true;
+        if (!string.Equals(listName, CurrentWorshipListName, StringComparison.Ordinal)) SetCurrentWorshipList("", null);
+        else if (!string.IsNullOrWhiteSpace(CurrentWorshipListName)) HasPendingWorshipListSave = true;
     }
 
     public LiveQueueItem? AddBibleSelection(BibleSelection selection)
@@ -2009,14 +2131,18 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         return item with { SongLayout = layout };
     }
 
+    // The layout of a Bible version that has no song folder; also what a passage flows by when its version is
+    // not listed (GetSongPages).
+    private Data.SongPageLayout DefaultBibleLayout()
+        => new(Math.Max(1, (int)Math.Round(_settings.Current.LiveOutput.LyricsMonitorFontSize * 0.75)), "", 0, 0, 0, 0, 1, 100, 0);
+
     private Data.SongPageLayout? ResolveBibleLayout(string id)
     {
         if (!BibleSelectionId.TryParse(id, out var parsed)) return null;
         BibleVersion? Version(string file) => Bible.Versions.FirstOrDefault(v => string.Equals(v.FileName, file, StringComparison.OrdinalIgnoreCase));
         Data.SongPageLayout? Layout(BibleVersion v) => Library.Folders.FirstOrDefault(f => f.FolderNo == v.SongFolderNo)?.SlideLayout;
         if (Version(parsed.Region1FileName) is not { } first) return null;
-        var folder = Layout(first) ?? new Data.SongPageLayout(Math.Max(1, (int)Math.Round(_settings.Current.LiveOutput.LyricsMonitorFontSize * 0.75)),
-            "", 0, 0, 0, 0, 1, 100, 0);
+        var folder = Layout(first) ?? DefaultBibleLayout();
         var primary = first.Size == 100 ? folder : folder with { FontPoints = Math.Max(1, (int)Math.Round(folder.FontPoints * first.Size / 100d)) };
         if (Version(parsed.Region2FileName) is not { } second) return primary;
         var fields = folder.Fields is null ? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
@@ -2118,6 +2244,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             Title = song.Title,
             Lyrics = song.Lyrics,
+            Notations = song.Notations,
             Sequence = normalizedSequence,
             Capo = song.Capo,
             SongNumber = song.SongNumber,
@@ -2254,7 +2381,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             {
                 if (!detailCache.TryGetValue(songId, out detail))
                 {
-                    detail = await _songDetail.GetSongDetailAsync(databasePath, songId).ConfigureAwait(true);
+                    detail = await ReadSongDetailOrNullAsync(databasePath, songId).ConfigureAwait(true);
                     detailCache[songId] = detail;
                 }
             }
@@ -2311,13 +2438,18 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     private int _praiseBookPreviewRequest;
+    private const string PraiseBookPreviewIdPrefix = "praisebook-preview:";
 
     public async Task<LiveQueueItem?> PreviewPraiseBookSongAsync(PraiseBookIndexEntry? entry)
     {
         var request = ++_praiseBookPreviewRequest;
         if (entry is null)
         {
-            SelectedItem = null;
+            // Only the praise-book preview goes away; the worship-list row stays selected (FrmMain keeps it too).
+            if (_sourcePreviewItem is { } shown && shown.Id.StartsWith(PraiseBookPreviewIdPrefix, StringComparison.Ordinal))
+            {
+                ShowWorshipSelectionPreview();
+            }
             StatusText = "PraiseBook 선택 없음";
             NotifyCommandStates();
             return null;
@@ -2335,8 +2467,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 resolved.FormatData,
                 resolved.BookReference,
                 resolved.UserReference)
-            with { Id = $"praisebook-preview:{resolved.Song.SongId}" };
-        SelectedItem = item;
+            with { Id = $"{PraiseBookPreviewIdPrefix}{resolved.Song.SongId}" };
+        // A source preview, as for a library song: FrmMain PraiseBookListIndexChanged fills the preview and
+        // leaves the worship-list selection alone, so the next add still goes in after the selected row.
+        SetSourcePreview(item);
         StatusText = $"PraiseBook 미리보기: {item.Title}";
         NotifyCommandStates();
         return item;
@@ -2385,12 +2519,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return null;
         }
 
+        _songDatabaseError = null;
         if (entry.SongId != 0)
         {
             var databasePath = ResolveSongDetailDatabasePath();
             if (!string.IsNullOrWhiteSpace(databasePath))
             {
-                var detail = await _songDetail.GetSongDetailAsync(databasePath, entry.SongId).ConfigureAwait(true);
+                var detail = await ReadSongDetailOrNullAsync(databasePath, entry.SongId).ConfigureAwait(true);
                 if (detail is { FolderNo: <= 0 })
                 {
                     StatusText = $"라이브러리에서 삭제된 찬양집 곡입니다: {entry.Title}";
@@ -2408,7 +2543,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                             detail.Category,
                             detail.Key,
                             detail.Lyrics,
-                            detail.Copyright, LicenceAdmin1: detail.LicenceAdmin1, LicenceAdmin2: detail.LicenceAdmin2, Capo: detail.Capo),
+                            detail.Copyright, LicenceAdmin1: detail.LicenceAdmin1, LicenceAdmin2: detail.LicenceAdmin2, Capo: detail.Capo, Notations: detail.Notations),
                         string.IsNullOrWhiteSpace(detail.Sequence) ? null : detail.Sequence,
                         string.IsNullOrWhiteSpace(detail.FormatData) ? null : detail.FormatData,
                         detail.BookReference,
@@ -2420,7 +2555,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var song = entry.SongId == 0
             ? await Library.FindLegacyPraiseBookSongAsync(entry)
             : ResolvePraiseBookSong(entry.Title, entry.Number, entry.SongId);
-        if (song is null) StatusText = $"찬양집 곡을 식별할 수 없습니다: {entry.Title}";
+        // The songs already listed in the library tab still serve when the database cannot be read.
+        if (song is null) StatusText = _songDatabaseError ?? $"찬양집 곡을 식별할 수 없습니다: {entry.Title}";
         return song is null ? null : new ResolvedPraiseBookSong(song, null, null, null, null);
     }
 
@@ -2505,10 +2641,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        var detail = await _songDetail.GetSongDetailAsync(databasePath, songId).ConfigureAwait(true);
+        _songDatabaseError = null;
+        var detail = await ReadSongDetailOrNullAsync(databasePath, songId).ConfigureAwait(true);
         if (detail is null)
         {
-            StatusText = $"곡을 찾을 수 없습니다: {fallbackTitle}";
+            StatusText = _songDatabaseError ?? $"곡을 찾을 수 없습니다: {fallbackTitle}";
             NotifyCommandStates();
             return;
         }
@@ -2522,7 +2659,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 detail.Category,
                 detail.Key,
                 detail.Lyrics,
-                detail.Copyright, LicenceAdmin1: detail.LicenceAdmin1, LicenceAdmin2: detail.LicenceAdmin2, Capo: detail.Capo);
+                detail.Copyright, LicenceAdmin1: detail.LicenceAdmin1, LicenceAdmin2: detail.LicenceAdmin2, Capo: detail.Capo, Notations: detail.Notations);
         if (previewOnly)
         {
             if (SelectedSearchResult?.SongId == songId)
@@ -2660,8 +2797,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     /// <summary>
     /// 선택한 예배 순서 항목을 같은 내용으로 복제해 바로 뒤에 삽입한다(예: 같은 곡을 예배 중 두 번 부를 때).
-    /// record `with` 로 모든 내용(가사·서식·슬라이드 등)을 복사하되 새 Id 를 부여해 원본과 구별한다
-    /// (중복 Id 로 라이브 추적·재송출이 엉뚱한 인스턴스를 고르지 않도록). 복제본을 새로 선택한다.
+    /// record `with` 로 모든 내용(가사·서식·슬라이드 등)을 복사한다. The copy keeps the id (a song stays that
+    /// song for the database); the two rows are told apart by reference. 복제본을 새로 선택한다.
     /// </summary>
     public LiveQueueItem? DuplicateSelectedItem()
     {
@@ -2676,14 +2813,18 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return null;
         }
 
-        // 새 고유 Id — 원본과 값은 같아도 참조·식별자는 달라 라이브 가드/재송출이 정확한 인스턴스를 가린다.
-        var copy = item with { Id = $"dup:{Guid.NewGuid():N}" };
+        // A new row with the same id: rows are told apart by reference, and the song id must stay so that the
+        // copy is refreshed from the database like the row it was copied from (RefreshSongsFromDatabaseAsync).
+        var copy = item with { };
         Queue.Insert(index + 1, copy);
         SelectedItem = copy;
         StatusText = $"항목 복제: {copy.Title}";
         NotifyCommandStates();
         return copy;
     }
+
+    /// <summary>Rows selected in the worship-list view (the view sets this; SelectedItem is only the current row).</summary>
+    internal Func<IReadOnlyList<LiveQueueItem>>? SelectedQueueRows { get; set; }
 
     // 예배 순서에서 선택 항목 제거 — 인접 항목을 새로 선택(라이브 송출 자체는 세션이 유지).
     private void RemoveSelectedItem()
@@ -2693,25 +2834,64 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
+        // FrmMain RemoveWorshipListSong removes every selected row.
+        var rows = SelectedQueueRows?.Invoke().Select(IndexOfReference).Where(i => i >= 0).OrderByDescending(i => i).ToArray();
+        if (rows is { Length: > 1 })
+        {
+            var outputRowRemoved = rows.Any(row => IsOutputRow(Queue[row]));
+            var liveRow = GetLiveQueueItem();
+            foreach (var row in rows)
+            {
+                // Only the live row itself: another row of the same song has the same id.
+                if (ReferenceEquals(liveRow, Queue[row])) SetLiveItemId(null);
+                Queue.RemoveAt(row);
+            }
+
+            SelectedItem = Queue.Count == 0 ? null : Queue[Math.Min(rows[^1], Queue.Count - 1)];
+            StatusText = $"항목 {rows.Length}개 제거";
+            if (outputRowRemoved) CopySelectionToOutputAfterRemoval();
+            NotifyCommandStates();
+            return;
+        }
+
         var index = IndexOfSelectedReference();
         if (index < 0)
         {
             return;
         }
 
+        var outputRemoved = IsOutputRow(item);
+        var liveRowRemoved = ReferenceEquals(GetLiveQueueItem(), item);
         Queue.RemoveAt(index); // 참조로 찾은 정확한 인덱스를 제거(동일-값 중복 안전)
         HasPendingWorshipListSave = !string.IsNullOrWhiteSpace(CurrentWorshipListName);
 
         // 라이브 송출 중인 바로 그 항목을 큐에서 뺐다면, 슬라이드 이동 가드(_liveItemId)가
         // 큐에 없는 고아 Id 를 기준으로 판단하지 않도록 라이브 추적을 정리한다(세션 송출 자체는 유지).
-        if (_liveItemId == item.Id)
+        // The row itself, not its id: the same song can be in the list twice.
+        if (liveRowRemoved)
         {
             SetLiveItemId(null);
         }
 
         SelectedItem = Queue.Count == 0 ? null : Queue[Math.Min(index, Queue.Count - 1)];
         StatusText = $"항목 제거: {item.Title}";
+        if (outputRemoved) CopySelectionToOutputAfterRemoval();
         NotifyCommandStates();
+    }
+
+    // The worship-list row the output item was taken from (not a library, search or praise-book preview).
+    private bool IsOutputRow(LiveQueueItem row)
+        => OutputItem is { } output && !_outputFromSourcePreview
+            && (ReferenceEquals(row, output) || ReferenceEquals(row, _outputFormatSource));
+
+    // FrmMain RemoveWorshipListSong: when the row on output is removed, the newly selected row is copied to
+    // output (and shown at once while the show is running). An emptied list leaves the output as it is.
+    private void CopySelectionToOutputAfterRemoval()
+    {
+        if (SelectedItem is null || !CanCopyPreviewToOutput()) return;
+        var removal = StatusText;
+        CopyPreviewToOutput();
+        if (_session.Current.State != LiveState.Active) StatusText = $"{removal} · {StatusText}";
     }
 
     // 방금 비운 예배 순서를 담아 두는 복구용 스냅샷("휴지통"). "되돌리기"로 한 번 복구할 수 있다.
@@ -2723,11 +2903,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     internal void ArchiveAndClearCurrentWorshipList()
     {
         if (Queue.Count == 0 || string.IsNullOrWhiteSpace(CurrentWorshipListName)) return;
+        // The list that goes to Trash is the one on screen, with its unsaved edits.
+        if (!SaveCurrentWorshipListNow()) return;
         try
         {
             _worshipLists.MoveToTrash(CurrentWorshipListName);
-            HasPendingWorshipListSave = false;
             ClearWorshipList();
+            HasPendingWorshipListSave = false; // the list file is in Trash; do not write an empty one back on close
             RefreshSavedWorshipListNames();
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
@@ -2750,9 +2932,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var count = Queue.Count;
         Queue.Clear();
         SelectedItem = null;
+        EndShowIfQueueEmpty();
         SetLiveItemId(null); // 큐가 비었으니 라이브 추적 정리(큐에 없는 고아 Id 로 슬라이드 가드가 오판하지 않도록)
         StatusText = $"예배 순서 {count}개 항목을 비웠습니다 (되돌리기로 복구 가능)";
         NotifyCommandStates();
+    }
+
+    // FrmMain.UpdateOutputCurItemNo: a running show ends when the worship list becomes empty.
+    private void EndShowIfQueueEmpty()
+    {
+        if (Queue.Count == 0 && IsShowRunning) _ = EndShowAsync();
     }
 
     // 방금 비운 예배 순서를 복구(되돌리기). 스냅샷이 있을 때만 동작하고, 복구 후 스냅샷은 비운다(중복 복구 방지).
@@ -2833,7 +3022,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 continue;
             }
 
-            var kind = ExternalFileClassifier.Classify(path) switch
+            var kind = ExternalFileClassifier.Classify(path, _settings.Current.General.WorkingFolder) switch
             {
                 ExternalFileKind.PowerPoint => LiveItemKinds.PowerPoint,
                 ExternalFileKind.Media => LiveItemKinds.Media,
@@ -3000,7 +3189,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             if (owner != CurrentWorshipListName || (pendingChangesOnly && !HasPendingWorshipListSave)) return true;
             var revision = _queueRevision;
             var notes = CurrentSessionNotes;
-            await _worshipLists.SaveSessionAsync(name, Queue.ToArray(), _sessionTemplateFormat is null ? null : GetSessionFormat()).ConfigureAwait(true);
+            _worshipListWrite = _worshipLists.SaveSessionAsync(name, Queue.ToArray(), _sessionTemplateFormat is null ? null : GetSessionFormat());
+            await _worshipListWrite.ConfigureAwait(true);
             if (SessionNotes.GetNotes(name) != notes && !SessionNotes.SetNotes(name, notes))
             {
                 StatusText = "예배 순서를 저장했지만 세션 메모를 저장할 수 없습니다.";
@@ -3017,7 +3207,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 HasPendingWorshipListSave = false;
                 WorshipListHasUnsavedChanges = false;
             }
-            StatusText = $"예배 순서 저장됨: {name} ({Queue.Count}개)";
+            // The save that follows every edit must not replace the status line of the edit itself.
+            if (!pendingChangesOnly) StatusText = $"예배 순서 저장됨: {name} ({Queue.Count}개)";
             return true;
         }
         catch (ArgumentException)
@@ -3031,6 +3222,32 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
         finally { _worshipListSaveGate.Release(); }
         return false;
+    }
+
+    // Clear, Delete and Restore act on the list file at once, so the list on screen must be in the file first:
+    // FrmMain has saved it after every change. Waits for a save that is being written (its file write needs no UI
+    // thread) and then writes what is on screen. False, with the reason in the status line, when it cannot.
+    private bool SaveCurrentWorshipListNow(bool pendingChangesOnly = true)
+    {
+        var name = CurrentWorshipListName;
+        if (string.IsNullOrWhiteSpace(name) || (pendingChangesOnly && !HasPendingWorshipListSave)) return true;
+        try
+        {
+            try { _worshipListWrite?.GetAwaiter().GetResult(); }
+            catch (Exception) { /* the save that started it reports its own failure */ }
+            var notes = CurrentSessionNotes;
+            _worshipLists.SaveSessionAsync(name, Queue.ToArray(), _sessionTemplateFormat is null ? null : GetSessionFormat())
+                .GetAwaiter().GetResult();
+            if (SessionNotes.GetNotes(name) != notes) SessionNotes.SetNotes(name, notes);
+            HasPendingWorshipListSave = false;
+            WorshipListHasUnsavedChanges = false;
+            return true;
+        }
+        catch (Exception ex) when (ex is ArgumentException or IOException or UnauthorizedAccessException)
+        {
+            StatusText = $"예배 순서 저장 실패: {ex.Message}";
+            return false;
+        }
     }
 
     /// <summary>
@@ -3064,16 +3281,122 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 return;
             }
 
-            var (items, format) = await _worshipLists.LoadSessionAsync(name.Trim()).ConfigureAwait(true);
+            // A renamed or deleted list can still be in the recent menu; FrmMain keeps the current list in that case.
+            if (!_worshipLists.ListNames().Contains(name.Trim(), StringComparer.OrdinalIgnoreCase))
+            {
+                StatusText = $"예배 순서를 찾을 수 없습니다: {name.Trim()}";
+                return;
+            }
+
+            IReadOnlyList<LiveQueueItem> items;
+            string? format;
+            long revision;
+            do
+            {
+                // An edit made while the file was read belongs to the list on screen: it is saved there, and the
+                // file is read again in case that list is the one being opened.
+                revision = _queueRevision;
+                (items, format) = await _worshipLists.LoadSessionAsync(name.Trim()).ConfigureAwait(true);
+                items = await RefreshSongsFromDatabaseAsync(items).ConfigureAwait(true);
+                if (!await SavePendingWorshipListChangesAsync()) return;
+            }
+            while (revision != _queueRevision);
+
             LoadQueue(items.Select(RestoreBibleLayout), format);
             RecordRecentWorshipList(name.Trim());
-            StatusText = $"예배 순서 불러옴: {name.Trim()} ({items.Count}개)";
+            StatusText = $"예배 순서 불러옴: {name.Trim()} ({items.Count}개)" + SongDatabaseErrorSuffix() + SongsKeptFromListSuffix();
         }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException || IsSongDatabaseError(ex))
         {
             StatusText = $"예배 순서 불러오기 실패: {ex.Message}";
         }
     }
+
+    // A saved list carries a copy of every song, but FrmMain reads the song from the database each time it
+    // loads a list, so a lyric corrected in the library must reach lists saved before the correction. The
+    // item keeps its own formatting, and the saved copy stays when the song or the database is gone.
+    private async Task<IReadOnlyList<LiveQueueItem>> RefreshSongsFromDatabaseAsync(IReadOnlyList<LiveQueueItem> items)
+    {
+        _songDatabaseError = null;
+        _songsKeptFromList = 0;
+        var databasePath = ResolveSongDetailDatabasePath();
+        if (string.IsNullOrWhiteSpace(databasePath)) return items;
+
+        var details = new Dictionary<int, Data.SongDetail?>();
+        var refreshed = new List<LiveQueueItem>(items.Count);
+        foreach (var item in items)
+        {
+            if (_songDatabaseError is not null || !LiveItemKindMatcher.IsSong(item.Kind) || !TryGetSongDatabaseId(item, out var songId))
+            {
+                refreshed.Add(item);
+                continue;
+            }
+
+            if (!details.TryGetValue(songId, out var detail))
+            {
+                details[songId] = detail = await ReadSongDetailOrNullAsync(databasePath, songId).ConfigureAwait(true);
+            }
+
+            // FolderNo 0 is the deleted-songs folder: such a song is gone for the operator.
+            // The lists live in one profile folder whatever the working folder or database is, so the id alone
+            // does not say it is the same song: the title or the lyrics must still match, or the row has no
+            // lyrics of its own. Otherwise the saved copy stays and the status line says so.
+            if (detail is { FolderNo: > 0 } && !string.IsNullOrWhiteSpace(item.Lyrics)
+                && !string.Equals(item.Title.Trim(), detail.Title.Trim(), StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(item.Lyrics, detail.Lyrics, StringComparison.Ordinal))
+            {
+                _songsKeptFromList++;
+                detail = null;
+            }
+
+            refreshed.Add(detail is not { FolderNo: > 0 } ? item : item with
+            {
+                Title = detail.Title,
+                Lyrics = detail.Lyrics,
+                Notations = detail.Notations,
+                Sequence = string.IsNullOrWhiteSpace(detail.Sequence) ? null : detail.Sequence,
+                Capo = detail.Capo,
+                SongNumber = detail.SongNumber,
+                Copyright = detail.Copyright,
+                LicenceAdmin1 = detail.LicenceAdmin1,
+                LicenceAdmin2 = detail.LicenceAdmin2,
+                BookReference = detail.BookReference,
+                UserReference = detail.UserReference,
+            });
+        }
+
+        return refreshed;
+    }
+
+    // Set by ReadSongDetailOrNullAsync; an operation clears it first and reports it with its own result.
+    private string? _songDatabaseError;
+
+    // Rows whose song id now belongs to another song in the database (RefreshSongsFromDatabaseAsync).
+    private int _songsKeptFromList;
+
+    private string SongDatabaseErrorSuffix() => _songDatabaseError is not null ? $" — {_songDatabaseError}" : "";
+
+    private string SongsKeptFromListSuffix() => _songDatabaseError is null && _songsKeptFromList > 0
+        ? $" — 곡 {_songsKeptFromList}개는 DB 의 같은 번호 곡과 제목·가사가 달라 저장된 내용을 유지" : "";
+
+    // The song database can be locked, replaced or on a share that dropped. A failed read is reported and
+    // treated as "no detail": no UI handler crashes and the caller keeps what it already has.
+    private async Task<Data.SongDetail?> ReadSongDetailOrNullAsync(string databasePath, int songId)
+    {
+        try
+        {
+            return await _songDetail.GetSongDetailAsync(databasePath, songId).ConfigureAwait(true);
+        }
+        catch (Exception ex) when (IsSongDatabaseError(ex))
+        {
+            _songDatabaseError = $"곡 데이터베이스를 읽을 수 없습니다: {ex.Message}";
+            StatusText = _songDatabaseError;
+            return null;
+        }
+    }
+
+    internal static bool IsSongDatabaseError(Exception ex)
+        => ex is InvalidOperationException or System.Data.Common.DbException or IOException or UnauthorizedAccessException;
 
     /// <summary>
     /// 저장된 예배 순서를 현재 큐 "뒤에 이어 붙인다"(불러오기=대체, 병합=추가, 레거시 .esw 병합).
@@ -3095,6 +3418,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             }
 
             var items = await _worshipLists.LoadAsync(name.Trim()).ConfigureAwait(true);
+            items = await RefreshSongsFromDatabaseAsync(items).ConfigureAwait(true);
             var wasEmpty = Queue.Count == 0;
             foreach (var item in items)
             {
@@ -3107,11 +3431,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 SelectedItem = Queue.FirstOrDefault();
             }
 
-            StatusText = $"예배 순서 병합: {name.Trim()} ({items.Count}개 추가, 총 {Queue.Count}개)";
+            StatusText = $"예배 순서 병합: {name.Trim()} ({items.Count}개 추가, 총 {Queue.Count}개)" + SongDatabaseErrorSuffix() + SongsKeptFromListSuffix();
             RefreshPowerPointLimitState(updateStatus: false);
             NotifyCommandStates();
         }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException || IsSongDatabaseError(ex))
         {
             StatusText = $"예배 순서 병합 실패: {ex.Message}";
         }
@@ -3229,21 +3553,20 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         switch (esw.Reference.Kind)
         {
             case LegacyListItemKind.DatabaseSong: // DB 곡 — 라이브러리에 같은 곡(가사 포함)이 있으면 가사·번호·저작권까지, 없으면 제목만(가사 해석은 후속).
-                if (esw.Reference.SongId is int songId
-                    && Library.Songs.FirstOrDefault(s => s.SongId == songId) is { } song)
+                // FrmMain resolves each list entry from the database. The folder shown in the library tab is only
+                // the fallback when the database cannot be read, and builds the row the same way, so a list
+                // file gives the same row (verse order, folder, layout, format) whichever folder is open.
+                if (esw.Reference.SongId is int songId)
                 {
-                    return new LiveQueueItem($"song:{song.SongId}", song.Title, LiveItemKinds.Song)
+                    if (TryReadSongDetail(songId) is { } detail)
                     {
-                        Lyrics = song.Lyrics,
-                        Capo = song.Capo,
-                        SongNumber = song.SongNumber,
-                        Copyright = song.Copyright,
-                        LicenceAdmin1 = song.LicenceAdmin1,
-                        LicenceAdmin2 = song.LicenceAdmin2,
-                        BookReference = song.BookReference,
-                        UserReference = song.UserReference,
-                        FormatData = esw.FormatData,
-                    };
+                        return CreateEswSongQueueItem(detail, esw);
+                    }
+
+                    if (Library.Songs.FirstOrDefault(s => s.SongId == songId) is { } song)
+                    {
+                        return CreateSongQueueItem(song, formatData: string.IsNullOrWhiteSpace(esw.FormatData) ? null : esw.FormatData);
+                    }
                 }
 
                 return new LiveQueueItem($"song:{esw.Id}", title, LiveItemKinds.Song) { FormatData = esw.FormatData };
@@ -3294,28 +3617,48 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var databasePath = ResolveSongDetailDatabasePath();
         if (!string.IsNullOrWhiteSpace(databasePath))
         {
-            var detail = await _songDetail.GetSongDetailAsync(databasePath, songId).ConfigureAwait(true);
+            var detail = await ReadSongDetailOrNullAsync(databasePath, songId).ConfigureAwait(true);
             if (detail is not null)
             {
-                return CreateSongQueueItem(
-                    new Data.SongSummary(
-                        detail.SongId,
-                        detail.Title,
-                        detail.AlternateTitle,
-                        detail.FolderNo,
-                        detail.SongNumber,
-                        detail.Category,
-                        detail.Key,
-                        detail.Lyrics,
-                        detail.Copyright, LicenceAdmin1: detail.LicenceAdmin1, LicenceAdmin2: detail.LicenceAdmin2, Capo: detail.Capo),
-                    string.IsNullOrWhiteSpace(detail.Sequence) ? null : detail.Sequence,
-                    string.IsNullOrWhiteSpace(esw.FormatData) ? detail.FormatData : esw.FormatData,
-                    detail.BookReference,
-                    detail.UserReference);
+                return CreateEswSongQueueItem(detail, esw);
             }
         }
 
         return BuildEswQueueItem(esw);
+    }
+
+    private LiveQueueItem CreateEswSongQueueItem(Data.SongDetail detail, EswWorshipListItem esw)
+        => CreateSongQueueItem(
+            new Data.SongSummary(
+                detail.SongId,
+                detail.Title,
+                detail.AlternateTitle,
+                detail.FolderNo,
+                detail.SongNumber,
+                detail.Category,
+                detail.Key,
+                detail.Lyrics,
+                detail.Copyright, LicenceAdmin1: detail.LicenceAdmin1, LicenceAdmin2: detail.LicenceAdmin2, Capo: detail.Capo, Notations: detail.Notations),
+            string.IsNullOrWhiteSpace(detail.Sequence) ? null : detail.Sequence,
+            string.IsNullOrWhiteSpace(esw.FormatData) ? detail.FormatData : esw.FormatData,
+            detail.BookReference,
+            detail.UserReference);
+
+    // Library.Songs holds only the folder shown in the library tab, so list files dropped or opened from the
+    // toolbar need the database for every other song (FrmMain resolves each list entry from the database).
+    private Data.SongDetail? TryReadSongDetail(int songId)
+    {
+        var databasePath = ResolveSongDetailDatabasePath();
+        if (string.IsNullOrWhiteSpace(databasePath)) return null;
+        try
+        {
+            // shortcut: the repository completes synchronously; make the callers async if it ever stops doing so.
+            return _songDetail.GetSongDetailAsync(databasePath, songId).GetAwaiter().GetResult();
+        }
+        catch (Exception ex) when (IsSongDatabaseError(ex))
+        {
+            return null;
+        }
     }
 
     private LiveQueueItem CreateSongQueueItem(
@@ -3327,6 +3670,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         => new($"song:{song.SongId}", song.Title, LiveItemKinds.Song)
         {
             Lyrics = song.Lyrics,
+            Notations = song.Notations,
             Sequence = sequence ?? song.Sequence,
             SourceFolderNo = song.FolderNo,
             SongLayout = Library.Folders.FirstOrDefault(folder => folder.FolderNo == song.FolderNo)?.SlideLayout,
@@ -3479,8 +3823,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// </summary>
     public async Task ValidateWorshipListAsync()
     {
-        var problems = await GetWorshipListProblemsAsync().ConfigureAwait(true);
-        ApplyWorshipListValidationResults(problems);
+        // Search.DatabasePath alone is empty until the search tab has been opened once.
+        var databasePath = ResolveSongDetailDatabasePath() is { Length: > 0 } resolved ? resolved : Search.DatabasePath;
+        var problems = await GetWorshipListProblemsAsync(databasePath).ConfigureAwait(true);
+        ApplyWorshipListValidationResults(problems, databasePath);
 
         // 텔레메트리의 succeeded 는 "검증 명령이 정상 수행됨"을 뜻한다(문제를 찾는 것도 검증의 정상 동작이므로
         // 문제 발견 = 실패가 아니다). 발견한 문제 수는 StatusText 메시지에 담긴다.
@@ -3488,28 +3834,33 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         NotifyCommandStates();
     }
 
-    private async Task<IReadOnlyList<WorshipItemProblem>> GetWorshipListProblemsAsync()
+    private async Task<IReadOnlyList<WorshipItemProblem>> GetWorshipListProblemsAsync(string databasePath)
     {
         // 1) 파일 차원 검사(동기) — 깨진/이동·삭제된 PPT·미디어 파일.
         var problems = _worshipValidator.Validate(Queue).ToList();
         // 2) 곡 DB 존재 검사(비동기·DB 의존) — DB 경로가 있을 때만. song:{id} 항목이 가사 DB 에 아직 있는지 확인한다.
         //    DB 경로가 없으면(설정 전·테스트) 건너뛴다 — 이 경우 await 에 닿지 않아 동기적으로 완료된다(무회귀).
-        var databasePath = Search.DatabasePath;
+        _songDatabaseError = null;
         if (!string.IsNullOrWhiteSpace(databasePath))
         {
-            foreach (var item in Queue)
+            // The queue can change while a read is awaited.
+            foreach (var item in Queue.ToArray())
             {
                 if (item is null || !TryGetSongDatabaseId(item, out var songId))
                 {
-                    continue; // 곡(song:{id})이 아니거나 복제(dup:)·텍스트 등은 DB 검사 대상 아님.
+                    continue; // 곡(song:{id})이 아닌 텍스트 등은 DB 검사 대상 아님.
                 }
 
-                var detail = await _songDetail.GetSongDetailAsync(databasePath, songId).ConfigureAwait(true);
+                var detail = await ReadSongDetailOrNullAsync(databasePath, songId).ConfigureAwait(true);
+                // An unreadable database says nothing about the songs: the check is skipped and reported.
+                if (_songDatabaseError is not null) break;
                 if (detail is null)
                 {
                     var label = string.IsNullOrWhiteSpace(item.Title) ? item.Id : item.Title;
                     problems.Add(new WorshipItemProblem(
-                        item, WorshipItemProblemKind.SongNotInDatabase, $"{label}: 곡을 가사 DB 에서 찾을 수 없습니다."));
+                        item, WorshipItemProblemKind.SongNotInDatabase, IsSongShownFromSavedCopy(item)
+                            ? $"{label}: 가사 DB 에 없는 곡입니다(예배 순서에 저장된 가사로 송출)."
+                            : $"{label}: 곡을 가사 DB 에서 찾을 수 없습니다."));
                 }
             }
         }
@@ -3517,10 +3868,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         return problems;
     }
 
-    private void ApplyWorshipListValidationResults(IReadOnlyList<WorshipItemProblem> problems)
-    {
-        var databasePath = Search.DatabasePath;
+    // FrmMain cannot show a song that left the database; here the list item carries its own lyrics.
+    private static bool IsSongShownFromSavedCopy(LiveQueueItem item) => !string.IsNullOrWhiteSpace(item.Lyrics);
 
+    // A problem that must stop the show from starting. A song missing from the database is only a warning
+    // while its list item still has the lyrics to show.
+    private static bool BlocksGoLive(WorshipItemProblem problem)
+        => problem.Kind != WorshipItemProblemKind.SongNotInDatabase || !IsSongShownFromSavedCopy(problem.Item);
+
+    private void ApplyWorshipListValidationResults(IReadOnlyList<WorshipItemProblem> problems, string databasePath)
+    {
         WorshipListProblems.Clear();
         foreach (var problem in problems)
         {
@@ -3555,10 +3912,15 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             StatusText += " (곡 DB 검증 생략 — DB 경로 없음)";
         }
+        else if (_songDatabaseError is not null)
+        {
+            StatusText += $" (곡 DB 검증 생략 — {_songDatabaseError})";
+        }
     }
 
-    // 큐 항목 Id 가 "song:{정수}" 형태면 곡 DB Id 를 꺼낸다(AddSong 이 부여한 식별자). 그 외(dup:·text:·bible:·ppt: 등)는 false.
-    // 복제(dup:) 항목은 가사를 이미 들고 있어 DB 검사 대상이 아니므로 자연히 제외된다.
+    // 큐 항목 Id 가 "song:{정수}" 형태면 곡 DB Id 를 꺼낸다(AddSong 이 부여한 식별자). 그 외(text:·bible:·ppt: 등)는 false.
+    // A duplicated row keeps the id of the row it was copied from. Lists saved earlier can still hold "dup:" ids:
+    // those rows keep their saved copy.
     private static bool TryGetSongDatabaseId(LiveQueueItem item, out int songId)
     {
         songId = 0;
@@ -3588,11 +3950,88 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        _worshipLists.Delete(name.Trim());
+        // The current list goes to Trash as it is on screen, with its unsaved edits.
+        if (string.Equals(CurrentWorshipListName, name.Trim(), StringComparison.OrdinalIgnoreCase) && !SaveCurrentWorshipListNow()) return;
+
+        // FrmManageItemLists moves a deleted list to Trash and survives a locked file.
+        try
+        {
+            _worshipLists.MoveToTrash(name.Trim());
+        }
+        catch (Exception ex) when (ex is ArgumentException or IOException or UnauthorizedAccessException)
+        {
+            StatusText = $"예배 순서를 삭제하지 못했습니다: {ex.Message}";
+            return;
+        }
+
         if (string.Equals(CurrentWorshipListName, name.Trim(), StringComparison.OrdinalIgnoreCase))
+        {
+            // The on-screen queue no longer belongs to a saved list, so later edits must not re-create the file.
             HasPendingWorshipListSave = false;
+            SetCurrentWorshipList("", null);
+        }
         RefreshSavedWorshipListNames(); // 삭제한 목록이 세션 콤보에서 바로 빠지도록(저장 경로와 대칭).
         StatusText = $"예배 순서 삭제됨: {name.Trim()}";
+    }
+
+    /// <summary>Lists in Trash (FrmManageItemLists Trash tab). A folder that cannot be read gives an empty list.</summary>
+    public IReadOnlyList<string> GetTrashedWorshipLists()
+    {
+        try
+        {
+            return _worshipLists.ListTrashNames();
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            StatusText = $"휴지통을 읽을 수 없습니다: {ex.Message}";
+            return [];
+        }
+    }
+
+    /// <summary>
+    /// FrmManageItemLists.RestoreBtn_Click: moves the lists out of Trash. A list whose name is taken comes back
+    /// with a time stamp; a file that cannot be moved is counted and reported, the others are still restored.
+    /// Returns how many were restored.
+    /// </summary>
+    public int RestoreWorshipLists(IReadOnlyList<string> names)
+    {
+        ArgumentNullException.ThrowIfNull(names);
+        // The list on screen keeps its name after Clear, or exists only on screen (an imported copy), while it has
+        // no file. It is written first, so that a restored list of the same name gets the time stamp instead of
+        // being overwritten by the next save of the list on screen.
+        if (names.Contains(CurrentWorshipListName, StringComparer.OrdinalIgnoreCase)
+            && !SaveCurrentWorshipListNow(pendingChangesOnly: false)) return 0;
+        return ChangeTrashedWorshipLists(names, name => _worshipLists.RestoreFromTrash(name), "복원");
+    }
+
+    /// <summary>FrmManageItemLists.DeletePermanentlyBtn_Click / EmptyTrashBtn_Click: deletes lists in Trash for good.</summary>
+    public int DeleteTrashedWorshipLists(IReadOnlyList<string> names)
+        => ChangeTrashedWorshipLists(names, name => _worshipLists.DeleteFromTrash(name), "영구 삭제");
+
+    private int ChangeTrashedWorshipLists(IReadOnlyList<string> names, Action<string> change, string verb)
+    {
+        ArgumentNullException.ThrowIfNull(names);
+        var done = 0;
+        string? firstError = null;
+        foreach (var name in names)
+        {
+            try
+            {
+                change(name);
+                done++;
+            }
+            catch (Exception ex) when (ex is ArgumentException or IOException or UnauthorizedAccessException)
+            {
+                firstError ??= ex.Message;
+            }
+        }
+
+        if (done > 0) RefreshSavedWorshipListNames();
+        var failed = names.Count - done;
+        StatusText = failed == 0
+            ? $"예배 순서 {verb}: {done}개"
+            : $"예배 순서 {verb}: {done}개, 실패 {failed}개 — {firstError}";
+        return done;
     }
 
     /// <summary>
@@ -3617,7 +4056,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         // 이미 있는 이름으로는 덮어쓰지 않는다(스토어도 방어하지만 VM 에서 먼저 막아 사용자에게 알린다).
-        if (_worshipLists.ListNames().Any(n => string.Equals(n, to, StringComparison.OrdinalIgnoreCase)))
+        // The current list counts even when it is not on disk yet (an imported copy, a cleared list): its next
+        // save would overwrite the renamed list.
+        if (string.Equals(CurrentWorshipListName, to, StringComparison.OrdinalIgnoreCase)
+            || _worshipLists.ListNames().Any(n => string.Equals(n, to, StringComparison.OrdinalIgnoreCase)))
         {
             StatusText = $"이미 있는 이름입니다: {to}";
             return false;
@@ -3634,6 +4076,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             StatusText = $"이름을 바꾸지 못했습니다: {to}";
             return false;
         }
+
+        // Notes are stored per list name (FrmMain keeps them inside the list file), so they follow the rename.
+        if (SessionNotes.GetNotes(from) is { Length: > 0 } notes) SessionNotes.SetNotes(to, notes);
 
         // 선택 중이던 이름이 바뀌었으면 세션 콤보 선택도 새 이름으로 따라가게 먼저 맞춘 뒤 목록을 새로고침한다.
         if (string.Equals(CurrentWorshipListName, from, StringComparison.OrdinalIgnoreCase))
@@ -3678,11 +4123,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             if (Media.IsOutputPlayerVisible) Media.StopCommand.Execute(null);
             else _ = EndShowAsync();
-        }, () => Media.IsOutputPlayerVisible || IsShowRunning);
+        }, () => Media.IsOutputPlayerVisible || IsShowRunning || _nativeShowMayExist);
         registry.Bind(MainCommandIds.OutputSpace, () =>
         {
             if (Media.IsOutputPlayerVisible) Media.PlayPauseCommand.Execute(null);
-            else if (_session.Current is { State: LiveState.Active, PptPath: { Length: > 0 } path }) _ = AdvanceLivePowerPointAsync(path);
+            // The Next path: it steps the native show, and starts it again when it was lost (PowerPoint closed).
+            else if (_session.Current is { State: LiveState.Active, PptPath.Length: > 0 }) _ = LiveNextShortcutCommand.ExecuteAsync(null);
             else if (MediaOwnsKeys() && Media.PlayPauseCommand.CanExecute(null)) Media.PlayPauseCommand.Execute(null);
             else if (_session.Current.State == LiveState.Active) LiveNextShortcutCommand.Execute(null);
         }, () => IsShowRunning || (Media.HasFilePlayback && Media.PlayPauseCommand.CanExecute(null)));
@@ -3738,7 +4184,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             var preferred = _sessionOutputMonitorId ?? _settings.Get(AxicultusSettingKeys.DefaultOutputMonitorId);
             var audience = GetPreferredOutputDisplay(preferred, available);
             UpdateDisplayList(OutputDisplays, available);
-            SelectedOutputDisplay = audience;
+            // Saved monitor "None" and none picked in this session: the combo names no monitor, as none is used.
+            SelectedOutputDisplay = IsOutputDisabled ? null : audience;
+            OnPropertyChanged(nameof(OutputMonitorCaption));
             StopPlayerIfDisplayChanged(audience);
             if (_output.Current.IsOpen)
             {
@@ -3838,6 +4286,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (_refreshingDisplays || value == null)
             return;
         _sessionOutputMonitorId = value.Id;
+        OnPropertyChanged(nameof(OutputMonitorCaption));
         StopPlayerIfDisplayChanged(value);
         if (_output.Current.IsOpen)
         {
@@ -3924,11 +4373,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private const int PptThumbnailWidth = Rendering.LegacyPowerPointImageSize.Width;
     private const int PptThumbnailHeight = Rendering.LegacyPowerPointImageSize.Height;
 
-    private static readonly string[] WorshipOutputMediaExtensions =
-    [
-        ".mp4", ".m4v", ".mov", ".avi", ".wmv", ".mpg", ".mpeg", ".mkv", ".webm",
-        ".mp3", ".wav", ".wma", ".m4a", ".aac", ".flac", ".ogg"
-    ];
+    // Audio then video, from the lists the operator edits (AudioExtensions.txt, VideoExtensions.txt), in the
+    // order Gf.MediaFileExtensions holds them.
+    private IReadOnlySet<string> WorshipOutputMediaExtensions => SourceFileExtensions.Media(_settings.Current.General.WorkingFolder);
+
+    /// <summary>The media entry of a file dialog filter, from the same lists as FrmMain builds its own.</summary>
+    public string MediaDialogFilter(string label) => SourceFileExtensions.DialogFilter(label, WorshipOutputMediaExtensions);
 
     private LiveQueueItem? _sourcePreviewItem;
     private LiveQueueItem? _outputFormatSource;
@@ -4300,18 +4750,52 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         return pages;
     }
 
-    private readonly Dictionary<(string Lyrics, string? Sequence, Data.SongPageLayout Layout, string? Format, double Height, int Panel),
-        (List<string> Bodies, List<string> Labels)> _songPages = [];
+    private readonly Dictionary<(string Lyrics, string? Sequence, Data.SongPageLayout Layout, string Region2, string? Format, double Height, int Panel),
+        (List<string> Bodies, List<string> Labels, List<double> FontScales)> _songPages = [];
 
-    private (List<string> Bodies, List<string> Labels)? GetSongPages(LiveQueueItem item)
+    // FontScales: the part of the font size each page is drawn with; below 1 where the font was reduced for a first line too high for a screen.
+    private (List<string> Bodies, List<string> Labels, List<double> FontScales)? GetSongPages(LiveQueueItem item)
     {
-        if (CurrentSongLayout(item) is not { } layout || item.Lyrics is not { Length: > 0 } lyrics ||
-            !_settings.Get(AxicultusSettingKeys.AutoTextOverflow) || LyricsDisplayFormatter.HasRegion2(lyrics)) return null;
+        // gfLyrics.FitWholeLyricPage exempts type "B": a Bible passage flows over as many slides as it needs
+        // whatever the Auto Text Overflow switch says, so it also gets a layout when its version gave none.
+        bool bible = LiveItemKindMatcher.IsBible(item.Kind);
+        // The page count and the cards use the layout the projected page uses (ProjectLyricsPage): the version's
+        // layout as it is now, not the one the row was given when it was added.
+        if (bible) item = RestoreBibleLayout(item);
+        if ((CurrentSongLayout(item) ?? (bible ? DefaultBibleLayout() : null)) is not { } layout || item.LyricsWithChords is not { Length: > 0 } lyrics ||
+            (!bible && !_settings.Get(AxicultusSettingKeys.AutoTextOverflow))) return null;
+        // With a second region (a two-language song, a passage in two Bible versions) region 1 decides the screens
+        // and region 2 follows (gfLyrics.BuildSlides, BuildSlidesReg2).
+        // A Bible verse may start with a quotation mark », which is not a chord marker there.
+        bool regions = LyricsDisplayFormatter.HasRegion2(bible ? LyricsDisplayFormatter.GuardLiteralNotation(lyrics) : lyrics);
         string? format = item.UseIndividualFormatting ? item.FormatData : null;
         int panel = _settings.Get(AxicultusSettingKeys.PanelHeightPercent);
-        var key = (lyrics, item.Sequence, layout, format, SampleScreenHeight, panel);
+        // The key holds what the measurement reads. Fields is left out: a two-version Bible layout gets a new
+        // dictionary on every call (ResolveBibleLayout), which would make every key a new one. Of the fields, the
+        // top of region 2 and the font a verse with region 2 only is cut with are read.
+        var key = (lyrics, item.Sequence, layout with { Fields = null },
+            string.Join('|', layout.Field("Vpos1"), layout.Field("Size1"), layout.Field("FontName1"), layout.Field("BIU1")), format, SampleScreenHeight, panel);
         if (_songPages.TryGetValue(key, out var pages)) return pages;
-        pages = layout.Paginate(lyrics, item.Sequence, SongFormatData.Parse(format), SampleScreenHeight, panel, ItemDisplayFormat.Read(format)?.Top1);
+        var display = ItemDisplayFormat.Read(format);
+        List<double> fontScales = [];
+        int? region2Top = regions ? display?.Top2 ?? layout.Integer("Vpos1") ?? 50 : null;
+        if (regions && bible)
+        {
+            // The saved passage holds a verse of both versions in each block.
+            var verses = LyricsDisplayFormatter.GetRegionPages(
+                    LyricsDisplayFormatter.GuardLiteralNotation(LyricsDisplayFormatter.NormalizeText(lyrics)), null)
+                .Select(verse => new LyricsRegionPage(
+                    LyricsDisplayFormatter.UnguardLiteralNotation(verse.Region1), LyricsDisplayFormatter.UnguardLiteralNotation(verse.Region2)))
+                .ToArray();
+            var bodies = layout.PaginateRegions(verses, SongFormatData.Parse(format), SampleScreenHeight, panel, display?.Top1,
+                region2Top!.Value, fontScales);
+            pages = (bodies, bodies.ConvertAll(_ => ""), fontScales);
+        }
+        else
+        {
+            var (bodies, labels) = layout.Paginate(lyrics, item.Sequence, SongFormatData.Parse(format), SampleScreenHeight, panel, display?.Top1, fontScales, region2Top);
+            pages = (bodies, labels, fontScales);
+        }
         if (_songPages.Count >= 4) _songPages.Clear();
         _songPages.Add(key, pages);
         return pages;
@@ -4576,7 +5060,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         for (var i = 0; i < labels.Count; i++)
         {
-            if (string.Equals(labels[i], label, StringComparison.OrdinalIgnoreCase))
+            // Page labels are the heading text ("chorus"); the verse keys send the short token ("c").
+            if (LyricsDisplayFormatter.MatchesSection(labels[i], label))
             {
                 return i;
             }
@@ -4666,6 +5151,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 // 한 항목만 — 끝까지 가면 자동 회전을 멈춘다(반복·항목 이동 없음).
                 IsAutoRotating = false;
                 StatusText = "자동 회전 완료(한 항목)";
+                // FrmLaunchShow TimerRotate: a rotation with no next target ends on the gap screen.
+                if (CanShowGapItem()) _ = ShowGapItemAsync();
                 break;
             case AutoRotateMode.Group:
                 // 다음 예배 순서 항목으로; 마지막 항목이면 멈춘다.
@@ -4673,6 +5160,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 {
                     IsAutoRotating = false;
                     StatusText = "자동 회전 완료(그룹 끝)";
+                    if (CanShowGapItem()) _ = ShowGapItemAsync();
                 }
                 break;
             case AutoRotateMode.GroupRepeat:
@@ -4892,17 +5380,22 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(HasPreviewVisualSource));
     }
 
+    private int _itemContentGeneration;
+
     public async Task ApplySelectedItemContentAsync(LiveQueueItem? item)
     {
         // fire-and-forget(OnSelectedItemChanged)로 호출되므로 예외가 새면 unobserved 가 된다.
         // 안전 불변식을 호출 메서드 안에서 봉인.
         try
         {
+            var generation = ++_itemContentGeneration;
             if (item is { Kind: LiveItemKinds.PowerPoint, ContentPath: { Length: > 0 } pptPath })
             {
                 var slide = item.SlideNumber <= 0 ? 1 : item.SlideNumber;
                 var (renderWidth, renderHeight) = ResolvePptRenderSize();
                 await PowerPoint.LoadAsync(pptPath, slide, renderWidth, renderHeight).ConfigureAwait(true);
+                // A slow deck render must not unload the media of an item selected in the meantime.
+                if (generation != _itemContentGeneration) return;
 
                 EnsurePowerPointThumbnails(PowerPoint, pptPath);
             }
@@ -4912,6 +5405,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             }
 
             if (Media.IsOutputPlayerVisible) return;
+            // FrmMain drives its media player from the live item, never from the list selection: media or a
+            // camera that is playing or paused stays on screen when another row is selected.
+            if (Media.State is MediaPlaybackState.Playing or MediaPlaybackState.Paused) return;
             if (item is { Kind: LiveItemKinds.Media, ContentPath: { Length: > 0 } mediaPath })
             {
                 Media.Load(GetItemMediaRequest(item, mediaPath));
@@ -4995,7 +5491,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return null;
         }
 
-        foreach (var extension in WorshipOutputMediaExtensions)
+        var extensions = WorshipOutputMediaExtensions;
+        foreach (var extension in extensions)
         {
             var direct = Path.Combine(root, $"{title}{extension}");
             if (File.Exists(direct))
@@ -5013,7 +5510,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         try
         {
             return Directory.EnumerateFiles(root, "*.*", SearchOption.AllDirectories)
-                .Where(IsSupportedWorshipOutputMediaFile)
+                .Where(file => extensions.Contains(Path.GetExtension(file)))
                 .FirstOrDefault(file => string.Equals(
                     NormalizeWorshipMediaLookupName(Path.GetFileNameWithoutExtension(file)),
                     normalizedTitle,
@@ -5121,6 +5618,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             _outputFormatSource = null;
             _outputFromSourcePreview = false;
         }
+        OnPropertyChanged(nameof(LiveRow)); // another row of the same song has the same live id
         if (value?.Id != _chineseOutputItemId) _outputScript = null;
         ToggleOutputChineseCommand.NotifyCanExecuteChanged();
         RefreshOutputSurfaceText();
@@ -5144,15 +5642,17 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         var projection = ResolveLiveProjection(output with { LyricsPageIndex = pageIndex ?? GetOutputLyricsPageIndex(output) });
         string monitor = _output.Current.Display?.Name ?? OutputDisplay.PrimaryFallback.Name;
-        if (_session.Current.State == LiveState.Active) _session.GoLive(projection, monitor);
-        else if (_session.Current.State == LiveState.Hidden) _session.UpdateHiddenContent(projection, monitor);
+        // A format change of the output row must not bring the row back over the gap screen.
+        var state = IsGapItemOnDisplay ? LiveState.Off : _session.Current.State;
+        if (state == LiveState.Active) _session.GoLive(projection, monitor);
+        else if (state == LiveState.Hidden) _session.UpdateHiddenContent(projection, monitor);
         RefreshOutputSurfaceText();
         RebuildOutputLyricsPages();
     }
 
     private void RefreshOutputSurfaceText()
     {
-        if (OutputItem is not { } item || IsPowerPointItem(item) || IsMediaItem(item))
+        if (OutputItem is not { } item || IsPowerPointItem(item) || IsMediaItem(item) || IsGapItemOnDisplay)
         {
             OutputLyricsText = string.Empty;
             return;
@@ -5195,6 +5695,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             Media.Unload();
             return;
         }
+        if (RefuseDisabledOutput()) return;
         var display = EnsureLiveOutputDisplay();
         Media.LoadLiveCamera(display.Id);
         if (Media.PlayPauseCommand.CanExecute(null)) Media.PlayPauseCommand.Execute(null);
@@ -5216,6 +5717,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
+        if (RefuseDisabledOutput()) return;
         var request = GetItemMediaRequest(item, mediaPath);
         if (request.SourceKind == MediaSourceKind.CaptureDevice)
         {
@@ -5255,6 +5757,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
+        if (RefuseDisabledOutput()) return;
         var request = GetItemMediaRequest(item, mediaPath);
         if (!OpenAssignedMediaDisplay(request) && !_output.Current.IsOpen)
         {
@@ -5317,7 +5820,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return null;
         }
 
-        foreach (var extension in WorshipOutputMediaExtensions)
+        var extensions = WorshipOutputMediaExtensions;
+        foreach (var extension in extensions)
         {
             var direct = Path.Combine(root, $"{title}{extension}");
             if (File.Exists(direct))
@@ -5335,7 +5839,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         try
         {
             return Directory.EnumerateFiles(root, "*.*", SearchOption.AllDirectories)
-                .Where(IsSupportedWorshipOutputMediaFile)
+                .Where(file => extensions.Contains(Path.GetExtension(file)))
                 .FirstOrDefault(file => string.Equals(
                     NormalizeWorshipMediaLookupName(Path.GetFileNameWithoutExtension(file)),
                     normalizedTitle,
@@ -5390,8 +5894,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
-    private static bool IsSupportedWorshipOutputMediaFile(string filePath)
-        => WorshipOutputMediaExtensions.Contains(Path.GetExtension(filePath), StringComparer.OrdinalIgnoreCase);
+    private bool IsSupportedWorshipOutputMediaFile(string filePath)
+        => WorshipOutputMediaExtensions.Contains(Path.GetExtension(filePath));
 
     private bool TryGetExplicitItemMedia(LiveQueueItem item, out string? source)
     {
@@ -5481,6 +5985,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             RefreshStageSelection(OutputDisplays, audience);
         NotifyCommandStates();
 
+        // The operator closed the audience window itself (Alt+F4 / X) while live: end the show instead of
+        // staying "LIVE" with nothing on screen. Our own close paths stop the session before closing the window.
+        if (!e.State.IsOpen && IsShowRunning && !_endingShow)
+        {
+            _ = EndShowAsync();
+        }
+
         // 출력 창이 열리면 현재 선택된 PPT 를 그 해상도로 다시 렌더한다 — 항목을 먼저 고르고
         // 출력을 나중에 여는 흐름에서도 송출이 선명하도록(직전 렌더가 미리보기 크기로 남는 문제 해소).
         // 닫힘은 송출하지 않으므로 갱신 불필요(IsOpen 가드). 같은 해상도 갱신은 렌더 캐시가 흡수.
@@ -5555,8 +6066,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         NotifyCommandStates();
     }
 
-    // FrmMain PPT thumbnail DoubleClick retriggers the current ImageCanvas.
-    // WPF currently has a static-slide renderer, so replay means force-rendering the selected Preview slide again.
+    // FrmMain: a preview thumbnail double-click behaves like a single click and must not drive the PowerPoint
+    // slide show (it would move the audience's slide, or start a second full-screen show for another deck).
     private async Task ReplayPreviewPowerPointSlideAsync(int target)
     {
         if (PreviewItem is not { Kind: LiveItemKinds.PowerPoint, ContentPath: { Length: > 0 } path })
@@ -5573,10 +6084,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var (width, height) = ResolvePptRenderSize();
         await PowerPoint.LoadAsync(path, target, width, height).ConfigureAwait(true);
         EnsurePowerPointThumbnails(PowerPoint, path);
-        await TriggerPowerPointSlideShowNextAsync(
-            path,
-            target,
-            PowerPointSlideShowTarget.Preview).ConfigureAwait(true);
         StatusText = PowerPoint.SlideCount > 1
             ? $"Preview PPT slide {target}/{PowerPoint.SlideCount} replayed"
             : "Preview PPT slide replayed";
@@ -5600,19 +6107,34 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
+    // A start was asked for and no stop has completed since: a native show may be on the screen even when the
+    // control reports none (the start failed or was given up after PowerPoint had opened the show).
+    private bool _nativeShowMayExist;
+
     private async Task<bool> StartPowerPointSlideShowForLiveAsync(LiveQueueItem item, string monitorName)
     {
         try
         {
             if (!IsPowerPointItem(item) || string.IsNullOrWhiteSpace(item.ContentPath))
             {
-                if (_powerPointSlideShow.HasOutputShow) await _powerPointSlideShow.StopAsync().ConfigureAwait(true);
+                if ((_powerPointSlideShow.HasOutputShow || _nativeShowMayExist)
+                    && await StopPowerPointSlideShowForLiveAsync().ConfigureAwait(true) is { } stopError)
+                {
+                    // The deck's show may still cover the audience window: the operator has to know.
+                    StatusText = $"PowerPoint 슬라이드 쇼 종료 실패: {stopError}";
+                    NotifyCommandStates();
+                    return false;
+                }
                 return true;
             }
             var slideNumber = item.SlideNumber > 0 ? item.SlideNumber : Math.Max(OutputPowerPoint.SlideNumber, 1);
+            _nativeShowMayExist = true;
             await _powerPointSlideShow.StartAsync(
                 new PowerPointSlideShowRequest(item.ContentPath, slideNumber, PowerPointSlideShowTarget.Output),
                 monitorName).ConfigureAwait(true);
+            // Black or Hide pressed while PowerPoint was still starting the show: it comes up over the black
+            // audience window, so it is blacked now.
+            if (_nativeBlackout) await SetPowerPointBlackoutAsync(true).ConfigureAwait(true);
             return true;
         }
         catch (Exception ex)
@@ -5645,15 +6167,60 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private bool IsPreviewLyricsPageNavReady()
         => LyricsPageCount > 0;
 
-    private async Task AdvanceLivePowerPointAsync(string path)
+    // The audience sees the deck's native slide show: live, or under Clear, which leaves a deck showing
+    // (ApplyLiveSnapshot). Under Black and Hide the show is blacked and must not be stepped.
+    private static bool ShowsNativeDeck(LiveSessionSnapshot session)
+        => session.PptPath is { Length: > 0 }
+            && (session.State == LiveState.Active || session is { State: LiveState.Hidden, IsCleared: true, IsBlackout: false });
+
+    // A deck is on the audience screen as a native slide show that can be stepped (no media player over it).
+    private bool IsLivePowerPointShowSteppable()
+        => ShowsNativeDeck(_session.Current) && _powerPointSlideShow.HasOutputShow && !Media.IsOutputPlayerVisible;
+
+    // One native Next/Previous of the live deck, as FrmLaunchShow.MoveToSlideLiveItem: click animations play and
+    // hidden slides are skipped. False when there is no native show to step (the caller moves by slide number).
+    // stepped: called once PowerPoint has moved, before the slide picture is rendered for the panes.
+    private async Task<bool> TryStepLivePowerPointAsync(bool forward, Action? stepped = null)
     {
         var session = _session.Current;
+        if (!ShowsNativeDeck(session) || Media.IsOutputPlayerVisible || session.PptPath is not { } path)
+        {
+            return false;
+        }
+
         try
         {
-            var position = await _powerPointSlideShow.AdvanceOutputAsync(path).ConfigureAwait(true);
-            await ApplyNativeSlidePositionAsync(session, position).ConfigureAwait(true);
+            var position = forward
+                ? await _powerPointSlideShow.AdvanceOutputAsync(path).ConfigureAwait(true)
+                : await _powerPointSlideShow.RetreatOutputAsync(path).ConfigureAwait(true);
+            if (position is null)
+            {
+                return false;
+            }
+
+            if (position == Rendering.IPowerPointSlideShowControl.EndOfShow)
+            {
+                // Past the last slide: the next item when "advance to next item" is on, else the deck stays.
+                if (_settings.Get(AxicultusSettingKeys.AdvanceNextItem) && (CanMoveOutputItem(+1) || CanShowGapItem())
+                    && NextOutputItemCommand.CanExecute(null))
+                {
+                    await NextOutputItemCommand.ExecuteAsync(null).ConfigureAwait(true);
+                }
+                else
+                {
+                    StatusText = "Output 다음 슬라이드/절이 없습니다.";
+                }
+
+                return true;
+            }
+
+            // The picture is started first so that the pictures of two quick steps are asked for in step order.
+            var picture = ApplyNativeSlidePositionAsync(session, position);
+            stepped?.Invoke();
+            await picture.ConfigureAwait(true);
         }
         catch (Exception ex) { StatusText = $"PowerPoint 슬라이드 진행 실패: {ex.Message}"; }
+        return true;
     }
 
     private bool _readingNativePosition;
@@ -5716,7 +6283,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
         if (session.PptSlideNumber != slide || (version != null &&
             !ReferenceEquals(session.CurrentItemPreviewSource, OutputPowerPoint.PreviewImage)))
-            _session.GoLive(ResolveLiveProjection(item with { SlideNumber = slide, PreviewSource = OutputPowerPoint.PreviewImage }, OutputPowerPoint), session.OutputMonitorName);
+        {
+            var projection = ResolveLiveProjection(item with { SlideNumber = slide, PreviewSource = OutputPowerPoint.PreviewImage }, OutputPowerPoint);
+            // A deck stepped under Clear stays cleared.
+            if (session.State == LiveState.Hidden) _session.UpdateHiddenContent(projection, session.OutputMonitorName);
+            else _session.GoLive(projection, session.OutputMonitorName);
+        }
     }
 
     private async Task GoToOutputSlideAsync(int target)
@@ -5748,6 +6320,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             var updated = item with { SlideNumber = target };
             RefreshHiddenOutputPayloadAtCurrentPosition(updated, MainCommandIds.LivePreviewToOutput);
+            // Under Clear the deck is still on the audience screen, so it has to follow.
+            if (ShowsNativeDeck(_session.Current))
+                await StartPowerPointSlideShowForLiveAsync(updated, GetPowerPointOutputMonitorName(_output.Current.Display ?? OutputDisplay.PrimaryFallback)).ConfigureAwait(true);
             StatusText = OutputPowerPoint.SlideCount > 1
                 ? $"Output 슬라이드 {target}/{OutputPowerPoint.SlideCount} 숨김 준비"
                 : StatusText;
@@ -5772,7 +6347,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         await GoToOutputSlideAsync(target).ConfigureAwait(true);
-        if (IsOutputPowerPointSlideNavReady() && OutputPowerPoint.SlideNumber == target)
+        // Only a running show has animations to replay; triggering while not live would start a full-screen show
+        // that End Show does not close (FrmMain's SafePlayNext is a no-op without a running show).
+        if (_session.Current.State == LiveState.Active
+            && IsOutputPowerPointSlideNavReady() && OutputPowerPoint.SlideNumber == target)
         {
             await TriggerPowerPointSlideShowNextAsync(
                 path,
@@ -5787,6 +6365,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private async Task NextOutputPageAsync()
     {
+        if (await TryStepLivePowerPointAsync(forward: true).ConfigureAwait(true)) return;
         if (IsOutputPowerPointSlideNavReady())
         {
             await GoToOutputSlideAsync(Math.Min(OutputPowerPoint.SlideNumber + 1, OutputPowerPoint.SlideCount)).ConfigureAwait(true);
@@ -5802,6 +6381,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private async Task PreviousOutputPageAsync()
     {
+        if (await TryStepLivePowerPointAsync(forward: false).ConfigureAwait(true)) return;
         if (IsOutputPowerPointSlideNavReady())
         {
             await GoToOutputSlideAsync(Math.Max(OutputPowerPoint.SlideNumber - 1, 1)).ConfigureAwait(true);
@@ -5846,17 +6426,26 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         => IsOutputPowerPointSlideNavReady() && target >= 1 && target <= OutputPowerPoint.SlideCount;
 
     private bool CanGoNextOutputSlide()
-        => IsOutputPowerPointSlideNavReady()
+        => IsLivePowerPointShowSteppable()
+            || IsOutputPowerPointSlideNavReady()
             || IsOutputLyricsPageNavReady();
 
     private bool CanGoPreviousOutputSlide()
-        => IsOutputPowerPointSlideNavReady()
+        => IsLivePowerPointShowSteppable()
+            || IsOutputPowerPointSlideNavReady()
             || IsOutputLyricsPageNavReady();
 
     private bool CanMoveOutputSlidePage(int direction)
     {
         if (direction > 0)
         {
+            // The native show decides: the last slide may still have click animations, and running past it is
+            // the hand-off to the next item (TryStepLivePowerPointAsync).
+            if (IsLivePowerPointShowSteppable())
+            {
+                return true;
+            }
+
             if (IsOutputPowerPointSlideNavReady() && OutputPowerPoint.SlideNumber < OutputPowerPoint.SlideCount)
             {
                 return true;
@@ -5869,6 +6458,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             }
 
             return false;
+        }
+
+        // The native show can step back whether or not its slide picture could be rendered for the panes.
+        if (IsLivePowerPointShowSteppable() && _session.Current.PptSlideNumber > 1)
+        {
+            return true;
         }
 
         if (IsOutputPowerPointSlideNavReady() && OutputPowerPoint.SlideNumber > 1)
@@ -5900,9 +6495,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     private LiveQueueItem? GetLivePowerPointItem()
-        => Queue.FirstOrDefault(item =>
-            string.Equals(item.Id, _liveItemId, StringComparison.Ordinal)
-            && IsPowerPointItem(item));
+        => GetLiveQueueItem() is { } live && IsPowerPointItem(live) ? live : null;
 
     private LiveQueueItem? GetOutputPowerPointNavigationItem()
     {
@@ -6002,7 +6595,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private void RefreshHiddenOutputLyricsPage(LiveQueueItem item, int target, int pageCount)
     {
         var updated = item with { LyricsPageIndex = target };
+        // The page copy must not take the place of the row the output was taken from: that row says which of two
+        // rows of the same song is on output.
+        var (row, fromSourcePreview) = (_outputFormatSource, _outputFromSourcePreview);
         RefreshHiddenOutputPayloadAtCurrentPosition(updated, MainCommandIds.LivePreviewToOutput);
+        if (row is not null && row.Id == updated.Id) (_outputFormatSource, _outputFromSourcePreview) = (row, fromSourcePreview);
         StatusText = pageCount > 1
             ? $"Output 가사 {target + 1}/{pageCount}절 숨김 준비"
             : StatusText;
@@ -6051,10 +6648,24 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var itemDisplay = item.UseIndividualFormatting ? ItemDisplayFormat.Read(item.FormatData) : null;
         bool showChords = preview ? PreviewAreaShowNotations : itemDisplay?.Flag(4) ?? _settings.Get(AxicultusSettingKeys.LyricsMonitorShowNotations);
         if (GetSongPages(item) is { } songPages)
-            return index => LyricsDisplayFormatter.FormatSongSlide(PageAt(songPages.Bodies, index), showChords, ResolveChordTranspose(item, itemDisplay));
+        {
+            // A Bible page is plain text: its quotation marks » « are not chord markers. With a second version the
+            // page holds both regions (SongPageLayout.PaginateRegions).
+            return bible
+                ? index => PageAt(songPages.Bodies, index) is { } page && Data.SongPageLayout.SplitRegions(page) is var (region1, region2)
+                    ? TextOrTitle(JoinOutputBodyText(region1, region2), item.Title)
+                    : item.Title
+                : index =>
+                {
+                    var (region1, region2) = Data.SongPageLayout.SplitRegions(PageAt(songPages.Bodies, index) ?? "");
+                    int transpose = ResolveChordTranspose(item, itemDisplay);
+                    return JoinOutputBodyText(LyricsDisplayFormatter.FormatSongSlide(region1, showChords, transpose),
+                        LyricsDisplayFormatter.FormatSongSlide(region2, showChords, transpose));
+                };
+        }
         string lyrics = bible
             ? LyricsDisplayFormatter.GuardLiteralNotation(LyricsDisplayFormatter.NormalizeText(item.Lyrics ?? string.Empty))
-            : LyricsDisplayFormatter.ExpandNotations(item.Lyrics, showChords, ResolveChordTranspose(item, itemDisplay));
+            : LyricsDisplayFormatter.ExpandNotations(item.LyricsWithChords, showChords, ResolveChordTranspose(item, itemDisplay));
 
         string DisplayText(string? text) => bible
             ? TextOrTitle(LyricsDisplayFormatter.UnguardLiteralNotation(text), item.Title)
@@ -6128,6 +6739,15 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private void OnMediaPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(Media.State)) CloseOutputCommand.NotifyCanExecuteChanged();
+        // Media that plays is not replaced by a list selection (ApplySelectedItemContentAsync). Once it is stopped
+        // outside a show, the transport belongs to the selected row again; in a show it stays with the live item.
+        if (e.PropertyName == nameof(Media.State) && Media.State == MediaPlaybackState.Stopped
+            && !IsShowRunning && !Media.IsOutputPlayerVisible
+            && SelectedItem is { Kind: LiveItemKinds.Media, ContentPath: { Length: > 0 } selectedPath } selected
+            && !string.Equals(Media.Source, selectedPath, StringComparison.OrdinalIgnoreCase))
+        {
+            Media.Load(GetItemMediaRequest(selected, selectedPath));
+        }
         if (e.PropertyName == nameof(Media.StatusText) && Media.PlayerDisplay != null && Media.State == MediaPlaybackState.Failed)
             StatusText = Media.StatusText;
         if (e.PropertyName is nameof(Media.Source)
@@ -6144,22 +6764,45 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>확장자로 오디오/비디오를 추정(미디어 요청 MediaType).</summary>
-    private static string InferMediaType(string filePath)
-    {
-        var ext = Path.GetExtension(filePath).ToLowerInvariant();
-        return ext is ".mp3" or ".wav" or ".wma" or ".m4a" or ".aac" or ".flac" or ".ogg"
+    private string InferMediaType(string filePath)
+        => SourceFileExtensions.Audio(_settings.Current.General.WorkingFolder).Contains(Path.GetExtension(filePath).ToLowerInvariant())
             ? "Audio"
             : "Video";
+
+    // FrmMain: output monitor "None" means no audience window and no show (MonitorLayout.ResolveOutput,
+    // Start_Presentation). A monitor the operator picks in this session wins over the saved "None".
+    // A custom output area wins over the monitor name, as in MonitorLayout.ResolveOutput: FrmOptions stores
+    // "None" for the (disabled) monitor list while the custom area is in use.
+    internal bool IsOutputDisabled => _sessionOutputMonitorId is null
+        && string.Equals(_settings.Get(AxicultusSettingKeys.DefaultOutputMonitorId), "None", StringComparison.OrdinalIgnoreCase)
+        && !Platform.WindowPlacementService.UsesCustomBounds(_settings.Current.LiveOutput);
+
+    /// <summary>The caption of the output monitor combo; it says so when the output is off.</summary>
+    public string OutputMonitorCaption => IsOutputDisabled ? "출력 — 없음 (송출 안 함)" : "출력";
+
+    // True, with the reason in the status line, when nothing may be put on an audience screen.
+    private bool RefuseDisabledOutput()
+    {
+        if (!IsOutputDisabled) return false;
+        StatusText = "출력 모니터가 '없음'으로 설정되어 송출하지 않습니다. 옵션에서 출력 모니터를 선택하세요.";
+        NotifyCommandStates();
+        return true;
     }
+
+    // The saved custom output area lies off every screen, so the whole monitor is used instead.
+    private string OutputAreaNote => _output.Current is { IsOpen: true, Placement.CustomAreaOffScreen: true }
+        ? " — 사용자 지정 출력 영역이 화면 밖이라 모니터 전체에 송출합니다"
+        : string.Empty;
 
     private void OpenOutput()
     {
+        if (RefuseDisabledOutput()) return;
         RefreshDisplays();
         var display = SelectedOutputDisplay ?? GetPreferredOutputDisplay(null);
         _output.Open(display, windowed: true);
         SelectedOutputDisplay = display;
         LiveBar.OutputMonitorName = _output.Current.Display?.Name ?? string.Empty;
-        StatusText = $"출력 창 열림: {LiveBar.OutputMonitorName}";
+        StatusText = $"출력 창 열림: {LiveBar.OutputMonitorName}{OutputAreaNote}";
         _telemetry.Record(MainCommandIds.OutputOpen, succeeded: true, StatusText);
         NotifyCommandStates();
     }
@@ -6204,12 +6847,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         if (Media.IsOutputPlayerVisible) Media.Unload();
-        _output.Close();
+        // The native PowerPoint show is a separate full-screen window; without this it stays on the audience monitor.
+        await StopPowerPointSlideShowForLiveAsync().ConfigureAwait(true);
         if (_session.Current.State != LiveState.Off)
         {
             _session.Stop();
         }
 
+        _output.Close();
         SetLiveItemId(null);
         OutputItem = null;
         OutputPowerPoint.Clear();
@@ -6276,6 +6921,17 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var item = PrepareOutputFromPreview();
         if (item is null)
         {
+            return;
+        }
+
+        // FrmMain F7 (KeyboardActionHandler.HandleGlobalFunctionKey): copy, then LiveBlack(false). Clear is its
+        // own switch and stays on, so the new item waits under the cleared screen.
+        if (clearBlackAfterCopy && IsOutputBlackActive && IsOutputClearActive)
+        {
+            RefreshHiddenOutputPayload(item, commandId);
+            _session.SetBlackout(false);
+            StatusText = "화면 비움(배경 유지)";
+            NotifyCommandStates();
             return;
         }
 
@@ -6360,7 +7016,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             ? LyricsPageIndex
             : item.LyricsPageIndex;
 
-    private bool RefreshHiddenOutputPayload(LiveQueueItem item, string commandId)
+    // page: the page an item move opens (FrmMain.MoveToOutputItem opens the item on the page it names, whatever
+    // the output shows); null for a copy of the preview, which brings the preview's page.
+    private bool RefreshHiddenOutputPayload(LiveQueueItem item, string commandId, int? page = null)
     {
         if (_session.Current.State != LiveState.Hidden)
         {
@@ -6369,9 +7027,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         var monitorName = _output.Current.Display?.Name ?? OutputDisplay.PrimaryFallback.Name;
         var prepared = PrepareOutputFromSource(item);
-        var lyricsPageIndex = ReferenceEquals(item, SelectedItem)
+        var lyricsPageIndex = page ?? (ReferenceEquals(item, SelectedItem)
             ? LyricsPageIndex
-            : prepared.LyricsPageIndex;
+            : prepared.LyricsPageIndex);
         var projection = prepared with { LyricsPageIndex = lyricsPageIndex };
         if (IsPowerPointItem(prepared) && OutputPowerPoint.SlideNumber > 0)
         {
@@ -6380,6 +7038,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         SetLiveItemId(prepared.Id);
         LiveTransposeSemitones = 0;
+        FollowLiveItemMedia(projection);
         _session.UpdateHiddenContent(ResolveLiveProjection(projection, OutputPowerPoint), monitorName);
         _telemetry.Record(commandId, succeeded: true, $"{prepared.Title} (hidden)");
         return true;
@@ -6468,9 +7127,17 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        var problems = await GetWorshipListProblemsAsync().ConfigureAwait(true);
-        ApplyWorshipListValidationResults(problems);
-        if (problems.Count > 0)
+        if (RefuseDisabledOutput())
+        {
+            NotifyOutputLiveSafetyProperties();
+            return;
+        }
+
+        // Same database as the validate command, so the gate does not depend on the search tab having been opened.
+        var databasePath = ResolveSongDetailDatabasePath() is { Length: > 0 } resolved ? resolved : Search.DatabasePath;
+        var problems = await GetWorshipListProblemsAsync(databasePath).ConfigureAwait(true);
+        ApplyWorshipListValidationResults(problems, databasePath);
+        if (problems.Any(BlocksGoLive))
         {
             _telemetry.Record(MainCommandIds.LiveGo, succeeded: false, StatusText);
             NotifyOutputLiveSafetyProperties();
@@ -6532,13 +7199,29 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private async Task EndShowAsync()
     {
-        if (_endingShow || !IsShowRunning) return;
+        if (_endingShow) return;
+        if (!IsShowRunning)
+        {
+            // The show ended, but PowerPoint could not close its slide show then (busy, or not answering): the
+            // operator asks again.
+            if (!_nativeShowMayExist) return;
+            _endingShow = true;
+            try
+            {
+                StatusText = await StopPowerPointSlideShowForLiveAsync().ConfigureAwait(true) is { } stopError
+                    ? $"PowerPoint 종료 실패: {stopError}"
+                    : "PowerPoint 슬라이드 쇼 종료";
+            }
+            finally { _endingShow = false; }
+            return;
+        }
         _endingShow = true;
         try
         {
             if (Media.IsOutputPlayerVisible) Media.Unload();
             var powerPointStopError = await StopPowerPointSlideShowForLiveAsync().ConfigureAwait(true);
             _session.Stop();
+            RestoreShowKeySettings();
             if (_output.Current.IsOpen && !_output.Current.Placement.IsWindowed) _output.Close();
             SetLiveItemId(null);
             OutputPowerPoint.Clear();
@@ -6551,11 +7234,22 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         finally { _endingShow = false; }
     }
 
+    // An error that reached the dispatcher: while a show runs the operator is told and the show stays up
+    // (OperationalErrorLog.OnUiException). Returns false when no show runs, so the default policy applies.
+    internal bool ReportErrorDuringShow(Exception error)
+    {
+        if (!IsShowRunning) return false;
+        try { StatusText = $"오류가 발생했지만 송출은 유지합니다: {error.Message}"; }
+        catch (Exception) { /* the status line is best effort; the show must stay up */ }
+        return true;
+    }
+
     private async Task<string?> StopPowerPointSlideShowForLiveAsync()
     {
         try
         {
             await _powerPointSlideShow.StopAsync().ConfigureAwait(true);
+            _nativeShowMayExist = false;
             return null;
         }
         catch (Exception ex)
@@ -6578,10 +7272,58 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         return Queue.IndexOf(SelectedItem) > 0;
     }
 
+    // The Next/Previous key before this one, up to the point where the next key may act.
+    private Task _liveKeyTurn = Task.CompletedTask;
+    // A key that cannot act within this time is dropped: a slide change that arrives late is worse than none.
+    private static readonly TimeSpan LiveKeyWait = TimeSpan.FromSeconds(2);
+
+    // Next/Previous keys act one at a time, in the order pressed. A key pressed while the one before is still on
+    // its way (two click animations in quick succession) belongs to the same item: it must neither be dropped
+    // nor, because a command is still running, fall through to the next worship item.
     private async Task ExecuteLiveNavigationShortcutAsync(int direction)
     {
-        if (_session.Current.State == LiveState.Active)
+        var deadline = Environment.TickCount64 + (long)LiveKeyWait.TotalMilliseconds;
+        while (!_liveKeyTurn.IsCompleted)
         {
+            var wait = TimeSpan.FromMilliseconds(Math.Max(1, deadline - Environment.TickCount64));
+            try { await _liveKeyTurn.WaitAsync(wait).ConfigureAwait(true); }
+            catch (TimeoutException)
+            {
+                StatusText = "이전 이동을 처리하는 중이라 이 키 입력은 건너뜁니다.";
+                return;
+            }
+        }
+
+        var turn = new TaskCompletionSource();
+        _liveKeyTurn = turn.Task;
+        try { await MoveLiveByKeyAsync(direction, () => turn.TrySetResult()).ConfigureAwait(true); }
+        finally { turn.TrySetResult(); }
+    }
+
+    // nextKeyMayAct: called as soon as a native step has moved PowerPoint, before its slide picture is rendered.
+    private async Task MoveLiveByKeyAsync(int direction, Action nextKeyMayAct)
+    {
+        // FrmLaunchShow moves the output slide while Black/Clear is on too; the list selection stays put.
+        if (_session.Current.State is LiveState.Active or LiveState.Hidden)
+        {
+            if (IsGapItemOnDisplay)
+            {
+                // FrmMain.MoveToSlideOutputItem on item "G": only with "advance to next item" Next opens the
+                // next item and Previous returns to the last slide of the item before the gap
+                // (FrmLaunchShow.MoveToSlideLiveItem, slide 30000). Without it the gap stays.
+                if (_settings.Get(AxicultusSettingKeys.AdvanceNextItem))
+                    await MoveOutputItemAsync(direction, atLastPage: direction < 0).ConfigureAwait(true);
+                return;
+            }
+
+            // A live deck is stepped directly, not through the slide command: that command still counts as
+            // running while it renders the picture of the step before.
+            if (IsLivePowerPointShowSteppable() && (direction > 0 || _session.Current.PptSlideNumber > 1)
+                && await TryStepLivePowerPointAsync(direction > 0, nextKeyMayAct).ConfigureAwait(true))
+            {
+                return;
+            }
+
             var slideCommand = direction > 0
                 ? NextOutputSlideCommand
                 : PreviousOutputSlideCommand;
@@ -6596,9 +7338,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 var itemCommand = direction > 0
                     ? NextOutputItemCommand
                     : PreviousOutputItemCommand;
-                if (CanMoveOutputItem(direction) && itemCommand.CanExecute(null))
+                if ((CanMoveOutputItem(direction) || (direction > 0 && CanShowGapItem())) && itemCommand.CanExecute(null))
                 {
-                    await itemCommand.ExecuteAsync(null).ConfigureAwait(true);
+                    // FrmLaunchShow.MoveToSlideLiveItem: Previous from the first slide opens the previous item on
+                    // its last slide (slide 30000). The item keys (PageUp) keep opening it on the first.
+                    if (direction < 0) await MoveOutputItemAsync(-1, atLastPage: true).ConfigureAwait(true);
+                    else await itemCommand.ExecuteAsync(null).ConfigureAwait(true);
                     return;
                 }
             }
@@ -6847,22 +7592,30 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return false;
         }
 
-        index = IndexOfReference(item);
-        if (index >= 0)
+        index = IndexOfOutputRow(item);
+        return index >= 0;
+    }
+
+    // The row an output item stands for. The output item of a library song is a copy of its row, and the same
+    // song can be in the list twice, so the row it was taken from comes before a search by id.
+    private int IndexOfOutputRow(LiveQueueItem item)
+    {
+        var index = IndexOfReference(item);
+        if (index < 0 && !_outputFromSourcePreview && _outputFormatSource is { } row
+            && string.Equals(row.Id, item.Id, StringComparison.Ordinal))
         {
-            return true;
+            index = IndexOfReference(row);
         }
 
-        for (var i = 0; i < Queue.Count; i++)
+        for (var i = 0; index < 0 && i < Queue.Count; i++)
         {
             if (string.Equals(Queue[i].Id, item.Id, StringComparison.Ordinal))
             {
                 index = i;
-                return true;
             }
         }
 
-        return false;
+        return index;
     }
 
     private LiveQueueItem? GetOutputNavigationItem()
@@ -6880,30 +7633,58 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         return null;
     }
 
-    private async Task MoveOutputItemAsync(int delta)
+    private async Task MoveOutputItemAsync(int delta, bool atLastPage = false)
     {
         if (!TryGetOutputNavigationIndex(out var index))
         {
             return;
         }
 
-        var targetIndex = Math.Clamp(index + delta, 0, Queue.Count - 1);
-        if (targetIndex == index)
+        // FrmMain.MoveToOutputItem: with a gap option Next shows the gap screen first, also after the last item.
+        // From the gap, Next opens the following item and Previous the item the gap follows.
+        var onGap = IsGapItemOnDisplay;
+        if (delta > 0 && !onGap && CanShowGapItem())
+        {
+            await ShowGapItemAsync().ConfigureAwait(true);
+            return;
+        }
+
+        var targetIndex = Math.Clamp(onGap && delta < 0 ? index : index + delta, 0, Queue.Count - 1);
+        if (targetIndex == index && !(onGap && delta < 0))
         {
             return;
         }
 
         var target = Queue[targetIndex];
         await PrepareOutputItemForNavigationAsync(target).ConfigureAwait(true);
+        var page = 0;
+        if (atLastPage)
+        {
+            if (IsPowerPointItem(target))
+            {
+                if (target.ContentPath is { Length: > 0 } deck
+                    && OutputPowerPoint.State == Rendering.PowerPointPreviewState.Ready && OutputPowerPoint.SlideCount > 1)
+                {
+                    var (width, height) = ResolvePptRenderSize();
+                    await OutputPowerPoint.LoadAsync(deck, OutputPowerPoint.SlideCount, width, height).ConfigureAwait(true);
+                }
+            }
+            else
+            {
+                // The pages of a Bible passage or a text file exist only once the row is prepared for output.
+                page = Math.Max(0, BuildLyricsPageModel(PrepareLiveItemForOutput(target)).Count - 1);
+            }
+        }
+
         if (_session.Current.State == LiveState.Active)
         {
-            PublishOutputItem(target, delta > 0 ? MainCommandIds.LiveNext : MainCommandIds.LivePrevious);
+            PublishOutputItem(target, delta > 0 ? MainCommandIds.LiveNext : MainCommandIds.LivePrevious, page);
             return;
         }
 
         if (_session.Current.State == LiveState.Hidden)
         {
-            RefreshHiddenOutputPayload(target, delta > 0 ? MainCommandIds.LiveNext : MainCommandIds.LivePrevious);
+            RefreshHiddenOutputPayload(target, delta > 0 ? MainCommandIds.LiveNext : MainCommandIds.LivePrevious, page);
             StatusText = $"Output 숨김 준비: {target.Title}";
             NotifyCommandStates();
             return;
@@ -6920,7 +7701,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        if (targetIndex < 0 || targetIndex >= Queue.Count || targetIndex == index)
+        // From the gap screen the item it follows is a move too (FrmMain First/Last load the item directly).
+        if (targetIndex < 0 || targetIndex >= Queue.Count || (targetIndex == index && !IsGapItemOnDisplay))
         {
             return;
         }
@@ -6935,7 +7717,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         if (_session.Current.State == LiveState.Hidden)
         {
-            RefreshHiddenOutputPayload(target, commandId);
+            RefreshHiddenOutputPayload(target, commandId, page: 0);
             StatusText = $"Output 숨김 준비: {target.Title}";
             NotifyCommandStates();
             return;
@@ -6979,6 +7761,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private async Task PublishOutputItemAsync(LiveQueueItem item, string commandId, int lyricsPageIndex = 0)
     {
+        if (RefuseDisabledOutput()) return;
         var display = EnsureLiveOutputDisplay();
         var prepared = PrepareOutputFromSource(item);
         OutputItem = prepared;
@@ -6996,23 +7779,42 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        StatusText = $"LIVE: {prepared.Title}";
+        StatusText = $"LIVE: {prepared.Title}{OutputAreaNote}";
         _telemetry.Record(commandId, succeeded: true, prepared.Title);
         NotifyCommandStates();
     }
 
     private Task<bool> PublishLiveProjectionAsync(LiveQueueItem projection, OutputDisplay display)
     {
-        if (Media.PlayerDisplay is not null)
-        {
-            if (projection is { Kind: LiveItemKinds.Media, ContentPath: { Length: > 0 } path })
-                Media.Load(GetItemMediaRequest(projection, path));
-            else
-                Media.Unload();
-        }
+        FollowLiveItemMedia(projection);
         _session.GoLive(ResolveLiveProjection(projection, OutputPowerPoint), display.Name);
         return StartPowerPointSlideShowForLiveAsync(projection, GetPowerPointOutputMonitorName(display));
     }
+
+    // FrmLaunchShow.LoadItem: the media player follows the live item, also while the output is black, cleared or
+    // hidden. Selecting another row no longer replaces media that is playing or paused
+    // (ApplySelectedItemContentAsync), so a new live item does it here: its own clip is loaded, and any other
+    // item takes the old clip (also audio only) down.
+    private void FollowLiveItemMedia(LiveQueueItem projection)
+    {
+        if (Media.PlayerDisplay is null
+            && (Media.State is not (MediaPlaybackState.Playing or MediaPlaybackState.Paused)
+                || Media.MediaType == "Live Camera" || IsOutputMediaOf(projection)))
+        {
+            return;
+        }
+
+        if (projection is { Kind: LiveItemKinds.Media, ContentPath: { Length: > 0 } path })
+            Media.Load(GetItemMediaRequest(projection, path));
+        else
+            Media.Unload();
+    }
+
+    // True when the media in the output window is the one this item plays (its file, its assigned media or
+    // the default media), so that going live with the item itself keeps it running.
+    private bool IsOutputMediaOf(LiveQueueItem item)
+        => string.Equals(Media.Source, item.ContentPath, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(Media.Source, ResolveWorshipOutputMediaPath(item), StringComparison.OrdinalIgnoreCase);
 
     private async Task JumpToNextNonRotateOutputItemAsync()
     {
@@ -7033,7 +7835,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         if (_session.Current.State == LiveState.Hidden)
         {
-            RefreshHiddenOutputPayload(target, MainCommandIds.LiveNext);
+            RefreshHiddenOutputPayload(target, MainCommandIds.LiveNext, page: 0);
             StatusText = $"Output 회전 제외 항목 숨김 준비: {target.Title}";
             NotifyCommandStates();
             return;
@@ -7193,22 +7995,32 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private bool CanToggleOutputLive()
         => _session.Current.State is LiveState.Active or LiveState.Hidden || CanStartOutputLive();
 
+    // FrmMain LiveBlack / LiveClear: two independent switches. Turning Black off returns to Clear when Clear is on.
     private async Task ToggleOutputBlackAsync()
     {
         if (IsOutputBlackActive)
         {
-            RestoreOutput();
+            // Hide is a switch of its own, as Clear is: Black went on over a hidden output, so it stays hidden.
+            if (_hiddenUnderBlack && !IsOutputClearActive) _session.HideOutput(blackout: false);
+            else _session.SetBlackout(false);
+            _hiddenUnderBlack = false;
+            StatusText = IsOutputClearActive ? "화면 비움(배경 유지)" : IsOutputHideActive ? "출력 숨김" : "출력 복귀";
+            NotifyCommandStates();
             return;
         }
 
         await HideOutputAsync(blackout: true).ConfigureAwait(true);
     }
 
+    private bool _hiddenUnderBlack;
+
     private async Task ToggleOutputClearAsync()
     {
         if (IsOutputClearActive)
         {
-            RestoreOutput();
+            _session.SetCleared(false);
+            StatusText = IsOutputBlackActive ? "검은 화면 송출 중" : "출력 복귀";
+            NotifyCommandStates();
             return;
         }
 
@@ -7249,31 +8061,24 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         if (Media.IsOutputPlayerVisible) Media.Unload();
-        _session.HideOutput(blackout);
+        if (blackout) _hiddenUnderBlack = IsOutputHideActive;
+        if (blackout) _session.SetBlackout(true);
+        else _session.HideOutput(blackout: false);
         StatusText = blackout ? "검은 화면 송출 중" : "출력 숨김";
         _telemetry.Record(actionName, succeeded: true, StatusText);
         NotifyCommandStates();
     }
 
     // 화면 비우기(레거시 Clear Screen) — 콘텐츠를 감추되 배경은 유지(완전 검정인 Black 과 구별).
-    // Hide/Black 과 동일하게 라이브 안전 확인을 거친다(회중 화면이 즉시 바뀌므로).
-    private async Task ClearOutputAsync()
+    // At once, as Black and as FrmMain.LiveClear / FrmLaunchShow F3: no confirmation in the middle of a service.
+    private Task ClearOutputAsync()
     {
-        var ok = await ConfirmLiveSafetyAsync(
-            MainCommandIds.LiveClear,
-            "현재 송출 화면을 비울까요?",
-            "가사·콘텐츠가 사라지고 배경만 남습니다. 5초 안에 확인하지 않으면 취소됩니다.").ConfigureAwait(true);
-        if (!ok)
-        {
-            NotifyOutputLiveSafetyProperties();
-            return;
-        }
-
         if (Media.IsOutputPlayerVisible) Media.Unload();
-        _session.ClearOutput();
-        StatusText = "화면 비움(배경 유지)";
+        _session.SetCleared(true);
+        StatusText = IsOutputBlackActive ? "검은 화면 송출 중" : "화면 비움(배경 유지)";
         _telemetry.Record(MainCommandIds.LiveClear, succeeded: true, StatusText);
         NotifyCommandStates();
+        return Task.CompletedTask;
     }
 
     // 숨김/블랙/비우기에서 송출 화면 복귀 — 직전 항목을 그대로 다시 보인다(저위험이라 안전 확인 없음).
@@ -7294,6 +8099,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (!CanRestartCurrentItem() || GetOutputNavigationItem() is not { } item)
         {
+            return;
+        }
+
+        if (IsGapItemOnDisplay)
+        {
+            // FrmLaunchShow F5 on the gap screen: MoveToLiveItem(Refresh) reloads the item the gap follows.
+            await MoveOutputItemAsync(-1).ConfigureAwait(true);
             return;
         }
 
@@ -7474,6 +8286,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
+        if (RefuseDisabledOutput()) return;
         var display = EnsureLiveOutputDisplay();
         var prepared = PrepareOutputFromSource(item);
         OutputItem = prepared;
@@ -7488,7 +8301,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        StatusText = $"LIVE: {prepared.Title}";
+        StatusText = $"LIVE: {prepared.Title}{OutputAreaNote}";
         _telemetry.Record(MainCommandIds.LiveGo, succeeded: true, StatusText);
         if (autoAdvance && ReferenceEquals(item, SelectedItem))
         {
@@ -8473,10 +9286,23 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (GetSongPages(item) is { Bodies.Count: > 0 } songPages)
         {
             int index = Math.Clamp(pageIndex, 0, songPages.Bodies.Count - 1);
-            return item with { LyricsPageIndex = index, ProjectedTextPage = songPages.Bodies[index], ProjectedSectionLabel = songPages.Labels[index] };
+            return item with
+            {
+                LyricsPageIndex = index, ProjectedTextPage = songPages.Bodies[index], ProjectedSectionLabel = songPages.Labels[index],
+                ProjectedFontScale = songPages.FontScales[index],
+            };
         }
         return item with { LyricsPageIndex = pageIndex };
     }
+
+    // The page the preview pane draws. The preview has its own chord switch (FrmMain "Show Notations in Preview")
+    // and shows the chords as the page cards do: with the live transpose and the capo of the item.
+    internal LiveQueueItem ProjectPreviewLyricsPage(LiveQueueItem item, int pageIndex)
+        => ProjectLyricsPage(item, pageIndex) with
+        {
+            ShowNotations = PreviewAreaShowNotations,
+            TransposeSemitones = ResolveChordTranspose(item, item.UseIndividualFormatting ? ItemDisplayFormat.Read(item.FormatData) : null),
+        };
 
     private LiveQueueItem ResolveLiveProjection(
         LiveQueueItem item,
@@ -8532,6 +9358,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (PreviewItem is { } preview) RefreshLyricsPages(preview);
         if (OutputItem is { } live && (IsExternalTextFileItem(live) || LiveItemKindMatcher.IsSong(live.Kind) || LiveItemKindMatcher.IsBible(live.Kind)))
             RefreshPreparedTextOutput(live);
+    }
+
+    private void OnBibleVersionsChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+    {
+        if (PreviewItem is { } preview && LiveItemKindMatcher.IsBible(preview.Kind)
+            || OutputItem is { } live && LiveItemKindMatcher.IsBible(live.Kind)) RefreshLibraryFormatting();
     }
 
     private int _previewTextFolderNo = 1;
@@ -8615,15 +9447,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     //  다음 항목을 쓴다 — ComputePositionLabel 등 기존 큐 탐색과 동일 가정.)
     private string ComputeNextTitle(LiveQueueItem item)
     {
-        for (var i = 0; i < Queue.Count - 1; i++)
-        {
-            if (string.Equals(Queue[i].Id, item.Id, StringComparison.Ordinal))
-            {
-                return Queue[i + 1].Title;
-            }
-        }
-
-        return string.Empty;
+        var index = IndexOfOutputRow(item);
+        return index >= 0 && index < Queue.Count - 1 ? Queue[index + 1].Title : string.Empty;
     }
 
     // 위치 라벨 계산(절/슬라이드 "N/M") — 곡=현재 절/총 절, PPT=현재 슬라이드/총 슬라이드.
@@ -8730,13 +9555,17 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             Library.RefreshJumpFolders();
         if (ContainsKey(args.ChangedKeys, AxicultusSettingKeys.IsMonitorWide.Id))
             OnPropertyChanged(nameof(SampleScreenHeight));
+        // What the screens of a song or a passage are cut by (GetSongPages): the page count follows at once.
+        if (ContainsKey(args.ChangedKeys, AxicultusSettingKeys.AutoTextOverflow.Id)
+            || ContainsKey(args.ChangedKeys, AxicultusSettingKeys.IsMonitorWide.Id)
+            || ContainsKey(args.ChangedKeys, AxicultusSettingKeys.PanelHeightPercent.Id))
+            RefreshLibraryFormatting();
         if (ContainsKey(args.ChangedKeys, AxicultusSettingKeys.PreviewAreaShowNotations.Id))
         {
             OnPropertyChanged(nameof(PreviewAreaShowNotations));
             RebuildPreviewLyricsPages();
         }
-        if (ContainsKey(args.ChangedKeys, AxicultusSettingKeys.FitTextFileParagraphs.Id)
-            || ContainsKey(args.ChangedKeys, AxicultusSettingKeys.AutoTextOverflow.Id))
+        if (ContainsKey(args.ChangedKeys, AxicultusSettingKeys.FitTextFileParagraphs.Id))
         {
             if (PreviewItem is { } preview && IsExternalTextFileItem(preview)) RefreshLyricsPages(preview);
             if (OutputItem is { } output && IsExternalTextFileItem(output)) RefreshPreparedTextOutput(output);
@@ -8792,7 +9621,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        var live = Queue.FirstOrDefault(q => q.Id == _liveItemId);
+        var live = GetLiveQueueItem();
         if (live is null)
         {
             return; // 공지(센티넬)·고아 Id → 본문 재계산 대상 아님.
@@ -8853,6 +9682,22 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _sourcePreviewItem = item;
         RefreshLyricsPages(_sourcePreviewItem);
         UpdateContentTabForItem(_sourcePreviewItem);
+        NotifyPreviewItemProperties();
+        NotifyCommandStates();
+    }
+
+    /// <summary>
+    /// Drops a source preview (library, search, praise book, file) so that the preview shows the selected
+    /// worship-list row again. FrmMain WorshipList_MouseUp reloads the preview on every click, also on the
+    /// row that is already selected; SelectedItem does not change in that case, so the view calls this.
+    /// </summary>
+    internal void ShowWorshipSelectionPreview()
+    {
+        if (_sourcePreviewItem is null) return;
+        _sourcePreviewItem = null;
+        RefreshLyricsPages(SelectedItem);
+        UpdateContentTabForItem(SelectedItem);
+        _ = ApplySelectedItemContentAsync(SelectedItem);
         NotifyPreviewItemProperties();
         NotifyCommandStates();
     }
@@ -9013,6 +9858,53 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ActiveTitleHeadingFollowRegion2 = followRegion2;
         ActiveTitleHeadingAlignment = alignment;
         StatusText = $"제목 정렬: {label}";
+    }
+
+    // FrmLaunchShow R and V keys step through the three region views / vertical alignments.
+    [RelayCommand]
+    private void CycleRegionDisplay() => ApplyRegionDisplay((LyricsRegionDisplay)(((int)ActiveRegionDisplay + 1) % 3));
+
+    [RelayCommand]
+    private void CycleLyricsVerticalAlignment()
+        => ApplyLyricsVerticalAlignment((LyricsVerticalAlignment)(((int)ActiveLyricsVerticalAlignment + 1) % 3));
+
+    /// <summary>
+    /// The command of a FrmLaunchShow.ItemKeyPressed toggle key (A J Z D H R S O I V N); null for any other key.
+    /// The item keys, slide keys and verse jumps are the shell's output-area keys (MainWindow).
+    /// </summary>
+    internal System.Windows.Input.ICommand? OutputShowKeyCommand(System.Windows.Input.Key key) => key switch
+    {
+        System.Windows.Input.Key.A => ToggleAutoRotateCommand,
+        System.Windows.Input.Key.J => JumpToNextNonRotateOutputItemCommand,
+        System.Windows.Input.Key.Z => ToggleOutputReferenceAlertCommand,
+        System.Windows.Input.Key.D => ShowKey(ToggleLyricsDisplayPanelCommand, AxicultusSettingKeys.LyricsMonitorShowDisplayPanel),
+        System.Windows.Input.Key.H => ShowKey(ToggleLyricsTitleHeadingCommand, AxicultusSettingKeys.LyricsMonitorShowTitleHeading),
+        System.Windows.Input.Key.R => ShowKey(CycleRegionDisplayCommand, AxicultusSettingKeys.LyricsMonitorRegionDisplay),
+        System.Windows.Input.Key.S => ShowKey(ToggleLyricsShadowCommand, AxicultusSettingKeys.LyricsMonitorShadow),
+        System.Windows.Input.Key.O => ShowKey(ToggleLyricsOutlineCommand, AxicultusSettingKeys.LyricsMonitorOutline),
+        System.Windows.Input.Key.I => ShowKey(ToggleInterlaceCommand, AxicultusSettingKeys.LyricsMonitorInterlace),
+        System.Windows.Input.Key.V => ShowKey(CycleLyricsVerticalAlignmentCommand, AxicultusSettingKeys.LyricsMonitorVerticalAlignment),
+        System.Windows.Input.Key.N => ShowKey(ToggleLyricsNotationsCommand, AxicultusSettingKeys.LyricsMonitorShowNotations),
+        _ => null,
+    };
+
+    // FrmLaunchShow D H R S O I V N change the running show only (Gf.ShowRunning_*, reset for the next show).
+    // The output reads these values from the settings, so the key keeps the saved value here and the end of the
+    // show puts it back; without a show there is no show window and the key does nothing.
+    private Dictionary<string, object>? _showKeySavedSettings;
+
+    private RelayCommand ShowKey<T>(System.Windows.Input.ICommand toggle, SettingKey<T> key) where T : notnull => new(() =>
+    {
+        if (!IsShowRunning) return;
+        (_showKeySavedSettings ??= new Dictionary<string, object>(StringComparer.Ordinal)).TryAdd(key.Id, _settings.Get(key));
+        if (toggle.CanExecute(null)) toggle.Execute(null);
+    });
+
+    private void RestoreShowKeySettings()
+    {
+        if (_showKeySavedSettings is not { } saved) return;
+        _showKeySavedSettings = null;
+        _settings.SetValues(saved);
     }
 
     // 인-셸 가사 세로 정렬 적용 — 가로 정렬과 동일 경로(설정→출력 VM 라이브 반영).
@@ -9867,7 +10759,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public bool PublishNotice(string text, NoticeOptions? options = null)
     {
         options ??= new NoticeOptions();
-        if (string.IsNullOrWhiteSpace(text))
+        if (string.IsNullOrWhiteSpace(text) || RefuseDisabledOutput())
         {
             return false;
         }
@@ -10603,6 +11495,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         => LiveItemKindMatcher.IsMedia(item.Kind);
 
     private bool _nativeBlackout;
+    // The deck and slide the native show was on when it was blacked, and the deck of the last snapshot.
+    private (string? Path, int Slide) _blackedDeck;
+    private string? _snapshotDeckPath;
 
     private async Task SetPowerPointBlackoutAsync(bool black)
     {
@@ -10610,13 +11505,60 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         catch (Exception ex) { StatusText = $"PowerPoint 암전 전환 실패: {ex.Message}"; }
     }
 
+    // The native slide show is a window of its own over the audience window. While it is blacked, and when the
+    // output item changes under Clear, only the session follows the operator. This brings the show in line with
+    // the output item: a deck is started, or moved to its slide; for anything else the show is closed.
+    private async Task AlignNativeShowAsync(LiveSessionSnapshot session, bool unblack)
+    {
+        try
+        {
+            if (session.State == LiveState.Off) return;
+            if (session.PptPath is not { Length: > 0 } path)
+            {
+                if ((_powerPointSlideShow.HasOutputShow || _nativeShowMayExist)
+                    && await StopPowerPointSlideShowForLiveAsync().ConfigureAwait(true) is { } stopError)
+                    StatusText = $"PowerPoint 슬라이드 쇼 종료 실패: {stopError}";
+                return;
+            }
+
+            // Still blacked: the deck comes up when the operator restores the output.
+            if (!ShowsNativeDeck(session)) return;
+            var deck = new LiveQueueItem(session.CurrentItemId ?? string.Empty, session.CurrentItemTitle, LiveItemKinds.PowerPoint)
+            {
+                ContentPath = path,
+                SlideNumber = session.PptSlideNumber,
+            };
+            var display = _output.Current.Display ?? OutputDisplay.PrimaryFallback;
+            if (await StartPowerPointSlideShowForLiveAsync(deck, GetPowerPointOutputMonitorName(display)).ConfigureAwait(true)
+                && unblack && !_nativeBlackout)
+                await SetPowerPointBlackoutAsync(false).ConfigureAwait(true);
+        }
+        catch (Exception ex) { StatusText = $"PowerPoint 슬라이드 쇼 맞춤 실패: {ex.Message}"; }
+    }
+
     private void ApplyLiveSnapshot(LiveSessionSnapshot snapshot)
     {
-        if (_nativeBlackout != snapshot.IsBlackout)
+        // The native slide show is its own window over the audience window, so Black and Hide must black it too.
+        // Clear leaves it showing, as FrmLaunchShow does for a PowerPoint item (Remote_LiveBlackClearChanged:
+        // only Black paints the transparent overlay; Clear just drops the panel text).
+        bool black = snapshot.State == LiveState.Hidden && (snapshot.IsBlackout || !snapshot.IsCleared);
+        bool deckChanged = !string.Equals(_snapshotDeckPath, snapshot.PptPath, StringComparison.OrdinalIgnoreCase);
+        _snapshotDeckPath = snapshot.PptPath;
+        if (_nativeBlackout != black)
         {
-            _nativeBlackout = snapshot.IsBlackout;
-            if (_powerPointSlideShow.HasOutputShow && snapshot.PptPath != null)
+            _nativeBlackout = black;
+            if (black) _blackedDeck = (snapshot.PptPath, snapshot.PptSlideNumber);
+            // Restored after the item or the slide changed under Black: un-blacking the old show would reveal
+            // the wrong deck or slide, or leave it over an item that is no deck.
+            if (!black && snapshot.State != LiveState.Off && _blackedDeck != (snapshot.PptPath, snapshot.PptSlideNumber))
+                _ = AlignNativeShowAsync(snapshot, unblack: true);
+            else if (_powerPointSlideShow.HasOutputShow && snapshot.PptPath != null)
                 _ = SetPowerPointBlackoutAsync(_nativeBlackout);
+        }
+        else if (!black && snapshot.State == LiveState.Hidden && deckChanged)
+        {
+            // The item changed under Clear, which leaves a deck's show on the audience screen.
+            _ = AlignNativeShowAsync(snapshot, unblack: false);
         }
         if (snapshot.State != LiveState.Active || !snapshot.IsReferenceAlertVisible)
         {
@@ -10661,6 +11603,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(IsOutputClearActive));
         OnPropertyChanged(nameof(IsOutputLiveActive));
         OnPropertyChanged(nameof(IsShowRunning));
+        OnPropertyChanged(nameof(IsGapItemOnDisplay));
         OnPropertyChanged(nameof(OutputScreenStatus));
         OnPropertyChanged(nameof(IsOutputReferenceAlertActive));
         NotifyOutputPanelDisplayProperties();
@@ -10820,6 +11763,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         _disposed = true;
         CancelReferenceAlertAutoHide();
+        RestoreShowKeySettings(); // the app closes while a show runs
         _settings.SettingsChanged -= OnSettingsChanged;
         _output.OutputChanged -= OnOutputChanged;
         _preview.PreviewChanged -= OnPreviewChanged;
@@ -10827,6 +11771,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OutputPowerPoint.PropertyChanged -= OnOutputPowerPointPropertyChanged;
         Media.PropertyChanged -= OnMediaPropertyChanged;
         Library.PropertyChanged -= OnLibraryPropertyChanged;
+        Bible.Versions.CollectionChanged -= OnBibleVersionsChanged;
         Search.SearchResults.CollectionChanged -= OnSearchResultsChanged;
         Search.LookupCandidates.CollectionChanged -= OnLookupCandidatesChanged;
         // Media VM 정리. DI 컨테이너도 transient IDisposable 을 추적·해제하므로 이중 호출될 수 있으나

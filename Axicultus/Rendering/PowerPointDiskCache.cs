@@ -26,6 +26,7 @@ internal sealed class PowerPointDiskCache(string directory)
             try
             {
                 var path = PathFor(key);
+                if (!File.Exists(path)) return null; // a miss is the common case; do not pay for an exception each time
                 using var input = new FileStream(path,FileMode.Open,FileAccess.Read,FileShare.Read | FileShare.Delete);
                 if (input.Length <= HeaderSize || input.Length > Math.Min(limit, int.MaxValue)) return null;
                 Span<byte> header = stackalloc byte[HeaderSize];

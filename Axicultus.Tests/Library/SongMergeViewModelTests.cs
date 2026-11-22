@@ -52,6 +52,41 @@ public class SongMergeViewModelTests
     }
 
     [Fact]
+    public async Task RefreshMatchesAsync_WhenDatabaseCannotBeRead_ReportsInsteadOfThrowing()
+    {
+        using var fixture = TempSongMergeSettings.Create();
+        fixture.CreateAdminDatabaseFile("custom.db");
+        var repository = new FakeMergeRepository
+        {
+            ReadError = new System.Data.SQLite.SQLiteException(System.Data.SQLite.SQLiteErrorCode.Busy, "database is locked"),
+        };
+        var sut = CreateSut(fixture, repository);
+        sut.Load(fixture.AdminDatabasePath,
+            [new SongFolderSummary(1, "A", true, 1), new SongFolderSummary(2, "B", true, 1), new SongFolderSummary(3, "C", true, 0)]);
+
+        await sut.RefreshMatchesAsync();
+
+        sut.StatusMessage.Should().StartWith("병합 후보 조회 실패");
+    }
+
+    [Fact]
+    public void Load_OffersOnlyFoldersInUse()
+    {
+        using var fixture = TempSongMergeSettings.Create();
+        var sut = CreateSut(fixture, new FakeMergeRepository());
+
+        sut.Load(fixture.AdminDatabasePath,
+        [
+            new SongFolderSummary(0, "Recycle Folder", false, 3),
+            new SongFolderSummary(1, "Source A", true, 2),
+            new SongFolderSummary(2, "Folder 2", false, 0),
+        ]);
+
+        sut.Folders.Select(folder => folder.FolderNo).Should().Equal(1);
+        sut.SelectedTargetFolder!.FolderNo.Should().Be(1);
+    }
+
+    [Fact]
     public async Task MergeAsync_WhenCandidatesSelected_SavesMergedSongWithLegacyFallbackMetadata()
     {
         using var fixture = TempSongMergeSettings.Create();
@@ -106,9 +141,11 @@ public class SongMergeViewModelTests
         saved.Title.Should().Be("Alpha");
         saved.AlternateTitle.Should().Be("Alpha");
         saved.FolderNo.Should().Be(3);
-        saved.SongNumber.Should().Be(6);
+        saved.SongNumber.Should().Be(0, "a merged song has no number, as in WinForms");
         saved.Lyrics.Should().Be("[1]\nA verse\n[region 2]\nB verse");
-        saved.Sequence.Should().Be("1");
+        // FrmSmartMerge stores the verses of song A in lyric order (verse codes), not A's stored sequence.
+        saved.Sequence.Should().Be("\u0001");
+        saved.SequenceIsStored.Should().BeTrue();
         saved.Copyright.Should().Be("CopyrightB");
         saved.BookReference.Should().Be("BookA,BookB");
         saved.UserReference.Should().Be("UserA,UserB");
@@ -208,8 +245,10 @@ public class SongMergeViewModelTests
         public Task<IReadOnlyList<SongFolderSummary>> GetSongFoldersAsync(string databasePath)
             => throw new NotSupportedException();
 
+        public Exception? ReadError { get; init; }
+
         public Task<IReadOnlyList<SongSummary>> GetSongsAsync(string databasePath, int? folderNo = null)
-            => Task.FromResult(folderNo is not null && SongsByFolder.TryGetValue(folderNo.Value, out var songs)
+            => ReadError is not null ? throw ReadError : Task.FromResult(folderNo is not null && SongsByFolder.TryGetValue(folderNo.Value, out var songs)
                 ? songs
                 : Array.Empty<SongSummary>());
 

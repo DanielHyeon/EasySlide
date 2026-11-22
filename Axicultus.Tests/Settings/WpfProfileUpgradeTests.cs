@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using Axicultus.Wpf.Settings;
 using Xunit;
@@ -32,6 +33,50 @@ public sealed class WpfProfileUpgradeTests
 
             WpfProfileUpgrade.Import(appData.FullName);
             Assert.Equal("WPF projector", new SettingsService(current).Get(AxicultusSettingKeys.DefaultOutputMonitorId));
+        }
+        finally { appData.Delete(recursive: true); }
+    }
+
+    [Fact]
+    public void EarlierSettingsArePendingOnlyWhileTheirCopyHasNotArrived()
+    {
+        var appData = Directory.CreateTempSubdirectory();
+        try
+        {
+            Assert.False(WpfProfileUpgrade.EarlierSettingsPending(appData.FullName));
+            var settings = Path.Combine(appData.CreateSubdirectory("AxicultusNext").FullName, "settings.json");
+            File.WriteAllText(settings, "{}");
+
+            using (new FileStream(settings, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+            {
+                Assert.False(WpfProfileUpgrade.TryImport(appData.FullName, _ => { }));
+                Assert.True(WpfProfileUpgrade.EarlierSettingsPending(appData.FullName));
+            }
+
+            Assert.True(WpfProfileUpgrade.TryImport(appData.FullName, _ => { }));
+            Assert.False(WpfProfileUpgrade.EarlierSettingsPending(appData.FullName));
+        }
+        finally { appData.Delete(recursive: true); }
+    }
+
+    [Fact]
+    public void FailedCopyIsReportedWithoutThrowingAndSettingsFileIsCopiedFirst()
+    {
+        var appData = Directory.CreateTempSubdirectory();
+        try
+        {
+            var previous = appData.CreateSubdirectory("AxicultusNext");
+            File.WriteAllText(Path.Combine(previous.FullName, "settings.json"), "{}");
+            File.WriteAllText(Path.Combine(previous.CreateSubdirectory("Cache").FullName, "slide.bin"), "x");
+            // A file where the copy needs a folder makes the copy fail part-way.
+            File.WriteAllText(Path.Combine(appData.CreateSubdirectory("Axicultus").FullName, "Cache"), "blocked");
+            Exception? reported = null;
+
+            bool copied = WpfProfileUpgrade.TryImport(appData.FullName, ex => reported = ex);
+
+            Assert.False(copied);
+            Assert.NotNull(reported);
+            Assert.True(File.Exists(Path.Combine(appData.FullName, "Axicultus", "settings.json")));
         }
         finally { appData.Delete(recursive: true); }
     }

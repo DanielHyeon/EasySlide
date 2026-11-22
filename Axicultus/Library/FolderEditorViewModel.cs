@@ -60,7 +60,7 @@ public sealed partial class FolderEditorViewModel : ObservableObject
         try
         {
             DatabasePath = NormalizePath(databasePath);
-            var ownFolderNo = folder?.FolderNo ?? NextFolderNumber(allFolders);
+            var ownFolderNo = folder?.FolderNo ?? FreeFolderNumber(allFolders);
             FolderNo = ownFolderNo;
             // 자기 자신(같은 FolderNo)을 뺀 나머지 폴더 이름을 모아 둔다 — 저장 시 중복 검증에 쓴다.
             // NameEntryViewModel 은 "이름 일치"로 자기를 제외하지만, 폴더는 더 안정적인 식별자(FolderNo)로 제외한다
@@ -72,9 +72,9 @@ public sealed partial class FolderEditorViewModel : ObservableObject
                 .ToHashSet(StringComparer.OrdinalIgnoreCase);
             Name = folder?.Name ?? "";
             IsEnabled = folder?.IsEnabled ?? true;
-            ValidationMessage = "";
+            ValidationMessage = ownFolderNo > 0 ? "" : NoFreeFolderMessage;
             StatusMessage = "";
-            FormatFields = FolderFormatField.All.Where(f => folder?.FormatFields?.ContainsKey(f.Column) == true)
+            FormatFields =FolderFormatField.All.Where(f => folder?.FormatFields?.ContainsKey(f.Column) == true)
                 .Select(f => new FolderFormatEdit(f, folder!.FormatFields![f.Column], MarkChanged)).ToArray();
             OnPropertyChanged(nameof(FormatFields));
             IsNew = folder is null;
@@ -108,7 +108,8 @@ public sealed partial class FolderEditorViewModel : ObservableObject
             // GroupStyle is left unset on purpose: the editor does not change the folder's sort order,
             // so an existing folder keeps its stored GroupStyle and a new folder gets 0.
             var fields = FormatFields.Where(f => f.IsChanged).ToDictionary(f => f.Field.Column, f => f.Value);
-            var folder = new SongFolderWriteModel(FolderNo, Name.Trim(), IsEnabled, FormatChanges: fields.Count == 0 ? null : fields);
+            // A new folder takes a row that may have been another folder before: its formatting starts afresh.
+            var folder = new SongFolderWriteModel(FolderNo, Name.Trim(), IsEnabled, FormatChanges: fields.Count == 0 ? null : fields, ResetFormat: IsNew);
             if (StageChanges != null)
             {
                 StageChanges(folder);
@@ -190,7 +191,7 @@ public sealed partial class FolderEditorViewModel : ObservableObject
 
         if (FolderNo <= 0)
         {
-            ValidationMessage = "폴더 번호가 올바르지 않습니다.";
+            ValidationMessage = IsNew ? NoFreeFolderMessage : "폴더 번호가 올바르지 않습니다.";
             return false;
         }
 
@@ -228,8 +229,25 @@ public sealed partial class FolderEditorViewModel : ObservableObject
             "Backups");
     }
 
-    private static int NextFolderNumber(IReadOnlyList<SongFolderSummary> folders)
-        => folders.Count == 0 ? 1 : folders.Max(folder => folder.FolderNo) + 1;
+    private const string NoFreeFolderMessage =
+        "새 폴더를 만들 자리가 없습니다. 폴더는 40개까지입니다. 곡이 없는 폴더를 '사용 안 함'으로 바꾼 뒤 다시 시도하세요.";
+
+    // The WinForms app has folders 1 to 40 and reads no others. A new folder takes the first of them
+    // that is not in use and holds no songs (or has no row yet); 0 when there is none. A number that deleted songs
+    // came from is not free either: recovering them would file them in the new folder.
+    private static int FreeFolderNumber(IReadOnlyList<SongFolderSummary> folders)
+    {
+        for (int number = 1; number <= AdminDatabaseRepository.LastFolderNo; number++)
+        {
+            var slot = folders.FirstOrDefault(folder => folder.FolderNo == number);
+            if (slot is null || (!slot.IsEnabled && slot.SongCount == 0 && slot.DeletedSongCount == 0))
+            {
+                return number;
+            }
+        }
+
+        return 0;
+    }
 
     private static string NormalizePath(string? path)
         => string.IsNullOrWhiteSpace(path) ? "" : Path.GetFullPath(path);

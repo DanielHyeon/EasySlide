@@ -120,14 +120,39 @@ public sealed class PreviewWindowHost : IDisposable
         _viewModel.ApplySession(StageSessionNormalizer.Normalize(_lastSession));
 
         _surface = _surfaceFactory();
+        _surface.Closed += OnSurfaceClosed;
         _surface.Bind(_viewModel);
+    }
+
+    // The operator closed the stage window by hand (Alt+F4): a closed Window cannot be placed or shown again.
+    private void OnSurfaceClosed(object? sender, EventArgs e)
+    {
+        if (_surface is null || !ReferenceEquals(sender, _surface))
+        {
+            return;
+        }
+
+        _surface.Closed -= OnSurfaceClosed;
+        _surface = null;
+        _viewModel?.Dispose();
+        _viewModel = null;
+        if (!_disposed && _preview.Current.IsOpen)
+        {
+            _preview.Close();
+        }
     }
 
     private void CloseSurface()
     {
-        _surface?.Close();
-        _viewModel?.Dispose();
+        var surface = _surface;
         _surface = null;
+        if (surface is not null)
+        {
+            surface.Closed -= OnSurfaceClosed;
+            surface.Close();
+        }
+
+        _viewModel?.Dispose();
         _viewModel = null;
     }
 

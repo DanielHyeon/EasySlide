@@ -7,6 +7,16 @@ namespace Axicultus.Wpf.Tests.Library;
 
 public class SongMergeServiceTests
 {
+    [Theory]
+    // FrmSmartMerge stores the verses of song A in the order of its lyrics (Gf SongBasicSequence), as verse codes.
+    [InlineData("[1]\nA\n[chorus]\nC\n[2]\nB\n[chorus]\nagain", "\u0001\0\u0002")]
+    [InlineData("no heading at all", "\u0001")]
+    [InlineData("[2]\nB\n[region 2]\nb\n[bridge]\nX\n[ending]\nE", "\u0002de")]
+    [InlineData("[prechorus]\nP\n[chorus 2]\nT\n[bridge 2]\nW\n[prechorus 2]\nQ\n[12]\nL", "ofgp\f")]
+    [InlineData("", "")]
+    public void LyricOrderSequence_ListsEachVerseOnceInTheOrderOfTheLyrics(string lyrics, string sequence)
+        => SongMergeService.LyricOrderSequence(lyrics).Should().Be(sequence);
+
     [Fact]
     public void Merge_InterleavesMatchingSectionsAndAppendsRemainingSourceBSections()
     {

@@ -14,6 +14,18 @@ namespace Axicultus.Wpf.Tests.Library;
 public class LibraryViewModelTests
 {
     [Fact]
+    public void LibraryWindow_PassesTheSelectedSongsInTheOrderOfTheList()
+    {
+        // The grid reports its selection in the order the operator clicked; copy, move and delete take list order.
+        var a = new SongSummary(1, "A", "", 1, 0, "", "", "");
+        var b = new SongSummary(2, "B", "", 1, 0, "", "", "");
+        var c = new SongSummary(3, "C", "", 1, 0, "", "", "");
+
+        LibraryWindow.InListOrder(new object[] { c, "a new-row placeholder", a }, [a, b, c]).Should().Equal(a, c);
+        LibraryWindow.InListOrder(Array.Empty<object>(), [a, b, c]).Should().BeEmpty();
+    }
+
+    [Fact]
     public async Task LoadAsync_UsesExplicitAdminDatabasePathAndLoadsFoldersAndSongs()
     {
         using var fixture = TempLibrarySettings.Create();
@@ -331,57 +343,35 @@ public class LibraryViewModelTests
         sut.SortMode.Should().Be(LibrarySortMode.WordCount, "turning numbering off restores the selected folder's GroupStyle");
     }
 
-    [Fact]
-    public async Task SongMove_DisabledWhileSorted_EnabledInOriginalOrder()
+    [Theory]
+    [InlineData(LibrarySortMode.Original)]
+    [InlineData(LibrarySortMode.Title)]
+    public async Task SongsAreNeverMovedByHand_SoSongNumbersAreNotRewritten(LibrarySortMode sortMode)
     {
-        // 정렬(제목/번호) 중에는 화면 순서와 DB 순서가 달라 수동 이동이 헷갈리므로 이동 버튼을 비활성화한다.
+        // SONG_NUMBER is the hymn number in both apps. Moving a song used to renumber the whole folder 1..N.
         using var fixture = TempLibrarySettings.Create();
         fixture.CreateAdminDatabaseFile("custom.db");
         fixture.Settings.Set(AxicultusSettingKeys.AdminDatabasePath, fixture.AdminDatabasePath);
         var repository = new FakeAdminDatabaseRepository();
-        repository.Folders.Add(new SongFolderSummary(1, "찬양", IsEnabled: true, SongCount: 2));
+        repository.Folders.Add(new SongFolderSummary(1, "찬송가", IsEnabled: true, SongCount: 3));
         repository.SongsByFolder[1] = [
-            Song(10, "가", folderNo: 1, songNumber: 1),
-            Song(11, "나", folderNo: 1, songNumber: 2),
+            Song(10, "가", folderNo: 1, songNumber: 28),
+            Song(11, "나", folderNo: 1, songNumber: 301),
+            Song(12, "다", folderNo: 1, songNumber: 0),
         ];
         var sut = new LibraryViewModel(fixture.Settings, repository);
         await sut.LoadAsync();
-        sut.SortMode = LibrarySortMode.Original;
-        sut.SelectedSong = sut.Songs.Last(); // 두 번째 곡 선택 → 원래 순서면 위로 이동 가능.
-        sut.MoveSelectedSongUpCommand.CanExecute(null).Should().BeTrue("원래 순서에서는 이동 가능");
+        sut.SortMode = sortMode;
+        sut.SelectedSong = sut.Songs[1];
 
-        sut.SortMode = LibrarySortMode.Title;
-
-        sut.MoveSelectedSongUpCommand.CanExecute(null).Should().BeFalse("정렬 중에는 이동 비활성");
+        sut.MoveSelectedSongUpCommand.CanExecute(null).Should().BeFalse();
         sut.MoveSelectedSongDownCommand.CanExecute(null).Should().BeFalse();
+        await sut.MoveSelectedSongUpAsync();
+        await sut.MoveSelectedSongToEndAsync(); // the drag-and-drop path
+        await sut.MoveSelectedSongToIndexAsync(0);
 
-        sut.SortMode = LibrarySortMode.Original;
-        sut.MoveSelectedSongUpCommand.CanExecute(null).Should().BeTrue("원래 순서로 돌아오면 다시 활성");
-    }
-
-    [Fact]
-    public async Task MoveSelectedSongToIndex_WhileSorted_IsNoOp_DoesNotPersist()
-    {
-        // 드래그 경로(MoveSelectedSongTo*) 도 정렬 중에는 막아야 한다 — CanExecute 우회 방지(심층 방어).
-        using var fixture = TempLibrarySettings.Create();
-        fixture.CreateAdminDatabaseFile("custom.db");
-        fixture.Settings.Set(AxicultusSettingKeys.AdminDatabasePath, fixture.AdminDatabasePath);
-        var repository = new FakeAdminDatabaseRepository();
-        repository.Folders.Add(new SongFolderSummary(1, "찬양", IsEnabled: true, SongCount: 2));
-        repository.SongsByFolder[1] = [
-            Song(10, "가", folderNo: 1, songNumber: 1),
-            Song(11, "나", folderNo: 1, songNumber: 2),
-        ];
-        var sut = new LibraryViewModel(fixture.Settings, repository);
-        await sut.LoadAsync();
-        sut.SelectedSong = sut.Songs.First();
-        sut.SortMode = LibrarySortMode.Title;
-        var reordersBefore = repository.ReorderSongsCalls;
-
-        await sut.MoveSelectedSongToEndAsync(); // 드래그-드롭이 호출하는 경로.
-
-        repository.ReorderSongsCalls.Should().Be(reordersBefore, "정렬 중 드래그 이동은 DB 에 저장하지 않음");
-        sut.StatusMessage.Should().Contain("정렬 중에는");
+        repository.ReorderSongsCalls.Should().Be(0);
+        sut.StatusMessage.Should().Contain("곡 번호");
     }
 
     [Fact]
@@ -651,69 +641,6 @@ public class LibraryViewModelTests
         sut.RecoverSelectedFolderCommand.CanExecute(null).Should().BeFalse();
         sut.DeleteSelectedFolderCommand.CanExecute(null).Should().BeTrue();
         sut.StatusMessage.Should().Be("Folder restored.");
-    }
-
-    [Fact]
-    public async Task MoveSelectedSongUpAsync_RenumbersVisibleSongsAndRestoresSelection()
-    {
-        using var fixture = TempLibrarySettings.Create();
-        fixture.CreateAdminDatabaseFile("custom.db");
-        fixture.Settings.Set(AxicultusSettingKeys.AdminDatabasePath, fixture.AdminDatabasePath);
-        var repository = new FakeAdminDatabaseRepository();
-        repository.Folders.Add(new SongFolderSummary(1, "Morning", IsEnabled: true, SongCount: 3));
-        repository.SongsByFolder[1] =
-        [
-            Song(10, "First", folderNo: 1, songNumber: 1),
-            Song(11, "Second", folderNo: 1, songNumber: 2),
-            Song(12, "Third", folderNo: 1, songNumber: 3),
-        ];
-        var sut = new LibraryViewModel(fixture.Settings, repository);
-        await sut.LoadAsync();
-        sut.SortMode = LibrarySortMode.Original;
-        sut.SelectedSong = sut.Songs[2];
-
-        await sut.MoveSelectedSongUpAsync();
-
-        repository.LastSongFolderNo.Should().Be(1);
-        repository.LastSongOrder.Should().Equal(
-            new SongOrderRequest(10, 1),
-            new SongOrderRequest(12, 2),
-            new SongOrderRequest(11, 3));
-        repository.LastBackupRoot.Should().Be(Path.Combine(fixture.Root, "Backups"));
-        sut.Songs.Select(song => song.SongId).Should().Equal(10, 12, 11);
-        sut.SelectedSong.Should().NotBeNull();
-        sut.SelectedSong!.SongId.Should().Be(12);
-        sut.StatusMessage.Should().Be("곡 순서를 저장했습니다.");
-    }
-
-    [Fact]
-    public async Task MoveSelectedSongToIndexAsync_RenumbersAcrossMultipleRows()
-    {
-        using var fixture = TempLibrarySettings.Create();
-        fixture.CreateAdminDatabaseFile("custom.db");
-        fixture.Settings.Set(AxicultusSettingKeys.AdminDatabasePath, fixture.AdminDatabasePath);
-        var repository = new FakeAdminDatabaseRepository();
-        repository.Folders.Add(new SongFolderSummary(1, "Morning", IsEnabled: true, SongCount: 3));
-        repository.SongsByFolder[1] =
-        [
-            Song(10, "First", folderNo: 1, songNumber: 1),
-            Song(11, "Second", folderNo: 1, songNumber: 2),
-            Song(12, "Third", folderNo: 1, songNumber: 3),
-        ];
-        var sut = new LibraryViewModel(fixture.Settings, repository);
-        await sut.LoadAsync();
-        sut.SortMode = LibrarySortMode.Original;
-        sut.SelectedSong = sut.Songs[0];
-
-        await sut.MoveSelectedSongToIndexAsync(2);
-
-        repository.LastSongOrder.Should().Equal(
-            new SongOrderRequest(11, 1),
-            new SongOrderRequest(12, 2),
-            new SongOrderRequest(10, 3));
-        sut.Songs.Select(song => song.SongId).Should().Equal(11, 12, 10);
-        sut.SelectedSong.Should().NotBeNull();
-        sut.SelectedSong!.SongId.Should().Be(10);
     }
 
     // ── 증분157: 라이브러리 곡 목록 빈 상태 안내(LibraryEmptyStateMessage / HasLibraryEmptyState) ──

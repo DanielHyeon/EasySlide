@@ -526,6 +526,191 @@ public class SettingsServiceTests
         ReadSnapshot(exportFile).Advanced.EnableDiagnostics.Should().BeTrue();
     }
 
+    [Fact]
+    public void Defaults_MatchWinFormsForAlertsAndBibleLimits()
+    {
+        using var fixture = TempSettingsFolder.Create();
+        var sut = fixture.CreateService();
+
+        sut.Get(AxicultusSettingKeys.ReferenceAlertSource).Should().Be(0, "WinForms shows no reference alert by default");
+        sut.Get(AxicultusSettingKeys.MessageAlertScroll).Should().BeTrue();
+        sut.Get(AxicultusSettingKeys.MessageAlertFlash).Should().BeTrue();
+        sut.Get(AxicultusSettingKeys.ParentalAlertScroll).Should().BeTrue();
+        sut.Get(AxicultusSettingKeys.ParentalAlertFlash).Should().BeTrue();
+        sut.Get(AxicultusSettingKeys.BibleSequentialLimit).Should().Be(500);
+        sut.Get(AxicultusSettingKeys.BibleAdHocLimit).Should().Be(200);
+        sut.Get(AxicultusSettingKeys.ParentalAlertHeading).Should().Be("보호자 호출");
+    }
+
+    [Fact]
+    public void Load_KeepsSavedValuesWhenDefaultsChange()
+    {
+        using var fixture = TempSettingsFolder.Create();
+        var saved = AxicultusSettingsSnapshot.CreateDefault();
+        saved = saved with
+        {
+            General = saved.General with { BibleSequentialLimit = 100, MessageAlertFlash = false },
+            LiveOutput = saved.LiveOutput with { ReferenceAlertSource = 1 },
+        };
+        File.WriteAllText(fixture.SettingsPath, Serialize(saved));
+
+        var sut = fixture.CreateService();
+
+        sut.Get(AxicultusSettingKeys.BibleSequentialLimit).Should().Be(100);
+        sut.Get(AxicultusSettingKeys.MessageAlertFlash).Should().BeFalse();
+        sut.Get(AxicultusSettingKeys.ReferenceAlertSource).Should().Be(1);
+    }
+
+    [Fact]
+    public void Load_WhenOneValueIsOutOfRange_ResetsOnlyThatSettingAndKeepsACopy()
+    {
+        using var fixture = TempSettingsFolder.Create();
+        var saved = AxicultusSettingsSnapshot.CreateDefault();
+        saved = saved with
+        {
+            General = saved.General with { Language = "en-US" },
+            Media = saved.Media with { LiveCameraNumber = 99 },
+            Operator = saved.Operator with { StageFontPoints = 400, PreviewFontPoints = 12 },
+        };
+        File.WriteAllText(fixture.SettingsPath, Serialize(saved));
+
+        var sut = fixture.CreateService();
+
+        sut.Get(AxicultusSettingKeys.Language).Should().Be("en-US");
+        sut.Current.Operator.PreviewFontPoints.Should().Be(12);
+        sut.Get(AxicultusSettingKeys.LiveCameraNumber).Should().Be(AxicultusSettingKeys.LiveCameraNumber.DefaultValue);
+        sut.Current.Operator.StageFontPoints.Should().Be(new OperatorOptions().StageFontPoints);
+        Directory.GetFiles(fixture.Root, "settings.invalid-*.json").Should().ContainSingle();
+    }
+
+    [Fact]
+    public void Load_WhenAnEnumNameIsUnknown_ResetsOnlyThatSetting()
+    {
+        using var fixture = TempSettingsFolder.Create();
+        var saved = AxicultusSettingsSnapshot.CreateDefault();
+        saved = saved with
+        {
+            General = saved.General with { Language = "en-US" },
+            Appearance = saved.Appearance with { Theme = ColorTheme.Dark },
+            LiveOutput = saved.LiveOutput with { LyricsMonitorTransitionKind = LyricsTransitionKind.FanUp, LyricsMonitorFontSize = 60 },
+        };
+        File.WriteAllText(fixture.SettingsPath, Serialize(saved).Replace("\"FanUp\"", "\"FromANewerBuild\""));
+
+        var sut = fixture.CreateService();
+
+        sut.Get(AxicultusSettingKeys.LyricsMonitorTransitionKind).Should().Be(AxicultusSettingKeys.LyricsMonitorTransitionKind.DefaultValue);
+        sut.Get(AxicultusSettingKeys.Language).Should().Be("en-US");
+        sut.Get(AxicultusSettingKeys.Theme).Should().Be(ColorTheme.Dark);
+        sut.Get(AxicultusSettingKeys.LyricsMonitorFontSize).Should().Be(60);
+        Directory.GetFiles(fixture.Root, "settings.invalid-*.json").Should().ContainSingle();
+    }
+
+    [Fact]
+    public void Load_WhenATextValueIsNull_ResetsOnlyThatSetting()
+    {
+        using var fixture = TempSettingsFolder.Create();
+        var saved = AxicultusSettingsSnapshot.CreateDefault();
+        saved = saved with { General = saved.General with { JumpToA = 7 } };
+        File.WriteAllText(fixture.SettingsPath, Serialize(saved)
+            .Replace("\"Language\": \"ko-KR\"", "\"Language\": null")
+            .Replace("\"ReferenceAlertPickSeparator\": \",\"", "\"ReferenceAlertPickSeparator\": null"));
+
+        var sut = fixture.CreateService();
+
+        sut.Get(AxicultusSettingKeys.JumpToA).Should().Be(7);
+        sut.Get(AxicultusSettingKeys.Language).Should().Be(AxicultusSettingKeys.Language.DefaultValue);
+        sut.Get(AxicultusSettingKeys.ReferenceAlertPickSeparator).Should().Be(AxicultusSettingKeys.ReferenceAlertPickSeparator.DefaultValue, "code that splits on it must never see null");
+    }
+
+    [Fact]
+    public void Load_WhenTheSchemaVersionIsNotOurs_UsesDefaultsAndKeepsTheFileContent()
+    {
+        using var fixture = TempSettingsFolder.Create();
+        var saved = AxicultusSettingsSnapshot.CreateDefault();
+        var json = Serialize(saved with { SchemaVersion = 2, General = saved.General with { JumpToA = 7 } });
+        File.WriteAllText(fixture.SettingsPath, json);
+
+        var sut = fixture.CreateService();
+
+        sut.Get(AxicultusSettingKeys.JumpToA).Should().Be(AxicultusSettingKeys.JumpToA.DefaultValue, "a file from another schema is not read key by key");
+        File.ReadAllText(Directory.GetFiles(fixture.Root, "settings.invalid-*.json").Should().ContainSingle().Subject)
+            .Should().Be(json, "the copy is what the church had, byte for byte");
+    }
+
+    [Fact]
+    public void Options_WithPersistOff_KeepChangesInMemoryOnly()
+    {
+        using var fixture = TempSettingsFolder.Create();
+        var sut = new SettingsService(new SettingsServiceOptions(fixture.SettingsPath, fixture.BackupRoot, Persist: false));
+
+        sut.Set(AxicultusSettingKeys.JumpToA, 7).Succeeded.Should().BeTrue();
+
+        sut.Get(AxicultusSettingKeys.JumpToA).Should().Be(7);
+        File.Exists(fixture.SettingsPath).Should().BeFalse("an earlier settings.json is still waiting to be copied into this place");
+    }
+
+    [Fact]
+    public void RestoreDefaults_KeepsFoldersSessionStateAndWindowPlacement()
+    {
+        using var fixture = TempSettingsFolder.Create();
+        var sut = fixture.CreateService();
+        sut.Set(AxicultusSettingKeys.MediaDirectory, fixture.LegacyFolder).Succeeded.Should().BeTrue();
+        sut.Set(AxicultusSettingKeys.PowerPointSourceFolder, fixture.ImportFolder).Succeeded.Should().BeTrue();
+        sut.Set(AxicultusSettingKeys.CurrentWorshipListName, "Sunday AM").Succeeded.Should().BeTrue();
+        sut.Set(AxicultusSettingKeys.OnboardingCompleted, true).Succeeded.Should().BeTrue();
+        sut.Set(AxicultusSettingKeys.MainWindowWidth, 1200).Succeeded.Should().BeTrue();
+        sut.Set(AxicultusSettingKeys.DefaultOutputMonitorId, @"\\.\DISPLAY2").Succeeded.Should().BeTrue();
+        sut.Set(AxicultusSettingKeys.OutputPlacementMode, 1).Succeeded.Should().BeTrue();
+        sut.Set(AxicultusSettingKeys.DisplayCustomWidth, 1920).Succeeded.Should().BeTrue();
+        sut.SetValues(new Dictionary<string, object> { ["operator.StageWidth"] = 800 }).Succeeded.Should().BeTrue();
+        sut.Set(AxicultusSettingKeys.Theme, ColorTheme.Dark).Succeeded.Should().BeTrue();
+
+        sut.RestoreDefaults().Succeeded.Should().BeTrue();
+
+        sut.Get(AxicultusSettingKeys.Theme).Should().Be(AxicultusSettingKeys.Theme.DefaultValue);
+        sut.Get(AxicultusSettingKeys.MediaDirectory).Should().Be(fixture.LegacyFolder);
+        sut.Get(AxicultusSettingKeys.PowerPointSourceFolder).Should().Be(fixture.ImportFolder);
+        sut.Get(AxicultusSettingKeys.CurrentWorshipListName).Should().Be("Sunday AM");
+        sut.Get(AxicultusSettingKeys.OnboardingCompleted).Should().BeTrue();
+        sut.Get(AxicultusSettingKeys.MainWindowWidth).Should().Be(1200);
+        sut.Get(AxicultusSettingKeys.DefaultOutputMonitorId).Should().Be(@"\\.\DISPLAY2", "a reset must not move the audience window");
+        sut.Get(AxicultusSettingKeys.OutputPlacementMode).Should().Be(1);
+        sut.Get(AxicultusSettingKeys.DisplayCustomWidth).Should().Be(1920);
+        sut.Current.Operator.StageWidth.Should().Be(800);
+    }
+
+    [Fact]
+    public void Load_WhenFileIsNotJson_UsesDefaults()
+    {
+        using var fixture = TempSettingsFolder.Create();
+        File.WriteAllText(fixture.SettingsPath, "{ \"General\": { \"Language\": \"en-US\"");
+
+        fixture.CreateService().Get(AxicultusSettingKeys.Language).Should().Be(AxicultusSettingKeys.Language.DefaultValue);
+    }
+
+    [Fact]
+    public void RestoreDefaults_KeepsDataPathsLicencesAndRegistration()
+    {
+        using var fixture = TempSettingsFolder.Create();
+        var sut = fixture.CreateService();
+        var database = Path.Combine(fixture.LegacyFolder, "AxicultusDb.db");
+        sut.Set(AxicultusSettingKeys.WorkingFolder, fixture.LegacyFolder).Succeeded.Should().BeTrue();
+        sut.Set(AxicultusSettingKeys.AdminDatabasePath, database).Succeeded.Should().BeTrue();
+        sut.Set(AxicultusSettingKeys.RegistrationUser, "Grace Church").Succeeded.Should().BeTrue();
+        sut.Set(AxicultusSettingKeys.LicenceNumber3, "1234567").Succeeded.Should().BeTrue();
+        sut.Set(AxicultusSettingKeys.LicenceName4, "Publisher").Succeeded.Should().BeTrue();
+        sut.Set(AxicultusSettingKeys.Language, "en-US").Succeeded.Should().BeTrue();
+
+        sut.RestoreDefaults().Succeeded.Should().BeTrue();
+
+        sut.Get(AxicultusSettingKeys.Language).Should().Be(AxicultusSettingKeys.Language.DefaultValue);
+        sut.Get(AxicultusSettingKeys.WorkingFolder).Should().Be(fixture.LegacyFolder);
+        sut.Get(AxicultusSettingKeys.AdminDatabasePath).Should().Be(database);
+        sut.Get(AxicultusSettingKeys.RegistrationUser).Should().Be("Grace Church");
+        sut.Get(AxicultusSettingKeys.LicenceNumber3).Should().Be("1234567");
+        sut.Get(AxicultusSettingKeys.LicenceName4).Should().Be("Publisher");
+    }
+
     private static AxicultusSettingsSnapshot ReadSnapshot(string path)
         => JsonSerializer.Deserialize<AxicultusSettingsSnapshot>(File.ReadAllText(path), SettingsService.JsonOptions)
            ?? throw new InvalidOperationException("Unable to deserialize settings snapshot.");

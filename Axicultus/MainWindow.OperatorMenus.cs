@@ -49,10 +49,12 @@ public partial class MainWindow
             LaunchExternalFileForEdit(item.Key, "File");
     }
 
-    private static bool IsEditableExternalMedia(string path)
-        => Path.GetExtension(path).ToLowerInvariant() is ".ppt" or ".pptx" or ".pps" or ".ppsx" or ".txt" or ".doc" or ".docx"
-            or ".mp4" or ".m4v" or ".mov" or ".avi" or ".wmv" or ".mpg" or ".mpeg" or ".mkv" or ".webm"
-            or ".mp3" or ".wav" or ".wma" or ".m4a" or ".aac" or ".flac" or ".ogg";
+    private bool IsEditableExternalMedia(string path)
+    {
+        var extension = Path.GetExtension(path).ToLowerInvariant();
+        return extension is ".txt" or ".doc" or ".docx" || SourceFileExtensions.PowerPoint.Contains(extension)
+            || SourceFileExtensions.Media(_settings?.Current.General.WorkingFolder).Contains(extension);
+    }
 
     private void OpenFolderImport_Click(object sender, RoutedEventArgs e)
     {
@@ -97,8 +99,9 @@ public partial class MainWindow
         var (kind, filter) = (LeftBrowserTabs.SelectedItem as TabItem)?.Tag switch
         {
             "InfoScreenSource" => (ExternalFileItemKind.InfoScreen, "정보 화면|*.esi"),
-            "PowerPointSource" => (ExternalFileItemKind.PowerPoint, "PowerPoint|*.ppt;*.pptx;*.pps;*.ppsx;*.pptm;*.ppsm"),
-            _ => (ExternalFileItemKind.Media, "미디어|*.mp4;*.avi;*.wmv;*.mkv;*.webm;*.mpg;*.mpeg;*.mov;*.m4v;*.mp3;*.wav;*.m4a;*.aac;*.wma;*.ogg;*.flac")
+            // What the tab lists (FrmMain.PP_Import_Click offers .ppt and .pptx); anything else would be copied in and not shown.
+            "PowerPointSource" => (ExternalFileItemKind.PowerPoint, SourceFileExtensions.DialogFilter("PowerPoint", SourceFileExtensions.PowerPoint)),
+            _ => (ExternalFileItemKind.Media, _viewModel.MediaDialogFilter("미디어"))
         };
         var picker = new OpenFileDialog { Multiselect = true, Filter = filter, Title = $"{kind} 가져오기 · {folder}" };
         if (picker.ShowDialog(this) != true) return;

@@ -217,23 +217,44 @@ public partial class App : Application
                 MessageBoxImage.Warning);
         }
 
-        try
+        // Copying an earlier WPF profile is a convenience: a failure warns and the app still starts.
+        var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        Exception? profileError = null;
+        bool profileCopied = await Task.Run(() => WpfProfileUpgrade.TryImport(appData, ex => profileError = ex));
+        // The earlier settings file itself was not copied: nothing is saved in this session, so the next start can
+        // still bring it over (a saved file would be kept and the earlier settings lost).
+        bool earlierSettingsPending = !profileCopied && WpfProfileUpgrade.EarlierSettingsPending(appData);
+        if (!profileCopied)
         {
-            await Task.Run(() => WpfProfileUpgrade.Import(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)));
-        }
-        catch (Exception ex) when (ex is System.IO.IOException or UnauthorizedAccessException or System.Security.SecurityException)
-        {
-            OperationalErrorLog.Default.Write("Profile migration", ex);
-            MessageBox.Show($"기존 설정 복사를 완료하지 못했습니다. 경로와 권한을 확인한 뒤 다시 시작해 주세요.\n\n{ex.Message}",
-                "Axicultus — 설정 이전", MessageBoxButton.OK, MessageBoxImage.Error);
-            Shutdown(1);
-            return;
+            OperationalErrorLog.Default.Write("Profile migration", profileError!);
+            MessageBox.Show(
+                (earlierSettingsPending
+                    ? "이전 설정 파일을 복사하지 못해 기본 설정으로 시작합니다. 이번 실행에서 바꾼 설정은 저장되지 않으며, 다음 시작 때 다시 복사를 시도합니다."
+                    : "기존 설정 일부를 복사하지 못했습니다. 프로그램은 계속 시작하며, 다음 시작 때 다시 시도합니다.")
+                + $"\n\n{profileError!.Message}",
+                "Axicultus — 설정 이전", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
 
         // DI 컨테이너 구성
         var services = new ServiceCollection();
-        ConfigureServices(services, SettingsServiceOptions.CreateDefault(), Current.Dispatcher);
-        OpenShell(services.BuildServiceProvider(), startup.UseDemo);
+        var settingsOptions = SettingsServiceOptions.CreateDefault() with { Persist = !earlierSettingsPending };
+        ConfigureServices(services, settingsOptions, Current.Dispatcher);
+        var provider = services.BuildServiceProvider();
+
+        // First run only (no WPF settings.json yet): take over the WinForms settings. Skipped while an earlier
+        // WPF settings.json is still waiting to be copied, so the import does not take its place.
+        if (!earlierSettingsPending)
+        {
+            var imported = await LegacySettingsBootstrap.ImportOnFirstRunAsync(
+                provider.GetRequiredService<ISettingsService>(),
+                settingsOptions.SettingsFilePath,
+                () => LegacySettingsBootstrap.OpenDefaultSource(appData),
+                ex => OperationalErrorLog.Default.Write("Legacy settings import", ex));
+            if (imported is { Succeeded: false })
+                OperationalErrorLog.Default.Write("Legacy settings import", string.Join("; ", imported.Issues));
+        }
+
+        OpenShell(provider, startup.UseDemo);
     }
 
     internal void OpenShell(IServiceProvider services, bool useDemo)
@@ -254,6 +275,9 @@ public partial class App : Application
             : Services.GetRequiredService<MainWindow>();
         MainWindow = window;
         ShutdownMode = ShutdownMode.OnMainWindowClose;
+        // An unexpected error must not take the audience screen down in the middle of a show.
+        if (window.DataContext is Shell.MainViewModel shell)
+            OperationalErrorLog.Default.ReportDuringShow = shell.ReportErrorDuringShow;
         window.Show();
 
         if (!useDemo)

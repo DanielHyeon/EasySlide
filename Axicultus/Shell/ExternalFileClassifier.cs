@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Frozen;
-using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using Axicultus.Wpf.Library;
 
 namespace Axicultus.Wpf.Shell;
 
@@ -27,31 +28,32 @@ public enum ExternalFileKind
 /// </summary>
 public static class ExternalFileClassifier
 {
-    private static readonly FrozenDictionary<string, ExternalFileKind> KindsByExtension =
-        new Dictionary<string, ExternalFileKind>
-        {
-            [".ppt"] = ExternalFileKind.PowerPoint,
-            [".pptx"] = ExternalFileKind.PowerPoint,
-            [".mp4"] = ExternalFileKind.Media,
-            [".avi"] = ExternalFileKind.Media,
-            [".wmv"] = ExternalFileKind.Media,
-            [".mov"] = ExternalFileKind.Media,
-            [".mkv"] = ExternalFileKind.Media,
-            [".mp3"] = ExternalFileKind.Media,
-            [".wav"] = ExternalFileKind.Media,
-            [".wma"] = ExternalFileKind.Media,
-            [".jpg"] = ExternalFileKind.Image,
-            [".jpeg"] = ExternalFileKind.Image,
-            [".png"] = ExternalFileKind.Image,
-            [".bmp"] = ExternalFileKind.Image,
-            [".gif"] = ExternalFileKind.Image,
-        }.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
+    private static readonly FrozenSet<string> ImageExtensions =
+        new[] { ".jpg", ".jpeg", ".png", ".bmp", ".gif" }.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>파일 경로의 확장자로 파일 종류를 정한다. 비었거나 모르는 확장자면 <see cref="ExternalFileKind.Unsupported"/>.</summary>
-    public static ExternalFileKind Classify(string? path)
+    /// <remarks>
+    /// PowerPoint and media come from <see cref="SourceFileExtensions"/>, the lists the browse tabs and the file
+    /// dialogs use; the media lists are the operator's own (AudioExtensions.txt, VideoExtensions.txt).
+    /// </remarks>
+    public static ExternalFileKind Classify(string? path, string? workingFolder = null)
     {
-        var extension = Path.GetExtension(path.AsSpan());
-        return KindsByExtension.GetAlternateLookup<ReadOnlySpan<char>>().TryGetValue(extension, out var kind)
-            ? kind : ExternalFileKind.Unsupported;
+        var extension = Path.GetExtension(path);
+        if (string.IsNullOrEmpty(extension))
+        {
+            return ExternalFileKind.Unsupported;
+        }
+
+        if (SourceFileExtensions.PowerPoint.Contains(extension, StringComparer.OrdinalIgnoreCase))
+        {
+            return ExternalFileKind.PowerPoint;
+        }
+
+        if (ImageExtensions.Contains(extension))
+        {
+            return ExternalFileKind.Image;
+        }
+
+        return SourceFileExtensions.Media(workingFolder).Contains(extension) ? ExternalFileKind.Media : ExternalFileKind.Unsupported;
     }
 }

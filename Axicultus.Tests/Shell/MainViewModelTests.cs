@@ -166,7 +166,7 @@ public partial class MainViewModelTests
     {
         using var sut = CreateSut();
         var previous = sut.SelectedItem;
-        var source = new SongSummary(77, "Source", "", 1, 1, "", "", "[1]\nverse\n[C]\nchorus", Sequence: "C 1 C", FormatData: "47=64>");
+        var source = new SongSummary(77, "Source", "", 1, 1, "", "", "[1]\nverse\n[chorus]\nchorus", Sequence: "C 1 C", FormatData: "47=64>");
         sut.PreviewLibrarySong(source);
         sut.PreviewLyricsPages.Select(page => page.BodyText).Should().Equal("chorus", "verse", "chorus");
         sut.SelectedItem.Should().BeSameAs(previous);
@@ -309,7 +309,7 @@ public partial class MainViewModelTests
 
         var item = new LiveQueueItem("song:1", "입례 찬양", LiveItemKinds.Song)
         {
-            Lyrics = "[1]\n입례\n[C]\n후렴",
+            Lyrics = "[1]\n입례\n[chorus]\n후렴",
             Sequence = "1 C",
         };
         sut.LoadQueue([item]);
@@ -1472,7 +1472,7 @@ public partial class MainViewModelTests
         var repo = new StubSongDetailRepository(SampleSongDetail(
             77,
             "DB 찬양",
-            "[1]\n1절\n[C]\n후렴",
+            "[1]\n1절\n[chorus]\n후렴",
             sequence: "1 C",
             formatData: "29=-65536>") with { FolderNo = songFolder });
         var sut = CreateSut(settings: settings, songDetail: repo, seedSampleQueue: false);
@@ -1489,7 +1489,7 @@ public partial class MainViewModelTests
         added.Should().NotBeNull();
         added!.Id.Should().Be("song:77");
         added.Title.Should().Be("DB 찬양");
-        added.Lyrics.Should().Be("[1]\n1절\n[C]\n후렴");
+        added.Lyrics.Should().Be("[1]\n1절\n[chorus]\n후렴");
         added.Sequence.Should().Be("1 C");
         added.FormatData.Should().Be("29=-65536>");
         repo.LastDatabasePath.Should().Be(databasePath);
@@ -1509,15 +1509,15 @@ public partial class MainViewModelTests
             305,
             "",
             "",
-            "[1]\n1절 가사\n[C]\n후렴"));
+            "[1]\n1절 가사\n[chorus]\n후렴"));
 
         var preview = await sut.PreviewPraiseBookSongAsync(new PraiseBookIndexEntry("은혜로다", 305, SongId: 42));
 
         preview.Should().NotBeNull();
         preview!.Id.Should().Be("praisebook-preview:42", "Preview 전용 항목은 Worship List song:{id} 와 충돌하지 않아야 함");
         preview.Kind.Should().Be(LiveItemKinds.Song);
-        preview.Lyrics.Should().Be("[1]\n1절 가사\n[C]\n후렴");
-        sut.SelectedItem.Should().BeSameAs(preview);
+        preview.Lyrics.Should().Be("[1]\n1절 가사\n[chorus]\n후렴");
+        sut.SelectedItem.Should().BeNull("the praise-book preview is a source preview; it does not take over the worship-list selection");
         sut.Queue.Should().BeEmpty("PraiseBook 단일 선택은 예배 순서에 추가하지 않는다");
         sut.PreviewLyricsText.Should().Be("1절 가사");
         sut.StatusText.Should().Be("PraiseBook 미리보기: 은혜로다");
@@ -1537,7 +1537,7 @@ public partial class MainViewModelTests
         var repo = new StubSongDetailRepository(SampleSongDetail(
             77,
             "DB 찬양",
-            "[1]\n1절\n[C]\n후렴",
+            "[1]\n1절\n[chorus]\n후렴",
             sequence: "1 C",
             formatData: "29=-65536>"));
         var sut = CreateSut(settings: settings, songDetail: repo, seedSampleQueue: false);
@@ -1547,7 +1547,7 @@ public partial class MainViewModelTests
         preview.Should().NotBeNull();
         preview!.Id.Should().Be("praisebook-preview:77");
         preview.Title.Should().Be("DB 찬양");
-        preview.Lyrics.Should().Be("[1]\n1절\n[C]\n후렴");
+        preview.Lyrics.Should().Be("[1]\n1절\n[chorus]\n후렴");
         preview.Sequence.Should().Be("1 C");
         preview.FormatData.Should().Be("29=-65536>");
         sut.Queue.Should().BeEmpty();
@@ -1845,9 +1845,10 @@ public partial class MainViewModelTests
     }
 
     [Fact]
-    public void SelectingDualLanguageBible_CountsVersesWithRegionAwarePages()
+    public void SelectingDualLanguageBible_AShortPassageIsOneScreenWithBothVersions()
     {
-        // 이중 언어 성경([region 2])은 [region 2] 가 절 경계로 오인되지 않고 영역-인식 페이지 수(2절)로 계산된다.
+        // 이중 언어 성경([region 2])은 [region 2] 가 절 경계로 오인되지 않는다. As in WinForms the passage flows: two
+        // short verses fit one screen (gfLyrics.BuildSlides), they are not a screen each.
         var sut = CreateSut(seedSampleQueue: false);
         var bible = new LiveQueueItem("0;kjv.db;krv.db;43;3;16;3;17;", "John 3:16-17", LiveItemKinds.Bible)
         {
@@ -1857,7 +1858,10 @@ public partial class MainViewModelTests
 
         sut.SelectedItem = bible;
 
-        sut.LyricsPageCount.Should().Be(2);
+        sut.LyricsPageCount.Should().Be(1);
+        sut.PreviewLyricsPages.Should().ContainSingle()
+            .Which.BodyText.Should().Be(
+                $"For God so loved\nFor God sent{Environment.NewLine}{Environment.NewLine}하나님이 세상을\n하나님이 아들을");
     }
 
     [Fact]
@@ -2725,9 +2729,15 @@ public partial class MainViewModelTests
         await sut.GoLiveCommand.ExecuteAsync(null);
         sut.CanSelectLiveItem.Should().BeTrue("송출 중이고 라이브 항목이 큐에 있음");
 
-        // 라이브 항목(A)을 큐에서 제거하면 다시 비활성(큐에 없는 고아 Id).
+        // Removing the live row (A) puts the newly selected row (B) on output, as FrmMain RemoveWorshipListSong does.
         sut.SelectedItem = sut.Queue.First(i => i.Id == "a");
         sut.RemoveSelectedItemCommand.Execute(null);
+        sut.LiveItemId.Should().Be("b");
+        sut.CanSelectLiveItem.Should().BeTrue();
+
+        // 마지막 라이브 항목까지 큐에서 빠지면 비활성(큐에 없는 고아 Id).
+        sut.RemoveSelectedItemCommand.Execute(null);
+        sut.Queue.Should().BeEmpty();
         sut.CanSelectLiveItem.Should().BeFalse("라이브 항목이 큐에서 빠지면 비활성");
     }
 
@@ -2910,6 +2920,655 @@ public partial class MainViewModelTests
         sut.DeleteWorshipList("지울것");
 
         sut.SavedWorshipListNames.Should().NotContain("지울것", "삭제 직후 세션 콤보에서 빠짐");
+    }
+
+    [Fact]
+    public async Task WorshipListEdits_AreSavedWhenTheListIsLeft_LikeFrmMainSavesEveryChange()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var path = Path.Combine(folder.Root, "Lists");
+        var store = new WorshipListStore(path);
+        await store.SaveAsync("주일", [new("a", "A"), new("b", "B")]);
+        await store.SaveAsync("수요", [new("c", "C")]);
+        using var vm = CreateSut(seedSampleQueue: false, settings: folder.CreateSettings(), worshipLists: store);
+        await vm.LoadWorshipListAsync("주일");
+        vm.HasPendingWorshipListSave.Should().BeFalse("loading is not an edit");
+
+        vm.SelectedItem = vm.Queue[1];
+        vm.MoveSelectedItemUpCommand.Execute(null);
+        vm.HasPendingWorshipListSave.Should().BeTrue("a reorder must reach the file when the list is closed or switched");
+        await vm.LoadWorshipListAsync("수요");
+
+        (await new WorshipListStore(path).LoadAsync("주일")).Select(item => item.Id).Should().Equal("b", "a");
+    }
+
+    [Fact]
+    public async Task DeleteWorshipList_OfTheCurrentList_DoesNotBringItBackOnTheNextEdit()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var store = new WorshipListStore(Path.Combine(folder.Root, "Lists"));
+        await store.SaveAsync("주일", [new("a", "A"), new("b", "B")]);
+        using var vm = CreateSut(seedSampleQueue: false, settings: folder.CreateSettings(), worshipLists: store);
+        await vm.LoadWorshipListAsync("주일");
+
+        vm.DeleteWorshipList("주일");
+        vm.SelectedItem = vm.Queue[0];
+        vm.RemoveSelectedItemCommand.Execute(null);
+
+        vm.CurrentWorshipListName.Should().BeEmpty();
+        vm.HasPendingWorshipListSave.Should().BeFalse();
+        (await vm.SavePendingWorshipListChangesAsync()).Should().BeTrue();
+        store.ListNames().Should().NotContain("주일");
+    }
+
+    [Fact]
+    public async Task LoadWorshipList_ThatNoLongerExists_KeepsTheCurrentQueue()
+    {
+        // A renamed or deleted list stays in the recent menu; FrmMain keeps the list on screen.
+        var sut = CreateSut(worshipLists: new InMemoryWorshipListStore());
+        var before = sut.Queue.ToArray();
+
+        await sut.LoadWorshipListAsync("없는 순서");
+
+        sut.Queue.Should().Equal(before);
+        sut.StatusText.Should().Contain("찾을 수 없습니다");
+    }
+
+    [Fact]
+    public void NextItem_FromTheSecondOfTwoIdenticalEntries_MovesOn()
+    {
+        // The same notice or song is often in a list twice.
+        var sut = CreateSut(seedSampleQueue: false);
+        LiveQueueItem Entry(string id, string title) => new(id, title, LiveItemKinds.Notice) { Lyrics = title };
+        sut.LoadQueue([Entry("n", "기도"), Entry("b", "B"), Entry("n", "기도"), Entry("d", "D")]);
+
+        sut.SelectedItem = sut.Queue[2];
+        sut.SelectedItem.Should().BeSameAs(sut.Queue[2], "selecting the second copy must not fall back to the first");
+        sut.NextItemCommand.Execute(null);
+
+        sut.SelectedItem.Should().BeSameAs(sut.Queue[3]);
+    }
+
+    [Fact]
+    public void RemoveSelectedItem_WithSeveralRowsSelected_RemovesAllOfThem()
+    {
+        // FrmMain RemoveWorshipListSong removes every selected row.
+        var sut = CreateSut();
+        var rows = new[] { sut.Queue[0], sut.Queue[2] };
+        sut.SelectedQueueRows = () => rows;
+        sut.SelectedItem = sut.Queue[2];
+
+        sut.RemoveSelectedItemCommand.Execute(null);
+
+        sut.Queue.Select(item => item.Id).Should().Equal("sample-song");
+        sut.SelectedItem.Should().BeSameAs(sut.Queue[0]);
+    }
+
+    // A settings folder whose working folder holds a (placeholder) song database file, so that the view
+    // model resolves a database path and asks the injected song repository.
+    private static ISettingsService SettingsWithSongDatabase(TempSettingsFolder folder)
+    {
+        var settings = folder.CreateSettings();
+        var workingFolder = Path.Combine(folder.Root, "Work");
+        var databasePath = Path.Combine(workingFolder, "Admin", "Database", "AxicultusDb.db");
+        Directory.CreateDirectory(Path.GetDirectoryName(databasePath)!);
+        File.WriteAllText(databasePath, "");
+        settings.Set(AxicultusSettingKeys.WorkingFolder, workingFolder).Succeeded.Should().BeTrue();
+        return settings;
+    }
+
+    private sealed class UnreadableSongDetailRepository : IAdminSongDetailRepository
+    {
+        public Task<SongDetail?> GetSongDetailAsync(string databasePath, int songId)
+            => throw new InvalidOperationException("AdminDB schema is not compatible");
+    }
+
+    [Fact]
+    public async Task LoadWorshipList_TakesSongTextFromTheDatabase_AndIsNotAnEdit()
+    {
+        // FrmMain keeps only the song id in a list file, so a lyric corrected in the library shows in every list.
+        using var folder = TempSettingsFolder.Create();
+        var store = new InMemoryWorshipListStore();
+        await store.SaveAsync("주일", [
+            new LiveQueueItem("song:42", " 새 제목", LiveItemKinds.Song) { Lyrics = "[1]\n틀린 가사", FormatData = "29=-65536>", Capo = 2 },
+            new LiveQueueItem("text:1", "광고", LiveItemKinds.Notice) { Lyrics = "광고" },
+        ]);
+        var repo = new StubSongDetailRepository(SampleSongDetail(42, "새 제목", "[1]\n고친 가사", sequence: "1", bookReference: "찬 42"));
+        var sut = CreateSut(settings: SettingsWithSongDatabase(folder), worshipLists: store, songDetail: repo, seedSampleQueue: false);
+
+        await sut.LoadWorshipListAsync("주일");
+
+        sut.Queue[0].Title.Should().Be("새 제목");
+        sut.Queue[0].Lyrics.Should().Be("[1]\n고친 가사");
+        sut.Queue[0].BookReference.Should().Be("찬 42");
+        sut.Queue[0].Capo.Should().Be(0, "capo follows the database");
+        sut.Queue[0].FormatData.Should().Be("29=-65536>", "the list item keeps its own formatting");
+        sut.Queue[1].Lyrics.Should().Be("광고");
+        sut.WorshipListHasUnsavedChanges.Should().BeFalse("loading is not an edit");
+        sut.HasPendingWorshipListSave.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task LoadWorshipList_KeepsTheSavedSong_WhenItsIdNowBelongsToAnotherSong()
+    {
+        // The list folder is one for every working folder and database: after a switch "song:42" is some other
+        // song. A song that was only renamed (same lyrics) or only corrected (same title) is still refreshed.
+        using var folder = TempSettingsFolder.Create();
+        var store = new InMemoryWorshipListStore();
+        await store.SaveAsync("주일", [
+            new LiveQueueItem("song:42", "주 은혜임을", LiveItemKinds.Song) { Lyrics = "[1]\n주 은혜임을" },
+            new LiveQueueItem("song:43", "옛 제목", LiveItemKinds.Song) { Lyrics = "[1]\n같은 가사" },
+            new LiveQueueItem("song:44", "가사 없는 곡", LiveItemKinds.Song),
+        ]);
+        var repo = new StubSongDetailRepository(new Dictionary<int, SongDetail>
+        {
+            [42] = SampleSongDetail(42, "전혀 다른 곡", "[1]\n다른 가사"),
+            [43] = SampleSongDetail(43, "새 제목", "[1]\n같은 가사"),
+            [44] = SampleSongDetail(44, "DB 제목", "[1]\nDB 가사"),
+        });
+        var sut = CreateSut(settings: SettingsWithSongDatabase(folder), worshipLists: store, songDetail: repo, seedSampleQueue: false);
+
+        await sut.LoadWorshipListAsync("주일");
+
+        sut.Queue.Select(item => item.Title).Should().Equal("주 은혜임을", "새 제목", "DB 제목");
+        sut.Queue.Select(item => item.Lyrics).Should().Equal("[1]\n주 은혜임을", "[1]\n같은 가사", "[1]\nDB 가사");
+        sut.StatusText.Should().Contain("곡 1개는");
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task LoadWorshipList_KeepsTheSavedSong_WhenTheDatabaseHasNoneOrCannotBeRead(bool unreadable)
+    {
+        using var folder = TempSettingsFolder.Create();
+        var store = new InMemoryWorshipListStore();
+        await store.SaveAsync("주일", [new LiveQueueItem("song:42", "저장된 곡", LiveItemKinds.Song) { Lyrics = "[1]\n저장된 가사" }]);
+        IAdminSongDetailRepository repo = unreadable ? new UnreadableSongDetailRepository() : new StubSongDetailRepository(detail: null);
+        var sut = CreateSut(settings: SettingsWithSongDatabase(folder), worshipLists: store, songDetail: repo, seedSampleQueue: false);
+
+        await sut.LoadWorshipListAsync("주일");
+
+        sut.Queue.Should().ContainSingle().Which.Lyrics.Should().Be("[1]\n저장된 가사");
+        sut.CurrentWorshipListName.Should().Be("주일");
+        if (unreadable) sut.StatusText.Should().Contain("불러옴").And.Contain("곡 데이터베이스를 읽을 수 없습니다");
+    }
+
+    [Fact]
+    public async Task MergeWorshipList_TakesSongTextFromTheDatabase()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var store = new InMemoryWorshipListStore();
+        await store.SaveAsync("주일", [new LiveQueueItem("song:42", "곡", LiveItemKinds.Song) { Lyrics = "[1]\n틀린 가사" }]);
+        var repo = new StubSongDetailRepository(SampleSongDetail(42, "곡", "[1]\n고친 가사"));
+        var sut = CreateSut(settings: SettingsWithSongDatabase(folder), worshipLists: store, songDetail: repo);
+
+        await sut.MergeWorshipListAsync("주일");
+
+        sut.Queue[^1].Lyrics.Should().Be("[1]\n고친 가사");
+    }
+
+    [Fact]
+    public async Task PraiseBookSong_WhenTheDatabaseCannotBeRead_ReportsInsteadOfThrowing()
+    {
+        // The praise-book click, double click, Enter and drop handlers are async void: an exception ends the app.
+        using var folder = TempSettingsFolder.Create();
+        var sut = CreateSut(settings: SettingsWithSongDatabase(folder), songDetail: new UnreadableSongDetailRepository(), seedSampleQueue: false);
+        var entry = new PraiseBookIndexEntry("찬양", 0, SongId: 77);
+
+        (await sut.PreviewPraiseBookSongAsync(entry)).Should().BeNull();
+        sut.StatusText.Should().Contain("곡 데이터베이스를 읽을 수 없습니다");
+        (await sut.AddPraiseBookSongAsync(entry)).Should().BeNull();
+        (await sut.AddPraiseBookSongRelativeToAsync(entry, targetItem: null)).Should().BeNull();
+        sut.Queue.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task ValidateAndAddUsages_WhenTheDatabaseCannotBeRead_DoNotThrow()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var sut = CreateSut(settings: SettingsWithSongDatabase(folder), songDetail: new UnreadableSongDetailRepository(),
+            searchUsageService: new RecordingSearchUsageService(), seedSampleQueue: false);
+        sut.LoadQueue([new LiveQueueItem("song:42", "곡", LiveItemKinds.Song) { Lyrics = "[1]\n가사" }]);
+
+        await sut.ValidateWorshipListAsync();
+        sut.WorshipListProblems.Should().BeEmpty("an unreadable database says nothing about the song");
+        sut.StatusText.Should().Contain("곡 DB 검증 생략");
+        await sut.Invoking(vm => vm.AddWorshipListSongsToUsagesAsync()).Should().NotThrowAsync();
+    }
+
+    [Fact]
+    public async Task PraiseBookPreview_LeavesTheWorshipSelection_SoTheNextAddGoesAfterIt()
+    {
+        // FrmMain PraiseBookItems_MouseDoubleClick inserts at GetWorshipListNextSelectedLoc (after the selected row).
+        var sut = CreateSut();
+        var selected = sut.Queue[0];
+        sut.SelectedItem = selected;
+        sut.Library.Songs.Add(new SongSummary(42, "은혜로다", "", 1, 305, "", "", "[1]\n1절 가사"));
+        var entry = new PraiseBookIndexEntry("은혜로다", 305, SongId: 42);
+
+        await sut.PreviewPraiseBookSongAsync(entry);
+
+        sut.SelectedItem.Should().BeSameAs(selected);
+        sut.PreviewLyricsText.Should().Be("1절 가사", "the preview shows the praise-book song");
+
+        var added = await sut.AddPraiseBookSongAsync(entry);
+
+        sut.Queue[1].Should().BeSameAs(added);
+        sut.Queue[0].Should().BeSameAs(selected);
+    }
+
+    [Fact]
+    public async Task PraiseBookPreview_WhenTheSelectionIsCleared_ShowsTheWorshipRowAgain()
+    {
+        var sut = CreateSut(seedSampleQueue: false);
+        var row = new LiveQueueItem("song:1", "예배 곡", LiveItemKinds.Song) { Lyrics = "[1]\n예배 순서 가사" };
+        sut.LoadQueue([row]);
+        sut.Library.Songs.Add(new SongSummary(42, "은혜로다", "", 1, 305, "", "", "[1]\n찬양집 가사"));
+        await sut.PreviewPraiseBookSongAsync(new PraiseBookIndexEntry("은혜로다", 305, SongId: 42));
+
+        await sut.PreviewPraiseBookSongAsync(null);
+
+        sut.SelectedItem.Should().BeSameAs(row);
+        sut.PreviewLyricsText.Should().Be("예배 순서 가사");
+    }
+
+    [Fact]
+    public void ShowWorshipSelectionPreview_DropsALibraryPreview()
+    {
+        // FrmMain WorshipList_MouseUp reloads the preview even when the clicked row was already selected.
+        var sut = CreateSut(seedSampleQueue: false);
+        var row = new LiveQueueItem("song:1", "예배 곡", LiveItemKinds.Song) { Lyrics = "[1]\n예배 순서 가사" };
+        sut.LoadQueue([row]);
+        sut.PreviewLibrarySong(new SongSummary(42, "다른 곡", "", 1, 0, "", "", "[1]\n라이브러리 가사"));
+        sut.PreviewLyricsText.Should().Be("라이브러리 가사");
+
+        sut.ShowWorshipSelectionPreview();
+
+        sut.PreviewLyricsText.Should().Be("예배 순서 가사");
+    }
+
+    [Fact]
+    public async Task ImportedCopy_IsPending_SoClosingOrSwitchingSavesIt()
+    {
+        var store = new InMemoryWorshipListStore();
+        var settings = TempSettingsFolder.CreateDetachedSettings();
+        var sut = CreateSut(settings: settings, worshipLists: store, seedSampleQueue: false);
+        const string xml = "<Axicultus><ListItem><Item><ItemID>T1</ItemID><Title1>광고</Title1><Folder /></Item></ListItem></Axicultus>";
+
+        await sut.OpenLegacySessionAsync("가져온 순서", xml, importCopy: true);
+
+        sut.HasPendingWorshipListSave.Should().BeTrue();
+        store.ListNames().Should().BeEmpty("the copy is saved by the pending save, not by the import itself");
+        (await sut.SavePendingWorshipListChangesAsync()).Should().BeTrue();
+        store.ListNames().Should().Equal("가져온 순서");
+        settings.Get(AxicultusSettingKeys.CurrentWorshipListName).Should().Be("가져온 순서", "the next start opens the imported list");
+    }
+
+    [Fact]
+    public async Task SelectingAnotherRow_WhileMediaPlaysOrIsPaused_LeavesTheMediaAlone()
+    {
+        // FrmMain's media player follows the live item; WorshipListIndexChanged never stops it.
+        using var folder = TempSettingsFolder.Create();
+        var file = Path.Combine(folder.Root, "welcome.avi");
+        File.WriteAllText(file, "media placeholder");
+        var clip = new LiveQueueItem("media:welcome", "Welcome", LiveItemKinds.Media) { ContentPath = file };
+        var song = new LiveQueueItem("song:1", "곡", LiveItemKinds.Song) { Lyrics = "[1]\n가사" };
+        using var sut = CreateSut(seedSampleQueue: false);
+        await sut.ApplySelectedItemContentAsync(clip);
+        sut.Media.PlayPauseCommand.Execute(null);
+        sut.Media.State.Should().Be(MediaPlaybackState.Playing);
+
+        await sut.ApplySelectedItemContentAsync(song);
+        sut.Media.State.Should().Be(MediaPlaybackState.Playing);
+        sut.Media.Source.Should().Be(file);
+
+        sut.Media.PlayPauseCommand.Execute(null);
+        await sut.ApplySelectedItemContentAsync(song);
+        sut.Media.State.Should().Be(MediaPlaybackState.Paused);
+
+        sut.Media.StopCommand.Execute(null);
+        await sut.ApplySelectedItemContentAsync(song);
+        sut.Media.State.Should().Be(MediaPlaybackState.Empty, "stopped media is taken down by the next selection as before");
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task MediaInTheOutputWindow_FollowsTheLiveItem_NotTheSelection(bool goLiveWithTheClipItself)
+    {
+        // FrmLaunchShow PlayLiveMedia re-drives the player for each live item; the list selection does not.
+        using var folder = TempSettingsFolder.Create();
+        var file = Path.Combine(folder.Root, "welcome.avi");
+        File.WriteAllText(file, "media placeholder");
+        var clip = new LiveQueueItem("media:welcome", "Welcome", LiveItemKinds.Media) { ContentPath = file };
+        var song = new LiveQueueItem("song:1", "곡", LiveItemKinds.Song) { Lyrics = "[1]\n가사" };
+        using var sut = CreateSut(seedSampleQueue: false);
+        sut.LoadQueue([clip, song]);
+        sut.OpenOutputCommand.Execute(null);
+        sut.Media.PlayPauseCommand.Execute(null);
+        sut.Media.State.Should().Be(MediaPlaybackState.Playing);
+
+        sut.SelectedItem = goLiveWithTheClipItself ? clip : song;
+        sut.Media.State.Should().Be(MediaPlaybackState.Playing, "cueing another row leaves the media on screen");
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        sut.Session.Current.State.Should().Be(LiveState.Active);
+        sut.Media.State.Should().Be(goLiveWithTheClipItself ? MediaPlaybackState.Playing : MediaPlaybackState.Empty);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task GoLive_WithASongMissingFromTheDatabase_OnlyStopsWhenTheItemHasNoLyrics(bool itemHasLyrics)
+    {
+        // The search tab was never opened (Search.DatabasePath is empty): the gate still finds the database.
+        using var folder = TempSettingsFolder.Create();
+        var sut = CreateSut(settings: SettingsWithSongDatabase(folder), songDetail: new StubSongDetailRepository(detail: null), seedSampleQueue: false);
+        var song = new LiveQueueItem("song:42", "사라진 곡", LiveItemKinds.Song) { Lyrics = itemHasLyrics ? "[1]\n저장된 가사" : null };
+        sut.LoadQueue([song]);
+        sut.OpenOutputCommand.Execute(null);
+        sut.CopyPreviewToOutputCommand.Execute(null);
+
+        await sut.ToggleOutputLiveCommand.ExecuteAsync(null);
+
+        sut.Session.Current.State.Should().Be(itemHasLyrics ? LiveState.Active : LiveState.Off);
+        sut.WorshipListProblems.Should().ContainSingle().Which.Kind.Should().Be(WorshipItemProblemKind.SongNotInDatabase);
+        sut.HasWorshipListProblems.Should().BeTrue("the missing song stays listed as a warning");
+    }
+
+    [Fact]
+    public async Task RemovingTheRowOnOutput_CopiesTheNewlySelectedRowToOutput()
+    {
+        // FrmMain RemoveWorshipListSong: removedOutputItem -> CopyPreviewToOutput (shown at once while the show runs).
+        var sut = CreateSut(seedSampleQueue: false);
+        var first = new LiveQueueItem("song-1", "입례 찬양", LiveItemKinds.Song) { Lyrics = "[1]\n입례" };
+        var second = new LiveQueueItem("song-2", "봉헌 찬양", LiveItemKinds.Song) { Lyrics = "[1]\n봉헌" };
+        var third = new LiveQueueItem("song-3", "파송 찬양", LiveItemKinds.Song) { Lyrics = "[1]\n파송" };
+        sut.LoadQueue([first, second, third]);
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = first;
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        sut.Session.Current.CurrentItemTitle.Should().Be("입례 찬양");
+
+        sut.SelectedItem = third;
+        sut.RemoveSelectedItemCommand.Execute(null);
+        sut.Session.Current.CurrentItemTitle.Should().Be("입례 찬양", "removing another row leaves the output alone");
+
+        sut.SelectedItem = first;
+        sut.RemoveSelectedItemCommand.Execute(null);
+
+        sut.Queue.Should().Equal(second);
+        sut.OutputItem!.Id.Should().Be(second.Id);
+        sut.Session.Current.State.Should().Be(LiveState.Active);
+        sut.Session.Current.CurrentItemTitle.Should().Be("봉헌 찬양");
+    }
+
+    // A running show on [song A (2 verses), song B (1 verse)] with the given gap option and "advance to next item".
+    private static async Task<MainViewModel> StartShowWithGapOptionAsync(GapItemMode gap, bool advanceNextItem,
+        AutoRotateMode rotate = AutoRotateMode.OneRepeat)
+    {
+        var settings = TempSettingsFolder.CreateDetachedSettings();
+        settings.Set(AxicultusSettingKeys.GapItemOption, gap).Succeeded.Should().BeTrue();
+        settings.Set(AxicultusSettingKeys.AdvanceNextItem, advanceNextItem).Succeeded.Should().BeTrue();
+        settings.Set(AxicultusSettingKeys.AutoRotateMode, rotate).Succeeded.Should().BeTrue();
+        var sut = CreateSut(settings: settings, seedSampleQueue: false);
+        sut.LoadQueue([
+            new LiveQueueItem("song-a", "A", LiveItemKinds.Song) { Lyrics = "a1\n\na2" },
+            new LiveQueueItem("song-b", "B", LiveItemKinds.Song) { Lyrics = "b1" },
+        ]);
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = sut.Queue[0];
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        return sut;
+    }
+
+    [Fact]
+    public async Task GapScreen_ComesAfterTheLastSlide_AndNextOpensTheNextItem()
+    {
+        // FrmMain.MoveToSlideOutputItem / MoveToOutputItem: last slide -> item "G1" -> next item; after the last
+        // item the gap screen stays.
+        var sut = await StartShowWithGapOptionAsync(GapItemMode.Default, advanceNextItem: true);
+
+        await sut.LiveNextShortcutCommand.ExecuteAsync(null);
+        sut.IsGapItemOnDisplay.Should().BeFalse("the second verse comes first");
+        sut.Session.Current.CurrentLyricsPageIndex.Should().Be(1);
+
+        await sut.LiveNextShortcutCommand.ExecuteAsync(null);
+        sut.IsGapItemOnDisplay.Should().BeTrue();
+        sut.Session.Current.State.Should().Be(LiveState.Active);
+        sut.Session.Current.CurrentItemBodyText.Should().BeEmpty();
+        sut.OutputItem!.Id.Should().Be("song-a", "the gap follows the output row");
+        sut.OutputScreenStatus.Should().Contain("Screen: gap");
+
+        await sut.LiveNextShortcutCommand.ExecuteAsync(null);
+        sut.IsGapItemOnDisplay.Should().BeFalse();
+        sut.Session.Current.CurrentItemId.Should().Be("song-b");
+
+        await sut.LiveNextShortcutCommand.ExecuteAsync(null);
+        sut.IsGapItemOnDisplay.Should().BeTrue("the gap screen also follows the last item");
+        await sut.LiveNextShortcutCommand.ExecuteAsync(null);
+        sut.IsGapItemOnDisplay.Should().BeTrue("there is no item to open after it");
+    }
+
+    [Fact]
+    public async Task GapScreen_PreviousReturnsToTheLastSlideOfTheItemBeforeIt()
+    {
+        // FrmLaunchShow.MoveToSlideLiveItem on item "G": MoveToLiveItem(Refresh, 30000).
+        var sut = await StartShowWithGapOptionAsync(GapItemMode.Black, advanceNextItem: true);
+        await sut.NextOutputItemCommand.ExecuteAsync(null);
+        sut.IsGapItemOnDisplay.Should().BeTrue("the item key reaches the gap screen from the first slide too");
+
+        await sut.LivePreviousShortcutCommand.ExecuteAsync(null);
+
+        sut.IsGapItemOnDisplay.Should().BeFalse();
+        sut.Session.Current.CurrentItemId.Should().Be("song-a");
+        sut.Session.Current.CurrentLyricsPageIndex.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task GapScreen_ItemKeysLeaveIt_AndSlideKeysNeedAdvanceToNextItem()
+    {
+        // FrmMain.MoveToSlide moves past the last slide only with "advance to next item"; MoveToOutputItem
+        // (PageDown/PageUp) uses the gap screen regardless and Previous reopens the item on its first slide.
+        var sut = await StartShowWithGapOptionAsync(GapItemMode.Default, advanceNextItem: false);
+        await sut.LiveNextShortcutCommand.ExecuteAsync(null);
+        await sut.LiveNextShortcutCommand.ExecuteAsync(null);
+        sut.IsGapItemOnDisplay.Should().BeFalse("the last slide stays without advance to next item");
+
+        await sut.NextOutputItemCommand.ExecuteAsync(null);
+        sut.IsGapItemOnDisplay.Should().BeTrue();
+        await sut.LiveNextShortcutCommand.ExecuteAsync(null);
+        await sut.LivePreviousShortcutCommand.ExecuteAsync(null);
+        sut.IsGapItemOnDisplay.Should().BeTrue("slide keys do not leave the gap screen without advance to next item");
+
+        await sut.PreviousOutputItemCommand.ExecuteAsync(null);
+        sut.Session.Current.CurrentItemId.Should().Be("song-a");
+        sut.Session.Current.CurrentLyricsPageIndex.Should().Be(0);
+
+        await sut.NextOutputItemCommand.ExecuteAsync(null);
+        await sut.NextOutputItemCommand.ExecuteAsync(null);
+        sut.Session.Current.CurrentItemId.Should().Be("song-b");
+    }
+
+    [Fact]
+    public async Task GapScreen_IsNotUsedWithoutAGapOption()
+    {
+        var sut = await StartShowWithGapOptionAsync(GapItemMode.None, advanceNextItem: true);
+
+        await sut.LiveNextShortcutCommand.ExecuteAsync(null);
+        await sut.LiveNextShortcutCommand.ExecuteAsync(null);
+
+        sut.IsGapItemOnDisplay.Should().BeFalse();
+        sut.Session.Current.CurrentItemId.Should().Be("song-b");
+    }
+
+    [Fact]
+    public async Task GapScreen_StaysUnderBlackAndWhenTheOutputRowIsReformatted_AndRestartReopensTheItem()
+    {
+        var sut = await StartShowWithGapOptionAsync(GapItemMode.User, advanceNextItem: true);
+        await sut.NextOutputItemCommand.ExecuteAsync(null);
+
+        await sut.ToggleOutputBlackCommand.ExecuteAsync(null);
+        sut.IsGapItemOnDisplay.Should().BeTrue("Black covers the gap screen and returns to it");
+        await sut.ToggleOutputBlackCommand.ExecuteAsync(null);
+        sut.Session.Current.State.Should().Be(LiveState.Active);
+        sut.IsGapItemOnDisplay.Should().BeTrue();
+
+        sut.AdvanceAutoRotation();
+        sut.IsGapItemOnDisplay.Should().BeTrue("the gap screen does not rotate");
+
+        await sut.RestartCurrentItemCommand.ExecuteAsync(null);
+        sut.IsGapItemOnDisplay.Should().BeFalse("FrmLaunchShow F5 reloads the item the gap follows");
+        sut.Session.Current.CurrentItemId.Should().Be("song-a");
+        sut.LiveItemId.Should().Be("song-a");
+    }
+
+    [Fact]
+    public async Task GapScreen_EndsAnAutoRotationThatHasNoNextItem()
+    {
+        // FrmLaunchShow TimerRotate: target -1 with a gap option -> MoveToLiveItem(NextOne), the gap screen.
+        var sut = await StartShowWithGapOptionAsync(GapItemMode.Default, advanceNextItem: false, AutoRotateMode.One);
+        sut.ToggleAutoRotateCommand.Execute(null);
+
+        sut.AdvanceAutoRotation();
+        sut.IsGapItemOnDisplay.Should().BeFalse("the second verse first");
+        sut.AdvanceAutoRotation();
+
+        sut.IsAutoRotating.Should().BeFalse();
+        sut.IsGapItemOnDisplay.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task BiblePassage_FlowsOverTheSlides_AlsoWithAutoTextOverflowOff()
+    {
+        // gfLyrics.FitWholeLyricPage exempts type "B": a slide holds the verses that fit, not one verse each.
+        var settings = TempSettingsFolder.CreateDetachedSettings();
+        settings.Set(AxicultusSettingKeys.AutoTextOverflow, false).Succeeded.Should().BeTrue();
+        var sut = CreateSut(settings: settings, seedSampleQueue: false);
+        var verses = Enumerable.Range(1, 60).Select(verse => $"{verse} 태초에 하나님이 천지를 창조하시니라").ToArray();
+        var passage = new LiveQueueItem("bible:passage", "창세기 1", LiveItemKinds.Bible) { Lyrics = BiblePassageComposer.Compose(verses, []) };
+        sut.LoadQueue([passage]);
+        sut.OpenOutputCommand.Execute(null);
+
+        sut.LyricsPageCount.Should().BeInRange(2, 59, "neither one verse a slide nor the whole passage on one");
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        var first = sut.Session.Current.CurrentItemBodyText;
+        first.Should().StartWith(verses[0] + "\n" + verses[1]);
+        first.Should().NotContain(verses[59]);
+
+        await sut.NextOutputSlideCommand.ExecuteAsync(null);
+        sut.Session.Current.CurrentLyricsPageIndex.Should().Be(1);
+        sut.Session.Current.CurrentItemBodyText.Should().NotContain(verses[0] + "\n").And.NotBe(first);
+    }
+
+    [Fact]
+    public async Task BiblePassageInTwoVersions_FlowsOverTheSameScreensInTheCardsTheOutputAndThePageCount()
+    {
+        // gfLyrics.BuildSlides / BuildSlidesReg2: region 1 fills each screen, region 2 shows the same verses.
+        var settings = TempSettingsFolder.CreateDetachedSettings();
+        settings.Set(AxicultusSettingKeys.AdvanceNextItem, true).Succeeded.Should().BeTrue();
+        var sut = CreateSut(settings: settings, seedSampleQueue: false);
+        var korean = Enumerable.Range(1, 60).Select(verse => $"1:{verse} 태초에 하나님이 천지를 창조하시니라").ToArray();
+        var english = Enumerable.Range(1, 60).Select(verse => $"1:{verse} In the beginning God created the heaven and the earth.").ToArray();
+        var passage = new LiveQueueItem("bible:passage", "창세기 1", LiveItemKinds.Bible)
+        {
+            Lyrics = BiblePassageComposer.Compose(korean, english),
+            // A font at which several verses fit above region 2 (at the default size it is a verse a screen).
+            SongLayout = new Axicultus.Wpf.Data.SongPageLayout(14, "Arial", 0, 5, 5, 0, 1, 100, 0),
+        };
+        var song = new LiveQueueItem("song", "찬양", LiveItemKinds.Song) { Lyrics = "one\n\ntwo" };
+        sut.LoadQueue([passage, song]);
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = passage;
+
+        int pages = sut.LyricsPageCount;
+        pages.Should().BeInRange(2, 59, "neither a verse a screen nor the whole passage on one");
+        sut.PreviewLyricsPages.Should().HaveCount(pages, "the cards are the same screens");
+        sut.PreviewLyricsPages[0].BodyText.Should().StartWith(korean[0] + "\n" + korean[1]).And.Contain(english[0] + "\n" + english[1]);
+
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        var region1 = new List<string>();
+        var region2 = new List<string>();
+        for (int page = 0; page < pages; page++)
+        {
+            var session = sut.Session.Current;
+            session.CurrentLyricsPageIndex.Should().Be(page);
+            var first = session.CurrentItemBodyText.Split('\n');
+            var second = session.CurrentItemBodyText2.Split('\n');
+            second.Select(verse => verse[..verse.IndexOf(' ')]).Should().Equal(first.Select(verse => verse[..verse.IndexOf(' ')]),
+                "a screen shows the same verses in both versions");
+            region1.AddRange(first);
+            region2.AddRange(second);
+            if (page < pages - 1) await sut.NextOutputSlideCommand.ExecuteAsync(null);
+        }
+
+        region1.Should().Equal(korean, "every verse is shown once, in order");
+        region2.Should().Equal(english);
+
+        // The next item, and back: Previous at its first page opens the passage on its last screen.
+        await sut.LiveNextShortcutCommand.ExecuteAsync(null);
+        sut.Session.Current.CurrentItemId.Should().Be(song.Id);
+        await sut.LivePreviousShortcutCommand.ExecuteAsync(null);
+        sut.Session.Current.CurrentItemId.Should().Be(passage.Id);
+        sut.Session.Current.CurrentLyricsPageIndex.Should().Be(pages - 1);
+        sut.Session.Current.CurrentItemBodyText2.Should().EndWith(english[59]);
+    }
+
+    [Fact]
+    public async Task LiveNextShortcut_WhileBlack_MovesTheHiddenOutputNotTheListSelection()
+    {
+        // FrmLaunchShow moves the output slide while Black is on; un-blacking then shows the new verse.
+        var sut = CreateSut(seedSampleQueue: false);
+        sut.LoadQueue([
+            new LiveQueueItem("song-1", "찬양", LiveItemKinds.Song) { Lyrics = "[1]\nVerse one\n[2]\nVerse two" },
+            new LiveQueueItem("song-2", "다음 곡", LiveItemKinds.Song) { Lyrics = "[1]\nOther" },
+        ]);
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = sut.Queue[0];
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        await sut.BlackScreenCommand.ExecuteAsync(null);
+
+        await sut.LiveNextShortcutCommand.ExecuteAsync(null);
+
+        sut.SelectedItem.Should().BeSameAs(sut.Queue[0], "the list selection stays on the live item");
+        sut.Session.Current.CurrentLyricsPageIndex.Should().Be(1);
+        sut.Session.Current.State.Should().Be(LiveState.Hidden, "moving does not un-black");
+    }
+
+    [Fact]
+    public async Task OutputWindowClosedByTheOperator_WhileLive_EndsTheShow()
+    {
+        var output = new OutputWindowService();
+        var sut = CreateSut(output: output);
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = sut.Queue[1];
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        sut.IsShowRunning.Should().BeTrue();
+
+        output.Close(); // what OutputWindowHost does when the window is closed with Alt+F4
+
+        sut.IsShowRunning.Should().BeFalse("LIVE with no audience window would send every next verse nowhere");
+    }
+
+    [Fact]
+    public async Task CloseOutput_WhileAPowerPointShowRuns_StopsTheNativeShow()
+    {
+        var slideShow = new RecordingPowerPointSlideShowControl();
+        var sut = CreateSut(
+            seedSampleQueue: false,
+            powerPoint: new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen()),
+            outputPowerPoint: new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen()),
+            powerPointSlideShow: slideShow);
+        sut.LoadQueue([new LiveQueueItem("ppt:deck", "Deck", LiveItemKinds.PowerPoint) { ContentPath = "deck.pptx" }]);
+        sut.OpenOutputCommand.Execute(null);
+        sut.SelectedItem = sut.Queue[0];
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        var stopsBefore = slideShow.StopCount;
+
+        await sut.CloseOutputCommand.ExecuteAsync(null);
+
+        slideShow.StopCount.Should().BeGreaterThan(stopsBefore, "the native show is its own full-screen window on the audience monitor");
+        sut.IsShowRunning.Should().BeFalse();
     }
 
     // ── 대기 화면(Gap) 빠른 조작(출력 메뉴) — 모드 콤보·페이드 토글·로고 픽커 ──
@@ -3362,9 +4021,10 @@ public partial class MainViewModelTests
     }
 
     [Fact]
-    public void DuplicateSelectedItem_InsertsCopyWithSameContentNewId_AfterOriginal_AndSelectsIt()
+    public void DuplicateSelectedItem_InsertsACopyOfTheRow_AfterOriginal_AndSelectsIt()
     {
-        // 선택 항목 복제 — 같은 내용(가사·종류·번호)·새 Id 로 바로 뒤에 삽입하고 복제본을 선택(같은 곡 두 번 부르기 등).
+        // 선택 항목 복제 — 같은 내용(가사·종류·번호)으로 바로 뒤에 삽입하고 복제본을 선택(같은 곡 두 번 부르기 등).
+        // The copy keeps the id (the song stays that song for the database); it is another row by reference.
         var sut = CreateSut(seedSampleQueue: false);
         sut.LoadQueue([
             new LiveQueueItem("song:1", "은혜로다", "Song") { Lyrics = "[1]\n가사", SongNumber = 42 },
@@ -3378,8 +4038,8 @@ public partial class MainViewModelTests
         sut.Queue.Should().HaveCount(3);
         sut.Queue[1].Should().BeSameAs(copy, "원본 바로 뒤에 삽입");
         sut.Queue[2].Id.Should().Be("song:2", "기존 항목은 뒤로 밀림");
-        copy!.Id.Should().NotBe("song:1", "복제본은 새 Id");
-        copy.Id.Should().StartWith("dup:");
+        copy!.Id.Should().Be("song:1");
+        copy.Should().NotBeSameAs(sut.Queue[0]);
         copy.Title.Should().Be("은혜로다", "내용은 같음");
         copy.Lyrics.Should().Be("[1]\n가사");
         copy.Kind.Should().Be("Song");
@@ -3706,6 +4366,27 @@ public partial class MainViewModelTests
     }
 
     [Fact]
+    public async Task MediaExtensions_ComeFromTheOperatorsListsInTheWorkingFolder()
+    {
+        // One source (SourceFileExtensions) for the drop, the audio/video decision and the dialog filter: the
+        // AudioExtensions.txt the WinForms app reads and the operator edits.
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        settings.Set(AxicultusSettingKeys.WorkingFolder, folder.Root);
+        var lists = Path.Combine(folder.Root, "Admin", "Database");
+        Directory.CreateDirectory(lists);
+        await File.WriteAllLinesAsync(Path.Combine(lists, "AudioExtensions.txt"), ["xyz"]);
+        var sut = CreateSut(settings: settings, seedSampleQueue: false);
+
+        sut.AddExternalFiles([@"C:\media\bgm.xyz"]).Should().Be(1);
+        await sut.ApplySelectedItemContentAsync(sut.Queue[0]);
+
+        sut.Queue[0].Kind.Should().Be(LiveItemKinds.Media);
+        sut.Media.MediaType.Should().Be("Audio");
+        sut.MediaDialogFilter("Media").Should().StartWith("Media (*.xyz;").And.Contain("|*.xyz;");
+    }
+
+    [Fact]
     public async Task SaveWorshipList_RecordsRecentAndUpdatesCollection()
     {
         var recent = new InMemoryRecentWorshipLists();
@@ -4021,7 +4702,10 @@ public partial class MainViewModelTests
     [Fact]
     public async Task ToggleOutputReferenceAlertCommand_WhenLive_TogglesCurrentOutputTitle()
     {
-        var sut = CreateSut();
+        // The default source is "none" as in FrmOptions; the title is source 1.
+        var titleSource = TempSettingsFolder.CreateDetachedSettings();
+        titleSource.Set(AxicultusSettingKeys.ReferenceAlertSource, 1).Succeeded.Should().BeTrue();
+        var sut = CreateSut(settings: titleSource);
         sut.LoadQueue(new[]
         {
             new LiveQueueItem("bible:john-3-16", "요한복음 3:16", LiveItemKinds.Bible)
@@ -4056,6 +4740,7 @@ public partial class MainViewModelTests
     {
         var settings = TempSettingsFolder.CreateDetachedSettings();
         settings.Set(AxicultusSettingKeys.ReferenceAlertDurationSeconds, 7).Succeeded.Should().BeTrue();
+        settings.Set(AxicultusSettingKeys.ReferenceAlertSource, 1).Succeeded.Should().BeTrue();
         var scheduler = new RecordingReferenceAlertDelay();
         var sut = CreateSut(settings: settings, referenceAlertDelayScheduler: scheduler.Schedule);
         sut.LoadQueue(new[]
@@ -4084,7 +4769,9 @@ public partial class MainViewModelTests
     public async Task ToggleOutputReferenceAlertCommand_WhenManuallyHidden_CancelsPendingDuration()
     {
         var scheduler = new RecordingReferenceAlertDelay();
-        var sut = CreateSut(referenceAlertDelayScheduler: scheduler.Schedule);
+        var titleSource = TempSettingsFolder.CreateDetachedSettings();
+        titleSource.Set(AxicultusSettingKeys.ReferenceAlertSource, 1).Succeeded.Should().BeTrue();
+        var sut = CreateSut(settings: titleSource, referenceAlertDelayScheduler: scheduler.Schedule);
         sut.LoadQueue(new[]
         {
             new LiveQueueItem("bible:john-3-16", "요한복음 3:16", LiveItemKinds.Bible)
@@ -4497,7 +5184,7 @@ public partial class MainViewModelTests
         };
         var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
         {
-            Lyrics = "[1]\nPreview verse\n[C]\nPreview chorus",
+            Lyrics = "[1]\nPreview verse\n[chorus]\nPreview chorus",
         };
         sut.LoadQueue([live, preview]);
         sut.OpenOutputCommand.Execute(null);
@@ -4538,7 +5225,7 @@ public partial class MainViewModelTests
         };
         var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
         {
-            Lyrics = "[1]\nPreview verse\n[C]\nPreview chorus",
+            Lyrics = "[1]\nPreview verse\n[chorus]\nPreview chorus",
         };
         sut.LoadQueue([live, preview]);
         sut.OpenOutputCommand.Execute(null);
@@ -4568,7 +5255,7 @@ public partial class MainViewModelTests
         settings.Set(AxicultusSettingKeys.AdvanceNextItem, true).Succeeded.Should().BeTrue();
         var first = new LiveQueueItem("song:first", "입례 찬양", LiveItemKinds.Song)
         {
-            Lyrics = "[1]\n입례\n[C]\n후렴",
+            Lyrics = "[1]\n입례\n[chorus]\n후렴",
         };
         var second = new LiveQueueItem("song:second", "봉헌 찬양", LiveItemKinds.Song)
         {
@@ -4658,7 +5345,7 @@ public partial class MainViewModelTests
         };
         var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
         {
-            Lyrics = "[1]\nPreview verse\n[C]\nPreview chorus",
+            Lyrics = "[1]\nPreview verse\n[chorus]\nPreview chorus",
         };
         var sut = CreateSut(seedSampleQueue: false);
         sut.LoadQueue([live, preview]);
@@ -4758,7 +5445,7 @@ public partial class MainViewModelTests
         };
         var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
         {
-            Lyrics = "[1]\nPreview verse\n[C]\nPreview chorus",
+            Lyrics = "[1]\nPreview verse\n[chorus]\nPreview chorus",
         };
         var next = new LiveQueueItem("song:next", "Next song", LiveItemKinds.Song)
         {
@@ -4930,7 +5617,7 @@ public partial class MainViewModelTests
         };
         var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
         {
-            Lyrics = "[1]\nPreview verse\n[C]\nPreview chorus",
+            Lyrics = "[1]\nPreview verse\n[chorus]\nPreview chorus",
         };
         sut.LoadQueue([live, preview]);
         sut.OpenOutputCommand.Execute(null);
@@ -5015,6 +5702,48 @@ public partial class MainViewModelTests
         sut.LiveItemId.Should().Be(preview.Id);
         sut.Session.Current.CurrentItemTitle.Should().Be("Preview song");
         sut.Session.Current.CurrentItemBodyText.Should().Be("Preview verse");
+    }
+
+    [Fact]
+    public async Task CopyPreviewToOutputAndClearBlackCommand_WhenBlackAndClear_KeepsClear()
+    {
+        // KeyboardActionHandler.HandleGlobalFunctionKey F7: CopyPreviewToOutput, then LiveBlack(false) only.
+        var sut = CreateSut(seedSampleQueue: false);
+        var live = new LiveQueueItem("song:live", "Live song", LiveItemKinds.Song) { Lyrics = "[1]\nLive verse" };
+        var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song) { Lyrics = "[1]\nPreview verse" };
+        sut.LoadQueue([live, preview]);
+        sut.SelectedItem = live;
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        await sut.ToggleOutputClearCommand.ExecuteAsync(null);
+        await sut.ToggleOutputBlackCommand.ExecuteAsync(null);
+
+        sut.SelectedItem = preview;
+        sut.CopyPreviewToOutputAndClearBlackCommand.Execute(null);
+
+        sut.IsOutputBlackActive.Should().BeFalse();
+        sut.IsOutputClearActive.Should().BeTrue();
+        sut.Session.Current.CurrentItemTitle.Should().Be("Preview song");
+    }
+
+    [Fact]
+    public void OutputMonitorNone_SelectsNoMonitorUntilTheOperatorPicksOne()
+    {
+        // The combo must not name a fallback monitor while the saved monitor is "None" (no output, no show).
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        settings.Set(AxicultusSettingKeys.DefaultOutputMonitorId, "None").Succeeded.Should().BeTrue();
+        var sut = CreateSut(settings: settings);
+        sut.RefreshDisplays();
+
+        sut.SelectedOutputDisplay.Should().BeNull();
+        sut.OutputMonitorCaption.Should().Contain("없음");
+
+        var picked = sut.OutputDisplays[0];
+        sut.SelectedOutputDisplay = picked;
+        sut.RefreshDisplays();
+
+        sut.SelectedOutputDisplay.Should().Be(picked);
+        sut.OutputMonitorCaption.Should().Be("출력");
     }
 
     [Fact]
@@ -5267,9 +5996,9 @@ public partial class MainViewModelTests
     }
 
     [Fact]
-    public async Task ReplayPreviewPowerPointSlideCommand_RequestsPreviewSlideShowNext()
+    public async Task ReplayPreviewPowerPointSlideCommand_MovesPreviewWithoutDrivingTheSlideShow()
     {
-        // FrmMain PowerPointImage_DoubleClick(PP_Preview): set CurSlide, then SafePlayNext(slide).
+        // KeyboardActionHandler.HandlePowerPointThumbnailDoubleClick(PP_Preview): behave like a single click.
         var slideShow = new RecordingPowerPointSlideShowControl();
         var render = new SuccessPowerPointRenderService();
         var powerPoint = new PowerPointPreviewViewModel(render, _ => Frozen());
@@ -5289,8 +6018,8 @@ public partial class MainViewModelTests
 
         await sut.ReplayPreviewPowerPointSlideCommand.ExecuteAsync(2);
 
-        slideShow.Requests.Should().ContainSingle().Which.Should().Be(
-            new PowerPointSlideShowRequest("preview.pptx", 2, PowerPointSlideShowTarget.Preview));
+        powerPoint.SlideNumber.Should().Be(2);
+        slideShow.Requests.Should().BeEmpty("a preview thumbnail must not move or start the audience's PowerPoint show");
         outputPowerPoint.State.Should().Be(PowerPointPreviewState.Idle,
             "Preview thumbnail double-click should not address the independent Output target");
     }
@@ -5952,12 +6681,12 @@ public partial class MainViewModelTests
         var sut = CreateSut(settings: settings, seedSampleQueue: false);
         var live = new LiveQueueItem("song:live", "Live song", LiveItemKinds.Song)
         {
-            Lyrics = "[1]\nLive verse\n[C]\nLive chorus",
+            Lyrics = "[1]\nLive verse\n[chorus]\nLive chorus",
             Sequence = "1 C",
         };
         var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
         {
-            Lyrics = "[1]\nPreview verse\n[C]\nPreview chorus",
+            Lyrics = "[1]\nPreview verse\n[chorus]\nPreview chorus",
             Sequence = "1 C",
         };
         sut.LoadQueue([live, preview]);
@@ -6244,20 +6973,257 @@ public partial class MainViewModelTests
     }
 
     [Fact]
-    public async Task ClearOutputCommand_WhenSafetyDeclined_DoesNotChangeState()
+    public async Task ClearOutputCommand_ClearsAtOnceWithoutASafetyPrompt()
     {
+        // FrmMain.LiveClear / FrmLaunchShow F3 toggle at once, as Black does.
         var prompt = new RecordingSafetyPrompt(allow: true);
         var sut = CreateSut(prompt);
         sut.LoadQueue(new[] { new LiveQueueItem("song-1", "은혜로다", "Song") { Lyrics = "1절" } });
         sut.OpenOutputCommand.Execute(null);
         sut.SelectedItem = sut.Queue[0];
-        await sut.GoLiveCommand.ExecuteAsync(null); // GoLive 는 허용
-        prompt.Allow = false; // 이후 Clear 안전 확인만 거부
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        prompt.Allow = false;
+        prompt.Requests.Clear();
 
         await sut.ClearOutputCommand.ExecuteAsync(null);
 
-        sut.Session.Current.State.Should().Be(LiveState.Active, "안전 확인 거부 시 비우기 미적용");
-        sut.Session.Current.IsCleared.Should().BeFalse();
+        sut.Session.Current.IsCleared.Should().BeTrue();
+        prompt.Requests.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task BlackAndClearAreIndependentSwitches_UnBlackReturnsToClear()
+    {
+        // FrmMain keeps ShowLiveBlack and ShowLiveClear apart: Clear, Black, un-Black shows the cleared screen again.
+        var sut = CreateSut();
+        sut.LoadQueue(new[] { new LiveQueueItem("song-1", "은혜로다", "Song") { Lyrics = "1절" } });
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        await sut.ToggleOutputClearCommand.ExecuteAsync(null);
+        await sut.ToggleOutputBlackCommand.ExecuteAsync(null);
+        (sut.IsOutputBlackActive, sut.IsOutputClearActive).Should().Be((true, true));
+        sut.OutputScreenStatus.Should().Contain("Text: hidden").And.Contain("Screen: black");
+
+        await sut.ToggleOutputBlackCommand.ExecuteAsync(null);
+        (sut.IsOutputBlackActive, sut.IsOutputClearActive).Should().Be((false, true));
+        sut.Session.Current.State.Should().Be(LiveState.Hidden);
+
+        await sut.ToggleOutputClearCommand.ExecuteAsync(null);
+        sut.Session.Current.State.Should().Be(LiveState.Active);
+    }
+
+    [Fact]
+    public async Task EmptyingTheWorshipListEndsTheRunningShow()
+    {
+        // FrmMain.UpdateOutputCurItemNo: GoLive(false) when the list has no item left.
+        var song = new LiveQueueItem("song-1", "은혜로다", "Song") { Lyrics = "1절" };
+        var other = new LiveQueueItem("song-2", "찬양", "Song") { Lyrics = "1절" };
+        var sut = CreateSut(seedSampleQueue: false);
+
+        sut.LoadQueue([song, other]);
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        sut.LoadQueue([other]);
+        sut.IsShowRunning.Should().BeTrue("replacing the list with another one keeps the show");
+        sut.RemoveSelectedItemCommand.Execute(null);
+        sut.IsShowRunning.Should().BeFalse("the last item was removed");
+
+        sut.LoadQueue([song, other]);
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        sut.ClearWorshipListCommand.Execute(null);
+        sut.IsShowRunning.Should().BeFalse("the list was cleared");
+
+        sut.LoadQueue([song]);
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        sut.LoadQueue([]);
+        sut.IsShowRunning.Should().BeFalse("an empty list was loaded");
+    }
+
+    [Fact]
+    public async Task UnexpectedErrorIsReportedAndSurvivedOnlyWhileAShowRuns()
+    {
+        var sut = CreateSut();
+        sut.ReportErrorDuringShow(new InvalidOperationException("boom")).Should().BeFalse("no show: the default policy applies");
+
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        sut.ReportErrorDuringShow(new InvalidOperationException("boom")).Should().BeTrue();
+        sut.StatusText.Should().Contain("boom");
+        sut.IsShowRunning.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task OutputMonitorNoneOpensNoWindowAndStartsNoShow()
+    {
+        // FrmMain MonitorLayout.ResolveOutput: "None" disables the output; Start_Presentation does not start.
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        settings.Set(AxicultusSettingKeys.DefaultOutputMonitorId, "None").Succeeded.Should().BeTrue();
+        var output = new OutputWindowService();
+        var sut = CreateSut(settings: settings, output: output);
+
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        await sut.ToggleOutputLiveCommand.ExecuteAsync(null);
+        sut.OpenOutputCommand.Execute(null);
+        sut.PublishNotice("공지").Should().BeFalse();
+
+        sut.IsShowRunning.Should().BeFalse();
+        output.Current.IsOpen.Should().BeFalse();
+        sut.StatusText.Should().Contain("없음");
+    }
+
+    [Fact]
+    public async Task PreviousShortcutAtTheFirstVerseOpensThePreviousItemOnItsLastVerse()
+    {
+        // FrmLaunchShow.MoveToSlideLiveItem: MoveToLiveItem(PrevOne, 30000); the item key (PageUp) opens the first.
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        settings.Set(AxicultusSettingKeys.AdvanceNextItem, true).Succeeded.Should().BeTrue();
+        var first = new LiveQueueItem("song-1", "첫 곡", LiveItemKinds.Song) { Lyrics = "a1\n\na2\n\na3" };
+        var second = new LiveQueueItem("song-2", "둘째 곡", LiveItemKinds.Song) { Lyrics = "b1\n\nb2" };
+        var sut = CreateSut(settings: settings, seedSampleQueue: false);
+        sut.LoadQueue([first, second]);
+        sut.SelectedItem = second;
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        await sut.LivePreviousShortcutCommand.ExecuteAsync(null);
+        sut.Session.Current.CurrentItemId.Should().Be(first.Id);
+        sut.Session.Current.CurrentLyricsPageIndex.Should().Be(2);
+
+        await sut.NextOutputItemCommand.ExecuteAsync(null);
+        await sut.ToggleOutputBlackCommand.ExecuteAsync(null);
+        await sut.LivePreviousShortcutCommand.ExecuteAsync(null);
+        sut.Session.Current.CurrentItemId.Should().Be(first.Id);
+        sut.Session.Current.CurrentLyricsPageIndex.Should().Be(2, "the same under Black");
+        await sut.ToggleOutputBlackCommand.ExecuteAsync(null);
+
+        await sut.NextOutputItemCommand.ExecuteAsync(null);
+        await sut.PreviousOutputItemCommand.ExecuteAsync(null);
+        sut.Session.Current.CurrentItemId.Should().Be(first.Id);
+        sut.Session.Current.CurrentLyricsPageIndex.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task LiveDeckStepsWithNativeNextAndPreviousAndHandsOverAtTheEndOfTheShow()
+    {
+        using var folder = TempSettingsFolder.Create();
+        var settings = folder.CreateSettings();
+        settings.Set(AxicultusSettingKeys.AdvanceNextItem, true).Succeeded.Should().BeTrue();
+        string deck = Path.Combine(folder.Root, "service.pptx");
+        File.WriteAllText(deck, "slides");
+        var slides = new LiveQueueItem("deck", "Service", LiveItemKinds.PowerPoint) { ContentPath = deck };
+        var song = new LiveQueueItem("song", "Closing", LiveItemKinds.Song) { Lyrics = "one\n\ntwo" };
+        var show = new RecordingPowerPointSlideShowControl { ActualSlide = 1 };
+        var renderer = new FixedSlideCountPowerPointRenderService(3);
+        using var sut = CreateSut(settings: settings, seedSampleQueue: false, powerPointSlideShow: show,
+            powerPoint: new PowerPointPreviewViewModel(renderer, _ => Frozen()),
+            outputPowerPoint: new PowerPointPreviewViewModel(renderer, _ => Frozen()));
+        sut.LoadQueue([slides, song]);
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        show.ActualSlide = 2;
+        await sut.NextOutputSlideCommand.ExecuteAsync(null);
+        show.AdvanceCount.Should().Be(1);
+        sut.Session.Current.PptSlideNumber.Should().Be(2);
+
+        show.ActualSlide = 1;
+        await sut.PreviousOutputSlideCommand.ExecuteAsync(null);
+        show.RetreatCount.Should().Be(1);
+        sut.Session.Current.PptSlideNumber.Should().Be(1);
+
+        // On the last slide the Next shortcut still asks PowerPoint (click animations may remain); running past
+        // the end is the next item, as OfficeLib's -1 is for FrmLaunchShow.
+        show.ActualSlide = 3;
+        await sut.SyncNativePowerPointPositionAsync();
+        sut.Session.Current.PptSlideNumber.Should().Be(3);
+        await sut.LiveNextShortcutCommand.ExecuteAsync(null);
+        show.AdvanceCount.Should().Be(2);
+        sut.Session.Current.CurrentItemId.Should().Be(slides.Id);
+
+        show.EndOnAdvance = true;
+        await sut.LiveNextShortcutCommand.ExecuteAsync(null);
+        sut.Session.Current.CurrentItemId.Should().Be(song.Id);
+    }
+
+    [Fact]
+    public async Task LiveDeckIsBlackedOnBlackAndHideAndStaysShowingOnClear()
+    {
+        // FrmLaunchShow.Remote_LiveBlackClearChanged for a PowerPoint item: only Black paints the overlay.
+        using var folder = TempSettingsFolder.Create();
+        string deck = Path.Combine(folder.Root, "service.pptx");
+        File.WriteAllText(deck, "slides");
+        var slides = new LiveQueueItem("deck", "Service", LiveItemKinds.PowerPoint) { ContentPath = deck };
+        var show = new RecordingPowerPointSlideShowControl { ActualSlide = 1 };
+        var renderer = new FixedSlideCountPowerPointRenderService(3);
+        using var sut = CreateSut(seedSampleQueue: false, powerPointSlideShow: show,
+            powerPoint: new PowerPointPreviewViewModel(renderer, _ => Frozen()),
+            outputPowerPoint: new PowerPointPreviewViewModel(renderer, _ => Frozen()));
+        sut.LoadQueue([slides]);
+        await sut.GoLiveCommand.ExecuteAsync(null);
+
+        await sut.ToggleOutputClearCommand.ExecuteAsync(null);
+        show.Blackouts.Should().BeEmpty();
+        show.ActualSlide = 2;
+        await sut.NextOutputSlideCommand.ExecuteAsync(null);
+        show.AdvanceCount.Should().Be(1, "the deck still shows under Clear, so it still steps");
+        sut.Session.Current.PptSlideNumber.Should().Be(2);
+        sut.IsOutputClearActive.Should().BeTrue();
+        int starts = show.StartRequests.Count;
+        await sut.GoToOutputSlideCommand.ExecuteAsync(3);
+        show.StartRequests.Should().HaveCount(starts + 1, "a thumbnail jump moves the showing deck too");
+        show.StartRequests[^1].Request.SlideNumber.Should().Be(3);
+
+        await sut.ToggleOutputBlackCommand.ExecuteAsync(null);
+        show.Blackouts.Should().Equal(true);
+        await sut.NextOutputSlideCommand.ExecuteAsync(null);
+        show.AdvanceCount.Should().Be(1, "a blacked show is not stepped");
+        await sut.ToggleOutputBlackCommand.ExecuteAsync(null);
+        show.Blackouts.Should().Equal(true, false);
+        await sut.ToggleOutputClearCommand.ExecuteAsync(null);
+
+        await sut.HideOutputCommand.ExecuteAsync(null);
+        sut.RestoreOutputCommand.Execute(null);
+        show.Blackouts.Should().Equal(true, false, true, false);
+    }
+
+    [Theory]
+    [InlineData(System.Windows.Input.Key.A)]
+    [InlineData(System.Windows.Input.Key.J)]
+    [InlineData(System.Windows.Input.Key.Z)]
+    [InlineData(System.Windows.Input.Key.D)]
+    [InlineData(System.Windows.Input.Key.H)]
+    [InlineData(System.Windows.Input.Key.R)]
+    [InlineData(System.Windows.Input.Key.S)]
+    [InlineData(System.Windows.Input.Key.O)]
+    [InlineData(System.Windows.Input.Key.I)]
+    [InlineData(System.Windows.Input.Key.V)]
+    [InlineData(System.Windows.Input.Key.N)]
+    public void EveryFrmLaunchShowToggleKeyHasACommand(System.Windows.Input.Key key)
+        => CreateSut().OutputShowKeyCommand(key).Should().NotBeNull();
+
+    [Fact]
+    public async Task RegionAndVerticalAlignmentKeysStepThroughTheirThreeChoices()
+    {
+        // The show keys act on a running show only (FrmLaunchShow is the show window).
+        var sut = CreateSut();
+        sut.OpenOutputCommand.Execute(null);
+        await sut.GoLiveCommand.ExecuteAsync(null);
+        sut.OutputShowKeyCommand(System.Windows.Input.Key.PageDown).Should().BeNull("item keys are the shell's output-area keys");
+        var region = sut.ActiveRegionDisplay;
+        var vertical = sut.ActiveLyricsVerticalAlignment;
+
+        sut.OutputShowKeyCommand(System.Windows.Input.Key.R)!.Execute(null);
+        sut.OutputShowKeyCommand(System.Windows.Input.Key.V)!.Execute(null);
+        sut.ActiveRegionDisplay.Should().NotBe(region);
+        sut.ActiveLyricsVerticalAlignment.Should().NotBe(vertical);
+
+        for (int i = 0; i < 2; i++)
+        {
+            sut.CycleRegionDisplayCommand.Execute(null);
+            sut.CycleLyricsVerticalAlignmentCommand.Execute(null);
+        }
+
+        sut.ActiveRegionDisplay.Should().Be(region);
+        sut.ActiveLyricsVerticalAlignment.Should().Be(vertical);
     }
 
     [Fact]
@@ -8774,7 +9740,7 @@ public partial class MainViewModelTests
         var output = new OutputWindowService();
         var first = new LiveQueueItem("song:first", "입례 찬양", LiveItemKinds.Song)
         {
-            Lyrics = "[1]\n입례\n[C]\n후렴",
+            Lyrics = "[1]\n입례\n[chorus]\n후렴",
         };
         var second = new LiveQueueItem("song:second", "봉헌 찬양", LiveItemKinds.Song)
         {
@@ -9517,6 +10483,28 @@ public partial class MainViewModelTests
         sut.StatusText.Should().Contain("바꾸지 못", "운영자에게 친절한 안내(원시 예외 노출 방지)");
     }
 
+    [Fact]
+    public async Task TrashedWorshipLists_AreRestoredAndDeleted_AndAFileErrorIsReportedNotThrown()
+    {
+        // FrmManageItemLists Trash tab through the view model: per-file failures are counted, the rest goes on.
+        using var folder = TempSettingsFolder.Create();
+        var store = new WorshipListStore(Path.Combine(folder.Root, "Lists"));
+        await store.SaveAsync("주일", [new LiveQueueItem("song:1", "곡", LiveItemKinds.Song)]);
+        await store.SaveAsync("수요", [new LiveQueueItem("song:2", "곡", LiveItemKinds.Song)]);
+        var sut = CreateSut(worshipLists: store, seedSampleQueue: false);
+        sut.DeleteWorshipList("주일");
+        sut.DeleteWorshipList("수요");
+        sut.GetTrashedWorshipLists().Should().Equal("수요", "주일");
+
+        sut.RestoreWorshipLists(["주일", @"..\outside"]).Should().Be(1);
+        sut.StatusText.Should().Contain("복원: 1개").And.Contain("실패 1개");
+        sut.SavedWorshipListNames.Should().Contain("주일", "the session list shows a restored list at once");
+
+        sut.DeleteTrashedWorshipLists(sut.GetTrashedWorshipLists()).Should().Be(1);
+        sut.GetTrashedWorshipLists().Should().BeEmpty();
+        sut.StatusText.Should().Contain("영구 삭제: 1개");
+    }
+
     // Rename 이 항상 예외를 던지는 스토어 — VM 의 예외 흡수 경로 검증용.
     private sealed class ThrowingRenameWorshipListStore : IWorshipListStore
     {
@@ -9544,7 +10532,7 @@ public partial class MainViewModelTests
     public void AddSong_WithSequence_CarriesSequence_AndPageCountExpands()
     {
         var sut = CreateSut();
-        var song = new SongSummary(1, "은혜", "", 1, 1, "", "", "[1]\nVerse one\n[C]\nChorus\n[2]\nVerse two");
+        var song = new SongSummary(1, "은혜", "", 1, 1, "", "", "[1]\nVerse one\n[chorus]\nChorus\n[2]\nVerse two");
 
         var item = sut.AddSong(song, "1 C 2 C");
 
@@ -9557,7 +10545,7 @@ public partial class MainViewModelTests
     public void AddSong_WithoutSequence_PaginatesLinearly()
     {
         var sut = CreateSut();
-        var song = new SongSummary(1, "은혜", "", 1, 1, "", "", "[1]\nVerse one\n[C]\nChorus\n[2]\nVerse two");
+        var song = new SongSummary(1, "은혜", "", 1, 1, "", "", "[1]\nVerse one\n[chorus]\nChorus\n[2]\nVerse two");
 
         var item = sut.AddSong(song);
 
@@ -9572,7 +10560,7 @@ public partial class MainViewModelTests
     {
         // 곡을 선택하고 절 순서를 입력하면 그 항목 Sequence 가 바뀌고 페이지가 펼쳐지며 입력칸도 동기화된다.
         var sut = CreateSut();
-        var song = new SongSummary(1, "은혜", "", 1, 1, "", "", "[1]\nVerse one\n[C]\nChorus\n[2]\nVerse two");
+        var song = new SongSummary(1, "은혜", "", 1, 1, "", "", "[1]\nVerse one\n[chorus]\nChorus\n[2]\nVerse two");
         sut.AddSong(song); // 선형 3페이지로 추가, 자동 선택.
         sut.LyricsPageCount.Should().Be(3);
 
@@ -9581,7 +10569,7 @@ public partial class MainViewModelTests
         sut.SelectedItem!.Sequence.Should().Be("1 C 2 C", "앞뒤 공백을 다듬어 저장");
         sut.SelectedItemSequenceInput.Should().Be("1 C 2 C", "입력칸도 교체된 항목을 따라감");
         sut.LyricsPageCount.Should().Be(4, "절 순서(1 C 2 C)로 4페이지로 펼쳐짐");
-        sut.AvailableSectionLabels.Should().Equal(new[] { "1", "C", "2" }, "편집 후 라벨 점프 바도 새 절 순서에서 재계산됨");
+        sut.AvailableSectionLabels.Should().Equal(new[] { "1", "chorus", "2" }, "편집 후 라벨 점프 바도 새 절 순서에서 재계산됨");
     }
 
     [Fact]
@@ -9611,7 +10599,7 @@ public partial class MainViewModelTests
     {
         // 절 순서를 비우면 null 로 되돌아가 선형 페이지네이션으로 복귀한다.
         var sut = CreateSut();
-        var song = new SongSummary(1, "은혜", "", 1, 1, "", "", "[1]\nVerse one\n[C]\nChorus\n[2]\nVerse two");
+        var song = new SongSummary(1, "은혜", "", 1, 1, "", "", "[1]\nVerse one\n[chorus]\nChorus\n[2]\nVerse two");
         sut.AddSong(song, "1 C 2 C");
         sut.LyricsPageCount.Should().Be(4);
 
@@ -11477,19 +12465,19 @@ public partial class MainViewModelTests
     public void AddSong_WithSequence_ExposesDistinctSectionLabels()
     {
         var sut = CreateSut();
-        var song = new SongSummary(1, "은혜", "", 1, 1, "", "", "[1]\nVerse one\n[C]\nChorus\n[2]\nVerse two");
+        var song = new SongSummary(1, "은혜", "", 1, 1, "", "", "[1]\nVerse one\n[chorus]\nChorus\n[2]\nVerse two");
 
         sut.AddSong(song, "1 C 2 C");
 
         // 펼친 순서 1 C 2 C 의 중복 제거(첫 등장 순서) → 1, C, 2.
-        sut.AvailableSectionLabels.Should().Equal("1", "C", "2");
+        sut.AvailableSectionLabels.Should().Equal("1", "chorus", "2");
     }
 
     [Fact]
     public void JumpToLyricsSection_MovesToFirstPageWithLabel()
     {
         var sut = CreateSut();
-        var song = new SongSummary(1, "은혜", "", 1, 1, "", "", "[1]\nVerse one\n[C]\nChorus\n[2]\nVerse two");
+        var song = new SongSummary(1, "은혜", "", 1, 1, "", "", "[1]\nVerse one\n[chorus]\nChorus\n[2]\nVerse two");
         sut.AddSong(song, "1 C 2 C"); // 페이지: 1(0) C(1) 2(2) C(3)
 
         sut.JumpToLyricsSectionCommand.Execute("C");
@@ -11506,7 +12494,7 @@ public partial class MainViewModelTests
     public void JumpToLyricsSection_UnknownLabel_DoesNotChangePage()
     {
         var sut = CreateSut();
-        var song = new SongSummary(1, "은혜", "", 1, 1, "", "", "[1]\nVerse one\n[C]\nChorus");
+        var song = new SongSummary(1, "은혜", "", 1, 1, "", "", "[1]\nVerse one\n[chorus]\nChorus");
         sut.AddSong(song); // 선형: 1(0) C(1)
         sut.NextLyricsPageCommand.Execute(null); // → 인덱스 1
 
@@ -11526,7 +12514,7 @@ public partial class MainViewModelTests
         var sut = CreateSut(settings: settings);
         var song = new LiveQueueItem("song:repeat", "은혜", LiveItemKinds.Song)
         {
-            Lyrics = "[1]\n가사 » C\n[C]\n후렴 » G",
+            Lyrics = "[1]\n가사 » C\n[chorus]\n후렴 » G",
             Sequence = "1 C C",
         };
         sut.LoadQueue([song]);
@@ -11582,16 +12570,16 @@ public partial class MainViewModelTests
     public void GoToPreviewLyricsPageCommand_UpdatesPreviewPageCardsOnly()
     {
         var sut = CreateSut();
-        var song = new SongSummary(1, "은혜", "", 1, 1, "", "", "[1]\nVerse one\n[C]\nChorus\n[2]\nVerse two");
+        var song = new SongSummary(1, "은혜", "", 1, 1, "", "", "[1]\nVerse one\n[chorus]\nChorus\n[2]\nVerse two");
         sut.AddSong(song, "1 C 2 C");
 
         sut.PreviewLyricsPages
             .Select(card => (card.PageIndex, card.Label, card.PositionText, card.IsCurrent))
             .Should().Equal(
                 (0, "1", "1/4", true),
-                (1, "C", "2/4", false),
+                (1, "chorus", "2/4", false),
                 (2, "2", "3/4", false),
-                (3, "C", "4/4", false));
+                (3, "chorus", "4/4", false));
 
         sut.GoToPreviewLyricsPageCommand.CanExecute(2).Should().BeTrue();
         sut.GoToPreviewLyricsPageCommand.Execute(2);
@@ -11614,12 +12602,12 @@ public partial class MainViewModelTests
         var sut = CreateSut(seedSampleQueue: false);
         var live = new LiveQueueItem("song:live", "Live song", LiveItemKinds.Song)
         {
-            Lyrics = "[1]\nLive verse\n[C]\nLive chorus\n[2]\nLive verse two",
+            Lyrics = "[1]\nLive verse\n[chorus]\nLive chorus\n[2]\nLive verse two",
             Sequence = "1 C 2 C",
         };
         var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
         {
-            Lyrics = "[1]\nPreview verse\n[C]\nPreview chorus",
+            Lyrics = "[1]\nPreview verse\n[chorus]\nPreview chorus",
         };
         sut.LoadQueue([live, preview]);
         sut.OpenOutputCommand.Execute(null);
@@ -11648,7 +12636,7 @@ public partial class MainViewModelTests
         var sut = CreateSut(seedSampleQueue: false);
         var live = new LiveQueueItem("song:live", "Live song", LiveItemKinds.Song)
         {
-            Lyrics = "[1]\nLive verse\n[C]\nLive chorus\n[2]\nLive verse two",
+            Lyrics = "[1]\nLive verse\n[chorus]\nLive chorus\n[2]\nLive verse two",
             Sequence = "1 C 2",
         };
         var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
@@ -11688,12 +12676,12 @@ public partial class MainViewModelTests
         var sut = CreateSut(seedSampleQueue: false);
         var live = new LiveQueueItem("song:live", "Live song", LiveItemKinds.Song)
         {
-            Lyrics = "[1]\nLive verse\n[C]\nLive chorus\n[2]\nLive verse two",
+            Lyrics = "[1]\nLive verse\n[chorus]\nLive chorus\n[2]\nLive verse two",
             Sequence = "1 C 2 C",
         };
         var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
         {
-            Lyrics = "[1]\nPreview verse\n[C]\nPreview chorus",
+            Lyrics = "[1]\nPreview verse\n[chorus]\nPreview chorus",
         };
         sut.LoadQueue([live, preview]);
         sut.OpenOutputCommand.Execute(null);
@@ -11705,9 +12693,9 @@ public partial class MainViewModelTests
             .Select(card => (card.PageIndex, card.Label, card.PositionText, card.IsCurrent))
             .Should().Equal(
                 (0, "1", "1/4", true),
-                (1, "C", "2/4", false),
+                (1, "chorus", "2/4", false),
                 (2, "2", "3/4", false),
-                (3, "C", "4/4", false));
+                (3, "chorus", "4/4", false));
 
         sut.GoToOutputLyricsPageCommand.CanExecute(1).Should().BeTrue();
         sut.GoToOutputLyricsPageCommand.Execute(1);
@@ -11729,11 +12717,11 @@ public partial class MainViewModelTests
         var sut = CreateSut(seedSampleQueue: false);
         var live = new LiveQueueItem("song:live", "Live song", LiveItemKinds.Song)
         {
-            Lyrics = "[1]\nLive verse\n[C]\nLive chorus",
+            Lyrics = "[1]\nLive verse\n[chorus]\nLive chorus",
         };
         var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
         {
-            Lyrics = "[1]\nPreview verse\n[C]\nPreview chorus\n[2]\nPreview verse two",
+            Lyrics = "[1]\nPreview verse\n[chorus]\nPreview chorus\n[2]\nPreview verse two",
             Sequence = "1 C 2",
         };
         sut.LoadQueue([live, preview]);
@@ -11761,12 +12749,12 @@ public partial class MainViewModelTests
         var sut = CreateSut(seedSampleQueue: false);
         var live = new LiveQueueItem("song:live", "Live song", LiveItemKinds.Song)
         {
-            Lyrics = "[1]\nLive verse\n[C]\nLive chorus\n[2]\nLive verse two",
+            Lyrics = "[1]\nLive verse\n[chorus]\nLive chorus\n[2]\nLive verse two",
             Sequence = "1 C 2 C",
         };
         var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
         {
-            Lyrics = "[1]\nPreview verse\n[C]\nPreview chorus",
+            Lyrics = "[1]\nPreview verse\n[chorus]\nPreview chorus",
         };
         sut.LoadQueue([live, preview]);
         sut.OpenOutputCommand.Execute(null);
@@ -11794,7 +12782,7 @@ public partial class MainViewModelTests
         var sut = CreateSut(seedSampleQueue: false);
         var live = new LiveQueueItem("song:live", "Live song", LiveItemKinds.Song)
         {
-            Lyrics = "[1]\nLive verse\n[C]\nLive chorus",
+            Lyrics = "[1]\nLive verse\n[chorus]\nLive chorus",
             Sequence = "1 C",
         };
         var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
@@ -11807,7 +12795,7 @@ public partial class MainViewModelTests
         await sut.GoLiveCommand.ExecuteAsync(null);
 
         sut.SelectedItem = preview;
-        sut.Queue[0] = live with { Lyrics = "[1]\nLive verse refreshed\n[C]\nLive chorus" };
+        sut.Queue[0] = live with { Lyrics = "[1]\nLive verse refreshed\n[chorus]\nLive chorus" };
 
         sut.GoToOutputLyricsPageCommand.CanExecute(0).Should().BeTrue();
         sut.GoToOutputLyricsPageCommand.Execute(0);
@@ -11828,11 +12816,11 @@ public partial class MainViewModelTests
         var sut = CreateSut(seedSampleQueue: false);
         var live = new LiveQueueItem("song:live", "Live song", LiveItemKinds.Song)
         {
-            Lyrics = "[1]\nLive verse\n[C]\nLive chorus",
+            Lyrics = "[1]\nLive verse\n[chorus]\nLive chorus",
         };
         var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
         {
-            Lyrics = "[1]\nPreview verse\n[C]\nPreview chorus\n[2]\nPreview verse two",
+            Lyrics = "[1]\nPreview verse\n[chorus]\nPreview chorus\n[2]\nPreview verse two",
             Sequence = "1 C 2",
         };
         sut.LoadQueue([live, preview]);
@@ -11868,7 +12856,7 @@ public partial class MainViewModelTests
         var sut = CreateSut(seedSampleQueue: false);
         var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
         {
-            Lyrics = "[1]\nPreview verse\n[C]\nPreview chorus",
+            Lyrics = "[1]\nPreview verse\n[chorus]\nPreview chorus",
             Sequence = "1 C",
         };
         sut.LoadQueue([preview]);
@@ -11894,12 +12882,12 @@ public partial class MainViewModelTests
         var sut = CreateSut(seedSampleQueue: false);
         var live = new LiveQueueItem("song:live", "Live song", LiveItemKinds.Song)
         {
-            Lyrics = "[1]\nLive verse\n[C]\nLive chorus\n[2]\nLive verse two",
+            Lyrics = "[1]\nLive verse\n[chorus]\nLive chorus\n[2]\nLive verse two",
             Sequence = "1 C 2 C",
         };
         var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
         {
-            Lyrics = "[1]\nPreview verse\n[C]\nPreview chorus",
+            Lyrics = "[1]\nPreview verse\n[chorus]\nPreview chorus",
         };
         sut.LoadQueue([live, preview]);
         sut.OpenOutputCommand.Execute(null);
@@ -11939,7 +12927,7 @@ public partial class MainViewModelTests
         var sut = CreateSut(seedSampleQueue: false);
         var live = new LiveQueueItem("song:live", "Live song", LiveItemKinds.Song)
         {
-            Lyrics = "[1]\nLive verse\n[C]\nLive chorus\n[2]\nLive verse two",
+            Lyrics = "[1]\nLive verse\n[chorus]\nLive chorus\n[2]\nLive verse two",
             Sequence = "1 C 2",
         };
         var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
@@ -12308,9 +13296,9 @@ public partial class MainViewModelTests
     }
 
     [Fact]
-    public async Task ReplayOutputPowerPointSlideCommand_RequestsOutputSlideShowNext()
+    public async Task ReplayOutputPowerPointSlideCommand_WhileNotLive_DoesNotStartASlideShow()
     {
-        // FrmMain PowerPointImage_DoubleClick(PP_Output): set OutputItem.CurSlide, then SafePlayNext(slide).
+        // FrmMain PowerPointImage_DoubleClick(PP_Output): SafePlayNext is a no-op when no slide show is running.
         var slideShow = new RecordingPowerPointSlideShowControl();
         var previewPowerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
         var outputPowerPoint = new PowerPointPreviewViewModel(new SuccessPowerPointRenderService(), _ => Frozen());
@@ -12334,8 +13322,8 @@ public partial class MainViewModelTests
 
         await sut.ReplayOutputPowerPointSlideCommand.ExecuteAsync(2);
 
-        slideShow.Requests.Should().ContainSingle().Which.Should().Be(
-            new PowerPointSlideShowRequest("prepared.pptx", 2, PowerPointSlideShowTarget.Output));
+        sut.OutputPowerPoint.SlideNumber.Should().Be(2);
+        slideShow.Requests.Should().BeEmpty("a prepared (not live) deck has no show to replay; starting one would leave it on screen");
         sut.SelectedItem.Should().BeSameAs(preview,
             "Output PPT thumbnail double-click must not steal the Preview selection");
     }
@@ -12465,7 +13453,7 @@ public partial class MainViewModelTests
         var sut = CreateSut(seedSampleQueue: false);
         var prepared = new LiveQueueItem("song:prepared", "Prepared song", LiveItemKinds.Song)
         {
-            Lyrics = "[1]\nPrepared verse\n[C]\nPrepared chorus\n[2]\nPrepared verse two",
+            Lyrics = "[1]\nPrepared verse\n[chorus]\nPrepared chorus\n[2]\nPrepared verse two",
             Sequence = "1 C 2",
         };
         var preview = new LiveQueueItem("song:preview", "Preview song", LiveItemKinds.Song)
@@ -12505,7 +13493,7 @@ public partial class MainViewModelTests
         var sut = CreateSut(seedSampleQueue: false);
         var prepared = new LiveQueueItem("song:prepared", "Prepared song", LiveItemKinds.Song)
         {
-            Lyrics = "[1]\nPrepared verse\n[C]\nPrepared chorus\n[2]\nPrepared verse two",
+            Lyrics = "[1]\nPrepared verse\n[chorus]\nPrepared chorus\n[2]\nPrepared verse two",
             Sequence = "1 C 2",
         };
         sut.LoadQueue([prepared]);
@@ -12717,11 +13705,11 @@ public partial class MainViewModelTests
         // 전부 라벨링된 이중 언어 곡은 절 라벨 점프가 켜진다(라벨이 페이지와 정렬).
         var sut = CreateSut();
         var song = new SongSummary(1, "은혜", "", 1, 1, "", "",
-            "[1]\nV R1\n[region 2]\nV R2\n[C]\nC R1\n[region 2]\nC R2");
+            "[1]\nV R1\n[region 2]\nV R2\n[chorus]\nC R1\n[region 2]\nC R2");
 
         sut.AddSong(song);
 
-        sut.AvailableSectionLabels.Should().Equal("1", "C");
+        sut.AvailableSectionLabels.Should().Equal("1", "chorus");
 
         sut.JumpToLyricsSectionCommand.Execute("C");
         sut.LyricsPageIndex.Should().Be(1, "후렴(C)은 인덱스 1");
@@ -12733,7 +13721,7 @@ public partial class MainViewModelTests
         // 이중 언어 곡 + 시퀀스("1 C 1") → 영역 쌍이 시퀀스 순서로 펼쳐져 3페이지.
         var sut = CreateSut();
         var song = new SongSummary(1, "은혜", "", 1, 1, "", "",
-            "[1]\nVerse R1\n[region 2]\nVerse R2\n[C]\nChorus R1\n[region 2]\nChorus R2");
+            "[1]\nVerse R1\n[region 2]\nVerse R2\n[chorus]\nChorus R1\n[region 2]\nChorus R2");
 
         sut.AddSong(song, "1 C 1");
 
@@ -12744,7 +13732,7 @@ public partial class MainViewModelTests
     public void RefreshLyricsPages_NonSongItem_ClearsSectionLabels()
     {
         var sut = CreateSut();
-        var song = new SongSummary(1, "은혜", "", 1, 1, "", "", "[1]\nVerse one\n[C]\nChorus");
+        var song = new SongSummary(1, "은혜", "", 1, 1, "", "", "[1]\nVerse one\n[chorus]\nChorus");
         sut.AddSong(song, "1 C");
         sut.AvailableSectionLabels.Should().NotBeEmpty();
 
@@ -12759,7 +13747,7 @@ public partial class MainViewModelTests
     {
         // 종단(통합): 검색 결과 추가 → 상세 로드 → 큐 항목에 절 순서(Sequence)가 실리고 페이지가 펼쳐진다.
         // (단위 테스트가 AddSong 직접 주입만 검증하면 상세 로드 경로 누락을 못 잡으므로 종단 테스트 필요.)
-        var detail = SampleSongDetail(7, "은혜", "[1]\nVerse one\n[C]\nChorus\n[2]\nVerse two", sequence: "1 C 2 C");
+        var detail = SampleSongDetail(7, "은혜", "[1]\nVerse one\n[chorus]\nChorus\n[2]\nVerse two", sequence: "1 C 2 C");
         var sut = CreateSut(songDetail: new StubSongDetailRepository(detail));
         sut.Search.DatabasePath = @"C:\work\Admin\Database\AxicultusDb.db";
         var result = new SongSearchResult(7, 1, "찬양 폴더", "은혜", "", 12, "", "G", new[] { "Title" }, "");
@@ -12859,8 +13847,11 @@ public partial class MainViewModelTests
     private sealed class StubSongDetailRepository : IAdminSongDetailRepository
     {
         private readonly SongDetail? _detail;
+        private readonly IReadOnlyDictionary<int, SongDetail>? _details;
 
         public StubSongDetailRepository(SongDetail? detail) => _detail = detail;
+
+        public StubSongDetailRepository(IReadOnlyDictionary<int, SongDetail> details) => _details = details;
 
         public string? LastDatabasePath { get; private set; }
 
@@ -12870,7 +13861,7 @@ public partial class MainViewModelTests
         {
             LastDatabasePath = databasePath;
             LastSongId = songId;
-            return Task.FromResult(_detail);
+            return Task.FromResult(_details is null ? _detail : _details.GetValueOrDefault(songId));
         }
     }
 
@@ -13248,12 +14239,27 @@ public partial class MainViewModelTests
     {
         public int? ActualSlide { get; set; }
         public int AdvanceCount { get; private set; }
+        public int RetreatCount { get; private set; }
+        public bool EndOnAdvance { get; set; }
+        public List<bool> Blackouts { get; } = new();
         public bool HasOutputShow => ActualSlide != null;
         public Task<int?> ReadOutputPositionAsync(string path) => Task.FromResult(ActualSlide);
         public Task<int?> AdvanceOutputAsync(string path)
         {
             AdvanceCount++;
+            return Task.FromResult(EndOnAdvance && ActualSlide != null ? IPowerPointSlideShowControl.EndOfShow : ActualSlide);
+        }
+
+        public Task<int?> RetreatOutputAsync(string path)
+        {
+            RetreatCount++;
             return Task.FromResult(ActualSlide);
+        }
+
+        public Task SetBlackoutAsync(bool black)
+        {
+            Blackouts.Add(black);
+            return Task.CompletedTask;
         }
 
         public List<(PowerPointSlideShowRequest Request, string OutputMonitorName)> StartRequests { get; } = new();

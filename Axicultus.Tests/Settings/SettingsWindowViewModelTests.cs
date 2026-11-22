@@ -241,6 +241,39 @@ public class SettingsWindowViewModelTests
     }
 
     [Fact]
+    public void RestoreDefaultsCommand_WhenTheOperatorDeclines_ChangesNothing()
+    {
+        using var fixture = SettingsFixture.Create();
+        var sut = fixture.CreateViewModel();
+        sut.Language = "en-US";
+        sut.ConfirmRestoreDefaults = () => false;
+
+        sut.RestoreDefaultsCommand.Execute(null);
+
+        sut.Language.Should().Be("en-US");
+
+        sut.ConfirmRestoreDefaults = () => true;
+        sut.RestoreDefaultsCommand.Execute(null);
+
+        sut.Language.Should().Be(AxicultusSettingKeys.Language.DefaultValue);
+    }
+
+    [Fact]
+    public void OptionsDialog_WorkingFolderAndMaxFilesBoxesCanBeTyped()
+    {
+        var xaml = File.ReadAllText(Path.Combine(
+            Axicultus.Wpf.Tests.Accessibility.XamlAccessibilityScanner.FindRepoRoot(), "Axicultus", "SettingsWindow.xaml"));
+
+        // Per-keystroke updates made the dialog re-read every setting while the folder was half typed.
+        xaml.Should().Contain("Text=\"{Binding WorkingFolder}\"");
+        // The setting is valid from 1 to 100.
+        xaml.Should().Contain("Minimum=\"1\" Maximum=\"100\" AutomationProperties.Name=\"Power Point Max Files\"");
+        // "No output" is offered for the audience monitor only, not for the stage monitor.
+        System.Text.RegularExpressions.Regex.IsMatch(xaml, "ItemsSource=\"\\{Binding StageDisplayChoices, ElementName=OptionsWindow\\}\"\\s+DisplayMemberPath=\"Name\" SelectedValuePath=\"Id\"\\s+SelectedValue=\"\\{Binding PreviewMonitorId")
+            .Should().BeTrue();
+    }
+
+    [Fact]
     public async Task AnalyzeDatabaseAsync_WhenDatabaseIsValid_ReportsVersionAndTables()
     {
         using var fixture = SettingsFixture.Create();

@@ -31,6 +31,34 @@ public sealed class SongMergeService : ISongMergeService
         return new SongMergeResult(lyrics, notations);
     }
 
+    /// <summary>
+    /// The verses of the lyrics as verse codes, in the order they first appear: the sequence FrmSmartMerge gives a
+    /// merged song (Gf.FormatDisplayLyrics without slides leaves SongBasicSequence in SongSequence).
+    /// </summary>
+    internal static string LyricOrderSequence(string lyrics)
+    {
+        var sequence = new StringBuilder();
+        int verse = 1; // lyrics before the first heading are verse 1
+        foreach (var section in ParseSections(lyrics))
+        {
+            int headed = section.Heading switch
+            {
+                null or "[region 2]" => verse,
+                "[chorus]" => 0, "[bridge]" => 100, "[ending]" => 101, "[chorus 2]" => 102, "[bridge 2]" => 103,
+                "[prechorus]" => 111, "[prechorus 2]" => 112,
+                { } heading => int.TryParse(heading.AsSpan(1, heading.Length - 2), System.Globalization.NumberStyles.None,
+                    System.Globalization.CultureInfo.InvariantCulture, out int number) && number is >= 1 and <= 99 ? number : verse,
+            };
+            verse = headed;
+            if (section.Lines.Count > 0 && !sequence.ToString().Contains((char)verse))
+            {
+                sequence.Append((char)verse);
+            }
+        }
+
+        return sequence.ToString();
+    }
+
     private static List<MergedLine> MergeLines(
         IReadOnlyList<LyricSection> sourceA,
         IReadOnlyList<LyricSection> sourceB)

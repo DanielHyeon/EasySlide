@@ -28,7 +28,7 @@
             </Grid.ColumnDefinitions>
             <StackPanel>
                 <TextBlock Text="Import/Export"
-                           Style="{StaticResource Type.H2.Style}" />
+                           Style="{StaticResource Type.Title2.Style}" />
                 <TextBlock Text="{Binding DatabasePath}"
                            Style="{StaticResource Type.Caption.Style}"
                            Foreground="{DynamicResource Brush.Text.Secondary}"

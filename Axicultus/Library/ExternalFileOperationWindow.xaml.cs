@@ -56,7 +56,7 @@ public partial class ExternalFileOperationWindow : Window
         var dialog = new OpenFileDialog
         {
             Multiselect = true,
-            Filter = GetFileDialogFilter(viewModel.ItemKind),
+            Filter = GetFileDialogFilter(viewModel.ItemKind, viewModel.WorkingFolder),
             InitialDirectory = ResolveInitialDirectory(viewModel),
         };
 
@@ -76,12 +76,14 @@ public partial class ExternalFileOperationWindow : Window
         DialogResult = true;
     }
 
-    private static string GetFileDialogFilter(ExternalFileItemKind itemKind)
+    // The same extensions as the folder browsers list, so a file copied in here shows up there.
+    internal static string GetFileDialogFilter(ExternalFileItemKind itemKind, string? workingFolder)
         => itemKind switch
         {
             ExternalFileItemKind.InfoScreen => "InfoScreen (*.esi)|*.esi|All files (*.*)|*.*",
-            ExternalFileItemKind.PowerPoint => "PowerPoint (*.ppt;*.pptx;*.pps;*.ppsx)|*.ppt;*.pptx;*.pps;*.ppsx|All files (*.*)|*.*",
-            ExternalFileItemKind.Media => "Media (*.mp3;*.wav;*.wma;*.m4a;*.aac;*.flac;*.ogg;*.mp4;*.wmv;*.avi;*.mov;*.mkv)|*.mp3;*.wav;*.wma;*.m4a;*.aac;*.flac;*.ogg;*.mp4;*.wmv;*.avi;*.mov;*.mkv|All files (*.*)|*.*",
+            ExternalFileItemKind.PowerPoint => SourceFileExtensions.DialogFilter("PowerPoint", SourceFileExtensions.PowerPoint) + "|All files (*.*)|*.*",
+            ExternalFileItemKind.Media => SourceFileExtensions.DialogFilter("Media",
+                SourceFileExtensions.Audio(workingFolder).Concat(SourceFileExtensions.Video(workingFolder))) + "|All files (*.*)|*.*",
             _ => "All files (*.*)|*.*",
         };
 

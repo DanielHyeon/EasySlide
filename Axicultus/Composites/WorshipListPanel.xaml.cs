@@ -15,6 +15,21 @@ using Axicultus.Wpf.Shell;
 namespace Axicultus.Wpf.Composites;
 
 /// <summary>
+/// LIVE badge of a worship-list row: inputs [the row, MainViewModel.LiveRow]. The row itself is compared, not its
+/// id, so that only one of two rows of the same song carries the badge.
+/// </summary>
+public sealed class LiveRowBadgeConverter : System.Windows.Data.IMultiValueConverter
+{
+    public object Convert(object[] values, Type targetType, object? parameter, System.Globalization.CultureInfo culture)
+        => values is { Length: >= 2 } && values[0] is LiveQueueItem row && ReferenceEquals(row, values[1])
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+
+    public object[] ConvertBack(object value, Type[] targetTypes, object? parameter, System.Globalization.CultureInfo culture)
+        => throw new NotSupportedException();
+}
+
+/// <summary>
 /// WorshipListPanel — 계획서 §5.2 재사용 컴포지트(예배 순서 목록 패널).
 ///
 /// View만 분리한 UserControl이다. ViewModel은 호스트에서 상속되는 DataContext
@@ -38,6 +53,12 @@ public partial class WorshipListPanel : UserControl
     public WorshipListPanel()
     {
         InitializeComponent();
+        // The list is multi-select; removal acts on every selected row, as FrmMain does.
+        DataContextChanged += (_, e) =>
+        {
+            if (e.NewValue is MainViewModel viewModel)
+                viewModel.SelectedQueueRows = () => [.. QueueList.SelectedItems.OfType<LiveQueueItem>()];
+        };
     }
 
     private void WL_Add_Click(object sender, RoutedEventArgs e)
@@ -91,8 +112,16 @@ public partial class WorshipListPanel : UserControl
         if (dialog.ShowDialog(Window.GetWindow(this)) == true)
         {
             var rtf = WorshipListRtfExporter.BuildRtf(documentName, viewModel.Queue.ToArray());
-            File.WriteAllText(dialog.FileName, rtf, new UTF8Encoding(false));
-            viewModel.StatusText = $"Worship List RTF 저장: {dialog.FileName}";
+            try
+            {
+                File.WriteAllText(dialog.FileName, rtf, new UTF8Encoding(false));
+                viewModel.StatusText = $"Worship List RTF 저장: {dialog.FileName}";
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                // The target is often still open in Word.
+                viewModel.StatusText = $"Worship List RTF 저장 실패: {ex.Message}";
+            }
         }
 
         e.Handled = true;
@@ -120,11 +149,11 @@ public partial class WorshipListPanel : UserControl
         {
             Title = "예배 순서에 추가할 외부 파일 선택",
             Filter = "Valid External Files (*.ppt;*.pptx;*.doc;*.docx;*.txt;*.esi;*.esw;*.json)|*.ppt;*.pptx;*.doc;*.docx;*.txt;*.esi;*.esw;*.json"
-                + "|PowerPoint (*.ppt;*.pptx)|*.ppt;*.pptx"
+                + "|" + SourceFileExtensions.DialogFilter("PowerPoint", SourceFileExtensions.PowerPoint)
                 + "|Word 문서 (*.doc;*.docx)|*.doc;*.docx"
                 + "|Text/InfoScreen (*.txt;*.esi)|*.txt;*.esi"
                 + "|Worship Lists (*.esw;*.json)|*.esw;*.json"
-                + "|미디어 (*.mp4;*.avi;*.wmv;*.mov;*.mkv;*.mp3;*.wav;*.wma)|*.mp4;*.avi;*.wmv;*.mov;*.mkv;*.mp3;*.wav;*.wma"
+                + "|" + viewModel.MediaDialogFilter("미디어")
                 + "|모든 파일 (*.*)|*.*",
             CheckFileExists = true,
             Multiselect = true,
@@ -354,12 +383,24 @@ public partial class WorshipListPanel : UserControl
     {
         _dragStartPoint = e.GetPosition(null);
         _dragCandidate = ItemFromPoint(e.GetPosition(QueueList));
+        // FrmMain WorshipList_MouseUp reloads the preview on every click. Clicking the row that is already
+        // selected changes no selection here, so a library or praise-book preview is dropped explicitly.
+        if (_dragCandidate is not null && DataContext is MainViewModel viewModel && ReferenceEquals(_dragCandidate, viewModel.SelectedItem))
+        {
+            viewModel.ShowWorshipSelectionPreview();
+        }
     }
 
     // 우클릭 메뉴 대상도 FrmMain처럼 "마우스 아래 항목"으로 맞춘다. 기존 선택과 다른 항목을 우클릭해도 Edit/Play가 그 행에 적용된다.
     private void QueueList_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
     {
         var item = ItemFromPoint(e.GetPosition(QueueList));
+        // The context menu acts on the preview item: a right-click on the selected row shows that row again.
+        if (item is not null && DataContext is MainViewModel current && ReferenceEquals(item, current.SelectedItem))
+        {
+            current.ShowWorshipSelectionPreview();
+        }
+
         if (item is null || QueueList.SelectedItems.Contains(item))
         {
             return;

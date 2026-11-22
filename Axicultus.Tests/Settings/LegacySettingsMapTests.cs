@@ -51,7 +51,7 @@ public class LegacySettingsMapTests
             "GapItemOption",
             "DMAlwaysUseSecondaryMonitor",
             "OutputMonitorName",
-            "LMTextColour",
+            "LyricsMonitorTextColour",
             "LiveCamVolume",
             "MediaDir",
             "GlobalHookKey_F7",
@@ -66,7 +66,7 @@ public class LegacySettingsMapTests
         LegacySettingsMap.GetAutomatedAliases(AxicultusSettingKeys.DefaultOutputMonitorId.Id)
             .Should().Contain(["DefaultOutputMonitorId", "OutputMonitorName"]);
         LegacySettingsMap.GetAutomatedAliases(AxicultusSettingKeys.MediaVolume.Id)
-            .Should().Contain(["MediaVolume", "LiveCamVolume"]);
+            .Should().Contain(["MediaVolume"]).And.NotContain(["LiveCamVolume"]);
         LegacySettingsMap.GetAutomatedAliases(AxicultusSettingKeys.RegistrationUser.Id)
             .Should().Contain(["RegistrationUser"]);
     }
@@ -111,7 +111,7 @@ public class LegacySettingsMapTests
         LegacySettingsMap.GetAutomatedAliases(AxicultusSettingKeys.ReferenceAlertTransparent.Id)
             .Should().Contain(["ReferenceAlertStyle", "ReferenceAlertTransparent"]);
         LegacySettingsMap.GetAutomatedAliases(AxicultusSettingKeys.LyricsMonitorTextColorArgb.Id)
-            .Should().Contain(["LMTextColour", "LyricsMonitorTextColour"]);
+            .Should().NotContain(["LMTextColour", "LyricsMonitorTextColour"]);
         LegacySettingsMap.GetAutomatedAliases(AxicultusSettingKeys.LyricsMonitorHighlightColorArgb.Id)
             .Should().Contain(["LMHighlightColour", "LyricsMonitorHighlightColour"]);
     }
@@ -133,7 +133,7 @@ public class LegacySettingsMapTests
     }
 
     [Fact]
-    public async Task MigrateLegacyAsync_UsesLegacyAliasesAndNormalizesMediaScales()
+    public async Task MigrateLegacyAsync_UsesLegacyAliasesAndKeepsCameraValuesOffMediaSettings()
     {
         using var fixture = TempSettingsFolder.Create();
         var sut = fixture.CreateService();
@@ -152,9 +152,12 @@ public class LegacySettingsMapTests
         result.Succeeded.Should().BeTrue();
         sut.Get(AxicultusSettingKeys.WorkingFolder).Should().Be(fixture.LegacyFolder);
         sut.Get(AxicultusSettingKeys.DefaultOutputMonitorId).Should().Be(@"\\.\DISPLAY2");
-        sut.Get(AxicultusSettingKeys.MediaVolume).Should().Be(0.65);
-        sut.Get(AxicultusSettingKeys.MediaBalance).Should().Be(-0.25);
-        sut.Get(AxicultusSettingKeys.MediaMuted).Should().BeTrue();
+        sut.Current.Operator.CameraVolume.Should().Be(65);
+        sut.Current.Operator.CameraBalance.Should().Be(-25);
+        sut.Current.Operator.CameraMuted.Should().BeTrue();
+        sut.Get(AxicultusSettingKeys.MediaVolume).Should().Be(AxicultusSettingKeys.MediaVolume.DefaultValue);
+        sut.Get(AxicultusSettingKeys.MediaBalance).Should().Be(AxicultusSettingKeys.MediaBalance.DefaultValue);
+        sut.Get(AxicultusSettingKeys.MediaMuted).Should().BeFalse("a muted live camera must not mute all media");
         sut.Get(AxicultusSettingKeys.AdminDatabasePath).Should().EndWith(Path.Combine("AdminDB", "AxicultusDb.db"));
     }
 
@@ -196,10 +199,10 @@ public class LegacySettingsMapTests
             ["DualMonitorOptionCustomTop"] = "120",
             ["DualMonitorOptionCustomLeft"] = "-240",
             ["DualMonitorOptionCustomWidth"] = "1920",
-            ["LyricsMonitorTextColour"] = "-65536",
+            ["LyricsMonitorTextColour"] = "-256",
             ["LyricsMonitorHighlightColour"] = "-16711936",
-            ["LyricsMonitorBackColour"] = "-1",
-            ["LyricsMonitorShowNotations"] = "0",
+            ["LyricsMonitorBackColour"] = "-16777216",
+            ["LyricsMonitorShowNotations"] = "1",
             ["UseSongNumbering"] = "1",
         });
 
@@ -238,10 +241,50 @@ public class LegacySettingsMapTests
         sut.Get(AxicultusSettingKeys.DisplayCustomTop).Should().Be(120);
         sut.Get(AxicultusSettingKeys.DisplayCustomLeft).Should().Be(-240);
         sut.Get(AxicultusSettingKeys.DisplayCustomWidth).Should().Be(1920);
-        sut.Get(AxicultusSettingKeys.LyricsMonitorTextColorArgb).Should().Be(-65536);
+        // The WinForms lyrics monitor is the stage monitor: its colours and chords stay off the congregation output.
+        sut.Current.Operator.StageTextArgb.Should().Be(-256);
+        sut.Current.Operator.StageBackgroundArgb.Should().Be(-16777216);
+        sut.Current.Operator.StageShowNotations.Should().BeTrue();
+        sut.Get(AxicultusSettingKeys.LyricsMonitorTextColorArgb).Should().Be(AxicultusSettingKeys.LyricsMonitorTextColorArgb.DefaultValue);
         sut.Get(AxicultusSettingKeys.LyricsMonitorHighlightColorArgb).Should().Be(unchecked((int)0xFF00FF00));
-        sut.Get(AxicultusSettingKeys.LyricsMonitorBackgroundColorArgb).Should().Be(-1);
+        sut.Get(AxicultusSettingKeys.LyricsMonitorBackgroundColorArgb).Should().Be(AxicultusSettingKeys.LyricsMonitorBackgroundColorArgb.DefaultValue);
         sut.Get(AxicultusSettingKeys.LyricsMonitorShowNotations).Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task MigrateLegacyAsync_RepairsOutOfRangeValuesInsteadOfFailing()
+    {
+        using var fixture = TempSettingsFolder.Create();
+        var sut = fixture.CreateService();
+        var legacy = new DictionaryLegacySettingsSource(new Dictionary<string, string?>
+        {
+            ["root_directory"] = "",
+            ["OutputmonitorName"] = "Auto",
+            ["LiveCamNumber"] = "0",
+            ["PowerpointMaxFiles"] = "500",
+            ["ExternalListing"] = "7",
+            ["ReferenceAlertDuration"] = "0",
+            ["ReferenceAlertSource"] = "9",
+            ["DualMonitorOptionCustomWidth"] = "0",
+            ["JumpToA"] = "7",
+            ["MessageAlertFontSize"] = "12",
+            ["LyricsMonitorFontSize"] = "60",
+        });
+
+        var result = await sut.MigrateLegacyAsync(legacy);
+
+        result.Succeeded.Should().BeTrue("WinForms repairs these values on load; one of them must not discard the import");
+        sut.Get(AxicultusSettingKeys.JumpToA).Should().Be(7);
+        sut.Get(AxicultusSettingKeys.WorkingFolder).Should().Be(AxicultusSettingKeys.WorkingFolder.DefaultValue);
+        sut.Get(AxicultusSettingKeys.DefaultOutputMonitorId).Should().BeEmpty();
+        sut.Get(AxicultusSettingKeys.LiveCameraNumber).Should().Be(1);
+        sut.Get(AxicultusSettingKeys.PowerPointMaxFiles).Should().Be(100);
+        sut.Get(AxicultusSettingKeys.PowerPointSourceListingStyle).Should().Be(0);
+        sut.Get(AxicultusSettingKeys.ReferenceAlertDurationSeconds).Should().Be(30);
+        sut.Get(AxicultusSettingKeys.ReferenceAlertSource).Should().Be(0);
+        sut.Get(AxicultusSettingKeys.DisplayCustomWidth).Should().Be(100);
+        sut.Current.Operator.Message.Points.Should().Be(25, "WinForms shows 25 for an alert font size outside 20..50");
+        sut.Current.Operator.StageFontPoints.Should().Be(20, "WinForms shows 20 for a stage font size outside 8..40");
     }
 
     [Fact]

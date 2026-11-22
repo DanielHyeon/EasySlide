@@ -17,4 +17,12 @@ public static class LiveItemKinds
     /// 공지 송출 시 _liveItemId 를 이 값으로 두면 슬라이드/절 이동 가드(== 항목 ID)가 자연히 비활성화돼
     /// 공지가 떠 있는 동안 의미 없는 이동 버튼이 켜지지 않는다(레거시 FrmInfoScreen 의 "모달" 송출 의미).</summary>
     public const string NoticeLiveId = "notice:live";
+
+    /// <summary>The gap screen shown between two worship items while a show runs (FrmLaunchShow item "G1").
+    /// It is never a worship-list row: the session carries it so that every output follows it.</summary>
+    public const string Gap = "Gap";
+
+    /// <summary>Live id of the gap screen. Like <see cref="NoticeLiveId"/> it matches no worship-list row, so
+    /// slide navigation, auto rotation and re-publishing of the live row stand still while it shows.</summary>
+    public const string GapLiveId = "gap:live";
 }

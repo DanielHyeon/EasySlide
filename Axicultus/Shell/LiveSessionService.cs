@@ -110,6 +110,11 @@ public sealed record LiveSessionSnapshot(
     public StageText? StageRegion2 { get; init; }
     public int[] NotationLines { get; init; } = [];
     public int[] NotationLines2 { get; init; } = [];
+    // The part of the font size the body of region 1 is drawn with (LiveQueueItem.ProjectedFontScale), and whether
+    // the body of region 1 / region 2 is drawn as large as fits its room instead of being clipped.
+    public double BodyFontScale { get; init; } = 1;
+    public bool ShrinkBody { get; init; }
+    public bool ShrinkBody2 { get; init; }
 
     public static LiveSessionSnapshot Off { get; } = new(
         LiveState.Off,
@@ -134,6 +139,20 @@ public interface ILiveSessionService
     void HideOutput(bool blackout);
     void ClearOutput();
     void Restore();
+
+    // Black and Clear as two independent switches, as FrmMain's ShowLiveBlack / ShowLiveClear: turning one off
+    // leaves the other on. The defaults serve implementations that only know the exclusive calls above.
+    void SetBlackout(bool on)
+    {
+        if (on) HideOutput(blackout: true);
+        else Restore();
+    }
+
+    void SetCleared(bool on)
+    {
+        if (on) ClearOutput();
+        else Restore();
+    }
     void Refresh();
     void SetLyricsAlertMessage(string text);
     void SetAudienceAlert(bool parental, OutputAlert? alert);
@@ -188,7 +207,7 @@ public sealed class LiveSessionService : ILiveSessionService
         // 곡이 아니거나 색 항목이 없으면 null → 출력은 운영 기본색을 그대로 쓴다.
         var format = Library.SongFormatData.Parse(item.FormatData);
         string body = ComputeBodyText(item), body2 = ComputeBodyText2(item);
-        bool hasChords = LiveItemKindMatcher.IsSong(item.Kind) && (item.ProjectedTextPage ?? item.Lyrics)?.Contains('»') == true;
+        bool hasChords = LiveItemKindMatcher.IsSong(item.Kind) && (item.ProjectedTextPage ?? item.LyricsWithChords)?.Contains('»') == true;
         LiveSessionSnapshot.StageText? StageContent(string displayed, Func<LiveQueueItem,string> project)
         {
             if (!hasChords || displayed.Length == 0) return null;
@@ -198,6 +217,7 @@ public sealed class LiveSessionService : ILiveSessionService
             return withChords != plain ? new(plain, withChords, FindNotationLines(withChords, plain)) : null;
         }
         bool chorus = ComputeCurrentPageIsChorus(item);
+        bool twoLanguageSong = LiveItemKindMatcher.IsSong(item.Kind) && body2.Length > 0;
         var stage1 = StageContent(body, ComputeBodyText);
         var stage2 = StageContent(body2, ComputeBodyText2);
         return new LiveSessionSnapshot(
@@ -275,6 +295,14 @@ public sealed class LiveSessionService : ILiveSessionService
             StageRegion1 = stage1, StageRegion2 = stage2,
             NotationLines = item.ShowNotations ? stage1?.ChordLines ?? [] : [],
             NotationLines2 = item.ShowNotations ? stage2?.ChordLines ?? [] : [],
+            BodyFontScale = item.ProjectedFontScale,
+            // Region 1 of a two-language song is cut into screens by measurement only with Auto Text Overflow on
+            // (MainViewModel.GetSongPages); without it, a region too high for its room is drawn smaller, not clipped.
+            ShrinkBody = twoLanguageSong,
+            // Region 2 is not measured when the screens are cut (gfLyrics.BuildSlidesReg2); FrmLaunchShow reduces
+            // its font until it fits its room (Gf.GetOneRegionHeight).
+            ShrinkBody2 = twoLanguageSong || (LiveItemKindMatcher.IsBible(item.Kind)
+                && item.ProjectedTextPage?.Contains(Data.SongPageLayout.Region2Break, StringComparison.Ordinal) == true),
         };
     }
 
@@ -323,11 +351,11 @@ public sealed class LiveSessionService : ILiveSessionService
     private static string ComputeBodyText(LiveQueueItem item)
     {
         if (LiveItemKindMatcher.IsSong(item.Kind) && item.ProjectedTextPage is { } slide)
-            return LyricsDisplayFormatter.FormatSongSlide(slide, item.ShowNotations, item.TransposeSemitones);
+            return LyricsDisplayFormatter.FormatSongSlide(Data.SongPageLayout.SplitRegions(slide).Region1, item.ShowNotations, item.TransposeSemitones);
         if (LiveItemKindMatcher.IsExternalTextFileItem(item))
         {
             return item.ProjectedTextPage ?? TextOrTitle(
-                LyricsDisplayFormatter.GetVersePage(item.Lyrics, item.LyricsPageIndex, item.Sequence),
+                LyricsDisplayFormatter.GetVersePage(LyricsDisplayFormatter.EmptyBlankLines(item.Lyrics), item.LyricsPageIndex, item.Sequence),
                 item.Title);
         }
 
@@ -342,11 +370,15 @@ public sealed class LiveSessionService : ILiveSessionService
         // 일부 번역의 인용부호 »…« 가 코드 마커로 오인돼 잘리지 않게 보호한 채 절만 나눈다.
         if (LiveItemKindMatcher.IsBible(item.Kind))
         {
-            return TextOrTitle(ComputeBibleBody(item.Lyrics, item.LyricsPageIndex, region2: false), item.Title);
+            // A passage flows over the slides (MainViewModel.GetSongPages): the projected page is the slide's text,
+            // for both versions when there are two. Without one (no page layout) the page is a verse.
+            return TextOrTitle(item.ProjectedTextPage is { } page
+                ? Data.SongPageLayout.SplitRegions(page).Region1
+                : ComputeBibleBody(item.Lyrics, item.LyricsPageIndex, region2: false), item.Title);
         }
 
         // "코드 표시" on 이면 가사 위에 코드 줄을 끼운 전처리 가사를, off 면 원시 가사 그대로(무회귀)를 쓴다.
-        var lyrics = LyricsDisplayFormatter.ExpandNotations(item.Lyrics, item.ShowNotations, item.TransposeSemitones);
+        var lyrics = LyricsDisplayFormatter.ExpandNotations(item.LyricsWithChords, item.ShowNotations, item.TransposeSemitones);
         return LyricsDisplayFormatter.HasRegion2(lyrics)
             ? LyricsDisplayFormatter.GetRegionPage(lyrics, item.LyricsPageIndex, item.Sequence).Region1
             : LyricsDisplayFormatter.GetVersePage(lyrics, item.LyricsPageIndex, item.Sequence);
@@ -391,10 +423,16 @@ public sealed class LiveSessionService : ILiveSessionService
         // 성경은 코드 전처리를 건너뛰고 보조 언어(Region2) 절을 인용부호 보호한 채 추출(주 언어 경로와 대칭).
         if (LiveItemKindMatcher.IsBible(item.Kind))
         {
-            return ComputeBibleBody(item.Lyrics, item.LyricsPageIndex, region2: true);
+            return item.ProjectedTextPage is { } page
+                ? Data.SongPageLayout.SplitRegions(page).Region2
+                : ComputeBibleBody(item.Lyrics, item.LyricsPageIndex, region2: true);
         }
 
-        var lyrics = LyricsDisplayFormatter.ExpandNotations(item.Lyrics, item.ShowNotations, item.TransposeSemitones);
+        // A page cut by measurement holds both regions (SongPageLayout.Paginate).
+        if (LiveItemKindMatcher.IsSong(item.Kind) && item.ProjectedTextPage is { } slide)
+            return LyricsDisplayFormatter.FormatSongSlide(Data.SongPageLayout.SplitRegions(slide).Region2, item.ShowNotations, item.TransposeSemitones);
+
+        var lyrics = LyricsDisplayFormatter.ExpandNotations(item.LyricsWithChords, item.ShowNotations, item.TransposeSemitones);
         return LyricsDisplayFormatter.HasRegion2(lyrics)
             ? LyricsDisplayFormatter.GetRegionPage(lyrics, item.LyricsPageIndex, item.Sequence).Region2
             : string.Empty;
@@ -496,6 +534,38 @@ public sealed class LiveSessionService : ILiveSessionService
             State = LiveState.Hidden,
             IsBlackout = false,
             IsCleared = true,
+            IsReferenceAlertVisible = false,
+            ReferenceAlertText = string.Empty,
+            LyricsAlertMessage = string.Empty,
+        });
+    }
+
+    public void SetBlackout(bool on)
+        => SetSwitches(on, Current.State == LiveState.Hidden && Current.IsCleared);
+
+    public void SetCleared(bool on)
+        => SetSwitches(Current.State == LiveState.Hidden && Current.IsBlackout, on);
+
+    // Both switches may be on: the renderer shows black first (OutputRenderer.GetSceneKind), so turning Black off
+    // returns to the cleared screen. With both off the output is back.
+    private void SetSwitches(bool black, bool cleared)
+    {
+        if (Current.State == LiveState.Off)
+        {
+            return;
+        }
+
+        if (!black && !cleared)
+        {
+            Restore();
+            return;
+        }
+
+        Update(Current with
+        {
+            State = LiveState.Hidden,
+            IsBlackout = black,
+            IsCleared = cleared,
             IsReferenceAlertVisible = false,
             ReferenceAlertText = string.Empty,
             LyricsAlertMessage = string.Empty,

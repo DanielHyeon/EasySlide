@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Windows;
 
 namespace Axicultus.Wpf.Shell;
@@ -58,8 +59,96 @@ public partial class ManageWorshipListsWindow : Window
     {
         if (SavedListBox.SelectedItem is string name)
         {
+            // FrmManageItemLists asks before deleting.
+            if (MessageBox.Show(this, $"'{name}' 예배 순서를 휴지통으로 옮기시겠습니까?", "예배 순서 삭제",
+                    MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No) != MessageBoxResult.Yes) return;
             _viewModel.DeleteWorshipList(name);
             RefreshSavedLists();
+        }
+    }
+
+    /// <summary>Lists in Trash (FrmManageItemLists TrashList).</summary>
+    public ObservableCollection<string> TrashedLists { get; } = [];
+
+    private void RefreshTrashedLists()
+    {
+        TrashedLists.Clear();
+        foreach (var name in _viewModel.GetTrashedWorshipLists())
+        {
+            TrashedLists.Add(name);
+        }
+    }
+
+    // FrmManageItemLists.MainTabControl_SelectedIndexChanged: each tab refreshes its list and shows its own buttons.
+    private void MainTabControl_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+    {
+        if (!ReferenceEquals(e.OriginalSource, MainTabControl) || TrashButtons is null || ListButtons is null)
+        {
+            return; // a list selection bubbling up, or the first selection during InitializeComponent
+        }
+
+        var trash = ReferenceEquals(MainTabControl.SelectedItem, TrashTab);
+        TrashButtons.Visibility = trash ? Visibility.Visible : Visibility.Collapsed;
+        ListButtons.Visibility = trash ? Visibility.Collapsed : Visibility.Visible;
+        if (trash) RefreshTrashedLists();
+        else RefreshSavedLists();
+    }
+
+    private string[] SelectedTrashedLists() => [.. TrashListBox.SelectedItems.OfType<string>()];
+
+    private void Restore_Click(object sender, RoutedEventArgs e)
+    {
+        var names = SelectedTrashedLists();
+        if (names.Length == 0)
+        {
+            MessageBox.Show(this, "복원할 예배 순서를 선택하세요.", "복원", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        var question = names.Length == 1 ? $"'{names[0]}' 예배 순서를 복원하시겠습니까?" : $"선택한 예배 순서 {names.Length}개를 복원하시겠습니까?";
+        if (MessageBox.Show(this, question, "복원", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No) != MessageBoxResult.Yes) return;
+        ReportTrashResult(_viewModel.RestoreWorshipLists(names), names.Length, "복원");
+    }
+
+    private void DeletePermanently_Click(object sender, RoutedEventArgs e)
+    {
+        var names = SelectedTrashedLists();
+        if (names.Length == 0)
+        {
+            MessageBox.Show(this, "영구 삭제할 예배 순서를 선택하세요.", "영구 삭제", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        var question = names.Length == 1
+            ? $"'{names[0]}' 예배 순서를 영구 삭제하시겠습니까? 되돌릴 수 없습니다."
+            : $"선택한 예배 순서 {names.Length}개를 영구 삭제하시겠습니까? 되돌릴 수 없습니다.";
+        if (MessageBox.Show(this, question, "영구 삭제", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No) != MessageBoxResult.Yes) return;
+        ReportTrashResult(_viewModel.DeleteTrashedWorshipLists(names), names.Length, "영구 삭제");
+    }
+
+    private void EmptyTrash_Click(object sender, RoutedEventArgs e)
+    {
+        RefreshTrashedLists();
+        if (TrashedLists.Count == 0)
+        {
+            MessageBox.Show(this, "휴지통이 이미 비어 있습니다.", "휴지통 비우기", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        if (MessageBox.Show(this, "휴지통을 비우시겠습니까? 휴지통의 모든 예배 순서가 영구 삭제되며 되돌릴 수 없습니다.", "휴지통 비우기",
+                MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No) != MessageBoxResult.Yes) return;
+        string[] names = [.. TrashedLists];
+        ReportTrashResult(_viewModel.DeleteTrashedWorshipLists(names), names.Length, "영구 삭제");
+    }
+
+    // FrmManageItemLists reports the files it could not move or delete; the reason is in the status line.
+    private void ReportTrashResult(int done, int requested, string verb)
+    {
+        RefreshTrashedLists();
+        if (done < requested)
+        {
+            MessageBox.Show(this, $"{requested - done}개는 {verb}하지 못했습니다. {done}개는 처리했습니다.\n\n{_viewModel.StatusText}", verb,
+                MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }
 

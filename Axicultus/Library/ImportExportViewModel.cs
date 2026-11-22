@@ -545,7 +545,8 @@ public sealed partial class ImportExportViewModel : ObservableObject
         {
             await work().ConfigureAwait(true);
         }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException or NotSupportedException)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException or NotSupportedException
+            or System.Data.Common.DbException) // a locked or unreadable database
         {
             StatusMessage = ex.Message;
         }

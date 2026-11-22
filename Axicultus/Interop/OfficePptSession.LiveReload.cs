@@ -28,15 +28,33 @@ public sealed partial class OfficePptSession
             return slides.Count;
         }
 
-        public void Dispose()
+        /// <summary>
+        /// Closes the copy and releases it. False, with nothing released, when PowerPoint stopped answering
+        /// (the call group was given up) or refuses the call because it is busy (a modal dialog is open in it):
+        /// the copy is still open in PowerPoint and stays owned. Any other failure means it is closed already.
+        /// </summary>
+        public bool TryClose()
         {
             try { Presentation.Close(); }
-            catch (Exception ex) { Debug.WriteLine(ex.Message); }
-            finally
+            catch (Exception ex)
             {
-                collection.Dispose();
-                OfficeLib.PowerPoint.DeleteDiskCopy(backingPath);
+                if (PowerPointCallLimit.CurrentAbandoned || IsPowerPointBusy(ex)) return false;
+                Debug.WriteLine(ex.Message);
             }
+            Release();
+            return true;
+        }
+
+        // Only for a PowerPoint that is gone: a copy that is still open is kept (CloseOrKeep), not released.
+        public void Dispose()
+        {
+            if (!TryClose()) Release();
+        }
+
+        private void Release()
+        {
+            collection.Dispose();
+            OfficeLib.PowerPoint.DeleteDiskCopy(backingPath);
         }
     }
 
@@ -53,7 +71,11 @@ public sealed partial class OfficePptSession
         }
         catch
         {
+            // A call cancelled at its limit is not undone: PowerPoint may still carry the Open out, and the Close
+            // below is cancelled too. The copy is then closed by its name when PowerPoint answers again.
+            if (backingPath != null && PowerPointCallLimit.CurrentAbandoned) _abandonedOpens.Add(backingPath);
             try { copy?.Close(); }
+            catch (Exception ex) { Debug.WriteLine(ex.Message); }
             finally
             {
                 collection.Dispose();
@@ -73,7 +95,10 @@ public sealed partial class OfficePptSession
     private static bool IsShowingSlide(PpSlideShowState state) =>
         state is PpSlideShowState.ppSlideShowRunning or PpSlideShowState.ppSlideShowPaused;
 
-    internal Task<PowerPointOutputPosition?> PollOutputAsync(OutputShow expected, Func<bool> stillCurrent) => RunOnStaAsync<PowerPointOutputPosition?>(() =>
+    // revision: the source file as its owner last read it, off this worker (a share that stopped answering must
+    // not block the calls to PowerPoint); null when it is not known.
+    internal Task<PowerPointOutputPosition?> PollOutputAsync(OutputShow expected, Func<bool> stillCurrent,
+        SlideImageManifest.SourceVersion? revision = null) => RunLimitedAsync<PowerPointOutputPosition?>(() =>
     {
         if (!stillCurrent() || !ReferenceEquals(expected, _outputShow) || !_showDecks.TryGetValue(expected.Path, out var deck)) return null;
         using var windows = _ppt!.SlideShowWindows;
@@ -99,7 +124,6 @@ public sealed partial class OfficePptSession
                 _outputShow = expected with { Handle = handle };
             }
         }
-        var revision = SlideImageManifest.ReadSource(expected.Path);
         if (revision == null || deck.Version.Matches(revision)) return position;
 
         ShowDeck? replacement = null;
@@ -123,14 +147,19 @@ public sealed partial class OfficePptSession
             _showDecks[expected.Path] = replacement;
             position = new(target, replacement.Count, revision);
             replacement = null;
-            deck.Dispose();
+            CloseOrKeep(deck);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!IsPowerPointGone(ex))
         {
             Trace.WriteLine($"[PPT] Reload deferred: {ex.GetBaseException().Message}");
             deck.NextFileCheck = Environment.TickCount64 + 10000;
+            // The old copy is still the output show.
+            if (replacement != null) _outputShow = expected;
         }
-        finally { replacement?.Dispose(); }
+        finally
+        {
+            if (replacement != null) CloseOrKeep(replacement);
+        }
         return position;
-    });
+    }, PptCall.Poll);
 }

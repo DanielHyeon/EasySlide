@@ -92,7 +92,7 @@ public interface IBibleRepository
     /// 기본 구현은 빈 문자열 — 수많은 테스트 페이크가 일일이 구현하지 않도록 인터페이스 기본 메서드(DIM)로 둔다
     /// (실제 구절 확장은 <see cref="BibleRepository"/> 가 제공).
     /// </summary>
-    string ExpandSelection(string workingFolder, string idString, bool showVerses) => string.Empty;
+    string ExpandSelection(string workingFolder, string idString) => string.Empty;
 
     /// <summary>
     /// 성경 버전의 표시 이름을 바꾼다(EsBiblesList.db 의 Biblefolder.NAME 컬럼만 UPDATE, 본문 파일은 불변).
@@ -186,13 +186,18 @@ public sealed class BibleRepository : IBibleRepository
     public IReadOnlyList<BibleBook> GetBooks(BibleVersion version)
     {
         ArgumentNullException.ThrowIfNull(version);
-        if (!File.Exists(version.FilePath))
+        return ReadBooks(version.FilePath);
+    }
+
+    private static List<BibleBook> ReadBooks(string filePath)
+    {
+        if (!File.Exists(filePath))
         {
             return [];
         }
 
         var books = new List<BibleBook>();
-        using var connection = OpenConnection(version.FilePath);
+        using var connection = OpenConnection(filePath);
         using var command = connection.CreateCommand();
         command.CommandText = """
             SELECT verse, bibletext
@@ -320,7 +325,7 @@ public sealed class BibleRepository : IBibleRepository
         return new BibleSelection(idString, $"{baseTitle} ({suffix})");
     }
 
-    public string ExpandSelection(string workingFolder, string idString, bool showVerses)
+    public string ExpandSelection(string workingFolder, string idString)
     {
         // IdString 이 비었거나 형식이 어긋나면 빈 본문(출력은 제목만) — 우아한 폴백.
         if (string.IsNullOrWhiteSpace(workingFolder) || !BibleSelectionId.TryParse(idString, out var selection))
@@ -330,13 +335,15 @@ public sealed class BibleRepository : IBibleRepository
 
         var bibleFolder = Path.Combine(Path.GetFullPath(workingFolder), BibleFolderRelativePath);
 
-        // 주 언어 절: 번호 표시 설정이면 "장:절 본문", 아니면 본문만.
+        // The projected text always carries the reference, as in WinForms; the browse pane's "show verses" tick
+        // only hides the verse text in that pane.
         var region1Path = Path.Combine(bibleFolder, selection.Region1FileName);
-        var region1 = ReadSelectionVerses(region1Path, selection.Ranges, includeReference: showVerses);
+        var region1 = ReadSelectionVerses(region1Path, selection);
 
-        // 보조 언어 절(이중 언어일 때만): 같은 절 번호를 또 붙이면 중복이라 본문만 싣는다.
+        // The second version carries the reference too, as in WinForms (Gf.LoadSelectedBibleVerses loads both
+        // versions the same way): the reader of the second language sees which verse it is.
         var region2 = selection.HasRegion2
-            ? ReadSelectionVerses(Path.Combine(bibleFolder, selection.Region2FileName), selection.Ranges, includeReference: false)
+            ? ReadSelectionVerses(Path.Combine(bibleFolder, selection.Region2FileName), selection)
             : Array.Empty<string>();
 
         return BiblePassageComposer.Compose(region1, region2);
@@ -346,8 +353,7 @@ public sealed class BibleRepository : IBibleRepository
     // 같은 책을 여러 범위가 참조해도 책당 한 번만 읽도록 캐시한다. 파일이 없으면 빈 목록(상위에서 빈 본문으로 폴백).
     private static IReadOnlyList<string> ReadSelectionVerses(
         string filePath,
-        IReadOnlyList<BiblePassageRange> ranges,
-        bool includeReference)
+        BibleSelectionId selection)
     {
         if (!File.Exists(filePath))
         {
@@ -355,8 +361,10 @@ public sealed class BibleRepository : IBibleRepository
         }
 
         var rowsByBook = new Dictionary<int, IReadOnlyList<BibleVerseRow>>();
+        // A search-result (ad-hoc) selection names the book of each verse, as WinForms does.
+        var books = !selection.IsSequential ? ReadBooks(filePath) : [];
         var verses = new List<string>();
-        foreach (var range in ranges)
+        foreach (var range in selection.Ranges)
         {
             if (!rowsByBook.TryGetValue(range.Book, out var rows))
             {
@@ -364,11 +372,23 @@ public sealed class BibleRepository : IBibleRepository
                 rowsByBook[range.Book] = rows;
             }
 
+            // As in WinForms, the chapter is printed with the first verse of a range and where it changes.
+            int printedChapter = 0;
             foreach (var row in rows)
             {
-                if (range.Contains(row.Chapter, row.Verse))
+                if (!range.Contains(row.Chapter, row.Verse))
                 {
-                    verses.Add(includeReference ? $"{row.Chapter}:{row.Verse} {row.Text}" : row.Text);
+                    continue;
+                }
+
+                if (!selection.IsSequential)
+                {
+                    verses.Add($"{row.Text} ({GetBookName(books, row.Book)} {row.Chapter}:{row.Verse})");
+                }
+                else
+                {
+                    verses.Add(row.Chapter == printedChapter ? $"{row.Verse} {row.Text}" : $"{row.Chapter}:{row.Verse} {row.Text}");
+                    printedChapter = row.Chapter;
                 }
             }
         }

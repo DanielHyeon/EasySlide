@@ -638,7 +638,8 @@ public sealed partial class BibleViewModel : ObservableObject
         }
 
         var selectionStart = start.Start;
-        var selectionLength = (end.Start + end.Length) - selectionStart;
+        // Without the blank line that closes the last verse: a range reaching the next verse's start selects that verse too.
+        var selectionLength = (end.Start + end.Length) - selectionStart - 2;
         if (selectionLength <= 0)
         {
             ValidationMessage = "구절 범위가 올바르지 않습니다.";
@@ -681,7 +682,7 @@ public sealed partial class BibleViewModel : ObservableObject
 
         try
         {
-            return _repository.ExpandSelection(WorkingFolder, idString, ShowVerses);
+            return _repository.ExpandSelection(WorkingFolder, idString);
         }
         // 복구 가능한 DB/IO 예외에 더해, 잘못된 작업 폴더 경로(Path.GetFullPath 의 ArgumentException)도
         // 빈 본문(제목만)으로 우아하게 폴백한다 — 본문 확장 실패가 예배 순서 추가를 막아선 안 된다.

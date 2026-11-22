@@ -20,18 +20,11 @@ public interface IMediaLibraryService
     IReadOnlyList<MediaFolderItem> EnumerateFolders(string rootFolder);
 }
 
-public sealed class MediaLibraryService : IMediaLibraryService
+/// <param name="workingFolder">Where the operator's extension lists are (Admin\Database); without it the shipped lists are read.</param>
+public sealed class MediaLibraryService(string? workingFolder = null) : IMediaLibraryService
 {
-    // 동영상 + 오디오 확장자(MainWindow 파일 대화상자·InferMediaType 과 동일 어휘).
-    private static readonly IReadOnlySet<string> MediaExtensions =
-        new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-        {
-            ".mp4", ".avi", ".wmv", ".mov", ".mkv", ".m4v",                 // 동영상
-            ".mp3", ".wav", ".wma", ".m4a", ".aac", ".flac", ".ogg",        // 오디오
-        };
-
     public IReadOnlyList<string> EnumerateMedia(string folderPath, bool includeSubfolders)
-        => FolderFileEnumerator.Enumerate(folderPath, MediaExtensions, includeSubfolders);
+        => FolderFileEnumerator.Enumerate(folderPath, SourceFileExtensions.Media(workingFolder), includeSubfolders);
 
     public IReadOnlyList<MediaFolderItem> EnumerateFolders(string rootFolder)
     {

@@ -8,17 +8,17 @@ namespace Axicultus.Wpf.Tests.Library;
 public class BiblePassageComposerTests
 {
     [Fact]
-    public void Compose_SingleLanguage_SeparatesVersesByBlankLine()
+    public void Compose_SingleLanguage_IsOneBlockWithAVerseOnEachLine()
     {
-        // 보조 언어가 없으면 [region 2] 마커 없이 절만 빈 줄로 나눠 단일 밴드로 렌더된다.
+        // The WinForms app sends a passage as one text that flows over the slides (gfLyrics.FitWholeLyricPage
+        // exempts type "B"): no verse ends a page, the page layout does. An empty verse must not break the block.
         var body = BiblePassageComposer.Compose(
-            ["1:1 In the beginning", "1:2 And the earth"],
-            []);
+            ["1:1 In the beginning", "", "1:2 And the earth"],
+            ["", ""]);
 
-        body.Should().Be("1:1 In the beginning\n\n1:2 And the earth");
+        body.Should().Be("1:1 In the beginning\n1:2 And the earth");
         body.Should().NotContain("[region 2]");
-        // 절 페이지네이션과 1:1 — 두 절 = 두 페이지.
-        LyricsDisplayFormatter.ToVersePages(body).Should().HaveCount(2);
+        LyricsDisplayFormatter.ToVersePages(body).Should().ContainSingle();
         LyricsDisplayFormatter.HasRegion2(body).Should().BeFalse();
     }
 
@@ -51,6 +51,19 @@ public class BiblePassageComposerTests
         LyricsDisplayFormatter.GetRegionPages(body, null).Should().HaveCount(2);
         LyricsDisplayFormatter.GetRegionPage(body, 1).Region1.Should().Be("v2");
         LyricsDisplayFormatter.GetRegionPage(body, 1).Region2.Should().BeEmpty();
+        // Every verse carries the marker; with one marker only the passage would read like a WinForms song whose
+        // region 2 runs on to the end, and "v2" would land in region 2.
+        body.Should().Be("v1\n[region 2]\nb1\n\nv2\n[region 2]\n");
+    }
+
+    [Fact]
+    public void RegionTwoOfAHeadinglessSongRunsToTheEnd_AsInTheWinFormsApp()
+    {
+        // gfLyrics.BuildSlidesReg2: region 2 lasts until the next heading and the screens of the two regions
+        // pair by position. Only the composer's passages (a marker for every verse) page at every blank line.
+        var pages = LyricsDisplayFormatter.GetRegionPages("a1\n\na2\n[region 2]\nb1\n\nb2");
+
+        pages.Should().Equal(new LyricsRegionPage("a1", "b1"), new LyricsRegionPage("a2", "b2"));
     }
 
     [Fact]

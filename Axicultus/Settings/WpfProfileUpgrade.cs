@@ -1,11 +1,40 @@
 using System;
 using System.IO;
+using System.Linq;
 
 namespace Axicultus.Wpf.Settings;
 
 internal static class WpfProfileUpgrade
 {
     private const string CompletionFile = ".profile-imported-v2";
+
+    // The copy is a convenience: a failure is reported and the caller still starts the app.
+    internal static bool TryImport(string appData, Action<Exception> report)
+    {
+        try
+        {
+            Import(appData);
+            return true;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Security.SecurityException)
+        {
+            report(ex);
+            return false;
+        }
+    }
+
+    private const string SettingsFile = "settings.json";
+    private static readonly string[] EarlierProfiles = ["AxicultusNext", "EasiSlidesNext"];
+
+    // True while an earlier profile still holds a settings file that the current profile does not have: its copy
+    // failed. Saving settings now would create the file and the retry on the next start would skip it for good.
+    internal static bool EarlierSettingsPending(string appData)
+    {
+        string destination = ProductStorage.WpfProfileDirectory(appData);
+        return !File.Exists(Path.Combine(destination, SettingsFile))
+            && !File.Exists(Path.Combine(destination, CompletionFile))
+            && EarlierProfiles.Any(name => File.Exists(Path.Combine(appData, name, SettingsFile)));
+    }
 
     internal static void Import(string appData)
     {
@@ -15,8 +44,19 @@ internal static class WpfProfileUpgrade
         string marker = Path.Combine(destination, CompletionFile);
         if (CheckPath(marker) is { } markerAttributes && !markerAttributes.HasFlag(FileAttributes.Directory)) return;
 
+        // settings.json first, on its own: whatever fails afterwards, the next start does not begin from defaults
+        // and then keep them (an existing file is never overwritten).
+        foreach (string name in EarlierProfiles)
+        {
+            if (CheckPath(Path.Combine(appData, name)) is null) continue;
+            string settings = Path.Combine(appData, name, SettingsFile);
+            if (CheckPath(settings) is not { } attributes || attributes.HasFlag(FileAttributes.Directory)) continue;
+            Directory.CreateDirectory(destination);
+            CopyMissingFile(settings, Path.Combine(destination, SettingsFile));
+        }
+
         bool imported = false;
-        foreach (string name in new[] { "AxicultusNext", "EasiSlidesNext" })
+        foreach (string name in EarlierProfiles)
         {
             string source = Path.Combine(appData, name);
             if (CheckPath(source) is null) continue;
@@ -35,7 +75,8 @@ internal static class WpfProfileUpgrade
     {
         CheckPath(destination);
         Directory.CreateDirectory(destination);
-        foreach (string sourcePath in Directory.EnumerateFileSystemEntries(source))
+        // Files first: settings.json is copied before a subfolder that may fail.
+        foreach (string sourcePath in Directory.EnumerateFiles(source).Concat(Directory.EnumerateDirectories(source)))
         {
             string name = Path.GetFileName(sourcePath);
             if (profileRoot && name.Equals(CompletionFile, StringComparison.OrdinalIgnoreCase)) continue;

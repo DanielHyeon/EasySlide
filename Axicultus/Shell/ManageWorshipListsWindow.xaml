@@ -37,15 +37,53 @@
                     AutomationProperties.Name="현재 순서 저장" />
         </Grid>
 
-        <!-- 저장된 목록 -->
-        <ListBox Grid.Row="2"
-                 x:Name="SavedListBox"
-                 ItemsSource="{Binding SavedLists}"
-                 AutomationProperties.Name="저장된 예배 순서 목록"
-                 BorderBrush="{DynamicResource Brush.Border.Default}"
-                 BorderThickness="1" />
+        <!-- 저장된 목록 / 휴지통 (FrmManageItemLists MainTabControl: ListsTab, TrashTab) -->
+        <TabControl Grid.Row="2"
+                    x:Name="MainTabControl"
+                    SelectionChanged="MainTabControl_SelectionChanged"
+                    AutomationProperties.Name="예배 순서 목록과 휴지통">
+            <TabItem x:Name="ListsTab" Header="목록">
+                <ListBox x:Name="SavedListBox"
+                         ItemsSource="{Binding SavedLists}"
+                         AutomationProperties.Name="저장된 예배 순서 목록"
+                         BorderBrush="{DynamicResource Brush.Border.Default}"
+                         BorderThickness="1" />
+            </TabItem>
+            <TabItem x:Name="TrashTab" Header="휴지통">
+                <ListBox x:Name="TrashListBox"
+                         ItemsSource="{Binding TrashedLists}"
+                         SelectionMode="Extended"
+                         AutomationProperties.Name="휴지통의 예배 순서 목록"
+                         BorderBrush="{DynamicResource Brush.Border.Default}"
+                         BorderThickness="1" />
+            </TabItem>
+        </TabControl>
+
+        <!-- 휴지통 탭의 버튼 — 목록 탭에서는 숨긴다(FrmManageItemLists.MainTabControl_SelectedIndexChanged). -->
+        <StackPanel Grid.Row="3"
+                    x:Name="TrashButtons"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Visibility="Collapsed"
+                    Margin="0,16,0,0">
+            <Button Click="Restore_Click"
+                    Style="{StaticResource EsButton.Primary}"
+                    Margin="0,0,8,0"
+                    Content="복원"
+                    AutomationProperties.Name="선택 순서 휴지통에서 복원" />
+            <Button Click="DeletePermanently_Click"
+                    Style="{StaticResource EsButton.Danger}"
+                    Margin="0,0,8,0"
+                    Content="영구 삭제"
+                    AutomationProperties.Name="선택 순서 영구 삭제" />
+            <Button Click="EmptyTrash_Click"
+                    Style="{StaticResource EsButton.Danger}"
+                    Content="휴지통 비우기"
+                    AutomationProperties.Name="휴지통 비우기" />
+        </StackPanel>
 
         <StackPanel Grid.Row="3"
+                    x:Name="ListButtons"
                     Orientation="Horizontal"
                     HorizontalAlignment="Right"
                     Margin="0,16,0,0">

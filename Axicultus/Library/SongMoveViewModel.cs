@@ -17,6 +17,7 @@ public sealed partial class SongMoveViewModel : ObservableObject
 {
     private readonly ISettingsService _settings;
     private readonly IAdminDatabaseRepository _adminDatabase;
+    private IReadOnlyList<SongSummary> _songs = [];
 
     [ObservableProperty] private string _databasePath = "";
     [ObservableProperty] private int _songId;
@@ -41,6 +42,9 @@ public sealed partial class SongMoveViewModel : ObservableObject
 
     public IAsyncRelayCommand MoveCommand { get; }
 
+    /// <summary>The ids of the songs the last move filed in the target folder.</summary>
+    public IReadOnlyList<int> MovedSongIds { get; private set; } = [];
+
     public void Load(
         string databasePath,
         SongSummary song,
@@ -51,12 +55,31 @@ public sealed partial class SongMoveViewModel : ObservableObject
         ArgumentNullException.ThrowIfNull(sourceFolder);
         ArgumentNullException.ThrowIfNull(allFolders);
 
-        DatabasePath = NormalizePath(databasePath);
-        SongId = song.SongId;
-        SourceFolderNo = sourceFolder.FolderNo;
+        Load(databasePath, [song with { FolderNo = sourceFolder.FolderNo }], allFolders);
         SourceFolderName = sourceFolder.Name;
-        SongTitle = song.Title;
-        TargetFolders.ReplaceWith(allFolders.Where(folder => folder.FolderNo != sourceFolder.FolderNo));
+    }
+
+    /// <summary>Loads every selected song (FrmMain moves the whole selection of its song list).</summary>
+    public void Load(
+        string databasePath,
+        IReadOnlyList<SongSummary> songs,
+        IReadOnlyList<SongFolderSummary> allFolders)
+    {
+        ArgumentNullException.ThrowIfNull(songs);
+        ArgumentNullException.ThrowIfNull(allFolders);
+
+        _songs = songs;
+        MovedSongIds = [];
+        DatabasePath = NormalizePath(databasePath);
+        SongId = songs.Count > 0 ? songs[0].SongId : 0;
+        SourceFolderNo = songs.Count > 0 ? songs[0].FolderNo : 0;
+        SourceFolderName = SongSelectionText.SourceFolderName(songs, allFolders);
+        SongTitle = SongSelectionText.Heading(songs);
+        // Folder 0 holds deleted songs, and a disabled folder is shown by neither app. The folder all the
+        // songs are in is not a target; songs picked from several folders can go to any of them.
+        int? sourceFolderNo = SongSelectionText.CommonFolderNo(songs);
+        TargetFolders.ReplaceWith(allFolders.Where(folder =>
+            folder.FolderNo > 0 && folder.IsEnabled && folder.FolderNo != sourceFolderNo));
         SelectedTargetFolder = TargetFolders.FirstOrDefault();
         ValidationMessage = "";
         StatusMessage = "";
@@ -81,9 +104,32 @@ public sealed partial class SongMoveViewModel : ObservableObject
         {
             var targetFolderNo = SelectedTargetFolder!.FolderNo;
             var backupRoot = ResolveBackupRoot();
-            var move = new SongMoveRequest(SongId, SourceFolderNo, targetFolderNo);
+            // The songs as they are now: FrmMain leaves out a selected song whose row is gone, and the folder a
+            // song is in (kept as OldFolder) may have changed since the list was read.
+            var current = (await _adminDatabase
+                .GetMatchingSongsAsync(DatabasePath, _songs.Select(song => song.SongId).ToHashSet(), new HashSet<string>())
+                .ConfigureAwait(true)).ToDictionary(song => song.SongId);
+            var moves = new List<SongMoveRequest>();
+            var missing = new List<string>();
+            var alreadyThere = new List<string>();
+            foreach (var song in _songs)
+            {
+                if (!current.TryGetValue(song.SongId, out var stored)) missing.Add(song.Title);
+                else if (stored.FolderNo == targetFolderNo) alreadyThere.Add(song.Title);
+                else moves.Add(new SongMoveRequest(song.SongId, stored.FolderNo, targetFolderNo));
+            }
+
+            string skipped = SongSelectionText.Skipped(alreadyThere, "이미 대상 폴더에 있음")
+                + SongSelectionText.Skipped(missing, "라이브러리에 없음");
+            if (moves.Count == 0)
+            {
+                StatusMessage = "이동할 곡이 없습니다." + skipped;
+                return;
+            }
+
+            // One backup and one transaction for the whole selection: all the songs are moved, or none.
             var report = await _adminDatabase
-                .MoveSongsAsync(DatabasePath, backupRoot, [move])
+                .MoveSongsAsync(DatabasePath, backupRoot, moves)
                 .ConfigureAwait(true);
 
             if (!report.Succeeded)
@@ -95,9 +141,10 @@ public sealed partial class SongMoveViewModel : ObservableObject
                 return;
             }
 
+            MovedSongIds = moves.Select(move => move.SongId).ToArray();
             ValidationMessage = "";
-            StatusMessage = "이동되었습니다.";
-            Moved?.Invoke(this, new SongMovedEventArgs(SongId, SourceFolderNo, targetFolderNo));
+            StatusMessage = _songs.Count == 1 ? "이동되었습니다." : $"{moves.Count}곡을 이동했습니다." + skipped;
+            Moved?.Invoke(this, new SongMovedEventArgs(moves[0].SongId, moves[0].OldFolderNo, targetFolderNo));
         }
         catch (Exception ex) when (IsRecoverableMoveException(ex))
         {
@@ -130,7 +177,7 @@ public sealed partial class SongMoveViewModel : ObservableObject
             return false;
         }
 
-        if (SongId <= 0 || SourceFolderNo <= 0)
+        if (_songs.Count == 0 || _songs.Any(song => song.SongId <= 0 || song.FolderNo <= 0))
         {
             ValidationMessage = "이동할 곡을 선택하세요.";
             return false;
@@ -170,5 +217,6 @@ public sealed partial class SongMoveViewModel : ObservableObject
         => ex is IOException
             or UnauthorizedAccessException
             or InvalidOperationException
+            or System.Data.Common.DbException // reading the selected songs
             or NotSupportedException;
 }

@@ -236,8 +236,8 @@ public class LyricsDisplayFormatterTests
     [Fact]
     public void ToVersePages_WithSequence_DefinesSectionsOnce_RepeatsByOrder()
     {
-        // 절을 1회 정의([1],[C],[2])하고 시퀀스(1 C 2 C)로 반복 → 후렴(C)이 두 번 나온다(레거시 절 순서 모델).
-        var lyrics = "[1]\nVerse one\n[C]\nChorus line\n[2]\nVerse two";
+        // 절을 1회 정의([1],[chorus],[2])하고 시퀀스(1 C 2 C)로 반복 → 후렴(C)이 두 번 나온다(레거시 절 순서 모델).
+        var lyrics = "[1]\nVerse one\n[chorus]\nChorus line\n[2]\nVerse two";
 
         var pages = LyricsDisplayFormatter.ToVersePages(lyrics, "1 C 2 C");
 
@@ -247,15 +247,28 @@ public class LyricsDisplayFormatterTests
     [Fact]
     public void ToVersePages_SequenceTokens_CommaOrSpace_CaseInsensitive()
     {
-        var lyrics = "[1]\nVerse\n[C]\nChorus";
+        var lyrics = "[1]\nVerse\n[chorus]\nChorus";
 
         LyricsDisplayFormatter.ToVersePages(lyrics, "1, c").Should().Equal("Verse", "Chorus");
     }
 
     [Fact]
+    public void ToVersePages_WithSequence_TextBeforeTheFirstHeadingIsVerseOne()
+    {
+        // gfLyrics.ExtractLyricRegions starts at verseNumber = 1: a first verse without "[1]" is still verse 1.
+        var lyrics = "Verse one\n[chorus]\nChorus line\n[2]\nVerse two";
+
+        LyricsDisplayFormatter.ToVersePages(lyrics, "1 C 2 C")
+            .Should().Equal("Verse one", "Chorus line", "Verse two", "Chorus line");
+        // No heading at all: nothing to address, so the blank-line pages are kept.
+        LyricsDisplayFormatter.ToVersePages("Page one\n\nPage two", "1")
+            .Should().Equal(LyricsDisplayFormatter.ToVersePages("Page one\n\nPage two"));
+    }
+
+    [Fact]
     public void ToVersePages_EmptySequence_FallsBackToLinear()
     {
-        var lyrics = "[1]\nVerse one\n[C]\nChorus line";
+        var lyrics = "[1]\nVerse one\n[chorus]\nChorus line";
 
         LyricsDisplayFormatter.ToVersePages(lyrics, "")
             .Should().Equal(LyricsDisplayFormatter.ToVersePages(lyrics));
@@ -274,7 +287,7 @@ public class LyricsDisplayFormatterTests
     [Fact]
     public void GetVersePage_WithSequence_ReturnsExpandedPageAtIndex()
     {
-        var lyrics = "[1]\nVerse one\n[C]\nChorus line\n[2]\nVerse two";
+        var lyrics = "[1]\nVerse one\n[chorus]\nChorus line\n[2]\nVerse two";
 
         // 시퀀스 "1 C 2 C" 의 3번 인덱스(0-based)는 두 번째 후렴.
         LyricsDisplayFormatter.GetVersePage(lyrics, 3, "1 C 2 C").Should().Be("Chorus line");
@@ -282,21 +295,118 @@ public class LyricsDisplayFormatterTests
         LyricsDisplayFormatter.GetVersePage(lyrics, 99, "1 C 2 C").Should().Be("Chorus line");
     }
 
+    // ─── FrmMain parity: headings, screen breaks, region pairing (gfLyrics.cs) ──────────────
+
+    [Theory]
+    [InlineData("[간주]")]
+    [InlineData("[Chorus]")]
+    [InlineData("[x2]")]
+    [InlineData("[0]")]
+    [InlineData("[100]")]
+    public void OnlyFrmMainHeadingsSplitVerses_OtherBracketLinesAreLyricText(string line)
+    {
+        // gfConfig.InitializeVerseHeadings: [1]..[99] and seven lower-case names; anything else is shown.
+        var lyrics = "[1]\na\n" + line + "\nb";
+
+        LyricsDisplayFormatter.ToVersePages(lyrics).Should().Equal("a\n" + line + "\nb");
+        LyricsDisplayFormatter.ToVersePages(lyrics, "1").Should().Equal("a\n" + line + "\nb");
+        LyricsDisplayFormatter.GetSectionLabels(lyrics, null).Should().Equal("1");
+        LyricsDisplayFormatter.GetRegionPages(lyrics).Should().Equal(new LyricsRegionPage("a\n" + line + "\nb", ""));
+        LyricsDisplayFormatter.ExpandNotations("[1]\na\n" + line + " » G\nb", showNotations: true)
+            .Should().Be("[1]\na\nG\n" + line + "\nb", "a text line keeps its chord line");
+    }
+
+    [Fact]
+    public void EveryFrmMainHeadingIsASequenceTarget()
+    {
+        var lyrics = "[9]\nnine\n[99]\nlast\n[chorus]\nc\n[chorus 2]\nt\n[bridge]\nb\n[bridge 2]\nw\n[prechorus]\np\n[prechorus 2]\nq\n[ending]\ne";
+
+        LyricsDisplayFormatter.ToVersePages(lyrics, "9,99,c,t,b,w,p,q,e")
+            .Should().Equal("nine", "last", "c", "t", "b", "w", "p", "q", "e");
+    }
+
+    [Fact]
+    public void ToVersePages_WithSequence_ABlankLineInsideAVerseIsStillAScreenBreak()
+    {
+        // gfLyrics.GetVerseScreenCount: an empty row inside a verse starts a new screen, with or without a sequence.
+        var lyrics = "[1]\na\nb\n\nc\nd\n[chorus]\nx";
+
+        LyricsDisplayFormatter.ToVersePages(lyrics, "1,c").Should().Equal("a\nb", "c\nd", "x");
+        LyricsDisplayFormatter.GetSectionLabels(lyrics, "1,c").Should().Equal("1", "1", "chorus");
+        LyricsDisplayFormatter.ToVersePages(lyrics, "1,c").Should().Equal(LyricsDisplayFormatter.ToVersePages(lyrics));
+    }
+
+    [Fact]
+    public void ToVersePages_WithSequence_ALeadingNotationBlockIsNotVerseOne()
+    {
+        LyricsDisplayFormatter.ToVersePages("[~G D]\n[1]\na\n[chorus]\nc", "1,c").Should().Equal("a", "c");
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("1,c")]
+    public void GetRegionPages_ABlankLineBeforeRegion2DoesNotSplitTheLanguages(string? sequence)
+    {
+        // gfLyrics.ExtractLyricRegions: region 2 lasts until the next heading, whatever blank lines come first.
+        var lyrics = "[1]\nEng1\n\n[region 2]\nKor1\n\n[chorus]\nEngC\n[region 2]\nKorC";
+
+        LyricsDisplayFormatter.GetRegionPages(lyrics, sequence)
+            .Should().Equal(new LyricsRegionPage("Eng1", "Kor1"), new LyricsRegionPage("EngC", "KorC"));
+        LyricsDisplayFormatter.GetRegionSectionLabels(lyrics, sequence).Should().Equal("1", "chorus");
+    }
+
+    [Fact]
+    public void GetRegionPages_ScreensOfTheTwoRegionsPairByPosition()
+    {
+        // gfLyrics.BuildSlidesReg2: screen n of region 2 goes with screen n of region 1; extra screens stand alone.
+        LyricsDisplayFormatter.GetRegionPages("Eng a\n\nEng b\n[region 2]\nKor a\n\nKor b\n[chorus]\nc")
+            .Should().StartWith(new[] { new LyricsRegionPage("Eng a", "Kor a"), new LyricsRegionPage("Eng b", "Kor b") });
+
+        var lyrics = "[1]\nEng a\n[region 2]\nKor a\n\nKor b\n[chorus]\nEng c\n\nEng d\n[region 2]\nKor c";
+        LyricsDisplayFormatter.GetRegionPages(lyrics, "c,1").Should().Equal(
+            new LyricsRegionPage("Eng c", "Kor c"), new LyricsRegionPage("Eng d", ""),
+            new LyricsRegionPage("Eng a", "Kor a"), new LyricsRegionPage("", "Kor b"));
+        LyricsDisplayFormatter.GetRegionSectionLabels(lyrics, "c,1").Should().Equal("chorus", "chorus", "1", "1");
+        LyricsDisplayFormatter.GetRegionSectionLabels(lyrics, null).Count
+            .Should().Be(LyricsDisplayFormatter.GetRegionPages(lyrics).Count);
+    }
+
+    [Fact]
+    public void GetRegionPages_OneMarkerPerPage_KeepsEachBlankLinePageWithItsOwnRegion2()
+    {
+        // BiblePassageComposer writes one marker per verse page; FrmMain has no such text, so the page rule stays.
+        var lyrics = Axicultus.Wpf.Library.BiblePassageComposer.Compose(["R1 a", "R1 b"], ["R2 a", "R2 b"]);
+
+        LyricsDisplayFormatter.GetRegionPages(lyrics)
+            .Should().Equal(new LyricsRegionPage("R1 a", "R2 a"), new LyricsRegionPage("R1 b", "R2 b"));
+    }
+
+    [Fact]
+    public void Paginate_LabelsStayWithTheirVersesWhenAVerseHasAChordOnlyLine()
+    {
+        var layout = new Axicultus.Wpf.Data.SongPageLayout(10, "Arial", 0, 0, 0, 0, 1, 80, 0);
+
+        var pages = layout.Paginate("[1]\none\n» G\ntwo\n[chorus]\nrefrain", null, null, 2000, 6);
+
+        pages.Bodies.Should().Equal("one\n» G\ntwo", "refrain");
+        pages.Labels.Should().Equal("1", "chorus");
+    }
+
     // ─── 중복 절 라벨 검증(Sequence 모델: 절은 1회 정의) ──────────────────────
 
     [Fact]
-    public void FindDuplicateSectionLabels_DetectsRepeatedLabels_CaseInsensitive()
+    public void FindDuplicateSectionLabels_DetectsRepeatedLabels()
     {
         // 절은 한 번만 정의해야 한다(반복은 Sequence 로). 같은 라벨이 두 번 정의되면 둘째가 무시되는 오류.
-        var lyrics = "[1]\nVerse one\n[C]\nChorus\n[c]\nDup chorus\n[2]\nVerse two";
+        var lyrics = "[1]\nVerse one\n[chorus]\nChorus\n[chorus]\nDup chorus\n[2]\nVerse two";
 
-        LyricsDisplayFormatter.FindDuplicateSectionLabels(lyrics).Should().Equal("C");
+        LyricsDisplayFormatter.FindDuplicateSectionLabels(lyrics).Should().Equal("chorus");
     }
 
     [Fact]
     public void FindDuplicateSectionLabels_NoDuplicates_ReturnsEmpty()
     {
-        var lyrics = "[1]\nVerse one\n[C]\nChorus\n[2]\nVerse two";
+        var lyrics = "[1]\nVerse one\n[chorus]\nChorus\n[2]\nVerse two";
 
         LyricsDisplayFormatter.FindDuplicateSectionLabels(lyrics).Should().BeEmpty();
     }
@@ -305,9 +415,9 @@ public class LyricsDisplayFormatterTests
     public void FindDuplicateSectionLabels_ThreeOrMoreDefinitions_ReportedOnce()
     {
         // 같은 라벨이 3번 이상 정의돼도 중복은 한 번만 보고(경고 중복 방지).
-        var lyrics = "[C]\nA\n[C]\nB\n[C]\nD";
+        var lyrics = "[chorus]\nA\n[chorus]\nB\n[chorus]\nD";
 
-        LyricsDisplayFormatter.FindDuplicateSectionLabels(lyrics).Should().Equal("C");
+        LyricsDisplayFormatter.FindDuplicateSectionLabels(lyrics).Should().Equal("chorus");
     }
 
     [Fact]
@@ -332,7 +442,7 @@ public class LyricsDisplayFormatterTests
     public void ToVersePages_WithSequence_NormalizesCrlfAndMojibake()
     {
         // 시퀀스 확장 경로(ParseLabeledSections)도 CRLF·"Â»" 모지바케를 동일하게 정규화한다.
-        var lyrics = "[1]\r\nVerse one Â» G\r\n[C]\r\nChorus";
+        var lyrics = "[1]\r\nVerse one Â» G\r\n[chorus]\r\nChorus";
 
         var pages = LyricsDisplayFormatter.ToVersePages(lyrics, "1 C");
 
@@ -438,8 +548,8 @@ public class LyricsDisplayFormatterTests
     [Fact]
     public void GetRegionPages_WithSequence_ExpandsRegionPairsByOrder()
     {
-        // 이중 언어 절을 1회 정의([1],[C])하고 시퀀스(1 C 1)로 순서·반복 → 영역 쌍이 그 순서로 반복.
-        var lyrics = "[1]\nVerse1 R1\n[region 2]\nVerse1 R2\n[C]\nChorus R1\n[region 2]\nChorus R2";
+        // 이중 언어 절을 1회 정의([1],[chorus])하고 시퀀스(1 C 1)로 순서·반복 → 영역 쌍이 그 순서로 반복.
+        var lyrics = "[1]\nVerse1 R1\n[region 2]\nVerse1 R2\n[chorus]\nChorus R1\n[region 2]\nChorus R2";
 
         var pages = LyricsDisplayFormatter.GetRegionPages(lyrics, "1 C 1");
 
@@ -470,27 +580,27 @@ public class LyricsDisplayFormatterTests
     [Fact]
     public void GetRegionSectionLabels_AllLabeled_AlignsWithRegionPages()
     {
-        var lyrics = "[1]\nV R1\n[region 2]\nV R2\n[C]\nC R1\n[region 2]\nC R2";
+        var lyrics = "[1]\nV R1\n[region 2]\nV R2\n[chorus]\nC R1\n[region 2]\nC R2";
 
         var labels = LyricsDisplayFormatter.GetRegionSectionLabels(lyrics, sequence: null);
         var pages = LyricsDisplayFormatter.GetRegionPages(lyrics);
 
-        labels.Should().Equal("1", "C");
+        labels.Should().Equal("1", "chorus");
         labels.Count.Should().Be(pages.Count, "이중 언어 절 라벨은 페이지와 1:1");
     }
 
     [Fact]
     public void GetRegionSectionLabels_WithSequence_RepeatsByOrder()
     {
-        var lyrics = "[1]\nV R1\n[region 2]\nV R2\n[C]\nC R1\n[region 2]\nC R2";
+        var lyrics = "[1]\nV R1\n[region 2]\nV R2\n[chorus]\nC R1\n[region 2]\nC R2";
 
-        LyricsDisplayFormatter.GetRegionSectionLabels(lyrics, "1 C 1 C").Should().Equal("1", "C", "1", "C");
+        LyricsDisplayFormatter.GetRegionSectionLabels(lyrics, "1 C 1 C").Should().Equal("1", "chorus", "1", "chorus");
     }
 
     [Fact]
     public void GetRegionPage_WithSequence_ReturnsExpandedPairAtIndex()
     {
-        var lyrics = "[1]\nVerse1 R1\n[region 2]\nVerse1 R2\n[C]\nChorus R1\n[region 2]\nChorus R2";
+        var lyrics = "[1]\nVerse1 R1\n[region 2]\nVerse1 R2\n[chorus]\nChorus R1\n[region 2]\nChorus R2";
 
         LyricsDisplayFormatter.GetRegionPage(lyrics, 2, "1 C 1").Should().Be(new LyricsRegionPage("Verse1 R1", "Verse1 R2"));
         LyricsDisplayFormatter.GetRegionPage(lyrics, 99, "1 C 1").Should().Be(new LyricsRegionPage("Verse1 R1", "Verse1 R2"), "범위 밖 클램프");
@@ -509,16 +619,16 @@ public class LyricsDisplayFormatterTests
     [Fact]
     public void GetSectionLabels_WithSequence_ReturnsLabelPerExpandedPage()
     {
-        // 절을 1회 정의([1],[C],[2])하고 시퀀스(1 C 2 C)로 반복 → 페이지별 라벨도 같은 순서로 반복.
-        var lyrics = "[1]\nVerse one\n[C]\nChorus line\n[2]\nVerse two";
+        // 절을 1회 정의([1],[chorus],[2])하고 시퀀스(1 C 2 C)로 반복 → 페이지별 라벨도 같은 순서로 반복.
+        var lyrics = "[1]\nVerse one\n[chorus]\nChorus line\n[2]\nVerse two";
 
         var labels = LyricsDisplayFormatter.GetSectionLabels(lyrics, "1 C 2 C");
         var pages = LyricsDisplayFormatter.ToVersePages(lyrics, "1 C 2 C");
 
-        labels.Should().Equal("1", "C", "2", "C");
+        labels.Should().Equal("1", "chorus", "2", "chorus");
         // 위치 정합: 라벨[i] 가 페이지[i] 의 절을 정확히 가리킨다(점프 인덱스 정확성의 핵심).
         pages[0].Should().Be("Verse one");
-        pages[System.Array.IndexOf(System.Linq.Enumerable.ToArray(labels), "C")].Should().Be("Chorus line");
+        pages[System.Array.IndexOf(System.Linq.Enumerable.ToArray(labels), "chorus")].Should().Be("Chorus line");
         pages[System.Array.IndexOf(System.Linq.Enumerable.ToArray(labels), "2")].Should().Be("Verse two");
     }
 
@@ -532,10 +642,10 @@ public class LyricsDisplayFormatterTests
     }
 
     [Theory]
-    [InlineData("[1]\nVerse one\n[C]\nChorus\n[2]\nVerse two", "1 C 2 C")]
+    [InlineData("[1]\nVerse one\n[chorus]\nChorus\n[2]\nVerse two", "1 C 2 C")]
     [InlineData("[1]\nVerse one\n[2]\nVerse two", null)]
     [InlineData("Amazing grace", null)]
-    [InlineData("[1]\r\nVerse one Â» G\r\n[C]\r\nChorus", "1 C")]
+    [InlineData("[1]\r\nVerse one Â» G\r\n[chorus]\r\nChorus", "1 C")]
     public void GetSectionLabels_AlignsWithToVersePages(string lyrics, string? sequence)
     {
         // 라벨 배열은 항상 절 페이지와 1:1 정렬돼야 한다(점프 인덱스 정확성의 전제).
@@ -651,4 +761,72 @@ public class LyricsDisplayFormatterTests
     [InlineData(null, false)]
     public void IsChorusLabel_RecognizesChorusMarkers(string? label, bool expected)
         => LyricsDisplayFormatter.IsChorusLabel(label).Should().Be(expected);
+
+    // ─── FrmMain parity, second round: the rules a comparison over a real song database brought out ──────────
+
+    [Fact]
+    public void AHeadingOrRegionMarkerWithASpaceAroundIt_IsALineOfTheVerse()
+    {
+        // gfLyrics.ExtractLyricRegions looks the whole line up: " [1]" and "[2] " are shown (eight real songs).
+        LyricsDisplayFormatter.ToVersePages(" [1]\na\n[2] \nb").Should().Equal(" [1]\na\n[2]\nb");
+        LyricsDisplayFormatter.GetSectionLabels(" [1]\na\n[2] \nb", null).Should().Equal("");
+
+        const string lyrics = "[1]\na\n [region 2]\nb";
+        LyricsDisplayFormatter.HasRegion2(lyrics).Should().BeFalse();
+        LyricsDisplayFormatter.ToVersePages(lyrics).Should().Equal("a\n [region 2]\nb");
+    }
+
+    [Fact]
+    public void ALineFrmMainShows_StaysOnItsOverflowPage_WithChordsOffAndOn()
+    {
+        var layout = new Axicultus.Wpf.Data.SongPageLayout(10, "Arial", 0, 0, 0, 0, 1, 80, 0);
+
+        var pages = layout.Paginate("[1]\na » G\n[2] \n \nb", null, null, 2000, 6);
+
+        pages.Bodies.Should().Equal("a » G\n[2]\n \nb"); // the line of spaces is a row of the page (gfLyrics.GetOneScreen)
+        pages.Labels.Should().Equal("1");
+        LyricsDisplayFormatter.FormatSongSlide(pages.Bodies[0], false, 0).Should().Be("a\n[2]\n\nb");
+        LyricsDisplayFormatter.FormatSongSlide(pages.Bodies[0], true, 0).Should().Be("G\na\n[2]\n \nb");
+    }
+
+    [Fact]
+    public void ALaterBlockOfTheSameHeading_AddsItsLinesToThatVerse()
+    {
+        // gfLyrics.FormatDisplayLyrics gathers the lines by verse: the chorus is one verse, shown where it first appears.
+        const string lyrics = "[chorus]\na\n[1]\nv\n[chorus]\nb";
+
+        LyricsDisplayFormatter.ToVersePages(lyrics).Should().Equal("a\nb", "v");
+        LyricsDisplayFormatter.GetSectionLabels(lyrics, null).Should().Equal("chorus", "1");
+        LyricsDisplayFormatter.ToVersePages(lyrics, "1,c").Should().Equal("v", "a\nb");
+    }
+
+    [Fact]
+    public void RegionLabels_GoWithEveryPage_AlsoOfAVerseWithoutAHeading()
+    {
+        const string lyrics = "Eng\n[region 2]\nKor\n[chorus]\nc\n[region 2]\nk";
+
+        LyricsDisplayFormatter.GetRegionPages(lyrics).Should().Equal(new LyricsRegionPage("Eng", "Kor"), new LyricsRegionPage("c", "k"));
+        LyricsDisplayFormatter.GetRegionSectionLabels(lyrics, null).Should().Equal("", "chorus");
+    }
+
+    [Theory]
+    [InlineData("[chorus]\nc\n[1]\n\nEng a\n[region 2]\nKor a\n\nKor b", "c|;Eng a|Kor a;|Kor b")]
+    [InlineData("[1]\nx\n[2]\n\n[region 2]\nKor", "x|;|Kor")]
+    public void AnEmptyLineAtTheStartOfAVerse_DoesNotHideItsSecondRegion(string lyrics, string expected)
+    {
+        // FrmMain lost these region 2 screens (gfLyrics.BuildSlides, fixed there too).
+        string.Join(";", LyricsDisplayFormatter.GetRegionPages(lyrics).Select(page => page.Region1 + "|" + page.Region2))
+            .Should().Be(expected);
+    }
+
+    [Fact]
+    public void ALineOfSpaces_EndsAParagraphOfATextFile_ButNotAScreenOfASong()
+    {
+        // gfLyrics.FormatDisplayLyrics empties such a line only for a text file whose paragraphs are kept whole.
+        const string text = "one\n \t\ntwo";
+
+        LyricsDisplayFormatter.ToVersePages(text).Should().Equal("one\n\ntwo");
+        TextFilePagination.Create(text, null, null).Should().Equal("one", "two");
+        LyricsDisplayFormatter.EmptyBlankLines(text).Should().Be("one\n\ntwo");
+    }
 }

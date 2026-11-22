@@ -84,9 +84,19 @@ public sealed partial class ExternalFileOperationViewModel : ObservableObject
         WorkingFolder = NormalizePath(_settings.Current.General.WorkingFolder);
         DatabasePath = ResolveDatabasePath();
         RefreshExternalFolders();
-        await LoadSongFoldersAsync().ConfigureAwait(true);
         ValidationMessage = "";
         StatusMessage = "";
+        try
+        {
+            await LoadSongFoldersAsync().ConfigureAwait(true);
+        }
+        catch (Exception ex) when (IsRecoverableOperationException(ex))
+        {
+            // The window still opens for copies between folders; only the song-folder destination is missing.
+            SelectedSongFolder = null;
+            StatusMessage = $"곡 폴더를 불러오지 못했습니다: {ex.Message}";
+        }
+
         NotifyCommands();
     }
 
@@ -220,8 +230,7 @@ public sealed partial class ExternalFileOperationViewModel : ObservableObject
             TargetFolderPath: SelectedExternalFolder?.Path,
             DatabasePath: DatabasePath,
             TargetSongFolderNo: SelectedSongFolder?.FolderNo,
-            BackupRoot: ResolveBackupRoot(),
-            StartingSongNumber: Math.Max((SelectedSongFolder?.SongCount ?? 0) + 1, 1));
+            BackupRoot: ResolveBackupRoot());
 
     private bool Validate()
     {
@@ -332,5 +341,6 @@ public sealed partial class ExternalFileOperationViewModel : ObservableObject
         => ex is IOException
             or UnauthorizedAccessException
             or InvalidOperationException
+            or System.Data.Common.DbException // a locked or unreadable database
             or NotSupportedException;
 }

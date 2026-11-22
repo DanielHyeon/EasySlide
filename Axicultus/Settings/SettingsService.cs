@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
@@ -46,7 +47,8 @@ public sealed record SettingsChangedEventArgs(
     SettingsChangeSource Source,
     string? BackupPath);
 
-public sealed record SettingsServiceOptions(string SettingsFilePath, string BackupRoot, string? LegacyWorkingFolderPath = null)
+// Persist = false: changes stay in memory for this session (an earlier settings.json is still waiting to be copied).
+public sealed record SettingsServiceOptions(string SettingsFilePath, string BackupRoot, string? LegacyWorkingFolderPath = null, bool Persist = true)
 {
     public static SettingsServiceOptions CreateDefault()
     {
@@ -215,14 +217,14 @@ public static class AxicultusSettingKeys
     // 우측 출력 모양 인스펙터 펼침/접힘 상태 저장(레거시 FrmMain 패널 상태). 기본 true=펼침(무회귀). 접어 두면 다음 실행에도 접힌 채 시작.
     public static readonly SettingKey<bool> MainInspectorExpanded = new("general.mainInspectorExpanded", true);
     // 좌측 브라우저/예배순서 패널의 높이 비율(위 브라우저 패널 %, 레거시 splitter 위치 저장). 0=저장된 적 없음 → XAML 기본(반반).
-    public static readonly SettingKey<int> BibleSequentialLimit = new("general.bibleSequentialLimit", 100);
-    public static readonly SettingKey<int> BibleAdHocLimit = new("general.bibleAdHocLimit", 100);
-    public static readonly SettingKey<bool> MessageAlertFlash = new("general.messageAlertFlash", false);
-    public static readonly SettingKey<bool> MessageAlertScroll = new("general.messageAlertScroll", false);
+    public static readonly SettingKey<int> BibleSequentialLimit = new("general.bibleSequentialLimit", 500);
+    public static readonly SettingKey<int> BibleAdHocLimit = new("general.bibleAdHocLimit", 200);
+    public static readonly SettingKey<bool> MessageAlertFlash = new("general.messageAlertFlash", true);
+    public static readonly SettingKey<bool> MessageAlertScroll = new("general.messageAlertScroll", true);
     public static readonly SettingKey<bool> MessageAlertTransparent = new("general.messageAlertTransparent", false);
     public static readonly SettingKey<int> MessageAlertDuration = new("general.messageAlertDuration", 20);
-    public static readonly SettingKey<bool> ParentalAlertFlash = new("general.parentalAlertFlash", false);
-    public static readonly SettingKey<bool> ParentalAlertScroll = new("general.parentalAlertScroll", false);
+    public static readonly SettingKey<bool> ParentalAlertFlash = new("general.parentalAlertFlash", true);
+    public static readonly SettingKey<bool> ParentalAlertScroll = new("general.parentalAlertScroll", true);
     public static readonly SettingKey<bool> ParentalAlertTransparent = new("general.parentalAlertTransparent", false);
     public static readonly SettingKey<int> ParentalAlertDuration = new("general.parentalAlertDuration", 20);
     public static readonly SettingKey<string> ParentalAlertHeading = new("general.parentalAlertHeading", "보호자 호출");
@@ -264,7 +266,7 @@ public static class AxicultusSettingKeys
     public static readonly SettingKey<bool> UseSafetyConfirmations = new("liveOutput.useSafetyConfirmations", true);
     public static readonly SettingKey<bool> ShowLyricsMonitorAlertBox = new("liveOutput.showLyricsMonitorAlertBox", false);
     // FrmOptions Reference_Source0..4. 0=None, 1=Song Title, 2=Song Number, 3=Book Reference, 4=User Reference.
-    public static readonly SettingKey<int> ReferenceAlertSource = new("liveOutput.referenceAlertSource", 1);
+    public static readonly SettingKey<int> ReferenceAlertSource = new("liveOutput.referenceAlertSource", 0);
     public static readonly SettingKey<bool> ReferenceAlertUsePick = new("liveOutput.referenceAlertUsePick", false);
     public static readonly SettingKey<bool> ReferenceAlertBlankIfPickNotFound = new("liveOutput.referenceAlertBlankIfPickNotFound", false);
     public static readonly SettingKey<string> ReferenceAlertPickName = new("liveOutput.referenceAlertPickName", "");
@@ -1089,9 +1091,54 @@ public sealed class SettingsService : ISettingsService
     public SettingsService(SettingsServiceOptions options)
     {
         _options = options;
-        var loaded = LoadCurrent(options.SettingsFilePath);
-        var initial = Validate(loaded).Succeeded ? loaded : AxicultusSettingsSnapshot.CreateDefault();
-        Current = ApplyLegacyWorkingFolderFallback(initial, options.LegacyWorkingFolderPath);
+        var loaded = LoadCurrent(options.SettingsFilePath, out var repaired);
+        var repairs = new List<SettingsIssue>();
+        var usable = ResetInvalidKeys(loaded, AxicultusSettingsSnapshot.CreateDefault(), repairs);
+        if (repaired || usable is null || repairs.Count > 0) KeepRejectedFile(options.SettingsFilePath);
+        Current = ApplyLegacyWorkingFolderFallback(usable ?? AxicultusSettingsSnapshot.CreateDefault(), options.LegacyWorkingFolderPath);
+    }
+
+    // Resets only the settings named by validation errors to their fallback value, so one bad value does not
+    // cost the church the rest of its settings. Null: an error is not tied to one setting (schema version).
+    private AxicultusSettingsSnapshot? ResetInvalidKeys(
+        AxicultusSettingsSnapshot snapshot,
+        AxicultusSettingsSnapshot fallback,
+        ICollection<SettingsIssue> repairs)
+    {
+        var invalid = Validate(snapshot).Issues
+            .Where(issue => issue.Severity == SettingsIssueSeverity.Error)
+            .Select(issue => issue.Key)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        if (invalid.Count == 0) return snapshot;
+
+        foreach (var key in invalid)
+        {
+            if (key.StartsWith(LegacySettingsMap.ShortcutOverridesKeyId, StringComparison.OrdinalIgnoreCase))
+            {
+                snapshot = snapshot with
+                {
+                    Shortcuts = new Dictionary<string, string>(
+                        snapshot.Shortcuts.Where(pair => !string.IsNullOrWhiteSpace(pair.Key) && !string.IsNullOrWhiteSpace(pair.Value)),
+                        StringComparer.OrdinalIgnoreCase),
+                };
+            }
+            else
+            {
+                try
+                {
+                    snapshot = SetValue(snapshot, key, GetValue(fallback, key));
+                }
+                catch (ArgumentOutOfRangeException)
+                {
+                    return null;
+                }
+            }
+
+            repairs.Add(Warning(key, "The stored value is not valid and was replaced."));
+        }
+
+        return Validate(snapshot).Succeeded ? snapshot : null;
     }
 
     private SettingsService(SettingsService owner)
@@ -1530,8 +1577,62 @@ public sealed class SettingsService : ISettingsService
             : SettingsResult.Success(issues: issues);
     }
 
+    // Restoring defaults must not disconnect the church from its data or move a window during a service:
+    // folders, licences, registration, where the session was, and where the output and stage windows go all stay.
+    private static readonly string[] KeptOnRestoreDefaults =
+    [
+        AxicultusSettingKeys.WorkingFolder.Id,
+        AxicultusSettingKeys.AdminDatabasePath.Id,
+        AxicultusSettingKeys.DataBackupRoot.Id,
+        AxicultusSettingKeys.PowerPointSourceFolder.Id,
+        AxicultusSettingKeys.MediaSourceFolder.Id,
+        AxicultusSettingKeys.MediaDirectory.Id,
+        AxicultusSettingKeys.CurrentWorshipListName.Id,
+        AxicultusSettingKeys.CurrentPraiseBookName.Id,
+        AxicultusSettingKeys.SelectedSongFolderNo.Id,
+        AxicultusSettingKeys.OnboardingCompleted.Id,
+        AxicultusSettingKeys.MainWindowLeft.Id,
+        AxicultusSettingKeys.MainWindowTop.Id,
+        AxicultusSettingKeys.MainWindowWidth.Id,
+        AxicultusSettingKeys.MainWindowHeight.Id,
+        AxicultusSettingKeys.MainWindowMaximized.Id,
+        AxicultusSettingKeys.DefaultOutputMonitorId.Id,
+        AxicultusSettingKeys.PreviewMonitorId.Id,
+        AxicultusSettingKeys.OutputPlacementMode.Id,
+        AxicultusSettingKeys.DisplayAlwaysUseSecondaryMonitor.Id,
+        AxicultusSettingKeys.DisplayCustomTop.Id,
+        AxicultusSettingKeys.DisplayCustomLeft.Id,
+        AxicultusSettingKeys.DisplayCustomWidth.Id,
+        AxicultusSettingKeys.IsMonitorWide.Id,
+        "operator.OutputAsSingle",
+        "operator.StagePreferSecondary",
+        "operator.StageCustom",
+        "operator.StageLeft",
+        "operator.StageTop",
+        "operator.StageWidth",
+        AxicultusSettingKeys.RegistrationUser.Id,
+        AxicultusSettingKeys.LicenceNamesImportedFrom.Id,
+        AxicultusSettingKeys.LicenceNumberSymbol.Id,
+        AxicultusSettingKeys.LicenceNumber3.Id,
+        AxicultusSettingKeys.LicenceName4.Id,
+        AxicultusSettingKeys.LicenceNumber4.Id,
+        AxicultusSettingKeys.LicenceName5.Id,
+        AxicultusSettingKeys.LicenceNumber5.Id,
+        AxicultusSettingKeys.LicenceName6.Id,
+        AxicultusSettingKeys.LicenceNumber6.Id,
+        AxicultusSettingKeys.LicenceName7.Id,
+        AxicultusSettingKeys.LicenceNumber7.Id,
+        AxicultusSettingKeys.LicenceName8.Id,
+        AxicultusSettingKeys.LicenceNumber8.Id,
+    ];
+
     public SettingsResult RestoreDefaults()
-        => ApplySnapshot(CreateRuntimeDefaultSnapshot(), SettingsChangeSource.RestoreDefaults, backupPath: null);
+    {
+        var current = Current;
+        var snapshot = CreateRuntimeDefaultSnapshot();
+        foreach (var key in KeptOnRestoreDefaults) snapshot = SetValue(snapshot, key, GetValue(current, key));
+        return ApplySnapshot(snapshot, SettingsChangeSource.RestoreDefaults, backupPath: null);
+    }
 
     public async Task<SettingsResult> ExportAsync(string destinationPath)
     {
@@ -1591,9 +1692,13 @@ public sealed class SettingsService : ISettingsService
         {
             General = next.General with { Language = value },
         });
-        next = ApplyLegacyString(legacySettings, LegacySettingsMap.GetAutomatedAliases(AxicultusSettingKeys.WorkingFolder.Id), next, value => next with
+        // WinForms asks for a folder when its saved root is gone (Gf.ValidateRootFolder). The import cannot ask,
+        // so a folder that does not exist (an old registry value, an unplugged drive) never replaces the current one.
+        next = ApplyLegacyString(legacySettings, LegacySettingsMap.GetAutomatedAliases(AxicultusSettingKeys.WorkingFolder.Id), next, value =>
         {
-            General = next.General with { WorkingFolder = value },
+            if (Directory.Exists(value)) return next with { General = next.General with { WorkingFolder = value } };
+            issues.Add(Warning(AxicultusSettingKeys.WorkingFolder.Id, $"Legacy working folder '{value}' does not exist; the current folder is kept."));
+            return next;
         });
         next = ApplyLegacyBool(legacySettings, LegacySettingsMap.GetAutomatedAliases(AxicultusSettingKeys.OnboardingCompleted.Id), next, issues, value => next with
         {
@@ -1605,7 +1710,7 @@ public sealed class SettingsService : ISettingsService
         });
         next = ApplyLegacyInt(legacySettings, LegacySettingsMap.GetAutomatedAliases(AxicultusSettingKeys.BibleAdHocLimit.Id), next, issues, value => next with
         {
-            General = next.General with { BibleAdHocLimit = Math.Clamp(value, 1, 500) },
+            General = next.General with { BibleAdHocLimit = value > 500 ? 200 : Math.Max(value, 1) }, // gfDatabase: > 500 -> 200
         });
         next = ApplyLegacyInt(legacySettings, LegacySettingsMap.GetAutomatedAliases(AxicultusSettingKeys.MessageAlertFlash.Id), next, issues, value => next with
         {
@@ -1613,7 +1718,7 @@ public sealed class SettingsService : ISettingsService
         });
         next = ApplyLegacyInt(legacySettings, LegacySettingsMap.GetAutomatedAliases(AxicultusSettingKeys.MessageAlertDuration.Id), next, issues, value => next with
         {
-            General = next.General with { MessageAlertDuration = Math.Clamp(value, 1, 999) },
+            General = next.General with { MessageAlertDuration = value is >= 1 and <= 999 ? value : 30 }, // gfDatabase: outside 1..999 -> 30
         });
         next = ApplyLegacyInt(legacySettings, LegacySettingsMap.GetAutomatedAliases(AxicultusSettingKeys.ParentalAlertFlash.Id), next, issues, value => next with
         {
@@ -1621,7 +1726,7 @@ public sealed class SettingsService : ISettingsService
         });
         next = ApplyLegacyInt(legacySettings, LegacySettingsMap.GetAutomatedAliases(AxicultusSettingKeys.ParentalAlertDuration.Id), next, issues, value => next with
         {
-            General = next.General with { ParentalAlertDuration = Math.Clamp(value, 1, 999) },
+            General = next.General with { ParentalAlertDuration = value is >= 1 and <= 60 ? value : 30 }, // gfDatabase: outside 1..60 -> 30
         });
         next = ApplyLegacyString(legacySettings, LegacySettingsMap.GetAutomatedAliases(AxicultusSettingKeys.ParentalAlertHeading.Id), next, value => next with
         {
@@ -1711,7 +1816,7 @@ public sealed class SettingsService : ISettingsService
         });
         next = ApplyLegacyString(legacySettings, LegacySettingsMap.GetAutomatedAliases(AxicultusSettingKeys.DefaultOutputMonitorId.Id), next, value => next with
         {
-            LiveOutput = next.LiveOutput with { DefaultOutputMonitorId = value },
+            LiveOutput = next.LiveOutput with { DefaultOutputMonitorId = value is "Auto" ? "" : value }, // "None" stays: it means no output
         });
         next = ApplyLegacyBool(legacySettings, LegacySettingsMap.GetAutomatedAliases(AxicultusSettingKeys.UseSafetyConfirmations.Id), next, issues, value => next with
         {
@@ -1723,7 +1828,7 @@ public sealed class SettingsService : ISettingsService
         });
         next = ApplyLegacyInt(legacySettings, LegacySettingsMap.GetAutomatedAliases(AxicultusSettingKeys.ReferenceAlertSource.Id), next, issues, value => next with
         {
-            LiveOutput = next.LiveOutput with { ReferenceAlertSource = value },
+            LiveOutput = next.LiveOutput with { ReferenceAlertSource = value is >= 0 and <= 4 ? value : 0 },
         });
         next = ApplyLegacyBool(legacySettings, LegacySettingsMap.GetAutomatedAliases(AxicultusSettingKeys.ReferenceAlertUsePick.Id), next, issues, value => next with
         {
@@ -1747,7 +1852,7 @@ public sealed class SettingsService : ISettingsService
         });
         next = ApplyLegacyInt(legacySettings, LegacySettingsMap.GetAutomatedAliases(AxicultusSettingKeys.ReferenceAlertDurationSeconds.Id), next, issues, value => next with
         {
-            LiveOutput = next.LiveOutput with { ReferenceAlertDurationSeconds = value },
+            LiveOutput = next.LiveOutput with { ReferenceAlertDurationSeconds = value is >= 1 and <= 999 ? value : 30 },
         });
         next = ApplyLegacyReferenceAlertStyle(legacySettings, next, issues);
         next = ApplyLegacyBool(legacySettings, ["ReferenceAlertScroll"], next, issues, value => next with
@@ -1856,11 +1961,11 @@ public sealed class SettingsService : ISettingsService
         });
         next = ApplyLegacyInt(legacySettings, LegacySettingsMap.GetAutomatedAliases(AxicultusSettingKeys.PowerPointMaxFiles.Id), next, issues, value => next with
         {
-            PowerPoint = next.PowerPoint with { MaxFiles = value },
+            PowerPoint = next.PowerPoint with { MaxFiles = Math.Min(value, 100) },
         });
         next = ApplyLegacyInt(legacySettings, LegacySettingsMap.GetAutomatedAliases(AxicultusSettingKeys.PowerPointSourceListingStyle.Id), next, issues, value => next with
         {
-            PowerPoint = next.PowerPoint with { SourceListingStyle = value },
+            PowerPoint = next.PowerPoint with { SourceListingStyle = value is >= -1 and <= 1 ? value : 0 },
         });
         next = ApplyLegacyBool(legacySettings, LegacySettingsMap.GetAutomatedAliases(AxicultusSettingKeys.UseMediaTab.Id), next, issues, value => next with
         {
@@ -1892,7 +1997,7 @@ public sealed class SettingsService : ISettingsService
         });
         next = ApplyLegacyInt(legacySettings, LegacySettingsMap.GetAutomatedAliases(AxicultusSettingKeys.LiveCameraNumber.Id), next, issues, value => next with
         {
-            Media = next.Media with { LiveCameraNumber = value },
+            Media = next.Media with { LiveCameraNumber = value is >= 1 and <= 5 ? value : 1 }, // gfDatabase: outside 1..5 -> 1
         });
         next = ApplyLegacyInt(legacySettings, LegacySettingsMap.GetAutomatedAliases(AxicultusSettingKeys.PraiseBookCjkGroupStyle.Id), next, issues, value => next with
         {
@@ -1929,12 +2034,26 @@ public sealed class SettingsService : ISettingsService
             {
                 bool when option.FormatBit != 0 => ApplyLegacyInt(legacySettings, option.LegacyKey, next, issues, bits => Apply((bits & option.FormatBit) != 0)),
                 bool => ApplyLegacyBool(legacySettings, option.LegacyKey, next, issues, value => Apply(value)),
-                int => ApplyLegacyInt(legacySettings, option.LegacyKey, next, issues, value =>
-                    option.Minimum.HasValue && (value < option.Minimum || value > option.Maximum) ? next : Apply(value)),
+                int => ApplyLegacyInt(legacySettings, option.LegacyKey, next, issues, stored =>
+                {
+                    // Where WinForms repairs a stored value to something other than the WPF default, show what it showed.
+                    var value = option.LegacyKey switch
+                    {
+                        "MessageAlertFontSize" or "ParentalAlertFontSize" or "ReferenceAlertFontSize" => stored is >= 20 and <= 50 ? stored : 25,
+                        "LyricsMonitorFontSize" => stored is >= 8 and <= 40 ? stored : 20,
+                        "LyricsMonitorOptionCustomWidth" => stored is >= 1 and <= 9999 ? stored : 100,
+                        _ => stored,
+                    };
+                    return
+                        option.Minimum.HasValue && (value < option.Minimum || value > option.Maximum) ? next : Apply(value);
+                }),
                 _ => ApplyLegacyString(legacySettings, option.LegacyKey, next, value => Apply(value)),
             };
         }
         next = ApplyLegacyShortcutOverrides(legacySettings, next, issues);
+        // WinForms repairs an out-of-range value when it loads it. Here that setting keeps its current value
+        // instead of failing the whole import.
+        next = ResetInvalidKeys(next, Current, issues) ?? next;
 
         var validation = Validate(next);
         var combinedIssues = issues.Concat(validation.Issues).ToArray();
@@ -1970,7 +2089,7 @@ public sealed class SettingsService : ISettingsService
         {
             previous = Current;
             changedKeys = FindChangedKeys(previous, snapshot);
-            if (_owner is null) PersistSnapshot(snapshot);
+            if (_owner is null && _options.Persist) PersistSnapshot(snapshot);
             Current = snapshot;
         }
 
@@ -1992,8 +2111,9 @@ public sealed class SettingsService : ISettingsService
         return path;
     }
 
-    private static AxicultusSettingsSnapshot LoadCurrent(string path)
+    private static AxicultusSettingsSnapshot LoadCurrent(string path, out bool repaired)
     {
+        repaired = false;
         try
         {
             if (!File.Exists(path))
@@ -2001,12 +2121,58 @@ public sealed class SettingsService : ISettingsService
                 return AxicultusSettingsSnapshot.CreateDefault();
             }
 
-            var snapshot = JsonSerializer.Deserialize<AxicultusSettingsSnapshot>(File.ReadAllText(path), JsonOptions);
-            return Normalize(snapshot);
+            var document = JsonNode.Parse(File.ReadAllText(path));
+            repaired = RemoveNulls(document);
+            // A value this build cannot read (an enum name written by another version, a wrong type) is dropped,
+            // so only that setting falls back to its default.
+            for (var attempt = 0; ; attempt++)
+            {
+                try
+                {
+                    return Normalize(document.Deserialize<AxicultusSettingsSnapshot>(JsonOptions));
+                }
+                catch (JsonException ex) when (attempt < 200 && RemoveJsonProperty(document, ex.Path))
+                {
+                    repaired = true;
+                }
+            }
         }
         catch (Exception ex) when (ex is JsonException || IsFileSystemException(ex))
         {
+            repaired = true;
             return AxicultusSettingsSnapshot.CreateDefault();
+        }
+    }
+
+    // path: "$.Section.Property" as reported by JsonException.Path.
+    private static bool RemoveJsonProperty(JsonNode? document, string? path)
+    {
+        if (path is null || !path.StartsWith('$')) return false;
+        // "$.Section.Property" or, for a name with a dot in it (a shortcut slot), "$.Shortcuts['live.next:local']".
+        var names = System.Text.RegularExpressions.Regex.Matches(path, @"\.([^.\[]+)|\['(.*?)'\]")
+            .Select(match => match.Groups[1].Success ? match.Groups[1].Value : match.Groups[2].Value)
+            .ToArray();
+        if (names.Length == 0) return false;
+        var owner = document as JsonObject;
+        foreach (var name in names[..^1])
+        {
+            owner = owner?.FirstOrDefault(pair => string.Equals(pair.Key, name, StringComparison.OrdinalIgnoreCase)).Value as JsonObject;
+        }
+
+        var property = owner?.FirstOrDefault(pair => string.Equals(pair.Key, names[^1], StringComparison.OrdinalIgnoreCase)).Key;
+        return property is not null && owner!.Remove(property);
+    }
+
+    // The first save after a rejected load writes defaults over settings.json; keep what the church had.
+    private static void KeepRejectedFile(string path)
+    {
+        try
+        {
+            if (File.Exists(path))
+                File.Copy(path, Path.ChangeExtension(path, $".invalid-{DateTime.Now:yyyyMMdd-HHmmss}.json"), overwrite: true);
+        }
+        catch (Exception ex) when (IsFileSystemException(ex))
+        {
         }
     }
 
@@ -2090,9 +2256,28 @@ public sealed class SettingsService : ISettingsService
             Data = snapshot.Data ?? defaults.Data,
             Shortcuts = snapshot.Shortcuts is null
                 ? [with(StringComparer.OrdinalIgnoreCase)]
-                : new Dictionary<string, string>(snapshot.Shortcuts, StringComparer.OrdinalIgnoreCase),
+                : CopyShortcuts(snapshot.Shortcuts),
             Advanced = snapshot.Advanced ?? defaults.Advanced,
         };
+    }
+
+    // An explicit null is not a value a setting can have: without the property, the setting keeps its default.
+    private static bool RemoveNulls(JsonNode? node)
+    {
+        if (node is not JsonObject owner) return false;
+        var names = owner.Where(pair => pair.Value is null).Select(pair => pair.Key).ToList();
+        foreach (var name in names) owner.Remove(name);
+        var removed = names.Count > 0;
+        foreach (var pair in owner) removed |= RemoveNulls(pair.Value);
+        return removed;
+    }
+
+    // Slots are compared without case. A file that holds one slot twice keeps the last one instead of failing the load.
+    private static Dictionary<string, string> CopyShortcuts(Dictionary<string, string> shortcuts)
+    {
+        var copy = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var (slot, gesture) in shortcuts) copy[slot] = gesture;
+        return copy;
     }
 
     private static bool PathsEqual(string? left, string? right)
@@ -3316,9 +3501,10 @@ public sealed class SettingsService : ISettingsService
         }
     }
 
-    private static void RequireNoControlCharacters(string value, string key, List<SettingsIssue> issues)
+    private static void RequireNoControlCharacters(string? value, string key, List<SettingsIssue> issues)
     {
-        if (value.Any(char.IsControl))
+        // A hand-edited settings.json can hold an explicit null.
+        if (value?.Any(char.IsControl) == true)
         {
             issues.Add(Error(key, "Value cannot contain control characters."));
         }

@@ -188,6 +188,50 @@ public class SearchUsageServiceTests
     }
 
     [Fact]
+    public async Task UsageRowsOfBothAppsShowOnTheFirstAndLastDayOfTheRange()
+    {
+        // The real EsUsage.db holds "yyyy-MM-dd" (converted rows) and "yyyy-MM-dd 00:00:00" (rows the WinForms app writes).
+        using var fixture = new SearchUsageFixture();
+        var day = new DateTime(2026, 1, 24);
+        fixture.InsertUsage(day, "Sunday", "Converted row", 1, 1, "", "");
+        fixture.InsertUsageText("2026-01-24 00:00:00", "Sunday", "WinForms row", 2, 2);
+        fixture.InsertUsageText("2026-01-25 00:00:00", "Sunday", "Next day", 3, 3);
+        var sut = fixture.CreateService();
+        await sut.AddUsageRecordsAsync(new UsageAddRequest(fixture.UsageDatabasePath,
+            [new UsageAddRecord(day, "Sunday", "WPF row", 4, 4, "", "")]));
+
+        var report = await sut.GetUsageAsync(new UsageRequest(fixture.UsageDatabasePath, day, day, ""));
+
+        report.Records.Select(record => record.SongTitle).Should().Equal("Converted row", "WinForms row", "WPF row");
+        report.Records.Should().OnlyContain(record => record.WorshipDate == day);
+        fixture.ReadUsageDate("WPF row").Should().Be("2026-01-24 00:00:00", "the WinForms app writes and filters on this form");
+    }
+
+    [Fact]
+    public async Task UsageRowsWithoutRecordId_AreListedAndDeletedOneByOne()
+    {
+        // Both apps add usage rows without REC_ID, and the shipped table gives such a row none.
+        using var fixture = new SearchUsageFixture();
+        var day = new DateTime(2026, 5, 1);
+        // REC_ID 10 and 20 in rows 1 and 2; the two added rows are rows 3 and 4. REC_ID 3 is another row's rowid.
+        fixture.InsertUsage(day, "Sunday", "Converted", 1, 1, "", "");
+        fixture.InsertUsage(day, "Sunday", "Converted too", 2, 2, "", "");
+        var sut = fixture.CreateService();
+        (await sut.AddUsageRecordsAsync(new UsageAddRequest(fixture.UsageDatabasePath,
+            [new UsageAddRecord(day, "Sunday", "Added", 3, 3, "", ""), new UsageAddRecord(day, "Sunday", "Added too", 4, 4, "", "")]))).Succeeded.Should().BeTrue();
+        fixture.InsertUsageWithRecordId(3, "2026-05-01", "Has the rowid of an added row as REC_ID");
+
+        var listed = (await sut.GetUsageAsync(new UsageRequest(fixture.UsageDatabasePath, day, day, ""))).Records;
+        listed.Select(record => record.RecordId).Should().OnlyHaveUniqueItems().And.HaveCount(5);
+
+        var delete = await sut.DeleteUsageRecordsAsync(fixture.UsageDatabasePath, [listed.Single(record => record.SongTitle == "Added").RecordId]);
+
+        delete.DeletedCount.Should().Be(1);
+        (await sut.GetUsageAsync(new UsageRequest(fixture.UsageDatabasePath, day, day, ""))).Records.Select(record => record.SongTitle)
+            .Should().BeEquivalentTo("Converted", "Converted too", "Added too", "Has the rowid of an added row as REC_ID");
+    }
+
+    [Fact]
     public async Task DeleteUsageRecordsAsync_RemovesRequestedRows()
     {
         using var fixture = new SearchUsageFixture();
@@ -322,9 +366,9 @@ public class SearchUsageServiceTests
             using var connection = Open(UsageDatabasePath);
             using var command = new SQLiteCommand(
                 """
-                INSERT INTO USAGE (WORSHIP_DATE, WORSHIP_LIST, SONG_TITLE, SONG_NUMBER, SONG_ID, ADMIN_1, ADMIN_2)
-                VALUES (@date, @worshipList, @songTitle, @songNumber, @songId, @admin1, @admin2);
-                SELECT last_insert_rowid();
+                INSERT INTO USAGE (REC_ID, WORSHIP_DATE, WORSHIP_LIST, SONG_TITLE, SONG_NUMBER, SONG_ID, ADMIN_1, ADMIN_2)
+                VALUES ((SELECT COALESCE(MAX(REC_ID), 0) + 10 FROM USAGE), @date, @worshipList, @songTitle, @songNumber, @songId, @admin1, @admin2);
+                SELECT MAX(REC_ID) FROM USAGE; -- a converted row: it has a REC_ID, which is not its rowid
                 """,
                 connection);
             command.Parameters.AddWithValue("@date", date.ToString("yyyy-MM-dd"));
@@ -335,6 +379,40 @@ public class SearchUsageServiceTests
             command.Parameters.AddWithValue("@admin1", admin1);
             command.Parameters.AddWithValue("@admin2", admin2);
             return (long)command.ExecuteScalar()!;
+        }
+
+        public void InsertUsageWithRecordId(long recordId, string date, string songTitle)
+        {
+            using var connection = Open(UsageDatabasePath);
+            using var command = new SQLiteCommand(
+                "INSERT INTO USAGE (REC_ID, WORSHIP_DATE, WORSHIP_LIST, SONG_TITLE, SONG_NUMBER, SONG_ID, ADMIN_1, ADMIN_2) VALUES (@id, @date, 'Sunday', @title, 0, 0, '', '')",
+                connection);
+            command.Parameters.AddWithValue("@id", recordId);
+            command.Parameters.AddWithValue("@date", date);
+            command.Parameters.AddWithValue("@title", songTitle);
+            command.ExecuteNonQuery();
+        }
+
+        public void InsertUsageText(string date, string worshipList, string songTitle, int songNumber, int songId)
+        {
+            using var connection = Open(UsageDatabasePath);
+            using var command = new SQLiteCommand(
+                "INSERT INTO USAGE (WORSHIP_DATE, WORSHIP_LIST, SONG_TITLE, SONG_NUMBER, SONG_ID, ADMIN_1, ADMIN_2) VALUES (@date, @list, @title, @number, @id, '', '')",
+                connection);
+            command.Parameters.AddWithValue("@date", date);
+            command.Parameters.AddWithValue("@list", worshipList);
+            command.Parameters.AddWithValue("@title", songTitle);
+            command.Parameters.AddWithValue("@number", songNumber);
+            command.Parameters.AddWithValue("@id", songId);
+            command.ExecuteNonQuery();
+        }
+
+        public string ReadUsageDate(string songTitle)
+        {
+            using var connection = Open(UsageDatabasePath);
+            using var command = new SQLiteCommand("SELECT WORSHIP_DATE FROM USAGE WHERE SONG_TITLE = @title", connection);
+            command.Parameters.AddWithValue("@title", songTitle);
+            return (string)command.ExecuteScalar()!;
         }
 
         public void Dispose()
@@ -391,7 +469,7 @@ public class SearchUsageServiceTests
                 connection,
                 """
                 CREATE TABLE USAGE (
-                    REC_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                    REC_ID INTEGER, -- as in the shipped EsUsage.db: no key, so a row added without it has none
                     WORSHIP_DATE TEXT,
                     WORSHIP_LIST TEXT,
                     SONG_TITLE TEXT,

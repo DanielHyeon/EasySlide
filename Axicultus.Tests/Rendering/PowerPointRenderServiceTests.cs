@@ -154,6 +154,21 @@ public class PowerPointRenderServiceTests
         backend.CallCount.Should().Be(0);
     }
 
+    [Theory]
+    [InlineData(".pptm")]
+    [InlineData(".ppsm")]
+    public async Task RenderSlideAsync_AcceptsTheMacroEnabledFormatsTheImportDialogOffers(string extension)
+    {
+        using var fixture = TempPowerPointFile.Create(extension);
+        var backend = new FakePowerPointRenderBackend();
+        var sut = new PowerPointRenderService(backend);
+
+        var result = await sut.RenderSlideAsync(DefaultRequest(fixture.Path));
+
+        result.Succeeded.Should().BeTrue();
+        backend.CallCount.Should().Be(1);
+    }
+
     [Fact]
     public async Task RenderSlideAsync_WhenFileIsLocked_ReturnsFileLockedWithoutCallingBackend()
     {

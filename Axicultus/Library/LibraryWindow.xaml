@@ -344,17 +344,13 @@
                               AutomationProperties.Name="노래 목록"
                               ItemsSource="{Binding Songs}"
                               SelectedItem="{Binding SelectedSong, Mode=TwoWay}"
-                              AllowDrop="True"
-                              PreviewMouseLeftButtonDown="Reorder_PreviewMouseLeftButtonDown"
-                              MouseMove="SongsGrid_MouseMove"
-                              DragOver="Reorder_DragOver"
-                              Drop="SongsGrid_Drop"
+                              ToolTip="Ctrl 또는 Shift 를 누른 채 클릭하면 여러 곡을 선택합니다. 복사·이동·삭제는 선택한 곡 모두에 적용됩니다."
                               AutoGenerateColumns="False"
                               CanUserAddRows="False"
                               CanUserDeleteRows="False"
                               IsReadOnly="True"
                               HeadersVisibility="Column"
-                              SelectionMode="Single">
+                              SelectionMode="Extended">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="번호"
                                                 Binding="{Binding SongNumber}"
@@ -407,7 +403,7 @@
                     </StackPanel>
 
                     <TextBox Grid.Row="2"
-                             Text="{Binding SelectedSong.Lyrics}"
+                             Text="{Binding SelectedSong.Lyrics, Mode=OneWay}"
                              AutomationProperties.Name="선택한 노래 가사 미리보기"
                              IsReadOnly="True"
                              TextWrapping="Wrap"

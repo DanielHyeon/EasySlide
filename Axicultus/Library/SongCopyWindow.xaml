@@ -10,6 +10,9 @@
         MinHeight="380"
         Background="{DynamicResource Brush.Surface.Page}"
         WindowStartupLocation="CenterOwner">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+    </Window.Resources>
     <Grid Margin="{StaticResource Thickness.Xl}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -41,7 +44,7 @@
                            Text="원본 폴더"
                            Style="{StaticResource Type.Caption.Style}"
                            Foreground="{DynamicResource Brush.Text.Tertiary}" />
-                <TextBox Text="{Binding SourceFolderName}"
+                <TextBox Text="{Binding SourceFolderName, Mode=OneWay}"
                          IsReadOnly="True"
                          MinHeight="36"
                          Margin="0,4,0,0"
@@ -55,8 +58,26 @@
                                        ItemsSource="{Binding TargetFolders}"
                                        SelectedItem="{Binding SelectedTargetFolder, Mode=TwoWay}" />
 
+            <!-- The title and the number are asked of one song only; several songs are copied as they are. -->
+            <TextBlock Grid.Row="2"
+                       Text="여러 곡을 복사하면 제목과 곡 번호는 그대로 유지됩니다."
+                       Foreground="{DynamicResource Brush.Text.Secondary}"
+                       TextWrapping="Wrap">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock" BasedOn="{StaticResource Type.Body.Style}">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsSingleSong}" Value="False">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+
             <StackPanel Grid.Row="2"
-                        Margin="0,0,0,14">
+                        Margin="0,0,0,14"
+                        Visibility="{Binding IsSingleSong, Converter={StaticResource BoolToVis}}">
                 <TextBlock x:Name="LblCopyTitle"
                            Text="복사 제목"
                            Style="{StaticResource Type.Caption.Style}"
@@ -67,7 +88,8 @@
                          AutomationProperties.LabeledBy="{Binding ElementName=LblCopyTitle}" />
             </StackPanel>
 
-            <StackPanel Grid.Row="3">
+            <StackPanel Grid.Row="3"
+                        Visibility="{Binding IsSingleSong, Converter={StaticResource BoolToVis}}">
                 <TextBlock x:Name="LblSongNumber"
                            Text="곡 번호"
                            Style="{StaticResource Type.Caption.Style}"

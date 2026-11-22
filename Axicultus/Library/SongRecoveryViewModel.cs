@@ -168,7 +168,12 @@ public sealed partial class SongRecoveryViewModel : ObservableObject
 
             UpdateSelectionCount();
             ValidationMessage = "";
-            StatusMessage = "복구되었습니다.";
+            // A song that is no longer in the deleted folder (the other app recovered it meanwhile) is left where it is.
+            var skipped = selected.Where(item => !report.AffectedSongIds.Contains(item.Song.SongId)).Select(item => item.Song.Title).ToArray();
+            StatusMessage = skipped.Length == 0
+                ? "복구되었습니다."
+                : (skipped.Length == selected.Length ? "복구할 곡이 없습니다." : $"{selected.Length - skipped.Length}곡을 복구했습니다.")
+                    + SongSelectionText.Skipped(skipped, "이미 복구되었거나 라이브러리에 없음");
             Recovered?.Invoke(this, new SongRecoveredEventArgs(RecoveredSongId, RecoveredFolderNo));
         }
         catch (Exception ex) when (IsRecoverableRecoveryException(ex))
@@ -237,5 +242,6 @@ public sealed partial class SongRecoveryViewModel : ObservableObject
         => ex is IOException
             or UnauthorizedAccessException
             or InvalidOperationException
+            or System.Data.Common.DbException // a locked or unreadable database
             or NotSupportedException;
 }

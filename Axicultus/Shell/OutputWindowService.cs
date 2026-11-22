@@ -32,6 +32,9 @@ public sealed record OutputWindowPlacement(
     bool IsWindowed)
 {
     public bool AsSingleMonitor { get; init; }
+
+    /// <summary>The saved custom area lies off every screen, so the display's own bounds were used.</summary>
+    public bool CustomAreaOffScreen { get; init; }
 }
 
 public sealed record OutputWindowState(

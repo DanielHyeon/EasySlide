@@ -267,6 +267,16 @@ public class WorshipListPanelTests
     }
 
     [Fact]
+    public void ClickingTheSelectedRow_ReturnsThePreviewToTheWorshipList()
+    {
+        // FrmMain WorshipList_MouseUp reloads the preview on every click; a click on the selected row changes
+        // no selection in WPF, so the panel asks the view model to drop a library or praise-book preview.
+        LoadText("Axicultus/Composites/WorshipListPanel.xaml.cs")
+            .Should().Contain("ReferenceEquals(_dragCandidate, viewModel.SelectedItem)")
+            .And.Contain("viewModel.ShowWorshipSelectionPreview()");
+    }
+
+    [Fact]
     public void MainWindow_Hosts_WorshipPanel_AlwaysVisible_BelowBrowserTabs_InLeftColumn()
     {
         var window = LoadXaml("Axicultus/MainWindow.xaml");

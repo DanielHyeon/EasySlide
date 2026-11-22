@@ -90,6 +90,28 @@ public class LiveSessionServiceTests
     }
 
     [Fact]
+    public void BlackAndClearSwitchesAreIndependentAndTheStageStillSeesTheContent()
+    {
+        // FrmMain ShowLiveBlack / ShowLiveClear: turning one off leaves the other on.
+        var sut = new LiveSessionService();
+        sut.SetCleared(true);
+        sut.Current.State.Should().Be(LiveState.Off, "nothing to switch without a show");
+        sut.GoLive(new LiveQueueItem("song-1", "은혜로다", LiveItemKinds.Song) { Lyrics = "가사" }, "Display 1");
+
+        sut.SetCleared(true);
+        sut.SetBlackout(true);
+        (sut.Current.State, sut.Current.IsBlackout, sut.Current.IsCleared).Should().Be((LiveState.Hidden, true, true));
+        StageSessionNormalizer.Normalize(sut.Current).State.Should().Be(LiveState.Active);
+
+        sut.SetBlackout(false);
+        (sut.Current.State, sut.Current.IsBlackout, sut.Current.IsCleared).Should().Be((LiveState.Hidden, false, true));
+
+        sut.SetCleared(false);
+        sut.Current.State.Should().Be(LiveState.Active);
+        sut.Current.CurrentItemBodyText.Should().Be("가사");
+    }
+
+    [Fact]
     public void Restore_WhenNotHidden_IsNoOp()
     {
         var sut = new LiveSessionService();
@@ -283,10 +305,10 @@ public class LiveSessionServiceTests
     [Fact]
     public void GoLive_ChorusPage_SetsCurrentPageIsChorus()
     {
-        // [C] 절을 송출 중이면 CurrentPageIsChorus=true(강조 후렴만 효과 판정).
+        // [chorus] 절을 송출 중이면 CurrentPageIsChorus=true(강조 후렴만 효과 판정).
         var item = new LiveQueueItem("song-c", "은혜로다", LiveItemKinds.Song)
         {
-            Lyrics = "[1]\n첫 절\n[C]\n후렴 가사",
+            Lyrics = "[1]\n첫 절\n[chorus]\n후렴 가사",
             LyricsPageIndex = 1, // 후렴 페이지.
         };
         var sut = new LiveSessionService();
@@ -300,13 +322,13 @@ public class LiveSessionServiceTests
     public void GoLive_SetsCurrentSectionLabel_ForVerseHeading()
     {
         // 절 헤딩(FrmMain Def_Head All) — 현재 송출 절의 섹션 라벨이 스냅샷에 실린다.
-        // 후렴 판정과 같은 라벨 경로를 재사용하므로, [C] 페이지의 라벨은 후렴 라벨("C")이어야 한다.
-        const string lyrics = "[1]\n첫 절\n[C]\n후렴 가사";
+        // 후렴 판정과 같은 라벨 경로를 재사용하므로, [chorus] 페이지의 라벨은 후렴 라벨("chorus")이어야 한다.
+        const string lyrics = "[1]\n첫 절\n[chorus]\n후렴 가사";
         var sut = new LiveSessionService();
 
         var chorusItem = new LiveQueueItem("song-c", "은혜로다", LiveItemKinds.Song) { Lyrics = lyrics, LyricsPageIndex = 1 };
         sut.GoLive(chorusItem, "모니터 2");
-        sut.Current.CurrentSectionLabel.Should().Be("C", "후렴 페이지의 섹션 라벨");
+        sut.Current.CurrentSectionLabel.Should().Be("chorus", "후렴 페이지의 섹션 라벨");
 
         var verseItem = new LiveQueueItem("song-v", "은혜로다", LiveItemKinds.Song) { Lyrics = lyrics, LyricsPageIndex = 0 };
         sut.GoLive(verseItem, "모니터 2");
@@ -318,7 +340,7 @@ public class LiveSessionServiceTests
     {
         var item = new LiveQueueItem("song-v", "은혜로다", LiveItemKinds.Song)
         {
-            Lyrics = "[1]\n첫 절\n[C]\n후렴 가사",
+            Lyrics = "[1]\n첫 절\n[chorus]\n후렴 가사",
             LyricsPageIndex = 0, // 1절(후렴 아님).
         };
         var sut = new LiveSessionService();
@@ -329,20 +351,37 @@ public class LiveSessionServiceTests
     }
 
     [Fact]
-    public void GoLive_DualLanguageUnlabeledIntro_DoesNotMisdetectChorus()
+    public void GoLive_DualLanguageVerseWithABlankLineBeforeRegion2_ShowsBothLanguagesOnOnePage()
     {
-        // 이중 언어 + 라벨 없는 머리말 절이 섞이면 라벨↔페이지가 어긋난다. 그 경우 엉뚱한 절을 후렴으로
-        // 오인하지 않고 후렴 판정을 비활성(false)한다 — 안전 저하(잘못된 강조 방지).
+        // gfLyrics.BuildSlidesReg2 pairs the screens of the two regions; a blank line does not end region 1's verse.
         var item = new LiveQueueItem("song-dual", "은혜로다", LiveItemKinds.Song)
         {
-            Lyrics = "머리말 R1\n[region 2]\n머리말 R2\n\n[C]\n후렴 R1\n[region 2]\n후렴 R2",
-            LyricsPageIndex = 1, // 실제 후렴 페이지지만, 라벨 어긋남으로 후렴 판정 비활성.
+            Lyrics = "[1]\nEng1 » G\n\n[region 2]\nKor1\n[chorus]\nEngC\n[region 2]\nKorC",
+            ShowNotations = true,
         };
         var sut = new LiveSessionService();
 
         sut.GoLive(item, "모니터 2");
+        sut.Current.CurrentItemBodyText.Should().Be("G\nEng1");
+        sut.Current.CurrentItemBodyText2.Should().Be("Kor1");
 
-        sut.Current.CurrentPageIsChorus.Should().BeFalse("라벨↔페이지 어긋남 → 후렴 판정 비활성(안전)");
+        sut.GoLive(item with { LyricsPageIndex = 1 }, "모니터 2");
+        sut.Current.CurrentItemBodyText.Should().Be("EngC");
+        sut.Current.CurrentSectionLabel.Should().Be("chorus");
+    }
+
+    [Fact]
+    public void GoLive_DualLanguageUnlabeledIntro_IsVerseOneSoTheChorusPageIsDetected()
+    {
+        // The text before the first heading is verse 1 (gfLyrics.ExtractLyricRegions), so labels and pages line up.
+        var lyrics = "머리말 R1\n[region 2]\n머리말 R2\n\n[chorus]\n후렴 R1\n[region 2]\n후렴 R2";
+        var sut = new LiveSessionService();
+
+        sut.GoLive(new LiveQueueItem("song-dual", "은혜로다", LiveItemKinds.Song) { Lyrics = lyrics, LyricsPageIndex = 1 }, "모니터 2");
+        sut.Current.CurrentPageIsChorus.Should().BeTrue("page 1 is the [chorus] section");
+
+        sut.GoLive(new LiveQueueItem("song-dual", "은혜로다", LiveItemKinds.Song) { Lyrics = lyrics, LyricsPageIndex = 0 }, "모니터 2");
+        sut.Current.CurrentPageIsChorus.Should().BeFalse("page 0 is the unlabeled first verse");
     }
 
     [Fact]

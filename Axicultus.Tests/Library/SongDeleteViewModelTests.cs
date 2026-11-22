@@ -40,6 +40,7 @@ public class SongDeleteViewModelTests
         var repository = new FakeAdminDatabaseRepository();
         var source = new SongFolderSummary(1, "Morning", true, 2);
         var sut = new SongDeleteViewModel(fixture.Settings, repository);
+        repository.Songs.Add(Song(10, "Opening", source.FolderNo));
         sut.Load(fixture.AdminDatabasePath, Song(10, "Opening", source.FolderNo), source);
 
         await sut.DeleteAsync();
@@ -73,11 +74,36 @@ public class SongDeleteViewModelTests
         var repository = new FakeAdminDatabaseRepository();
         var source = new SongFolderSummary(1, "Morning", true, 2);
         var sut = new SongDeleteViewModel(fixture.Settings, repository);
+        repository.Songs.Add(Song(10, "Opening", source.FolderNo));
         sut.Load(fixture.AdminDatabasePath, Song(10, "Opening", source.FolderNo), source);
 
         await sut.DeleteAsync();
 
         repository.LastBackupRoot.Should().Be(Path.Combine(fixture.Root, "Backups"));
+    }
+
+    [Fact]
+    public async Task DeleteAsync_SeveralSongs_DeletesThemInOneOperation_AndReportsTheMissing()
+    {
+        // FrmMain asks once about "the N songs you have selected" and files them all in the deleted folder.
+        using var fixture = TempSongDeleteSettings.Create();
+        fixture.CreateAdminDatabaseFile("custom.db");
+        var morning = new SongFolderSummary(1, "Morning", true, 2);
+        var evening = new SongFolderSummary(2, "Evening", true, 1);
+        var repository = new FakeAdminDatabaseRepository();
+        repository.Songs.AddRange([Song(10, "A", 1), Song(11, "B", 2)]);
+        var sut = new SongDeleteViewModel(fixture.Settings, repository);
+        sut.Load(fixture.AdminDatabasePath, [Song(10, "A", 1), Song(11, "B", 2), Song(12, "C", 1)], [morning, evening]);
+
+        sut.SongTitle.Should().Be("3곡 선택: A, B, C");
+        sut.ConfirmationText.Should().Be("선택한 3곡을 정말 삭제하시겠습니까?");
+        sut.DeleteCommand.CanExecute(null).Should().BeTrue();
+
+        await sut.DeleteAsync();
+
+        repository.DeleteCalls.Should().Be(1, "one backup and one transaction for the whole selection");
+        repository.LastDeletes.Should().Equal(new SongDeleteRequest(10, 1), new SongDeleteRequest(11, 2));
+        sut.StatusMessage.Should().Be("2곡을 삭제했습니다. 건너뜀 1곡(이미 삭제되었거나 라이브러리에 없음): C");
     }
 
     private static SongSummary Song(int id, string title, int folderNo)
@@ -91,6 +117,10 @@ public class SongDeleteViewModelTests
 
         public List<SongDeleteRequest> LastDeletes { get; } = [];
 
+        public List<SongSummary> Songs { get; } = [];
+
+        public int DeleteCalls { get; private set; }
+
         public Task<AdminDatabaseSchemaInventory> AnalyzeSchemaAsync(string databasePath)
             => throw new NotSupportedException();
 
@@ -98,7 +128,7 @@ public class SongDeleteViewModelTests
             => throw new NotSupportedException();
 
         public Task<IReadOnlyList<SongSummary>> GetSongsAsync(string databasePath, int? folderNo = null)
-            => throw new NotSupportedException();
+            => Task.FromResult<IReadOnlyList<SongSummary>>(Songs);
 
         public Task<IReadOnlyList<DeletedSongSummary>> GetDeletedSongsAsync(string databasePath)
             => throw new NotSupportedException();
@@ -122,6 +152,7 @@ public class SongDeleteViewModelTests
         {
             LastDatabasePath = databasePath;
             LastBackupRoot = backupRoot;
+            DeleteCalls++;
             LastDeletes.AddRange(deletes);
             return Task.FromResult(new AdminDatabaseWriteReport(
                 Succeeded: true,

@@ -33,6 +33,24 @@ public class SongRecoveryViewModelTests
     }
 
     [Fact]
+    public async Task LoadAsync_WhenDatabaseCannotBeRead_ReportsInsteadOfThrowing()
+    {
+        using var fixture = TempSongRecoverySettings.Create();
+        fixture.CreateAdminDatabaseFile("custom.db");
+        var repository = new FakeAdminDatabaseRepository
+        {
+            ReadError = new System.Data.SQLite.SQLiteException(System.Data.SQLite.SQLiteErrorCode.Busy, "database is locked"),
+        };
+        var sut = new SongRecoveryViewModel(fixture.Settings, repository);
+        sut.Load(fixture.AdminDatabasePath);
+
+        await sut.LoadAsync();
+
+        sut.StatusMessage.Should().StartWith("삭제 곡 로드 실패");
+        sut.IsBusy.Should().BeFalse();
+    }
+
+    [Fact]
     public async Task RecoverAsync_WhenSongsSelected_UsesRepositoryAndConfiguredBackupRoot()
     {
         using var fixture = TempSongRecoverySettings.Create();
@@ -60,6 +78,29 @@ public class SongRecoveryViewModelTests
         sut.RecoveredFolderNo.Should().Be(3);
         sut.DeletedSongs.Select(item => item.Song.SongId).Should().Equal(10);
         sut.StatusMessage.Should().Be("복구되었습니다.");
+    }
+
+    [Fact]
+    public async Task RecoverAsync_WhenASongIsNoLongerDeleted_ReportsItAsSkipped()
+    {
+        // The repository recovers only songs still in the deleted folder; the other app recovered "Prayer" meanwhile.
+        using var fixture = TempSongRecoverySettings.Create();
+        fixture.CreateAdminDatabaseFile("custom.db");
+        var repository = new FakeAdminDatabaseRepository
+        {
+            DeletedSongs = [DeletedSong(10, "Opening", originalFolderNo: 2, "Evening"), DeletedSong(11, "Prayer", originalFolderNo: 3, "Archive")],
+            NotDeletedAnyMore = { 11 },
+        };
+        var sut = new SongRecoveryViewModel(fixture.Settings, repository);
+        sut.Load(fixture.AdminDatabasePath);
+        await sut.LoadAsync();
+        sut.DeletedSongs[0].IsSelected = sut.DeletedSongs[1].IsSelected = true;
+
+        await sut.RecoverAsync();
+
+        sut.StatusMessage.Should().Be("1곡을 복구했습니다. 건너뜀 1곡(이미 복구되었거나 라이브러리에 없음): Prayer");
+        sut.RecoveredSongId.Should().Be(10);
+        sut.DeletedSongs.Should().BeEmpty("neither song is in the deleted folder any more");
     }
 
     [Fact]
@@ -122,8 +163,10 @@ public class SongRecoveryViewModelTests
         public Task<IReadOnlyList<SongSummary>> GetSongsAsync(string databasePath, int? folderNo = null)
             => throw new NotSupportedException();
 
+        public Exception? ReadError { get; init; }
+
         public Task<IReadOnlyList<DeletedSongSummary>> GetDeletedSongsAsync(string databasePath)
-            => Task.FromResult(DeletedSongs);
+            => ReadError is null ? Task.FromResult(DeletedSongs) : throw ReadError;
 
         public Task<AdminDatabaseWriteReport> SaveFolderAsync(string databasePath, string backupRoot, SongFolderWriteModel folder)
             => throw new NotSupportedException();
@@ -151,15 +194,18 @@ public class SongRecoveryViewModelTests
             LastDatabasePath = databasePath;
             LastBackupRoot = backupRoot;
             LastRecoveries.AddRange(recoveries);
+            var recovered = recoveries.Where(recovery => !NotDeletedAnyMore.Contains(recovery.SongId)).ToArray();
             return Task.FromResult(new AdminDatabaseWriteReport(
                 Succeeded: true,
                 AdminDatabaseWriteOperation.RecoverSongs,
                 databasePath,
                 Path.Combine(backupRoot, "backup.db"),
-                recoveries.Select(recovery => recovery.SongId).ToArray(),
-                recoveries.Select(recovery => recovery.TargetFolderNo).ToArray(),
+                recovered.Select(recovery => recovery.SongId).ToArray(),
+                recovered.Select(recovery => recovery.TargetFolderNo).ToArray(),
                 Issues: []));
         }
+
+        public HashSet<int> NotDeletedAnyMore { get; } = [];
 
         public Task<AdminDatabaseWriteReport> ReorderFoldersAsync(string databasePath, string backupRoot, IReadOnlyList<FolderOrderRequest> order)
             => throw new NotSupportedException();

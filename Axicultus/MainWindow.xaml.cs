@@ -93,12 +93,16 @@ public partial class MainWindow : Window
         RefreshSample(false);
         DataContext = viewModel;
         viewModel.BindShortcuts(_shortcuts);
+        _shortcuts.OutputWindowKey = HandleOutputWindowKey;
         BindWindowLaunchers();
 
         _powerPointPositionTimer.Tick += async (_, _) => await _viewModel.SyncNativePowerPointPositionAsync();
         _autoRotateTimer = new DispatcherTimer();
         _autoRotateTimer.Tick += (_, _) => _viewModel.AdvanceAutoRotation();
         _viewModel.PropertyChanged += OnViewModelPropertyChanged;
+        // The worship list is saved after each edit (FrmMain saves after every change): once per UI action, after
+        // its input and rendering, so a drag of many rows is one write.
+        _viewModel.WorshipListSaveScheduler = save => Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background, save);
 
         // 명령 팔레트(§7.4)가 열리면 검색창에 포커스를 줘 바로 타이핑할 수 있게 한다.
         CommandPaletteOverlay.IsVisibleChanged += CommandPaletteOverlay_IsVisibleChanged;
@@ -286,7 +290,7 @@ public partial class MainWindow : Window
 
         _mediaSourceLoadedOnce = true;
         _inlineMedia = new MediaLibraryViewModel(
-            new MediaLibraryService(),
+            new MediaLibraryService(_settings?.Current.General.WorkingFolder),
             path => viewModel.AddMedia(path),
             ResolveMediaInitialFolder(), sourceFolder: _settings?.Get(AxicultusSettingKeys.MediaSourceFolder));
         MediaSourceTab.DataContext = _inlineMedia;
@@ -522,7 +526,7 @@ public partial class MainWindow : Window
             _services.GetService<Captions.CaptionSession>()?.BeginPlan(_viewModel.CurrentWorshipListName);
         if (e.PropertyName is nameof(MainViewModel.PreviewPanelItem) or nameof(MainViewModel.AudiencePlacement) or nameof(MainViewModel.SampleScreenHeight)) RefreshSample(true);
         if (e.PropertyName is nameof(MainViewModel.OutputPanelItem) or nameof(MainViewModel.OutputScreenStatus) or nameof(MainViewModel.AudiencePlacement) or nameof(MainViewModel.SampleScreenHeight)) RefreshSample(false);
-        if (e.PropertyName == nameof(MainViewModel.PreviewLyricsText) && _viewModel.PreviewPanelItem is { } preview && LiveItemKindMatcher.IsExternalTextFileItem(preview))
+        if (e.PropertyName == nameof(MainViewModel.PreviewLyricsText) && _viewModel.PreviewPanelItem is { } preview && (LiveItemKindMatcher.IsExternalTextFileItem(preview) || LiveItemKindMatcher.IsSong(preview.Kind)))
             RefreshSample(true);
         if (e.PropertyName == nameof(MainViewModel.OutputLyricsText) && _viewModel.OutputItem is { } output && LiveItemKindMatcher.IsExternalTextFileItem(output))
             RefreshSample(false);
@@ -537,7 +541,7 @@ public partial class MainWindow : Window
         var sample = preview ? PreviewSample : OutputSample;
         var item = preview ? _viewModel.PreviewPanelItem : _viewModel.OutputItem;
         if (item != null && (preview || _viewModel.Session.Current.State == LiveState.Off))
-            item = _viewModel.ProjectLyricsPage(item, preview ? _viewModel.LyricsPageIndex : item.LyricsPageIndex);
+            item = preview ? _viewModel.ProjectPreviewLyricsPage(item, _viewModel.LyricsPageIndex) : _viewModel.ProjectLyricsPage(item, item.LyricsPageIndex);
         var snapshot = !preview && _viewModel.Session.Current.State != LiveState.Off
             ? _viewModel.Session.Current
             : item is null ? LiveSessionSnapshot.Off with { State = LiveState.Active }
@@ -819,6 +823,38 @@ public partial class MainWindow : Window
             key,
             _viewModel.PreviousOutputSlideCommand,
             _viewModel.NextOutputSlideCommand);
+    }
+
+    // FrmLaunchShow.ItemKeyPressed: when the audience window has the focus (single monitor) the show keys it does
+    // not handle itself act on the live item, as they do with the focus in the output area of this window.
+    private bool HandleOutputWindowKey(Key key, ModifierKeys modifiers)
+    {
+        if (modifiers == ModifierKeys.None && _shortcuts.TryResolveMedia(
+            (System.Windows.Forms.Keys)KeyInterop.VirtualKeyFromKey(key), System.Windows.Forms.Keys.None, out var media))
+        {
+            media();
+            return true;
+        }
+
+        if (AllowsFrmMainVerseKeyModifiers(modifiers))
+        {
+            var mapped = RemapNavigationKey(key, _viewModel.AlternateKeyboard);
+            if (_viewModel.Session.Current.PptPath is { Length: > 0 }
+                ? TryExecuteOutputPowerPointKey(mapped, modifiers)
+                : TryExecuteOutputLyricsKey(mapped, modifiers))
+            {
+                return true;
+            }
+
+            if (modifiers == ModifierKeys.None && _viewModel.OutputShowKeyCommand(key) is { } toggle)
+            {
+                if (toggle.CanExecute(null)) toggle.Execute(null);
+                return true;
+            }
+        }
+
+        // F1, F3, F5 and the other shell shortcuts.
+        return _shortcuts.TryHandle(key, modifiers);
     }
 
     private static bool TryExecuteVerseJumpKey(
@@ -1324,7 +1360,8 @@ public partial class MainWindow : Window
         await EnsureLibraryLoadedOnceAsync().ConfigureAwait(true);
 
         var library = viewModel.Library;
-        if (library.SelectedFolder is null && library.Folders.FirstOrDefault() is { } firstFolder)
+        // Folder 0 holds deleted songs; the editor cannot save a song there (search results clear the folder selection).
+        if (library.SelectedFolder is null && library.Folders.FirstOrDefault(folder => folder.FolderNo > 0 && folder.IsEnabled) is { } firstFolder)
         {
             library.SelectedFolder = firstFolder;
         }
@@ -1468,7 +1505,8 @@ public partial class MainWindow : Window
             string path = song != null ? options.FileName : screen != null ? screen.MediaPath ?? "" : _viewModel.DefaultMediaPath;
             if (options.Mode < 0 && path.Length > 0) options = options with { Mode = 2, FileName = path };
             var window = new Media.MediaAssignmentWindow(song?.Title ?? info?.Name ?? "기본 미디어 설정",
-                options, ResolveMediaInitialFolder(), _viewModel.OutputDisplays, _services.GetService<Media.CameraOwnership>()) { Owner = this };
+                options, ResolveMediaInitialFolder(), _viewModel.OutputDisplays, _services.GetService<Media.CameraOwnership>())
+                { Owner = this, WorkingFolder = _settings?.Current.General.WorkingFolder };
             if (window.ShowDialog() != true || options == window.Options) return;
             var savedOptions = window.Options;
             if (song != null)
@@ -1727,7 +1765,17 @@ public partial class MainWindow : Window
         }
 
         var detailRepository = _services.GetRequiredService<IAdminSongDetailRepository>();
-        var detail = await detailRepository.GetSongDetailAsync(databasePath, songId).ConfigureAwait(true);
+        SongDetail? detail;
+        try
+        {
+            detail = await detailRepository.GetSongDetailAsync(databasePath, songId).ConfigureAwait(true);
+        }
+        catch (Exception ex) when (MainViewModel.IsSongDatabaseError(ex))
+        {
+            // Called from async void handlers: a database that cannot be read must not end the app.
+            viewModel.StatusText = $"곡 데이터베이스를 읽을 수 없습니다: {ex.Message}";
+            return;
+        }
         if (detail is null)
         {
             viewModel.StatusText = $"편집할 곡을 찾을 수 없습니다: {songId}";
@@ -1771,7 +1819,14 @@ public partial class MainWindow : Window
             editorViewModel.Category,
             editorViewModel.Key,
             editorViewModel.Lyrics,
-            editorViewModel.Copyright);
+            editorViewModel.Copyright,
+            // UpdateSelectedSongQueueItem copies these onto the list item; defaults would wipe capo and licence text.
+            BookReference: editorViewModel.BookReference,
+            UserReference: editorViewModel.UserReference,
+            LicenceAdmin1: editorViewModel.LicenceAdmin1,
+            LicenceAdmin2: editorViewModel.LicenceAdmin2,
+            Capo: editorViewModel.Capo,
+            Notations: editorViewModel.Notations);
         viewModel.UpdateSelectedSongQueueItem(updatedSong, editorViewModel.Sequence, editorViewModel.FormatData);
 
         await viewModel.Library.LoadAsync().ConfigureAwait(true);
@@ -3395,9 +3450,9 @@ public partial class MainWindow : Window
         var dialog = new Microsoft.Win32.OpenFileDialog
         {
             Title = "예배 순서에 추가할 파일 선택",
-            Filter = "PowerPoint (*.ppt;*.pptx)|*.ppt;*.pptx"
+            Filter = SourceFileExtensions.DialogFilter("PowerPoint", SourceFileExtensions.PowerPoint)
                 + "|Word 문서 (*.doc;*.docx)|*.doc;*.docx"
-                + "|미디어 (*.mp4;*.avi;*.wmv;*.mov;*.mkv;*.mp3;*.wav;*.wma)|*.mp4;*.avi;*.wmv;*.mov;*.mkv;*.mp3;*.wav;*.wma"
+                + "|" + viewModel.MediaDialogFilter("미디어")
                 + "|모든 파일 (*.*)|*.*",
             CheckFileExists = true,
         };
@@ -3405,7 +3460,7 @@ public partial class MainWindow : Window
         if (dialog.ShowDialog(this) == true)
         {
             var ext = System.IO.Path.GetExtension(dialog.FileName).ToLowerInvariant();
-            if (ext is ".ppt" or ".pptx")
+            if (SourceFileExtensions.PowerPoint.Contains(ext))
             {
                 viewModel.AddPowerPoint(dialog.FileName);
             }
@@ -3527,9 +3582,7 @@ public partial class MainWindow : Window
         var dialog = new Microsoft.Win32.OpenFileDialog
         {
             Title = "이 항목의 미디어 선택",
-            Filter = "미디어 (*.mp4;*.m4v;*.mov;*.avi;*.wmv;*.mpg;*.mpeg;*.mkv;*.webm;*.mp3;*.wav;*.wma;*.m4a;*.aac;*.flac;*.ogg)"
-                + "|*.mp4;*.m4v;*.mov;*.avi;*.wmv;*.mpg;*.mpeg;*.mkv;*.webm;*.mp3;*.wav;*.wma;*.m4a;*.aac;*.flac;*.ogg"
-                + "|모든 파일 (*.*)|*.*",
+            Filter = viewModel.MediaDialogFilter("미디어") + "|모든 파일 (*.*)|*.*",
             CheckFileExists = true,
             InitialDirectory = ResolveMediaInitialFolder(),
         };
@@ -3546,7 +3599,8 @@ public partial class MainWindow : Window
         if (options.Mode < 0 && !string.IsNullOrEmpty(_viewModel.DefaultMediaPath))
             options = options with { Mode = 2, FileName = _viewModel.DefaultMediaPath };
         var dialog = new Media.MediaAssignmentWindow("Default Media", options, ResolveMediaInitialFolder(),
-            _viewModel.OutputDisplays, _services.GetService<Media.CameraOwnership>()) { Owner = this };
+            _viewModel.OutputDisplays, _services.GetService<Media.CameraOwnership>())
+            { Owner = this, WorkingFolder = _settings?.Current.General.WorkingFolder };
         if (dialog.ShowDialog() == true && options != dialog.Options)
             _viewModel.SetDefaultMedia(dialog.Options.FileName, dialog.Options);
     }
@@ -3866,7 +3920,7 @@ public partial class MainWindow : Window
         }
 
         var mediaViewModel = new Axicultus.Wpf.Library.MediaLibraryViewModel(
-            new Axicultus.Wpf.Library.MediaLibraryService(),
+            new Axicultus.Wpf.Library.MediaLibraryService(_settings?.Current.General.WorkingFolder),
             path => viewModel.AddMedia(path), // AddMedia 는 LiveQueueItem 을 반환하므로 람다로 감싼다
             ResolveMediaInitialFolder(), sourceFolder: _settings?.Get(AxicultusSettingKeys.MediaSourceFolder));
 
@@ -4367,7 +4421,17 @@ public partial class MainWindow : Window
         }
 
         var detailRepository = _services.GetRequiredService<IAdminSongDetailRepository>();
-        var detail = await detailRepository.GetSongDetailAsync(databasePath, songId).ConfigureAwait(true);
+        SongDetail? detail;
+        try
+        {
+            detail = await detailRepository.GetSongDetailAsync(databasePath, songId).ConfigureAwait(true);
+        }
+        catch (Exception ex) when (MainViewModel.IsSongDatabaseError(ex))
+        {
+            // Called from async void handlers: a database that cannot be read must not end the app.
+            viewModel.StatusText = $"곡 데이터베이스를 읽을 수 없습니다: {ex.Message}";
+            return;
+        }
         if (detail is null)
         {
             viewModel.StatusText = $"Praise Book song was not found: {songId}";
@@ -4662,17 +4726,20 @@ public partial class MainWindow : Window
     private void SongCopy_Click(object sender, RoutedEventArgs e)
         => LaunchSongContextWindow<SongCopyWindow, SongCopyViewModel>(
             "복사할 곡을 라이브러리 탭에서 선택하세요.",
-            (vm, lib) => vm.Load(lib.DatabasePath, lib.SelectedSong!, lib.SelectedSongFolder!, lib.Folders));
+            (vm, lib, songs) => vm.Load(lib.DatabasePath, songs, lib.Folders),
+            vm => vm.StatusMessage);
 
     private void SongMove_Click(object sender, RoutedEventArgs e)
         => LaunchSongContextWindow<SongMoveWindow, SongMoveViewModel>(
             "이동할 곡을 라이브러리 탭에서 선택하세요.",
-            (vm, lib) => vm.Load(lib.DatabasePath, lib.SelectedSong!, lib.SelectedSongFolder!, lib.Folders));
+            (vm, lib, songs) => vm.Load(lib.DatabasePath, songs, lib.Folders),
+            vm => vm.StatusMessage);
 
     private void SongDelete_Click(object sender, RoutedEventArgs e)
         => LaunchSongContextWindow<SongDeleteWindow, SongDeleteViewModel>(
             "삭제할 곡을 라이브러리 탭에서 선택하세요.",
-            (vm, lib) => vm.Load(lib.DatabasePath, lib.SelectedSong!, lib.SelectedSongFolder!));
+            (vm, lib, songs) => vm.Load(lib.DatabasePath, songs, lib.Folders),
+            vm => vm.StatusMessage);
 
     private async void FolderEditor_Click(object sender, RoutedEventArgs e)
     {
@@ -4701,23 +4768,42 @@ public partial class MainWindow : Window
             (vm, lib) => vm.Load(lib.DatabasePath, lib.Folders));
 
     // 곡 컨텍스트(선택 곡+폴더)가 필요한 창 — 선택이 없으면 안내만 하고 열지 않는다.
-    private async void LaunchSongContextWindow<TWindow, TViewModel>(string noSelectionMessage, Action<TViewModel, LibraryViewModel> load)
+    // FrmMain copies, moves and deletes every selected song, not only the current row.
+    private async void LaunchSongContextWindow<TWindow, TViewModel>(
+        string noSelectionMessage,
+        Action<TViewModel, LibraryViewModel, IReadOnlyList<SongSummary>> load,
+        Func<TViewModel, string> resultMessage)
         where TWindow : Window
         where TViewModel : class
     {
         var lib = _viewModel.Library;
-        if (lib.SelectedSongFolder is null || lib.SelectedSong is null)
+        var songs = GetLibrarySongSelection(_viewModel);
+        if (songs.Count == 0)
         {
             lib.StatusMessage = noSelectionMessage;
             return;
         }
 
-        if (!TryOpenContextWindow<TWindow, TViewModel>(lib, load))
+        TViewModel? dialog = null;
+        if (!TryOpenContextWindow<TWindow, TViewModel>(lib, (vm, library) => { dialog = vm; load(vm, library, songs); }))
         {
             return;
         }
 
-        await lib.LoadAsync(); // 작업 반영 — 셸 라이브러리 목록 새로고침.
+        try
+        {
+            await lib.LoadAsync(); // 작업 반영 — 셸 라이브러리 목록 새로고침.
+        }
+        catch (Exception ex) when (ex is IOException or InvalidOperationException or System.Data.Common.DbException)
+        {
+            lib.StatusMessage = ex.Message; // async void: nothing may escape
+            return;
+        }
+
+        if (dialog is not null)
+        {
+            lib.StatusMessage = resultMessage(dialog); // the dialog has closed: how many songs were handled, which were left out
+        }
     }
 
     // DB 경로만 필요한 창(복구/병합).
@@ -4803,6 +4889,21 @@ public partial class MainWindow : Window
                 Dispatcher.InvokeAsync(SaveWorshipListAndCloseAsync);
             }
             return;
+        }
+        // FrmMain always has a named session, so its list is always on disk. Here a list can have no name (first
+        // run, or its list was deleted): rows added to it would be dropped without a word.
+        if (!_discardWorshipListChangesOnClose && _viewModel.HasUnnamedWorshipListChanges)
+        {
+            var answer = MessageBox.Show(this,
+                $"이름 없는 예배 순서에 저장하지 않은 항목이 {_viewModel.Queue.Count}개 있습니다.\n\n"
+                + "예: 종료하지 않고 순서 관리 창에서 이름을 정해 저장합니다.\n아니요: 저장하지 않고 종료합니다.",
+                "예배 순서 저장", MessageBoxButton.YesNoCancel, MessageBoxImage.Warning, MessageBoxResult.Yes);
+            if (answer != MessageBoxResult.No)
+            {
+                e.Cancel = true;
+                if (answer == MessageBoxResult.Yes) Dispatcher.InvokeAsync(() => OpenManageWorshipLists_Click(this, new RoutedEventArgs()));
+                return;
+            }
         }
         // 모든 설정 초기화(복구)로 닫는 중이면 창 위치·패널 비율을 저장하지 않는다 — 방금 되돌린 기본값을 덮어쓰지 않게.
         if (!_suppressSettingsSaveOnClose)
@@ -4970,6 +5071,7 @@ public partial class MainWindow : Window
     {
         _viewModel.Library.TitleFilterApplying -= CaptureFilterSelection;
         _viewModel.Library.TitleFilterApplied -= RestoreFilterSelection;
+        _shortcuts.OutputWindowKey = null;
         CloseLiveDevices();
         Microsoft.Win32.SystemEvents.DisplaySettingsChanged -= OnDisplaySettingsChanged;
         _displayRefresh.Stop();

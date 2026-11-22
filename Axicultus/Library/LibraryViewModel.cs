@@ -670,79 +670,12 @@ public sealed partial class LibraryViewModel : ObservableObject
     public Task MoveSelectedSongToEndAsync()
         => MoveSelectedSongToIndexAsync(_loadedSongs.Count - 1);
 
-    public async Task MoveSelectedSongToIndexAsync(int targetIndex)
+    // SONG_NUMBER is the song's own number in both apps (a hymn number, 0 for none), not a place in the list,
+    // so a hand-made order has nowhere to be stored. This used to renumber every song of the folder 1..N.
+    public Task MoveSelectedSongToIndexAsync(int targetIndex)
     {
-        if (IsBusy)
-        {
-            return;
-        }
-
-        // 수동 이동(위/아래 버튼·드래그 모두)은 "원래 순서"에서만 허용 — 정렬 중에는 화면 순서와 DB 순서가 달라
-        // 엉뚱한 위치에 저장된다. 버튼은 CanExecute 로, 드래그(LibraryWindow)는 모든 이동의 길목인 여기서 막는다(심층 방어).
-        if (SortMode != LibrarySortMode.Original)
-        {
-            StatusMessage = "정렬 중에는 곡을 이동할 수 없습니다. '원래 순서'로 바꾸세요.";
-            return;
-        }
-
-        if (!TryEnsureWritableDatabasePath(out var message))
-        {
-            StatusMessage = message;
-            return;
-        }
-
-        if (SelectedFolder is null || SelectedSong is null)
-        {
-            StatusMessage = "이동할 곡을 선택하세요.";
-            return;
-        }
-
-        var orderedSongs = _loadedSongs.ToList();
-        var selectedIndex = orderedSongs.FindIndex(song => song.SongId == SelectedSong.SongId);
-        if (selectedIndex < 0 || targetIndex < 0 || targetIndex >= orderedSongs.Count)
-        {
-            StatusMessage = "이동할 곡을 선택하세요.";
-            return;
-        }
-
-        if (selectedIndex == targetIndex)
-        {
-            return;
-        }
-
-        var selectedSongId = SelectedSong.SongId;
-        var selected = orderedSongs[selectedIndex];
-        orderedSongs.RemoveAt(selectedIndex);
-        orderedSongs.Insert(targetIndex, selected);
-        var order = orderedSongs
-            .Select((song, index) => new SongOrderRequest(song.SongId, index + 1))
-            .ToArray();
-
-        IsBusy = true;
-        try
-        {
-            var report = await _adminDatabase
-                .ReorderSongsAsync(DatabasePath, ResolveBackupRoot(), SelectedFolder.FolderNo, order)
-                .ConfigureAwait(true);
-
-            if (!report.Succeeded)
-            {
-                StatusMessage = FormatWriteFailure("곡 순서 저장 실패", report);
-                return;
-            }
-
-            await LoadSongsForSelectedFolderCoreAsync().ConfigureAwait(true);
-            SelectSongById(selectedSongId);
-            StatusMessage = "곡 순서를 저장했습니다.";
-        }
-        catch (Exception ex) when (IsRecoverableLibraryException(ex))
-        {
-            StatusMessage = $"곡 순서 저장 실패: {ex.Message}";
-        }
-        finally
-        {
-            IsBusy = false;
-        }
+        StatusMessage = "곡 순서는 따로 저장되지 않습니다. 곡 번호는 곡 고유 번호(찬송가 번호)입니다.";
+        return Task.CompletedTask;
     }
 
     partial void OnSelectedFolderChanged(SongFolderSummary? value)
@@ -1159,22 +1092,10 @@ public sealed partial class LibraryViewModel : ObservableObject
     private bool CanRecoverSelectedFolder()
         => !IsBusy && SelectedFolder is { IsEnabled: false };
 
-    // 곡 수동 이동(위/아래)은 "원래 순서"에서만 의미가 있다 — 제목순/번호순으로 보고 있을 때는 화면 순서와
-    // DB 순서가 달라 운영자가 보는 이웃과 실제 이동 대상이 어긋난다. 그래서 정렬 중에는 이동을 비활성화한다.
-    private bool CanMoveSelectedSongUp()
-        => !IsBusy && SortMode == LibrarySortMode.Original && SelectedSong is not null
-           && GetSelectedSongIndex() > 0;
+    // A song cannot be moved by hand: see MoveSelectedSongToIndexAsync.
+    private static bool CanMoveSelectedSongUp() => false;
 
-    private bool CanMoveSelectedSongDown()
-    {
-        if (IsBusy || SortMode != LibrarySortMode.Original || SelectedSong is null)
-        {
-            return false;
-        }
-
-        var index = GetSelectedSongIndex();
-        return index >= 0 && index < _loadedSongs.Count - 1;
-    }
+    private static bool CanMoveSelectedSongDown() => false;
 
     private void NotifyReorderCanExecuteChanged()
     {

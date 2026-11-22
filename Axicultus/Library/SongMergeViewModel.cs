@@ -82,7 +82,8 @@ public sealed partial class SongMergeViewModel : ObservableObject
         ArgumentNullException.ThrowIfNull(folders);
 
         DatabasePath = NormalizePath(databasePath);
-        Folders.ReplaceWith(folders);
+        // As in WinForms, only folders in use; folder 0 holds deleted songs.
+        Folders.ReplaceWith(folders.Where(folder => folder.FolderNo > 0 && folder.IsEnabled));
         SelectedSourceFolderA = Folders.FirstOrDefault();
         SelectedSourceFolderB = Folders.Skip(1).FirstOrDefault() ?? Folders.FirstOrDefault();
         SelectedTargetFolder = Folders.Skip(2).FirstOrDefault() ?? Folders.FirstOrDefault();
@@ -183,8 +184,8 @@ public sealed partial class SongMergeViewModel : ObservableObject
         try
         {
             var backupRoot = ResolveBackupRoot();
-            var songNumber = Math.Max((SelectedTargetFolder?.SongCount ?? 0) + 1, 1);
-            var created = 0;
+            // The merged songs are written together: one backup and one transaction for the whole merge.
+            var songs = new List<SongWriteModel>();
             foreach (var candidate in selected)
             {
                 var sourceA = await _songDetails.GetSongDetailAsync(DatabasePath, candidate.SourceSongAId).ConfigureAwait(true);
@@ -195,20 +196,18 @@ public sealed partial class SongMergeViewModel : ObservableObject
                     return;
                 }
 
-                var merged = _mergeService.Merge(sourceA, sourceB);
-                var report = await _adminDatabase
-                    .SaveSongAsync(DatabasePath, backupRoot, BuildMergedSong(candidate, sourceA, sourceB, merged, songNumber + created))
-                    .ConfigureAwait(true);
-                if (!report.Succeeded)
-                {
-                    var detail = string.Join("; ", report.Issues.Select(issue => issue.Message));
-                    StatusMessage = string.IsNullOrWhiteSpace(detail) ? "병합 실패" : $"병합 실패: {detail}";
-                    return;
-                }
-
-                created++;
+                songs.Add(BuildMergedSong(candidate, sourceA, sourceB, _mergeService.Merge(sourceA, sourceB)));
             }
 
+            var report = await _adminDatabase.SaveSongsAsync(DatabasePath, backupRoot, songs).ConfigureAwait(true);
+            if (!report.Succeeded)
+            {
+                var detail = string.Join("; ", report.Issues.Select(issue => issue.Message));
+                StatusMessage = string.IsNullOrWhiteSpace(detail) ? "병합 실패" : $"병합 실패: {detail}";
+                return;
+            }
+
+            var created = songs.Count;
             CreatedCount = created;
             ValidationMessage = "";
             StatusMessage = $"{created}개 병합 곡을 만들었습니다.";
@@ -249,16 +248,16 @@ public sealed partial class SongMergeViewModel : ObservableObject
         SongMergeCandidate candidate,
         SongDetail sourceA,
         SongDetail sourceB,
-        SongMergeResult merged,
-        int songNumber)
+        SongMergeResult merged)
         => new(
             SongId: null,
             candidate.MergeTitle.Trim(),
             sourceA.Title.Trim(),
             SelectedTargetFolder!.FolderNo,
-            songNumber,
+            SongNumber: 0, // A merged song has no number, as in WinForms.
             merged.Lyrics,
-            Sequence: sourceA.Sequence.Trim(),
+            // FrmSmartMerge stores the verses of song A in the order of its lyrics, not A's stored sequence.
+            Sequence: SongMergeService.LyricOrderSequence(sourceA.Lyrics),
             Writer: FirstNonEmpty(sourceA.Writer, sourceB.Writer),
             Copyright: FirstNonEmpty(sourceA.Copyright, sourceB.Copyright),
             Capo: sourceA.Capo != -1 ? sourceA.Capo : sourceB.Capo,
@@ -271,7 +270,8 @@ public sealed partial class SongMergeViewModel : ObservableObject
             BookReference: JoinReferences(sourceA.BookReference, sourceB.BookReference),
             UserReference: JoinReferences(sourceA.UserReference, sourceB.UserReference),
             Settings: "",
-            FormatData: "");
+            FormatData: "",
+            SequenceIsStored: true);
 
     private bool ValidateFolders(bool requireCandidates)
     {
@@ -392,5 +392,6 @@ public sealed partial class SongMergeViewModel : ObservableObject
         => ex is IOException
             or UnauthorizedAccessException
             or InvalidOperationException
+            or System.Data.Common.DbException // a locked or unreadable database
             or NotSupportedException;
 }

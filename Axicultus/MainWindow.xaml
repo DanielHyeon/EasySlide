@@ -1055,9 +1055,10 @@
               Tag="splitContainerMain"
               Margin="0">
             <Grid.ColumnDefinitions>
+                <!-- MinWidth 25 = splitContainerMain.Panel1MinSize: the operator may drag the left pane nearly shut. -->
                 <ColumnDefinition x:Name="ClassicSourceColumn"
                                   Width="25*"
-                                  MinWidth="205" />
+                                  MinWidth="25" />
                 <ColumnDefinition Width="4" />
                 <ColumnDefinition x:Name="ClassicRightColumn"
                                   Width="75*"
@@ -4537,7 +4538,7 @@
                                Foreground="{DynamicResource Brush.Text.Primary}"
                                Margin="0,0,0,16" />
 
-                    <TextBlock Text="출력"
+                    <TextBlock Text="{Binding OutputMonitorCaption}"
                                Style="{StaticResource Type.Caption.Style}"
                                Foreground="{DynamicResource Brush.Text.Tertiary}" />
                     <ComboBox ItemsSource="{Binding OutputDisplays}"

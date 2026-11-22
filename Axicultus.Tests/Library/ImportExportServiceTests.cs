@@ -59,6 +59,28 @@ public class ImportExportServiceTests
         saved.Lyrics.Should().BeEmpty();
     }
 
+    [Theory]
+    [InlineData(ImportDuplicatePolicy.SkipExisting, new[] { "first" }, 1, 0, 1)]
+    [InlineData(ImportDuplicatePolicy.KeepExisting, new[] { "first", "second" }, 2, 0, 0)]
+    [InlineData(ImportDuplicatePolicy.ReplaceExisting, new[] { "second" }, 1, 1, 0)]
+    public async Task ImportAsync_WhenATitleComesTwiceInTheFile_AppliesTheDuplicatePolicyWithinTheBatch(
+        ImportDuplicatePolicy policy, string[] savedLyrics, int imported, int replaced, int skipped)
+    {
+        // The songs of one import are written together, so the first "Alpha" has no id yet when the second is met.
+        using var fixture = new ImportExportFixture();
+        var path = fixture.WriteXml(
+            new XElement("Item", new XElement("Title1", "Alpha"), new XElement("Contents", "first")),
+            new XElement("Item", new XElement("Title1", "alpha"), new XElement("Contents", "second")));
+
+        var report = await fixture.CreateService().ImportAsync(new ImportRequest(fixture.AdminDatabasePath, fixture.BackupRoot,
+            path, 4, ["Default Folder"], policy));
+
+        report.Succeeded.Should().BeTrue();
+        fixture.Repository.SavedSongs.Select(song => song.Lyrics).Should().Equal(savedLyrics);
+        fixture.Repository.SavedSongs.Should().OnlyContain(song => song.SongId == null && song.FolderNo == 4);
+        (report.ImportedNew, report.Replaced, report.Skipped).Should().Be((imported, replaced, skipped));
+    }
+
     [Fact]
     public async Task PreviewImportAsync_WhenLegacyText_ReturnsDistinctFoldersAndSongCount()
     {
@@ -405,6 +427,38 @@ public class ImportExportServiceTests
         reader.GetString(0).Should().Be("Alpha");
         reader.GetInt32(1).Should().Be(2);
         reader.GetString(2).Should().Be("Line 1\nLine 2");
+    }
+
+    [Fact]
+    public async Task ExportAsync_WritesWinFormsVerseCodesAsTokens()
+    {
+        // A song saved by WinForms holds its verse order as control characters (1, 0 = chorus, 2).
+        using var fixture = new ImportExportFixture();
+        fixture.Repository.Folders.Add(new SongFolderSummary(2, "Morning", true, 1));
+        fixture.Repository.Details[10] = new SongDetail(10, "Alpha", "", 2, 0, "[1]\nLine", "\u0001\u0000\u0002",
+            "", "", -1, "", "", "", "", "", "", "", "", "", "");
+        var sut = fixture.CreateService();
+        var xmlPath = Path.Combine(fixture.Root, "codes.xml");
+        var textPath = Path.Combine(fixture.Root, "codes.esn");
+
+        (await sut.ExportAsync(new ExportRequest(fixture.AdminDatabasePath, xmlPath, ExportFormat.Xml, [10], [2]))).Succeeded.Should().BeTrue();
+        (await sut.ExportAsync(new ExportRequest(fixture.AdminDatabasePath, textPath, ExportFormat.AxicultusText, [10], [2]))).Succeeded.Should().BeTrue();
+
+        File.ReadAllText(xmlPath).Should().Contain("<Sequence>1,c,2</Sequence>");
+        File.ReadAllText(textPath).Should().Contain(">@1,c,2]");
+    }
+
+    [Fact]
+    public async Task PreviewImportAsync_WhenEsfIsNotSongDatabase_ReportsErrorInsteadOfThrowing()
+    {
+        using var fixture = new ImportExportFixture();
+        var path = Path.Combine(fixture.Root, "old.esf");
+        File.WriteAllText(path, new string('x', 2048));
+
+        var preview = await fixture.CreateService().PreviewImportAsync(path);
+
+        preview.Succeeded.Should().BeFalse();
+        preview.Issues.Should().ContainSingle();
     }
 
     [Fact]

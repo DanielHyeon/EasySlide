@@ -66,6 +66,7 @@ public class RegistryLegacySettingsSourceTests
     {
         using var fixture = RegistryFixture.Create();
         using var root = Registry.CurrentUser.OpenSubKey(fixture.BasePath, writable: true)!;
+        new RegistryLegacySettingsSource(root).Exists.Should().BeFalse("no legacy profile, so the first-run import has nothing to read");
         using var oldest = root.CreateSubKey(@"Software\EasiSlides\options");
         using var previous = root.CreateSubKey(@"Software\Axicultus");
         using var config = previous.CreateSubKey("config");
@@ -75,6 +76,12 @@ public class RegistryLegacySettingsSourceTests
         config.SetValue("Selected", 4);
         options.SetValue("Selected", 3);
         var source = new RegistryLegacySettingsSource(root);
+        source.Exists.Should().BeTrue();
+        // With no WinForms profile file at all, the first-run import falls back to this (sandboxed) registry profile.
+        var noProfile = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"Axicultus_NoProfile_{Guid.NewGuid():N}");
+        LegacySettingsBootstrap.OpenDefaultSource(noProfile, () => new RegistryLegacySettingsSource(root))!
+            .TryGetString("OldOnly", out var fallback).Should().BeTrue();
+        fallback.Should().Be("5");
         source.TryGetString("OldOnly", out var value).Should().BeTrue();
         value.Should().Be("5");
         source.TryGetString("Selected", out value).Should().BeTrue();

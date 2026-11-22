@@ -325,6 +325,10 @@ public sealed class ImportExportService(
         var replaced = 0;
         var skipped = 0;
         var failed = 0;
+        // The songs are written together at the end: one backup and one transaction for the whole import.
+        var writes = new List<SongWriteModel>();
+        // Title -> place in writes of a song this import adds; it has no id until the write.
+        var added = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var source in sourceSongs)
         {
@@ -335,54 +339,52 @@ public sealed class ImportExportService(
                 continue;
             }
 
-            bool duplicate = existing.TryGetValue(source.Song.Title, out int existingId);
-            if (duplicate && request.DuplicatePolicy == ImportDuplicatePolicy.SkipExisting)
+            bool stored = existing.TryGetValue(source.Song.Title, out int existingId);
+            bool addedEarlier = added.TryGetValue(source.Song.Title, out int addedAt);
+            if ((stored || addedEarlier) && request.DuplicatePolicy == ImportDuplicatePolicy.SkipExisting)
             {
                 skipped++;
                 items.Add(new ImportResultItem(source.Song.Title, ImportResultKind.Skipped, "Existing item was kept."));
                 continue;
             }
 
-            var songId = duplicate && request.DuplicatePolicy == ImportDuplicatePolicy.ReplaceExisting
-                ? existingId
-                : (int?)null;
+            bool replace = (stored || addedEarlier) && request.DuplicatePolicy == ImportDuplicatePolicy.ReplaceExisting;
             var writeModel = source.Song with
             {
-                SongId = songId,
+                SongId = replace && stored ? existingId : null,
                 FolderNo = request.TargetFolderNo,
                 Lyrics = source.Kind == ImportSourceKind.AxicultusJson ? source.Song.Lyrics : NormalizeLineEndings(source.Song.Lyrics).TrimStart('\n'),
             };
 
-            var report = await _adminDatabase
-                .SaveSongAsync(request.DatabasePath, request.BackupRoot, writeModel)
-                .ConfigureAwait(false);
-            if (!report.Succeeded)
-            {
-                failed++;
-                issues.AddRange(report.Issues.Select(issue => new ImportExportIssue(
-                    issue.Severity == AdminDatabaseIssueSeverity.Error
-                        ? ImportExportIssueSeverity.Error
-                        : ImportExportIssueSeverity.Warning,
-                    issue.Message)));
-                items.Add(new ImportResultItem(source.Song.Title, ImportResultKind.Failed, "Database write failed."));
-                continue;
-            }
-
-            if (songId is null)
+            if (!replace)
             {
                 inserted++;
                 items.Add(new ImportResultItem(source.Song.Title, ImportResultKind.Inserted, "Imported as a new item."));
-                var newId = report.AffectedSongIds.Count == 0 ? 0 : report.AffectedSongIds[0];
-                if (newId > 0)
-                {
-                    existing.TryAdd(writeModel.Title, newId);
-                }
+                added.TryAdd(writeModel.Title, writes.Count);
+                writes.Add(writeModel);
+                continue;
             }
-            else
-            {
-                replaced++;
-                items.Add(new ImportResultItem(source.Song.Title, ImportResultKind.Replaced, "Existing item was replaced."));
-            }
+
+            replaced++;
+            items.Add(new ImportResultItem(source.Song.Title, ImportResultKind.Replaced, "Existing item was replaced."));
+            // A song added earlier in this import is replaced where it stands.
+            if (stored) writes.Add(writeModel);
+            else writes[addedAt] = writeModel;
+        }
+
+        var report = await _adminDatabase.SaveSongsAsync(request.DatabasePath, request.BackupRoot, writes).ConfigureAwait(false);
+        if (!report.Succeeded)
+        {
+            issues.AddRange(report.Issues.Select(issue => new ImportExportIssue(
+                issue.Severity == AdminDatabaseIssueSeverity.Error
+                    ? ImportExportIssueSeverity.Error
+                    : ImportExportIssueSeverity.Warning,
+                issue.Message)));
+            // Nothing was written.
+            var notWritten = items.Select(item => item.Kind is ImportResultKind.Inserted or ImportResultKind.Replaced
+                ? new ImportResultItem(item.Title, ImportResultKind.Failed, "Database write failed.")
+                : item).ToArray();
+            return new ImportReport(false, request.SourcePath, 0, 0, skipped, failed + inserted + replaced, notWritten, issues);
         }
 
         return new ImportReport(failed == 0, request.SourcePath, inserted, replaced, skipped, failed, items, issues);
@@ -687,54 +689,62 @@ public sealed class ImportExportService(
 
     private static LoadedImportSongs LoadDatabase(string path)
     {
-        var songs = new List<ImportSong>();
-        var folderNames = new Dictionary<int, string>();
-        using var connection = SqliteFile.Open(path, readOnly: true);
-
-        using (var command = new SQLiteCommand("SELECT FolderNo, Name FROM FOLDER WHERE FolderNo > 0 ORDER BY FolderNo;", connection))
-        using (var reader = command.ExecuteReader())
+        // An .esf from an older product, or any other file with that extension, is not a SQLite song database.
+        try
         {
-            while (reader.Read())
-            {
-                folderNames[reader.GetInt32(0)] = reader.IsDBNull(1) ? DefaultSourceFolder : reader.GetString(1);
-            }
-        }
+            var songs = new List<ImportSong>();
+            var folderNames = new Dictionary<int, string>();
+            using var connection = SqliteFile.Open(path, readOnly: true);
 
-        using (var command = new SQLiteCommand("SELECT * FROM SONG;", connection))
-        using (var reader = command.ExecuteReader())
+            using (var command = new SQLiteCommand("SELECT FolderNo, Name FROM FOLDER WHERE FolderNo > 0 ORDER BY FolderNo;", connection))
+            using (var reader = command.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    folderNames[reader.GetInt32(0)] = reader.IsDBNull(1) ? DefaultSourceFolder : reader.GetString(1);
+                }
+            }
+
+            using (var command = new SQLiteCommand("SELECT * FROM SONG;", connection))
+            using (var reader = command.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    var folderNo = GetInt(reader, "FOLDERNO");
+                    var folder = folderNames.TryGetValue(folderNo, out var folderName) ? folderName : DefaultSourceFolder;
+                    songs.Add(new ImportSong(
+                        ImportSourceKind.AxicultusDatabase,
+                        folder,
+                        new SongWriteModel(
+                            SongId: null,
+                            Title: GetString(reader, "TITLE_1"),
+                            AlternateTitle: GetString(reader, "TITLE_2"),
+                            FolderNo: 0,
+                            SongNumber: GetInt(reader, "SONG_NUMBER"),
+                            Lyrics: NormalizeLineEndings(GetString(reader, "LYRICS")).TrimEnd('\n', '\r'),
+                            Sequence: GetString(reader, "SEQUENCE"),
+                            Writer: GetString(reader, "WRITER"),
+                            Copyright: GetString(reader, "COPYRIGHT"),
+                            Capo: GetInt(reader, "CAPO", -1),
+                            Timing: GetString(reader, "TIMING"),
+                            Key: GetString(reader, "KEY"),
+                            Notations: GetString(reader, "MSC"),
+                            Category: GetString(reader, "CATEGORY"),
+                            LicenceAdmin1: GetString(reader, "LICENCE_ADMIN1"),
+                            LicenceAdmin2: GetString(reader, "LICENCE_ADMIN2"),
+                            BookReference: GetString(reader, "BOOK_REFERENCE"),
+                            UserReference: GetString(reader, "USER_REFERENCE"),
+                            Settings: GetString(reader, "SETTINGS"),
+                            FormatData: GetString(reader, "FORMATDATA"))));
+                }
+            }
+
+            return new LoadedImportSongs(true, ImportSourceKind.AxicultusDatabase, songs, []);
+        }
+        catch (Exception ex) when (ex is SQLiteException or InvalidOperationException or InvalidCastException or IOException or UnauthorizedAccessException)
         {
-            while (reader.Read())
-            {
-                var folderNo = GetInt(reader, "FOLDERNO");
-                var folder = folderNames.TryGetValue(folderNo, out var folderName) ? folderName : DefaultSourceFolder;
-                songs.Add(new ImportSong(
-                    ImportSourceKind.AxicultusDatabase,
-                    folder,
-                    new SongWriteModel(
-                        SongId: null,
-                        Title: GetString(reader, "TITLE_1"),
-                        AlternateTitle: GetString(reader, "TITLE_2"),
-                        FolderNo: 0,
-                        SongNumber: GetInt(reader, "SONG_NUMBER"),
-                        Lyrics: NormalizeLineEndings(GetString(reader, "LYRICS")).TrimEnd('\n', '\r'),
-                        Sequence: GetString(reader, "SEQUENCE"),
-                        Writer: GetString(reader, "WRITER"),
-                        Copyright: GetString(reader, "COPYRIGHT"),
-                        Capo: GetInt(reader, "CAPO", -1),
-                        Timing: GetString(reader, "TIMING"),
-                        Key: GetString(reader, "KEY"),
-                        Notations: GetString(reader, "MSC"),
-                        Category: GetString(reader, "CATEGORY"),
-                        LicenceAdmin1: GetString(reader, "LICENCE_ADMIN1"),
-                        LicenceAdmin2: GetString(reader, "LICENCE_ADMIN2"),
-                        BookReference: GetString(reader, "BOOK_REFERENCE"),
-                        UserReference: GetString(reader, "USER_REFERENCE"),
-                        Settings: GetString(reader, "SETTINGS"),
-                        FormatData: GetString(reader, "FORMATDATA"))));
-            }
+            return Failed(ImportSourceKind.AxicultusDatabase, path, ex.Message);
         }
-
-        return new LoadedImportSongs(true, ImportSourceKind.AxicultusDatabase, songs, []);
     }
 
     private static LoadedImportSongs LoadAccessDatabase(string path, AccessImportMapping? accessMapping)
@@ -992,7 +1002,8 @@ public sealed class ImportExportService(
                 new XElement("SongNumber", song.Detail.SongNumber.ToString(CultureInfo.InvariantCulture)),
                 new XElement("Contents", NormalizeLineEndings(song.Detail.Lyrics).Replace("\n", "\r\n", StringComparison.Ordinal)),
                 new XElement("Notations", song.Detail.Notations),
-                new XElement("Sequence", song.Detail.Sequence),
+                // Verse codes are control characters, which XML cannot hold; WinForms writes and reads "1,c,2" here.
+                new XElement("Sequence", SongExchangeSequence.FromWpfDatabase(song.Detail.Sequence)),
                 new XElement("Writer", song.Detail.Writer),
                 new XElement("Copyright", song.Detail.Copyright),
                 new XElement("Category", song.Detail.Category),
@@ -1026,7 +1037,7 @@ public sealed class ImportExportService(
             AppendNumberField(builder, ">0", song.Detail.Capo, greaterThan: -1);
             AppendTextField(builder, ">a", song.Detail.LicenceAdmin1);
             AppendTextField(builder, ">b", song.Detail.LicenceAdmin2);
-            AppendTextField(builder, ">@", song.Detail.Sequence);
+            AppendTextField(builder, ">@", SongExchangeSequence.FromWpfDatabase(song.Detail.Sequence));
             builder.Append(']');
             if (!string.IsNullOrWhiteSpace(song.Detail.Notations))
             {
@@ -1104,7 +1115,7 @@ public sealed class ImportExportService(
             command.Parameters.AddWithValue("@folder", song.Detail.FolderNo);
             command.Parameters.AddWithValue("@number", song.Detail.SongNumber);
             command.Parameters.AddWithValue("@lyrics", NormalizeLineEndings(song.Detail.Lyrics));
-            command.Parameters.AddWithValue("@sequence", song.Detail.Sequence);
+            command.Parameters.AddWithValue("@sequence", SongExchangeSequence.ToDatabase(song.Detail.Sequence));
             command.Parameters.AddWithValue("@writer", song.Detail.Writer);
             command.Parameters.AddWithValue("@copyright", song.Detail.Copyright);
             command.Parameters.AddWithValue("@capo", song.Detail.Capo);

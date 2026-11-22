@@ -12,9 +12,10 @@ public sealed class RegistryLegacySettingsSource : ILegacySettingsSource
 
     private static readonly string[] DefaultSections =
     [
+        // WinForms reads "monitors" first for the values it moved there from "options" (MonitorRegistrySettings).
         "config",
-        "options",
         "monitors",
+        "options",
     ];
 
     private readonly RegistryKey _root;
@@ -64,6 +65,13 @@ public sealed class RegistryLegacySettingsSource : ILegacySettingsSource
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToArray();
     }
+
+    /// <summary>True when a legacy profile key is present; nothing is created.</summary>
+    public bool Exists => _basePaths.Any(path =>
+    {
+        using var key = _root.OpenSubKey(path, writable: false);
+        return key is not null;
+    });
 
     public bool TryGetString(string key, out string? value)
     {

@@ -256,10 +256,9 @@ public partial class CaptionConsole : Window
             if (_closed) return;
             _editor.IsInstant = false;
             _editor.DraftText = saved.Draft;
-            _main.LoadQueue(saved.Items.Select(CaptionRecoveryStore.Restore));
+            _main.LoadRecoveredQueue(saved.Items.Select(CaptionRecoveryStore.Restore), saved.Plan);
             if (saved.SelectedIndex >= 0 && saved.SelectedIndex < _main.Queue.Count)
                 _main.SelectedItem = _main.Queue[saved.SelectedIndex];
-            _main.WorshipListHasUnsavedChanges = true;
             if (deck != null)
             {
                 _captions.Prepare(deck);

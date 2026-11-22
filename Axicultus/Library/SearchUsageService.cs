@@ -164,6 +164,10 @@ public sealed class SearchUsageService(IAdminDatabaseRepository adminDatabase) :
 {
     private const string UsageRelativePath = @"Admin\Database\EsUsage.db";
 
+    // The shipped EsUsage.db declares REC_ID INTEGER without a key, so a row either app adds has no REC_ID.
+    // Such a row is known by its rowid, negated so that it cannot be taken for another row's REC_ID.
+    private const string UsageRecordKey = "COALESCE(REC_ID, -rowid)";
+
     private readonly IAdminDatabaseRepository _adminDatabase = adminDatabase ?? throw new ArgumentNullException(nameof(adminDatabase));
 
     public Task<IReadOnlyList<SongFolderSummary>> GetFoldersAsync(string databasePath)
@@ -341,13 +345,15 @@ public sealed class SearchUsageService(IAdminDatabaseRepository adminDatabase) :
         {
             var from = request.From.Date;
             var to = request.To.Date;
+            // WORSHIP_DATE is text: "yyyy-MM-dd" in rows converted from the old database and "yyyy-MM-dd HH:mm:ss"
+            // in rows the WinForms app writes. The date part is compared, so both match on the first and last day.
             using var connection = OpenReadOnly(request.DatabasePath);
             using var command = new SQLiteCommand(
                 """
-                SELECT *
+                SELECT *, COALESCE(REC_ID, -rowid) AS RecordKey
                 FROM USAGE
-                WHERE WORSHIP_DATE >= @from AND WORSHIP_DATE <= @to
-                ORDER BY WORSHIP_DATE, REC_ID;
+                WHERE substr(WORSHIP_DATE, 1, 10) >= @from AND substr(WORSHIP_DATE, 1, 10) <= @to
+                ORDER BY substr(WORSHIP_DATE, 1, 10), REC_ID IS NULL, REC_ID, rowid;
                 """,
                 connection);
             command.Parameters.AddWithValue("@from", from.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
@@ -426,7 +432,7 @@ public sealed class SearchUsageService(IAdminDatabaseRepository adminDatabase) :
             using var connection = SqliteFile.Open(Path.GetFullPath(databasePath));
             using var transaction = connection.BeginTransaction();
             var deleted = 0;
-            using var command = new SQLiteCommand("DELETE FROM USAGE WHERE REC_ID = @recordId;", connection, transaction);
+            using var command = new SQLiteCommand($"DELETE FROM USAGE WHERE {UsageRecordKey} = @recordId;", connection, transaction);
             var idParameter = command.Parameters.Add("@recordId", DbType.Int64);
             foreach (var recordId in recordIds.Distinct())
             {
@@ -485,7 +491,8 @@ public sealed class SearchUsageService(IAdminDatabaseRepository adminDatabase) :
             var admin2 = command.Parameters.Add("@admin2", DbType.String);
             foreach (var record in request.Records)
             {
-                date.Value = record.WorshipDate.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+                // The form the WinForms app writes (a DateTime parameter) and filters on.
+                date.Value = record.WorshipDate.Date.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
                 worshipList.Value = Truncate(record.WorshipList, 50);
                 songTitle.Value = RemoveMusicSymbol(Truncate(record.SongTitle, 100));
                 songNumber.Value = record.SongNumber;
@@ -560,7 +567,7 @@ public sealed class SearchUsageService(IAdminDatabaseRepository adminDatabase) :
 
     private static UsageRecord ReadUsageRecord(SQLiteDataReader reader, IReadOnlyDictionary<string, int> columns)
         => new(
-            GetLong(reader, columns, "REC_ID"),
+            GetLong(reader, columns, "RecordKey"),
             GetDate(reader, columns, "WORSHIP_DATE") ?? DateTime.MinValue,
             GetString(reader, columns, "WORSHIP_LIST"),
             RemoveMusicSymbol(GetString(reader, columns, "SONG_TITLE")),
@@ -697,15 +704,7 @@ public sealed class SearchUsageService(IAdminDatabaseRepository adminDatabase) :
     {
         var titles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         if (string.IsNullOrWhiteSpace(workingFolder) && string.IsNullOrWhiteSpace(mediaFolder)) return titles;
-        var extensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (string file in new[] { "AudioExtensions.txt", "VideoExtensions.txt" })
-        {
-            var path = Path.Combine(workingFolder, "Admin", "Database", file);
-            if (!File.Exists(path)) path = Path.Combine(AppContext.BaseDirectory, "Sys", file);
-            if (!File.Exists(path)) continue;
-            foreach (var line in File.ReadLines(path))
-                if (!string.IsNullOrWhiteSpace(line)) extensions.Add("." + line.Trim().TrimStart('.'));
-        }
+        var extensions = SourceFileExtensions.Media(workingFolder);
         var mediaRoot = Directory.Exists(mediaFolder) ? mediaFolder : Path.Combine(workingFolder, "Media");
         var files = Rendering.FolderFileEnumerator.Enumerate(mediaRoot, extensions, includeSubfolders: true);
         foreach (var file in files) titles.Add(Path.GetFileNameWithoutExtension(file));

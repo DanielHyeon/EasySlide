@@ -27,7 +27,7 @@
         </StackPanel>
 
         <TextBox Grid.Row="1"
-                 Text="{Binding Body}"
+                 Text="{Binding Body, Mode=OneWay}"
                  AutomationProperties.Name="등록 안내 본문"
                  IsReadOnly="True"
                  AcceptsReturn="True"
