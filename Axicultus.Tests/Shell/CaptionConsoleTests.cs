@@ -217,7 +217,8 @@ public sealed class CaptionConsoleTests
     {
         var rows = ScoreLayout.FindRows(ScoreSlide(lightOnDark, 90, 330, 560));
         Assert.Equal(3, rows.Length);
-        Assert.Equal(0, rows[0].Area.Y); // the title goes with the first row
+        Assert.InRange(rows[0].Area.Y, 51, 70); // the title (20..50) is left out, the note above the staff is in
+        Assert.All(rows, row => Assert.Equal(rows[0].Area.Height, row.Area.Height)); // one height: the staves show the same size
         for (int k = 0; k < 3; k++)
         {
             int staffTop = new[] { 90, 330, 560 }[k];

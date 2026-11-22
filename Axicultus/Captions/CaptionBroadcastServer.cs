@@ -60,7 +60,11 @@ public sealed class CaptionBroadcastServer : IDisposable
             builder.WebHost.ConfigureKestrel(options => options.Listen(IPAddress.Loopback, _port));
             var app = builder.Build();
             app.UseWebSockets();
-            app.MapGet("/", () => Results.Content(Page, "text/html; charset=utf-8"));
+            app.MapGet("/", (HttpContext context) =>
+            {
+                context.Response.Headers.CacheControl = "no-store"; // an updated Axicultus must never be shown an old page
+                return Results.Content(Page, "text/html; charset=utf-8");
+            });
             app.MapGet("/captions", ServeAsync);
             try { await app.StartAsync().ConfigureAwait(false); }
             catch { await app.DisposeAsync().ConfigureAwait(false); throw; }
@@ -149,9 +153,12 @@ public sealed class CaptionBroadcastServer : IDisposable
           else{score.removeAttribute('src');score.style.display='none'}
           if(c.Text)fit()}
         addEventListener('resize',fit);
+        /* After a lost connection (Axicultus restarted, maybe updated) reload once it is back, so OBS runs the new page. */
+        let lost=false;
         function connect(){const ws=new WebSocket('ws://'+location.host+'/captions');
+          ws.onopen=()=>{if(lost)location.reload()};
           ws.onmessage=e=>show(JSON.parse(e.data));
-          ws.onclose=()=>{show({Text:'',Color:'#FFFFFF',Box:true});setTimeout(connect,1000)};
+          ws.onclose=()=>{lost=true;show({Text:'',Color:'#FFFFFF',Box:true});setTimeout(connect,1000)};
           ws.onerror=()=>ws.close()}connect();</script></html>
         """;
 }

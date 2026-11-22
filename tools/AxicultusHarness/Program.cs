@@ -1234,6 +1234,15 @@ internal static class Program
         console.SettingsToggle.IsChecked = false;
         await Settle(1000);
         SaveWindowPicture(console, "pptcaption-score.png");
+        foreach (int size in new[] { 0, 2, 1 })
+        {
+            console.ScoreSizeBox.SelectedIndex = size;
+            await Settle(600);
+            var screen = _app.Windows.Cast<Window>().First(w => w.GetType().Name == "OutputWindow" && w.IsVisible);
+            var picture = (FrameworkElement)screen.FindName("LowerThirdImage");
+            Log("PPT", $"score only, size {size}: image={picture.ActualWidth:0}x{picture.ActualHeight:0}/{screen.ActualHeight:0} max={picture.MaxHeight:0} obs={captions.Published.ScoreHeight} text=\"{captions.PublicText}\"");
+            SaveWindowPicture(screen, $"score-only-size-{size}.png");
+        }
         console.ScoreAndText.IsChecked = true;
         await Settle(1500);
         Log("PPT", "score + text, row 1: " + Aired());

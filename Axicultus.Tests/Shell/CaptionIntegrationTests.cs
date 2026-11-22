@@ -24,6 +24,14 @@ public sealed class CaptionIntegrationTests
         using var server = new CaptionBroadcastServer(captions, 0);
         await server.StartAsync();
         using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(7));
+        using (var http = new System.Net.Http.HttpClient())
+        {
+            using var page = await http.GetAsync(server.Address, timeout.Token);
+            Assert.True(page.Headers.CacheControl?.NoStore); // OBS must load the current page after an update
+            var html = await page.Content.ReadAsStringAsync(timeout.Token);
+            Assert.Contains("location.reload()", html); // and reloads it when Axicultus comes back
+            Assert.Contains("c.ScoreHeight", html);
+        }
         var address = new UriBuilder(server.Address) { Scheme = "ws", Path = "/captions" }.Uri;
         captions.Publish("말씀 <&>");
         using var client = new ClientWebSocket();

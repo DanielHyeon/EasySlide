@@ -90,6 +90,7 @@ public sealed class ObsCaptionConnectionTests
         var inputs = new System.Collections.Generic.Dictionary<string, JsonNode>();
         var items = new System.Collections.Generic.List<(string Scene, string Source)>();
         string program = "설교";
+        int refreshes = 0;
         int Id(string scene, string source)
         {
             int index = items.IndexOf((scene, source));
@@ -131,6 +132,10 @@ public sealed class ObsCaptionConnectionTests
                         scenes[scene!].Add(name!);
                         reply = new { sceneItemId = Id(scene!, name!) }; break;
                     case "SetInputSettings": inputs[name!] = data!["inputSettings"]!.DeepClone(); break;
+                    case "PressInputPropertiesButton":
+                        Assert.Equal("refreshnocache", (string?)data?["propertyName"]);
+                        refreshes++;
+                        break;
                     case "GetSceneItemId":
                         ok = scenes[scene!].Contains(name!);
                         if (ok) reply = new { sceneItemId = Id(scene!, name!) };
@@ -181,6 +186,7 @@ public sealed class ObsCaptionConnectionTests
         Assert.Equal(("찬양", false), await client.AddCaptionSourceAsync(CaptionBroadcastServer.Url)); // the same source, not a second one
         Assert.Equal(["배경", "카메라", name], scenes["찬양"]);
         Assert.Single(inputs);
+        Assert.Equal(1, refreshes); // an existing source reloads its page (it may be from before an update)
 
         program = "설교";
         scenes["설교"].Remove("카메라");

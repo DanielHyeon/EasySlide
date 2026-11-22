@@ -204,6 +204,8 @@ public sealed partial class ObsConnection(string host, int port, string password
         else
         {
             await RequestAsync("SetInputSettings", new { inputName = CaptionSourceName, inputSettings = settings, overlay = true });
+            // The same URL does not reload the page; an old page (from before an update) would stay. Best effort.
+            await RequestAsync("PressInputPropertiesButton", new { inputName = CaptionSourceName, propertyName = "refreshnocache" }, optional: true);
             item = await RequestAsync("GetSceneItemId", new { sceneName = scene, sourceName = CaptionSourceName }, optional: true) is { } found
                 ? (int)found["sceneItemId"]!
                 : (int)(await RequestAsync("CreateSceneItem", new { sceneName = scene, sourceName = CaptionSourceName, sceneItemEnabled = true }))!["sceneItemId"]!;

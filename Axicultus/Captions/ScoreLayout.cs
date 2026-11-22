@@ -8,10 +8,10 @@ using System.Windows.Media.Imaging;
 namespace Axicultus.Wpf.Captions;
 
 /// <summary>
-/// Finds the rows of a score slide: each staff (five long horizontal lines) with the lyrics under it.
-/// The first row also takes what is above the first staff (the title); the last takes the rest of the slide.
+/// A row of a score slide: a staff (five long horizontal lines) with the notes just above it and the lyrics under it.
+/// The title, empty slide and background are left out, and every row of a slide is cut the same size, so each staff
+/// shows at the same scale on the camera.
 /// </summary>
-/// <summary>A row of a score slide, and where its staff lies (the lyrics are under it, the title above).</summary>
 internal sealed record ScoreRow(Int32Rect Area, int StaffTop, int StaffBottom);
 
 internal static class ScoreLayout
@@ -86,12 +86,40 @@ internal static class ScoreLayout
 
     private static ScoreRow[] Rows(List<Staff> staves, byte[] pixels, int width, int height, Func<byte, bool> ink)
     {
+        // Bounds no row may cross: the slide's top, the gaps between staves, the end of the last lyrics.
         var cuts = new List<int> { 0 };
         for (int k = 1; k < staves.Count; k++)
             cuts.Add(Gap(pixels, width, staves[k - 1], staves[k], ink));
-        cuts.Add(End(pixels, width, height, staves[^1], ink));
+        cuts.Add(height);
+
+        // How far each row's ink reaches above and below its staff: notes and clef above, notes and lyrics below.
+        var above = staves.Select((staff, k) => Above(pixels, width, staff, cuts[k], ink)).ToArray();
+        var below = staves.Select((staff, k) => End(pixels, width, cuts[k + 1], staff, ink) - staff.Bottom).ToArray();
+        // One size for every row. The last row's lyrics end is the least sure (buttons or a picture may follow),
+        // so the rows above it decide when there are any.
+        int up = above.Max();
+        int down = staves.Count > 1 ? below[..^1].Max() : Math.Min(below[0], (int)(10 * staves[0].Spacing));
+        int pad = Math.Max(2, (int)(staves[0].Spacing / 2));
+        // Same height, so the staves show the same size; each its own width, so no empty slide beside a shorter staff.
         return [.. staves.Select((staff, k) =>
-            new ScoreRow(Trim(pixels, width, Span(staff, width), cuts[k], Math.Max(cuts[k] + 1, cuts[k + 1]), ink), staff.Top, staff.Bottom))];
+        {
+            int top = Math.Max(cuts[k], staff.Top - up - pad), bottom = Math.Min(cuts[k + 1], staff.Bottom + down + pad);
+            return new ScoreRow(Trim(pixels, width, Span(staff, width), top, Math.Max(top + 1, bottom), ink), staff.Top, staff.Bottom);
+        })];
+    }
+
+    // Notes, ledger lines and the clef touch the staff from above; a title sits apart, past a clear gap.
+    private static int Above(byte[] pixels, int width, Staff staff, int limit, Func<byte, bool> ink)
+    {
+        var span = Span(staff, width);
+        int quiet = (span.Right - span.Left) / 200, blank = Math.Max(3, (int)(1.5 * staff.Spacing)), run = 0, reach = 0;
+        int most = (int)(5 * staff.Spacing);
+        for (int d = 1; d <= most && staff.Top - d >= limit; d++)
+        {
+            if (InkIn(pixels, width, span, staff.Top - d, ink) > quiet) { reach = d; run = 0; }
+            else if (++run >= blank) break;
+        }
+        return reach;
     }
 
     // Where a row's notes, lyrics and title can be: the staff's width and a little more. Everything is measured
@@ -109,18 +137,19 @@ internal static class ScoreLayout
         return count;
     }
 
-    // The last row ends after the lyrics under its staff when a clear gap follows (slide buttons, a footer).
-    private static int End(byte[] pixels, int width, int height, Staff last, Func<byte, bool> ink)
+    // A row ends after the lyrics under its staff when a clear gap follows (the next row, slide buttons, a footer),
+    // at the last ink before that gap; at limit at the latest.
+    private static int End(byte[] pixels, int width, int limit, Staff staff, Func<byte, bool> ink)
     {
-        var span = Span(last, width);
-        int quiet = (span.Right - span.Left) / 200, blank = Math.Max(3, (int)(2 * last.Spacing)), run = 0;
+        var span = Span(staff, width);
+        int quiet = (span.Right - span.Left) / 200, blank = Math.Max(3, (int)(2 * staff.Spacing)), run = 0, last = staff.Bottom;
         bool lyrics = false;
-        for (int y = last.Bottom + (int)last.Spacing; y < height; y++)
+        for (int y = staff.Bottom + (int)staff.Spacing; y < limit; y++)
         {
-            if (InkIn(pixels, width, span, y, ink) > quiet) { lyrics = true; run = 0; }
-            else if (lyrics && ++run >= blank) return Math.Min(height, y + 1);
+            if (InkIn(pixels, width, span, y, ink) > quiet) { lyrics = true; run = 0; last = y + 1; }
+            else if (lyrics && ++run >= blank) return last;
         }
-        return height;
+        return lyrics ? last : Math.Min(limit, staff.Bottom + (int)(2 * staff.Spacing)); // no lyrics: just the notes under the staff
     }
 
     // Left and right of the notes is empty slide; leaving it out makes the score larger on the camera.
