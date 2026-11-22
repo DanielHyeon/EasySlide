@@ -58,6 +58,8 @@
                               ToolTip="암호는 연결할 때 이 Windows 사용자 계정으로 암호화해 보관합니다. 빈칸이면 저장된 암호를 사용합니다."/>
                     <DockPanel Margin="0,8,0,0">
                         <TextBlock Text="OBS 브라우저 소스" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <Button x:Name="AddObsSource" DockPanel.Dock="Right" Content="OBS에 자막 소스 추가" Click="AddCaptionSource" Padding="8,3" Margin="4,0,0,0"
+                                ToolTip="OBS의 현재 프로그램 씬 맨 위에 자막 브라우저 소스를 캔버스 크기로 넣습니다. 다른 씬에서 다시 누르면 같은 소스를 그 씬에도 넣습니다."/>
                         <Button DockPanel.Dock="Right" Content="복사" Click="CopyBrowserUrl" Padding="8,3" Margin="4,0,0,0"/>
                         <TextBox IsReadOnly="True" Text="http://127.0.0.1:17948/" AutomationProperties.Name="OBS 자막 소스 주소"
                                  ToolTip="OBS 카메라 장면에 브라우저 소스로 추가하고 카메라 소스보다 위에 두세요. 크기는 캔버스와 같게."/>

@@ -821,6 +821,26 @@ public partial class CaptionConsole : Window
         Scenes.SelectedItem = status.Scene;
     }
 
+    private async void AddCaptionSource(object sender, RoutedEventArgs e)
+    {
+        // The caption server listens on this PC only, so OBS must run here too.
+        if (_obs.Host is not (ObsOperator.LocalHost or "localhost"))
+        {
+            Status.Text = "자막 소스는 OBS가 이 PC에서 실행될 때만 넣을 수 있습니다 (주소 127.0.0.1).";
+            return;
+        }
+        if (_obs.Connection is not { } connection) { Status.Text = "먼저 OBS에 연결하세요."; return; }
+        AddObsSource.IsEnabled = false;
+        try
+        {
+            await StartServerAsync();
+            var (scene, created) = await connection.AddCaptionSourceAsync(CaptionBroadcastServer.Url);
+            Status.Text = $"OBS '{scene}' 씬 맨 위에 '{ObsConnection.CaptionSourceName}' 소스를 {(created ? "추가했습니다" : "넣었습니다 (기존 소스)")}. 자막은 표시를 눌러야 나옵니다.";
+        }
+        catch (Exception ex) { Status.Text = "OBS 자막 소스 추가 실패 · " + ex.Message; }
+        finally { AddObsSource.IsEnabled = true; }
+    }
+
     private async void SwitchScene(object sender, RoutedEventArgs e)
     {
         if (_obs.Connection is not { } connection || Scenes.SelectedItem is not string scene) return;

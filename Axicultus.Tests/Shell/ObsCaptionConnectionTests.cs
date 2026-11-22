@@ -70,6 +70,125 @@ public sealed class ObsCaptionConnectionTests
         finally { finish.TrySetResult(); }
     }
 
+    private sealed class Ready : IProgress<ObsStatus>
+    {
+        public TaskCompletionSource Connected { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public void Report(ObsStatus value) { if (value.Connected) Connected.TrySetResult(); }
+    }
+
+    [Fact]
+    public async Task CaptionSourceIsCreatedOnTopOfTheProgramSceneAndReusedInOthers()
+    {
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+        var token = timeout.Token;
+        // A small OBS: scenes hold source names bottom to top; browser inputs keep their settings.
+        var scenes = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<string>>
+        {
+            ["설교"] = ["카메라"],
+            ["찬양"] = ["배경", "카메라"],
+        };
+        var inputs = new System.Collections.Generic.Dictionary<string, JsonNode>();
+        var items = new System.Collections.Generic.List<(string Scene, string Source)>();
+        string program = "설교";
+        int Id(string scene, string source)
+        {
+            int index = items.IndexOf((scene, source));
+            if (index < 0) { items.Add((scene, source)); index = items.Count - 1; }
+            return index + 1;
+        }
+
+        var builder = WebApplication.CreateSlimBuilder();
+        builder.Logging.ClearProviders();
+        builder.WebHost.ConfigureKestrel(k => k.Listen(IPAddress.Loopback, 0));
+        await using var server = builder.Build();
+        server.UseWebSockets();
+        server.MapGet("/", async context =>
+        {
+            using var socket = await context.WebSockets.AcceptWebSocketAsync();
+            await Send(0, new { rpcVersion = 1 });
+            await Read(); // Identify
+            await Send(2, new { negotiatedRpcVersion = 1 });
+            while (!token.IsCancellationRequested)
+            {
+                JsonNode request;
+                try { request = (await Read())["d"]!; } catch (IOException) { return; }
+                var id = (string?)request["requestId"];
+                var data = request["requestData"];
+                string? scene = (string?)data?["sceneName"], name = (string?)data?["inputName"] ?? (string?)data?["sourceName"];
+                object? reply = null;
+                bool ok = true;
+                switch ((string?)request["requestType"])
+                {
+                    case "GetSceneList":
+                        reply = new { currentProgramSceneName = program, scenes = scenes.Keys.Select(s => new { sceneName = s }) }; break;
+                    case "GetCurrentProgramScene": reply = new { currentProgramSceneName = program }; break;
+                    case "GetVideoSettings": reply = new { baseWidth = 1280, baseHeight = 720 }; break;
+                    case "GetInputList":
+                        Assert.Equal("browser_source", (string?)data?["inputKind"]);
+                        reply = new { inputs = inputs.Keys.Select(n => new { inputName = n }) }; break;
+                    case "CreateInput":
+                        inputs[name!] = data!["inputSettings"]!.DeepClone();
+                        scenes[scene!].Add(name!);
+                        reply = new { sceneItemId = Id(scene!, name!) }; break;
+                    case "SetInputSettings": inputs[name!] = data!["inputSettings"]!.DeepClone(); break;
+                    case "GetSceneItemId":
+                        ok = scenes[scene!].Contains(name!);
+                        if (ok) reply = new { sceneItemId = Id(scene!, name!) };
+                        break;
+                    case "CreateSceneItem":
+                        scenes[scene!].Add(name!);
+                        reply = new { sceneItemId = Id(scene!, name!) }; break;
+                    case "SetSceneItemEnabled": break;
+                    case "GetSceneItemList": reply = new { sceneItems = scenes[scene!].Select(s => new { sourceName = s }) }; break;
+                    case "SetSceneItemIndex":
+                        var moved = items[(int)data!["sceneItemId"]! - 1].Source;
+                        scenes[scene!].Remove(moved);
+                        scenes[scene!].Insert((int)data["sceneItemIndex"]!, moved);
+                        break;
+                    default: ok = false; break;
+                }
+                await Send(7, new { requestId = id, requestStatus = new { result = ok }, responseData = reply });
+            }
+
+            async Task Send(int op, object d) => await socket.SendAsync(JsonSerializer.SerializeToUtf8Bytes(new { op, d }).AsMemory(), WebSocketMessageType.Text, true, token);
+            async Task<JsonNode> Read()
+            {
+                using var stream = new MemoryStream();
+                var buffer = new byte[1024];
+                ValueWebSocketReceiveResult frame;
+                do
+                {
+                    frame = await socket.ReceiveAsync(buffer.AsMemory(), token);
+                    if (frame.MessageType != WebSocketMessageType.Text) throw new IOException("closed");
+                    stream.Write(buffer, 0, frame.Count);
+                } while (!frame.EndOfMessage);
+                return JsonNode.Parse(stream.ToArray())!;
+            }
+        });
+        await server.StartAsync(token);
+        var ready = new Ready();
+        await using var client = new ObsConnection(ObsOperator.LocalHost, new Uri(server.Urls.Single()).Port, "", ready);
+        client.Start();
+        await ready.Connected.Task.WaitAsync(token);
+
+        var name = ObsConnection.CaptionSourceName;
+        Assert.Equal(("설교", true), await client.AddCaptionSourceAsync(CaptionBroadcastServer.Url));
+        Assert.Equal(["카메라", name], scenes["설교"]); // above the camera
+        Assert.Equal((CaptionBroadcastServer.Url, 1280, 720),
+            ((string?)inputs[name]["url"], (int)inputs[name]["width"]!, (int)inputs[name]["height"]!)); // canvas-sized
+
+        program = "찬양";
+        Assert.Equal(("찬양", false), await client.AddCaptionSourceAsync(CaptionBroadcastServer.Url)); // the same source, not a second one
+        Assert.Equal(["배경", "카메라", name], scenes["찬양"]);
+        Assert.Single(inputs);
+
+        program = "설교";
+        scenes["설교"].Remove("카메라");
+        scenes["설교"].Add("카메라"); // the camera was moved over the caption
+        Assert.Equal(("설교", false), await client.AddCaptionSourceAsync(CaptionBroadcastServer.Url));
+        Assert.Equal(["카메라", name], scenes["설교"]); // back on top, not added twice
+    }
+
     [Fact]
     public async Task AuthenticatesReceivesManualSceneReportsPartialBatchAndReconnects()
     {

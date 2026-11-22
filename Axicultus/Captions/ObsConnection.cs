@@ -176,6 +176,53 @@ public sealed partial class ObsConnection(string host, int port, string password
         }
     }
 
+    public const string CaptionSourceName = "Axicultus 자막";
+
+    /// <summary>
+    /// Puts the caption browser source on top of the current program scene, canvas-sized. An existing source of that
+    /// name is reused (its URL and size refreshed), so pressing it in another scene adds the same source there.
+    /// Returns the scene name and whether the source was newly created.
+    /// </summary>
+    public async Task<(string Scene, bool Created)> AddCaptionSourceAsync(string url)
+    {
+        var connection = Volatile.Read(ref _active) ?? throw new IOException("OBS 연결을 기다리세요.");
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(_stop.Token);
+        timeout.CancelAfter(TimeSpan.FromSeconds(10));
+        var token = timeout.Token;
+
+        var scene = (string)(await RequestAsync("GetCurrentProgramScene", new { }))!["currentProgramSceneName"]!;
+        var video = (await RequestAsync("GetVideoSettings", new { }))!;
+        var settings = new { url, width = (int)video["baseWidth"]!, height = (int)video["baseHeight"]! };
+        var inputs = (await RequestAsync("GetInputList", new { inputKind = "browser_source" }))!["inputs"]!.AsArray();
+        bool created = !inputs.Any(input => (string?)input?["inputName"] == CaptionSourceName);
+        int item;
+        if (created)
+            item = (int)(await RequestAsync("CreateInput", new
+            {
+                sceneName = scene, inputName = CaptionSourceName, inputKind = "browser_source", inputSettings = settings, sceneItemEnabled = true
+            }))!["sceneItemId"]!;
+        else
+        {
+            await RequestAsync("SetInputSettings", new { inputName = CaptionSourceName, inputSettings = settings, overlay = true });
+            item = await RequestAsync("GetSceneItemId", new { sceneName = scene, sourceName = CaptionSourceName }, optional: true) is { } found
+                ? (int)found["sceneItemId"]!
+                : (int)(await RequestAsync("CreateSceneItem", new { sceneName = scene, sourceName = CaptionSourceName, sceneItemEnabled = true }))!["sceneItemId"]!;
+            await RequestAsync("SetSceneItemEnabled", new { sceneName = scene, sceneItemId = item, sceneItemEnabled = true });
+        }
+        // Index 0 is the bottom of OBS's source list; the caption must sit above the camera.
+        int top = (await RequestAsync("GetSceneItemList", new { sceneName = scene }))!["sceneItems"]!.AsArray().Count - 1;
+        await RequestAsync("SetSceneItemIndex", new { sceneName = scene, sceneItemId = item, sceneItemIndex = top });
+        return (scene, created);
+
+        async Task<JsonNode?> RequestAsync(string type, object args, bool optional = false)
+        {
+            var reply = await ExchangeAsync(connection, 6, id => new { requestId = id, requestType = type, requestData = args }, token);
+            if ((bool?)reply["requestStatus"]?["result"] == true) return reply["responseData"] ?? new JsonObject();
+            if (optional) return null;
+            throw new IOException(type + " · " + reply["requestStatus"]?["comment"]);
+        }
+    }
+
     public async Task<byte[]> ReadPreviewAsync(string source, CancellationToken cancellation)
     {
         var connection = Volatile.Read(ref _active) ?? throw new IOException("OBS 연결 대기");
