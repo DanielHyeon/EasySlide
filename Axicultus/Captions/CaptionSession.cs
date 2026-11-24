@@ -238,6 +238,14 @@ public sealed class CaptionSession : ObservableObject, IDisposable
     /// <summary>The box holding the lyrics read from the slide's picture.</summary>
     public const string RecognizedKey = "ocr:lyrics";
 
+    /// <summary>Text that reads as Korean lyrics: 4 Hangul syllables or more, and 60% or more of its letters.</summary>
+    internal static bool Lyrical(string text)
+    {
+        // (letters only: digits, punctuation and note signs read from a score do not count against it)
+        int syllables = text.Count(c => c is >= (char)0xAC00 and <= (char)0xD7A3), letters = text.Count(char.IsLetter); // Hangul syllables
+        return syllables >= 4 && syllables >= 0.6 * letters;
+    }
+
     /// <summary>
     /// Sets the slide's recognized lyrics box. staves: they were read under staves found in the picture (a score, not a
     /// photo); then they also become the slide's whole text when that says little (a page mark over the score).
@@ -247,7 +255,7 @@ public sealed class CaptionSession : ObservableObject, IDisposable
         if (Deck is null || slide < 1 || slide > Deck.Slides.Length) return;
         var current = Deck.Slides[slide - 1];
         var boxes = current.Boxes.Where(box => box.Key != RecognizedKey);
-        if (staves && text.Length > 0)
+        if (staves && Lyrical(text))
             boxes = boxes.Select(box => box.Key == CaptionDeck.AllTextKey && CaptionDeck.ShortText(box.Text) ? box with { Text = text } : box);
         Deck.Slides[slide - 1] = current with { Boxes = [.. boxes, new(RecognizedKey, "그림 속 가사 (자동 인식)", text)] };
         if (slide == CurrentSlide) Resend();

@@ -296,11 +296,16 @@ public sealed record CaptionDeck(string Path, CaptionSlide[] Slides)
     public const string AllTextKey = "slide:all";
 
     /// <summary>
-    /// The whole-text box of texts already in reading order: one line apart, blank lines kept to one. A text that is
+    /// The whole-text box of texts already in reading order: one line apart, blank lines kept to one, each line trimmed
+    /// and its runs of white space made one space. A text that is
     /// only a number mark in ASCII digits ("1", "2.", "(3)", "2/4", "3-4", "12/16": a verse badge, a page mark) is left out.
     /// </summary>
     internal static CaptionBox AllText(IEnumerable<string> texts) => new(AllTextKey, "슬라이드 전체 글자",
-        Regex.Replace(string.Join("\n", texts.Where(text => !string.IsNullOrWhiteSpace(text) && !NumberMark.IsMatch(text.Trim()))), @"\n\s*\n", "\n\n").Trim());
+        Regex.Replace(string.Join("\n", string.Join("\n", texts.Where(text => !string.IsNullOrWhiteSpace(text) && !NumberMark.IsMatch(text.Trim())))
+            .Split('\n').Select(line => Spaces.Replace(line, " ").Trim())), @"\n\s*\n", "\n\n").Trim());
+
+    // A run of white space inside a line, no-break and full-width spaces too (lyrics spaced out syllable by syllable).
+    private static readonly Regex Spaces = new(@"[^\S\n]+", RegexOptions.CultureInvariant);
 
     private static readonly Regex NumberMark = new(@"^\(?[0-9]{1,2}(\.|\)|[/-][0-9]{1,2})?$", RegexOptions.CultureInvariant);
 

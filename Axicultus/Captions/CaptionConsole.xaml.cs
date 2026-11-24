@@ -629,6 +629,7 @@ public partial class CaptionConsole : Window
     // thread) when dropped; each picture is measured from itself alone, so it is cut the same however often it is read.
     internal const long PictureCache = 256L << 20;
     private (CaptionDeck Deck, HashSet<int> Slides, RowExtent Target)? _scoreDeck;
+    private (CaptionDeck Deck, HashSet<int> Slides)? _noStaves;
     private CaptionDeck? _preparingScore;
     private Task _scorePrepared = Task.CompletedTask;
     private CancellationTokenSource? _preparation;
@@ -733,6 +734,7 @@ public partial class CaptionConsole : Window
     {
         _preparingScore = deck;
         _scoreDeck = null;
+        _noStaves = null;
         _pictures.Clear();
         var slides = deck.Slides.ToArray();
         var failures = new System.Collections.Concurrent.ConcurrentQueue<(int Slide, Exception Error)>();
@@ -743,6 +745,9 @@ public partial class CaptionConsole : Window
             foreach (var (slide, error) in failures) _errors.Write($"악보 그림 읽기 · {slide}장", error);
             foreach (var (slide, picture) in found) if (picture is var (image, page)) _pictures.Keep((deck.Path, slide), image, page);
             _scoreDeck = (deck, [.. found.Keys], target);
+            // The slides whose content picture was read and measured and shows no staff (a photo); not one that failed.
+            var failed = failures.Select(f => f.Slide).ToHashSet();
+            _noStaves = (deck, [.. Enumerable.Range(1, slides.Length).Where(n => slides[n - 1].Picture != null && !found.ContainsKey(n) && !failed.Contains(n))]);
         }
         catch (OperationCanceledException) { throw; } // another deck came: its own preparation runs
         catch (Exception error) // never left waiting: the whole deck comes from the render
@@ -840,7 +845,11 @@ public partial class CaptionConsole : Window
                     if (await RenderSlideAsync(deck.Path, slide) is not var (image, bytes, type)) continue;
                     file = Path.Combine(folder, $"{slide}{(type.Contains("jp", StringComparison.OrdinalIgnoreCase) ? ".jpg" : ".png")}");
                     await File.WriteAllBytesAsync(file, bytes, _lifetime.Token);
-                    layouts[file] = (slide, ScoreLayout.FindRows(image));
+                    // A slide whose content picture was measured and shows no staff is a photo, whatever lines its render
+                    // seems to have (a roof's planks read as a staff): its lines are read as they are, under no staff. When that
+                    // could not be told (no preparation, a picture that failed to read) the render's rows are used.
+                    bool photo = _noStaves is { } measured && ReferenceEquals(measured.Deck, deck) && measured.Slides.Contains(slide);
+                    layouts[file] = (slide, photo ? [] : ScoreLayout.FindRows(image));
                 }
                 files.Add(file);
             }
@@ -890,8 +899,13 @@ public partial class CaptionConsole : Window
     private void OfferRecognizedLyrics(CaptionDeck deck)
     {
         var key = _chosenKey;
+        // (empty on every slide, or the same on two slides or more; one slide's typed text is no verse button, unless it
+        // says little (a title) and what was read reads as lyrics)
+        var texts = deck.Slides.Select(s => s.Boxes.FirstOrDefault(b => b.Key == key)?.Text ?? "").ToList();
         bool sameEverywhere = key != CaptionSession.RecognizedKey &&
-            deck.Slides.Select(s => s.Boxes.FirstOrDefault(b => b.Key == key)?.Text ?? "").Distinct().Count() <= 1;
+            (texts.All(text => text.Length == 0) || texts.Count >= 2 && texts.Distinct().Count() == 1
+                || texts.Count == 1 && CaptionDeck.ShortText(texts[0])
+                    && CaptionSession.Lyrical(deck.Slides[0].Boxes.FirstOrDefault(b => b.Key == CaptionSession.RecognizedKey)?.Text ?? ""));
         RefreshBoxes(sameEverywhere ? CaptionSession.RecognizedKey : key);
         if (sameEverywhere) Status.Text = "그림 속 가사를 자막으로 씁니다. 텍스트 상자에서 바꿀 수 있습니다.";
     }
@@ -1077,6 +1091,7 @@ public partial class CaptionConsole : Window
         _captions.SetImage(null);
         StopScorePreparation();
         _scoreDeck = null;
+        _noStaves = null;
         _pictures.Clear();
         _rowThumbs.Clear();
         (_shownRows, _nextRow) = (null, null);

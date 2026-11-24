@@ -257,7 +257,7 @@ public sealed partial class CaptionConsoleTests
     {
         static OcrLine At(int center, string text) => new([new OcrWord(text, 100, center - 10, 200, 20)]);
         var slide = int.Parse(Path.GetFileNameWithoutExtension(file));
-        return photos.Contains(slide) ? new OcrPage(file, null, [At(50, "사진 속 간판")])
+        return photos.Contains(slide) ? new OcrPage(file, null, [At(177, "사진 속 간판")])
             : new OcrPage(file, null, [At(177, $"{slide}장 첫 줄"), At(357, $"{slide}장 둘째 줄")]);
     })];
 
@@ -278,6 +278,98 @@ public sealed partial class CaptionConsoleTests
 
         public void ClearCache() { }
     }
+
+    // A renderer whose slides all show two staves with a lyric line under each, at the heights ReadLyrics puts its
+    // lines (a photo's roof planks read as five lines look like this too).
+    private sealed class StaffRender : IPowerPointRenderService
+    {
+        public Task<PowerPointRenderResult> RenderSlideAsync(PowerPointRenderRequest request, CancellationToken cancellationToken = default)
+        {
+            var encoder = new System.Windows.Media.Imaging.PngBitmapEncoder();
+            encoder.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(ScoreSlide(false, 90, 260)));
+            using var stream = new MemoryStream();
+            encoder.Save(stream);
+            return Task.FromResult(new PowerPointRenderResult(PowerPointRenderErrorKind.None,
+                new PowerPointSlideSnapshot(request.FilePath, request.SlideNumber, 2, 1200, 800, stream.ToArray(), "image/png", DateTimeOffset.UtcNow), null, false, TimeSpan.Zero));
+        }
+
+        public void ClearCache() { }
+    }
+
+    [Fact]
+    public Task AOneSlideDeckWithTypedTextKeepsItsTextAfterTheLyricsAreRead() => WithConsole(async (console, session, directory) =>
+    {
+        console.ReadLyrics = (files, _) => Task.FromResult(ReadLyrics(files));
+        // One slide: the choir's typed words under a picture (the "same on every slide" of one slide proves nothing).
+        var typed = CaptionAllTextTests.WriteDeck(directory.CreateSubdirectory("typed").FullName, [CaptionScorePictureTests.ScorePng()],
+            CaptionAllTextTests.ScoreSlide(0, "할렐루야 찬양대 찬양하네 빛 되신 구주"));
+        Assert.True(await console.PrepareDeckAsync(typed, 1));
+        await console.ScorePreparation;
+        await console.LyricsReading;
+        Assert.Equal(CaptionDeck.AllTextKey, Assert.IsType<CaptionBox>(console.Settings.Boxes.SelectedItem).Key);
+        Assert.Equal("할렐루야 찬양대 찬양하네 빛 되신 구주", session.TextFor(1, CaptionDeck.AllTextKey));
+        // One slide with nothing typed: the lyrics read are the caption.
+        var empty = CaptionAllTextTests.WriteDeck(directory.CreateSubdirectory("empty").FullName, [CaptionScorePictureTests.ScorePng()],
+            CaptionAllTextTests.ScoreSlide(0));
+        Assert.True(await console.PrepareDeckAsync(empty, 1));
+        await console.ScorePreparation;
+        await console.LyricsReading;
+        Assert.Equal(CaptionSession.RecognizedKey, Assert.IsType<CaptionBox>(console.Settings.Boxes.SelectedItem).Key);
+    });
+
+    [Fact]
+    public Task AOneSlideDeckWithAShortTitleSwitchesToLyricsThatReadAsLyrics() => WithConsole(async (console, session, directory) =>
+    {
+        static OcrPage[] Read(IReadOnlyList<string> files, string line) =>
+            [.. files.Select(file => new OcrPage(file, null, [new OcrLine([new OcrWord(line, 100, 167, 200, 20)])]))];
+        // A short title over the lyrics picture: Korean lyrics read from it become the caption.
+        console.ReadLyrics = (files, _) => Task.FromResult(Read(files, "주 하나님 지으신 모든 세계"));
+        var lyrics = CaptionAllTextTests.WriteDeck(directory.CreateSubdirectory("lyrics").FullName, [CaptionScorePictureTests.ScorePng()],
+            CaptionAllTextTests.ScoreSlide(0, "찬양대 2부"));
+        Assert.True(await console.PrepareDeckAsync(lyrics, 1));
+        await console.ScorePreparation;
+        await console.LyricsReading;
+        Assert.Equal(CaptionSession.RecognizedKey, Assert.IsType<CaptionBox>(console.Settings.Boxes.SelectedItem).Key);
+        // The same with a misread photo: the title stays.
+        console.ReadLyrics = (files, _) => Task.FromResult(Read(files, "하*날1까 `"));
+        var photo = CaptionAllTextTests.WriteDeck(directory.CreateSubdirectory("photo").FullName, [CaptionScorePictureTests.ScorePng()],
+            CaptionAllTextTests.ScoreSlide(0, "찬양대 2부"));
+        Assert.True(await console.PrepareDeckAsync(photo, 1));
+        await console.ScorePreparation;
+        await console.LyricsReading;
+        Assert.Equal(CaptionDeck.AllTextKey, Assert.IsType<CaptionBox>(console.Settings.Boxes.SelectedItem).Key);
+        Assert.Equal("찬양대 2부", session.TextFor(1, CaptionDeck.AllTextKey));
+    });
+
+    [Fact]
+    public Task APictureThatCouldNotBeMeasuredLeavesTheRenderItsStaves() => WithConsole(async (console, session, directory) =>
+    {
+        // The content picture is damaged: whether it shows staves is not known, so the render's staves count.
+        var path = CaptionAllTextTests.WriteDeck(directory.FullName, [[0x89, 0x50, 0x4E, 0x47, 1, 2, 3, 4, 5, 6, 7, 8]], CaptionAllTextTests.ScoreSlide(0));
+        console.ReadLyrics = (files, _) => Task.FromResult(ReadLyrics(files));
+        Assert.True(await console.PrepareDeckAsync(path, 1));
+        await console.ScorePreparation;
+        await console.LyricsReading;
+        Assert.Equal("1장 첫 줄\n1장 둘째 줄", session.Deck!.Slides[0].Boxes[0].Text);
+    }, render: new StaffRender());
+
+    [Fact]
+    public Task APhotoWhoseRenderLooksLikeAStaffDoesNotReplaceTheWholeText() => WithConsole(async (console, session, directory) =>
+    {
+        // 1: a photo as the slide's content picture (no staves on it), whose render shows five lines; 2: a score cut in two
+        // pieces (no content picture: the render is its picture). Neither has text; both renders show a staff.
+        string Pieces() => "<p:spTree>" + CaptionScorePictureTests.Image(0, CaptionScorePictureTests.Full, 1600000)
+            + CaptionScorePictureTests.Image(0, CaptionScorePictureTests.Full, 2400000, y: 2000000) + "</p:spTree>";
+        var path = CaptionAllTextTests.WriteDeck(directory.FullName, [CaptionScorePictureTests.ScorePng(), CaptionAllTextTests.Png(64, 36)],
+            CaptionAllTextTests.ScoreSlide(1), Pieces());
+        console.ReadLyrics = (files, _) => Task.FromResult(ReadLyrics(files, 1));
+        Assert.True(await console.PrepareDeckAsync(path, 1));
+        await console.ScorePreparation;
+        await console.LyricsReading;
+        Assert.Equal("", session.Deck!.Slides[0].Boxes[0].Text); // the photo's text replaces nothing
+        Assert.Equal("사진 속 간판", session.Deck.Slides[0].Boxes.Single(box => box.Key == CaptionSession.RecognizedKey).Text);
+        Assert.Equal("2장 첫 줄\n2장 둘째 줄", session.Deck.Slides[1].Boxes[0].Text); // the score in pieces still does
+    }, render: new StaffRender());
 
     private static readonly System.Reflection.BindingFlags Private = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
 
@@ -622,7 +714,7 @@ public sealed partial class CaptionConsoleTests
     });
 
     // A slide like the hymn decks: title, then staves with a lyric line under each, at uneven heights.
-    private static System.Windows.Media.Imaging.BitmapSource ScoreSlide(bool lightOnDark, params int[] staffTops)
+    internal static System.Windows.Media.Imaging.BitmapSource ScoreSlide(bool lightOnDark, params int[] staffTops)
     {
         const int width = 1200, height = 800;
         byte paper = lightOnDark ? (byte)20 : (byte)235, ink = lightOnDark ? (byte)240 : (byte)15;

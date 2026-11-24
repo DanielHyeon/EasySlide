@@ -336,6 +336,39 @@ public sealed class CaptionAllTextTests
     }
 
     [Fact]
+    public void OnlyTextThatReadsAsKoreanLyricsReplacesAScoreSlidesWholeText()
+    {
+        using var session = new CaptionSession(new LiveSessionService());
+        CaptionSlide Empty() => new([new(CaptionDeck.AllTextKey, "슬라이드 전체 글자", "")], true);
+        session.Prepare(new CaptionDeck("deck.pptx", [Empty(), Empty(), Empty(), Empty(), Empty()]));
+        session.AddRecognized(1, "하*날1까 `", staves: true);                 // three syllables (a photo misread)
+        session.AddRecognized(2, "주 하나님 love you all", staves: true);   // four syllables, a quarter of the letters
+        session.AddRecognized(3, "주 하나님 지으신", staves: true);          // lyrics
+        session.AddRecognized(4, "주 하나님 지으신");                         // not under staves
+        session.AddRecognized(5, "주하나님 abc", staves: true);              // four syllables of seven letters: 57%
+        Assert.Equal(["", "", "주 하나님 지으신", "", ""], session.Deck!.Slides.Select(slide => slide.Boxes[0].Text));
+        Assert.Equal("하*날1까 `", session.TextFor(1, CaptionSession.RecognizedKey)); // the recognized box keeps what was read
+        // Only letters count: digits, punctuation and note signs read from a score do not.
+        Assert.True(CaptionSession.Lyrical("1. 주 하나님 (2x)!!"));        // 4 syllables of 5 letters
+        Assert.False(CaptionSession.Lyrical("1. 주 J 하 | 나 o 님 (2x)")); // 4 of 7 letters: 57%
+        Assert.False(CaptionSession.Lyrical("하*날1까 `"));                 // 3 syllables
+    }
+
+    [Fact]
+    public void RunsOfSpacesInsideALineOfTheWholeTextBecomeOneSpace() => StaHelper.RunOnSta(() => InFolder(folder =>
+    {
+        var path = WriteDeck(folder, [],
+            Tree(Box("가사", 600000, 300000, 10000000, 1200000, "겟 세    마  네  동  산", "  주님의\t\t땀  ")));
+        Assert.Equal("겟 세 마 네 동 산\n주님의 땀", CaptionDeck.Read(path).Slides[0].Boxes[0].Text);
+        var old = CaptionDeck.WithAllText(new CaptionSlide([new("shape:A", "A", "겟 세    마  네\n\t 동 산  ")]));
+        Assert.Equal("겟 세 마 네\n동 산", old.Boxes[0].Text);
+        // No-break and full-width spaces too.
+        var wide = CaptionDeck.WithAllText(new CaptionSlide([new("shape:A", "A", "성령의  불길　타오르네 ")]));
+        Assert.Equal("성령의 불길 타오르네", wide.Boxes[0].Text);
+        return 0;
+    }));
+
+    [Fact]
     public void ABoxMissingOnTheNextSlideGivesThatSlidesWholeTextInsteadOfNothing() => StaHelper.RunOnSta(() => InFolder(folder =>
     {
         using var session = new CaptionSession(new LiveSessionService());
