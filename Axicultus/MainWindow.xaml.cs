@@ -3954,8 +3954,7 @@ public partial class MainWindow : Window
                 _services.GetService<Rendering.IPowerPointRenderService>()) { Owner = this };
             _captionConsole.Closed += (_, _) => _captionConsole = null;
         }
-        _captionConsole.Show();
-        _captionConsole.Activate();
+        _captionConsole.ShowOnScreen(); // placed on its screen each time it is shown
     }
 
     private OutputFormatWindow? _outputFormat;

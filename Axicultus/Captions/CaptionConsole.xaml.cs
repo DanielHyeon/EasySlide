@@ -46,8 +46,9 @@ public partial class CaptionConsole : Window
         : this(main, captions, server, store, camera, obs, OperationalErrorLog.Default, render) { }
 
     internal CaptionConsole(MainViewModel main, CaptionSession captions, CaptionBroadcastServer server, CaptionRecoveryStore store, CameraOwnership camera, ObsOperator obs, OperationalErrorLog errors,
-        IPowerPointRenderService? render = null)
+        IPowerPointRenderService? render = null, Func<IReadOnlyList<CaptionScreen>>? screens = null)
     {
+        _screens = screens ?? CaptionWindowPlacement.Screens; // (tests give the screens)
         _render = render;
         _errors = errors;
         _editor = new(captions);
@@ -60,12 +61,23 @@ public partial class CaptionConsole : Window
         _plan = main.CurrentWorshipListName;
         captions.BeginPlan(_plan);
         captions.SetVisible(false); // a new console starts hidden; the Show button puts the caption on air
+        Settings = new CaptionSettingsWindow();
         InitializeComponent();
+        WireSettings();
+        _placementPath = Path.Combine(Path.GetDirectoryName(obs.ProfilePath) ?? "", CaptionWindowPlacement.FileName);
+        TrackPlacement();
+        PreviewMouseUp += ReleaseClickFocus;
+        WatchLookLists();
+        TopBar.SizeChanged += NarrowTopBar;
         LinesBox.SelectedIndex = captions.CaptionLines - 1;
         ScoreSizeBox.SelectedIndex = captions.ScoreSize;
         DisplayRadio().IsChecked = true;
-        ObsPreviewBox.SizeChanged += (_, _) => FitPreview();
-        CameraControls.DataContext = camera; // before the window's own, or the camera bindings look at the editor first
+        // The previews are camera screens of one size, scaled to fit: the caption is laid out as on the output screen.
+        PreviewCaption.Fit(new Size(1920, 1080));
+        NextCaption.Fit(new Size(1920, 1080));
+        HeldCaption.Fit(new Size(1920, 1080));
+        // before the window's own, or the camera bindings look at the editor first
+        CameraPreview.DataContext = CameraStatus.DataContext = Settings.CameraControls.DataContext = camera;
         DataContext = _editor;
         _editor.SaveRequested += Changed;
         Host.Text = obs.Host;
@@ -108,23 +120,18 @@ public partial class CaptionConsole : Window
         _camera.PropertyChanged += CameraChanged;
         _main.QueueReplacing += BeforeQueueReplacement;
         _camera.ReleaseLocalCamera += OnCameraRelease;
-        Closing += (_, e) => { if (!_ending) { e.Cancel = true; Hide(); } };
-        PreviewKeyDown += (_, e) =>
+        Closing += (_, e) =>
         {
-            if (_obs.TrySceneShortcut(e)) { e.Handled = true; return; }
-            if (e.Key == Key.Escape && !_editor.IsComposing && !e.IsRepeat)
-            {
-                _editor.HideCommand.Execute(null);
-                e.Handled = true;
-            }
-            else if (e.Key is Key.Up or Key.Down && ScreenPanel.IsVisible && e.OriginalSource is not TextBox and not ComboBox)
-            {
-                Step(e.Key == Key.Down ? 1 : -1);
-                e.Handled = true;
-            }
+            KeepPlacement();
+            if (_ending) { Settings.Ending = true; return; } // the settings window closes with the console
+            e.Cancel = true;
+            Hide();
+            Settings.Hide();
         };
+        PreviewKeyDown += OnKey;
         _main.PropertyChanged += MainChanged;
         _captions.PropertyChanged += CaptionChanged;
+        UpdateHeld();
         Loaded += LoadRecovery;
         Closed += OnConsoleClosed;
         if (captions.Deck is { } deck) ShowDeck(deck, captions.CurrentSlide, captions.BoxKey is { Length: > 0 } key ? key : CaptionDeck.AllTextKey);
@@ -217,6 +224,9 @@ public partial class CaptionConsole : Window
     {
         // The choice changed elsewhere: its radio shows it (checking it writes back the same choice, which changes nothing).
         if (e.PropertyName == nameof(CaptionSession.Display) && DisplayRadio() is { IsChecked: not true } radio) radio.IsChecked = true;
+        if (e.PropertyName is nameof(CaptionSession.Visible) or nameof(CaptionSession.ScreenOff) or nameof(CaptionSession.HasText)
+            or nameof(CaptionSession.ReadyText) or nameof(CaptionSession.ReadyImage) or nameof(CaptionSession.Style)) UpdateHeld();
+        if (e.PropertyName == nameof(CaptionSession.Style)) UpdateSteps(); // the next preview in the new look
         if (e.PropertyName is nameof(CaptionSession.CurrentSlide) or nameof(CaptionSession.Following))
         {
             if (e.PropertyName == nameof(CaptionSession.CurrentSlide)) _scoreRow = 0;
@@ -286,7 +296,7 @@ public partial class CaptionConsole : Window
         // Without its deck the recovery is not half applied (the draft and the worship list stay as they are).
         if (saved.DeckPath is { } missing && !File.Exists(missing))
         {
-            Status.Text = $"복구할 PPT를 찾을 수 없어 복구하지 않았습니다 · {Path.GetFileName(missing)}";
+            Told = $"복구할 PPT를 찾을 수 없어 복구하지 않았습니다 · {Path.GetFileName(missing)}";
             return;
         }
         _editor.IsRestoring = true;
@@ -322,7 +332,7 @@ public partial class CaptionConsole : Window
             }
             _captions.History.Clear();
             _captions.History.AddRange(saved.History);
-            Status.Text = warning ?? "편집을 복구했습니다. 송출할 문구를 확인하세요.";
+            Told = warning ?? "편집을 복구했습니다. 송출할 문구를 확인하세요.";
         }
         finally { _editor.IsRestoring = false; }
     }
@@ -336,7 +346,7 @@ public partial class CaptionConsole : Window
 
     private void ToggleCamera(object sender, RoutedEventArgs e)
     {
-        if (CameraControls.DataContext is CameraOwnership { ObsOwnsCamera: true }) return;
+        if (_camera.ObsOwnsCamera) return;
         _main.ToggleOutputCameraCommand.Execute(null);
     }
     // Enter (or Ctrl+Enter) sends the line and empties the box; Shift+Enter is a new line.
@@ -380,7 +390,7 @@ public partial class CaptionConsole : Window
     // Reads the deck again: the one on the output screen, or the selected one.
     private async void OpenLiveDeck(object sender, RoutedEventArgs e)
     {
-        if (FindCurrentDeck(includeSelected: true) is not var (path, slide)) { Status.Text = "송출 화면이나 선택한 항목에 PPT가 없습니다."; return; }
+        if (FindCurrentDeck(includeSelected: true) is not var (path, slide)) { Told = "송출 화면이나 선택한 항목에 PPT가 없습니다."; return; }
         if (await PrepareDeckAsync(path, slide) && ScreenMode.IsChecked == true) FollowLoadedDeck();
     }
 
@@ -388,12 +398,16 @@ public partial class CaptionConsole : Window
         a != null && string.Equals(Path.GetFullPath(a), Path.GetFullPath(b), StringComparison.OrdinalIgnoreCase);
 
     private string? _readingDeck;
+    private int _outputSlide; // the output panel's slide when last seen (not live)
+
+    /// <summary>The deck on the output screen and its slide (a test puts a stand-in here; else the live show or output panel).</summary>
+    internal Func<(string Path, int Slide)?>? ScreenDeck { get; set; }
 
     // Screen mode follows the output screen whether or not the show is live: its deck, or else its text.
     private async Task SyncScreenAsync()
     {
         if (_closed || ScreenMode.IsChecked != true || !IsLoaded) return;
-        if (FindCurrentDeck(includeSelected: false) is var (path, slide))
+        if ((ScreenDeck ?? (() => FindCurrentDeck(includeSelected: false)))() is var (path, slide))
         {
             if (_captions.Deck == null || !SamePath(_captions.Deck.Path, path))
             {
@@ -402,14 +416,18 @@ public partial class CaptionConsole : Window
                 _readingDeck = path;
                 try { if (!await PrepareDeckAsync(path, slide)) return; }
                 finally { _readingDeck = null; }
-                FollowLoadedDeck();
+                FollowLoadedDeck(slide);
                 return;
             }
-            if (!_captions.Following) FollowLoadedDeck();
-            // Not live: the output panel's slide drives the caption (live, the session does).
+            if (!_captions.Following) FollowLoadedDeck(slide); // the slide the screen shows now, not the one last viewed
+            // Not live: a turn of the output panel drives the caption (live, the session does); a caption the operator
+            // moved stays until the panel turns.
             else if (_main.Session.Current.State == LiveState.Off && SamePath(_main.OutputPowerPoint.LoadedContentPath, path)
-                && _main.OutputPowerPoint.SlideNumber >= 1 && _main.OutputPowerPoint.SlideNumber != _captions.CurrentSlide)
-                _captions.MoveToSlide(_main.OutputPowerPoint.SlideNumber);
+                && _main.OutputPowerPoint.SlideNumber >= 1 && _main.OutputPowerPoint.SlideNumber != _outputSlide)
+            {
+                _outputSlide = _main.OutputPowerPoint.SlideNumber;
+                if (_outputSlide != _captions.CurrentSlide) _captions.MoveToSlide(_outputSlide);
+            }
             UpdateScore();
             return;
         }
@@ -420,10 +438,12 @@ public partial class CaptionConsole : Window
         Status.Text = _main.HasOutputLyricsText ? "송출 화면의 자막을 따라가는 중" : "송출 화면에 자막으로 보낼 글자가 없습니다.";
     }
 
-    private void FollowLoadedDeck()
+    // slide: the one the output screen shows (else the one viewed in the settings window).
+    private void FollowLoadedDeck(int? slide = null)
     {
         if (_captions.Deck == null) return;
-        _captions.Follow(SelectedSlide, _chosenKey);
+        _captions.Follow(slide ?? SelectedSlide, _chosenKey);
+        _outputSlide = _main.OutputPowerPoint.SlideNumber;
         Status.Text = $"PPT 자막 따라가는 중 · {Path.GetFileName(_captions.Deck.Path)}";
         UpdateScore();
         Changed();
@@ -449,6 +469,7 @@ public partial class CaptionConsole : Window
             _captions.Publish(_editor.DraftText, show: false);
             Status.Text = "직접 입력한 자막을 송출합니다.";
             Draft.Focus();
+            UpdateSteps(); // no deck is followed now
         }
     }
 
@@ -458,10 +479,7 @@ public partial class CaptionConsole : Window
 
     // Auto / text only / score only / score and text. Auto: the score where the slide's content picture shows staves
     // (until the deck's pictures are measured, a slide with one waits for them with its text on air), else the text.
-    private bool ScoreOn => ScoreOnly.IsChecked == true || ScoreAndText.IsChecked == true
-        || AutoShow.IsChecked == true && _captions.Deck is { } deck && _captions.CurrentSlide <= deck.Slides.Length
-            && deck.Slides[_captions.CurrentSlide - 1].Picture != null
-            && (_scoreDeck is not { } prepared || !ReferenceEquals(prepared.Deck, deck) || prepared.Slides.Contains(_captions.CurrentSlide));
+    private bool ScoreOn => ScoreOnFor(_captions.CurrentSlide);
 
     private void ScoreChanged(object sender, RoutedEventArgs e)
     {
@@ -481,6 +499,12 @@ public partial class CaptionConsole : Window
 
     private void UpdateScore()
     {
+        UpdateScoreCore();
+        UpdateSteps();
+    }
+
+    private void UpdateScoreCore()
+    {
         _rowShown = false;
         if (!ScoreOn || ScreenMode.IsChecked != true || !_captions.Following || _captions.Deck is not { } deck)
         {
@@ -493,6 +517,7 @@ public partial class CaptionConsole : Window
         static bool Same(string? a, string b) => a != null && string.Equals(Path.GetFullPath(a), b, StringComparison.OrdinalIgnoreCase);
         BitmapSource? image = null;
         ScoreRow[]? measured = null;
+        ScorePage? shownPage = null;
         bool rendered = true;
         // The score picture inside the deck first (no background, no wait for PowerPoint); the deck's pictures are read
         // before its first row is cut, so every row has the deck's one size. Meanwhile no row (of the last song) is on air.
@@ -511,7 +536,7 @@ public partial class CaptionConsole : Window
                 // Measured once, off the UI thread: only cut here.
                 // (while it is read again, the last row does not stay on air)
                 if (ContentPicture(deck, _captions.CurrentSlide) is not var (picture, page)) { _captions.SetImage(null); Status.Text = "악보 그림을 만드는 중…"; return; }
-                (image, measured, rendered) = (picture, page.Fit(prepared.Target), false);
+                (image, measured, rendered, shownPage) = (picture, page.Fit(prepared.Target), false, page);
                 _pictures.OnAir = (deck.Path, _captions.CurrentSlide);
                 int sent = Math.Clamp(_scoreRow, 0, measured.Length - 1);
                 measured[sent] = measured[sent] with { Erase = page.Erase(sent) };
@@ -541,11 +566,10 @@ public partial class CaptionConsole : Window
         // With the recognized lyrics as the caption, the row shown gets its own line of them.
         // (the recognized lyrics box, or the whole text they replaced: the caption is the lyrics read on this slide)
         int current = _captions.CurrentSlide;
-        string? rowLyrics = withText && deck.Slides[current - 1].Boxes.FirstOrDefault(b => b.Key == CaptionSession.RecognizedKey)?.Text is { Length: > 0 } read
-            && _captions.TextFor(current, _captions.BoxKey) == read
-            && _rowLyrics.TryGetValue((deck.Path, current), out var lyrics) && lyrics.Length == rows ? lyrics[_scoreRow] : null;
+        string? rowLyrics = withText ? RowLyrics(deck, current, _scoreRow, rows) : null;
         _captions.SetImage(cropped, withText, rowLyrics);
         _rowShown = true;
+        _shownRows = (image, shownPage, _scoreDeck?.Target ?? default);
         DeckLabel.Visibility = Visibility.Visible;
         ScoreRowLabel.Text = $"PPT {_captions.CurrentSlide}/{deck.Slides.Length}장 · " +
             (found ? $"{_scoreRow + 1}/{rows}줄" : $"{(_scoreRow == 0 ? "위" : "아래")} 절반 (악보 줄을 찾지 못함)");
@@ -572,6 +596,7 @@ public partial class CaptionConsole : Window
         {
             if (await RenderSlideAsync(path, slide) is not { } rendered || _closed) return;
             if (_captions.Deck?.Path == path && _captions.CurrentSlide == slide) UpdateScore();
+            else if (_captions.Deck?.Path == path && _captions.CurrentSlide + 1 == slide) UpdateSteps(); // the next preview's row
         }
         catch (Exception error) when (error is OperationCanceledException or IOException or NotSupportedException or FileFormatException or ArgumentException)
         {
@@ -759,6 +784,7 @@ public partial class CaptionConsole : Window
             }
             else _pictures.Keep(key, image, rows);
             if (ReferenceEquals(_captions.Deck, deck) && _captions.CurrentSlide == slide) UpdateScore();
+            else if (ReferenceEquals(_captions.Deck, deck) && _captions.CurrentSlide + 1 == slide) UpdateSteps(); // the next preview's row
         }
         finally { _loadingPictures.Remove((deck, slide)); }
     }
@@ -881,6 +907,7 @@ public partial class CaptionConsole : Window
             Changed();
         }
         ListBoxes(keepEdit: true);
+        UpdateSteps();
     }
 
     // The rows of the last slide picture (a picture is never changed once rendered), as one snapshot: CropRow runs on
@@ -986,8 +1013,8 @@ public partial class CaptionConsole : Window
 
     private void CopyBrowserUrl(object sender, RoutedEventArgs e)
     {
-        try { Clipboard.SetText(CaptionBroadcastServer.Url); Status.Text = "브라우저 소스 주소를 복사했습니다."; }
-        catch (System.Runtime.InteropServices.ExternalException ex) { Status.Text = "복사 실패 · " + ex.Message; }
+        try { Clipboard.SetText(CaptionBroadcastServer.Url); Told = "브라우저 소스 주소를 복사했습니다."; }
+        catch (System.Runtime.InteropServices.ExternalException ex) { Told = "복사 실패 · " + ex.Message; }
     }
 
     // Opening the console starts the caption server and connects OBS with the saved settings.
@@ -996,7 +1023,7 @@ public partial class CaptionConsole : Window
         Loaded -= StartAutomatically;
         await StartServerAsync();
         if (_obs.Connection == null && (_obs.HasSavedPassword || _obs.AutoConnect || File.Exists(_obs.ProfilePath))) await ConnectAsync();
-        else if (_obs.Connection == null) SettingsToggle.IsChecked = true;
+        else if (_obs.Connection == null) ObsLabel.Text = "OBS 연결 전 · 설정에서 연결하세요";
     }
 
     private async Task StartServerAsync()
@@ -1051,6 +1078,8 @@ public partial class CaptionConsole : Window
         StopScorePreparation();
         _scoreDeck = null;
         _pictures.Clear();
+        _rowThumbs.Clear();
+        (_shownRows, _nextRow) = (null, null);
         if (deck.Slides.Any(s => s.Picture != null)) _ = PrepareScoreAsync(deck);
     }
 
@@ -1115,6 +1144,7 @@ public partial class CaptionConsole : Window
         _chosenKey = key;
         _captions.ChangeBox(key);
         Changed();
+        UpdateSteps(); // the steps show the chosen box
     }
 
     private string _cueShown = "";
@@ -1132,20 +1162,13 @@ public partial class CaptionConsole : Window
         if (_captions.Deck == null) return;
         _captions.Overrides[SelectedSlide] = Cue.Text;
         _cueShown = Cue.Text;
-        Status.Text = $"{SelectedSlide}장 수동 문구를 저장했습니다.";
+        Told = $"{SelectedSlide}장 수동 문구를 저장했습니다.";
         Changed();
+        UpdateSteps(); // the step shows the saved words
     }
 
     private void Previous(object sender, RoutedEventArgs e) => Step(-1);
     private void Next(object sender, RoutedEventArgs e) => Step(1);
-    private void PreviewText_TargetUpdated(object? sender, System.Windows.Data.DataTransferEventArgs e) => FitPreview();
-
-    // Preview box margin (12+12) and caption padding (8+8) leave this much width for the text.
-    private void FitPreview()
-    {
-        PreviewImage.MaxHeight = ObsPreviewBox.Height * CaptionStyle.ScoreHeight(_captions.ScoreSize); // same share of the height as on screen
-        CaptionFit.Apply(PreviewText, PreviewTextArea, ObsPreviewBox.ActualWidth - 40, 16, _captions.CaptionLines);
-    }
 
     private void LinesChanged(object sender, SelectionChangedEventArgs e)
     {
@@ -1172,19 +1195,14 @@ public partial class CaptionConsole : Window
         }
         if (!_captions.Following) { Status.Text = "송출 화면을 같이 넘기려면 싱크를 켜세요. 끄면 PPT 자막만 넘깁니다."; return; }
         _captions.MoveToSlide(_captions.CurrentSlide + change);
-        Slides.SelectedItem = _captions.CurrentSlide;
         Changed();
     }
 
-    private async void ConnectObs(object sender, RoutedEventArgs e)
-    {
-        await ConnectAsync();
-        SettingsToggle.IsChecked = _obs.Connection == null;
-    }
+    private async void ConnectObs(object sender, RoutedEventArgs e) => await ConnectAsync();
 
     private async Task ConnectAsync()
     {
-        if (!int.TryParse(Port.Text, out int port) || port is < 1 or > 65535) { ObsLabel.Text = "OBS 포트를 확인하세요."; return; }
+        if (!int.TryParse(Port.Text, out int port) || port is < 1 or > 65535) { ObsLabel.Text = Told = "OBS 포트를 확인하세요."; return; }
         try
         {
             await _obs.ConfigureAsync(Host.Text, port, Password.Password, AutoObs.IsChecked == true,
@@ -1193,7 +1211,7 @@ public partial class CaptionConsole : Window
             SavedPassword.Visibility = _obs.HasSavedPassword ? Visibility.Visible : Visibility.Collapsed;
             await StartServerAsync();
         }
-        catch (Exception ex) { Status.Text = ex.Message; }
+        catch (Exception ex) { Told = ex.Message; }
     }
 
     private void ShowObsStatus(ObsStatus status)
@@ -1209,18 +1227,18 @@ public partial class CaptionConsole : Window
         // The caption server listens on this PC only, so OBS must run here too.
         if (_obs.Host is not (ObsOperator.LocalHost or "localhost"))
         {
-            Status.Text = "자막 소스는 OBS가 이 PC에서 실행될 때만 넣을 수 있습니다 (주소 127.0.0.1).";
+            Told = "자막 소스는 OBS가 이 PC에서 실행될 때만 넣을 수 있습니다 (주소 127.0.0.1).";
             return;
         }
-        if (_obs.Connection is not { } connection) { Status.Text = "먼저 OBS에 연결하세요."; return; }
+        if (_obs.Connection is not { } connection) { Told = "먼저 OBS에 연결하세요."; return; }
         AddObsSource.IsEnabled = false;
         try
         {
             await StartServerAsync();
             var (scene, created) = await connection.AddCaptionSourceAsync(CaptionBroadcastServer.Url);
-            Status.Text = $"OBS '{scene}' 씬 맨 위에 '{ObsConnection.CaptionSourceName}' 소스를 {(created ? "추가했습니다" : "넣었습니다 (기존 소스)")}. 자막은 표시를 눌러야 나옵니다.";
+            Told = $"OBS '{scene}' 씬 맨 위에 '{ObsConnection.CaptionSourceName}' 소스를 {(created ? "추가했습니다" : "넣었습니다 (기존 소스)")}. 자막은 송출을 눌러야 나옵니다.";
         }
-        catch (Exception ex) { Status.Text = "OBS 자막 소스 추가 실패 · " + ex.Message; }
+        catch (Exception ex) { Told = "OBS 자막 소스 추가 실패 · " + ex.Message; }
         finally { AddObsSource.IsEnabled = true; }
     }
 
@@ -1228,7 +1246,7 @@ public partial class CaptionConsole : Window
     {
         if (_obs.Connection is not { } connection || Scenes.SelectedItem is not string scene) return;
         try { await connection.SwitchAsync(scene, SourceName.Text.Trim(), EnableSource.IsChecked == true); }
-        catch (Exception ex) { Status.Text = ex.Message; }
+        catch (Exception ex) { Told = ex.Message; }
     }
 
     private async void OnConsoleClosed(object? sender, EventArgs e)
@@ -1250,6 +1268,7 @@ public partial class CaptionConsole : Window
         _main.Session.SessionChanged -= LiveChanged;
         _main.OutputPowerPoint.PropertyChanged -= SlideImageChanged;
         _main.PowerPoint.PropertyChanged -= SlideImageChanged;
+        if (!Settings.IsClosed) Settings.Close();
         // The last write runs on a pool thread. Finish before the process can exit.
         _obs.Changed -= ShowObsStatus;
         await SaveAsync();

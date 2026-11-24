@@ -2,6 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:Axicultus.Wpf.Controls"
+        xmlns:captions="clr-namespace:Axicultus.Wpf.Captions"
         Title="Axicultus Output"
         Width="1280"
         Height="720"
@@ -475,10 +476,10 @@
         </Grid>
 
         </Grid>
-        <Border x:Name="CameraCaption" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Bottom"
-                Margin="28,0,28,32" IsHitTestVisible="False">
-            <Border.Style>
-                <Style TargetType="Border">
+        <captions:CameraCaptionView x:Name="CameraCaption" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                                    Margin="28,0,28,32" IsHitTestVisible="False">
+            <captions:CameraCaptionView.Style>
+                <Style TargetType="captions:CameraCaptionView">
                     <Setter Property="Visibility" Value="Collapsed" />
                     <Style.Triggers>
                         <DataTrigger Binding="{Binding HasAudienceText}" Value="True">
@@ -486,29 +487,8 @@
                         </DataTrigger>
                     </Style.Triggers>
                 </Style>
-            </Border.Style>
-            <!-- Score half above, caption text below; either may be absent. -->
-            <StackPanel>
-                <Image x:Name="LowerThirdImage" Source="{Binding PublicImage}" Stretch="Uniform"
-                       Tag="{Binding ScoreSize, NotifyOnTargetUpdated=True}" TargetUpdated="LowerThirdText_TargetUpdated" />
-                <!-- Fixed-height text area; CaptionFit shrinks long text to fit it. Only the text gets the dark box, as on the OBS page. -->
-                <Border x:Name="LowerThirdArea" Background="{Binding CaptionBackground}" CornerRadius="4" Padding="18,7">
-                    <Border.Style>
-                        <Style TargetType="Border">
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding HasPublicText}" Value="False">
-                                    <Setter Property="Visibility" Value="Collapsed" />
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Border.Style>
-                    <TextBlock x:Name="LowerThirdText" Text="{Binding PublicText, NotifyOnTargetUpdated=True}" TargetUpdated="LowerThirdText_TargetUpdated"
-                               Tag="{Binding CaptionLines, NotifyOnTargetUpdated=True}"
-                               TextAlignment="Center" VerticalAlignment="Center" Foreground="{Binding CaptionForeground}"
-                               FontSize="32" FontWeight="SemiBold" TextWrapping="Wrap" LineStackingStrategy="BlockLineHeight" />
-                </Border>
-            </StackPanel>
-        </Border>
+            </captions:CameraCaptionView.Style>
+        </captions:CameraCaptionView>
 
         <!-- Blackout/Hidden 상태에서 모든 행을 덮는 검정 오버레이.
              사용자가 지정한 배경색이나 GAP 로고가 새는 것을 막는다. -->

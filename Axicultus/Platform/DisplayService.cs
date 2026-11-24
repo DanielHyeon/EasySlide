@@ -89,7 +89,7 @@ public sealed class SystemDisplayReader : IDisplayReader
             .ToArray();
     }
 
-    private static double GetDpiScale(Rectangle bounds)
+    internal static double GetDpiScale(Rectangle bounds)
     {
         var center = new Point(bounds.Left + bounds.Width / 2, bounds.Top + bounds.Height / 2);
         var monitor = Windows.Win32.PInvoke.MonitorFromPoint(center, Windows.Win32.Graphics.Gdi.MONITOR_FROM_FLAGS.MONITOR_DEFAULTTONEAREST);

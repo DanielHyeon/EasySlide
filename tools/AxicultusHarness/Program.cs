@@ -1119,7 +1119,7 @@ internal static class Program
             _sp.GetRequiredService<Axicultus.Wpf.Captions.CaptionBroadcastServer>(), _sp.GetRequiredService<Axicultus.Wpf.Captions.CaptionRecoveryStore>(),
             _sp.GetRequiredService<Axicultus.Wpf.Media.CameraOwnership>(), _sp.GetRequiredService<Axicultus.Wpf.Captions.ObsOperator>(),
             _sp.GetService<Axicultus.Wpf.Rendering.IPowerPointRenderService>());
-        console.Show();
+        console.ShowOnScreen(); // as the app opens it (placed on its screen)
         await Settle(1500);
         var open = typeof(Axicultus.Wpf.Captions.CaptionConsole).GetMethod("OpenLiveDeck", BindingFlags.NonPublic | BindingFlags.Instance)!;
         async Task Probe(string what)
@@ -1140,11 +1140,11 @@ internal static class Program
         // The console starts hidden: following the screen airs nothing until Show.
         console.ScreenMode.IsChecked = true;
         await Settle(1500);
-        Log("PPT", $"console opened: visible={captions.Visible} badge={console.HiddenBadge.IsVisible} show={console.ShowButton.IsEnabled} hide={console.HideButton.IsEnabled} {Aired()}");
+        Log("PPT", $"console opened: visible={captions.Visible} badge={console.HiddenBadge.IsVisible} air=\"{console.AirButton.Content}\" {Aired()}");
         SaveWindowPicture(console, "caption-hidden-start.png");
-        console.ShowButton.Command.Execute(null);
+        console.AirButton.Command.Execute(null);
         await Settle(500);
-        Log("PPT", $"after 표시: visible={captions.Visible} badge={console.HiddenBadge.IsVisible} show={console.ShowButton.IsEnabled} hide={console.HideButton.IsEnabled}");
+        Log("PPT", $"after 표시: visible={captions.Visible} badge={console.HiddenBadge.IsVisible} air=\"{console.AirButton.Content}\"");
 
         // Not live: what sits in the output panel still goes out.
         if (_vm.Queue.FirstOrDefault(i => LiveItemKindMatcher.IsSong(LiveItemKindMatcher.InferLegacyKind(i))) is { } song)
@@ -1233,7 +1233,10 @@ internal static class Program
         SaveImage(captions.PublicImage as System.Windows.Media.Imaging.BitmapSource, "score-row2-sent.png");
         Log("PPT", "row 2 of the last slide: " + Aired() + $" rows=\"{console.ScoreRowLabel.Text}\"");
         await ScoreSources(console, captions, Call);
-        console.SettingsToggle.IsChecked = false;
+        Call("OpenSettings", null, null); // the settings window (OBS, camera, scenes, recovery, PPT fine-tuning), as the console opens it
+        await Settle(1000);
+        SaveWindowPicture(console.Settings, "pptcaption-settings.png");
+        console.Settings.Hide();
         await Settle(1000);
         SaveWindowPicture(console, "pptcaption-score.png");
         foreach (int size in new[] { 0, 2, 1 })
@@ -1241,7 +1244,7 @@ internal static class Program
             console.ScoreSizeBox.SelectedIndex = size;
             await Settle(600);
             var screen = _app.Windows.Cast<Window>().First(w => w.GetType().Name == "OutputWindow" && w.IsVisible);
-            var picture = (FrameworkElement)screen.FindName("LowerThirdImage");
+            var picture = ((Axicultus.Wpf.Captions.CameraCaptionView)screen.FindName("CameraCaption")).LowerThirdImage;
             Log("PPT", $"score only, size {size}: image={picture.ActualWidth:0}x{picture.ActualHeight:0}/{screen.ActualHeight:0} max={picture.MaxHeight:0} obs={captions.Published.ScoreHeight} text=\"{captions.PublicText}\"");
             SaveWindowPicture(screen, $"score-only-size-{size}.png");
         }
@@ -1259,7 +1262,7 @@ internal static class Program
             console.ScoreSizeBox.SelectedIndex = size;
             await Settle(600);
             var screen = _app.Windows.Cast<Window>().First(w => w.GetType().Name == "OutputWindow" && w.IsVisible);
-            var picture = (FrameworkElement)screen.FindName("LowerThirdImage");
+            var picture = ((Axicultus.Wpf.Captions.CameraCaptionView)screen.FindName("CameraCaption")).LowerThirdImage;
             Log("PPT", $"score size {size}: image={picture.ActualHeight:0}/{screen.ActualHeight:0} obs={captions.Published.ScoreHeight}");
             SaveWindowPicture(screen, $"score-size-{size}.png");
         }
@@ -1315,8 +1318,9 @@ internal static class Program
         Log("PPT", "direct mode: " + Aired() + $" color={captions.Published.Color}");
         // A 4-line creed page must fit the same fixed caption area (smaller font) as a one-line caption.
         var output = _app.Windows.Cast<Window>().First(w => w.GetType().Name == "OutputWindow" && w.IsVisible);
-        var area = (FrameworkElement)output.FindName("LowerThirdArea");
-        var line = (TextBlock)output.FindName("LowerThirdText");
+        var camera = (Axicultus.Wpf.Captions.CameraCaptionView)output.FindName("CameraCaption");
+        FrameworkElement area = camera.LowerThirdArea;
+        var line = camera.LowerThirdText;
         Log("PPT", $"caption area one line: {area.ActualHeight:0} font={line.FontSize:0.#}");
         SaveWindowPicture(output, "caption-one-line.png");
         console.Draft.Text = "전능하사 천지를 만드신 하나님 아버지를 내가 믿사오며\n그 외아들 우리 주 예수 그리스도를 믿사오니\n이는 성령으로 잉태하사 동정녀 마리아에게 나시고\n본디오 빌라도에게 고난을 받으사 십자가에 못 박혀 죽으시고";
@@ -1356,10 +1360,10 @@ internal static class Program
             _sp.GetRequiredService<Axicultus.Wpf.Captions.CaptionBroadcastServer>(), _sp.GetRequiredService<Axicultus.Wpf.Captions.CaptionRecoveryStore>(),
             _sp.GetRequiredService<Axicultus.Wpf.Media.CameraOwnership>(), _sp.GetRequiredService<Axicultus.Wpf.Captions.ObsOperator>(),
             _sp.GetService<Axicultus.Wpf.Rendering.IPowerPointRenderService>());
-        console.Show();
+        console.ShowOnScreen(); // as the app opens it (placed on its screen)
         await Settle(1500);
         Log("A036", $"display on open={captions.Display} auto radio={console.AutoShow.IsChecked}");
-        console.ShowButton.Command.Execute(null);
+        console.AirButton.Command.Execute(null);
         console.ScreenMode.IsChecked = true; // nothing on the output screen: the console follows the deck it reads
         console.AutoShow.IsChecked = true;
         await Settle(1000);
@@ -1373,7 +1377,7 @@ internal static class Program
             catch (OperationCanceledException) { Log("A036", "score preparation canceled"); }
             var deck = captions.Deck!;
             Log("A036", $"deck {Path.GetFileName(sources[d])}: {deck.Slides.Length} slides, picture slides {deck.Slides.Count(s => s.HasPicture == true)}, " +
-                $"default box {(console.Boxes.SelectedItem as Axicultus.Wpf.Captions.CaptionBox)?.Key}");
+                $"default box {(console.Settings.Boxes.SelectedItem as Axicultus.Wpf.Captions.CaptionBox)?.Key}");
             captions.Follow(1, Axicultus.Wpf.Captions.CaptionDeck.AllTextKey);
             for (int n = 1; n <= deck.Slides.Length; n++)
             {

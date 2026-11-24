@@ -67,29 +67,7 @@ public partial class OutputWindow : Window, IOutputSurface
     {
         InitializeComponent();
         Loaded += (_, _) => UpdateScreenPower();
-        ContentArea.SizeChanged += (_, e) =>
-        {
-            var size = e.NewSize;
-            CameraCaption.Width = size.Width * .88;
-            CameraCaption.Margin = new Thickness(0, 0, 0, size.Height * .05);
-            _captionFont = Math.Max(12, size.Height * .05);
-            LowerThirdArea.Padding = new Thickness(_captionFont * .55, _captionFont * .15, _captionFont * .55, _captionFont * .15);
-            LowerThirdImage.Margin = new Thickness(0, 0, 0, _captionFont * .3);
-            FitCaption();
-        };
-    }
-
-    private double _captionFont = 32;
-
-    private void LowerThirdText_TargetUpdated(object? sender, System.Windows.Data.DataTransferEventArgs e) => FitCaption();
-
-    private void FitCaption()
-    {
-        // Tags carry the session's CaptionLines and ScoreSize.
-        LowerThirdImage.MaxHeight = ContentArea.ActualHeight * Captions.CaptionStyle.ScoreHeight(LowerThirdImage.Tag is int score ? score : 1);
-        Captions.CaptionFit.Apply(LowerThirdText, LowerThirdArea,
-            CameraCaption.Width - LowerThirdArea.Padding.Left - LowerThirdArea.Padding.Right, _captionFont,
-            LowerThirdText.Tag is int lines ? lines : 3);
+        ContentArea.SizeChanged += (_, e) => CameraCaption.Fit(e.NewSize);
     }
 
     /// <summary>

@@ -6,7 +6,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Automation.Peers;
 using System.Windows.Automation.Provider;
+using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Threading;
 using Axicultus.Wpf.Captions;
@@ -20,7 +22,7 @@ using Xunit;
 
 namespace Axicultus.Wpf.Tests.Shell;
 
-public sealed class CaptionConsoleTests
+public sealed partial class CaptionConsoleTests
 {
     [Fact]
     public Task WindowPublishesOnlyOnTakeAndSuppressesImeComposition() => WithConsole(async (console, session, _) =>
@@ -59,13 +61,13 @@ public sealed class CaptionConsoleTests
         editor.TakeFromShortcut(isRepeat: false); // sending (Enter) does
         Assert.Equal("송출 중", session.PublicText);
         console.Instant.SetCurrentValue(CheckBox.IsCheckedProperty, true);
-        await ClickAsync(console.HideButton);
+        await ClickAsync(console.AirButton);
         console.Draft.SetCurrentValue(TextBox.TextProperty, "대기 중");
         editor.TakeFromShortcut(isRepeat: true);
         Assert.Equal("", session.PublicText);
         Assert.True(console.Instant.IsChecked);
         Assert.Equal("송출 중", Assert.Single(session.History).Text);
-        await ClickAsync(console.ShowButton);
+        await ClickAsync(console.AirButton);
         Assert.Equal("대기 중", session.PublicText); // what was typed while hidden goes out on Show
         console.Close();
         Assert.False(console.IsVisible);
@@ -134,7 +136,7 @@ public sealed class CaptionConsoleTests
         var path = CaptionScorePictureTests.LyricsDeck(directory.FullName, CaptionScorePictureTests.SomewhatSmallerLyrics());
         Assert.True(await console.PrepareDeckAsync(path, 1));
         await console.ScorePreparation;
-        await ClickAsync(console.ShowButton); // on air
+        await ClickAsync(console.AirButton); // on air
         console.ScreenMode.IsChecked = true;
         console.ScoreOnly.IsChecked = true;
         session.Follow(2, "");
@@ -159,7 +161,7 @@ public sealed class CaptionConsoleTests
     [Fact]
     public Task ReadingTheNextSongsDeckTakesTheLastSongsScoreRowDown() => WithConsole(async (console, session, directory) =>
     {
-        await ClickAsync(console.ShowButton); // on air
+        await ClickAsync(console.AirButton); // on air
         session.SetImage(System.Windows.Media.Imaging.BitmapSource.Create(4, 2, 96, 96, System.Windows.Media.PixelFormats.Gray8, null, new byte[8], 4));
         Assert.NotNull(session.PublicImage); // the last song's row is on air
         var path = CaptionScorePictureTests.WriteDeck(directory.FullName, [CaptionScorePictureTests.ScorePng()],
@@ -174,13 +176,13 @@ public sealed class CaptionConsoleTests
         var first = CaptionAllTextTests.WriteDeck(directory.CreateSubdirectory("a").FullName, [], CaptionAllTextTests.TextSlide("제목", "본문"));
         var next = CaptionAllTextTests.WriteDeck(directory.CreateSubdirectory("b").FullName, [], CaptionAllTextTests.TextSlide("다른 제목", "다른 본문"));
         Assert.True(await console.PrepareDeckAsync(first, 1));
-        Assert.Equal(CaptionDeck.AllTextKey, Assert.IsType<CaptionBox>(console.Boxes.SelectedItem).Key);
-        console.Boxes.SelectedItem = console.Boxes.Items.Cast<CaptionBox>().Single(box => box.Key == "shape:TextBox 1"); // the title
+        Assert.Equal(CaptionDeck.AllTextKey, Assert.IsType<CaptionBox>(console.Settings.Boxes.SelectedItem).Key);
+        console.Settings.Boxes.SelectedItem = console.Settings.Boxes.Items.Cast<CaptionBox>().Single(box => box.Key == "shape:TextBox 1"); // the title
         session.Follow(1, "shape:TextBox 1");
         Assert.True(await console.PrepareDeckAsync(next, 1));
         // Not the last deck's box, though this deck has one by that name.
-        Assert.Equal(CaptionDeck.AllTextKey, Assert.IsType<CaptionBox>(console.Boxes.SelectedItem).Key);
-        Assert.Equal("다른 제목\n다른 본문", console.Cue.Text);
+        Assert.Equal(CaptionDeck.AllTextKey, Assert.IsType<CaptionBox>(console.Settings.Boxes.SelectedItem).Key);
+        Assert.Equal("다른 제목\n다른 본문", console.Settings.Cue.Text);
     });
 
     [Fact]
@@ -191,7 +193,7 @@ public sealed class CaptionConsoleTests
         Assert.True(await console.PrepareDeckAsync(path, 1));
         await console.ScorePreparation;
         Assert.True(console.AutoShow.IsChecked); // the default
-        await ClickAsync(console.ShowButton); // on air
+        await ClickAsync(console.AirButton); // on air
         console.ScreenMode.IsChecked = true;
         session.Follow(1, CaptionDeck.AllTextKey);
         Assert.Null(session.PublicImage);
@@ -212,27 +214,29 @@ public sealed class CaptionConsoleTests
         Assert.Equal("auto", session.Display);
     });
 
-    [Fact]
-    public Task TheChosenBoxStaysChosenOverASlideWithoutIt() => WithConsole(async (console, session, directory) =>
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)] // the settings window where the boxes now are, open
+    public Task TheChosenBoxStaysChosenOverASlideWithoutIt(bool settingsOpen) => WithConsole(async (console, session, directory) =>
     {
         var path = CaptionAllTextTests.WriteDeck(directory.FullName, [],
             CaptionAllTextTests.Slide(("TextBox 3", "일장 상자"), ("TextBox 5", "일장 다른")),
             CaptionAllTextTests.Slide(("TextBox 9", "이장")),
             CaptionAllTextTests.Slide(("TextBox 3", "삼장 상자"), ("TextBox 6", "삼장 다른")));
         Assert.True(await console.PrepareDeckAsync(path, 1));
-        await ClickAsync(console.ShowButton);
+        await ClickAsync(console.AirButton);
         console.ScreenMode.IsChecked = true;
         session.Follow(1, CaptionDeck.AllTextKey);
-        console.Boxes.SelectedItem = console.Boxes.Items.Cast<CaptionBox>().Single(box => box.Key == "shape:TextBox 3"); // the operator's pick
+        console.Settings.Boxes.SelectedItem = console.Settings.Boxes.Items.Cast<CaptionBox>().Single(box => box.Key == "shape:TextBox 3"); // the operator's pick
         Assert.Equal("일장 상자", session.PublicText);
         session.MoveToSlide(2); // no TextBox 3: its whole text, nothing selected in the list
         Assert.Equal("이장", session.PublicText);
-        Assert.Null(console.Boxes.SelectedItem);
-        Assert.Equal("이장", console.Cue.Text);
+        Assert.Null(console.Settings.Boxes.SelectedItem);
+        Assert.Equal("이장", console.Settings.Cue.Text);
         Assert.Equal("shape:TextBox 3", session.BoxKey);
         session.MoveToSlide(3); // TextBox 3 again
         Assert.Equal("삼장 상자", session.PublicText);
-        Assert.Equal("shape:TextBox 3", Assert.IsType<CaptionBox>(console.Boxes.SelectedItem).Key);
+        Assert.Equal("shape:TextBox 3", Assert.IsType<CaptionBox>(console.Settings.Boxes.SelectedItem).Key);
         // The recovery file keeps the operator's pick too.
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
         session.MoveToSlide(2);
@@ -241,11 +245,11 @@ public sealed class CaptionConsoleTests
         var store = (CaptionRecoveryStore)typeof(CaptionConsole).GetField("_store", flags)!.GetValue(console)!;
         Assert.Equal("shape:TextBox 3", store.Read((string)typeof(CaptionConsole).GetField("_plan", flags)!.GetValue(console)!)!.Box);
         // On a slide without the chosen box the operator picks the whole text: that is the choice now.
-        console.Boxes.SelectedItem = console.Boxes.Items.Cast<CaptionBox>().Single(box => box.Key == CaptionDeck.AllTextKey);
+        console.Settings.Boxes.SelectedItem = console.Settings.Boxes.Items.Cast<CaptionBox>().Single(box => box.Key == CaptionDeck.AllTextKey);
         Assert.Equal(CaptionDeck.AllTextKey, session.BoxKey);
         session.MoveToSlide(3);
         Assert.Equal("삼장 상자\n삼장 다른", session.PublicText);
-    });
+    }, openSettings: settingsOpen);
 
     // OCR pages for the slide files RecognizeDeckAsync writes ("{slide}.png"): a line under each of the two staves of
     // CaptionScorePictureTests.ScorePng, or one line for a photo slide.
@@ -288,7 +292,7 @@ public sealed class CaptionConsoleTests
         console.ReadLyrics = async (files, _) => { await reading.Task; return ReadLyrics(files, 3); };
         Assert.True(await console.PrepareDeckAsync(path, 1));
         await console.ScorePreparation;
-        await ClickAsync(console.ShowButton);
+        await ClickAsync(console.AirButton);
         console.ScreenMode.IsChecked = true;
         console.ScoreOnly.IsChecked = true;
         session.Follow(1, CaptionDeck.AllTextKey);
@@ -306,14 +310,16 @@ public sealed class CaptionConsoleTests
         Assert.Equal("사진 속 간판", session.Deck!.Slides[2].Boxes.Single(box => box.Key == CaptionSession.RecognizedKey).Text);
     }, render: new BlankRender());
 
-    [Fact]
-    public Task NewLyricsForTheSlideOnAirChangeOnlyItsCaptionText() => WithConsole(async (console, session, directory) =>
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)] // the settings window where the boxes now are, open
+    public Task NewLyricsForTheSlideOnAirChangeOnlyItsCaptionText(bool settingsOpen) => WithConsole(async (console, session, directory) =>
     {
         var path = CaptionAllTextTests.WriteDeck(directory.FullName, [CaptionScorePictureTests.ScorePng()],
             CaptionAllTextTests.ScoreSlide(0), CaptionAllTextTests.ScoreSlide(0));
         Assert.True(await console.PrepareDeckAsync(path, 1));
         await console.ScorePreparation;
-        await ClickAsync(console.ShowButton);
+        await ClickAsync(console.AirButton);
         console.ScreenMode.IsChecked = true;
         console.ScoreAndText.IsChecked = true;
         session.Follow(1, CaptionDeck.AllTextKey);
@@ -327,13 +333,13 @@ public sealed class CaptionConsoleTests
         session.AddRecognized(1, "새로 읽은 가사", staves: true);
         Assert.Equal(1, sent); // the same text: nothing went out
         // The operator looks at slide 2 and edits its caption, not saved yet; lyrics for the slide on air come.
-        console.Slides.SelectedItem = 2;
-        console.Cue.Text = "고치는 중";
+        console.Settings.Slides.SelectedItem = 2;
+        console.Settings.Cue.Text = "고치는 중";
         session.AddRecognized(1, "또 읽은 가사", staves: true);
         typeof(CaptionConsole).GetMethod("RefreshBoxes", Private)!.Invoke(console, [CaptionSession.RecognizedKey]); // the offer
-        Assert.Equal((2, "고치는 중"), (console.Slides.SelectedItem, console.Cue.Text));
+        Assert.Equal((2, "고치는 중"), (console.Settings.Slides.SelectedItem, console.Settings.Cue.Text));
         Assert.Contains("2/2줄", console.ScoreRowLabel.Text);
-    });
+    }, openSettings: settingsOpen);
 
     [Fact]
     public Task AWholeTextReplacedByLyricsSendsEachRowItsOwnLineUnderTheScore() => WithConsole(async (console, session, directory) =>
@@ -345,9 +351,9 @@ public sealed class CaptionConsoleTests
         Assert.True(await console.PrepareDeckAsync(path, 1));
         await console.ScorePreparation;
         await console.LyricsReading;
-        Assert.Equal(CaptionDeck.AllTextKey, Assert.IsType<CaptionBox>(console.Boxes.SelectedItem).Key);
+        Assert.Equal(CaptionDeck.AllTextKey, Assert.IsType<CaptionBox>(console.Settings.Boxes.SelectedItem).Key);
         Assert.Equal("1장 첫 줄\n1장 둘째 줄", session.TextFor(1, CaptionDeck.AllTextKey)); // the short text replaced
-        await ClickAsync(console.ShowButton);
+        await ClickAsync(console.AirButton);
         console.ScreenMode.IsChecked = true;
         console.ScoreAndText.IsChecked = true;
         session.Follow(1, CaptionDeck.AllTextKey);
@@ -367,17 +373,17 @@ public sealed class CaptionConsoleTests
         // Restored on the whole text: the reading does not switch to the recognized lyrics (all whole texts are empty).
         await console.RestoreAsync(Saved(CaptionDeck.AllTextKey));
         await console.LyricsReading;
-        Assert.Equal(CaptionDeck.AllTextKey, Assert.IsType<CaptionBox>(console.Boxes.SelectedItem).Key);
+        Assert.Equal(CaptionDeck.AllTextKey, Assert.IsType<CaptionBox>(console.Settings.Boxes.SelectedItem).Key);
         Assert.Equal("2장 첫 줄\n2장 둘째 줄", session.TextFor(2, CaptionSession.RecognizedKey));
         // Restored on the recognized lyrics: they are there again.
         await console.RestoreAsync(Saved(CaptionSession.RecognizedKey));
         await console.LyricsReading;
-        Assert.Equal(CaptionSession.RecognizedKey, Assert.IsType<CaptionBox>(console.Boxes.SelectedItem).Key);
-        Assert.Equal("2장 첫 줄\n2장 둘째 줄", console.Cue.Text);
+        Assert.Equal(CaptionSession.RecognizedKey, Assert.IsType<CaptionBox>(console.Settings.Boxes.SelectedItem).Key);
+        Assert.Equal("2장 첫 줄\n2장 둘째 줄", console.Settings.Cue.Text);
         // A saved choice of no box is the whole text, as when the console opens.
         await console.RestoreAsync(Saved(""));
         await console.LyricsReading;
-        Assert.Equal(CaptionDeck.AllTextKey, Assert.IsType<CaptionBox>(console.Boxes.SelectedItem).Key);
+        Assert.Equal(CaptionDeck.AllTextKey, Assert.IsType<CaptionBox>(console.Settings.Boxes.SelectedItem).Key);
     });
 
     [Fact]
@@ -417,7 +423,7 @@ public sealed class CaptionConsoleTests
             + CaptionScorePictureTests.Image(0, CaptionScorePictureTests.Full, 2400000, y: 2000000) + "</p:spTree>";
         var path = CaptionAllTextTests.WriteDeck(directory.FullName, [CaptionScorePictureTests.ScorePng()], Pieces(), Pieces(), Pieces());
         Assert.True(await console.PrepareDeckAsync(path, 1));
-        await ClickAsync(console.ShowButton);
+        await ClickAsync(console.AirButton);
         console.ScreenMode.IsChecked = true;
         console.ScoreOnly.IsChecked = true;
         session.SetImage(System.Windows.Media.Imaging.BitmapSource.Create(4, 2, 96, 96, System.Windows.Media.PixelFormats.Gray8, null, new byte[8], 4)); // a row of another slide on air
@@ -427,42 +433,46 @@ public sealed class CaptionConsoleTests
         Assert.Equal(3, session.CurrentSlide);
     });
 
-    [Fact]
-    public Task AnUnsavedCaptionEditStaysWhileTheSlideOnAirMoves() => WithConsole(async (console, session, directory) =>
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)] // the settings window where the boxes now are, open
+    public Task AnUnsavedCaptionEditStaysWhileTheSlideOnAirMoves(bool settingsOpen) => WithConsole(async (console, session, directory) =>
     {
         var path = CaptionAllTextTests.WriteDeck(directory.FullName, [],
             CaptionAllTextTests.TextSlide("일장"), CaptionAllTextTests.TextSlide("이장"), CaptionAllTextTests.TextSlide("삼장"));
         Assert.True(await console.PrepareDeckAsync(path, 1));
         console.ScreenMode.IsChecked = true;
         session.Follow(1, CaptionDeck.AllTextKey);
-        console.Cue.Text = "일장 고침"; // typed, not saved
+        console.Settings.Cue.Text = "일장 고침"; // typed, not saved
         session.MoveToSlide(2);
-        Assert.Equal((1, "일장 고침"), (console.Slides.SelectedItem, console.Cue.Text)); // the edit stays with its slide
+        Assert.Equal((1, "일장 고침"), (console.Settings.Slides.SelectedItem, console.Settings.Cue.Text)); // the edit stays with its slide
         typeof(CaptionConsole).GetMethod("SaveOverride", Private)!.Invoke(console, [null, null]);
         Assert.Equal("일장 고침", session.TextFor(1, CaptionDeck.AllTextKey));
         session.MoveToSlide(3); // saved: the view follows again
-        Assert.Equal((3, "삼장"), (console.Slides.SelectedItem, console.Cue.Text));
-    });
+        Assert.Equal((3, "삼장"), (console.Settings.Slides.SelectedItem, console.Settings.Cue.Text));
+    }, openSettings: settingsOpen);
 
-    [Fact]
-    public Task PickingABoxOnAnotherSlideKeepsTheViewAndTheRowOnAir() => WithConsole(async (console, session, directory) =>
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)] // the settings window where the boxes now are, open
+    public Task PickingABoxOnAnotherSlideKeepsTheViewAndTheRowOnAir(bool settingsOpen) => WithConsole(async (console, session, directory) =>
     {
         var slide = CaptionAllTextTests.ScoreSlide(0, "에게");
         var path = CaptionAllTextTests.WriteDeck(directory.FullName, [CaptionScorePictureTests.ScorePng()], slide, slide, slide, slide, slide);
         Assert.True(await console.PrepareDeckAsync(path, 1));
         await console.ScorePreparation;
-        await ClickAsync(console.ShowButton);
+        await ClickAsync(console.AirButton);
         console.ScreenMode.IsChecked = true;
         console.ScoreOnly.IsChecked = true;
         session.Follow(1, CaptionDeck.AllTextKey);
         typeof(CaptionConsole).GetMethod("Next", Private)!.Invoke(console, [null, null]);
         Assert.Contains("2/2줄", console.ScoreRowLabel.Text);
-        console.Slides.SelectedItem = 5; // the operator looks at slide 5 and picks its box
-        console.Boxes.SelectedItem = console.Boxes.Items.Cast<CaptionBox>().Single(box => box.Key == "shape:남은 글");
+        console.Settings.Slides.SelectedItem = 5; // the operator looks at slide 5 and picks its box
+        console.Settings.Boxes.SelectedItem = console.Settings.Boxes.Items.Cast<CaptionBox>().Single(box => box.Key == "shape:남은 글");
         Assert.Equal("shape:남은 글", session.BoxKey);
-        Assert.Equal((5, 1), (console.Slides.SelectedItem, session.CurrentSlide));
+        Assert.Equal((5, 1), (console.Settings.Slides.SelectedItem, session.CurrentSlide));
         Assert.Contains("2/2줄", console.ScoreRowLabel.Text);
-    });
+    }, openSettings: settingsOpen);
 
     [Fact]
     public Task SwitchingToTheLyricsUnderAScoreRowGoesOutOnce() => WithConsole(async (console, session, directory) =>
@@ -473,7 +483,7 @@ public sealed class CaptionConsoleTests
         console.ReadLyrics = async (files, _) => { await reading.Task; return ReadLyrics(files); };
         Assert.True(await console.PrepareDeckAsync(path, 1));
         await console.ScorePreparation;
-        await ClickAsync(console.ShowButton);
+        await ClickAsync(console.AirButton);
         console.ScreenMode.IsChecked = true;
         console.ScoreAndText.IsChecked = true;
         session.Follow(1, CaptionDeck.AllTextKey);
@@ -770,35 +780,472 @@ public sealed class CaptionConsoleTests
         finally { directory.Delete(true); }
     });
 
-    private static async Task ClickAsync(Button button)
+    // ---- a037: the operator console ----
+
+    [Fact]
+    public Task TheWindowIsLargeResizableAndRemembersItsPlace() => WithConsole(async (console, _, directory) =>
+    {
+        Assert.Equal(ResizeMode.CanResize, console.ResizeMode);
+        Assert.Equal((900d, 620d), (console.MinWidth, console.MinHeight));
+        console.Left = 40;
+        console.Top = 30;
+        console.Width = 1100;
+        console.Height = 760;
+        await console.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
+        var shown = CaptionWindowPlacement.Bounds(console)!.Value; // pixels: one space over screens of other scales
+        console.Close(); // hidden; where it was is kept
+        Assert.False(console.IsVisible);
+        Assert.Equal(new CaptionWindowPlacement(shown.Left, shown.Top, shown.Width, shown.Height, false, CaptionWindowPlacement.PixelVersion),
+            CaptionWindowPlacement.Read(Path.Combine(directory.FullName, "caption-window.json")));
+    });
+
+    [Fact]
+    public Task AConsoleClosedMinimizedFromMaximizedIsKeptMaximized() => WithConsole(async (console, _, directory) =>
+    {
+        console.WindowState = WindowState.Maximized;
+        await console.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
+        console.WindowState = WindowState.Minimized;
+        await console.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
+        console.Close();
+        Assert.True(CaptionWindowPlacement.Read(Path.Combine(directory.FullName, "caption-window.json"))!.Maximized);
+    });
+
+    // Before it is placed and shown.
+    [Fact]
+    public Task TheConsoleOpensLargeInTheMiddleTheFirstTime() => WithConsole((console, _, _) =>
+    {
+        Assert.Equal(WindowStartupLocation.CenterOwner, console.WindowStartupLocation);
+        Assert.Equal((1040d, 720d), (console.Width, console.Height));
+        return Task.CompletedTask;
+    }, show: false);
+
+    // Screens in pixels: a 1080p main screen at 100% and a 1440p one at 150% on its right.
+    private static readonly CaptionScreen MainScreen = new(new(0, 0, 1920, 1080), new(0, 0, 1920, 1040), 1, true);
+    private static readonly CaptionScreen RightScreen = new(new(1920, 0, 2560, 1440), new(1920, 0, 2560, 1400), 1.5, false);
+    private static readonly System.Windows.Size ConsoleSize = new(1040, 720);
+
+    private static CaptionWindowPlacement Kept(double left, double top, double width, double height, bool maximized = false) =>
+        new(left, top, width, height, maximized, CaptionWindowPlacement.PixelVersion);
+
+    [Fact]
+    public void APlaceOnTheSecondScreenOfAnotherScaleStaysThere()
+    {
+        var (bounds, maximized, screen) = CaptionWindowPlacement.Plan(Kept(2100, 100, 1560, 1080, true), null, [MainScreen, RightScreen], ConsoleSize);
+        Assert.Equal((new Rect(2100, 100, 1560, 1080), true, RightScreen), (bounds, maximized, screen));
+    }
+
+    [Fact]
+    public void AnEarlierFormPlaceOpensAtTheDefaultSizeOnTheMainWindowsScreen()
+    {
+        var directory = Directory.CreateTempSubdirectory();
+        try
+        {
+            var path = Path.Combine(directory.FullName, "caption-window.json");
+            File.WriteAllText(path, """{"Left":40,"Top":30,"Width":1100,"Height":760,"Maximized":false}"""); // WPF units, no version
+            Assert.Null(CaptionWindowPlacement.Read(path));
+            var (bounds, _, screen) = CaptionWindowPlacement.Plan(CaptionWindowPlacement.Read(path), new Rect(2500, 300, 1000, 800), [MainScreen, RightScreen], ConsoleSize);
+            Assert.Equal((RightScreen, new Rect(2220, 160, 1560, 1080)), (screen, bounds)); // its size at that screen's scale, over the main window
+        }
+        finally { directory.Delete(true); }
+    }
+
+    [Fact]
+    public void TheFirstOpenIsOnTheMainScreenNotTheFirstListed()
+    {
+        var topBar = MainScreen with { WorkArea = new(0, 40, 1920, 1040) }; // the taskbar at the top
+        var (bounds, _, screen) = CaptionWindowPlacement.Plan(null, null, [RightScreen, topBar], ConsoleSize);
+        Assert.Equal((topBar, new Rect(440, 200, 1040, 720)), (screen, bounds));
+    }
+
+    [Theory]
+    [InlineData(1700, 100, 1100, 760, 820, 100, 1100, 760)]   // partly off: moved in
+    [InlineData(100, 100, 3000, 2000, 0, 0, 1920, 1040)]      // bigger than the screen
+    [InlineData(-500, 10, 1040, 720, 0, 10, 1040, 720)]
+    [InlineData(-30000, -30000, 1100, 760, 440, 160, 1040, 720)] // a screen no longer there: the default in the middle
+    public void AKeptPlaceIsMovedIntoTheWorkArea(double left, double top, double width, double height, double x, double y, double w, double h) =>
+        Assert.Equal(new Rect(x, y, w, h), CaptionWindowPlacement.Plan(Kept(left, top, width, height), null, [MainScreen], ConsoleSize).Bounds);
+
+    [Fact]
+    public void AKeptPlaceFitsWhenItsTitleBarIsOnAScreen()
+    {
+        CaptionScreen[] screens = [MainScreen, RightScreen];
+        Assert.True(CaptionWindowPlacement.Fits(Kept(100, 100, 1040, 720), screens));
+        Assert.True(CaptionWindowPlacement.Fits(Kept(2000, 50, 1040, 720), screens)); // the second screen
+        Assert.True(CaptionWindowPlacement.Fits(Kept(-500, 10, 1040, 720), screens)); // partly off, its title bar reachable
+        Assert.False(CaptionWindowPlacement.Fits(Kept(100, -400, 1040, 720), screens)); // the title bar above every screen
+        Assert.False(CaptionWindowPlacement.Fits(Kept(5000, 100, 1040, 720), screens));
+        Assert.False(CaptionWindowPlacement.Fits(Kept(100, 100, double.NaN, 720), screens));
+        Assert.False(CaptionWindowPlacement.Fits(null, screens));
+    }
+
+    [Fact]
+    public void OnASmallScreenTheMinimumIsTheWorkArea()
+    {
+        var small = new CaptionScreen(new(0, 0, 1024, 768), new(0, 0, 1024, 708), 1.25, true); // 1024×768 at 125%
+        Assert.Equal(new System.Windows.Size(819.2, 566.4), CaptionWindowPlacement.Minimum(new(900, 620), small));
+        Assert.Equal(new System.Windows.Size(900, 620), CaptionWindowPlacement.Minimum(new(900, 620), MainScreen));
+    }
+
+    // A key pressed with the focus on target, as the window sees it before the control does.
+    internal static bool Press(System.Windows.UIElement target, Key key)
+    {
+        var args = new KeyEventArgs(Keyboard.PrimaryDevice, System.Windows.PresentationSource.FromVisual(target), 0, key)
+            { RoutedEvent = Keyboard.PreviewKeyDownEvent };
+        target.RaiseEvent(args);
+        return args.Handled;
+    }
+
+    [Fact]
+    public Task SpaceShowsAndHidesTheCaptionOutsideTheTextBoxes() => WithConsole((console, session, _) =>
+    {
+        var editor = Assert.IsType<CaptionConsoleViewModel>(console.DataContext);
+        Assert.False(Press(console.Draft, Key.Space)); // a space typed into the caption
+        Assert.False(session.Visible);
+        Assert.True(Press(console, Key.Space));
+        Assert.True(session.Visible);
+        Assert.True(Press(console, Key.Space));
+        Assert.False(session.Visible);
+        editor.IsComposing = true; // a Hangul syllable being put together
+        Assert.False(Press(console, Key.Space));
+        Assert.False(Press(console, Key.ImeProcessed));
+        Assert.False(session.Visible);
+        editor.IsComposing = false;
+        Assert.True(Press(console, Key.Space));
+        Assert.True(session.Visible);
+        Assert.True(Press(console, Key.Escape));
+        Assert.False(session.Visible);
+        return Task.CompletedTask;
+    });
+
+    [Fact]
+    public Task NumberKeysChooseTheDisplayOutsideTheTextBoxes() => WithConsole(async (console, session, _) =>
+    {
+        Assert.False(Press(console, Key.D2)); // typing: the display buttons are not there, nor are their keys
+        Assert.Equal("auto", session.Display);
+        console.ScreenMode.IsChecked = true;
+        await console.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
+        Assert.True(Press(console, Key.D2));
+        Assert.Equal(("text", true), (session.Display, console.TextOnly.IsChecked));
+        Assert.True(Press(console, Key.D3));
+        Assert.Equal("score", session.Display);
+        Assert.True(Press(console, Key.NumPad4));
+        Assert.Equal("scoretext", session.Display);
+        Assert.False(Press(console.Draft, Key.D1)); // a digit typed into a text box
+        Assert.Equal("scoretext", session.Display);
+        Assert.True(Press(console, Key.D1));
+        Assert.Equal(("auto", true), (session.Display, console.AutoShow.IsChecked));
+    });
+
+    [Fact]
+    public Task ArrowKeysStepTheFollowedDeck() => WithConsole(async (console, session, directory) =>
+    {
+        var path = CaptionAllTextTests.WriteDeck(directory.FullName, [],
+            CaptionAllTextTests.TextSlide("일장"), CaptionAllTextTests.TextSlide("이장"), CaptionAllTextTests.TextSlide("삼장"));
+        Assert.True(await console.PrepareDeckAsync(path, 1));
+        console.ScreenMode.IsChecked = true;
+        await console.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
+        session.Follow(1, CaptionDeck.AllTextKey);
+        Assert.True(Press(console, Key.Right));
+        Assert.True(Press(console, Key.Down));
+        Assert.Equal(3, session.CurrentSlide);
+        Assert.True(Press(console, Key.Left));
+        Assert.Equal(2, session.CurrentSlide);
+        Assert.True(Press(console, Key.Up));
+        Assert.Equal(1, session.CurrentSlide);
+    });
+
+    [Fact]
+    public Task TheAirButtonShowsWhetherTheCaptionIsOnAir() => WithConsole(async (console, session, _) =>
+    {
+        Assert.Contains("숨김", (string)console.AirButton.Content); // a new console starts hidden
+        await ClickAsync(console.AirButton);
+        Assert.True(session.Visible);
+        Assert.Contains("송출 중", (string)console.AirButton.Content);
+        session.SetVisible(false); // hidden elsewhere (Esc, a new worship list)
+        await console.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
+        Assert.Contains("숨김", (string)console.AirButton.Content);
+    });
+
+    [Fact]
+    public Task TheNextPreviewIsTheNextRowThenTheNextSlideAndNothingAtTheEnd() => WithConsole(async (console, session, directory) =>
+    {
+        var editor = Assert.IsType<CaptionConsoleViewModel>(console.DataContext);
+        var path = CaptionAllTextTests.WriteDeck(directory.FullName, [CaptionScorePictureTests.ScorePng()],
+            CaptionAllTextTests.ScoreSlide(0), CaptionAllTextTests.ScoreSlide(0));
+        Assert.True(await console.PrepareDeckAsync(path, 1));
+        await console.ScorePreparation;
+        await ClickAsync(console.AirButton);
+        console.ScreenMode.IsChecked = true;
+        console.ScoreOnly.IsChecked = true;
+        session.Follow(1, CaptionDeck.AllTextKey);
+        Assert.Contains("1/2줄", console.ScoreRowLabel.Text);
+        Assert.Equal("1장 2줄", editor.Next?.Label); // the same slide's second row
+        Assert.NotNull(editor.Next!.PublicImage);
+        typeof(CaptionConsole).GetMethod("Next", Private)!.Invoke(console, [null, null]);
+        Assert.Equal("2장 1줄", editor.Next?.Label);
+        Assert.NotNull(editor.Next!.PublicImage);
+        typeof(CaptionConsole).GetMethod("Next", Private)!.Invoke(console, [null, null]);
+        Assert.Equal("2장 2줄", editor.Next?.Label);
+        typeof(CaptionConsole).GetMethod("Next", Private)!.Invoke(console, [null, null]);
+        Assert.Contains("2/2줄", console.ScoreRowLabel.Text);
+        Assert.Null(editor.Next); // the end
+    });
+
+    [Fact]
+    public Task TheNextTextIsTheChosenBoxOfTheNextSlide() => WithConsole(async (console, session, directory) =>
+    {
+        var editor = Assert.IsType<CaptionConsoleViewModel>(console.DataContext);
+        var path = CaptionAllTextTests.WriteDeck(directory.FullName, [],
+            CaptionAllTextTests.Slide(("TextBox 3", "일장 상자"), ("TextBox 5", "일장 다른")),
+            CaptionAllTextTests.Slide(("TextBox 9", "이장")),
+            CaptionAllTextTests.Slide(("TextBox 3", "삼장 상자"), ("TextBox 6", "삼장 다른")));
+        Assert.True(await console.PrepareDeckAsync(path, 1));
+        console.ScreenMode.IsChecked = true;
+        session.Follow(1, CaptionDeck.AllTextKey);
+        console.Settings.Boxes.SelectedItem = console.Settings.Boxes.Items.Cast<CaptionBox>().Single(box => box.Key == "shape:TextBox 3");
+        Assert.Equal(("2장", "이장"), (editor.Next?.Label, editor.Next?.PublicText)); // no TextBox 3: the whole text
+        session.MoveToSlide(2);
+        Assert.Equal(("3장", "삼장 상자"), (editor.Next?.Label, editor.Next?.PublicText));
+        Assert.Null(editor.Next!.PublicImage);
+    });
+
+    [Fact]
+    public Task WhileTheScoreIsMadeTheNextPreviewIsTheNextSlide() => WithConsole(async (console, session, directory) =>
+    {
+        var editor = Assert.IsType<CaptionConsoleViewModel>(console.DataContext);
+        var path = CaptionAllTextTests.WriteDeck(directory.FullName, [CaptionScorePictureTests.ScorePng()],
+            CaptionAllTextTests.TextSlide("설교 제목"), CaptionAllTextTests.ScoreSlide(0), CaptionAllTextTests.ScoreSlide(0));
+        Assert.True(await console.PrepareDeckAsync(path, 1));
+        await console.ScorePreparation;
+        console.ScreenMode.IsChecked = true;
+        typeof(CaptionConsole).GetField("_scoreDeck", Private)!.SetValue(console, null);
+        typeof(CaptionConsole).GetField("_preparingScore", Private)!.SetValue(console, session.Deck);
+        session.Follow(2, CaptionDeck.AllTextKey);
+        Assert.Equal("3장", editor.Next?.Label); // no row of slide 2 is on air
+    });
+
+    [Fact]
+    public Task PickingAStepInTheStripMovesOnlyTheCaption() => WithConsole(async (console, session, directory) =>
+    {
+        var editor = Assert.IsType<CaptionConsoleViewModel>(console.DataContext);
+        var path = CaptionAllTextTests.WriteDeck(directory.FullName, [],
+            CaptionAllTextTests.TextSlide("일장", "둘째 줄"), CaptionAllTextTests.TextSlide("이장"), CaptionAllTextTests.TextSlide("삼장"));
+        Assert.True(await console.PrepareDeckAsync(path, 1));
+        var main = (MainViewModel)typeof(CaptionConsole).GetField("_main", Private)!.GetValue(console)!;
+        int screenChanges = 0;
+        main.Session.SessionChanged += (_, _) => screenChanges++;
+        await ClickAsync(console.AirButton);
+        Assert.False(console.StepStrip.IsVisible); // typing: no deck followed
+        console.ScreenMode.IsChecked = true;
+        session.SyncShow = true; // even with sync on, a step picked moves the caption only
+        session.Follow(1, CaptionDeck.AllTextKey);
+        await console.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
+        Assert.True(console.StepStrip.IsVisible);
+        Assert.Equal(["1장", "2장", "3장"], editor.Steps.Select(step => step.Label));
+        Assert.Equal("일장", editor.Steps[0].Text); // the first line
+        Assert.Equal(editor.Steps[0], editor.CurrentStep);
+        console.StepStrip.SelectedItem = editor.Steps[2];
+        Assert.Equal((3, "삼장"), (session.CurrentSlide, session.PublicText));
+        Assert.Equal(editor.Steps[2], editor.CurrentStep);
+        Assert.DoesNotContain("송출 화면", console.Status.Text);
+        Assert.Equal(0, screenChanges);
+        session.SyncShow = false;
+    });
+
+    [Fact]
+    public Task AScoreStepGoesToItsRowInOneCaption() => WithConsole(async (console, session, directory) =>
+    {
+        var editor = Assert.IsType<CaptionConsoleViewModel>(console.DataContext);
+        var path = CaptionAllTextTests.WriteDeck(directory.FullName, [CaptionScorePictureTests.ScorePng()],
+            CaptionAllTextTests.ScoreSlide(0), CaptionAllTextTests.ScoreSlide(0));
+        console.ReadLyrics = (files, _) => Task.FromResult(ReadLyrics(files)); // each row its own line of lyrics
+        Assert.True(await console.PrepareDeckAsync(path, 1));
+        await console.ScorePreparation;
+        await console.LyricsReading;
+        await ClickAsync(console.AirButton);
+        console.ScreenMode.IsChecked = true;
+        console.ScoreAndText.IsChecked = true;
+        session.Follow(1, CaptionSession.RecognizedKey);
+        Assert.Equal("1장 첫 줄", session.PublicText);
+        Assert.Equal(["1장 1줄", "1장 2줄", "2장 1줄", "2장 2줄"], editor.Steps.Select(step => step.Label));
+        Assert.All(editor.Steps, step => Assert.NotNull(step.Thumbnail));
+        var sent = new List<string>();
+        session.PublishedChanged += published => sent.Add(published.Text);
+        console.StepStrip.SelectedItem = editor.Steps[3];
+        Assert.Equal(2, session.CurrentSlide);
+        Assert.Contains("2/2줄", console.ScoreRowLabel.Text);
+        Assert.Equal(["2장 둘째 줄"], sent); // no flash of the slide's first row
+        Assert.Equal(editor.Steps[3], editor.CurrentStep);
+    });
+
+    [Fact]
+    public Task ConnectionAndDeviceSettingsAreInTheirOwnWindow() => WithConsole(async (console, _, _) =>
+    {
+        string[] moved = ["Host", "Port", "Password", "AutoObs", "AddObsSource", "CameraSource", "PreviewObsCamera", "Scenes", "SourceName",
+            "Scene1", "Scene2", "Scene3", "Scene4", "RecoverButton", "Slides", "Boxes", "Cue"];
+        foreach (var name in moved)
+        {
+            Assert.Null(console.FindName(name));
+            Assert.NotNull(console.Settings.FindName(name));
+        }
+        Assert.Empty(Descendants(console).OfType<PasswordBox>());
+        foreach (var name in new[] { "LinesBox", "ScoreSizeBox", "BoxCheck", "AirButton", "ToCamera", "ToObs", "ObsLabel", "SyncShow", "StepStrip" })
+            Assert.NotNull(console.FindName(name));
+        Assert.False(console.Settings.IsVisible);
+        await ClickAsync(console.SettingsButton); // not modal: this returns with the window open
+        Assert.True(console.Settings.IsVisible);
+        Assert.Same(console, console.Settings.Owner);
+        console.Settings.Close(); // hidden, kept with what was typed in it
+        Assert.False(console.Settings.IsVisible);
+        await ClickAsync(console.SettingsButton);
+        Assert.True(console.Settings.IsVisible);
+    });
+
+    [Fact]
+    public Task EveryControlOfTheConsoleAndItsSettingsHasItsOwnName() => WithConsole(async (console, session, directory) =>
+    {
+        // A followed deck, so the strip has steps (their containers are made for the list, not in the window's tree).
+        var path = CaptionAllTextTests.WriteDeck(directory.FullName, [],
+            CaptionAllTextTests.TextSlide("일장"), CaptionAllTextTests.TextSlide("이장"), CaptionAllTextTests.TextSlide("삼장"));
+        Assert.True(await console.PrepareDeckAsync(path, 1));
+        console.ScreenMode.IsChecked = true;
+        session.Follow(1, CaptionDeck.AllTextKey);
+        await ClickAsync(console.SettingsButton);
+        console.StepStrip.UpdateLayout();
+        var steps = console.StepStrip.Items.Cast<object>().Select(item => console.StepStrip.ItemContainerGenerator.ContainerFromItem(item))
+            .OfType<Control>().ToList();
+        Assert.Equal(3, steps.Count);
+        foreach (var window in new System.Windows.Window[] { console, console.Settings })
+        {
+            var names = Descendants(window).OfType<Control>()
+                .Where(c => c is ButtonBase or TextBox or PasswordBox or ComboBox or ListBox)
+                .Concat(window == console ? steps : [])
+                .Select(c => (c, Name: AccessibleName(c))).ToList();
+            Assert.All(names, n => Assert.False(string.IsNullOrWhiteSpace(n.Name), $"{window.GetType().Name}: {n.c.GetType().Name} {n.c.Name} has no name"));
+            var twice = names.GroupBy(n => n.Name).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
+            Assert.True(twice.Count == 0, $"{window.GetType().Name}: the same name twice: {string.Join(", ", twice)}");
+        }
+    });
+
+    [Fact]
+    public Task WhileHiddenThePreviewShowsTheTypedCaptionDimAndNothingGoesOut() => WithConsole(async (console, session, _) =>
+    {
+        console.Draft.SetCurrentValue(TextBox.TextProperty, "주님은 나의 목자"); // typed as it goes (the default)
+        await console.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
+        Assert.False(session.Visible);
+        Assert.Equal(("", null, "", false), (session.Published.Text, session.Published.Image, session.ForObs.Text, session.HasAudienceText));
+        Assert.Equal(Visibility.Visible, console.HeldCaption.Visibility);
+        Assert.Equal("주님은 나의 목자", console.HeldCaption.LowerThirdText.Text);
+        Assert.Equal(0.5, console.HeldCaption.Opacity);
+        Assert.Equal(Visibility.Collapsed, console.PreviewCaption.Visibility);
+        Assert.True(console.HiddenBadge.IsVisible);
+        await ClickAsync(console.AirButton); // on air: the preview is what goes out
+        Assert.Equal("주님은 나의 목자", session.PublicText);
+        Assert.Equal(Visibility.Collapsed, console.HeldCaption.Visibility);
+        Assert.Equal(Visibility.Visible, console.PreviewCaption.Visibility);
+        Assert.False(console.HiddenBadge.IsVisible);
+    });
+
+    [Fact]
+    public Task WhileHiddenThePreviewShowsTheFollowedScoreRow() => WithConsole(async (console, session, directory) =>
+    {
+        var path = CaptionAllTextTests.WriteDeck(directory.FullName, [CaptionScorePictureTests.ScorePng()],
+            CaptionAllTextTests.ScoreSlide(0), CaptionAllTextTests.ScoreSlide(0));
+        Assert.True(await console.PrepareDeckAsync(path, 1));
+        await console.ScorePreparation;
+        console.ScreenMode.IsChecked = true;
+        console.ScoreOnly.IsChecked = true;
+        session.Follow(1, CaptionDeck.AllTextKey);
+        Assert.Contains("1/2줄", console.ScoreRowLabel.Text);
+        Assert.Equal((null, "", false), (session.Published.Image, session.ForObs.Text, session.HasAudienceText)); // nothing goes out
+        Assert.NotNull(session.ReadyImage);
+        Assert.Same(session.ReadyImage, console.HeldCaption.LowerThirdImage.Source);
+        Assert.Equal(Visibility.Visible, console.HeldCaption.Visibility);
+    });
+
+    [Fact]
+    public Task OnASmallScreenTheConsoleFitsAndItsBodyScrolls() => WithConsole((console, _, _) =>
+    {
+        // 1024×768 at 125%: a work area of 819×566 (smaller than the designed 900×620; see OnASmallScreenTheMinimumIsTheWorkArea).
+        var content = (FrameworkElement)console.Content; // laid out as the window would show it there (never shown here)
+        var client = new Size(819.2 - 16, 566.4 - 39);
+        content.Measure(client);
+        content.Arrange(new Rect(client));
+        content.UpdateLayout();
+        var air = console.AirButton.TransformToAncestor(content).TransformBounds(new Rect(console.AirButton.RenderSize));
+        Assert.True(air.Height >= 40 && new Rect(client).Contains(air), $"the on-air switch at {air}");
+        static bool Inside(DependencyObject element, DependencyObject container)
+        {
+            for (var at = element; at != null; at = LogicalTreeHelper.GetParent(at)) if (ReferenceEquals(at, container)) return true;
+            return false;
+        }
+        Assert.False(Inside(console.AirButton, console.Body)); // the bar with the switch stays in view
+        Assert.True(Inside(console.ObsPreviewBox, console.Body) && Inside(console.StepStrip, console.Body) && Inside(console.LinesBox, console.Body));
+        Assert.True(console.Body.ScrollableHeight > 0 && console.Body.ScrollableWidth > 0); // scrolled, not cut
+        return Task.CompletedTask;
+    }, show: false);
+
+    // The name a screen reader reads: the control's own, else its label's (LabeledBy).
+    private static string AccessibleName(System.Windows.UIElement control)
+    {
+        var name = UIElementAutomationPeer.CreatePeerForElement(control)?.GetName() ?? "";
+        return name.Length == 0 && System.Windows.Automation.AutomationProperties.GetLabeledBy(control) is { } label
+            ? UIElementAutomationPeer.CreatePeerForElement(label)?.GetName() ?? "" : name;
+    }
+
+    // The logical tree: collapsed panels too.
+    private static IEnumerable<System.Windows.DependencyObject> Descendants(System.Windows.DependencyObject parent)
+    {
+        foreach (var child in System.Windows.LogicalTreeHelper.GetChildren(parent).OfType<System.Windows.DependencyObject>())
+        {
+            yield return child;
+            foreach (var below in Descendants(child)) yield return below;
+        }
+    }
+
+    internal static async Task ClickAsync(Button button)
     {
         ((IInvokeProvider)new ButtonAutomationPeer(button)).Invoke();
         await button.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
     }
 
-    // savedStyle: caption-style.json as kept from an earlier session.
-    private static Task WithConsole(Func<CaptionConsole, CaptionSession, DirectoryInfo, Task> exercise,
-        string? expectedSavedDraft = null, string? savedStyle = null, IPowerPointRenderService? render = null) => StaHelper.RunOnStaAsync(async () =>
+    // savedStyle: caption-style.json as kept from an earlier session; savedWindow: caption-window.json.
+    // openSettings: the settings window is open (shown, owned by the console) while the exercise runs; show: false, the
+    // console is made but not shown (a small screen would shrink it); appLook: the app's resources (only where no other
+    // test made an Application); screens: the work areas the console fits in (a 1080p screen unless given).
+    // live: a live session of its own (the main window does not see it; nothing renders a deck), with the native show.
+    internal static Task WithConsole(Func<CaptionConsole, CaptionSession, DirectoryInfo, Task> exercise,
+        string? expectedSavedDraft = null, string? savedStyle = null, IPowerPointRenderService? render = null,
+        string? savedWindow = null, bool openSettings = false, bool show = true, bool appLook = false,
+        Func<IReadOnlyList<CaptionScreen>>? screens = null, LiveSessionService? live = null, IPowerPointSlideShowControl? nativeShow = null) => StaHelper.RunOnStaAsync(async () =>
     {
         var directory = Directory.CreateTempSubdirectory();
         try
         {
             if (savedStyle != null) File.WriteAllText(Path.Combine(directory.FullName, "caption-style.json"), savedStyle);
+            if (savedWindow != null) File.WriteAllText(Path.Combine(directory.FullName, "caption-window.json"), savedWindow);
+            if (appLook && System.Windows.Application.Current == null) new App().InitializeComponent(); // the app's theme and control styles
             var registrations = new ServiceCollection();
             App.ConfigureServices(registrations,
                 new SettingsServiceOptions(Path.Combine(directory.FullName, "settings.json"), directory.FullName),
                 Dispatcher.CurrentDispatcher);
             using var services = registrations.BuildServiceProvider();
             var main = services.GetRequiredService<MainViewModel>();
-            var session = services.GetRequiredService<CaptionSession>();
+            using var own = live == null ? null : new CaptionSession(live, nativeShow, Path.Combine(directory.FullName, "caption-style.json"));
+            var session = own ?? services.GetRequiredService<CaptionSession>();
             var store = services.GetRequiredService<CaptionRecoveryStore>();
             var console = new CaptionConsole(main, session, services.GetRequiredService<CaptionBroadcastServer>(), store,
                 services.GetRequiredService<CameraOwnership>(), services.GetRequiredService<ObsOperator>(),
-                new OperationalErrorLog(directory.FullName), render) { ShowActivated = false, ShowInTaskbar = false };
+                new OperationalErrorLog(directory.FullName), render, screens ?? (() => [MainScreen])) { ShowActivated = false, ShowInTaskbar = false };
             try
             {
-                console.Show();
+                if (show) console.Show();
                 await console.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
+                if (openSettings)
+                {
+                    await ClickAsync(console.SettingsButton);
+                    Assert.True(console.Settings.IsVisible);
+                }
                 await exercise(console, session, directory);
             }
             finally { console.EndSession(); }

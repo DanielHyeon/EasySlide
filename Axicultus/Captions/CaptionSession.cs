@@ -27,6 +27,8 @@ public sealed record CaptionStyle(string Color = CaptionStyle.DefaultColor, bool
     int Score = 1, string Display = CaptionStyle.AutoDisplay)
 {
     public const string DefaultColor = "#FFFFFF";
+    /// <summary>The dark box behind the text on the camera screen (the OBS page draws the same).</summary>
+    public const string BoxColor = "#CC101010";
     /// <summary>Display: auto (per slide, the score where its content picture shows staves, else the text), text, score, scoretext.</summary>
     public const string AutoDisplay = "auto";
     public static CaptionStyle Parse(string color, bool box, bool camera = true, bool obs = true, bool sync = false, int lines = 3, int score = 1,
@@ -52,6 +54,7 @@ public sealed class CaptionSession : ObservableObject, IDisposable
     private readonly IPowerPointSlideShowControl? _show;
     private readonly DispatcherTimer? _poll;
     private bool _polling;
+    private int? _showSlide; // the native show's slide when last seen
     private long _generation;
 
     private readonly string? _stylePath;
@@ -86,14 +89,28 @@ public sealed class CaptionSession : ObservableObject, IDisposable
     public string BoxKey { get; private set; } = "";
     public bool Following { get; private set; }
     public bool Visible => _visible;
+    /// <summary>The output screen is blacked out or on standby: a caption chosen on air does not go out (a023).</summary>
+    public bool ScreenOff => _live.Current.State is LiveState.Hidden or LiveState.Standby;
     public PublishedCaption Published { get; private set; } = new(0, "");
     public string PublicText => Published.Text;
     public ImageSource? PublicImage { get; private set; }
     public bool HasText => PublicText.Length > 0 || PublicImage != null;
     public bool HasPublicText => PublicText.Length > 0;
+    /// <summary>The text and picture that would be published if the caption were on air (only shown by the console).</summary>
+    public string ReadyText { get; private set; } = "";
+    public ImageSource? ReadyImage { get; private set; }
     public CaptionStyle Style { get; private set; } = new();
-    public Brush CaptionForeground => Frozen((Color)ColorConverter.ConvertFromString(Style.Color));
-    public Brush CaptionBackground => Style.Box ? Frozen(Color.FromArgb(0xCC, 0x10, 0x10, 0x10)) : Brushes.Transparent;
+    public Brush CaptionForeground => Look().Foreground;
+    public Brush CaptionBackground => Look().Background;
+    // The brushes of the current look, made once per look (one object until it changes, so the console sees no change).
+    private (string Color, bool Box, Brush? Foreground, Brush? Background) _look;
+    private (Brush Foreground, Brush Background) Look()
+    {
+        if (_look.Foreground == null || _look.Color != Style.Color || _look.Box != Style.Box)
+            _look = (Style.Color, Style.Box, Frozen((Color)ColorConverter.ConvertFromString(Style.Color)),
+                Style.Box ? Frozen((Color)ColorConverter.ConvertFromString(CaptionStyle.BoxColor)) : Brushes.Transparent);
+        return (_look.Foreground!, _look.Background!);
+    }
     private static Brush Frozen(Color color) { var brush = new SolidColorBrush(color); brush.Freeze(); return brush; }
 
     public void SetStyle(CaptionStyle style)
@@ -273,9 +290,11 @@ public sealed class CaptionSession : ObservableObject, IDisposable
         BoxKey = key;
         Following = true;
         var live = _live.Current;
-        if (live.State == LiveState.Active && string.Equals(Deck.Path, live.PptPath, StringComparison.OrdinalIgnoreCase)
-            && live.PptSlideNumber >= 1 && live.PptSlideNumber <= Deck.Slides.Length)
-            slide = live.PptSlideNumber;
+        // The show's slide now, whatever the output screen's state: only a turn from it moves the caption later.
+        bool showsDeck = string.Equals(Deck.Path, live.PptPath, StringComparison.OrdinalIgnoreCase)
+            && live.PptSlideNumber >= 1 && live.PptSlideNumber <= Deck.Slides.Length;
+        _showSlide = showsDeck ? live.PptSlideNumber : null;
+        if (showsDeck && live.State == LiveState.Active) slide = live.PptSlideNumber;
         MoveToSlide(slide);
         OnPropertyChanged(nameof(Following));
     }
@@ -350,7 +369,12 @@ public sealed class CaptionSession : ObservableObject, IDisposable
             _lastSlideNumber = current.PptSlideNumber;
             _lastSlidePath = current.PptPath;
             if (Deck != null && string.Equals(Deck.Path, current.PptPath, StringComparison.OrdinalIgnoreCase))
-                MoveToSlide(current.PptSlideNumber);
+            {
+                // A show started again on the slide it last showed is no turn: a caption the operator moved stays.
+                bool turned = _showSlide != current.PptSlideNumber;
+                _showSlide = current.PptSlideNumber;
+                if (turned) MoveToSlide(current.PptSlideNumber);
+            }
             // Mirroring, the console hands over what replaced the deck; blanking first would flash an empty caption.
             else if (trackedDeck && !Mirroring) _text = "";
         }
@@ -381,8 +405,17 @@ public sealed class CaptionSession : ObservableObject, IDisposable
     private void Emit()
     {
         if (_holding > 0) { _held = true; return; }
+        // What would go out on air, for the console's preview while hidden; nothing is sent for it.
+        var readyText = _image == null ? _text : _imageWithText ? _imageCaption ?? _text : "";
+        if (readyText != ReadyText || !ReferenceEquals(_image, ReadyImage))
+        {
+            (ReadyText, ReadyImage) = (readyText, _image);
+            OnPropertyChanged(nameof(ReadyText));
+            OnPropertyChanged(nameof(ReadyImage));
+        }
         OnPropertyChanged(nameof(Visible));
-        bool onAir = _visible && _live.Current.State is not (LiveState.Hidden or LiveState.Standby);
+        OnPropertyChanged(nameof(ScreenOff));
+        bool onAir = _visible && !ScreenOff;
         var image = onAir ? _imageUrl : null;
         var rendered = !onAir ? "" : image == null ? _text : _imageWithText ? _imageCaption ?? _text : "";
         if (Published.Text == rendered && Published.Image == image && Published.Color == Style.Color && Published.Box == Style.Box
@@ -409,8 +442,14 @@ public sealed class CaptionSession : ObservableObject, IDisposable
         try
         {
             var slide = await _show.ReadOutputPositionAsync(Deck.Path);
-            if (generation == _generation && ReferenceEquals(snapshot, _live.Current) && slide.HasValue && slide != CurrentSlide)
-                MoveToSlide(slide.Value);
+            // Only a turn of the show moves the caption: one moved by the operator (strip, arrows) stays until the show turns.
+            // Not known yet (followed before the show was seen): this reading only records it.
+            if (generation == _generation && ReferenceEquals(snapshot, _live.Current) && slide.HasValue && slide != _showSlide)
+            {
+                bool turned = _showSlide.HasValue;
+                _showSlide = slide;
+                if (turned && slide != CurrentSlide) MoveToSlide(slide.Value);
+            }
         }
         catch (Exception error) { System.Diagnostics.Debug.WriteLine(error.Message); }
         finally { _polling = false; }

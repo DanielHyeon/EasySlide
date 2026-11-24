@@ -1,0 +1,26 @@
+<Border x:Class="Axicultus.Wpf.Captions.CameraCaptionView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- The camera lower third: score row above, caption text below; either may be absent. The output screen and the
+         caption console's previews draw it the same way (Fit sizes it from the screen it sits on). -->
+    <StackPanel>
+        <Image x:Name="LowerThirdImage" Source="{Binding PublicImage}" Stretch="Uniform"
+               Tag="{Binding ScoreSize, NotifyOnTargetUpdated=True}" TargetUpdated="Refit" />
+        <!-- Fixed-height text area; CaptionFit shrinks long text to fit it. Only the text gets the dark box, as on the OBS page. -->
+        <Border x:Name="LowerThirdArea" Background="{Binding CaptionBackground}" CornerRadius="4" Padding="18,7">
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding HasPublicText}" Value="False">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+            <TextBlock x:Name="LowerThirdText" Text="{Binding PublicText, NotifyOnTargetUpdated=True}" TargetUpdated="Refit"
+                       Tag="{Binding CaptionLines, NotifyOnTargetUpdated=True}"
+                       TextAlignment="Center" VerticalAlignment="Center" Foreground="{Binding CaptionForeground}"
+                       FontSize="32" FontWeight="SemiBold" TextWrapping="Wrap" LineStackingStrategy="BlockLineHeight" />
+        </Border>
+    </StackPanel>
+</Border>
