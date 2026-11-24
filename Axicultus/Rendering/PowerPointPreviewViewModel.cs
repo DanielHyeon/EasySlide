@@ -18,6 +18,15 @@ public enum PowerPointPreviewState
     Failed,
 }
 
+/// <summary>What became of one <see cref="PowerPointPreviewViewModel.LoadAsync"/> call: its slide is shown, it failed, or a
+/// newer load or a clear replaced it before it finished.</summary>
+public enum PowerPointLoadResult
+{
+    Shown,
+    Failed,
+    Superseded,
+}
+
 /// <summary>덱 썸네일 스트립의 한 슬라이드(번호 + 작은 이미지 + 현재 슬라이드 여부).</summary>
 public sealed partial class PowerPointSlideThumbnail(int slideNumber, ImageSource image, int pixelWidth = 0, int pixelHeight = 0) : ObservableObject
 {
@@ -140,7 +149,7 @@ public sealed partial class PowerPointPreviewViewModel(IPowerPointRenderService 
     /// PPT 한 슬라이드를 렌더해 미리보기 이미지로 노출. 성공이면 Ready, 실패면 Failed 상태.
     /// (라이브 흐름이 PPT 항목을 송출할 때 호출 — 현재는 placeholder 대체 + 향후 연결 지점.)
     /// </summary>
-    public async Task LoadAsync(
+    public async Task<PowerPointLoadResult> LoadAsync(
         string filePath,
         int slideNumber,
         int pixelWidth,
@@ -149,12 +158,13 @@ public sealed partial class PowerPointPreviewViewModel(IPowerPointRenderService 
         OfficeLib.SlideImageManifest.SourceVersion? expectedVersion = null)
     {
         var sourceVersion = OfficeLib.SlideImageManifest.ReadSource(filePath);
-        if (expectedVersion != null && !expectedVersion.Matches(sourceVersion)) return;
+        if (expectedVersion != null && !expectedVersion.Matches(sourceVersion)) return PowerPointLoadResult.Failed;
         long generation = ++_previewGeneration;
         // A live reload keeps the last good frame and strip until the saved replacement has decoded.
         if (expectedVersion == null)
         {
             ClearOutdatedStrip(filePath);
+            _renderingPath = filePath;
             State = PowerPointPreviewState.Rendering;
             StatusText = "렌더링 중…";
         }
@@ -163,7 +173,7 @@ public sealed partial class PowerPointPreviewViewModel(IPowerPointRenderService 
             new PowerPointRenderRequest(filePath, slideNumber, pixelWidth, pixelHeight, TimeSpan.FromSeconds(60)),
             cancellationToken).ConfigureAwait(true);
 
-        if (generation != _previewGeneration) return;
+        if (generation != _previewGeneration) return PowerPointLoadResult.Superseded;
 
         if (result.Succeeded && result.Slide is { } slide)
         {
@@ -176,19 +186,20 @@ public sealed partial class PowerPointPreviewViewModel(IPowerPointRenderService 
                 ex is NotSupportedException or FileFormatException or ArgumentException or OverflowException or IOException)
             {
                 // 렌더는 성공했으나 바이트 디코드 실패 — 상태 머신이 Rendering 에 고착되지 않도록 Failed 로 마무리.
-                if (generation == _previewGeneration && expectedVersion == null) SetFailed($"이미지 디코드 실패: {ex.Message}");
-                return;
+                if (generation != _previewGeneration) return PowerPointLoadResult.Superseded;
+                if (expectedVersion == null) SetFailed($"이미지 디코드 실패: {ex.Message}");
+                return PowerPointLoadResult.Failed;
             }
 
-            if (generation != _previewGeneration) return;
+            if (generation != _previewGeneration) return PowerPointLoadResult.Superseded;
             if (cancellationToken.IsCancellationRequested)
             {
                 if (expectedVersion == null) SetFailed("렌더링 취소됨");
-                return;
+                return PowerPointLoadResult.Failed;
             }
             if (expectedVersion != null)
             {
-                if (!expectedVersion.Matches(OfficeLib.SlideImageManifest.ReadSource(filePath))) return;
+                if (!expectedVersion.Matches(OfficeLib.SlideImageManifest.ReadSource(filePath))) return PowerPointLoadResult.Failed;
                 ClearOutdatedStrip(filePath);
             }
             PreviewImage = image;
@@ -198,11 +209,10 @@ public sealed partial class PowerPointPreviewViewModel(IPowerPointRenderService 
             LoadedSourceVersion = sourceVersion;
             State = PowerPointPreviewState.Ready;
             StatusText = $"슬라이드 {slide.SlideNumber}/{slide.SlideCount}";
+            return PowerPointLoadResult.Shown;
         }
-        else if (expectedVersion == null)
-        {
-            SetFailed(result.ErrorMessage ?? "PPT 렌더 실패");
-        }
+        if (expectedVersion == null) SetFailed(result.ErrorMessage ?? "PPT 렌더 실패");
+        return PowerPointLoadResult.Failed;
     }
 
     private void ClearOutdatedStrip(string path)
@@ -411,6 +421,21 @@ public sealed partial class PowerPointPreviewViewModel(IPowerPointRenderService 
         LoadedSourceVersion = null;
         State = PowerPointPreviewState.Failed;
         StatusText = status;
+    }
+
+    private string? _renderingPath; // the deck of the last render that marked the preview Rendering
+
+    /// <summary>
+    /// Drops a slide render in flight and keeps the slide shown (what <see cref="Clear"/> does, without clearing). A
+    /// render of another deck is dropped with what is shown, since the frame left is not the deck asked for.
+    /// </summary>
+    public void AbandonPendingRender()
+    {
+        _previewGeneration++;
+        if (State != PowerPointPreviewState.Rendering) return;
+        if (PreviewImage is null || !string.Equals(LoadedContentPath, _renderingPath, StringComparison.OrdinalIgnoreCase)) { Clear(); return; }
+        State = PowerPointPreviewState.Ready;
+        StatusText = $"슬라이드 {SlideNumber}/{SlideCount}";
     }
 
     /// <summary>미리보기를 비우고 초기 상태로(다른 종류 항목 선택 시).</summary>

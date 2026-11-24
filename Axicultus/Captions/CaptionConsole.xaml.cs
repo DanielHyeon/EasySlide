@@ -407,7 +407,7 @@ public partial class CaptionConsole : Window
         a != null && string.Equals(Path.GetFullPath(a), Path.GetFullPath(b), StringComparison.OrdinalIgnoreCase);
 
     private string? _readingDeck;
-    private int _outputSlide; // the output panel's slide when last seen (not live)
+    private int _outputSlide; // the output panel's slide when last seen, live or not (only a change of it while not live is a turn)
 
     /// <summary>The deck on the output screen and its slide (a test puts a stand-in here; else the live show or output panel).</summary>
     internal Func<(string Path, int Slide)?>? ScreenDeck { get; set; }
@@ -429,9 +429,10 @@ public partial class CaptionConsole : Window
                 return;
             }
             if (!_captions.Following) FollowLoadedDeck(slide); // the slide the screen shows now, not the one last viewed
-            // Not live: a turn of the output panel drives the caption (live, the session does); a caption the operator
-            // moved stays until the panel turns.
-            else if (_main.Session.Current.State == LiveState.Off && SamePath(_main.OutputPowerPoint.LoadedContentPath, path)
+            // Live, the session drives the caption; the panel's slide is noted so the show's end (the panel keeps it) is no turn.
+            else if (_main.Session.Current.State != LiveState.Off) _outputSlide = _main.OutputPowerPoint.SlideNumber;
+            // Not live: a turn of the output panel drives the caption; a caption the operator moved stays until the panel turns.
+            else if (SamePath(_main.OutputPowerPoint.LoadedContentPath, path)
                 && _main.OutputPowerPoint.SlideNumber >= 1 && _main.OutputPowerPoint.SlideNumber != _outputSlide)
             {
                 _outputSlide = _main.OutputPowerPoint.SlideNumber;

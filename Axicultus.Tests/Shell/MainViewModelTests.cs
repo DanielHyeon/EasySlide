@@ -7483,7 +7483,7 @@ public partial class MainViewModelTests
 
         slideShow.StopCount.Should().Be(1, "Live 종료는 WinForms ClearUpPowerpointWindows/QuitPowerPointApp처럼 PowerPoint를 닫아야 함");
         sut.Session.Current.State.Should().Be(LiveState.Off);
-        sut.OutputPowerPoint.State.Should().Be(PowerPointPreviewState.Idle);
+        sut.OutputPowerPoint.State.Should().Be(PowerPointPreviewState.Ready, "the output panel keeps its deck when the show ends (a042)");
         sut.StatusText.Should().Be("라이브 중지");
     }
 

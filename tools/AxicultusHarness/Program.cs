@@ -324,6 +324,7 @@ internal static class Program
                 case "wlist": await WList(); break;
                 case "bible2": await Bible2(); break;
                 case "rows": await Rows(); break;
+                case "showend": await ShowEnd(); break;
                 default: Log("WARN", "unknown phase " + phase); break;
             }
             Summary("after-" + phase);
@@ -1682,6 +1683,89 @@ internal static class Program
             Log("SCORE", $"slide {n}: {image.PixelWidth}x{image.PixelHeight} rows " + string.Join(" ", rows.Select(r =>
                 $"[y{r.Area.Y} h{r.Area.Height}+{r.PadTop}+{r.PadBottom} = {(r.Area.Height + r.PadTop + r.PadBottom) * 4.0 / (r.StaffBottom - r.StaffTop):0.##} spacings]")));
         }
+    }
+
+    // a042: F11 a deck, Esc; the output panel keeps the deck's thumbnails and slide, a slide picked there goes out again,
+    // and closing the output window still empties the panel.
+    private static async Task ShowEnd()
+    {
+        var output = _vm.OutputPowerPoint;
+        var deck = _vm.Queue.FirstOrDefault(i => LiveItemKindMatcher.IsPowerPoint(LiveItemKindMatcher.InferLegacyKind(i)) && i.ContentPath is { Length: > 0 });
+        if (deck == null) { Log("WARN", "no PowerPoint item in the worship list"); return; }
+        async Task WaitForStrip()
+        {
+            for (var i = 0; i < 60 && !(output.SlideCount > 0 && output.Thumbnails.Count == output.SlideCount); i++) await Idle(500);
+        }
+        string Panel() => $"output={_vm.OutputItem?.Title}:{output.State} slide={output.SlideNumber}/{output.SlideCount} thumbs={output.Thumbnails.Count} context={_vm.IsOutputPowerPointContext} | {Snap()}";
+        void Check(string what, bool ok) => Log(ok ? "PASS" : "FAIL", $"{what}: {Panel()}");
+
+        Ctx("showend F11 then Esc");
+        await Exec("OpenOutputCommand", null, 1500);
+        _vm.SelectedItem = deck;
+        await Settle(4000);
+        await Exec("SendToOutputAndNextCommand", null, 9000);
+        await WaitForStrip();
+        if (output.SlideCount > 1) await Exec("GoToOutputSlideCommand", 2, 3000);
+        int slide = output.SlideNumber, thumbs = output.Thumbnails.Count;
+        Log("SHOWEND", $"live: {Panel()}");
+        var ended = _sp.GetRequiredService<ShortcutRegistry>().TryInvoke(MainCommandIds.EndShow); // the Esc path
+        await Settle(3000);
+        Check($"Esc (handled={ended}) keeps the output deck (expect slide {slide}, {thumbs} thumbs)",
+            _vm.Session.Current.State == Axicultus.Wpf.Controls.LiveState.Off && output.State == Axicultus.Wpf.Rendering.PowerPointPreviewState.Ready
+            && output.SlideNumber == slide && thumbs > 0 && output.Thumbnails.Count == thumbs && _vm.IsOutputPowerPointContext);
+
+        Ctx("showend pick a slide and go live again");
+        int target = output.SlideCount > 1 ? 1 : output.SlideNumber;
+        await Exec("GoToOutputSlideCommand", target, 3000);
+        await Exec("ToggleOutputLiveCommand", null, 9000);
+        Check($"re-sent slide {target}", _vm.Session.Current.State == Axicultus.Wpf.Controls.LiveState.Active
+            && _vm.Session.Current.PptSlideNumber == target && output.SlideNumber == target);
+
+        Ctx("showend close output");
+        await Exec("CloseOutputCommand", null, 2500);
+        Check("close output empties the panel", _vm.OutputItem == null && output.Thumbnails.Count == 0 && output.SlideNumber == 0);
+
+        Ctx("showend gap then previous item");
+        var settings = _sp.GetRequiredService<ISettingsService>();
+        var gap = settings.Get(AxicultusSettingKeys.GapItemOption);
+        var native = _sp.GetRequiredService<Axicultus.Wpf.Rendering.IPowerPointSlideShowControl>();
+        try
+        {
+            settings.Set(AxicultusSettingKeys.GapItemOption, GapItemMode.Default);
+            await Exec("OpenOutputCommand", null, 1500);
+            _vm.SelectedItem = deck;
+            await Settle(3000);
+            await Exec("GoLiveCommand", null, 9000);
+            if (output.SlideCount < 2) Log("WARN", $"gap check skipped: the deck has {output.SlideCount} slide(s)");
+            else
+            {
+                await Exec("GoToOutputSlideCommand", Math.Min(3, output.SlideCount), 4000);
+                await Exec("NextOutputItemCommand", null, 2500);
+                var onGap = _vm.IsGapItemOnDisplay;
+                await Exec("PreviousOutputItemCommand", null, 9000);
+                var nativeSlide = await native.ReadOutputPositionAsync(deck.ContentPath!);
+                Check($"gap (shown={onGap}) then previous item reopens the deck on slide 1 (native={nativeSlide})",
+                    onGap && _vm.Session.Current.PptSlideNumber == 1 && output.SlideNumber == 1 && nativeSlide == 1);
+            }
+            _sp.GetRequiredService<ShortcutRegistry>().TryInvoke(MainCommandIds.EndShow);
+            await Settle(3000);
+        }
+        finally { settings.Set(AxicultusSettingKeys.GapItemOption, gap); }
+
+        Ctx("showend emptied list and undo");
+        var items = _vm.Queue.ToArray();
+        int keptThumbs = output.Thumbnails.Count;
+        await Exec("ClearWorshipListCommand", null, 1000);
+        Check($"an emptied list leaves the output panel (expect {keptThumbs} thumbs)", _vm.OutputItem?.Id == deck.Id && output.Thumbnails.Count == keptThumbs && keptThumbs > 0);
+        await Exec("RestoreClearedWorshipListCommand", null, 1500);
+        Check("undo brings the list back with the panel kept", _vm.Queue.Count == items.Length && _vm.OutputItem?.Id == deck.Id && output.Thumbnails.Count == keptThumbs);
+
+        Ctx("showend another list");
+        _vm.LoadQueue(items.Where(i => i.Id != deck.Id).ToArray());
+        await Settle(1500);
+        Check("a list without the deck empties the kept panel", _vm.OutputItem == null && output.Thumbnails.Count == 0);
+        _vm.LoadQueue(items);
+        await Settle(1500);
     }
 
     private static async Task Ppt3()

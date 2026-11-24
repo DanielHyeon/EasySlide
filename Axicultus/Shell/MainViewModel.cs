@@ -1876,6 +1876,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         EndShowIfQueueEmpty();
+        FollowOutputRowIntoLoadedList();
         StatusText = Queue.Count == 0 ? "송출할 항목이 없습니다" : $"{Queue.Count}개 항목 로드됨";
         RefreshPowerPointLimitState(updateStatus: true);
         // 전체 교체(불러오기/시작 시드)는 "깨끗한" 상태 — 위 Add 들이 켠 미저장 표시를 끈다(사용자 편집만 미저장으로 남게).
@@ -2942,6 +2943,43 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private void EndShowIfQueueEmpty()
     {
         if (Queue.Count == 0 && IsShowRunning) _ = EndShowAsync();
+    }
+
+    private bool _listLoadedDuringShow;
+
+    // Another worship list was loaded: the output panel takes the new list's row of its item (its lyrics and format, at
+    // the slide or page shown), or empties when the new list does not have it, so a start from the output panel cannot
+    // send a row of the old list. A running show keeps its item; this is done when it ends. (An emptied list leaves
+    // the output panel as it is, as FrmMain does.)
+    private void FollowOutputRowIntoLoadedList()
+    {
+        if (IsShowRunning) { _listLoadedDuringShow = true; return; }
+        _listLoadedDuringShow = false;
+        // An empty list leaves the output panel as it is (as emptying the list does).
+        if (Queue.Count == 0 || OutputItem is not { } output || _outputFromSourcePreview || output.Id == LiveItemKinds.NoticeLiveId) return;
+        if (Queue.FirstOrDefault(row => row.Id == output.Id) is { } row)
+        {
+            // The new row may have fewer pages: the kept page stays within it. A deck keeps the slide its panel shows
+            // (live turns move the panel, not the item); a row of the same id naming another deck file is drawn instead
+            // of the old one, at that slide clamped to its own count (SettleKeptOutputPanelAsync; EndShowAsync settles
+            // after it).
+            var prepared = PrepareLiveItemForOutput(row);
+            int pages = BuildLyricsPageModel(prepared).Count;
+            int slide = IsPowerPointItem(row) && OutputPowerPoint.SlideNumber > 0 ? OutputPowerPoint.SlideNumber : output.SlideNumber;
+            bool otherDeck = IsPowerPointItem(row) && OutputPowerPoint.LoadedContentPath is { } shown
+                && !string.Equals(shown, row.ContentPath, StringComparison.OrdinalIgnoreCase);
+            if (otherDeck) OutputPowerPoint.Clear();
+            _outputFormatSource = row;
+            OutputItem = prepared with
+            {
+                SlideNumber = slide,
+                LyricsPageIndex = Math.Clamp(output.LyricsPageIndex, 0, Math.Max(0, pages - 1)),
+            };
+            if (otherDeck && !_endingShow) _ = SettleKeptOutputPanelAsync();
+            return;
+        }
+        OutputItem = null;
+        OutputPowerPoint.Clear();
     }
 
     // 방금 비운 예배 순서를 복구(되돌리기). 스냅샷이 있을 때만 동작하고, 복구 후 스냅샷은 비운다(중복 복구 방지).
@@ -6190,6 +6228,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             return false;
         }
+        if (ShowClosing) return true; // the native show is being closed: the step is not taken, nor any other
 
         try
         {
@@ -6260,9 +6299,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private async Task ApplyNativeSlidePositionAsync(LiveSessionSnapshot session, int? position,
         OfficeLib.SlideImageManifest.SourceVersion? version = null)
     {
-        if (_disposed || position is not int slide || slide < 1 || !ReferenceEquals(session, _session.Current) ||
+        if (_disposed || ShowClosing || position is not int slide || slide < 1 || !ReferenceEquals(session, _session.Current) ||
             GetOutputPowerPointNavigationItem() is not { ContentPath: { Length: > 0 } path } item ||
             !string.Equals(path, session.PptPath, StringComparison.OrdinalIgnoreCase)) return;
+        int show = _showGeneration;
 
         bool changed = version != null && !version.Matches(OutputPowerPoint.LoadedSourceVersion);
         if (!changed && OutputPowerPoint.State == Rendering.PowerPointPreviewState.Failed &&
@@ -6274,7 +6314,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             var (width, height) = ResolvePptRenderSize();
             int knownCount = OutputPowerPoint.SlideCount;
             await OutputPowerPoint.LoadAsync(path, slide, width, height, expectedVersion: version).ConfigureAwait(true);
-            if (_disposed || !ReferenceEquals(session, _session.Current)) return;
+            if (_disposed || show != _showGeneration || !ReferenceEquals(session, _session.Current)) return;
             if (version != null && (!version.Matches(OutputPowerPoint.LoadedSourceVersion) || OutputPowerPoint.SlideNumber != slide))
             {
                 if (!OutputPowerPoint.TryUseNativeThumbnail(slide, version)) return;
@@ -6294,12 +6334,20 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
+    // Output moves (slide, item, replay, native position) belong to the show running when they start: none starts while
+    // a show closes, and one whose await outlives a show's start or end (_showGeneration changed) stops there, so it
+    // neither publishes into the next show nor turns the panel kept after Esc.
+    private int _showGeneration;
+    private bool _showRunningSeen;
+    private bool ShowClosing => _endingShow && IsShowRunning;
+
     private async Task GoToOutputSlideAsync(int target)
     {
-        if (GetOutputPowerPointNavigationItem() is not { ContentPath: { Length: > 0 } path } item)
+        if (ShowClosing || GetOutputPowerPointNavigationItem() is not { ContentPath: { Length: > 0 } path } item)
         {
             return;
         }
+        int show = _showGeneration;
 
         if (OutputPowerPoint.State != Rendering.PowerPointPreviewState.Ready
             || target < 1 || target > OutputPowerPoint.SlideCount)
@@ -6309,6 +6357,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         var (width, height) = ResolvePptRenderSize();
         await OutputPowerPoint.LoadAsync(path, target, width, height).ConfigureAwait(true);
+        if (show != _showGeneration) return;
         EnsurePowerPointThumbnails(OutputPowerPoint, path);
 
         if (_session.Current.State == LiveState.Active)
@@ -6344,12 +6393,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // Output replay shares the live/prepared Output slide path so Active/Hidden/Off states stay independent from Preview.
     private async Task ReplayOutputPowerPointSlideAsync(int target)
     {
-        if (GetOutputPowerPointNavigationItem() is not { ContentPath: { Length: > 0 } path })
+        if (ShowClosing || GetOutputPowerPointNavigationItem() is not { ContentPath: { Length: > 0 } path })
         {
             return;
         }
 
+        int show = _showGeneration;
         await GoToOutputSlideAsync(target).ConfigureAwait(true);
+        if (show != _showGeneration) return;
         // Only a running show has animations to replay; triggering while not live would start a full-screen show
         // that End Show does not close (FrmMain's SafePlayNext is a no-op without a running show).
         if (_session.Current.State == LiveState.Active
@@ -6850,16 +6901,22 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         if (Media.IsOutputPlayerVisible) Media.Unload();
-        // The native PowerPoint show is a separate full-screen window; without this it stays on the audience monitor.
-        await StopPowerPointSlideShowForLiveAsync().ConfigureAwait(true);
-        if (_session.Current.State != LiveState.Off)
+        BeginEndingShow();
+        try
         {
-            _session.Stop();
+            // The native PowerPoint show is a separate full-screen window; without this it stays on the audience monitor.
+            await StopPowerPointSlideShowForLiveAsync().ConfigureAwait(true);
+            if (_session.Current.State != LiveState.Off)
+            {
+                _session.Stop();
+            }
         }
+        finally { _endingShow = false; }
 
         _output.Close();
         SetLiveItemId(null);
         OutputItem = null;
+        _listLoadedDuringShow = false; // the panel is emptied; a list loaded during the show has nothing to follow
         OutputPowerPoint.Clear();
         LiveBar.OutputMonitorName = string.Empty;
         StatusText = "출력 창 닫힘";
@@ -7157,11 +7214,107 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             EnsureLiveOutputDisplay();
         }
 
-        await PrepareOutputItemForNavigationAsync(item).ConfigureAwait(true);
+        switch (await KeepOutputPanelDeckAsync(item).ConfigureAwait(true))
+        {
+            case null:
+                if (IsShowRunning) return; // another start went live meanwhile
+                StatusText = "송출 칸 항목이 바뀌어 송출을 시작하지 않았습니다.";
+                _telemetry.Record(MainCommandIds.LiveGo, succeeded: false, StatusText);
+                NotifyCommandStates();
+                return;
+            case false: await PrepareOutputItemForNavigationAsync(item).ConfigureAwait(true); break;
+        }
         var prepared = OutputItem ?? item;
         var lyricsPageIndex = IsLyricsPaginated(prepared) ? GetOutputLyricsPageIndex(prepared) : 0;
         await PublishOutputItemAsync(prepared, MainCommandIds.LiveGo, lyricsPageIndex).ConfigureAwait(true);
     }
+
+    // Starting the show from the output panel: a deck the panel already shows goes out at the slide shown there
+    // (kept after the show ended, or picked there), read again first when its file changed since. False: not that deck
+    // (prepare it as any start does); null: the panel took another item, or a show started, while the deck was read
+    // (start nothing). The row the output was taken from stays its source (a list may hold the deck twice), as does a
+    // deck from a source preview.
+    private async Task<bool?> KeepOutputPanelDeckAsync(LiveQueueItem item)
+    {
+        if (!IsOutputDeck(item) || !IsPowerPointItem(item) || item.ContentPath is not { Length: > 0 } path
+            || OutputPowerPoint.State != Rendering.PowerPointPreviewState.Ready
+            || !string.Equals(OutputPowerPoint.LoadedContentPath, path, StringComparison.OrdinalIgnoreCase)) return false;
+
+        if (OutputDeckChangedOnDisk(path))
+        {
+            int show = _showGeneration;
+            if (!await LoadOutputDeckNearAsync(path, OutputPowerPoint.SlideNumber, () => show == _showGeneration && IsOutputDeck(item)).ConfigureAwait(true))
+                return show != _showGeneration || !IsOutputDeck(item) ? null : false; // a newer draw of the same deck: prepare it
+            // Not drawn again: no slide of it is known to go out, so the item is prepared as any start prepares it.
+            if (OutputPowerPoint.State != Rendering.PowerPointPreviewState.Ready) return false;
+        }
+
+        EnsurePowerPointThumbnails(OutputPowerPoint, path);
+        return true;
+    }
+
+    private bool OutputDeckChangedOnDisk(string path)
+        => OfficeLib.SlideImageManifest.ReadSource(path) is { } source
+            ? !source.Matches(OutputPowerPoint.LoadedSourceVersion)
+            : OutputPowerPoint.LoadedSourceVersion is not null;
+
+    private bool IsOutputDeck(LiveQueueItem item)
+        => OutputItem is { } output && output.Id == item.Id
+            && string.Equals(output.ContentPath, item.ContentPath, StringComparison.OrdinalIgnoreCase);
+
+    // Draws the output panel's deck at the slide, or at its last one when it has fewer slides now (its first slide tells
+    // how many); only a failure of these renders falls back. False: a newer load or clear replaced one of them, or the
+    // panel is wanted for something else (stillWanted), so drawing stopped.
+    private async Task<bool> LoadOutputDeckNearAsync(string path, int slide, Func<bool> stillWanted)
+    {
+        var (width, height) = ResolvePptRenderSize();
+        slide = Math.Max(1, slide);
+        var result = await OutputPowerPoint.LoadAsync(path, slide, width, height).ConfigureAwait(true);
+        if (result == Rendering.PowerPointLoadResult.Superseded || !stillWanted()) return false;
+        if (result == Rendering.PowerPointLoadResult.Shown || slide == 1) return true;
+        result = await OutputPowerPoint.LoadAsync(path, 1, width, height).ConfigureAwait(true);
+        if (result == Rendering.PowerPointLoadResult.Superseded || !stillWanted()) return false;
+        if (result == Rendering.PowerPointLoadResult.Shown && OutputPowerPoint.SlideCount > 1)
+        {
+            result = await OutputPowerPoint.LoadAsync(path, Math.Min(slide, OutputPowerPoint.SlideCount), width, height).ConfigureAwait(true);
+            if (result == Rendering.PowerPointLoadResult.Superseded || !stillWanted()) return false;
+        }
+        return true;
+    }
+
+    private Task _settlingOutputPanel = Task.CompletedTask;
+
+    // After a show ends the output panel shows its item's deck: drawn again when a render for the show was dropped
+    // (another deck was being drawn, or a changed file was being read again), with its whole strip. One settle runs at
+    // a time: a later one waits for the earlier and then looks at the panel as it is.
+    private Task SettleKeptOutputPanelAsync()
+    {
+        var earlier = _settlingOutputPanel;
+        return _settlingOutputPanel = SettleAfterAsync();
+
+        async Task SettleAfterAsync()
+        {
+            int show = _showGeneration;
+            await Task.WhenAny(earlier).ConfigureAwait(true); // how the earlier one ended does not matter here
+            if (IsShowRunning || show != _showGeneration) return; // a show started meanwhile: the panel is its own
+            try
+            {
+                if (OutputItem is not { ContentPath: { Length: > 0 } path } item || !IsPowerPointItem(item)) return;
+                bool holdsDeck = OutputPowerPoint.State == Rendering.PowerPointPreviewState.Ready
+                    && string.Equals(OutputPowerPoint.LoadedContentPath, path, StringComparison.OrdinalIgnoreCase);
+                if (!holdsDeck || OutputDeckChangedOnDisk(path))
+                {
+                    int slide = holdsDeck ? OutputPowerPoint.SlideNumber : item.SlideNumber;
+                    if (!await LoadOutputDeckNearAsync(path, slide, () => show == _showGeneration && IsOutputDeck(item)).ConfigureAwait(true))
+                        return;
+                }
+                EnsurePowerPointThumbnails(OutputPowerPoint, path);
+            }
+            catch (Exception ex) { System.Diagnostics.Debug.WriteLine(ex.Message); } // started without being awaited
+        }
+    }
+
+    internal Task OutputPanelSettled => _settlingOutputPanel;
 
     // 상단/메뉴 "송출 후 다음" — 선택 항목을 라이브로 송출하고 곧바로 다음 항목으로 선택을 옮긴다(자동 다음 설정과 무관).
     // FrmMain 지역 btnToOutputMoveNext 의 비송출 복사+다음은 CopyPreviewToOutputAndNextCommand 가 담당한다.
@@ -7222,7 +7375,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             finally { _endingShow = false; }
             return;
         }
-        _endingShow = true;
+        BeginEndingShow();
         try
         {
             if (Media.IsOutputPlayerVisible) Media.Unload();
@@ -7231,7 +7384,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             RestoreShowKeySettings();
             if (_output.Current.IsOpen && !_output.Current.Placement.IsWindowed) _output.Close();
             SetLiveItemId(null);
-            OutputPowerPoint.Clear();
+            // The output panel keeps its item, so its deck's thumbnails and slide too (WinForms GoLive(false)).
+            if (_listLoadedDuringShow) FollowOutputRowIntoLoadedList();
             StatusText = powerPointStopError is null
                 ? "라이브 중지"
                 : $"라이브 중지 (PowerPoint 종료 실패: {powerPointStopError})";
@@ -7239,6 +7393,17 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             NotifyCommandStates();
         }
         finally { _endingShow = false; }
+        _ = SettleKeptOutputPanelAsync(); // not awaited: the live commands are back at once while the deck is drawn
+    }
+
+    // The start of a show's end (Esc, live stop, output window close): the show's output moves stop (ShowClosing, a new
+    // _showGeneration), and a slide still being drawn for it is dropped, so it neither turns the kept panel nor starts
+    // the native show again while PowerPoint closes it.
+    private void BeginEndingShow()
+    {
+        _endingShow = true;
+        _showGeneration++;
+        OutputPowerPoint.AbandonPendingRender();
     }
 
     // An error that reached the dispatcher: while a show runs the operator is told and the show stays up
@@ -7642,10 +7807,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private async Task MoveOutputItemAsync(int delta, bool atLastPage = false)
     {
-        if (!TryGetOutputNavigationIndex(out var index))
+        if (ShowClosing || !TryGetOutputNavigationIndex(out var index))
         {
             return;
         }
+        int show = _showGeneration;
 
         // FrmMain.MoveToOutputItem: with a gap option Next shows the gap screen first, also after the last item.
         // From the gap, Next opens the following item and Previous the item the gap follows.
@@ -7664,6 +7830,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         var target = Queue[targetIndex];
         await PrepareOutputItemForNavigationAsync(target).ConfigureAwait(true);
+        if (show != _showGeneration) return;
         var page = 0;
         if (atLastPage)
         {
@@ -7683,6 +7850,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             }
         }
 
+        if (show != _showGeneration) return;
         if (_session.Current.State == LiveState.Active)
         {
             PublishOutputItem(target, delta > 0 ? MainCommandIds.LiveNext : MainCommandIds.LivePrevious, page);
@@ -7703,10 +7871,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private async Task MoveOutputItemToIndexAsync(int targetIndex, string commandId)
     {
-        if (!TryGetOutputNavigationIndex(out var index))
+        if (ShowClosing || !TryGetOutputNavigationIndex(out var index))
         {
             return;
         }
+        int show = _showGeneration;
 
         // From the gap screen the item it follows is a move too (FrmMain First/Last load the item directly).
         if (targetIndex < 0 || targetIndex >= Queue.Count || (targetIndex == index && !IsGapItemOnDisplay))
@@ -7716,6 +7885,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         var target = Queue[targetIndex];
         await PrepareOutputItemForNavigationAsync(target).ConfigureAwait(true);
+        if (show != _showGeneration) return;
         if (_session.Current.State == LiveState.Active)
         {
             PublishOutputItem(target, commandId);
@@ -7766,9 +7936,18 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private void PublishOutputItem(LiveQueueItem item, string commandId, int lyricsPageIndex = 0)
         => _ = PublishOutputItemAsync(item, commandId, lyricsPageIndex);
 
+    // A show is closing (PowerPoint was told to stop it): nothing new goes live until it has, or a new native show could
+    // start after the stop and stay on the audience screen.
+    private bool RefuseWhileShowCloses()
+    {
+        if (!ShowClosing) return false;
+        StatusText = "쇼를 끝내는 중입니다. 끝난 뒤 다시 송출하세요.";
+        return true;
+    }
+
     private async Task PublishOutputItemAsync(LiveQueueItem item, string commandId, int lyricsPageIndex = 0)
     {
-        if (RefuseDisabledOutput()) return;
+        if (RefuseWhileShowCloses() || RefuseDisabledOutput()) return;
         var display = EnsureLiveOutputDisplay();
         var prepared = PrepareOutputFromSource(item);
         OutputItem = prepared;
@@ -7825,7 +8004,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private async Task JumpToNextNonRotateOutputItemAsync()
     {
+        if (ShowClosing) return;
+        int show = _showGeneration;
         var target = await FindNextNonRotatingOutputItemAsync().ConfigureAwait(true);
+        if (show != _showGeneration) return;
         if (target is null)
         {
             StatusText = "다음 회전 제외 Output 항목이 없습니다.";
@@ -7834,6 +8016,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         await PrepareOutputItemForNavigationAsync(target).ConfigureAwait(true);
+        if (show != _showGeneration) return;
         if (_session.Current.State == LiveState.Active)
         {
             await PublishOutputItemAsync(target, MainCommandIds.LiveNext).ConfigureAwait(true);
@@ -8293,7 +8476,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        if (RefuseDisabledOutput()) return;
+        if (RefuseWhileShowCloses() || RefuseDisabledOutput()) return;
         var display = EnsureLiveOutputDisplay();
         var prepared = PrepareOutputFromSource(item);
         OutputItem = prepared;
@@ -11549,6 +11732,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private void ApplyLiveSnapshot(LiveSessionSnapshot snapshot)
     {
+        if ((snapshot.State != LiveState.Off) != _showRunningSeen) { _showRunningSeen = !_showRunningSeen; _showGeneration++; } // a show started or stopped
         // The native slide show is its own window over the audience window, so Black and Hide must black it too.
         // Clear leaves it showing, as FrmLaunchShow does for a PowerPoint item (Remote_LiveBlackClearChanged:
         // only Black paints the transparent overlay; Clear just drops the panel text).
