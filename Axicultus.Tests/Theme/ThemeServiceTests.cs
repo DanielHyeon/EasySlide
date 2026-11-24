@@ -71,13 +71,13 @@ public class ThemeServiceTests
         var standardSize = Application.Current.Resources[bodyKey];
 
         sut.ApplyInterfaceSize(InterfaceSize.Small);
-        Application.Current.Resources[bodyKey].Should().Be(11.0);
-        Application.Current.Resources["ControlContentThemeFontSize"].Should().Be(11.0);
+        Application.Current.Resources[bodyKey].Should().Be(10.0);
+        Application.Current.Resources["ControlContentThemeFontSize"].Should().Be(10.0);
 
         sut.ApplyInterfaceSize(InterfaceSize.Senior);
         var seniorSize = Application.Current.Resources[bodyKey];
 
-        standardSize.Should().Be(12.0);
+        standardSize.Should().Be(11.0); // a044: one step under WinForms' 9 pt (12 DIP)
         seniorSize.Should().Be(14.0 * 1.4); // ScaleFactor 1.4 적용
     }
 

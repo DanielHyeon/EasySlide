@@ -1,9 +1,11 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 using Axicultus.Wpf.Captions;
 using Axicultus.Wpf.Shell;
 using Xunit;
@@ -276,10 +278,11 @@ public sealed partial class CaptionConsoleTests
 
     // The app's type sizes at an interface size (ThemeService's scaled sizes), on the console itself: the same whether or
     // not another test made an Application. (An Application made here would belong to this test's thread only.)
+    // The console draws with these large tokens only; body and caption text (a044: 11 at Standard) is not on it.
     private static void TypeSizes(CaptionConsole console, double scale)
     {
         foreach (var (key, size) in new[] { ("Type.Display.FontSize", 32d), ("Type.Title1.FontSize", 24d), ("Type.Title2.FontSize", 20d),
-                     ("Type.Title3.FontSize", 18d), ("Type.BodyLarge.FontSize", 16d), ("Type.Caption.FontSize", 12d), ("Type.ButtonLarge.FontSize", 16d) })
+                     ("Type.Title3.FontSize", 18d), ("Type.BodyLarge.FontSize", 16d), ("Type.ButtonLarge.FontSize", 16d) })
             console.Resources[key] = size * scale;
     }
 
@@ -378,9 +381,7 @@ public sealed partial class CaptionConsoleTests
         await Idle(console);
         Assert.False(Shown(main.Queue[35]));
         await main.WorshipListDoubleClickCommand.ExecuteAsync(null);
-        await Pump(console, 300);
-        Assert.Same(main.Queue[35], main.LiveRow);
-        Assert.True(Shown(main.Queue[35]));
+        Assert.True(await Until(console, () => ReferenceEquals(main.Queue[35], main.LiveRow) && Shown(main.Queue[35])), "the row on air comes into view");
 
         // The same row stays on air while the list changes (an item added): the list stays where the operator scrolled.
         rows.ScrollToTop();
@@ -398,11 +399,24 @@ public sealed partial class CaptionConsoleTests
         await Pump(console, 200);
         main.SelectedItem = null;
         console.Show();
-        await Pump(console, 300);
-        rows = Visuals(console.WorshipList).OfType<ScrollViewer>().First();
-        Assert.Same(main.Queue[20], main.LiveRow);
-        Assert.True(Shown(main.Queue[20]));
+        Assert.True(await Until(console, () =>
+        {
+            rows = Visuals(console.WorshipList).OfType<ScrollViewer>().First();
+            return ReferenceEquals(main.Queue[20], main.LiveRow) && Shown(main.Queue[20]);
+        }), "the row put on air while hidden comes into view when the console shows");
     });
+
+    // Pumps the console's dispatcher until the condition holds (true) or the time runs out (false), instead of a fixed wait.
+    private static async Task<bool> Until(DispatcherObject owner, Func<bool> condition, int milliseconds = 5000)
+    {
+        var until = DateTime.UtcNow.AddMilliseconds(milliseconds);
+        while (!condition())
+        {
+            if (DateTime.UtcNow > until) return false;
+            await Pump(owner, 50);
+        }
+        return true;
+    }
 
     [Theory]
     [InlineData(3, 300, 48)] // three lines of 16 DIP a notch

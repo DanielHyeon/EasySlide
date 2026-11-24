@@ -61,6 +61,7 @@
                        HorizontalAlignment="Center"
                        VerticalAlignment="Center"
                        Style="{StaticResource Type.Caption.Style}"
+                       FontSize="{DynamicResource Type.Output.Caption.FontSize}"
                        Foreground="{Binding LyricsAlertForegroundBrush}" />
         </Border>
 
@@ -463,6 +464,7 @@
             <TextBlock Text="{Binding OutputMonitorName}"
                        VerticalAlignment="Center"
                        Style="{StaticResource Type.Caption.Style}"
+                       FontSize="{DynamicResource Type.Output.Caption.FontSize}"
                        Foreground="{Binding SceneForegroundBrush}" />
 
             <!-- 상태 라벨(LIVE/CLEARED/STANDBY 등) — 이 밴드 전체가 PanelOverlayVisibility 로 이미 제어된다.

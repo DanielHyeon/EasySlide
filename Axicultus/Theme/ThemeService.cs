@@ -10,13 +10,13 @@ namespace Axicultus.Wpf.Theme;
 /// <summary>인터페이스 크기 — Q2 결정. 디폴트 Standard.</summary>
 public enum InterfaceSize
 {
-    /// <summary>표준 — 본문 12 DIP, 타깃 44 DIP.</summary>
+    /// <summary>Standard: body 11 DIP, target 44 DIP.</summary>
     Standard,
-    /// <summary>큰 글씨 — 본문 16px, 타깃 48px (ScaleFactor 1.2)</summary>
+    /// <summary>Large: body 16.8 DIP (14 x 1.2), target 52.8 DIP (ScaleFactor 1.2).</summary>
     Large,
-    /// <summary>시니어 — 본문 20px, 타깃 52px+, 버튼 패딩 +50% (ScaleFactor 1.4)</summary>
+    /// <summary>Senior: body 19.6 DIP (14 x 1.4), target 61.6 DIP (ScaleFactor 1.4).</summary>
     Senior,
-    /// <summary>작은 글꼴 — 본문 11 DIP.</summary>
+    /// <summary>Small: body 10 DIP.</summary>
     Small,
 }
 
@@ -62,7 +62,8 @@ public sealed partial class ThemeService : ObservableObject, IThemeService
         ("Type.Title2.FontSize", 20.0),
         ("Type.Title3.FontSize", 18.0),
         ("Type.BodyLarge.FontSize", 16.0),
-        ("Type.Caption.FontSize", 12.0),
+        ("Type.Output.Caption.FontSize", 12.0),
+        ("Type.Badge.FontSize", 10.0),
         ("Type.ButtonLarge.FontSize", 16.0),
     ];
 
@@ -196,12 +197,14 @@ public sealed partial class ThemeService : ObservableObject, IThemeService
         {
             resources[key] = baseValue * factor;
         }
-        double bodySize = size switch
+        // Body, button and caption text sit one step under WinForms' 9 pt at Standard and Small (a044); larger sizes keep their scale.
+        var (bodySize, captionSize) = size switch
         {
-            InterfaceSize.Small => 11,
-            InterfaceSize.Standard => 12,
-            _ => 14 * factor,
+            InterfaceSize.Small => (10.0, 10.0),
+            InterfaceSize.Standard => (11.0, 11.0),
+            _ => (14 * factor, 12 * factor),
         };
+        resources["Type.Caption.FontSize"] = captionSize;
         resources["Type.Body.FontSize"] = resources["Type.Button.FontSize"] = bodySize;
         resources["ContentControlFontSize"] = resources["ControlContentThemeFontSize"] = bodySize;
         resources["DefaultDataGridFontSize"] = resources["TreeViewItemFontSize"] = bodySize;

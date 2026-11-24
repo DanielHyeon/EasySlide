@@ -985,15 +985,17 @@ public class MainMenuBarTests
         var xaml = Xaml;
         xaml.Should().Contain("x:Name=\"LeftBrowserTabs\"", "left source browser stays first-screen");
         xaml.Should().Contain("TabStripPlacement=\"Bottom\"", "FrmMain source tabs are bottom-aligned");
-        xaml.Should().Contain("Style=\"{StaticResource EsTabView.FrmMainBottom}\"",
-            "LeftBrowserTabs must use a compact bottom tab template instead of the large WPF UI tab header layout");
+        var browserStart = xaml.IndexOf("x:Name=\"LeftBrowserTabs\"", StringComparison.Ordinal);
+        var browserDeclaration = xaml[browserStart..xaml.IndexOf('>', browserStart)];
+        browserDeclaration.Should().Contain("Style=\"{StaticResource EsTabView.FrmMainSourceTabs}\"",
+            "LeftBrowserTabs must use the compact bottom tab template that wraps the six source tabs instead of scrolling them (a044)");
 
         var tabs = TabViewXaml;
         tabs.Should().Contain("x:Key=\"EsTabView.FrmMainBottom\"", "FrmMain source/list tabs need their own compact bottom style");
         tabs.Should().Contain("x:Key=\"EsTabView.FrmMainBottomItem\"", "FrmMain tabs need compact item chrome");
-        tabs.Should().Contain("<Setter Property=\"FontSize\" Value=\"{DynamicResource {x:Static SystemFonts.MessageFontSizeKey}}\" />",
-            "FrmMain bottom tabs need WinForms-density labels so all source roles, including Default, fit in the left pane");
-        tabs.Should().Contain("<Setter Property=\"Padding\" Value=\"5,3\" />",
+        tabs.Should().Contain("<Setter Property=\"FontSize\" Value=\"{DynamicResource Type.Body.FontSize}\" />",
+            "FrmMain bottom tabs take the interface size's body text (a044), so they shrink with the rest of the main window");
+        tabs.Should().Contain("<Setter Property=\"Padding\" Value=\"2,3\" />",
             "FrmMain bottom tabs should not carry WPF padding that pushes Default out of the visible strip");
         tabs.Should().Contain("PART_SelectedContentHost", "the FrmMain tab template should render selected content separately from the bottom tab strip");
         tabs.Should().Contain("Grid.Row=\"1\"", "the FrmMain tab template should dock the header strip below selected content");
@@ -1066,7 +1068,10 @@ public class MainMenuBarTests
         xaml.Should().Contain("x:Name=\"LibrarySongList\"", "existing drag and double-click handlers should keep their stable target");
         xaml.Should().Contain("Tag=\"SongsList\"", "LibrarySongList should be explicitly mapped to FrmMain SongsList");
         xaml.Should().Contain("SelectionMode=\"Extended\"", "FrmMain SongsList supports multi-select add/context gestures");
-        xaml.Should().Contain("<GridView AllowsColumnReorder=\"False\">", "legacy ListView Details behavior should hide headers but keep columns");
+        // a044: the main window's lists lay their columns out in a row template that fits the list width (no headers, title
+        // trims, number never cut); a GridView's fixed column widths ran past the list. (This line used to match the
+        // PraiseBookItems GridView; SongsList itself never had one.)
+        xaml.Should().NotContain("<GridView", "source lists use a row template that fits the list width");
         xaml.Should().Contain("PreviewMouseMove=\"LibrarySongList_PreviewMouseMove\"", "song rows should keep drag-to-Worship behavior");
         xaml.Should().Contain("PreviewMouseRightButtonDown=\"LibrarySongList_PreviewMouseRightButtonDown\"",
             "right-clicking a song row should select it before opening CMenuSongs");
@@ -1318,7 +1323,7 @@ public class MainMenuBarTests
         }
 
         var queue = XDocument.Load(Path.Combine(FindRepositoryRoot(), "Axicultus", "Composites", "WorshipListPanel.xaml"));
-        var tooltip = queue.Descendants().Single(e => e.Name.LocalName == "StackPanel.ToolTip");
+        var tooltip = queue.Descendants().Single(e => e.Name.LocalName == "DockPanel.ToolTip");
         var format = tooltip.Descendants().Single(e => e.Name.LocalName == "MultiBinding");
         Assert.Equal("TextBlock.Text", format.Parent!.Name.LocalName);
         Assert.Equal(new[] { "Kind", "Title" }, format.Elements().Select(binding => (string?)binding.Attribute("Path")));
@@ -2241,9 +2246,9 @@ public class MainMenuBarTests
         }
 
         SelfClosingControlBlock(xaml, "IndcbPreviewNotes").Should().Contain("Width=\"26\"");
-        SelfClosingControlBlock(xaml, "IndradioButtonText").Should().Contain("Width=\"34\"");
-        SelfClosingControlBlock(xaml, "IndradioButtonFormat").Should().Contain("Width=\"29\"");
-        SelfClosingControlBlock(xaml, "IndradioButtonInfo").Should().Contain("Width=\"33\"");
+        SelfClosingControlBlock(xaml, "IndradioButtonText").Should().Contain("MinWidth=\"34\"", "the FrmMain width is the minimum; a larger interface size widens the label (a044)");
+        SelfClosingControlBlock(xaml, "IndradioButtonFormat").Should().Contain("MinWidth=\"29\"", "the FrmMain width is the minimum; a larger interface size widens the label (a044)");
+        SelfClosingControlBlock(xaml, "IndradioButtonInfo").Should().Contain("MinWidth=\"33\"", "the FrmMain width is the minimum; a larger interface size widens the label (a044)");
     }
 
     [Fact]

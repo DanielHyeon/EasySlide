@@ -174,15 +174,24 @@
             <Setter Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.ControlLightBrushKey}}" />
             <Setter Property="Margin" Value="0" />
         </Style>
+        <!-- Labelled strip toggles (Text/Set/Info): the strip toggle's fixed 24x27 would clip a larger interface size's
+             label, so these keep a minimum size and grow with the text (a044). -->
+        <Style x:Key="ClassicOperatorStripTextToggleButton"
+               TargetType="ToggleButton"
+               BasedOn="{StaticResource ClassicOperatorStripToggleButton}">
+            <Setter Property="Width" Value="NaN" />
+            <Setter Property="Height" Value="NaN" />
+            <Setter Property="MinHeight" Value="27" />
+            <Setter Property="Padding" Value="3,0" />
+        </Style>
         <Style x:Key="ClassicTopToolStripButton"
                TargetType="Button"
                BasedOn="{StaticResource FrmMainButton}">
-            <Setter Property="Height" Value="24" />
+            <Setter Property="MinHeight" Value="24" />
             <Setter Property="MinWidth" Value="24" />
-            <Setter Property="MinHeight" Value="0" />
             <Setter Property="Padding" Value="3,0" />
             <Setter Property="Margin" Value="0,0,2,0" />
-            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontSize" Value="{DynamicResource Type.Button.FontSize}" />
         </Style>
         <Style x:Key="ClassicTopToolStripTextButton"
                TargetType="Button"
@@ -207,10 +216,9 @@
         </Style>
         <Style x:Key="ClassicTopToolStripComboBox"
                TargetType="ComboBox">
-            <Setter Property="Height" Value="24" />
-            <Setter Property="MinHeight" Value="0" />
+            <Setter Property="MinHeight" Value="24" />
             <Setter Property="Padding" Value="3,0" />
-            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontSize" Value="{DynamicResource Type.Body.FontSize}" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
         <Style x:Key="ClassicTopOperatorStripButton"
@@ -258,8 +266,8 @@
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
-        <DataTemplate x:Key="DefaultStripText"><TextBlock Text="{Binding}" FontSize="12" Style="{x:Null}" /></DataTemplate>
-        <DataTemplate x:Key="DefaultChoiceText"><TextBlock Text="{Binding DisplayName}" FontSize="12" Style="{x:Null}" /></DataTemplate>
+        <DataTemplate x:Key="DefaultStripText"><TextBlock Text="{Binding}" FontSize="{DynamicResource Type.Body.FontSize}" Style="{x:Null}" /></DataTemplate>
+        <DataTemplate x:Key="DefaultChoiceText"><TextBlock Text="{Binding DisplayName}" FontSize="{DynamicResource Type.Body.FontSize}" Style="{x:Null}" /></DataTemplate>
         <Style x:Key="DefaultStripButton" TargetType="Button" BasedOn="{StaticResource FrmMainButton}">
             <Setter Property="Width" Value="23" /><Setter Property="Height" Value="29" />
             <Setter Property="Padding" Value="0" /><Setter Property="Margin" Value="0" />
@@ -271,10 +279,10 @@
         <Style x:Key="DefaultColourButton" TargetType="Button" BasedOn="{StaticResource FrmMainButton}">
             <Setter Property="Padding" Value="2,0" /><Setter Property="Margin" Value="0" />
             <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}" />
-            <Setter Property="Height" Value="18" /><Setter Property="ContentTemplate" Value="{StaticResource DefaultStripText}" />
+            <Setter Property="MinHeight" Value="18" /><Setter Property="VerticalAlignment" Value="Center" /><Setter Property="ContentTemplate" Value="{StaticResource DefaultStripText}" />
         </Style>
         <Style x:Key="DefaultFieldCombo" TargetType="ComboBox">
-            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontSize" Value="{DynamicResource Type.Body.FontSize}" />
             <Setter Property="Template"><Setter.Value>
                 <ControlTemplate TargetType="ComboBox">
                     <Grid>
@@ -362,12 +370,12 @@
         <!-- FrmMain 메뉴바(File/Edit/View/Output/Tools/Help) 포팅.
              모든 항목은 실제 MainViewModel 명령 또는 DI 창 런처(Click)에 배선 — dead UI 없음.
              출력 항목은 명령 CanExecute 로 라이브 상태에 따라 자동 활성/비활성. -->
-        <Menu DockPanel.Dock="Top" Height="24"
+        <Menu DockPanel.Dock="Top" MinHeight="24"
               Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"
-              FontSize="12"
+              FontSize="{DynamicResource Type.Body.FontSize}"
               Padding="0"
               AutomationProperties.Name="주 메뉴">
-            <MenuItem Header="File" Style="{x:Null}" Template="{StaticResource FrmMainMenuHeader}" Height="24">
+            <MenuItem Header="File" Style="{x:Null}" Template="{StaticResource FrmMainMenuHeader}" MinHeight="24">
                 <MenuItem Header="Worship Sessions..." Click="OpenManageWorshipLists_Click">
                     <MenuItem.Style>
                         <Style TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
@@ -424,7 +432,7 @@
                 </MenuItem>
             </MenuItem>
 
-            <MenuItem Header="Edit" Style="{x:Null}" Template="{StaticResource FrmMainMenuHeader}" Height="24">
+            <MenuItem Header="Edit" Style="{x:Null}" Template="{StaticResource FrmMainMenuHeader}" MinHeight="24">
                 <MenuItem Header="Add New Song..." Tag="Main_New" Click="Main_SourceEdit_Click" IsEnabled="{Binding IsEnabled, ElementName=Main_New}">
                     <MenuItem.Icon><controls:FrmIcon Icon="document_add" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
@@ -455,7 +463,7 @@
                 </MenuItem>
             </MenuItem>
 
-            <MenuItem Header="View" Style="{x:Null}" Template="{StaticResource FrmMainMenuHeader}" Height="24">
+            <MenuItem Header="View" Style="{x:Null}" Template="{StaticResource FrmMainMenuHeader}" MinHeight="24">
                 <MenuItem Header="Axicultus Folder" Click="OpenAxicultusFolder_Click">
                     <MenuItem.Icon><controls:FrmIcon Icon="folder_open" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
@@ -470,7 +478,7 @@
                 <MenuItem Header="Status Bar" x:Name="ShowStatusMenu" IsCheckable="True" IsChecked="True" />
             </MenuItem>
 
-            <MenuItem Header="Output" Style="{x:Null}" Template="{StaticResource FrmMainMenuHeader}" Height="24">
+            <MenuItem Header="Output" Style="{x:Null}" Template="{StaticResource FrmMainMenuHeader}" MinHeight="24">
                 <MenuItem Header="Start Show - Go LIVE"
                           Command="{Binding ToggleOutputLiveCommand}"
                           IsCheckable="True"
@@ -534,7 +542,7 @@
                 </MenuItem>
             </MenuItem>
 
-            <MenuItem Header="Tools" Style="{x:Null}" Template="{StaticResource FrmMainMenuHeader}" Height="24">
+            <MenuItem Header="Tools" Style="{x:Null}" Template="{StaticResource FrmMainMenuHeader}" MinHeight="24">
                 <MenuItem Header="_Import" Click="OpenImportExport_Click" />
                 <MenuItem Header="I_mport Folder" Click="OpenFolderImport_Click" />
                 <MenuItem Header="_Export" Click="OpenExport_Click" />
@@ -578,7 +586,7 @@
                 </MenuItem>
             </MenuItem>
 
-            <MenuItem Header="Help" Style="{x:Null}" Template="{StaticResource FrmMainMenuHeader}" Height="24">
+            <MenuItem Header="Help" Style="{x:Null}" Template="{StaticResource FrmMainMenuHeader}" MinHeight="24">
                 <MenuItem Header="Contents" Click="HelpContents_Click" InputGestureText="F1">
                     <MenuItem.Icon><controls:FrmIcon Icon="question_circle" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
@@ -612,11 +620,10 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="{Binding Library.BrowserCountText}" VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding Library.BrowserCountText}" VerticalAlignment="Center" Foreground="{DynamicResource Brush.Text.Primary}" />
                     <TextBlock Text="{Binding Queue.Count, StringFormat='Worship: {0} items'}"
                                VerticalAlignment="Center"
                                Style="{StaticResource Type.Caption.Style}"
@@ -659,20 +666,26 @@
                     </Border>
                 </StackPanel>
 
-                <TextBlock Grid.Column="1"
-                           Text="{Binding StatusText}"
-                           VerticalAlignment="Center"
-                           HorizontalAlignment="Center"
-                           TextTrimming="CharacterEllipsis"
-                           Style="{StaticResource Type.Caption.Style}"
-                           Foreground="{DynamicResource Brush.Text.Tertiary}" />
-
-                <TextBlock Grid.Column="2"
-                           Text="{Binding SelectedOutputDisplay.Name}"
-                           VerticalAlignment="Center"
-                           Style="{StaticResource Type.Caption.Style}"
-                           Foreground="{DynamicResource Brush.Text.Secondary}"
-                           AutomationProperties.Name="출력 모니터" />
+                <!-- The monitor name takes its width (up to MaxWidth) at the right and trims only when the bar runs out;
+                     the status fills what is left, so neither leaves an empty gap nor overflows the bar. -->
+                <DockPanel Grid.Column="1">
+                    <TextBlock DockPanel.Dock="Right"
+                               Text="{Binding SelectedOutputDisplay.Name}"
+                               ToolTip="{Binding SelectedOutputDisplay.Name}"
+                               MaxWidth="300"
+                               VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis"
+                               Style="{StaticResource Type.Caption.Style}"
+                               Foreground="{DynamicResource Brush.Text.Secondary}"
+                               AutomationProperties.Name="출력 모니터" />
+                    <TextBlock Text="{Binding StatusText}"
+                               Margin="14,0"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Center"
+                               TextTrimming="CharacterEllipsis"
+                               Style="{StaticResource Type.Caption.Style}"
+                               Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                </DockPanel>
             </Grid>
         </Border>
 
@@ -1084,7 +1097,7 @@
                             Tag="tabControlSource"
                             SelectionChanged="LeftBrowserTabs_SelectionChanged"
                             TabStripPlacement="Bottom"
-                            Style="{StaticResource EsTabView.FrmMainBottom}"
+                            Style="{StaticResource EsTabView.FrmMainSourceTabs}"
                             BorderThickness="0"
                             Background="Transparent">
                     <TabItem Tag="Folders"
@@ -1173,17 +1186,19 @@
                                   PreviewMouseMove="LibrarySongList_PreviewMouseMove"
                                   AutomationProperties.Name="곡 목록"
                                   BorderThickness="1"
-                                  FontSize="12"
+                                  FontSize="{DynamicResource Type.Body.FontSize}"
                                   HorizontalContentAlignment="Stretch"
                                   ScrollViewer.HorizontalScrollBarVisibility="Disabled" ToolTip="{Binding Library.StatusMessage}">
                             <ListView.Resources>
-                                <Style TargetType="{x:Type GridViewColumnHeader}">
-                                    <Setter Property="Visibility" Value="Collapsed" />
-                                </Style>
                                 <Style TargetType="{x:Type ListViewItem}">
                                     <Setter Property="MinHeight" Value="17" />
-                                    <Setter Property="Padding" Value="2,0" />
+                                    <!-- The right padding keeps the number clear of the scroll bar WPF-UI draws over the rows. -->
+                                    <Setter Property="Padding" Value="2,0,14,0" />
                                     <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                    <!-- The virtualizing panel keeps arranging rows at an earlier, wider width after the interface size
+                                         changes; sizing each row to the viewport (left-aligned) makes the title trim instead. -->
+                                    <Setter Property="Width" Value="{Binding ViewportWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}}" />
+                                    <Setter Property="HorizontalAlignment" Value="Left" />
                                     <!-- A double-click on a row adds that row to the worship list (on the list's empty space nothing). -->
                                     <Setter Property="input:RowDoubleClick.Command" Value="{Binding DataContext.AddSelectedLibrarySongCommand, RelativeSource={RelativeSource AncestorType=ListView}}" />
                                 </Style>
@@ -1709,8 +1724,8 @@
                                       SelectedItem="{Binding Bible.SelectedBrowserBook, Mode=TwoWay}"
                                       DisplayMemberPath="Name"
                                       Style="{x:Null}"
-                                      Height="22"
-                                      FontSize="12"
+                                      MinHeight="22"
+                                      FontSize="{DynamicResource Type.Body.FontSize}"
                                       AutomationProperties.Name="성경 책" />
 
                             <TextBox Grid.Column="2"
@@ -1720,8 +1735,8 @@
                                      KeyDown="BibleReferenceBox_KeyDown"
                                      Style="{x:Null}"
                                      VerticalContentAlignment="Center"
-                                     Height="22"
-                                     FontSize="12"
+                                     MinHeight="22"
+                                     FontSize="{DynamicResource Type.Body.FontSize}"
                                      ToolTip="구절 직접 입력 (예: 창 1:1-2:3, John 3:16)"
                                      AutomationProperties.Name="성경 구절 직접 입력" />
 
@@ -2090,11 +2105,11 @@
                                         </ComboBox>
                                         <Button x:Name="Def_NoImage" ToolTip="{Binding OutputBackgroundNoImageToolTip}" Style="{StaticResource DefaultStripButton}" Command="{Binding ClearOutputBackgroundImageCommand}"><controls:FrmIcon Icon="image_off" Width="19" Height="19" /></Button>
                                         <Button x:Name="Def_BackColour" Style="{StaticResource DefaultColourButton}" Click="PickDefaultBackgroundColor_Click" Content="Colours" Foreground="{Binding ActiveBackgroundColorHex, Converter={StaticResource ColorValueToBrush}}" />
-                                        <Button x:Name="Def_AssignMedia" Style="{StaticResource DefaultStripButton}" Width="Auto" MaxWidth="100" Padding="4,0" Click="SelectDefaultMedia_Click" ToolTip="{Binding DefaultMediaToolTip}"><TextBlock Text="{Binding DefaultMediaCaption}" FontSize="12" TextTrimming="CharacterEllipsis" /></Button>
+                                        <Button x:Name="Def_AssignMedia" Style="{StaticResource DefaultStripButton}" Width="Auto" MaxWidth="100" Padding="4,0" Click="SelectDefaultMedia_Click" ToolTip="{Binding DefaultMediaToolTip}"><TextBlock Text="{Binding DefaultMediaCaption}" TextTrimming="CharacterEllipsis" /></Button>
                                     </WrapPanel>
                                     <WrapPanel MinHeight="31" ItemHeight="31">
-                                        <ComboBox x:Name="Def_TransItem" Style="{StaticResource DefaultFieldCombo}" FontSize="12" Width="104" Height="22" Margin="0,0,2,0" VerticalAlignment="Center" ItemsSource="{Binding LegacyTransitionOptions}" ItemTemplate="{StaticResource DefaultChoiceText}" SelectedValuePath="Kind" SelectedValue="{Binding DefaultItemTransitionKindInput, Mode=TwoWay}" ToolTip="Item transition" />
-                                        <ComboBox x:Name="Def_TransSlides" Style="{StaticResource DefaultFieldCombo}" FontSize="12" Width="104" Height="22" Margin="0,0,2,0" VerticalAlignment="Center" ItemsSource="{Binding LegacyTransitionOptions}" ItemTemplate="{StaticResource DefaultChoiceText}" SelectedValuePath="Kind" SelectedValue="{Binding DefaultSlideTransitionKindInput, Mode=TwoWay}" ToolTip="Slide transition" />
+                                        <ComboBox x:Name="Def_TransItem" Style="{StaticResource DefaultFieldCombo}" Width="104" MinHeight="22" Margin="0,0,2,0" VerticalAlignment="Center" ItemsSource="{Binding LegacyTransitionOptions}" ItemTemplate="{StaticResource DefaultChoiceText}" SelectedValuePath="Kind" SelectedValue="{Binding DefaultItemTransitionKindInput, Mode=TwoWay}" ToolTip="Item transition" />
+                                        <ComboBox x:Name="Def_TransSlides" Style="{StaticResource DefaultFieldCombo}" Width="104" MinHeight="22" Margin="0,0,2,0" VerticalAlignment="Center" ItemsSource="{Binding LegacyTransitionOptions}" ItemTemplate="{StaticResource DefaultChoiceText}" SelectedValuePath="Kind" SelectedValue="{Binding DefaultSlideTransitionKindInput, Mode=TwoWay}" ToolTip="Slide transition" />
                                     </WrapPanel>
                                 </StackPanel>
                             </GroupBox>
@@ -2114,8 +2129,8 @@
                                         <ToggleButton x:Name="Def_PanelSong" ToolTip="Show song number" Style="{StaticResource DefaultStripToggle}" IsChecked="{Binding ActiveLyricsItemNumber, Mode=OneWay}" Command="{Binding ToggleLyricsItemNumberCommand}"><controls:FrmIcon Icon="number_symbol" Width="19" Height="19" /></ToggleButton>
                                         <ToggleButton x:Name="Def_PanelSlides" ToolTip="Show slide number" Style="{StaticResource DefaultStripToggle}" IsChecked="{Binding ActiveLyricsPositionIndicator, Mode=OneWay}" Command="{Binding ToggleLyricsPositionIndicatorCommand}"><controls:FrmIcon Icon="number_row" Width="19" Height="19" /></ToggleButton>
                                         <ToggleButton x:Name="Def_PanelPrevNext" ToolTip="Show previous/next" Style="{StaticResource DefaultStripToggle}" IsChecked="{Binding ActiveLyricsNextItem, Mode=OneWay}" Command="{Binding ToggleLyricsNextItemCommand}"><controls:FrmIcon Icon="arrow_bidirectional_left_right" Width="19" Height="19" /></ToggleButton>
-                                        <TextBlock Text="Height" FontSize="12" Margin="9,0,0,0" VerticalAlignment="Center" />
-                                        <DockPanel Width="39" Height="22" VerticalAlignment="Center">
+                                        <TextBlock Text="Height" Margin="9,0,0,0" VerticalAlignment="Center" />
+                                        <DockPanel MinWidth="39" MinHeight="22" VerticalAlignment="Center">
                                             <UniformGrid DockPanel.Dock="Right" Columns="1" Width="13">
                                                 <RepeatButton Style="{StaticResource DefaultSpinnerButton}" AutomationProperties.Name="Increase display panel height" Click="IncreaseDefaultPanelHeight_Click"><Path Fill="Black" Data="M0,4 L3,0 L6,4Z" /></RepeatButton>
                                                 <RepeatButton Style="{StaticResource DefaultSpinnerButton}" AutomationProperties.Name="Decrease display panel height" Click="DecreaseDefaultPanelHeight_Click"><Path Fill="Black" Data="M0,0 L3,4 L6,0Z" /></RepeatButton>
@@ -2129,7 +2144,7 @@
                                         <ToggleButton x:Name="Def_PanelFontUnderline" ToolTip="Underline" Style="{StaticResource DefaultStripToggle}" IsChecked="{Binding ActivePanelFontUnderline, Mode=OneWay}" Command="{Binding TogglePanelFontUnderlineCommand}"><controls:FrmIcon Icon="text_underline" Width="19" Height="19" /></ToggleButton>
                                         <ToggleButton x:Name="Def_PanelFontShadow" ToolTip="Shadow" Style="{StaticResource DefaultStripToggle}" IsChecked="{Binding ActivePanelFontShadow, Mode=OneWay}" Command="{Binding TogglePanelFontShadowCommand}"><controls:FrmIcon Icon="text_shadow" Width="19" Height="19" /></ToggleButton>
                                         <ToggleButton x:Name="Def_PanelFontOutline" ToolTip="Outline" Style="{StaticResource DefaultStripToggle}" IsChecked="{Binding ActivePanelFontOutline, Mode=OneWay}" Command="{Binding TogglePanelFontOutlineCommand}"><controls:FrmIcon Icon="text_effects" Width="19" Height="19" /></ToggleButton>
-                                        <ComboBox x:Name="Def_PanelFontList" Style="{StaticResource DefaultFieldCombo}" FontSize="12" Width="97" Height="22" Margin="0,0,2,0" VerticalAlignment="Center" ItemsSource="{Binding PanelFontOptions}" ItemTemplate="{StaticResource DefaultStripText}" SelectedItem="{Binding PanelFontFamily, Mode=TwoWay}" ToolTip="Display Panel font" />
+                                        <ComboBox x:Name="Def_PanelFontList" Style="{StaticResource DefaultFieldCombo}" Width="97" MinHeight="22" Margin="0,0,2,0" VerticalAlignment="Center" ItemsSource="{Binding PanelFontOptions}" ItemTemplate="{StaticResource DefaultStripText}" SelectedItem="{Binding PanelFontFamily, Mode=TwoWay}" ToolTip="Display Panel font" />
                                     </WrapPanel>
                                 </StackPanel>
                             </GroupBox>
@@ -2207,6 +2222,7 @@
                                     </StackPanel>
                                     <ListBox Grid.Row="3" x:Name="SearchResultList"
                                              ItemsSource="{Binding Search.SearchResults}"
+                                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                              SelectedItem="{Binding SelectedSearchResult, Mode=TwoWay}"
                                              KeyDown="SourceListAddOnEnter_KeyDown"
                                              AutomationProperties.Name="검색 결과 목록">
@@ -2214,11 +2230,14 @@
                                             <!-- A double-click on a row adds that row (on the list's empty space nothing). -->
                                             <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
                                                 <Setter Property="input:RowDoubleClick.Command" Value="{Binding DataContext.AddSearchedSongCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" />
+                                                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                                <Setter Property="Width" Value="{Binding ViewportWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}}" />
+                                                <Setter Property="HorizontalAlignment" Value="Left" />
                                             </Style>
                                         </ListBox.ItemContainerStyle>
                                         <ListBox.ItemTemplate>
                                             <DataTemplate>
-                                                <StackPanel Margin="0,2">
+                                                <StackPanel Margin="0,2,14,2">
                                                     <TextBlock Text="{Binding Title}"
                                                                TextTrimming="CharacterEllipsis"
                                                                Foreground="{DynamicResource Brush.Text.Primary}" />
@@ -2281,6 +2300,7 @@
                                     </TextBox>
                                     <ListBox Grid.Row="2"
                                              ItemsSource="{Binding Search.LookupCandidates}"
+                                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                              SelectedItem="{Binding SelectedTitleCandidate, Mode=TwoWay}"
                                              KeyDown="SourceListAddOnEnter_KeyDown"
                                              AutomationProperties.Name="제목 조회 결과 목록">
@@ -2288,11 +2308,14 @@
                                             <!-- A double-click on a row adds that row (on the list's empty space nothing). -->
                                             <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
                                                 <Setter Property="input:RowDoubleClick.Command" Value="{Binding DataContext.AddLookupTitleCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" />
+                                                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                                <Setter Property="Width" Value="{Binding ViewportWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}}" />
+                                                <Setter Property="HorizontalAlignment" Value="Left" />
                                             </Style>
                                         </ListBox.ItemContainerStyle>
                                         <ListBox.ItemTemplate>
                                             <DataTemplate>
-                                                <StackPanel Margin="0,2">
+                                                <StackPanel Margin="0,2,14,2">
                                                     <TextBlock Text="{Binding Title}"
                                                                TextTrimming="CharacterEllipsis"
                                                                Foreground="{DynamicResource Brush.Text.Primary}" />
@@ -2533,45 +2556,48 @@
                                       ItemsSource="{Binding Entries}"
                                       SelectionMode="Extended"
                                       BorderThickness="1"
-                                      FontSize="12"
+                                      FontSize="{DynamicResource Type.Body.FontSize}"
                                       PreviewMouseLeftButtonDown="PraiseBookItems_PreviewMouseLeftButtonDown"
                                       PreviewMouseMove="PraiseBookItems_PreviewMouseMove"
                                       PreviewMouseRightButtonDown="PraiseBookItems_PreviewMouseRightButtonDown"
                                       MouseDoubleClick="InlinePraiseBookItems_MouseDoubleClick"
                                       KeyDown="PraiseBookItems_KeyDown"
                                       SelectionChanged="PraiseBookItems_SelectionChanged"
+                                      ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                       AutomationProperties.Name="PraiseBookItems">
                                 <ListView.Resources>
-                                    <Style TargetType="{x:Type GridViewColumnHeader}">
-                                        <Setter Property="Visibility" Value="Collapsed" />
-                                    </Style>
                                     <Style TargetType="{x:Type ListViewItem}">
-                                        <Setter Property="MinHeight" Value="22" />
-                                        <Setter Property="Padding" Value="2,0" />
+                                        <Setter Property="MinHeight" Value="20" />
+                                        <Setter Property="Padding" Value="2,0,14,0" />
+                                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                        <Setter Property="Width" Value="{Binding ViewportWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}}" />
+                                        <Setter Property="HorizontalAlignment" Value="Left" />
                                     </Style>
                                 </ListView.Resources>
-                                <ListView.View>
-                                    <GridView AllowsColumnReorder="False">
-                                        <GridViewColumn Width="46">
-                                            <GridViewColumn.CellTemplate>
-                                                <DataTemplate>
-                                                    <TextBlock Text="{Binding Number}"
-                                                               TextAlignment="Right"
-                                                               Foreground="{DynamicResource Brush.Text.Tertiary}" />
-                                                </DataTemplate>
-                                            </GridViewColumn.CellTemplate>
-                                        </GridViewColumn>
-                                        <GridViewColumn Width="300">
-                                            <GridViewColumn.CellTemplate>
-                                                <DataTemplate>
-                                                    <TextBlock Text="{Binding Title}"
-                                                               TextTrimming="CharacterEllipsis"
-                                                               Foreground="{DynamicResource Brush.Text.Secondary}" />
-                                                </DataTemplate>
-                                            </GridViewColumn.CellTemplate>
-                                        </GridViewColumn>
-                                    </GridView>
-                                </ListView.View>
+                                <!-- Number (right-aligned) + title that fills the row and ends with an ellipsis (a044). The number
+                                     column is as wide as a hidden "0000" at the current size, so every row lines up without
+                                     a shared size group re-measuring the rows while they scroll. shortcut: assumes praise-book
+                                     numbers of up to four digits (a longer one widens only its own row); size by the book's
+                                     longest number if books ever pass 9999 entries. -->
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="0000" Margin="0,0,8,0" Visibility="Hidden" />
+                                            <TextBlock Text="{Binding Number}"
+                                                       Margin="0,0,8,0"
+                                                       TextAlignment="Right"
+                                                       Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                                            <TextBlock Grid.Column="1"
+                                                       Text="{Binding Title}"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       Foreground="{DynamicResource Brush.Text.Secondary}" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
                                 <ListView.ContextMenu>
                                     <ContextMenu x:Name="CMenuPraiseB"
                                                  Style="{StaticResource FrmMainListContextMenu}"
@@ -3648,8 +3674,8 @@
                                           Tag="IndradioButtonText"
                                           Command="{Binding ShowPreviewTextModeCommand}"
                                           IsChecked="{Binding IsPreviewTextMode, Mode=OneWay}"
-                                          Style="{StaticResource ClassicOperatorStripToggleButton}"
-                                          Width="34"
+                                          Style="{StaticResource ClassicOperatorStripTextToggleButton}"
+                                          MinWidth="34"
                                           Content="Text"
                                           ToolTip="텍스트 보기"
                                           AutomationProperties.Name="Preview Text 모드" />
@@ -3657,8 +3683,8 @@
                                           Tag="IndradioButtonFormat"
                                           Command="{Binding ShowPreviewFormatModeCommand}"
                                           IsChecked="{Binding IsPreviewFormatMode, Mode=OneWay}"
-                                          Style="{StaticResource ClassicOperatorStripToggleButton}"
-                                          Width="29"
+                                          Style="{StaticResource ClassicOperatorStripTextToggleButton}"
+                                          MinWidth="29"
                                           Content="Set"
                                           ToolTip="서식 설정"
                                           AutomationProperties.Name="Preview Set 모드" />
@@ -3666,8 +3692,8 @@
                                           Tag="IndradioButtonInfo"
                                           Command="{Binding ShowPreviewInfoModeCommand}"
                                           IsChecked="{Binding IsPreviewInfoMode, Mode=OneWay}"
-                                          Style="{StaticResource ClassicOperatorStripToggleButton}"
-                                          Width="33"
+                                          Style="{StaticResource ClassicOperatorStripTextToggleButton}"
+                                          MinWidth="33"
                                           Content="Info"
                                           ToolTip="항목 정보"
                                           AutomationProperties.Name="Preview Info 모드" />
@@ -4342,7 +4368,7 @@
                     </Border>
 
                     <Border Grid.Row="1" Background="White" Margin="0,0,0,2" Padding="5,2">
-                        <TextBlock Text="{Binding OutputScreenStatus}" FontSize="11" />
+                        <TextBlock Text="{Binding OutputScreenStatus}" FontSize="{DynamicResource Type.Caption.FontSize}" />
                     </Border>
 
                     <Grid Grid.Row="2"

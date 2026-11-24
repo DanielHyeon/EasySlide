@@ -19,10 +19,14 @@
     <sys:Double x:Key="Type.Title2.FontSize">20</sys:Double>
     <sys:Double x:Key="Type.Title3.FontSize">18</sys:Double>
     <sys:Double x:Key="Type.BodyLarge.FontSize">16</sys:Double>
-    <sys:Double x:Key="Type.Body.FontSize">12</sys:Double>
-    <sys:Double x:Key="Type.Caption.FontSize">12</sys:Double>
+    <sys:Double x:Key="Type.Body.FontSize">11</sys:Double>
+    <sys:Double x:Key="Type.Caption.FontSize">11</sys:Double>
     <sys:Double x:Key="Type.ButtonLarge.FontSize">16</sys:Double>
-    <sys:Double x:Key="Type.Button.FontSize">12</sys:Double>
+    <sys:Double x:Key="Type.Button.FontSize">11</sys:Double>
+    <!-- Audience-screen captions (alert banner, monitor name) keep the caption's size from before a044's one-step-smaller body. -->
+    <sys:Double x:Key="Type.Output.Caption.FontSize">12</sys:Double>
+    <!-- Small badges inside list rows (the worship list's LIVE): a step under the caption, scaled with the interface size. -->
+    <sys:Double x:Key="Type.Badge.FontSize">10</sys:Double>
 
     <!-- Line height multiplier (LineStackingStrategy='BlockLineHeight'와 함께 사용) -->
     <sys:Double x:Key="Type.LineHeight.Tight">1.25</sys:Double>

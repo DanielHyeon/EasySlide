@@ -22,6 +22,9 @@ using Xunit;
 
 namespace Axicultus.Wpf.Tests.Shell;
 
+// In the WPF Application collection: the console lays out with the application's resources, which other tests in that
+// collection change (the interface size); sharing the collection keeps them from running at the same time.
+[Collection("WPF Application")]
 public sealed partial class CaptionConsoleTests
 {
     [Fact]

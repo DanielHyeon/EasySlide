@@ -120,9 +120,9 @@
                         <GroupBox Style="{StaticResource ClassicOptionsGroup}" Canvas.Left="8" Canvas.Top="458"
                             Width="691" Height="70" Header="화면 글꼴 및 인터페이스 크기">
                             <StackPanel Orientation="Horizontal" Margin="15,20,0,0" VerticalAlignment="Center">
-                                <RadioButton Style="{x:Null}" GroupName="InterfaceSize" Content="작은 글꼴" FontSize="11" Margin="0,0,28,0"
+                                <RadioButton Style="{x:Null}" GroupName="InterfaceSize" Content="작은 글꼴" FontSize="10" Margin="0,0,28,0"
                                     IsChecked="{Binding InterfaceSize, Mode=TwoWay, Converter={StaticResource OptionChoice}, ConverterParameter=Small}" />
-                                <RadioButton Style="{x:Null}" GroupName="InterfaceSize" Content="표준" FontSize="12" Margin="0,0,28,0"
+                                <RadioButton Style="{x:Null}" GroupName="InterfaceSize" Content="표준" FontSize="11" Margin="0,0,28,0"
                                     IsChecked="{Binding InterfaceSize, Mode=TwoWay, Converter={StaticResource OptionChoice}, ConverterParameter=Standard}" />
                                 <RadioButton Style="{x:Null}" GroupName="InterfaceSize" Content="큰 글씨" FontSize="16.8" Margin="0,0,28,0"
                                     IsChecked="{Binding InterfaceSize, Mode=TwoWay, Converter={StaticResource OptionChoice}, ConverterParameter=Large}" />

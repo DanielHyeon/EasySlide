@@ -66,9 +66,9 @@ public class WorshipListPanelTests
         var titleBlock = list.Descendants().Single(
             e => e.Name.LocalName == "TextBlock" && (Attr(e, "Text")?.Contains("Title") ?? false));
         Attr(titleBlock, "Text").Should().Contain("Title", "제목은 TextBlock 에 그대로 바인딩");
-        // 행(StackPanel)의 자동화 이름을 제목으로 고정 — 장식 아이콘 글리프 대신 제목만 읽힌다(a11y 무회귀).
+        // The row (a DockPanel since a044) takes the title as its automation name, so the decorative icon glyph is not read.
         var rowPanel = list.Descendants().Single(
-            e => e.Name.LocalName == "StackPanel" && (Attr(e, "AutomationProperties.Name")?.Contains("Title") ?? false));
+            e => e.Name.LocalName == "DockPanel" && (Attr(e, "AutomationProperties.Name")?.Contains("Title") ?? false));
         Attr(rowPanel, "AutomationProperties.Name").Should().Contain("Title");
 
         // 카드 제목 보존.

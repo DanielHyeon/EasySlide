@@ -75,11 +75,13 @@
     <!-- =============== Pills Tab (알약 모양) =============== -->
     <Style x:Key="EsTabView.FrmMainBottomItem" TargetType="TabItem">
         <Setter Property="FontFamily" Value="{DynamicResource {x:Static SystemFonts.MessageFontFamilyKey}}" />
-        <Setter Property="FontSize" Value="{DynamicResource {x:Static SystemFonts.MessageFontSizeKey}}" />
+        <Setter Property="FontSize" Value="{DynamicResource Type.Body.FontSize}" />
         <Setter Property="FontWeight" Value="Normal" />
-        <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Primary}" />
+        <!-- The tab chrome below is the classic light system colour in both themes, so its text is the system control text. -->
+        <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" />
         <Setter Property="SnapsToDevicePixels" Value="True" />
-        <Setter Property="Padding" Value="5,3" />
+        <!-- a044: narrow enough that the six source tabs share one row at the default and 1024-wide windows. -->
+        <Setter Property="Padding" Value="2,3" />
         <Setter Property="Margin" Value="0" />
         <Setter Property="MinHeight" Value="22" />
         <Setter Property="Template">
@@ -105,7 +107,7 @@
                             <Setter Property="Panel.ZIndex" Value="1" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
-                            <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Disabled}" />
+                            <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -140,12 +142,50 @@
                                 Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"
                                 BorderBrush="{DynamicResource Brush.Border.Default}"
                                 BorderThickness="1,0,1,1">
-                            <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                            <!-- One row that scrolls sideways when the tabs do not fit (as WinForms kept one row with scroll arrows).
+                                 Style x:Null keeps WPF's own scroll viewer, which puts the bar in a row below the tabs; the app's
+                                 scroll viewer draws it over them and hid the labels (a044). -->
+                            <ScrollViewer Style="{x:Null}"
+                                          HorizontalScrollBarVisibility="Auto"
                                           VerticalScrollBarVisibility="Disabled"
                                           Focusable="False">
                                 <TabPanel IsItemsHost="True"
                                           Background="Transparent" />
                             </ScrollViewer>
+                        </Border>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- The main window's six source tabs: one row when they fit, rows when the pane is narrow (a044), so every source
+         stays one click away without scrolling. -->
+    <Style x:Key="EsTabView.FrmMainSourceTabs" TargetType="TabControl" BasedOn="{StaticResource EsTabView.FrmMainBottom}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TabControl">
+                    <Grid KeyboardNavigation.TabNavigation="Local"
+                          ClipToBounds="True">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Border Grid.Row="0"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{DynamicResource Brush.Border.Default}"
+                                BorderThickness="{TemplateBinding BorderThickness}">
+                            <ContentPresenter x:Name="PART_SelectedContentHost"
+                                              ContentSource="SelectedContent"
+                                              Margin="{TemplateBinding Padding}"
+                                              SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                        </Border>
+                        <Border Grid.Row="1"
+                                Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"
+                                BorderBrush="{DynamicResource Brush.Border.Default}"
+                                BorderThickness="1,0,1,1">
+                            <TabPanel IsItemsHost="True"
+                                      Background="Transparent" />
                         </Border>
                     </Grid>
                 </ControlTemplate>

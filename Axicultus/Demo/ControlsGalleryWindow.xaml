@@ -88,16 +88,16 @@
 
                     <StackPanel>
                         <RadioButton Style="{StaticResource EsToggle.Radio}"
-                                     Content="표준 (12px / 44px)"
+                                     Content="표준 (11px / 44px)"
                                      GroupName="InterfaceSize"
                                      IsChecked="True"
                                      Margin="0,0,0,4" />
                         <RadioButton Style="{StaticResource EsToggle.Radio}"
-                                     Content="큰 글씨 (16px / 48px)"
+                                     Content="큰 글씨 (16.8px / 52.8px)"
                                      GroupName="InterfaceSize"
                                      Margin="0,0,0,4" />
                         <RadioButton Style="{StaticResource EsToggle.Radio}"
-                                     Content="시니어 (20px / 52px)"
+                                     Content="시니어 (19.6px / 61.6px)"
                                      GroupName="InterfaceSize" />
                     </StackPanel>
                 </StackPanel>
