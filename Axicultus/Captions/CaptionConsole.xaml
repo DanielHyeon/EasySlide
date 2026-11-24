@@ -2,12 +2,15 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:captions="clr-namespace:Axicultus.Wpf.Captions"
+        xmlns:composites="clr-namespace:Axicultus.Wpf.Composites"
+        xmlns:input="clr-namespace:Axicultus.Wpf.Input"
         Title="카메라 하단 자막" Width="1040" Height="720" MinWidth="900" MinHeight="620" ResizeMode="CanResize"
         WindowStartupLocation="CenterOwner"
         Background="{DynamicResource Brush.Surface.Page}" Foreground="{DynamicResource Brush.Text.Primary}"
         FontFamily="{DynamicResource Font.Primary}" FontSize="{DynamicResource Type.BodyLarge.FontSize}">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="Shown" />
+        <composites:LiveRowBadgeConverter x:Key="LiveBadge" />
         <!-- The sources and the display choices look like one switch each. -->
         <Style x:Key="Segment" TargetType="RadioButton" BasedOn="{StaticResource {x:Type ToggleButton}}">
             <Setter Property="MinHeight" Value="40" />
@@ -182,22 +185,28 @@
                     <RadioButton x:Name="ScreenMode" Content="송출 화면 따라가기" GroupName="Source" Checked="SourceChanged" Style="{StaticResource Segment}"
                                  ToolTip="송출 화면(라이브가 아니어도 송출 칸)의 PPT · 찬양 · 성경 · 텍스트를 따라갑니다." />
                 </UniformGrid>
-                <Grid Margin="0,12,0,0">
-                    <DockPanel x:Name="DirectPanel">
-                        <StackPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
-                            <Button x:Name="TakeButton" Content="송출 (Enter)" Command="{Binding TakeCommand}" Click="BackToDraft" HorizontalAlignment="Stretch" />
+                <!-- The source's own controls on top, the worship list in the rest. Too short for both (a small window), the
+                     column scrolls rather than cutting off a button (its MinHeight is set in code). -->
+                <ScrollViewer x:Name="SourcePanel" Margin="0,12,0,0" VerticalScrollBarVisibility="Auto" Focusable="False" PreviewMouseWheel="ColumnWheel">
+                <Grid x:Name="SourceColumn" Height="{Binding ViewportHeight, ElementName=SourcePanel}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <Grid x:Name="SourceControls">
+                        <!-- The typed caption: three lines of it (a caption has up to three; its height is set in code), scrolled beyond. -->
+                        <StackPanel x:Name="DirectPanel">
+                            <TextBox x:Name="Draft" AcceptsReturn="True" FontSize="{DynamicResource Type.Title1.FontSize}" TextWrapping="Wrap"
+                                     VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top"
+                                     Text="{Binding DraftText, UpdateSourceTrigger=PropertyChanged}" PreviewKeyDown="DraftKey"
+                                     AutomationProperties.Name="직접 입력 자막" />
+                            <Button x:Name="TakeButton" Content="송출 (Enter)" Command="{Binding TakeCommand}" Click="BackToDraft" HorizontalAlignment="Stretch" Margin="0,8,0,0" />
                             <CheckBox x:Name="Instant" Content="입력하는 대로 송출" Margin="0,8,0,0" IsChecked="{Binding IsInstant, Mode=TwoWay}"
                                       ToolTip="한글은 글자가 완성될 때마다 송출합니다. Enter로 확정하면 입력 칸이 비워지고 자막은 다음 입력까지 유지됩니다." />
                             <TextBlock Text="Shift+Enter 줄바꿈" Style="{StaticResource Quiet}" Margin="0,4,0,0" />
                         </StackPanel>
-                        <TextBox x:Name="Draft" AcceptsReturn="True" FontSize="{DynamicResource Type.Title1.FontSize}" TextWrapping="Wrap"
-                                 VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top"
-                                 Text="{Binding DraftText, UpdateSourceTrigger=PropertyChanged}" PreviewKeyDown="DraftKey"
-                                 AutomationProperties.Name="직접 입력 자막" />
-                    </DockPanel>
 
-                    <ScrollViewer x:Name="ScreenPanel" Visibility="Collapsed" VerticalScrollBarVisibility="Auto">
-                        <StackPanel>
+                        <StackPanel x:Name="ScreenPanel" Visibility="Collapsed">
                             <UniformGrid Columns="4">
                                 <RadioButton x:Name="AutoShow" Content="자동" Tag="auto" GroupName="Show" IsChecked="True" Checked="ScoreChanged" Style="{StaticResource Segment}"
                                              ToolTip="슬라이드마다 악보 그림이 있으면 악보를, 없으면 자막을 보냅니다. (1)" />
@@ -221,8 +230,64 @@
                             <CheckBox x:Name="SyncShow" Content="싱크: ◀ ▶로 송출 화면도 넘기기" Margin="0,12,0,0" IsChecked="{Binding Session.SyncShow, Mode=TwoWay}"
                                       ToolTip="켜면 이전/다음이 송출 화면(PPT 슬라이드, 찬양·성경 페이지)을 넘기고 자막이 따라갑니다. 악보는 그 장의 줄을 다 보낸 뒤 다음 장으로 넘깁니다." />
                         </StackPanel>
-                    </ScrollViewer>
+                    </Grid>
+
+                    <!-- The main window's worship list (DataContext: MainViewModel), in both sources: a pick here is a pick
+                         there; the send button, a double-click and Enter do what a double-click in the main list does. -->
+                    <DockPanel x:Name="WorshipPanel" Grid.Row="1" Margin="0,8,0,0">
+                        <Button x:Name="SendItemButton" DockPanel.Dock="Bottom" Content="송출" Margin="0,8,0,0" HorizontalAlignment="Stretch"
+                                Command="{Binding WorshipListDoubleClickCommand}" AutomationProperties.Name="고른 예배 순서 항목 송출"
+                                ToolTip="고른 항목을 송출 화면으로 보냅니다(본창 예배 순서 더블클릭과 같음). 따라가기에서는 자막이 송출 화면을 따라가고, 직접 입력에서는 입력한 자막 그대로입니다." />
+                        <Grid>
+                            <ListBox x:Name="WorshipList" ItemsSource="{Binding Queue}" SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                                     ScrollViewer.HorizontalScrollBarVisibility="Disabled" HorizontalContentAlignment="Stretch" FontSize="{DynamicResource Type.BodyLarge.FontSize}"
+                                     Background="{DynamicResource Brush.Surface.Card}" BorderBrush="{DynamicResource Brush.Border.Default}"
+                                     AutomationProperties.Name="예배 순서 (더블클릭·Enter로 송출)" KeyDown="WorshipListKey">
+                                <ListBox.ItemContainerStyle>
+                                    <!-- A double-click on a row sends it (on the list's empty space: nothing). -->
+                                    <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+                                        <Setter Property="AutomationProperties.Name" Value="{Binding Title}" />
+                                        <Setter Property="Padding" Value="8,4" />
+                                        <Setter Property="input:RowDoubleClick.Command" Value="{Binding DataContext.WorshipListDoubleClickCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" />
+                                    </Style>
+                                </ListBox.ItemContainerStyle>
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <DockPanel>
+                                            <!-- Only the row on air (one of two rows of the same song), as in the main list. -->
+                                            <Border DockPanel.Dock="Right" Background="{DynamicResource Brush.Live.Active}" CornerRadius="3" Padding="6,1"
+                                                    Margin="8,0,0,0" VerticalAlignment="Center">
+                                                <Border.Visibility>
+                                                    <MultiBinding Converter="{StaticResource LiveBadge}">
+                                                        <Binding />
+                                                        <Binding Path="DataContext.LiveRow" RelativeSource="{RelativeSource AncestorType=ListBox}" />
+                                                    </MultiBinding>
+                                                </Border.Visibility>
+                                                <TextBlock Text="LIVE" Foreground="{DynamicResource Brush.Live.OnActive}" FontWeight="Bold"
+                                                           AutomationProperties.Name="송출 중" />
+                                            </Border>
+                                            <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"
+                                                       ToolTip="{Binding Title}" />
+                                        </DockPanel>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                            <TextBlock x:Name="WorshipListEmpty" Text="예배 순서가 비어 있습니다" HorizontalAlignment="Center" IsHitTestVisible="False">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource Quiet}">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Queue.Count}" Value="0">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </Grid>
+                    </DockPanel>
                 </Grid>
+                </ScrollViewer>
             </DockPanel>
 
             <!-- What goes on air, drawn as the camera screen draws it (16:9), and what comes next. -->

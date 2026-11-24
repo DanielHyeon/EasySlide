@@ -11,6 +11,7 @@
         xmlns:theme="clr-namespace:Axicultus.Wpf.Theme"
         xmlns:vwp="clr-namespace:WpfToolkit.Controls;assembly=VirtualizingWrapPanel"
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+        xmlns:input="clr-namespace:Axicultus.Wpf.Input"
         Title="Axicultus"
         FontSize="{DynamicResource Type.Body.FontSize}"
         Icon="/Axicultus;component/Assets/Axicultus.ico"
@@ -1183,6 +1184,8 @@
                                     <Setter Property="MinHeight" Value="17" />
                                     <Setter Property="Padding" Value="2,0" />
                                     <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                    <!-- A double-click on a row adds that row to the worship list (on the list's empty space nothing). -->
+                                    <Setter Property="input:RowDoubleClick.Command" Value="{Binding DataContext.AddSelectedLibrarySongCommand, RelativeSource={RelativeSource AncestorType=ListView}}" />
                                 </Style>
                             </ListView.Resources>
                             <!-- 곡 한 줄 표시: "곡 번호 표시"(Use Song Numbering) on 이면 "번호. 제목", off 면 제목만.
@@ -1210,11 +1213,6 @@
                                     </Grid>
                                 </DataTemplate>
                             </ListView.ItemTemplate>
-                            <ListView.InputBindings>
-                                <!-- 더블클릭으로 예배 순서에 추가(선택 후 추가). -->
-                                <MouseBinding MouseAction="LeftDoubleClick"
-                                              Command="{Binding AddSelectedLibrarySongCommand}" />
-                            </ListView.InputBindings>
                             <ListView.ContextMenu>
                                 <ContextMenu x:Name="CMenuSongs"
                                              Style="{StaticResource FrmMainListContextMenu}"
@@ -2212,10 +2210,12 @@
                                              SelectedItem="{Binding SelectedSearchResult, Mode=TwoWay}"
                                              KeyDown="SourceListAddOnEnter_KeyDown"
                                              AutomationProperties.Name="검색 결과 목록">
-                                        <ListBox.InputBindings>
-                                            <MouseBinding MouseAction="LeftDoubleClick"
-                                                          Command="{Binding AddSearchedSongCommand}" />
-                                        </ListBox.InputBindings>
+                                        <ListBox.ItemContainerStyle>
+                                            <!-- A double-click on a row adds that row (on the list's empty space nothing). -->
+                                            <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+                                                <Setter Property="input:RowDoubleClick.Command" Value="{Binding DataContext.AddSearchedSongCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" />
+                                            </Style>
+                                        </ListBox.ItemContainerStyle>
                                         <ListBox.ItemTemplate>
                                             <DataTemplate>
                                                 <StackPanel Margin="0,2">
@@ -2284,10 +2284,12 @@
                                              SelectedItem="{Binding SelectedTitleCandidate, Mode=TwoWay}"
                                              KeyDown="SourceListAddOnEnter_KeyDown"
                                              AutomationProperties.Name="제목 조회 결과 목록">
-                                        <ListBox.InputBindings>
-                                            <MouseBinding MouseAction="LeftDoubleClick"
-                                                          Command="{Binding AddLookupTitleCommand}" />
-                                        </ListBox.InputBindings>
+                                        <ListBox.ItemContainerStyle>
+                                            <!-- A double-click on a row adds that row (on the list's empty space nothing). -->
+                                            <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+                                                <Setter Property="input:RowDoubleClick.Command" Value="{Binding DataContext.AddLookupTitleCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" />
+                                            </Style>
+                                        </ListBox.ItemContainerStyle>
                                         <ListBox.ItemTemplate>
                                             <DataTemplate>
                                                 <StackPanel Margin="0,2">

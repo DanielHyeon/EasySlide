@@ -6990,22 +6990,26 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private bool CanWorshipListDoubleClick()
         => SelectedItem is { } item && (IsMediaItem(item) || !HasPowerPointLimitViolation);
 
-    private Task WorshipListDoubleClickAsync()
+    private async Task WorshipListDoubleClickAsync()
     {
         if (SelectedItem is not { } item)
         {
             StatusText = "더블클릭할 Worship 항목을 선택하세요.";
             NotifyCommandStates();
-            return Task.CompletedTask;
+            return;
         }
+
+        // The row goes out as itself: a library, search or praise-book preview shown since the row was picked would lend
+        // it its page (FrmMain reloads the preview on each click of the row; the caption console sends without a click).
+        await ShowWorshipSelectionPreviewAsync().ConfigureAwait(true);
 
         if (IsMediaItem(item))
         {
             PlaySelectedWorshipMedia();
-            return Task.CompletedTask;
+            return;
         }
 
-        return PreviewToLiveAsync(PrepareOutputFromItem(item));
+        await PreviewToLiveAsync(PrepareOutputFromItem(item)).ConfigureAwait(true);
     }
 
     private bool CanPreviewToLive()
@@ -9694,15 +9698,19 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// worship-list row again. FrmMain WorshipList_MouseUp reloads the preview on every click, also on the
     /// row that is already selected; SelectedItem does not change in that case, so the view calls this.
     /// </summary>
-    internal void ShowWorshipSelectionPreview()
+    internal void ShowWorshipSelectionPreview() => _ = ShowWorshipSelectionPreviewAsync();
+
+    // (the selected row's content, loaded; done at once when no source preview is shown)
+    private Task ShowWorshipSelectionPreviewAsync()
     {
-        if (_sourcePreviewItem is null) return;
+        if (_sourcePreviewItem is null) return Task.CompletedTask;
         _sourcePreviewItem = null;
         RefreshLyricsPages(SelectedItem);
         UpdateContentTabForItem(SelectedItem);
-        _ = ApplySelectedItemContentAsync(SelectedItem);
+        var applying = ApplySelectedItemContentAsync(SelectedItem);
         NotifyPreviewItemProperties();
         NotifyCommandStates();
+        return applying;
     }
 
     private void OnLibraryPropertyChanged(object? sender, PropertyChangedEventArgs e)

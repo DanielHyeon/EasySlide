@@ -51,8 +51,11 @@ public class WorshipListPanelTests
         Attr(list, "Tag").Should().Be("WorshipListItems", "WPF queue should keep the FrmMain ListView role visible");
         Attr(list, "PreviewMouseRightButtonDown").Should().Be("QueueList_PreviewMouseRightButtonDown",
             "right-click should select the row under the mouse before context-menu commands run");
-        var doubleClick = list.Descendants().Single(e => e.Name.LocalName == "MouseBinding" && Attr(e, "MouseAction") == "LeftDoubleClick");
-        Attr(doubleClick, "Command").Should().Contain("WorshipListDoubleClickCommand")
+        // a041: a row's double-click (not a list-wide MouseBinding, which a row's press never reached) sends that row
+        // through RowDoubleClick (see RowDoubleClickTests).
+        list.Descendants().Should().NotContain(e => e.Name.LocalName == "MouseBinding");
+        var doubleClick = list.Descendants().Single(e => e.Name.LocalName == "Setter" && Attr(e, "Property") == "input:RowDoubleClick.Command");
+        Attr(doubleClick, "Value").Should().Contain("WorshipListDoubleClickCommand")
             .And.NotContain("GoLiveCommand",
                 "FrmMain WorshipListItems_DoubleClick has a media special case and otherwise routes through PreviewItemToLive, not the top-level GoLive auto-advance workflow");
 

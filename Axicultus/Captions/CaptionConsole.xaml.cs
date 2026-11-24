@@ -78,6 +78,14 @@ public partial class CaptionConsole : Window
         HeldCaption.Fit(new Size(1920, 1080));
         // before the window's own, or the camera bindings look at the editor first
         CameraPreview.DataContext = CameraStatus.DataContext = Settings.CameraControls.DataContext = camera;
+        WorshipPanel.DataContext = main; // the main window's worship list, its pick and its double-click
+        WatchSourceColumn();
+        WorshipList.SelectionChanged += (_, _) => ShowWorshipRow(WorshipList.SelectedItem);
+        WorshipPanel.RequestBringIntoView += KeepColumnForList;
+        // the row on air, once the list holds it and the console shows (a console hidden on close, a list changed later)
+        IsVisibleChanged += (_, _) => Dispatcher.InvokeAsync(ShowLiveRow, DispatcherPriority.Loaded);
+        ((System.Collections.Specialized.INotifyCollectionChanged)WorshipList.Items).CollectionChanged +=
+            (_, _) => Dispatcher.InvokeAsync(ShowLiveRow, DispatcherPriority.Loaded);
         DataContext = _editor;
         _editor.SaveRequested += Changed;
         Host.Text = obs.Host;
@@ -145,6 +153,7 @@ public partial class CaptionConsole : Window
             _captions.BeginPlan(_main.CurrentWorshipListName);
         }
         else if (e.PropertyName is nameof(MainViewModel.OutputLyricsText) or nameof(MainViewModel.OutputItem)) _ = SyncScreenAsync();
+        else if (e.PropertyName == nameof(MainViewModel.LiveRow)) ShowLiveRow();
     }
 
     internal void EndSession()

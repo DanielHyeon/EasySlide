@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -52,6 +53,9 @@ public sealed partial class CaptionConsoleTests
                 finally { themes.ApplyTheme(Axicultus.Wpf.Theme.ColorTheme.Light); }
             }
 
+            // a041: the worship list under the source's controls (the main window's list).
+            Main(console).LoadQueue([.. new[] { "입례 찬양", "오늘의 말씀", "말씀 찬양", "봉헌 찬양", "광고", "파송 찬양" }
+                .Select((title, n) => new LiveQueueItem($"song:shot-{n}", title, LiveItemKinds.Song) { Lyrics = "[1]\n" + title })]);
             console.Draft.Text = "주님은 나의 목자시니 내게 부족함 없으리";
             await Draw(console, "1-hidden-start", [.. ShotSizes, SmallScreen]);
             await Dark("1-hidden-start");

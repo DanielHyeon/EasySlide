@@ -318,6 +318,7 @@ internal static class Program
                 case "ppt3": await Ppt3(); break;
                 case "pptown": await PptOwn(); break;
                 case "pptcaption": await PptCaption(); break;
+                case "consolelist": await ConsoleList(); break;
                 case "ppttext": await PptText(); break;
                 case "chords": await Chords(); break;
                 case "wlist": await WList(); break;
@@ -1340,6 +1341,245 @@ internal static class Program
         console.EndSession();
         await Exec("StopLiveCommand", null, 2500);
         await Exec("CloseOutputCommand", null, 2500);
+    }
+
+    // a041: the caption console's worship list, with the main window's. Maximized and following the output screen: worship
+    // item 2 picked in the console's list and sent with its send button; a row's double-click sends that row and the
+    // list's empty space nothing, in the console's list and in the main window's. Typing: an item sent leaves the typed
+    // caption. A small window: a send keeps the column where it was. The typed box shows three lines (standard and
+    // senior interface size). Each check logs [CONSOLELIST] PASS or FAIL.
+    private static async Task ConsoleList()
+    {
+        Ctx("consolelist");
+        if (_vm.Queue.Count < 5) { Log("CONSOLELIST", $"FAIL the worship list has {_vm.Queue.Count} items; the phase needs five"); return; }
+        var captions = _sp.GetRequiredService<Axicultus.Wpf.Captions.CaptionSession>();
+        var console = new Axicultus.Wpf.Captions.CaptionConsole(_vm, captions,
+            _sp.GetRequiredService<Axicultus.Wpf.Captions.CaptionBroadcastServer>(), _sp.GetRequiredService<Axicultus.Wpf.Captions.CaptionRecoveryStore>(),
+            _sp.GetRequiredService<Axicultus.Wpf.Media.CameraOwnership>(), _sp.GetRequiredService<Axicultus.Wpf.Captions.ObsOperator>(),
+            _sp.GetService<Axicultus.Wpf.Rendering.IPowerPointRenderService>());
+        Keep.Add(console); // the operator's window stays open (the watchdog closes only stray windows)
+        void Check(bool pass, string what) => Log("CONSOLELIST", $"{(pass ? "PASS" : "FAIL")} {what}");
+        // A double-click as the mouse makes it: two routed presses, the second with a click count of 2.
+        var clickCount = typeof(MouseButtonEventArgs).GetProperty(nameof(MouseButtonEventArgs.ClickCount))!.GetSetMethod(true)!;
+        void DoubleClick(UIElement target)
+        {
+            foreach (int clicks in new[] { 1, 2 })
+            {
+                var press = new MouseButtonEventArgs(Mouse.PrimaryDevice, Environment.TickCount, MouseButton.Left) { RoutedEvent = Mouse.MouseDownEvent };
+                clickCount.Invoke(press, [clicks]);
+                target.RaiseEvent(press);
+                target.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, Environment.TickCount, MouseButton.Left) { RoutedEvent = Mouse.MouseUpEvent });
+            }
+        }
+        UIElement Empty(ItemsControl list) => Logical(list).OfType<ItemsPresenter>().First();
+        UIElement? RowTitle(ItemsControl list, LiveQueueItem item)
+        {
+            list.UpdateLayout();
+            return list.ItemContainerGenerator.ContainerFromItem(item) is ListBoxItem row
+                ? Logical(row).OfType<TextBlock>().FirstOrDefault(t => t.Text == item.Title) : null;
+        }
+        bool Out(LiveQueueItem item) => _vm.OutputItem?.Id == item.Id && ReferenceEquals(_vm.LiveRow, item); // (the output holds a copy)
+        try
+        {
+            await Exec("OpenOutputCommand", null, 2000);
+            console.ShowOnScreen();
+            console.WindowState = WindowState.Maximized;
+            await Settle(1500);
+            console.ScreenMode.IsChecked = true;
+            await Settle(1000);
+            console.AirButton.Command.Execute(null); // on air
+            LiveQueueItem first = _vm.Queue[0], second = _vm.Queue[1], fifth = _vm.Queue[4];
+            // The console list's LIVE badge on an item's row ("-": the row is not made).
+            string Live(LiveQueueItem item) => console.WorshipList.ItemContainerGenerator.ContainerFromItem(item) is not ListBoxItem row ? "-"
+                : Logical(row).OfType<TextBlock>().Any(t => t.Text == "LIVE" && t.IsVisible) ? "LIVE" : "";
+            string State() => $"output=\"{_vm.OutputItem?.Title}\" liveRow=\"{_vm.LiveRow?.Title}\" selected=\"{_vm.SelectedItem?.Title}\" " +
+                $"badges=[{Live(first)}|{Live(second)}|{Live(fifth)}] caption=\"{Trim(captions.ReadyText.Replace("\n", "/"), 40)}\" onAir=\"{Trim(captions.PublicText.Replace("\n", "/"), 40)}\" " +
+                $"outputText=\"{Trim((_vm.OutputLyricsText ?? "").Replace("\n", "/"), 40)}\" status=\"{console.Status.Text}\"";
+
+            Ctx("consolelist item 1 out");
+            _vm.SelectedItem = first; // item 1 on the output screen, as a double-click in the main list sends it
+            await Settle(1500);
+            await Exec("WorshipListDoubleClickCommand", null, 3000);
+            Log("CONSOLELIST", $"item 1 [{first.Kind}] {first.Title} out: maximized={console.WindowState == WindowState.Maximized} " +
+                $"list={console.WorshipList.ActualHeight:0}x{console.WorshipList.ActualWidth:0} rows={console.WorshipList.Items.Count} " + State());
+
+            Ctx("consolelist pick item 2");
+            console.WorshipList.UpdateLayout();
+            ((ISelectionItemProvider)new ListBoxItemAutomationPeer(second, new ListBoxAutomationPeer(console.WorshipList))
+                .GetPattern(PatternInterface.SelectionItem)).Select();
+            await Settle(1500);
+            bool picked = ReferenceEquals(_vm.SelectedItem, second) && Out(first);
+            Log("CONSOLELIST", $"item 2 [{second.Kind}] {second.Title} picked (output stays on item 1: {picked}) " + State());
+
+            Ctx("consolelist send item 2");
+            bool enabled = console.SendItemButton.IsEnabled;
+            ((IInvokeProvider)new ButtonAutomationPeer(console.SendItemButton)).Invoke();
+            await Settle(4000);
+            SaveWindowPicture(console, "consolelist-maximized.png");
+            string expected = (_vm.OutputLyricsText ?? "").Trim();
+            Check(picked && enabled && Out(second) && Live(second) == "LIVE" && Live(first) == ""
+                && expected.Length > 0 && captions.ReadyText == expected && captions.PublicText == expected,
+                $"sent item 2 (button enabled: {enabled}): " + State());
+
+            Ctx("consolelist double-clicks in the console list");
+            _vm.SelectedItem = first;
+            await Settle(1500);
+            DoubleClick(Empty(console.WorshipList));
+            await Settle(2500);
+            Check(Out(second), "a double-click on the console list's empty space sends nothing: " + State());
+            if (RowTitle(console.WorshipList, fifth) is { } fifthRow)
+            {
+                DoubleClick(fifthRow);
+                await Settle(3000);
+                Check(Out(fifth) && Live(fifth) == "LIVE" && captions.ReadyText == (_vm.OutputLyricsText ?? "").Trim(),
+                    $"a double-click on item 5 [{fifth.Kind}] {fifth.Title} in the console list sends it: " + State());
+            }
+            else Check(false, "item 5's row is not shown in the console list");
+
+            Ctx("consolelist double-clicks in the main list");
+            if (Logical(_main).OfType<ListView>().FirstOrDefault(l => l.Name == "QueueList") is { } mainList)
+            {
+                _vm.SelectedItem = second;
+                await Settle(1500);
+                DoubleClick(Empty(mainList));
+                await Settle(2500);
+                Check(Out(fifth), "a double-click on the main list's empty space sends nothing: " + State());
+                if (RowTitle(mainList, first) is { } firstRow)
+                {
+                    DoubleClick(firstRow);
+                    await Settle(3000);
+                    Check(Out(first) && ReferenceEquals(_vm.SelectedItem, first), "a double-click on item 1 in the main list sends it: " + State());
+                }
+                else Check(false, "item 1's row is not shown in the main list");
+            }
+            else Check(false, "no main worship list");
+
+            // A double-click whose first press did not pick the row (Shift or Ctrl held): the row clicked goes.
+            Ctx("consolelist shift double-click");
+            _vm.SelectedItem = first;
+            await Settle(1500);
+            console.WorshipList.UpdateLayout();
+            if (console.WorshipList.ItemContainerGenerator.ContainerFromItem(fifth) is ListBoxItem fifthItem)
+            {
+                fifthItem.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, Environment.TickCount, MouseButton.Left) { RoutedEvent = Control.MouseDoubleClickEvent });
+                await Settle(3000);
+                Check(Out(fifth) && ReferenceEquals(_vm.SelectedItem, fifth), "a double-click on item 5 while item 1 is picked sends item 5: " + State());
+            }
+            else Check(false, "item 5's row is not shown in the console list");
+
+            // The library's song list: a row's double-click adds that song to the worship list, its empty space nothing.
+            Ctx("consolelist library double-click");
+            if (Logical(_main).OfType<ListView>().FirstOrDefault(l => l.Name == "LibrarySongList") is { Items.Count: > 1 } songs)
+            {
+                // its tab shown, as the operator would see it (the tabs shown before come back after)
+                var shownTabs = new List<(TabControl Tabs, object? Shown)>();
+                for (DependencyObject? at = songs; at != null; at = LogicalTreeHelper.GetParent(at))
+                    if (at is TabItem tab && ItemsControl.ItemsControlFromItemContainer(tab) is TabControl tabs)
+                    {
+                        shownTabs.Add((tabs, tabs.SelectedItem));
+                        tab.IsSelected = true;
+                    }
+                await Settle(1000);
+                var song = songs.Items[1]!;
+                string Title(object item) => item.GetType().GetProperty("Title")?.GetValue(item) as string ?? item.ToString() ?? "";
+                songs.SelectedItem = songs.Items[0];
+                await Settle(800);
+                int before = _vm.Queue.Count, sameBefore = _vm.Queue.Count(i => i.Title == Title(song));
+                var queueBefore = _vm.Queue.ToList();
+                try
+                {
+                    DoubleClick(Empty(songs));
+                    await Settle(1500);
+                    int afterEmpty = _vm.Queue.Count;
+                    songs.UpdateLayout();
+                    var songRow = songs.ItemContainerGenerator.ContainerFromItem(song) is ListBoxItem r
+                        ? Logical(r).OfType<TextBlock>().FirstOrDefault(t => t.Text.Length > 0) : null; // (its number or its title)
+                    if (songRow != null) DoubleClick(songRow);
+                    await Settle(2000);
+                    Check(songRow != null && afterEmpty == before && _vm.Queue.Count == before + 1 && _vm.Queue.Count(i => i.Title == Title(song)) == sameBefore + 1,
+                        $"library (row shown: {songRow != null}): empty space added {afterEmpty - before}, a double-click on \"{Title(song)}\" added {_vm.Queue.Count - afterEmpty}");
+                }
+                finally
+                {
+                    // The worship list as it was, saved as it was (the named list is saved after each change).
+                    foreach (var added in _vm.Queue.Except(queueBefore).ToList()) _vm.Queue.Remove(added);
+                    _vm.SelectedItem = first;
+                    bool saved = await _vm.SavePendingWorshipListChangesAsync();
+                    await Settle(1000);
+                    bool restored = _vm.Queue.SequenceEqual(queueBefore) && saved && !_vm.HasPendingWorshipListSave;
+                    Check(restored, $"library: worship list restored ({_vm.Queue.Count} items, same as before: {_vm.Queue.SequenceEqual(queueBefore)}, saved: {saved}, pending save: {_vm.HasPendingWorshipListSave})");
+                    foreach (var (tabs, shown) in shownTabs) tabs.SelectedItem = shown;
+                    await Settle(500);
+                }
+            }
+            else Check(false, "no library songs shown");
+
+            // Typing: item 2 sent from the list goes to the output screen; the typed caption stays.
+            Ctx("consolelist direct send item 2");
+            console.DirectMode.IsChecked = true;
+            await Settle(500);
+            console.Draft.Text = "환영합니다";
+            ((IInvokeProvider)new ButtonAutomationPeer(console.TakeButton)).Invoke();
+            await Settle(800);
+            ((ISelectionItemProvider)new ListBoxItemAutomationPeer(second, new ListBoxAutomationPeer(console.WorshipList))
+                .GetPattern(PatternInterface.SelectionItem)).Select();
+            await Settle(1500);
+            ((IInvokeProvider)new ButtonAutomationPeer(console.SendItemButton)).Invoke();
+            await Settle(4000);
+            SaveWindowPicture(console, "consolelist-direct.png");
+            Check(Out(second) && Live(second) == "LIVE" && Live(first) == "" && captions.PublicText == "환영합니다" && !captions.Mirroring,
+                $"typing, sent item 2 (caption stays 환영합니다, mirroring={captions.Mirroring}): " + State());
+
+            // The smallest window at the senior size (the column scrolls there whatever the screen's scale): the column
+            // scrolled to the list; a click on send leaves the keyboard in the box and the column where it was.
+            Ctx("consolelist small window");
+            var themes = _sp.GetRequiredService<IThemeService>();
+            themes.ApplyInterfaceSize(InterfaceSize.Senior);
+            console.WindowState = WindowState.Normal;
+            console.Width = 900;
+            console.Height = 620;
+            await Settle(1500);
+            Log("CONSOLELIST", $"small window {console.ActualWidth:0}x{console.ActualHeight:0}: column {console.SourcePanel.ViewportHeight:0} of {console.SourcePanel.ExtentHeight:0}");
+            console.SourcePanel.ScrollToVerticalOffset(console.SourcePanel.ScrollableHeight); // (a number: ScrollToBottom follows a longer column)
+            await Settle(500);
+            double bottom = console.SourcePanel.VerticalOffset;
+            _vm.SelectedItem = first;
+            await Settle(1500);
+            ((IInvokeProvider)new ButtonAutomationPeer(console.SendItemButton)).Invoke();
+            console.SendItemButton.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, Environment.TickCount, MouseButton.Left) { RoutedEvent = Mouse.PreviewMouseUpEvent });
+            await Settle(3000);
+            SaveWindowPicture(console, "consolelist-small.png");
+            Check(bottom > 0 && Math.Abs(console.SourcePanel.VerticalOffset - bottom) < 1 && Out(first)
+                && ReferenceEquals(FocusManager.GetFocusedElement(console), console.Draft),
+                $"small window: column offset {bottom:0} -> {console.SourcePanel.VerticalOffset:0} (scrollable {console.SourcePanel.ScrollableHeight:0}), " +
+                $"box focused={console.Draft.IsKeyboardFocused} " + State());
+
+            // The typed box: three lines of its font show, a fourth scrolls; at the standard and the senior size.
+            Ctx("consolelist typed box lines");
+            foreach (var size in new[] { InterfaceSize.Standard, InterfaceSize.Senior })
+            {
+                themes.ApplyInterfaceSize(size);
+                console.Draft.Text = "첫째 줄\n둘째 줄\n셋째 줄";
+                await Settle(800);
+                var box = Logical(console.Draft).OfType<ScrollViewer>().First();
+                double three = box.ScrollableHeight;
+                console.Draft.Text += "\n넷째 줄";
+                await Settle(800);
+                double four = box.ScrollableHeight;
+                Check(three < 0.5 && four > 0, $"typed box at {size}: font={console.Draft.FontSize:0.#} height={console.Draft.ActualHeight:0.#} " +
+                    $"three lines scroll {three:0.#}, four lines scroll {four:0.#}");
+            }
+            console.Draft.Text = "";
+        }
+        finally
+        {
+            Ctx("consolelist stop");
+            _sp.GetRequiredService<IThemeService>().ApplyInterfaceSize(_sp.GetRequiredService<ISettingsService>().Get(AxicultusSettingKeys.InterfaceSize));
+            console.EndSession();
+            Keep.Remove(console);
+            await Exec("StopLiveCommand", null, 2500);
+            await Exec("CloseOutputCommand", null, 2500);
+        }
     }
 
     // a036: decks followed slide by slide with auto (each slide's whole text, or its score row) and a box named on slide 1

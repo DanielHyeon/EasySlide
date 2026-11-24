@@ -4,7 +4,8 @@
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
              xmlns:controls="clr-namespace:Axicultus.Wpf.Controls"
              xmlns:conv="clr-namespace:Axicultus.Wpf.Converters"
-             xmlns:local="clr-namespace:Axicultus.Wpf.Composites">
+             xmlns:local="clr-namespace:Axicultus.Wpf.Composites"
+             xmlns:input="clr-namespace:Axicultus.Wpf.Input">
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis" />
@@ -307,6 +308,9 @@
                             <Setter Property="MinHeight" Value="22" />
                             <Setter Property="Padding" Value="2,0" />
                             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                            <!-- A double-click on a row sends that row (FrmMain WorshipListItems_DoubleClick: media plays, other items go out
+                                 through PreviewItemToLive); on the list's empty space nothing. -->
+                            <Setter Property="input:RowDoubleClick.Command" Value="{Binding DataContext.WorshipListDoubleClickCommand, RelativeSource={RelativeSource AncestorType=ListView}}" />
                         </Style>
                     </ListView.Resources>
                     <!-- 항목 한 줄 = [종류 아이콘] + 제목 + LIVE. FrmMain ListView Details 처럼 헤더는 숨기고 조밀한 행만 보여 준다. -->
@@ -363,13 +367,6 @@
                             </GridViewColumn>
                         </GridView>
                     </ListView.View>
-                    <!-- 더블클릭은 FrmMain WorshipListItems_DoubleClick:
-                         media 는 파일 실행, 그 외 항목은 PreviewItemToLive 흐름으로 OutputItem 복사/송출한다. -->
-                    <ListView.InputBindings>
-                        <MouseBinding MouseAction="LeftDoubleClick"
-                                      Command="{Binding WorshipListDoubleClickCommand}" />
-                    </ListView.InputBindings>
-
                     <ListView.ContextMenu>
                         <ContextMenu x:Name="CMenuWorship"
                                      Style="{StaticResource FrmMainListContextMenu}"

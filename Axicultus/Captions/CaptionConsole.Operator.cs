@@ -105,19 +105,73 @@ public partial class CaptionConsole
         return false;
     }
 
-    private void ReleaseFocus()
+    private void ReleaseFocus() => FocusKeepingColumn(DirectMode.IsChecked == true ? Draft : Surface);
+
+    // The keyboard to the box or the console itself. A focused box asks to be seen: a scrolled column stays where it is.
+    private void FocusKeepingColumn(IInputElement target)
     {
-        IInputElement target = DirectMode.IsChecked == true ? Draft : Surface;
+        double kept = SourcePanel.VerticalOffset;
         FocusManager.SetFocusedElement(this, target); // (also when the window is not the active one)
         target.Focus();
+        SourcePanel.ScrollToVerticalOffset(kept);
+    }
+
+    // Enter in the worship list (chosen with Tab) sends the picked item, as a double-click does; a held Enter sends once.
+    private void WorshipListKey(object sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Enter || Keyboard.Modifiers != ModifierKeys.None) return;
+        e.Handled = true;
+        if (!e.IsRepeat && _main.WorshipListDoubleClickCommand.CanExecute(null)) _main.WorshipListDoubleClickCommand.Execute(null);
+    }
+
+    // The wheel over the worship list or the typed box scrolls them; at their end (a small window) it scrolls the column.
+    private void ColumnWheel(object sender, MouseWheelEventArgs e)
+    {
+        if (DropDownOpen(LinesBox, ScoreSizeBox)) return; // an open list's own wheel
+        for (var at = e.OriginalSource as DependencyObject; at != null && at != SourcePanel;
+             at = at is Visual ? VisualTreeHelper.GetParent(at) : LogicalTreeHelper.GetParent(at))
+        {
+            if (at is Popup) return;
+            if (at is not ScrollViewer inner) continue;
+            if (e.Delta > 0 ? inner.VerticalOffset > 0 : inner.VerticalOffset < inner.ScrollableHeight) return; // its own
+            SourcePanel.ScrollToVerticalOffset(SourcePanel.VerticalOffset - e.Delta / 120d * WheelStep(SystemParameters.WheelScrollLines, SourcePanel.ViewportHeight));
+            e.Handled = true;
+            return;
+        }
+    }
+
+    // A wheel notch, as a ScrollViewer's own: the system's lines of 16 DIP, or a screen ("one screen at a time": -1).
+    internal static double WheelStep(int lines, double viewport) => lines > 0 ? lines * 16 : viewport;
+
+    // The console's worship list shows the picked row and the row on air when they change elsewhere (the main window,
+    // the next item); only then, not on each change of the list or the output (the operator may be scrolling).
+    private LiveQueueItem? _shownLive;
+
+    // Hidden (closed), or the list not yet holding the row: tried again when the console shows and when the list changes.
+    private void ShowLiveRow()
+    {
+        if (ReferenceEquals(_main.LiveRow, _shownLive) || !IsVisible || _main.LiveRow is { } live && !WorshipList.Items.Contains(live)) return;
+        _shownLive = _main.LiveRow;
+        ShowWorshipRow(_shownLive);
+    }
+
+    private void ShowWorshipRow(object? item)
+    {
+        if (item != null) WorshipList.ScrollIntoView(item);
+    }
+
+    // A row brought into view moves the list, not the column (a small window keeps what the operator scrolled to), unless
+    // the keyboard is in the list (Tab, arrows): then the column follows it.
+    private void KeepColumnForList(object sender, RequestBringIntoViewEventArgs e)
+    {
+        if (!WorshipList.IsKeyboardFocusWithin && e.TargetObject is Visual target && (target == WorshipList || WorshipList.IsAncestorOf(target)))
+            e.Handled = true;
     }
 
     // After a click on the take button or the on-air switch while typing, the next words go into the box.
     private void BackToDraft(object sender, RoutedEventArgs e)
     {
-        if (DirectMode.IsChecked != true) return;
-        FocusManager.SetFocusedElement(this, Draft); // (also when the window is not the active one)
-        Draft.Focus();
+        if (DirectMode.IsChecked == true) FocusKeepingColumn(Draft);
     }
 
     private void OpenSettings(object sender, RoutedEventArgs e)
@@ -263,6 +317,51 @@ public partial class CaptionConsole
     }
 
     private static bool DropDownOpen(params ComboBox[] boxes) => boxes.Any(box => box.IsDropDownOpen);
+
+    // The typed caption's box shows three lines (a caption has up to three) at any interface size. The worship list keeps
+    // room for two rows under the source's controls (the default window shows them with the step strip): a shorter column
+    // (a small window) scrolls rather than cutting off a button.
+    // Fitted again when the controls change size, when rows are made (the first ones replace the estimate) and when the
+    // box's font changes. Three lines are measured as Hangul lays them out (a fallback font may space lines wider).
+    // (a row as shown, else a line of body text and the row's padding; 4: the list's border)
+    private void FitSourceColumn()
+    {
+        var lines = new FormattedText("가나다\n가나다\n가나다", System.Globalization.CultureInfo.CurrentUICulture, Draft.FlowDirection,
+            new Typeface(Draft.FontFamily, Draft.FontStyle, Draft.FontWeight, Draft.FontStretch), Draft.FontSize, Brushes.Black,
+            VisualTreeHelper.GetDpi(Draft).PixelsPerDip);
+        Draft.Height = lines.Height + Draft.Padding.Top + Draft.Padding.Bottom + Draft.BorderThickness.Top + Draft.BorderThickness.Bottom
+            + 1; // (1: layout rounding)
+        // any row made (a scrolled long list has no first row), else the last one seen
+        if (ShownRowHeight() is { } shown) _rowHeight = shown;
+        SourceColumn.MinHeight = SourceControls.ActualHeight + WorshipPanel.Margin.Top + SendItemButton.ActualHeight + SendItemButton.Margin.Top
+            + 2 * (_rowHeight > 0 ? _rowHeight : WorshipList.FontSize * 1.3 + 8) + 4;
+    }
+
+    private double _rowHeight;
+
+    private double? ShownRowHeight() => Enumerable.Range(0, WorshipList.Items.Count).Select(WorshipList.ItemContainerGenerator.ContainerFromIndex)
+        .OfType<ListBoxItem>().FirstOrDefault(row => row.ActualHeight > 0)?.ActualHeight;
+
+    // Rows made or dropped (each scroll of a long list): fitted again only when the row height is new.
+    private void FitForRows()
+    {
+        if (_rowHeight > 0 && ShownRowHeight() is { } shown && Math.Abs(shown - _rowHeight) < 0.01) return;
+        FitSourceColumn();
+    }
+
+    private void WatchSourceColumn()
+    {
+        SourceControls.SizeChanged += (_, _) => FitSourceColumn();
+        SendItemButton.SizeChanged += (_, _) => FitSourceColumn();
+        // rows made: fitted after their layout
+        WorshipList.ItemContainerGenerator.StatusChanged += (_, _) =>
+            Dispatcher.InvokeAsync(FitForRows, System.Windows.Threading.DispatcherPriority.Loaded);
+        EventHandler refit = (_, _) => FitSourceColumn();
+        var fonts = new[] { Control.FontSizeProperty, Control.FontFamilyProperty }
+            .Select(font => System.ComponentModel.DependencyPropertyDescriptor.FromProperty(font, typeof(TextBox))).ToArray();
+        foreach (var font in fonts) font.AddValueChanged(Draft, refit);
+        Closed += (_, _) => { foreach (var font in fonts) font.RemoveValueChanged(Draft, refit); }; // (the descriptor holds the box)
+    }
 
     // A narrow bar first drops the destinations label, so the OBS status keeps room for its two lines.
     private void NarrowTopBar(object sender, SizeChangedEventArgs e) =>

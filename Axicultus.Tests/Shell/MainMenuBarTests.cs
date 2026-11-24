@@ -1072,7 +1072,10 @@ public class MainMenuBarTests
             "right-clicking a song row should select it before opening CMenuSongs");
         xaml.Should().Contain("KeyDown=\"LibrarySongList_KeyDown\"",
             "SongsList should keep FrmMain's Delete-key route separate from the generic Enter-add source handler");
-        xaml.Should().Contain("MouseAction=\"LeftDoubleClick\"", "song rows should keep double-click add behavior");
+        // a041: on the rows (a list-wide MouseBinding never saw a row's double-click and added the picked song from the
+        // list's empty space).
+        xaml.Should().Contain("<Setter Property=\"input:RowDoubleClick.Command\" Value=\"{Binding DataContext.AddSelectedLibrarySongCommand",
+            "song rows should keep double-click add behavior");
     }
 
     [Fact]

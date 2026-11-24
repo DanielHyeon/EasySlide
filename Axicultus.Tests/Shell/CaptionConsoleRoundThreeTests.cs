@@ -488,6 +488,8 @@ public sealed partial class CaptionConsoleTests
     {
         var content = (FrameworkElement)console.Content;
         var client = new Size(819.2 - 16, 566.4 - 39); // the console on a 1024×768 screen at 125%
+        // The app's body size, whether or not another test made an Application (without one the text is 12 DIP and fits).
+        console.Resources["Type.BodyLarge.FontSize"] = 16d;
         console.ObsLabel.Text = "OBS 연결 전 · 설정에서 연결하세요";
         for (int pass = 0; pass < 2; pass++)
         {
