@@ -179,7 +179,8 @@ public class ImageRenderingTests
                 var content = (Image)typeof(ImageCanvas).GetField("_thumbnailContent", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(canvas)!;
                 Assert.Equal(displayed.Size, content.Size);
                 Assert.InRange(content.Width, 160, 1024);
-                Assert.Equal(new Size(160, 90), canvas.Size);
+                // Framed heights: (width - 2 x border band) x slide aspect + 2 x border band.
+                Assert.Equal(new Size(160, 96), canvas.Size);
                 var before = displayed.GetPixel(0, displayed.Height / 2);
                 File.Delete(path);
                 canvas.SelectedBorderColor = Color.Lime;
@@ -191,7 +192,7 @@ public class ImageRenderingTests
                 using (var g = Graphics.FromImage(replacement)) g.Clear(Color.DarkRed);
                 replacement.Save(path, ImageFormat.Png);
                 Assert.True(canvas.CalculateImage());
-                Assert.Equal(new Size(160, 120), canvas.Size);
+                Assert.Equal(new Size(160, 123), canvas.Size);
                 Assert.Equal(Color.DarkRed.ToArgb(), ((Bitmap)canvas.Image).GetPixel(100, 100).ToArgb());
             }
             finally

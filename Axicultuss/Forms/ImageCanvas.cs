@@ -246,6 +246,14 @@ namespace Axicultus;
 				base.Width = InCanvasWidth;
 				base.Height = InCanvasHeight;
 
+				if (FramesSlide)
+				{
+					// The canvas height follows the framed raster, so it covers the whole control; aspect
+					// rounding must not leave a background line outside the selection band.
+					(PosLeft, PosTop, PosWidth, PosHeight) = (0, 0, base.Width, base.Height);
+					return;
+				}
+
 				float canvasRatio = (float)base.Width / base.Height;
 
 				if (canvasRatio < ImageRatio)
@@ -308,6 +316,16 @@ namespace Axicultus;
 				if (!IsDisposed && !Disposing) e.Graphics.Clear(BackColor);
 				return;
 			}
+			// Resized without a rebuild, or moved to another DPI. A framed thumbnail of a new width is made again
+			// from its slide picture. Otherwise (or when the picture is gone or being re-exported) the slide number
+			// is redrawn at its on-screen size over the cached raster, placed for the new size.
+			// shortcut: a cached raster kept for a new width keeps the frame made for the old one, so the slide's
+			// aspect inside the band can drift by about a pixel until the next rebuild.
+			if (BadgeSizeStale && !(FramesSlide && _badgeCanvasSize.Width != Width && RebuildForNewWidth()))
+			{
+				_markersDirty = true;
+				ResizeCanvas(Width, Height);
+			}
 			if (_markersDirty && !RerenderMarkers())
 			{
 				e.Graphics.Clear(BackColor);
@@ -317,6 +335,29 @@ namespace Axicultus;
 			DrawImage(e);
 			if (DrawGallerySelection && IsDrawnSelected)
 				ControlPaint.DrawBorder(e.Graphics, ClientRectangle, SystemColors.Highlight, ButtonBorderStyle.Solid);
+		}
+
+		// Makes a framed thumbnail's raster again for its new width from its slide picture (decoded again only
+		// when the raster size changed). False when the picture is gone or cannot be read: the cached raster is
+		// then kept.
+		private bool RebuildForNewWidth()
+		{
+			if (string.IsNullOrEmpty(FileName) || !File.Exists(FileName))
+				return false;
+			try
+			{
+				if (!PrepareThumbnail(new FileInfo(FileName)))
+					return false;
+				DrawThumbnail();
+				_markersDirty = false;
+				ResizeCanvas(Width, Height);
+				return true;
+			}
+			catch (Exception ex)
+			{
+				System.Diagnostics.Debug.WriteLine($"Thumbnail rebuild for a new width failed: {ex.Message}");
+				return false;
+			}
 		}
 
 		private bool RetryPending()
@@ -444,7 +485,7 @@ namespace Axicultus;
 				                   && !MatchesCachedVersion(new FileInfo(imagePath));
 				int width = Math.Max(1, requestedWidth);
 				int height = !KeepThumbnailCellHeight && UsesSlideAspect && _thumbnailContent != null && _cachedFileName == imagePath
-					? HeightForSlideImage(width, _sourceSize)
+					? SlideAspectHeight(width, _sourceSize)
 					: Math.Max(1, requestedHeight);
 				Size = new Size(width, height);
 				if (pathChanged || fileTouched || IsExternalPowerPoint)
@@ -580,60 +621,125 @@ namespace Axicultus;
 			return (int)(baseSize * BorderWidthFactor);
 		}
 
+		// A PowerPoint thumbnail sized by its slide (not a fixed cell): the slide fills the frame, as in WPF.
+		private bool FramesSlide => IsPowerPoint && !KeepThumbnailCellHeight;
+
+		// Canvas height of a slide at this width.
+		private int SlideAspectHeight(int width, Size source) =>
+			IsPowerPoint ? PowerPointThumbnailHeight(width, source) : HeightForSlideImage(width, source);
+
+		// Height of a PowerPoint thumbnail of this width for a slide of this size. It follows the framed raster, as
+		// in WPF: (width - 2 x border band) x slide aspect + 2 x border band, so the slide fills the frame on every side.
+		internal static int PowerPointThumbnailHeight(int width, Size slide)
+		{
+			Size raster = FramedRasterSize(Math.Max(1, width), slide);
+			return Math.Max(1, (int)Math.Round((double)width * raster.Height / raster.Width));
+		}
+
 		private bool TryGetThumbnailSize(Size source, out Size size)
 		{
 			size = Size.Empty;
 			if (!KeepThumbnailCellHeight && UsesSlideAspect)
-				Height = HeightForSlideImage(Width, source);
+				Height = SlideAspectHeight(Width, source);
 			if (Width <= 0 || Height <= 0)
 				return false;
 
+			if (FramesSlide)
+			{
+				size = FramedRasterSize(Width, source);
+				SetImageRatio(size.Width, size.Height);
+				return true;
+			}
 			SetImageRatio(source.Width, source.Height);
+			size = StoredSize(Width, Height, source);
+			return true;
+		}
+
+		private const int MaximumRasterEdge = 1024;
+
+		private static Size StoredSize(int width, int height, Size source)
+		{
 			int fittedWidth = 0, fittedHeight = 0, storedWidth = 0, storedHeight = 0;
-			Gf.CalcImageToFit(ImageRatio, Width, Height, ref fittedWidth, ref fittedHeight, true,
+			Gf.CalcImageToFit((float)source.Width / source.Height, width, height, ref fittedWidth, ref fittedHeight, true,
 				ref storedWidth, ref storedHeight);
 			storedWidth = Math.Max(1, (int)(storedWidth * RESOLUTION_MULTIPLIER));
 			storedHeight = Math.Max(1, (int)(storedHeight * RESOLUTION_MULTIPLIER));
 
 			// A panorama can exceed the normal cache size even when its short edge fits.
-			const int maximumEdge = 1024;
 			int longestEdge = Math.Max(storedWidth, storedHeight);
-			if (longestEdge > maximumEdge)
+			if (longestEdge > MaximumRasterEdge)
 			{
-				storedWidth = Math.Max(1, (int)((long)storedWidth * maximumEdge / longestEdge));
-				storedHeight = Math.Max(1, (int)((long)storedHeight * maximumEdge / longestEdge));
+				storedWidth = Math.Max(1, (int)((long)storedWidth * MaximumRasterEdge / longestEdge));
+				storedHeight = Math.Max(1, (int)((long)storedHeight * MaximumRasterEdge / longestEdge));
 			}
-			size = new Size(storedWidth, storedHeight);
-			return true;
+			return new Size(storedWidth, storedHeight);
 		}
+
+		// Raster of a PowerPoint thumbnail: twice the canvas width (at most MaximumRasterEdge), and the height that
+		// fits the slide exactly inside the frame inset on every side (ContentBounds gives the same inset).
+		private static Size FramedRasterSize(int width, Size source)
+		{
+			int rasterWidth = Math.Clamp((int)(width * RESOLUTION_MULTIPLIER), 1, MaximumRasterEdge);
+			Size framed = Framed(rasterWidth);
+			if (framed.Height > MaximumRasterEdge)
+				framed = Framed(Math.Max(1, (int)((long)rasterWidth * MaximumRasterEdge / framed.Height)));
+			return framed;
+
+			Size Framed(int w)
+			{
+				int inset = FrameInset(w, int.MaxValue);
+				int slideHeight = Math.Max(1, (int)Math.Round((double)(w - 2 * inset) * source.Height / source.Width));
+				return new Size(w, slideHeight + 2 * inset);
+			}
+		}
+
+		// The visible half of the border pen, rounded up: the slide picture meets the border band without
+		// going under it.
+		private static int FrameInset(int width, int height) =>
+			Math.Min((int)Math.Ceiling(width / FONT_SIZE_RATIO / 2), (Math.Min(width, height) - 1) / 2);
 
 		private bool MatchesCachedVersion(FileInfo file) =>
 			_cachedFileName == FileName && _cachedFileTime == file.LastWriteTimeUtc && _cachedFileLength == file.Length;
 
-		// Put the number beside the source, in the frame. Slide numbers in a deck can have different widths.
-		private Rectangle SlideNumberBounds(Size size)
-		{
-			int inset = Math.Min((int)Math.Ceiling(size.Width / FONT_SIZE_RATIO / 2) + 1,
-				(Math.Min(size.Width, size.Height) - 1) / 2);
-			int height = Math.Max(1, (int)Math.Round((size.Height - 2 * inset) * 0.13));
-			int width = Math.Min(size.Width - 2 * inset - 1,
-				(int)Math.Ceiling(height * (0.3 + 0.5 * PowerPointSlideNumbering.ToString().Length)));
-			return new Rectangle(size.Width - inset - width, inset, width, height);
-		}
+		// The WPF slide number: 12 px bold text on a #F6E600 badge at least 18 px wide (a 16 px line), the same
+		// size on screen whatever the thumbnail size. Sizes are device-independent pixels.
+		private const string BadgeFontName = "Segoe UI";
+		private const float BadgeFontDip = 12f;
+		private const float BadgeHeightDip = 16f;
+		private const float BadgeMinWidthDip = 18f;
+		private const float BadgePaddingDip = 1f;
+		private static readonly Color BadgeColor = Color.FromArgb(0xF6, 0xE6, 0x00);
 
-		private void DrawSlideNumberInFrame(Graphics graphics, Rectangle badge)
+		// The number over the top-right corner of the slide picture, as in the WPF thumbnail: its top and right
+		// edges on the picture's. Its size is converted from screen pixels at the width the raster is shown at
+		// (the canvas width, or less in a fixed cell); on a small picture it shrinks to at most half the picture
+		// each way.
+		private void DrawSlideNumberOnPicture(Graphics graphics, Rectangle picture, Size raster)
 		{
-			if (badge.Width < 2 || badge.Height < 2)
-				return;
-			using var font = new Font("Microsoft Sans Serif", badge.Height * 0.77f, GraphicsUnit.Pixel);
-			graphics.FillRectangle(Brushes.Yellow, badge);
+			float shownWidth = Math.Min(Width, (float)Height * raster.Width / raster.Height);
+			float scale = (shownWidth > 0 ? raster.Width / shownWidth : 1f) * DeviceDpi / 96f;
+			string text = PowerPointSlideNumbering.ToString();
 			using var format = new StringFormat(StringFormat.GenericTypographic)
 			{
 				Alignment = StringAlignment.Center,
 				LineAlignment = StringAlignment.Center,
 				FormatFlags = StringFormatFlags.NoWrap
 			};
-			graphics.DrawString(PowerPointSlideNumbering.ToString(), font, Brushes.Black, badge, format);
+			float textWidth;
+			using (var measured = new Font(BadgeFontName, BadgeFontDip * scale, FontStyle.Bold, GraphicsUnit.Pixel))
+				textWidth = graphics.MeasureString(text, measured, PointF.Empty, format).Width;
+			float width = Math.Max(BadgeMinWidthDip * scale, textWidth + 2 * Math.Max(1f, BadgePaddingDip * scale));
+			float height = BadgeHeightDip * scale;
+			float fit = Math.Min(1f, Math.Min(picture.Width / 2f / width, picture.Height / 2f / height));
+			int badgeWidth = (int)Math.Ceiling(width * fit);
+			int badgeHeight = (int)Math.Round(height * fit);
+			if (badgeHeight < 2)
+				return;
+			var badge = new Rectangle(picture.Right - badgeWidth, picture.Top, badgeWidth, badgeHeight);
+			using var font = new Font(BadgeFontName, BadgeFontDip * scale * fit, FontStyle.Bold, GraphicsUnit.Pixel);
+			using var fill = new SolidBrush(BadgeColor);
+			graphics.FillRectangle(fill, badge);
+			graphics.DrawString(text, font, Brushes.Black, badge, format);
 		}
 
 		private Rectangle ContentBounds(Size size, Size source)
@@ -641,14 +747,18 @@ namespace Axicultus;
 			var bounds = new Rectangle(Point.Empty, size);
 			if (IsPowerPoint)
 			{
-				var badge = SlideNumberBounds(size);
-				int inset = badge.Top;
-				int roomWidth = badge.Left - inset;
+				// The slide fits inside the border band, keeping its aspect; a framed raster (FramesSlide) is made to
+				// fit it exactly, so it fills the frame. The number is drawn over it.
+				int inset = FrameInset(size.Width, size.Height);
+				int roomWidth = size.Width - 2 * inset;
 				int roomHeight = size.Height - 2 * inset;
 				double scale = Math.Min((double)roomWidth / source.Width, (double)roomHeight / source.Height);
 				int width = Math.Clamp((int)Math.Round(source.Width * scale), 1, roomWidth);
 				int height = Math.Clamp((int)Math.Round(source.Height * scale), 1, roomHeight);
-				return new Rectangle(inset + (roomWidth - width) / 2, (size.Height - height) / 2, width, height);
+				// A pixel short from rounding: fill the frame rather than leave a one-pixel line.
+				if (roomWidth - width <= 1 && roomHeight - height <= 1)
+					(width, height) = (roomWidth, roomHeight);
+				return new Rectangle((size.Width - width) / 2, (size.Height - height) / 2, width, height);
 			}
 			if (ShouldDrawPowerPointOverlay() && !UsesSlideAspect)
 			{
@@ -680,7 +790,7 @@ namespace Axicultus;
 					if (UsesSlideAspect)
 						DrawBorder(graphics, full, borderWidth);
 					if (IsPowerPoint)
-						DrawSlideNumberInFrame(graphics, SlideNumberBounds(size));
+						DrawSlideNumberOnPicture(graphics, _contentBounds, size);
 					else
 						DrawSlideNumber(graphics, size.Width, size.Height,
 							UsesSlideAspect ? CalculateBorderMargin(size.Width, size.Height) : _contentBounds.X);
@@ -696,6 +806,22 @@ namespace Axicultus;
 				Image?.Dispose();
 				Image = target;
 			}
+			_badgeCanvasSize = Size;
+			_badgeDpi = DeviceDpi;
+		}
+
+		// The canvas size and DPI the slide number was sized for (DrawSlideNumberOnPicture): a raster drawn
+		// for another size or DPI shows the badge at the wrong size on screen.
+		private Size _badgeCanvasSize;
+		private int _badgeDpi;
+
+		private bool BadgeSizeStale => IsPowerPoint && IsImageReady && (_badgeCanvasSize != Size || _badgeDpi != DeviceDpi);
+
+		protected override void OnDpiChangedAfterParent(EventArgs e)
+		{
+			base.OnDpiChangedAfterParent(e);
+			if (BadgeSizeStale)
+				MarkMarkersDirty();
 		}
 
 		private Image DecodeThumbnail(Stream stream)

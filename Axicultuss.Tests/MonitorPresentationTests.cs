@@ -160,8 +160,9 @@ public class MonitorPresentationTests
     }
 
     [Theory]
-    [InlineData(320, 180, 135, 180)]
-    [InlineData(320, 240, 180, 240)]
+    // Framed heights: (width - 2 x border band) x slide aspect + 2 x border band.
+    [InlineData(320, 180, 144, 192)]
+    [InlineData(320, 240, 185, 246)]
     public void PowerPointThumbnailUsesDecodedAspectOnLoadAndResize(int sourceWidth, int sourceHeight, int initialHeight, int resizedHeight)
     {
         DirectoryInfo directory = Directory.CreateTempSubdirectory("axicultus-monitor-test-");

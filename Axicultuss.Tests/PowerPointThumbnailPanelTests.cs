@@ -250,9 +250,9 @@ public class PowerPointThumbnailPanelTests
                 using (var jpg = new Bitmap(160, 120))
                     jpg.Save(lastOutput.FileName, ImageFormat.Jpeg);
                 Assert.True(lastPreview.CalculateImage());
-                Assert.Equal(lastPreview.Width * 9 / 16, lastPreview.Height);
+                Assert.Equal(60, lastPreview.Height); // framed 16:9 at width 100
                 Assert.True(lastOutput.CalculateImage());
-                Assert.Equal(lastOutput.Width * 3 / 4, lastOutput.Height);
+                Assert.Equal(77, lastOutput.Height); // framed 4:3 at width 100
                 preview.Display(previewPrefix, 1, tip);
                 Assert.True(first.IsDrawnSelected);
                 Assert.True(preview.ClientRectangle.IntersectsWith(first.Bounds));
@@ -273,6 +273,187 @@ public class PowerPointThumbnailPanelTests
                 Assert.True(preview.SlideAt(2).IsDrawnSelected);
                 Display(preview, previewPrefix, 0);
                 Assert.True(first.IsDisposed);
+            });
+        }
+        finally
+        {
+            directory.Delete(recursive: true);
+        }
+    }
+
+    // The thumbnails get the deck's framed slide height before their pictures load, so rows and the scroll to
+    // the current slide do not move when the pictures paint. Without an exported picture the 4:3 cell is kept.
+    [Fact]
+    public void ThumbnailsGetTheirSlideHeightBeforeThePicturesLoad()
+    {
+        var directory = Directory.CreateTempSubdirectory("axicultus-thumbnail-layout-");
+        try
+        {
+            const int count = 12;
+            string deck = Path.Combine(directory.FullName, "deck-");
+            using (var slide = new Bitmap(160, 90))
+            {
+                for (int number = 1; number <= count; number++)
+                    slide.Save(SlideImageManifest.ImagePath(deck, number), ImageFormat.Png);
+            }
+            MonitorPresentationTests.RunOnSta(() =>
+            {
+                using var panel = new PowerPointThumbnailPanel { AutoScroll = true, Size = new Size(335, 150) };
+                panel.CreateControl();
+                using var tip = new ToolTip();
+                panel.SetSlideCount(count, tip, _ => new ImageCanvas { PowerPoint = true });
+                panel.Display(deck, count, tip);
+                Rectangle[] Layout() => Enumerable.Range(0, count).Select(i => panel.SlideAt(i).Bounds).ToArray();
+
+                Rectangle[] before = Layout();
+                Assert.All(before, bounds => Assert.Equal(new Size(100, 60), bounds.Size)); // framed 16:9
+                int scroll = panel.VerticalScroll.Value;
+                Assert.True(scroll > 0);
+                for (int i = 0; i < count; i++)
+                    Assert.True(panel.SlideAt(i).CalculateImage());
+                Assert.Equal(before, Layout());
+                Assert.Equal(scroll, panel.VerticalScroll.Value);
+                Assert.True(panel.ClientRectangle.IntersectsWith(panel.SlideAt(count - 1).Bounds));
+
+                panel.SetSlideCount(count, tip, _ => new ImageCanvas { PowerPoint = true });
+                panel.Display(Path.Combine(directory.FullName, "not-exported-"), 1, tip);
+                Assert.All(Layout(), bounds => Assert.Equal(new Size(100, 75), bounds.Size));
+            });
+        }
+        finally
+        {
+            directory.Delete(recursive: true);
+        }
+    }
+
+    // A slide picture still being written (a cut-off JPG makes GDI+ throw) does not break the display: the
+    // slide size comes from another slide.
+    [Fact]
+    public void HalfWrittenSlidePictureIsSkipped()
+    {
+        var directory = Directory.CreateTempSubdirectory("axicultus-thumbnail-layout-");
+        try
+        {
+            const int count = 3;
+            string deck = Path.Combine(directory.FullName, "deck-");
+            using (var picture = new Bitmap(160, 90))
+            {
+                picture.Save(SlideImageManifest.ImagePath(deck, 1), ImageFormat.Png);
+                using var jpeg = new MemoryStream();
+                picture.Save(jpeg, ImageFormat.Jpeg);
+                File.WriteAllBytes(SlideImageManifest.ImagePath(deck, count), jpeg.ToArray()[..20]);
+            }
+            MonitorPresentationTests.RunOnSta(() =>
+            {
+                using var panel = new PowerPointThumbnailPanel { Width = 335 };
+                using var tip = new ToolTip();
+                panel.SetSlideCount(count, tip, _ => new ImageCanvas { PowerPoint = true });
+                panel.Display(deck, count, tip);
+                Assert.All(Enumerable.Range(0, count), i => Assert.Equal(new Size(100, 60), panel.SlideAt(i).Size));
+            });
+        }
+        finally
+        {
+            directory.Delete(recursive: true);
+        }
+    }
+
+    // The deck's slide size is read once per deck (again while no picture could be read): kept across widths and
+    // reloads of the same deck (its pictures may be gone or re-exported), read for another deck (the 4:3
+    // placeholder when it has no picture yet).
+    [Fact]
+    public void DeckSlideSizeIsReadOncePerDeck()
+    {
+        var directory = Directory.CreateTempSubdirectory("axicultus-thumbnail-layout-");
+        try
+        {
+            const int count = 4;
+            string deck = Path.Combine(directory.FullName, "deck-");
+            void Export(int width, int height)
+            {
+                using var slide = new Bitmap(width, height);
+                for (int number = 1; number <= count; number++)
+                    slide.Save(SlideImageManifest.ImagePath(deck, number), ImageFormat.Png);
+            }
+            void Remove()
+            {
+                for (int number = 1; number <= count; number++)
+                    File.Delete(SlideImageManifest.ImagePath(deck, number));
+            }
+            MonitorPresentationTests.RunOnSta(() =>
+            {
+                using var panel = new PowerPointThumbnailPanel { Width = 335 };
+                using var tip = new ToolTip();
+                panel.SetSlideCount(count, tip, _ => new ImageCanvas { PowerPoint = true });
+                // No picture exported yet: the 4:3 placeholder, and the size is read again on the next display.
+                panel.Display(deck, 1, tip);
+                Assert.All(Enumerable.Range(0, count), i => Assert.Equal(new Size(100, 75), panel.SlideAt(i).Size));
+                Export(160, 90);
+                panel.Width = 395; // cells 120 wide
+                panel.Display(deck, 1, tip);
+                Assert.All(Enumerable.Range(0, count), i => Assert.Equal(new Size(120, 72), panel.SlideAt(i).Size));
+
+                Remove();
+                panel.Width = 455; // cells 140 wide
+                panel.Display(deck, 1, tip);
+                Assert.All(Enumerable.Range(0, count), i => Assert.Equal(new Size(140, 84), panel.SlideAt(i).Size));
+
+                // Reloaded with another slide size: not read again (the cells size themselves as pictures load).
+                Export(160, 120);
+                panel.ResetSelection();
+                panel.Display(deck, 1, tip);
+                Assert.All(Enumerable.Range(0, count), i => Assert.Equal(new Size(140, 84), panel.SlideAt(i).Size));
+
+                panel.Display(Path.Combine(directory.FullName, "other-"), 1, tip);
+                Assert.All(Enumerable.Range(0, count), i => Assert.Equal(new Size(140, 105), panel.SlideAt(i).Size));
+            });
+        }
+        finally
+        {
+            directory.Delete(recursive: true);
+        }
+    }
+
+    // After a width change and a selection change every number has the same on-screen size, about 16 px high.
+    [Fact]
+    public void EveryBadgeHasTheSameScreenSizeAfterAWidthChange()
+    {
+        var directory = Directory.CreateTempSubdirectory("axicultus-thumbnail-layout-");
+        try
+        {
+            const int count = 6;
+            string deck = Path.Combine(directory.FullName, "deck-");
+            using (var slide = new Bitmap(1920, 1080))
+            {
+                for (int number = 1; number <= count; number++)
+                    slide.Save(SlideImageManifest.ImagePath(deck, number), ImageFormat.Png);
+            }
+            MonitorPresentationTests.RunOnSta(() =>
+            {
+                using var panel = new PowerPointThumbnailPanel { Width = 755 }; // cells 240 wide
+                using var tip = new ToolTip();
+                panel.SetSlideCount(count, tip, _ => new ImageCanvas { PowerPoint = true });
+                panel.Display(deck, 1, tip);
+                void PaintAll()
+                {
+                    for (int i = 0; i < count; i++)
+                    {
+                        var slide = panel.SlideAt(i);
+                        using var painted = new Bitmap(slide.Width, slide.Height);
+                        slide.DrawToBitmap(painted, slide.ClientRectangle);
+                    }
+                }
+                PaintAll();
+                panel.Width = 995; // cells 320 wide
+                panel.Display(deck, 1, tip);
+                PaintAll();
+                panel.Display(deck, 2, tip);
+                PaintAll();
+                double[] heights = Enumerable.Range(0, count)
+                    .Select(i => PowerPointThumbnailNumberTests.BadgeHeightOnScreen(panel.SlideAt(i))).ToArray();
+                Assert.All(heights, height => Assert.InRange(height, 15, 17));
+                Assert.InRange(heights.Max() - heights.Min(), 0, 0.5);
+                Assert.All(Enumerable.Range(0, count), i => Assert.Equal(320, panel.SlideAt(i).Width));
             });
         }
         finally
