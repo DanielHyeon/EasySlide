@@ -205,10 +205,12 @@
 
                 <StackPanel x:Name="ScreenPanel" Visibility="Collapsed">
                     <WrapPanel>
-                        <RadioButton x:Name="TextOnly" Content="자막" GroupName="Show" IsChecked="True" Checked="ScoreChanged" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                        <RadioButton x:Name="ScoreOnly" Content="악보" GroupName="Show" Checked="ScoreChanged" VerticalAlignment="Center" Margin="0,0,12,0"
+                        <RadioButton x:Name="AutoShow" Content="자동" Tag="auto" GroupName="Show" IsChecked="True" Checked="ScoreChanged" VerticalAlignment="Center" Margin="0,0,12,0"
+                                     ToolTip="슬라이드마다 악보 그림이 있으면 악보를, 없으면 자막을 보냅니다."/>
+                        <RadioButton x:Name="TextOnly" Content="자막" Tag="text" GroupName="Show" Checked="ScoreChanged" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                        <RadioButton x:Name="ScoreOnly" Content="악보" Tag="score" GroupName="Show" Checked="ScoreChanged" VerticalAlignment="Center" Margin="0,0,12,0"
                                      ToolTip="PPT 악보를 줄(오선과 그 아래 가사)로 나누어 한 줄씩 보냅니다."/>
-                        <RadioButton x:Name="ScoreAndText" Content="악보 + 자막" GroupName="Show" Checked="ScoreChanged" VerticalAlignment="Center"
+                        <RadioButton x:Name="ScoreAndText" Content="악보 + 자막" Tag="scoretext" GroupName="Show" Checked="ScoreChanged" VerticalAlignment="Center"
                                      ToolTip="악보 한 줄 아래에 그 줄의 가사를 함께 보냅니다."/>
                     </WrapPanel>
                     <DockPanel Margin="0,8,0,0">

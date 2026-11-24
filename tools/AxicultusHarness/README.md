@@ -50,6 +50,7 @@ tools\AxicultusHarness\Run-All.ps1
 | `ppt2`, `ppt2hang`, `ppt3` | 실제 PowerPoint: 블랙·숨김, 강제 종료, 멈춤, 블랙 중 이동 |
 | `pptown` | 운영자가 먼저 연 PowerPoint 보호 (`Run-OwnPowerPoint.ps1`로 실행) |
 | `pptcaption` | 카메라 하단 자막 창: 송출 PPT 찾기, 송출 화면 따라가기, 악보 상단·하단, 글자색. 창 그림을 `logs\pptcaption-*.png`로 저장 |
+| `ppttext` | 자막 창 자동 표시: 예배 순서의 PPT와 `AXI_A036_DECKS`(세미콜론으로 구분한 경로, 격리 작업 폴더 `a036`에 복사해 읽음)를 슬라이드별로 따라가며 전체 글자·악보 줄 기록, 1장 상자가 없는 슬라이드의 빈 자막 수 |
 | `editorscan` | 모든 곡을 편집기로 열어 수정 없는 저장 결과 비교 |
 | `bodyoffset`, `splitter` | 본문 세로 위치, 왼쪽 열 너비 |
 

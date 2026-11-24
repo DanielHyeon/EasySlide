@@ -178,8 +178,9 @@ public sealed class CaptionIntegrationTests
                 }
             }
             var result = CaptionDeck.Read(path);
-            Assert.Equal("둘째\n말씀\n찬양", result.Slides[0].Boxes.Single().Text);
-            Assert.Equal("shape:가사",result.Slides[1].Boxes.Single().Key);
+            Assert.Equal("둘째\n말씀\n찬양", result.Slides[0].Boxes[^1].Text);
+            Assert.Equal([CaptionDeck.AllTextKey, "shape:가사"], result.Slides[1].Boxes.Select(box => box.Key)); // a036: the whole text first
+            Assert.Equal("둘째\n말씀\n찬양", result.Slides[0].Boxes[0].Text);
             var live = new LiveSessionService();
             using var captions = new CaptionSession(live);
             captions.Prepare(result);

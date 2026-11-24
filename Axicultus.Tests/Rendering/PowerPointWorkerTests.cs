@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -127,6 +128,19 @@ public class PowerPointWorkerTests
 
         await Assert.ThrowsAsync<PowerPointRenderException>(() => worker.RenderSlideAsync(Request(3), CancellationToken.None).WaitAsync(TimeSpan.FromSeconds(30)));
         Assert.Equal(2, starts);
+    }
+
+    [Fact]
+    public async Task AnOldDeckReadByTheChildStartsEachSlideWithItsWholeText()
+    {
+        const string reply = """{"Deck":{"Path":"C:\\deck.ppt","Slides":[{"Boxes":[{"Key":"shape:Title","Name":"Title","Text":"Title"},{"Key":"shape:Body","Name":"Body","Text":"Line 1\nLine 2"}]},{"Boxes":[]}]},"Error":0}""";
+        using var worker = new PowerPointWorker(() => StartEchoChild(fixedReply: reply));
+
+        var deck = await worker.ReadLegacyDeckAsync("deck.ppt", CancellationToken.None).WaitAsync(TimeSpan.FromSeconds(30));
+
+        Assert.Equal(new CaptionBox(CaptionDeck.AllTextKey, "슬라이드 전체 글자", "Title\nLine 1\nLine 2"), deck.Slides[0].Boxes[0]);
+        Assert.Equal(["shape:Title", "shape:Body"], deck.Slides[0].Boxes.Skip(1).Select(box => box.Key));
+        Assert.Equal(CaptionDeck.AllTextKey, Assert.Single(deck.Slides[1].Boxes).Key);
     }
 
     [Fact]

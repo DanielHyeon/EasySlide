@@ -1,6 +1,8 @@
 using System;
 using System.IO;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Automation.Peers;
 using System.Windows.Automation.Provider;
@@ -9,6 +11,7 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using Axicultus.Wpf.Captions;
 using Axicultus.Wpf.Media;
+using Axicultus.Wpf.Rendering;
 using Axicultus.Wpf.Settings;
 using Axicultus.Wpf.Shell;
 using Axicultus.Wpf.Support;
@@ -164,6 +167,352 @@ public sealed class CaptionConsoleTests
         Assert.True(await console.PrepareDeckAsync(path, 1));
         Assert.Null(session.PublicImage); // while this deck's pictures are read, none of the last song's rows stays
     });
+
+    [Fact]
+    public Task ANewlyReadDeckStartsOnTheSlidesWholeText() => WithConsole(async (console, session, directory) =>
+    {
+        var first = CaptionAllTextTests.WriteDeck(directory.CreateSubdirectory("a").FullName, [], CaptionAllTextTests.TextSlide("제목", "본문"));
+        var next = CaptionAllTextTests.WriteDeck(directory.CreateSubdirectory("b").FullName, [], CaptionAllTextTests.TextSlide("다른 제목", "다른 본문"));
+        Assert.True(await console.PrepareDeckAsync(first, 1));
+        Assert.Equal(CaptionDeck.AllTextKey, Assert.IsType<CaptionBox>(console.Boxes.SelectedItem).Key);
+        console.Boxes.SelectedItem = console.Boxes.Items.Cast<CaptionBox>().Single(box => box.Key == "shape:TextBox 1"); // the title
+        session.Follow(1, "shape:TextBox 1");
+        Assert.True(await console.PrepareDeckAsync(next, 1));
+        // Not the last deck's box, though this deck has one by that name.
+        Assert.Equal(CaptionDeck.AllTextKey, Assert.IsType<CaptionBox>(console.Boxes.SelectedItem).Key);
+        Assert.Equal("다른 제목\n다른 본문", console.Cue.Text);
+    });
+
+    [Fact]
+    public Task AutoSendsTheScoreOnAScoreSlideAndTheTextOnATextSlide() => WithConsole(async (console, session, directory) =>
+    {
+        var path = CaptionAllTextTests.WriteDeck(directory.FullName, [CaptionScorePictureTests.ScorePng()],
+            CaptionAllTextTests.TextSlide("설교 제목", "본문 말씀"), CaptionAllTextTests.ScoreSlide(0));
+        Assert.True(await console.PrepareDeckAsync(path, 1));
+        await console.ScorePreparation;
+        Assert.True(console.AutoShow.IsChecked); // the default
+        await ClickAsync(console.ShowButton); // on air
+        console.ScreenMode.IsChecked = true;
+        session.Follow(1, CaptionDeck.AllTextKey);
+        Assert.Null(session.PublicImage);
+        Assert.Equal("설교 제목\n본문 말씀", session.PublicText);
+        session.MoveToSlide(2);
+        Assert.NotNull(session.PublicImage);
+        Assert.Equal(("picture", ""), (console.ScoreSource, session.PublicText)); // the score only
+        session.MoveToSlide(1);
+        Assert.Null(session.PublicImage);
+        Assert.Equal("설교 제목\n본문 말씀", session.PublicText);
+        console.TextOnly.IsChecked = true; // the operator's choice is kept
+        Assert.Equal("text", session.Display);
+        session.MoveToSlide(2);
+        Assert.Null(session.PublicImage);
+        console.ScoreAndText.IsChecked = true;
+        Assert.Equal("scoretext", session.Display);
+        console.AutoShow.IsChecked = true;
+        Assert.Equal("auto", session.Display);
+    });
+
+    [Fact]
+    public Task TheChosenBoxStaysChosenOverASlideWithoutIt() => WithConsole(async (console, session, directory) =>
+    {
+        var path = CaptionAllTextTests.WriteDeck(directory.FullName, [],
+            CaptionAllTextTests.Slide(("TextBox 3", "일장 상자"), ("TextBox 5", "일장 다른")),
+            CaptionAllTextTests.Slide(("TextBox 9", "이장")),
+            CaptionAllTextTests.Slide(("TextBox 3", "삼장 상자"), ("TextBox 6", "삼장 다른")));
+        Assert.True(await console.PrepareDeckAsync(path, 1));
+        await ClickAsync(console.ShowButton);
+        console.ScreenMode.IsChecked = true;
+        session.Follow(1, CaptionDeck.AllTextKey);
+        console.Boxes.SelectedItem = console.Boxes.Items.Cast<CaptionBox>().Single(box => box.Key == "shape:TextBox 3"); // the operator's pick
+        Assert.Equal("일장 상자", session.PublicText);
+        session.MoveToSlide(2); // no TextBox 3: its whole text, nothing selected in the list
+        Assert.Equal("이장", session.PublicText);
+        Assert.Null(console.Boxes.SelectedItem);
+        Assert.Equal("이장", console.Cue.Text);
+        Assert.Equal("shape:TextBox 3", session.BoxKey);
+        session.MoveToSlide(3); // TextBox 3 again
+        Assert.Equal("삼장 상자", session.PublicText);
+        Assert.Equal("shape:TextBox 3", Assert.IsType<CaptionBox>(console.Boxes.SelectedItem).Key);
+        // The recovery file keeps the operator's pick too.
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        session.MoveToSlide(2);
+        typeof(CaptionConsole).GetMethod("Changed", flags)!.Invoke(console, null);
+        await (Task)typeof(CaptionConsole).GetMethod("SaveAsync", flags)!.Invoke(console, null)!;
+        var store = (CaptionRecoveryStore)typeof(CaptionConsole).GetField("_store", flags)!.GetValue(console)!;
+        Assert.Equal("shape:TextBox 3", store.Read((string)typeof(CaptionConsole).GetField("_plan", flags)!.GetValue(console)!)!.Box);
+        // On a slide without the chosen box the operator picks the whole text: that is the choice now.
+        console.Boxes.SelectedItem = console.Boxes.Items.Cast<CaptionBox>().Single(box => box.Key == CaptionDeck.AllTextKey);
+        Assert.Equal(CaptionDeck.AllTextKey, session.BoxKey);
+        session.MoveToSlide(3);
+        Assert.Equal("삼장 상자\n삼장 다른", session.PublicText);
+    });
+
+    // OCR pages for the slide files RecognizeDeckAsync writes ("{slide}.png"): a line under each of the two staves of
+    // CaptionScorePictureTests.ScorePng, or one line for a photo slide.
+    private static OcrPage[] ReadLyrics(IReadOnlyList<string> files, params int[] photos) => [.. files.Select(file =>
+    {
+        static OcrLine At(int center, string text) => new([new OcrWord(text, 100, center - 10, 200, 20)]);
+        var slide = int.Parse(Path.GetFileNameWithoutExtension(file));
+        return photos.Contains(slide) ? new OcrPage(file, null, [At(50, "사진 속 간판")])
+            : new OcrPage(file, null, [At(177, $"{slide}장 첫 줄"), At(357, $"{slide}장 둘째 줄")]);
+    })];
+
+    // A renderer whose slides are blank (no staves: a photo).
+    private sealed class BlankRender : IPowerPointRenderService
+    {
+        public Task<PowerPointRenderResult> RenderSlideAsync(PowerPointRenderRequest request, CancellationToken cancellationToken = default)
+        {
+            var encoder = new System.Windows.Media.Imaging.PngBitmapEncoder();
+            var pixels = new byte[192 * 108];
+            Array.Fill(pixels, (byte)255);
+            encoder.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(System.Windows.Media.Imaging.BitmapSource.Create(192, 108, 96, 96, System.Windows.Media.PixelFormats.Gray8, null, pixels, 192)));
+            using var stream = new MemoryStream();
+            encoder.Save(stream);
+            return Task.FromResult(new PowerPointRenderResult(PowerPointRenderErrorKind.None,
+                new PowerPointSlideSnapshot(request.FilePath, request.SlideNumber, 3, 192, 108, stream.ToArray(), "image/png", DateTimeOffset.UtcNow), null, false, TimeSpan.Zero));
+        }
+
+        public void ClearCache() { }
+    }
+
+    private static readonly System.Reflection.BindingFlags Private = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+
+    [Fact]
+    public Task LyricsReadAfterTheScoreRowWentOnAirKeepTheRowAndThenReplaceShortWholeText() => WithConsole(async (console, session, directory) =>
+    {
+        // Two score slides and a photo slide, no text on any: the whole texts are the same (empty) everywhere.
+        var photo = CaptionAllTextTests.Png(64, 36);
+        var path = CaptionAllTextTests.WriteDeck(directory.FullName, [CaptionScorePictureTests.ScorePng(), photo],
+            CaptionAllTextTests.ScoreSlide(0), CaptionAllTextTests.ScoreSlide(0), CaptionAllTextTests.ScoreSlide(1));
+        var reading = new TaskCompletionSource();
+        console.ReadLyrics = async (files, _) => { await reading.Task; return ReadLyrics(files, 3); };
+        Assert.True(await console.PrepareDeckAsync(path, 1));
+        await console.ScorePreparation;
+        await ClickAsync(console.ShowButton);
+        console.ScreenMode.IsChecked = true;
+        console.ScoreOnly.IsChecked = true;
+        session.Follow(1, CaptionDeck.AllTextKey);
+        typeof(CaptionConsole).GetMethod("Next", Private)!.Invoke(console, [null, null]);
+        Assert.Contains("2/2줄", console.ScoreRowLabel.Text);
+        reading.SetResult(); // the lyrics are read while row 2 is on air
+        await console.LyricsReading;
+        Assert.Contains("2/2줄", console.ScoreRowLabel.Text); // the row on air stays
+        Assert.Equal(1, session.CurrentSlide);
+        // The offer looked at the whole texts first (all empty: the recognized lyrics are chosen) ...
+        Assert.Equal(CaptionSession.RecognizedKey, session.BoxKey);
+        // ... then a score slide's empty whole text became its lyrics; the photo's text replaced nothing.
+        Assert.Equal("1장 첫 줄\n1장 둘째 줄", session.TextFor(1, CaptionDeck.AllTextKey));
+        Assert.Equal("", session.TextFor(3, CaptionDeck.AllTextKey));
+        Assert.Equal("사진 속 간판", session.Deck!.Slides[2].Boxes.Single(box => box.Key == CaptionSession.RecognizedKey).Text);
+    }, render: new BlankRender());
+
+    [Fact]
+    public Task NewLyricsForTheSlideOnAirChangeOnlyItsCaptionText() => WithConsole(async (console, session, directory) =>
+    {
+        var path = CaptionAllTextTests.WriteDeck(directory.FullName, [CaptionScorePictureTests.ScorePng()],
+            CaptionAllTextTests.ScoreSlide(0), CaptionAllTextTests.ScoreSlide(0));
+        Assert.True(await console.PrepareDeckAsync(path, 1));
+        await console.ScorePreparation;
+        await ClickAsync(console.ShowButton);
+        console.ScreenMode.IsChecked = true;
+        console.ScoreAndText.IsChecked = true;
+        session.Follow(1, CaptionDeck.AllTextKey);
+        typeof(CaptionConsole).GetMethod("Next", Private)!.Invoke(console, [null, null]);
+        Assert.Contains("2/2줄", console.ScoreRowLabel.Text);
+        int sent = 0;
+        session.PublishedChanged += _ => sent++;
+        session.AddRecognized(1, "새로 읽은 가사", staves: true);
+        Assert.Contains("2/2줄", console.ScoreRowLabel.Text); // the row stays
+        Assert.Equal(("새로 읽은 가사", 1), (session.PublicText, sent)); // the caption text alone went out again
+        session.AddRecognized(1, "새로 읽은 가사", staves: true);
+        Assert.Equal(1, sent); // the same text: nothing went out
+        // The operator looks at slide 2 and edits its caption, not saved yet; lyrics for the slide on air come.
+        console.Slides.SelectedItem = 2;
+        console.Cue.Text = "고치는 중";
+        session.AddRecognized(1, "또 읽은 가사", staves: true);
+        typeof(CaptionConsole).GetMethod("RefreshBoxes", Private)!.Invoke(console, [CaptionSession.RecognizedKey]); // the offer
+        Assert.Equal((2, "고치는 중"), (console.Slides.SelectedItem, console.Cue.Text));
+        Assert.Contains("2/2줄", console.ScoreRowLabel.Text);
+    });
+
+    [Fact]
+    public Task AWholeTextReplacedByLyricsSendsEachRowItsOwnLineUnderTheScore() => WithConsole(async (console, session, directory) =>
+    {
+        // A score with a short word under it, then a notice: their whole texts differ, so the recognized lyrics are not chosen.
+        var path = CaptionAllTextTests.WriteDeck(directory.FullName, [CaptionScorePictureTests.ScorePng()],
+            CaptionAllTextTests.ScoreSlide(0, "에게"), CaptionAllTextTests.TextSlide("다음 주일은 전교인 체육대회입니다"));
+        console.ReadLyrics = (files, _) => Task.FromResult(ReadLyrics(files));
+        Assert.True(await console.PrepareDeckAsync(path, 1));
+        await console.ScorePreparation;
+        await console.LyricsReading;
+        Assert.Equal(CaptionDeck.AllTextKey, Assert.IsType<CaptionBox>(console.Boxes.SelectedItem).Key);
+        Assert.Equal("1장 첫 줄\n1장 둘째 줄", session.TextFor(1, CaptionDeck.AllTextKey)); // the short text replaced
+        await ClickAsync(console.ShowButton);
+        console.ScreenMode.IsChecked = true;
+        console.ScoreAndText.IsChecked = true;
+        session.Follow(1, CaptionDeck.AllTextKey);
+        Assert.Equal("1장 첫 줄", session.PublicText);
+        typeof(CaptionConsole).GetMethod("Next", Private)!.Invoke(console, [null, null]);
+        Assert.Equal("1장 둘째 줄", session.PublicText);
+    });
+
+    [Fact]
+    public Task ARestoredDeckHasItsLyricsReadAgainAndKeepsTheRestoredChoice() => WithConsole(async (console, session, directory) =>
+    {
+        var path = CaptionAllTextTests.WriteDeck(directory.FullName, [CaptionScorePictureTests.ScorePng()],
+            CaptionAllTextTests.ScoreSlide(0), CaptionAllTextTests.ScoreSlide(0));
+        console.ReadLyrics = (files, _) => Task.FromResult(ReadLyrics(files));
+        var plan = (string)typeof(CaptionConsole).GetField("_plan", Private)!.GetValue(console)!;
+        CaptionRecovery Saved(string box) => new(1, 1, plan, "", path, 2, box, [], [], []);
+        // Restored on the whole text: the reading does not switch to the recognized lyrics (all whole texts are empty).
+        await console.RestoreAsync(Saved(CaptionDeck.AllTextKey));
+        await console.LyricsReading;
+        Assert.Equal(CaptionDeck.AllTextKey, Assert.IsType<CaptionBox>(console.Boxes.SelectedItem).Key);
+        Assert.Equal("2장 첫 줄\n2장 둘째 줄", session.TextFor(2, CaptionSession.RecognizedKey));
+        // Restored on the recognized lyrics: they are there again.
+        await console.RestoreAsync(Saved(CaptionSession.RecognizedKey));
+        await console.LyricsReading;
+        Assert.Equal(CaptionSession.RecognizedKey, Assert.IsType<CaptionBox>(console.Boxes.SelectedItem).Key);
+        Assert.Equal("2장 첫 줄\n2장 둘째 줄", console.Cue.Text);
+        // A saved choice of no box is the whole text, as when the console opens.
+        await console.RestoreAsync(Saved(""));
+        await console.LyricsReading;
+        Assert.Equal(CaptionDeck.AllTextKey, Assert.IsType<CaptionBox>(console.Boxes.SelectedItem).Key);
+    });
+
+    [Fact]
+    public Task ARecoveryWhoseDeckIsGoneChangesNothing() => WithConsole(async (console, session, directory) =>
+    {
+        var editor = Assert.IsType<CaptionConsoleViewModel>(console.DataContext);
+        console.Draft.SetCurrentValue(TextBox.TextProperty, "지금 초안");
+        var queue = new LiveQueueItem("song:1", "지금 곡", LiveItemKinds.Song) { Lyrics = "[1]\n가사" };
+        var main = (MainViewModel)typeof(CaptionConsole).GetField("_main", Private)!.GetValue(console)!;
+        main.LoadQueue([queue]);
+        var plan = (string)typeof(CaptionConsole).GetField("_plan", Private)!.GetValue(console)!;
+        await console.RestoreAsync(new(1, 1, plan, "저장한 초안", Path.Combine(directory.FullName, "없는.pptx"), 1, CaptionDeck.AllTextKey, [], [], []));
+        Assert.Equal("지금 초안", editor.DraftText);
+        Assert.Same(queue, Assert.Single(main.Queue));
+        Assert.Contains("찾을 수 없어", console.Status.Text);
+        Assert.Null(session.Deck);
+        await Task.CompletedTask;
+    });
+
+    [Fact]
+    public Task TheDisplayChosenElsewhereChecksItsRadio() => WithConsole((console, session, _) =>
+    {
+        session.SetStyle(session.Style with { Display = "scoretext" });
+        Assert.True(console.ScoreAndText.IsChecked);
+        Assert.Equal("scoretext", session.Display);
+        session.SetStyle(session.Style with { Display = "fancy" }); // cleaned to auto
+        Assert.Equal("auto", session.Style.Display);
+        Assert.True(console.AutoShow.IsChecked);
+        return Task.CompletedTask;
+    });
+
+    [Fact]
+    public Task WithoutARowOfTheSlideTheLastRowIsTakenDownAndTheArrowsTurnSlides() => WithConsole(async (console, session, directory) =>
+    {
+        // Scores cut in two (the render shows them) and no renderer here: no row of the slide can be made.
+        string Pieces() => """<p:spTree>""" + CaptionScorePictureTests.Image(0, CaptionScorePictureTests.Full, 1600000)
+            + CaptionScorePictureTests.Image(0, CaptionScorePictureTests.Full, 2400000, y: 2000000) + "</p:spTree>";
+        var path = CaptionAllTextTests.WriteDeck(directory.FullName, [CaptionScorePictureTests.ScorePng()], Pieces(), Pieces(), Pieces());
+        Assert.True(await console.PrepareDeckAsync(path, 1));
+        await ClickAsync(console.ShowButton);
+        console.ScreenMode.IsChecked = true;
+        console.ScoreOnly.IsChecked = true;
+        session.SetImage(System.Windows.Media.Imaging.BitmapSource.Create(4, 2, 96, 96, System.Windows.Media.PixelFormats.Gray8, null, new byte[8], 4)); // a row of another slide on air
+        session.Follow(2, CaptionDeck.AllTextKey);
+        Assert.Null(session.PublicImage); // taken down
+        typeof(CaptionConsole).GetMethod("Next", Private)!.Invoke(console, [null, null]);
+        Assert.Equal(3, session.CurrentSlide);
+    });
+
+    [Fact]
+    public Task AnUnsavedCaptionEditStaysWhileTheSlideOnAirMoves() => WithConsole(async (console, session, directory) =>
+    {
+        var path = CaptionAllTextTests.WriteDeck(directory.FullName, [],
+            CaptionAllTextTests.TextSlide("일장"), CaptionAllTextTests.TextSlide("이장"), CaptionAllTextTests.TextSlide("삼장"));
+        Assert.True(await console.PrepareDeckAsync(path, 1));
+        console.ScreenMode.IsChecked = true;
+        session.Follow(1, CaptionDeck.AllTextKey);
+        console.Cue.Text = "일장 고침"; // typed, not saved
+        session.MoveToSlide(2);
+        Assert.Equal((1, "일장 고침"), (console.Slides.SelectedItem, console.Cue.Text)); // the edit stays with its slide
+        typeof(CaptionConsole).GetMethod("SaveOverride", Private)!.Invoke(console, [null, null]);
+        Assert.Equal("일장 고침", session.TextFor(1, CaptionDeck.AllTextKey));
+        session.MoveToSlide(3); // saved: the view follows again
+        Assert.Equal((3, "삼장"), (console.Slides.SelectedItem, console.Cue.Text));
+    });
+
+    [Fact]
+    public Task PickingABoxOnAnotherSlideKeepsTheViewAndTheRowOnAir() => WithConsole(async (console, session, directory) =>
+    {
+        var slide = CaptionAllTextTests.ScoreSlide(0, "에게");
+        var path = CaptionAllTextTests.WriteDeck(directory.FullName, [CaptionScorePictureTests.ScorePng()], slide, slide, slide, slide, slide);
+        Assert.True(await console.PrepareDeckAsync(path, 1));
+        await console.ScorePreparation;
+        await ClickAsync(console.ShowButton);
+        console.ScreenMode.IsChecked = true;
+        console.ScoreOnly.IsChecked = true;
+        session.Follow(1, CaptionDeck.AllTextKey);
+        typeof(CaptionConsole).GetMethod("Next", Private)!.Invoke(console, [null, null]);
+        Assert.Contains("2/2줄", console.ScoreRowLabel.Text);
+        console.Slides.SelectedItem = 5; // the operator looks at slide 5 and picks its box
+        console.Boxes.SelectedItem = console.Boxes.Items.Cast<CaptionBox>().Single(box => box.Key == "shape:남은 글");
+        Assert.Equal("shape:남은 글", session.BoxKey);
+        Assert.Equal((5, 1), (console.Slides.SelectedItem, session.CurrentSlide));
+        Assert.Contains("2/2줄", console.ScoreRowLabel.Text);
+    });
+
+    [Fact]
+    public Task SwitchingToTheLyricsUnderAScoreRowGoesOutOnce() => WithConsole(async (console, session, directory) =>
+    {
+        var path = CaptionAllTextTests.WriteDeck(directory.FullName, [CaptionScorePictureTests.ScorePng()],
+            CaptionAllTextTests.ScoreSlide(0), CaptionAllTextTests.ScoreSlide(0));
+        var reading = new TaskCompletionSource();
+        console.ReadLyrics = async (files, _) => { await reading.Task; return ReadLyrics(files); };
+        Assert.True(await console.PrepareDeckAsync(path, 1));
+        await console.ScorePreparation;
+        await ClickAsync(console.ShowButton);
+        console.ScreenMode.IsChecked = true;
+        console.ScoreAndText.IsChecked = true;
+        session.Follow(1, CaptionDeck.AllTextKey);
+        typeof(CaptionConsole).GetMethod("Next", Private)!.Invoke(console, [null, null]);
+        var sent = new System.Collections.Generic.List<string>();
+        session.PublishedChanged += published => sent.Add(published.Text);
+        reading.SetResult();
+        await console.LyricsReading;
+        Assert.Equal(CaptionSession.RecognizedKey, session.BoxKey);
+        Assert.Equal(["1장 둘째 줄"], sent); // the row's own line, with no flash of all the lyrics before it
+    });
+
+    [Fact]
+    public Task WhileTheScoreIsMadeNextTurnsTheSlideInAuto() => WithConsole(async (console, session, directory) =>
+    {
+        var path = CaptionAllTextTests.WriteDeck(directory.FullName, [CaptionScorePictureTests.ScorePng()],
+            CaptionAllTextTests.TextSlide("설교 제목"), CaptionAllTextTests.ScoreSlide(0), CaptionAllTextTests.ScoreSlide(0));
+        Assert.True(await console.PrepareDeckAsync(path, 1));
+        await console.ScorePreparation;
+        console.ScreenMode.IsChecked = true;
+        // The score pictures are being made (as right after the deck is read): the score slide sends its text meanwhile.
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        typeof(CaptionConsole).GetField("_scoreDeck", flags)!.SetValue(console, null);
+        typeof(CaptionConsole).GetField("_preparingScore", flags)!.SetValue(console, session.Deck);
+        session.Follow(2, CaptionDeck.AllTextKey);
+        Assert.Null(session.PublicImage);
+        typeof(CaptionConsole).GetMethod("Next", flags)!.Invoke(console, [null, null]);
+        Assert.Equal(3, session.CurrentSlide); // not a row of a score that is not on air
+        typeof(CaptionConsole).GetMethod("Previous", flags)!.Invoke(console, [null, null]);
+        Assert.Equal(2, session.CurrentSlide);
+    });
+
+    [Fact]
+    public Task AKeptDisplayChoiceIsCheckedWhenTheConsoleOpens() => WithConsole((console, session, _) =>
+    {
+        Assert.Equal("score", session.Display);
+        Assert.Equal((false, false, true, false), (console.AutoShow.IsChecked, console.TextOnly.IsChecked, console.ScoreOnly.IsChecked, console.ScoreAndText.IsChecked));
+        return Task.CompletedTask;
+    }, savedStyle: """{"Color":"#FFE14D","Box":true,"Lines":2,"Display":"score"}""");
 
     [Fact]
     public void RestoringADraftCannotPublishOrRequestAnotherSave()
@@ -427,12 +776,14 @@ public sealed class CaptionConsoleTests
         await button.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
     }
 
+    // savedStyle: caption-style.json as kept from an earlier session.
     private static Task WithConsole(Func<CaptionConsole, CaptionSession, DirectoryInfo, Task> exercise,
-        string? expectedSavedDraft = null) => StaHelper.RunOnStaAsync(async () =>
+        string? expectedSavedDraft = null, string? savedStyle = null, IPowerPointRenderService? render = null) => StaHelper.RunOnStaAsync(async () =>
     {
         var directory = Directory.CreateTempSubdirectory();
         try
         {
+            if (savedStyle != null) File.WriteAllText(Path.Combine(directory.FullName, "caption-style.json"), savedStyle);
             var registrations = new ServiceCollection();
             App.ConfigureServices(registrations,
                 new SettingsServiceOptions(Path.Combine(directory.FullName, "settings.json"), directory.FullName),
@@ -443,7 +794,7 @@ public sealed class CaptionConsoleTests
             var store = services.GetRequiredService<CaptionRecoveryStore>();
             var console = new CaptionConsole(main, session, services.GetRequiredService<CaptionBroadcastServer>(), store,
                 services.GetRequiredService<CameraOwnership>(), services.GetRequiredService<ObsOperator>(),
-                new OperationalErrorLog(directory.FullName)) { ShowActivated = false, ShowInTaskbar = false };
+                new OperationalErrorLog(directory.FullName), render) { ShowActivated = false, ShowInTaskbar = false };
             try
             {
                 console.Show();

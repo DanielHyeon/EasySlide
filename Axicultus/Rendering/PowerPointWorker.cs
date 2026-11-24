@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
@@ -50,7 +51,8 @@ public sealed class PowerPointWorker : IPowerPointRenderBackend, IDisposable
             // The caption console owns a worker for this one conversion: its cancellation ends the child.
             var reply = await SendAsync(new(path, 0, 0, 0, true), limit.Token, limit.Token, Timeout.InfiniteTimeSpan).ConfigureAwait(false);
             return reply.Deck is { Slides.Length: > 0 } deck
-                ? deck : throw new InvalidDataException("PPT 워커가 읽을 수 있는 슬라이드를 반환하지 않았습니다.");
+                ? deck with { Slides = [.. deck.Slides.Select(CaptionDeck.WithAllText)] }
+                : throw new InvalidDataException("PPT 워커가 읽을 수 있는 슬라이드를 반환하지 않았습니다.");
         }
         catch (OperationCanceledException) when (!ct.IsCancellationRequested && limit.IsCancellationRequested)
         {

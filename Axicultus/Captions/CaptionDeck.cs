@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Packaging;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows;
 using System.Windows.Media;
@@ -16,8 +17,11 @@ public sealed record CaptionBox(string Key, string Name, string Text);
 /// <summary>A picture inside the deck (its package part) and its a:srcRect crop: the share cut off each side, 0..1.</summary>
 public sealed record CaptionPicture(string Part, double CropLeft, double CropTop, double CropRight, double CropBottom);
 /// <summary>
-/// HasPicture: the slide holds a picture (a score, lyrics as an image); null when not known (.ppt).
+/// HasPicture: the slide has a content picture (a score, lyrics as an image), or a shown picture smaller than a
+/// background, or little text (<see cref="CaptionDeck.ShortText"/>) and a shown picture of any size or a picture
+/// background of its own (their lyrics read from the render); null when not known (.ppt).
 /// Picture: the slide's content picture (a hymn's score apart from the background photo and the verse buttons), if any.
+/// Boxes start with the slide's whole text (<see cref="CaptionDeck.AllTextKey"/>).
 /// </summary>
 public sealed record CaptionSlide(CaptionBox[] Boxes, bool? HasPicture = null, CaptionPicture? Picture = null);
 public sealed record CaptionDeck(string Path, CaptionSlide[] Slides)
@@ -33,7 +37,8 @@ public sealed record CaptionDeck(string Path, CaptionSlide[] Slides)
         var xml = ReadXml(presentation);
         var slideList = xml.Root?.Elements().FirstOrDefault(e => e.Name.LocalName == "sldIdLst");
         var size = xml.Root?.Elements().FirstOrDefault(e => e.Name.LocalName == "sldSz");
-        double slideArea = Number(size, "cx") * Number(size, "cy");
+        double slideWidth = Number(size, "cx"), slideHeight = Number(size, "cy"), slideArea = slideWidth * slideHeight;
+        var parsed = new Dictionary<Uri, XDocument?>(); // layouts and masters, read once (null: unreadable)
         foreach (var slideId in slideList?.Elements() ?? [])
         {
             cancellation.ThrowIfCancellationRequested();
@@ -47,9 +52,7 @@ public sealed record CaptionDeck(string Path, CaptionSlide[] Slides)
             {
                 var body = shape.Element(presentationNs + "txBody");
                 if (body is null) continue;
-                var text = string.Join("\n", body.Elements().Where(e => e.Name.LocalName == "p")
-                    .Select(p => string.Concat(p.Descendants().Where(e => e.Name.LocalName is "t" or "br")
-                        .Select(e => e.Name.LocalName == "br" ? "\n" : e.Value)))).Trim();
+                var text = Paragraphs(body);
                 if (text.Length == 0) continue;
                 var props = shape.Element(presentationNs + "nvSpPr");
                 var name = (string?)props?.Element(presentationNs + "cNvPr")?.Attribute("name") ?? $"상자 {boxes.Count + 1}";
@@ -58,7 +61,15 @@ public sealed record CaptionDeck(string Path, CaptionSlide[] Slides)
                     $"placeholder:{(string?)placeholder.Attribute("type") ?? "obj"}:{(string?)placeholder.Attribute("idx") ?? "0"}";
                 boxes.Add(new(key, name, text));
             }
-            slides.Add(new([.. boxes], shapeXml.Descendants().Any(e => e.Name.LocalName == "blip"), ContentPicture(part, shapeXml, slideArea)));
+            var picture = ContentPicture(part, shapeXml, slideArea);
+            var allText = AllText(part, shapeXml, slideWidth, slideHeight, parsed);
+            // A picture slide: a content picture; or a shown picture smaller than a background (80% of the slide), whatever
+            // the text (a score cut in pieces under a title); or little text and any shown picture or a picture background
+            // of its own (a score set as the background, perhaps under a page mark).
+            var pictures = ShownPictures(shapeXml).ToList();
+            slides.Add(new([allText, .. boxes], picture != null
+                || pictures.Any(area => slideArea <= 0 || area is not { } size || size < 0.80 * slideArea)
+                || ShortText(allText.Text) && (pictures.Count > 0 || PictureBackground(shapeXml)), picture));
         }
         if (slides.Count == 0) throw new InvalidDataException("슬라이드를 찾을 수 없습니다.");
         return new(System.IO.Path.GetFullPath(path), [.. slides]);
@@ -78,9 +89,6 @@ public sealed record CaptionDeck(string Path, CaptionSlide[] Slides)
     private static CaptionPicture? ContentPicture(PackagePart slide, XDocument xml, double slideArea)
     {
         if (slideArea <= 0) return null;
-        static XElement? Child(XElement? parent, string name) => parent?.Elements().FirstOrDefault(e => e.Name.LocalName == name);
-        static bool Turned(XElement xfrm) => Number(xfrm, "rot") != 0 || (string?)xfrm.Attribute("flipH") is "1" or "true" || (string?)xfrm.Attribute("flipV") is "1" or "true";
-        static bool Hidden(XElement? properties) => (string?)Child(properties, "cNvPr")?.Attribute("hidden") is "1" or "true";
         var p = xml.Root!.Name.Namespace;
         // Every shown picture and shape in stacking order: its rectangle on the slide, the picture it could be, and
         // whether it shows something over a picture (a shape with text or a fill, a picture that is no button).
@@ -99,24 +107,8 @@ public sealed record CaptionDeck(string Path, CaptionSlide[] Slides)
                 if (!picture && Lettered(shape) && !shape.Ancestors().Any(e => e.Name.LocalName == "grpSp")) shown.Add((Rect.Empty, false, null, true));
                 continue;
             }
-            double x = Number(Child(xfrm, "off"), "x"), y = Number(Child(xfrm, "off"), "y");
-            double width = Number(Child(xfrm, "ext"), "cx"), height = Number(Child(xfrm, "ext"), "cy");
-            bool turned = Turned(xfrm), hidden = false;
-            foreach (var group in shape.Ancestors().Where(e => e.Name.LocalName == "grpSp"))
-            {
-                hidden |= Hidden(Child(group, "nvGrpSpPr"));
-                if (Child(Child(group, "grpSpPr"), "xfrm") is not { } frame) continue;
-                turned |= Turned(frame);
-                double childWidth = Number(Child(frame, "chExt"), "cx"), childHeight = Number(Child(frame, "chExt"), "cy");
-                double scaleX = childWidth > 0 ? Number(Child(frame, "ext"), "cx") / childWidth : 1;
-                double scaleY = childHeight > 0 ? Number(Child(frame, "ext"), "cy") / childHeight : 1;
-                x = Number(Child(frame, "off"), "x") + (x - Number(Child(frame, "chOff"), "x")) * scaleX;
-                y = Number(Child(frame, "off"), "y") + (y - Number(Child(frame, "chOff"), "y")) * scaleY;
-                width *= scaleX;
-                height *= scaleY;
-            }
+            var (area, turned, hidden) = Place(shape, xfrm);
             if (hidden) continue;
-            var area = new Rect(x, y, Math.Max(0, width), Math.Max(0, height));
             // A slide link (a verse button: a picture and a number, in a group or alone) is not part of what is sung:
             // the hymn decks put their buttons on the score picture's corner.
             static bool Linked(XElement? names) => Child(names, "cNvPr")?.Elements().Any(e => e.Name.LocalName == "hlinkClick") == true;
@@ -142,7 +134,7 @@ public sealed record CaptionDeck(string Path, CaptionSlide[] Slides)
             var fill = Child(shape, "blipFill");
             var embed = Child(fill, "blip")?.Attributes().FirstOrDefault(a => a.Name.LocalName == "embed")?.Value;
             CaptionPicture? candidate = null;
-            if (!turned && width * height >= 0.10 * slideArea && embed != null && slide.RelationshipExists(embed)
+            if (!turned && area.Width * area.Height >= 0.10 * slideArea && embed != null && slide.RelationshipExists(embed)
                 && slide.GetRelationship(embed) is { TargetMode: TargetMode.Internal } relation
                 && Raster(slide.Package, PackUriHelper.ResolvePartUri(slide.Uri, relation.TargetUri)))
             {
@@ -165,6 +157,158 @@ public sealed record CaptionDeck(string Path, CaptionSlide[] Slides)
             || Size(above.Area) > 0 && Overlap(above.Area, chosen.Area) >= 0.5 * Size(above.Area)));
         return covered ? null : chosen.Candidate;
     }
+
+    private static XElement? Child(XElement? parent, string name) => parent?.Elements().FirstOrDefault(e => e.Name.LocalName == name);
+    private static bool Turned(XElement xfrm) => Number(xfrm, "rot") != 0 || (string?)xfrm.Attribute("flipH") is "1" or "true" || (string?)xfrm.Attribute("flipV") is "1" or "true";
+    private static bool Hidden(XElement? properties) => (string?)Child(properties, "cNvPr")?.Attribute("hidden") is "1" or "true";
+    // A shape's own frame: p:spPr/a:xfrm, or p:xfrm on an object frame (a table).
+    private static XElement? Frame(XElement shape) => Child(Child(shape, "spPr"), "xfrm") ?? Child(shape, "xfrm");
+
+    // The shape's rectangle on the slide from its frame (the groups around it move and scale it), whether it or a group
+    // around it is turned, and whether a group around it is hidden.
+    private static (Rect Area, bool Turned, bool Hidden) Place(XElement shape, XElement xfrm)
+    {
+        double x = Number(Child(xfrm, "off"), "x"), y = Number(Child(xfrm, "off"), "y");
+        double width = Number(Child(xfrm, "ext"), "cx"), height = Number(Child(xfrm, "ext"), "cy");
+        bool turned = Turned(xfrm), hidden = false;
+        foreach (var group in shape.Ancestors().Where(e => e.Name.LocalName == "grpSp"))
+        {
+            hidden |= Hidden(Child(group, "nvGrpSpPr"));
+            if (Child(Child(group, "grpSpPr"), "xfrm") is not { } frame) continue;
+            turned |= Turned(frame);
+            double childWidth = Number(Child(frame, "chExt"), "cx"), childHeight = Number(Child(frame, "chExt"), "cy");
+            double scaleX = childWidth > 0 ? Number(Child(frame, "ext"), "cx") / childWidth : 1;
+            double scaleY = childHeight > 0 ? Number(Child(frame, "ext"), "cy") / childHeight : 1;
+            x = Number(Child(frame, "off"), "x") + (x - Number(Child(frame, "chOff"), "x")) * scaleX;
+            y = Number(Child(frame, "off"), "y") + (y - Number(Child(frame, "chOff"), "y")) * scaleY;
+            width *= scaleX;
+            height *= scaleY;
+        }
+        return (new Rect(x, y, Math.Max(0, width), Math.Max(0, height)), turned, hidden);
+    }
+
+    // A text body's paragraphs, one line each (a line break inside one starts a line too).
+    private static string Paragraphs(XElement body) =>
+        string.Join("\n", body.Elements().Where(e => e.Name.LocalName == "p")
+            .Select(p => string.Concat(p.Descendants().Where(e => e.Name.LocalName is "t" or "br")
+                .Select(e => e.Name.LocalName == "br" ? "\n" : e.Value)))).Trim();
+
+    // The slide's whole text: shown text boxes and tables (a row a line, its cells a space apart) in reading order,
+    // top to bottom in bands of 5% of the slide's height and left to right inside a band. Left out: hidden shapes, the
+    // slide number, date and footer, small shapes at the slide's foot that carry a link or say little (verse
+    // buttons, "2/8"), and shapes off the slide. A placeholder without a frame takes its layout's or master's; one
+    // placed nowhere comes last.
+    private static CaptionBox AllText(PackagePart slide, XDocument xml, double slideWidth, double slideHeight, Dictionary<Uri, XDocument?> parsed)
+    {
+        var texts = new List<(double Band, double Left, string Text)>();
+        foreach (var shape in xml.Descendants().Where(e => e.Name.LocalName is "sp" or "graphicFrame" && e.Name.Namespace == xml.Root!.Name.Namespace))
+        {
+            if (shape.Ancestors().Any(e => e.Name.LocalName == "Fallback")) continue; // the same shape as its mc:Choice
+            var names = Child(shape, shape.Name.LocalName == "sp" ? "nvSpPr" : "nvGraphicFramePr");
+            var placeholder = Child(Child(names, "nvPr"), "ph");
+            if (Hidden(names) || (string?)placeholder?.Attribute("type") is "sldNum" or "dt" or "ftr"
+                || shape.Ancestors().Any(g => g.Name.LocalName == "grpSp" && Hidden(Child(g, "nvGrpSpPr")))) continue;
+            string text = Child(shape, "txBody") is { } body ? Paragraphs(body) : string.Join("\n",
+                shape.Descendants().Where(e => e.Name.LocalName == "tr").Select(row => string.Join(" ", row.Elements().Where(e => e.Name.LocalName == "tc")
+                    .Select(cell => Child(cell, "txBody") is { } cellBody ? string.Join(" ", Paragraphs(cellBody).Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)) : "")
+                    .Where(cell => cell.Length > 0))).Where(row => row.Length > 0));
+            if (text.Length == 0) continue;
+            if ((Frame(shape) ?? (placeholder is null ? null : Inherited(slide, placeholder, parsed))) is not { } xfrm)
+            {
+                texts.Add((double.MaxValue, 0, text));
+                continue;
+            }
+            var (area, _, hidden) = Place(shape, xfrm);
+            if (hidden) continue;
+            if (slideWidth > 0 && slideHeight > 0 && (area.Top >= 0.88 * slideHeight && area.Height <= 0.08 * slideHeight && (text.Length <= 6 || HasLink(shape))
+                || area.Right <= 0 || area.Bottom <= 0 || area.Left >= slideWidth || area.Top >= slideHeight)) continue;
+            texts.Add((slideHeight > 0 ? Math.Floor(area.Top / (0.05 * slideHeight)) : area.Top, area.Left, text));
+        }
+        return AllText(texts.OrderBy(t => t.Band).ThenBy(t => t.Left).Select(t => t.Text));
+    }
+
+    // A link of any kind (a verse button, also the current verse's that goes nowhere) on the shape or its text, on a
+    // group around it, or anywhere in its own group (a button's number beside its linked picture, as a035 counts buttons).
+    private static bool HasLink(XElement shape)
+    {
+        static bool Link(XElement e) => e.Name.LocalName == "hlinkClick";
+        return shape.Descendants().Any(Link)
+            || shape.Ancestors().Any(g => g.Name.LocalName == "grpSp" && Child(g, "nvGrpSpPr")?.Descendants().Any(Link) == true)
+            || shape.Parent is { Name.LocalName: "grpSp" } parent && parent.Descendants().Any(Link);
+    }
+
+    // The slide's own background is a picture (p:bg/p:bgPr/a:blipFill); a layout's or master's is not looked at.
+    private static bool PictureBackground(XDocument xml) =>
+        xml.Root?.Elements().FirstOrDefault(e => e.Name.LocalName == "cSld") is { } slide
+        && Child(Child(slide, "bg"), "bgPr")?.Elements().Any(e => e.Name.LocalName == "blipFill") == true;
+
+    // The pictures not hidden (themselves or by a group around them) and their area on the slide (null: no frame of their own).
+    private static IEnumerable<double?> ShownPictures(XDocument xml) =>
+        xml.Descendants(xml.Root!.Name.Namespace + "pic")
+            .Where(pic => !Hidden(Child(pic, "nvPicPr")) && !pic.Ancestors().Any(g => g.Name.LocalName == "grpSp" && Hidden(Child(g, "nvGrpSpPr"))))
+            .Select(pic => Frame(pic) is { } frame && Place(pic, frame).Area is var area ? area.Width * area.Height : (double?)null);
+
+    // The frame a placeholder without its own takes, as PowerPoint inherits it: the layout's placeholder of the same idx
+    // (else of the same type), else the master's of the same type (ctrTitle as title; subTitle, obj and none as body).
+    // A layout or master that cannot be read is no frame: the box goes last, the deck is still read.
+    private static XElement? Inherited(PackagePart slide, XElement placeholder, Dictionary<Uri, XDocument?> parsed)
+    {
+        static string TypeOf(XElement ph) => (string?)ph.Attribute("type") ?? "obj";
+        static string OnMaster(string type) => type switch { "ctrTitle" => "title", "subTitle" or "obj" => "body", _ => type };
+        // ph sits in nvPr, in the shape's non-visual properties, in the shape
+        static XElement? FrameOf(XElement? ph) => ph?.Parent?.Parent?.Parent is { } shape ? Frame(shape) : null;
+        (PackagePart Part, List<XElement> Placeholders)? Related(PackagePart part, string kind)
+        {
+            var relation = part.GetRelationships().FirstOrDefault(r => r.RelationshipType.EndsWith(kind, StringComparison.Ordinal) && r.TargetMode == TargetMode.Internal);
+            if (relation is null) return null;
+            var uri = PackUriHelper.ResolvePartUri(part.Uri, relation.TargetUri);
+            if (!part.Package.PartExists(uri)) return null;
+            var target = part.Package.GetPart(uri);
+            if (!parsed.TryGetValue(uri, out var xml))
+            {
+                // Read once: one that cannot be read is remembered as not there.
+                try { xml = ReadXml(target); }
+                catch (Exception error) { System.Diagnostics.Debug.WriteLine(error.Message); xml = null; }
+                parsed[uri] = xml;
+            }
+            if (xml is null) return null;
+            return (target, xml.Descendants().Where(e => e.Name.LocalName == "ph").ToList());
+        }
+        try
+        {
+            string? idx = (string?)placeholder.Attribute("idx");
+            if (Related(slide, "/slideLayout") is not var (layout, onLayout)) return null;
+            var same = onLayout.FirstOrDefault(ph => idx != null && (string?)ph.Attribute("idx") == idx)
+                ?? onLayout.FirstOrDefault(ph => TypeOf(ph) == TypeOf(placeholder));
+            if (FrameOf(same) is { } frame) return frame;
+            if (Related(layout, "/slideMaster") is not var (_, onMaster)) return null;
+            var kind = OnMaster(TypeOf(same ?? placeholder));
+            return FrameOf(onMaster.FirstOrDefault(ph => OnMaster(TypeOf(ph)) == kind));
+        }
+        catch (Exception error) // any fault in a layout or master (bad XML, an odd relationship) only loses the place
+        {
+            System.Diagnostics.Debug.WriteLine(error.Message);
+            return null;
+        }
+    }
+
+    /// <summary>The box every slide starts with: its whole text.</summary>
+    public const string AllTextKey = "slide:all";
+
+    /// <summary>
+    /// The whole-text box of texts already in reading order: one line apart, blank lines kept to one. A text that is
+    /// only a number mark in ASCII digits ("1", "2.", "(3)", "2/4", "3-4", "12/16": a verse badge, a page mark) is left out.
+    /// </summary>
+    internal static CaptionBox AllText(IEnumerable<string> texts) => new(AllTextKey, "슬라이드 전체 글자",
+        Regex.Replace(string.Join("\n", texts.Where(text => !string.IsNullOrWhiteSpace(text) && !NumberMark.IsMatch(text.Trim()))), @"\n\s*\n", "\n\n").Trim());
+
+    private static readonly Regex NumberMark = new(@"^\(?[0-9]{1,2}(\.|\)|[/-][0-9]{1,2})?$", RegexOptions.CultureInvariant);
+
+    /// <summary>Little text: at most 12 characters besides white space (a page mark, a word), none included.</summary>
+    internal static bool ShortText(string text) => text.Count(c => !char.IsWhiteSpace(c)) <= 12;
+
+    /// <summary>The slide with its whole-text box first, its boxes joined in the order given (a .ppt read by PowerPoint).</summary>
+    public static CaptionSlide WithAllText(CaptionSlide slide) => slide with { Boxes = [AllText(slide.Boxes.Select(box => box.Text)), .. slide.Boxes] };
 
 
     // Only a picture the decoder reads (PNG, JPEG, GIF, BMP, TIFF) can be a content picture; a drawing (EMF, WMF) is

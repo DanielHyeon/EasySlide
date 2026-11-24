@@ -24,12 +24,17 @@ public sealed record CaptionTake(DateTimeOffset Time, string Text);
 /// height of the caption area (1 to 3 lines).
 /// </summary>
 public sealed record CaptionStyle(string Color = CaptionStyle.DefaultColor, bool Box = true, bool Camera = true, bool Obs = true, bool Sync = false, int Lines = 3,
-    int Score = 1)
+    int Score = 1, string Display = CaptionStyle.AutoDisplay)
 {
     public const string DefaultColor = "#FFFFFF";
-    public static CaptionStyle Parse(string color, bool box, bool camera = true, bool obs = true, bool sync = false, int lines = 3, int score = 1) =>
+    /// <summary>Display: auto (per slide, the score where its content picture shows staves, else the text), text, score, scoretext.</summary>
+    public const string AutoDisplay = "auto";
+    public static CaptionStyle Parse(string color, bool box, bool camera = true, bool obs = true, bool sync = false, int lines = 3, int score = 1,
+        string? display = null) =>
         new(System.Text.RegularExpressions.Regex.IsMatch(color, "^#[0-9A-Fa-f]{6}$") ? color.ToUpperInvariant() : DefaultColor, box, camera, obs, sync,
-            Math.Clamp(lines, 1, 3), Math.Clamp(score, 0, 2));
+            Math.Clamp(lines, 1, 3), Math.Clamp(score, 0, 2), ParseDisplay(display));
+
+    public static string ParseDisplay(string? display) => display is "text" or "score" or "scoretext" ? display : AutoDisplay;
 
     /// <summary>Most of the screen height a score row may take: 작게, 보통, 크게.</summary>
     public static double ScoreHeight(int score) => score switch { 0 => .18, 2 => .42, _ => .27 };
@@ -62,7 +67,7 @@ public sealed class CaptionSession : ObservableObject, IDisposable
         {
             if (stylePath != null && File.Exists(stylePath) &&
                 JsonSerializer.Deserialize<CaptionStyle>(File.ReadAllText(stylePath)) is { } saved)
-                Style = CaptionStyle.Parse(saved.Color, saved.Box, saved.Camera, saved.Obs, saved.Sync, saved.Lines, saved.Score);
+                Style = CaptionStyle.Parse(saved.Color, saved.Box, saved.Camera, saved.Obs, saved.Sync, saved.Lines, saved.Score, saved.Display);
         }
         catch (Exception error) when (error is IOException or JsonException or UnauthorizedAccessException) { }
         if (show != null)
@@ -93,6 +98,7 @@ public sealed class CaptionSession : ObservableObject, IDisposable
 
     public void SetStyle(CaptionStyle style)
     {
+        style = style with { Display = CaptionStyle.ParseDisplay(style.Display) };
         if (style == Style) return;
         bool obsChanged = style.Obs != Style.Obs;
         Style = style;
@@ -104,6 +110,7 @@ public sealed class CaptionSession : ObservableObject, IDisposable
         OnPropertyChanged(nameof(SyncShow));
         OnPropertyChanged(nameof(CaptionLines));
         OnPropertyChanged(nameof(ScoreSize));
+        OnPropertyChanged(nameof(Display));
         OnPropertyChanged(nameof(HasAudienceText));
         try { if (_stylePath != null) File.WriteAllText(_stylePath, JsonSerializer.Serialize(style)); }
         catch (Exception error) when (error is IOException or UnauthorizedAccessException) { System.Diagnostics.Debug.WriteLine(error.Message); }
@@ -172,6 +179,13 @@ public sealed class CaptionSession : ObservableObject, IDisposable
         set { value = Math.Clamp(value, 0, 2); if (value != Style.Score) SetStyle(Style with { Score = value }); }
     }
 
+    /// <summary>What a followed PPT sends: auto, text, score or scoretext (see <see cref="CaptionStyle.Display"/>).</summary>
+    public string Display
+    {
+        get => Style.Display;
+        set { value = CaptionStyle.ParseDisplay(value); if (value != Style.Display) SetStyle(Style with { Display = value }); }
+    }
+
     public bool HasAudienceText => AudienceEnabled && HasText;
     /// <summary>What the OBS browser source shows: empty while OBS is not a destination.</summary>
     public PublishedCaption ForObs => ObsEnabled ? Published : Published with { Text = "", Image = null };
@@ -207,22 +221,48 @@ public sealed class CaptionSession : ObservableObject, IDisposable
     /// <summary>The box holding the lyrics read from the slide's picture.</summary>
     public const string RecognizedKey = "ocr:lyrics";
 
-    public void AddRecognized(int slide, string text)
+    /// <summary>
+    /// Sets the slide's recognized lyrics box. staves: they were read under staves found in the picture (a score, not a
+    /// photo); then they also become the slide's whole text when that says little (a page mark over the score).
+    /// </summary>
+    public void AddRecognized(int slide, string text, bool staves = false)
     {
         if (Deck is null || slide < 1 || slide > Deck.Slides.Length) return;
         var current = Deck.Slides[slide - 1];
-        Deck.Slides[slide - 1] = current with
-        {
-            Boxes = [.. current.Boxes.Where(box => box.Key != RecognizedKey), new(RecognizedKey, "그림 속 가사 (자동 인식)", text)]
-        };
-        if (Following && slide == CurrentSlide && BoxKey == RecognizedKey) MoveToSlide(slide);
+        var boxes = current.Boxes.Where(box => box.Key != RecognizedKey);
+        if (staves && text.Length > 0)
+            boxes = boxes.Select(box => box.Key == CaptionDeck.AllTextKey && CaptionDeck.ShortText(box.Text) ? box with { Text = text } : box);
+        Deck.Slides[slide - 1] = current with { Boxes = [.. boxes, new(RecognizedKey, "그림 속 가사 (자동 인식)", text)] };
+        if (slide == CurrentSlide) Resend();
+    }
+
+    /// <summary>Follows another box of the slide on air (a choice made for the operator): only the caption text changes.</summary>
+    public void ChangeBox(string key)
+    {
+        if (!Following) return;
+        BoxKey = key;
+        Resend();
+    }
+
+    // The slide on air says something new: only its caption text goes out again (not a slide change: the score row on
+    // air, the slide viewed and a caption being edited stay); nothing goes out when it reads the same.
+    private void Resend()
+    {
+        if (!Following || TextFor(CurrentSlide, BoxKey) is not { } caption || caption == _text) return;
+        _text = caption;
+        Emit();
     }
 
     public string TextFor(int slide, string key)
     {
         if (Deck is null || slide < 1 || slide > Deck.Slides.Length) return "";
-        return Overrides.TryGetValue(slide, out var text) ? text :
-            Deck.Slides[slide - 1].Boxes.FirstOrDefault(box => box.Key == key)?.Text ?? "";
+        if (Overrides.TryGetValue(slide, out var text)) return text;
+        // A box this slide does not have (text boxes are named per slide), or lyrics not read on it, gives the slide's
+        // whole text, not an empty caption.
+        var boxes = Deck.Slides[slide - 1].Boxes;
+        var box = boxes.FirstOrDefault(b => b.Key == key);
+        if (box is null || key == RecognizedKey && box.Text.Length == 0) box = boxes.FirstOrDefault(b => b.Key == CaptionDeck.AllTextKey);
+        return box?.Text ?? "";
     }
 
     public void Follow(int slide, string key)
@@ -317,8 +357,30 @@ public sealed class CaptionSession : ObservableObject, IDisposable
         Emit();
     }
 
+    private int _holding;
+    private bool _held;
+
+    /// <summary>What changes until the returned object is disposed goes out as one caption (no flash of a step between).</summary>
+    internal IDisposable Hold()
+    {
+        _holding++;
+        return new Release(this);
+    }
+
+    private sealed class Release(CaptionSession session) : IDisposable
+    {
+        private bool _done;
+        public void Dispose()
+        {
+            if (_done) return;
+            _done = true;
+            if (--session._holding == 0 && session._held) { session._held = false; session.Emit(); }
+        }
+    }
+
     private void Emit()
     {
+        if (_holding > 0) { _held = true; return; }
         OnPropertyChanged(nameof(Visible));
         bool onAir = _visible && _live.Current.State is not (LiveState.Hidden or LiveState.Standby);
         var image = onAir ? _imageUrl : null;

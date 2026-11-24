@@ -63,6 +63,7 @@ public partial class CaptionConsole : Window
         InitializeComponent();
         LinesBox.SelectedIndex = captions.CaptionLines - 1;
         ScoreSizeBox.SelectedIndex = captions.ScoreSize;
+        DisplayRadio().IsChecked = true;
         ObsPreviewBox.SizeChanged += (_, _) => FitPreview();
         CameraControls.DataContext = camera; // before the window's own, or the camera bindings look at the editor first
         DataContext = _editor;
@@ -126,7 +127,7 @@ public partial class CaptionConsole : Window
         _captions.PropertyChanged += CaptionChanged;
         Loaded += LoadRecovery;
         Closed += OnConsoleClosed;
-        if (captions.Deck is { } deck) ShowDeck(deck, captions.CurrentSlide, captions.BoxKey);
+        if (captions.Deck is { } deck) ShowDeck(deck, captions.CurrentSlide, captions.BoxKey is { Length: > 0 } key ? key : CaptionDeck.AllTextKey);
     }
 
     private void MainChanged(object? sender, PropertyChangedEventArgs e)
@@ -208,14 +209,21 @@ public partial class CaptionConsole : Window
         finally { _fetchingPreview = false; }
     }
 
+    // The radio of the kept display choice (auto for anything else).
+    private RadioButton DisplayRadio() =>
+        new[] { AutoShow, TextOnly, ScoreOnly, ScoreAndText }.FirstOrDefault(radio => (string)radio.Tag == _captions.Display) ?? AutoShow;
+
     private void CaptionChanged(object? sender, PropertyChangedEventArgs e)
     {
+        // The choice changed elsewhere: its radio shows it (checking it writes back the same choice, which changes nothing).
+        if (e.PropertyName == nameof(CaptionSession.Display) && DisplayRadio() is { IsChecked: not true } radio) radio.IsChecked = true;
         if (e.PropertyName is nameof(CaptionSession.CurrentSlide) or nameof(CaptionSession.Following))
         {
             if (e.PropertyName == nameof(CaptionSession.CurrentSlide)) _scoreRow = 0;
             Status.Text = _captions.Following ? $"PPT 따라가기 · {_captions.CurrentSlide}장" :
                 _captions.Mirroring ? "송출 화면 자막을 따라가는 중" : "직접 입력";
-            if (_captions.Following && Slides.SelectedItem is int shown && shown != _captions.CurrentSlide) Slides.SelectedItem = _captions.CurrentSlide;
+            // The viewed slide follows the one on air, unless the operator is editing its caption (not saved yet).
+            if (_captions.Following && !CueEdited && Slides.SelectedItem is int shown && shown != _captions.CurrentSlide) Slides.SelectedItem = _captions.CurrentSlide;
             UpdateScore();
         }
     }
@@ -254,7 +262,7 @@ public partial class CaptionConsole : Window
         if (!_dirty) return;
         _dirty = false;
         var snapshot = new CaptionRecovery(1, ++_revision, _plan, _editor.DraftText, _captions.Deck?.Path,
-            SelectedSlide, SelectedKey, [with(_captions.Overrides)], [.. _captions.History],
+            SelectedSlide, _chosenKey, [with(_captions.Overrides)], [.. _captions.History],
             [.. _main.Queue.Select(CaptionRecoveryStore.Capture)], _main.SelectedItem == null ? -1 : _main.Queue.IndexOf(_main.SelectedItem));
         try { await _store.SaveAsync(snapshot); }
         catch (Exception ex) when (IsFileError(ex))
@@ -270,6 +278,17 @@ public partial class CaptionConsole : Window
         if (_editor.IsRestoring || _recoverable is not { } saved) return;
         if (MessageBox.Show(this,"현재 편집 초안과 예배 순서를 저장한 시점으로 복구할까요?", "예배 편집 복구",
             MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
+        await RestoreAsync(saved);
+    }
+
+    internal async Task RestoreAsync(CaptionRecovery saved)
+    {
+        // Without its deck the recovery is not half applied (the draft and the worship list stay as they are).
+        if (saved.DeckPath is { } missing && !File.Exists(missing))
+        {
+            Status.Text = $"복구할 PPT를 찾을 수 없어 복구하지 않았습니다 · {Path.GetFileName(missing)}";
+            return;
+        }
         _editor.IsRestoring = true;
         ++_deckRequest; // A pending Open must not replace the recovered deck.
         try
@@ -296,7 +315,10 @@ public partial class CaptionConsole : Window
             {
                 _captions.Prepare(deck);
                 foreach (var pair in saved.Overrides) _captions.Overrides[pair.Key] = pair.Value;
-                ShowDeck(deck, saved.Slide, saved.Box);
+                ShowDeck(deck, saved.Slide, saved.Box is { Length: > 0 } box ? box : CaptionDeck.AllTextKey);
+                // The lyrics in its pictures are read again (the restored choice may be them), the choice kept.
+                StartScore(deck);
+                LyricsReading = RecognizeDeckAsync(deck, offer: false);
             }
             _captions.History.Clear();
             _captions.History.AddRange(saved.History);
@@ -401,7 +423,7 @@ public partial class CaptionConsole : Window
     private void FollowLoadedDeck()
     {
         if (_captions.Deck == null) return;
-        _captions.Follow(SelectedSlide, SelectedKey);
+        _captions.Follow(SelectedSlide, _chosenKey);
         Status.Text = $"PPT 자막 따라가는 중 · {Path.GetFileName(_captions.Deck.Path)}";
         UpdateScore();
         Changed();
@@ -432,13 +454,19 @@ public partial class CaptionConsole : Window
 
     // A row of the current slide as rendered on screen (a staff with its lyrics), in place of or above the text.
     private int _scoreRow, _scoreRows = 2;
+    private bool _rowShown; // a row of the current slide's score is what goes out (not its text while the score is made)
 
-    // Text only / score only / score and text
-    private bool ScoreOn => ScoreOnly.IsChecked == true || ScoreAndText.IsChecked == true;
+    // Auto / text only / score only / score and text. Auto: the score where the slide's content picture shows staves
+    // (until the deck's pictures are measured, a slide with one waits for them with its text on air), else the text.
+    private bool ScoreOn => ScoreOnly.IsChecked == true || ScoreAndText.IsChecked == true
+        || AutoShow.IsChecked == true && _captions.Deck is { } deck && _captions.CurrentSlide <= deck.Slides.Length
+            && deck.Slides[_captions.CurrentSlide - 1].Picture != null
+            && (_scoreDeck is not { } prepared || !ReferenceEquals(prepared.Deck, deck) || prepared.Slides.Contains(_captions.CurrentSlide));
 
     private void ScoreChanged(object sender, RoutedEventArgs e)
     {
         if (ScoreRowLabel == null) return; // during InitializeComponent
+        if (sender is RadioButton { Tag: string display }) _captions.Display = display;
         _scoreRow = 0;
         UpdateScore();
     }
@@ -453,6 +481,7 @@ public partial class CaptionConsole : Window
 
     private void UpdateScore()
     {
+        _rowShown = false;
         if (!ScoreOn || ScreenMode.IsChecked != true || !_captions.Following || _captions.Deck is not { } deck)
         {
             ScoreRowLabel.Text = _captions.Following && _captions.Deck != null ? $"PPT {_captions.CurrentSlide}/{_captions.Deck.Slides.Length}장"
@@ -491,13 +520,17 @@ public partial class CaptionConsole : Window
         // Else a full-size render of the slide; the small operator picture of it stands in until that is ready.
         if (rendered) image = SharpSlide(deck, _captions.CurrentSlide) ?? new[] { _main.OutputPowerPoint, _main.PowerPoint }.FirstOrDefault(p =>
             Same(p.LoadedContentPath, deck.Path) && p.SlideNumber == _captions.CurrentSlide && p.PreviewImage is BitmapSource { PixelHeight: > 1 })?.PreviewImage as BitmapSource;
+        // No row of this slide yet: the last row (maybe of another slide) does not stay on air; its text does meanwhile,
+        // and the arrows turn slides (no row is shown).
         if (image == null)
         {
+            _captions.SetImage(null);
             Status.Text = "악보 그림을 만드는 중…";
             return;
         }
         if ((measured != null ? CropRow(image, _scoreRow, measured) : CropRow(image, _scoreRow)) is not var (cropped, rows, found))
         {
+            _captions.SetImage(null);
             Status.Text = "악보 그림을 만들 수 없습니다. 슬라이드를 다시 송출해 보세요.";
             return;
         }
@@ -506,9 +539,13 @@ public partial class CaptionConsole : Window
         _scoreRow = Math.Min(_scoreRow, rows - 1);
         bool withText = ScoreAndText.IsChecked == true;
         // With the recognized lyrics as the caption, the row shown gets its own line of them.
-        string? rowLyrics = withText && _captions.BoxKey == CaptionSession.RecognizedKey && !_captions.Overrides.ContainsKey(_captions.CurrentSlide)
-            && _rowLyrics.TryGetValue((deck.Path, _captions.CurrentSlide), out var lyrics) && lyrics.Length == rows ? lyrics[_scoreRow] : null;
+        // (the recognized lyrics box, or the whole text they replaced: the caption is the lyrics read on this slide)
+        int current = _captions.CurrentSlide;
+        string? rowLyrics = withText && deck.Slides[current - 1].Boxes.FirstOrDefault(b => b.Key == CaptionSession.RecognizedKey)?.Text is { Length: > 0 } read
+            && _captions.TextFor(current, _captions.BoxKey) == read
+            && _rowLyrics.TryGetValue((deck.Path, current), out var lyrics) && lyrics.Length == rows ? lyrics[_scoreRow] : null;
         _captions.SetImage(cropped, withText, rowLyrics);
+        _rowShown = true;
         DeckLabel.Visibility = Visibility.Visible;
         ScoreRowLabel.Text = $"PPT {_captions.CurrentSlide}/{deck.Slides.Length}장 · " +
             (found ? $"{_scoreRow + 1}/{rows}줄" : $"{(_scoreRow == 0 ? "위" : "아래")} 절반 (악보 줄을 찾지 못함)");
@@ -730,11 +767,19 @@ public partial class CaptionConsole : Window
     private readonly Dictionary<(string Path, int Slide), string[]> _rowLyrics = [];
 
     // After a deck is read: the lyrics inside its pictures are read in the background (OCR helper) and offered as a box.
-    private async Task RecognizeDeckAsync(CaptionDeck deck)
+    /// <summary>Reads the lyrics in slide pictures (the OCR helper); a test puts a stand-in here.</summary>
+    internal Func<IReadOnlyList<string>, CancellationToken, Task<OcrPage[]>>? ReadLyrics { get; set; }
+
+    /// <summary>The running reading of the lyrics in the deck's pictures.</summary>
+    internal Task LyricsReading { get; private set; } = Task.CompletedTask;
+
+    // offer: the recognized lyrics may become the chosen box (a newly read deck); a restored deck keeps its choice.
+    private async Task RecognizeDeckAsync(CaptionDeck deck, bool offer = true)
     {
         var slides = Enumerable.Range(1, deck.Slides.Length).Where(n => deck.Slides[n - 1].HasPicture != false).ToArray();
         if (slides.Length == 0) return; // (without a renderer only the slides with a content picture are read)
-        if (!LyricsReader.Available) { Status.Text = "그림 속 가사 읽기 도우미(ocr 폴더)가 없어 가사를 읽지 못했습니다."; return; }
+        var read = ReadLyrics ?? (LyricsReader.Available ? LyricsReader.ReadAsync : null);
+        if (read is null) { Status.Text = "그림 속 가사 읽기 도우미(ocr 폴더)가 없어 가사를 읽지 못했습니다."; return; }
         var folder = Path.Combine(Path.GetTempPath(), "Axicultus", "ocr", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(folder);
         try
@@ -774,9 +819,11 @@ public partial class CaptionConsole : Window
                 files.Add(file);
             }
             if (files.Count == 0 || _closed || !ReferenceEquals(_captions.Deck, deck)) return;
-            var pages = await LyricsReader.ReadAsync(files, _lifetime.Token);
+            var pages = await read(files, _lifetime.Token);
             if (_closed || !ReferenceEquals(_captions.Deck, deck)) return;
+            using var together = _captions.Hold(); // the offer, the whole texts and the row's line go out as one caption
             int found = 0;
+            var scores = new List<(int Slide, string Lyrics)>();
             foreach (var page in pages)
             {
                 if (page.Error != null || !layouts.TryGetValue(page.File, out var layout)) continue;
@@ -785,11 +832,17 @@ public partial class CaptionConsole : Window
                 var lyrics = string.Join("\n", rows.Where(row => row.Length > 0));
                 if (lyrics.Length > 0) found++;
                 _captions.AddRecognized(layout.Slide, lyrics);
+                if (layout.Rows.Length > 0 && lyrics.Length > 0) scores.Add((layout.Slide, lyrics)); // read under staves
             }
             for (int n = 1; n <= deck.Slides.Length; n++)
                 if (deck.Slides[n - 1].Boxes.All(box => box.Key != CaptionSession.RecognizedKey)) _captions.AddRecognized(n, "");
             DeckLabel.Text = Path.GetFileName(deck.Path) + (found > 0 ? $" · 그림 속 가사 {found}장 읽음" : "");
-            if (found > 0) OfferRecognizedLyrics(deck);
+            if (found > 0 && offer) OfferRecognizedLyrics(deck);
+            // Then (the choice above looks at the whole text the slides have) a score slide's whole text that says little
+            // (a page mark) becomes the lyrics read under its staves.
+            foreach (var (slide, lyrics) in scores) _captions.AddRecognized(slide, lyrics, staves: true);
+            UpdateScore(); // the row on air gets its line of the lyrics (the row stays)
+            ListBoxes(keepEdit: true); // the recognized lyrics box in the list, the slide viewed and an edit kept
         }
         catch (Exception error) when (error is IOException or System.ComponentModel.Win32Exception or System.Text.Json.JsonException
             or InvalidOperationException or UnauthorizedAccessException or OperationCanceledException or TimeoutException)
@@ -810,20 +863,24 @@ public partial class CaptionConsole : Window
     // (a verse button, a title) or there is none; a box with real per-slide text stays.
     private void OfferRecognizedLyrics(CaptionDeck deck)
     {
-        var key = SelectedKey;
+        var key = _chosenKey;
         bool sameEverywhere = key != CaptionSession.RecognizedKey &&
             deck.Slides.Select(s => s.Boxes.FirstOrDefault(b => b.Key == key)?.Text ?? "").Distinct().Count() <= 1;
         RefreshBoxes(sameEverywhere ? CaptionSession.RecognizedKey : key);
         if (sameEverywhere) Status.Text = "그림 속 가사를 자막으로 씁니다. 텍스트 상자에서 바꿀 수 있습니다.";
     }
 
+    // The list again with the recognized lyrics box in it, key chosen for the operator: the caption text changes, the
+    // score row on air and a caption being edited stay.
     private void RefreshBoxes(string key)
     {
-        if (_captions.Deck is not { } deck || SelectedSlide > deck.Slides.Length) return;
-        var boxes = deck.Slides[SelectedSlide - 1].Boxes;
-        Boxes.ItemsSource = boxes;
-        Boxes.SelectedItem = boxes.FirstOrDefault(b => b.Key == key) ?? boxes.FirstOrDefault();
-        RefreshCue();
+        if (key != _chosenKey)
+        {
+            _chosenKey = key;
+            _captions.ChangeBox(key);
+            Changed();
+        }
+        ListBoxes(keepEdit: true);
     }
 
     // The rows of the last slide picture (a picture is never changed once rendered), as one snapshot: CropRow runs on
@@ -978,19 +1035,23 @@ public partial class CaptionConsole : Window
             return false;
         }
         if (_closed || request != _deckRequest) return false;
-        var key = _captions.BoxKey;
         _captions.Prepare(deck);
-        // The last deck's score row is not this one's; this deck's pictures are read now, before a row is asked for.
+        StartScore(deck);
+        ShowDeck(deck, slide, CaptionDeck.AllTextKey); // a newly read deck starts on the slide's whole text
+        Status.Text = $"PPT를 읽었습니다 · {Path.GetFileName(deck.Path)}";
+        Changed();
+        LyricsReading = RecognizeDeckAsync(deck);
+        return true;
+    }
+
+    // The last deck's score row is not this one's; this deck's pictures are read now, before a row is asked for.
+    private void StartScore(CaptionDeck deck)
+    {
         _captions.SetImage(null);
         StopScorePreparation();
         _scoreDeck = null;
         _pictures.Clear();
         if (deck.Slides.Any(s => s.Picture != null)) _ = PrepareScoreAsync(deck);
-        ShowDeck(deck, slide, key);
-        Status.Text = $"PPT를 읽었습니다 · {Path.GetFileName(deck.Path)}";
-        Changed();
-        _ = RecognizeDeckAsync(deck);
-        return true;
     }
 
     private static bool IsFileError(Exception error) => error is
@@ -1002,40 +1063,75 @@ public partial class CaptionConsole : Window
 
     private int SelectedSlide => Slides.SelectedItem is int slide ? slide : 1;
     private string SelectedKey => (Boxes.SelectedItem as CaptionBox)?.Key ?? "";
+
+    // The box the operator chose (or a newly read deck's whole text). A slide without it shows its whole text in the
+    // list, but the choice stays for the next slide that has it; only the operator's pick in the list changes it.
+    private string _chosenKey = CaptionDeck.AllTextKey;
+    private bool _listing; // the list is being filled for a slide: its selection is no choice of the operator
+
     private void ShowDeck(CaptionDeck deck, int slide, string key)
     {
+        _chosenKey = key;
         DeckLabel.Text = Path.GetFileName(deck.Path);
         Slides.ItemsSource = Enumerable.Range(1, deck.Slides.Length);
         Slides.SelectedItem = Math.Clamp(slide, 1, deck.Slides.Length);
-        if (Boxes.Items.Cast<CaptionBox>().FirstOrDefault(b => b.Key == key) is { } selected)
-            Boxes.SelectedItem = selected;
-        RefreshCue();
+        ListBoxes();
     }
 
     private void SlideSelected(object sender, SelectionChangedEventArgs e)
     {
         if (_captions.Deck is not {} deck || SelectedSlide > deck.Slides.Length) return;
-        var key = SelectedKey;
-        var boxes = deck.Slides[SelectedSlide - 1].Boxes;
-        Boxes.ItemsSource = boxes;
-        Boxes.SelectedItem = boxes.FirstOrDefault(b => b.Key == key) ?? boxes.FirstOrDefault();
-        RefreshCue();
+        ListBoxes();
         if (IsLoaded) Changed();
+    }
+
+    // The selected slide's boxes, the chosen one selected; on a slide without it none is (its whole text is the
+    // caption), so picking the whole text there is a choice too.
+    private void ListBoxes(bool keepEdit = false)
+    {
+        if (_captions.Deck is not { } deck || SelectedSlide > deck.Slides.Length) return;
+        var boxes = deck.Slides[SelectedSlide - 1].Boxes;
+        _listing = true;
+        try
+        {
+            Boxes.ItemsSource = boxes;
+            Boxes.SelectedItem = boxes.FirstOrDefault(b => b.Key == _chosenKey);
+        }
+        finally { _listing = false; }
+        RefreshCue(keepEdit);
     }
 
     private void BoxSelected(object sender, SelectionChangedEventArgs e)
     {
+        if (_listing) return; // the list is filled for a slide; it shows the cue itself
+        // (the list emptied for a moment is not a choice of "no box")
+        if (IsLoaded && Boxes.SelectedItem != null) Choose(SelectedKey);
         RefreshCue();
-        // While another slide's boxes replace the list, nothing is selected for a moment: not a choice of "no box".
-        if (!IsLoaded || Boxes.SelectedItem == null) return;
-        if (_captions.Following && SelectedKey != _captions.BoxKey) _captions.Follow(_captions.CurrentSlide, SelectedKey);
+    }
+
+    // The operator's pick: the caption text changes; the slide viewed and the score row on air stay.
+    private void Choose(string key)
+    {
+        _chosenKey = key;
+        _captions.ChangeBox(key);
         Changed();
     }
-    private void RefreshCue() => Cue.Text = _captions.TextFor(SelectedSlide, SelectedKey);
+
+    private string _cueShown = "";
+    // The cue holds what the operator typed and has not saved.
+    private bool CueEdited => Cue.Text != _cueShown;
+
+    // The selected slide's caption in the cue. keepEdit: not over what the operator typed there and has not saved.
+    private void RefreshCue(bool keepEdit = false)
+    {
+        if (keepEdit && CueEdited) return;
+        Cue.Text = _cueShown = _captions.TextFor(SelectedSlide, _chosenKey);
+    }
     private void SaveOverride(object sender, RoutedEventArgs e)
     {
         if (_captions.Deck == null) return;
         _captions.Overrides[SelectedSlide] = Cue.Text;
+        _cueShown = Cue.Text;
         Status.Text = $"{SelectedSlide}장 수동 문구를 저장했습니다.";
         Changed();
     }
@@ -1065,7 +1161,7 @@ public partial class CaptionConsole : Window
     {
         // A score goes row by row, then to the next slide's first row.
         int next = _scoreRow + change;
-        if (_captions.Following && ScoreOn && next >= 0 && next < _scoreRows) { SetScoreRow(next); return; }
+        if (_captions.Following && _rowShown && next >= 0 && next < _scoreRows) { SetScoreRow(next); return; }
         if (_captions.SyncShow)
         {
             // Sync: the output screen turns (a slide, a page of a song or passage) and the caption follows it.

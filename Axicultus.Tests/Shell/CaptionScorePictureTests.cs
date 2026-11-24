@@ -142,7 +142,7 @@ public sealed class CaptionScorePictureTests
         var deck = CaptionDeck.Read(path);
         Assert.Equal(new CaptionPicture("/ppt/media/image1.png", 0, 0, 0, 0), deck.Slides[0].Picture);
         Assert.Equal(new CaptionPicture("/ppt/media/image1.png", 0.25, 0.10, 0, 0.50), deck.Slides[11].Picture);
-        Assert.All(deck.Slides, slide => Assert.True(slide.HasPicture));
+        Assert.All(deck.Slides, slide => Assert.True(slide.HasPicture)); // no text on them: a picture of any kind makes a picture slide
         return 0;
     }));
 
@@ -1414,7 +1414,7 @@ public sealed class CaptionScorePictureTests
         // The score as an EMF drawing: the render shows it; its bytes are never decoded.
         var path = WriteDeck(folder, [("image/x-emf", "emf", [1, 0, 0, 0, 0x6C, 0, 0, 0])], Image(0, Full, Wide, x: 1524000));
         var slide = Assert.Single(CaptionDeck.Read(path).Slides);
-        Assert.True(slide.HasPicture);
+        Assert.True(slide.HasPicture); // no text: still a picture slide (its lyrics are read from the render)
         Assert.Null(slide.Picture);
         return 0;
     }));

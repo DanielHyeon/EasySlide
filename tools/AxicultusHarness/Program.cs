@@ -318,6 +318,7 @@ internal static class Program
                 case "ppt3": await Ppt3(); break;
                 case "pptown": await PptOwn(); break;
                 case "pptcaption": await PptCaption(); break;
+                case "ppttext": await PptText(); break;
                 case "chords": await Chords(); break;
                 case "wlist": await WList(); break;
                 case "bible2": await Bible2(); break;
@@ -1335,6 +1336,67 @@ internal static class Program
         console.EndSession();
         await Exec("StopLiveCommand", null, 2500);
         await Exec("CloseOutputCommand", null, 2500);
+    }
+
+    // a036: decks followed slide by slide with auto (each slide's whole text, or its score row) and a box named on slide 1
+    // followed over the others (no empty caption). Decks: the worship list's PowerPoint items and AXI_A036_DECKS (paths
+    // separated by ';', e.g. a text deck, text over a background picture, a score deck), each read from a copy made in
+    // the isolated work folder.
+    private static async Task PptText()
+    {
+        Ctx("ppttext");
+        var sources = _vm.Queue.Where(i => LiveItemKindMatcher.IsPowerPoint(LiveItemKindMatcher.InferLegacyKind(i)) && i.ContentPath is { Length: > 0 })
+            .Select(i => i.ContentPath!)
+            .Concat((Environment.GetEnvironmentVariable("AXI_A036_DECKS") ?? "").Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            .Where(File.Exists).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        if (sources.Count == 0) { Log("WARN", "no PowerPoint deck to follow"); return; }
+        var folder = Directory.CreateDirectory(Path.Combine(_work, "a036")).FullName;
+        var captions = _sp.GetRequiredService<Axicultus.Wpf.Captions.CaptionSession>();
+        var console = new Axicultus.Wpf.Captions.CaptionConsole(_vm, captions,
+            _sp.GetRequiredService<Axicultus.Wpf.Captions.CaptionBroadcastServer>(), _sp.GetRequiredService<Axicultus.Wpf.Captions.CaptionRecoveryStore>(),
+            _sp.GetRequiredService<Axicultus.Wpf.Media.CameraOwnership>(), _sp.GetRequiredService<Axicultus.Wpf.Captions.ObsOperator>(),
+            _sp.GetService<Axicultus.Wpf.Rendering.IPowerPointRenderService>());
+        console.Show();
+        await Settle(1500);
+        Log("A036", $"display on open={captions.Display} auto radio={console.AutoShow.IsChecked}");
+        console.ShowButton.Command.Execute(null);
+        console.ScreenMode.IsChecked = true; // nothing on the output screen: the console follows the deck it reads
+        console.AutoShow.IsChecked = true;
+        await Settle(1000);
+        for (int d = 0; d < sources.Count; d++)
+        {
+            Ctx($"ppttext deck {d + 1}");
+            var copy = Path.Combine(folder, $"{d + 1}-{Path.GetFileName(sources[d])}");
+            File.Copy(sources[d], copy, true);
+            if (!await console.PrepareDeckAsync(copy, 1)) { Log("A036", $"{Path.GetFileName(copy)} not read: {console.Status.Text}"); continue; }
+            try { await console.ScorePreparation; }
+            catch (OperationCanceledException) { Log("A036", "score preparation canceled"); }
+            var deck = captions.Deck!;
+            Log("A036", $"deck {Path.GetFileName(sources[d])}: {deck.Slides.Length} slides, picture slides {deck.Slides.Count(s => s.HasPicture == true)}, " +
+                $"default box {(console.Boxes.SelectedItem as Axicultus.Wpf.Captions.CaptionBox)?.Key}");
+            captions.Follow(1, Axicultus.Wpf.Captions.CaptionDeck.AllTextKey);
+            for (int n = 1; n <= deck.Slides.Length; n++)
+            {
+                captions.MoveToSlide(n);
+                await Settle(n == 1 ? 1500 : 500);
+                var sent = captions.PublicImage != null ? $"score ({console.ScoreSource}) \"{console.ScoreRowLabel.Text}\"" : "text";
+                Log("A036", $"  slide {n}: picture={deck.Slides[n - 1].HasPicture} boxes={deck.Slides[n - 1].Boxes.Length} sent={sent} text=\"{Trim(captions.PublicText.Replace("\n", " / "), 90)}\"");
+            }
+            SaveWindowPicture(console, $"ppttext-deck{d + 1}.png");
+            if (deck.Slides[0].Boxes.Skip(1).FirstOrDefault() is { } named)
+            {
+                int missing = 0, empty = 0;
+                for (int n = 2; n <= deck.Slides.Length; n++)
+                {
+                    if (deck.Slides[n - 1].Boxes.Any(b => b.Key == named.Key)) continue;
+                    missing++;
+                    if (captions.TextFor(n, named.Key).Length == 0 && deck.Slides[n - 1].Boxes[0].Text.Length > 0) empty++;
+                }
+                Log("A036", $"  box {named.Key} (slide 1): missing on {missing} slides, empty caption on {empty}");
+            }
+        }
+        Ctx("ppttext stop");
+        console.EndSession();
     }
 
     // a035: which source the sent rows were cut from (the deck's content picture or the slide render), the same rows
