@@ -50,17 +50,91 @@ internal static partial class LyricsReader
     }
 
     /// <summary>
-    /// The lyrics of each row: the lines under its staff, without the title above it, the signs read inside it
-    /// or what lies below the last row (the slide's buttons). A slide without staves gives one row of all its lines.
+    /// The lyrics of each row (in the order the rows are given): the lines under its staff, without the title above
+    /// the first staff or the signs read inside a staff. A line outside every row's area (a render's rows can end
+    /// above their lyrics) goes to the nearest staff above it when it lies within <see cref="LyricsReach"/> staff
+    /// heights of it; when it sits above the next staff in that row's area (a section name) or under the last row's
+    /// area (a button), only if the row above read no lyrics inside its own area. Farther down it is a label (verse
+    /// buttons, the page number), not lyrics. Pieces of one line are joined after they are given to a row.
+    /// A slide without staves gives one row of all its lines.
     /// </summary>
     internal static string[] RowLyrics(OcrPage page, ScoreRow[] rows)
     {
-        var lines = page.Lines.Select(line => (Text: Clean(line), Center: line.Words.Length == 0 ? 0 : line.Words.Average(w => w.Y + w.Height / 2.0)))
-            .Where(line => line.Text.Length > 0).OrderBy(line => line.Center).ToList();
-        if (rows.Length == 0) return [string.Join("\n", lines.Select(line => line.Text))];
-        return [.. rows.Select(row => string.Join("\n", lines
-            .Where(line => line.Center > row.StaffBottom && line.Center < row.Area.Y + row.Area.Height)
-            .Select(line => line.Text)))];
+        var pieces = Pieces(page);
+        if (rows.Length == 0) return [string.Join("\n", Join(pieces))];
+        int[] order = [.. Enumerable.Range(0, rows.Length).OrderBy(i => rows[i].StaffTop)];
+        var sorted = order.Select(i => rows[i]).ToArray();
+        var lyrics = sorted.Select(_ => new List<Piece>()).ToArray();
+        var outside = new List<Piece>();
+        foreach (var piece in pieces)
+        {
+            double center = piece.Center;
+            if (sorted.Any(row => center >= row.StaffTop && center <= row.StaffBottom)) continue; // a sign inside a staff
+            // Where bands overlap, the row whose staff is nearest above.
+            int k = Array.FindLastIndex(sorted, row => center > row.StaffBottom && center < row.Area.Y + row.Area.Height);
+            if (k >= 0) lyrics[k].Add(piece);
+            else outside.Add(piece);
+        }
+        int last = sorted.Length - 1;
+        bool[] own = [.. lyrics.Select(row => row.Count > 0)]; // the rows that read lyrics inside their own area
+        foreach (var piece in outside)
+        {
+            double center = piece.Center;
+            int above = Array.FindLastIndex(sorted, row => row.StaffBottom < center);
+            if (above < 0 || center - sorted[above].StaffBottom > LyricsReach * (sorted[above].StaffBottom - sorted[above].StaffTop)) continue;
+            // Above the next staff in its area (a section name) or under the last row's area (a button), a line is that
+            // row's lyrics only when the row read none inside its own area (its area ended above them).
+            bool label = sorted.Any(row => center >= row.Area.Y && center < row.StaffTop);
+            bool below = above == last && center >= sorted[last].Area.Y + sorted[last].Area.Height;
+            if ((label || below) && own[above]) continue;
+            lyrics[above].Add(piece);
+        }
+        var result = new string[rows.Length];
+        for (int s = 0; s < sorted.Length; s++) result[order[s]] = string.Join("\n", Join(lyrics[s]));
+        return result;
+    }
+
+    /// <summary>How far under its staff a line outside every row's area is still that staff's lyrics, in staff heights.</summary>
+    internal const double LyricsReach = 1.5;
+
+    /// <summary>How far apart side by side two pieces of one line may be, in letter heights (columns farther apart stay apart).</summary>
+    internal const double PieceGap = 6;
+
+    private sealed record Piece(string Text, int Left, int Right, double Center, double Height);
+
+    // The read lines with text left after cleaning, each with the extent and the (median) height of its letters
+    // (a hold dash read as a word of its own is no letter).
+    private static List<Piece> Pieces(OcrPage page) => [.. page.Lines.Where(line => line.Words.Length > 0).Select(line =>
+        {
+            var words = line.Words.Where(w => w.Text.Any(char.IsLetterOrDigit)).ToArray();
+            if (words.Length == 0) words = line.Words;
+            return new Piece(Clean(line), words.Min(w => w.X), words.Max(w => w.X + w.Width),
+                words.Average(w => w.Y + w.Height / 2.0), Median(words.Select(w => (double)w.Height)));
+        }).Where(piece => piece.Text.Length > 0)];
+
+    private static double Median(IEnumerable<double> values)
+    {
+        var sorted = values.Order().ToArray();
+        return sorted.Length % 2 == 1 ? sorted[sorted.Length / 2] : (sorted[sorted.Length / 2 - 1] + sorted[sorted.Length / 2]) / 2;
+    }
+
+    // The lines top to bottom: pieces read at nearly the same height (centers within half the smaller letter height)
+    // and close side by side (a gap of at most PieceGap letter heights) are one line, joined left to right.
+    private static IEnumerable<string> Join(List<Piece> pieces)
+    {
+        var line = Enumerable.Range(0, pieces.Count).ToArray();
+        int Find(int i) => line[i] == i ? i : line[i] = Find(line[i]);
+        for (int i = 0; i < pieces.Count; i++)
+            for (int j = i + 1; j < pieces.Count; j++)
+            {
+                var (a, b) = (pieces[i], pieces[j]);
+                double height = Math.Min(a.Height, b.Height);
+                if (Math.Abs(a.Center - b.Center) <= height / 2 && Math.Max(a.Left, b.Left) - Math.Min(a.Right, b.Right) <= PieceGap * height)
+                    line[Find(i)] = Find(j);
+            }
+        return Enumerable.Range(0, pieces.Count).GroupBy(Find).Select(group => group.Select(i => pieces[i]).ToList())
+            .OrderBy(group => group.Average(piece => piece.Center))
+            .Select(group => string.Join(" ", group.OrderBy(piece => piece.Left).Select(piece => piece.Text)));
     }
 
     // "받으-소-서---" is one word held over several notes; notes read as letters have no Hangul and are dropped.

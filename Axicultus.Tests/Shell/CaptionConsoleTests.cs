@@ -801,6 +801,190 @@ public sealed partial class CaptionConsoleTests
         Assert.Equal(["나의 빰으소서\n주가 기뻐하는\n주의 성전 되게 하소서\n1.나의 맘 받으소서"], LyricsReader.RowLyrics(page, [])); // not a score
     }
 
+    // A line read from left to right over [top, bottom), one word per space-separated part.
+    private static OcrLine At(int x, int top, int bottom, string text) =>
+        new([.. text.Split(' ').Select((word, i) => new OcrWord(word, x + i * 60, top, 50, bottom - top))]);
+
+    [Fact]
+    public void LyricsBelowARowsAreaGoToTheStaffAboveThem()
+    {
+        ScoreRow[] rows =
+        [
+            new(new System.Windows.Int32Rect(0, 100, 1000, 200), 150, 230), // the render's row ends at 300, above its lyrics
+            new(new System.Windows.Int32Rect(0, 400, 1000, 200), 450, 530),
+        ];
+        var page = new OcrPage("1.png", null,
+        [
+            At(100, 20, 80, "나의 노래"),        // the title above the first staff
+            At(100, 310, 350, "주님의 사랑은"),  // row 1 lyrics, under row 1's area
+            At(100, 540, 580, "나는 주를"),      // row 2 lyrics, inside row 2's area
+            At(100, 650, 690, "1절 2절"),        // the verse buttons under the last row
+        ]);
+        Assert.Equal(["주님의 사랑은", "나는 주를"], LyricsReader.RowLyrics(page, rows));
+    }
+
+    [Fact]
+    public void LyricsJustBelowTheLastRowsAreaAreKeptAndAVerseButtonFarBelowIsNot()
+    {
+        // A render's rows that both end above their lyrics: staves about 95 high, lyrics about 1.4 staff heights under them.
+        ScoreRow[] rows =
+        [
+            new(new System.Windows.Int32Rect(0, 85, 1920, 299), 214, 308),
+            new(new System.Windows.Int32Rect(0, 410, 1920, 300), 539, 634),
+        ];
+        var page = new OcrPage("1.png", null,
+        [
+            At(273, 400, 482, "따스한 곁을"),   // row 1 lyrics, under row 1's area
+            At(736, 725, 812, "주님 앞에"),     // row 2 lyrics, under the last row's area
+            At(105, 990, 1030, "1절 2절"),     // a verse button far below the last staff
+        ]);
+        Assert.Equal(["따스한 곁을", "주님 앞에"], LyricsReader.RowLyrics(page, rows));
+    }
+
+    [Fact]
+    public void FragmentsOfOneLineAreJoinedLeftToRightAndTwoLinesStayApart()
+    {
+        ScoreRow[] rows = [new(new System.Windows.Int32Rect(0, 100, 1400, 400), 150, 230)];
+        var page = new OcrPage("1.png", null,
+        [
+            At(800, 296, 336, "르고"),           // read a little higher than the rest of its line
+            At(100, 300, 340, "주자 비 강"),
+            At(500, 306, 346, "같이 흐"),
+            At(100, 380, 420, "주 손길 치료하네"), // the next line, one line height lower
+        ]);
+        Assert.Equal(["주자 비 강 같이 흐 르고\n주 손길 치료하네"], LyricsReader.RowLyrics(page, rows));
+    }
+
+    [Fact]
+    public void ARenderedScoreSlideKeepsItsLyricsAndLeavesItsVerseButtonsOut()
+    {
+        // Lines and rows as read from a 1440x1080 render of a two-staff slide: the render's rows end above the
+        // lyrics, and a third "row" is found over the verse buttons and the page number at the bottom.
+        ScoreRow[] rows =
+        [
+            new(new System.Windows.Int32Rect(0, 87, 1440, 222), 180, 264),
+            new(new System.Windows.Int32Rect(0, 446, 1440, 178), 495, 579),
+            new(new System.Windows.Int32Rect(0, 923, 1440, 157), 1016, 1066),
+        ];
+        var page = new OcrPage("1.png", null,
+        [
+            At(193, 344, 420, "주님의 사랑은- 영원히"),
+            At(781, 659, 734, "나는 주를"),
+            At(85, 971, 1004, "1 세상 흔들리고"),
+            At(441, 972, 1004, "- 2 믿음 흔들리고"),
+            At(1213, 1015, 1050, "2/10"),
+        ]);
+        Assert.Equal(["주님의 사랑은 영원히", "나는 주를", ""], LyricsReader.RowLyrics(page, rows));
+    }
+
+    [Fact]
+    public void ALineReadInPiecesUnderEachStaffIsPutBackInOrder()
+    {
+        // A render whose lyrics were read as two pieces per line at slightly different heights (the pieces' places as
+        // read; the second piece starts nearer here, as this helper's words are narrower than the render's).
+        ScoreRow[] rows =
+        [
+            new(new System.Windows.Int32Rect(0, 102, 1440, 283), 143, 230),
+            new(new System.Windows.Int32Rect(0, 403, 1440, 283), 444, 531),
+        ];
+        var page = new OcrPage("1.png", null,
+        [
+            At(136, 303, 375, "주자 비 강 같 이 흐"),
+            At(405, 608, 681, "주 손길 치"),
+            At(800, 306, 367, "르 고"),
+            At(892, 609, 681, "료 하네"),
+        ]);
+        Assert.Equal(["주자 비 강 같 이 흐 르 고", "주 손길 치 료 하네"], LyricsReader.RowLyrics(page, rows));
+    }
+
+    [Fact]
+    public void AMarkReadInsideAStaffIsNotJoinedToTheLyricsUnderIt()
+    {
+        ScoreRow[] rows = [new(new System.Windows.Int32Rect(0, 100, 1000, 300), 150, 230)];
+        var page = new OcrPage("1.png", null,
+        [
+            At(100, 198, 258, "리"),          // a note read as a letter, centered inside the staff
+            At(300, 220, 280, "주님의 사랑"),  // the lyrics just under the staff, at nearly the same height
+        ]);
+        Assert.Equal(["주님의 사랑"], LyricsReader.RowLyrics(page, rows));
+    }
+
+    [Fact]
+    public void ASectionNameAboveTheNextStaffStaysOutOfTheRowAbove()
+    {
+        ScoreRow[] rows =
+        [
+            new(new System.Windows.Int32Rect(0, 100, 1000, 200), 150, 230),
+            new(new System.Windows.Int32Rect(0, 300, 1000, 300), 450, 530),
+        ];
+        var page = new OcrPage("1.png", null,
+        [
+            At(100, 250, 290, "주님의 사랑"),  // row 1 lyrics, inside row 1's area
+            At(100, 300, 340, "후렴"),        // a section name over the next staff, within reach of the staff above
+            At(100, 540, 580, "나는 주를"),    // row 2 lyrics
+        ]);
+        Assert.Equal(["주님의 사랑", "나는 주를"], LyricsReader.RowLyrics(page, rows));
+    }
+
+    [Fact]
+    public void ALineInTwoRowsAreasGoesToTheStaffNearestAboveIt()
+    {
+        ScoreRow[] rows =
+        [
+            new(new System.Windows.Int32Rect(0, 100, 1000, 400), 150, 230), // its area reaches into the next row's
+            new(new System.Windows.Int32Rect(0, 300, 1000, 400), 350, 430),
+        ];
+        var page = new OcrPage("1.png", null,
+        [
+            At(100, 240, 280, "주님의 사랑"),  // under staff 1 only
+            At(100, 450, 490, "나는 주를"),    // in both areas, under staff 2
+        ]);
+        Assert.Equal(["주님의 사랑", "나는 주를"], LyricsReader.RowLyrics(page, rows));
+    }
+
+    [Fact]
+    public void RowsGivenOutOfOrderGetTheirOwnLyricsBack()
+    {
+        ScoreRow[] rows =
+        [
+            new(new System.Windows.Int32Rect(0, 400, 1000, 200), 450, 530),
+            new(new System.Windows.Int32Rect(0, 100, 1000, 200), 150, 230),
+        ];
+        var page = new OcrPage("1.png", null, [At(100, 250, 290, "주님의 사랑"), At(100, 540, 580, "나는 주를")]);
+        Assert.Equal(["나는 주를", "주님의 사랑"], LyricsReader.RowLyrics(page, rows));
+    }
+
+    [Fact]
+    public void TwoColumnsSideBySideStayTwoLines()
+    {
+        var page = new OcrPage("1.png", null, [At(100, 300, 340, "주 사랑"), At(900, 300, 340, "Lord's love")]);
+        Assert.Equal(["주 사랑\nLord's love"], LyricsReader.RowLyrics(page, []));                     // a photo, no staves
+        ScoreRow[] rows = [new(new System.Windows.Int32Rect(0, 100, 1400, 300), 150, 230)];
+        Assert.Equal(["주 사랑\nLord's love"], LyricsReader.RowLyrics(page, rows));
+    }
+
+    [Fact]
+    public void TwoVerseLinesCloseTogetherStayApart()
+    {
+        ScoreRow[] rows = [new(new System.Windows.Int32Rect(0, 100, 1000, 400), 150, 230)];
+        var page = new OcrPage("1.png", null,
+        [
+            At(100, 325, 365, "2 나는 주를"),   // verse 2, a little more than half a line under verse 1
+            At(100, 280, 320, "1 주님의 사랑"),
+        ]);
+        Assert.Equal(["1 주님의 사랑\n2 나는 주를"], LyricsReader.RowLyrics(page, rows));
+    }
+
+    [Theory]
+    [InlineData(116, true)]  // 1.45 staff heights under the staff
+    [InlineData(128, false)] // 1.6 staff heights under the staff
+    public void ALineOutsideTheRowsIsLyricsOnlyWithinReachOfItsStaff(int below, bool kept)
+    {
+        ScoreRow[] rows = [new(new System.Windows.Int32Rect(0, 100, 1000, 160), 150, 230)]; // area ends at 260
+        var page = new OcrPage("1.png", null, [At(100, 230 + below - 20, 230 + below + 20, "주님 앞에")]);
+        Assert.Equal([kept ? "주님 앞에" : ""], LyricsReader.RowLyrics(page, rows));
+    }
+
     [Fact]
     public void RecognizedLyricsBecomeABoxAndTheCaptionWhenChosen()
     {
