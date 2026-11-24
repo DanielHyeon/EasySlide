@@ -1512,7 +1512,11 @@ public sealed partial class CaptionConsoleTests
             var store = services.GetRequiredService<CaptionRecoveryStore>();
             var console = new CaptionConsole(main, session, services.GetRequiredService<CaptionBroadcastServer>(), store,
                 services.GetRequiredService<CameraOwnership>(), services.GetRequiredService<ObsOperator>(),
-                new OperationalErrorLog(directory.FullName), render, screens ?? (() => [MainScreen])) { ShowActivated = false, ShowInTaskbar = false };
+                new OperationalErrorLog(directory.FullName), render, screens ?? (() => [MainScreen]))
+            {
+                ShowActivated = false, ShowInTaskbar = false,
+                Songs = _ => Task.FromResult<IReadOnlyList<SongLyrics.Song>>([]), // no song database (a test gives its songs)
+            };
             try
             {
                 if (show) console.Show();

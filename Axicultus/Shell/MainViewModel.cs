@@ -3684,6 +3684,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             UserReference = userReference ?? song.UserReference,
         };
 
+    /// <summary>The song database in use (the library's, the search's or the working folder's); empty when there is none.</summary>
+    internal string SongDatabasePath => ResolveSongDetailDatabasePath();
+
     private string ResolveSongDetailDatabasePath()
     {
         if (!string.IsNullOrWhiteSpace(Library.DatabasePath) && File.Exists(Library.DatabasePath))

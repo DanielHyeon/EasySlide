@@ -93,6 +93,9 @@ public sealed partial class LibraryViewModel : ObservableObject
     // 빈 목록이 "아직 안 불러옴"인지 "정말 비었음"인지 구분하는 핵심 플래그(검색 빈 상태 HasSearched 와 같은 취지).
     [ObservableProperty] private bool _hasLoadedSongs;
 
+    /// <summary>Every song of the database at the path, read only (the caption console puts read lyrics right with them).</summary>
+    internal Task<IReadOnlyList<SongSummary>> ReadSongsAsync(string databasePath) => _adminDatabase.GetSongsAsync(databasePath);
+
     public LibraryViewModel(ISettingsService settings, IAdminDatabaseRepository adminDatabase, ISearchUsageService? searchService = null)
     {
         _settings = settings ?? throw new ArgumentNullException(nameof(settings));

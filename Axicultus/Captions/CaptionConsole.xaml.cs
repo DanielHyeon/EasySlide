@@ -804,6 +804,68 @@ public partial class CaptionConsole : Window
     /// <summary>The running reading of the lyrics in the deck's pictures.</summary>
     internal Task LyricsReading { get; private set; } = Task.CompletedTask;
 
+    /// <summary>The songs the read lyrics are put right from (the song database, read only); a test puts a stand-in here.</summary>
+    internal Func<CancellationToken, Task<IReadOnlyList<SongLyrics.Song>>>? Songs { get; set; }
+
+    // The song database's songs, read once per version of the database file (its write time, and its write-ahead log's
+    // when there is one). A version that cannot be used (a missing file, a schema the app cannot read) is not read
+    // again; one that was busy or locked is tried again with the next deck. Each version's failure is told once.
+    private (string Key, Task<IReadOnlyList<SongLyrics.Song>> Songs)? _songs;
+    private string? _songsUnusable, _songsTold;
+
+    private Task<IReadOnlyList<SongLyrics.Song>> ReadSongsAsync(CancellationToken cancellation)
+    {
+        string path = _main.SongDatabasePath;
+        if (path.Length == 0) return Task.FromResult<IReadOnlyList<SongLyrics.Song>>([]);
+        string wal = path + "-wal";
+        string key = $"{path}|{File.GetLastWriteTimeUtc(path).Ticks}|{(File.Exists(wal) ? File.GetLastWriteTimeUtc(wal).Ticks : 0)}";
+        if (key == _songsUnusable) return Task.FromResult<IReadOnlyList<SongLyrics.Song>>([]);
+        if (_songs is { } kept && kept.Key == key && !kept.Songs.IsFaulted && !kept.Songs.IsCanceled) return kept.Songs;
+        var library = _main.Library;
+        var songs = Task.Run(async () => (IReadOnlyList<SongLyrics.Song>)[.. (await library.ReadSongsAsync(path).ConfigureAwait(false))
+            .Where(song => song.FolderNo > 0).Select(song => new SongLyrics.Song(song.Title, song.AlternateTitle, song.Lyrics))], cancellation);
+        _songs = (key, songs);
+        return songs;
+    }
+
+    // A failure reading the song database that may pass (the file busy, locked or in use).
+    private static bool Passing(Exception error) => error is System.Data.SQLite.SQLiteException
+        { ResultCode: System.Data.SQLite.SQLiteErrorCode.Busy or System.Data.SQLite.SQLiteErrorCode.Locked }
+        or TimeoutException || error is IOException and not (FileNotFoundException or DirectoryNotFoundException);
+
+    // The read lyrics (per slide, per row) with misread words put right from the deck's song in the song database, off
+    // the UI thread; as read when nothing was read, no song is sure to be the deck's, or anything fails.
+    private async Task<string[][]> CorrectLyricsAsync(CaptionDeck deck, string[][] slides)
+    {
+        if (!slides.Any(rows => rows.Any(row => row.Any(c => c is >= '가' and <= '힣')))) return slides; // nothing to put right
+        var lifetime = _lifetime.Token; // (taken now: closing during the reading is no failure)
+        string label = DeckLabel.Text;
+        DeckLabel.Text = $"{Path.GetFileName(deck.Path)} · 그림 속 가사 교정 중";
+        try
+        {
+            var songs = await (Songs ?? ReadSongsAsync)(lifetime);
+            return songs.Count == 0 ? slides : await Task.Run(() => SongLyrics.Correct(deck.Path, slides, songs), lifetime);
+        }
+        catch (Exception error) when (error is not OperationCanceledException)
+        {
+            // (closing, or a deck the operator already left, is not told)
+            if (_closed || lifetime.IsCancellationRequested || !ReferenceEquals(_captions.Deck, deck)) return slides;
+            string? failed = _songs is { Songs.IsFaulted: true } faulted ? faulted.Key : null;
+            if (failed != null && !Passing(error.GetBaseException())) _songsUnusable = failed; // that version is not read again
+            if (failed == null || failed != _songsTold) _errors.Write("곡 DB 가사 교정", error);
+            _songsTold = failed ?? _songsTold;
+            return slides;
+        }
+        catch (OperationCanceledException) when (_closed || lifetime.IsCancellationRequested)
+        {
+            return slides;
+        }
+        finally
+        {
+            if (!_closed && ReferenceEquals(_captions.Deck, deck)) DeckLabel.Text = label;
+        }
+    }
+
     // offer: the recognized lyrics may become the chosen box (a newly read deck); a restored deck keeps its choice.
     private async Task RecognizeDeckAsync(CaptionDeck deck, bool offer = true)
     {
@@ -856,13 +918,16 @@ public partial class CaptionConsole : Window
             if (files.Count == 0 || _closed || !ReferenceEquals(_captions.Deck, deck)) return;
             var pages = await read(files, _lifetime.Token);
             if (_closed || !ReferenceEquals(_captions.Deck, deck)) return;
+            var readPages = pages.Where(page => page.Error == null && layouts.ContainsKey(page.File))
+                .Select(page => (Layout: layouts[page.File], Rows: LyricsReader.RowLyrics(page, layouts[page.File].Rows))).ToList();
+            var corrected = await CorrectLyricsAsync(deck, [.. readPages.Select(page => page.Rows)]);
+            if (_closed || !ReferenceEquals(_captions.Deck, deck)) return;
             using var together = _captions.Hold(); // the offer, the whole texts and the row's line go out as one caption
             int found = 0;
             var scores = new List<(int Slide, string Lyrics)>();
-            foreach (var page in pages)
+            for (int k = 0; k < readPages.Count; k++)
             {
-                if (page.Error != null || !layouts.TryGetValue(page.File, out var layout)) continue;
-                var rows = LyricsReader.RowLyrics(page, layout.Rows);
+                var (layout, rows) = (readPages[k].Layout, corrected[k]);
                 _rowLyrics[(deck.Path, layout.Slide)] = rows;
                 var lyrics = string.Join("\n", rows.Where(row => row.Length > 0));
                 if (lyrics.Length > 0) found++;

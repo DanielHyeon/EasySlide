@@ -492,7 +492,7 @@ public static class LyricsDisplayFormatter
 
     // The lines of the lyrics as the display reads them: without a leading [~...] notation block, each line cut
     // at its chord marker, and a [~chords] line empty.
-    private static string[] ReadLines(string? rawLyrics)
+    internal static string[] ReadLines(string? rawLyrics)
     {
         if (string.IsNullOrWhiteSpace(rawLyrics))
         {
