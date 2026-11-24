@@ -53,7 +53,7 @@ public sealed class CaptionConsoleTests
         Assert.False(session.Visible); // a new console starts hidden
         console.Draft.SetCurrentValue(TextBox.TextProperty, "송출 중");
         Assert.Equal("", session.PublicText); // typing alone does not reveal it
-        editor.TakeFromShortcut(isRepeat: false); // 송출 (Enter) does
+        editor.TakeFromShortcut(isRepeat: false); // sending (Enter) does
         Assert.Equal("송출 중", session.PublicText);
         console.Instant.SetCurrentValue(CheckBox.IsCheckedProperty, true);
         await ClickAsync(console.HideButton);
@@ -63,7 +63,7 @@ public sealed class CaptionConsoleTests
         Assert.True(console.Instant.IsChecked);
         Assert.Equal("송출 중", Assert.Single(session.History).Text);
         await ClickAsync(console.ShowButton);
-        Assert.Equal("대기 중", session.PublicText); // what was typed while hidden goes out on 표시
+        Assert.Equal("대기 중", session.PublicText); // what was typed while hidden goes out on Show
         console.Close();
         Assert.False(console.IsVisible);
         Assert.Equal("대기 중", session.PublicText);
@@ -94,6 +94,78 @@ public sealed class CaptionConsoleTests
         });
 
     [Fact]
+    public Task ReadingAnotherDeckStopsTheLastDecksScorePreparation() => WithConsole(async (console, _, directory) =>
+    {
+        var slide = CaptionScorePictureTests.Image(0, CaptionScorePictureTests.Full, CaptionScorePictureTests.Wide);
+        var large = CaptionScorePictureTests.WriteDeck(directory.CreateSubdirectory("a").FullName, [CaptionScorePictureTests.ScorePng()], [.. Enumerable.Repeat(slide, 400)]);
+        var next = CaptionScorePictureTests.WriteDeck(directory.CreateSubdirectory("b").FullName, [CaptionScorePictureTests.ScorePng()], slide);
+        Assert.True(await console.PrepareDeckAsync(large, 1));
+        var preparing = (Task)typeof(CaptionConsole).GetField("_scorePrepared", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.GetValue(console)!;
+        Assert.False(preparing.IsCompleted, "the large deck was prepared before the next one came");
+        Assert.True(await console.PrepareDeckAsync(next, 1));
+        await Task.WhenAny(preparing, Task.Delay(TimeSpan.FromSeconds(60)));
+        Assert.True(preparing.IsCanceled, $"the last deck's preparation went on: {preparing.Status}");
+    });
+
+    [Fact]
+    public Task ASlideReadAgainAfterTheCacheDroppedItIsCutAsItWasPrepared() => WithConsole(async (console, session, directory) =>
+    {
+        var path = CaptionScorePictureTests.LyricsDeck(directory.FullName, CaptionScorePictureTests.SomewhatSmallerLyrics());
+        Assert.True(await console.PrepareDeckAsync(path, 1));
+        await console.ScorePreparation;
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var cache = (ScorePictures)typeof(CaptionConsole).GetField("_pictures", flags)!.GetValue(console)!;
+        var deck = session.Deck!;
+        Assert.True(cache.TryGet((deck.Path, 4), out var prepared));
+        cache.Clear(); // dropped to make room
+        await (Task)typeof(CaptionConsole).GetMethod("LoadPictureAsync", flags)!.Invoke(console, [deck, 4])!;
+        Assert.True(cache.TryGet((deck.Path, 4), out var again), "the slide was not read again");
+        Assert.Equal(prepared.Page.Rows, again.Page.Rows);
+        for (int k = 0; k < prepared.Page.Rows.Length; k++)
+            Assert.True(prepared.Page.Erase(k).SequenceEqual(again.Page.Erase(k)), $"row {k + 1} is painted over differently");
+    });
+
+    [Fact]
+    public Task WhileTheSlidesPictureIsReadAgainTheLastRowIsTakenDown() => WithConsole(async (console, session, directory) =>
+    {
+        var path = CaptionScorePictureTests.LyricsDeck(directory.FullName, CaptionScorePictureTests.SomewhatSmallerLyrics());
+        Assert.True(await console.PrepareDeckAsync(path, 1));
+        await console.ScorePreparation;
+        await ClickAsync(console.ShowButton); // on air
+        console.ScreenMode.IsChecked = true;
+        console.ScoreOnly.IsChecked = true;
+        session.Follow(2, "");
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        ((ScorePictures)typeof(CaptionConsole).GetField("_pictures", flags)!.GetValue(console)!).Clear(); // dropped from the cache
+        session.SetImage(System.Windows.Media.Imaging.BitmapSource.Create(4, 2, 96, 96, System.Windows.Media.PixelFormats.Gray8, null, new byte[8], 4));
+        Assert.NotNull(session.PublicImage); // the slide's last row on air
+        typeof(CaptionConsole).GetMethod("UpdateScore", flags)!.Invoke(console, null);
+        Assert.Null(session.PublicImage); // while the picture is read again, the last row does not stay
+    });
+
+    [Fact]
+    public Task WithoutARendererTheContentPicturesLyricsAreStillRead() => WithConsole(async (console, session, directory) =>
+    {
+        // No PowerPoint renderer here: the slides with a content picture need none, so their reading goes on (to the
+        // OCR helper, missing in the tests) instead of stopping before it.
+        var path = CaptionScorePictureTests.LyricsDeck(directory.FullName, CaptionScorePictureTests.SomewhatSmallerLyrics());
+        Assert.True(await console.PrepareDeckAsync(path, 1));
+        Assert.Contains("ocr", console.Status.Text);
+    });
+
+    [Fact]
+    public Task ReadingTheNextSongsDeckTakesTheLastSongsScoreRowDown() => WithConsole(async (console, session, directory) =>
+    {
+        await ClickAsync(console.ShowButton); // on air
+        session.SetImage(System.Windows.Media.Imaging.BitmapSource.Create(4, 2, 96, 96, System.Windows.Media.PixelFormats.Gray8, null, new byte[8], 4));
+        Assert.NotNull(session.PublicImage); // the last song's row is on air
+        var path = CaptionScorePictureTests.WriteDeck(directory.FullName, [CaptionScorePictureTests.ScorePng()],
+            CaptionScorePictureTests.Image(0, CaptionScorePictureTests.Full, CaptionScorePictureTests.Wide));
+        Assert.True(await console.PrepareDeckAsync(path, 1));
+        Assert.Null(session.PublicImage); // while this deck's pictures are read, none of the last song's rows stays
+    });
+
+    [Fact]
     public void RestoringADraftCannotPublishOrRequestAnotherSave()
     {
         using var session = new CaptionSession(new LiveSessionService());
@@ -114,7 +186,7 @@ public sealed class CaptionConsoleTests
     {
         using var session = new CaptionSession(new LiveSessionService());
         var editor = new CaptionConsoleViewModel(session) { IsInstant = true };
-        session.SetVisible(true); // 표시
+        session.SetVisible(true); // Show
         editor.DraftText = "주님은 나의 목자";
         Assert.Equal("주님은 나의 목자", session.PublicText);
         editor.TakeAndClear();
@@ -303,7 +375,7 @@ public sealed class CaptionConsoleTests
         session.Mirror(true);
         session.ShowScreenText("내 영혼아 찬양하라");
         Assert.Equal("", session.PublicText); // following the screen does not reveal a hidden caption
-        session.SetVisible(true); // 표시
+        session.SetVisible(true); // Show
         Assert.Equal("내 영혼아 찬양하라", session.PublicText);
         Assert.True(session.HasAudienceText);
         session.Publish("직접 입력");
@@ -339,7 +411,7 @@ public sealed class CaptionConsoleTests
                 Assert.Equal(3, session.CaptionLines);
                 session.CaptionLines = 2;
                 Assert.Equal(2, sent[^1].Lines); // the OBS page sizes its area from it
-                Assert.Equal(.27, sent[^1].ScoreHeight); // 보통 by default
+                Assert.Equal(.27, sent[^1].ScoreHeight); // the medium score size by default
                 session.ScoreSize = 0;
                 Assert.Equal(.18, sent[^1].ScoreHeight);
             }

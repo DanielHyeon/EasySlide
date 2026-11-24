@@ -59,7 +59,7 @@ public partial class CaptionConsole : Window
         _store = store;
         _plan = main.CurrentWorshipListName;
         captions.BeginPlan(_plan);
-        captions.SetVisible(false); // a new console starts hidden; 표시 puts the caption on air
+        captions.SetVisible(false); // a new console starts hidden; the Show button puts the caption on air
         InitializeComponent();
         LinesBox.SelectedIndex = captions.CaptionLines - 1;
         ScoreSizeBox.SelectedIndex = captions.ScoreSize;
@@ -433,7 +433,7 @@ public partial class CaptionConsole : Window
     // A row of the current slide as rendered on screen (a staff with its lyrics), in place of or above the text.
     private int _scoreRow, _scoreRows = 2;
 
-    // 자막만 / 악보만 / 악보 + 자막
+    // Text only / score only / score and text
     private bool ScoreOn => ScoreOnly.IsChecked == true || ScoreAndText.IsChecked == true;
 
     private void ScoreChanged(object sender, RoutedEventArgs e)
@@ -462,19 +462,46 @@ public partial class CaptionConsole : Window
             return;
         }
         static bool Same(string? a, string b) => a != null && string.Equals(Path.GetFullPath(a), b, StringComparison.OrdinalIgnoreCase);
-        // A full-size render of the slide; the small operator picture of it stands in until that is ready.
-        var image = SharpSlide(deck, _captions.CurrentSlide) ?? new[] { _main.OutputPowerPoint, _main.PowerPoint }.FirstOrDefault(p =>
+        BitmapSource? image = null;
+        ScoreRow[]? measured = null;
+        bool rendered = true;
+        // The score picture inside the deck first (no background, no wait for PowerPoint); the deck's pictures are read
+        // before its first row is cut, so every row has the deck's one size. Meanwhile no row (of the last song) is on air.
+        if (deck.Slides.Any(s => s.Picture != null))
+        {
+            if (_scoreDeck is not { } prepared || !ReferenceEquals(prepared.Deck, deck))
+            {
+                if (!ReferenceEquals(_preparingScore, deck)) _ = PrepareScoreAsync(deck);
+                ScoreRowLabel.Text = "악보 그림 준비 중"; // (not the last deck's rows)
+                _captions.SetImage(null);
+                Status.Text = "악보 그림을 만드는 중…";
+                return;
+            }
+            if (prepared.Slides.Contains(_captions.CurrentSlide))
+            {
+                // Measured once, off the UI thread: only cut here.
+                // (while it is read again, the last row does not stay on air)
+                if (ContentPicture(deck, _captions.CurrentSlide) is not var (picture, page)) { _captions.SetImage(null); Status.Text = "악보 그림을 만드는 중…"; return; }
+                (image, measured, rendered) = (picture, page.Fit(prepared.Target), false);
+                _pictures.OnAir = (deck.Path, _captions.CurrentSlide);
+                int sent = Math.Clamp(_scoreRow, 0, measured.Length - 1);
+                measured[sent] = measured[sent] with { Erase = page.Erase(sent) };
+            }
+        }
+        // Else a full-size render of the slide; the small operator picture of it stands in until that is ready.
+        if (rendered) image = SharpSlide(deck, _captions.CurrentSlide) ?? new[] { _main.OutputPowerPoint, _main.PowerPoint }.FirstOrDefault(p =>
             Same(p.LoadedContentPath, deck.Path) && p.SlideNumber == _captions.CurrentSlide && p.PreviewImage is BitmapSource { PixelHeight: > 1 })?.PreviewImage as BitmapSource;
         if (image == null)
         {
             Status.Text = "악보 그림을 만드는 중…";
             return;
         }
-        if (CropRow(image, _scoreRow) is not var (cropped, rows, found))
+        if ((measured != null ? CropRow(image, _scoreRow, measured) : CropRow(image, _scoreRow)) is not var (cropped, rows, found))
         {
             Status.Text = "악보 그림을 만들 수 없습니다. 슬라이드를 다시 송출해 보세요.";
             return;
         }
+        ScoreSource = rendered ? "render" : "picture";
         _scoreRows = rows;
         _scoreRow = Math.Min(_scoreRow, rows - 1);
         bool withText = ScoreAndText.IsChecked == true;
@@ -519,7 +546,8 @@ public partial class CaptionConsole : Window
     // A full-size picture of the slide, kept for the score; null when PowerPoint could not render it.
     private async Task<(BitmapSource Image, byte[] Bytes, string ContentType)?> RenderSlideAsync(string path, int slide)
     {
-        var result = await _render!.RenderSlideAsync(new(path, slide, 1920, 1080, TimeSpan.FromSeconds(30)), _lifetime.Token);
+        if (_render == null) return null;
+        var result = await _render.RenderSlideAsync(new(path, slide, 1920, 1080, TimeSpan.FromSeconds(30)), _lifetime.Token);
         if (!result.Succeeded) return null;
         using var stream = new MemoryStream(result.Slide!.ImageBytes);
         var frame = BitmapDecoder.Create(stream, BitmapCreateOptions.PreservePixelFormat | BitmapCreateOptions.IgnoreColorProfile,
@@ -530,6 +558,174 @@ public partial class CaptionConsole : Window
         return (frame, result.Slide.ImageBytes, result.Slide.ContentType);
     }
 
+    /// <summary>Where the score row on air was cut from: "picture" (the deck's content picture) or "render" (the slide).</summary>
+    internal string ScoreSource { get; private set; } = "";
+
+
+    // The followed deck's content pictures: the slides whose picture shows staves and the target all their rows are cut
+    // to. The pictures and their measured rows are kept up to a size in bytes and read and measured again (off the UI
+    // thread) when dropped; each picture is measured from itself alone, so it is cut the same however often it is read.
+    internal const long PictureCache = 256L << 20;
+    private (CaptionDeck Deck, HashSet<int> Slides, RowExtent Target)? _scoreDeck;
+    private CaptionDeck? _preparingScore;
+    private Task _scorePrepared = Task.CompletedTask;
+    private CancellationTokenSource? _preparation;
+    private readonly ScorePictures _pictures = new(PictureCache);
+    private readonly HashSet<(CaptionDeck Deck, int Slide)> _loadingPictures = [];
+
+    /// <summary>The memory a content picture and its measured rows take.</summary>
+    internal static long Bytes(BitmapSource image, ScorePage page) => (long)image.PixelWidth * image.PixelHeight * 4 + page.Bytes;
+
+    /// <summary>
+    /// The slide's content picture over white and its rows measured once, when staves are found on it; else null (the
+    /// render is used). Any failure reading or measuring it gives null and is told to failed.
+    /// </summary>
+    internal static (BitmapSource Image, ScorePage Page)? ScorePicture(string deckPath, CaptionSlide slide, Action<Exception>? failed = null)
+    {
+        if (slide.Picture is not { } picture) return null;
+        try
+        {
+            if (CaptionDeck.ReadPicture(deckPath, picture, failed) is not { } image) return null;
+            var page = ScoreLayout.Layout(image);
+            return page.Rows.Length > 0 ? (image, page) : null;
+        }
+        catch (Exception error) // whatever goes wrong, the slide falls back to the render
+        {
+            failed?.Invoke(error);
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// The deck's slides whose content picture shows staves (with the picture and its rows while they fit in
+    /// <see cref="PictureCache"/>, the rest read when shown) and the deck's row target. A slide whose picture fails is
+    /// left out (the render) and told to failed.
+    /// </summary>
+    internal static (Dictionary<int, (BitmapSource Image, ScorePage Page)?> Slides, RowExtent Target) PrepareScore(string deckPath,
+        IReadOnlyList<CaptionSlide> slides, CancellationToken cancellation, Action<int, Exception>? failed = null)
+    {
+        var found = new Dictionary<int, (BitmapSource Image, ScorePage Page)?>();
+        var reach = new List<RowExtent[]>();
+        long bytes = 0;
+        var gate = new object();
+        // A few slides at a time, each read and measured on its own thread; only as many kept as fit (of the others,
+        // their reach is all that is needed now).
+        int together = Math.Clamp(Environment.ProcessorCount / 2, 1, 4);
+        var read = new (BitmapSource Image, ScorePage Page)?[together];
+        for (int first = 0; first < slides.Count; first += together)
+        {
+            int count = Math.Min(together, slides.Count - first);
+            Parallel.For(0, count, new ParallelOptions { CancellationToken = cancellation, MaxDegreeOfParallelism = together }, i =>
+                read[i] = ScorePicture(deckPath, slides[first + i], error => { lock (gate) failed?.Invoke(first + i + 1, error); }));
+            for (int i = 0; i < count; i++)
+            {
+                if (read[i] is not var (image, page)) continue;
+                bytes += Bytes(image, page);
+                found[first + i + 1] = bytes <= PictureCache ? (image, page) : null;
+                reach.Add(page.Reach);
+                read[i] = null;
+            }
+        }
+        return (found, ScoreLayout.Target(reach));
+    }
+
+    /// <summary>
+    /// The slide's content picture to read its lyrics from (PNG) and its rows as the score row images take them (each
+    /// row's own ink, at its own size), so the k-th line read is the k-th row sent; null when the render is used.
+    /// </summary>
+    internal static (byte[] Png, ScoreRow[] Rows)? OcrPicture(string deckPath, CaptionSlide slide) =>
+        ScorePicture(deckPath, slide) is var (image, page) ? OcrPicture(image, page) : null;
+
+    internal static (byte[] Png, ScoreRow[] Rows) OcrPicture(BitmapSource image, ScorePage page) => (Png(image), page.Fit(new RowExtent()));
+
+    private static byte[] Png(BitmapSource image)
+    {
+        var encoder = new PngBitmapEncoder();
+        encoder.Frames.Add(BitmapFrame.Create(image));
+        using var stream = new MemoryStream();
+        encoder.Save(stream);
+        return stream.ToArray();
+    }
+
+    /// <summary>The running preparation of the followed deck's score pictures (canceled when another deck comes).</summary>
+    internal Task ScorePreparation => _scorePrepared;
+
+    // Started right after a deck is read (or when a deck is followed without that, as after a restart); the last
+    // deck's preparation, if still running, stops.
+    private Task PrepareScoreAsync(CaptionDeck deck)
+    {
+        StopScorePreparation();
+        _preparation = CancellationTokenSource.CreateLinkedTokenSource(_lifetime.Token);
+        return _scorePrepared = PrepareScoreCoreAsync(deck, _preparation.Token);
+    }
+
+    private void StopScorePreparation()
+    {
+        _preparation?.Cancel();
+        _preparation?.Dispose();
+        _preparation = null;
+        _preparingScore = null;
+    }
+
+    private async Task PrepareScoreCoreAsync(CaptionDeck deck, CancellationToken token)
+    {
+        _preparingScore = deck;
+        _scoreDeck = null;
+        _pictures.Clear();
+        var slides = deck.Slides.ToArray();
+        var failures = new System.Collections.Concurrent.ConcurrentQueue<(int Slide, Exception Error)>();
+        try
+        {
+            var (found, target) = await Task.Run(() => PrepareScore(deck.Path, slides, token, (n, error) => failures.Enqueue((n, error))), token);
+            if (_closed || !ReferenceEquals(_captions.Deck, deck)) return;
+            foreach (var (slide, error) in failures) _errors.Write($"악보 그림 읽기 · {slide}장", error);
+            foreach (var (slide, picture) in found) if (picture is var (image, page)) _pictures.Keep((deck.Path, slide), image, page);
+            _scoreDeck = (deck, [.. found.Keys], target);
+        }
+        catch (OperationCanceledException) { throw; } // another deck came: its own preparation runs
+        catch (Exception error) // never left waiting: the whole deck comes from the render
+        {
+            if (_closed || !ReferenceEquals(_captions.Deck, deck)) return;
+            _errors.Write("악보 그림 읽기", error);
+            _scoreDeck = (deck, [], default);
+        }
+        finally { if (ReferenceEquals(_preparingScore, deck)) _preparingScore = null; }
+        UpdateScore();
+    }
+
+    private (BitmapSource Image, ScorePage Page)? ContentPicture(CaptionDeck deck, int slide)
+    {
+        if (slide < deck.Slides.Length) _ = LoadPictureAsync(deck, slide + 1);
+        if (_pictures.TryGet((deck.Path, slide), out var picture)) return picture;
+        _ = LoadPictureAsync(deck, slide);
+        return null;
+    }
+
+    private async Task LoadPictureAsync(CaptionDeck deck, int slide)
+    {
+        var key = (deck.Path, slide);
+        if (_closed || _scoreDeck is not { } prepared || !ReferenceEquals(prepared.Deck, deck) || !prepared.Slides.Contains(slide)
+            || deck.Slides[slide - 1].Picture is null || _pictures.Contains(key) || !_loadingPictures.Add((deck, slide))) return;
+        try
+        {
+            Exception? failure = null;
+            (BitmapSource Image, ScorePage Page)? read;
+            var page = deck.Slides[slide - 1];
+            try { read = await Task.Run(() => ScorePicture(deck.Path, page, error => failure = error)); }
+            catch (Exception error) { (read, failure) = (null, error); }
+            // Kept only for the deck it was read for; another deck may have come meanwhile.
+            if (_closed || _scoreDeck is not { } current || !ReferenceEquals(current.Deck, deck)) return;
+            if (read is not var (image, rows))
+            {
+                if (failure != null) _errors.Write($"악보 그림 읽기 · {slide}장", failure);
+                current.Slides.Remove(slide); // the file changed or went away: the render is used
+            }
+            else _pictures.Keep(key, image, rows);
+            if (ReferenceEquals(_captions.Deck, deck) && _captions.CurrentSlide == slide) UpdateScore();
+        }
+        finally { _loadingPictures.Remove((deck, slide)); }
+    }
+
     // The lyrics of each score row, per slide, read from the slide pictures.
     private readonly Dictionary<(string Path, int Slide), string[]> _rowLyrics = [];
 
@@ -537,7 +733,7 @@ public partial class CaptionConsole : Window
     private async Task RecognizeDeckAsync(CaptionDeck deck)
     {
         var slides = Enumerable.Range(1, deck.Slides.Length).Where(n => deck.Slides[n - 1].HasPicture != false).ToArray();
-        if (_render == null || slides.Length == 0) return;
+        if (slides.Length == 0) return; // (without a renderer only the slides with a content picture are read)
         if (!LyricsReader.Available) { Status.Text = "그림 속 가사 읽기 도우미(ocr 폴더)가 없어 가사를 읽지 못했습니다."; return; }
         var folder = Path.Combine(Path.GetTempPath(), "Axicultus", "ocr", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(folder);
@@ -545,15 +741,37 @@ public partial class CaptionConsole : Window
         {
             var files = new List<string>();
             var layouts = new Dictionary<string, (int Slide, ScoreRow[] Rows)>(StringComparer.OrdinalIgnoreCase);
+            // The score's preparation reads and measures the content pictures; they are read from what it kept.
+            // (a failed preparation is told and the renders are read; another deck coming stops this reading)
+            if (deck.Slides.Any(s => s.Picture != null))
+                try { await _scorePrepared; }
+                catch (OperationCanceledException) { if (_closed || !ReferenceEquals(_captions.Deck, deck)) return; }
+                catch (Exception error) { _errors.Write("악보 그림 읽기", error); }
             foreach (var slide in slides)
             {
                 if (_closed || !ReferenceEquals(_captions.Deck, deck)) return;
                 DeckLabel.Text = $"{Path.GetFileName(deck.Path)} · 그림 속 가사 읽는 중 {slide}/{deck.Slides.Length}";
-                if (await RenderSlideAsync(deck.Path, slide) is not var (image, bytes, type)) continue;
-                var file = Path.Combine(folder, $"{slide}{(type.Contains("jp", StringComparison.OrdinalIgnoreCase) ? ".jpg" : ".png")}");
-                await File.WriteAllBytesAsync(file, bytes, _lifetime.Token);
+                // The content picture the score rows are cut from, when it shows staves; else the slide's render.
+                var page = deck.Slides[slide - 1];
+                (byte[] Png, ScoreRow[] Rows)? picture = null;
+                if (_scoreDeck is { } prepared && ReferenceEquals(prepared.Deck, deck) && prepared.Slides.Contains(slide))
+                    picture = _pictures.TryGet((deck.Path, slide), out var kept) ? await Task.Run(() => OcrPicture(kept.Image, kept.Page), _lifetime.Token)
+                        : await Task.Run(() => OcrPicture(deck.Path, page), _lifetime.Token);
+                string file;
+                if (picture is var (png, rows))
+                {
+                    file = Path.Combine(folder, $"{slide}.png");
+                    await File.WriteAllBytesAsync(file, png, _lifetime.Token);
+                    layouts[file] = (slide, rows);
+                }
+                else
+                {
+                    if (await RenderSlideAsync(deck.Path, slide) is not var (image, bytes, type)) continue;
+                    file = Path.Combine(folder, $"{slide}{(type.Contains("jp", StringComparison.OrdinalIgnoreCase) ? ".jpg" : ".png")}");
+                    await File.WriteAllBytesAsync(file, bytes, _lifetime.Token);
+                    layouts[file] = (slide, ScoreLayout.FindRows(image));
+                }
                 files.Add(file);
-                layouts[file] = (slide, ScoreLayout.FindRows(image));
             }
             if (files.Count == 0 || _closed || !ReferenceEquals(_captions.Deck, deck)) return;
             var pages = await LyricsReader.ReadAsync(files, _lifetime.Token);
@@ -608,24 +826,43 @@ public partial class CaptionConsole : Window
         RefreshCue();
     }
 
-    // The rows of the last slide picture (a picture is never changed once rendered).
-    private static BitmapSource? _rowsOf;
-    private static ScoreRow[] _rows = [];
+    // The rows of the last slide picture (a picture is never changed once rendered), as one snapshot: CropRow runs on
+    // whichever thread owns the picture, so the cache is replaced whole, never changed in place.
+    private sealed record RowCache(BitmapSource Image, RowExtent? Target, ScoreRow[] Rows);
+    private static RowCache? _rowCache;
 
     /// <summary>
     /// The row-th row of the slide (the staves found on it), or its top or bottom half when none is found.
+    /// target: the deck's (a content picture), so its rows all show the staves the same size, white making up what
+    /// the next row or the picture's edge leaves short; null: the slide's own.
     /// A slide picture may belong to a render thread; the work runs there and the result is a frozen copy.
     /// </summary>
-    internal static (BitmapSource Image, int Rows, bool Found)? CropRow(BitmapSource image, int row)
+    internal static (BitmapSource Image, int Rows, bool Found)? CropRow(BitmapSource image, int row, RowExtent? target = null) => Crop(image, row, () =>
+    {
+        var cache = Volatile.Read(ref _rowCache);
+        if (cache == null || !ReferenceEquals(cache.Image, image) || cache.Target != target)
+            Volatile.Write(ref _rowCache, cache = new(image, target, ScoreLayout.FindRows(image, target)));
+        return cache.Rows;
+    });
+
+    /// <summary>
+    /// The row-th of the rows measured before (a content picture's, fitted to the deck, the row-th with its marks):
+    /// nothing is measured here.
+    /// </summary>
+    internal static (BitmapSource Image, int Rows, bool Found)? CropRow(BitmapSource image, int row, ScoreRow[] rows) => Crop(image, row, () => rows);
+
+    private static (BitmapSource Image, int Rows, bool Found)? Crop(BitmapSource image, int row, Func<ScoreRow[]> measured)
     {
         (BitmapSource, int, bool) Make()
         {
-            if (!ReferenceEquals(image, _rowsOf)) { _rows = ScoreLayout.FindRows(image); _rowsOf = image; }
-            bool found = _rows.Length > 0;
+            var staves = measured();
+            bool found = staves.Length > 0;
             int half = image.PixelHeight / 2;
-            Int32Rect[] rows = found ? [.. _rows.Select(r => r.Area)] :
-                [new(0, 0, image.PixelWidth, half), new(0, image.PixelHeight - half, image.PixelWidth, half)];
-            var copy = new WriteableBitmap(new CroppedBitmap(image, rows[Math.Clamp(row, 0, rows.Length - 1)]));
+            ScoreRow[] rows = found ? staves :
+                [new(new(0, 0, image.PixelWidth, half), 0, 0), new(new(0, image.PixelHeight - half, image.PixelWidth, half), 0, 0)];
+            var chosen = rows[Math.Clamp(row, 0, rows.Length - 1)];
+            var cut = new CroppedBitmap(image, chosen.Area);
+            BitmapSource copy = chosen.PadTop + chosen.PadBottom > 0 || chosen.Erase != null ? Padded(cut, chosen.PadTop, chosen.PadBottom, chosen.Erase) : new WriteableBitmap(cut);
             copy.Freeze();
             return (copy, rows.Length, found);
         }
@@ -639,6 +876,40 @@ public partial class CaptionConsole : Window
             System.Diagnostics.Debug.WriteLine(error.Message);
             return null;
         }
+    }
+
+    // The row with white above and below it (content pictures are composited over white), the ink of other rows painted over.
+    private static BitmapSource Padded(BitmapSource cut, int top, int bottom, byte[]? erase)
+    {
+        var colour = new FormatConvertedBitmap(cut, System.Windows.Media.PixelFormats.Bgr32, null, 0);
+        int width = colour.PixelWidth, height = colour.PixelHeight, stride = width * 4;
+        var pixels = new byte[stride * (top + height + bottom)];
+        Array.Fill(pixels, (byte)255);
+        colour.CopyPixels(pixels, stride, top * stride);
+        // What is painted over takes the paper around it in its own pixel row (the middle of the paper within 16 pixels
+        // on either side, else of the whole row), so a tinted or shaded picture shows no patches; white when there is none.
+        for (int y = 0; erase != null && y < height; y++)
+        {
+            int row = (top + y) * stride, line = y * width;
+            byte[] marks = erase;
+            int Middle(IEnumerable<int> columns)
+            {
+                var paper = columns.Where(n => n >= 0 && n < width && marks[line + n] == ScoreLayout.Paper)
+                    .OrderBy(n => pixels[row + n * 4] + pixels[row + n * 4 + 1] + pixels[row + n * 4 + 2]).ToList();
+                return paper.Count == 0 ? -1 : row + paper[paper.Count / 2] * 4;
+            }
+            for (int x = 0; x < width;)
+            {
+                if (marks[line + x] != ScoreLayout.Erased) { x++; continue; }
+                int start = x;
+                while (x < width && marks[line + x] == ScoreLayout.Erased) x++;
+                int from = Middle(Enumerable.Range(start - 16, 16).Concat(Enumerable.Range(x, 16)));
+                if (from < 0) from = Middle(Enumerable.Range(0, width));
+                for (int n = start; n < x; n++)
+                    for (int c = 0; c < 3; c++) pixels[row + n * 4 + c] = from < 0 ? (byte)255 : pixels[from + c];
+            }
+        }
+        return BitmapSource.Create(width, top + height + bottom, 96, 96, System.Windows.Media.PixelFormats.Bgr32, null, pixels, stride);
     }
 
     private void PickColor(object sender, RoutedEventArgs e)
@@ -709,6 +980,12 @@ public partial class CaptionConsole : Window
         if (_closed || request != _deckRequest) return false;
         var key = _captions.BoxKey;
         _captions.Prepare(deck);
+        // The last deck's score row is not this one's; this deck's pictures are read now, before a row is asked for.
+        _captions.SetImage(null);
+        StopScorePreparation();
+        _scoreDeck = null;
+        _pictures.Clear();
+        if (deck.Slides.Any(s => s.Picture != null)) _ = PrepareScoreAsync(deck);
         ShowDeck(deck, slide, key);
         Status.Text = $"PPT를 읽었습니다 · {Path.GetFileName(deck.Path)}";
         Changed();
@@ -880,5 +1157,49 @@ public partial class CaptionConsole : Window
         // The last write runs on a pool thread. Finish before the process can exit.
         _obs.Changed -= ShowObsStatus;
         await SaveAsync();
+    }
+}
+
+/// <summary>
+/// The followed deck's content pictures and their measured rows, kept up to capacity bytes: the least recently used go
+/// first, never the slide on air nor the one being kept.
+/// </summary>
+internal sealed class ScorePictures(long capacity)
+{
+    private readonly Dictionary<(string Path, int Slide), (BitmapSource Image, ScorePage Page, long Used)> _kept = [];
+    private long _clock;
+
+    /// <summary>The slide whose row is on air: it is not dropped.</summary>
+    public (string Path, int Slide)? OnAir { get; set; }
+
+    public int Count => _kept.Count;
+
+    public bool Contains((string Path, int Slide) key) => _kept.ContainsKey(key);
+
+    public bool TryGet((string Path, int Slide) key, out (BitmapSource Image, ScorePage Page) picture)
+    {
+        if (!_kept.TryGetValue(key, out var kept)) { picture = default; return false; }
+        _kept[key] = kept with { Used = ++_clock };
+        picture = (kept.Image, kept.Page);
+        return true;
+    }
+
+    public void Keep((string Path, int Slide) key, BitmapSource image, ScorePage page)
+    {
+        _kept.Remove(key);
+        long size = CaptionConsole.Bytes(image, page);
+        while (_kept.Count > 0 && _kept.Values.Sum(kept => CaptionConsole.Bytes(kept.Image, kept.Page)) + size > capacity)
+        {
+            var oldest = _kept.Where(kept => !kept.Key.Equals(OnAir)).OrderBy(kept => kept.Value.Used).Select(kept => ((string, int)?)kept.Key).FirstOrDefault();
+            if (oldest is not { } drop) break;
+            _kept.Remove(drop);
+        }
+        _kept[key] = (image, page, ++_clock);
+    }
+
+    public void Clear()
+    {
+        _kept.Clear();
+        OnAir = null;
     }
 }

@@ -1106,7 +1106,7 @@ internal static class Program
     }
 
     // Review-fix checks against a real show: item or slide changes under Black/Clear, Black during start, quick keys.
-    // Caption console "현재 송출 PPT": the deck sent live from the worship list must be found.
+    // Caption console "deck on air": the deck sent live from the worship list must be found.
     private static async Task PptCaption()
     {
         Ctx("pptcaption open output");
@@ -1136,7 +1136,7 @@ internal static class Program
         captions.PublishedChanged += p => Log("AIR", $"rev={p.Revision} text=\"{Trim(p.Text.Replace("\n", "/"), 40)}\" image={p.Image?.Length ?? 0} live={_vm.Session.Current.State}");
         string Aired() => $"following={captions.Following} mirroring={captions.Mirroring} slide={captions.CurrentSlide} text=\"{Trim(captions.PublicText.Replace("\n", "/"), 40)}\" image={(captions.Published.Image?.Length ?? 0)} obs=\"{Trim(captions.ForObs.Text.Replace("\n", "/"), 20)}\" camera={captions.HasAudienceText} status=\"{console.Status.Text}\"";
 
-        // The console starts hidden: following the screen airs nothing until 표시.
+        // The console starts hidden: following the screen airs nothing until Show.
         console.ScreenMode.IsChecked = true;
         await Settle(1500);
         Log("PPT", $"console opened: visible={captions.Visible} badge={console.HiddenBadge.IsVisible} show={console.ShowButton.IsEnabled} hide={console.HideButton.IsEnabled} {Aired()}");
@@ -1231,6 +1231,7 @@ internal static class Program
         await Settle(800);
         SaveImage(captions.PublicImage as System.Windows.Media.Imaging.BitmapSource, "score-row2-sent.png");
         Log("PPT", "row 2 of the last slide: " + Aired() + $" rows=\"{console.ScoreRowLabel.Text}\"");
+        await ScoreSources(console, captions, Call);
         console.SettingsToggle.IsChecked = false;
         await Settle(1000);
         SaveWindowPicture(console, "pptcaption-score.png");
@@ -1288,7 +1289,7 @@ internal static class Program
             Log("PPT", "text only · the deck again: " + Aired());
         }
 
-        // Worship-list text items: a text file (사도신경 and the like), a notice, a Bible passage.
+        // Worship-list text items: a text file (the Apostles' Creed and the like), a notice, a Bible passage.
         var textItems = new[]
         {
             _vm.Queue.FirstOrDefault(LiveItemKindMatcher.IsExternalTextFileItem),
@@ -1334,6 +1335,47 @@ internal static class Program
         console.EndSession();
         await Exec("StopLiveCommand", null, 2500);
         await Exec("CloseOutputCommand", null, 2500);
+    }
+
+    // a035: which source the sent rows were cut from (the deck's content picture or the slide render), the same rows
+    // cut from the render to compare, and every slide's row heights in staff spacings (the deck's target, white-padded).
+    private static async Task ScoreSources(Axicultus.Wpf.Captions.CaptionConsole console, Axicultus.Wpf.Captions.CaptionSession captions, Action<string, object?[]> call)
+    {
+        var deck = captions.Deck!;
+        int slide = captions.CurrentSlide;
+        Log("SCORE", $"slide {slide} source={console.ScoreSource} picture={deck.Slides[slide - 1].Picture?.ToString() ?? "<none>"}");
+        for (int row = 0; row < 2; row++)
+        {
+            call("SetScoreRow", [row]);
+            await Settle(800);
+            Log("SCORE", $"row {row + 1} sent from {console.ScoreSource}: \"{console.ScoreRowLabel.Text}\"");
+            SaveImage(captions.PublicImage as System.Windows.Media.Imaging.BitmapSource, $"score-row{row + 1}-sent-{console.ScoreSource}.png");
+        }
+        if (_sp.GetService<Axicultus.Wpf.Rendering.IPowerPointRenderService>() is { } render)
+        {
+            var result = await render.RenderSlideAsync(new(deck.Path, slide, 1920, 1080, TimeSpan.FromSeconds(30)));
+            if (result.Succeeded)
+            {
+                using var bytes = new MemoryStream(result.Slide!.ImageBytes);
+                var frame = System.Windows.Media.Imaging.BitmapDecoder.Create(bytes, System.Windows.Media.Imaging.BitmapCreateOptions.PreservePixelFormat,
+                    System.Windows.Media.Imaging.BitmapCacheOption.OnLoad).Frames[0];
+                frame.Freeze();
+                for (int row = 0; row < 2; row++)
+                    SaveImage(Axicultus.Wpf.Captions.CaptionConsole.CropRow(frame, row)?.Image, $"score-row{row + 1}-render-compare.png");
+            }
+            else Log("SCORE", $"render failed: {result.ErrorKind} {result.ErrorMessage}");
+        }
+        var (found, target) = Axicultus.Wpf.Captions.CaptionConsole.PrepareScore(deck.Path, deck.Slides, CancellationToken.None,
+            (n, error) => Log("SCORE", $"slide {n} picture failed: {error.GetType().Name} {error.Message}"));
+        Log("SCORE", $"content pictures with staves: {found.Count}/{deck.Slides.Length} slides; render: " +
+            string.Join(",", Enumerable.Range(1, deck.Slides.Length).Where(n => !found.ContainsKey(n))) + $"; target up={target.Up:0.##} down={target.Down:0.##} spacings");
+        foreach (var n in found.Keys.Order())
+        {
+            if (Axicultus.Wpf.Captions.CaptionConsole.ScorePicture(deck.Path, deck.Slides[n - 1]) is not var (image, _)) continue;
+            var rows = Axicultus.Wpf.Captions.ScoreLayout.FindRows(image, target);
+            Log("SCORE", $"slide {n}: {image.PixelWidth}x{image.PixelHeight} rows " + string.Join(" ", rows.Select(r =>
+                $"[y{r.Area.Y} h{r.Area.Height}+{r.PadTop}+{r.PadBottom} = {(r.Area.Height + r.PadTop + r.PadBottom) * 4.0 / (r.StaffBottom - r.StaffTop):0.##} spacings]")));
+        }
     }
 
     private static async Task Ppt3()
