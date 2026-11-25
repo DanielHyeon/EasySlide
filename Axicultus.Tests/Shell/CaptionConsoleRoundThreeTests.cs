@@ -56,7 +56,7 @@ public sealed partial class CaptionConsoleTests
             await Idle(console);
             Assert.True(session.Visible);
             Assert.Equal(("", false), (session.PublicText, session.HasAudienceText));
-            Assert.Equal("송출 대기 · 화면 꺼짐 (Space)", console.AirButton.Content);
+            Assert.Equal("자막 대기 · 화면 꺼짐 (Space)", console.AirButton.Content);
             Assert.True(console.HiddenBadge.IsVisible);
             Assert.Equal("화면 꺼짐 · 내보내지 않습니다", console.HiddenBadgeText.Text);
             Assert.Equal(Visibility.Visible, console.HeldCaption.Visibility); // what goes out when the screen is back, dim

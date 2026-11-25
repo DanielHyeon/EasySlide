@@ -1239,7 +1239,7 @@ public sealed partial class CaptionConsoleTests
         Assert.Contains("숨김", (string)console.AirButton.Content); // a new console starts hidden
         await ClickAsync(console.AirButton);
         Assert.True(session.Visible);
-        Assert.Contains("송출 중", (string)console.AirButton.Content);
+        Assert.Contains("자막 나가는 중", (string)console.AirButton.Content);
         session.SetVisible(false); // hidden elsewhere (Esc, a new worship list)
         await console.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
         Assert.Contains("숨김", (string)console.AirButton.Content);

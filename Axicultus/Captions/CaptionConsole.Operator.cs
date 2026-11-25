@@ -335,7 +335,8 @@ public partial class CaptionConsole
             + 1; // (1: layout rounding)
         // any row made (a scrolled long list has no first row), else the last one seen
         if (ShownRowHeight() is { } shown) _rowHeight = shown;
-        SourceColumn.MinHeight = SourceControls.ActualHeight + WorshipPanel.Margin.Top + SendItemButton.ActualHeight + SendItemButton.Margin.Top
+        SourceColumn.MinHeight = SourceControls.ActualHeight + WorshipPanel.Margin.Top + WorshipHeader.ActualHeight
+            + SendItemButton.ActualHeight + SendItemButton.Margin.Top
             + 2 * (_rowHeight > 0 ? _rowHeight : WorshipList.FontSize * 1.3 + 8) + 4;
     }
 
@@ -354,6 +355,7 @@ public partial class CaptionConsole
     private void WatchSourceColumn()
     {
         SourceControls.SizeChanged += (_, _) => FitSourceColumn();
+        WorshipHeader.SizeChanged += (_, _) => FitSourceColumn();
         SendItemButton.SizeChanged += (_, _) => FitSourceColumn();
         // rows made: fitted after their layout
         WorshipList.ItemContainerGenerator.StatusChanged += (_, _) =>

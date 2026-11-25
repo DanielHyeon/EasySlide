@@ -332,7 +332,7 @@ public sealed partial class CaptionConsoleTests
         var panel = new Rect(console.SourcePanel.RenderSize);
         var controls = In(following ? console.NextButton : console.TakeButton, console.SourcePanel);
         double rowHeight = Row(console, 0).ActualHeight;
-        Assert.True(rowHeight > 20);
+        Assert.True(rowHeight >= 16, $"a row {rowHeight}"); // (the main list's rows: its text size, at least 20 with the app's theme)
         Assert.True(console.WorshipList.ActualHeight >= 2 * rowHeight, $"the list is {console.WorshipList.ActualHeight} high, a row {rowHeight}");
         if (console.SourcePanel.ScrollableHeight > 0)
         {
@@ -503,7 +503,7 @@ public sealed partial class CaptionConsoleTests
         main.LoadQueue(System.Array.Empty<LiveQueueItem>());
         await Pump(console, 200);
         double Rows() => console.SourceColumn.MinHeight - console.SourceControls.ActualHeight - console.WorshipPanel.Margin.Top
-            - console.SendItemButton.ActualHeight - console.SendItemButton.Margin.Top - 4;
+            - console.WorshipHeader.ActualHeight - console.SendItemButton.ActualHeight - console.SendItemButton.Margin.Top - 4;
         ThreeSongs(main);
         await Pump(console, 300);
         double row = Row(console, 0).ActualHeight;

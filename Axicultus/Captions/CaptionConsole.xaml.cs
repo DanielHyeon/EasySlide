@@ -141,6 +141,7 @@ public partial class CaptionConsole : Window
         _main.OutputLyricsPages.CollectionChanged += OutputPagesChanged;
         _captions.PropertyChanged += CaptionChanged;
         UpdateHeld();
+        ShowChosenColor();
         Loaded += LoadRecovery;
         Closed += OnConsoleClosed;
         if (captions.Deck is { } deck) ShowDeck(deck, captions.CurrentSlide, captions.BoxKey is { Length: > 0 } key ? key : CaptionDeck.AllTextKey);
@@ -236,12 +237,16 @@ public partial class CaptionConsole : Window
         if (e.PropertyName == nameof(CaptionSession.Display) && DisplayRadio() is { IsChecked: not true } radio) radio.IsChecked = true;
         if (e.PropertyName is nameof(CaptionSession.Visible) or nameof(CaptionSession.ScreenOff) or nameof(CaptionSession.HasText)
             or nameof(CaptionSession.ReadyText) or nameof(CaptionSession.ReadyImage) or nameof(CaptionSession.Style)) UpdateHeld();
-        if (e.PropertyName == nameof(CaptionSession.Style)) UpdateSteps(); // the next preview in the new look
+        if (e.PropertyName == nameof(CaptionSession.Style))
+        {
+            UpdateSteps(); // the next preview in the new look
+            ShowChosenColor();
+        }
         if (e.PropertyName is nameof(CaptionSession.CurrentSlide) or nameof(CaptionSession.Following))
         {
             if (e.PropertyName == nameof(CaptionSession.CurrentSlide)) _scoreRow = 0;
-            Status.Text = _captions.Following ? $"PPT 따라가기 · {_captions.CurrentSlide}장" :
-                _captions.Mirroring ? "송출 화면 자막을 따라가는 중" : "직접 입력";
+            // The source shows on its switch and the slide on the card: the status line is kept for messages.
+            Status.Text = "";
             // The viewed slide follows the one on air, unless the operator is editing its caption (not saved yet).
             if (_captions.Following && !CueEdited && Slides.SelectedItem is int shown && shown != _captions.CurrentSlide) Slides.SelectedItem = _captions.CurrentSlide;
             UpdateScore();
@@ -446,7 +451,7 @@ public partial class CaptionConsole : Window
         if (_main.OutputItem is { ContentPath.Length: > 0 } pending && LiveItemKindMatcher.IsPowerPoint(LiveItemKindMatcher.InferLegacyKind(pending))) return;
         _captions.ShowScreenText(_main.OutputLyricsText ?? "");
         UpdateScore();
-        Status.Text = _main.HasOutputLyricsText ? "송출 화면의 자막을 따라가는 중" : "송출 화면에 자막으로 보낼 글자가 없습니다.";
+        Status.Text = _main.HasOutputLyricsText ? "" : "송출 화면에 자막으로 보낼 글자가 없습니다.";
     }
 
     // slide: the one the output screen shows (else the one viewed in the settings window).
@@ -455,7 +460,7 @@ public partial class CaptionConsole : Window
         if (_captions.Deck == null) return;
         _captions.Follow(slide ?? SelectedSlide, _chosenKey);
         _outputSlide = _main.OutputPowerPoint.SlideNumber;
-        Status.Text = $"PPT 자막 따라가는 중 · {Path.GetFileName(_captions.Deck.Path)}";
+        Status.Text = ""; // the deck is named on the card above
         UpdateScore();
         Changed();
     }
@@ -478,7 +483,7 @@ public partial class CaptionConsole : Window
         {
             _captions.SetImage(null);
             _captions.Publish(_editor.DraftText, show: false);
-            Status.Text = "직접 입력한 자막을 송출합니다.";
+            Status.Text = "";
             Draft.Focus();
             UpdateSteps(); // no deck is followed now
         }
@@ -494,7 +499,7 @@ public partial class CaptionConsole : Window
 
     private void ScoreChanged(object sender, RoutedEventArgs e)
     {
-        if (ScoreRowLabel == null) return; // during InitializeComponent
+        if (!IsInitialized) return; // during InitializeComponent (controls further down are not made yet)
         if (sender is RadioButton { Tag: string display }) _captions.Display = display;
         _scoreRow = 0;
         UpdateScore();
@@ -520,7 +525,7 @@ public partial class CaptionConsole : Window
         if (!ScoreOn || ScreenMode.IsChecked != true || !_captions.Following || _captions.Deck is not { } deck)
         {
             ScoreRowLabel.Text = _captions.Following && _captions.Deck != null ? $"PPT {_captions.CurrentSlide}/{_captions.Deck.Slides.Length}장"
-                : _captions.Mirroring ? "송출 화면의 글자" : "";
+                : _captions.Mirroring ? (_main.OutputItem?.Title is { Length: > 0 } title ? title : "송출 화면의 글자") : "";
             // the deck name only while it is followed; its line stays, so the list below does not move from item to item
             DeckLabel.Visibility = _captions.Following ? Visibility.Visible : Visibility.Hidden;
             _captions.SetImage(null);
@@ -585,7 +590,7 @@ public partial class CaptionConsole : Window
         DeckLabel.Visibility = Visibility.Visible;
         ScoreRowLabel.Text = $"PPT {_captions.CurrentSlide}/{deck.Slides.Length}장 · " +
             (found ? $"{_scoreRow + 1}/{rows}줄" : $"{(_scoreRow == 0 ? "위" : "아래")} 절반 (악보 줄을 찾지 못함)");
-        Status.Text = $"악보 {_captions.CurrentSlide}장 {_scoreRow + 1}/{rows}{(withText ? " + 자막" : "")}";
+        Status.Text = ""; // the row is on the card above
     }
 
     // Full-size slide pictures for the score (the operator's own are 640×360): rendered once, the next one ahead.
@@ -1090,6 +1095,19 @@ public partial class CaptionConsole : Window
     private void PickColor(object sender, RoutedEventArgs e)
     {
         if (sender is FrameworkElement { Tag: string color }) _captions.SetStyle(_captions.Style with { Color = color });
+    }
+
+    // The colour in use has the accent ring (none of them for a colour picked with 직접 선택).
+    private void ShowChosenColor()
+    {
+        foreach (var swatch in Swatches.Children.OfType<Button>())
+        {
+            if (swatch.Tag is not string color) continue;
+            bool chosen = string.Equals(color, _captions.Style.Color, StringComparison.OrdinalIgnoreCase);
+            swatch.SetResourceReference(Control.BorderBrushProperty, chosen ? "Brush.Accent.Primary" : "Brush.Border.Strong");
+            swatch.BorderThickness = new Thickness(chosen ? 3 : 2);
+            System.Windows.Automation.AutomationProperties.SetItemStatus(swatch, chosen ? "선택됨" : "");
+        }
     }
 
     private void PickCustomColor(object sender, RoutedEventArgs e)
