@@ -13,7 +13,7 @@ internal sealed record CaptionStep(int Slide, int Row, string Label, string Text
     public string Spoken => Text.Length > 0 ? $"{Label} · {Text}" : Label;
 }
 
-/// <summary>A caption as the camera screen would show it (the console's next preview); the names are CaptionSession's.</summary>
+/// <summary>A caption as the camera screen would show it (the held caption drawn dim while hidden); the names are CaptionSession's.</summary>
 internal sealed record CaptionLook(string Label, ImageSource? PublicImage, string PublicText, int CaptionLines, int ScoreSize,
     Brush CaptionBackground, Brush CaptionForeground)
 {
@@ -49,8 +49,6 @@ internal sealed partial class CaptionConsoleViewModel(CaptionSession session) : 
     [ObservableProperty] private IReadOnlyList<CaptionStep> _steps = [];
     [ObservableProperty] private CaptionStep? _currentStep;
 
-    /// <summary>What the next button would send (not sent); null when it cannot be told or nothing follows.</summary>
-    [ObservableProperty] private CaptionLook? _next;
 
     /// <summary>The strip's step the next button would go to (marked in the strip); null when none.</summary>
     [ObservableProperty] private CaptionStep? _nextStep;

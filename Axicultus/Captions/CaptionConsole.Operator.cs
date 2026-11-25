@@ -384,14 +384,10 @@ public partial class CaptionConsole
     private void NarrowTopBar(object sender, SizeChangedEventArgs e) =>
         DestinationsLabel.Visibility = e.NewSize.Width < 900 ? Visibility.Collapsed : Visibility.Visible;
 
-    // ---- the step strip and the next preview ----
+    // ---- the step strip ----
 
-    // The row shown and what it was cut from (the content picture's page and the deck's target, or a render: no page).
-    private (BitmapSource Image, ScorePage? Page, RowExtent Target)? _shownRows;
     // Row thumbnails per slide, made once per deck (small copies: they keep no whole picture alive).
     private readonly Dictionary<(string Path, int Slide), ImageSource?[]> _rowThumbs = [];
-    // The next preview's last row (what it was cut from and which row), so it is cut once.
-    private (BitmapSource Source, int Row, BitmapSource? Image, int Rows)? _nextRow;
     private bool _showingSteps; // the strip is being filled or its step set: no pick of the operator
     private CaptionStep? _scrolledTo;
 
@@ -438,21 +434,15 @@ public partial class CaptionConsole
             IReadOnlyList<CaptionStep> steps = following ? DeckSteps(_captions.Deck!)
                 : [.. pages.Select(page => new CaptionStep(page.PageIndex + 1, 0, PageLabel(page), FirstLine(page.BodyText), null))];
             if (!steps.SequenceEqual(_editor.Steps)) _editor.Steps = steps;
+            steps = _editor.Steps; // the strip's own steps (equal ones are kept): the marks below are found by reference
             int row = _rowShown ? _scoreRow : 0;
             int at = Array.FindIndex(pages, page => page.IsCurrent);
             _editor.CurrentStep = _pageSteps ? (at >= 0 ? steps[at] : null)
                 : steps.FirstOrDefault(s => s.Slide == _captions.CurrentSlide && s.Row == row)
                     ?? steps.FirstOrDefault(s => s.Slide == _captions.CurrentSlide);
             StepStrip.SetCurrentValue(Selector.SelectedItemProperty, _editor.CurrentStep);
-            // (the panel's next page as the caption would show it: the caption is the panel's text)
-            _editor.Next = following ? NextLook(_captions.Deck!)
-                : at >= 0 && at + 1 < pages.Length ? new(PageLabel(pages[at + 1]), null, pages[at + 1].BodyText.Trim(),
-                    _captions.CaptionLines, _captions.ScoreSize, _captions.CaptionBackground, _captions.CaptionForeground)
-                : null;
-            // (a score row's next may be a slide the strip shows whole: "3장 1줄" is the step "3장")
-            _editor.NextStep = _editor.Next is { } next
-                ? steps.FirstOrDefault(s => s.Label == next.Label) ?? steps.FirstOrDefault(s => next.Label.StartsWith(s.Label + " ", StringComparison.Ordinal))
-                : null;
+            _editor.NextStep = _pageSteps ? (at >= 0 && at + 1 < steps.Count ? steps[at + 1] : null)
+                : following ? NextDeckStep(steps) : null;
         }
         finally { _showingSteps = false; }
         // (scrolled to only when the step changes: the operator may be looking further along the strip)
@@ -521,56 +511,11 @@ public partial class CaptionConsole
         Changed();
     }
 
-    // What the next button would send: the next row of the score row on air, else the next slide (its first row when it sends a
-    // score whose picture is at hand, else its text); null at the end.
-    private CaptionLook? NextLook(CaptionDeck deck)
+    // The step the next button goes to (Next): the next score row of the slide on air, else the next slide (its first
+    // row); none at the end, or when the next row is not a step of its own (a score made by rendering the slide).
+    private CaptionStep? NextDeckStep(IReadOnlyList<CaptionStep> steps)
     {
-        int slide = _captions.CurrentSlide, row = 0, rows = 0;
-        BitmapSource? image = null;
-        if (_rowShown && _scoreRow + 1 < _scoreRows && _shownRows is var (shown, page, target))
-        {
-            row = _scoreRow + 1;
-            image = RowOf(shown, row, page?.Fit(target), page, out rows);
-        }
-        else if (slide < deck.Slides.Length)
-        {
-            slide++;
-            if (ScoreOnFor(slide)) image = FirstRow(deck, slide, out rows);
-        }
-        else return null;
-        bool withText = image == null || ScoreAndText.IsChecked == true;
-        string text = !withText ? "" : (image != null ? RowLyrics(deck, slide, row, rows) : null) ?? _captions.TextFor(slide, _chosenKey);
-        return new(image != null ? $"{slide}장 {row + 1}줄" : $"{slide}장", image, text,
-            _captions.CaptionLines, _captions.ScoreSize, _captions.CaptionBackground, _captions.CaptionForeground);
-    }
-
-    // The next slide's first row, from the picture its row on air would come from: its content picture when kept, else
-    // its render when made, else the operator's picture of it (rows found once).
-    private BitmapSource? FirstRow(CaptionDeck deck, int slide, out int rows)
-    {
-        rows = 0;
-        if (_scoreDeck is { } prepared && ReferenceEquals(prepared.Deck, deck) && prepared.Slides.Contains(slide))
-            return _pictures.TryGet((deck.Path, slide), out var picture) ? RowOf(picture.Image, 0, picture.Page.Fit(prepared.Target), picture.Page, out rows) : null;
-        // While the deck's pictures are read no row goes out (UpdateScore), so none is previewed.
-        if (deck.Slides.Any(s => s.Picture != null) && (_scoreDeck is not { } read || !ReferenceEquals(read.Deck, deck))) return null;
-        if (_sharp.TryGetValue((deck.Path, slide), out var render)) return RowOf(render, 0, null, null, out rows);
-        return new[] { _main.OutputPowerPoint, _main.PowerPoint }.FirstOrDefault(p => SamePath(p.LoadedContentPath, deck.Path)
-            && p.SlideNumber == slide && p.PreviewImage is BitmapSource { PixelHeight: > 1 })?.PreviewImage is BitmapSource preview
-            ? RowOf(preview, 0, null, null, out rows) : null;
-    }
-
-    // Row k of a picture: from rows measured before (with its marks painted over), or found on it (a render).
-    private BitmapSource? RowOf(BitmapSource source, int row, ScoreRow[]? measured, ScorePage? page, out int rows)
-    {
-        rows = 0;
-        if (_nextRow is { } kept && ReferenceEquals(kept.Source, source) && kept.Row == row) { rows = kept.Rows; return kept.Image; }
-        if (measured != null && page != null && row < measured.Length) measured[row] = measured[row] with { Erase = page.Erase(row) };
-        var cut = measured != null ? CropRow(source, row, measured)
-            // the row on air's own picture (its rows are cached), or one of another thread: rows found where it lives
-            : ReferenceEquals(_shownRows?.Image, source) || !source.IsFrozen ? CropRow(source, row)
-            : CropRow(source, row, ScoreLayout.FindRows(source));
-        _nextRow = (source, row, cut?.Image, cut?.Rows ?? 0);
-        rows = cut?.Rows ?? 0;
-        return cut?.Image;
-    }
-}
+        int slide = _captions.CurrentSlide;
+        if (_rowShown && _scoreRow + 1 < _scoreRows) return steps.FirstOrDefault(s => s.Slide == slide && s.Row == _scoreRow + 1);
+        return steps.FirstOrDefault(s => s.Slide == slide + 1);
+    }}

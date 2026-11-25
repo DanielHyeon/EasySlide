@@ -533,7 +533,6 @@ public partial class CaptionConsole : Window
         static bool Same(string? a, string b) => a != null && string.Equals(Path.GetFullPath(a), b, StringComparison.OrdinalIgnoreCase);
         BitmapSource? image = null;
         ScoreRow[]? measured = null;
-        ScorePage? shownPage = null;
         bool rendered = true;
         // The score picture inside the deck first (no background, no wait for PowerPoint); the deck's pictures are read
         // before its first row is cut, so every row has the deck's one size. Meanwhile no row (of the last song) is on air.
@@ -552,7 +551,7 @@ public partial class CaptionConsole : Window
                 // Measured once, off the UI thread: only cut here.
                 // (while it is read again, the last row does not stay on air)
                 if (ContentPicture(deck, _captions.CurrentSlide) is not var (picture, page)) { _captions.SetImage(null); Status.Text = "악보 그림을 만드는 중…"; return; }
-                (image, measured, rendered, shownPage) = (picture, page.Fit(prepared.Target), false, page);
+                (image, measured, rendered) = (picture, page.Fit(prepared.Target), false);
                 _pictures.OnAir = (deck.Path, _captions.CurrentSlide);
                 int sent = Math.Clamp(_scoreRow, 0, measured.Length - 1);
                 measured[sent] = measured[sent] with { Erase = page.Erase(sent) };
@@ -585,7 +584,6 @@ public partial class CaptionConsole : Window
         string? rowLyrics = withText ? RowLyrics(deck, current, _scoreRow, rows) : null;
         _captions.SetImage(cropped, withText, rowLyrics);
         _rowShown = true;
-        _shownRows = (image, shownPage, _scoreDeck?.Target ?? default);
         DeckLabel.Visibility = Visibility.Visible;
         ScoreRowLabel.Text = $"PPT {_captions.CurrentSlide}/{deck.Slides.Length}장 · " +
             (found ? $"{_scoreRow + 1}/{rows}줄" : $"{(_scoreRow == 0 ? "위" : "아래")} 절반 (악보 줄을 찾지 못함)");
@@ -1188,7 +1186,6 @@ public partial class CaptionConsole : Window
         _noStaves = null;
         _pictures.Clear();
         _rowThumbs.Clear();
-        (_shownRows, _nextRow) = (null, null);
         if (deck.Slides.Any(s => s.Picture != null)) _ = PrepareScoreAsync(deck);
     }
 

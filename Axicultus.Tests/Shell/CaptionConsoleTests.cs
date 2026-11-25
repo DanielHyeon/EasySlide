@@ -1246,7 +1246,7 @@ public sealed partial class CaptionConsoleTests
     });
 
     [Fact]
-    public Task TheNextPreviewIsTheNextRowThenTheNextSlideAndNothingAtTheEnd() => WithConsole(async (console, session, directory) =>
+    public Task TheNextStepIsTheNextRowThenTheNextSlideAndNothingAtTheEnd() => WithConsole(async (console, session, directory) =>
     {
         var editor = Assert.IsType<CaptionConsoleViewModel>(console.DataContext);
         var path = CaptionAllTextTests.WriteDeck(directory.FullName, [CaptionScorePictureTests.ScorePng()],
@@ -1258,40 +1258,19 @@ public sealed partial class CaptionConsoleTests
         console.ScoreOnly.IsChecked = true;
         session.Follow(1, CaptionDeck.AllTextKey);
         Assert.Contains("1/2줄", console.ScoreRowLabel.Text);
-        Assert.Equal("1장 2줄", editor.Next?.Label); // the same slide's second row
-        Assert.NotNull(editor.Next!.PublicImage);
-        Assert.Equal(("1장 1줄", "1장 2줄"), (editor.CurrentStep?.Label, editor.NextStep?.Label)); // the strip marks it
+        Assert.Equal(("1장 1줄", "1장 2줄"), (editor.CurrentStep?.Label, editor.NextStep?.Label)); // the same slide's second row
         typeof(CaptionConsole).GetMethod("Next", Private)!.Invoke(console, [null, null]);
-        Assert.Equal("2장 1줄", editor.Next?.Label);
-        Assert.NotNull(editor.Next!.PublicImage);
+        Assert.Equal(("1장 2줄", "2장 1줄"), (editor.CurrentStep?.Label, editor.NextStep?.Label));
+        Assert.Same(editor.Steps[2], editor.NextStep); // the strip's own step (marked after a next, not only the first time)
         typeof(CaptionConsole).GetMethod("Next", Private)!.Invoke(console, [null, null]);
-        Assert.Equal("2장 2줄", editor.Next?.Label);
+        Assert.Equal("2장 2줄", editor.NextStep?.Label);
         typeof(CaptionConsole).GetMethod("Next", Private)!.Invoke(console, [null, null]);
         Assert.Contains("2/2줄", console.ScoreRowLabel.Text);
-        Assert.Null(editor.Next); // the end
-        Assert.Null(editor.NextStep);
+        Assert.Null(editor.NextStep); // the end
     });
 
     [Fact]
-    public Task TheNextTextIsTheChosenBoxOfTheNextSlide() => WithConsole(async (console, session, directory) =>
-    {
-        var editor = Assert.IsType<CaptionConsoleViewModel>(console.DataContext);
-        var path = CaptionAllTextTests.WriteDeck(directory.FullName, [],
-            CaptionAllTextTests.Slide(("TextBox 3", "일장 상자"), ("TextBox 5", "일장 다른")),
-            CaptionAllTextTests.Slide(("TextBox 9", "이장")),
-            CaptionAllTextTests.Slide(("TextBox 3", "삼장 상자"), ("TextBox 6", "삼장 다른")));
-        Assert.True(await console.PrepareDeckAsync(path, 1));
-        console.ScreenMode.IsChecked = true;
-        session.Follow(1, CaptionDeck.AllTextKey);
-        console.Settings.Boxes.SelectedItem = console.Settings.Boxes.Items.Cast<CaptionBox>().Single(box => box.Key == "shape:TextBox 3");
-        Assert.Equal(("2장", "이장"), (editor.Next?.Label, editor.Next?.PublicText)); // no TextBox 3: the whole text
-        session.MoveToSlide(2);
-        Assert.Equal(("3장", "삼장 상자"), (editor.Next?.Label, editor.Next?.PublicText));
-        Assert.Null(editor.Next!.PublicImage);
-    });
-
-    [Fact]
-    public Task WhileTheScoreIsMadeTheNextPreviewIsTheNextSlide() => WithConsole(async (console, session, directory) =>
+    public Task WhileTheScoreIsMadeTheNextStepIsTheNextSlide() => WithConsole(async (console, session, directory) =>
     {
         var editor = Assert.IsType<CaptionConsoleViewModel>(console.DataContext);
         var path = CaptionAllTextTests.WriteDeck(directory.FullName, [CaptionScorePictureTests.ScorePng()],
@@ -1302,7 +1281,7 @@ public sealed partial class CaptionConsoleTests
         typeof(CaptionConsole).GetField("_scoreDeck", Private)!.SetValue(console, null);
         typeof(CaptionConsole).GetField("_preparingScore", Private)!.SetValue(console, session.Deck);
         session.Follow(2, CaptionDeck.AllTextKey);
-        Assert.Equal("3장", editor.Next?.Label); // no row of slide 2 is on air
+        Assert.Equal("3장", editor.NextStep?.Label); // no row of slide 2 is on air
     });
 
     [Fact]

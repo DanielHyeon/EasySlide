@@ -169,7 +169,7 @@ public sealed partial class CaptionConsoleTests
     });
 
     [Fact]
-    public Task TheNextPreviewFollowsTheLookAndIsNotRebuiltForNothing() => WithConsole(async (console, session, directory) =>
+    public Task TheHeldPreviewFollowsTheLookAndIsNotRebuiltForNothing() => WithConsole(async (console, session, directory) =>
     {
         var editor = Assert.IsType<CaptionConsoleViewModel>(console.DataContext);
         var path = CaptionAllTextTests.WriteDeck(directory.FullName, [CaptionScorePictureTests.ScorePng()],
@@ -179,32 +179,15 @@ public sealed partial class CaptionConsoleTests
         console.ScreenMode.IsChecked = true;
         console.ScoreAndText.IsChecked = true;
         session.Follow(1, CaptionDeck.AllTextKey);
-        var (next, held) = (editor.Next!, editor.Held!);
-        Assert.Same(session.CaptionForeground, session.CaptionForeground); // one brush per look
+        var held = editor.Held!;
         session.SetVisible(false); // goes out again with nothing new: nothing is redrawn
         typeof(CaptionConsole).GetMethod("UpdateSteps", Private)!.Invoke(console, null);
-        Assert.Same(next, editor.Next);
         Assert.Same(held, editor.Held);
         console.LinesBox.SelectedIndex = 0;
         console.ScoreSizeBox.SelectedIndex = 2;
         session.SetStyle(session.Style with { Color = "#FFE14D" });
-        Assert.Equal((1, 2, 1, 2), (editor.Next!.CaptionLines, editor.Next.ScoreSize, editor.Held!.CaptionLines, editor.Held.ScoreSize));
-        Assert.Same(session.CaptionForeground, editor.Next.CaptionForeground);
-        // The next slide's picture dropped from the cache: no row to show until it is read again, then it is shown.
-        var deck = session.Deck!;
-        var cache = (ScorePictures)typeof(CaptionConsole).GetField("_pictures", Private)!.GetValue(console)!;
-        Typed(console, "_nextRow", null);
-        Next(console); // row 2 of slide 1
-        cache.Clear();
-        Typed(console, "_nextRow", null);
-        typeof(CaptionConsole).GetMethod("UpdateSteps", Private)!.Invoke(console, null);
-        Assert.Null(editor.Next!.PublicImage);
-        await (Task)typeof(CaptionConsole).GetMethod("LoadPictureAsync", Private)!.Invoke(console, [deck, 2])!;
-        Assert.NotNull(editor.Next!.PublicImage);
-        Assert.Equal("2장 1줄", editor.Next.Label);
-
-        static void Typed(CaptionConsole console, string field, object? value) => typeof(CaptionConsole).GetField(field, Private)!.SetValue(console, value);
-        static void Next(CaptionConsole console) => typeof(CaptionConsole).GetMethod("Next", Private)!.Invoke(console, [null, null]);
+        Assert.Equal((1, 2), (editor.Held!.CaptionLines, editor.Held.ScoreSize));
+        Assert.Same(session.CaptionForeground, editor.Held.CaptionForeground);
     });
 
     [Fact]
@@ -387,29 +370,6 @@ public sealed partial class CaptionConsoleTests
         console.ScreenMode.IsChecked = true;
         await Pump(console, 300);
         Assert.Equal((true, 2), (session.Following, session.CurrentSlide)); // not slide 5, the one last viewed
-    });
-
-    [Fact]
-    public Task TheNextPreviewTakesItsRowFromTheSamePicturesAsTheRowOnAir() => WithConsole(async (console, session, directory) =>
-    {
-        // Scores cut in two (the render would show them) and no renderer: the operator's PowerPoint picture is the source.
-        var editor = Assert.IsType<CaptionConsoleViewModel>(console.DataContext);
-        string Pieces() => """<p:spTree>""" + CaptionScorePictureTests.Image(0, CaptionScorePictureTests.Full, 1600000)
-            + CaptionScorePictureTests.Image(0, CaptionScorePictureTests.Full, 2400000, y: 2000000) + "</p:spTree>";
-        var path = CaptionAllTextTests.WriteDeck(directory.FullName, [CaptionScorePictureTests.ScorePng()], Pieces(), Pieces(), Pieces());
-        Assert.True(await console.PrepareDeckAsync(path, 1));
-        await console.ScorePreparation;
-        console.ScreenMode.IsChecked = true;
-        console.ScoreOnly.IsChecked = true;
-        session.Follow(1, CaptionDeck.AllTextKey);
-        Assert.Equal("2장", editor.Next?.Label); // no picture of slide 2 yet: its text
-        var main = (MainViewModel)typeof(CaptionConsole).GetField("_main", Private)!.GetValue(console)!;
-        typeof(Axicultus.Wpf.Rendering.PowerPointPreviewViewModel).GetProperty("LoadedContentPath")!.SetValue(main.PowerPoint, path);
-        main.PowerPoint.SlideNumber = 2;
-        main.PowerPoint.PreviewImage = ScoreSlide(false, 90, 330);
-        await Idle(console);
-        Assert.Equal("2장 1줄", editor.Next?.Label);
-        Assert.NotNull(editor.Next!.PublicImage);
     });
 
     [Fact]
