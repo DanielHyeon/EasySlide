@@ -12,8 +12,9 @@ using Xunit;
 
 namespace Axicultus.Wpf.Tests.Shell;
 
-// a041: the worship list in the console (following the screen or typing): pick an item and send it as a double-click
-// in the main worship list does, without leaving a maximized console.
+// a041: the worship list in the console (following the screen or typing): pick an item and send it to the output panel
+// without leaving a maximized console. A live output shows it as a double-click in the main list does; one that is off
+// stays off.
 public sealed partial class CaptionConsoleTests
 {
     internal static (LiveQueueItem First, LiveQueueItem Second, LiveQueueItem Third) ThreeSongs(MainViewModel main)
@@ -133,8 +134,8 @@ public sealed partial class CaptionConsoleTests
         Click(console.SendItemButton);
         await Pump(console, 300);
 
-        Assert.Same(second, main.OutputItem); // the output screen shows the second song
-        Assert.Same(second, main.LiveRow);
+        Assert.Same(second, main.OutputItem); // the output panel holds the second song; the output stays off
+        Assert.Equal(Axicultus.Wpf.Controls.LiveState.Off, main.Session.Current.State);
         Assert.Equal(("환영합니다", true), (session.PublicText, session.Visible)); // the typed caption stays
         Assert.Same(console.Draft, FocusManager.GetFocusedElement(console));
         Assert.False(Press(console.Draft, Key.D2)); // the next words are typed into the box: no display key, no on-air switch
@@ -475,7 +476,7 @@ public sealed partial class CaptionConsoleTests
         await ClickAsync(console.SendItemButton);
         console.SendItemButton.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, 0, MouseButton.Left) { RoutedEvent = Mouse.PreviewMouseUpEvent });
         await Pump(console, 300);
-        Assert.Same(main.Queue[0], main.LiveRow);
+        Assert.Same(main.Queue[0], main.OutputItem);
         Assert.Same(console.Draft, FocusManager.GetFocusedElement(console));
         Assert.Equal(bottom, console.SourcePanel.VerticalOffset); // the list and the send button stay in view
 
@@ -539,7 +540,31 @@ public sealed partial class CaptionConsoleTests
         await ClickAsync(console.SendItemButton);
         await Pump(console, 300);
         Assert.Same(verses, main.OutputItem);
-        Assert.Equal(0, main.Session.Current.CurrentLyricsPageIndex);
-        Assert.Equal("첫째 절", main.Session.Current.CurrentItemBodyText);
+        Assert.Equal("첫째 절", main.OutputLyricsText.Trim()); // (the output panel: the output is off and stays off)
+    });
+
+    // The output is off: an item sent from the console waits in the output panel and the caption follows it there. The
+    // output is not started (the song would be on the screen and in the caption).
+    [Fact]
+    public Task ASendFromTheConsoleDoesNotStartTheLiveOutput() => WithConsole(async (console, session, _) =>
+    {
+        var main = Main(console);
+        var (_, second, third) = ThreeSongs(main);
+        console.ScreenMode.IsChecked = true;
+        await ClickAsync(console.AirButton);
+        console.WorshipList.SelectedItem = second;
+        await ClickAsync(console.SendItemButton);
+        await Pump(console, 300);
+
+        Assert.Equal(Axicultus.Wpf.Controls.LiveState.Off, main.Session.Current.State);
+        Assert.Null(main.LiveRow);
+        Assert.Same(second, main.OutputItem);
+        Assert.Contains("주의 말씀", session.PublicText);
+
+        DoubleClick(Title(Row(console, 2), third.Title)); // a double-click and Enter send the same way
+        await Pump(console, 300);
+        Assert.Equal(Axicultus.Wpf.Controls.LiveState.Off, main.Session.Current.State);
+        Assert.Same(third, main.OutputItem);
+        Assert.Contains("나의 모든 것", session.PublicText);
     });
 }

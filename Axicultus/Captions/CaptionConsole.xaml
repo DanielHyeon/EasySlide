@@ -233,11 +233,12 @@
                     </Grid>
 
                     <!-- The main window's worship list (DataContext: MainViewModel), in both sources: a pick here is a pick
-                         there; the send button, a double-click and Enter do what a double-click in the main list does. -->
+                         there; the send button, a double-click and Enter put the item in the output panel and, unlike a
+                         double-click in the main list, never start the live output (the screen would show it a second time). -->
                     <DockPanel x:Name="WorshipPanel" Grid.Row="1" Margin="0,8,0,0">
                         <Button x:Name="SendItemButton" DockPanel.Dock="Bottom" Content="송출" Margin="0,8,0,0" HorizontalAlignment="Stretch"
-                                Command="{Binding WorshipListDoubleClickCommand}" AutomationProperties.Name="고른 예배 순서 항목 송출"
-                                ToolTip="고른 항목을 송출 화면으로 보냅니다(본창 예배 순서 더블클릭과 같음). 따라가기에서는 자막이 송출 화면을 따라가고, 직접 입력에서는 입력한 자막 그대로입니다." />
+                                Command="{Binding SendWorshipSelectionToOutputCommand}" AutomationProperties.Name="고른 예배 순서 항목 송출"
+                                ToolTip="고른 항목을 송출 칸에 올립니다. 라이브가 꺼져 있으면 켜지 않고, 라이브 중이면 송출 화면도 바뀝니다. 따라가기에서는 자막이 송출 칸을 따라가고, 직접 입력에서는 입력한 자막 그대로입니다." />
                         <Grid>
                             <ListBox x:Name="WorshipList" ItemsSource="{Binding Queue}" SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
                                      ScrollViewer.HorizontalScrollBarVisibility="Disabled" HorizontalContentAlignment="Stretch" FontSize="{DynamicResource Type.BodyLarge.FontSize}"
@@ -248,7 +249,7 @@
                                     <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
                                         <Setter Property="AutomationProperties.Name" Value="{Binding Title}" />
                                         <Setter Property="Padding" Value="8,4" />
-                                        <Setter Property="input:RowDoubleClick.Command" Value="{Binding DataContext.WorshipListDoubleClickCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" />
+                                        <Setter Property="input:RowDoubleClick.Command" Value="{Binding DataContext.SendWorshipSelectionToOutputCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" />
                                     </Style>
                                 </ListBox.ItemContainerStyle>
                                 <ListBox.ItemTemplate>

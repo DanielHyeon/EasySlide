@@ -1188,6 +1188,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ShowPreviewFormatModeCommand = new RelayCommand(() => ShowPreviewPanelMode(PreviewPanelMode.Format));
         ShowPreviewInfoModeCommand = new RelayCommand(() => ShowPreviewPanelMode(PreviewPanelMode.Info));
         WorshipListDoubleClickCommand = new AsyncRelayCommand(WorshipListDoubleClickAsync, CanWorshipListDoubleClick);
+        SendWorshipSelectionToOutputCommand = new AsyncRelayCommand(() => SendWorshipSelectionAsync(goLive: false), CanWorshipListDoubleClick);
         PreviewToLiveCommand = new AsyncRelayCommand(PreviewToLiveAsync, CanPreviewToLive);
         GoLiveCommand = new AsyncRelayCommand(GoLiveAsync, CanGoLive);
         SendToOutputAndNextCommand = new AsyncRelayCommand(SendToOutputAndNextAsync, CanGoLive);
@@ -1460,6 +1461,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public IAsyncRelayCommand PreviewToLiveCommand { get; }
     /// <summary>FrmMain WorshipListItems_DoubleClick: media 는 실행, 그 외 항목은 PreviewItemToLive 흐름.</summary>
     public IAsyncRelayCommand WorshipListDoubleClickCommand { get; }
+    /// <summary>The picked worship row to the output panel; unlike a double-click it never starts the live output.</summary>
+    public IAsyncRelayCommand SendWorshipSelectionToOutputCommand { get; }
     public IAsyncRelayCommand GoLiveCommand { get; }
 
     /// <summary>상단/메뉴 F11: 선택 항목을 라이브로 송출하고 곧바로 다음 항목으로 넘어간다(자동 다음 설정과 무관).</summary>
@@ -7047,7 +7050,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private bool CanWorshipListDoubleClick()
         => SelectedItem is { } item && (IsMediaItem(item) || !HasPowerPointLimitViolation);
 
-    private async Task WorshipListDoubleClickAsync()
+    private Task WorshipListDoubleClickAsync() => SendWorshipSelectionAsync(goLive: true);
+
+    // goLive false (the caption console's send): an output that is off stays off. The item waits in the output panel,
+    // where the caption follows it; live on the screen as well it would be shown twice.
+    private async Task SendWorshipSelectionAsync(bool goLive)
     {
         if (SelectedItem is not { } item)
         {
@@ -7066,7 +7073,25 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        await PreviewToLiveAsync(PrepareOutputFromItem(item)).ConfigureAwait(true);
+        var prepared = PrepareOutputFromItem(item);
+        if (goLive || _session.Current.State is LiveState.Active or LiveState.Hidden)
+        {
+            await PreviewToLiveAsync(prepared).ConfigureAwait(true);
+            return;
+        }
+
+        // A deck sent before its preview was drawn (a double-click): the panel draws it itself.
+        if (IsPowerPointItem(prepared) && prepared.ContentPath is { Length: > 0 } deck
+            && OutputPowerPoint.State != Rendering.PowerPointPreviewState.Ready)
+        {
+            var (width, height) = ResolvePptRenderSize();
+            await OutputPowerPoint.LoadAsync(deck, Math.Max(1, prepared.SlideNumber), width, height).ConfigureAwait(true);
+            if (!ReferenceEquals(OutputItem, prepared)) return; // another item was sent meanwhile
+            EnsurePowerPointThumbnails(OutputPowerPoint, deck);
+        }
+
+        StatusText = $"Output 준비: {prepared.Title}";
+        NotifyCommandStates();
     }
 
     private bool CanPreviewToLive()
@@ -11812,6 +11837,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         CopyPreviewToOutputShortcutCommand.NotifyCanExecuteChanged();
         CopyPreviewToOutputAndClearBlackCommand.NotifyCanExecuteChanged();
         WorshipListDoubleClickCommand.NotifyCanExecuteChanged();
+        SendWorshipSelectionToOutputCommand.NotifyCanExecuteChanged();
         PreviewToLiveCommand.NotifyCanExecuteChanged();
         PlaySelectedWorshipMediaCommand.NotifyCanExecuteChanged();
         PlaySelectedWorshipMediaOnOutputCommand.NotifyCanExecuteChanged();

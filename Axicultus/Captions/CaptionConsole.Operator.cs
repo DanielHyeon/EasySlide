@@ -116,12 +116,12 @@ public partial class CaptionConsole
         SourcePanel.ScrollToVerticalOffset(kept);
     }
 
-    // Enter in the worship list (chosen with Tab) sends the picked item, as a double-click does; a held Enter sends once.
+    // Enter in the worship list (chosen with Tab) sends the picked item, as the send button does; a held Enter sends once.
     private void WorshipListKey(object sender, KeyEventArgs e)
     {
         if (e.Key != Key.Enter || Keyboard.Modifiers != ModifierKeys.None) return;
         e.Handled = true;
-        if (!e.IsRepeat && _main.WorshipListDoubleClickCommand.CanExecute(null)) _main.WorshipListDoubleClickCommand.Execute(null);
+        if (!e.IsRepeat && _main.SendWorshipSelectionToOutputCommand.CanExecute(null)) _main.SendWorshipSelectionToOutputCommand.Execute(null);
     }
 
     // The wheel over the worship list or the typed box scrolls them; at their end (a small window) it scrolls the column.
