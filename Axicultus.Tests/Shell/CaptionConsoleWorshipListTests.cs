@@ -431,7 +431,9 @@ public sealed partial class CaptionConsoleTests
     [Fact]
     public Task OnASmallWindowTheWheelScrollsTheColumnAndASendKeepsItsPlace() => WithConsole(async (console, _, _) =>
     {
-        TypeSizes(console, 1.4); // the senior size: the column scrolls in the smallest window whatever the theme
+        // Larger than the senior size: since the look controls moved under the preview the column has room for the senior
+        // size in the smallest window; this size makes it scroll whatever the theme, to check the wheel and the send there.
+        TypeSizes(console, 1.8);
         var main = Main(console);
         main.LoadQueue([.. Enumerable.Range(0, 12).Select(n => new LiveQueueItem($"song:a041-{n}", $"찬양 {n}", LiveItemKinds.Song) { Lyrics = "[1]\n가사 " + n })]);
         main.SelectedItem = main.Queue[0];

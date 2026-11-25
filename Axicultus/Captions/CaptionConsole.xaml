@@ -165,11 +165,6 @@
              Its size follows the viewport down to that minimum (a scrolled Grid would otherwise get no height to share). -->
         <ScrollViewer x:Name="Body" Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Focusable="False">
         <Grid MinWidth="852" MinHeight="481" Width="{Binding ViewportWidth, ElementName=Body}" Height="{Binding ViewportHeight, ElementName=Body}">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="*" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="360" />
@@ -291,10 +286,14 @@
                 </ScrollViewer>
             </DockPanel>
 
-            <!-- What goes on air, drawn as the camera screen draws it (16:9), and what comes next. -->
-            <Grid Grid.Column="2">
+            <!-- What goes on air, drawn as the camera screen draws it (16:9), what comes next, and the caption's look.
+                 Top-aligned: the preview is as large as the room left by the rows under it allows, and those rows stay right
+                 under it (room left over by a wide window or a hidden band goes below them, not between). -->
+            <Grid Grid.Column="2" VerticalAlignment="Top">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <Viewbox x:Name="ObsPreviewBox" Stretch="Uniform" VerticalAlignment="Top" AutomationProperties.Name="송출 자막 미리보기">
@@ -438,36 +437,45 @@
                         </DockPanel>
                     </Border>
                 </Grid>
-            </Grid>
-        </Grid>
 
-        <!-- The caption's look, at hand during the service. -->
-        <WrapPanel Grid.Row="1" Margin="0,12,0,0">
-            <TextBlock x:Name="LinesLabel" Text="자막 줄 수" VerticalAlignment="Center" Margin="0,0,8,0" />
-            <ComboBox x:Name="LinesBox" Width="76" SelectionChanged="LinesChanged" AutomationProperties.LabeledBy="{Binding ElementName=LinesLabel}"
-                      ToolTip="자막 영역의 높이. 더 긴 글은 글자가 작아져 이 안에 들어갑니다.">
-                <ComboBoxItem Content="1줄" />
-                <ComboBoxItem Content="2줄" />
-                <ComboBoxItem Content="3줄" />
-            </ComboBox>
-            <TextBlock x:Name="ScoreSizeLabel" Text="악보 크기" VerticalAlignment="Center" Margin="20,0,8,0" />
-            <ComboBox x:Name="ScoreSizeBox" Width="88" SelectionChanged="ScoreSizeChanged" AutomationProperties.LabeledBy="{Binding ElementName=ScoreSizeLabel}"
-                      ToolTip="카메라·OBS 화면에서 악보가 차지하는 높이">
-                <ComboBoxItem Content="작게" />
-                <ComboBoxItem Content="보통" />
-                <ComboBoxItem Content="크게" />
-            </ComboBox>
-            <TextBlock Text="글자색" VerticalAlignment="Center" Margin="20,0,8,0" />
-            <Button Tag="#FFFFFF" Style="{StaticResource Swatch}" Click="PickColor" ToolTip="흰색 (기본)" AutomationProperties.Name="흰색" />
-            <Button Tag="#FFE14D" Style="{StaticResource Swatch}" Click="PickColor" ToolTip="노랑" AutomationProperties.Name="노랑" />
-            <Button Tag="#7FD8FF" Style="{StaticResource Swatch}" Click="PickColor" ToolTip="하늘" AutomationProperties.Name="하늘" />
-            <Button Tag="#9BF07A" Style="{StaticResource Swatch}" Click="PickColor" ToolTip="연두" AutomationProperties.Name="연두" />
-            <Button Tag="#000000" Style="{StaticResource Swatch}" Click="PickColor" ToolTip="검정" AutomationProperties.Name="검정" />
-            <Button Content="직접 선택…" Click="PickCustomColor" Margin="4,0,12,0" />
-            <CheckBox x:Name="BoxCheck" Content="배경 상자" Click="BoxChanged" ToolTip="끄면 글자에 테두리 그림자만 넣습니다." />
+        <!-- The caption's look, at hand during the service: under the preview it changes, the left column kept for the
+             source and the worship list down to the bottom. -->
+        <!-- Groups that wrap whole (a label never parts from its control): sizes and box first, the colours after. -->
+        <WrapPanel Grid.Row="2" Margin="0,8,0,0">
+            <StackPanel Orientation="Horizontal" Margin="0,4,20,0">
+                <TextBlock x:Name="LinesLabel" Text="자막 줄 수" VerticalAlignment="Center" Margin="0,0,8,0" />
+                <ComboBox x:Name="LinesBox" Width="76" SelectionChanged="LinesChanged" AutomationProperties.LabeledBy="{Binding ElementName=LinesLabel}"
+                          ToolTip="자막 영역의 높이. 더 긴 글은 글자가 작아져 이 안에 들어갑니다.">
+                    <ComboBoxItem Content="1줄" />
+                    <ComboBoxItem Content="2줄" />
+                    <ComboBoxItem Content="3줄" />
+                </ComboBox>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,4,20,0">
+                <TextBlock x:Name="ScoreSizeLabel" Text="악보 크기" VerticalAlignment="Center" Margin="0,0,8,0" />
+                <ComboBox x:Name="ScoreSizeBox" Width="88" SelectionChanged="ScoreSizeChanged" AutomationProperties.LabeledBy="{Binding ElementName=ScoreSizeLabel}"
+                          ToolTip="카메라·OBS 화면에서 악보가 차지하는 높이">
+                    <ComboBoxItem Content="작게" />
+                    <ComboBoxItem Content="보통" />
+                    <ComboBoxItem Content="크게" />
+                </ComboBox>
+            </StackPanel>
+            <CheckBox x:Name="BoxCheck" Content="배경 상자" Click="BoxChanged" Margin="0,4,20,0" VerticalAlignment="Center"
+                      ToolTip="끄면 글자에 테두리 그림자만 넣습니다." />
+            <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                <TextBlock Text="글자색" VerticalAlignment="Center" Margin="0,0,8,0" />
+                <Button Tag="#FFFFFF" Style="{StaticResource Swatch}" Click="PickColor" ToolTip="흰색 (기본)" AutomationProperties.Name="흰색" />
+                <Button Tag="#FFE14D" Style="{StaticResource Swatch}" Click="PickColor" ToolTip="노랑" AutomationProperties.Name="노랑" />
+                <Button Tag="#7FD8FF" Style="{StaticResource Swatch}" Click="PickColor" ToolTip="하늘" AutomationProperties.Name="하늘" />
+                <Button Tag="#9BF07A" Style="{StaticResource Swatch}" Click="PickColor" ToolTip="연두" AutomationProperties.Name="연두" />
+                <Button Tag="#000000" Style="{StaticResource Swatch}" Click="PickColor" ToolTip="검정" AutomationProperties.Name="검정" />
+                <Button Content="직접 선택…" Click="PickCustomColor" Margin="4,0,0,0" />
+            </StackPanel>
         </WrapPanel>
 
-        <TextBlock x:Name="Status" Grid.Row="2" TextWrapping="Wrap" Margin="0,8,0,0" Style="{StaticResource Quiet}" AutomationProperties.LiveSetting="Polite" />
+        <TextBlock x:Name="Status" Grid.Row="3" TextWrapping="Wrap" Margin="0,8,0,0" Style="{StaticResource Quiet}" AutomationProperties.LiveSetting="Polite" />
+            </Grid>
+        </Grid>
         </Grid>
         </ScrollViewer>
     </Grid>

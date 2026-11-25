@@ -1531,8 +1531,8 @@ internal static class Program
             Check(Out(second) && Live(second) == "LIVE" && Live(first) == "" && captions.PublicText == "환영합니다" && !captions.Mirroring,
                 $"typing, sent item 2 (caption stays 환영합니다, mirroring={captions.Mirroring}): " + State());
 
-            // The smallest window at the senior size (the column scrolls there whatever the screen's scale): the column
-            // scrolled to the list; a click on send leaves the keyboard in the box and the column where it was.
+            // The smallest window at the senior size: the column scrolled to the list (when it scrolls at all: with the look
+            // controls under the preview it may fit); a click on send leaves the keyboard in the box and the column where it was.
             Ctx("consolelist small window");
             var themes = _sp.GetRequiredService<IThemeService>();
             themes.ApplyInterfaceSize(InterfaceSize.Senior);
@@ -1550,7 +1550,7 @@ internal static class Program
             console.SendItemButton.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, Environment.TickCount, MouseButton.Left) { RoutedEvent = Mouse.PreviewMouseUpEvent });
             await Settle(3000);
             SaveWindowPicture(console, "consolelist-small.png");
-            Check(bottom > 0 && Math.Abs(console.SourcePanel.VerticalOffset - bottom) < 1 && Out(first)
+            Check((bottom > 0 || console.SourcePanel.ScrollableHeight < 1) && Math.Abs(console.SourcePanel.VerticalOffset - bottom) < 1 && Out(first)
                 && ReferenceEquals(FocusManager.GetFocusedElement(console), console.Draft),
                 $"small window: column offset {bottom:0} -> {console.SourcePanel.VerticalOffset:0} (scrollable {console.SourcePanel.ScrollableHeight:0}), " +
                 $"box focused={console.Draft.IsKeyboardFocused} " + State());
