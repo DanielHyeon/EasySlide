@@ -2,11 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using Axicultus.Wpf.Shell;
 
 namespace Axicultus.Wpf.Captions;
 
@@ -391,20 +393,48 @@ public partial class CaptionConsole
         && _captions.TextFor(slide, _captions.BoxKey) == read
         && _rowLyrics.TryGetValue((deck.Path, slide), out var lyrics) && lyrics.Length == rows ? lyrics[row] : null;
 
+    // The strip shows the pages of the output panel's song, passage or text (no deck is followed): Slide is the page, from 1.
+    private bool _pageSteps;
+    private bool _pagesChanged;
+
+    // The panel's pages are replaced one by one, after its text is told: the strip is filled once, afterwards.
+    private void OutputPagesChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+    {
+        if (_pagesChanged) return;
+        _pagesChanged = true;
+        Dispatcher.InvokeAsync(() =>
+        {
+            _pagesChanged = false;
+            if (!_closed) UpdateSteps();
+        });
+    }
+
+    private static string PageLabel(OperatorLyricsPageCard page) => page.PositionText.Length > 0 ? page.PositionText : "1/1";
+
     private void UpdateSteps()
     {
         bool following = ScreenMode.IsChecked == true && _captions.Following && _captions.Deck != null;
-        StepStrip.Visibility = following ? Visibility.Visible : Visibility.Collapsed;
+        OperatorLyricsPageCard[] pages = ScreenMode.IsChecked == true && !following && _captions.Mirroring ? [.. _main.OutputLyricsPages] : [];
+        _pageSteps = pages.Length > 0;
+        StepStrip.Visibility = following || _pageSteps ? Visibility.Visible : Visibility.Collapsed;
+        AutomationProperties.SetName(StepStrip, _pageSteps ? "송출 칸 페이지 (누르면 송출 칸과 자막이 그 페이지로)" : "PPT 단계 (누르면 자막만 그 단계로)");
         _showingSteps = true;
         try
         {
-            IReadOnlyList<CaptionStep> steps = following ? DeckSteps(_captions.Deck!) : [];
+            IReadOnlyList<CaptionStep> steps = following ? DeckSteps(_captions.Deck!)
+                : [.. pages.Select(page => new CaptionStep(page.PageIndex + 1, 0, PageLabel(page), FirstLine(page.BodyText), null))];
             if (!steps.SequenceEqual(_editor.Steps)) _editor.Steps = steps;
             int row = _rowShown ? _scoreRow : 0;
-            _editor.CurrentStep = steps.FirstOrDefault(s => s.Slide == _captions.CurrentSlide && s.Row == row)
-                ?? steps.FirstOrDefault(s => s.Slide == _captions.CurrentSlide);
+            int at = Array.FindIndex(pages, page => page.IsCurrent);
+            _editor.CurrentStep = _pageSteps ? (at >= 0 ? steps[at] : null)
+                : steps.FirstOrDefault(s => s.Slide == _captions.CurrentSlide && s.Row == row)
+                    ?? steps.FirstOrDefault(s => s.Slide == _captions.CurrentSlide);
             StepStrip.SetCurrentValue(Selector.SelectedItemProperty, _editor.CurrentStep);
-            _editor.Next = following ? NextLook(_captions.Deck!) : null;
+            // (the panel's next page as the caption would show it: the caption is the panel's text)
+            _editor.Next = following ? NextLook(_captions.Deck!)
+                : at >= 0 && at + 1 < pages.Length ? new(PageLabel(pages[at + 1]), null, pages[at + 1].BodyText.Trim(),
+                    _captions.CaptionLines, _captions.ScoreSize, _captions.CaptionBackground, _captions.CaptionForeground)
+                : null;
         }
         finally { _showingSteps = false; }
         // (scrolled to only when the step changes: the operator may be looking further along the strip)
@@ -453,10 +483,18 @@ public partial class CaptionConsole
         }
     }
 
-    // A picked step: only the caption goes there (the output screen stays, sync or not), as one caption.
+    // A picked step of a deck: only the caption goes there (the output screen stays, sync or not), as one caption.
+    // A picked page of the output panel's song, passage or text: the panel turns to it and the caption follows.
     private void StepPicked(object sender, SelectionChangedEventArgs e)
     {
-        if (_showingSteps || StepStrip.SelectedItem is not CaptionStep step || step == _editor.CurrentStep || !_captions.Following) return;
+        if (_showingSteps || StepStrip.SelectedItem is not CaptionStep step || step == _editor.CurrentStep) return;
+        if (_pageSteps)
+        {
+            _main.GoToOutputLyricsPageCommand.Execute(step.Slide - 1);
+            UpdateSteps(); // (a page the panel did not turn to: the strip shows the page it is on)
+            return;
+        }
+        if (!_captions.Following) return;
         using (_captions.Hold())
         {
             if (step.Slide != _captions.CurrentSlide) _captions.MoveToSlide(step.Slide);

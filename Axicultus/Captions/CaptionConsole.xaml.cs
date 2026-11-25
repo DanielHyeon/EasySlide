@@ -138,6 +138,7 @@ public partial class CaptionConsole : Window
         };
         PreviewKeyDown += OnKey;
         _main.PropertyChanged += MainChanged;
+        _main.OutputLyricsPages.CollectionChanged += OutputPagesChanged;
         _captions.PropertyChanged += CaptionChanged;
         UpdateHeld();
         Loaded += LoadRecovery;
@@ -1354,6 +1355,7 @@ public partial class CaptionConsole : Window
         _main.QueueReplacing -= BeforeQueueReplacement;
         _camera.ReleaseLocalCamera -= OnCameraRelease;
         _main.PropertyChanged -= MainChanged;
+        _main.OutputLyricsPages.CollectionChanged -= OutputPagesChanged;
         _captions.PropertyChanged -= CaptionChanged;
         _main.Session.SessionChanged -= LiveChanged;
         _main.OutputPowerPoint.PropertyChanged -= SlideImageChanged;

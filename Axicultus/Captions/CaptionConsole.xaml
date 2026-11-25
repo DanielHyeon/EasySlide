@@ -373,7 +373,8 @@
             </Grid>
         </Grid>
 
-        <!-- The followed deck step by step: a picked step moves the caption only (the output screen stays). -->
+        <!-- The followed deck step by step: a picked step moves the caption only (the output screen stays). Without a deck,
+             the pages of the output panel's song, passage or text: a picked page turns the panel and the caption follows. -->
         <ListBox x:Name="StepStrip" Grid.Row="1" Margin="0,12,0,0" Height="92" Visibility="Collapsed"
                  ItemsSource="{Binding Steps}" SelectedItem="{Binding CurrentStep, Mode=OneWay}" SelectionChanged="StepPicked"
                  ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Disabled"

@@ -567,4 +567,39 @@ public sealed partial class CaptionConsoleTests
         Assert.Same(third, main.OutputItem);
         Assert.Contains("나의 모든 것", session.PublicText);
     });
+
+    // A song (no deck) in the output panel: the strip shows its pages and the next one; a picked page turns the panel
+    // and the caption follows it.
+    [Fact]
+    public Task TheStripShowsTheOutputPanelsPagesAndAPickTurnsThePanel() => WithConsole(async (console, session, _) =>
+    {
+        var editor = Assert.IsType<CaptionConsoleViewModel>(console.DataContext);
+        var main = Main(console);
+        var verses = new LiveQueueItem("song:a045-verses", "세 절 찬양", LiveItemKinds.Song) { Lyrics = "[1]\n첫째 절\n[2]\n둘째 절\n[3]\n셋째 절" };
+        main.LoadQueue([verses]);
+        console.ScreenMode.IsChecked = true;
+        await ClickAsync(console.AirButton);
+        Assert.False(console.StepStrip.IsVisible); // nothing in the output panel
+        main.SelectedItem = verses;
+        await ClickAsync(console.SendItemButton);
+        await Pump(console, 300);
+
+        Assert.True(console.StepStrip.IsVisible);
+        Assert.Equal(["1/3", "2/3", "3/3"], editor.Steps.Select(step => step.Label));
+        Assert.Equal(["첫째 절", "둘째 절", "셋째 절"], editor.Steps.Select(step => step.Text));
+        Assert.Equal(editor.Steps[0], editor.CurrentStep);
+        Assert.Equal(("2/3", "둘째 절"), (editor.Next?.Label, editor.Next?.PublicText));
+
+        console.StepStrip.SelectedItem = editor.Steps[2];
+        await Pump(console, 300);
+        Assert.Equal("셋째 절", main.OutputLyricsText.Trim()); // the panel turned ...
+        Assert.Equal("셋째 절", session.PublicText); // ... and the caption with it
+        Assert.Equal(editor.Steps[2], editor.CurrentStep);
+        Assert.Null(editor.Next); // the last page
+        Assert.Equal(Axicultus.Wpf.Controls.LiveState.Off, main.Session.Current.State);
+
+        console.DirectMode.IsChecked = true; // typing: no strip
+        await Pump(console, 100);
+        Assert.False(console.StepStrip.IsVisible);
+    });
 }
