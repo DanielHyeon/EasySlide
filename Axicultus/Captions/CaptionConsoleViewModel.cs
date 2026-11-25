@@ -21,6 +21,16 @@ internal sealed record CaptionLook(string Label, ImageSource? PublicImage, strin
     public bool HasText => HasPublicText || PublicImage != null;
 }
 
+/// <summary>True when the two values are the same object (a step and the strip's next step).</summary>
+public sealed class SameItemConverter : System.Windows.Data.IMultiValueConverter
+{
+    public object Convert(object[] values, Type targetType, object? parameter, System.Globalization.CultureInfo culture)
+        => values is { Length: 2 } && values[0] != null && ReferenceEquals(values[0], values[1]);
+
+    public object[] ConvertBack(object value, Type[] targetTypes, object? parameter, System.Globalization.CultureInfo culture)
+        => throw new NotSupportedException();
+}
+
 internal sealed partial class CaptionConsoleViewModel(CaptionSession session) : ObservableObject
 {
     public CaptionSession Session { get; } = session;
@@ -41,6 +51,9 @@ internal sealed partial class CaptionConsoleViewModel(CaptionSession session) : 
 
     /// <summary>What the next button would send (not sent); null when it cannot be told or nothing follows.</summary>
     [ObservableProperty] private CaptionLook? _next;
+
+    /// <summary>The strip's step the next button would go to (marked in the strip); null when none.</summary>
+    [ObservableProperty] private CaptionStep? _nextStep;
 
     /// <summary>While hidden, what showing the caption would put on air (drawn dim in the preview); null on air.</summary>
     [ObservableProperty] private CaptionLook? _held;

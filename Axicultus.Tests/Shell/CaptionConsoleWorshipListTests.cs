@@ -589,6 +589,7 @@ public sealed partial class CaptionConsoleTests
         Assert.Equal(["첫째 절", "둘째 절", "셋째 절"], editor.Steps.Select(step => step.Text));
         Assert.Equal(editor.Steps[0], editor.CurrentStep);
         Assert.Equal(("2/3", "둘째 절"), (editor.Next?.Label, editor.Next?.PublicText));
+        Assert.Same(editor.Steps[1], editor.NextStep); // marked in the strip
 
         console.StepStrip.SelectedItem = editor.Steps[2];
         await Pump(console, 300);
@@ -596,6 +597,7 @@ public sealed partial class CaptionConsoleTests
         Assert.Equal("셋째 절", session.PublicText); // ... and the caption with it
         Assert.Equal(editor.Steps[2], editor.CurrentStep);
         Assert.Null(editor.Next); // the last page
+        Assert.Null(editor.NextStep);
         Assert.Equal(Axicultus.Wpf.Controls.LiveState.Off, main.Session.Current.State);
 
         ClickRow(console, 0); // a stray click on the row already in the panel leaves its page

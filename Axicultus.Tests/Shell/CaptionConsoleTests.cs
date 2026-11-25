@@ -1260,6 +1260,7 @@ public sealed partial class CaptionConsoleTests
         Assert.Contains("1/2줄", console.ScoreRowLabel.Text);
         Assert.Equal("1장 2줄", editor.Next?.Label); // the same slide's second row
         Assert.NotNull(editor.Next!.PublicImage);
+        Assert.Equal(("1장 1줄", "1장 2줄"), (editor.CurrentStep?.Label, editor.NextStep?.Label)); // the strip marks it
         typeof(CaptionConsole).GetMethod("Next", Private)!.Invoke(console, [null, null]);
         Assert.Equal("2장 1줄", editor.Next?.Label);
         Assert.NotNull(editor.Next!.PublicImage);
@@ -1268,6 +1269,7 @@ public sealed partial class CaptionConsoleTests
         typeof(CaptionConsole).GetMethod("Next", Private)!.Invoke(console, [null, null]);
         Assert.Contains("2/2줄", console.ScoreRowLabel.Text);
         Assert.Null(editor.Next); // the end
+        Assert.Null(editor.NextStep);
     });
 
     [Fact]

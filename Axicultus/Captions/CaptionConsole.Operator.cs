@@ -449,6 +449,10 @@ public partial class CaptionConsole
                 : at >= 0 && at + 1 < pages.Length ? new(PageLabel(pages[at + 1]), null, pages[at + 1].BodyText.Trim(),
                     _captions.CaptionLines, _captions.ScoreSize, _captions.CaptionBackground, _captions.CaptionForeground)
                 : null;
+            // (a score row's next may be a slide the strip shows whole: "3장 1줄" is the step "3장")
+            _editor.NextStep = _editor.Next is { } next
+                ? steps.FirstOrDefault(s => s.Label == next.Label) ?? steps.FirstOrDefault(s => next.Label.StartsWith(s.Label + " ", StringComparison.Ordinal))
+                : null;
         }
         finally { _showingSteps = false; }
         // (scrolled to only when the step changes: the operator may be looking further along the strip)

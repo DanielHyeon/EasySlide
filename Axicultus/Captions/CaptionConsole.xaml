@@ -14,6 +14,7 @@
         <composites:LiveRowBadgeConverter x:Key="LiveBadge" />
         <conv:KindToFrmIconConverter x:Key="KindToFrmIcon" ForWorshipList="True" />
         <conv:KindToLabelConverter x:Key="KindToLabel" />
+        <captions:SameItemConverter x:Key="SameItem" />
         <!-- Spacing follows the app's scale (Theme/Tokens/Spacing.xaml): 8 within a group, 16 between groups, 24 between
              sections. Text and controls are the main window's size: its body and button text (Type.Body, Type.Button), buttons and
              lists 32 high (Spacing.ButtonHeight.Sm), the main actions 40 (Md). -->
@@ -534,12 +535,43 @@
                              Background="{DynamicResource Brush.Surface.Card}" BorderBrush="{DynamicResource Brush.Border.Default}"
                              AutomationProperties.Name="PPT 단계 (누르면 자막만 그 단계로)">
                         <ListBox.ItemContainerStyle>
-                            <!-- A screen reader reads the step: its slide (and row) and its first line. -->
-                            <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+                            <!-- A screen reader reads the step: its slide (and row) and its first line. The step on air has the
+                                 accent border (not the theme's white selection), the step the next button goes to a dashed one. -->
+                            <Style TargetType="ListBoxItem">
                                 <Setter Property="AutomationProperties.Name" Value="{Binding Spoken}" />
-                                <Setter Property="Margin" Value="0" />
-                                <Setter Property="Padding" Value="3" />
-                                <Setter Property="MinHeight" Value="0" />
+                                <Setter Property="Padding" Value="2" />
+                                <Setter Property="Cursor" Value="Hand" />
+                                <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}" />
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="ListBoxItem">
+                                            <Grid Margin="{TemplateBinding Padding}">
+                                                <Border x:Name="Frame" BorderThickness="2" CornerRadius="6" BorderBrush="Transparent" Background="Transparent">
+                                                    <ContentPresenter />
+                                                </Border>
+                                                <Rectangle x:Name="NextMark" RadiusX="6" RadiusY="6" StrokeThickness="2" StrokeDashArray="2 2"
+                                                           Stroke="{DynamicResource Brush.Accent.Primary}" Visibility="Collapsed" IsHitTestVisible="False" />
+                                            </Grid>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="Frame" Property="BorderBrush" Value="{DynamicResource Brush.Border.Strong}" />
+                                                </Trigger>
+                                                <DataTrigger Value="True">
+                                                    <DataTrigger.Binding>
+                                                        <MultiBinding Converter="{StaticResource SameItem}">
+                                                            <Binding />
+                                                            <Binding Path="DataContext.NextStep" RelativeSource="{RelativeSource AncestorType=ListBox}" />
+                                                        </MultiBinding>
+                                                    </DataTrigger.Binding>
+                                                    <Setter TargetName="NextMark" Property="Visibility" Value="Visible" />
+                                                </DataTrigger>
+                                                <Trigger Property="IsSelected" Value="True">
+                                                    <Setter TargetName="Frame" Property="BorderBrush" Value="{DynamicResource Brush.Accent.Primary}" />
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
                             </Style>
                         </ListBox.ItemContainerStyle>
                         <ListBox.ItemsPanel>
@@ -549,7 +581,7 @@
                         </ListBox.ItemsPanel>
                         <ListBox.ItemTemplate>
                             <DataTemplate>
-                                <Border Width="164" Height="66" Background="{DynamicResource Brush.Surface.Subtle}" CornerRadius="4" Padding="6,3">
+                                <Border Width="160" Height="62" Background="{DynamicResource Brush.Surface.Subtle}" CornerRadius="4" Padding="6,3">
                                     <Border.Style>
                                         <Style TargetType="Border">
                                             <Setter Property="ToolTip" Value="{Binding Text}" />
