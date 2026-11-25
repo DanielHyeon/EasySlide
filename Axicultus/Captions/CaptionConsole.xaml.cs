@@ -74,7 +74,6 @@ public partial class CaptionConsole : Window
         DisplayRadio().IsChecked = true;
         // The previews are camera screens of one size, scaled to fit: the caption is laid out as on the output screen.
         PreviewCaption.Fit(new Size(1920, 1080));
-        NextCaption.Fit(new Size(1920, 1080));
         HeldCaption.Fit(new Size(1920, 1080));
         // before the window's own, or the camera bindings look at the editor first
         CameraPreview.DataContext = CameraStatus.DataContext = Settings.CameraControls.DataContext = camera;
