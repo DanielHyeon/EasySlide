@@ -564,6 +564,19 @@ public sealed partial class CaptionConsoleTests
         Assert.Contains("나의 모든 것", session.PublicText);
     });
 
+    // The console opens following the screen: the follow tab first and picked, its controls and steps shown, the output
+    // screen's text mirrored.
+    [Fact]
+    public Task TheConsoleOpensFollowingTheScreen() => WithConsole(async (console, session, _) =>
+    {
+        await Pump(console, 200);
+        Assert.Equal((true, false), (console.ScreenMode.IsChecked, console.DirectMode.IsChecked));
+        Assert.True(console.ScreenPanel.IsVisible && console.StepStrip.IsVisible && !console.DirectPanel.IsVisible);
+        Assert.True(session.Mirroring);
+        Assert.False(session.Visible); // hidden until put on air, as before
+        var tabs = (System.Windows.Controls.Primitives.UniformGrid)console.ScreenMode.Parent;
+        Assert.Same(console.ScreenMode, tabs.Children[0]);
+    }, asOpened: true);
     // A song (no deck) in the output panel: the strip shows its pages and the next one; a picked page turns the panel
     // and the caption follows it.
     [Fact]

@@ -1127,6 +1127,12 @@ public partial class CaptionConsole : Window
     private async void StartAutomatically(object sender, RoutedEventArgs e)
     {
         Loaded -= StartAutomatically;
+        // The console opens following the screen (chosen before it loaded, so started here as a pick of it would be).
+        if (ScreenMode.IsChecked == true)
+        {
+            _captions.Mirror(true);
+            _ = SyncScreenAsync();
+        }
         await StartServerAsync();
         if (_obs.Connection == null && (_obs.HasSavedPassword || _obs.AutoConnect || File.Exists(_obs.ProfilePath))) await ConnectAsync();
         else if (_obs.Connection == null) ObsLabel.Text = "OBS 연결 전 · 설정에서 연결하세요";

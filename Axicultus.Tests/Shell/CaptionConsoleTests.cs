@@ -1477,7 +1477,8 @@ public sealed partial class CaptionConsoleTests
     internal static Task WithConsole(Func<CaptionConsole, CaptionSession, DirectoryInfo, Task> exercise,
         string? expectedSavedDraft = null, string? savedStyle = null, IPowerPointRenderService? render = null,
         string? savedWindow = null, bool openSettings = false, bool show = true, bool appLook = false,
-        Func<IReadOnlyList<CaptionScreen>>? screens = null, LiveSessionService? live = null, IPowerPointSlideShowControl? nativeShow = null) => StaHelper.RunOnStaAsync(async () =>
+        Func<IReadOnlyList<CaptionScreen>>? screens = null, LiveSessionService? live = null, IPowerPointSlideShowControl? nativeShow = null,
+        bool asOpened = false) => StaHelper.RunOnStaAsync(async () =>
     {
         var directory = Directory.CreateTempSubdirectory();
         try
@@ -1501,6 +1502,8 @@ public sealed partial class CaptionConsoleTests
                 ShowActivated = false, ShowInTaskbar = false,
                 Songs = _ => Task.FromResult<IReadOnlyList<SongLyrics.Song>>([]), // no song database (a test gives its songs)
             };
+            // The tests start typing (they pick following themselves) unless they check how the console opens.
+            if (!asOpened) console.DirectMode.IsChecked = true;
             try
             {
                 if (show) console.Show();

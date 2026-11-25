@@ -283,9 +283,9 @@
             <DockPanel>
                 <Border DockPanel.Dock="Top" Style="{StaticResource SegmentTrack}">
                     <UniformGrid Columns="2">
-                        <RadioButton x:Name="ScreenMode" Content="화면 따라가기" GroupName="Source" Checked="SourceChanged" Style="{StaticResource Segment}"
+                        <RadioButton x:Name="ScreenMode" Content="화면 따라가기" GroupName="Source" IsChecked="True" Checked="SourceChanged" Style="{StaticResource Segment}"
                                      ToolTip="송출 화면(라이브가 아니어도 송출 칸)의 PPT · 찬양 · 성경 · 텍스트를 자막으로 따라갑니다." />
-                        <RadioButton x:Name="DirectMode" Content="직접 입력" GroupName="Source" IsChecked="True" Checked="SourceChanged" Style="{StaticResource Segment}" />
+                        <RadioButton x:Name="DirectMode" Content="직접 입력" GroupName="Source" Checked="SourceChanged" Style="{StaticResource Segment}" />
                     </UniformGrid>
                 </Border>
                 <!-- The source's own controls on top, the worship list in the rest. Too short for both (a small window), the
@@ -302,7 +302,7 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         <!-- The typed caption: three lines of it (a caption has up to three; its height is set in code), scrolled beyond. -->
-                        <StackPanel x:Name="DirectPanel">
+                        <StackPanel x:Name="DirectPanel" Visibility="Collapsed">
                             <TextBox x:Name="Draft" AcceptsReturn="True" FontSize="{DynamicResource Type.BodyLarge.FontSize}" TextWrapping="Wrap"
                                      VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top"
                                      Text="{Binding DraftText, UpdateSourceTrigger=PropertyChanged}" PreviewKeyDown="DraftKey"
@@ -318,7 +318,7 @@
 
                         <!-- Following the screen, in reading order: what is followed, how it is shown, then the steps (the
                              sync box under the buttons it changes). -->
-                        <StackPanel x:Name="ScreenPanel" Visibility="Collapsed">
+                        <StackPanel x:Name="ScreenPanel">
                             <!-- The one place that says where the caption is (the item or deck, the slide and row). -->
                             <Border Style="{StaticResource Card}">
                                 <StackPanel>
