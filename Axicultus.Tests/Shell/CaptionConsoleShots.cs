@@ -28,6 +28,8 @@ public sealed partial class CaptionConsoleTests
     private static readonly (string Name, double Width, double Height)[] ShotSizes = [("default", 1040, 720), ("min", 900, 620)];
     // 1024×768 at 125% (a work area of 819×566; the window there is that big and its body scrolls).
     private static readonly (string Name, double Width, double Height) SmallScreen = ("small", 819, 566);
+    // Maximized on a 1080p screen (where the operator keeps it during a service).
+    private static readonly (string Name, double Width, double Height) Maximized = ("max", 1920, 1040);
 
     [ShotsFact]
     public Task DrawTheConsoleForReview()
@@ -60,7 +62,7 @@ public sealed partial class CaptionConsoleTests
             await Draw(console, "1-hidden-start", [.. ShotSizes, SmallScreen]);
             await Dark("1-hidden-start");
             console.AirButton.Command.Execute(null);
-            await Draw(console, "2-direct-on-air");
+            await Draw(console, "2-direct-on-air", [.. ShotSizes, Maximized]);
 
             var text = CaptionAllTextTests.WriteDeck(directory.CreateSubdirectory("text").FullName, [],
                 CaptionAllTextTests.TextSlide("오늘의 말씀", "시편 23편 1-3절"),
@@ -78,7 +80,7 @@ public sealed partial class CaptionConsoleTests
             await console.ScorePreparation;
             await console.LyricsReading;
             session.Follow(2, CaptionDeck.AllTextKey);
-            await Draw(console, "4-follow-score-auto", [.. ShotSizes, SmallScreen]);
+            await Draw(console, "4-follow-score-auto", [.. ShotSizes, SmallScreen, Maximized]);
             await Dark("4-follow-score-auto");
             console.ScoreAndText.IsChecked = true;
             await Draw(console, "5-follow-score-text");
@@ -105,7 +107,7 @@ public sealed partial class CaptionConsoleTests
             await main.SendWorshipSelectionToOutputCommand.ExecuteAsync(null);
             session.ShowScreenText(main.OutputLyricsText);
             await Pump(console, 300);
-            await Draw(console, "9-follow-song-pages", ShotSizes[0]);
+            await Draw(console, "9-follow-song-pages", ShotSizes[0], Maximized);
             main.OutputItem = null;
             session.ShowScreenText("");
             await Pump(console, 300);

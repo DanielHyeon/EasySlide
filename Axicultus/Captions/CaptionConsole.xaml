@@ -169,7 +169,6 @@
                 <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
         <Grid>
             <Grid.ColumnDefinitions>
@@ -355,30 +354,19 @@
                         </Border>
                     </Grid>
                 </Viewbox>
-                <!-- Only a followed source has a next step. -->
-                <DockPanel Grid.Row="1" Height="100" Margin="0,12,0,0"
-                           Visibility="{Binding IsChecked, ElementName=ScreenMode, Converter={StaticResource Shown}}">
-                    <Viewbox x:Name="NextPreview" DockPanel.Dock="Left" Stretch="Uniform" AutomationProperties.Name="다음 자막 미리보기">
-                        <Grid Width="1920" Height="1080" Background="Black" ClipToBounds="True">
-                            <captions:CameraCaptionView x:Name="NextCaption" HorizontalAlignment="Center" VerticalAlignment="Bottom"
-                                                        DataContext="{Binding Next}"
-                                                        Visibility="{Binding HasText, Converter={StaticResource Shown}, FallbackValue=Collapsed}" />
-                        </Grid>
-                    </Viewbox>
-                    <StackPanel Margin="14,0,0,0" VerticalAlignment="Center">
-                        <TextBlock Text="다음 ▶" Style="{StaticResource Quiet}" />
-                        <TextBlock x:Name="NextLabel" Text="{Binding Next.Label, FallbackValue=—}" FontSize="{DynamicResource Type.Title3.FontSize}" FontWeight="SemiBold" />
-                        <TextBlock Text="미리보기만 · 송출하지 않습니다" Style="{StaticResource Quiet}" />
-                    </StackPanel>
-                </DockPanel>
-            </Grid>
-        </Grid>
+                <!-- Following the screen, a band under the preview (as wide as it, away from the worship list's send button):
+                     the steps and, at their end, what the next button would send. -->
+                <Grid Grid.Row="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
 
         <!-- The followed deck step by step: a picked step moves the caption only (the output screen stays). Without a deck,
              the pages of the output panel's song, passage or text: a picked page turns the panel and the caption follows.
              Following the screen it keeps its place also while it has no step (a deck being read, a media item, an empty
-             panel), so the preview and the list above do not change size from item to item. -->
-        <ListBox x:Name="StepStrip" Grid.Row="1" Margin="0,12,0,0" Height="92"
+             panel), so the preview and the list do not change size from item to item. -->
+        <ListBox x:Name="StepStrip" Margin="0,12,0,0" Height="108"
                  Visibility="{Binding IsChecked, ElementName=ScreenMode, Converter={StaticResource Shown}}"
                  ItemsSource="{Binding Steps}" SelectedItem="{Binding CurrentStep, Mode=OneWay}" SelectionChanged="StepPicked"
                  ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Disabled"
@@ -410,7 +398,8 @@
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
-        <TextBlock x:Name="NoSteps" Grid.Row="1" Margin="0,12,0,0" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"
+        <TextBlock x:Name="NoSteps" Margin="12,12,12,0" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"
+                   TextWrapping="Wrap" TextAlignment="Center"
                    Text="단계 없음 · PPT · 찬양 · 성경 · 텍스트를 송출하면 여기에 단계가 보입니다">
             <TextBlock.Style>
                 <Style TargetType="TextBlock" BasedOn="{StaticResource Quiet}">
@@ -428,8 +417,32 @@
             </TextBlock.Style>
         </TextBlock>
 
+                    <!-- What the next button would send, as the camera screen would show it (only a followed source has a
+                         next step). Its label has a fixed width: the strip beside it does not change size with it. -->
+                    <Border x:Name="NextCard" Grid.Column="1" Margin="12,12,0,0" Height="108" Padding="10,5" Style="{StaticResource Card}"
+                            Visibility="{Binding IsChecked, ElementName=ScreenMode, Converter={StaticResource Shown}}"
+                            ToolTip="다음 ▶를 누르면 나갈 자막입니다. 미리보기만 · 송출하지 않습니다.">
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Left" Width="68" Margin="0,0,8,0" VerticalAlignment="Center">
+                                <TextBlock Text="다음 ▶" Style="{StaticResource Quiet}" />
+                                <TextBlock x:Name="NextLabel" Text="{Binding Next.Label, FallbackValue=—}" FontSize="{DynamicResource Type.BodyLarge.FontSize}"
+                                           FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                            </StackPanel>
+                            <Viewbox x:Name="NextPreview" Stretch="Uniform" AutomationProperties.Name="다음 자막 미리보기">
+                                <Grid Width="1920" Height="1080" Background="Black" ClipToBounds="True">
+                                    <captions:CameraCaptionView x:Name="NextCaption" HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                                                                DataContext="{Binding Next}"
+                                                                Visibility="{Binding HasText, Converter={StaticResource Shown}, FallbackValue=Collapsed}" />
+                                </Grid>
+                            </Viewbox>
+                        </DockPanel>
+                    </Border>
+                </Grid>
+            </Grid>
+        </Grid>
+
         <!-- The caption's look, at hand during the service. -->
-        <WrapPanel Grid.Row="2" Margin="0,12,0,0">
+        <WrapPanel Grid.Row="1" Margin="0,12,0,0">
             <TextBlock x:Name="LinesLabel" Text="자막 줄 수" VerticalAlignment="Center" Margin="0,0,8,0" />
             <ComboBox x:Name="LinesBox" Width="76" SelectionChanged="LinesChanged" AutomationProperties.LabeledBy="{Binding ElementName=LinesLabel}"
                       ToolTip="자막 영역의 높이. 더 긴 글은 글자가 작아져 이 안에 들어갑니다.">
@@ -454,7 +467,7 @@
             <CheckBox x:Name="BoxCheck" Content="배경 상자" Click="BoxChanged" ToolTip="끄면 글자에 테두리 그림자만 넣습니다." />
         </WrapPanel>
 
-        <TextBlock x:Name="Status" Grid.Row="3" TextWrapping="Wrap" Margin="0,8,0,0" Style="{StaticResource Quiet}" AutomationProperties.LiveSetting="Polite" />
+        <TextBlock x:Name="Status" Grid.Row="2" TextWrapping="Wrap" Margin="0,8,0,0" Style="{StaticResource Quiet}" AutomationProperties.LiveSetting="Polite" />
         </Grid>
         </ScrollViewer>
     </Grid>
