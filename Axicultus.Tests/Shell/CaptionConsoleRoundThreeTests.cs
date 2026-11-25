@@ -484,12 +484,12 @@ public sealed partial class CaptionConsoleTests
     });
 
     [Fact]
-    public Task ANarrowBarDropsTheDestinationsLabelAndWrapsTheObsStatus() => WithConsole((console, _, _) =>
+    public Task ANarrowBarDropsTheDestinationsLabelAndShowsAllOfTheObsStatus() => WithConsole((console, _, _) =>
     {
         var content = (FrameworkElement)console.Content;
         var client = new Size(819.2 - 16, 566.4 - 39); // the console on a 1024×768 screen at 125%
-        // The app's body size, whether or not another test made an Application (without one the text is 12 DIP and fits).
-        console.Resources["Type.BodyLarge.FontSize"] = 16d;
+        // The app's body size at the senior interface size, whether or not another test made an Application.
+        console.Resources["Type.Body.FontSize"] = 11d * 1.4;
         console.ObsLabel.Text = "OBS 연결 전 · 설정에서 연결하세요";
         for (int pass = 0; pass < 2; pass++)
         {
@@ -499,7 +499,10 @@ public sealed partial class CaptionConsoleTests
         }
         Assert.Equal(Visibility.Collapsed, console.DestinationsLabel.Visibility);
         Assert.True(console.ObsLabel.ActualWidth >= 120, $"OBS status {console.ObsLabel.ActualWidth} wide");
-        Assert.True(console.ObsLabel.ActualHeight > console.ObsLabel.FontSize * 1.6, "the status wraps to a second line");
+        var text = new FormattedText(console.ObsLabel.Text, System.Globalization.CultureInfo.CurrentUICulture, FlowDirection.LeftToRight,
+            new Typeface(console.ObsLabel.FontFamily, console.ObsLabel.FontStyle, console.ObsLabel.FontWeight, console.ObsLabel.FontStretch),
+            console.ObsLabel.FontSize, Brushes.Black, 1) { MaxTextWidth = console.ObsLabel.ActualWidth };
+        Assert.True(text.Height <= console.ObsLabel.ActualHeight + 0.5, $"the status shows whole: {text.Height} in {console.ObsLabel.ActualHeight}"); // (wrapped if need be)
         return Task.CompletedTask;
     }, show: false);
 }

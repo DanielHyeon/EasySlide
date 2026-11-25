@@ -118,12 +118,27 @@ public partial class CaptionConsole
         SourcePanel.ScrollToVerticalOffset(kept);
     }
 
-    // Enter in the worship list (chosen with Tab) sends the picked item, as the send button does; a held Enter sends once.
+    // Enter in the worship list (chosen with Tab) sends the picked item, as a click on its row does; a held Enter sends once.
     private void WorshipListKey(object sender, KeyEventArgs e)
     {
         if (e.Key != Key.Enter || Keyboard.Modifiers != ModifierKeys.None) return;
         e.Handled = true;
-        if (!e.IsRepeat && _main.SendWorshipSelectionToOutputCommand.CanExecute(null)) _main.SendWorshipSelectionToOutputCommand.Execute(null);
+        if (!e.IsRepeat) SendPicked();
+    }
+
+    // A click on a row puts that row in the output panel (the caption's on-air state stays as it is). The row already
+    // there is left alone: a stray click (or a double-click's second) would turn the panel, or a live screen, back to its
+    // first page.
+    private void RowClicked(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is not ListBoxItem { DataContext: LiveQueueItem row } || Keyboard.Modifiers != ModifierKeys.None || _main.IsOutputRow(row)) return;
+        _main.SelectedItem = row;
+        SendPicked();
+    }
+
+    private void SendPicked()
+    {
+        if (_main.SendWorshipSelectionToOutputCommand.CanExecute(null)) _main.SendWorshipSelectionToOutputCommand.Execute(null);
     }
 
     // The wheel over the worship list or the typed box scrolls them; at their end (a small window) it scrolls the column.
@@ -336,8 +351,7 @@ public partial class CaptionConsole
         // any row made (a scrolled long list has no first row), else the last one seen
         if (ShownRowHeight() is { } shown) _rowHeight = shown;
         SourceColumn.MinHeight = SourceControls.ActualHeight + WorshipPanel.Margin.Top + WorshipHeader.ActualHeight
-            + SendItemButton.ActualHeight + SendItemButton.Margin.Top
-            + 2 * (_rowHeight > 0 ? _rowHeight : WorshipList.FontSize * 1.3 + 8) + 4;
+            + 2 *(_rowHeight > 0 ? _rowHeight : WorshipList.FontSize * 1.3 + 8) + 4;
     }
 
     private double _rowHeight;
@@ -356,7 +370,6 @@ public partial class CaptionConsole
     {
         SourceControls.SizeChanged += (_, _) => FitSourceColumn();
         WorshipHeader.SizeChanged += (_, _) => FitSourceColumn();
-        SendItemButton.SizeChanged += (_, _) => FitSourceColumn();
         // rows made: fitted after their layout
         WorshipList.ItemContainerGenerator.StatusChanged += (_, _) =>
             Dispatcher.InvokeAsync(FitForRows, System.Windows.Threading.DispatcherPriority.Loaded);

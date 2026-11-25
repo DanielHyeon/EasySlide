@@ -1372,6 +1372,12 @@ internal static class Program
                 target.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, Environment.TickCount, MouseButton.Left) { RoutedEvent = Mouse.MouseUpEvent });
             }
         }
+        // A left click as the mouse makes it: the press, the window's preview of the release, the release.
+        void Click(UIElement target)
+        {
+            foreach (var routed in new[] { Mouse.MouseDownEvent, Mouse.PreviewMouseUpEvent, Mouse.MouseUpEvent })
+                target.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, Environment.TickCount, MouseButton.Left) { RoutedEvent = routed });
+        }
         UIElement Empty(ItemsControl list) => Logical(list).OfType<ItemsPresenter>().First();
         UIElement? RowTitle(ItemsControl list, LiveQueueItem item)
         {
@@ -1412,15 +1418,15 @@ internal static class Program
             bool picked = ReferenceEquals(_vm.SelectedItem, second) && Out(first);
             Log("CONSOLELIST", $"item 2 [{second.Kind}] {second.Title} picked (output stays on item 1: {picked}) " + State());
 
-            Ctx("consolelist send item 2");
-            bool enabled = console.SendItemButton.IsEnabled;
-            ((IInvokeProvider)new ButtonAutomationPeer(console.SendItemButton)).Invoke();
+            Ctx("consolelist click item 2");
+            var secondRow = RowTitle(console.WorshipList, second);
+            if (secondRow != null) Click(secondRow);
             await Settle(4000);
             SaveWindowPicture(console, "consolelist-maximized.png");
             string expected = (_vm.OutputLyricsText ?? "").Trim();
-            Check(picked && enabled && Out(second) && Live(second) == "LIVE" && Live(first) == ""
+            Check(picked && secondRow != null && Out(second) && Live(second) == "LIVE" && Live(first) == ""
                 && expected.Length > 0 && captions.ReadyText == expected && captions.PublicText == expected,
-                $"sent item 2 (button enabled: {enabled}): " + State());
+                $"a click sent item 2 (row shown: {secondRow != null}): " + State());
 
             Ctx("consolelist double-clicks in the console list");
             _vm.SelectedItem = first;
@@ -1455,18 +1461,6 @@ internal static class Program
             }
             else Check(false, "no main worship list");
 
-            // A double-click whose first press did not pick the row (Shift or Ctrl held): the row clicked goes.
-            Ctx("consolelist shift double-click");
-            _vm.SelectedItem = first;
-            await Settle(1500);
-            console.WorshipList.UpdateLayout();
-            if (console.WorshipList.ItemContainerGenerator.ContainerFromItem(fifth) is ListBoxItem fifthItem)
-            {
-                fifthItem.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, Environment.TickCount, MouseButton.Left) { RoutedEvent = Control.MouseDoubleClickEvent });
-                await Settle(3000);
-                Check(Out(fifth) && ReferenceEquals(_vm.SelectedItem, fifth), "a double-click on item 5 while item 1 is picked sends item 5: " + State());
-            }
-            else Check(false, "item 5's row is not shown in the console list");
 
             // The library's song list: a row's double-click adds that song to the worship list, its empty space nothing.
             Ctx("consolelist library double-click");
@@ -1522,17 +1516,14 @@ internal static class Program
             console.Draft.Text = "환영합니다";
             ((IInvokeProvider)new ButtonAutomationPeer(console.TakeButton)).Invoke();
             await Settle(800);
-            ((ISelectionItemProvider)new ListBoxItemAutomationPeer(second, new ListBoxAutomationPeer(console.WorshipList))
-                .GetPattern(PatternInterface.SelectionItem)).Select();
-            await Settle(1500);
-            ((IInvokeProvider)new ButtonAutomationPeer(console.SendItemButton)).Invoke();
+            if (RowTitle(console.WorshipList, second) is { } typedRow) Click(typedRow);
             await Settle(4000);
             SaveWindowPicture(console, "consolelist-direct.png");
             Check(Out(second) && Live(second) == "LIVE" && Live(first) == "" && captions.PublicText == "환영합니다" && !captions.Mirroring,
                 $"typing, sent item 2 (caption stays 환영합니다, mirroring={captions.Mirroring}): " + State());
 
             // The smallest window at the senior size: the column scrolled to the list (when it scrolls at all: with the look
-            // controls under the preview it may fit); a click on send leaves the keyboard in the box and the column where it was.
+            // controls under the preview it may fit); a click on a row leaves the keyboard in the box and the column where it was.
             Ctx("consolelist small window");
             var themes = _sp.GetRequiredService<IThemeService>();
             themes.ApplyInterfaceSize(InterfaceSize.Senior);
@@ -1546,8 +1537,7 @@ internal static class Program
             double bottom = console.SourcePanel.VerticalOffset;
             _vm.SelectedItem = first;
             await Settle(1500);
-            ((IInvokeProvider)new ButtonAutomationPeer(console.SendItemButton)).Invoke();
-            console.SendItemButton.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, Environment.TickCount, MouseButton.Left) { RoutedEvent = Mouse.PreviewMouseUpEvent });
+            if (console.WorshipList.ItemContainerGenerator.ContainerFromItem(first) is ListBoxItem firstItem) Click(firstItem);
             await Settle(3000);
             SaveWindowPicture(console, "consolelist-small.png");
             Check((bottom > 0 || console.SourcePanel.ScrollableHeight < 1) && Math.Abs(console.SourcePanel.VerticalOffset - bottom) < 1 && Out(first)

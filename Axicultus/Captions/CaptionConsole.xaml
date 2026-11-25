@@ -3,20 +3,20 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:captions="clr-namespace:Axicultus.Wpf.Captions"
         xmlns:composites="clr-namespace:Axicultus.Wpf.Composites"
-        xmlns:input="clr-namespace:Axicultus.Wpf.Input"
         xmlns:controls="clr-namespace:Axicultus.Wpf.Controls"
         xmlns:conv="clr-namespace:Axicultus.Wpf.Converters"
         Title="카메라 하단 자막" Width="1040" Height="720" MinWidth="900" MinHeight="620" ResizeMode="CanResize"
         WindowStartupLocation="CenterOwner"
         Background="{DynamicResource Brush.Surface.Page}" Foreground="{DynamicResource Brush.Text.Primary}"
-        FontFamily="{DynamicResource Font.Primary}" FontSize="{DynamicResource Type.BodyLarge.FontSize}">
+        FontFamily="{DynamicResource Font.Primary}" FontSize="{DynamicResource Type.Body.FontSize}">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="Shown" />
         <composites:LiveRowBadgeConverter x:Key="LiveBadge" />
         <conv:KindToFrmIconConverter x:Key="KindToFrmIcon" ForWorshipList="True" />
         <conv:KindToLabelConverter x:Key="KindToLabel" />
         <!-- Spacing follows the app's scale (Theme/Tokens/Spacing.xaml): 8 within a group, 16 between groups, 24 between
-             sections; controls are at least Spacing.TargetMin (44) high. -->
+             sections. Text and controls are the main window's size: its body and button text (Type.Body, Type.Button), buttons and
+             lists 32 high (Spacing.ButtonHeight.Sm), the main actions 40 (Md). -->
 
         <!-- A choice of one: a track holding its options, the chosen one raised as a card with the accent border, so a choice
              reads apart from the command buttons. -->
@@ -39,9 +39,9 @@
             </Setter>
         </Style>
         <Style x:Key="Segment" TargetType="RadioButton">
-            <Setter Property="MinHeight" Value="40" />
+            <Setter Property="MinHeight" Value="28" />
             <Setter Property="FontFamily" Value="{DynamicResource Font.Primary}" />
-            <Setter Property="FontSize" Value="{DynamicResource Type.BodyLarge.FontSize}" />
+            <Setter Property="FontSize" Value="{DynamicResource Type.Button.FontSize}" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Secondary}" />
             <Setter Property="Background" Value="Transparent" />
@@ -69,14 +69,13 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
-        <!-- Commands: the app's secondary button (EsButton.Secondary: card face, strong border), at the operator's text size
-             and the touch height (Spacing.TargetMin, 44). -->
+        <!-- Commands: the app's secondary button (EsButton.Secondary: card face, strong border) at its size. -->
         <Style TargetType="Button">
-            <Setter Property="MinHeight" Value="44" />
+            <Setter Property="MinHeight" Value="32" />
             <Setter Property="FontFamily" Value="{DynamicResource Font.Primary}" />
-            <Setter Property="FontSize" Value="{DynamicResource Type.BodyLarge.FontSize}" />
+            <Setter Property="FontSize" Value="{DynamicResource Type.Button.FontSize}" />
             <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Padding" Value="16,0" />
+            <Setter Property="Padding" Value="12,0" />
             <Setter Property="Background" Value="{DynamicResource Brush.Surface.Card}" />
             <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Primary}" />
             <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border.Strong}" />
@@ -110,8 +109,7 @@
             </Style.Triggers>
         </Style>
         <Style x:Key="Big" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-            <Setter Property="MinHeight" Value="56" />
-            <Setter Property="FontSize" Value="{DynamicResource Type.Title3.FontSize}" />
+            <Setter Property="MinHeight" Value="40" />
             <Setter Property="HorizontalAlignment" Value="Stretch" />
         </Style>
         <!-- The one main action of the source on screen (send the typed caption, the next step): the only filled button. -->
@@ -130,18 +128,17 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
-        <!-- (the app's control theme writes 12-14 DIP text in its own colours; the operator's window reads at 16 in the
-             theme's text colour) -->
+        <!-- (the app's control theme writes its text in its own colours; here in the theme's text colour) -->
         <Style TargetType="CheckBox" BasedOn="{StaticResource {x:Type CheckBox}}">
-            <Setter Property="FontSize" Value="{DynamicResource Type.BodyLarge.FontSize}" />
+            <Setter Property="FontSize" Value="{DynamicResource Type.Body.FontSize}" />
             <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Primary}" />
-            <Setter Property="MinHeight" Value="32" />
+            <Setter Property="MinHeight" Value="24" />
             <Setter Property="VerticalAlignment" Value="Center" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
         <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
-            <Setter Property="MinHeight" Value="44" />
-            <Setter Property="FontSize" Value="{DynamicResource Type.BodyLarge.FontSize}" />
+            <Setter Property="MinHeight" Value="32" />
+            <Setter Property="FontSize" Value="{DynamicResource Type.Body.FontSize}" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
         <Style x:Key="Quiet" TargetType="TextBlock">
@@ -150,7 +147,7 @@
         </Style>
         <!-- A section's name over its controls. -->
         <Style x:Key="SectionTitle" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="{DynamicResource Type.BodyLarge.FontSize}" />
+            <Setter Property="FontSize" Value="{DynamicResource Type.Body.FontSize}" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Primary}" />
             <Setter Property="Margin" Value="0,0,0,8" />
@@ -164,8 +161,8 @@
         </Style>
         <!-- A caption colour: the button shows the colour in its Tag; the colour in use has the accent ring (set in code). -->
         <Style x:Key="Swatch" TargetType="Button">
-            <Setter Property="Width" Value="44" />
-            <Setter Property="Height" Value="44" />
+            <Setter Property="Width" Value="28" />
+            <Setter Property="Height" Value="28" />
             <Setter Property="Margin" Value="0,0,4,0" />
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="Background" Value="{Binding Tag, RelativeSource={RelativeSource Self}}" />
@@ -193,11 +190,11 @@
             <Setter Property="Content" Value="자막 숨김 · 눌러서 내보내기 (Space)" />
             <Setter Property="Background" Value="{DynamicResource Brush.Live.Hidden}" />
             <Setter Property="Foreground" Value="{DynamicResource Brush.Live.OnHidden}" />
-            <Setter Property="FontSize" Value="{DynamicResource Type.Title3.FontSize}" />
+            <Setter Property="FontSize" Value="{DynamicResource Type.BodyLarge.FontSize}" />
             <Setter Property="FontWeight" Value="Bold" />
-            <Setter Property="MinHeight" Value="56" />
-            <Setter Property="MinWidth" Value="320" />
-            <Setter Property="Padding" Value="20,6" />
+            <Setter Property="MinHeight" Value="40" />
+            <Setter Property="MinWidth" Value="260" />
+            <Setter Property="Padding" Value="16,4" />
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="Template">
                 <Setter.Value>
@@ -256,7 +253,7 @@
             <Button x:Name="AirButton" Style="{StaticResource AirSwitch}" Command="{Binding ToggleVisibleCommand}" Click="BackToDraft"
                     ToolTip="자막을 카메라·OBS에 내보내거나 숨깁니다. Esc는 언제나 숨깁니다." />
             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0">
-                <TextBlock x:Name="DestinationsLabel" Text="내보낼 곳" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,10,0" />
+                <TextBlock x:Name="DestinationsLabel" Text="내보낼 곳" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,8,0" />
                 <CheckBox x:Name="ToCamera" Content="카메라" IsChecked="{Binding Session.AudienceEnabled, Mode=TwoWay}"
                           ToolTip="Axicultus 송출 화면의 카메라 하단 자막" />
                 <CheckBox x:Name="ToObs" Content="OBS" IsChecked="{Binding Session.ObsEnabled, Mode=TwoWay}" Margin="12,0,0,0"
@@ -292,7 +289,7 @@
                 </Border>
                 <!-- The source's own controls on top, the worship list in the rest. Too short for both (a small window), the
                      column scrolls rather than cutting off a button (its MinHeight is set in code). -->
-                <ScrollViewer x:Name="SourcePanel" Margin="0,16,0,0" VerticalScrollBarVisibility="Auto" Focusable="False" PreviewMouseWheel="ColumnWheel">
+                <ScrollViewer x:Name="SourcePanel" Margin="0,12,0,0" VerticalScrollBarVisibility="Auto" Focusable="False" PreviewMouseWheel="ColumnWheel">
                 <Grid x:Name="SourceColumn" Height="{Binding ViewportHeight, ElementName=SourcePanel}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -305,7 +302,7 @@
                         </Grid.RowDefinitions>
                         <!-- The typed caption: three lines of it (a caption has up to three; its height is set in code), scrolled beyond. -->
                         <StackPanel x:Name="DirectPanel">
-                            <TextBox x:Name="Draft" AcceptsReturn="True" FontSize="{DynamicResource Type.Title1.FontSize}" TextWrapping="Wrap"
+                            <TextBox x:Name="Draft" AcceptsReturn="True" FontSize="{DynamicResource Type.BodyLarge.FontSize}" TextWrapping="Wrap"
                                      VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top"
                                      Text="{Binding DraftText, UpdateSourceTrigger=PropertyChanged}" PreviewKeyDown="DraftKey"
                                      AutomationProperties.Name="직접 입력 자막" />
@@ -324,13 +321,13 @@
                             <!-- The one place that says where the caption is (the item or deck, the slide and row). -->
                             <Border Style="{StaticResource Card}">
                                 <StackPanel>
-                                    <TextBlock x:Name="ScoreRowLabel" FontSize="{DynamicResource Type.Title3.FontSize}" FontWeight="SemiBold"
+                                    <TextBlock x:Name="ScoreRowLabel" FontWeight="SemiBold"
                                                TextTrimming="CharacterEllipsis" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" />
                                     <!-- (a no-break space until a deck names itself: the line is there from the start) -->
                                     <TextBlock x:Name="DeckLabel" Text="&#160;" Style="{StaticResource Quiet}" TextTrimming="CharacterEllipsis" />
                                 </StackPanel>
                             </Border>
-                            <Border Style="{StaticResource SegmentTrack}" Margin="0,16,0,0">
+                            <Border Style="{StaticResource SegmentTrack}" Margin="0,12,0,0">
                                 <UniformGrid Columns="4">
                                     <RadioButton x:Name="AutoShow" Content="자동" Tag="auto" GroupName="Show" IsChecked="True" Checked="ScoreChanged" Style="{StaticResource Segment}"
                                                  ToolTip="슬라이드마다 악보 그림이 있으면 악보를, 없으면 자막을 보냅니다. (1)" />
@@ -342,7 +339,7 @@
                                                  ToolTip="악보 한 줄 아래에 그 줄의 가사를 함께 보냅니다. (4)" />
                                 </UniformGrid>
                             </Border>
-                            <Grid Margin="0,16,0,0">
+                            <Grid Margin="0,12,0,0">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="8" />
@@ -351,9 +348,9 @@
                                 <Button x:Name="PreviousButton" Click="Previous" Style="{StaticResource Big}" AutomationProperties.Name="이전"
                                         ToolTip="이전 줄 / 이전 슬라이드 (← ↑)">
                                     <StackPanel Orientation="Horizontal">
-                                        <Path Data="M 7,0 L 0,7 L 7,14" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                        <Path Data="M 5,0 L 0,5 L 5,10" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
                                               StrokeThickness="2" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                              VerticalAlignment="Center" Margin="0,0,10,0" />
+                                              VerticalAlignment="Center" Margin="0,0,8,0" />
                                         <TextBlock Text="이전" VerticalAlignment="Center" />
                                     </StackPanel>
                                 </Button>
@@ -361,9 +358,9 @@
                                         ToolTip="다음 줄 / 다음 슬라이드 (→ ↓)">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="다음" VerticalAlignment="Center" />
-                                        <Path Data="M 0,0 L 7,7 L 0,14" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                        <Path Data="M 0,0 L 5,5 L 0,10" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
                                               StrokeThickness="2" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                              VerticalAlignment="Center" Margin="10,0,0,0" />
+                                              VerticalAlignment="Center" Margin="8,0,0,0" />
                                     </StackPanel>
                                 </Button>
                             </Grid>
@@ -378,36 +375,34 @@
                     </Grid>
 
                     <!-- The main window's worship list (DataContext: MainViewModel), in both sources: a pick here is a pick
-                         there; the button, a double-click and Enter put the item in the output panel and, unlike a
-                         double-click in the main list, never start the live output (the screen would show it a second time).
-                         Its own section (a rule and a title) apart from the caption's controls: it changes the output screen,
-                         not the caption. Its rows are the main list's rows (kind icon, title, LIVE; the main window's text
-                         size, which follows the interface size). -->
-                    <DockPanel x:Name="WorshipPanel" Grid.Row="1" Margin="0,24,0,0">
+                         there; a click on a row and Enter put the item in the output panel and, unlike a double-click in the
+                         main list, never start the live output (the screen would show it a second time). The caption's
+                         on-air state stays as it is. Its own section (a rule and a title) apart from the caption's controls:
+                         it changes the output screen, not the caption. Its rows are the main list's rows (kind icon, title,
+                         LIVE; the main window's text size, which follows the interface size). -->
+                    <DockPanel x:Name="WorshipPanel" Grid.Row="1" Margin="0,16,0,0">
                         <Border x:Name="WorshipHeader" DockPanel.Dock="Top" BorderBrush="{DynamicResource Brush.Border.Default}" BorderThickness="0,1,0,0"
-                                Padding="0,16,0,0">
+                                Padding="0,12,0,0">
                             <DockPanel>
-                                <TextBlock DockPanel.Dock="Right" Text="더블클릭 · Enter로 올리기" Style="{StaticResource Quiet}" Margin="0,0,0,8" />
+                                <TextBlock DockPanel.Dock="Right" Text="누르면 송출 칸에 올라갑니다" Style="{StaticResource Quiet}" Margin="0,0,0,8"
+                                           ToolTip="라이브가 꺼져 있으면 켜지 않고, 라이브 중이면 송출 화면도 바뀝니다. 자막을 내보내는지 숨기는지는 그대로입니다. 키보드로는 화살표로 고르고 Enter." />
                                 <TextBlock Text="예배 순서" Style="{StaticResource SectionTitle}" />
                             </DockPanel>
                         </Border>
-                        <Button x:Name="SendItemButton" DockPanel.Dock="Bottom" Content="송출 칸에 올리기" Margin="0,8,0,0" HorizontalAlignment="Stretch"
-                                Command="{Binding SendWorshipSelectionToOutputCommand}" AutomationProperties.Name="고른 예배 순서 항목을 송출 칸에 올리기"
-                                ToolTip="고른 항목을 송출 칸에 올립니다. 라이브가 꺼져 있으면 켜지 않고, 라이브 중이면 송출 화면도 바뀝니다. 따라가기에서는 자막이 송출 칸을 따라가고, 직접 입력에서는 입력한 자막 그대로입니다." />
                         <Grid>
                             <ListView x:Name="WorshipList" ItemsSource="{Binding Queue}" SelectedItem="{Binding SelectedItem, Mode=TwoWay}" SelectionMode="Single"
                                       ScrollViewer.HorizontalScrollBarVisibility="Disabled" HorizontalContentAlignment="Stretch"
                                       FontSize="{DynamicResource Type.Body.FontSize}" BorderThickness="1"
-                                      AutomationProperties.Name="예배 순서 (더블클릭·Enter로 송출 칸에 올리기)" KeyDown="WorshipListKey">
+                                      AutomationProperties.Name="예배 순서 (누르거나 Enter로 송출 칸에 올리기)" KeyDown="WorshipListKey">
                                 <ListView.ItemContainerStyle>
-                                    <!-- The main list's row (WorshipListPanel.xaml); a double-click on a row puts it in the output panel
-                                         (on the list's empty space: nothing). -->
+                                    <!-- The main list's row (WorshipListPanel.xaml); a click on a row puts it in the output panel (on the
+                                         list's empty space: nothing). -->
                                     <Style TargetType="ListViewItem">
                                         <Setter Property="AutomationProperties.Name" Value="{Binding Title}" />
                                         <Setter Property="MinHeight" Value="20" />
                                         <Setter Property="Padding" Value="2,0,14,0" />
                                         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                                        <Setter Property="input:RowDoubleClick.Command" Value="{Binding DataContext.SendWorshipSelectionToOutputCommand, RelativeSource={RelativeSource AncestorType=ListView}}" />
+                                        <EventSetter Event="MouseLeftButtonUp" Handler="RowClicked" />
                                     </Style>
                                 </ListView.ItemContainerStyle>
                                 <ListView.ItemTemplate>
@@ -537,7 +532,7 @@
              the pages of the output panel's song, passage or text: a picked page turns the panel and the caption follows.
              Following the screen it keeps its place also while it has no step (a deck being read, a media item, an empty
              panel), so the preview and the list do not change size from item to item. -->
-        <ListBox x:Name="StepStrip" Margin="0,16,0,0" Height="108" Foreground="{DynamicResource Brush.Text.Primary}"
+        <ListBox x:Name="StepStrip" Margin="0,12,0,0" Height="80" Foreground="{DynamicResource Brush.Text.Primary}"
                  Visibility="{Binding IsChecked, ElementName=ScreenMode, Converter={StaticResource Shown}}"
                  ItemsSource="{Binding Steps}" SelectedItem="{Binding CurrentStep, Mode=OneWay}" SelectionChanged="StepPicked"
                  ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Disabled"
@@ -556,12 +551,12 @@
             </ListBox.ItemsPanel>
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <StackPanel Width="140" Margin="2">
-                        <Border Height="44" Background="{DynamicResource Brush.Surface.Subtle}" CornerRadius="4">
+                    <StackPanel Width="112" Margin="2">
+                        <Border Height="36" Background="{DynamicResource Brush.Surface.Subtle}" CornerRadius="4">
                             <Grid>
                                 <Image Source="{Binding Thumbnail}" Stretch="Uniform" />
                                 <TextBlock Text="{Binding Text}" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" Margin="6,2" VerticalAlignment="Center"
-                                           FontSize="{DynamicResource Type.BodyLarge.FontSize}" Foreground="{DynamicResource Brush.Text.Secondary}" />
+                                           Foreground="{DynamicResource Brush.Text.Secondary}" />
                             </Grid>
                         </Border>
                         <TextBlock Text="{Binding Label}" FontWeight="SemiBold" Margin="2,4,0,0" />
@@ -569,7 +564,7 @@
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
-        <TextBlock x:Name="NoSteps" Margin="12,16,12,0" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"
+        <TextBlock x:Name="NoSteps" Margin="12,12,12,0" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"
                    TextWrapping="Wrap" TextAlignment="Center"
                    Text="단계 없음 · PPT · 찬양 · 성경 · 텍스트를 송출하면 여기에 단계가 보입니다">
             <TextBlock.Style>
@@ -590,13 +585,13 @@
 
                     <!-- What the next button would send, as the camera screen would show it (only a followed source has a
                          next step). Its label has a fixed width: the strip beside it does not change size with it. -->
-                    <Border x:Name="NextCard" Grid.Column="1" Margin="8,16,0,0" Height="108" Padding="10,5" Style="{StaticResource Card}"
+                    <Border x:Name="NextCard" Grid.Column="1" Margin="8,12,0,0" Height="80" Padding="10,5" Style="{StaticResource Card}"
                             Visibility="{Binding IsChecked, ElementName=ScreenMode, Converter={StaticResource Shown}}"
                             ToolTip="다음을 누르면 나갈 자막입니다. 미리보기만 · 내보내지 않습니다.">
                         <DockPanel>
-                            <StackPanel DockPanel.Dock="Left" Width="68" Margin="0,0,8,0" VerticalAlignment="Center">
+                            <StackPanel DockPanel.Dock="Left" Width="56" Margin="0,0,8,0" VerticalAlignment="Center">
                                 <TextBlock Text="다음" Style="{StaticResource Quiet}" />
-                                <TextBlock x:Name="NextLabel" Text="{Binding Next.Label, FallbackValue=—}" FontSize="{DynamicResource Type.BodyLarge.FontSize}"
+                                <TextBlock x:Name="NextLabel" Text="{Binding Next.Label, FallbackValue=—}"
                                            FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
                             </StackPanel>
                             <Viewbox x:Name="NextPreview" Stretch="Uniform" AutomationProperties.Name="다음 자막 미리보기">
@@ -612,8 +607,8 @@
 
         <!-- The caption's look, at hand during the service: its own section under the preview it changes (a rule and a
              title, as the worship list's), the left column kept for the source and the worship list down to the bottom. -->
-                <StackPanel Grid.Row="2" Margin="0,16,0,0">
-                    <Border BorderBrush="{DynamicResource Brush.Border.Default}" BorderThickness="0,1,0,0" Padding="0,16,0,0">
+                <StackPanel Grid.Row="2" Margin="0,12,0,0">
+                    <Border BorderBrush="{DynamicResource Brush.Border.Default}" BorderThickness="0,1,0,0" Padding="0,12,0,0">
                         <TextBlock Text="자막 모양" Style="{StaticResource SectionTitle}" />
                     </Border>
         <!-- Groups that wrap whole (a label never parts from its control): sizes and box first, the colours after. -->

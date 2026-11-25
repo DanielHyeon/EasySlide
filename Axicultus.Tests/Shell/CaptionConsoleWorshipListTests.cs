@@ -12,9 +12,9 @@ using Xunit;
 
 namespace Axicultus.Wpf.Tests.Shell;
 
-// a041: the worship list in the console (following the screen or typing): pick an item and send it to the output panel
-// without leaving a maximized console. A live output shows it as a double-click in the main list does; one that is off
-// stays off.
+// a041: the worship list in the console (following the screen or typing): a click on an item sends it to the output
+// panel without leaving a maximized console. A live output shows it as a double-click in the main list does; one that is
+// off stays off.
 public sealed partial class CaptionConsoleTests
 {
     internal static (LiveQueueItem First, LiveQueueItem Second, LiveQueueItem Third) ThreeSongs(MainViewModel main)
@@ -44,6 +44,15 @@ public sealed partial class CaptionConsoleTests
         return (ListBoxItem)console.WorshipList.ItemContainerGenerator.ContainerFromIndex(index);
     }
 
+    // A left click on a row as the mouse makes it: the press picks the row, the release (the console's preview, then the
+    // row's) sends it.
+    internal static void ClickRow(CaptionConsole console, int index)
+    {
+        var row = Row(console, index);
+        foreach (var routed in new[] { Mouse.MouseDownEvent, Mouse.PreviewMouseUpEvent, Mouse.MouseUpEvent })
+            row.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, System.Environment.TickCount, MouseButton.Left) { RoutedEvent = routed });
+    }
+
     // The visual tree under an element (the row's template).
     internal static System.Collections.Generic.IEnumerable<DependencyObject> Visuals(DependencyObject parent)
     {
@@ -64,10 +73,10 @@ public sealed partial class CaptionConsoleTests
         Assert.Contains("주님 앞에", session.PublicText);
         Assert.Equal(main.Queue, console.WorshipList.Items.Cast<LiveQueueItem>());
 
-        console.WorshipList.SelectedItem = second;
-        await ClickAsync(console.SendItemButton);
+        ClickRow(console, 1);
         await Pump(console, 300);
 
+        Assert.Same(second, main.SelectedItem);
         Assert.Same(second, main.OutputItem); // the output screen shows the second song
         Assert.Same(second, main.LiveRow);
         Assert.Contains(Visuals(Row(console, 1)).OfType<TextBlock>(), t => t.Text == "LIVE" && t.IsVisible); // the LIVE badge moved
@@ -98,40 +107,32 @@ public sealed partial class CaptionConsoleTests
         var main = Main(console);
         var (first, second, _) = ThreeSongs(main);
         await FirstSongOnAir(console, main, first);
-        var row = Row(console, 1);
-        console.WorshipList.SelectedItem = second; // the mouse picks the row ...
-        row.Focus();
-        row.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, 0, MouseButton.Left) { RoutedEvent = Mouse.PreviewMouseUpEvent });
-        await Idle(console);
+        Row(console, 1).Focus();
+        ClickRow(console, 1); // the mouse sends the row ...
+        await Pump(console, 300);
         Assert.Same(console.Surface, FocusManager.GetFocusedElement(console)); // ... and the keyboard is the console's again
+        Assert.Same(second, main.OutputItem);
+        Assert.True(session.Visible); // the caption stays on air, following the new item
 
         Assert.True(Press(console.Surface, Key.Space));
         Assert.False(session.Visible);
         Assert.Same(second, main.SelectedItem);
-        Assert.Same(first, main.OutputItem);
+        Assert.Same(second, main.OutputItem);
     });
 
     // Typing: an item sent from the list goes to the output screen; the typed caption stays and the keyboard is the box's.
     [Fact]
     public Task AnItemSentWhileTypingLeavesTheTypedCaption() => WithConsole(async (console, session, _) =>
     {
-        void Click(UIElement target) => target.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, 0, MouseButton.Left) { RoutedEvent = Mouse.PreviewMouseUpEvent });
         var main = Main(console);
         var (_, second, third) = ThreeSongs(main);
-        Assert.True(console.WorshipList.IsVisible && console.SendItemButton.IsVisible); // in both sources
+        Assert.True(console.WorshipList.IsVisible); // in both sources
         console.Draft.SetCurrentValue(TextBox.TextProperty, "환영합니다");
         await ClickAsync(console.TakeButton);
         Assert.Equal(("환영합니다", true), (session.PublicText, session.Visible));
 
-        var row = Row(console, 1);
-        console.WorshipList.SelectedItem = second; // picked with the mouse ...
-        row.Focus();
-        Click(row);
-        await Idle(console);
-        Assert.Same(console.Draft, FocusManager.GetFocusedElement(console)); // ... the keyboard goes back to the box
-        console.SendItemButton.Focus();
-        await ClickAsync(console.SendItemButton);
-        Click(console.SendItemButton);
+        Row(console, 1).Focus();
+        ClickRow(console, 1); // sent with the mouse ...
         await Pump(console, 300);
 
         Assert.Same(second, main.OutputItem); // the output panel holds the second song; the output stays off
@@ -209,9 +210,9 @@ public sealed partial class CaptionConsoleTests
 
     internal static TextBlock Title(ListBoxItem row, string title) => Visuals(row).OfType<TextBlock>().First(t => t.Text == title);
 
-    // The scenario "항목 더블클릭과 빈 곳 더블클릭": the empty space sends nothing, a row sends that row.
+    // The scenario "항목 클릭과 빈 곳 클릭": the empty space sends nothing, a row sends that row.
     [Fact]
-    public Task ADoubleClickOnARowSendsItAndOnTheEmptySpaceNothing() => WithConsole(async (console, _, _) =>
+    public Task AClickOnARowSendsItAndOnTheEmptySpaceNothing() => WithConsole(async (console, _, _) =>
     {
         var main = Main(console);
         var (first, second, _) = ThreeSongs(main);
@@ -223,37 +224,32 @@ public sealed partial class CaptionConsoleTests
         Assert.Same(first, main.OutputItem);
 
         var third = main.Queue[2];
-        DoubleClick(Title(Row(console, 2), third.Title)); // the first press picks the row, the second sends it
+        MousePress(Title(Row(console, 2), third.Title), 1); // a click on its title sends the row
         await Pump(console, 300);
         Assert.Same(third, main.SelectedItem);
         Assert.Same(third, main.OutputItem);
         Assert.Same(third, main.LiveRow);
 
-        MousePress(Title(Row(console, 1), second.Title), 2, MouseButton.Right); // a right double-click sends nothing
+        MousePress(Title(Row(console, 1), second.Title), 1, MouseButton.Right); // a right click sends nothing
         await Pump(console, 300);
         Assert.Same(third, main.OutputItem);
 
-        // A double-click whose first press did not pick the row (Shift or Ctrl held): the row clicked goes, not the pick.
-        console.WorshipList.SelectedItem = main.Queue[0];
-        Row(console, 1).RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, 0, MouseButton.Left) { RoutedEvent = Control.MouseDoubleClickEvent });
+        DoubleClick(Title(Row(console, 1), second.Title)); // a double-click sends it once, as a click does
         await Pump(console, 300);
         Assert.Same(second, main.OutputItem);
         Assert.Same(second, main.SelectedItem);
     });
 
     [Fact]
-    public Task WithAnEmptyWorshipListTheSendButtonIsOffAndSaysWhy() => WithConsole(async (console, _, _) =>
+    public Task AnEmptyWorshipListSaysSo() => WithConsole(async (console, _, _) =>
     {
         var main = Main(console);
         console.ScreenMode.IsChecked = true;
         main.LoadQueue(System.Array.Empty<LiveQueueItem>());
         await Idle(console);
-        Assert.False(console.SendItemButton.IsEnabled);
         Assert.True(console.WorshipListEmpty.IsVisible);
         ThreeSongs(main);
-        main.SelectedItem = main.Queue[0];
         await Idle(console);
-        Assert.True(console.SendItemButton.IsEnabled);
         Assert.False(console.WorshipListEmpty.IsVisible);
     });
 
@@ -279,11 +275,12 @@ public sealed partial class CaptionConsoleTests
 
     // The app's type sizes at an interface size (ThemeService's scaled sizes), on the console itself: the same whether or
     // not another test made an Application. (An Application made here would belong to this test's thread only.)
-    // The console draws with these large tokens only; body and caption text (a044: 11 at Standard) is not on it.
+    // The console draws at the main window's sizes (body and button text: a044's 11 at Standard) and a few larger ones.
     private static void TypeSizes(CaptionConsole console, double scale)
     {
         foreach (var (key, size) in new[] { ("Type.Display.FontSize", 32d), ("Type.Title1.FontSize", 24d), ("Type.Title2.FontSize", 20d),
-                     ("Type.Title3.FontSize", 18d), ("Type.BodyLarge.FontSize", 16d), ("Type.ButtonLarge.FontSize", 16d) })
+                     ("Type.Title3.FontSize", 18d), ("Type.BodyLarge.FontSize", 16d), ("Type.ButtonLarge.FontSize", 16d),
+                     ("Type.Body.FontSize", 11d), ("Type.Button.FontSize", 11d), ("Type.Badge.FontSize", 10d) })
             console.Resources[key] = size * scale;
     }
 
@@ -301,11 +298,11 @@ public sealed partial class CaptionConsoleTests
     }
 
     // Laid out as the window shows it at a size: the source's controls on top (typing: a box of three lines), the list in
-    // the rest (two rows at least), the buttons in view.
+    // the rest (two rows at least), the buttons and the list in view.
     [Theory]
     [InlineData(1920, 1040, true, 1.0)] // maximized on a 1080p screen
     [InlineData(1040, 720, true, 1.0)] // the default
-    [InlineData(900, 620, true, 1.0)] // the minimum: the left column scrolls rather than cutting off the send button
+    [InlineData(900, 620, true, 1.0)] // the minimum: the left column may scroll rather than cut off a button
     [InlineData(1920, 1040, false, 1.0)]
     [InlineData(1040, 720, false, 1.0)]
     [InlineData(900, 620, false, 1.0)]
@@ -341,9 +338,8 @@ public sealed partial class CaptionConsoleTests
             ((FrameworkElement)console.Content).UpdateLayout();
         }
         else Assert.True(Rect.Inflate(panel, 0.5, 0.5).Contains(controls), $"the source's buttons at {controls}");
-        var send = In(console.SendItemButton, console.SourcePanel);
-        var inView = Rect.Inflate(panel, 0.5, 0.5); // (rounding)
-        Assert.True(inView.Contains(send) && send.Height >= 40, $"the send button at {send} in {panel}");
+        var list = In(console.WorshipList, console.SourcePanel);
+        Assert.True(list.Bottom <= panel.Bottom + 0.5, $"the list at {list} in {panel}"); // (rounding)
         if (width == 1920) Assert.True(console.WorshipList.ActualHeight > 300);
         if (following) return;
 
@@ -431,9 +427,9 @@ public sealed partial class CaptionConsoleTests
     [Fact]
     public Task OnASmallWindowTheWheelScrollsTheColumnAndASendKeepsItsPlace() => WithConsole(async (console, _, _) =>
     {
-        // Larger than the senior size: since the look controls moved under the preview the column has room for the senior
-        // size in the smallest window; this size makes it scroll whatever the theme, to check the wheel and the send there.
-        TypeSizes(console, 1.8);
+        // Far larger than the senior size: at the main window's sizes the column has room in the smallest window; this size
+        // makes it scroll whatever the theme, to check the wheel and the send there.
+        TypeSizes(console, 3);
         var main = Main(console);
         main.LoadQueue([.. Enumerable.Range(0, 12).Select(n => new LiveQueueItem($"song:a041-{n}", $"찬양 {n}", LiveItemKinds.Song) { Lyrics = "[1]\n가사 " + n })]);
         main.SelectedItem = main.Queue[0];
@@ -475,12 +471,11 @@ public sealed partial class CaptionConsoleTests
         console.SourcePanel.ScrollToVerticalOffset(console.SourcePanel.ScrollableHeight); // (a number: ScrollToBottom would follow a longer column)
         console.UpdateLayout();
         double bottom = console.SourcePanel.VerticalOffset;
-        await ClickAsync(console.SendItemButton);
-        console.SendItemButton.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, 0, MouseButton.Left) { RoutedEvent = Mouse.PreviewMouseUpEvent });
+        ClickRow(console, 0);
         await Pump(console, 300);
         Assert.Same(main.Queue[0], main.OutputItem);
         Assert.Same(console.Draft, FocusManager.GetFocusedElement(console));
-        Assert.Equal(bottom, console.SourcePanel.VerticalOffset); // the list and the send button stay in view
+        Assert.Equal(bottom, console.SourcePanel.VerticalOffset); // the list stays in view
 
         // So does a click on the take button while typing (the keyboard back to the box).
         console.Draft.Text = "환영합니다";
@@ -503,7 +498,7 @@ public sealed partial class CaptionConsoleTests
         main.LoadQueue(System.Array.Empty<LiveQueueItem>());
         await Pump(console, 200);
         double Rows() => console.SourceColumn.MinHeight - console.SourceControls.ActualHeight - console.WorshipPanel.Margin.Top
-            - console.WorshipHeader.ActualHeight - console.SendItemButton.ActualHeight - console.SendItemButton.Margin.Top - 4;
+            - console.WorshipHeader.ActualHeight - 4;
         ThreeSongs(main);
         await Pump(console, 300);
         double row = Row(console, 0).ActualHeight;
@@ -517,9 +512,9 @@ public sealed partial class CaptionConsoleTests
         Assert.Equal(2 * row, Rows(), 1);
 
         double box = console.Draft.Height;
-        console.Resources["Type.Title1.FontSize"] = 36d;
+        console.Resources["Type.BodyLarge.FontSize"] = 24d;
         await Pump(console, 200);
-        Assert.Equal(36d, console.Draft.FontSize);
+        Assert.Equal(24d, console.Draft.FontSize);
         Assert.True(console.Draft.Height > box * 1.3, $"the box {box} -> {console.Draft.Height}");
     });
 
@@ -539,7 +534,7 @@ public sealed partial class CaptionConsoleTests
         Assert.Equal(2, main.LyricsPageIndex); // the library song's third page is shown
         Assert.Same(verses, main.SelectedItem);
 
-        await ClickAsync(console.SendItemButton);
+        ClickRow(console, 0);
         await Pump(console, 300);
         Assert.Same(verses, main.OutputItem);
         Assert.Equal("첫째 절", main.OutputLyricsText.Trim()); // (the output panel: the output is off and stays off)
@@ -554,8 +549,7 @@ public sealed partial class CaptionConsoleTests
         var (_, second, third) = ThreeSongs(main);
         console.ScreenMode.IsChecked = true;
         await ClickAsync(console.AirButton);
-        console.WorshipList.SelectedItem = second;
-        await ClickAsync(console.SendItemButton);
+        ClickRow(console, 1);
         await Pump(console, 300);
 
         Assert.Equal(Axicultus.Wpf.Controls.LiveState.Off, main.Session.Current.State);
@@ -586,8 +580,7 @@ public sealed partial class CaptionConsoleTests
         Assert.True(console.StepStrip.IsVisible && console.NoSteps.IsVisible);
         Assert.Empty(editor.Steps);
         double previewHeight = console.ObsPreviewBox.ActualHeight;
-        main.SelectedItem = verses;
-        await ClickAsync(console.SendItemButton);
+        ClickRow(console, 0);
         await Pump(console, 300);
 
         Assert.True(console.StepStrip.IsVisible && !console.NoSteps.IsVisible);
@@ -604,6 +597,11 @@ public sealed partial class CaptionConsoleTests
         Assert.Equal(editor.Steps[2], editor.CurrentStep);
         Assert.Null(editor.Next); // the last page
         Assert.Equal(Axicultus.Wpf.Controls.LiveState.Off, main.Session.Current.State);
+
+        ClickRow(console, 0); // a stray click on the row already in the panel leaves its page
+        await Pump(console, 300);
+        Assert.Equal("셋째 절", main.OutputLyricsText.Trim());
+        Assert.Equal("셋째 절", session.PublicText);
 
         console.DirectMode.IsChecked = true; // typing: no strip
         await Pump(console, 100);

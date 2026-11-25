@@ -2884,7 +2884,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     // The worship-list row the output item was taken from (not a library, search or praise-book preview).
-    private bool IsOutputRow(LiveQueueItem row)
+    internal bool IsOutputRow(LiveQueueItem row)
         => OutputItem is { } output && !_outputFromSourcePreview
             && (ReferenceEquals(row, output) || ReferenceEquals(row, _outputFormatSource));
 
