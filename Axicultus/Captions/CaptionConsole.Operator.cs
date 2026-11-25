@@ -416,7 +416,6 @@ public partial class CaptionConsole
         bool following = ScreenMode.IsChecked == true && _captions.Following && _captions.Deck != null;
         OperatorLyricsPageCard[] pages = ScreenMode.IsChecked == true && !following && _captions.Mirroring ? [.. _main.OutputLyricsPages] : [];
         _pageSteps = pages.Length > 0;
-        StepStrip.Visibility = following || _pageSteps ? Visibility.Visible : Visibility.Collapsed;
         AutomationProperties.SetName(StepStrip, _pageSteps ? "송출 칸 페이지 (누르면 송출 칸과 자막이 그 페이지로)" : "PPT 단계 (누르면 자막만 그 단계로)");
         _showingSteps = true;
         try

@@ -91,6 +91,25 @@ public sealed partial class CaptionConsoleTests
             await Dark("8-screen-off");
 
             await Draw(console.Settings, "7-settings", ("default", console.Settings.Width, console.Settings.Height), ("min", console.Settings.MinWidth, console.Settings.MinHeight));
+
+            // a045: a song (no deck) in the output panel shows its pages in the strip; an empty panel keeps the strip's place.
+            var main = Main(console);
+            var verses = new LiveQueueItem("song:shot-verses", "세 절 찬양", LiveItemKinds.Song)
+                { Lyrics = "[1]\n주님은 나의 목자시니\n[2]\n푸른 풀밭에 누이시며\n[3]\n내 영혼을 소생시키시고" };
+            // (the console is not shown here, so it does not follow the panel by itself: the panel's text is given to it)
+            live.Stop();
+            if (!session.Visible) console.AirButton.Command.Execute(null);
+            session.Mirror(true);
+            main.Queue.Add(verses);
+            main.SelectedItem = verses;
+            await main.SendWorshipSelectionToOutputCommand.ExecuteAsync(null);
+            session.ShowScreenText(main.OutputLyricsText);
+            await Pump(console, 300);
+            await Draw(console, "9-follow-song-pages", ShotSizes[0]);
+            main.OutputItem = null;
+            session.ShowScreenText("");
+            await Pump(console, 300);
+            await Draw(console, "10-follow-no-steps", ShotSizes[0]);
         }, show: false, appLook: true, live: live);
     }
 

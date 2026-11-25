@@ -224,7 +224,8 @@
                             <Border Style="{StaticResource Card}" Margin="0,12,0,0">
                                 <StackPanel>
                                     <TextBlock x:Name="ScoreRowLabel" FontSize="{DynamicResource Type.Title3.FontSize}" FontWeight="SemiBold" TextWrapping="Wrap" />
-                                    <TextBlock x:Name="DeckLabel" Style="{StaticResource Quiet}" TextTrimming="CharacterEllipsis" />
+                                    <!-- (a no-break space until a deck names itself: the line is there from the start) -->
+                                    <TextBlock x:Name="DeckLabel" Text="&#160;" Style="{StaticResource Quiet}" TextTrimming="CharacterEllipsis" />
                                 </StackPanel>
                             </Border>
                             <CheckBox x:Name="SyncShow" Content="싱크: ◀ ▶로 송출 화면도 넘기기" Margin="0,12,0,0" IsChecked="{Binding Session.SyncShow, Mode=TwoWay}"
@@ -374,8 +375,11 @@
         </Grid>
 
         <!-- The followed deck step by step: a picked step moves the caption only (the output screen stays). Without a deck,
-             the pages of the output panel's song, passage or text: a picked page turns the panel and the caption follows. -->
-        <ListBox x:Name="StepStrip" Grid.Row="1" Margin="0,12,0,0" Height="92" Visibility="Collapsed"
+             the pages of the output panel's song, passage or text: a picked page turns the panel and the caption follows.
+             Following the screen it keeps its place also while it has no step (a deck being read, a media item, an empty
+             panel), so the preview and the list above do not change size from item to item. -->
+        <ListBox x:Name="StepStrip" Grid.Row="1" Margin="0,12,0,0" Height="92"
+                 Visibility="{Binding IsChecked, ElementName=ScreenMode, Converter={StaticResource Shown}}"
                  ItemsSource="{Binding Steps}" SelectedItem="{Binding CurrentStep, Mode=OneWay}" SelectionChanged="StepPicked"
                  ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Disabled"
                  Background="{DynamicResource Brush.Surface.Card}" BorderBrush="{DynamicResource Brush.Border.Default}"
@@ -406,6 +410,23 @@
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
+        <TextBlock x:Name="NoSteps" Grid.Row="1" Margin="0,12,0,0" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"
+                   Text="단계 없음 · PPT · 찬양 · 성경 · 텍스트를 송출하면 여기에 단계가 보입니다">
+            <TextBlock.Style>
+                <Style TargetType="TextBlock" BasedOn="{StaticResource Quiet}">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                    <Style.Triggers>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding IsChecked, ElementName=ScreenMode}" Value="True" />
+                                <Condition Binding="{Binding HasItems, ElementName=StepStrip}" Value="False" />
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Visibility" Value="Visible" />
+                        </MultiDataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </TextBlock.Style>
+        </TextBlock>
 
         <!-- The caption's look, at hand during the service. -->
         <WrapPanel Grid.Row="2" Margin="0,12,0,0">

@@ -579,12 +579,17 @@ public sealed partial class CaptionConsoleTests
         main.LoadQueue([verses]);
         console.ScreenMode.IsChecked = true;
         await ClickAsync(console.AirButton);
-        Assert.False(console.StepStrip.IsVisible); // nothing in the output panel
+        await Pump(console, 100);
+        // nothing in the output panel: the strip keeps its place (the layout does not jump from item to item) and says so
+        Assert.True(console.StepStrip.IsVisible && console.NoSteps.IsVisible);
+        Assert.Empty(editor.Steps);
+        double previewHeight = console.ObsPreviewBox.ActualHeight;
         main.SelectedItem = verses;
         await ClickAsync(console.SendItemButton);
         await Pump(console, 300);
 
-        Assert.True(console.StepStrip.IsVisible);
+        Assert.True(console.StepStrip.IsVisible && !console.NoSteps.IsVisible);
+        Assert.Equal(previewHeight, console.ObsPreviewBox.ActualHeight); // the preview kept its size
         Assert.Equal(["1/3", "2/3", "3/3"], editor.Steps.Select(step => step.Label));
         Assert.Equal(["첫째 절", "둘째 절", "셋째 절"], editor.Steps.Select(step => step.Text));
         Assert.Equal(editor.Steps[0], editor.CurrentStep);

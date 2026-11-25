@@ -521,7 +521,8 @@ public partial class CaptionConsole : Window
         {
             ScoreRowLabel.Text = _captions.Following && _captions.Deck != null ? $"PPT {_captions.CurrentSlide}/{_captions.Deck.Slides.Length}장"
                 : _captions.Mirroring ? "송출 화면의 글자" : "";
-            DeckLabel.Visibility = _captions.Following ? Visibility.Visible : Visibility.Collapsed; // the deck name only while it is followed
+            // the deck name only while it is followed; its line stays, so the list below does not move from item to item
+            DeckLabel.Visibility = _captions.Following ? Visibility.Visible : Visibility.Hidden;
             _captions.SetImage(null);
             return;
         }
