@@ -283,9 +283,9 @@
             <DockPanel>
                 <Border DockPanel.Dock="Top" Style="{StaticResource SegmentTrack}">
                     <UniformGrid Columns="2">
-                        <RadioButton x:Name="DirectMode" Content="직접 입력" GroupName="Source" IsChecked="True" Checked="SourceChanged" Style="{StaticResource Segment}" />
                         <RadioButton x:Name="ScreenMode" Content="화면 따라가기" GroupName="Source" Checked="SourceChanged" Style="{StaticResource Segment}"
                                      ToolTip="송출 화면(라이브가 아니어도 송출 칸)의 PPT · 찬양 · 성경 · 텍스트를 자막으로 따라갑니다." />
+                        <RadioButton x:Name="DirectMode" Content="직접 입력" GroupName="Source" IsChecked="True" Checked="SourceChanged" Style="{StaticResource Segment}" />
                     </UniformGrid>
                 </Border>
                 <!-- The source's own controls on top, the worship list in the rest. Too short for both (a small window), the
