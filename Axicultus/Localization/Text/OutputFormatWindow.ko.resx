@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Title" xml:space="preserve"><value>송출 서식</value></data>
+  <data name="TabLyrics" xml:space="preserve"><value>가사</value></data>
+  <data name="Display" xml:space="preserve"><value>표시</value></data>
+  <data name="TitleHeading" xml:space="preserve"><value>제목 헤딩</value></data>
+  <data name="Outline" xml:space="preserve"><value>가사 외곽선</value></data>
+  <data name="Shadow" xml:space="preserve"><value>가사 그림자</value></data>
+  <data name="ChorusEmphasis" xml:space="preserve"><value>강조는 후렴만(굵게·기울임·밑줄)</value></data>
+  <data name="Interlace" xml:space="preserve"><value>이중 언어 줄 교차(원문/번역 번갈아)</value></data>
+  <data name="RegionDisplay" xml:space="preserve"><value>이중 언어 영역 표시</value></data>
+  <data name="Both" xml:space="preserve"><value>둘 다</value></data>
+  <data name="Region1Only" xml:space="preserve"><value>주 언어만</value></data>
+  <data name="Region2Only" xml:space="preserve"><value>보조 언어만</value></data>
+  <data name="Transpose" xml:space="preserve"><value>코드 조옮김</value></data>
+  <data name="TransposeReset" xml:space="preserve"><value>원조 복귀</value></data>
+  <data name="SemitoneDown" xml:space="preserve"><value>반음 내림</value></data>
+  <data name="SemitoneUp" xml:space="preserve"><value>반음 올림</value></data>
+  <data name="Alignment" xml:space="preserve"><value>정렬</value></data>
+  <data name="Horizontal" xml:space="preserve"><value>가로</value></data>
+  <data name="Vertical" xml:space="preserve"><value>세로</value></data>
+  <data name="Left" xml:space="preserve"><value>왼쪽</value></data>
+  <data name="Center" xml:space="preserve"><value>가운데</value></data>
+  <data name="Right" xml:space="preserve"><value>오른쪽</value></data>
+  <data name="Top" xml:space="preserve"><value>위</value></data>
+  <data name="Bottom" xml:space="preserve"><value>아래</value></data>
+  <data name="Spacing" xml:space="preserve"><value>간격·여백</value></data>
+  <data name="LineSpacing" xml:space="preserve"><value>줄 간격: {0}%</value></data>
+  <data name="LeftMargin" xml:space="preserve"><value>왼쪽 여백: {0}px</value></data>
+  <data name="RightMargin" xml:space="preserve"><value>오른쪽 여백: {0}px</value></data>
+  <data name="BottomMargin" xml:space="preserve"><value>아래 여백: {0}px</value></data>
+  <data name="RegionGapTip" xml:space="preserve"><value>원문과 번역 사이의 세로 간격</value></data>
+  <data name="RegionGap" xml:space="preserve"><value>영역 간 간격: {0}px</value></data>
+  <data name="BodyOffsetTip" xml:space="preserve"><value>정렬은 유지한 채 본문을 위·아래로 조금씩 옮깁니다</value></data>
+  <data name="BodyOffset" xml:space="preserve"><value>본문 세로 위치: {0}px</value></data>
+  <data name="TabBackground" xml:space="preserve"><value>배경·전환</value></data>
+  <data name="BackgroundImage" xml:space="preserve"><value>배경 이미지</value></data>
+  <data name="Gallery" xml:space="preserve"><value>갤러리…</value></data>
+  <data name="GalleryTip" xml:space="preserve"><value>이미지 갤러리에서 배경을 고릅니다</value></data>
+  <data name="PickFile" xml:space="preserve"><value>파일 선택…</value></data>
+  <data name="PickFileTip" xml:space="preserve"><value>이미지 파일을 배경으로 지정합니다</value></data>
+  <data name="ClearImage" xml:space="preserve"><value>지우기</value></data>
+  <data name="ImageFill" xml:space="preserve"><value>채움(가득)</value></data>
+  <data name="ImageFit" xml:space="preserve"><value>맞춤(전체 보임)</value></data>
+  <data name="ImageCenter" xml:space="preserve"><value>가운데(원본 크기)</value></data>
+  <data name="ImageTile" xml:space="preserve"><value>타일(반복)</value></data>
+  <data name="GradientDirection" xml:space="preserve"><value>그라데이션 방향</value></data>
+  <data name="GradientVertical" xml:space="preserve"><value>세로 (위→아래)</value></data>
+  <data name="GradientHorizontal" xml:space="preserve"><value>가로 (좌→우)</value></data>
+  <data name="DiagonalDown" xml:space="preserve"><value>대각선 ↘</value></data>
+  <data name="DiagonalDownTip" xml:space="preserve"><value>왼쪽 위에서 오른쪽 아래로</value></data>
+  <data name="DiagonalUp" xml:space="preserve"><value>대각선 ↗</value></data>
+  <data name="DiagonalUpTip" xml:space="preserve"><value>왼쪽 아래에서 오른쪽 위로</value></data>
+  <data name="Transition" xml:space="preserve"><value>전환 효과</value></data>
+  <data name="Fade" xml:space="preserve"><value>페이드 사용</value></data>
+  <data name="ItemTransition" xml:space="preserve"><value>항목 전환 (곡 → 곡)</value></data>
+  <data name="SlideTransition" xml:space="preserve"><value>슬라이드 전환 (같은 곡 안의 절 이동)</value></data>
+  <data name="Speed" xml:space="preserve"><value>속도</value></data>
+  <data name="Fast" xml:space="preserve"><value>빠르게</value></data>
+  <data name="Normal" xml:space="preserve"><value>보통</value></data>
+  <data name="Slow" xml:space="preserve"><value>느리게</value></data>
+  <data name="Ms150" xml:space="preserve"><value>0.15초</value></data>
+  <data name="Ms250" xml:space="preserve"><value>0.25초</value></data>
+  <data name="Ms500" xml:space="preserve"><value>0.5초</value></data>
+  <data name="TabInfoPanel" xml:space="preserve"><value>정보 패널</value></data>
+  <data name="ShownItems" xml:space="preserve"><value>표시 항목</value></data>
+  <data name="ShowPanel" xml:space="preserve"><value>정보 패널 표시</value></data>
+  <data name="Position" xml:space="preserve"><value>위치 표시 (현재/전체)</value></data>
+  <data name="VerseName" xml:space="preserve"><value>절 이름 (1절/후렴)</value></data>
+  <data name="SongNumber" xml:space="preserve"><value>곡 번호</value></data>
+  <data name="SongTitle" xml:space="preserve"><value>제목</value></data>
+  <data name="SongTitleTip" xml:space="preserve"><value>현재 곡 제목을 송출 화면 왼쪽 위 정보 밴드에 작게 표시합니다.</value></data>
+  <data name="Copyright" xml:space="preserve"><value>저작권</value></data>
+  <data name="NextItem" xml:space="preserve"><value>다음 항목</value></data>
+  <data name="Look" xml:space="preserve"><value>모양</value></data>
+  <data name="Transparent" xml:space="preserve"><value>투명 배경</value></data>
+  <data name="TransparentTip" xml:space="preserve"><value>곡 번호·저작권·다음 항목 밴드의 어두운 배경을 없앱니다.</value></data>
+  <data name="PanelColor" xml:space="preserve"><value>패널 색</value></data>
+  <data name="BlackDefault" xml:space="preserve"><value>검정 (기본)</value></data>
+  <data name="Navy" xml:space="preserve"><value>남색</value></data>
+  <data name="DarkGray" xml:space="preserve"><value>진회색</value></data>
+  <data name="Plum" xml:space="preserve"><value>자주</value></data>
+  <data name="DarkGreen" xml:space="preserve"><value>진녹색</value></data>
+  <data name="FontScale" xml:space="preserve"><value>글자 크기: {0}%</value></data>
+  <data name="Close" xml:space="preserve"><value>닫기</value></data>
+  <data name="ApplyToAll" xml:space="preserve"><value>예배 순서 전체에 적용:</value></data>
+  <data name="GlobalFormat" xml:space="preserve"><value>전역 서식</value></data>
+  <data name="GlobalFormatTip" xml:space="preserve"><value>정보 화면을 제외한 모든 항목의 '개별 서식'을 끄고 전역 기본 서식으로 통일합니다.</value></data>
+  <data name="CopiedFormat" xml:space="preserve"><value>복사한 서식</value></data>
+  <data name="CopiedFormatTip" xml:space="preserve"><value>우클릭 '이 항목 서식 복사'로 담아 둔 서식을 모든 곡·성경 항목에 한 번에 적용합니다.</value></data>
+  <data name="NoCopiedFormat" xml:space="preserve"><value>복사해 둔 서식이 없거나 적용할 곡·성경 항목이 없습니다.
+예배 순서에서 항목을 우클릭해 '이 항목 서식 복사'를 먼저 하세요.</value></data>
+  <data name="CannotApply" xml:space="preserve"><value>지금은 적용할 수 없습니다.</value></data>
+  <data name="ApplyCopiedConfirm" xml:space="preserve"><value>복사해 둔 서식을 예배 순서의 모든 곡·성경 항목에 적용할까요?</value></data>
+  <data name="ApplyGlobalConfirm" xml:space="preserve"><value>정보 화면을 제외한 모든 항목의 개별 서식을 끄고 전역 서식으로 통일할까요?</value></data>
+</root>

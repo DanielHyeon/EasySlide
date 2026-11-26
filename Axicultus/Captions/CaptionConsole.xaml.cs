@@ -11,6 +11,7 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using Axicultus.Wpf.Shell;
 using Axicultus.Wpf.Controls;
+using Axicultus.Wpf.Localization;
 using Axicultus.Wpf.Media;
 using Axicultus.Wpf.Rendering;
 using Axicultus.Wpf.Support;
@@ -185,7 +186,7 @@ public partial class CaptionConsole : Window
     private void UpdatePreviewTimer()
     {
         _previewTimer.IsEnabled = !_closed && IsVisible && _camera.ObsOwnsCamera && PreviewObsCamera.IsChecked == true;
-        PreviewHint.Text = _previewTimer.IsEnabled ? "OBS에서 카메라 영상을 기다리는 중…" : "카메라 미리보기는 설정에서 켭니다";
+        PreviewHint.Text = UiText.Get("CaptionConsole", _previewTimer.IsEnabled ? "PreviewWaiting" : "PreviewOff");
         if (!_previewTimer.IsEnabled && _camera.ObsOwnsCamera) _camera.Preview = null;
     }
 
@@ -213,14 +214,14 @@ public partial class CaptionConsole : Window
             if (connection != _obs.Connection || !_previewTimer.IsEnabled || name != CameraSource.Text.Trim()) return;
             _camera.ScaleY = 1;
             _camera.Preview = bitmap;
-            _camera.Status = "OBS 카메라 미리보기";
+            _camera.Status = UiText.Get("CaptionConsole", "ObsPreview");
         }
         catch (Exception ex)
         {
             if (connection == _obs.Connection && _previewTimer.IsEnabled)
             {
                 _camera.Preview = null;
-                _camera.Status = "OBS 미리보기 대기 · " + ex.Message;
+                _camera.Status = UiText.Format("CaptionConsole", "ObsPreviewWaiting", ex.Message);
             }
         }
         finally { _fetchingPreview = false; }
@@ -262,12 +263,12 @@ public partial class CaptionConsole : Window
             if (_recoverable != null)
             {
                 _revision = Math.Max(_revision, _recoverable.Revision);
-                Status.Text = "이 예배의 저장된 초안과 순서를 복구할 수 있습니다.";
+                Status.Text = UiText.Get("CaptionConsole", "Recoverable");
             }
         }
         catch (Exception ex) when (IsFileError(ex))
         {
-            _errors.Write("자막 복구본 읽기", ex);
+            _errors.Write("read caption recovery", ex);
             if (!_closed) Status.Text = ex.Message;
         }
     }
@@ -292,15 +293,15 @@ public partial class CaptionConsole : Window
         catch (Exception ex) when (IsFileError(ex))
         {
             _dirty = true;
-            _errors.Write("자막 복구본 저장", ex);
-            if (!_closed) Status.Text = "복구본 저장 실패 · " + ex.Message;
+            _errors.Write("save caption recovery", ex);
+            if (!_closed) Status.Text = UiText.Format("CaptionConsole", "RecoverySaveFailed", ex.Message);
         }
     }
 
     private async void Recover(object sender, RoutedEventArgs e)
     {
         if (_editor.IsRestoring || _recoverable is not { } saved) return;
-        if (MessageBox.Show(this,"현재 편집 초안과 예배 순서를 저장한 시점으로 복구할까요?", "예배 편집 복구",
+        if (MessageBox.Show(this,UiText.Get("CaptionConsole", "RecoverConfirm"), UiText.Get("CaptionConsole", "RecoverTitle"),
             MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
         await RestoreAsync(saved);
     }
@@ -310,7 +311,7 @@ public partial class CaptionConsole : Window
         // Without its deck the recovery is not half applied (the draft and the worship list stay as they are).
         if (saved.DeckPath is { } missing && !File.Exists(missing))
         {
-            Told = $"복구할 PPT를 찾을 수 없어 복구하지 않았습니다 · {Path.GetFileName(missing)}";
+            Told = UiText.Format("CaptionConsole", "RecoverNoDeck", Path.GetFileName(missing));
             return;
         }
         _editor.IsRestoring = true;
@@ -325,8 +326,8 @@ public partial class CaptionConsole : Window
                 catch (OperationCanceledException) when (_lifetime.IsCancellationRequested) { return; }
                 catch (Exception ex) when (IsDeckReadError(ex))
                 {
-                    _errors.Write("자막 PPT 복구", ex);
-                    warning = "PPT를 다시 열어 주세요. " + ex.Message;
+                    _errors.Write("recover caption PPT", ex);
+                    warning = UiText.Format("CaptionConsole", "ReopenDeck", ex.Message);
                 }
             }
             if (_closed) return;
@@ -346,7 +347,7 @@ public partial class CaptionConsole : Window
             }
             _captions.History.Clear();
             _captions.History.AddRange(saved.History);
-            Told = warning ?? "편집을 복구했습니다. 송출할 문구를 확인하세요.";
+            Told = warning ?? UiText.Get("CaptionConsole", "Recovered");
         }
         finally { _editor.IsRestoring = false; }
     }
@@ -404,7 +405,7 @@ public partial class CaptionConsole : Window
     // Reads the deck again: the one on the output screen, or the selected one.
     private async void OpenLiveDeck(object sender, RoutedEventArgs e)
     {
-        if (FindCurrentDeck(includeSelected: true) is not var (path, slide)) { Told = "송출 화면이나 선택한 항목에 PPT가 없습니다."; return; }
+        if (FindCurrentDeck(includeSelected: true) is not var (path, slide)) { Told = UiText.Get("CaptionConsole", "NoDeck"); return; }
         if (await PrepareDeckAsync(path, slide) && ScreenMode.IsChecked == true) FollowLoadedDeck();
     }
 
@@ -452,7 +453,7 @@ public partial class CaptionConsole : Window
         if (_main.OutputItem is { ContentPath.Length: > 0 } pending && LiveItemKindMatcher.IsPowerPoint(LiveItemKindMatcher.InferLegacyKind(pending))) return;
         _captions.ShowScreenText(_main.OutputLyricsText ?? "");
         UpdateScore();
-        Status.Text = _main.HasOutputLyricsText ? "" : "송출 화면에 자막으로 보낼 글자가 없습니다.";
+        Status.Text = _main.HasOutputLyricsText ? "" : UiText.Get("CaptionConsole", "NoScreenText");
     }
 
     // slide: the one the output screen shows (else the one viewed in the settings window).
@@ -528,8 +529,8 @@ public partial class CaptionConsole : Window
         _rowShown = false;
         if (!ScoreOn || ScreenMode.IsChecked != true || !_captions.Following || _captions.Deck is not { } deck)
         {
-            ScoreRowLabel.Text = _captions.Following && _captions.Deck != null ? $"PPT {_captions.CurrentSlide}/{_captions.Deck.Slides.Length}장"
-                : _captions.Mirroring ? (_main.OutputItem?.Title is { Length: > 0 } title ? title : "송출 화면의 글자") : "";
+            ScoreRowLabel.Text = _captions.Following && _captions.Deck != null ? UiText.Format("CaptionConsole", "DeckSlide", _captions.CurrentSlide, _captions.Deck.Slides.Length)
+                : _captions.Mirroring ? (_main.OutputItem?.Title is { Length: > 0 } title ? title : UiText.Get("CaptionConsole", "ScreenText")) : "";
             // the deck name only while it is followed; its line stays, so the list below does not move from item to item
             DeckLabel.Visibility = _captions.Following ? Visibility.Visible : Visibility.Hidden;
             _captions.SetImage(null);
@@ -546,16 +547,16 @@ public partial class CaptionConsole : Window
             if (_scoreDeck is not { } prepared || !ReferenceEquals(prepared.Deck, deck))
             {
                 if (!ReferenceEquals(_preparingScore, deck)) _ = PrepareScoreAsync(deck);
-                ScoreRowLabel.Text = "악보 그림 준비 중"; // (not the last deck's rows)
+                ScoreRowLabel.Text = UiText.Get("CaptionConsole", "ScorePreparing"); // (not the last deck's rows)
                 _captions.SetImage(null);
-                Status.Text = "악보 그림을 만드는 중…";
+                Status.Text = UiText.Get("CaptionConsole", "ScoreMaking");
                 return;
             }
             if (prepared.Slides.Contains(_captions.CurrentSlide))
             {
                 // Measured once, off the UI thread: only cut here.
                 // (while it is read again, the last row does not stay on air)
-                if (ContentPicture(deck, _captions.CurrentSlide) is not var (picture, page)) { _captions.SetImage(null); Status.Text = "악보 그림을 만드는 중…"; return; }
+                if (ContentPicture(deck, _captions.CurrentSlide) is not var (picture, page)) { _captions.SetImage(null); Status.Text = UiText.Get("CaptionConsole", "ScoreMaking"); return; }
                 (image, measured, rendered) = (picture, page.Fit(prepared.Target), false);
                 _pictures.OnAir = (deck.Path, _captions.CurrentSlide);
                 int sent = Math.Clamp(_scoreRow, 0, measured.Length - 1);
@@ -570,13 +571,13 @@ public partial class CaptionConsole : Window
         if (image == null)
         {
             _captions.SetImage(null);
-            Status.Text = "악보 그림을 만드는 중…";
+            Status.Text = UiText.Get("CaptionConsole", "ScoreMaking");
             return;
         }
         if ((measured != null ? CropRow(image, _scoreRow, measured) : CropRow(image, _scoreRow)) is not var (cropped, rows, found))
         {
             _captions.SetImage(null);
-            Status.Text = "악보 그림을 만들 수 없습니다. 슬라이드를 다시 송출해 보세요.";
+            Status.Text = UiText.Get("CaptionConsole", "ScoreFailed");
             return;
         }
         ScoreSource = rendered ? "render" : "picture";
@@ -590,8 +591,8 @@ public partial class CaptionConsole : Window
         _captions.SetImage(cropped, withText, rowLyrics);
         _rowShown = true;
         DeckLabel.Visibility = Visibility.Visible;
-        ScoreRowLabel.Text = $"PPT {_captions.CurrentSlide}/{deck.Slides.Length}장 · " +
-            (found ? $"{_scoreRow + 1}/{rows}줄" : $"{(_scoreRow == 0 ? "위" : "아래")} 절반 (악보 줄을 찾지 못함)");
+        ScoreRowLabel.Text = found ? UiText.Format("CaptionConsole", "ScoreRowFound", _captions.CurrentSlide, deck.Slides.Length, _scoreRow + 1, rows)
+            : UiText.Format("CaptionConsole", _scoreRow == 0 ? "ScoreTopHalf" : "ScoreBottomHalf", _captions.CurrentSlide, deck.Slides.Length);
         Status.Text = ""; // the row is on the card above
     }
 
@@ -637,8 +638,8 @@ public partial class CaptionConsole : Window
         {
             // (a row cut from the operator's small picture of the slide stands in: nothing to tell)
             if (!OnAir() || _rowShown) return;
-            _errors.Write($"악보 슬라이드 렌더 · {slide}장", failure ?? new InvalidOperationException("렌더 실패"));
-            Status.Text = "악보 그림을 만들 수 없습니다 · " + (failure?.Message ?? "렌더 실패");
+            _errors.Write($"render score slide · slide {slide}", failure ?? new InvalidOperationException("render failed"));
+            Status.Text = UiText.Format("CaptionConsole", "ScoreRenderFailed", failure?.Message ?? UiText.Get("CaptionConsole", "RenderFailed"));
         }
         else if (OnAir()) UpdateScore();
         else if (_captions.Deck?.Path == path && _captions.CurrentSlide + 1 == slide) UpdateSteps(); // the next preview's row
@@ -785,7 +786,7 @@ public partial class CaptionConsole : Window
         {
             var (found, target) = await Task.Run(() => PrepareScore(deck.Path, slides, token, (n, error) => failures.Enqueue((n, error))), token);
             if (_closed || !ReferenceEquals(_captions.Deck, deck)) return;
-            foreach (var (slide, error) in failures) _errors.Write($"악보 그림 읽기 · {slide}장", error);
+            foreach (var (slide, error) in failures) _errors.Write($"read score picture · slide {slide}", error);
             foreach (var (slide, picture) in found) if (picture is var (image, page)) _pictures.Keep((deck.Path, slide), image, page);
             _scoreDeck = (deck, [.. found.Keys], target);
             // The slides whose content picture was read and measured and shows no staff (a photo); not one that failed.
@@ -796,7 +797,7 @@ public partial class CaptionConsole : Window
         catch (Exception error) // never left waiting: the whole deck comes from the render
         {
             if (_closed || !ReferenceEquals(_captions.Deck, deck)) return;
-            _errors.Write("악보 그림 읽기", error);
+            _errors.Write("read score picture", error);
             _scoreDeck = (deck, [], default);
         }
         finally { if (ReferenceEquals(_preparingScore, deck)) _preparingScore = null; }
@@ -827,7 +828,7 @@ public partial class CaptionConsole : Window
             if (_closed || _scoreDeck is not { } current || !ReferenceEquals(current.Deck, deck)) return;
             if (read is not var (image, rows))
             {
-                if (failure != null) _errors.Write($"악보 그림 읽기 · {slide}장", failure);
+                if (failure != null) _errors.Write($"read score picture · slide {slide}", failure);
                 current.Slides.Remove(slide); // the file changed or went away: the render is used
             }
             else _pictures.Keep(key, image, rows);
@@ -883,7 +884,7 @@ public partial class CaptionConsole : Window
         if (!slides.Any(rows => rows.Any(row => row.Any(c => c is >= '가' and <= '힣')))) return slides; // nothing to put right
         var lifetime = _lifetime.Token; // (taken now: closing during the reading is no failure)
         string label = DeckLabel.Text;
-        DeckLabel.Text = $"{Path.GetFileName(deck.Path)} · 그림 속 가사 교정 중";
+        DeckLabel.Text = UiText.Format("CaptionConsole", "CorrectingLyrics", Path.GetFileName(deck.Path));
         try
         {
             var songs = await (Songs ?? ReadSongsAsync)(lifetime);
@@ -895,7 +896,7 @@ public partial class CaptionConsole : Window
             if (_closed || lifetime.IsCancellationRequested || !ReferenceEquals(_captions.Deck, deck)) return slides;
             string? failed = _songs is { Songs.IsFaulted: true } faulted ? faulted.Key : null;
             if (failed != null && !Passing(error.GetBaseException())) _songsUnusable = failed; // that version is not read again
-            if (failed == null || failed != _songsTold) _errors.Write("곡 DB 가사 교정", error);
+            if (failed == null || failed != _songsTold) _errors.Write("correct lyrics from the song database", error);
             _songsTold = failed ?? _songsTold;
             return slides;
         }
@@ -915,7 +916,7 @@ public partial class CaptionConsole : Window
         var slides = Enumerable.Range(1, deck.Slides.Length).Where(n => deck.Slides[n - 1].HasPicture != false).ToArray();
         if (slides.Length == 0) return; // (without a renderer only the slides with a content picture are read)
         var read = ReadLyrics ?? (LyricsReader.Available ? LyricsReader.ReadAsync : null);
-        if (read is null) { Status.Text = "그림 속 가사 읽기 도우미(ocr 폴더)가 없어 가사를 읽지 못했습니다."; return; }
+        if (read is null) { Status.Text = UiText.Format("CaptionConsole", "NoOcr", "ocr"); return; }
         var folder = Path.Combine(Path.GetTempPath(), "Axicultus", "ocr", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(folder);
         try
@@ -927,11 +928,11 @@ public partial class CaptionConsole : Window
             if (deck.Slides.Any(s => s.Picture != null))
                 try { await _scorePrepared; }
                 catch (OperationCanceledException) { if (_closed || !ReferenceEquals(_captions.Deck, deck)) return; }
-                catch (Exception error) { _errors.Write("악보 그림 읽기", error); }
+                catch (Exception error) { _errors.Write("read score picture", error); }
             foreach (var slide in slides)
             {
                 if (_closed || !ReferenceEquals(_captions.Deck, deck)) return;
-                DeckLabel.Text = $"{Path.GetFileName(deck.Path)} · 그림 속 가사 읽는 중 {slide}/{deck.Slides.Length}";
+                DeckLabel.Text = UiText.Format("CaptionConsole", "ReadingLyrics", Path.GetFileName(deck.Path), slide, deck.Slides.Length);
                 // The content picture the score rows are cut from, when it shows staves; else the slide's render.
                 var page = deck.Slides[slide - 1];
                 (byte[] Png, ScoreRow[] Rows)? picture = null;
@@ -979,7 +980,7 @@ public partial class CaptionConsole : Window
             }
             for (int n = 1; n <= deck.Slides.Length; n++)
                 if (deck.Slides[n - 1].Boxes.All(box => box.Key != CaptionSession.RecognizedKey)) _captions.AddRecognized(n, "");
-            DeckLabel.Text = Path.GetFileName(deck.Path) + (found > 0 ? $" · 그림 속 가사 {found}장 읽음" : "");
+            DeckLabel.Text = found > 0 ? UiText.Format("CaptionConsole", "LyricsFound", Path.GetFileName(deck.Path), found) : Path.GetFileName(deck.Path);
             if (found > 0 && offer) OfferRecognizedLyrics(deck);
             // Then (the choice above looks at the whole text the slides have) a score slide's whole text that says little
             // (a page mark) becomes the lyrics read under its staves.
@@ -991,9 +992,9 @@ public partial class CaptionConsole : Window
             or InvalidOperationException or UnauthorizedAccessException or OperationCanceledException or TimeoutException)
         {
             if (_closed) return;
-            _errors.Write("그림 속 가사 읽기", error);
+            _errors.Write("read lyrics in pictures", error);
             DeckLabel.Text = Path.GetFileName(deck.Path);
-            Status.Text = "그림 속 가사를 읽지 못했습니다 · " + error.Message;
+            Status.Text = UiText.Format("CaptionConsole", "LyricsReadFailed", error.Message);
         }
         finally
         {
@@ -1015,7 +1016,7 @@ public partial class CaptionConsole : Window
                 || texts.Count == 1 && CaptionDeck.ShortText(texts[0])
                     && CaptionSession.Lyrical(deck.Slides[0].Boxes.FirstOrDefault(b => b.Key == CaptionSession.RecognizedKey)?.Text ?? ""));
         RefreshBoxes(sameEverywhere ? CaptionSession.RecognizedKey : key);
-        if (sameEverywhere) Status.Text = "그림 속 가사를 자막으로 씁니다. 텍스트 상자에서 바꿀 수 있습니다.";
+        if (sameEverywhere) Status.Text = UiText.Get("CaptionConsole", "RecognizedChosen");
     }
 
     // The list again with the recognized lyrics box in it, key chosen for the operator: the caption text changes, the
@@ -1132,7 +1133,7 @@ public partial class CaptionConsole : Window
             bool chosen = string.Equals(color, _captions.Style.Color, StringComparison.OrdinalIgnoreCase);
             swatch.SetResourceReference(Control.BorderBrushProperty, chosen ? "Brush.Accent.Primary" : "Brush.Border.Strong");
             swatch.BorderThickness = new Thickness(chosen ? 3 : 2);
-            System.Windows.Automation.AutomationProperties.SetItemStatus(swatch, chosen ? "선택됨" : "");
+            System.Windows.Automation.AutomationProperties.SetItemStatus(swatch, chosen ? UiText.Get("CaptionConsole", "Selected") : "");
         }
     }
 
@@ -1148,8 +1149,8 @@ public partial class CaptionConsole : Window
 
     private void CopyBrowserUrl(object sender, RoutedEventArgs e)
     {
-        try { Clipboard.SetText(CaptionBroadcastServer.Url); Told = "브라우저 소스 주소를 복사했습니다."; }
-        catch (System.Runtime.InteropServices.ExternalException ex) { Told = "복사 실패 · " + ex.Message; }
+        try { Clipboard.SetText(CaptionBroadcastServer.Url); Told = UiText.Get("CaptionConsole", "UrlCopied"); }
+        catch (System.Runtime.InteropServices.ExternalException ex) { Told = UiText.Format("CaptionConsole", "CopyFailed", ex.Message); }
     }
 
     // Opening the console starts the caption server and connects OBS with the saved settings.
@@ -1164,13 +1165,13 @@ public partial class CaptionConsole : Window
         }
         await StartServerAsync();
         if (_obs.Connection == null && (_obs.HasSavedPassword || _obs.AutoConnect || File.Exists(_obs.ProfilePath))) await ConnectAsync();
-        else if (_obs.Connection == null) ObsLabel.Text = "OBS 연결 전 · 설정에서 연결하세요";
+        else if (_obs.Connection == null) ObsLabel.Text = UiText.Get("CaptionConsole", "ObsConnectInSettings");
     }
 
     private async Task StartServerAsync()
     {
-        try { await _server.StartAsync(); ServerLabel.Text = "● 자막 서버 실행 중"; }
-        catch (Exception ex) { ServerLabel.Text = "자막 서버 시작 실패 · " + ex.GetBaseException().Message; }
+        try { await _server.StartAsync(); ServerLabel.Text = UiText.Get("CaptionConsole", "ServerRunning"); }
+        catch (Exception ex) { ServerLabel.Text = UiText.Format("CaptionConsole", "ServerFailed", ex.GetBaseException().Message); }
     }
 
     // The live deck first; then the deck in the output panel (show not live) and, if asked, the selected one.
@@ -1204,15 +1205,15 @@ public partial class CaptionConsole : Window
         catch (OperationCanceledException) when (_lifetime.IsCancellationRequested) { return false; }
         catch (Exception ex) when (IsDeckReadError(ex))
         {
-            _errors.Write("자막 PPT 열기", ex);
-            if (!_closed && request == _deckRequest) Status.Text = "PPT 읽기 실패 · " + ex.Message;
+            _errors.Write("open caption PPT", ex);
+            if (!_closed && request == _deckRequest) Status.Text = UiText.Format("CaptionConsole", "DeckReadFailed", ex.Message);
             return false;
         }
         if (_closed || request != _deckRequest) return false;
         _captions.Prepare(deck);
         StartScore(deck);
         ShowDeck(deck, slide, CaptionDeck.AllTextKey); // a newly read deck starts on the slide's whole text
-        Status.Text = $"PPT를 읽었습니다 · {Path.GetFileName(deck.Path)}";
+        Status.Text = UiText.Format("CaptionConsole", "DeckRead", Path.GetFileName(deck.Path));
         Changed();
         LyricsReading = RecognizeDeckAsync(deck);
         return true;
@@ -1309,7 +1310,7 @@ public partial class CaptionConsole : Window
         if (_captions.Deck == null) return;
         _captions.Overrides[SelectedSlide] = Cue.Text;
         _cueShown = Cue.Text;
-        Told = $"{SelectedSlide}장 수동 문구를 저장했습니다.";
+        Told = UiText.Format("CaptionConsole", "CueSaved", SelectedSlide);
         Changed();
         UpdateSteps(); // the step shows the saved words
     }
@@ -1336,11 +1337,11 @@ public partial class CaptionConsole : Window
         {
             // Sync: the output screen turns (a slide, a page of a song or passage) and the caption follows it.
             var turn = change > 0 ? _main.NextOutputSlideCommand : _main.PreviousOutputSlideCommand;
-            if (!turn.CanExecute(null)) { Status.Text = change > 0 ? "송출 화면에 다음 장이 없습니다." : "송출 화면에 이전 장이 없습니다."; return; }
+            if (!turn.CanExecute(null)) { Status.Text = UiText.Get("CaptionConsole", change > 0 ? "NoNextSlide" : "NoPreviousSlide"); return; }
             await turn.ExecuteAsync(null);
             return;
         }
-        if (!_captions.Following) { Status.Text = "송출 화면을 같이 넘기려면 싱크를 켜세요. 끄면 PPT 자막만 넘깁니다."; return; }
+        if (!_captions.Following) { Status.Text = UiText.Get("CaptionConsole", "SyncOff"); return; }
         _captions.MoveToSlide(_captions.CurrentSlide + change);
         Changed();
     }
@@ -1349,7 +1350,7 @@ public partial class CaptionConsole : Window
 
     private async Task ConnectAsync()
     {
-        if (!int.TryParse(Port.Text, out int port) || port is < 1 or > 65535) { ObsLabel.Text = Told = "OBS 포트를 확인하세요."; return; }
+        if (!int.TryParse(Port.Text, out int port) || port is < 1 or > 65535) { ObsLabel.Text = Told = UiText.Get("CaptionConsole", "CheckPort"); return; }
         try
         {
             await _obs.ConfigureAsync(Host.Text, port, Password.Password, AutoObs.IsChecked == true,
@@ -1374,18 +1375,18 @@ public partial class CaptionConsole : Window
         // The caption server listens on this PC only, so OBS must run here too.
         if (_obs.Host is not (ObsOperator.LocalHost or "localhost"))
         {
-            Told = "자막 소스는 OBS가 이 PC에서 실행될 때만 넣을 수 있습니다 (주소 127.0.0.1).";
+            Told = UiText.Get("CaptionConsole", "SourceLocalOnly");
             return;
         }
-        if (_obs.Connection is not { } connection) { Told = "먼저 OBS에 연결하세요."; return; }
+        if (_obs.Connection is not { } connection) { Told = UiText.Get("CaptionConsole", "ConnectFirst"); return; }
         AddObsSource.IsEnabled = false;
         try
         {
             await StartServerAsync();
             var (scene, created) = await connection.AddCaptionSourceAsync(CaptionBroadcastServer.Url);
-            Told = $"OBS '{scene}' 씬 맨 위에 '{ObsConnection.CaptionSourceName}' 소스를 {(created ? "추가했습니다" : "넣었습니다 (기존 소스)")}. 자막은 송출을 눌러야 나옵니다.";
+            Told = UiText.Format("CaptionConsole", created ? "SourceAdded" : "SourcePlaced", scene, ObsConnection.CaptionSourceName);
         }
-        catch (Exception ex) { Told = "OBS 자막 소스 추가 실패 · " + ex.Message; }
+        catch (Exception ex) { Told = UiText.Format("CaptionConsole", "SourceAddFailed", ex.Message); }
         finally { AddObsSource.IsEnabled = true; }
     }
 

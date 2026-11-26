@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Axicultus.Wpf.Settings;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Shell;
 
@@ -274,7 +275,7 @@ public sealed class AppearanceTemplateStore(string directory) : IAppearanceTempl
     {
         if (string.IsNullOrWhiteSpace(name))
         {
-            throw new ArgumentException("템플릿 이름이 비어 있습니다.", nameof(name));
+            throw new ArgumentException(UiText.Get("AppearanceTemplateStore", "NameEmpty"), nameof(name));
         }
 
         var trimmed = name.Trim();
@@ -284,7 +285,7 @@ public sealed class AppearanceTemplateStore(string directory) : IAppearanceTempl
             || trimmed.EndsWith('.')
             || IsReservedDeviceName(trimmed))
         {
-            throw new ArgumentException($"템플릿 이름에 사용할 수 없는 문자/형식입니다: {name}", nameof(name));
+            throw new ArgumentException(UiText.Format("AppearanceTemplateStore", "NameInvalid", name), nameof(name));
         }
 
         var full = Path.GetFullPath(Path.Combine(_directory, trimmed + ".json"));
@@ -292,7 +293,7 @@ public sealed class AppearanceTemplateStore(string directory) : IAppearanceTempl
         var rootPrefix = root.EndsWith(Path.DirectorySeparatorChar) ? root : root + Path.DirectorySeparatorChar;
         if (!full.StartsWith(rootPrefix, StringComparison.OrdinalIgnoreCase))
         {
-            throw new ArgumentException($"템플릿 이름이 허용 경로를 벗어납니다: {name}", nameof(name));
+            throw new ArgumentException(UiText.Format("AppearanceTemplateStore", "NameOutside", name), nameof(name));
         }
 
         return full;

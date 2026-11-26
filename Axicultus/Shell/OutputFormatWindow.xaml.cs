@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using Axicultus.Wpf.Settings;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Shell;
 
@@ -39,13 +40,13 @@ public partial class OutputFormatWindow : Window
         if (!command.CanExecute(null))
         {
             MessageBox.Show(this, copied
-                ? "복사해 둔 서식이 없거나 적용할 곡·성경 항목이 없습니다.\n예배 순서에서 항목을 우클릭해 '이 항목 서식 복사'를 먼저 하세요."
-                : "지금은 적용할 수 없습니다.", Title);
+                ? UiText.Get("OutputFormatWindow", "NoCopiedFormat")
+                : UiText.Get("OutputFormatWindow", "CannotApply"), Title);
             return;
         }
         string question = copied
-            ? "복사해 둔 서식을 예배 순서의 모든 곡·성경 항목에 적용할까요?"
-            : "정보 화면을 제외한 모든 항목의 개별 서식을 끄고 전역 서식으로 통일할까요?";
+            ? UiText.Get("OutputFormatWindow", "ApplyCopiedConfirm")
+            : UiText.Get("OutputFormatWindow", "ApplyGlobalConfirm");
         if (MessageBox.Show(this, question, Title, MessageBoxButton.OKCancel, MessageBoxImage.Question) == MessageBoxResult.OK)
             command.Execute(null);
     }

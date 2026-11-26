@@ -5,6 +5,7 @@ using System.IO;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Shell;
 
@@ -129,30 +130,30 @@ public sealed partial class NoticeScreenViewModel : ObservableObject
     /// <summary>정렬 프리셋(라벨·값) — 콤보 바인딩용(기본 0 / 왼쪽 1 / 가운데 2 / 오른쪽 3).</summary>
     public IReadOnlyList<KeyValuePair<string, int>> AlignmentPresets { get; } = new[]
     {
-        new KeyValuePair<string, int>("기본", 0),
-        new KeyValuePair<string, int>("왼쪽", 1),
-        new KeyValuePair<string, int>("가운데", 2),
-        new KeyValuePair<string, int>("오른쪽", 3),
+        new KeyValuePair<string, int>(UiText.Get("NoticeScreenWindow", "Default"), 0),
+        new KeyValuePair<string, int>(UiText.Get("NoticeScreenWindow", "Left"), 1),
+        new KeyValuePair<string, int>(UiText.Get("NoticeScreenWindow", "Center"), 2),
+        new KeyValuePair<string, int>(UiText.Get("NoticeScreenWindow", "Right"), 3),
     };
 
     /// <summary>글자색 프리셋(라벨·ARGB int) — 콤보 바인딩용(기본 0=출력 기본 / 흰·노랑·하늘·연두).</summary>
     public IReadOnlyList<KeyValuePair<string, int>> ColorPresets { get; } = new[]
     {
-        new KeyValuePair<string, int>("기본", 0),
-        new KeyValuePair<string, int>("흰색", unchecked((int)0xFFFFFFFF)),
-        new KeyValuePair<string, int>("노랑", unchecked((int)0xFFFFE066)),
-        new KeyValuePair<string, int>("하늘", unchecked((int)0xFF66CCFF)),
-        new KeyValuePair<string, int>("연두", unchecked((int)0xFF99E066)),
+        new KeyValuePair<string, int>(UiText.Get("NoticeScreenWindow", "Default"), 0),
+        new KeyValuePair<string, int>(UiText.Get("NoticeScreenWindow", "White"), unchecked((int)0xFFFFFFFF)),
+        new KeyValuePair<string, int>(UiText.Get("NoticeScreenWindow", "Yellow"), unchecked((int)0xFFFFE066)),
+        new KeyValuePair<string, int>(UiText.Get("NoticeScreenWindow", "SkyBlue"), unchecked((int)0xFF66CCFF)),
+        new KeyValuePair<string, int>(UiText.Get("NoticeScreenWindow", "LightGreen"), unchecked((int)0xFF99E066)),
     };
 
     /// <summary>배경색 프리셋(라벨·ARGB int) — 콤보 바인딩용(기본 0=출력 기본 / 글자가 잘 보이는 어두운 색).</summary>
     public IReadOnlyList<KeyValuePair<string, int>> BackgroundColorPresets { get; } = new[]
     {
-        new KeyValuePair<string, int>("기본", 0),
-        new KeyValuePair<string, int>("검정", unchecked((int)0xFF000000)),
-        new KeyValuePair<string, int>("진회색", unchecked((int)0xFF202020)),
-        new KeyValuePair<string, int>("네이비", unchecked((int)0xFF001A33)),
-        new KeyValuePair<string, int>("짙은 보라", unchecked((int)0xFF1A0033)),
+        new KeyValuePair<string, int>(UiText.Get("NoticeScreenWindow", "Default"), 0),
+        new KeyValuePair<string, int>(UiText.Get("NoticeScreenWindow", "Black"), unchecked((int)0xFF000000)),
+        new KeyValuePair<string, int>(UiText.Get("NoticeScreenWindow", "DarkGray"), unchecked((int)0xFF202020)),
+        new KeyValuePair<string, int>(UiText.Get("NoticeScreenWindow", "Navy"), unchecked((int)0xFF001A33)),
+        new KeyValuePair<string, int>(UiText.Get("NoticeScreenWindow", "DeepPurple"), unchecked((int)0xFF1A0033)),
     };
 
     // 현재 편집기 상태(크기·정렬·색·배경·강조·글꼴)를 송출 옵션 한 묶음으로 만든다 — "송출"과 "순서에 추가"가 똑같이 쓴다.
@@ -173,15 +174,15 @@ public sealed partial class NoticeScreenViewModel : ObservableObject
     {
         var ok = _publish(Text, CurrentOptions());
         StatusText = ok
-            ? "공지를 출력에 송출했습니다."
-            : "출력 창이 열려 있지 않습니다. 먼저 출력을 여세요.";
+            ? UiText.Get("NoticeScreenWindow", "Sent")
+            : UiText.Get("NoticeScreenWindow", "OutputClosed");
     }
 
     // 송출한 공지를 내린다(출력을 검은 화면으로). 출력으로 전달은 콜백에 위임.
     private void Clear()
     {
         _clear();
-        StatusText = "공지를 내렸습니다(검은 화면).";
+        StatusText = UiText.Get("NoticeScreenWindow", "Cleared");
     }
 
     // 현재 텍스트를 예배 순서에 항목으로 추가(즉시 송출과 달리 순서에 저장돼 나중에 송출 가능). 콜백에 위임.
@@ -195,8 +196,8 @@ public sealed partial class NoticeScreenViewModel : ObservableObject
         // 서식(글꼴·색·크기·강조)도 함께 넘겨 큐 항목에 실리게 한다 — "송출"과 동일한 모양으로 나중에 송출된다.
         var ok = _addToWorshipQueue(Text, CurrentOptions());
         StatusText = ok
-            ? "예배 순서에 텍스트 항목으로 추가했습니다."
-            : "예배 순서에 추가하지 못했습니다.";
+            ? UiText.Get("NoticeScreenWindow", "Added")
+            : UiText.Get("NoticeScreenWindow", "AddFailed");
     }
 
     // 저장된 정보 화면 이름을 다시 읽어 콤보를 갱신한다.
@@ -224,13 +225,13 @@ public sealed partial class NoticeScreenViewModel : ObservableObject
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
         {
-            StatusText = $"정보 화면 저장 실패: {ex.Message}";
+            StatusText = UiText.Format("NoticeScreenWindow", "SaveFailed", ex.Message);
             return;
         }
 
         RefreshSavedScreens();
         SelectedScreen = name;
-        StatusText = $"정보 화면 저장됨: {name}";
+        StatusText = UiText.Format("NoticeScreenWindow", "Saved", name);
     }
 
     // 고른 정보 화면을 편집기로 불러온다(본문·글자 크기). 파일이 없거나 손상이면 안내.
@@ -249,14 +250,14 @@ public sealed partial class NoticeScreenViewModel : ObservableObject
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
         {
-            StatusText = $"정보 화면 불러오기 실패: {ex.Message}";
+            StatusText = UiText.Format("NoticeScreenWindow", "OpenFailed", ex.Message);
             return;
         }
 
         if (dto is null)
         {
             // 파일이 외부에서 사라졌으면 목록 갱신 + 선택 해제(삭제 경로와 일관 — 사라진 이름에 Open/Delete 가 계속 활성되지 않도록).
-            StatusText = $"정보 화면을 찾을 수 없습니다: {name}";
+            StatusText = UiText.Format("NoticeScreenWindow", "NotFound", name);
             RefreshSavedScreens();
             SelectedScreen = null;
             return;
@@ -278,7 +279,7 @@ public sealed partial class NoticeScreenViewModel : ObservableObject
         Italic = dto.Italic;
         Underline = dto.Underline;
         FontName = dto.FontName ?? string.Empty; // 글꼴명 복원(옛 파일은 필드 없어 null → 빈=전역 기본).
-        StatusText = $"정보 화면 불러옴: {name}";
+        StatusText = UiText.Format("NoticeScreenWindow", "Opened", name);
     }
 
     // 고른 정보 화면을 삭제한다(파일 제거). 편집기 내용은 그대로 둔다.
@@ -296,12 +297,12 @@ public sealed partial class NoticeScreenViewModel : ObservableObject
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
         {
-            StatusText = $"정보 화면 삭제 실패: {ex.Message}";
+            StatusText = UiText.Format("NoticeScreenWindow", "DeleteFailed", ex.Message);
             return;
         }
 
         RefreshSavedScreens();
         SelectedScreen = null;
-        StatusText = $"정보 화면 삭제됨: {name}";
+        StatusText = UiText.Format("NoticeScreenWindow", "Deleted", name);
     }
 }

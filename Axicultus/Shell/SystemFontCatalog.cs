@@ -23,13 +23,13 @@ public static class SystemFontCatalog
     /// </summary>
     public static readonly IReadOnlyList<string> DefaultFavorites =
     [
-        "맑은 고딕",
+        "맑은 고딕", // not UI text
         "Malgun Gothic",
-        "나눔고딕",
-        "본고딕",
+        "나눔고딕", // not UI text
+        "본고딕", // not UI text
         "Noto Sans CJK KR",
-        "굴림",
-        "바탕",
+        "굴림", // not UI text
+        "바탕", // not UI text
         "Segoe UI",
         "Arial",
         "Calibri",

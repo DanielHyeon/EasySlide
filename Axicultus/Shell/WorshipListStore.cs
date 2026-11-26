@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Axicultus.Module;
 using Axicultus.Wpf.Settings;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Shell;
 
@@ -160,7 +161,7 @@ public sealed class WorshipListStore(string directory, ISettingsService? setting
         catch (JsonException ex)
         {
             // A cut-off file is not an empty list: the caller keeps its queue, as for an unreadable format below.
-            throw new IOException($"예배 순서 '{name}' 파일이 손상되어 읽을 수 없습니다.", ex);
+            throw new IOException(UiText.Format("WorshipListStore", "Corrupt", name), ex);
         }
 
         using (document)
@@ -178,7 +179,7 @@ public sealed class WorshipListStore(string directory, ISettingsService? setting
             catch (JsonException ex)
             {
                 // Keep the current queue if a newer file contains formatting this presenter cannot read.
-                throw new IOException($"예배 순서 '{name}'의 저장 형식을 읽을 수 없습니다.", ex);
+                throw new IOException(UiText.Format("WorshipListStore", "FormatUnreadable", name), ex);
             }
         }
 
@@ -279,7 +280,7 @@ public sealed class WorshipListStore(string directory, ISettingsService? setting
         // A trash name is a file name taken from the folder listing; anything else is refused.
         if (string.IsNullOrWhiteSpace(name) || Path.GetFileName(name) != name)
         {
-            throw new ArgumentException($"예배 순서 이름에 사용할 수 없는 문자/형식입니다: {name}", nameof(name));
+            throw new ArgumentException(UiText.Format("WorshipListStore", "NameInvalid", name), nameof(name));
         }
 
         return Path.Combine(folder, "Trash", name + ".json");
@@ -340,7 +341,7 @@ public sealed class WorshipListStore(string directory, ISettingsService? setting
     public void Rename(string oldName, string newName) =>
         StoreFileNaming.RenameList(ResolvePath(oldName), ResolvePath(newName), ResolveLegacyPath(oldName), ResolveLegacyPath(newName));
 
-    private string ResolvePath(string name) => StoreFileNaming.ResolveJsonPath(_directory, name, "예배 순서");
+    private string ResolvePath(string name) => StoreFileNaming.ResolveJsonPath(_directory, name, UiText.Get("WorshipListStore", "Kind"));
 
     private IEnumerable<string> EnumerateLegacyNames()
     {
@@ -369,7 +370,7 @@ public sealed class WorshipListStore(string directory, ISettingsService? setting
             || trimmed.Contains("..", StringComparison.Ordinal)
             || trimmed.EndsWith('.'))
         {
-            throw new ArgumentException($"예배 순서 이름에 사용할 수 없는 문자/형식입니다: {name}", nameof(name));
+            throw new ArgumentException(UiText.Format("WorshipListStore", "NameInvalid", name), nameof(name));
         }
 
         var full = Path.GetFullPath(Path.Combine(legacyDirectory, trimmed + ".json"));
@@ -377,7 +378,7 @@ public sealed class WorshipListStore(string directory, ISettingsService? setting
         var rootPrefix = root.EndsWith(Path.DirectorySeparatorChar) ? root : root + Path.DirectorySeparatorChar;
         if (!full.StartsWith(rootPrefix, StringComparison.OrdinalIgnoreCase))
         {
-            throw new ArgumentException($"예배 순서 이름이 허용 경로를 벗어납니다: {name}", nameof(name));
+            throw new ArgumentException(UiText.Format("WorshipListStore", "NameOutside", name), nameof(name));
         }
 
         return full;

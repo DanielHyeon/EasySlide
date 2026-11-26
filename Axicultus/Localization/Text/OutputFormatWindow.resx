@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Title" xml:space="preserve"><value>Output format</value></data>
+  <data name="TabLyrics" xml:space="preserve"><value>Lyrics</value></data>
+  <data name="Display" xml:space="preserve"><value>Display</value></data>
+  <data name="TitleHeading" xml:space="preserve"><value>Title heading</value></data>
+  <data name="Outline" xml:space="preserve"><value>Lyrics outline</value></data>
+  <data name="Shadow" xml:space="preserve"><value>Lyrics shadow</value></data>
+  <data name="ChorusEmphasis" xml:space="preserve"><value>Emphasis on the chorus only (bold, italic, underline)</value></data>
+  <data name="Interlace" xml:space="preserve"><value>Interlace two-language lines (original and translation in turn)</value></data>
+  <data name="RegionDisplay" xml:space="preserve"><value>Two-language regions shown</value></data>
+  <data name="Both" xml:space="preserve"><value>Both</value></data>
+  <data name="Region1Only" xml:space="preserve"><value>Main language only</value></data>
+  <data name="Region2Only" xml:space="preserve"><value>Second language only</value></data>
+  <data name="Transpose" xml:space="preserve"><value>Chord transpose</value></data>
+  <data name="TransposeReset" xml:space="preserve"><value>Original key</value></data>
+  <data name="SemitoneDown" xml:space="preserve"><value>Semitone down</value></data>
+  <data name="SemitoneUp" xml:space="preserve"><value>Semitone up</value></data>
+  <data name="Alignment" xml:space="preserve"><value>Alignment</value></data>
+  <data name="Horizontal" xml:space="preserve"><value>Horiz.</value></data>
+  <data name="Vertical" xml:space="preserve"><value>Vert.</value></data>
+  <data name="Left" xml:space="preserve"><value>Left</value></data>
+  <data name="Center" xml:space="preserve"><value>Center</value></data>
+  <data name="Right" xml:space="preserve"><value>Right</value></data>
+  <data name="Top" xml:space="preserve"><value>Top</value></data>
+  <data name="Bottom" xml:space="preserve"><value>Bottom</value></data>
+  <data name="Spacing" xml:space="preserve"><value>Spacing and margins</value></data>
+  <data name="LineSpacing" xml:space="preserve"><value>Line spacing: {0}%</value></data>
+  <data name="LeftMargin" xml:space="preserve"><value>Left margin: {0}px</value></data>
+  <data name="RightMargin" xml:space="preserve"><value>Right margin: {0}px</value></data>
+  <data name="BottomMargin" xml:space="preserve"><value>Bottom margin: {0}px</value></data>
+  <data name="RegionGapTip" xml:space="preserve"><value>The vertical space between the original and the translation</value></data>
+  <data name="RegionGap" xml:space="preserve"><value>Gap between regions: {0}px</value></data>
+  <data name="BodyOffsetTip" xml:space="preserve"><value>Moves the body up or down a little, keeping its alignment</value></data>
+  <data name="BodyOffset" xml:space="preserve"><value>Body vertical position: {0}px</value></data>
+  <data name="TabBackground" xml:space="preserve"><value>Background and transition</value></data>
+  <data name="BackgroundImage" xml:space="preserve"><value>Background image</value></data>
+  <data name="Gallery" xml:space="preserve"><value>Gallery…</value></data>
+  <data name="GalleryTip" xml:space="preserve"><value>Picks a background from the image gallery</value></data>
+  <data name="PickFile" xml:space="preserve"><value>Choose file…</value></data>
+  <data name="PickFileTip" xml:space="preserve"><value>Sets an image file as the background</value></data>
+  <data name="ClearImage" xml:space="preserve"><value>Clear</value></data>
+  <data name="ImageFill" xml:space="preserve"><value>Fill (whole screen)</value></data>
+  <data name="ImageFit" xml:space="preserve"><value>Fit (all of it visible)</value></data>
+  <data name="ImageCenter" xml:space="preserve"><value>Center (original size)</value></data>
+  <data name="ImageTile" xml:space="preserve"><value>Tile (repeated)</value></data>
+  <data name="GradientDirection" xml:space="preserve"><value>Gradient direction</value></data>
+  <data name="GradientVertical" xml:space="preserve"><value>Vertical (top→bottom)</value></data>
+  <data name="GradientHorizontal" xml:space="preserve"><value>Horizontal (left→right)</value></data>
+  <data name="DiagonalDown" xml:space="preserve"><value>Diagonal ↘</value></data>
+  <data name="DiagonalDownTip" xml:space="preserve"><value>From the top left to the bottom right</value></data>
+  <data name="DiagonalUp" xml:space="preserve"><value>Diagonal ↗</value></data>
+  <data name="DiagonalUpTip" xml:space="preserve"><value>From the bottom left to the top right</value></data>
+  <data name="Transition" xml:space="preserve"><value>Transition</value></data>
+  <data name="Fade" xml:space="preserve"><value>Use fade</value></data>
+  <data name="ItemTransition" xml:space="preserve"><value>Item transition (song → song)</value></data>
+  <data name="SlideTransition" xml:space="preserve"><value>Slide transition (moving between verses of a song)</value></data>
+  <data name="Speed" xml:space="preserve"><value>Speed</value></data>
+  <data name="Fast" xml:space="preserve"><value>Fast</value></data>
+  <data name="Normal" xml:space="preserve"><value>Normal</value></data>
+  <data name="Slow" xml:space="preserve"><value>Slow</value></data>
+  <data name="Ms150" xml:space="preserve"><value>150 ms</value></data>
+  <data name="Ms250" xml:space="preserve"><value>250 ms</value></data>
+  <data name="Ms500" xml:space="preserve"><value>500 ms</value></data>
+  <data name="TabInfoPanel" xml:space="preserve"><value>Info panel</value></data>
+  <data name="ShownItems" xml:space="preserve"><value>Items shown</value></data>
+  <data name="ShowPanel" xml:space="preserve"><value>Show the info panel</value></data>
+  <data name="Position" xml:space="preserve"><value>Position (current/total)</value></data>
+  <data name="VerseName" xml:space="preserve"><value>Verse name (verse 1/chorus)</value></data>
+  <data name="SongNumber" xml:space="preserve"><value>Song number</value></data>
+  <data name="SongTitle" xml:space="preserve"><value>Title</value></data>
+  <data name="SongTitleTip" xml:space="preserve"><value>Shows the current song's title small in the info band at the top left of the output screen.</value></data>
+  <data name="Copyright" xml:space="preserve"><value>Copyright</value></data>
+  <data name="NextItem" xml:space="preserve"><value>Next item</value></data>
+  <data name="Look" xml:space="preserve"><value>Look</value></data>
+  <data name="Transparent" xml:space="preserve"><value>Transparent background</value></data>
+  <data name="TransparentTip" xml:space="preserve"><value>Removes the dark background of the song number, copyright and next item bands.</value></data>
+  <data name="PanelColor" xml:space="preserve"><value>Panel color</value></data>
+  <data name="BlackDefault" xml:space="preserve"><value>Black (default)</value></data>
+  <data name="Navy" xml:space="preserve"><value>Navy</value></data>
+  <data name="DarkGray" xml:space="preserve"><value>Dark gray</value></data>
+  <data name="Plum" xml:space="preserve"><value>Plum</value></data>
+  <data name="DarkGreen" xml:space="preserve"><value>Dark green</value></data>
+  <data name="FontScale" xml:space="preserve"><value>Text size: {0}%</value></data>
+  <data name="Close" xml:space="preserve"><value>Close</value></data>
+  <data name="ApplyToAll" xml:space="preserve"><value>Apply to the whole worship list:</value></data>
+  <data name="GlobalFormat" xml:space="preserve"><value>Global format</value></data>
+  <data name="GlobalFormatTip" xml:space="preserve"><value>Turns off the 'individual format' of every item except notice screens and uses the global default format for all.</value></data>
+  <data name="CopiedFormat" xml:space="preserve"><value>Copied format</value></data>
+  <data name="CopiedFormatTip" xml:space="preserve"><value>Applies the format kept with right-click 'Copy this item's format' to every song and Bible item at once.</value></data>
+  <data name="NoCopiedFormat" xml:space="preserve"><value>There is no copied format, or no song or Bible item to apply it to.
+First right-click an item in the worship list and choose 'Copy this item's format'.</value></data>
+  <data name="CannotApply" xml:space="preserve"><value>This cannot be applied now.</value></data>
+  <data name="ApplyCopiedConfirm" xml:space="preserve"><value>Apply the copied format to every song and Bible item in the worship list?</value></data>
+  <data name="ApplyGlobalConfirm" xml:space="preserve"><value>Turn off the individual format of every item except notice screens and use the global format for all?</value></data>
+</root>

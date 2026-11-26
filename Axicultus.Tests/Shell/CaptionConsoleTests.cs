@@ -97,7 +97,7 @@ public sealed partial class CaptionConsoleTests
             Assert.True(session.Following);
             Assert.Same(published, session.Published);
             var log = File.ReadAllText(Assert.Single(directory.GetFiles("*.log")).FullName);
-            Assert.Contains("자막 PPT 열기", log);
+            Assert.Contains("open caption PPT", log);
             if (!corruptFile) Assert.Contains(nameof(FileNotFoundException), log);
         });
 

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Title" xml:space="preserve"><value>Camera caption settings</value></data>
+  <data name="ObsConnection" xml:space="preserve"><value>OBS connection</value></data>
+  <data name="ObsConnectionHint" xml:space="preserve"><value>Address, port and password from OBS → Tools → WebSocket Server Settings</value></data>
+  <data name="Host" xml:space="preserve"><value>Address</value></data>
+  <data name="HostTip" xml:space="preserve"><value>127.0.0.1 for this PC. For another PC, its IP address or domain name (the OBS port must be forwarded on the remote router).</value></data>
+  <data name="Port" xml:space="preserve"><value>Port</value></data>
+  <data name="Password" xml:space="preserve"><value>Password</value></data>
+  <data name="SavedPassword" xml:space="preserve"><value>(saved)</value></data>
+  <data name="Connect" xml:space="preserve"><value>Connect / reconnect</value></data>
+  <data name="AutoConnect" xml:space="preserve"><value>Connect and start the caption server when the app starts</value></data>
+  <data name="AutoConnectTip" xml:space="preserve"><value>When you connect, the password is kept encrypted with this Windows user account. Leave it empty to use the saved password.</value></data>
+  <data name="ServerStarting" xml:space="preserve"><value>Starting the caption server…</value></data>
+  <data name="BrowserSource" xml:space="preserve"><value>OBS browser source</value></data>
+  <data name="CopyUrl" xml:space="preserve"><value>Copy address</value></data>
+  <data name="BrowserUrlTip" xml:space="preserve"><value>Add it to the OBS camera scene as a browser source, above the camera source, the size of the canvas.</value></data>
+  <data name="AddSource" xml:space="preserve"><value>Add the caption source to OBS</value></data>
+  <data name="AddSourceTip" xml:space="preserve"><value>Puts the caption browser source at the top of the current OBS program scene, the size of the canvas. Press it again in another scene to put the same source there too.</value></data>
+  <data name="Scenes" xml:space="preserve"><value>OBS scenes</value></data>
+  <data name="SourceNameTip" xml:space="preserve"><value>Name of an OBS source to show or hide along with it (optional)</value></data>
+  <data name="EnableSource" xml:space="preserve"><value>Show source</value></data>
+  <data name="SwitchScene" xml:space="preserve"><value>Switch program scene</value></data>
+  <data name="SceneKeysHint" xml:space="preserve"><value>Scene shortcuts (Ctrl+Alt+1~4) · type the scene names and press Connect to save them</value></data>
+  <data name="PptTuning" xml:space="preserve"><value>PPT fine-tuning</value></data>
+  <data name="PptTuningHint" xml:space="preserve"><value>Only needed when the lyrics were read wrong or to send another text box.</value></data>
+  <data name="ReloadDeck" xml:space="preserve"><value>Read the output PPT again</value></data>
+  <data name="OpenDeck" xml:space="preserve"><value>Open another PPT…</value></data>
+  <data name="Slide" xml:space="preserve"><value>Slide</value></data>
+  <data name="TextBox" xml:space="preserve"><value>Text box</value></data>
+  <data name="Cue" xml:space="preserve"><value>Caption text of this slide</value></data>
+  <data name="SaveCue" xml:space="preserve"><value>Save the corrected text of this slide</value></data>
+  <data name="SaveCueTip" xml:space="preserve"><value>Uses the text corrected above as this slide's caption (when the lyrics were read wrong).</value></data>
+  <data name="Camera" xml:space="preserve"><value>Camera</value></data>
+  <data name="CameraSource" xml:space="preserve"><value>OBS camera source to preview</value></data>
+  <data name="CameraSourceTip" xml:space="preserve"><value>The camera source's name exactly as the OBS source list shows it</value></data>
+  <data name="PreviewCamera" xml:space="preserve"><value>Camera preview</value></data>
+  <data name="ObsOwnsCamera" xml:space="preserve"><value>OBS uses the camera</value></data>
+  <data name="ToggleCamera" xml:space="preserve"><value>Local camera on / off</value></data>
+  <data name="Recovery" xml:space="preserve"><value>Recovery</value></data>
+  <data name="RecoveryHint" xml:space="preserve"><value>If the app closed suddenly, brings back this service's draft, order and caption choice.</value></data>
+  <data name="Recover" xml:space="preserve"><value>Recover worship edits…</value></data>
+</root>

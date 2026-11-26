@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Title" xml:space="preserve"><value>카메라 자막 설정</value></data>
+  <data name="ObsConnection" xml:space="preserve"><value>OBS 연결</value></data>
+  <data name="ObsConnectionHint" xml:space="preserve"><value>OBS → 도구 → WebSocket 서버 설정의 주소·포트·암호</value></data>
+  <data name="Host" xml:space="preserve"><value>주소</value></data>
+  <data name="HostTip" xml:space="preserve"><value>같은 PC는 127.0.0.1. 다른 PC는 그 PC의 IP 또는 도메인 (원격 공유기에서 OBS 포트를 포트포워딩해야 합니다).</value></data>
+  <data name="Port" xml:space="preserve"><value>포트</value></data>
+  <data name="Password" xml:space="preserve"><value>암호</value></data>
+  <data name="SavedPassword" xml:space="preserve"><value>(저장됨)</value></data>
+  <data name="Connect" xml:space="preserve"><value>연결 / 재연결</value></data>
+  <data name="AutoConnect" xml:space="preserve"><value>앱 시작 시 자동 연결 및 자막 서버 시작</value></data>
+  <data name="AutoConnectTip" xml:space="preserve"><value>암호는 연결할 때 이 Windows 사용자 계정으로 암호화해 보관합니다. 빈칸이면 저장된 암호를 사용합니다.</value></data>
+  <data name="ServerStarting" xml:space="preserve"><value>자막 서버 시작 중…</value></data>
+  <data name="BrowserSource" xml:space="preserve"><value>OBS 브라우저 소스</value></data>
+  <data name="CopyUrl" xml:space="preserve"><value>주소 복사</value></data>
+  <data name="BrowserUrlTip" xml:space="preserve"><value>OBS 카메라 장면에 브라우저 소스로 추가하고 카메라 소스보다 위에 두세요. 크기는 캔버스와 같게.</value></data>
+  <data name="AddSource" xml:space="preserve"><value>OBS에 자막 소스 추가</value></data>
+  <data name="AddSourceTip" xml:space="preserve"><value>OBS의 현재 프로그램 씬 맨 위에 자막 브라우저 소스를 캔버스 크기로 넣습니다. 다른 씬에서 다시 누르면 같은 소스를 그 씬에도 넣습니다.</value></data>
+  <data name="Scenes" xml:space="preserve"><value>OBS 씬</value></data>
+  <data name="SourceNameTip" xml:space="preserve"><value>함께 켜거나 끌 OBS 소스 이름 (선택)</value></data>
+  <data name="EnableSource" xml:space="preserve"><value>소스 표시</value></data>
+  <data name="SwitchScene" xml:space="preserve"><value>프로그램 씬 전환</value></data>
+  <data name="SceneKeysHint" xml:space="preserve"><value>씬 단축키 (Ctrl+Alt+1~4) · 씬 이름을 입력하고 연결을 눌러 저장</value></data>
+  <data name="PptTuning" xml:space="preserve"><value>PPT 세부 조정</value></data>
+  <data name="PptTuningHint" xml:space="preserve"><value>읽은 가사가 틀렸거나 다른 텍스트 상자를 보낼 때만 씁니다.</value></data>
+  <data name="ReloadDeck" xml:space="preserve"><value>송출 PPT 다시 읽기</value></data>
+  <data name="OpenDeck" xml:space="preserve"><value>다른 PPT 열기…</value></data>
+  <data name="Slide" xml:space="preserve"><value>슬라이드</value></data>
+  <data name="TextBox" xml:space="preserve"><value>텍스트 상자</value></data>
+  <data name="Cue" xml:space="preserve"><value>이 슬라이드의 자막 문구</value></data>
+  <data name="SaveCue" xml:space="preserve"><value>이 장 문구 고쳐 저장</value></data>
+  <data name="SaveCueTip" xml:space="preserve"><value>위 칸에서 고친 문구를 이 슬라이드의 자막으로 씁니다 (읽은 가사가 틀렸을 때).</value></data>
+  <data name="Camera" xml:space="preserve"><value>카메라</value></data>
+  <data name="CameraSource" xml:space="preserve"><value>미리 볼 OBS 카메라 소스</value></data>
+  <data name="CameraSourceTip" xml:space="preserve"><value>OBS 소스 목록에 보이는 카메라 소스 이름 그대로</value></data>
+  <data name="PreviewCamera" xml:space="preserve"><value>카메라 미리보기</value></data>
+  <data name="ObsOwnsCamera" xml:space="preserve"><value>카메라는 OBS에서 사용</value></data>
+  <data name="ToggleCamera" xml:space="preserve"><value>로컬 카메라 켜기 / 끄기</value></data>
+  <data name="Recovery" xml:space="preserve"><value>복구</value></data>
+  <data name="RecoveryHint" xml:space="preserve"><value>앱이 갑자기 꺼졌을 때 이 예배의 초안·순서·자막 선택을 되돌립니다.</value></data>
+  <data name="Recover" xml:space="preserve"><value>예배 편집 복구…</value></data>
+</root>

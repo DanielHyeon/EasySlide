@@ -1,6 +1,7 @@
 using System;
 using Axicultus.Wpf.Settings;
 using Axicultus.Wpf.Controls;
+using Axicultus.Wpf.Localization;
 using System.IO;
 using System.Linq;
 using System.Windows;
@@ -69,7 +70,7 @@ public partial class OutputAlertsWindow : Window
     private void SaveHistory(ComboBox input, bool parental)
     {
         if (!AlertHistory.Save(_historyDirectory, parental, input.Items.OfType<string>()))
-            ((MainViewModel)DataContext).StatusText = "송출 알림 기록을 저장할 수 없습니다.";
+            ((MainViewModel)DataContext).StatusText = UiText.Get("OutputAlertsWindow", "HistorySaveFailed");
     }
 
     private void Stop_Click(object sender, RoutedEventArgs e)

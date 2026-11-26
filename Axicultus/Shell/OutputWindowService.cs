@@ -1,5 +1,6 @@
 using System;
 using Axicultus.Wpf.Platform;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Shell;
 
@@ -15,7 +16,7 @@ public sealed record OutputDisplay(
 {
     public static OutputDisplay PrimaryFallback { get; } = new(
         "primary",
-        "주 모니터",
+        UiText.Get("OutputWindowService", "PrimaryMonitor"),
         0,
         0,
         1920,

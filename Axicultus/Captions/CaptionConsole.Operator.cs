@@ -9,6 +9,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Axicultus.Wpf.Shell;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Captions;
 
@@ -345,7 +346,7 @@ public partial class CaptionConsole
     // (a row as shown, else a line of body text and the row's padding; 4: the list's border)
     private void FitSourceColumn()
     {
-        var lines = new FormattedText("가나다\n가나다\n가나다", System.Globalization.CultureInfo.CurrentUICulture, Draft.FlowDirection,
+        var lines = new FormattedText("가나다\n가나다\n가나다", System.Globalization.CultureInfo.CurrentUICulture, Draft.FlowDirection, // not UI text
             new Typeface(Draft.FontFamily, Draft.FontStyle, Draft.FontWeight, Draft.FontStretch), Draft.FontSize, Brushes.Black,
             VisualTreeHelper.GetDpi(Draft).PixelsPerDip);
         Draft.Height = lines.Height + Draft.Padding.Top + Draft.Padding.Bottom + Draft.BorderThickness.Top + Draft.BorderThickness.Bottom
@@ -429,7 +430,7 @@ public partial class CaptionConsole
         bool following = ScreenMode.IsChecked == true && _captions.Following && _captions.Deck != null;
         OperatorLyricsPageCard[] pages = ScreenMode.IsChecked == true && !following && _captions.Mirroring ? [.. _main.OutputLyricsPages] : [];
         _pageSteps = pages.Length > 0;
-        AutomationProperties.SetName(StepStrip, _pageSteps ? "송출 칸 페이지 (누르면 송출 칸과 자막이 그 페이지로)" : "PPT 단계 (누르면 자막만 그 단계로)");
+        AutomationProperties.SetName(StepStrip, UiText.Get("CaptionConsole", _pageSteps ? "StepsPages" : "StepsDeck"));
         _showingSteps = true;
         try
         {
@@ -457,8 +458,8 @@ public partial class CaptionConsole
         for (int n = 1; n <= deck.Slides.Length; n++)
         {
             if (ScoreOnFor(n) && RowThumbs(deck, n) is { Length: > 0 } rows)
-                for (int k = 0; k < rows.Length; k++) steps.Add(new(n, k, $"{n}장 {k + 1}줄", "", rows[k]));
-            else steps.Add(new(n, 0, $"{n}장", FirstLine(_captions.TextFor(n, _chosenKey)), null));
+                for (int k = 0; k < rows.Length; k++) steps.Add(new(n, k, UiText.Format("CaptionConsole", "StepRow", n, k + 1), "", rows[k]));
+            else steps.Add(new(n, 0, UiText.Format("CaptionConsole", "StepSlide", n), FirstLine(_captions.TextFor(n, _chosenKey)), null));
         }
         return steps;
     }

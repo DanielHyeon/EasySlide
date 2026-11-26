@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Shell;
 
@@ -64,8 +65,8 @@ public sealed partial class InfoScreenSourceViewModel : ObservableObject
         _names = _store.ListNames();
         string? previous = SelectedFolder?.RelativePath;
         Folders.Clear();
-        Folders.Add(new(null, "모든 정보 화면"));
-        Folders.Add(new("", "기본 폴더"));
+        Folders.Add(new(null, UiText.Get("InfoScreenSourceViewModel", "AllScreens")));
+        Folders.Add(new("", UiText.Get("InfoScreenSourceViewModel", "DefaultFolder")));
         foreach (var folder in _names.Select(Path.GetDirectoryName).Where(path => !string.IsNullOrEmpty(path))
             .Distinct(StringComparer.OrdinalIgnoreCase).Order(StringComparer.OrdinalIgnoreCase))
             Folders.Add(new(folder, folder!));

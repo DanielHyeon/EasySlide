@@ -8,6 +8,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Axicultus.Wpf.Shell;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Captions;
 
@@ -31,7 +32,7 @@ public sealed class CaptionRecoveryStore(string directory) : IDisposable
         if (current != null) return current;
         var backup = TryRead(path + ".bak", plan, out var backupError);
         if (backup == null && (error ?? backupError) is { } cause)
-            throw new InvalidDataException("예배 복구본을 읽을 수 없습니다.", cause);
+            throw new InvalidDataException(UiText.Get("CaptionConsole", "RecoveryUnreadable"), cause);
         return backup;
     }
 
@@ -44,10 +45,10 @@ public sealed class CaptionRecoveryStore(string directory) : IDisposable
             using var input = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
             var entry = JsonSerializer.Deserialize<CaptionRecovery>(input);
             if (entry is not { Version: 1, Draft: not null, Overrides: not null, History: not null, Items: not null } || entry.Plan != plan)
-                throw new InvalidDataException("지원하지 않는 복구 파일입니다.");
+                throw new InvalidDataException(UiText.Get("CaptionConsole", "RecoveryUnsupported"));
             if (entry.Items.Any(item => item is not { Id: not null, Title: not null, Kind: not null }) ||
                 entry.History.Any(take => take?.Text is null) || entry.Overrides.ContainsValue(null!))
-                throw new InvalidDataException("복구할 예배 순서 또는 자막이 손상되었습니다.");
+                throw new InvalidDataException(UiText.Get("CaptionConsole", "RecoveryDamaged"));
             return entry;
         }
         catch (Exception ex) when (ex is JsonException or IOException or InvalidDataException)

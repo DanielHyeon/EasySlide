@@ -9,6 +9,7 @@ using Axicultus.Wpf.Library;
 using Axicultus.Wpf.Data;
 using Axicultus.Wpf.Controls;
 using Axicultus.Wpf.Rendering;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Shell;
 
@@ -31,36 +32,37 @@ internal sealed class ItemDisplayOptionsWindow : Window
         _original = ItemFormatFields.Parse(format);
         Resources.MergedDictionaries.Add(new ResourceDictionary {
             Source = new Uri("/Axicultus;component/Controls/OptionsLayout.xaml", UriKind.Relative) });
-        Title = "개별 표시 설정";
+        Title = UiText.Get("ItemDisplayOptionsWindow", "Title");
         Width = 540; Height = 590; MinWidth = 390; MinHeight = 360;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         var layout = new DockPanel { Margin = new Thickness(12) };
         var buttons = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
-        var ok = new Button { Content = "확인", IsDefault = true, MinWidth = 68 };
+        var ok = new Button { Content = UiText.Get("ItemDisplayOptionsWindow", "OK"), IsDefault = true, MinWidth = 68 };
         ok.Click += Save;
         buttons.Children.Add(ok);
-        buttons.Children.Add(new Button { Content = "취소", IsCancel = true, MinWidth = 68, Margin = new Thickness(4,0,0,0) });
+        buttons.Children.Add(new Button { Content = UiText.Get("ItemDisplayOptionsWindow", "Cancel"), IsCancel = true, MinWidth = 68, Margin = new Thickness(4,0,0,0) });
         DockPanel.SetDock(buttons, Dock.Bottom); layout.Children.Add(buttons);
         DockPanel.SetDock(_error, Dock.Bottom); layout.Children.Add(_error);
         var tabs = new TabControl(); layout.Children.Add(tabs); Content = layout;
-        var common = AddTab(tabs, "표시");
-        Choice(common, 25, "표시 언어", ["주 언어", "보조 언어", "두 언어"]);
-        Choice(common, 21, "제목", ["숨기기", "모든 화면", "첫 화면"]);
-        Choice(common, 23, "제목 정렬", ["주 언어 따르기", "보조 언어 따르기", "왼쪽", "가운데", "오른쪽"]);
-        Flags(common, 22, [(2,"그림자"), (4,"코드 표시"), (16,"두 언어 줄 교차"), (32,"외곽선"), (64,"정보 패널 숨기기")]);
-        Field(common, 71, "코드 조옮김 (0~11)", 0, 11);
+        static string T(string key) => UiText.Get("ItemDisplayOptionsWindow", key);
+        var common = AddTab(tabs, UiText.Get("ItemDisplayOptionsWindow", "TabDisplay"));
+        Choice(common, 25, UiText.Get("ItemDisplayOptionsWindow", "DisplayLanguage"), [T("MainLanguage"), T("SecondLanguage"), T("BothLanguages")]);
+        Choice(common, 21, UiText.Get("ItemDisplayOptionsWindow", "SongTitle"), [T("Hide"), T("AllScreens"), T("FirstScreen")]);
+        Choice(common, 23, UiText.Get("ItemDisplayOptionsWindow", "TitleAlignment"), [T("FollowMain"), T("FollowSecond"), T("Left"), T("Center"), T("Right")]);
+        Flags(common, 22, [(2, T("Shadow")), (4, T("Chords")), (16, T("Interlace")), (32, T("Outline")), (64, T("HidePanel"))]);
+        Field(common, 71, UiText.Get("ItemDisplayOptionsWindow", "Transpose"), 0, 11);
         int primarySize = _layout?.FontPoints ?? (int)Math.Round(defaults.LyricsMonitorFontSize * .75);
         int secondarySize = _layout?.Integer("Size1") ?? (defaults.LyricsMonitorFontSize2 > 0 ?
             (int)Math.Round(defaults.LyricsMonitorFontSize2 * .75) : primarySize);
         for (int region = 0; region < 2; region++)
         {
-            var pane = AddTab(tabs, region == 0 ? "주 언어" : "보조 언어");
-            Field(pane, 43 + region, "글꼴");
-            Field(pane, 47 + region, "글자 크기 (pt)", 6, 100, inherited: region == 0 ? primarySize : secondarySize);
-            Field(pane, 29 + region, "글자색 (#AARRGGBB)", color: true);
-            Choice(pane, 31 + region, "가로 정렬", ["왼쪽", "가운데", "오른쪽"], first: 1);
-            Field(pane, 45 + region, "화면 위에서부터의 위치 (%)", 0, 100, inherited: region == 0 ? _layout?.TopPercent ?? 0 : _layout?.Integer("Vpos1") ?? 50);
-            Flags(pane, 41 + region, [(1,"굵게"), (2,"기울임"), (4,"밑줄"), (16,"후렴 기울임")]);
+            var pane = AddTab(tabs, UiText.Get("ItemDisplayOptionsWindow", region == 0 ? "MainLanguage" : "SecondLanguage"));
+            Field(pane, 43 + region, UiText.Get("ItemDisplayOptionsWindow", "Font"));
+            Field(pane, 47 + region, UiText.Get("ItemDisplayOptionsWindow", "FontSize"), 6, 100, inherited: region == 0 ? primarySize : secondarySize);
+            Field(pane, 29 + region, UiText.Format("ItemDisplayOptionsWindow", "TextColor", "#AARRGGBB"), color: true);
+            Choice(pane, 31 + region, UiText.Get("ItemDisplayOptionsWindow", "HorizontalAlignment"), [T("Left"), T("Center"), T("Right")], first: 1);
+            Field(pane, 45 + region, UiText.Get("ItemDisplayOptionsWindow", "VerticalPosition"), 0, 100, inherited: region == 0 ? _layout?.TopPercent ?? 0 : _layout?.Integer("Vpos1") ?? 50);
+            Flags(pane, 41 + region, [(1, T("Bold")), (2, T("Italic")), (4, T("Underline")), (16, T("ChorusItalic"))]);
         }
     }
 
@@ -87,7 +89,7 @@ internal sealed class ItemDisplayOptionsWindow : Window
         {
             if (initial.Length == 0) initial = defaultValue.ToString(CultureInfo.CurrentCulture);
             input = new OptionNumberBox { Minimum = minimum, Maximum = maximum,
-                ToolTip = $"기본값 {defaultValue}. 입력을 지우면 기본 설정을 따릅니다." };
+                ToolTip = UiText.Format("ItemDisplayOptionsWindow", "DefaultTip", defaultValue) };
         }
         else input = new TextBox();
         input.Text = initial;
@@ -101,9 +103,9 @@ internal sealed class ItemDisplayOptionsWindow : Window
                 value = unchecked((int)hex).ToString(CultureInfo.InvariantCulture);
             if (min.HasValue || color)
             {
-                if (!int.TryParse(value, out int n) || n < min || n > max) throw new FormatException(caption + " 값을 확인하세요.");
+                if (!int.TryParse(value, out int n) || n < min || n > max) throw new FormatException(UiText.Format("ItemDisplayOptionsWindow", "CheckValue", caption));
             }
-            if (value.Contains('>')) throw new FormatException(caption + "에 > 문자를 사용할 수 없습니다.");
+            if (value.Contains('>')) throw new FormatException(UiText.Format("ItemDisplayOptionsWindow", "NoGreaterThan", caption));
             fields[key] = value;
         });
     }
@@ -111,7 +113,7 @@ internal sealed class ItemDisplayOptionsWindow : Window
     private void Choice(Panel pane, int key, string caption, string[] choices, int first = 0)
     {
         int index = int.TryParse(_original.GetValueOrDefault(key), out int n) && n >= first && n < first + choices.Length ? n - first + 1 : 0;
-        var input = new ComboBox { ItemsSource = choices.Prepend("기본 설정 따르기"), SelectedIndex = index };
+        var input = new ComboBox { ItemsSource = choices.Prepend(UiText.Get("ItemDisplayOptionsWindow", "FollowDefault")), SelectedIndex = index };
         AddInput(pane, caption, input);
         _save.Add(fields =>
         {
@@ -163,7 +165,7 @@ internal sealed class ItemDisplayOptionsWindow : Window
         {
             foreach (var apply in _save) apply(fields);
             if (int.TryParse(fields.GetValueOrDefault(45), out int top) && int.TryParse(fields.GetValueOrDefault(46), out int second) && second < top)
-                throw new FormatException("보조 언어의 세로 위치는 주 언어보다 아래에 있어야 합니다.");
+                throw new FormatException(UiText.Get("ItemDisplayOptionsWindow", "SecondBelowMain"));
             if (!fields.SequenceEqual(_original)) FormatData = ItemFormatFields.Encode(fields);
             DialogResult = true;
         }

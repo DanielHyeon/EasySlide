@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Shell;
 
@@ -84,7 +85,7 @@ public sealed class WorshipSessionNotesService(string directory) : IWorshipSessi
     // 세션 키를 안전한 파일 경로로 — StoreFileNaming 의 .json 경로를 받아 확장자만 .txt 로 바꾼다.
     private string ResolvePath(string sessionKey)
     {
-        var jsonPath = StoreFileNaming.ResolveJsonPath(_directory, sessionKey, "세션 메모");
+        var jsonPath = StoreFileNaming.ResolveJsonPath(_directory, sessionKey, UiText.Get("WorshipSessionNotesService", "Kind"));
         return Path.ChangeExtension(jsonPath, ".txt");
     }
 }

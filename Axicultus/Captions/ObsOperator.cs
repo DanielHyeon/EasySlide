@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Threading;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Captions;
 
@@ -31,7 +32,7 @@ public sealed class ObsOperator(string directory, Dispatcher ui) : IDisposable
     public string[] Shortcuts => (string[])_scenes.Clone();
     public ObsConnection? Connection { get; private set; }
     public bool HasSavedPassword => _savedSecret.Length > 0;
-    public ObsStatus Status { get; private set; } = new("연결 전", "", []);
+    public ObsStatus Status { get; private set; } = new(UiText.Get("CaptionConsole", "NotConnected"), "", []);
     public event Action<ObsStatus>? Changed;
 
     public async Task StartAsync()
@@ -57,7 +58,7 @@ public sealed class ObsOperator(string directory, Dispatcher ui) : IDisposable
             }
             else Report(Status);
         }
-        catch (Exception ex) { Report(new("OBS 설정 읽기 실패 · " + ex.Message, "", [])); }
+        catch (Exception ex) { Report(new(UiText.Format("CaptionConsole", "SettingsReadFailed", ex.Message), "", [])); }
     }
 
     private string ReadSavedPassword() => _savedSecret.Length == 0 ? "" :
@@ -74,8 +75,8 @@ public sealed class ObsOperator(string directory, Dispatcher ui) : IDisposable
     {
         camera = camera.Trim();
         host = string.IsNullOrWhiteSpace(host) ? LocalHost : host.Trim();
-        if (Uri.CheckHostName(host) == UriHostNameType.Unknown) throw new ArgumentException("OBS 주소를 확인하세요. 예: 127.0.0.1, 192.168.0.10, example.asuscomm.com");
-        if (port is < 1 or > 65535 || scenes.Length != 4) throw new ArgumentException("포트와 씬 단축키 설정을 확인하세요.");
+        if (Uri.CheckHostName(host) == UriHostNameType.Unknown) throw new ArgumentException(UiText.Format("CaptionConsole", "CheckHost", "127.0.0.1, 192.168.0.10, example.asuscomm.com"));
+        if (port is < 1 or > 65535 || scenes.Length != 4) throw new ArgumentException(UiText.Get("CaptionConsole", "CheckPortScenes"));
         var configuration = ++_configurationVersion;
         if (password.Length == 0) password = ReadSavedPassword();
         string secret = password.Length > 0 ? Convert.ToBase64String(ProtectedData.Protect(
@@ -106,7 +107,7 @@ public sealed class ObsOperator(string directory, Dispatcher ui) : IDisposable
         Connection = null;
         if (previous != null) await previous.DisposeAsync();
         if (_disposed || generation != _generation) return;
-        Report(new("OBS 연결 중", "", []));
+        Report(new(UiText.Get("CaptionConsole", "Connecting"), "", []));
         Connection = new(host, port, password, new UiProgress(_ui, s =>
         {
             if (!_disposed && generation == _generation) Report(s);
@@ -140,7 +141,7 @@ public sealed class ObsOperator(string directory, Dispatcher ui) : IDisposable
     {
         try
         {
-            if (Connection == null) throw new IOException("OBS 연결 대기");
+            if (Connection == null) throw new IOException(UiText.Get("CaptionConsole", "WaitingConnection"));
             await Connection.SwitchAsync(scene, "", true);
         }
         catch (Exception ex) { Report(Status with { Message = ex.Message }); }

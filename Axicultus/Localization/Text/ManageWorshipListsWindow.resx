@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Title" xml:space="preserve"><value>Manage worship lists</value></data>
+  <data name="SaveCurrentHint" xml:space="preserve"><value>Save the current worship list under a name</value></data>
+  <data name="Save" xml:space="preserve"><value>Save</value></data>
+  <data name="ListsTab" xml:space="preserve"><value>Lists</value></data>
+  <data name="TrashTab" xml:space="preserve"><value>Trash</value></data>
+  <data name="Restore" xml:space="preserve"><value>Restore</value></data>
+  <data name="DeletePermanently" xml:space="preserve"><value>Delete permanently</value></data>
+  <data name="EmptyTrash" xml:space="preserve"><value>Empty trash</value></data>
+  <data name="Rename" xml:space="preserve"><value>Rename</value></data>
+  <data name="Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="Merge" xml:space="preserve"><value>Merge</value></data>
+  <data name="MergeTip" xml:space="preserve"><value>Appends the selected list after the current worship list (the current items stay). Open replaces it.</value></data>
+  <data name="Load" xml:space="preserve"><value>Open</value></data>
+  <data name="DeleteConfirm" xml:space="preserve"><value>Move the worship list '{0}' to the trash?</value></data>
+  <data name="DeleteTitle" xml:space="preserve"><value>Delete worship list</value></data>
+  <data name="RestoreNone" xml:space="preserve"><value>Select the worship lists to restore.</value></data>
+  <data name="RestoreOne" xml:space="preserve"><value>Restore the worship list '{0}'?</value></data>
+  <data name="RestoreMany" xml:space="preserve"><value>Restore the {0} selected worship lists?</value></data>
+  <data name="DeleteNone" xml:space="preserve"><value>Select the worship lists to delete permanently.</value></data>
+  <data name="DeleteOne" xml:space="preserve"><value>Delete the worship list '{0}' permanently? This cannot be undone.</value></data>
+  <data name="DeleteMany" xml:space="preserve"><value>Delete the {0} selected worship lists permanently? This cannot be undone.</value></data>
+  <data name="TrashEmpty" xml:space="preserve"><value>The trash is already empty.</value></data>
+  <data name="EmptyTrashConfirm" xml:space="preserve"><value>Empty the trash? Every worship list in it is deleted permanently. This cannot be undone.</value></data>
+  <data name="RestoreIncomplete" xml:space="preserve"><value>{0} could not be restored. {1} were done.
+
+{2}</value></data>
+  <data name="DeleteIncomplete" xml:space="preserve"><value>{0} could not be deleted permanently. {1} were done.
+
+{2}</value></data>
+  <data name="RenameTitle" xml:space="preserve"><value>Rename worship list</value></data>
+  <data name="RenamePrompt" xml:space="preserve"><value>New name for '{0}':</value></data>
+</root>

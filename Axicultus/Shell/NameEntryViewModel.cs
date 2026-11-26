@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Shell;
 
@@ -52,8 +53,8 @@ public sealed partial class NameEntryViewModel : ObservableObject
 
     /// <summary>입력이 잘못됐을 때의 안내(문제 없으면 빈 문자열).</summary>
     public string ErrorMessage
-        => Trimmed.Length == 0 ? "이름을 입력하세요."
-            : _otherNames.Contains(Trimmed) ? "이미 있는 이름입니다. 다른 이름을 입력하세요."
+        => Trimmed.Length == 0 ? UiText.Get("NameEntryWindow", "EmptyName")
+            : _otherNames.Contains(Trimmed) ? UiText.Get("NameEntryWindow", "DuplicateName")
             : "";
 
     public bool HasError => ErrorMessage.Length > 0;

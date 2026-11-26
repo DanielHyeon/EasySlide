@@ -7,6 +7,7 @@ using Axicultus.Wpf.Library;
 using Axicultus.Wpf.Media;
 using Axicultus.Wpf.Settings;
 using static Axicultus.Wpf.Settings.AxicultusSettingKeys;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Shell;
 
@@ -21,7 +22,7 @@ internal static class SessionFormatTemplate
             int split = field.IndexOf('=');
             if (split > 0 && int.TryParse(field.AsSpan(0, split), out int code)) fields[code] = field[(split + 1)..];
         }
-        if (load && fields.Count == 0) throw new InvalidDataException("템플릿에 세션 서식이 없습니다.");
+        if (load && fields.Count == 0) throw new InvalidDataException(UiText.Get("SessionFormatTemplate", "NoSessionFormat"));
         var pending = new Dictionary<string, object>();
         void Set<T>(SettingKey<T> key, T value) => pending[key.Id] = value!;
         string Number(int n) => n.ToString(CultureInfo.InvariantCulture);

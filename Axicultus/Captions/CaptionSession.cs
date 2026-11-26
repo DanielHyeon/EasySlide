@@ -11,6 +11,7 @@ using Axicultus.Wpf.Rendering;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Axicultus.Wpf.Shell;
 using Axicultus.Wpf.Controls;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Captions;
 
@@ -257,7 +258,7 @@ public sealed class CaptionSession : ObservableObject, IDisposable
         var boxes = current.Boxes.Where(box => box.Key != RecognizedKey);
         if (staves && Lyrical(text))
             boxes = boxes.Select(box => box.Key == CaptionDeck.AllTextKey && CaptionDeck.ShortText(box.Text) ? box with { Text = text } : box);
-        Deck.Slides[slide - 1] = current with { Boxes = [.. boxes, new(RecognizedKey, "그림 속 가사 (자동 인식)", text)] };
+        Deck.Slides[slide - 1] = current with { Boxes = [.. boxes, new(RecognizedKey, UiText.Get("CaptionConsole", "RecognizedBox"), text)] };
         if (slide == CurrentSlide) Resend();
     }
 
