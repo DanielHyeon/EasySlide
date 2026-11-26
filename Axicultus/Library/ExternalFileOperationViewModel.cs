@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Axicultus.Wpf.Data;
+using Axicultus.Wpf.Localization;
 using Axicultus.Wpf.Settings;
 
 namespace Axicultus.Wpf.Library;
@@ -94,7 +95,7 @@ public sealed partial class ExternalFileOperationViewModel : ObservableObject
         {
             // The window still opens for copies between folders; only the song-folder destination is missing.
             SelectedSongFolder = null;
-            StatusMessage = $"곡 폴더를 불러오지 못했습니다: {ex.Message}";
+            StatusMessage = UiText.Format("ExternalFileOperationWindow", "SongFoldersFailed", ex.Message);
         }
 
         NotifyCommands();
@@ -145,14 +146,14 @@ public sealed partial class ExternalFileOperationViewModel : ObservableObject
             if (!report.Succeeded)
             {
                 var detail = string.Join("; ", report.Issues.Select(issue => issue.Message));
-                StatusMessage = string.IsNullOrWhiteSpace(detail) ? "외부 파일 처리 실패" : $"외부 파일 처리 실패: {detail}";
+                StatusMessage = string.IsNullOrWhiteSpace(detail) ? UiText.Get("ExternalFileOperationWindow", "Failed") : UiText.Format("ExternalFileOperationWindow", "FailedDetail", detail);
                 return;
             }
 
             var processed = report.CreatedFilePaths.Count + report.CreatedSongIds.Count;
             CreatedFilePaths = report.CreatedFilePaths;
             ValidationMessage = "";
-            StatusMessage = $"{processed}개 항목을 처리했습니다.";
+            StatusMessage = UiText.Format("ExternalFileOperationWindow", "Processed", processed);
             Completed?.Invoke(this, new ExternalFileOperationCompletedEventArgs(
                 OperationKind,
                 ItemKind,
@@ -161,7 +162,7 @@ public sealed partial class ExternalFileOperationViewModel : ObservableObject
         }
         catch (Exception ex) when (IsRecoverableOperationException(ex))
         {
-            StatusMessage = $"외부 파일 처리 실패: {ex.Message}";
+            StatusMessage = UiText.Format("ExternalFileOperationWindow", "FailedDetail", ex.Message);
         }
         finally
         {
@@ -236,7 +237,7 @@ public sealed partial class ExternalFileOperationViewModel : ObservableObject
     {
         if (SourceFiles.Count == 0)
         {
-            ValidationMessage = "처리할 외부 파일을 추가하세요.";
+            ValidationMessage = UiText.Get("ExternalFileOperationWindow", "AddFilesFirst");
             return false;
         }
 
@@ -244,25 +245,25 @@ public sealed partial class ExternalFileOperationViewModel : ObservableObject
         {
             if (OperationKind != ExternalFileOperationKind.Copy || ItemKind != ExternalFileItemKind.InfoScreen)
             {
-                ValidationMessage = "곡 폴더로 가져오기는 InfoScreen 복사에서만 사용할 수 있습니다.";
+                ValidationMessage = UiText.Get("ExternalFileOperationWindow", "SongFolderInfoScreenOnly");
                 return false;
             }
 
             if (string.IsNullOrWhiteSpace(DatabasePath) || !File.Exists(DatabasePath))
             {
-                ValidationMessage = "AdminDB 경로를 설정해야 합니다.";
+                ValidationMessage = UiText.Get("ExternalFileOperationWindow", "AdminDbPathMissing");
                 return false;
             }
 
             if (SelectedSongFolder is null)
             {
-                ValidationMessage = "대상 곡 폴더를 선택하세요.";
+                ValidationMessage = UiText.Get("ExternalFileOperationWindow", "SelectSongFolder");
                 return false;
             }
         }
         else if (SelectedExternalFolder is null)
         {
-            ValidationMessage = "대상 외부 폴더를 선택하세요.";
+            ValidationMessage = UiText.Get("ExternalFileOperationWindow", "SelectExternalFolder");
             return false;
         }
 

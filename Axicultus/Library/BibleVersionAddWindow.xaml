@@ -1,7 +1,8 @@
 <Window x:Class="Axicultus.Wpf.Library.BibleVersionAddWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="성경 버전 추가"
+        xmlns:loc="clr-namespace:Axicultus.Wpf.Localization"
+        Title="{loc:Text BibleVersionAddWindow.Title}"
         Width="440"
         Height="420"
         MinWidth="380"
@@ -23,7 +24,7 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <TextBlock Text="추가할 성경 파일을 고르고 표시 이름을 입력하세요(HolyBibles 폴더의 파일)."
+        <TextBlock Text="{loc:Text BibleVersionAddWindow.Intro}"
                    Style="{StaticResource Type.Caption.Style}"
                    Foreground="{DynamicResource Brush.Text.Tertiary}"
                    TextWrapping="Wrap"
@@ -44,7 +45,7 @@
                                        Style="{StaticResource Type.Body.Style}"
                                        Foreground="{DynamicResource Brush.Text.Primary}" />
                             <!-- 숨김 복구/신규를 색뿐 아니라 텍스트로도 구분(접근성). -->
-                            <TextBlock Text="숨김 복구"
+                            <TextBlock Text="{loc:Text BibleVersionAddWindow.RestoreHidden}"
                                        Style="{StaticResource Type.Caption.Style}"
                                        Foreground="{DynamicResource Brush.Text.Secondary}"
                                        Margin="8,0,0,0"
@@ -60,7 +61,7 @@
         </ListBox>
 
         <TextBlock Grid.Row="2"
-                   Text="표시 이름:"
+                   Text="{loc:Text BibleVersionAddWindow.DisplayName}"
                    Style="{StaticResource Type.Caption.Style}"
                    Foreground="{DynamicResource Brush.Text.Secondary}"
                    Margin="0,10,0,4" />
@@ -84,14 +85,14 @@
                     Orientation="Horizontal"
                     HorizontalAlignment="Right"
                     Margin="0,16,0,0">
-            <Button Content="취소"
+            <Button Content="{loc:Text BibleVersionAddWindow.Cancel}"
                     IsCancel="True"
                     Click="Cancel_Click"
                     Style="{StaticResource EsButton.Secondary}"
                     Margin="0,0,8,0"
                     AutomationProperties.Name="취소" />
             <Button x:Name="OkButton"
-                    Content="추가"
+                    Content="{loc:Text BibleVersionAddWindow.Add}"
                     IsDefault="True"
                     IsEnabled="False"
                     Click="Ok_Click"

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Library;
 
@@ -70,14 +71,14 @@ public sealed partial class PraiseBookIndexViewModel : ObservableObject
     /// <summary>현재 색인을 인쇄용 HTML 문서 문자열로 만든다(호출부가 파일로 저장). 파일 I/O 없음 → 테스트 가능.</summary>
     public string BuildIndexHtml()
     {
-        var title = string.IsNullOrWhiteSpace(CurrentBookName) ? "찬양집 색인" : $"찬양집 — {CurrentBookName}";
+        var title = string.IsNullOrWhiteSpace(CurrentBookName) ? "찬양집 색인" : $"찬양집 — {CurrentBookName}"; // not UI text
         return _exporter.BuildHtml(title, Groups);
     }
 
     /// <summary>현재 색인을 RTF(Word 편집·인쇄용) 문서 문자열로 만든다(레거시 "Listing of Selected Folder" 형식). 파일 I/O 없음 → 테스트 가능.</summary>
     public string BuildIndexRtf()
     {
-        var title = string.IsNullOrWhiteSpace(CurrentBookName) ? "찬양집 색인" : $"찬양집 — {CurrentBookName}";
+        var title = string.IsNullOrWhiteSpace(CurrentBookName) ? "찬양집 색인" : $"찬양집 — {CurrentBookName}"; // not UI text
         return _exporter.BuildRtf(title, Groups);
     }
 
@@ -103,8 +104,8 @@ public sealed partial class PraiseBookIndexViewModel : ObservableObject
 
         var total = groups.Sum(group => group.Entries.Count);
         StatusText = total == 0
-            ? "색인할 곡이 없습니다(곡 폴더를 먼저 선택하세요)."
-            : $"{total}곡 · {groups.Count}개 머리글자 그룹";
+            ? UiText.Get("PraiseBookIndexWindow", "NoSongs")
+            : UiText.Format("PraiseBookIndexWindow", "IndexSummary", total, groups.Count);
     }
 
     public void ToggleWordCountSort()
@@ -113,8 +114,8 @@ public sealed partial class PraiseBookIndexViewModel : ObservableObject
         RebuildIndex();
         _wordCountSortChanged?.Invoke(IsWordCountSortEnabled);
         StatusText = IsWordCountSortEnabled
-            ? "찬양집 정렬: CJK Word Count"
-            : "찬양집 정렬: 가나다순";
+            ? UiText.Get("PraiseBookIndexWindow", "SortWordCount")
+            : UiText.Get("PraiseBookIndexWindow", "SortAlpha");
     }
 
     // 저장된 찬양집 이름 목록을 새로고침(저장/삭제/이름변경 후 호출).
@@ -145,7 +146,7 @@ public sealed partial class PraiseBookIndexViewModel : ObservableObject
         await _store.SaveAsync(name, _currentEntries.ToArray()).ConfigureAwait(true);
         RefreshSavedBooks();
         CurrentBookName = name;
-        StatusText = $"찬양집 저장됨: {name} ({_currentEntries.Count}곡)";
+        StatusText = UiText.Format("PraiseBookIndexWindow", "Saved", name, _currentEntries.Count);
     }
 
     // 저장된 찬양집을 불러와 현재 목록·색인을 교체.
@@ -160,7 +161,7 @@ public sealed partial class PraiseBookIndexViewModel : ObservableObject
         _currentEntries = [.. entries];
         CurrentBookName = name;
         RebuildIndex();
-        StatusText = $"찬양집 열림: {name} ({entries.Count}곡)";
+        StatusText = UiText.Format("PraiseBookIndexWindow", "Opened", name, entries.Count);
     }
 
     // 저장된 찬양집을 삭제.
@@ -178,7 +179,7 @@ public sealed partial class PraiseBookIndexViewModel : ObservableObject
         }
 
         RefreshSavedBooks();
-        StatusText = $"찬양집 삭제됨: {name}";
+        StatusText = UiText.Format("PraiseBookIndexWindow", "Deleted", name);
     }
 
     public bool AddEntry(PraiseBookIndexEntry? entry)
@@ -190,7 +191,7 @@ public sealed partial class PraiseBookIndexViewModel : ObservableObject
 
         _currentEntries.Add(entry);
         RebuildIndex();
-        StatusText = $"찬양집 항목 추가: {entry.Title}";
+        StatusText = UiText.Format("PraiseBookIndexWindow", "EntryAdded", entry.Title);
         return true;
     }
 
@@ -210,7 +211,7 @@ public sealed partial class PraiseBookIndexViewModel : ObservableObject
         });
         if (removed == 0) return 0;
         RebuildIndex();
-        StatusText = $"찬양집 항목 삭제: {removed}곡";
+        StatusText = UiText.Format("PraiseBookIndexWindow", "EntriesRemoved", removed);
         return removed;
     }
 
@@ -224,7 +225,7 @@ public sealed partial class PraiseBookIndexViewModel : ObservableObject
 
         _currentEntries = [];
         RebuildIndex();
-        StatusText = "찬양집 목록을 비웠습니다.";
+        StatusText = UiText.Get("PraiseBookIndexWindow", "Cleared");
         return removed;
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Library;
 
@@ -67,7 +68,7 @@ public partial class BibleVersionAddWindow : Window
 
         if (!hasCandidate)
         {
-            ShowError("추가할 성경 파일을 고르세요.");
+            ShowError(UiText.Get("BibleVersionAddWindow", "ChooseFile"));
             OkButton.IsEnabled = false;
             return;
         }
@@ -81,7 +82,7 @@ public partial class BibleVersionAddWindow : Window
 
         if (_existingNames.Contains(name))
         {
-            ShowError("이미 있는 버전 이름입니다. 다른 이름을 입력하세요.");
+            ShowError(UiText.Get("BibleVersionAddWindow", "DuplicateName"));
             OkButton.IsEnabled = false;
             return;
         }

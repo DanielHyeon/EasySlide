@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Intro" xml:space="preserve"><value>Set the name, display order and linked folder of each Bible version.</value></data>
+  <data name="LinkedFolder" xml:space="preserve"><value>Linked folder</value></data>
+  <data name="FontSize" xml:space="preserve"><value>Font size (%)</value></data>
+  <data name="SaveToList" xml:space="preserve"><value>Save to list</value></data>
+  <data name="MoveUp" xml:space="preserve"><value>↑ Up</value></data>
+  <data name="MoveDown" xml:space="preserve"><value>↓ Down</value></data>
+  <data name="Add" xml:space="preserve"><value>Add</value></data>
+  <data name="Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="Rename" xml:space="preserve"><value>Rename</value></data>
+  <data name="EnterNumbers" xml:space="preserve"><value>Enter the linked folder and the font size as numbers.</value></data>
+  <data name="LayoutTitle" xml:space="preserve"><value>Bible display settings</value></data>
+  <data name="RenameTitle" xml:space="preserve"><value>Rename Bible version</value></data>
+  <data name="RenamePrompt" xml:space="preserve"><value>New name for '{0}':</value></data>
+  <data name="DeleteConfirm" xml:space="preserve"><value>Delete the version '{0}' from the list?
+(The text file is kept and can be added again later.)</value></data>
+  <data name="DeleteTitle" xml:space="preserve"><value>Delete Bible version</value></data>
+  <data name="NothingToAdd" xml:space="preserve"><value>There is no Bible file to add.
+(All Bible files in the HolyBibles folder are already in the list.)</value></data>
+  <data name="AddTitle" xml:space="preserve"><value>Add Bible version</value></data>
+</root>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Title" xml:space="preserve"><value>PowerPoint 폴더 찾아보기</value></data>
+  <data name="Intro" xml:space="preserve"><value>폴더의 PowerPoint(.ppt/.pptx) 파일을 골라 예배 순서에 추가합니다.</value></data>
+  <data name="ChangeFolder" xml:space="preserve"><value>폴더 변경...</value></data>
+  <data name="Refresh" xml:space="preserve"><value>새로고침</value></data>
+  <data name="IncludeSubfolders" xml:space="preserve"><value>하위 폴더 포함</value></data>
+  <data name="SearchTip" xml:space="preserve"><value>파일명으로 검색(대소문자 무시). 비우면 전체 보기.</value></data>
+  <data name="SortTip" xml:space="preserve"><value>PowerPoint 정렬</value></data>
+  <data name="SortByNumber" xml:space="preserve"><value>장 번호순</value></data>
+  <data name="SortByTitle" xml:space="preserve"><value>가나다순</value></data>
+  <data name="AddToList" xml:space="preserve"><value>예배 순서에 추가</value></data>
+  <data name="Close" xml:space="preserve"><value>닫기</value></data>
+  <data name="SelectFolder" xml:space="preserve"><value>PowerPoint 폴더 선택</value></data>
+  <data name="PreviewPending" xml:space="preserve"><value>미리보기 대기</value></data>
+  <data name="NoFiles" xml:space="preserve"><value>PowerPoint 파일이 없습니다(폴더를 확인하세요).</value></data>
+  <data name="FileCount" xml:space="preserve"><value>{0}개 PowerPoint</value></data>
+  <data name="FilteredCount" xml:space="preserve"><value>{0}/{1}개 PowerPoint(검색 '{2}')</value></data>
+  <data name="NoRenderer" xml:space="preserve"><value>PPT 썸네일 렌더러 없음</value></data>
+  <data name="Rendering" xml:space="preserve"><value>PPT 썸네일 렌더링 중</value></data>
+  <data name="SlideOf" xml:space="preserve"><value>슬라이드 1/{0}</value></data>
+  <data name="DecodeFailed" xml:space="preserve"><value>PPT 썸네일 디코드 실패</value></data>
+  <data name="RenderFailed" xml:space="preserve"><value>PPT 썸네일 렌더 실패</value></data>
+  <data name="RenderFailedStatus" xml:space="preserve"><value>PowerPoint 썸네일 렌더 실패: {0}</value></data>
+  <data name="AddedOne" xml:space="preserve"><value>예배 순서에 추가: {0}</value></data>
+  <data name="AddedMany" xml:space="preserve"><value>예배 순서에 추가: {0}개 PowerPoint</value></data>
+  <data name="NoneDeleted" xml:space="preserve"><value>삭제한 PowerPoint 파일이 없습니다.</value></data>
+  <data name="DeletedOne" xml:space="preserve"><value>PowerPoint 삭제: {0}</value></data>
+  <data name="DeletedMany" xml:space="preserve"><value>PowerPoint 파일 {0}개를 삭제했습니다.</value></data>
+</root>

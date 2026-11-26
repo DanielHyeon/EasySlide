@@ -29,19 +29,9 @@ public sealed class UiTextCoverageTests
         "Axicultus/Composites/OutputPlacementEditor.xaml",
         "Axicultus/Composites/SongSearchQueryPanel.xaml",
         "Axicultus/Composites/WorshipListPanel.xaml",
-        "Axicultus/Library/BibleVersionAddWindow.xaml",
-        "Axicultus/Library/BibleVersionManagerWindow.xaml",
-        "Axicultus/Library/BibleVersionPanel.xaml",
-        "Axicultus/Library/BibleWindow.xaml",
-        "Axicultus/Library/ExternalFileOperationWindow.xaml",
         "Axicultus/Library/FolderEditorWindow.xaml",
         "Axicultus/Library/FolderOrderWindow.xaml",
-        "Axicultus/Library/ImageLibraryWindow.xaml",
-        "Axicultus/Library/ImportExportWindow.xaml",
         "Axicultus/Library/LibraryWindow.xaml",
-        "Axicultus/Library/MediaLibraryWindow.xaml",
-        "Axicultus/Library/PowerPointLibraryWindow.xaml",
-        "Axicultus/Library/PraiseBookIndexWindow.xaml",
         "Axicultus/Library/SearchUsageWindow.xaml",
         "Axicultus/Library/SongCopyWindow.xaml",
         "Axicultus/Library/SongDeleteWindow.xaml",
@@ -50,7 +40,6 @@ public sealed class UiTextCoverageTests
         "Axicultus/Library/SongMoveWindow.xaml",
         "Axicultus/Library/SongRecoveryWindow.xaml",
         "Axicultus/MainWindow.xaml",
-        "Axicultus/Media/MediaAssignmentWindow.xaml",
         "Axicultus/OutputWindow.xaml",
         "Axicultus/PreviewWindow.xaml",
         "Axicultus/SettingsWindow.xaml",
@@ -61,8 +50,6 @@ public sealed class UiTextCoverageTests
         "Axicultus/Shell/OutputAlertsWindow.xaml",
         "Axicultus/Shell/OutputFormatWindow.xaml",
         "Axicultus/Shell/WorshipSessionNotesWindow.xaml",
-        "Axicultus/Support/HelpWindow.xaml",
-        "Axicultus/Support/RegistrationWindow.xaml",
     ];
 
     private static readonly string[] WpfCodeNotYet =
@@ -88,27 +75,10 @@ public sealed class UiTextCoverageTests
         "Axicultus/Data/FolderFormatField.cs",
         "Axicultus/Input/CommandCatalog.cs",
         "Axicultus/Interop/OfficePptSession.cs",
-        "Axicultus/Library/BibleCatalogEdit.cs",
-        "Axicultus/Library/BibleVersionAddWindow.xaml.cs",
-        "Axicultus/Library/BibleVersionPanel.xaml.cs",
-        "Axicultus/Library/BibleViewModel.cs",
-        "Axicultus/Library/ExternalFileOperationService.cs",
-        "Axicultus/Library/ExternalFileOperationViewModel.cs",
         "Axicultus/Library/FolderEditorViewModel.cs",
         "Axicultus/Library/FolderLayoutSample.cs",
-        "Axicultus/Library/ImageLibraryViewModel.cs",
-        "Axicultus/Library/ImageLibraryWindow.xaml.cs",
         "Axicultus/Library/LibraryViewModel.cs",
         "Axicultus/Library/LibraryWindow.xaml.cs",
-        "Axicultus/Library/MediaLibraryViewModel.cs",
-        "Axicultus/Library/MediaLibraryWindow.xaml.cs",
-        "Axicultus/Library/PowerPointLibraryViewModel.cs",
-        "Axicultus/Library/PowerPointLibraryWindow.xaml.cs",
-        "Axicultus/Library/PraiseBookDocument.cs",
-        "Axicultus/Library/PraiseBookIndexExporter.cs",
-        "Axicultus/Library/PraiseBookIndexViewModel.cs",
-        "Axicultus/Library/PraiseBookIndexWindow.xaml.cs",
-        "Axicultus/Library/PraiseBookStore.cs",
         "Axicultus/Library/SearchUsageViewModel.cs",
         "Axicultus/Library/SearchUsageWindow.xaml.cs",
         "Axicultus/Library/SongCopyViewModel.cs",
@@ -125,15 +95,6 @@ public sealed class UiTextCoverageTests
         "Axicultus/MainWindow.LiveDevices.cs",
         "Axicultus/MainWindow.OperatorMenus.cs",
         "Axicultus/MainWindow.xaml.cs",
-        "Axicultus/Media/AttachableMediaPlaybackBackend.cs",
-        "Axicultus/Media/CameraOwnership.cs",
-        "Axicultus/Media/DeviceCheckBackend.cs",
-        "Axicultus/Media/DirectShowVideo.cs",
-        "Axicultus/Media/LiveCameraSwitch.cs",
-        "Axicultus/Media/LiveMicrophoneRouter.cs",
-        "Axicultus/Media/MediaAssignmentWindow.xaml.cs",
-        "Axicultus/Media/MediaPlaybackBackend.cs",
-        "Axicultus/Media/MediaPlaybackService.cs",
         "Axicultus/Rendering/PowerPointPreviewViewModel.cs",
         "Axicultus/Rendering/PowerPointWorker.cs",
         "Axicultus/Settings/SettingsPathPicker.cs",
@@ -163,7 +124,6 @@ public sealed class UiTextCoverageTests
         "Axicultus/Shell/WorshipSessionNotesService.cs",
         "Axicultus/Shell/WorshipSessionNotesViewModel.cs",
         "Axicultus/Startup/LegacyUiLauncher.cs",
-        "Axicultus/Support/SupportDialogViewModels.cs",
         "Axicultus/Theme/ThemeService.cs",
         "Axicultus/Theme/WorshipItemIcon.cs",
     ];
@@ -248,7 +208,7 @@ public sealed class UiTextCoverageTests
     private static readonly Regex Untranslated = new(
         @"https?://\S+|www\.\S+|\{\d+(:[^}]*)?\}|\(&\w\)|\(_\w\)|&&|"
         // (bounded by non-ASCII-letters: a Korean particle may follow a name, "Axicultus를")
-        + @"(?<![A-Za-z])(Axicultus|Axicultuss|EasiSlides|PowerPoint|PPTX?|OBS|Windows|Office|Word|Excel|SQLite|MySQL|MariaDB|CCLI|DirectShow|DirectX|"
+        + @"(?<![A-Za-z])(Axicultus|Axicultuss|EasiSlides|PowerPoint|PPTX?|OBS|Windows|Office|Word|Excel|SQLite|MySQL|MariaDB|CCLI|DirectShow|DirectX|AdminDB|HolyBibles|"
         + @"JSON|XML|HTML|CSV|RTF|PDF|EULA|URL|USB|DPI|PC|ID|IP|NDI|WPF|WinForms|InfoScreen|Copyright|"
         + @"Ctrl|Alt|Shift|Esc|Enter|Space|Tab|PgUp|PgDn|PageUp|PageDown|Home|End|Del|Insert|F\d{1,2}|"
         // (a single capital letter: a key name, "M", or a list mark, "A.")

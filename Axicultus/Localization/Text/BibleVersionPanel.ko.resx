@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Intro" xml:space="preserve"><value>성경 버전의 이름, 표시 순서와 연결 폴더를 설정합니다.</value></data>
+  <data name="LinkedFolder" xml:space="preserve"><value>연결 폴더</value></data>
+  <data name="FontSize" xml:space="preserve"><value>글자 크기 (%)</value></data>
+  <data name="SaveToList" xml:space="preserve"><value>목록에 저장</value></data>
+  <data name="MoveUp" xml:space="preserve"><value>↑ 위로</value></data>
+  <data name="MoveDown" xml:space="preserve"><value>↓ 아래로</value></data>
+  <data name="Add" xml:space="preserve"><value>추가</value></data>
+  <data name="Delete" xml:space="preserve"><value>삭제</value></data>
+  <data name="Rename" xml:space="preserve"><value>이름 변경</value></data>
+  <data name="EnterNumbers" xml:space="preserve"><value>연결 폴더와 글자 크기를 숫자로 입력하세요.</value></data>
+  <data name="LayoutTitle" xml:space="preserve"><value>성경 표시 설정</value></data>
+  <data name="RenameTitle" xml:space="preserve"><value>성경 버전 이름 변경</value></data>
+  <data name="RenamePrompt" xml:space="preserve"><value>'{0}'의 새 이름:</value></data>
+  <data name="DeleteConfirm" xml:space="preserve"><value>'{0}' 버전을 목록에서 삭제할까요?
+(본문 파일은 보존되며 나중에 다시 추가할 수 있습니다.)</value></data>
+  <data name="DeleteTitle" xml:space="preserve"><value>성경 버전 삭제</value></data>
+  <data name="NothingToAdd" xml:space="preserve"><value>추가할 수 있는 성경 파일이 없습니다.
+(HolyBibles 폴더의 성경 파일이 모두 이미 목록에 있습니다.)</value></data>
+  <data name="AddTitle" xml:space="preserve"><value>성경 버전 추가</value></data>
+</root>

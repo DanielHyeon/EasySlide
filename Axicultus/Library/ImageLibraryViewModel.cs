@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Axicultus.Wpf.Localization;
 using Axicultus.Wpf.Rendering;
 
 namespace Axicultus.Wpf.Library;
@@ -66,8 +67,8 @@ public sealed partial class ImageLibraryViewModel : ObservableObject
     private bool _includeSubfolders;
 
     // "전체" 카테고리 — 모든 이미지를 보여 준다(필터 없음). 루트 직속 이미지의 카테고리 라벨.
-    public const string AllCategories = "전체";
-    public const string RootCategory = "(기본)";
+    public static readonly string AllCategories = UiText.Get("ImageLibraryWindow", "AllCategories");
+    public static readonly string RootCategory = UiText.Get("ImageLibraryWindow", "RootCategory");
 
     // 로드된 전체 이미지(필터 전 원본). Images 는 SelectedCategory 로 거른 부분집합이다.
     private readonly System.Collections.Generic.List<ImageLibraryItem> _allItems = [];
@@ -150,7 +151,7 @@ public sealed partial class ImageLibraryViewModel : ObservableObject
             .ToList();
         if (results.Count == 0)
         {
-            StatusText = "No image file selected.";
+            StatusText = UiText.Get("ImageLibraryWindow", "NoFileSelected");
             return results;
         }
 
@@ -163,13 +164,13 @@ public sealed partial class ImageLibraryViewModel : ObservableObject
 
             var importedCount = results.Count(result => result.Succeeded);
             StatusText = importedCount == 1
-                ? "Imported 1 image."
-                : $"Imported {importedCount} images.";
+                ? UiText.Get("ImageLibraryWindow", "ImportedOne")
+                : UiText.Format("ImageLibraryWindow", "ImportedMany", importedCount);
             return results;
         }
 
         StatusText = results.FirstOrDefault(result => !string.IsNullOrWhiteSpace(result.Message))?.Message
-            ?? "Image could not be imported.";
+            ?? UiText.Get("ImageLibraryWindow", "ImportFailed");
         return results;
     }
 
@@ -285,15 +286,15 @@ public sealed partial class ImageLibraryViewModel : ObservableObject
     {
         if (_allItems.Count == 0)
         {
-            StatusText = "이미지가 없습니다(폴더를 확인하세요).";
+            StatusText = UiText.Get("ImageLibraryWindow", "NoImages");
             return;
         }
 
         var countPart = Images.Count == _allItems.Count
-            ? $"{_allItems.Count}개 이미지"
-            : $"{Images.Count}/{_allItems.Count}개 이미지(검색·필터)";
+            ? UiText.Format("ImageLibraryWindow", "ImageCount", _allItems.Count)
+            : UiText.Format("ImageLibraryWindow", "FilteredCount", Images.Count, _allItems.Count);
 
-        StatusText = _thumbnailsLoading ? $"{countPart} — 미리보기 불러오는 중..." : countPart;
+        StatusText = _thumbnailsLoading ? UiText.Format("ImageLibraryWindow", "LoadingPreviews", countPart) : countPart;
     }
 
     // 현재 폴더의 이미지를 다시 읽는다. 목록(파일명)은 즉시 채우고, 썸네일은 백그라운드에서
@@ -365,7 +366,7 @@ public sealed partial class ImageLibraryViewModel : ObservableObject
         }
 
         _applyBackground(SelectedImage.FilePath);
-        StatusText = $"배경 적용: {SelectedImage.FileName}";
+        StatusText = UiText.Format("ImageLibraryWindow", "BackgroundApplied", SelectedImage.FileName);
     }
 
     // FrmMain ThumbImage_MouseUp → ApplyBackground(..., 2) 대응:
@@ -398,11 +399,11 @@ public sealed partial class ImageLibraryViewModel : ObservableObject
         var image = SelectedImage;
         try
         {
-            StatusText = await _applyItemBackground(image.FilePath) ? $"항목 배경 적용: {image.FileName}" : "항목 배경을 적용하지 못했습니다.";
+            StatusText = await _applyItemBackground(image.FilePath) ? UiText.Format("ImageLibraryWindow", "ItemBackgroundApplied", image.FileName) : UiText.Get("ImageLibraryWindow", "ItemBackgroundNotApplied");
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException)
         {
-            StatusText = $"항목 배경 적용 실패: {ex.Message}";
+            StatusText = UiText.Format("ImageLibraryWindow", "ItemBackgroundFailed", ex.Message);
         }
     }
 
@@ -410,6 +411,6 @@ public sealed partial class ImageLibraryViewModel : ObservableObject
     private void ClearBackground()
     {
         _clearBackground();
-        StatusText = "배경 해제";
+        StatusText = UiText.Get("ImageLibraryWindow", "BackgroundRemoved");
     }
 }

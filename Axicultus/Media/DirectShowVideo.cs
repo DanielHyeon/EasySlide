@@ -8,6 +8,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using Axicultus.Wpf.Localization;
 using DirectShowLib;
 
 namespace Axicultus.Wpf.Media;
@@ -82,7 +83,7 @@ internal sealed class DirectShowVideo : IDisposable
                     ConnectCamera(deviceNumber);
                     MediaPlaybackSnapshot? previousAudio = null;
                     bool running = false;
-                    _cameraStatus = "카메라 연결됨";
+                    _cameraStatus = UiText.Get("DirectShowVideo", "CameraConnected");
                     while (!token.IsCancellationRequested)
                     {
                         var audio = _cameraAudio;
@@ -102,12 +103,12 @@ internal sealed class DirectShowVideo : IDisposable
                         {
                             events.FreeEventParams(code, first, second);
                             if (code is EventCode.DeviceLost or EventCode.ErrorAbort)
-                                throw new MediaPlaybackException("카메라 신호 없음");
+                                throw new MediaPlaybackException(UiText.Get("DirectShowVideo", "NoCameraSignal"));
                         }
                         if (token.WaitHandle.WaitOne(100)) break;
                     }
                 }
-                catch (Exception ex) { _cameraStatus = "카메라 재연결 대기 · " + ex.Message; }
+                catch (Exception ex) { _cameraStatus = UiText.Format("DirectShowVideo", "WaitingToReconnect", ex.Message); }
                 finally
                 {
                     try { ReleaseGraph(); } catch (COMException ex) { _cameraStatus = ex.Message; }
@@ -128,7 +129,7 @@ internal sealed class DirectShowVideo : IDisposable
         try
         {
             var device = (_devicePath == null ? devices.ElementAtOrDefault(deviceNumber - 1)
-                : devices.FirstOrDefault(d => string.Equals(d.DevicePath, _devicePath, StringComparison.OrdinalIgnoreCase))) ?? throw new MediaPlaybackException($"카메라 {deviceNumber}을(를) 찾을 수 없습니다.");
+                : devices.FirstOrDefault(d => string.Equals(d.DevicePath, _devicePath, StringComparison.OrdinalIgnoreCase))) ?? throw new MediaPlaybackException(UiText.Format("DirectShowVideo", "CameraNotFound", deviceNumber));
             _devicePath = device.DevicePath;
             _graph = (IFilterGraph2)new FilterGraph();
             builder = (ICaptureGraphBuilder2)new CaptureGraphBuilder2();
@@ -172,15 +173,15 @@ internal sealed class DirectShowVideo : IDisposable
         {
             DsError.ThrowExceptionForHR(_grabber!.GetConnectedMediaType(format));
             if (format.formatPtr == IntPtr.Zero)
-                throw new MediaPlaybackException("지원되지 않는 영상 형식입니다.");
+                throw new MediaPlaybackException(UiText.Get("DirectShowVideo", "UnsupportedFormat"));
             var header = format.formatType == FormatType.VideoInfo && format.formatSize >= Marshal.SizeOf<VideoInfoHeader>()
                 ? Marshal.PtrToStructure<VideoInfoHeader>(format.formatPtr)!.BmiHeader
                 : format.formatType == FormatType.VideoInfo2 && format.formatSize >= Marshal.SizeOf<VideoInfoHeader2>()
                     ? Marshal.PtrToStructure<VideoInfoHeader2>(format.formatPtr)!.BmiHeader
-                    : throw new MediaPlaybackException("지원되지 않는 영상 형식입니다.");
+                    : throw new MediaPlaybackException(UiText.Get("DirectShowVideo", "UnsupportedFormat"));
             int width = header.Width, height = Math.Abs(header.Height);
             if (header.BitCount != 24 || width is <= 0 or > 16384 || height is <= 0 or > 16384)
-                throw new MediaPlaybackException("영상 크기를 읽을 수 없습니다.");
+                throw new MediaPlaybackException(UiText.Get("DirectShowVideo", "NoVideoSize"));
             int stride = checked((width * 3 + 3) & ~3);
             var frames = new FrameBuffer(width, stride, height, header.Height > 0, _cameraStop == null ? 0 : 30);
             DsError.ThrowExceptionForHR(_grabber.SetCallback(frames, 1));
@@ -271,7 +272,7 @@ internal sealed class DirectShowVideo : IDisposable
         {
             events.FreeEventParams(code, first, second);
             if (code == EventCode.Complete) ended = true;
-            if (code == EventCode.ErrorAbort) throw new MediaPlaybackException($"DirectShow 오류 0x{first.ToInt64():X8}");
+            if (code == EventCode.ErrorAbort) throw new MediaPlaybackException(UiText.Format("DirectShowVideo", "DirectShowError", $"0x{first.ToInt64():X8}"));
         }
         return (TimeSpan.FromTicks(Math.Max(0, position)), TimeSpan.FromTicks(Math.Max(0, duration)), ended);
     }

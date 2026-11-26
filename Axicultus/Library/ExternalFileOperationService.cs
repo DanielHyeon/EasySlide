@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Axicultus.Wpf.Data;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Library;
 
@@ -131,7 +132,7 @@ public sealed class ExternalFileOperationService(IAdminDatabaseRepository adminD
         {
             issues.Add(new ExternalFileOperationIssue(
                 ExternalFileOperationIssueKind.TargetMissing,
-                "대상 외부 폴더를 선택하세요."));
+                UiText.Get("ExternalFileOperationService", "SelectExternalFolder")));
             return CreateReport(request, created, [], issues);
         }
 
@@ -144,7 +145,7 @@ public sealed class ExternalFileOperationService(IAdminDatabaseRepository adminD
         {
             issues.Add(new ExternalFileOperationIssue(
                 ExternalFileOperationIssueKind.WriteFailed,
-                $"대상 폴더를 만들 수 없습니다: {ex.Message}",
+                UiText.Format("ExternalFileOperationService", "CreateFolderFailed", ex.Message),
                 targetFolder));
             return CreateReport(request, created, [], issues);
         }
@@ -174,7 +175,7 @@ public sealed class ExternalFileOperationService(IAdminDatabaseRepository adminD
             {
                 issues.Add(new ExternalFileOperationIssue(
                     ExternalFileOperationIssueKind.WriteFailed,
-                    $"{Path.GetFileName(source)} 처리 실패: {ex.Message}",
+                    UiText.Format("ExternalFileOperationService", "FileFailed", Path.GetFileName(source), ex.Message),
                     source));
             }
         }
@@ -191,7 +192,7 @@ public sealed class ExternalFileOperationService(IAdminDatabaseRepository adminD
         {
             issues.Add(new ExternalFileOperationIssue(
                 ExternalFileOperationIssueKind.UnsupportedDestination,
-                "곡 폴더로 가져오기는 InfoScreen 복사에서만 사용할 수 있습니다."));
+                UiText.Get("ExternalFileOperationService", "SongFolderInfoScreenOnly")));
             return CreateReport(request, [], createdIds, issues);
         }
 
@@ -199,7 +200,7 @@ public sealed class ExternalFileOperationService(IAdminDatabaseRepository adminD
         {
             issues.Add(new ExternalFileOperationIssue(
                 ExternalFileOperationIssueKind.TargetMissing,
-                "AdminDB 파일을 찾을 수 없습니다.",
+                UiText.Get("ExternalFileOperationService", "AdminDbNotFound"),
                 request.DatabasePath));
             return CreateReport(request, [], createdIds, issues);
         }
@@ -208,7 +209,7 @@ public sealed class ExternalFileOperationService(IAdminDatabaseRepository adminD
         {
             issues.Add(new ExternalFileOperationIssue(
                 ExternalFileOperationIssueKind.TargetMissing,
-                "대상 곡 폴더를 선택하세요."));
+                UiText.Get("ExternalFileOperationService", "SelectSongFolder")));
             return CreateReport(request, [], createdIds, issues);
         }
 
@@ -230,7 +231,7 @@ public sealed class ExternalFileOperationService(IAdminDatabaseRepository adminD
             var detail = string.Join("; ", report.Issues.Select(issue => issue.Message));
             issues.Add(new ExternalFileOperationIssue(
                 ExternalFileOperationIssueKind.WriteFailed,
-                string.IsNullOrWhiteSpace(detail) ? "AdminDB 저장 실패" : detail));
+                string.IsNullOrWhiteSpace(detail) ? UiText.Get("ExternalFileOperationService", "AdminDbSaveFailed") : detail));
             return CreateReport(request, [], createdIds, issues);
         }
 
@@ -314,7 +315,7 @@ public sealed class ExternalFileOperationService(IAdminDatabaseRepository adminD
         {
             issues.Add(new ExternalFileOperationIssue(
                 ExternalFileOperationIssueKind.SourceNotFile,
-                "소스는 파일이어야 합니다.",
+                UiText.Get("ExternalFileOperationService", "SourceNotFile"),
                 source));
             return false;
         }
@@ -323,7 +324,7 @@ public sealed class ExternalFileOperationService(IAdminDatabaseRepository adminD
         {
             issues.Add(new ExternalFileOperationIssue(
                 ExternalFileOperationIssueKind.SourceMissing,
-                "소스 파일을 찾을 수 없습니다.",
+                UiText.Get("ExternalFileOperationService", "SourceMissing"),
                 source));
             return false;
         }

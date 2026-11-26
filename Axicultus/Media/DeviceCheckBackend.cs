@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Windows.Controls;
+using Axicultus.Wpf.Localization;
 using DirectShowLib;
 using NAudio.CoreAudioApi;
 
@@ -11,13 +12,13 @@ namespace Axicultus.Wpf.Media;
 
 internal sealed record InputDevice(string Id, string Name, int CameraNumber = 0, bool IsDefault = false)
 {
-    public string DisplayName => IsDefault ? $"{Name} (Windows 기본)" : Name;
+    public string DisplayName => IsDefault ? UiText.Format("DeviceCheckBackend", "WindowsDefault", Name) : Name;
 }
 
 internal sealed record MicrophoneReading(bool Muted, float Peak)
 {
     public int Percent => Muted || !float.IsFinite(Peak) ? 0 : (int)Math.Round(Math.Clamp(Peak, 0, 1) * 100);
-    public string Status => Muted ? "음소거" : Percent == 0 ? "입력 대기" : "입력 신호 감지";
+    public string Status => Muted ? UiText.Get("DeviceCheckBackend", "Muted") : Percent == 0 ? UiText.Get("DeviceCheckBackend", "WaitingForInput") : UiText.Get("DeviceCheckBackend", "SignalDetected");
 }
 
 internal interface IDeviceCheckBackend
@@ -87,7 +88,7 @@ internal sealed class DeviceCheckBackend : IDeviceCheckBackend
         {
             do
             {
-                if (device.State != DeviceState.Active) throw new IOException("마이크 연결이 해제되었습니다.");
+                if (device.State != DeviceState.Active) throw new IOException(UiText.Get("DeviceCheckBackend", "MicDisconnected"));
                 while (!stop.IsCancellationRequested && packets.GetNextPacketSize() > 0)
                 {
                     packets.GetBuffer(out int frames, out _);
@@ -101,9 +102,9 @@ internal sealed class DeviceCheckBackend : IDeviceCheckBackend
 
     internal static string Failure(Exception error) => error.HResult switch
     {
-        unchecked((int)0x80070005) => "접근 거부 · Windows에서 장치 사용 권한을 확인하세요.",
-        unchecked((int)0x8889000A) => "장치 사용 중 · 다른 앱의 단독 사용을 확인하세요.",
-        unchecked((int)0x88890004) or unchecked((int)0x80070490) => "장치 연결 해제 · 목록을 새로 고쳐 주세요.",
+        unchecked((int)0x80070005) => UiText.Get("DeviceCheckBackend", "AccessDenied"),
+        unchecked((int)0x8889000A) => UiText.Get("DeviceCheckBackend", "DeviceInUse"),
+        unchecked((int)0x88890004) or unchecked((int)0x80070490) => UiText.Get("DeviceCheckBackend", "DeviceGone"),
         _ => error.Message
     };
 }

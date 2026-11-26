@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Title" xml:space="preserve"><value>Bible</value></data>
+  <data name="SearchOptions" xml:space="preserve"><value>Search options</value></data>
+  <data name="SelectedBookOnly" xml:space="preserve"><value>Search only in the selected book</value></data>
+  <data name="ShowVerses" xml:space="preserve"><value>Show verses</value></data>
+  <data name="SelectedPassage" xml:space="preserve"><value>Selected passage</value></data>
+  <data name="Region1" xml:space="preserve"><value>Region 1</value></data>
+  <data name="Region2" xml:space="preserve"><value>Region 2</value></data>
+  <data name="UseSelectedTip" xml:space="preserve"><value>Use the passage selected in the text</value></data>
+  <data name="Insert" xml:space="preserve"><value>Insert</value></data>
+  <data name="Close" xml:space="preserve"><value>Close</value></data>
+  <data name="SearchResults" xml:space="preserve"><value>Search Results:</value></data>
+  <data name="NoCatalog" xml:space="preserve"><value>The Bible list database cannot be found.</value></data>
+  <data name="VersionsLoaded" xml:space="preserve"><value>Loaded {0} Bible versions.</value></data>
+  <data name="LoadFailed" xml:space="preserve"><value>Could not load the Bible data: {0}</value></data>
+  <data name="EnterVersionName" xml:space="preserve"><value>Enter a version name.</value></data>
+  <data name="DuplicateVersionName" xml:space="preserve"><value>A version with this name already exists. Enter another name.</value></data>
+  <data name="RenameFailed" xml:space="preserve"><value>Could not rename the version: {0}</value></data>
+  <data name="VersionNotFound" xml:space="preserve"><value>Version not found: {0}</value></data>
+  <data name="Renamed" xml:space="preserve"><value>Version renamed: {0} → {1}</value></data>
+  <data name="CheckLayout" xml:space="preserve"><value>Check the linked folder (1–40) and the font size (5–200).</value></data>
+  <data name="LayoutSaved" xml:space="preserve"><value>Bible display settings saved.</value></data>
+  <data name="ReorderFailed" xml:space="preserve"><value>Could not change the version order.</value></data>
+  <data name="Reordered" xml:space="preserve"><value>Version order changed: {0}</value></data>
+  <data name="DeleteFailed" xml:space="preserve"><value>Could not delete the version: {0}</value></data>
+  <data name="Deleted" xml:space="preserve"><value>Version deleted (hidden): {0}</value></data>
+  <data name="SelectFileToAdd" xml:space="preserve"><value>Select a Bible file to add.</value></data>
+  <data name="AddFailed" xml:space="preserve"><value>Could not add the version: {0}</value></data>
+  <data name="Added" xml:space="preserve"><value>Version added: {0}</value></data>
+  <data name="SelectVersionAndBook" xml:space="preserve"><value>Select a Bible version and a book.</value></data>
+  <data name="VersesLoaded" xml:space="preserve"><value>Loaded {0} verses.</value></data>
+  <data name="SelectVersion" xml:space="preserve"><value>Select a Bible version.</value></data>
+  <data name="EnterSearchText" xml:space="preserve"><value>Enter a search term.</value></data>
+  <data name="SelectBookToSearch" xml:space="preserve"><value>Select a Bible book to search.</value></data>
+  <data name="ResultsLimited" xml:space="preserve"><value> Results were limited to 3000.</value></data>
+  <data name="VersesFound" xml:space="preserve"><value>Found {0} verses.{1}</value></data>
+  <data name="BadReference" xml:space="preserve"><value>The reference is not valid (e.g. Gen 1:1-2:3).</value></data>
+  <data name="BookNotFound" xml:space="preserve"><value>Bible book not found: {0}</value></data>
+  <data name="VerseNotFound" xml:space="preserve"><value>Verse not found: {0} {1}:{2}</value></data>
+  <data name="BadRange" xml:space="preserve"><value>The verse range is not valid.</value></data>
+  <data name="NoVerseSelected" xml:space="preserve"><value>No verse is selected.</value></data>
+  <data name="DualLanguage" xml:space="preserve"><value>Two-language passage: {0}</value></data>
+  <data name="PassageSelected" xml:space="preserve"><value>Bible passage selected.</value></data>
+</root>

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using Axicultus.Wpf.Data;
+using Axicultus.Wpf.Localization;
 using Axicultus.Wpf.Shell;
 
 namespace Axicultus.Wpf.Library;
@@ -28,7 +29,7 @@ internal static class PraiseBookDocument
                 song = PraiseBookIndexEntry.MatchLegacySong(byTitle[entry.Title], entry.Number);
             }
             if (song is null)
-                throw new InvalidDataException($"찬양집 곡을 식별할 수 없습니다. 곡을 다시 선택하세요: {entry.Title}");
+                throw new InvalidDataException(UiText.Format("PraiseBookDocument", "SongNotFound", entry.Title));
             items.Add(new LiveQueueItem($"song:{song.SongId}", entry.Title, LiveItemKinds.Song)
                 { Lyrics = LyricsDisplayFormatter.ToDisplayText(song.Lyrics) });
         }

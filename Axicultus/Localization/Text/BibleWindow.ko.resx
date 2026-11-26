@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Title" xml:space="preserve"><value>성경</value></data>
+  <data name="SearchOptions" xml:space="preserve"><value>검색 옵션</value></data>
+  <data name="SelectedBookOnly" xml:space="preserve"><value>선택한 책 안에서만 검색</value></data>
+  <data name="ShowVerses" xml:space="preserve"><value>구절 표시</value></data>
+  <data name="SelectedPassage" xml:space="preserve"><value>선택 구절</value></data>
+  <data name="Region1" xml:space="preserve"><value>영역 1</value></data>
+  <data name="Region2" xml:space="preserve"><value>영역 2</value></data>
+  <data name="UseSelectedTip" xml:space="preserve"><value>본문에서 선택한 구절 사용</value></data>
+  <data name="Insert" xml:space="preserve"><value>삽입</value></data>
+  <data name="Close" xml:space="preserve"><value>닫기</value></data>
+  <data name="SearchResults" xml:space="preserve"><value>검색 결과:</value></data>
+  <data name="NoCatalog" xml:space="preserve"><value>성경 목록 데이터베이스를 찾을 수 없습니다.</value></data>
+  <data name="VersionsLoaded" xml:space="preserve"><value>{0}개 성경 버전을 불러왔습니다.</value></data>
+  <data name="LoadFailed" xml:space="preserve"><value>성경 데이터를 불러오지 못했습니다: {0}</value></data>
+  <data name="EnterVersionName" xml:space="preserve"><value>버전 이름을 입력하세요.</value></data>
+  <data name="DuplicateVersionName" xml:space="preserve"><value>이미 있는 버전 이름입니다. 다른 이름을 입력하세요.</value></data>
+  <data name="RenameFailed" xml:space="preserve"><value>버전 이름을 바꾸지 못했습니다: {0}</value></data>
+  <data name="VersionNotFound" xml:space="preserve"><value>버전을 찾을 수 없습니다: {0}</value></data>
+  <data name="Renamed" xml:space="preserve"><value>버전 이름 변경: {0} → {1}</value></data>
+  <data name="CheckLayout" xml:space="preserve"><value>연결 폴더(1–40)와 글자 크기(5–200)를 확인하세요.</value></data>
+  <data name="LayoutSaved" xml:space="preserve"><value>성경 표시 설정을 저장했습니다.</value></data>
+  <data name="ReorderFailed" xml:space="preserve"><value>버전 순서를 바꾸지 못했습니다.</value></data>
+  <data name="Reordered" xml:space="preserve"><value>버전 순서 변경: {0}</value></data>
+  <data name="DeleteFailed" xml:space="preserve"><value>버전을 삭제하지 못했습니다: {0}</value></data>
+  <data name="Deleted" xml:space="preserve"><value>버전 삭제(숨김): {0}</value></data>
+  <data name="SelectFileToAdd" xml:space="preserve"><value>추가할 성경 파일을 선택하세요.</value></data>
+  <data name="AddFailed" xml:space="preserve"><value>버전을 추가하지 못했습니다: {0}</value></data>
+  <data name="Added" xml:space="preserve"><value>버전 추가: {0}</value></data>
+  <data name="SelectVersionAndBook" xml:space="preserve"><value>성경 버전과 책을 선택하세요.</value></data>
+  <data name="VersesLoaded" xml:space="preserve"><value>{0}개 구절을 불러왔습니다.</value></data>
+  <data name="SelectVersion" xml:space="preserve"><value>성경 버전을 선택하세요.</value></data>
+  <data name="EnterSearchText" xml:space="preserve"><value>검색어를 입력하세요.</value></data>
+  <data name="SelectBookToSearch" xml:space="preserve"><value>검색할 성경 책을 선택하세요.</value></data>
+  <data name="ResultsLimited" xml:space="preserve"><value> 결과가 3000개로 제한되었습니다.</value></data>
+  <data name="VersesFound" xml:space="preserve"><value>{0}개 구절을 찾았습니다.{1}</value></data>
+  <data name="BadReference" xml:space="preserve"><value>구절 형식이 올바르지 않습니다 (예: 창 1:1-2:3).</value></data>
+  <data name="BookNotFound" xml:space="preserve"><value>성경 책을 찾을 수 없습니다: {0}</value></data>
+  <data name="VerseNotFound" xml:space="preserve"><value>구절을 찾을 수 없습니다: {0} {1}:{2}</value></data>
+  <data name="BadRange" xml:space="preserve"><value>구절 범위가 올바르지 않습니다.</value></data>
+  <data name="NoVerseSelected" xml:space="preserve"><value>선택된 구절이 없습니다.</value></data>
+  <data name="DualLanguage" xml:space="preserve"><value>이중 언어 구절: {0}</value></data>
+  <data name="PassageSelected" xml:space="preserve"><value>성경 구절을 선택했습니다.</value></data>
+</root>

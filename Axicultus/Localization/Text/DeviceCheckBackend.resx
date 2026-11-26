@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="WindowsDefault" xml:space="preserve"><value>{0} (Windows default)</value></data>
+  <data name="Muted" xml:space="preserve"><value>Muted</value></data>
+  <data name="WaitingForInput" xml:space="preserve"><value>Waiting for input</value></data>
+  <data name="SignalDetected" xml:space="preserve"><value>Input signal detected</value></data>
+  <data name="MicDisconnected" xml:space="preserve"><value>The microphone was disconnected.</value></data>
+  <data name="AccessDenied" xml:space="preserve"><value>Access denied · check the device permissions in Windows.</value></data>
+  <data name="DeviceInUse" xml:space="preserve"><value>Device in use · check whether another app is using it exclusively.</value></data>
+  <data name="DeviceGone" xml:space="preserve"><value>Device disconnected · refresh the list.</value></data>
+</root>

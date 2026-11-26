@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Axicultus.Wpf.Captions;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Media;
 
@@ -27,7 +28,7 @@ internal sealed class LiveMicrophoneRouter(Func<string, string, ILiveSpeakerFeed
         try
         {
             try { await next.Ready.WaitAsync(TimeSpan.FromSeconds(5), ct); }
-            catch (TimeoutException) { throw new MediaPlaybackException("5초 동안 입력을 받지 못했습니다. 마이크와 스피커 연결을 확인하세요."); }
+            catch (TimeoutException) { throw new MediaPlaybackException(UiText.Get("LiveMicrophoneRouter", "NoInput")); }
             bool obsUnavailable = false;
             if (_obs != null)
             {
@@ -41,14 +42,14 @@ internal sealed class LiveMicrophoneRouter(Func<string, string, ILiveSpeakerFeed
                 }
             }
             ct.ThrowIfCancellationRequested();
-            if (next.Ended.IsCompleted) { await next.Ended; throw new MediaPlaybackException("새 마이크가 중단되었습니다."); }
+            if (next.Ended.IsCompleted) { await next.Ended; throw new MediaPlaybackException(UiText.Get("LiveMicrophoneRouter", "NewMicStopped")); }
             StopSpeaker();
             _speaker = next;
             LocalSelection = (mic.Id, speaker.Id);
             _obs = null;
             next.Enable();
             committed = true;
-            return $"{mic.Name} → {speaker.Name}" + (obsUnavailable ? " · 이전 OBS 입력의 음소거를 확인하세요." : "");
+            return $"{mic.Name} → {speaker.Name}" + (obsUnavailable ? UiText.Get("LiveMicrophoneRouter", "CheckPreviousObsMute") : "");
         }
         finally
         {
@@ -90,8 +91,8 @@ internal sealed class LiveMicrophoneRouter(Func<string, string, ILiveSpeakerFeed
         }
         StopSpeaker();
         _obs = input;
-        return $"{device.Name} → OBS · {input.Name}" + (muted ? " (음소거)" : "") +
-            (previousUnavailable ? " · 이전 OBS 입력의 음소거를 확인하세요." : "");
+        return $"{device.Name} → OBS · {input.Name}" + (muted ? UiText.Get("LiveMicrophoneRouter", "MutedSuffix") : "") +
+            (previousUnavailable ? UiText.Get("LiveMicrophoneRouter", "CheckPreviousObsMute") : "");
     }
 
     private async Task<bool> SilenceAsync(ObsCaptureInput input, CancellationToken ct)
@@ -116,7 +117,7 @@ internal sealed class LiveMicrophoneRouter(Func<string, string, ILiveSpeakerFeed
             if (ReferenceEquals(feed, _speaker))
             {
                 StopSpeaker();
-                Failed?.Invoke("현장 마이크 연결 해제 · " + ex.Message);
+                Failed?.Invoke(UiText.Format("LiveMicrophoneRouter", "MicDisconnected", ex.Message));
             }
         }
     }

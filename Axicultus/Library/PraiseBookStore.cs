@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Axicultus.Wpf.Localization;
 using Axicultus.Wpf.Settings;
 using Axicultus.Wpf.Shell;
 
@@ -153,7 +154,7 @@ public sealed class PraiseBookStore(string directory, ISettingsService? settings
     public void Rename(string oldName, string newName) =>
         StoreFileNaming.RenameList(ResolvePath(oldName), ResolvePath(newName), ResolveLegacyPath(oldName), ResolveLegacyPath(newName));
 
-    private string ResolvePath(string name) => StoreFileNaming.ResolveJsonPath(_directory, name, "찬양집");
+    private string ResolvePath(string name) => StoreFileNaming.ResolveJsonPath(_directory, name, "찬양집"); // not UI text
 
     private IEnumerable<string> EnumerateLegacyNames()
     {
@@ -182,7 +183,7 @@ public sealed class PraiseBookStore(string directory, ISettingsService? settings
             || trimmed.Contains("..", StringComparison.Ordinal)
             || trimmed.EndsWith('.'))
         {
-            throw new ArgumentException($"찬양집 이름에 사용할 수 없는 문자/형식입니다: {name}", nameof(name));
+            throw new ArgumentException(UiText.Format("PraiseBookStore", "InvalidName", name), nameof(name));
         }
 
         var full = Path.GetFullPath(Path.Combine(legacyDirectory, trimmed + ".json"));
@@ -190,7 +191,7 @@ public sealed class PraiseBookStore(string directory, ISettingsService? settings
         var rootPrefix = root.EndsWith(Path.DirectorySeparatorChar) ? root : root + Path.DirectorySeparatorChar;
         if (!full.StartsWith(rootPrefix, StringComparison.OrdinalIgnoreCase))
         {
-            throw new ArgumentException($"찬양집 이름이 허용 경로를 벗어납니다: {name}", nameof(name));
+            throw new ArgumentException(UiText.Format("PraiseBookStore", "NameOutsidePath", name), nameof(name));
         }
 
         return full;

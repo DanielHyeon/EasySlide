@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Controls;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Media;
 
@@ -32,13 +33,13 @@ public sealed partial class WpfMediaElementPlaybackBackend
     {
         ct.ThrowIfCancellationRequested();
         if (_videoSurface == null || _ownership?.ObsOwnsCamera == true)
-            throw new MediaPlaybackException("로컬 카메라 송출을 사용할 수 없습니다.");
-        if (_cameraSwitch != null) throw new MediaPlaybackException("카메라를 전환하는 중입니다.");
+            throw new MediaPlaybackException(UiText.Get("WpfMediaElementPlaybackBackend", "LocalCameraUnavailable"));
+        if (_cameraSwitch != null) throw new MediaPlaybackException(UiText.Get("WpfMediaElementPlaybackBackend", "CameraSwitching"));
 
 
         using var pending = CancellationTokenSource.CreateLinkedTokenSource(ct);
         if (_ownership != null && !_ownership.IsOwner(this) && !_ownership.TryAcquire(this))
-            throw new MediaPlaybackException("카메라 미리보기를 종료한 뒤 다시 선택하세요.");
+            throw new MediaPlaybackException(UiText.Get("WpfMediaElementPlaybackBackend", "ClosePreviewFirst"));
         _cameraSwitch = pending;
         _ownership?.ReleaseLocalCamera += CancelSwitch;
         DirectShowVideo? candidate = null;
@@ -56,12 +57,12 @@ public sealed partial class WpfMediaElementPlaybackBackend
             ClearMedia(releaseCamera: false);
             ObserveCamera(candidate);
             candidate.PresentOn(_videoSurface);
-            _ownership?.Status = "영상 수신 중 · " + device.Name;
+            _ownership?.Status = UiText.Format("WpfMediaElementPlaybackBackend", "Receiving", device.Name);
             _directShow = candidate;
             candidate = null;
             ApplySettings(next);
         }
-        catch (TimeoutException) { throw new MediaPlaybackException("새 카메라의 영상 신호가 없습니다. 연결과 장치 점유 상태를 확인하세요."); }
+        catch (TimeoutException) { throw new MediaPlaybackException(UiText.Get("WpfMediaElementPlaybackBackend", "NoNewCameraSignal")); }
         finally
         {
             candidate?.Dispose();

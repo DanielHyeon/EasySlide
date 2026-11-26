@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Axicultus.Wpf.Localization;
 using Axicultus.Wpf.Support;
 
 namespace Axicultus.Wpf.Library;
@@ -161,15 +162,15 @@ public sealed partial class MediaLibraryViewModel : ObservableObject
 
         if (_allFiles.Count == 0)
         {
-            StatusText = "미디어 파일이 없습니다(폴더를 확인하세요).";
+            StatusText = UiText.Get("MediaLibraryWindow", "NoMedia");
         }
         else if (MediaFiles.Count == _allFiles.Count)
         {
-            StatusText = $"{_allFiles.Count}개 미디어";
+            StatusText = UiText.Format("MediaLibraryWindow", "MediaCount", _allFiles.Count);
         }
         else
         {
-            StatusText = $"{MediaFiles.Count}/{_allFiles.Count}개 미디어(검색 '{FilterText.Trim()}')";
+            StatusText = UiText.Format("MediaLibraryWindow", "FilteredCount", MediaFiles.Count, _allFiles.Count, FilterText.Trim());
         }
     }
 
@@ -201,8 +202,8 @@ public sealed partial class MediaLibraryViewModel : ObservableObject
         }
 
         StatusText = selection.Count == 1
-            ? $"예배 순서에 추가: {selection[0].FileName}"
-            : $"예배 순서에 추가: {selection.Count}개 미디어";
+            ? UiText.Format("MediaLibraryWindow", "AddedOne", selection[0].FileName)
+            : UiText.Format("MediaLibraryWindow", "AddedMany", selection.Count);
         return selection.Count;
     }
 
@@ -239,7 +240,7 @@ public sealed partial class MediaLibraryViewModel : ObservableObject
 
         if (deletedPaths.Count == 0)
         {
-            StatusText = "No media file deleted.";
+            StatusText = UiText.Get("MediaLibraryWindow", "NoneDeleted");
             return 0;
         }
 
@@ -251,8 +252,8 @@ public sealed partial class MediaLibraryViewModel : ObservableObject
 
         ApplyFilter();
         StatusText = deletedPaths.Count == 1
-            ? $"Deleted media: {Path.GetFileName(deletedPaths.First())}"
-            : $"Deleted {deletedPaths.Count} media files.";
+            ? UiText.Format("MediaLibraryWindow", "DeletedOne", Path.GetFileName(deletedPaths.First()))
+            : UiText.Format("MediaLibraryWindow", "DeletedMany", deletedPaths.Count);
         return deletedPaths.Count;
     }
 }

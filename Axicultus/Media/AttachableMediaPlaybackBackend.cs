@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Media;
 
@@ -68,9 +69,9 @@ public sealed class AttachableMediaPlaybackBackend : IMediaPlaybackBackend, ILiv
 
     async Task ILiveCameraSwitchBackend.SwitchCameraAsync(InputDevice device, MediaPlaybackSnapshot next, CancellationToken ct)
     {
-        if (_inner is not ILiveCameraSwitchBackend target) throw new MediaPlaybackException("송출 창이 닫혀 있습니다.");
+        if (_inner is not ILiveCameraSwitchBackend target) throw new MediaPlaybackException(UiText.Get("AttachableMediaPlaybackBackend", "OutputClosed"));
         await target.SwitchCameraAsync(device, next, ct);
-        if (!ReferenceEquals(target, _inner)) throw new OperationCanceledException("송출 창이 변경되었습니다.");
+        if (!ReferenceEquals(target, _inner)) throw new OperationCanceledException(UiText.Get("AttachableMediaPlaybackBackend", "OutputChanged"));
         if (_usingPlayer) _player?.Unload();
         _usingPlayer = false;
         _lastLoad = next;
@@ -84,7 +85,7 @@ public sealed class AttachableMediaPlaybackBackend : IMediaPlaybackBackend, ILiv
         bool standalone = snapshot.PlayerDisplay != null;
         if (standalone != _usingPlayer) Active?.Unload();
         _usingPlayer = standalone;
-        if (standalone) _player ??= _createPlayer?.Invoke() ?? throw new MediaPlaybackException("송출 모니터 플레이어를 열 수 없습니다.");
+        if (standalone) _player ??= _createPlayer?.Invoke() ?? throw new MediaPlaybackException(UiText.Get("AttachableMediaPlaybackBackend", "PlayerUnavailable"));
         Active?.Load(snapshot);
         _lastLoad = snapshot;
         _intent = MediaPlaybackState.Ready;

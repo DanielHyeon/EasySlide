@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="CameraConnected" xml:space="preserve"><value>Camera connected</value></data>
+  <data name="NoCameraSignal" xml:space="preserve"><value>No camera signal</value></data>
+  <data name="WaitingToReconnect" xml:space="preserve"><value>Waiting to reconnect the camera · {0}</value></data>
+  <data name="CameraNotFound" xml:space="preserve"><value>Camera {0} cannot be found.</value></data>
+  <data name="UnsupportedFormat" xml:space="preserve"><value>The video format is not supported.</value></data>
+  <data name="NoVideoSize" xml:space="preserve"><value>The video size cannot be read.</value></data>
+  <data name="DirectShowError" xml:space="preserve"><value>DirectShow error {0}</value></data>
+</root>
