@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
+using Axicultus.Localization;
 
 namespace Axicultus;
 
@@ -42,7 +43,7 @@ internal sealed class SongFindBox : Panel
             BorderStyle = BorderStyle.None,
             Font = font,
             BackColor = ModernUiPalette.Surface,
-            PlaceholderText = "Find in this folder",
+            PlaceholderText = UiText.Get(nameof(SongFindBox), "FindInFolder"),
             AccessibleName = "Find in this folder",
             TabIndex = 0,
         };

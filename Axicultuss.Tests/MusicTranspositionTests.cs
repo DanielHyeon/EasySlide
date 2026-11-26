@@ -82,7 +82,8 @@ public class MusicTranspositionTests
         Gf.AddChordMenuItems(menu, 2, (sender, _) => clicked = (ToolStripItem)sender);
         Assert.IsType<ToolStripSeparator>(menu.Items[0]);
         var groups = menu.Items.OfType<ToolStripMenuItem>().Take(4).ToArray();
-        Assert.Equal(new[] { "Minor", "Minor 7th", "Major 7th", "Bass" }, groups.Select(item => item.Text));
+        Assert.Equal(new[] { "Minor", "MinorSeventh", "MajorSeventh", "Bass" }.Select(key => Axicultus.Localization.UiText.Get("gfMusic", key)),
+            groups.Select(item => item.Text));
         Assert.Equal(new[] { 17, 17, 17, 12 }, groups.Select(item => item.DropDownItems.Count));
         Assert.Equal(new[] { "Gm", "Abm", "G#m" }, groups[0].DropDownItems.Cast<ToolStripItem>().Take(3).Select(item => item.Text));
         Assert.Equal("G#7", groups[2].DropDownItems[1].Text);

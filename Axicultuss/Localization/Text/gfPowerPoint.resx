@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
   <resheader name="version"><value>2.0</value></resheader>
@@ -18,4 +18,5 @@
   <data name="PresentationNotClosed" xml:space="preserve"><value>A PowerPoint presentation of this show could not be closed: {0}</value></data>
   <data name="PresentationsNotClosed" xml:space="preserve"><value>{0} PowerPoint presentations of this show could not be closed (first: {1})</value></data>
   <data name="PresentationCheckFailed" xml:space="preserve"><value>Not every PowerPoint presentation of this show could be checked for closing: {0}</value></data>
+  <data name="NoResult" xml:space="preserve"><value>(no result)</value></data>
 </root>

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
+using Axicultus.Localization;
 
 namespace Axicultus.Util;
 
@@ -42,8 +43,8 @@ internal class DisplayInfo
         Gf.LS_Width = Output.Bounds.Width;
         Gf.LS_Height = Output.Bounds.Height;
         Gf.DualMonitorMode = Output.IsDual;
-        Gf.OutputMonitorText = !Output.Enabled ? "No Output Monitor" : Gf.DualMonitorSelectAutoOption == 1 ? "Custom Monitor Mode"
-            : Output.IsDual ? "Dual Monitor Mode" : "Single Monitor Mode";
+        Gf.OutputMonitorText = UiText.Get(nameof(DisplayInfo), !Output.Enabled ? "NoOutputMonitor" : Gf.DualMonitorSelectAutoOption == 1 ? "CustomMonitorMode"
+            : Output.IsDual ? "DualMonitorMode" : "SingleMonitorMode");
 
         if (Gf.LS_Height >= 768)
         {

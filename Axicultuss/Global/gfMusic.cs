@@ -1,5 +1,6 @@
 using System;
 using System.Windows.Forms;
+using Axicultus.Localization;
 using Axicultus.Module;
 
 namespace Axicultus;
@@ -124,10 +125,10 @@ internal unsafe partial class Gf
     internal static void AddChordMenuItems(ContextMenuStrip menu, int region, EventHandler clicked)
     {
         menu.Items.Add(new ToolStripSeparator());
-        var minor = new ToolStripMenuItem("Minor");
-        var minorSeventh = new ToolStripMenuItem("Minor 7th");
-        var majorSeventh = new ToolStripMenuItem("Major 7th");
-        var bass = new ToolStripMenuItem("Bass");
+        var minor = new ToolStripMenuItem(UiText.Get("gfMusic", "Minor"));
+        var minorSeventh = new ToolStripMenuItem(UiText.Get("gfMusic", "MinorSeventh"));
+        var majorSeventh = new ToolStripMenuItem(UiText.Get("gfMusic", "MajorSeventh"));
+        var bass = new ToolStripMenuItem(UiText.Get("gfMusic", "Bass"));
         menu.Items.AddRange([minor, minorSeventh, majorSeventh, bass]);
         string regionTag = region.ToString();
         foreach (var pitch in ChromaticScale)

@@ -6,6 +6,7 @@ using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Threading;
 using System.Windows.Forms;
+using Axicultus.Localization;
 using Axicultus.Module;
 using Axicultus.Util;
 
@@ -570,7 +571,9 @@ internal partial class ImageTransitionControl : Control
 			InCombo.Items.Clear();
 			for (int i = 0; i < 58; i++)
 			{
-				InCombo.Items.Add(_transitionItem[i]);
+				// (the English names are saved in the format data; the list shows them in the UI language, by index)
+				string key = "Transition" + _transitionItem[i].Replace(" ", "");
+				InCombo.Items.Add(UiText.Get(nameof(ImageTransitionControl), key));
 			}
 			InCombo.SelectedIndex = (int)SelectedTransition;
 		}
@@ -985,7 +988,7 @@ internal partial class ImageTransitionControl : Control
 			catch (Exception ex)
 			{
 				FrmMain.WriteDebugLogThrottled("ImageTransitionControl.OnPaint (" + Name + ")", ex);
-				FrmMain.ReportErrorNotice("Screen " + Name + " could not be drawn: " + ex.Message);
+				FrmMain.ReportErrorNotice(UiText.Format(nameof(ImageTransitionControl), "ScreenNotDrawn", Name, ex.Message));
 				EndFailedTransition();
 				// The control paints double-buffered: WinForms puts the back buffer on the screen even
 				// when this paint threw, so an empty or half-drawn frame would show black where nothing

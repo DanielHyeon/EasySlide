@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="ScreenNotDrawn" xml:space="preserve"><value>화면 {0}을(를) 그릴 수 없습니다: {1}</value></data>
+  <data name="TransitionNone" xml:space="preserve"><value>없음</value></data>
+  <data name="TransitionAscend" xml:space="preserve"><value>위로 올라가기</value></data>
+  <data name="TransitionAway" xml:space="preserve"><value>멀어지기</value></data>
+  <data name="TransitionBlindsHorizontal" xml:space="preserve"><value>블라인드(가로)</value></data>
+  <data name="TransitionBlindsVertical" xml:space="preserve"><value>블라인드(세로)</value></data>
+  <data name="TransitionBowTie" xml:space="preserve"><value>나비넥타이</value></data>
+  <data name="TransitionCheckerboard" xml:space="preserve"><value>체커보드</value></data>
+  <data name="TransitionCircle" xml:space="preserve"><value>원</value></data>
+  <data name="TransitionCircularWipe" xml:space="preserve"><value>원형 와이프</value></data>
+  <data name="TransitionCross" xml:space="preserve"><value>십자</value></data>
+  <data name="TransitionDescend" xml:space="preserve"><value>아래로 내려가기</value></data>
+  <data name="TransitionDiamond" xml:space="preserve"><value>다이아몬드</value></data>
+  <data name="TransitionDissolve" xml:space="preserve"><value>디졸브</value></data>
+  <data name="TransitionDoorsOpen" xml:space="preserve"><value>양문 열기</value></data>
+  <data name="TransitionDoorsClose" xml:space="preserve"><value>양문 닫기</value></data>
+  <data name="TransitionFade" xml:space="preserve"><value>페이드</value></data>
+  <data name="TransitionFanUp" xml:space="preserve"><value>부채 펼침</value></data>
+  <data name="TransitionFlipHorizontal" xml:space="preserve"><value>뒤집기(가로)</value></data>
+  <data name="TransitionFlipVertical" xml:space="preserve"><value>뒤집기(세로)</value></data>
+  <data name="TransitionGentleZoom" xml:space="preserve"><value>부드러운 줌</value></data>
+  <data name="TransitionHeart" xml:space="preserve"><value>하트</value></data>
+  <data name="TransitionMesh" xml:space="preserve"><value>메시</value></data>
+  <data name="TransitionInTop" xml:space="preserve"><value>위에서 들어오기</value></data>
+  <data name="TransitionInLeft" xml:space="preserve"><value>왼쪽에서 들어오기</value></data>
+  <data name="TransitionInRight" xml:space="preserve"><value>오른쪽에서 들어오기</value></data>
+  <data name="TransitionInBottom" xml:space="preserve"><value>아래에서 들어오기</value></data>
+  <data name="TransitionInTopLeft" xml:space="preserve"><value>왼쪽 위에서 들어오기</value></data>
+  <data name="TransitionInTopRight" xml:space="preserve"><value>오른쪽 위에서 들어오기</value></data>
+  <data name="TransitionInBottomLeft" xml:space="preserve"><value>왼쪽 아래에서 들어오기</value></data>
+  <data name="TransitionInBottomRight" xml:space="preserve"><value>오른쪽 아래에서 들어오기</value></data>
+  <data name="TransitionMosaic" xml:space="preserve"><value>모자이크</value></data>
+  <data name="TransitionOutTop" xml:space="preserve"><value>위로 나가기</value></data>
+  <data name="TransitionOutLeft" xml:space="preserve"><value>왼쪽으로 나가기</value></data>
+  <data name="TransitionOutRight" xml:space="preserve"><value>오른쪽으로 나가기</value></data>
+  <data name="TransitionOutBottom" xml:space="preserve"><value>아래로 나가기</value></data>
+  <data name="TransitionOutTopLeft" xml:space="preserve"><value>왼쪽 위로 나가기</value></data>
+  <data name="TransitionOutTopRight" xml:space="preserve"><value>오른쪽 위로 나가기</value></data>
+  <data name="TransitionOutBottomLeft" xml:space="preserve"><value>왼쪽 아래로 나가기</value></data>
+  <data name="TransitionOutBottomRight" xml:space="preserve"><value>오른쪽 아래로 나가기</value></data>
+  <data name="TransitionOval" xml:space="preserve"><value>타원</value></data>
+  <data name="TransitionRandomBars" xml:space="preserve"><value>임의 막대</value></data>
+  <data name="TransitionRectangle" xml:space="preserve"><value>사각형</value></data>
+  <data name="TransitionRectangleIn" xml:space="preserve"><value>사각형 안으로</value></data>
+  <data name="TransitionRevealTopDown" xml:space="preserve"><value>위에서 아래로 나타내기</value></data>
+  <data name="TransitionRevealLeftRight" xml:space="preserve"><value>왼쪽에서 오른쪽으로 나타내기</value></data>
+  <data name="TransitionRevealRightLeft" xml:space="preserve"><value>오른쪽에서 왼쪽으로 나타내기</value></data>
+  <data name="TransitionRevealDownUp" xml:space="preserve"><value>아래에서 위로 나타내기</value></data>
+  <data name="TransitionScroll" xml:space="preserve"><value>스크롤</value></data>
+  <data name="TransitionSpin" xml:space="preserve"><value>회전</value></data>
+  <data name="TransitionSpiral" xml:space="preserve"><value>나선</value></data>
+  <data name="TransitionStar" xml:space="preserve"><value>별</value></data>
+  <data name="TransitionStretchHorizontal" xml:space="preserve"><value>늘이기(가로)</value></data>
+  <data name="TransitionStretchVertical" xml:space="preserve"><value>늘이기(세로)</value></data>
+  <data name="TransitionWedge" xml:space="preserve"><value>시계 와이프</value></data>
+  <data name="TransitionWindMill" xml:space="preserve"><value>바람개비</value></data>
+  <data name="TransitionZoomAway" xml:space="preserve"><value>멀리 줌</value></data>
+  <data name="TransitionZoomIn" xml:space="preserve"><value>줌 인</value></data>
+  <data name="TransitionZoomOut" xml:space="preserve"><value>줌 아웃</value></data>
+</root>

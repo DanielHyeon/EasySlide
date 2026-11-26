@@ -34,4 +34,26 @@ public class ListFileFormatTests
             finally { directory.Delete(true); }
         });
     }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void WriterDropsTheMissingSongSuffixInTheUiLanguageOrInEnglish(bool uiLanguage)
+    {
+        string suffix = uiLanguage ? Axicultus.Localization.UiText.Get("FrmMain", "ItemNotFoundSuffix") : " <Error - Item Not Found>";
+        MonitorPresentationTests.RunOnSta(() =>
+        {
+            var directory = Directory.CreateTempSubdirectory();
+            var path = Path.Combine(directory.FullName, "list.json");
+            using var rows = new ListView();
+            var list = rows;
+            try
+            {
+                rows.Items.Add(new ListViewItem(new[] { "찬송" + suffix, "D0", "", "", "", "", "", "1" }));
+                Assert.True(gfFileHelpers.SaveIndexFile(path, ref list, UsageMode.Worship, true, "", ""));
+                Assert.Equal("찬송", Assert.Single(ServiceListDocument.ReadJson(File.ReadAllText(path)).Items).Title);
+            }
+            finally { directory.Delete(true); }
+        });
+    }
 }

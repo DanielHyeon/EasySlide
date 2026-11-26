@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Drawing.Drawing2D;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
 using Axicultus.Module;
@@ -83,6 +84,22 @@ public class ImageRenderingTests
                 Gf.Buffer_LS_Height = originalSize.Height;
                 File.Delete(path);
             }
+        });
+    }
+
+    [Fact]
+    public void TransitionListShowsEveryTransitionInTheUiLanguageAndSavesTheEnglishName()
+    {
+        MonitorPresentationTests.RunOnSta(() =>
+        {
+            using var screen = new ImageTransitionControl();
+            using var combo = new ToolStripComboBox();
+            var list = combo;
+            screen.BuildTransitionsList(ref list, ImageTransitionControl.TransitionTypes.Fade);
+            Assert.Equal(58, combo.Items.Count);
+            Assert.DoesNotContain(combo.Items.Cast<string>(), text => text.StartsWith('['));
+            Assert.Equal(Axicultus.Localization.UiText.Get("ImageTransitionControl", "TransitionFade"), combo.Text);
+            Assert.Equal("Fade", screen.GetTransitionText((int)ImageTransitionControl.TransitionTypes.Fade));
         });
     }
 

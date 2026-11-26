@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="ScreenNotDrawn" xml:space="preserve"><value>Screen {0} could not be drawn: {1}</value></data>
+  <data name="TransitionNone" xml:space="preserve"><value>None</value></data>
+  <data name="TransitionAscend" xml:space="preserve"><value>Ascend</value></data>
+  <data name="TransitionAway" xml:space="preserve"><value>Away</value></data>
+  <data name="TransitionBlindsHorizontal" xml:space="preserve"><value>Blinds Horizontal</value></data>
+  <data name="TransitionBlindsVertical" xml:space="preserve"><value>Blinds Vertical</value></data>
+  <data name="TransitionBowTie" xml:space="preserve"><value>Bow Tie</value></data>
+  <data name="TransitionCheckerboard" xml:space="preserve"><value>Checkerboard</value></data>
+  <data name="TransitionCircle" xml:space="preserve"><value>Circle</value></data>
+  <data name="TransitionCircularWipe" xml:space="preserve"><value>Circular Wipe</value></data>
+  <data name="TransitionCross" xml:space="preserve"><value>Cross</value></data>
+  <data name="TransitionDescend" xml:space="preserve"><value>Descend</value></data>
+  <data name="TransitionDiamond" xml:space="preserve"><value>Diamond</value></data>
+  <data name="TransitionDissolve" xml:space="preserve"><value>Dissolve</value></data>
+  <data name="TransitionDoorsOpen" xml:space="preserve"><value>Doors Open</value></data>
+  <data name="TransitionDoorsClose" xml:space="preserve"><value>Doors Close</value></data>
+  <data name="TransitionFade" xml:space="preserve"><value>Fade</value></data>
+  <data name="TransitionFanUp" xml:space="preserve"><value>Fan Up</value></data>
+  <data name="TransitionFlipHorizontal" xml:space="preserve"><value>Flip Horizontal</value></data>
+  <data name="TransitionFlipVertical" xml:space="preserve"><value>Flip Vertical</value></data>
+  <data name="TransitionGentleZoom" xml:space="preserve"><value>Gentle Zoom</value></data>
+  <data name="TransitionHeart" xml:space="preserve"><value>Heart</value></data>
+  <data name="TransitionMesh" xml:space="preserve"><value>Mesh</value></data>
+  <data name="TransitionInTop" xml:space="preserve"><value>In Top</value></data>
+  <data name="TransitionInLeft" xml:space="preserve"><value>In Left</value></data>
+  <data name="TransitionInRight" xml:space="preserve"><value>In Right</value></data>
+  <data name="TransitionInBottom" xml:space="preserve"><value>In Bottom</value></data>
+  <data name="TransitionInTopLeft" xml:space="preserve"><value>In Top Left</value></data>
+  <data name="TransitionInTopRight" xml:space="preserve"><value>In Top Right</value></data>
+  <data name="TransitionInBottomLeft" xml:space="preserve"><value>In Bottom Left</value></data>
+  <data name="TransitionInBottomRight" xml:space="preserve"><value>In Bottom Right</value></data>
+  <data name="TransitionMosaic" xml:space="preserve"><value>Mosaic</value></data>
+  <data name="TransitionOutTop" xml:space="preserve"><value>Out Top</value></data>
+  <data name="TransitionOutLeft" xml:space="preserve"><value>Out Left</value></data>
+  <data name="TransitionOutRight" xml:space="preserve"><value>Out Right</value></data>
+  <data name="TransitionOutBottom" xml:space="preserve"><value>Out Bottom</value></data>
+  <data name="TransitionOutTopLeft" xml:space="preserve"><value>Out Top Left</value></data>
+  <data name="TransitionOutTopRight" xml:space="preserve"><value>Out Top Right</value></data>
+  <data name="TransitionOutBottomLeft" xml:space="preserve"><value>Out Bottom Left</value></data>
+  <data name="TransitionOutBottomRight" xml:space="preserve"><value>Out Bottom Right</value></data>
+  <data name="TransitionOval" xml:space="preserve"><value>Oval</value></data>
+  <data name="TransitionRandomBars" xml:space="preserve"><value>Random Bars</value></data>
+  <data name="TransitionRectangle" xml:space="preserve"><value>Rectangle</value></data>
+  <data name="TransitionRectangleIn" xml:space="preserve"><value>Rectangle In</value></data>
+  <data name="TransitionRevealTopDown" xml:space="preserve"><value>Reveal Top Down</value></data>
+  <data name="TransitionRevealLeftRight" xml:space="preserve"><value>Reveal Left Right</value></data>
+  <data name="TransitionRevealRightLeft" xml:space="preserve"><value>Reveal Right Left</value></data>
+  <data name="TransitionRevealDownUp" xml:space="preserve"><value>Reveal Down Up</value></data>
+  <data name="TransitionScroll" xml:space="preserve"><value>Scroll</value></data>
+  <data name="TransitionSpin" xml:space="preserve"><value>Spin</value></data>
+  <data name="TransitionSpiral" xml:space="preserve"><value>Spiral</value></data>
+  <data name="TransitionStar" xml:space="preserve"><value>Star</value></data>
+  <data name="TransitionStretchHorizontal" xml:space="preserve"><value>Stretch Horizontal</value></data>
+  <data name="TransitionStretchVertical" xml:space="preserve"><value>Stretch Vertical</value></data>
+  <data name="TransitionWedge" xml:space="preserve"><value>Wedge</value></data>
+  <data name="TransitionWindMill" xml:space="preserve"><value>WindMill</value></data>
+  <data name="TransitionZoomAway" xml:space="preserve"><value>Zoom Away</value></data>
+  <data name="TransitionZoomIn" xml:space="preserve"><value>Zoom In</value></data>
+  <data name="TransitionZoomOut" xml:space="preserve"><value>Zoom Out</value></data>
+</root>
