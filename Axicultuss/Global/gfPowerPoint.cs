@@ -629,7 +629,7 @@ internal unsafe partial class Gf
 				// what the readers already get when no presentation is open at all, and they cope with it
 				// (status "x/0", slide keys find nothing to move). The verse data was reset above, so no verse
 				// buttons.
-				string runFailure = string.IsNullOrEmpty(runMessage) ? "(no result)" : runMessage;
+				string runFailure = string.IsNullOrEmpty(runMessage) ? UiText.Get("gfPowerPoint", "NoResult") : runMessage;
 				if (InPPT.KeepSlideShowOnTop)
 				{
 					// The previous PowerPoint item's slide show must not stay on top under the transparent show

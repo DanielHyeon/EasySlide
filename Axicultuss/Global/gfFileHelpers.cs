@@ -184,9 +184,14 @@ static class gfFileHelpers
         {
             case "D":
                 title = Gf.RemoveMusicSym(DataUtil.Trim(item.Text));
-                if (DataUtil.Right(title, ERROR_ITEM_NOT_FOUND.Length) == ERROR_ITEM_NOT_FOUND)
+                // (the list shows the suffix in the UI language; older lists saved the English one)
+                foreach (string suffix in new[] { UiText.Get("FrmMain", "ItemNotFoundSuffix"), ERROR_ITEM_NOT_FOUND })
                 {
-                    title = DataUtil.Left(title, title.Length - ERROR_ITEM_NOT_FOUND.Length);
+                    if (DataUtil.Right(title, suffix.Length) == suffix)
+                    {
+                        title = DataUtil.Left(title, title.Length - suffix.Length);
+                        break;
+                    }
                 }
                 folder = item.SubItems[7].Text;
                 break;

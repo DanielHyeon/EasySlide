@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
   <resheader name="version"><value>2.0</value></resheader>
@@ -18,4 +18,5 @@
   <data name="PresentationNotClosed" xml:space="preserve"><value>이 송출의 PowerPoint 프레젠테이션을 닫지 못했습니다: {0}</value></data>
   <data name="PresentationsNotClosed" xml:space="preserve"><value>이 송출의 PowerPoint 프레젠테이션 {0}개를 닫지 못했습니다 (첫 파일: {1})</value></data>
   <data name="PresentationCheckFailed" xml:space="preserve"><value>이 송출의 PowerPoint 프레젠테이션을 모두 확인해 닫지는 못했습니다: {0}</value></data>
+  <data name="NoResult" xml:space="preserve"><value>(결과 없음)</value></data>
 </root>

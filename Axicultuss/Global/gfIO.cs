@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Windows.Forms;
+using Axicultus.Localization;
 using Axicultus.Util;
 
 namespace Axicultus;
@@ -80,7 +81,7 @@ namespace Axicultus;
 				strokeCounts = counts;
 				return true;
 			}
-			MessageOverSplashScreen("The Axicultus system file strokecount.dat is missing. Please re-install Axicultuss Software.");
+			MessageOverSplashScreen(UiText.Format("gfIO", "SystemFileMissing", "strokecount.dat"));
 			return false;
 		}
 

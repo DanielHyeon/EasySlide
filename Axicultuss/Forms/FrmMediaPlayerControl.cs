@@ -476,7 +476,7 @@ namespace Axicultus;
 		{
 			if (ResetAll)
 			{
-				if (LabelMediaType.Text != "" && ((LabelMediaType.Text[0] == 'A') | (LabelMediaType.Text[0] == 'V')))
+				if (PlayerOK && DShowPlayer.LastStatusWasMedia) // (LabelMediaType shows that status)
 				{
 					LabelDuration.Text = UiText.Get(nameof(FrmMediaPlayerControl), "StreamingContents");
 				}

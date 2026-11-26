@@ -1229,7 +1229,7 @@ namespace Axicultus;
 				WriterInfo.Text = Gf.EditItem1.Writer;
 				OrderListSequence = Gf.EditItem1.SongSequence;
 				string capoText = Gf.EditItem1.Capo.ToString();
-				SongCapo.Text = ((capoText is "" or "-1") ? "" : ("Capo " + capoText));
+				SongCapo.Text = ((capoText is "" or "-1") ? "" : Gf.CapoItemText(capoText));
 				if (SongCapo.Text == "")
 				{
 					SongCapo.SelectedIndex = 0;
@@ -2738,7 +2738,7 @@ namespace Axicultus;
 		{
 			if (ResetAll)
 			{
-				if (LabelMediaType.Text != "" && ((LabelMediaType.Text[0] == 'A') || (LabelMediaType.Text[0] == 'V')))
+				if (PlayerOK && DShowPlayer.LastStatusWasMedia) // (LabelMediaType shows that status)
 				{
 					LabelDuration.Text = UiText.Get(nameof(FrmEditItem), "Stream");
 				}

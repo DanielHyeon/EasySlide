@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Windows.Forms;
 using DirectShowLib;
+using Axicultus.Localization;
 using Axicultus.Module;
 using Axicultus.Util;
 
@@ -609,17 +610,21 @@ namespace Axicultus;
 			return basicAudio.put_Volume(currentVolume);
 		}
 
+		/// <summary>Whether the last <see cref="GetStatusText"/> said a clip (audio or video) was running.</summary>
+		public bool LastStatusWasMedia { get; private set; }
+
 		public string GetStatusText()
 		{
+			LastStatusWasMedia = currentState == PlayState.Running;
 			if (currentState == PlayState.Running)
 			{
 				if (isVideo)
 				{
-					return "Video";
+					return UiText.Get(nameof(DShowLib), "Video");
 				}
-				return "Audio Only";
+				return UiText.Get(nameof(DShowLib), "AudioOnly");
 			}
-			return "No Media Playing";
+			return UiText.Get(nameof(DShowLib), "NoMediaPlaying");
 		}
 
 		public void ResumeFromStart()

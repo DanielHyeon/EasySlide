@@ -474,13 +474,16 @@ namespace Axicultus;
 
 		}
 
+		/// <summary>A capo list item ("Capo 3"); the editors store the item's index, not its text.</summary>
+		public static string CapoItemText(object fret) => UiText.Format("gfUtility", "CapoFret", fret);
+
 		public static void LoadSongKeyCapoTiming(ref ComboBox SongCapo, ref ComboBox SongKey, ref ComboBox SongTiming)
 	{
 		SongCapo.Items.Clear();
 		SongCapo.Items.Add("");
 		for (int i = 0; i <= 11; i++)
 		{
-			SongCapo.Items.Add($"Capo {i}");
+			SongCapo.Items.Add(CapoItemText(i));
 		}
 
 		string[] keys = ["", "A", "B", "C", "D", "E", "F", "G", "Am", "Bm", "Cm", "Dm", "Em", "Fm", "Gm", "Ab", "Bb", "Db", "Eb", "F#", "Bbm", "C#m", "D#m", "F#m", "G#m"];
