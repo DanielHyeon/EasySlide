@@ -2,7 +2,8 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-        Title="Axicultus 라이브러리"
+        xmlns:loc="clr-namespace:Axicultus.Wpf.Localization"
+        Title="{loc:Text LibraryWindow.Title}"
         Width="1060"
         Height="700"
         MinWidth="920"
@@ -24,7 +25,7 @@
             </Grid.ColumnDefinitions>
 
             <StackPanel>
-                <TextBlock Text="라이브러리"
+                <TextBlock Text="{loc:Text LibraryWindow.Library}"
                            Style="{StaticResource Type.Title1.Style}"
                            Foreground="{DynamicResource Brush.Text.Primary}" />
                 <TextBlock Text="{Binding DatabasePath}"
@@ -37,12 +38,12 @@
             <Button Grid.Column="1"
                     Command="{Binding LoadCommand}"
                     Style="{StaticResource EsButton.Secondary}"
-                    ToolTip="라이브러리 새로 고침"
+                    ToolTip="{loc:Text LibraryWindow.RefreshTip}"
                     AutomationProperties.Name="라이브러리 새로 고침"
                     VerticalAlignment="Top">
                 <StackPanel Orientation="Horizontal">
                     <ui:SymbolIcon Symbol="ArrowSync24" Margin="0,0,6,0" />
-                    <TextBlock Text="새로 고침" />
+                    <TextBlock Text="{loc:Text LibraryWindow.Refresh}" />
                 </StackPanel>
             </Button>
         </Grid>
@@ -69,7 +70,7 @@
                         <StackPanel Orientation="Horizontal"
                                     VerticalAlignment="Center">
                             <ui:SymbolIcon Symbol="FolderOpen24" Margin="0,0,8,0" />
-                            <TextBlock Text="폴더"
+                            <TextBlock Text="{loc:Text LibraryWindow.Folders}"
                                        Style="{StaticResource Type.Title3.Style}"
                                        Foreground="{DynamicResource Brush.Text.Primary}" />
                         </StackPanel>
@@ -80,7 +81,7 @@
                                 Height="34"
                                 Style="{StaticResource EsButton.Secondary}"
                                 Click="NewFolder_Click"
-                                ToolTip="폴더 추가"
+                                ToolTip="{loc:Text LibraryWindow.AddFolder}"
                                 AutomationProperties.Name="폴더 추가"
                                 Margin="0,0,6,0">
                             <ui:SymbolIcon Symbol="Add24" />
@@ -91,7 +92,7 @@
                                 Height="34"
                                 Style="{StaticResource EsButton.Secondary}"
                                 Click="EditFolder_Click"
-                                ToolTip="선택 폴더 편집"
+                                ToolTip="{loc:Text LibraryWindow.EditFolder}"
                                 AutomationProperties.Name="선택 폴더 편집">
                             <ui:SymbolIcon Symbol="Edit24" />
                         </Button>
@@ -101,7 +102,7 @@
                                 Style="{StaticResource EsButton.Danger}"
                                 Click="DeleteFolder_Click"
                                 IsEnabled="{Binding CanDeleteFolder}"
-                                ToolTip="Disable selected folder"
+                                ToolTip="{loc:Text LibraryWindow.DisableFolder}"
                                 AutomationProperties.Name="Disable selected folder"
                                 Margin="6,0,6,0">
                             <ui:SymbolIcon Symbol="Delete24" />
@@ -112,7 +113,7 @@
                                 Style="{StaticResource EsButton.Secondary}"
                                 Click="RecoverFolder_Click"
                                 IsEnabled="{Binding CanRecoverFolder}"
-                                ToolTip="Restore selected folder"
+                                ToolTip="{loc:Text LibraryWindow.RestoreFolder}"
                                 AutomationProperties.Name="Restore selected folder"
                                 Margin="0,0,6,0">
                             <ui:SymbolIcon Symbol="ArrowUndo24" />
@@ -122,7 +123,7 @@
                                 Height="34"
                                 Style="{StaticResource EsButton.Secondary}"
                                 Command="{Binding MoveSelectedFolderUpCommand}"
-                                ToolTip="Move folder up"
+                                ToolTip="{loc:Text LibraryWindow.MoveFolderUp}"
                                 AutomationProperties.Name="Move folder up"
                                 Margin="0,0,6,0">
                             <ui:SymbolIcon Symbol="ArrowUp24" />
@@ -132,7 +133,7 @@
                                 Height="34"
                                 Style="{StaticResource EsButton.Secondary}"
                                 Command="{Binding MoveSelectedFolderDownCommand}"
-                                ToolTip="Move folder down"
+                                ToolTip="{loc:Text LibraryWindow.MoveFolderDown}"
                                 AutomationProperties.Name="Move folder down">
                             <ui:SymbolIcon Symbol="ArrowDown24" />
                         </Button>
@@ -221,111 +222,111 @@
                                    Orientation="Horizontal">
                             <Button Style="{StaticResource EsButton.Secondary}"
                                     Click="NewSong_Click"
-                                    ToolTip="새 곡 만들기"
+                                    ToolTip="{loc:Text LibraryWindow.NewSongTip}"
                                     AutomationProperties.Name="새 곡 만들기"
                                     Margin="0,0,8,8">
                                 <StackPanel Orientation="Horizontal">
                                     <ui:SymbolIcon Symbol="Save24" Margin="0,0,6,0" />
-                                    <TextBlock Text="새 곡" />
+                                    <TextBlock Text="{loc:Text LibraryWindow.NewSong}" />
                                 </StackPanel>
                             </Button>
 
                             <Button Style="{StaticResource EsButton.Primary}"
                                     Click="AddToLive_Click"
-                                    ToolTip="선택 곡을 예배 순서(라이브 큐)에 추가"
+                                    ToolTip="{loc:Text LibraryWindow.AddToLiveTip}"
                                     AutomationProperties.Name="선택 곡 라이브에 추가"
                                     Margin="0,0,8,8">
                                 <StackPanel Orientation="Horizontal">
                                     <ui:SymbolIcon Symbol="Add24" Margin="0,0,6,0" />
-                                    <TextBlock Text="라이브에 추가" />
+                                    <TextBlock Text="{loc:Text LibraryWindow.AddToLive}" />
                                 </StackPanel>
                             </Button>
 
                             <Button Style="{StaticResource EsButton.Secondary}"
                                     Click="EditSong_Click"
-                                    ToolTip="선택 곡 편집"
+                                    ToolTip="{loc:Text LibraryWindow.EditSongTip}"
                                     AutomationProperties.Name="선택 곡 편집"
                                     Margin="0,0,8,8">
                                 <StackPanel Orientation="Horizontal">
                                     <ui:SymbolIcon Symbol="Info24" Margin="0,0,6,0" />
-                                    <TextBlock Text="편집" />
+                                    <TextBlock Text="{loc:Text LibraryWindow.Edit}" />
                                 </StackPanel>
                             </Button>
 
                             <Button Style="{StaticResource EsButton.Secondary}"
                                     Click="CopySong_Click"
-                                    ToolTip="선택 곡 복사"
+                                    ToolTip="{loc:Text LibraryWindow.CopySongTip}"
                                     AutomationProperties.Name="선택 곡 복사"
                                     Margin="0,0,8,8">
                                 <StackPanel Orientation="Horizontal">
                                     <ui:SymbolIcon Symbol="Copy24" Margin="0,0,6,0" />
-                                    <TextBlock Text="복사" />
+                                    <TextBlock Text="{loc:Text LibraryWindow.Copy}" />
                                 </StackPanel>
                             </Button>
 
                             <Button Style="{StaticResource EsButton.Secondary}"
                                     Click="MoveSong_Click"
-                                    ToolTip="선택 곡 이동"
+                                    ToolTip="{loc:Text LibraryWindow.MoveSongTip}"
                                     AutomationProperties.Name="선택 곡 이동"
                                     Margin="0,0,8,8">
                                 <StackPanel Orientation="Horizontal">
                                     <ui:SymbolIcon Symbol="ArrowRight24" Margin="0,0,6,0" />
-                                    <TextBlock Text="이동" />
+                                    <TextBlock Text="{loc:Text LibraryWindow.Move}" />
                                 </StackPanel>
                             </Button>
 
                             <Button Style="{StaticResource EsButton.Secondary}"
                                     Command="{Binding MoveSelectedSongUpCommand}"
-                                    ToolTip="Move song up"
+                                    ToolTip="{loc:Text LibraryWindow.MoveSongUpTip}"
                                     AutomationProperties.Name="Move song up"
                                     Margin="0,0,8,8">
                                 <StackPanel Orientation="Horizontal">
                                     <ui:SymbolIcon Symbol="ArrowUp24" Margin="0,0,6,0" />
-                                    <TextBlock Text="Up" />
+                                    <TextBlock Text="{loc:Text LibraryWindow.Up}" />
                                 </StackPanel>
                             </Button>
 
                             <Button Style="{StaticResource EsButton.Secondary}"
                                     Command="{Binding MoveSelectedSongDownCommand}"
-                                    ToolTip="Move song down"
+                                    ToolTip="{loc:Text LibraryWindow.MoveSongDownTip}"
                                     AutomationProperties.Name="Move song down"
                                     Margin="0,0,8,8">
                                 <StackPanel Orientation="Horizontal">
                                     <ui:SymbolIcon Symbol="ArrowDown24" Margin="0,0,6,0" />
-                                    <TextBlock Text="Down" />
+                                    <TextBlock Text="{loc:Text LibraryWindow.Down}" />
                                 </StackPanel>
                             </Button>
 
                             <Button Style="{StaticResource EsButton.Danger}"
                                     Click="DeleteSong_Click"
-                                    ToolTip="선택 곡 삭제"
+                                    ToolTip="{loc:Text LibraryWindow.DeleteSongTip}"
                                     AutomationProperties.Name="선택 곡 삭제"
                                     Margin="0,0,8,8">
                                 <StackPanel Orientation="Horizontal">
                                     <ui:SymbolIcon Symbol="Delete24" Margin="0,0,6,0" />
-                                    <TextBlock Text="삭제" />
+                                    <TextBlock Text="{loc:Text LibraryWindow.Delete}" />
                                 </StackPanel>
                             </Button>
 
                             <Button Style="{StaticResource EsButton.Secondary}"
                                     Click="RecoverSong_Click"
-                                    ToolTip="삭제 곡 복구"
+                                    ToolTip="{loc:Text LibraryWindow.RecoverTip}"
                                     AutomationProperties.Name="삭제 곡 복구"
                                     Margin="0,0,8,8">
                                 <StackPanel Orientation="Horizontal">
                                     <ui:SymbolIcon Symbol="ArrowUndo24" Margin="0,0,6,0" />
-                                    <TextBlock Text="복구" />
+                                    <TextBlock Text="{loc:Text LibraryWindow.Recover}" />
                                 </StackPanel>
                             </Button>
 
                             <Button Style="{StaticResource EsButton.Secondary}"
                                     Click="MergeSongs_Click"
-                                    ToolTip="스마트 병합"
+                                    ToolTip="{loc:Text LibraryWindow.MergeTip}"
                                     AutomationProperties.Name="스마트 병합"
                                     Margin="0,0,0,8">
                                 <StackPanel Orientation="Horizontal">
                                     <ui:SymbolIcon Symbol="Copy24" Margin="0,0,6,0" />
-                                    <TextBlock Text="병합" />
+                                    <TextBlock Text="{loc:Text LibraryWindow.Merge}" />
                                 </StackPanel>
                             </Button>
                         </WrapPanel>
@@ -336,7 +337,7 @@
                              Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                              MinHeight="36"
                              Margin="0,0,0,12"
-                             ToolTip="제목, 분류, 가사 검색"
+                             ToolTip="{loc:Text LibraryWindow.SearchTip}"
                              AutomationProperties.Name="라이브러리 검색" />
 
                     <DataGrid x:Name="SongsGrid"
@@ -344,7 +345,7 @@
                               AutomationProperties.Name="노래 목록"
                               ItemsSource="{Binding Songs}"
                               SelectedItem="{Binding SelectedSong, Mode=TwoWay}"
-                              ToolTip="Ctrl 또는 Shift 를 누른 채 클릭하면 여러 곡을 선택합니다. 복사·이동·삭제는 선택한 곡 모두에 적용됩니다."
+                              ToolTip="{loc:Text LibraryWindow.MultiSelectTip}"
                               AutoGenerateColumns="False"
                               CanUserAddRows="False"
                               CanUserDeleteRows="False"
@@ -352,19 +353,19 @@
                               HeadersVisibility="Column"
                               SelectionMode="Extended">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="번호"
+                            <DataGridTextColumn Header="{loc:Text LibraryWindow.ColumnNumber}"
                                                 Binding="{Binding SongNumber}"
                                                 Width="70" />
-                            <DataGridTextColumn Header="제목"
+                            <DataGridTextColumn Header="{loc:Text LibraryWindow.ColumnTitle}"
                                                 Binding="{Binding Title}"
                                                 Width="2*" />
-                            <DataGridTextColumn Header="대체 제목"
+                            <DataGridTextColumn Header="{loc:Text LibraryWindow.ColumnAlternateTitle}"
                                                 Binding="{Binding AlternateTitle}"
                                                 Width="*" />
-                            <DataGridTextColumn Header="분류"
+                            <DataGridTextColumn Header="{loc:Text LibraryWindow.ColumnCategory}"
                                                 Binding="{Binding Category}"
                                                 Width="*" />
-                            <DataGridTextColumn Header="키"
+                            <DataGridTextColumn Header="{loc:Text LibraryWindow.ColumnKey}"
                                                 Binding="{Binding Key}"
                                                 Width="70" />
                         </DataGrid.Columns>
@@ -385,7 +386,7 @@
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
-                    <TextBlock Text="선택 항목"
+                    <TextBlock Text="{loc:Text LibraryWindow.Selection}"
                                Style="{StaticResource Type.Title3.Style}"
                                Foreground="{DynamicResource Brush.Text.Primary}"
                                Margin="0,0,0,12" />
@@ -426,12 +427,12 @@
             <Button DockPanel.Dock="Right"
                     Style="{StaticResource EsButton.Secondary}"
                     Click="Close_Click"
-                    ToolTip="닫기"
+                    ToolTip="{loc:Text LibraryWindow.CloseTip}"
                     AutomationProperties.Name="라이브러리 창 닫기"
                     HorizontalAlignment="Right">
                 <StackPanel Orientation="Horizontal">
                     <ui:SymbolIcon Symbol="Dismiss24" Margin="0,0,6,0" />
-                    <TextBlock Text="닫기" />
+                    <TextBlock Text="{loc:Text LibraryWindow.Close}" />
                 </StackPanel>
             </Button>
         </DockPanel>

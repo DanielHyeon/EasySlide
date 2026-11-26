@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Title" xml:space="preserve"><value>Move song</value></data>
+  <data name="CurrentFolder" xml:space="preserve"><value>Current folder</value></data>
+  <data name="TargetFolder" xml:space="preserve"><value>Target folder</value></data>
+  <data name="MoveSelected" xml:space="preserve"><value>Move the selected songs</value></data>
+  <data name="Move" xml:space="preserve"><value>Move</value></data>
+  <data name="Close" xml:space="preserve"><value>Close</value></data>
+  <data name="AlreadyInTarget" xml:space="preserve"><value>already in the target folder</value></data>
+  <data name="NotInLibrary" xml:space="preserve"><value>not in the library</value></data>
+  <data name="NothingToMove" xml:space="preserve"><value>There are no songs to move.</value></data>
+  <data name="MoveFailed" xml:space="preserve"><value>Move failed</value></data>
+  <data name="MoveFailedDetail" xml:space="preserve"><value>Move failed: {0}</value></data>
+  <data name="Moved" xml:space="preserve"><value>Moved.</value></data>
+  <data name="MovedSeveral" xml:space="preserve"><value>Moved {0} songs.</value></data>
+  <data name="DatabasePathMissing" xml:space="preserve"><value>The AdminDB path must be set.</value></data>
+  <data name="DatabaseNotFound" xml:space="preserve"><value>AdminDB file not found: {0}</value></data>
+  <data name="SelectSong" xml:space="preserve"><value>Select a song to move.</value></data>
+  <data name="SelectTargetFolder" xml:space="preserve"><value>Select the target folder for the move.</value></data>
+</root>

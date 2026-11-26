@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Title" xml:space="preserve"><value>Delete song</value></data>
+  <data name="CurrentFolder" xml:space="preserve"><value>Current folder</value></data>
+  <data name="RecoverHint" xml:space="preserve"><value>Deleted songs can be put back in their original folder from the recovery window.</value></data>
+  <data name="DeleteSelected" xml:space="preserve"><value>Delete the selected songs</value></data>
+  <data name="Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="Close" xml:space="preserve"><value>Close</value></data>
+  <data name="Confirm" xml:space="preserve"><value>Do you really want to delete it?</value></data>
+  <data name="ConfirmSeveral" xml:space="preserve"><value>Do you really want to delete the {0} selected songs?</value></data>
+  <data name="AlreadyDeleted" xml:space="preserve"><value>already deleted or not in the library</value></data>
+  <data name="NothingToDelete" xml:space="preserve"><value>There are no songs to delete.</value></data>
+  <data name="DeleteFailed" xml:space="preserve"><value>Delete failed</value></data>
+  <data name="DeleteFailedDetail" xml:space="preserve"><value>Delete failed: {0}</value></data>
+  <data name="Deleted" xml:space="preserve"><value>Deleted.</value></data>
+  <data name="DeletedSeveral" xml:space="preserve"><value>Deleted {0} songs.</value></data>
+  <data name="DatabasePathMissing" xml:space="preserve"><value>The AdminDB path must be set.</value></data>
+  <data name="DatabaseNotFound" xml:space="preserve"><value>AdminDB file not found: {0}</value></data>
+  <data name="SelectSong" xml:space="preserve"><value>Select a song to delete.</value></data>
+</root>

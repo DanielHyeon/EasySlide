@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Axicultus.Wpf.Data;
+using Axicultus.Wpf.Localization;
 using Axicultus.Wpf.Settings;
 
 namespace Axicultus.Wpf.Library;
@@ -18,7 +19,7 @@ public sealed partial class LibraryViewModel : ObservableObject
     private IReadOnlyList<SongSummary> _loadedSongs = [];
     private bool _suppressSelectionLoad;
     private bool _pendingFolderLoad;
-    private static readonly SongFolderSummary ResultFolder = new(-1, "Search Results:", false, 0);
+    private static readonly SongFolderSummary ResultFolder = new(-1, UiText.Get("LibraryViewModel", "SearchResults"), false, 0);
     private readonly ISearchUsageService _searchService;
     private SongSearchRequest? _shownSearch;
     internal int BrowserRevision { get; private set; }
@@ -75,7 +76,7 @@ public sealed partial class LibraryViewModel : ObservableObject
     [ObservableProperty] private SongFolderSummary? _selectedFolder;
     [ObservableProperty] private SongSummary? _selectedSong;
     [ObservableProperty] private string _searchText = "";
-    [ObservableProperty] private string _statusMessage = "라이브러리 준비됨";
+    [ObservableProperty] private string _statusMessage = UiText.Get("LibraryViewModel", "Ready");
     [ObservableProperty] private bool _isBusy;
     [ObservableProperty] private int _activeFolderCount;
     [ObservableProperty] private int _displayedSongCount;
@@ -152,10 +153,10 @@ public sealed partial class LibraryViewModel : ObservableObject
             }
 
             var term = (_shownSearch?.Phrase ?? (FolderTitleFilter.Length > 0 ? FolderTitleFilter : SearchText)).Trim();
-            if (_shownSearch is not null && term.Length == 0) return "검색 조건에 맞는 곡이 없습니다.";
+            if (_shownSearch is not null && term.Length == 0) return UiText.Get("LibraryViewModel", "NoSearchMatch");
             return term.Length > 0
-                ? $"'{term}'에 맞는 곡이 없습니다."   // 검색했는데 결과 0건.
-                : "이 폴더에 곡이 없습니다.";          // 폴더는 불러왔는데 곡이 0건.
+                ? UiText.Format("LibraryViewModel", "NoTermMatch", term)   // searched, no result
+                : UiText.Get("LibraryViewModel", "FolderEmpty");          // folder loaded, no song
         }
     }
 
@@ -208,7 +209,7 @@ public sealed partial class LibraryViewModel : ObservableObject
             }
             catch (Exception ex) when (IsRecoverableLibraryException(ex) || ex is System.Data.Common.DbException)
             {
-                StatusMessage = $"찬양집 곡을 불러올 수 없습니다: {ex.Message}";
+                StatusMessage = UiText.Format("LibraryViewModel", "PraiseBookLoadFailed", ex.Message);
                 return null;
             }
         }
@@ -222,11 +223,11 @@ public sealed partial class LibraryViewModel : ObservableObject
     /// <summary>정렬 방식 선택지(콤보박스 바인딩용) — 모드와 한글 라벨 쌍.</summary>
     public IReadOnlyList<LibrarySortOption> SortOptions { get; } =
     [
-        new LibrarySortOption(LibrarySortMode.Original, "원래 순서"),
-        new LibrarySortOption(LibrarySortMode.Title, "제목순"),
-        new LibrarySortOption(LibrarySortMode.Number, "곡 번호순"),
-        new LibrarySortOption(LibrarySortMode.StrokeCount, "획수순(한자)"),
-        new LibrarySortOption(LibrarySortMode.WordCount, "글자 수순"),
+        new LibrarySortOption(LibrarySortMode.Original, UiText.Get("LibraryViewModel", "SortOriginal")),
+        new LibrarySortOption(LibrarySortMode.Title, UiText.Get("LibraryViewModel", "SortTitle")),
+        new LibrarySortOption(LibrarySortMode.Number, UiText.Get("LibraryViewModel", "SortNumber")),
+        new LibrarySortOption(LibrarySortMode.StrokeCount, UiText.Get("LibraryViewModel", "SortStrokeCount")),
+        new LibrarySortOption(LibrarySortMode.WordCount, UiText.Get("LibraryViewModel", "SortWordCount")),
     ];
 
     public bool IsWordCountSortEnabled
@@ -293,7 +294,7 @@ public sealed partial class LibraryViewModel : ObservableObject
         await RunBusyAsync(async () =>
         {
             Folders.ReplaceWith(await _adminDatabase.GetSongFoldersAsync(path).ConfigureAwait(true));
-            StatusMessage = Folders.Count == 0 ? "찬양 폴더가 없습니다." : "";
+            StatusMessage = Folders.Count == 0 ? UiText.Get("LibraryViewModel", "NoFolders") : "";
         }).ConfigureAwait(true);
     }
 
@@ -444,7 +445,7 @@ public sealed partial class LibraryViewModel : ObservableObject
         var numbers = Folders.Select(f => f.FolderNo).Where(number => number > 0).Order().ToArray();
         if (!numbers.SequenceEqual(ordered.Select(f => f.FolderNo).Order()))
         {
-            StatusMessage = "폴더 목록이 변경되었습니다. 다시 열어 순서를 확인하세요.";
+            StatusMessage = UiText.Get("LibraryViewModel", "FoldersChanged");
             return false;
         }
         var order = ordered.Select((f, i) => new FolderOrderRequest(f.FolderNo, numbers[i]))
@@ -460,7 +461,7 @@ public sealed partial class LibraryViewModel : ObservableObject
             var report = await _adminDatabase.ReorderFoldersAsync(DatabasePath, ResolveBackupRoot(), order);
             if (!report.Succeeded)
             {
-                StatusMessage = FormatWriteFailure("폴더 순서 저장 실패", report);
+                StatusMessage = FormatWriteFailure(UiText.Get("LibraryViewModel", "FolderOrderSaveFailed"), report);
                 return false;
             }
 
@@ -482,17 +483,17 @@ public sealed partial class LibraryViewModel : ObservableObject
                 var reverse = order.Select(f => new FolderOrderRequest(f.NewFolderNo, f.FolderNo)).ToArray();
                 var rollback = await _adminDatabase.ReorderFoldersAsync(DatabasePath, ResolveBackupRoot(), reverse);
                 await ReloadFoldersAndSelectAsync(rollback.Succeeded ? selectedNumber : remap.GetValueOrDefault(selectedNumber, selectedNumber), selectedSongId);
-                StatusMessage = rollback.Succeeded ? "바로가기를 저장할 수 없어 폴더 순서를 원래대로 복원했습니다."
-                    : FormatWriteFailure("바로가기 저장과 폴더 순서 복원에 실패했습니다", rollback);
+                StatusMessage = rollback.Succeeded ? UiText.Get("LibraryViewModel", "ShortcutSaveFailedRestored")
+                    : FormatWriteFailure(UiText.Get("LibraryViewModel", "ShortcutSaveAndRestoreFailed"), rollback);
                 return false;
             }
             await ReloadFoldersAndSelectAsync(remap.GetValueOrDefault(selectedNumber, selectedNumber), selectedSongId);
-            StatusMessage = "폴더 순서를 저장했습니다.";
+            StatusMessage = UiText.Get("LibraryViewModel", "FolderOrderSaved");
             return true;
         }
         catch (Exception ex) when (IsRecoverableLibraryException(ex))
         {
-            StatusMessage = $"폴더 순서 저장 실패: {ex.Message}";
+            StatusMessage = UiText.Format("LibraryViewModel", "FolderOrderSaveFailedDetail", ex.Message);
             return false;
         }
         finally
@@ -518,16 +519,16 @@ public sealed partial class LibraryViewModel : ObservableObject
         if (selected is null)
         {
             StatusMessage = isEnabled
-                ? "Select a disabled folder to restore."
-                : "Select an enabled folder to delete.";
+                ? UiText.Get("LibraryViewModel", "SelectDisabledFolder")
+                : UiText.Get("LibraryViewModel", "SelectEnabledFolder");
             return;
         }
 
         if (selected.IsEnabled == isEnabled)
         {
             StatusMessage = isEnabled
-                ? "Selected folder is already restored."
-                : "Selected folder is already disabled.";
+                ? UiText.Get("LibraryViewModel", "FolderAlreadyRestored")
+                : UiText.Get("LibraryViewModel", "FolderAlreadyDisabled");
             return;
         }
 
@@ -546,19 +547,19 @@ public sealed partial class LibraryViewModel : ObservableObject
             if (!report.Succeeded)
             {
                 StatusMessage = FormatWriteFailure(
-                    isEnabled ? "Folder restore failed" : "Folder delete failed",
+                    isEnabled ? UiText.Get("LibraryViewModel", "FolderRestoreFailed") : UiText.Get("LibraryViewModel", "FolderDeleteFailed"),
                     report);
                 return;
             }
 
             await ReloadFoldersAndSelectAsync(selected.FolderNo, selectedSongId).ConfigureAwait(true);
-            StatusMessage = isEnabled ? "Folder restored." : "Folder disabled.";
+            StatusMessage = isEnabled ? UiText.Get("LibraryViewModel", "FolderRestored") : UiText.Get("LibraryViewModel", "FolderDisabled");
         }
         catch (Exception ex) when (IsRecoverableLibraryException(ex))
         {
             StatusMessage = isEnabled
-                ? $"Folder restore failed: {ex.Message}"
-                : $"Folder delete failed: {ex.Message}";
+                ? UiText.Format("LibraryViewModel", "FolderRestoreFailedDetail", ex.Message)
+                : UiText.Format("LibraryViewModel", "FolderDeleteFailedDetail", ex.Message);
         }
         finally
         {
@@ -592,12 +593,12 @@ public sealed partial class LibraryViewModel : ObservableObject
                 .ConfigureAwait(true);
 
             StatusMessage = report.Succeeded
-                ? "데이터베이스를 압축했습니다(백업을 먼저 만들었습니다)."
-                : FormatWriteFailure("데이터베이스 압축 실패", report);
+                ? UiText.Get("LibraryViewModel", "Compacted")
+                : FormatWriteFailure(UiText.Get("LibraryViewModel", "CompactFailed"), report);
         }
         catch (Exception ex) when (IsRecoverableLibraryException(ex))
         {
-            StatusMessage = $"데이터베이스 압축 실패: {ex.Message}";
+            StatusMessage = UiText.Format("LibraryViewModel", "CompactFailedDetail", ex.Message);
         }
         finally
         {
@@ -610,7 +611,7 @@ public sealed partial class LibraryViewModel : ObservableObject
         if (!TryEnsureWritableDatabasePath(out var error)) { StatusMessage = error; return false; }
         var database = DatabasePath;
         var report = await _adminDatabase.SaveSongBackgroundAsync(database, ResolveBackupRoot(), songId, path);
-        if (!report.Succeeded) { StatusMessage = FormatWriteFailure("배경 이미지 저장 실패", report); return false; }
+        if (!report.Succeeded) { StatusMessage = FormatWriteFailure(UiText.Get("LibraryViewModel", "BackgroundSaveFailed"), report); return false; }
         if (DatabasePath == database)
         {
             SongSummary Update(SongSummary song) => song with { FormatData = SongFormatData.WithBackgroundPath(song.FormatData, path) };
@@ -632,7 +633,7 @@ public sealed partial class LibraryViewModel : ObservableObject
         var report = await _adminDatabase.SaveSongMediaAsync(DatabasePath, ResolveBackupRoot(), song.SongId, path, options);
         if (!report.Succeeded)
         {
-            StatusMessage = FormatWriteFailure("미디어 설정 저장 실패", report);
+            StatusMessage = FormatWriteFailure(UiText.Get("LibraryViewModel", "MediaSaveFailed"), report);
             return false;
         }
         await LoadSongsForSelectedFolderAsync();
@@ -656,9 +657,9 @@ public sealed partial class LibraryViewModel : ObservableObject
             {
                 IsBusy = false;
                 await LoadAsync();
-                StatusMessage = "곡 데이터베이스 정리가 완료되었습니다.";
+                StatusMessage = UiText.Get("LibraryViewModel", "CleanupDone");
             }
-            else StatusMessage = FormatWriteFailure("곡 데이터베이스 정리 실패", report);
+            else StatusMessage = FormatWriteFailure(UiText.Get("LibraryViewModel", "CleanupFailed"), report);
         }
         catch (Exception ex) when (IsRecoverableLibraryException(ex))
         {
@@ -677,7 +678,7 @@ public sealed partial class LibraryViewModel : ObservableObject
     // so a hand-made order has nowhere to be stored. This used to renumber every song of the folder 1..N.
     public Task MoveSelectedSongToIndexAsync(int targetIndex)
     {
-        StatusMessage = "곡 순서는 따로 저장되지 않습니다. 곡 번호는 곡 고유 번호(찬송가 번호)입니다.";
+        StatusMessage = UiText.Get("LibraryViewModel", "SongOrderNotStored");
         return Task.CompletedTask;
     }
 
@@ -780,7 +781,7 @@ public sealed partial class LibraryViewModel : ObservableObject
         => folder.IsEnabled && folder.SongCount > 0 && !IsRecycleFolder(folder);
 
     private static bool IsRecycleFolder(SongFolderSummary folder)
-        => string.Equals(folder.Name.Trim(), "Recycle Folder", StringComparison.OrdinalIgnoreCase);
+        => string.Equals(folder.Name.Trim(), "Recycle Folder", StringComparison.OrdinalIgnoreCase); // not UI text
 
     private async Task PersistSelectedFolderGroupStyleAsync(int groupStyle)
     {
@@ -811,17 +812,17 @@ public sealed partial class LibraryViewModel : ObservableObject
 
             if (!report.Succeeded)
             {
-                StatusMessage = FormatWriteFailure("폴더 정렬 저장 실패", report);
+                StatusMessage = FormatWriteFailure(UiText.Get("LibraryViewModel", "FolderSortSaveFailed"), report);
                 return;
             }
 
             if (SelectedFolder != selected) return;
             ReplaceSelectedFolder(selected with { GroupStyle = groupStyle });
-            StatusMessage = $"곡 목록 정렬: {SortOptions.First(option => option.Mode == SortMode).Label}";
+            StatusMessage = UiText.Format("LibraryViewModel", "SortedBy", SortOptions.First(option => option.Mode == SortMode).Label);
         }
         catch (Exception ex) when (IsRecoverableLibraryException(ex))
         {
-            StatusMessage = $"폴더 정렬 저장 실패: {ex.Message}";
+            StatusMessage = UiText.Format("LibraryViewModel", "FolderSortSaveFailedDetail", ex.Message);
         }
     }
 
@@ -922,7 +923,7 @@ public sealed partial class LibraryViewModel : ObservableObject
         }
         catch (Exception ex) when (IsRecoverableLibraryException(ex))
         {
-            StatusMessage = $"라이브러리 로드 실패: {ex.Message}";
+            StatusMessage = UiText.Format("LibraryViewModel", "LoadFailed", ex.Message);
         }
         finally
         {
@@ -941,7 +942,7 @@ public sealed partial class LibraryViewModel : ObservableObject
             databasePath = explicitPath;
             message = File.Exists(explicitPath)
                 ? ""
-                : $"AdminDB 파일을 찾을 수 없습니다: {explicitPath}";
+                : UiText.Format("LibraryViewModel", "DatabaseNotFound", explicitPath);
             return File.Exists(explicitPath);
         }
 
@@ -958,7 +959,7 @@ public sealed partial class LibraryViewModel : ObservableObject
         }
 
         databasePath = "";
-        message = "AdminDB 경로를 설정해야 합니다.";
+        message = UiText.Get("LibraryViewModel", "DatabasePathMissing");
         return false;
     }
 
@@ -999,14 +1000,14 @@ public sealed partial class LibraryViewModel : ObservableObject
     }
 
     public string BrowserCountText => FolderTitleFilter.Trim().Length > 0
-        ? $"Folder: {DisplayedSongCount} of {TotalSongCount} items / " : $"Folder: {DisplayedSongCount} items / ";
+        ? UiText.Format("LibraryViewModel", "BrowserCountFiltered", DisplayedSongCount, TotalSongCount) : UiText.Format("LibraryViewModel", "BrowserCount", DisplayedSongCount);
 
     private void UpdateStatus()
     {
         OnPropertyChanged(nameof(BrowserCountText));
         ActiveFolderCount = SelectedFolder is null ? Folders.Count : 1;
-        StatusMessage = FolderTitleFilter.Trim().Length > 0 ? $"{TotalSongCount}곡 중 {DisplayedSongCount}곡 표시" :
-            $"{ActiveFolderCount}개 폴더, {DisplayedSongCount}개 곡 표시";
+        StatusMessage = FolderTitleFilter.Trim().Length > 0 ? UiText.Format("LibraryViewModel", "ShownOfTotal", TotalSongCount, DisplayedSongCount) :
+            UiText.Format("LibraryViewModel", "ShownInFolders", ActiveFolderCount, DisplayedSongCount);
     }
 
     private void ClearLibrary(string message)

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Axicultus.Wpf.Data;
+using Axicultus.Wpf.Localization;
 using Axicultus.Wpf.Settings;
 
 namespace Axicultus.Wpf.Library;
@@ -119,11 +120,11 @@ public sealed partial class SongMoveViewModel : ObservableObject
                 else moves.Add(new SongMoveRequest(song.SongId, stored.FolderNo, targetFolderNo));
             }
 
-            string skipped = SongSelectionText.Skipped(alreadyThere, "이미 대상 폴더에 있음")
-                + SongSelectionText.Skipped(missing, "라이브러리에 없음");
+            string skipped = SongSelectionText.Skipped(alreadyThere, UiText.Get("SongMoveWindow", "AlreadyInTarget"))
+                + SongSelectionText.Skipped(missing, UiText.Get("SongMoveWindow", "NotInLibrary"));
             if (moves.Count == 0)
             {
-                StatusMessage = "이동할 곡이 없습니다." + skipped;
+                StatusMessage = UiText.Get("SongMoveWindow", "NothingToMove") + skipped;
                 return;
             }
 
@@ -136,19 +137,19 @@ public sealed partial class SongMoveViewModel : ObservableObject
             {
                 var detail = string.Join("; ", report.Issues.Select(issue => issue.Message));
                 StatusMessage = string.IsNullOrWhiteSpace(detail)
-                    ? "이동 실패"
-                    : $"이동 실패: {detail}";
+                    ? UiText.Get("SongMoveWindow", "MoveFailed")
+                    : UiText.Format("SongMoveWindow", "MoveFailedDetail", detail);
                 return;
             }
 
             MovedSongIds = moves.Select(move => move.SongId).ToArray();
             ValidationMessage = "";
-            StatusMessage = _songs.Count == 1 ? "이동되었습니다." : $"{moves.Count}곡을 이동했습니다." + skipped;
+            StatusMessage = _songs.Count == 1 ? UiText.Get("SongMoveWindow", "Moved") : UiText.Format("SongMoveWindow", "MovedSeveral", moves.Count) + skipped;
             Moved?.Invoke(this, new SongMovedEventArgs(moves[0].SongId, moves[0].OldFolderNo, targetFolderNo));
         }
         catch (Exception ex) when (IsRecoverableMoveException(ex))
         {
-            StatusMessage = $"이동 실패: {ex.Message}";
+            StatusMessage = UiText.Format("SongMoveWindow", "MoveFailedDetail", ex.Message);
         }
         finally
         {
@@ -167,25 +168,25 @@ public sealed partial class SongMoveViewModel : ObservableObject
     {
         if (string.IsNullOrWhiteSpace(DatabasePath))
         {
-            ValidationMessage = "AdminDB 경로를 설정해야 합니다.";
+            ValidationMessage = UiText.Get("SongMoveWindow", "DatabasePathMissing");
             return false;
         }
 
         if (!File.Exists(DatabasePath))
         {
-            ValidationMessage = $"AdminDB 파일을 찾을 수 없습니다: {DatabasePath}";
+            ValidationMessage = UiText.Format("SongMoveWindow", "DatabaseNotFound", DatabasePath);
             return false;
         }
 
         if (_songs.Count == 0 || _songs.Any(song => song.SongId <= 0 || song.FolderNo <= 0))
         {
-            ValidationMessage = "이동할 곡을 선택하세요.";
+            ValidationMessage = UiText.Get("SongMoveWindow", "SelectSong");
             return false;
         }
 
         if (SelectedTargetFolder is null)
         {
-            ValidationMessage = "이동할 대상 폴더를 선택하세요.";
+            ValidationMessage = UiText.Get("SongMoveWindow", "SelectTargetFolder");
             return false;
         }
 

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Axicultus.Wpf.Data;
+using Axicultus.Wpf.Localization;
 using Axicultus.Wpf.Settings;
 
 namespace Axicultus.Wpf.Library;
@@ -26,7 +27,7 @@ public sealed partial class SongDeleteViewModel : ObservableObject
     [ObservableProperty] private string _statusMessage = "";
     [ObservableProperty] private string _validationMessage = "";
     [ObservableProperty] private bool _isBusy;
-    [ObservableProperty] private string _confirmationText = "정말 삭제하시겠습니까?";
+    [ObservableProperty] private string _confirmationText = UiText.Get("SongDeleteWindow", "Confirm");
 
     public SongDeleteViewModel(ISettingsService settings, IAdminDatabaseRepository adminDatabase)
     {
@@ -60,7 +61,7 @@ public sealed partial class SongDeleteViewModel : ObservableObject
         SourceFolderName = SongSelectionText.SourceFolderName(songs, allFolders);
         SongTitle = SongSelectionText.Heading(songs);
         // FrmMain asks about "the selected song" or "the N songs you have selected".
-        ConfirmationText = songs.Count > 1 ? $"선택한 {songs.Count}곡을 정말 삭제하시겠습니까?" : "정말 삭제하시겠습니까?";
+        ConfirmationText = songs.Count > 1 ? UiText.Format("SongDeleteWindow", "ConfirmSeveral", songs.Count) : UiText.Get("SongDeleteWindow", "Confirm");
         ValidationMessage = "";
         StatusMessage = "";
         DeleteCommand.NotifyCanExecuteChanged();
@@ -96,10 +97,10 @@ public sealed partial class SongDeleteViewModel : ObservableObject
                 else missing.Add(song.Title);
             }
 
-            string skipped = SongSelectionText.Skipped(missing, "이미 삭제되었거나 라이브러리에 없음");
+            string skipped = SongSelectionText.Skipped(missing, UiText.Get("SongDeleteWindow", "AlreadyDeleted"));
             if (deletes.Count == 0)
             {
-                StatusMessage = "삭제할 곡이 없습니다." + skipped;
+                StatusMessage = UiText.Get("SongDeleteWindow", "NothingToDelete") + skipped;
                 return;
             }
 
@@ -112,18 +113,18 @@ public sealed partial class SongDeleteViewModel : ObservableObject
             {
                 var detail = string.Join("; ", report.Issues.Select(issue => issue.Message));
                 StatusMessage = string.IsNullOrWhiteSpace(detail)
-                    ? "삭제 실패"
-                    : $"삭제 실패: {detail}";
+                    ? UiText.Get("SongDeleteWindow", "DeleteFailed")
+                    : UiText.Format("SongDeleteWindow", "DeleteFailedDetail", detail);
                 return;
             }
 
             ValidationMessage = "";
-            StatusMessage = _songs.Count == 1 ? "삭제되었습니다." : $"{deletes.Count}곡을 삭제했습니다." + skipped;
+            StatusMessage = _songs.Count == 1 ? UiText.Get("SongDeleteWindow", "Deleted") : UiText.Format("SongDeleteWindow", "DeletedSeveral", deletes.Count) + skipped;
             Deleted?.Invoke(this, new SongDeletedEventArgs(deletes[0].SongId, deletes[0].OriginalFolderNo));
         }
         catch (Exception ex) when (IsRecoverableDeleteException(ex))
         {
-            StatusMessage = $"삭제 실패: {ex.Message}";
+            StatusMessage = UiText.Format("SongDeleteWindow", "DeleteFailedDetail", ex.Message);
         }
         finally
         {
@@ -139,19 +140,19 @@ public sealed partial class SongDeleteViewModel : ObservableObject
     {
         if (string.IsNullOrWhiteSpace(DatabasePath))
         {
-            ValidationMessage = "AdminDB 경로를 설정해야 합니다.";
+            ValidationMessage = UiText.Get("SongDeleteWindow", "DatabasePathMissing");
             return false;
         }
 
         if (!File.Exists(DatabasePath))
         {
-            ValidationMessage = $"AdminDB 파일을 찾을 수 없습니다: {DatabasePath}";
+            ValidationMessage = UiText.Format("SongDeleteWindow", "DatabaseNotFound", DatabasePath);
             return false;
         }
 
         if (_songs.Count == 0 || _songs.Any(song => song.SongId <= 0 || song.FolderNo <= 0))
         {
-            ValidationMessage = "삭제할 곡을 선택하세요.";
+            ValidationMessage = UiText.Get("SongDeleteWindow", "SelectSong");
             return false;
         }
 

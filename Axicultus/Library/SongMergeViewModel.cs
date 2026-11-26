@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Axicultus.Wpf.Data;
+using Axicultus.Wpf.Localization;
 using Axicultus.Wpf.Settings;
 
 namespace Axicultus.Wpf.Library;
@@ -146,11 +147,11 @@ public sealed partial class SongMergeViewModel : ObservableObject
             }
 
             ValidationMessage = "";
-            StatusMessage = $"{Candidates.Count}개 병합 후보를 찾았습니다.";
+            StatusMessage = UiText.Format("SongMergeWindow", "CandidatesFound", Candidates.Count);
         }
         catch (Exception ex) when (IsRecoverableMergeException(ex))
         {
-            StatusMessage = $"병합 후보 조회 실패: {ex.Message}";
+            StatusMessage = UiText.Format("SongMergeWindow", "FindFailed", ex.Message);
         }
         finally
         {
@@ -175,7 +176,7 @@ public sealed partial class SongMergeViewModel : ObservableObject
         var selected = Candidates.Where(candidate => candidate.IsSelected).ToArray();
         if (selected.Length == 0)
         {
-            ValidationMessage = "병합할 항목을 선택하세요.";
+            ValidationMessage = UiText.Get("SongMergeWindow", "SelectCandidate");
             NotifyCommands();
             return;
         }
@@ -192,7 +193,7 @@ public sealed partial class SongMergeViewModel : ObservableObject
                 var sourceB = await _songDetails.GetSongDetailAsync(DatabasePath, candidate.SourceSongBId).ConfigureAwait(true);
                 if (sourceA is null || sourceB is null)
                 {
-                    StatusMessage = $"병합 실패: 원본 곡을 찾을 수 없습니다. ({candidate.SourceSongAId}, {candidate.SourceSongBId})";
+                    StatusMessage = UiText.Format("SongMergeWindow", "SourceNotFound", candidate.SourceSongAId, candidate.SourceSongBId);
                     return;
                 }
 
@@ -203,19 +204,19 @@ public sealed partial class SongMergeViewModel : ObservableObject
             if (!report.Succeeded)
             {
                 var detail = string.Join("; ", report.Issues.Select(issue => issue.Message));
-                StatusMessage = string.IsNullOrWhiteSpace(detail) ? "병합 실패" : $"병합 실패: {detail}";
+                StatusMessage = string.IsNullOrWhiteSpace(detail) ? UiText.Get("SongMergeWindow", "MergeFailed") : UiText.Format("SongMergeWindow", "MergeFailedDetail", detail);
                 return;
             }
 
             var created = songs.Count;
             CreatedCount = created;
             ValidationMessage = "";
-            StatusMessage = $"{created}개 병합 곡을 만들었습니다.";
+            StatusMessage = UiText.Format("SongMergeWindow", "Created", created);
             Merged?.Invoke(this, new SongMergedEventArgs(created, SelectedTargetFolder!.FolderNo));
         }
         catch (Exception ex) when (IsRecoverableMergeException(ex))
         {
-            StatusMessage = $"병합 실패: {ex.Message}";
+            StatusMessage = UiText.Format("SongMergeWindow", "MergeFailedDetail", ex.Message);
         }
         finally
         {
@@ -277,37 +278,37 @@ public sealed partial class SongMergeViewModel : ObservableObject
     {
         if (string.IsNullOrWhiteSpace(DatabasePath))
         {
-            ValidationMessage = "AdminDB 경로를 설정해야 합니다.";
+            ValidationMessage = UiText.Get("SongMergeWindow", "DatabasePathMissing");
             return false;
         }
 
         if (!File.Exists(DatabasePath))
         {
-            ValidationMessage = $"AdminDB 파일을 찾을 수 없습니다: {DatabasePath}";
+            ValidationMessage = UiText.Format("SongMergeWindow", "DatabaseNotFound", DatabasePath);
             return false;
         }
 
         if (SelectedSourceFolderA is null)
         {
-            ValidationMessage = "Source A 폴더를 선택하세요.";
+            ValidationMessage = UiText.Get("SongMergeWindow", "SelectSourceA");
             return false;
         }
 
         if (SelectedSourceFolderB is null)
         {
-            ValidationMessage = "Source B 폴더를 선택하세요.";
+            ValidationMessage = UiText.Get("SongMergeWindow", "SelectSourceB");
             return false;
         }
 
         if (SelectedTargetFolder is null)
         {
-            ValidationMessage = "대상 폴더를 선택하세요.";
+            ValidationMessage = UiText.Get("SongMergeWindow", "SelectTargetFolder");
             return false;
         }
 
         if (requireCandidates && Candidates.Count == 0)
         {
-            ValidationMessage = "병합 후보를 먼저 조회하세요.";
+            ValidationMessage = UiText.Get("SongMergeWindow", "FindFirst");
             return false;
         }
 

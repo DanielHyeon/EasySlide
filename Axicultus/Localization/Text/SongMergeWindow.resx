@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Title" xml:space="preserve"><value>Smart merge</value></data>
+  <data name="SourceA" xml:space="preserve"><value>Source A</value></data>
+  <data name="SourceB" xml:space="preserve"><value>Source B</value></data>
+  <data name="MatchAlternateTitle" xml:space="preserve"><value>Match by alternate title</value></data>
+  <data name="TargetFolder" xml:space="preserve"><value>Target folder</value></data>
+  <data name="AppendSourceBTitle" xml:space="preserve"><value>Add the Source B title to the merged title</value></data>
+  <data name="SelectAll" xml:space="preserve"><value>Select all</value></data>
+  <data name="FindCandidatesTip" xml:space="preserve"><value>Find merge candidates</value></data>
+  <data name="FindCandidates" xml:space="preserve"><value>Find candidates</value></data>
+  <data name="ColumnMergedTitle" xml:space="preserve"><value>Merged title</value></data>
+  <data name="MergeSelected" xml:space="preserve"><value>Merge the selected candidates</value></data>
+  <data name="Merge" xml:space="preserve"><value>Merge</value></data>
+  <data name="Close" xml:space="preserve"><value>Close</value></data>
+  <data name="CandidatesFound" xml:space="preserve"><value>Found {0} merge candidates.</value></data>
+  <data name="FindFailed" xml:space="preserve"><value>Could not find merge candidates: {0}</value></data>
+  <data name="SelectCandidate" xml:space="preserve"><value>Select the items to merge.</value></data>
+  <data name="SourceNotFound" xml:space="preserve"><value>Merge failed: the source songs could not be found. ({0}, {1})</value></data>
+  <data name="MergeFailed" xml:space="preserve"><value>Merge failed</value></data>
+  <data name="MergeFailedDetail" xml:space="preserve"><value>Merge failed: {0}</value></data>
+  <data name="Created" xml:space="preserve"><value>Created {0} merged songs.</value></data>
+  <data name="SelectSourceA" xml:space="preserve"><value>Select the Source A folder.</value></data>
+  <data name="SelectSourceB" xml:space="preserve"><value>Select the Source B folder.</value></data>
+  <data name="SelectTargetFolder" xml:space="preserve"><value>Select the target folder.</value></data>
+  <data name="FindFirst" xml:space="preserve"><value>Find the merge candidates first.</value></data>
+  <data name="DatabasePathMissing" xml:space="preserve"><value>The AdminDB path must be set.</value></data>
+  <data name="DatabaseNotFound" xml:space="preserve"><value>AdminDB file not found: {0}</value></data>
+</root>

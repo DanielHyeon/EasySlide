@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Title" xml:space="preserve"><value>Recover deleted songs</value></data>
+  <data name="Intro" xml:space="preserve"><value>Select deleted songs to put them back in their original folder.</value></data>
+  <data name="RefreshTip" xml:space="preserve"><value>Refresh the list of deleted songs</value></data>
+  <data name="Refresh" xml:space="preserve"><value>Refresh</value></data>
+  <data name="ColumnTitle" xml:space="preserve"><value>Title</value></data>
+  <data name="ColumnOriginalFolder" xml:space="preserve"><value>Original folder</value></data>
+  <data name="ColumnDeletedOn" xml:space="preserve"><value>Deleted on</value></data>
+  <data name="ColumnId" xml:space="preserve"><value>ID</value></data>
+  <data name="RecoverSelected" xml:space="preserve"><value>Recover the selected songs</value></data>
+  <data name="Recover" xml:space="preserve"><value>Recover</value></data>
+  <data name="Close" xml:space="preserve"><value>Close</value></data>
+  <data name="NoDeletedSongs" xml:space="preserve"><value>There are no deleted songs to recover.</value></data>
+  <data name="DeletedSongsShown" xml:space="preserve"><value>{0} deleted songs shown</value></data>
+  <data name="LoadFailed" xml:space="preserve"><value>Could not load the deleted songs: {0}</value></data>
+  <data name="SelectSong" xml:space="preserve"><value>Select a song to recover.</value></data>
+  <data name="RecoverFailed" xml:space="preserve"><value>Recovery failed</value></data>
+  <data name="RecoverFailedDetail" xml:space="preserve"><value>Recovery failed: {0}</value></data>
+  <data name="Recovered" xml:space="preserve"><value>Recovered.</value></data>
+  <data name="NothingToRecover" xml:space="preserve"><value>There are no songs to recover.</value></data>
+  <data name="RecoveredSeveral" xml:space="preserve"><value>Recovered {0} songs.</value></data>
+  <data name="AlreadyRecovered" xml:space="preserve"><value>already recovered or not in the library</value></data>
+  <data name="DatabasePathMissing" xml:space="preserve"><value>The AdminDB path must be set.</value></data>
+  <data name="DatabaseNotFound" xml:space="preserve"><value>AdminDB file not found: {0}</value></data>
+</root>

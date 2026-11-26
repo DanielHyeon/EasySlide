@@ -2,8 +2,9 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+        xmlns:loc="clr-namespace:Axicultus.Wpf.Localization"
         xmlns:composites="clr-namespace:Axicultus.Wpf.Composites"
-        Title="스마트 병합"
+        Title="{loc:Text SongMergeWindow.Title}"
         Width="820"
         Height="620"
         MinWidth="760"
@@ -19,7 +20,7 @@
         </Grid.RowDefinitions>
 
         <StackPanel Margin="0,0,0,18">
-            <TextBlock Text="스마트 병합"
+            <TextBlock Text="{loc:Text SongMergeWindow.Title}"
                        Style="{StaticResource Type.Title1.Style}"
                        Foreground="{DynamicResource Brush.Text.Primary}" />
             <TextBlock Text="{Binding DatabasePath}"
@@ -44,33 +45,33 @@
             </Grid.RowDefinitions>
 
             <StackPanel>
-                <composites:FolderComboBox Label="Source A"
+                <composites:FolderComboBox Label="{loc:Text SongMergeWindow.SourceA}"
                                            AutomationName="Source A 폴더"
                                            ItemsSource="{Binding Folders}"
                                            SelectedItem="{Binding SelectedSourceFolderA, Mode=TwoWay}" />
-                <CheckBox Content="대체 제목으로 매칭"
+                <CheckBox Content="{loc:Text SongMergeWindow.MatchAlternateTitle}"
                           IsChecked="{Binding UseSourceAAlternateTitle, Mode=TwoWay}"
                           Margin="0,8,0,0"
                           AutomationProperties.Name="Source A 대체 제목 매칭" />
             </StackPanel>
 
             <StackPanel Grid.Column="2">
-                <composites:FolderComboBox Label="Source B"
+                <composites:FolderComboBox Label="{loc:Text SongMergeWindow.SourceB}"
                                            AutomationName="Source B 폴더"
                                            ItemsSource="{Binding Folders}"
                                            SelectedItem="{Binding SelectedSourceFolderB, Mode=TwoWay}" />
-                <CheckBox Content="대체 제목으로 매칭"
+                <CheckBox Content="{loc:Text SongMergeWindow.MatchAlternateTitle}"
                           IsChecked="{Binding UseSourceBAlternateTitle, Mode=TwoWay}"
                           Margin="0,8,0,0"
                           AutomationProperties.Name="Source B 대체 제목 매칭" />
             </StackPanel>
 
             <StackPanel Grid.Column="4">
-                <composites:FolderComboBox Label="대상 폴더"
+                <composites:FolderComboBox Label="{loc:Text SongMergeWindow.TargetFolder}"
                                            AutomationName="대상 폴더"
                                            ItemsSource="{Binding Folders}"
                                            SelectedItem="{Binding SelectedTargetFolder, Mode=TwoWay}" />
-                <CheckBox Content="Source B 제목을 병합 제목에 추가"
+                <CheckBox Content="{loc:Text SongMergeWindow.AppendSourceBTitle}"
                           IsChecked="{Binding AppendSourceBTitleToMergedTitle, Mode=TwoWay}"
                           Margin="0,8,0,0"
                           AutomationProperties.Name="Source B 제목 추가" />
@@ -85,19 +86,19 @@
 
             <DockPanel Margin="0,0,0,8">
                 <CheckBox DockPanel.Dock="Left"
-                          Content="전체 선택"
+                          Content="{loc:Text SongMergeWindow.SelectAll}"
                           IsChecked="{Binding AreAllCandidatesSelected, Mode=TwoWay}"
                           VerticalAlignment="Center"
                           AutomationProperties.Name="병합 후보 전체 선택" />
                 <Button DockPanel.Dock="Right"
                         Command="{Binding RefreshMatchesCommand}"
                         Style="{StaticResource EsButton.Secondary}"
-                        ToolTip="병합 후보 조회"
+                        ToolTip="{loc:Text SongMergeWindow.FindCandidatesTip}"
                         AutomationProperties.Name="병합 후보 조회"
                         HorizontalAlignment="Right">
                     <StackPanel Orientation="Horizontal">
                         <ui:SymbolIcon Symbol="Search24" Margin="0,0,6,0" />
-                        <TextBlock Text="후보 조회" />
+                        <TextBlock Text="{loc:Text SongMergeWindow.FindCandidates}" />
                     </StackPanel>
                 </Button>
             </DockPanel>
@@ -114,15 +115,15 @@
                     <DataGridCheckBoxColumn Header=""
                                             Binding="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                             Width="48" />
-                    <DataGridTextColumn Header="병합 제목"
+                    <DataGridTextColumn Header="{loc:Text SongMergeWindow.ColumnMergedTitle}"
                                         Binding="{Binding MergeTitle}"
                                         IsReadOnly="True"
                                         Width="2*" />
-                    <DataGridTextColumn Header="Source A"
+                    <DataGridTextColumn Header="{loc:Text SongMergeWindow.SourceA}"
                                         Binding="{Binding SourceATitle}"
                                         IsReadOnly="True"
                                         Width="*" />
-                    <DataGridTextColumn Header="Source B"
+                    <DataGridTextColumn Header="{loc:Text SongMergeWindow.SourceB}"
                                         Binding="{Binding SourceBTitle}"
                                         IsReadOnly="True"
                                         Width="*" />
@@ -147,21 +148,21 @@
                         HorizontalAlignment="Right">
                 <Button Command="{Binding MergeCommand}"
                         Style="{StaticResource EsButton.Primary}"
-                        ToolTip="선택 후보 병합"
+                        ToolTip="{loc:Text SongMergeWindow.MergeSelected}"
                         AutomationProperties.Name="선택 후보 병합"
                         Margin="0,0,8,0">
                     <StackPanel Orientation="Horizontal">
                         <ui:SymbolIcon Symbol="Copy24" Margin="0,0,6,0" />
-                        <TextBlock Text="병합" />
+                        <TextBlock Text="{loc:Text SongMergeWindow.Merge}" />
                     </StackPanel>
                 </Button>
                 <Button Style="{StaticResource EsButton.Secondary}"
                         Click="Close_Click"
-                        ToolTip="닫기"
+                        ToolTip="{loc:Text SongMergeWindow.Close}"
                         AutomationProperties.Name="스마트 병합 창 닫기">
                     <StackPanel Orientation="Horizontal">
                         <ui:SymbolIcon Symbol="Dismiss24" Margin="0,0,6,0" />
-                        <TextBlock Text="닫기" />
+                        <TextBlock Text="{loc:Text SongMergeWindow.Close}" />
                     </StackPanel>
                 </Button>
             </StackPanel>

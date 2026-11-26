@@ -3,7 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
         xmlns:composites="clr-namespace:Axicultus.Wpf.Composites"
-        Title="곡 복사"
+        xmlns:loc="clr-namespace:Axicultus.Wpf.Localization"
+        Title="{loc:Text SongCopyWindow.Title}"
         Width="560"
         Height="430"
         MinWidth="500"
@@ -21,7 +22,7 @@
         </Grid.RowDefinitions>
 
         <StackPanel Margin="0,0,0,18">
-            <TextBlock Text="곡 복사"
+            <TextBlock Text="{loc:Text SongCopyWindow.Title}"
                        Style="{StaticResource Type.Title1.Style}"
                        Foreground="{DynamicResource Brush.Text.Primary}" />
             <TextBlock Text="{Binding SongTitle}"
@@ -41,7 +42,7 @@
 
             <StackPanel Margin="0,0,0,14">
                 <TextBlock x:Name="LblSourceFolder"
-                           Text="원본 폴더"
+                           Text="{loc:Text SongCopyWindow.SourceFolder}"
                            Style="{StaticResource Type.Caption.Style}"
                            Foreground="{DynamicResource Brush.Text.Tertiary}" />
                 <TextBox Text="{Binding SourceFolderName, Mode=OneWay}"
@@ -53,14 +54,14 @@
 
             <composites:FolderComboBox Grid.Row="1"
                                        Margin="0,0,0,14"
-                                       Label="대상 폴더"
+                                       Label="{loc:Text SongCopyWindow.TargetFolder}"
                                        AutomationName="대상 폴더"
                                        ItemsSource="{Binding TargetFolders}"
                                        SelectedItem="{Binding SelectedTargetFolder, Mode=TwoWay}" />
 
             <!-- The title and the number are asked of one song only; several songs are copied as they are. -->
             <TextBlock Grid.Row="2"
-                       Text="여러 곡을 복사하면 제목과 곡 번호는 그대로 유지됩니다."
+                       Text="{loc:Text SongCopyWindow.SeveralKeepTitles}"
                        Foreground="{DynamicResource Brush.Text.Secondary}"
                        TextWrapping="Wrap">
                 <TextBlock.Style>
@@ -79,7 +80,7 @@
                         Margin="0,0,0,14"
                         Visibility="{Binding IsSingleSong, Converter={StaticResource BoolToVis}}">
                 <TextBlock x:Name="LblCopyTitle"
-                           Text="복사 제목"
+                           Text="{loc:Text SongCopyWindow.CopyTitle}"
                            Style="{StaticResource Type.Caption.Style}"
                            Foreground="{DynamicResource Brush.Text.Tertiary}" />
                 <TextBox Text="{Binding CopyTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -91,7 +92,7 @@
             <StackPanel Grid.Row="3"
                         Visibility="{Binding IsSingleSong, Converter={StaticResource BoolToVis}}">
                 <TextBlock x:Name="LblSongNumber"
-                           Text="곡 번호"
+                           Text="{loc:Text SongCopyWindow.SongNumber}"
                            Style="{StaticResource Type.Caption.Style}"
                            Foreground="{DynamicResource Brush.Text.Tertiary}" />
                 <TextBox Text="{Binding SongNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -118,21 +119,21 @@
                         HorizontalAlignment="Right">
                 <Button Command="{Binding CopyCommand}"
                         Style="{StaticResource EsButton.Primary}"
-                        ToolTip="선택 곡 복사"
+                        ToolTip="{loc:Text SongCopyWindow.CopySelected}"
                         AutomationProperties.Name="선택 곡 복사"
                         Margin="0,0,8,0">
                     <StackPanel Orientation="Horizontal">
                         <ui:SymbolIcon Symbol="Copy24" Margin="0,0,6,0" />
-                        <TextBlock Text="복사" />
+                        <TextBlock Text="{loc:Text SongCopyWindow.Copy}" />
                     </StackPanel>
                 </Button>
                 <Button Style="{StaticResource EsButton.Secondary}"
                         Click="Close_Click"
-                        ToolTip="닫기"
+                        ToolTip="{loc:Text SongCopyWindow.Close}"
                         AutomationProperties.Name="곡 복사 창 닫기">
                     <StackPanel Orientation="Horizontal">
                         <ui:SymbolIcon Symbol="Dismiss24" Margin="0,0,6,0" />
-                        <TextBlock Text="닫기" />
+                        <TextBlock Text="{loc:Text SongCopyWindow.Close}" />
                     </StackPanel>
                 </Button>
             </StackPanel>

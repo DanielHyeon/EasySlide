@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using Axicultus.Wpf.Data;
+using Axicultus.Wpf.Localization;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Axicultus.Wpf.Library;
@@ -71,13 +72,13 @@ public partial class LibraryWindow : Window
         var folder = viewModel.SelectedFolder;
         if (!folder.IsEnabled)
         {
-            viewModel.StatusMessage = "Selected folder is already disabled.";
+            viewModel.StatusMessage = UiText.Get("LibraryWindow", "FolderAlreadyDisabled");
             return;
         }
 
         var result = MessageBox.Show(
-            $"Disable folder \"{folder.Name}\"? Songs stay in this folder and can be restored later.",
-            "Disable Folder",
+            UiText.Format("LibraryWindow", "DisableFolderConfirm", folder.Name),
+            UiText.Get("LibraryWindow", "DisableFolderTitle"),
             MessageBoxButton.YesNo,
             MessageBoxImage.Warning);
         if (result != MessageBoxResult.Yes)
@@ -248,7 +249,7 @@ public partial class LibraryWindow : Window
 
         if (viewModel.SelectedFolder is null)
         {
-            viewModel.StatusMessage = "편집할 폴더를 선택하세요.";
+            viewModel.StatusMessage = UiText.Get("LibraryWindow", "SelectFolderToEdit");
             return;
         }
 
@@ -278,7 +279,7 @@ public partial class LibraryWindow : Window
     {
         if (string.IsNullOrWhiteSpace(viewModel.DatabasePath))
         {
-            viewModel.StatusMessage = "AdminDB 경로를 설정해야 합니다.";
+            viewModel.StatusMessage = UiText.Get("LibraryWindow", "DatabasePathMissing");
             return;
         }
 
@@ -304,7 +305,7 @@ public partial class LibraryWindow : Window
         var songs = SelectedSongs(viewModel);
         if (viewModel.SelectedFolder is null || songs.Length == 0)
         {
-            viewModel.StatusMessage = "복사할 곡을 선택하세요.";
+            viewModel.StatusMessage = UiText.Get("LibraryWindow", "SelectSongToCopy");
             return;
         }
 
@@ -332,7 +333,7 @@ public partial class LibraryWindow : Window
         var songs = SelectedSongs(viewModel);
         if (viewModel.SelectedFolder is null || songs.Length == 0)
         {
-            viewModel.StatusMessage = "이동할 곡을 선택하세요.";
+            viewModel.StatusMessage = UiText.Get("LibraryWindow", "SelectSongToMove");
             return;
         }
 
@@ -360,7 +361,7 @@ public partial class LibraryWindow : Window
         var songs = SelectedSongs(viewModel);
         if (viewModel.SelectedFolder is null || songs.Length == 0)
         {
-            viewModel.StatusMessage = "삭제할 곡을 선택하세요.";
+            viewModel.StatusMessage = UiText.Get("LibraryWindow", "SelectSongToDelete");
             return;
         }
 
@@ -387,7 +388,7 @@ public partial class LibraryWindow : Window
     {
         if (string.IsNullOrWhiteSpace(viewModel.DatabasePath))
         {
-            viewModel.StatusMessage = "AdminDB 경로를 설정해야 합니다.";
+            viewModel.StatusMessage = UiText.Get("LibraryWindow", "DatabasePathMissing");
             return;
         }
 
@@ -415,7 +416,7 @@ public partial class LibraryWindow : Window
     {
         if (string.IsNullOrWhiteSpace(viewModel.DatabasePath))
         {
-            viewModel.StatusMessage = "AdminDB 경로를 설정해야 합니다.";
+            viewModel.StatusMessage = UiText.Get("LibraryWindow", "DatabasePathMissing");
             return;
         }
 

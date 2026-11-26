@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Axicultus.Wpf.Data;
 using Axicultus.Wpf.Library;
+using Axicultus.Wpf.Localization;
 using Axicultus.Wpf.Settings;
 using FluentAssertions;
 using Xunit;
@@ -461,7 +462,7 @@ public class LibraryViewModelTests
         var page = new SongSearchPage(new(sut.DatabasePath, "other", [1, 2], SongSearchFields.All),
             [new SongSearchResult(c, second.Name, ["Lyrics"], "short")]);
         sut.ShowSearchResults(page);
-        sut.SelectedBrowserFolder!.Name.Should().Be("Search Results:");
+        sut.SelectedBrowserFolder!.Name.Should().Be(UiText.Get("LibraryViewModel", "SearchResults"));
         sut.SelectedFolder.Should().BeNull();
         sut.Folders.Should().Equal(first, second);
         sut.SortMode.Should().Be(LibrarySortMode.WordCount);
@@ -614,7 +615,7 @@ public class LibraryViewModelTests
         sut.Songs.Should().ContainSingle().Which.SongId.Should().Be(10);
         sut.DeleteSelectedFolderCommand.CanExecute(null).Should().BeFalse();
         sut.RecoverSelectedFolderCommand.CanExecute(null).Should().BeTrue();
-        sut.StatusMessage.Should().Be("Folder disabled.");
+        sut.StatusMessage.Should().Be(UiText.Get("LibraryViewModel", "FolderDisabled"));
     }
 
     [Fact]
@@ -640,7 +641,7 @@ public class LibraryViewModelTests
         sut.Songs.Should().ContainSingle().Which.SongId.Should().Be(10);
         sut.RecoverSelectedFolderCommand.CanExecute(null).Should().BeFalse();
         sut.DeleteSelectedFolderCommand.CanExecute(null).Should().BeTrue();
-        sut.StatusMessage.Should().Be("Folder restored.");
+        sut.StatusMessage.Should().Be(UiText.Get("LibraryViewModel", "FolderRestored"));
     }
 
     // ── 증분157: 라이브러리 곡 목록 빈 상태 안내(LibraryEmptyStateMessage / HasLibraryEmptyState) ──

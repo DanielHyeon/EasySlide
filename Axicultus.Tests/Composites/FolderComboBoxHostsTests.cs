@@ -50,7 +50,7 @@ public class FolderComboBoxHostsTests
     {
         var window = LoadXaml("Axicultus/Library/SongCopyWindow.xaml");
 
-        HasFolderComboBox(window, "대상 폴더", "TargetFolders", "SelectedTargetFolder").Should().BeTrue();
+        HasFolderComboBox(window, "{loc:Text SongCopyWindow.TargetFolder}", "TargetFolders", "SelectedTargetFolder").Should().BeTrue();
         NoInlineComboBoxBoundTo(window, "SelectedTargetFolder").Should().BeTrue("인라인 폴더 콤보는 컴포지트로 이동");
     }
 
@@ -59,7 +59,7 @@ public class FolderComboBoxHostsTests
     {
         var window = LoadXaml("Axicultus/Library/SongMoveWindow.xaml");
 
-        HasFolderComboBox(window, "대상 폴더", "TargetFolders", "SelectedTargetFolder").Should().BeTrue();
+        HasFolderComboBox(window, "{loc:Text SongMoveWindow.TargetFolder}", "TargetFolders", "SelectedTargetFolder").Should().BeTrue();
         NoInlineComboBoxBoundTo(window, "SelectedTargetFolder").Should().BeTrue("인라인 폴더 콤보는 컴포지트로 이동");
     }
 
@@ -68,9 +68,9 @@ public class FolderComboBoxHostsTests
     {
         var window = LoadXaml("Axicultus/Library/SongMergeWindow.xaml");
 
-        HasFolderComboBox(window, "Source A", "Folders", "SelectedSourceFolderA").Should().BeTrue();
-        HasFolderComboBox(window, "Source B", "Folders", "SelectedSourceFolderB").Should().BeTrue();
-        HasFolderComboBox(window, "대상 폴더", "Folders", "SelectedTargetFolder").Should().BeTrue();
+        HasFolderComboBox(window, "{loc:Text SongMergeWindow.SourceA}", "Folders", "SelectedSourceFolderA").Should().BeTrue();
+        HasFolderComboBox(window, "{loc:Text SongMergeWindow.SourceB}", "Folders", "SelectedSourceFolderB").Should().BeTrue();
+        HasFolderComboBox(window, "{loc:Text SongMergeWindow.TargetFolder}", "Folders", "SelectedTargetFolder").Should().BeTrue();
 
         window.Descendants().Count(e => e.Name.LocalName == "FolderComboBox").Should().Be(3);
 
