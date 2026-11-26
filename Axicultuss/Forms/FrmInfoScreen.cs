@@ -600,18 +600,10 @@ namespace Axicultus;
 		{
 			SongCapo.Items.Clear();
 			SongCapo.Items.Add("");
-			SongCapo.Items.Add("Capo 0");
-			SongCapo.Items.Add("Capo 1");
-			SongCapo.Items.Add("Capo 2");
-			SongCapo.Items.Add("Capo 3");
-			SongCapo.Items.Add("Capo 4");
-			SongCapo.Items.Add("Capo 5");
-			SongCapo.Items.Add("Capo 6");
-			SongCapo.Items.Add("Capo 7");
-			SongCapo.Items.Add("Capo 8");
-			SongCapo.Items.Add("Capo 9");
-			SongCapo.Items.Add("Capo 10");
-			SongCapo.Items.Add("Capo 11");
+			for (int fret = 0; fret <= 11; fret++)
+			{
+				SongCapo.Items.Add(Gf.CapoItemText(fret));
+			}
 			SongKey.Items.Clear();
 			SongKey.Items.Add("");
 			SongKey.Items.Add("A");
@@ -1323,7 +1315,7 @@ namespace Axicultus;
 			WriterInfo.Text = Gf.InfoItem1.Writer;
 			OrderListSequence = Gf.InfoItem1.SongSequence;
 			string capoText = Gf.InfoItem1.Capo.ToString();
-			SongCapo.Text = ((capoText is "" or "-1") ? "" : ("Capo " + capoText));
+			SongCapo.Text = ((capoText is "" or "-1") ? "" : Gf.CapoItemText(capoText));
 			if (SongCapo.Text == "")
 			{
 				SongCapo.SelectedIndex = 0;
@@ -2825,7 +2817,7 @@ namespace Axicultus;
 		{
 			if (ResetAll)
 			{
-				if (LabelMediaType.Text != "" && ((LabelMediaType.Text[0] == 'A') || (LabelMediaType.Text[0] == 'V')))
+				if (PlayerOK && DShowPlayer.LastStatusWasMedia) // (LabelMediaType shows that status)
 				{
 					LabelDuration.Text = UiText.Get(nameof(FrmInfoScreen), "Stream");
 				}

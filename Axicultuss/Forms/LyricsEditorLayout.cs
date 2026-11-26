@@ -1,21 +1,24 @@
 using System;
 using System.Drawing;
 using System.Windows.Forms;
+using Axicultus.Localization;
 
 namespace Axicultus;
 
 internal static class LyricsEditorLayout
 {
+    private static string T(string key) => UiText.Get(nameof(LyricsEditorLayout), key);
+
     internal static void FileActions(ToolStripButton create, ToolStripButton save, ToolStripButton closeAfterSave,
         ToolStripButton import, ToolStripMenuItem saveMenu)
     {
         create.Owner.GripStyle = ToolStripGripStyle.Hidden;
-        ConfigureAction(create, "New", "document_add", true);
-        ConfigureAction(save, "Save", "save", true);
-        ConfigureAction(closeAfterSave, "Save and close", "document_arrow_down", true);
-        ConfigureAction(import, "Import text", "folder_open", true);
-        save.ToolTipText = "Save (Ctrl+S)";
-        import.ToolTipText = "Import a Word or text file";
+        ConfigureAction(create, "New", "document_add", true, T("New"));
+        ConfigureAction(save, "Save", "save", true, T("Save"));
+        ConfigureAction(closeAfterSave, "Save and close", "document_arrow_down", true, T("SaveAndClose"));
+        ConfigureAction(import, "Import text", "folder_open", true, T("ImportText"));
+        save.ToolTipText = T("SaveTip");
+        import.ToolTipText = T("ImportTip");
         saveMenu.ShortcutKeys = Keys.Control | Keys.S;
     }
 
@@ -25,31 +28,31 @@ internal static class LyricsEditorLayout
         ToolStripButton transposeDown, ToolStripButton transposeUp)
     {
         var formatting = new ToolStrip { Name = "EditorFormatting", GripStyle = ToolStripGripStyle.Hidden };
-        formatting.Items.AddRange([new ToolStripLabel("Font"), font, new ToolStripLabel("Size"), size,
-            new ToolStripLabel("Notation"), notation, firstSeparator, wrap, chords, secondSeparator, transposeDown, transposeUp]);
+        formatting.Items.AddRange([new ToolStripLabel(T("Font")), font, new ToolStripLabel(T("Size")), size,
+            new ToolStripLabel(T("Notation")), notation, firstSeparator, wrap, chords, secondSeparator, transposeDown, transposeUp]);
         form.Controls.Add(formatting);
         form.Controls.SetChildIndex(formatting, form.Controls.GetChildIndex(body) + 1);
-        ConfigureAction(wrap, "Wrap text", null, true);
-        ConfigureAction(chords, "Chords menu", "chords", true);
-        ConfigureAction(transposeDown, "Transpose chord down", "transpose_down");
-        ConfigureAction(transposeUp, "Transpose chord up", "transpose_up");
+        ConfigureAction(wrap, "Wrap text", null, true, T("WrapText"));
+        ConfigureAction(chords, "Chords menu", "chords", true, T("ChordsMenu"));
+        ConfigureAction(transposeDown, "Transpose chord down", "transpose_down", shown: T("TransposeDown"));
+        ConfigureAction(transposeUp, "Transpose chord up", "transpose_up", shown: T("TransposeUp"));
     }
 
     internal static void SequenceActions(ToolStripButton add, ToolStripButton rebuild, ToolStripButton up,
         ToolStripButton down, ToolStripButton remove)
     {
-        ConfigureAction(add, "Add selected verse to sequence", "text_bullet_list_add");
-        ConfigureAction(rebuild, "Rebuild sequence from verses", "flash");
-        ConfigureAction(up, "Move selected verse up", "arrow_up");
-        ConfigureAction(down, "Move selected verse down", "arrow_down");
-        ConfigureAction(remove, "Remove selected verse from sequence", "delete");
+        ConfigureAction(add, "Add selected verse to sequence", "text_bullet_list_add", shown: T("AddToSequence"));
+        ConfigureAction(rebuild, "Rebuild sequence from verses", "flash", shown: T("RebuildSequence"));
+        ConfigureAction(up, "Move selected verse up", "arrow_up", shown: T("MoveVerseUp"));
+        ConfigureAction(down, "Move selected verse down", "arrow_down", shown: T("MoveVerseDown"));
+        ConfigureAction(remove, "Remove selected verse from sequence", "delete", shown: T("RemoveFromSequence"));
     }
 
     internal static void AddDetailsTabs(SplitterPanel host, string subject, GroupBox detailsBox,
         GroupBox sequenceBox, Panel titles, Panel references, Action resizeFields)
     {
-        var details = new TabPage(subject + " details") { AutoScroll = true };
-        var sequence = new TabPage("Verse sequence") { AutoScroll = true };
+        var details = new TabPage(subject == "Song" ? T("SongDetails") : T("NoticeDetails")) { AutoScroll = true };
+        var sequence = new TabPage(T("VerseSequence")) { AutoScroll = true };
         var tabs = new TabControl { Dock = DockStyle.Fill, AccessibleName = subject + " settings" };
         tabs.TabPages.AddRange([details, sequence]);
         details.Controls.Add(detailsBox);
@@ -68,17 +71,19 @@ internal static class LyricsEditorLayout
         FitDetails();
     }
 
-    internal static void ConfigureAction(ToolStripItem item, string caption, string icon, bool showCaption = false)
+    /// <summary>The accessible name stays <paramref name="caption"/>; the tooltip and text show <paramref name="shown"/> (the UI language) when given.</summary>
+    internal static void ConfigureAction(ToolStripItem item, string caption, string icon, bool showCaption = false, string shown = null)
     {
+        shown ??= caption;
         item.AccessibleName = caption;
-        item.ToolTipText = caption;
+        item.ToolTipText = shown;
         if (icon != null)
             ModernItemIcons.TryApply(item, icon, ModernIconStyle.Regular, ModernItemIcons.ToolbarIconPixelSize(item),
                 SystemColors.ControlText, null);
         if (showCaption)
         {
             item.AutoSize = true;
-            item.Text = caption;
+            item.Text = shown;
             item.DisplayStyle = icon == null ? ToolStripItemDisplayStyle.Text : ToolStripItemDisplayStyle.ImageAndText;
         }
     }

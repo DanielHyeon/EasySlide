@@ -1015,7 +1015,7 @@ internal unsafe partial class Gf
 			Font font = RenderingCache.GetFont(songLyrics.FS_Font.Name, Convert.ToInt32(fontSize), songLyrics.FS_Font.Style);
 			SolidBrush brush = RenderingCache.GetBrush(Color.FromArgb(songLyrics.ForeColour));
 			int textTop = capoTop + capoHeight / 2;
-			g.DrawString(layoutRectangle: new RectangleF(capoLeft, textTop, capoWidth, capoHeight), s: "Capo " + Convert.ToString(InItem.Capo), font: font, brush: brush, format: StringFormatFar);
+			g.DrawString(layoutRectangle: new RectangleF(capoLeft, textTop, capoWidth, capoHeight), s: CapoItemText(InItem.Capo), font: font, brush: brush, format: StringFormatFar);
 		}
 
 		private const int DisplayPanelMeasureMaxWidth = 10000;

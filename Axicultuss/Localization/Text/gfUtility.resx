@@ -10,4 +10,5 @@
   <data name="ClearFormattingCaption" xml:space="preserve"><value>Compact Axicultus Databases</value></data>
   <data name="ClearSettingsConfirm" xml:space="preserve"><value>Warning: This will clear all Axicultuss Settings and Axicultuss will then Close. Please note that the next time you restart Axicultuss, the Axicultuss Working Folder will be set to {0}. Click Yes if you wish to proceed.</value></data>
   <data name="ClearSettingsCaption" xml:space="preserve"><value>Clear Axicultuss Settings</value></data>
+  <data name="CapoFret" xml:space="preserve"><value>Capo {0}</value></data>
 </root>

@@ -57,7 +57,7 @@ public class LyricsProcessingTests
             if (setKeyAndCapo)
             {
                 key.SelectedItem = "G";
-                capo.SelectedItem = "Capo 0";
+                capo.SelectedItem = Gf.CapoItemText(0);
             }
             first.Text = "첫 줄\n\nG/B »\n마지막 줄";
             second.Text = "Am(add9)            G/B »\ntranslation continues into the next phrase\n\n";
@@ -73,14 +73,14 @@ public class LyricsProcessingTests
                 Field("Lyrics2SavedNotations").GetValue(editor));
             Assert.Equal($"(2;{bassChord};0;)", Field("Lyrics1SavedNotations").GetValue(editor));
             Assert.Equal(setKeyAndCapo ? "Ab" : "", key.Text);
-            Assert.Equal(setKeyAndCapo ? "Capo 11" : "", capo.Text);
+            Assert.Equal(setKeyAndCapo ? Gf.CapoItemText(11) : "", capo.Text);
             down.PerformClick();
             Assert.Equal("첫 줄\n\nG/B »\n마지막 줄", first.Text);
             secondRows = second.Text.Split('\n', 2);
             Assert.Equal(new[] { "Am(add9)", "G/B", "»" }, secondRows[0].Split(' ', StringSplitOptions.RemoveEmptyEntries));
             Assert.Equal(translation, secondRows[1]);
             Assert.Equal(setKeyAndCapo ? "G" : "", key.Text);
-            Assert.Equal(setKeyAndCapo ? "Capo 0" : "", capo.Text);
+            Assert.Equal(setKeyAndCapo ? Gf.CapoItemText(0) : "", capo.Text);
         });
     }
 

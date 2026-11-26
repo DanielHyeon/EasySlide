@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="New" xml:space="preserve"><value>New</value></data>
+  <data name="Save" xml:space="preserve"><value>Save</value></data>
+  <data name="SaveAndClose" xml:space="preserve"><value>Save and close</value></data>
+  <data name="ImportText" xml:space="preserve"><value>Import text</value></data>
+  <data name="SaveTip" xml:space="preserve"><value>Save (Ctrl+S)</value></data>
+  <data name="ImportTip" xml:space="preserve"><value>Import a Word or text file</value></data>
+  <data name="Font" xml:space="preserve"><value>Font</value></data>
+  <data name="Size" xml:space="preserve"><value>Size</value></data>
+  <data name="Notation" xml:space="preserve"><value>Notation</value></data>
+  <data name="WrapText" xml:space="preserve"><value>Wrap text</value></data>
+  <data name="ChordsMenu" xml:space="preserve"><value>Chords menu</value></data>
+  <data name="TransposeDown" xml:space="preserve"><value>Transpose chord down</value></data>
+  <data name="TransposeUp" xml:space="preserve"><value>Transpose chord up</value></data>
+  <data name="AddToSequence" xml:space="preserve"><value>Add selected verse to sequence</value></data>
+  <data name="RebuildSequence" xml:space="preserve"><value>Rebuild sequence from verses</value></data>
+  <data name="MoveVerseUp" xml:space="preserve"><value>Move selected verse up</value></data>
+  <data name="MoveVerseDown" xml:space="preserve"><value>Move selected verse down</value></data>
+  <data name="RemoveFromSequence" xml:space="preserve"><value>Remove selected verse from sequence</value></data>
+  <data name="SongDetails" xml:space="preserve"><value>Song details</value></data>
+  <data name="NoticeDetails" xml:space="preserve"><value>Notice details</value></data>
+  <data name="VerseSequence" xml:space="preserve"><value>Verse sequence</value></data>
+</root>
