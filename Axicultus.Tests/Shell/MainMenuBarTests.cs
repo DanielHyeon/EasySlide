@@ -64,7 +64,7 @@ public class MainMenuBarTests
         var entries = menu.Descendants().Where(e => e.Name.LocalName == "MenuItem").ToList();
         entries.Should().NotContain(e => ((string?)e.Attribute("Header") ?? "").StartsWith("More"));
         entries.Count(e => (string?)e.Attribute("Command") == "{Binding RefreshOutputCommand}").Should().Be(1);
-        entries.Should().Contain(e => (string?)e.Attribute("Header") == "송출 조작");
+        entries.Should().Contain(e => (string?)e.Attribute("Header") == "{loc:MenuText Output_Controls}");
     }
 
     [Fact]
@@ -104,13 +104,26 @@ public class MainMenuBarTests
         xaml.Should().Contain("<Menu", "FrmMain menu bar should be ported as a WPF Menu");
         foreach (var header in new[] { "File", "Edit", "View", "Output", "Tools", "Help" })
         {
-            xaml.Should().Contain($"Header=\"{header}\"", $"{header} should match the FrmMain top-level menu label");
+            // the text FrmMain shows too (FrmMain.MenuText.cs), in the UI language
+            xaml.Should().Contain($"Header=\"{{loc:MenuText Menu_{header}}}\"", $"{header} should match the FrmMain top-level menu label");
         }
+    }
 
-        xaml.Should().NotContain("Header=\"파일\"");
-        xaml.Should().NotContain("Header=\"편집\"");
-        xaml.Should().NotContain("Header=\"보기\"");
-        xaml.Should().NotContain("Header=\"출력\"><MenuItem.Icon>");
+    // Every text of the main menu comes from the shared resources (no Korean and English mixed in one language); only
+    // the languages in View > Language are named as they are.
+    [Fact]
+    public void MainMenuTextsComeFromTheResources()
+    {
+        var menu = XDocument.Parse(Xaml).Descendants().Single(e => e.Name.LocalName == "Menu" && (string?)e.Attribute("AutomationProperties.Name") == "주 메뉴");
+        var keys = typeof(Axicultus.Localization.MenuText).GetProperties().Select(p => p.Name).ToHashSet();
+        foreach (var item in menu.Descendants().Where(e => e.Name.LocalName == "MenuItem"))
+            foreach (var text in new[] { "Header", "ToolTip" }.Select(name => (string?)item.Attribute(name)).OfType<string>())
+            {
+                if (text.StartsWith("{Binding", StringComparison.Ordinal) || text is "한국어" or "English") continue;
+                var key = System.Text.RegularExpressions.Regex.Match(text, @"^\{loc:MenuText (\w+)\}$");
+                key.Success.Should().BeTrue($"'{text}' should be a menu text resource");
+                keys.Should().Contain(key.Groups[1].Value);
+            }
     }
 
     [Theory]
@@ -2344,7 +2357,7 @@ public class MainMenuBarTests
 
     [Fact]
     public void MenuBar_FileMenuHasExit()
-        => Xaml.Should().Contain("Header=\"Exit\"", "파일 메뉴에 종료가 있어야 함");
+        => Xaml.Should().Contain("Header=\"{loc:MenuText File_Exit}\"", "파일 메뉴에 종료가 있어야 함");
 
     [Theory]
     // 미디어 전송 컨트롤이 텍스트 글리프 대신 Fluent SymbolIcon(EsIcons.Media*)으로 현대화됐는지(아이콘 업그레이드).

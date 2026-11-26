@@ -16,12 +16,8 @@ public class MainWindowCopyTests
             Encoding.UTF8);
 
         xaml.Should().Contain("Title=\"Axicultus\"");
-        xaml.Should().Contain("Header=\"File\"");
-        xaml.Should().Contain("Header=\"Edit\"");
-        xaml.Should().Contain("Header=\"View\"");
-        xaml.Should().Contain("Header=\"Output\"");
-        xaml.Should().Contain("Header=\"Tools\"");
-        xaml.Should().Contain("Header=\"Help\"");
+        foreach (var group in new[] { "File", "Edit", "View", "Output", "Tools", "Help" })
+            xaml.Should().Contain($"Header=\"{{loc:MenuText Menu_{group}}}\""); // in the UI language (MenuTextTests)
         xaml.Should().NotContain("Axicultus v3.0 - WPF 운영 셸");
         xaml.Should().Contain("출력 열기");
         xaml.Should().Contain("출력 닫기");

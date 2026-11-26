@@ -233,7 +233,7 @@ public class SettingsWindowViewModelTests
 
         sut.RestoreDefaults();
 
-        sut.Language.Should().Be(AxicultusSettingKeys.Language.DefaultValue);
+        sut.Language.Should().Be("en-US", "a reset keeps the menus' language");
         sut.Theme.Should().Be(AxicultusSettingKeys.Theme.DefaultValue);
         sut.InterfaceSize.Should().Be(AxicultusSettingKeys.InterfaceSize.DefaultValue);
         fixture.Theme.AppliedThemes.Last().Should().Be(AxicultusSettingKeys.Theme.DefaultValue);
@@ -245,17 +245,17 @@ public class SettingsWindowViewModelTests
     {
         using var fixture = SettingsFixture.Create();
         var sut = fixture.CreateViewModel();
-        sut.Language = "en-US";
+        sut.Theme = ColorTheme.Dark;
         sut.ConfirmRestoreDefaults = () => false;
 
         sut.RestoreDefaultsCommand.Execute(null);
 
-        sut.Language.Should().Be("en-US");
+        sut.Theme.Should().Be(ColorTheme.Dark);
 
         sut.ConfirmRestoreDefaults = () => true;
         sut.RestoreDefaultsCommand.Execute(null);
 
-        sut.Language.Should().Be(AxicultusSettingKeys.Language.DefaultValue);
+        sut.Theme.Should().Be(AxicultusSettingKeys.Theme.DefaultValue);
     }
 
     [Fact]

@@ -17,4 +17,20 @@
     <RootNamespace>Axicultus.Module</RootNamespace>
   </PropertyGroup>
 
+  <!-- Menu texts of both apps: English (neutral) and Korean (ko satellite). The public MenuText class is generated at build. -->
+  <ItemGroup>
+    <EmbeddedResource Update="Localization\MenuText.resx">
+      <StronglyTypedLanguage>CSharp</StronglyTypedLanguage>
+      <StronglyTypedNamespace>Axicultus.Localization</StronglyTypedNamespace>
+      <StronglyTypedClassName>MenuText</StronglyTypedClassName>
+      <StronglyTypedFileName>$(IntermediateOutputPath)MenuText.Designer.cs</StronglyTypedFileName>
+      <PublicClass>true</PublicClass>
+      <!-- the name the generated class looks for (not the RootNamespace one) -->
+      <LogicalName>Axicultus.Localization.MenuText.resources</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Localization\MenuText.ko.resx">
+      <LogicalName>Axicultus.Localization.MenuText.ko.resources</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+
 </Project>

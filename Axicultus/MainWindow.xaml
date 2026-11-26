@@ -12,6 +12,7 @@
         xmlns:vwp="clr-namespace:WpfToolkit.Controls;assembly=VirtualizingWrapPanel"
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
         xmlns:input="clr-namespace:Axicultus.Wpf.Input"
+        xmlns:loc="clr-namespace:Axicultus.Wpf.Localization"
         Title="Axicultus"
         FontSize="{DynamicResource Type.Body.FontSize}"
         Icon="/Axicultus;component/Assets/Axicultus.ico"
@@ -35,7 +36,8 @@
         <ControlTemplate x:Key="FrmMainMenuHeader" TargetType="MenuItem">
             <Border x:Name="MenuHeader" Background="Transparent" Padding="8,0">
                 <Grid>
-                    <AccessText x:Name="MenuHeaderText" FontSize="{TemplateBinding FontSize}" Text="{Binding Header, RelativeSource={RelativeSource TemplatedParent}, StringFormat=_{0}}" VerticalAlignment="Center" />
+                    <!-- the header carries its access key ("_File" in English) -->
+                    <AccessText x:Name="MenuHeaderText" FontSize="{TemplateBinding FontSize}" Text="{Binding Header, RelativeSource={RelativeSource TemplatedParent}}" VerticalAlignment="Center" />
                     <Popup x:Name="PART_Popup" Placement="Bottom" Focusable="False" AllowsTransparency="True"
                            IsOpen="{Binding IsSubmenuOpen, RelativeSource={RelativeSource TemplatedParent}}">
                         <Border Background="{DynamicResource {x:Static SystemColors.MenuBrushKey}}" TextElement.Foreground="{DynamicResource {x:Static SystemColors.MenuTextBrushKey}}" Padding="2"
@@ -375,8 +377,21 @@
               FontSize="{DynamicResource Type.Body.FontSize}"
               Padding="0"
               AutomationProperties.Name="주 메뉴">
-            <MenuItem Header="File" Style="{x:Null}" Template="{StaticResource FrmMainMenuHeader}" MinHeight="24">
-                <MenuItem Header="Worship Sessions..." Click="OpenManageWorshipLists_Click">
+            <Menu.Resources>
+                <!-- WPF-UI's app-wide AccessText style draws a header with an access key ("_Import") at 14 px, larger
+                     than the others. The header's own AccessText takes no style: it reads at the item's size. -->
+                <Style TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
+                    <Setter Property="HeaderTemplate">
+                        <Setter.Value>
+                            <DataTemplate>
+                                <AccessText Text="{Binding}" Style="{x:Null}" />
+                            </DataTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </Menu.Resources>
+            <MenuItem Header="{loc:MenuText Menu_File}" Style="{x:Null}" Template="{StaticResource FrmMainMenuHeader}" MinHeight="24">
+                <MenuItem Header="{loc:MenuText File_WorshipSessions}" Click="OpenManageWorshipLists_Click">
                     <MenuItem.Style>
                         <Style TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
                             <Style.Triggers>
@@ -387,37 +402,37 @@
                     </MenuItem.Style>
                     <MenuItem.Icon><controls:FrmIcon Icon="clipboard_task_list_ltr" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Header="PraiseBooks..." IsEnabled="{Binding IsSelected, ElementName=PraiseBookTab}" Click="OpenPraiseBookIndex_Click">
+                <MenuItem Header="{loc:MenuText File_PraiseBooks}" IsEnabled="{Binding IsSelected, ElementName=PraiseBookTab}" Click="OpenPraiseBookIndex_Click">
                     <MenuItem.Icon><controls:FrmIcon Icon="clipboard_task_list_ltr" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
                 <Separator />
-                <MenuItem Header="Listing of Selected Folder" Click="ExportFolderListing_Click" />
+                <MenuItem Header="{loc:MenuText File_ListingOfSelectedFolder}" Click="ExportFolderListing_Click" />
                 <Separator />
-                <MenuItem Header="Recent Edits" x:Name="RecentEditsMenu" SubmenuOpened="RecentEdits_Open"><MenuItem Header="최근 편집 항목 없음" IsEnabled="False" /></MenuItem>
+                <MenuItem Header="{loc:MenuText File_RecentEdits}" x:Name="RecentEditsMenu" SubmenuOpened="RecentEdits_Open"><MenuItem Header="{loc:MenuText File_NoRecentEdits}" IsEnabled="False" /></MenuItem>
                 <Separator />
-                <MenuItem Header="Exit" Click="Exit_Click" InputGestureText="Alt+F4" />
+                <MenuItem Header="{loc:MenuText File_Exit}" Click="Exit_Click" InputGestureText="Alt+F4" />
                 <Separator />
-                <MenuItem Header="예배 순서 및 자료 파일">
-                    <MenuItem Header="예배 순서 저장" Command="{Binding QuickSaveWorshipListCommand}" InputGestureText="Ctrl+S">
+                <MenuItem Header="{loc:MenuText File_WorshipFiles}">
+                    <MenuItem Header="{loc:MenuText File_SaveWorshipList}" Command="{Binding QuickSaveWorshipListCommand}" InputGestureText="Ctrl+S">
                         <MenuItem.Icon><controls:FrmIcon Icon="save" Width="16" Height="16" /></MenuItem.Icon>
                     </MenuItem>
                     <Separator />
-                    <MenuItem Header="예배 순서에 파일 추가" Click="AddExternalFile_Click">
+                    <MenuItem Header="{loc:MenuText File_AddFileToWorshipList}" Click="AddExternalFile_Click">
                         <MenuItem.Icon><controls:FrmIcon Icon="document_add" Width="16" Height="16" /></MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem Header="레거시 예배 순서(.esw) 가져오기..." Click="ImportLegacyWorshipList_Click">
+                    <MenuItem Header="{loc:MenuText File_ImportLegacyWorshipList}" Click="ImportLegacyWorshipList_Click">
                         <MenuItem.Icon><controls:FrmIcon Icon="folder_open" Width="16" Height="16" /></MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem Header="PowerPoint 폴더 찾아보기..." Click="OpenPowerPointLibrary_Click">
+                    <MenuItem Header="{loc:MenuText File_BrowsePowerPointFolder}" Click="OpenPowerPointLibrary_Click">
                         <MenuItem.Icon><controls:FrmIcon Icon="folder_open" Width="16" Height="16" /></MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem Header="미디어 폴더 찾아보기..." Click="OpenMediaLibrary_Click">
+                    <MenuItem Header="{loc:MenuText File_BrowseMediaFolder}" Click="OpenMediaLibrary_Click">
                         <MenuItem.Icon><controls:FrmIcon Icon="folder_open" Width="16" Height="16" /></MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem Header="라이브러리 열기" Click="OpenLibrary_Click">
+                    <MenuItem Header="{loc:MenuText File_OpenLibrary}" Click="OpenLibrary_Click">
                         <MenuItem.Icon><controls:FrmIcon Icon="book_open" Width="16" Height="16" /></MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem Header="최근 예배 순서"
+                    <MenuItem Header="{loc:MenuText File_RecentWorshipLists}"
                               ItemsSource="{Binding RecentWorshipLists}">
                         <MenuItem.Icon><controls:FrmIcon Icon="text_bullet_list_ltr" Width="16" Height="16" /></MenuItem.Icon>
                         <MenuItem.ItemContainerStyle>
@@ -432,172 +447,178 @@
                 </MenuItem>
             </MenuItem>
 
-            <MenuItem Header="Edit" Style="{x:Null}" Template="{StaticResource FrmMainMenuHeader}" MinHeight="24">
-                <MenuItem Header="Add New Song..." Tag="Main_New" Click="Main_SourceEdit_Click" IsEnabled="{Binding IsEnabled, ElementName=Main_New}">
+            <MenuItem Header="{loc:MenuText Menu_Edit}" Style="{x:Null}" Template="{StaticResource FrmMainMenuHeader}" MinHeight="24">
+                <MenuItem Header="{loc:MenuText Edit_AddNewSong}" Tag="Main_New" Click="Main_SourceEdit_Click" IsEnabled="{Binding IsEnabled, ElementName=Main_New}">
                     <MenuItem.Icon><controls:FrmIcon Icon="document_add" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
                 <Separator />
-                <MenuItem Header="Edit" Tag="Main_Edit" Click="Main_SourceEdit_Click" IsEnabled="{Binding IsEnabled, ElementName=Main_Edit}">
+                <MenuItem Header="{loc:MenuText Edit_Edit}" Tag="Main_Edit" Click="Main_SourceEdit_Click" IsEnabled="{Binding IsEnabled, ElementName=Main_Edit}">
                     <MenuItem.Icon><controls:FrmIcon Icon="edit" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Header="Copy" Tag="Main_Copy" Click="Main_SourceEdit_Click" IsEnabled="{Binding IsEnabled, ElementName=Main_Copy}">
+                <MenuItem Header="{loc:MenuText Edit_Copy}" Tag="Main_Copy" Click="Main_SourceEdit_Click" IsEnabled="{Binding IsEnabled, ElementName=Main_Copy}">
                     <MenuItem.Icon><controls:FrmIcon Icon="copy" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Header="Move" Tag="Main_Move" Click="Main_SourceEdit_Click" IsEnabled="{Binding IsEnabled, ElementName=Main_Move}">
+                <MenuItem Header="{loc:MenuText Edit_Move}" Tag="Main_Move" Click="Main_SourceEdit_Click" IsEnabled="{Binding IsEnabled, ElementName=Main_Move}">
                     <MenuItem.Icon><controls:FrmIcon Icon="folder_arrow_right" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Header="Delete..." Tag="Main_Delete" Click="Main_SourceEdit_Click" IsEnabled="{Binding IsEnabled, ElementName=Main_Delete}">
+                <MenuItem Header="{loc:MenuText Edit_Delete}" Tag="Main_Delete" Click="Main_SourceEdit_Click" IsEnabled="{Binding IsEnabled, ElementName=Main_Delete}">
                     <MenuItem.Icon><controls:FrmIcon Icon="delete" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
                 <Separator />
-                <MenuItem Header="Select All" Click="CMenuSongs_SelectAll_Click" />
-                <MenuItem Header="Find" Click="Main_Find_Click" InputGestureText="Ctrl+F">
+                <MenuItem Header="{loc:MenuText Edit_SelectAll}" Click="CMenuSongs_SelectAll_Click" />
+                <MenuItem Header="{loc:MenuText Edit_Find}" Click="Main_Find_Click" InputGestureText="Ctrl+F">
                     <MenuItem.Icon><controls:FrmIcon Icon="search" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
                 <Separator />
-                <MenuItem Header="Use Song Numbering" IsCheckable="True" IsChecked="{Binding Library.UseSongNumbering, Mode=TwoWay}" />
-                <MenuItem Header="Re-Arrange Song Folders" Click="FolderEditor_Click" />
+                <MenuItem Header="{loc:MenuText Edit_UseSongNumbering}" IsCheckable="True" IsChecked="{Binding Library.UseSongNumbering, Mode=TwoWay}" />
+                <MenuItem Header="{loc:MenuText Edit_RearrangeSongFolders}" Click="FolderEditor_Click" />
                 <Separator />
-                <MenuItem Header="곡 검색·사용처" Click="OpenSearchUsage_Click">
+                <MenuItem Header="{loc:MenuText Edit_SearchUsage}" Click="OpenSearchUsage_Click">
                     <MenuItem.Icon><controls:FrmIcon Icon="search" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
             </MenuItem>
 
-            <MenuItem Header="View" Style="{x:Null}" Template="{StaticResource FrmMainMenuHeader}" MinHeight="24">
-                <MenuItem Header="Axicultus Folder" Click="OpenAxicultusFolder_Click">
+            <MenuItem Header="{loc:MenuText Menu_View}" Style="{x:Null}" Template="{StaticResource FrmMainMenuHeader}" MinHeight="24">
+                <MenuItem Header="{loc:MenuText View_AppFolder}" Click="OpenAxicultusFolder_Click">
                     <MenuItem.Icon><controls:FrmIcon Icon="folder_open" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Header="Options" Click="OpenSettings_Click">
+                <MenuItem Header="{loc:MenuText View_Options}" Click="OpenSettings_Click">
                     <MenuItem.Icon><controls:FrmIcon Icon="settings" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
                 <Separator />
-                <MenuItem Header="Refresh" Click="Main_Refresh_Click">
+                <MenuItem Header="{loc:MenuText View_Refresh}" Click="Main_Refresh_Click">
                     <MenuItem.Icon><controls:FrmIcon Icon="arrow_clockwise" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Header="Show Notations in Preview" IsCheckable="True" IsChecked="{Binding PreviewAreaShowNotations, Mode=TwoWay}" />
-                <MenuItem Header="Status Bar" x:Name="ShowStatusMenu" IsCheckable="True" IsChecked="True" />
+                <MenuItem Header="{loc:MenuText View_ShowNotations}" IsCheckable="True" IsChecked="{Binding PreviewAreaShowNotations, Mode=TwoWay}" />
+                <MenuItem Header="{loc:MenuText View_StatusBar}" x:Name="ShowStatusMenu" IsCheckable="True" IsChecked="True" />
+                <Separator />
+                <!-- Each language is named in itself; the choice shows after a restart. -->
+                <MenuItem Header="{loc:MenuText View_Language}" SubmenuOpened="LanguageMenu_Opened">
+                    <MenuItem x:Name="LanguageKorean" Header="한국어" Tag="ko-KR" Click="Language_Click" />
+                    <MenuItem x:Name="LanguageEnglish" Header="English" Tag="en-US" Click="Language_Click" />
+                </MenuItem>
             </MenuItem>
 
-            <MenuItem Header="Output" Style="{x:Null}" Template="{StaticResource FrmMainMenuHeader}" MinHeight="24">
-                <MenuItem Header="Start Show - Go LIVE"
+            <MenuItem Header="{loc:MenuText Menu_Output}" Style="{x:Null}" Template="{StaticResource FrmMainMenuHeader}" MinHeight="24">
+                <MenuItem Header="{loc:MenuText Output_StartShow}"
                           Command="{Binding ToggleOutputLiveCommand}"
                           IsCheckable="True"
                           IsChecked="{Binding IsShowRunning, Mode=OneWay}"
                           InputGestureText="F12" />
-                <MenuItem Header="Preview: Go Live, Move Next" Command="{Binding SendToOutputAndNextCommand}" InputGestureText="F11" />
-                <MenuItem Header="Refresh Output" Command="{Binding RefreshOutputCommand}" InputGestureText="Ctrl+F5" />
+                <MenuItem Header="{loc:MenuText Output_GoLiveMoveNext}" Command="{Binding SendToOutputAndNextCommand}" InputGestureText="F11" />
+                <MenuItem Header="{loc:MenuText Output_RefreshOutput}" Command="{Binding RefreshOutputCommand}" InputGestureText="Ctrl+F5" />
                 <Separator />
-                <MenuItem Header="Black Screen"
+                <MenuItem Header="{loc:MenuText Output_BlackScreen}"
                           Command="{Binding ToggleOutputBlackCommand}"
                           IsCheckable="True"
                           IsChecked="{Binding IsOutputBlackActive, Mode=OneWay}"
                           InputGestureText="F9">
                     <MenuItem.Icon><controls:FrmIcon Icon="desktop" Width="16" Height="16" Filled="True" /></MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Header="Clear Screen"
+                <MenuItem Header="{loc:MenuText Output_ClearScreen}"
                           Command="{Binding ToggleOutputClearCommand}"
                           IsCheckable="True"
                           IsChecked="{Binding IsOutputClearActive, Mode=OneWay}"
                           InputGestureText="F3">
                     <MenuItem.Icon><controls:FrmIcon Icon="closed_caption_off" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Header="Restart Current Item" Command="{Binding RestartCurrentItemCommand}" InputGestureText="F5" />
-                <MenuItem Header="카메라 하단 자막…" Click="OpenCameraCaptions_Click">
+                <MenuItem Header="{loc:MenuText Output_RestartCurrentItem}" Command="{Binding RestartCurrentItemCommand}" InputGestureText="F5" />
+                <MenuItem Header="{loc:MenuText Output_CameraCaptions}" Click="OpenCameraCaptions_Click">
                     <MenuItem.Icon><controls:FrmIcon Icon="closed_caption_off" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
                 <Separator />
-                <MenuItem Header="송출 조작">
-                    <MenuItem Header="Preview를 Output으로 보내고 Black 해제"
+                <MenuItem Header="{loc:MenuText Output_Controls}">
+                    <MenuItem Header="{loc:MenuText Output_PreviewToOutputClearBlack}"
                               Command="{Binding CopyPreviewToOutputAndClearBlackCommand}"
                               InputGestureText="F7">
                         <MenuItem.Icon><controls:FrmIcon Icon="arrow_enter" Width="16" Height="16" /></MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem Header="Preview를 Output으로 보내기"
+                    <MenuItem Header="{loc:MenuText Output_PreviewToOutput}"
                               Command="{Binding CopyPreviewToOutputShortcutCommand}"
                               InputGestureText="F8">
                         <MenuItem.Icon><controls:FrmIcon Icon="arrow_enter" Width="16" Height="16" /></MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem Header="라이브 중지" Command="{Binding StopLiveCommand}">
+                    <MenuItem Header="{loc:MenuText Output_StopLive}" Command="{Binding StopLiveCommand}">
                         <MenuItem.Icon><controls:FrmIcon Icon="arrow_repeat_all_off" Width="16" Height="16" /></MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem Header="처음 항목" Command="{Binding FirstItemCommand}" />
-                    <MenuItem Header="다음 슬라이드/절" Command="{Binding LiveNextShortcutCommand}" InputGestureText="Space">
+                    <MenuItem Header="{loc:MenuText Output_FirstItem}" Command="{Binding FirstItemCommand}" />
+                    <MenuItem Header="{loc:MenuText Output_NextSlide}" Command="{Binding LiveNextShortcutCommand}" InputGestureText="Space">
                         <MenuItem.Icon><controls:FrmIcon Icon="arrow_enter" Width="16" Height="16" /></MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem Header="이전 슬라이드/절" Command="{Binding LivePreviousShortcutCommand}" InputGestureText="Shift+Space" />
-                    <MenuItem Header="마지막 항목" Command="{Binding LastItemCommand}" />
-                    <MenuItem Header="출력 숨김" Command="{Binding HideOutputCommand}" InputGestureText="Ctrl+H">
+                    <MenuItem Header="{loc:MenuText Output_PreviousSlide}" Command="{Binding LivePreviousShortcutCommand}" InputGestureText="Shift+Space" />
+                    <MenuItem Header="{loc:MenuText Output_LastItem}" Command="{Binding LastItemCommand}" />
+                    <MenuItem Header="{loc:MenuText Output_HideOutput}" Command="{Binding HideOutputCommand}" InputGestureText="Ctrl+H">
                         <MenuItem.Icon><controls:FrmIcon Icon="closed_caption_off" Width="16" Height="16" /></MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem Header="복귀" Command="{Binding RestoreOutputCommand}" />
-                    <MenuItem Header="라이브 카메라 켜기/끄기" Command="{Binding ToggleOutputCameraCommand}" />
-                    <MenuItem Header="스테이지 모니터 열기" Command="{Binding OpenStageMonitorCommand}">
+                    <MenuItem Header="{loc:MenuText Output_RestoreOutput}" Command="{Binding RestoreOutputCommand}" />
+                    <MenuItem Header="{loc:MenuText Output_ToggleLiveCamera}" Command="{Binding ToggleOutputCameraCommand}" />
+                    <MenuItem Header="{loc:MenuText Output_OpenStageMonitor}" Command="{Binding OpenStageMonitorCommand}">
                         <MenuItem.Icon><controls:FrmIcon Icon="tab_desktop_multiple" Width="16" Height="16" /></MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem Header="스테이지 모니터 닫기" Command="{Binding CloseStageMonitorCommand}" />
+                    <MenuItem Header="{loc:MenuText Output_CloseStageMonitor}" Command="{Binding CloseStageMonitorCommand}" />
                 </MenuItem>
-                <MenuItem Header="송출 서식…" Click="OpenOutputFormat_Click"
-                          ToolTip="가사·배경·전환 효과·정보 패널 서식을 조정하는 창을 엽니다.">
+                <MenuItem Header="{loc:MenuText Output_Format}" Click="OpenOutputFormat_Click"
+                          ToolTip="{loc:MenuText Output_Format_Tip}">
                     <MenuItem.Icon><controls:FrmIcon Icon="edit" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
             </MenuItem>
 
-            <MenuItem Header="Tools" Style="{x:Null}" Template="{StaticResource FrmMainMenuHeader}" MinHeight="24">
-                <MenuItem Header="_Import" Click="OpenImportExport_Click" />
-                <MenuItem Header="I_mport Folder" Click="OpenFolderImport_Click" />
-                <MenuItem Header="_Export" Click="OpenExport_Click" />
+            <MenuItem Header="{loc:MenuText Menu_Tools}" Style="{x:Null}" Template="{StaticResource FrmMainMenuHeader}" MinHeight="24">
+                <MenuItem Header="{loc:MenuText Tools_Import}" Click="OpenImportExport_Click" />
+                <MenuItem Header="{loc:MenuText Tools_ImportFolder}" Click="OpenFolderImport_Click" />
+                <MenuItem Header="{loc:MenuText Tools_Export}" Click="OpenExport_Click" />
                 <Separator />
-                <MenuItem Header="_Recover Deleted Items" Click="SongRecover_Click" />
-                <MenuItem Header="_Empty Deleted Folder..." Click="EmptyDeleted_Click" />
+                <MenuItem Header="{loc:MenuText Tools_RecoverDeleted}" Click="SongRecover_Click" />
+                <MenuItem Header="{loc:MenuText Tools_EmptyDeleted}" Click="EmptyDeleted_Click" />
                 <Separator />
-                <MenuItem Header="_Add Worship List to Usages" Click="AddListUsages_Click" IsEnabled="{Binding CanAddWorshipListSongsToUsages}" />
-                <MenuItem Header="_View usages" Click="OpenUsageReport_Click" />
+                <MenuItem Header="{loc:MenuText Tools_AddWorshipListToUsages}" Click="AddListUsages_Click" IsEnabled="{Binding CanAddWorshipListSongsToUsages}" />
+                <MenuItem Header="{loc:MenuText Tools_ViewUsages}" Click="OpenUsageReport_Click" />
                 <Separator />
-                <MenuItem Header="_Smart Merge" Click="SongMerge_Click" />
-                <MenuItem Header="_Compact and Repair Databases"
+                <MenuItem Header="{loc:MenuText Tools_SmartMerge}" Click="SongMerge_Click" />
+                <MenuItem Header="{loc:MenuText Tools_CompactDatabases}"
                           Command="{Binding Library.CompactDatabaseCommand}"
-                          ToolTip="곡 데이터베이스의 빈 공간을 회수해 파일을 줄입니다(백업을 먼저 만듭니다)." />
-                <MenuItem Header="Clear All _Formatting in Database." Click="ClearDatabaseFormats_Click" />
+                          ToolTip="{loc:MenuText Tools_CompactDatabases_Tip}" />
+                <MenuItem Header="{loc:MenuText Tools_ClearAllFormatting}" Click="ClearDatabaseFormats_Click" />
                 <Separator />
-                <MenuItem Header="Reset WPF Settings…"
+                <MenuItem Header="{loc:MenuText Tools_ResetSettings}"
                           Click="ResetAllSettings_Click"
-                          ToolTip="모든 설정을 기본값으로 되돌리고 앱을 다시 시작합니다(곡·성경 데이터는 영향 없음). 설정이 꼬였을 때 쓰는 복구 기능입니다." />
+                          ToolTip="{loc:MenuText Tools_ResetSettings_Tip}" />
                 <Separator />
-                <MenuItem Header="악보 편집…"
+                <MenuItem Header="{loc:MenuText Tools_ScoreEditor}"
                           Click="OpenScoreEditor_Click"
-                          ToolTip="찬양 악보를 작성하고 PPTX로 내보냅니다. 라이브러리에서 선택한 곡이 있으면 그 제목으로 시작합니다.">
+                          ToolTip="{loc:MenuText Tools_ScoreEditor_Tip}">
                     <MenuItem.Icon><controls:FrmIcon Icon="edit" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Header="예배 자료 관리">
-                    <MenuItem Header="외부 파일 복사·이동" Click="OpenExternalFiles_Click">
+                <MenuItem Header="{loc:MenuText Tools_WorshipMaterials}">
+                    <MenuItem Header="{loc:MenuText Tools_ExternalFiles}" Click="OpenExternalFiles_Click">
                         <MenuItem.Icon><controls:FrmIcon Icon="folder_open" Width="16" Height="16" /></MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem Header="공지 화면(InfoScreen)..." Click="OpenNoticeScreen_Click">
+                    <MenuItem Header="{loc:MenuText Tools_NoticeScreen}" Click="OpenNoticeScreen_Click">
                         <MenuItem.Icon><ui:SymbolIcon Symbol="{x:Static theme:EsIcons.Template}" /></MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem Header="세션 메모..." Click="OpenSessionNotes_Click">
+                    <MenuItem Header="{loc:MenuText Tools_SessionNotes}" Click="OpenSessionNotes_Click">
                         <MenuItem.Icon><controls:FrmIcon Icon="edit" Width="16" Height="16" /></MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem Header="예배 순서 검증"
+                    <MenuItem Header="{loc:MenuText Tools_CheckWorshipList}"
                               Command="{Binding ValidateWorshipListCommand}"
-                              ToolTip="라이브 송출 전 깨진 PowerPoint·미디어 파일이 없는지 점검합니다.">
+                              ToolTip="{loc:MenuText Tools_CheckWorshipList_Tip}">
                         <MenuItem.Icon><controls:FrmIcon Icon="checkbox_checked" Filled="True" Width="16" Height="16" /></MenuItem.Icon>
                     </MenuItem>
                 </MenuItem>
             </MenuItem>
 
-            <MenuItem Header="Help" Style="{x:Null}" Template="{StaticResource FrmMainMenuHeader}" MinHeight="24">
-                <MenuItem Header="Contents" Click="HelpContents_Click" InputGestureText="F1">
+            <MenuItem Header="{loc:MenuText Menu_Help}" Style="{x:Null}" Template="{StaticResource FrmMainMenuHeader}" MinHeight="24">
+                <MenuItem Header="{loc:MenuText Help_Contents}" Click="HelpContents_Click" InputGestureText="F1">
                     <MenuItem.Icon><controls:FrmIcon Icon="question_circle" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Header="Help on the Web" Click="WebHelp_Click">
+                <MenuItem Header="{loc:MenuText Help_Web}" Click="WebHelp_Click">
                     <MenuItem.Icon><controls:FrmIcon Icon="globe" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
                 <Separator />
-                <MenuItem Header="Register Use of Axicultus" Click="OpenRegistration_Click" />
-                <MenuItem Header="About Axicultus" Click="OpenAbout_Click" />
+                <MenuItem Header="{loc:MenuText Help_Register}" Click="OpenRegistration_Click" />
+                <MenuItem Header="{loc:MenuText Help_About}" Click="OpenAbout_Click" />
                 <Separator />
-                <MenuItem Header="앱 사용 안내" Click="OpenHelp_Click">
+                <MenuItem Header="{loc:MenuText Help_Guide}" Click="OpenHelp_Click">
                     <MenuItem.Icon><controls:FrmIcon Icon="question_circle" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
             </MenuItem>

@@ -51,7 +51,7 @@ public partial class SettingsWindow : Window
         InitializeComponent();
         DataContext = options;
         options.ConfirmRestoreDefaults = () => MessageBox.Show(this,
-            "모든 설정을 기본값으로 되돌릴까요?\n\n다음은 그대로 둡니다: 작업·백업·PowerPoint·미디어 폴더와 데이터베이스 경로, 라이선스 정보, 등록 사용자,\n송출·무대 모니터 선택과 화면 위치, 현재 예배 순서와 창 위치.\n확인(OK)을 눌러야 저장됩니다.",
+            "모든 설정을 기본값으로 되돌릴까요?\n\n다음은 그대로 둡니다: 작업·백업·PowerPoint·미디어 폴더와 데이터베이스 경로, 라이선스 정보, 등록 사용자,\n송출·무대 모니터 선택과 화면 위치, 현재 예배 순서와 창 위치, 메뉴 언어.\n확인(OK)을 눌러야 저장됩니다.",
             "기본값 복원", MessageBoxButton.OKCancel, MessageBoxImage.Warning) == MessageBoxResult.OK;
         _liveBible = bible;
         BiblePanel.Loaded += BiblePanel_Loaded;

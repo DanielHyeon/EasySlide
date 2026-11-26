@@ -664,10 +664,12 @@ public class SettingsServiceTests
         sut.Set(AxicultusSettingKeys.DisplayCustomWidth, 1920).Succeeded.Should().BeTrue();
         sut.SetValues(new Dictionary<string, object> { ["operator.StageWidth"] = 800 }).Succeeded.Should().BeTrue();
         sut.Set(AxicultusSettingKeys.Theme, ColorTheme.Dark).Succeeded.Should().BeTrue();
+        sut.Set(AxicultusSettingKeys.Language, "en-US").Succeeded.Should().BeTrue();
 
         sut.RestoreDefaults().Succeeded.Should().BeTrue();
 
         sut.Get(AxicultusSettingKeys.Theme).Should().Be(AxicultusSettingKeys.Theme.DefaultValue);
+        sut.Get(AxicultusSettingKeys.Language).Should().Be("en-US", "a reset keeps the menus' language");
         sut.Get(AxicultusSettingKeys.MediaDirectory).Should().Be(fixture.LegacyFolder);
         sut.Get(AxicultusSettingKeys.PowerPointSourceFolder).Should().Be(fixture.ImportFolder);
         sut.Get(AxicultusSettingKeys.CurrentWorshipListName).Should().Be("Sunday AM");
@@ -699,11 +701,11 @@ public class SettingsServiceTests
         sut.Set(AxicultusSettingKeys.RegistrationUser, "Grace Church").Succeeded.Should().BeTrue();
         sut.Set(AxicultusSettingKeys.LicenceNumber3, "1234567").Succeeded.Should().BeTrue();
         sut.Set(AxicultusSettingKeys.LicenceName4, "Publisher").Succeeded.Should().BeTrue();
-        sut.Set(AxicultusSettingKeys.Language, "en-US").Succeeded.Should().BeTrue();
+        sut.Set(AxicultusSettingKeys.Theme, ColorTheme.Dark).Succeeded.Should().BeTrue();
 
         sut.RestoreDefaults().Succeeded.Should().BeTrue();
 
-        sut.Get(AxicultusSettingKeys.Language).Should().Be(AxicultusSettingKeys.Language.DefaultValue);
+        sut.Get(AxicultusSettingKeys.Theme).Should().Be(AxicultusSettingKeys.Theme.DefaultValue);
         sut.Get(AxicultusSettingKeys.WorkingFolder).Should().Be(fixture.LegacyFolder);
         sut.Get(AxicultusSettingKeys.AdminDatabasePath).Should().Be(database);
         sut.Get(AxicultusSettingKeys.RegistrationUser).Should().Be("Grace Church");

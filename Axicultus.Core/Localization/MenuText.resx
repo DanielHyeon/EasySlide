@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Menu texts of both apps (Axicultus WPF and Axicultuss WinForms): English, the neutral culture.
+  MenuText.ko.resx holds the Korean ones; both files have the same keys.
+  "&" marks the access key (the WinForms convention; WPF shows it as "_"). {0} is the app name.
+-->
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Menu_File" xml:space="preserve"><value>&amp;File</value></data>
+  <data name="Menu_Edit" xml:space="preserve"><value>&amp;Edit</value></data>
+  <data name="Menu_View" xml:space="preserve"><value>&amp;View</value></data>
+  <data name="Menu_Output" xml:space="preserve"><value>&amp;Output</value></data>
+  <data name="Menu_Tools" xml:space="preserve"><value>&amp;Tools</value></data>
+  <data name="Menu_Help" xml:space="preserve"><value>&amp;Help</value></data>
+  <data name="File_WorshipSessions" xml:space="preserve"><value>Worship Sessions...</value></data>
+  <data name="File_PraiseBooks" xml:space="preserve"><value>PraiseBooks...</value></data>
+  <data name="File_ListingOfSelectedFolder" xml:space="preserve"><value>Listing of Selected Folder</value></data>
+  <data name="File_RecentEdits" xml:space="preserve"><value>Recent Edits</value></data>
+  <data name="File_NoRecentEdits" xml:space="preserve"><value>No recent edits</value></data>
+  <data name="File_Exit" xml:space="preserve"><value>Exit</value></data>
+  <data name="File_WorshipFiles" xml:space="preserve"><value>Worship List and Files</value></data>
+  <data name="File_SaveWorshipList" xml:space="preserve"><value>Save Worship List</value></data>
+  <data name="File_AddFileToWorshipList" xml:space="preserve"><value>Add File to Worship List</value></data>
+  <data name="File_ImportLegacyWorshipList" xml:space="preserve"><value>Import Earlier Worship List (.esw)...</value></data>
+  <data name="File_BrowsePowerPointFolder" xml:space="preserve"><value>Browse PowerPoint Folder...</value></data>
+  <data name="File_BrowseMediaFolder" xml:space="preserve"><value>Browse Media Folder...</value></data>
+  <data name="File_OpenLibrary" xml:space="preserve"><value>Open Library</value></data>
+  <data name="File_RecentWorshipLists" xml:space="preserve"><value>Recent Worship Lists</value></data>
+  <data name="Edit_AddNewSong" xml:space="preserve"><value>Add New Song...</value></data>
+  <data name="Edit_Edit" xml:space="preserve"><value>Edit</value></data>
+  <data name="Edit_Copy" xml:space="preserve"><value>Copy</value></data>
+  <data name="Edit_Move" xml:space="preserve"><value>Move</value></data>
+  <data name="Edit_Delete" xml:space="preserve"><value>Delete...</value></data>
+  <data name="Edit_SelectAll" xml:space="preserve"><value>Select All</value></data>
+  <data name="Edit_Find" xml:space="preserve"><value>Find</value></data>
+  <data name="Edit_UseSongNumbering" xml:space="preserve"><value>Use Song Numbering</value></data>
+  <data name="Edit_RearrangeSongFolders" xml:space="preserve"><value>Re-Arrange Song Folders</value></data>
+  <data name="Edit_SearchUsage" xml:space="preserve"><value>Song Search and Usage</value></data>
+  <data name="View_AppFolder" xml:space="preserve"><value>{0} Folder</value></data>
+  <data name="View_Options" xml:space="preserve"><value>Options</value></data>
+  <data name="View_Refresh" xml:space="preserve"><value>Refresh</value></data>
+  <data name="View_ShowNotations" xml:space="preserve"><value>Show Notations in Preview</value></data>
+  <data name="View_StatusBar" xml:space="preserve"><value>Status Bar</value></data>
+  <data name="View_Language" xml:space="preserve"><value>Language / 언어</value></data>
+  <data name="Output_StartShow" xml:space="preserve"><value>Start Show - Go LIVE</value></data>
+  <data name="Output_GoLiveMoveNext" xml:space="preserve"><value>Preview: Go Live, Move Next</value></data>
+  <data name="Output_RefreshOutput" xml:space="preserve"><value>Refresh Output</value></data>
+  <data name="Output_BlackScreen" xml:space="preserve"><value>Black Screen</value></data>
+  <data name="Output_ClearScreen" xml:space="preserve"><value>Clear Screen</value></data>
+  <data name="Output_RestartCurrentItem" xml:space="preserve"><value>Restart Current Item</value></data>
+  <data name="Output_CameraCaptions" xml:space="preserve"><value>Camera Captions…</value></data>
+  <data name="Output_Controls" xml:space="preserve"><value>Output Controls</value></data>
+  <data name="Output_PreviewToOutputClearBlack" xml:space="preserve"><value>Send Preview to Output and Clear Black</value></data>
+  <data name="Output_PreviewToOutput" xml:space="preserve"><value>Send Preview to Output</value></data>
+  <data name="Output_StopLive" xml:space="preserve"><value>Stop Live</value></data>
+  <data name="Output_FirstItem" xml:space="preserve"><value>First Item</value></data>
+  <data name="Output_NextSlide" xml:space="preserve"><value>Next Slide/Verse</value></data>
+  <data name="Output_PreviousSlide" xml:space="preserve"><value>Previous Slide/Verse</value></data>
+  <data name="Output_LastItem" xml:space="preserve"><value>Last Item</value></data>
+  <data name="Output_HideOutput" xml:space="preserve"><value>Hide Output</value></data>
+  <data name="Output_RestoreOutput" xml:space="preserve"><value>Restore Output</value></data>
+  <data name="Output_ToggleLiveCamera" xml:space="preserve"><value>Live Camera On/Off</value></data>
+  <data name="Output_OpenStageMonitor" xml:space="preserve"><value>Open Stage Monitor</value></data>
+  <data name="Output_CloseStageMonitor" xml:space="preserve"><value>Close Stage Monitor</value></data>
+  <data name="Output_Format" xml:space="preserve"><value>Output Format…</value></data>
+  <data name="Output_Format_Tip" xml:space="preserve"><value>Opens the window that sets the lyrics, background, transition and info panel formats.</value></data>
+  <data name="Tools_Import" xml:space="preserve"><value>&amp;Import</value></data>
+  <data name="Tools_ImportFolder" xml:space="preserve"><value>I&amp;mport Folder</value></data>
+  <data name="Tools_Export" xml:space="preserve"><value>&amp;Export</value></data>
+  <data name="Tools_RecoverDeleted" xml:space="preserve"><value>&amp;Recover Deleted Items</value></data>
+  <data name="Tools_EmptyDeleted" xml:space="preserve"><value>&amp;Empty Deleted Folder...</value></data>
+  <data name="Tools_AddWorshipListToUsages" xml:space="preserve"><value>&amp;Add Worship List to Usages</value></data>
+  <data name="Tools_ViewUsages" xml:space="preserve"><value>&amp;View usages</value></data>
+  <data name="Tools_SmartMerge" xml:space="preserve"><value>&amp;Smart Merge</value></data>
+  <data name="Tools_CompactDatabases" xml:space="preserve"><value>&amp;Compact and Repair Databases</value></data>
+  <data name="Tools_CompactDatabases_Tip" xml:space="preserve"><value>Reclaims the free space in the song database to make the file smaller (a backup is made first).</value></data>
+  <data name="Tools_ClearAllFormatting" xml:space="preserve"><value>Clear All &amp;Formatting in Database.</value></data>
+  <data name="Tools_ClearSettingsAndExit" xml:space="preserve"><value>Clear {0} Settings and Exit</value></data>
+  <data name="Tools_ResetSettings" xml:space="preserve"><value>Reset WPF Settings…</value></data>
+  <data name="Tools_ResetSettings_Tip" xml:space="preserve"><value>Returns most settings to their defaults and restarts the app. Song, Bible and worship list data, folders, window and monitor placement, the language and registration are kept. For when the settings have gone wrong.</value></data>
+  <data name="Tools_ScoreEditor" xml:space="preserve"><value>Score Editor…</value></data>
+  <data name="Tools_ScoreEditor_Tip" xml:space="preserve"><value>Writes a praise score and exports it as PPTX. Starts with the title of the song picked in the library, if any.</value></data>
+  <data name="Tools_WorshipMaterials" xml:space="preserve"><value>Worship Materials</value></data>
+  <data name="Tools_ExternalFiles" xml:space="preserve"><value>Copy or Move External Files</value></data>
+  <data name="Tools_NoticeScreen" xml:space="preserve"><value>Notice Screen (InfoScreen)...</value></data>
+  <data name="Tools_SessionNotes" xml:space="preserve"><value>Session Notes...</value></data>
+  <data name="Tools_CheckWorshipList" xml:space="preserve"><value>Check Worship List</value></data>
+  <data name="Tools_CheckWorshipList_Tip" xml:space="preserve"><value>Checks before going live that no PowerPoint or media file is broken.</value></data>
+  <data name="Help_Contents" xml:space="preserve"><value>Contents</value></data>
+  <data name="Help_Web" xml:space="preserve"><value>Help on the Web</value></data>
+  <data name="Help_Register" xml:space="preserve"><value>Register Use of {0}</value></data>
+  <data name="Help_About" xml:space="preserve"><value>About {0}</value></data>
+  <data name="Help_Guide" xml:space="preserve"><value>App Guide</value></data>
+  <data name="Language_Title" xml:space="preserve"><value>Language</value></data>
+  <data name="Language_Restart" xml:space="preserve"><value>The new language is shown the next time the program starts.</value></data>
+  <data name="Language_SaveFailed" xml:space="preserve"><value>The language could not be saved: {0}</value></data>
+  <data name="ResetSettings_Title" xml:space="preserve"><value>Reset Settings</value></data>
+  <data name="ResetSettings_Confirm" xml:space="preserve"><value>Most settings return to their defaults and the app restarts.
+
+Reset: fonts, colours, shortcuts, display options, panel sizes and the other app settings.
+Kept: song, Bible and worship list data; the working, data, PowerPoint and media folders; the current worship list; the main window's place; the output and stage monitor placement; the language; registration and licences.
+
+This cannot be undone. Continue?</value></data>
+  <data name="ResetSettings_Failed" xml:space="preserve"><value>The settings could not be reset (check that the settings file can be written and is not locked).</value></data>
+  <data name="ResetSettings_RestartManually" xml:space="preserve"><value>The settings were reset. The app closes now; please start it again.</value></data>
+</root>

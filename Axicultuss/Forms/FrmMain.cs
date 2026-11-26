@@ -53,6 +53,7 @@ public partial class FrmMain : Form
     public FrmMain()
     {
         InitializeComponent();
+        ApplyMenuText();
         FormClosed += Form1_FormClosed;
         WatchFirstShown();
 

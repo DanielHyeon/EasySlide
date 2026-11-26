@@ -72,6 +72,9 @@ static class Program
                     Environment.ExitCode = 1;
                     return;
                 }
+                // The menus' language (View > Language), before any window reads its texts. (The constant is inlined:
+                // FrmMain is not touched here.)
+                Axicultus.Localization.UiLanguage.Apply(RegUtil.GetRegValue("settings", FrmMain.Reg_UiLanguage, Axicultus.Localization.UiLanguage.Korean));
                 Application.SetHighDpiMode(HighDpiMode.SystemAware);
                 Application.SetCompatibleTextRenderingDefault(false);
                 var task1 = Task.Run(() =>

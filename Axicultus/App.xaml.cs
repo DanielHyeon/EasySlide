@@ -261,6 +261,8 @@ public partial class App : Application
     internal void OpenShell(IServiceProvider services, bool useDemo)
     {
         Services = services;
+        // The menus' language (View > Language), before any window reads its texts.
+        Axicultus.Localization.UiLanguage.Apply(Services.GetRequiredService<ISettingsService>().Get(AxicultusSettingKeys.Language));
         _ = Services.GetRequiredService<IOutputWindowHost>();
         // 스테이지(Preview) 모니터 호스트도 미리 띄워 세션·창 상태 구독을 시작한다(창은 사용자가 열기 전엔 닫힌 채 대기 — 160-D 에서 열기 명령 추가).
         _ = Services.GetRequiredService<PreviewWindowHost>();

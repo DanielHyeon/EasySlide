@@ -4581,12 +4581,12 @@ public partial class MainWindow : Window
             return;
         }
 
+        // What is reset and what is kept: SettingsService.KeptOnRestoreDefaults.
+        string title = Localization.MenuTextExtension.Plain(nameof(Axicultus.Localization.MenuText.ResetSettings_Title));
         var confirm = MessageBox.Show(
             this,
-            "모든 설정을 기본값으로 초기화하고 앱을 다시 시작합니다.\n\n" +
-            "출력 화면·폰트·색·단축키 등 모든 사용자 설정이 사라집니다(곡·성경 데이터는 영향 없음).\n" +
-            "이 작업은 되돌릴 수 없습니다. 계속할까요?",
-            "모든 설정 초기화",
+            Localization.MenuTextExtension.Plain(nameof(Axicultus.Localization.MenuText.ResetSettings_Confirm)),
+            title,
             MessageBoxButton.OKCancel,
             MessageBoxImage.Warning,
             MessageBoxResult.Cancel); // 기본 선택은 '취소' — 실수로 Enter 쳐도 초기화되지 않게.
@@ -4597,7 +4597,8 @@ public partial class MainWindow : Window
 
         if (!await viewModel.SavePendingWorshipListChangesAsync())
         {
-            MessageBox.Show(this, viewModel.StatusText, "예배 순서 저장", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show(this, viewModel.StatusText, Localization.MenuTextExtension.Plain(nameof(Axicultus.Localization.MenuText.File_SaveWorshipList)),
+                MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
         if (!viewModel.ResetAllSettingsToDefaults())
@@ -4605,8 +4606,8 @@ public partial class MainWindow : Window
             // 설정 파일 쓰기 실패(권한·잠김 등) — 알리고 앱은 그대로 둔다(엉뚱하게 재시작하지 않게).
             MessageBox.Show(
                 this,
-                "설정 초기화에 실패했습니다(설정 파일 쓰기 권한·잠김을 확인하세요).",
-                "모든 설정 초기화",
+                Localization.MenuTextExtension.Plain(nameof(Axicultus.Localization.MenuText.ResetSettings_Failed)),
+                title,
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
             return;
@@ -4637,8 +4638,8 @@ public partial class MainWindow : Window
         {
             MessageBox.Show(
                 this,
-                "설정을 기본값으로 초기화했습니다. 앱을 종료하니 다시 실행해 주세요.",
-                "모든 설정 초기화",
+                Localization.MenuTextExtension.Plain(nameof(Axicultus.Localization.MenuText.ResetSettings_RestartManually)),
+                title,
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);
         }

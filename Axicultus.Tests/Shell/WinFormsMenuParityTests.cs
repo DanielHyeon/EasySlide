@@ -11,8 +11,16 @@ public class WinFormsMenuParityTests
 {
     private static readonly string Root = FindRepositoryRoot();
     private static readonly string Designer = File.ReadAllText(Path.Combine(Root, "Axicultuss", "Forms", "FrmMain.Designer.cs"));
+    // FrmMain's menu texts at run time (the designer keeps English ones for design time).
+    private static readonly string MenuTexts = File.ReadAllText(Path.Combine(Root, "Axicultuss", "Forms", "FrmMain.MenuText.cs"));
     private static readonly XElement MainMenu = XDocument.Load(Path.Combine(Root, "Axicultus", "MainWindow.xaml"))
-        .Descendants().First(element => element.Name.LocalName == "Menu" && element.Elements().Any(item => (string?)item.Attribute("Header") == "File"));
+        .Descendants().First(element => element.Name.LocalName == "Menu" && element.Elements().Any(item => (string?)item.Attribute("Header") == Group("File")));
+
+    private static string Group(string group) => "{loc:MenuText Menu_" + group + "}";
+
+    // The resource key FrmMain gives the item its text from.
+    private static string WinFormsKey(string id) =>
+        Regex.Match(MenuTexts, @"\b" + id + @"\.Text = (?:string\.Format\()?MenuText\.(\w+)\b") is { Success: true } key ? key.Groups[1].Value : "";
 
     [Theory]
     [InlineData("File", "Menu_WorshipSessions", "Click", "OpenManageWorshipLists_Click")]
@@ -59,7 +67,7 @@ public class WinFormsMenuParityTests
     {
         var expectedGroup = Regex.Match(Designer, @"Menu_Main" + group + @"\.DropDownItems\.AddRange\(([^;]+)\);");
         Assert.Contains(legacy, Regex.Matches(expectedGroup.Groups[1].Value, @"\bMenu_\w+").Select(match => match.Value));
-        var menu = MainMenu.Elements().Single(item => (string?)item.Attribute("Header") == group);
+        var menu = MainMenu.Elements().Single(item => (string?)item.Attribute("Header") == Group(group));
         Assert.Contains(menu.Elements(), item => item.Name.LocalName == "MenuItem"
             && item.Attributes().Any(a => a.Name.LocalName == attribute && a.Value == target)
             && (tag == null || (string?)item.Attribute("Tag") == tag));
@@ -76,6 +84,17 @@ public class WinFormsMenuParityTests
         Assert.Equal(expected, cases);
     }
 
+    // Every item of FrmMain's menu bar shows a text of the shared resources (in the UI language).
+    [Fact]
+    public void EveryWinFormsMenuItemTakesItsTextFromTheResources()
+    {
+        var keys = typeof(Axicultus.Localization.MenuText).GetProperties().Select(p => p.Name).ToHashSet();
+        var ids = Regex.Matches(Designer, @"menuStripMain\.Items\.AddRange\(([^;]+)\);").Concat(Regex.Matches(Designer, @"Menu_Main\w+\.DropDownItems\.AddRange\(([^;]+)\);"))
+            .SelectMany(group => Regex.Matches(group.Groups[1].Value, @"\bMenu_\w+").Select(match => match.Value)).Distinct().ToList();
+        Assert.Equal(46, ids.Count); // 6 menus, 40 items
+        foreach (var id in ids) Assert.True(keys.Contains(WinFormsKey(id)), $"{id} has no resource text");
+    }
+
     [Theory]
     [InlineData("File")]
     [InlineData("Edit")]
@@ -85,7 +104,8 @@ public class WinFormsMenuParityTests
     [InlineData("Help")]
     public void NativeMenuOrderLabelsAndIconsMatch(string group)
     {
-        var menu = MainMenu.Elements().Single(item => (string?)item.Attribute("Header") == group);
+        Assert.Equal("Menu_" + group, WinFormsKey("Menu_Main" + group));
+        var menu = MainMenu.Elements().Single(item => (string?)item.Attribute("Header") == Group(group));
         var expected = Regex.Match(Designer, @"Menu_Main" + group + @"\.DropDownItems\.AddRange\(([^;]+)\);");
         var slots = Regex.Matches(expected.Groups[1].Value, @"\b(Menu_\w+|toolStripSeparator\w+)");
         var icons = File.ReadAllText(Path.Combine(Root, "Axicultuss", "Forms", "FrmMain.ModernUi.FormatIcons.cs"));
@@ -99,10 +119,11 @@ public class WinFormsMenuParityTests
                 Assert.Equal("Separator", actual[i].Name.LocalName);
                 continue;
             }
-            var caption = Regex.Match(Designer, id + "\\.Text = \"([^\"]+)\";").Groups[1].Value.Replace("&", "");
-            if (id is "Menu_Register" or "Menu_About") caption = caption.Replace("Axicultuss", "Axicultus", StringComparison.Ordinal);
-            if (id == "Menu_ClearRegistrySettings") caption = "Reset WPF Settings...";
-            Assert.Equal(caption, ((string?)actual[i].Attribute("Header"))?.Replace("_", "").Replace("…", "..."));
+            // Both apps take the item's text from the same resource (the WPF app resets its settings instead).
+            var key = WinFormsKey(id);
+            Assert.NotEqual("", key);
+            if (id == "Menu_ClearRegistrySettings") key = "Tools_ResetSettings";
+            Assert.Equal("{loc:MenuText " + key + "}", (string?)actual[i].Attribute("Header"));
             var glyph = Regex.Match(icons, "\\(" + id + ", \"([^\"]+)\", ModernIconStyle\\.(\\w+)");
             var icon = actual[i].Elements().FirstOrDefault(e => e.Name.LocalName == "MenuItem.Icon")?.Elements().Single();
             Assert.Equal(glyph.Success ? glyph.Groups[1].Value : null, (string?)icon?.Attribute("Icon"));

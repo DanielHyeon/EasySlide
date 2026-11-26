@@ -35,7 +35,8 @@ public partial class MainWindow
             item.Click += ReopenEdit_Click;
             RecentEditsMenu.Items.Add(item);
         }
-        if (RecentEditsMenu.Items.Count == 0) RecentEditsMenu.Items.Add(new MenuItem { Header = "최근 편집 항목 없음", IsEnabled = false });
+        if (RecentEditsMenu.Items.Count == 0)
+            RecentEditsMenu.Items.Add(new MenuItem { Header = Localization.MenuTextExtension.Text(nameof(Axicultus.Localization.MenuText.File_NoRecentEdits)), IsEnabled = false });
     }
 
     private async void ReopenEdit_Click(object sender, RoutedEventArgs e)

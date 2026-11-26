@@ -1578,9 +1578,11 @@ public sealed class SettingsService : ISettingsService
     }
 
     // Restoring defaults must not disconnect the church from its data or move a window during a service:
-    // folders, licences, registration, where the session was, and where the output and stage windows go all stay.
+    // folders, licences, registration, where the session was, and where the output and stage windows go all stay;
+    // so does the menus' language. (The reset dialog lists these: MenuText ResetSettings_Confirm.)
     private static readonly string[] KeptOnRestoreDefaults =
     [
+        AxicultusSettingKeys.Language.Id,
         AxicultusSettingKeys.WorkingFolder.Id,
         AxicultusSettingKeys.AdminDatabasePath.Id,
         AxicultusSettingKeys.DataBackupRoot.Id,
