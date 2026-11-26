@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Library;
 
@@ -25,10 +26,10 @@ public static class SongInitialGrouping
     };
 
     // 색인 머리글자 정렬 순서: 한글 자음(가나다) → 영문 A~Z → 숫자(#). "기타"는 맨 뒤.
-    private const string GroupOrderText = "ㄱㄴㄷㄹㅁㅂㅅㅇㅈㅊㅋㅌㅍㅎABCDEFGHIJKLMNOPQRSTUVWXYZ#";
+    private const string GroupOrderText = "ㄱㄴㄷㄹㅁㅂㅅㅇㅈㅊㅋㅌㅍㅎABCDEFGHIJKLMNOPQRSTUVWXYZ#"; // not UI text
 
     /// <summary>"기타" 그룹 키(정의된 머리글자에 속하지 않는 제목).</summary>
-    public const string OtherKey = "기타";
+    public static string OtherKey => UiText.Get("SongInitialGrouping", "Other");
 
     /// <summary>제목의 첫 글자로 색인 머리글자를 구한다. 빈 제목이면 "기타".</summary>
     public static string GetInitial(string? title)

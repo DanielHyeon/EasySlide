@@ -27,16 +27,6 @@ public sealed class UiTextCoverageTests
         "Axicultus/Composites/OutputPlacementEditor.xaml",
         "Axicultus/Composites/SongSearchQueryPanel.xaml",
         "Axicultus/Composites/WorshipListPanel.xaml",
-        "Axicultus/Library/FolderEditorWindow.xaml",
-        "Axicultus/Library/FolderOrderWindow.xaml",
-        "Axicultus/Library/LibraryWindow.xaml",
-        "Axicultus/Library/SearchUsageWindow.xaml",
-        "Axicultus/Library/SongCopyWindow.xaml",
-        "Axicultus/Library/SongDeleteWindow.xaml",
-        "Axicultus/Library/SongEditorWindow.xaml",
-        "Axicultus/Library/SongMergeWindow.xaml",
-        "Axicultus/Library/SongMoveWindow.xaml",
-        "Axicultus/Library/SongRecoveryWindow.xaml",
         "Axicultus/MainWindow.xaml",
         "Axicultus/OutputWindow.xaml",
         "Axicultus/PreviewWindow.xaml",
@@ -49,23 +39,6 @@ public sealed class UiTextCoverageTests
         "Axicultus/Composites/LiveBar.cs",
         "Axicultus/Composites/SafetyConfirm.cs",
         "Axicultus/Composites/WorshipListPanel.xaml.cs",
-        "Axicultus/Library/FolderEditorViewModel.cs",
-        "Axicultus/Library/FolderLayoutSample.cs",
-        "Axicultus/Library/LibraryViewModel.cs",
-        "Axicultus/Library/LibraryWindow.xaml.cs",
-        "Axicultus/Library/SearchUsageViewModel.cs",
-        "Axicultus/Library/SearchUsageWindow.xaml.cs",
-        "Axicultus/Library/SongCopyViewModel.cs",
-        "Axicultus/Library/SongDeleteViewModel.cs",
-        "Axicultus/Library/SongEditorChords.cs",
-        "Axicultus/Library/SongEditorLyrics.cs",
-        "Axicultus/Library/SongEditorViewModel.cs",
-        "Axicultus/Library/SongEditorWindow.xaml.cs",
-        "Axicultus/Library/SongInitialGrouping.cs",
-        "Axicultus/Library/SongMergeViewModel.cs",
-        "Axicultus/Library/SongMoveViewModel.cs",
-        "Axicultus/Library/SongRecoveryViewModel.cs",
-        "Axicultus/Library/SongSelectionText.cs",
         "Axicultus/MainWindow.LiveDevices.cs",
         "Axicultus/MainWindow.OperatorMenus.cs",
         "Axicultus/MainWindow.xaml.cs",
@@ -150,7 +123,7 @@ public sealed class UiTextCoverageTests
         @"https?://\S+|www\.\S+|\{\d+(:[^}]*)?\}|\(&\w\)|\(_\w\)|&&|"
         // (bounded by non-ASCII-letters: a Korean particle may follow a name, "Axicultus를")
         + @"(?<![A-Za-z])(Axicultus|Axicultuss|EasiSlides|PowerPoint|PPTX?|OBS|Windows|Office|Word|Excel|SQLite|MySQL|MariaDB|CCLI|DirectShow|DirectX|AdminDB|HolyBibles|"
-        + @"JSON|XML|HTML|CSV|RTF|PDF|EULA|URL|USB|DPI|PC|ID|IP|NDI|WPF|WinForms|InfoScreen|Copyright|DB|MB|OCR|WebSocket|LIVE|pt|px|ms|"
+        + @"JSON|XML|HTML|CSV|RTF|PDF|EULA|URL|USB|DPI|PC|ID|IP|NDI|WPF|WinForms|InfoScreen|Copyright|DB|MB|OCR|WebSocket|LIVE|AARRGGBB|pt|px|ms|"
         + @"Ctrl|Alt|Shift|Esc|Enter|Space|Tab|PgUp|PgDn|PageUp|PageDown|Home|End|Del|Insert|F\d{1,2}|"
         // (a single capital letter: a key name, "M", or a list mark, "A.")
         + @"[A-Z])(?![A-Za-z])|"

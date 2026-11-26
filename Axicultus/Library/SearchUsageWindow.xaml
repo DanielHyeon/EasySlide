@@ -3,7 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
         xmlns:composites="clr-namespace:Axicultus.Wpf.Composites"
-        Title="검색 및 사용 현황"
+        xmlns:loc="clr-namespace:Axicultus.Wpf.Localization"
+        Title="{loc:Text SearchUsageWindow.Title}"
         Width="1120"
         Height="720"
         MinWidth="960"
@@ -24,7 +25,7 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <StackPanel>
-                <TextBlock Text="검색 및 사용 현황"
+                <TextBlock Text="{loc:Text SearchUsageWindow.Title}"
                            Style="{StaticResource Type.Title1.Style}"
                            Foreground="{DynamicResource Brush.Text.Primary}" />
                 <TextBlock Text="{Binding DatabasePath}"
@@ -37,17 +38,17 @@
                     Command="{Binding LoadCommand}"
                     Style="{StaticResource EsButton.Secondary}"
                     VerticalAlignment="Top"
-                    ToolTip="검색 데이터 새로고침"
+                    ToolTip="{loc:Text SearchUsageWindow.RefreshTip}"
                     AutomationProperties.Name="검색 데이터 새로고침">
                 <StackPanel Orientation="Horizontal">
                     <ui:SymbolIcon Symbol="ArrowSync24" Margin="0,0,6,0" />
-                    <TextBlock Text="새로고침" />
+                    <TextBlock Text="{loc:Text SearchUsageWindow.Refresh}" />
                 </StackPanel>
             </Button>
         </Grid>
 
         <TabControl Grid.Row="1">
-            <TabItem Header="곡">
+            <TabItem Header="{loc:Text SearchUsageWindow.SongsTab}">
                 <Grid Margin="0,16,0,0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="300" />
@@ -67,32 +68,32 @@
                               HeadersVisibility="Column"
                               GridLinesVisibility="Horizontal">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="제목" Binding="{Binding Title}" Width="2*" />
-                            <DataGridTextColumn Header="폴더" Binding="{Binding FolderName}" Width="*" />
-                            <DataGridTextColumn Header="번호" Binding="{Binding SongNumber}" Width="70" />
-                            <DataGridTextColumn Header="키" Binding="{Binding Key}" Width="70" />
-                            <DataGridTextColumn Header="일치 항목" Binding="{Binding MatchingFields[0]}" Width="110" />
-                            <DataGridTextColumn Header="발췌" Binding="{Binding Snippet}" Width="2*" />
+                            <DataGridTextColumn Header="{loc:Text SearchUsageWindow.ColumnTitle}" Binding="{Binding Title}" Width="2*" />
+                            <DataGridTextColumn Header="{loc:Text SearchUsageWindow.ColumnFolder}" Binding="{Binding FolderName}" Width="*" />
+                            <DataGridTextColumn Header="{loc:Text SearchUsageWindow.ColumnNumber}" Binding="{Binding SongNumber}" Width="70" />
+                            <DataGridTextColumn Header="{loc:Text SearchUsageWindow.ColumnKey}" Binding="{Binding Key}" Width="70" />
+                            <DataGridTextColumn Header="{loc:Text SearchUsageWindow.ColumnMatch}" Binding="{Binding MatchingFields[0]}" Width="110" />
+                            <DataGridTextColumn Header="{loc:Text SearchUsageWindow.ColumnSnippet}" Binding="{Binding Snippet}" Width="2*" />
                         </DataGrid.Columns>
                     </DataGrid>
                 </Grid>
             </TabItem>
 
-            <TabItem x:Name="BibleFindTab" Header="성경" Visibility="Collapsed">
+            <TabItem x:Name="BibleFindTab" Header="{loc:Text SearchUsageWindow.BibleTab}" Visibility="Collapsed">
                 <StackPanel Margin="12" MaxWidth="540" HorizontalAlignment="Left">
-                    <Label Content="번역본" Target="{Binding ElementName=FindVersion}" />
+                    <Label Content="{loc:Text SearchUsageWindow.Version}" Target="{Binding ElementName=FindVersion}" />
                     <ComboBox x:Name="FindVersion" AutomationProperties.Name="검색할 성경 번역본" DisplayMemberPath="Name" SelectionChanged="FindVersion_Changed" />
-                    <Label Content="검색 범위" Target="{Binding ElementName=FindBook}" />
+                    <Label Content="{loc:Text SearchUsageWindow.SearchScope}" Target="{Binding ElementName=FindBook}" />
                     <ComboBox x:Name="FindBook" AutomationProperties.Name="검색할 성경 책" DisplayMemberPath="Name" />
-                    <Label Content="검색어" Target="{Binding ElementName=FindPassage}" />
+                    <Label Content="{loc:Text SearchUsageWindow.SearchWords}" Target="{Binding ElementName=FindPassage}" />
                     <TextBox x:Name="FindPassage" AutomationProperties.Name="성경 검색어" MinWidth="320" KeyDown="FindPassage_KeyDown" />
-                    <Label Content="일치 조건" Target="{Binding ElementName=FindMode}" />
+                    <Label Content="{loc:Text SearchUsageWindow.MatchMode}" Target="{Binding ElementName=FindMode}" />
                     <ComboBox x:Name="FindMode" AutomationProperties.Name="성경 검색 일치 조건" SelectedIndex="0">
-                        <ComboBoxItem Content="모든 단어" />
-                        <ComboBoxItem Content="하나 이상의 단어" />
-                        <ComboBoxItem Content="정확한 구문" />
+                        <ComboBoxItem Content="{loc:Text SearchUsageWindow.MatchAllWords}" />
+                        <ComboBoxItem Content="{loc:Text SearchUsageWindow.MatchAnyWord}" />
+                        <ComboBoxItem Content="{loc:Text SearchUsageWindow.MatchExactPhrase}" />
                     </ComboBox>
-                    <Button Content="성경 찾기" Click="FindBible_Click" HorizontalAlignment="Left" Margin="0,12,0,0">
+                    <Button Content="{loc:Text SearchUsageWindow.FindBible}" Click="FindBible_Click" HorizontalAlignment="Left" Margin="0,12,0,0">
                         <Button.Style>
                             <Style TargetType="Button" BasedOn="{StaticResource EsButton.Primary}">
                                 <Style.Triggers>
@@ -108,7 +109,7 @@
                     </Button>
                 </StackPanel>
             </TabItem>
-            <TabItem Header="제목">
+            <TabItem Header="{loc:Text SearchUsageWindow.TitlesTab}">
                 <Grid Margin="0,16,0,0">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -123,7 +124,7 @@
                                 Style="{StaticResource EsButton.Primary}">
                             <StackPanel Orientation="Horizontal">
                                 <ui:SymbolIcon Symbol="Search24" Margin="0,0,6,0" />
-                                <TextBlock Text="조회" />
+                                <TextBlock Text="{loc:Text SearchUsageWindow.Lookup}" />
                             </StackPanel>
                         </Button>
                     </StackPanel>
@@ -134,17 +135,17 @@
                               IsReadOnly="True"
                               CanUserAddRows="False">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="제목" Binding="{Binding Title}" Width="2*" />
-                            <DataGridTextColumn Header="다른 제목" Binding="{Binding AlternateTitle}" Width="2*" />
-                            <DataGridTextColumn Header="폴더" Binding="{Binding FolderName}" Width="*" />
-                            <DataGridTextColumn Header="교단 참조" Binding="{Binding BookReference}" Width="*" />
-                            <DataGridTextColumn Header="사용자 참조" Binding="{Binding UserReference}" Width="*" />
+                            <DataGridTextColumn Header="{loc:Text SearchUsageWindow.ColumnTitle}" Binding="{Binding Title}" Width="2*" />
+                            <DataGridTextColumn Header="{loc:Text SearchUsageWindow.ColumnAlternateTitle}" Binding="{Binding AlternateTitle}" Width="2*" />
+                            <DataGridTextColumn Header="{loc:Text SearchUsageWindow.ColumnFolder}" Binding="{Binding FolderName}" Width="*" />
+                            <DataGridTextColumn Header="{loc:Text SearchUsageWindow.ColumnBookReference}" Binding="{Binding BookReference}" Width="*" />
+                            <DataGridTextColumn Header="{loc:Text SearchUsageWindow.ColumnUserReference}" Binding="{Binding UserReference}" Width="*" />
                         </DataGrid.Columns>
                     </DataGrid>
                 </Grid>
             </TabItem>
 
-            <TabItem Header="사용 현황" x:Name="UsageTab">
+            <TabItem Header="{loc:Text SearchUsageWindow.UsageTab}" x:Name="UsageTab">
                 <Grid Margin="0,16,0,0">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -163,7 +164,7 @@
                                 Margin="0,0,8,8">
                             <StackPanel Orientation="Horizontal">
                                 <ui:SymbolIcon Symbol="ArrowSync24" Margin="0,0,6,0" />
-                                <TextBlock Text="불러오기" />
+                                <TextBlock Text="{loc:Text SearchUsageWindow.Load}" />
                             </StackPanel>
                         </Button>
                         <Button Command="{Binding DeleteSelectedUsageCommand}"
@@ -171,24 +172,24 @@
                                 Margin="0,0,8,8">
                             <StackPanel Orientation="Horizontal">
                                 <ui:SymbolIcon Symbol="Delete24" Margin="0,0,6,0" />
-                                <TextBlock Text="삭제" />
+                                <TextBlock Text="{loc:Text SearchUsageWindow.Delete}" />
                             </StackPanel>
                         </Button>
                         <Button Click="BrowseUsageReport_Click"
                                 Style="{StaticResource EsButton.Secondary}"
-                                ToolTip="사용 보고서 저장 경로 찾아보기"
+                                ToolTip="{loc:Text SearchUsageWindow.BrowseReportTip}"
                                 AutomationProperties.Name="사용 보고서 경로 찾아보기"
                                 Margin="0,0,8,8">
                             <ui:SymbolIcon Symbol="FolderOpen24" />
                         </Button>
                         <Button Command="{Binding ExportUsageReportCommand}"
                                 Style="{StaticResource EsButton.Secondary}"
-                                ToolTip="사용 보고서를 RTF로 내보내기"
+                                ToolTip="{loc:Text SearchUsageWindow.ExportRtfTip}"
                                 AutomationProperties.Name="RTF 내보내기"
                                 Margin="0,0,8,8">
                             <StackPanel Orientation="Horizontal">
                                 <ui:SymbolIcon Symbol="Document24" Margin="0,0,6,0" />
-                                <TextBlock Text="RTF 내보내기" />
+                                <TextBlock Text="{loc:Text SearchUsageWindow.ExportRtf}" />
                             </StackPanel>
                         </Button>
                     </WrapPanel>
@@ -205,10 +206,10 @@
                                   CanUserAddRows="False">
                             <DataGrid.Columns>
                                 <DataGridCheckBoxColumn Header="" Binding="{Binding IsSelected}" Width="46" />
-                                <DataGridTextColumn Header="날짜" Binding="{Binding WorshipDate, StringFormat=yyyy-MM-dd}" Width="110" IsReadOnly="True" />
-                                <DataGridTextColumn Header="예배 순서" Binding="{Binding WorshipList}" Width="*" IsReadOnly="True" />
-                                <DataGridTextColumn Header="제목" Binding="{Binding SongTitle}" Width="2*" IsReadOnly="True" />
-                                <DataGridTextColumn Header="번호" Binding="{Binding SongNumber}" Width="70" IsReadOnly="True" />
+                                <DataGridTextColumn Header="{loc:Text SearchUsageWindow.ColumnDate}" Binding="{Binding WorshipDate, StringFormat=yyyy-MM-dd}" Width="110" IsReadOnly="True" />
+                                <DataGridTextColumn Header="{loc:Text SearchUsageWindow.ColumnWorshipList}" Binding="{Binding WorshipList}" Width="*" IsReadOnly="True" />
+                                <DataGridTextColumn Header="{loc:Text SearchUsageWindow.ColumnTitle}" Binding="{Binding SongTitle}" Width="2*" IsReadOnly="True" />
+                                <DataGridTextColumn Header="{loc:Text SearchUsageWindow.ColumnNumber}" Binding="{Binding SongNumber}" Width="70" IsReadOnly="True" />
                             </DataGrid.Columns>
                         </DataGrid>
                         <DataGrid Grid.Column="2"
@@ -218,9 +219,9 @@
                                   IsReadOnly="True"
                                   CanUserAddRows="False">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="횟수" Binding="{Binding Occurrences}" Width="80" />
-                                <DataGridTextColumn Header="제목" Binding="{Binding SongTitle}" Width="*" />
-                                <DataGridTextColumn Header="번호" Binding="{Binding SongNumber}" Width="70" />
+                                <DataGridTextColumn Header="{loc:Text SearchUsageWindow.ColumnCount}" Binding="{Binding Occurrences}" Width="80" />
+                                <DataGridTextColumn Header="{loc:Text SearchUsageWindow.ColumnTitle}" Binding="{Binding SongTitle}" Width="*" />
+                                <DataGridTextColumn Header="{loc:Text SearchUsageWindow.ColumnNumber}" Binding="{Binding SongNumber}" Width="70" />
                             </DataGrid.Columns>
                         </DataGrid>
                     </Grid>
@@ -241,7 +242,7 @@
                            Margin="0,0,14,0" />
                 <Button Click="Close_Click"
                         Style="{StaticResource EsButton.Secondary}">
-                    <TextBlock Text="닫기" />
+                    <TextBlock Text="{loc:Text SearchUsageWindow.Close}" />
                 </Button>
             </StackPanel>
         </DockPanel>

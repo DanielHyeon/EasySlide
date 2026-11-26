@@ -204,7 +204,7 @@ public class SongEditorViewModelTests
 
         await sut.SaveAsync();
 
-        sut.ValidationMessage.Should().Be("Capo(카포)는 -1(없음)보다 작을 수 없습니다.", "이식된 곡 편집기의 검증 메시지도 한글이어야 함");
+        sut.ValidationMessage.Should().Be("카포는 -1(없음)보다 작을 수 없습니다.", "이식된 곡 편집기의 검증 메시지도 한글이어야 함");
         repository.LastSong.Should().BeNull("검증 실패 시 저장하지 않는다");
     }
 
@@ -628,8 +628,8 @@ public class SongEditorViewModelTests
         // FrmEditItem: "" then "Capo 0" to "Capo 11"; it stores SelectedIndex - 1.
         sut.CapoOptions.Select(option => option.Key).Should().Equal(Enumerable.Range(-1, 13));
         sut.CapoOptions[0].Value.Should().Be("없음");
-        sut.CapoOptions[1].Value.Should().Be("Capo 0");
-        sut.CapoOptions[12].Value.Should().Be("Capo 11");
+        sut.CapoOptions[1].Value.Should().Be("카포 0");
+        sut.CapoOptions[12].Value.Should().Be("카포 11");
         sut.Capo.Should().Be(-1);
 
         await sut.SaveAsync();

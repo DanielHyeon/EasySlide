@@ -2,7 +2,8 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-        Title="삭제 곡 복구"
+        xmlns:loc="clr-namespace:Axicultus.Wpf.Localization"
+        Title="{loc:Text SongRecoveryWindow.Title}"
         Width="720"
         Height="500"
         MinWidth="640"
@@ -24,10 +25,10 @@
             </Grid.ColumnDefinitions>
 
             <StackPanel>
-                <TextBlock Text="삭제 곡 복구"
+                <TextBlock Text="{loc:Text SongRecoveryWindow.Title}"
                            Style="{StaticResource Type.Title1.Style}"
                            Foreground="{DynamicResource Brush.Text.Primary}" />
-                <TextBlock Text="삭제된 곡을 선택해 원래 폴더로 복구합니다."
+                <TextBlock Text="{loc:Text SongRecoveryWindow.Intro}"
                            Style="{StaticResource Type.Body.Style}"
                            Foreground="{DynamicResource Brush.Text.Secondary}"
                            Margin="0,6,0,0" />
@@ -36,12 +37,12 @@
             <Button Grid.Column="1"
                     Command="{Binding LoadCommand}"
                     Style="{StaticResource EsButton.Secondary}"
-                    ToolTip="삭제 곡 목록 새로 고침"
+                    ToolTip="{loc:Text SongRecoveryWindow.RefreshTip}"
                     AutomationProperties.Name="삭제 곡 목록 새로 고침"
                     VerticalAlignment="Top">
                 <StackPanel Orientation="Horizontal">
                     <ui:SymbolIcon Symbol="ArrowSync24" Margin="0,0,6,0" />
-                    <TextBlock Text="새로 고침" />
+                    <TextBlock Text="{loc:Text SongRecoveryWindow.Refresh}" />
                 </StackPanel>
             </Button>
         </Grid>
@@ -68,16 +69,16 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTextColumn Header="제목"
+                <DataGridTextColumn Header="{loc:Text SongRecoveryWindow.ColumnTitle}"
                                     Binding="{Binding Song.Title}"
                                     Width="2*" />
-                <DataGridTextColumn Header="원래 폴더"
+                <DataGridTextColumn Header="{loc:Text SongRecoveryWindow.ColumnOriginalFolder}"
                                     Binding="{Binding Song.OriginalFolderName}"
                                     Width="*" />
-                <DataGridTextColumn Header="삭제일"
+                <DataGridTextColumn Header="{loc:Text SongRecoveryWindow.ColumnDeletedOn}"
                                     Binding="{Binding Song.DeletedOn, StringFormat={}{0:yyyy-MM-dd}}"
                                     Width="120" />
-                <DataGridTextColumn Header="ID"
+                <DataGridTextColumn Header="{loc:Text SongRecoveryWindow.ColumnId}"
                                     Binding="{Binding Song.SongId}"
                                     Width="80" />
             </DataGrid.Columns>
@@ -100,21 +101,21 @@
                         HorizontalAlignment="Right">
                 <Button Command="{Binding RecoverCommand}"
                         Style="{StaticResource EsButton.Primary}"
-                        ToolTip="선택 곡 복구"
+                        ToolTip="{loc:Text SongRecoveryWindow.RecoverSelected}"
                         AutomationProperties.Name="선택 곡 복구"
                         Margin="0,0,8,0">
                     <StackPanel Orientation="Horizontal">
                         <ui:SymbolIcon Symbol="ArrowUndo24" Margin="0,0,6,0" />
-                        <TextBlock Text="복구" />
+                        <TextBlock Text="{loc:Text SongRecoveryWindow.Recover}" />
                     </StackPanel>
                 </Button>
                 <Button Style="{StaticResource EsButton.Secondary}"
                         Click="Close_Click"
-                        ToolTip="닫기"
+                        ToolTip="{loc:Text SongRecoveryWindow.Close}"
                         AutomationProperties.Name="삭제 곡 복구 창 닫기">
                     <StackPanel Orientation="Horizontal">
                         <ui:SymbolIcon Symbol="Dismiss24" Margin="0,0,6,0" />
-                        <TextBlock Text="닫기" />
+                        <TextBlock Text="{loc:Text SongRecoveryWindow.Close}" />
                     </StackPanel>
                 </Button>
             </StackPanel>

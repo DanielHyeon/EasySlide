@@ -1,5 +1,6 @@
 using System.IO;
 using System.Windows;
+using Axicultus.Wpf.Localization;
 using Microsoft.Win32;
 
 namespace Axicultus.Wpf.Library;
@@ -34,7 +35,7 @@ public partial class SearchUsageWindow : Window
     private void FindVersion_Changed(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
     {
         if (_bible is null || FindVersion.SelectedItem is not BibleVersion version) return;
-        BibleBook[] books = [new(0, "모든 책"), .. _bible.SearchBooksFor(version)];
+        BibleBook[] books = [new(0, UiText.Get("SearchUsageWindow", "AllBooks")), .. _bible.SearchBooksFor(version)];
         FindBook.ItemsSource = books;
         FindBook.SelectedIndex = 0;
     }
@@ -87,10 +88,10 @@ public partial class SearchUsageWindow : Window
 
         var dialog = new SaveFileDialog
         {
-            Filter = "Rich Text (*.rtf)|*.rtf",
+            Filter = UiText.Get("SearchUsageWindow", "RtfFilter"),
             DefaultExt = ".rtf",
             FileName = string.IsNullOrWhiteSpace(viewModel.UsageReportOutputPath)
-                ? "Song Usages.rtf"
+                ? "Song Usages.rtf" // not UI text
                 : Path.GetFileName(viewModel.UsageReportOutputPath),
             InitialDirectory = ResolveInitialDirectory(viewModel.UsageReportOutputPath, viewModel.WorkingFolder),
             OverwritePrompt = true,

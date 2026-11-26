@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Title" xml:space="preserve"><value>스마트 병합</value></data>
+  <data name="SourceA" xml:space="preserve"><value>원본 1</value></data>
+  <data name="SourceB" xml:space="preserve"><value>원본 2</value></data>
+  <data name="MatchAlternateTitle" xml:space="preserve"><value>대체 제목으로 매칭</value></data>
+  <data name="TargetFolder" xml:space="preserve"><value>대상 폴더</value></data>
+  <data name="AppendSourceBTitle" xml:space="preserve"><value>원본 2 제목을 병합 제목에 추가</value></data>
+  <data name="SelectAll" xml:space="preserve"><value>전체 선택</value></data>
+  <data name="FindCandidatesTip" xml:space="preserve"><value>병합 후보 조회</value></data>
+  <data name="FindCandidates" xml:space="preserve"><value>후보 조회</value></data>
+  <data name="ColumnMergedTitle" xml:space="preserve"><value>병합 제목</value></data>
+  <data name="MergeSelected" xml:space="preserve"><value>선택 후보 병합</value></data>
+  <data name="Merge" xml:space="preserve"><value>병합</value></data>
+  <data name="Close" xml:space="preserve"><value>닫기</value></data>
+  <data name="CandidatesFound" xml:space="preserve"><value>{0}개 병합 후보를 찾았습니다.</value></data>
+  <data name="FindFailed" xml:space="preserve"><value>병합 후보 조회 실패: {0}</value></data>
+  <data name="SelectCandidate" xml:space="preserve"><value>병합할 항목을 선택하세요.</value></data>
+  <data name="SourceNotFound" xml:space="preserve"><value>병합 실패: 원본 곡을 찾을 수 없습니다. ({0}, {1})</value></data>
+  <data name="MergeFailed" xml:space="preserve"><value>병합 실패</value></data>
+  <data name="MergeFailedDetail" xml:space="preserve"><value>병합 실패: {0}</value></data>
+  <data name="Created" xml:space="preserve"><value>{0}개 병합 곡을 만들었습니다.</value></data>
+  <data name="SelectSourceA" xml:space="preserve"><value>원본 1 폴더를 선택하세요.</value></data>
+  <data name="SelectSourceB" xml:space="preserve"><value>원본 2 폴더를 선택하세요.</value></data>
+  <data name="SelectTargetFolder" xml:space="preserve"><value>대상 폴더를 선택하세요.</value></data>
+  <data name="FindFirst" xml:space="preserve"><value>병합 후보를 먼저 조회하세요.</value></data>
+  <data name="DatabasePathMissing" xml:space="preserve"><value>AdminDB 경로를 설정해야 합니다.</value></data>
+  <data name="DatabaseNotFound" xml:space="preserve"><value>AdminDB 파일을 찾을 수 없습니다: {0}</value></data>
+</root>

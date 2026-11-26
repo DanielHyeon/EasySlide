@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="SearchResults" xml:space="preserve"><value>Search Results:</value></data>
+  <data name="Ready" xml:space="preserve"><value>Library ready</value></data>
+  <data name="NoSearchMatch" xml:space="preserve"><value>No songs match the search.</value></data>
+  <data name="NoTermMatch" xml:space="preserve"><value>No songs match '{0}'.</value></data>
+  <data name="FolderEmpty" xml:space="preserve"><value>There are no songs in this folder.</value></data>
+  <data name="PraiseBookLoadFailed" xml:space="preserve"><value>Could not load the praise book songs: {0}</value></data>
+  <data name="SortOriginal" xml:space="preserve"><value>Original order</value></data>
+  <data name="SortTitle" xml:space="preserve"><value>By title</value></data>
+  <data name="SortNumber" xml:space="preserve"><value>By song number</value></data>
+  <data name="SortStrokeCount" xml:space="preserve"><value>By stroke count (Hanja)</value></data>
+  <data name="SortWordCount" xml:space="preserve"><value>By character count</value></data>
+  <data name="NoFolders" xml:space="preserve"><value>There are no song folders.</value></data>
+  <data name="FoldersChanged" xml:space="preserve"><value>The folder list has changed. Open it again to check the order.</value></data>
+  <data name="FolderOrderSaveFailed" xml:space="preserve"><value>Could not save the folder order</value></data>
+  <data name="FolderOrderSaveFailedDetail" xml:space="preserve"><value>Could not save the folder order: {0}</value></data>
+  <data name="ShortcutSaveFailedRestored" xml:space="preserve"><value>The shortcuts could not be saved, so the folder order was put back as it was.</value></data>
+  <data name="ShortcutSaveAndRestoreFailed" xml:space="preserve"><value>Saving the shortcuts and restoring the folder order both failed</value></data>
+  <data name="FolderOrderSaved" xml:space="preserve"><value>Folder order saved.</value></data>
+  <data name="SelectDisabledFolder" xml:space="preserve"><value>Select a disabled folder to restore.</value></data>
+  <data name="SelectEnabledFolder" xml:space="preserve"><value>Select an enabled folder to delete.</value></data>
+  <data name="FolderAlreadyRestored" xml:space="preserve"><value>Selected folder is already restored.</value></data>
+  <data name="FolderAlreadyDisabled" xml:space="preserve"><value>Selected folder is already disabled.</value></data>
+  <data name="FolderRestoreFailed" xml:space="preserve"><value>Folder restore failed</value></data>
+  <data name="FolderDeleteFailed" xml:space="preserve"><value>Folder delete failed</value></data>
+  <data name="FolderRestoreFailedDetail" xml:space="preserve"><value>Folder restore failed: {0}</value></data>
+  <data name="FolderDeleteFailedDetail" xml:space="preserve"><value>Folder delete failed: {0}</value></data>
+  <data name="FolderRestored" xml:space="preserve"><value>Folder restored.</value></data>
+  <data name="FolderDisabled" xml:space="preserve"><value>Folder disabled.</value></data>
+  <data name="Compacted" xml:space="preserve"><value>The database was compacted (a backup was made first).</value></data>
+  <data name="CompactFailed" xml:space="preserve"><value>Database compaction failed</value></data>
+  <data name="CompactFailedDetail" xml:space="preserve"><value>Database compaction failed: {0}</value></data>
+  <data name="BackgroundSaveFailed" xml:space="preserve"><value>Could not save the background image</value></data>
+  <data name="MediaSaveFailed" xml:space="preserve"><value>Could not save the media settings</value></data>
+  <data name="CleanupDone" xml:space="preserve"><value>The song database cleanup is complete.</value></data>
+  <data name="CleanupFailed" xml:space="preserve"><value>Song database cleanup failed</value></data>
+  <data name="SongOrderNotStored" xml:space="preserve"><value>The song order is not saved separately. The song number is the song's own number (its hymn number).</value></data>
+  <data name="FolderSortSaveFailed" xml:space="preserve"><value>Could not save the folder sort order</value></data>
+  <data name="FolderSortSaveFailedDetail" xml:space="preserve"><value>Could not save the folder sort order: {0}</value></data>
+  <data name="SortedBy" xml:space="preserve"><value>Song list sorted: {0}</value></data>
+  <data name="LoadFailed" xml:space="preserve"><value>Could not load the library: {0}</value></data>
+  <data name="DatabaseNotFound" xml:space="preserve"><value>AdminDB file not found: {0}</value></data>
+  <data name="DatabasePathMissing" xml:space="preserve"><value>The AdminDB path must be set.</value></data>
+  <data name="BrowserCount" xml:space="preserve"><value>Folder: {0} items / </value></data>
+  <data name="BrowserCountFiltered" xml:space="preserve"><value>Folder: {0} of {1} items / </value></data>
+  <data name="ShownOfTotal" xml:space="preserve"><value>Showing {1} of {0} songs</value></data>
+  <data name="ShownInFolders" xml:space="preserve"><value>Showing {0} folders, {1} songs</value></data>
+</root>

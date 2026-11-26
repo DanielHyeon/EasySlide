@@ -2,7 +2,8 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-        Title="곡 삭제"
+        xmlns:loc="clr-namespace:Axicultus.Wpf.Localization"
+        Title="{loc:Text SongDeleteWindow.Title}"
         Width="520"
         Height="330"
         MinWidth="480"
@@ -17,7 +18,7 @@
         </Grid.RowDefinitions>
 
         <StackPanel Margin="0,0,0,18">
-            <TextBlock Text="곡 삭제"
+            <TextBlock Text="{loc:Text SongDeleteWindow.Title}"
                        Style="{StaticResource Type.Title1.Style}"
                        Foreground="{DynamicResource Brush.Text.Primary}" />
             <TextBlock Text="{Binding SongTitle}"
@@ -35,7 +36,7 @@
             </Grid.RowDefinitions>
 
             <StackPanel Margin="0,0,0,16">
-                <TextBlock Text="현재 폴더"
+                <TextBlock Text="{loc:Text SongDeleteWindow.CurrentFolder}"
                            Style="{StaticResource Type.Caption.Style}"
                            Foreground="{DynamicResource Brush.Text.Tertiary}" />
                 <TextBox Text="{Binding SourceFolderName, Mode=OneWay}"
@@ -46,7 +47,7 @@
             </StackPanel>
 
             <TextBlock Grid.Row="1"
-                       Text="삭제된 곡은 복구 창에서 원래 폴더로 되돌릴 수 있습니다."
+                       Text="{loc:Text SongDeleteWindow.RecoverHint}"
                        Style="{StaticResource Type.Body.Style}"
                        Foreground="{DynamicResource Brush.Text.Secondary}"
                        TextWrapping="Wrap"
@@ -76,21 +77,21 @@
                         HorizontalAlignment="Right">
                 <Button Command="{Binding DeleteCommand}"
                         Style="{StaticResource EsButton.Danger}"
-                        ToolTip="선택 곡 삭제"
+                        ToolTip="{loc:Text SongDeleteWindow.DeleteSelected}"
                         AutomationProperties.Name="선택 곡 삭제"
                         Margin="0,0,8,0">
                     <StackPanel Orientation="Horizontal">
                         <ui:SymbolIcon Symbol="Delete24" Margin="0,0,6,0" />
-                        <TextBlock Text="삭제" />
+                        <TextBlock Text="{loc:Text SongDeleteWindow.Delete}" />
                     </StackPanel>
                 </Button>
                 <Button Style="{StaticResource EsButton.Secondary}"
                         Click="Close_Click"
-                        ToolTip="닫기"
+                        ToolTip="{loc:Text SongDeleteWindow.Close}"
                         AutomationProperties.Name="곡 삭제 창 닫기">
                     <StackPanel Orientation="Horizontal">
                         <ui:SymbolIcon Symbol="Dismiss24" Margin="0,0,6,0" />
-                        <TextBlock Text="닫기" />
+                        <TextBlock Text="{loc:Text SongDeleteWindow.Close}" />
                     </StackPanel>
                 </Button>
             </StackPanel>

@@ -9,6 +9,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Axicultus.Wpf.Controls;
 using Axicultus.Wpf.Data;
+using Axicultus.Wpf.Localization;
 using Axicultus.Wpf.Settings;
 using Axicultus.Wpf.Shell;
 
@@ -169,7 +170,7 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
 
     /// <summary>FrmEditItem's capo list: no capo (stored as -1), then Capo 0 to Capo 11.</summary>
     public IReadOnlyList<KeyValuePair<int, string>> CapoOptions { get; } =
-        [new(-1, "없음"), .. Enumerable.Range(0, 12).Select(fret => new KeyValuePair<int, string>(fret, $"Capo {fret}"))];
+        [new(-1, UiText.Get("SongEditorWindow", "NoCapoOption")), .. Enumerable.Range(0, 12).Select(fret => new KeyValuePair<int, string>(fret, UiText.Format("SongEditorWindow", "CapoFret", fret)))];
 
     /// <summary>The chord names of FrmEditItem's chords menu: its top level (empty group name), then its sub menus.</summary>
     public IReadOnlyList<(string Group, IReadOnlyList<string> Chords)> ChordMenu => SongEditorChords.Menu;
@@ -187,10 +188,10 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
     /// <summary>영역별 정렬 콤보 선택지 — 0=상속(곡 설정 추종)·1=왼쪽·2=가운데·3=오른쪽. Value 가 레거시 정렬 코드.</summary>
     public IReadOnlyList<KeyValuePair<int, string>> AlignmentOptions { get; } =
     [
-        new(0, "상속"),
-        new(1, "왼쪽"),
-        new(2, "가운데"),
-        new(3, "오른쪽"),
+        new(0, UiText.Get("SongEditorWindow", "AlignInherit")),
+        new(1, UiText.Get("SongEditorWindow", "AlignLeft")),
+        new(2, UiText.Get("SongEditorWindow", "AlignCenter")),
+        new(3, UiText.Get("SongEditorWindow", "AlignRight")),
     ];
 
     /// <summary>코드 조옮김 — 미리보기 코드를 ±반음 이동(레거시 Transpose Up/Down Semi-Tone). 저장 가사는 바뀌지 않는다.</summary>
@@ -205,7 +206,7 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
 
     /// <summary>현재 조옮김 표시(예: "+2", "-1", "원조").</summary>
     public string TransposeLabel
-        => TransposeSemitones == 0 ? "원조" : (TransposeSemitones > 0 ? $"+{TransposeSemitones}" : TransposeSemitones.ToString());
+        => TransposeSemitones == 0 ? UiText.Get("SongEditorWindow", "TransposeOriginal") :(TransposeSemitones > 0 ? $"+{TransposeSemitones}" : TransposeSemitones.ToString());
 
     // 조옮김 값을 -11~+11 반음으로 클램프해 설정(한 옥타브 안). 미리보기만 갱신(곡은 dirty 안 됨).
     private void SetTranspose(int semitones) => TransposeSemitones = Math.Clamp(semitones, -11, 11);
@@ -246,7 +247,7 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
             SelectedFolder = folder;
             // The list row lacks the sequence, MSC, settings and format of the song; saving before the detail is
             // read would write them back empty.
-            SaveBlockedReason = song is null ? "" : "곡 상세를 불러오지 않아 저장할 수 없습니다.";
+            SaveBlockedReason = song is null ? "" : UiText.Get("SongEditorWindow", "DetailNotLoaded");
             Sequence = "";
             _storedSequence = _shownSequence = "";
             Writer = "";
@@ -286,7 +287,7 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
 
         if (_songDetails is null)
         {
-            SaveBlockedReason = "곡 상세를 읽을 수 없어 저장할 수 없습니다.";
+            SaveBlockedReason = UiText.Get("SongEditorWindow", "DetailUnreadable");
             return;
         }
 
@@ -295,7 +296,7 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
             var detail = await _songDetails.GetSongDetailAsync(DatabasePath, song.SongId).ConfigureAwait(true);
             if (detail is null)
             {
-                SaveBlockedReason = $"곡을 찾을 수 없어 저장할 수 없습니다(ID {song.SongId}).";
+                SaveBlockedReason = UiText.Format("SongEditorWindow", "SongNotFound", song.SongId);
                 return;
             }
 
@@ -318,7 +319,7 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
         }
         catch (Exception ex) when (IsRecoverableSaveException(ex))
         {
-            SaveBlockedReason = $"곡 상세를 불러오지 못해 저장할 수 없습니다: {ex.Message}";
+            SaveBlockedReason = UiText.Format("SongEditorWindow", "DetailLoadFailed", ex.Message);
         }
     }
 
@@ -431,8 +432,8 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
             {
                 var detail = string.Join("; ", report.Issues.Select(issue => issue.Message));
                 StatusMessage = string.IsNullOrWhiteSpace(detail)
-                    ? "저장 실패"
-                    : $"저장 실패: {detail}";
+                    ? UiText.Get("SongEditorWindow", "SaveFailed")
+                    : UiText.Format("SongEditorWindow", "SaveFailedDetail", detail);
                 return;
             }
 
@@ -456,12 +457,12 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
             IsNew = false;
             HasChanges = false;
             ValidationMessage = "";
-            StatusMessage = "저장되었습니다.";
+            StatusMessage = UiText.Get("SongEditorWindow", "Saved");
             Saved?.Invoke(this, new SongEditorSavedEventArgs(SongId, FolderNo));
         }
         catch (Exception ex) when (IsRecoverableSaveException(ex))
         {
-            StatusMessage = $"저장 실패: {ex.Message}";
+            StatusMessage = UiText.Format("SongEditorWindow", "SaveFailedDetail", ex.Message);
         }
         finally
         {
@@ -794,34 +795,34 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
     {
         if (string.IsNullOrWhiteSpace(DatabasePath))
         {
-            ValidationMessage = "AdminDB 경로를 설정해야 합니다.";
+            ValidationMessage = UiText.Format("SongEditorWindow", "DatabasePathMissing", "AdminDB");
             return false;
         }
 
         if (!File.Exists(DatabasePath))
         {
-            ValidationMessage = $"AdminDB 파일을 찾을 수 없습니다: {DatabasePath}";
+            ValidationMessage = UiText.Format("SongEditorWindow", "DatabaseNotFound", "AdminDB", DatabasePath);
             return false;
         }
 
         if (FolderNo <= 0)
         {
-            ValidationMessage = "저장할 폴더를 선택하세요.";
+            ValidationMessage = UiText.Get("SongEditorWindow", "SelectFolder");
             return false;
         }
 
         if (string.IsNullOrWhiteSpace(Title))
         {
-            ValidationMessage = "제목을 입력하세요.";
+            ValidationMessage = UiText.Get("SongEditorWindow", "EnterTitle");
             return false;
         }
 
         // FrmEditItem.ValidateTitles, in its order.
-        if ((SongEditorLyrics.TitleProblem(Stored(Title, _openedDetail?.Title), "제목")
-            ?? SongEditorLyrics.TitleProblem(Stored(AlternateTitle, _openedDetail?.AlternateTitle), "다른 제목")
-            ?? SongEditorLyrics.TitleProblem(Stored(Copyright, _openedDetail?.Copyright), "저작권")
-            ?? SongEditorLyrics.TitleProblem(Stored(BookReference, _openedDetail?.BookReference), "교단 참조")
-            ?? SongEditorLyrics.TitleProblem(Stored(Writer, _openedDetail?.Writer), "작사·작곡")) is { } titleProblem)
+        if ((SongEditorLyrics.TitleProblem(Stored(Title, _openedDetail?.Title), UiText.Get("SongEditorWindow", "SongTitle"))
+            ?? SongEditorLyrics.TitleProblem(Stored(AlternateTitle, _openedDetail?.AlternateTitle), UiText.Get("SongEditorWindow", "AlternateTitle"))
+            ?? SongEditorLyrics.TitleProblem(Stored(Copyright, _openedDetail?.Copyright), UiText.Get("SongEditorWindow", "Copyright"))
+            ?? SongEditorLyrics.TitleProblem(Stored(BookReference, _openedDetail?.BookReference), UiText.Get("SongEditorWindow", "BookReference"))
+            ?? SongEditorLyrics.TitleProblem(Stored(Writer, _openedDetail?.Writer), UiText.Get("SongEditorWindow", "Writer"))) is { } titleProblem)
         {
             ValidationMessage = titleProblem;
             return false;
@@ -830,27 +831,27 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
         // 0 is "no number" and is saved as it is.
         if (SongNumber < 0)
         {
-            ValidationMessage = "곡 번호는 음수가 될 수 없습니다.";
+            ValidationMessage = UiText.Get("SongEditorWindow", "NegativeNumber");
             return false;
         }
 
         if (LyricsRegion1.Length == 0 && LyricsRegion2.Length == 0)
         {
-            ValidationMessage = "저장할 가사가 없습니다.";
+            ValidationMessage = UiText.Get("SongEditorWindow", "NoLyricsToSave");
             return false;
         }
 
         if (_storedLyricsStale)
         {
-            ValidationMessage = "마지막으로 고친 가사를 저장 형식으로 바꾸지 못했습니다. 그 줄을 다시 고친 뒤 저장하세요.";
+            ValidationMessage = UiText.Get("SongEditorWindow", "LyricsStale");
             return false;
         }
 
         // FrmEditItem.ValidateSequence, then ValidateContents for each pane.
         var presentVerses = SongEditorLyrics.PresentVerses(LyricsRegion1, LyricsRegion2);
         if ((SongEditorLyrics.SequenceProblem(Sequence, Sequence == _shownSequence ? _storedSequence : null, presentVerses)
-            ?? SongEditorLyrics.ContentProblem(LyricsRegion1, "기본 가사", presentVerses, _openedRegion1)
-            ?? SongEditorLyrics.ContentProblem(LyricsRegion2, "보조 가사", presentVerses, _openedRegion2)) is { } lyricsProblem)
+            ?? SongEditorLyrics.ContentProblem(LyricsRegion1, UiText.Get("SongEditorWindow", "MainLyricsPane"), presentVerses, _openedRegion1)
+            ?? SongEditorLyrics.ContentProblem(LyricsRegion2, UiText.Get("SongEditorWindow", "SecondLyricsPane"), presentVerses, _openedRegion2)) is { } lyricsProblem)
         {
             ValidationMessage = lyricsProblem;
             return false;
@@ -859,7 +860,7 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
         // -1 is "no capo".
         if (Capo < -1)
         {
-            ValidationMessage = "Capo(카포)는 -1(없음)보다 작을 수 없습니다.";
+            ValidationMessage = UiText.Get("SongEditorWindow", "CapoTooLow");
             return false;
         }
 
@@ -878,24 +879,24 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
         IsLiveEditWarningVisible = true;
         if (_liveSafetyPrompt is null)
         {
-            StatusMessage = "저장 취소: 라이브 편집 안전 확인을 사용할 수 없습니다.";
+            StatusMessage = UiText.Get("SongEditorWindow", "LiveSafetyUnavailable");
             return false;
         }
 
         var snapshot = _liveSession!.Current;
-        var title = string.IsNullOrWhiteSpace(Title) ? "이 곡" : Title.Trim();
+        var title = string.IsNullOrWhiteSpace(Title) ? UiText.Get("SongEditorWindow", "ThisSong") : Title.Trim();
         var liveTitle = string.IsNullOrWhiteSpace(snapshot.CurrentItemTitle)
-            ? "현재 출력"
+            ? UiText.Get("SongEditorWindow", "CurrentOutput")
             : snapshot.CurrentItemTitle;
         var request = new LiveSafetyRequest(
-            "라이브 중 곡 저장",
-            $"출력이 라이브인 상태에서 \"{title}\" 변경을 저장할까요?",
-            $"지금 {snapshot.OutputMonitorName} 화면에 \"{liveTitle}\"을(를) 송출하고 있습니다. 이 항목을 다시 보내기 전까지 출력은 현재 화면을 유지합니다.",
+            UiText.Get("SongEditorWindow", "LiveSaveTitle"),
+            UiText.Format("SongEditorWindow", "LiveSaveQuestion", title),
+            UiText.Format("SongEditorWindow", "LiveSaveDetail", snapshot.OutputMonitorName, liveTitle),
             TimeSpan.FromSeconds(8));
         var confirmed = await _liveSafetyPrompt.ConfirmAsync(request).ConfigureAwait(true);
         if (!confirmed)
         {
-            StatusMessage = "라이브 중 저장을 취소했습니다.";
+            StatusMessage = UiText.Get("SongEditorWindow", "LiveSaveCancelled");
         }
 
         return confirmed;
@@ -903,7 +904,7 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
 
     private void RefreshPreview()
     {
-        PreviewTitle = string.IsNullOrWhiteSpace(Title) ? "제목 없음" : Title.Trim();
+        PreviewTitle = string.IsNullOrWhiteSpace(Title) ? UiText.Get("SongEditorWindow", "Untitled") : Title.Trim();
         PreviewLyrics = BuildPreviewLyrics(Lyrics);
         RebuildPreviewLines(Lyrics);
         PreviewMetadata = BuildPreviewMetadata();
@@ -921,7 +922,7 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
         var duplicates = Shell.LyricsDisplayFormatter.FindDuplicateSectionLabels(LyricsRegion1);
         SectionWarning = duplicates.Count == 0
             ? ""
-            : $"중복된 절 표시: {string.Join(", ", duplicates)} — 같은 절 표시의 가사는 한 절로 합쳐져 표시됩니다. 절을 반복하려면 Sequence(예: 1 C 2 C)를 쓰세요.";
+            : UiText.Format("SongEditorWindow", "DuplicateSections", string.Join(", ", duplicates), "1 C 2 C");
     }
 
     private string BuildPreviewMetadata()
@@ -934,20 +935,20 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
         {
             var key = Key.Trim();
             parts.Add(TransposeSemitones != 0
-                ? $"키 {key} → {Shell.ChordTransposer.Transpose(key, TransposeSemitones)}"
-                : $"키 {key}");
+                ? UiText.Format("SongEditorWindow", "MetaKeyTransposed", key, Shell.ChordTransposer.Transpose(key, TransposeSemitones))
+                : UiText.Format("SongEditorWindow", "MetaKey", key));
         }
         AddIfPresent(parts, Timing);
         if (Capo > 0)
         {
-            parts.Add($"카포 {Capo}");
+            parts.Add(UiText.Format("SongEditorWindow", "CapoFret", Capo));
         }
 
         AddIfPresent(parts, Writer);
         AddIfPresent(parts, Copyright);
         AddIfPresent(parts, BookReference);
         AddIfPresent(parts, UserReference);
-        return parts.Count == 0 ? "메타데이터 없음" : string.Join(" · ", parts);
+        return parts.Count == 0 ? UiText.Get("SongEditorWindow", "NoMetadata") : string.Join(" · ", parts);
     }
 
     private string BuildPreviewFormatStatus()
@@ -955,20 +956,20 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
         var parts = new List<string>();
         if (!string.IsNullOrWhiteSpace(FormatData))
         {
-            parts.Add("포맷 데이터");
+            parts.Add(UiText.Get("SongEditorWindow", "StatusFormatData"));
         }
 
         if (!string.IsNullOrWhiteSpace(Notations) || Lyrics.Contains('»'))
         {
-            parts.Add("코드 표기");
+            parts.Add(UiText.Get("SongEditorWindow", "StatusNotations"));
         }
 
         if (!string.IsNullOrWhiteSpace(Sequence))
         {
-            parts.Add("절 순서");
+            parts.Add(UiText.Get("SongEditorWindow", "Sequence"));
         }
 
-        return parts.Count == 0 ? "일반 가사" : string.Join(" · ", parts);
+        return parts.Count == 0 ? UiText.Get("SongEditorWindow", "PlainLyrics") : string.Join(" · ", parts);
     }
 
     private void OnLiveSessionChanged(object? sender, LiveSessionChangedEventArgs e)
@@ -1026,7 +1027,7 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
     private static string BuildPreviewLyrics(string lyrics)
     {
         var lines = BuildFirstScreenLines(lyrics);
-        return lines.Length == 0 ? "가사 없음" : string.Join(Environment.NewLine, lines.Select(line => line.Text));
+        return lines.Length == 0 ? UiText.Get("SongEditorWindow", "NoLyrics") :string.Join(Environment.NewLine, lines.Select(line => line.Text));
     }
 
     // 미리보기 줄 목록을 다시 만든다 — 각 줄을 '»' 기준 본문/코드로 나눠 리치 per-line 렌더에 쓴다.
@@ -1038,7 +1039,7 @@ public sealed partial class SongEditorViewModel : ObservableObject, IDisposable
         var lines = BuildFirstScreenLines(lyrics);
         if (lines.Length == 0)
         {
-            PreviewLyricLines.Add(new SongPreviewLine("가사 없음", ""));
+            PreviewLyricLines.Add(new SongPreviewLine(UiText.Get("SongEditorWindow", "NoLyrics"), ""));
             return;
         }
 

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Title" xml:space="preserve"><value>곡 삭제</value></data>
+  <data name="CurrentFolder" xml:space="preserve"><value>현재 폴더</value></data>
+  <data name="RecoverHint" xml:space="preserve"><value>삭제된 곡은 복구 창에서 원래 폴더로 되돌릴 수 있습니다.</value></data>
+  <data name="DeleteSelected" xml:space="preserve"><value>선택 곡 삭제</value></data>
+  <data name="Delete" xml:space="preserve"><value>삭제</value></data>
+  <data name="Close" xml:space="preserve"><value>닫기</value></data>
+  <data name="Confirm" xml:space="preserve"><value>정말 삭제하시겠습니까?</value></data>
+  <data name="ConfirmSeveral" xml:space="preserve"><value>선택한 {0}곡을 정말 삭제하시겠습니까?</value></data>
+  <data name="AlreadyDeleted" xml:space="preserve"><value>이미 삭제되었거나 라이브러리에 없음</value></data>
+  <data name="NothingToDelete" xml:space="preserve"><value>삭제할 곡이 없습니다.</value></data>
+  <data name="DeleteFailed" xml:space="preserve"><value>삭제 실패</value></data>
+  <data name="DeleteFailedDetail" xml:space="preserve"><value>삭제 실패: {0}</value></data>
+  <data name="Deleted" xml:space="preserve"><value>삭제되었습니다.</value></data>
+  <data name="DeletedSeveral" xml:space="preserve"><value>{0}곡을 삭제했습니다.</value></data>
+  <data name="DatabasePathMissing" xml:space="preserve"><value>AdminDB 경로를 설정해야 합니다.</value></data>
+  <data name="DatabaseNotFound" xml:space="preserve"><value>AdminDB 파일을 찾을 수 없습니다: {0}</value></data>
+  <data name="SelectSong" xml:space="preserve"><value>삭제할 곡을 선택하세요.</value></data>
+</root>

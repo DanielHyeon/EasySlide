@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Axicultus.Wpf.Data;
+using Axicultus.Wpf.Localization;
 using Axicultus.Wpf.Settings;
 
 namespace Axicultus.Wpf.Library;
@@ -94,12 +95,12 @@ public sealed partial class SongRecoveryViewModel : ObservableObject
             UpdateSelectionCount();
             ValidationMessage = "";
             StatusMessage = DeletedSongs.Count == 0
-                ? "복구할 삭제 곡이 없습니다."
-                : $"{DeletedSongs.Count}개 삭제 곡 표시";
+                ? UiText.Get("SongRecoveryWindow", "NoDeletedSongs")
+                : UiText.Format("SongRecoveryWindow", "DeletedSongsShown", DeletedSongs.Count);
         }
         catch (Exception ex) when (IsRecoverableRecoveryException(ex))
         {
-            StatusMessage = $"삭제 곡 로드 실패: {ex.Message}";
+            StatusMessage = UiText.Format("SongRecoveryWindow", "LoadFailed", ex.Message);
         }
         finally
         {
@@ -124,7 +125,7 @@ public sealed partial class SongRecoveryViewModel : ObservableObject
         var selected = DeletedSongs.Where(item => item.IsSelected).ToArray();
         if (selected.Length == 0)
         {
-            ValidationMessage = "복구할 곡을 선택하세요.";
+            ValidationMessage = UiText.Get("SongRecoveryWindow", "SelectSong");
             RecoverCommand.NotifyCanExecuteChanged();
             return;
         }
@@ -144,8 +145,8 @@ public sealed partial class SongRecoveryViewModel : ObservableObject
             {
                 var detail = string.Join("; ", report.Issues.Select(issue => issue.Message));
                 StatusMessage = string.IsNullOrWhiteSpace(detail)
-                    ? "복구 실패"
-                    : $"복구 실패: {detail}";
+                    ? UiText.Get("SongRecoveryWindow", "RecoverFailed")
+                    : UiText.Format("SongRecoveryWindow", "RecoverFailedDetail", detail);
                 return;
             }
 
@@ -171,14 +172,14 @@ public sealed partial class SongRecoveryViewModel : ObservableObject
             // A song that is no longer in the deleted folder (the other app recovered it meanwhile) is left where it is.
             var skipped = selected.Where(item => !report.AffectedSongIds.Contains(item.Song.SongId)).Select(item => item.Song.Title).ToArray();
             StatusMessage = skipped.Length == 0
-                ? "복구되었습니다."
-                : (skipped.Length == selected.Length ? "복구할 곡이 없습니다." : $"{selected.Length - skipped.Length}곡을 복구했습니다.")
-                    + SongSelectionText.Skipped(skipped, "이미 복구되었거나 라이브러리에 없음");
+                ? UiText.Get("SongRecoveryWindow", "Recovered")
+                : (skipped.Length == selected.Length ? UiText.Get("SongRecoveryWindow", "NothingToRecover") : UiText.Format("SongRecoveryWindow", "RecoveredSeveral", selected.Length - skipped.Length))
+                    + SongSelectionText.Skipped(skipped, UiText.Get("SongRecoveryWindow", "AlreadyRecovered"));
             Recovered?.Invoke(this, new SongRecoveredEventArgs(RecoveredSongId, RecoveredFolderNo));
         }
         catch (Exception ex) when (IsRecoverableRecoveryException(ex))
         {
-            StatusMessage = $"복구 실패: {ex.Message}";
+            StatusMessage = UiText.Format("SongRecoveryWindow", "RecoverFailedDetail", ex.Message);
         }
         finally
         {
@@ -204,13 +205,13 @@ public sealed partial class SongRecoveryViewModel : ObservableObject
     {
         if (string.IsNullOrWhiteSpace(DatabasePath))
         {
-            ValidationMessage = "AdminDB 경로를 설정해야 합니다.";
+            ValidationMessage = UiText.Get("SongRecoveryWindow", "DatabasePathMissing");
             return false;
         }
 
         if (!File.Exists(DatabasePath))
         {
-            ValidationMessage = $"AdminDB 파일을 찾을 수 없습니다: {DatabasePath}";
+            ValidationMessage = UiText.Format("SongRecoveryWindow", "DatabaseNotFound", DatabasePath);
             return false;
         }
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 using Axicultus.Module;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Library;
 
@@ -155,7 +156,7 @@ internal sealed class SongEditorChords
     {
         if (!IsChordLine(lines, index))
         {
-            return "코드 줄은 » 로 끝나고 가사 줄 바로 위에 있어야 합니다.";
+            return UiText.Get("SongEditorWindow", "ChordLineMisplaced");
         }
 
         foreach (string chord in lines[index].TrimEnd()[..^1].Split(' ', StringSplitOptions.RemoveEmptyEntries))
@@ -163,7 +164,7 @@ internal sealed class SongEditorChords
             // The record format gives ';' and ')' a meaning of their own.
             if (chord.Contains(';') || ChordNotation.FindRecordEnd(chord + ")") != chord.Length)
             {
-                return $"코드 '{chord}'에 쓸 수 없는 문자(; 또는 짝이 맞지 않는 괄호)가 있습니다.";
+                return UiText.Format("SongEditorWindow", "ChordBadCharacters", chord);
             }
         }
 

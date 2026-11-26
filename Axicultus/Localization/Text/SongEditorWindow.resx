@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Title" xml:space="preserve"><value>Song editor</value></data>
+  <data name="Folder" xml:space="preserve"><value>Folder</value></data>
+  <data name="FolderToolTip" xml:space="preserve"><value>The folder to save the song in</value></data>
+  <data name="LiveEditWarning" xml:space="preserve"><value>The output is live. Saving needs your confirmation.</value></data>
+  <data name="SongTitle" xml:space="preserve"><value>Title</value></data>
+  <data name="InsertSection" xml:space="preserve"><value>Insert section</value></data>
+  <data name="VerseNumbers" xml:space="preserve"><value>Verse number</value></data>
+  <data name="VerseNumber" xml:space="preserve"><value>Verse {0}</value></data>
+  <data name="PreChorus" xml:space="preserve"><value>Pre-chorus</value></data>
+  <data name="PreChorus2" xml:space="preserve"><value>Pre-chorus 2</value></data>
+  <data name="Chorus" xml:space="preserve"><value>Chorus</value></data>
+  <data name="Chorus2" xml:space="preserve"><value>Chorus 2</value></data>
+  <data name="Bridge" xml:space="preserve"><value>Bridge</value></data>
+  <data name="Bridge2" xml:space="preserve"><value>Bridge 2</value></data>
+  <data name="Ending" xml:space="preserve"><value>Ending</value></data>
+  <data name="InsertChord" xml:space="preserve"><value>Insert chord</value></data>
+  <data name="InsertChordToolTip" xml:space="preserve"><value>Puts a chord over the letter at the cursor</value></data>
+  <data name="ChordGroupMinor" xml:space="preserve"><value>Minor</value></data>
+  <data name="ChordGroupMinor7th" xml:space="preserve"><value>Minor 7th</value></data>
+  <data name="ChordGroupMajor7th" xml:space="preserve"><value>Major 7th</value></data>
+  <data name="ChordGroupBass" xml:space="preserve"><value>Bass</value></data>
+  <data name="MainLyricsRegion" xml:space="preserve"><value>Main lyrics (region 1)</value></data>
+  <data name="SecondLyricsRegion" xml:space="preserve"><value>Second lyrics (region 2)</value></data>
+  <data name="SecondLyricsToolTip" xml:space="preserve"><value>Write the second lyrics of each verse under the same heading as in the main lyrics ({0} …)</value></data>
+  <data name="TransposeSongDown" xml:space="preserve"><value>Chords down a semitone</value></data>
+  <data name="TransposeSongDownToolTip" xml:space="preserve"><value>Moves the chords of both lyric panes, the key and the capo down a semitone (saved)</value></data>
+  <data name="TransposeSongUp" xml:space="preserve"><value>Chords up a semitone</value></data>
+  <data name="TransposeSongUpToolTip" xml:space="preserve"><value>Moves the chords of both lyric panes, the key and the capo up a semitone (saved)</value></data>
+  <data name="WrapLines" xml:space="preserve"><value>Wrap lines</value></data>
+  <data name="WrapLinesToolTip" xml:space="preserve"><value>Wraps long lines. A wrapped chord line no longer lines up with its lyrics.</value></data>
+  <data name="ChordHint" xml:space="preserve"><value>Write chords on the line just above the lyric line and end it with » (F8). The letter each chord stands over is saved.</value></data>
+  <data name="Sequence" xml:space="preserve"><value>Verse order</value></data>
+  <data name="NotationsStored" xml:space="preserve"><value>Chord notation (stored value)</value></data>
+  <data name="SongDetails" xml:space="preserve"><value>Song details · Copyright</value></data>
+  <data name="AlternateTitle" xml:space="preserve"><value>Alternate title</value></data>
+  <data name="Number" xml:space="preserve"><value>Number</value></data>
+  <data name="Category" xml:space="preserve"><value>Category</value></data>
+  <data name="Key" xml:space="preserve"><value>Key</value></data>
+  <data name="Capo" xml:space="preserve"><value>Capo</value></data>
+  <data name="Writer" xml:space="preserve"><value>Words · Music</value></data>
+  <data name="Copyright" xml:space="preserve"><value>Copyright</value></data>
+  <data name="Timing" xml:space="preserve"><value>Timing</value></data>
+  <data name="BookReference" xml:space="preserve"><value>Book reference</value></data>
+  <data name="UserReference" xml:space="preserve"><value>User reference</value></data>
+  <data name="LicenceAdmin" xml:space="preserve"><value>Licence admin</value></data>
+  <data name="AdvancedFormat" xml:space="preserve"><value>Advanced format data</value></data>
+  <data name="FormatData" xml:space="preserve"><value>Format data</value></data>
+  <data name="SongSettingsData" xml:space="preserve"><value>Song settings data</value></data>
+  <data name="RegionFormat" xml:space="preserve"><value>Main lyrics · Second lyrics format</value></data>
+  <data name="TextColor" xml:space="preserve"><value>Text colour (#AARRGGBB, empty to inherit)</value></data>
+  <data name="Alignment" xml:space="preserve"><value>Alignment</value></data>
+  <data name="Bold" xml:space="preserve"><value>Bold</value></data>
+  <data name="Italic" xml:space="preserve"><value>Italic</value></data>
+  <data name="Underline" xml:space="preserve"><value>Underline</value></data>
+  <data name="Preview" xml:space="preserve"><value>Preview</value></data>
+  <data name="Font" xml:space="preserve"><value>Font</value></data>
+  <data name="LyricsSize" xml:space="preserve"><value>Lyrics size</value></data>
+  <data name="ChordSize" xml:space="preserve"><value>Chord size</value></data>
+  <data name="Transpose" xml:space="preserve"><value>Transpose chords</value></data>
+  <data name="SemitoneDown" xml:space="preserve"><value>Semitone down</value></data>
+  <data name="SemitoneUp" xml:space="preserve"><value>Semitone up</value></data>
+  <data name="OriginalKey" xml:space="preserve"><value>Original key</value></data>
+  <data name="NoCapo" xml:space="preserve"><value>Without capo</value></data>
+  <data name="NoCapoToolTip" xml:space="preserve"><value>Preview the chords as played without a capo</value></data>
+  <data name="EditScore" xml:space="preserve"><value>Edit score…</value></data>
+  <data name="SaveToolTip" xml:space="preserve"><value>Save the song and close ({0})</value></data>
+  <data name="SaveAndClose" xml:space="preserve"><value>Save and close</value></data>
+  <data name="Close" xml:space="preserve"><value>Close</value></data>
+  <data name="ChordLineMisplaced" xml:space="preserve"><value>A chord line ends with » and must be right above a lyric line.</value></data>
+  <data name="ChordBadCharacters" xml:space="preserve"><value>Chord '{0}' has a character that cannot be used (; or an unmatched bracket).</value></data>
+  <data name="TitleBadCharacters" xml:space="preserve"><value>{0} cannot contain the characters ] [ * " &lt; &gt;.</value></data>
+  <data name="TitleTooLong" xml:space="preserve"><value>{0} is too long ({1} characters). Up to 100 characters are allowed, spaces included.</value></data>
+  <data name="SequenceOneLine" xml:space="preserve"><value>Write the verse order on one line, separated by commas or spaces. Tabs and line breaks are not allowed.</value></data>
+  <data name="SequenceBadToken" xml:space="preserve"><value>'{0}' cannot be used in the verse order. Only 1-99 and {1} can be used.</value></data>
+  <data name="VerseCode" xml:space="preserve"><value>code {0}</value></data>
+  <data name="SequenceVerseMissing" xml:space="preserve"><value>{0} in the verse order is not in the lyrics.</value></data>
+  <data name="SequenceNotStorable" xml:space="preserve"><value>This verse order cannot be converted to the stored format (verse codes). It must contain one of verses 1-31 or the chorus ({0}).</value></data>
+  <data name="Region2MarkerNotAllowed" xml:space="preserve"><value>{0}: the {1} heading cannot be used. Type the second lyrics in the second lyrics pane.</value></data>
+  <data name="HeadingSpaces" xml:space="preserve"><value>{0}: there is a space before or after the heading {1}. Remove the space.</value></data>
+  <data name="HeadingOwnLine" xml:space="preserve"><value>{0}: the heading {1} must be on a line of its own.</value></data>
+  <data name="HeadingBelowChords" xml:space="preserve"><value>{0}: the heading {1} is right below a chord line. Move the heading above the chord line.</value></data>
+  <data name="HeadingTwice" xml:space="preserve"><value>{0}: the heading {1} appears twice.</value></data>
+  <data name="HeadingMissing" xml:space="preserve"><value>{0}: the heading of verse {1} ({2}) is missing.</value></data>
+  <data name="HeadingNeeded" xml:space="preserve"><value>{0}: the lyrics before {1} also need a heading.</value></data>
+  <data name="NoCapoOption" xml:space="preserve"><value>None</value></data>
+  <data name="CapoFret" xml:space="preserve"><value>Capo {0}</value></data>
+  <data name="AlignInherit" xml:space="preserve"><value>Inherit</value></data>
+  <data name="AlignLeft" xml:space="preserve"><value>Left</value></data>
+  <data name="AlignCenter" xml:space="preserve"><value>Center</value></data>
+  <data name="AlignRight" xml:space="preserve"><value>Right</value></data>
+  <data name="TransposeOriginal" xml:space="preserve"><value>Original</value></data>
+  <data name="DetailNotLoaded" xml:space="preserve"><value>The song details are not loaded, so the song cannot be saved.</value></data>
+  <data name="DetailUnreadable" xml:space="preserve"><value>The song details cannot be read, so the song cannot be saved.</value></data>
+  <data name="SongNotFound" xml:space="preserve"><value>The song cannot be found, so it cannot be saved (ID {0}).</value></data>
+  <data name="DetailLoadFailed" xml:space="preserve"><value>The song details could not be loaded, so the song cannot be saved: {0}</value></data>
+  <data name="SaveFailed" xml:space="preserve"><value>Save failed</value></data>
+  <data name="SaveFailedDetail" xml:space="preserve"><value>Save failed: {0}</value></data>
+  <data name="Saved" xml:space="preserve"><value>Saved.</value></data>
+  <data name="DatabasePathMissing" xml:space="preserve"><value>Set the {0} path.</value></data>
+  <data name="DatabaseNotFound" xml:space="preserve"><value>The {0} file cannot be found: {1}</value></data>
+  <data name="SelectFolder" xml:space="preserve"><value>Select the folder to save in.</value></data>
+  <data name="EnterTitle" xml:space="preserve"><value>Enter a title.</value></data>
+  <data name="NegativeNumber" xml:space="preserve"><value>The song number cannot be negative.</value></data>
+  <data name="NoLyricsToSave" xml:space="preserve"><value>There are no lyrics to save.</value></data>
+  <data name="LyricsStale" xml:space="preserve"><value>The last lyric change could not be converted to the stored format. Edit that line again, then save.</value></data>
+  <data name="MainLyricsPane" xml:space="preserve"><value>Main lyrics</value></data>
+  <data name="SecondLyricsPane" xml:space="preserve"><value>Second lyrics</value></data>
+  <data name="CapoTooLow" xml:space="preserve"><value>The capo cannot be lower than -1 (none).</value></data>
+  <data name="LiveSafetyUnavailable" xml:space="preserve"><value>Save cancelled: the live edit safety check is not available.</value></data>
+  <data name="ThisSong" xml:space="preserve"><value>this song</value></data>
+  <data name="CurrentOutput" xml:space="preserve"><value>the current output</value></data>
+  <data name="LiveSaveTitle" xml:space="preserve"><value>Save the song while live</value></data>
+  <data name="LiveSaveQuestion" xml:space="preserve"><value>Save the changes to "{0}" while the output is live?</value></data>
+  <data name="LiveSaveDetail" xml:space="preserve"><value>"{1}" is being output on {0} now. The output keeps the current screen until this item is sent again.</value></data>
+  <data name="LiveSaveCancelled" xml:space="preserve"><value>Saving while live was cancelled.</value></data>
+  <data name="Untitled" xml:space="preserve"><value>Untitled</value></data>
+  <data name="DuplicateSections" xml:space="preserve"><value>Duplicate verse headings: {0} — the lyrics under the same heading are shown together as one verse. To repeat a verse, use the verse order (for example {1}).</value></data>
+  <data name="MetaKey" xml:space="preserve"><value>Key {0}</value></data>
+  <data name="MetaKeyTransposed" xml:space="preserve"><value>Key {0} → {1}</value></data>
+  <data name="NoMetadata" xml:space="preserve"><value>No details</value></data>
+  <data name="StatusFormatData" xml:space="preserve"><value>Format data</value></data>
+  <data name="StatusNotations" xml:space="preserve"><value>Chord notation</value></data>
+  <data name="PlainLyrics" xml:space="preserve"><value>Plain lyrics</value></data>
+  <data name="NoLyrics" xml:space="preserve"><value>No lyrics</value></data>
+</root>

@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Title" xml:space="preserve"><value>곡 편집기</value></data>
+  <data name="Folder" xml:space="preserve"><value>폴더</value></data>
+  <data name="FolderToolTip" xml:space="preserve"><value>곡을 저장할 폴더</value></data>
+  <data name="LiveEditWarning" xml:space="preserve"><value>라이브 출력 중입니다. 저장하려면 확인이 필요합니다.</value></data>
+  <data name="SongTitle" xml:space="preserve"><value>제목</value></data>
+  <data name="InsertSection" xml:space="preserve"><value>가사 구분 삽입</value></data>
+  <data name="VerseNumbers" xml:space="preserve"><value>절 번호</value></data>
+  <data name="VerseNumber" xml:space="preserve"><value>{0}절</value></data>
+  <data name="PreChorus" xml:space="preserve"><value>프리코러스</value></data>
+  <data name="PreChorus2" xml:space="preserve"><value>프리코러스 2</value></data>
+  <data name="Chorus" xml:space="preserve"><value>후렴</value></data>
+  <data name="Chorus2" xml:space="preserve"><value>후렴 2</value></data>
+  <data name="Bridge" xml:space="preserve"><value>브리지</value></data>
+  <data name="Bridge2" xml:space="preserve"><value>브리지 2</value></data>
+  <data name="Ending" xml:space="preserve"><value>엔딩</value></data>
+  <data name="InsertChord" xml:space="preserve"><value>코드 넣기</value></data>
+  <data name="InsertChordToolTip" xml:space="preserve"><value>커서가 있는 글자 위에 코드를 넣습니다</value></data>
+  <data name="ChordGroupMinor" xml:space="preserve"><value>마이너</value></data>
+  <data name="ChordGroupMinor7th" xml:space="preserve"><value>마이너 7</value></data>
+  <data name="ChordGroupMajor7th" xml:space="preserve"><value>메이저 7</value></data>
+  <data name="ChordGroupBass" xml:space="preserve"><value>베이스</value></data>
+  <data name="MainLyricsRegion" xml:space="preserve"><value>기본 가사 (영역 1)</value></data>
+  <data name="SecondLyricsRegion" xml:space="preserve"><value>보조 가사 (영역 2)</value></data>
+  <data name="SecondLyricsToolTip" xml:space="preserve"><value>기본 가사와 같은 절 표시({0} …) 아래에 그 절의 보조 가사를 씁니다</value></data>
+  <data name="TransposeSongDown" xml:space="preserve"><value>코드 반음 내림</value></data>
+  <data name="TransposeSongDownToolTip" xml:space="preserve"><value>두 가사 칸의 코드와 키·카포를 반음 내립니다(저장됨)</value></data>
+  <data name="TransposeSongUp" xml:space="preserve"><value>코드 반음 올림</value></data>
+  <data name="TransposeSongUpToolTip" xml:space="preserve"><value>두 가사 칸의 코드와 키·카포를 반음 올립니다(저장됨)</value></data>
+  <data name="WrapLines" xml:space="preserve"><value>줄 바꿈</value></data>
+  <data name="WrapLinesToolTip" xml:space="preserve"><value>긴 줄을 접어 보입니다. 코드 줄은 접히면 가사와 어긋나 보입니다.</value></data>
+  <data name="ChordHint" xml:space="preserve"><value>코드는 가사 줄 바로 윗줄에 쓰고 » 로 끝냅니다(F8). 코드가 놓인 글자 위치가 저장됩니다.</value></data>
+  <data name="Sequence" xml:space="preserve"><value>절 순서</value></data>
+  <data name="NotationsStored" xml:space="preserve"><value>코드 표기(저장되는 값)</value></data>
+  <data name="SongDetails" xml:space="preserve"><value>곡 정보 · 저작권</value></data>
+  <data name="AlternateTitle" xml:space="preserve"><value>다른 제목</value></data>
+  <data name="Number" xml:space="preserve"><value>번호</value></data>
+  <data name="Category" xml:space="preserve"><value>분류</value></data>
+  <data name="Key" xml:space="preserve"><value>키</value></data>
+  <data name="Capo" xml:space="preserve"><value>카포</value></data>
+  <data name="Writer" xml:space="preserve"><value>작사·작곡</value></data>
+  <data name="Copyright" xml:space="preserve"><value>저작권</value></data>
+  <data name="Timing" xml:space="preserve"><value>타이밍</value></data>
+  <data name="BookReference" xml:space="preserve"><value>교단 참조</value></data>
+  <data name="UserReference" xml:space="preserve"><value>사용자 참조</value></data>
+  <data name="LicenceAdmin" xml:space="preserve"><value>라이선스 관리자</value></data>
+  <data name="AdvancedFormat" xml:space="preserve"><value>고급 서식 데이터</value></data>
+  <data name="FormatData" xml:space="preserve"><value>서식 데이터</value></data>
+  <data name="SongSettingsData" xml:space="preserve"><value>곡 설정 데이터</value></data>
+  <data name="RegionFormat" xml:space="preserve"><value>기본 가사 · 보조 가사 서식</value></data>
+  <data name="TextColor" xml:space="preserve"><value>글자색(#AARRGGBB, 비우면 상속)</value></data>
+  <data name="Alignment" xml:space="preserve"><value>정렬</value></data>
+  <data name="Bold" xml:space="preserve"><value>굵게</value></data>
+  <data name="Italic" xml:space="preserve"><value>기울임</value></data>
+  <data name="Underline" xml:space="preserve"><value>밑줄</value></data>
+  <data name="Preview" xml:space="preserve"><value>미리보기</value></data>
+  <data name="Font" xml:space="preserve"><value>글꼴</value></data>
+  <data name="LyricsSize" xml:space="preserve"><value>가사 크기</value></data>
+  <data name="ChordSize" xml:space="preserve"><value>코드 크기</value></data>
+  <data name="Transpose" xml:space="preserve"><value>코드 조옮김</value></data>
+  <data name="SemitoneDown" xml:space="preserve"><value>반음 내림</value></data>
+  <data name="SemitoneUp" xml:space="preserve"><value>반음 올림</value></data>
+  <data name="OriginalKey" xml:space="preserve"><value>원래 조</value></data>
+  <data name="NoCapo" xml:space="preserve"><value>카포 없이</value></data>
+  <data name="NoCapoToolTip" xml:space="preserve"><value>카포 없이 연주하는 코드로 미리보기</value></data>
+  <data name="EditScore" xml:space="preserve"><value>악보 편집…</value></data>
+  <data name="SaveToolTip" xml:space="preserve"><value>곡을 저장하고 닫기 ({0})</value></data>
+  <data name="SaveAndClose" xml:space="preserve"><value>저장 후 닫기</value></data>
+  <data name="Close" xml:space="preserve"><value>닫기</value></data>
+  <data name="ChordLineMisplaced" xml:space="preserve"><value>코드 줄은 » 로 끝나고 가사 줄 바로 위에 있어야 합니다.</value></data>
+  <data name="ChordBadCharacters" xml:space="preserve"><value>코드 '{0}'에 쓸 수 없는 문자(; 또는 짝이 맞지 않는 괄호)가 있습니다.</value></data>
+  <data name="TitleBadCharacters" xml:space="preserve"><value>{0}에는 ] [ * " &lt; &gt; 문자를 쓸 수 없습니다.</value></data>
+  <data name="TitleTooLong" xml:space="preserve"><value>{0}이(가) 너무 깁니다({1}자). 공백을 포함해 100자까지 쓸 수 있습니다.</value></data>
+  <data name="SequenceOneLine" xml:space="preserve"><value>절 순서는 한 줄에 쓰고 쉼표나 공백으로 구분하세요. 탭과 줄바꿈은 쓸 수 없습니다.</value></data>
+  <data name="SequenceBadToken" xml:space="preserve"><value>절 순서 '{0}'은(는) 쓸 수 없습니다. 1~99와 {1}만 쓸 수 있습니다.</value></data>
+  <data name="VerseCode" xml:space="preserve"><value>코드 {0}</value></data>
+  <data name="SequenceVerseMissing" xml:space="preserve"><value>절 순서에 있는 {0} 이(가) 가사에 없습니다.</value></data>
+  <data name="SequenceNotStorable" xml:space="preserve"><value>이 절 순서는 저장 형식(절 코드)으로 바꿀 수 없습니다. 1~31절이나 후렴({0}) 중 하나가 들어 있어야 합니다.</value></data>
+  <data name="Region2MarkerNotAllowed" xml:space="preserve"><value>{0}: {1} 표시는 쓸 수 없습니다. 보조 가사는 보조 가사 칸에 입력하세요.</value></data>
+  <data name="HeadingSpaces" xml:space="preserve"><value>{0}: 절 표시 {1} 의 앞이나 뒤에 공백이 있습니다. 공백을 지우세요.</value></data>
+  <data name="HeadingOwnLine" xml:space="preserve"><value>{0}: 절 표시 {1} 은(는) 한 줄에 단독으로 써야 합니다.</value></data>
+  <data name="HeadingBelowChords" xml:space="preserve"><value>{0}: 코드 줄 바로 아래에 절 표시 {1} 이(가) 있습니다. 절 표시를 코드 줄 위로 옮기세요.</value></data>
+  <data name="HeadingTwice" xml:space="preserve"><value>{0}: 절 표시 {1} 이(가) 두 번 있습니다.</value></data>
+  <data name="HeadingMissing" xml:space="preserve"><value>{0}: {1}절 표시({2})가 없습니다.</value></data>
+  <data name="HeadingNeeded" xml:space="preserve"><value>{0}: {1} 앞의 가사에도 절 표시가 필요합니다.</value></data>
+  <data name="NoCapoOption" xml:space="preserve"><value>없음</value></data>
+  <data name="CapoFret" xml:space="preserve"><value>카포 {0}</value></data>
+  <data name="AlignInherit" xml:space="preserve"><value>상속</value></data>
+  <data name="AlignLeft" xml:space="preserve"><value>왼쪽</value></data>
+  <data name="AlignCenter" xml:space="preserve"><value>가운데</value></data>
+  <data name="AlignRight" xml:space="preserve"><value>오른쪽</value></data>
+  <data name="TransposeOriginal" xml:space="preserve"><value>원조</value></data>
+  <data name="DetailNotLoaded" xml:space="preserve"><value>곡 상세를 불러오지 않아 저장할 수 없습니다.</value></data>
+  <data name="DetailUnreadable" xml:space="preserve"><value>곡 상세를 읽을 수 없어 저장할 수 없습니다.</value></data>
+  <data name="SongNotFound" xml:space="preserve"><value>곡을 찾을 수 없어 저장할 수 없습니다(ID {0}).</value></data>
+  <data name="DetailLoadFailed" xml:space="preserve"><value>곡 상세를 불러오지 못해 저장할 수 없습니다: {0}</value></data>
+  <data name="SaveFailed" xml:space="preserve"><value>저장 실패</value></data>
+  <data name="SaveFailedDetail" xml:space="preserve"><value>저장 실패: {0}</value></data>
+  <data name="Saved" xml:space="preserve"><value>저장되었습니다.</value></data>
+  <data name="DatabasePathMissing" xml:space="preserve"><value>{0} 경로를 설정해야 합니다.</value></data>
+  <data name="DatabaseNotFound" xml:space="preserve"><value>{0} 파일을 찾을 수 없습니다: {1}</value></data>
+  <data name="SelectFolder" xml:space="preserve"><value>저장할 폴더를 선택하세요.</value></data>
+  <data name="EnterTitle" xml:space="preserve"><value>제목을 입력하세요.</value></data>
+  <data name="NegativeNumber" xml:space="preserve"><value>곡 번호는 음수가 될 수 없습니다.</value></data>
+  <data name="NoLyricsToSave" xml:space="preserve"><value>저장할 가사가 없습니다.</value></data>
+  <data name="LyricsStale" xml:space="preserve"><value>마지막으로 고친 가사를 저장 형식으로 바꾸지 못했습니다. 그 줄을 다시 고친 뒤 저장하세요.</value></data>
+  <data name="MainLyricsPane" xml:space="preserve"><value>기본 가사</value></data>
+  <data name="SecondLyricsPane" xml:space="preserve"><value>보조 가사</value></data>
+  <data name="CapoTooLow" xml:space="preserve"><value>카포는 -1(없음)보다 작을 수 없습니다.</value></data>
+  <data name="LiveSafetyUnavailable" xml:space="preserve"><value>저장 취소: 라이브 편집 안전 확인을 사용할 수 없습니다.</value></data>
+  <data name="ThisSong" xml:space="preserve"><value>이 곡</value></data>
+  <data name="CurrentOutput" xml:space="preserve"><value>현재 출력</value></data>
+  <data name="LiveSaveTitle" xml:space="preserve"><value>라이브 중 곡 저장</value></data>
+  <data name="LiveSaveQuestion" xml:space="preserve"><value>출력이 라이브인 상태에서 "{0}" 변경을 저장할까요?</value></data>
+  <data name="LiveSaveDetail" xml:space="preserve"><value>지금 {0} 화면에 "{1}"을(를) 송출하고 있습니다. 이 항목을 다시 보내기 전까지 출력은 현재 화면을 유지합니다.</value></data>
+  <data name="LiveSaveCancelled" xml:space="preserve"><value>라이브 중 저장을 취소했습니다.</value></data>
+  <data name="Untitled" xml:space="preserve"><value>제목 없음</value></data>
+  <data name="DuplicateSections" xml:space="preserve"><value>중복된 절 표시: {0} — 같은 절 표시의 가사는 한 절로 합쳐져 표시됩니다. 절을 반복하려면 절 순서(예: {1})를 쓰세요.</value></data>
+  <data name="MetaKey" xml:space="preserve"><value>키 {0}</value></data>
+  <data name="MetaKeyTransposed" xml:space="preserve"><value>키 {0} → {1}</value></data>
+  <data name="NoMetadata" xml:space="preserve"><value>메타데이터 없음</value></data>
+  <data name="StatusFormatData" xml:space="preserve"><value>포맷 데이터</value></data>
+  <data name="StatusNotations" xml:space="preserve"><value>코드 표기</value></data>
+  <data name="PlainLyrics" xml:space="preserve"><value>일반 가사</value></data>
+  <data name="NoLyrics" xml:space="preserve"><value>가사 없음</value></data>
+</root>

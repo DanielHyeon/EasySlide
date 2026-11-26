@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Title" xml:space="preserve"><value>삭제 곡 복구</value></data>
+  <data name="Intro" xml:space="preserve"><value>삭제된 곡을 선택해 원래 폴더로 복구합니다.</value></data>
+  <data name="RefreshTip" xml:space="preserve"><value>삭제 곡 목록 새로 고침</value></data>
+  <data name="Refresh" xml:space="preserve"><value>새로 고침</value></data>
+  <data name="ColumnTitle" xml:space="preserve"><value>제목</value></data>
+  <data name="ColumnOriginalFolder" xml:space="preserve"><value>원래 폴더</value></data>
+  <data name="ColumnDeletedOn" xml:space="preserve"><value>삭제일</value></data>
+  <data name="ColumnId" xml:space="preserve"><value>ID</value></data>
+  <data name="RecoverSelected" xml:space="preserve"><value>선택 곡 복구</value></data>
+  <data name="Recover" xml:space="preserve"><value>복구</value></data>
+  <data name="Close" xml:space="preserve"><value>닫기</value></data>
+  <data name="NoDeletedSongs" xml:space="preserve"><value>복구할 삭제 곡이 없습니다.</value></data>
+  <data name="DeletedSongsShown" xml:space="preserve"><value>{0}개 삭제 곡 표시</value></data>
+  <data name="LoadFailed" xml:space="preserve"><value>삭제 곡 로드 실패: {0}</value></data>
+  <data name="SelectSong" xml:space="preserve"><value>복구할 곡을 선택하세요.</value></data>
+  <data name="RecoverFailed" xml:space="preserve"><value>복구 실패</value></data>
+  <data name="RecoverFailedDetail" xml:space="preserve"><value>복구 실패: {0}</value></data>
+  <data name="Recovered" xml:space="preserve"><value>복구되었습니다.</value></data>
+  <data name="NothingToRecover" xml:space="preserve"><value>복구할 곡이 없습니다.</value></data>
+  <data name="RecoveredSeveral" xml:space="preserve"><value>{0}곡을 복구했습니다.</value></data>
+  <data name="AlreadyRecovered" xml:space="preserve"><value>이미 복구되었거나 라이브러리에 없음</value></data>
+  <data name="DatabasePathMissing" xml:space="preserve"><value>AdminDB 경로를 설정해야 합니다.</value></data>
+  <data name="DatabaseNotFound" xml:space="preserve"><value>AdminDB 파일을 찾을 수 없습니다: {0}</value></data>
+</root>

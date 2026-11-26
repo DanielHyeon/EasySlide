@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="SeveralSongs" xml:space="preserve"><value>{0} songs selected: {1}</value></data>
+  <data name="SeveralFolders" xml:space="preserve"><value>Several folders</value></data>
+  <data name="FolderNumber" xml:space="preserve"><value>Folder {0}</value></data>
+  <data name="Skipped" xml:space="preserve"><value> Skipped {0} songs ({1}): {2}</value></data>
+  <data name="MoreTitles" xml:space="preserve"><value>{0} and {1} more</value></data>
+</root>

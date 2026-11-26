@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Axicultus.Wpf.Data;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Library;
 
@@ -15,7 +16,7 @@ internal static class SongSelectionText
         {
             0 => "",
             1 => songs[0].Title,
-            _ => $"{songs.Count}곡 선택: {Titles(songs.Select(song => song.Title))}",
+            _ => UiText.Format("SongSelectionText", "SeveralSongs", songs.Count, Titles(songs.Select(song => song.Title))),
         };
 
     /// <summary>The name of the folder all the songs are in, or a note that they are in several.</summary>
@@ -23,24 +24,24 @@ internal static class SongSelectionText
     {
         if (CommonFolderNo(songs) is not { } folderNo)
         {
-            return songs.Count == 0 ? "" : "여러 폴더";
+            return songs.Count == 0 ? "" : UiText.Get("SongSelectionText", "SeveralFolders");
         }
 
-        return allFolders.FirstOrDefault(folder => folder.FolderNo == folderNo)?.Name ?? $"Folder {folderNo}";
+        return allFolders.FirstOrDefault(folder => folder.FolderNo == folderNo)?.Name ?? UiText.Format("SongSelectionText", "FolderNumber", folderNo);
     }
 
     /// <summary>The folder number all the songs share; null when there is no song or they are in several folders.</summary>
     public static int? CommonFolderNo(IReadOnlyList<SongSummary> songs)
         => songs.Count > 0 && songs.All(song => song.FolderNo == songs[0].FolderNo) ? songs[0].FolderNo : null;
 
-    /// <summary>What follows the result message when songs were left out, e.g. " 건너뜀 2곡(이미 대상 폴더에 있음): A, B".</summary>
+    /// <summary>What follows the result message when songs were left out, e.g. " Skipped 2 songs (already in the target folder): A, B".</summary>
     public static string Skipped(IReadOnlyCollection<string> titles, string reason)
-        => titles.Count == 0 ? "" : $" 건너뜀 {titles.Count}곡({reason}): {Titles(titles)}";
+        => titles.Count == 0 ? "" : UiText.Format("SongSelectionText", "Skipped", titles.Count, reason, Titles(titles));
 
     private static string Titles(IEnumerable<string> titles)
     {
         var all = titles.ToArray();
         var shown = string.Join(", ", all.Take(TitlesShown));
-        return all.Length > TitlesShown ? $"{shown} 외 {all.Length - TitlesShown}곡" : shown;
+        return all.Length > TitlesShown ? UiText.Format("SongSelectionText", "MoreTitles", shown, all.Length - TitlesShown) : shown;
     }
 }

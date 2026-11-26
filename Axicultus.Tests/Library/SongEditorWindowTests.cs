@@ -34,7 +34,7 @@ public class SongEditorWindowTests
         {
             var chordMenu = (MenuItem)window.FindName("ChordMenu");
             chordMenu.Items.OfType<MenuItem>().Select(item => item.Header).Should()
-                .StartWith(["G", "G#", "Ab"]).And.EndWith(["Minor", "Minor 7th", "Major 7th", "Bass"]);
+                .StartWith(["G", "G#", "Ab"]).And.EndWith(["마이너", "마이너 7", "메이저 7", "베이스"]);
             chordMenu.Items.OfType<MenuItem>().Last().Items.OfType<MenuItem>().First().Tag.Should().Be("/G");
             ((TextBox)window.FindName("Lyrics2Editor")).FontFamily.Should().Be(((TextBox)window.FindName("LyricsEditor")).FontFamily);
 

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Axicultus.Wpf.Data;
+using Axicultus.Wpf.Localization;
 using Axicultus.Wpf.Settings;
 
 namespace Axicultus.Wpf.Library;
@@ -150,7 +151,7 @@ public sealed partial class SongCopyViewModel : ObservableObject
 
             if (copies.Count == 0)
             {
-                StatusMessage = "복사 실패: 원본 곡을 찾을 수 없습니다.";
+                StatusMessage = UiText.Get("SongCopyWindow", "SourceNotFound");
                 return;
             }
 
@@ -163,8 +164,8 @@ public sealed partial class SongCopyViewModel : ObservableObject
             {
                 var detail = string.Join("; ", report.Issues.Select(issue => issue.Message));
                 StatusMessage = string.IsNullOrWhiteSpace(detail)
-                    ? "복사 실패"
-                    : $"복사 실패: {detail}";
+                    ? UiText.Get("SongCopyWindow", "CopyFailed")
+                    : UiText.Format("SongCopyWindow", "CopyFailedDetail", detail);
                 return;
             }
 
@@ -172,13 +173,13 @@ public sealed partial class SongCopyViewModel : ObservableObject
             CreatedSongId = report.AffectedSongIds.Count > 0 ? report.AffectedSongIds[0] : null;
             ValidationMessage = "";
             StatusMessage = IsSingleSong
-                ? "복사되었습니다."
-                : $"{copies.Count}곡을 복사했습니다." + SongSelectionText.Skipped(missing, "라이브러리에 없음");
+                ? UiText.Get("SongCopyWindow", "Copied")
+                : UiText.Format("SongCopyWindow", "CopiedSeveral", copies.Count) + SongSelectionText.Skipped(missing, UiText.Get("SongCopyWindow", "NotInLibrary"));
             Copied?.Invoke(this, new SongCopiedEventArgs(CreatedSongId, targetFolderNo));
         }
         catch (Exception ex) when (IsRecoverableCopyException(ex))
         {
-            StatusMessage = $"복사 실패: {ex.Message}";
+            StatusMessage = UiText.Format("SongCopyWindow", "CopyFailedDetail", ex.Message);
         }
         finally
         {
@@ -200,31 +201,31 @@ public sealed partial class SongCopyViewModel : ObservableObject
     {
         if (string.IsNullOrWhiteSpace(DatabasePath))
         {
-            ValidationMessage = "AdminDB 경로를 설정해야 합니다.";
+            ValidationMessage = UiText.Get("SongCopyWindow", "DatabasePathMissing");
             return false;
         }
 
         if (!File.Exists(DatabasePath))
         {
-            ValidationMessage = $"AdminDB 파일을 찾을 수 없습니다: {DatabasePath}";
+            ValidationMessage = UiText.Format("SongCopyWindow", "DatabaseNotFound", DatabasePath);
             return false;
         }
 
         if (_sourceSongs.Count == 0)
         {
-            ValidationMessage = "복사할 곡을 선택하세요.";
+            ValidationMessage = UiText.Get("SongCopyWindow", "SelectSong");
             return false;
         }
 
         if (SelectedTargetFolder is null)
         {
-            ValidationMessage = "복사할 대상 폴더를 선택하세요.";
+            ValidationMessage = UiText.Get("SongCopyWindow", "SelectTargetFolder");
             return false;
         }
 
         if (IsSingleSong && string.IsNullOrWhiteSpace(CopyTitle))
         {
-            ValidationMessage = "복사할 제목을 입력하세요.";
+            ValidationMessage = UiText.Get("SongCopyWindow", "EnterTitle");
             return false;
         }
 
@@ -250,7 +251,7 @@ public sealed partial class SongCopyViewModel : ObservableObject
     }
 
     private static string BuildDefaultCopyTitle(string title)
-        => string.IsNullOrWhiteSpace(title) ? "복사본" : $"{title.Trim()} - 복사본";
+        => string.IsNullOrWhiteSpace(title) ? UiText.Get("SongCopyWindow", "CopyOf") : UiText.Format("SongCopyWindow", "CopyOfTitle", title.Trim());
 
     private static string NormalizePath(string? path)
         => string.IsNullOrWhiteSpace(path) ? "" : Path.GetFullPath(path);
