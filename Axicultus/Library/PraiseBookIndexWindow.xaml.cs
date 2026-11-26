@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Axicultus.Wpf.Localization;
 using Axicultus.Wpf.Shell;
 
 namespace Axicultus.Wpf.Library;
@@ -47,8 +48,8 @@ public partial class PraiseBookIndexWindow : Window
         // 현재 목록을 저장할 이름을 입력받는다. 지금 연 찬양집 이름(CurrentBookName)으로의 재저장은 허용하되,
         // 다른 기존 찬양집 이름과 겹치면 다이얼로그가 막아 실수로 다른 찬양집을 덮어쓰는 사고를 방지한다.
         var dialogViewModel = new NameEntryViewModel(
-            "찬양집 저장",
-            "저장할 찬양집 이름:",
+            UiText.Get("PraiseBookIndexWindow", "SaveTitle"),
+            UiText.Get("PraiseBookIndexWindow", "SavePrompt"),
             _viewModel.CurrentBookName,
             _viewModel.SavedBooks);
         var dialog = new NameEntryWindow(dialogViewModel) { Owner = this };
@@ -75,8 +76,8 @@ public partial class PraiseBookIndexWindow : Window
 
         var confirm = MessageBox.Show(
             this,
-            $"'{name}' 찬양집을 삭제할까요?",
-            "찬양집 삭제",
+            UiText.Format("PraiseBookIndexWindow", "DeleteConfirm", name),
+            UiText.Get("PraiseBookIndexWindow", "DeleteTitle"),
             MessageBoxButton.OKCancel,
             MessageBoxImage.Question);
         if (confirm == MessageBoxResult.OK)
@@ -89,11 +90,11 @@ public partial class PraiseBookIndexWindow : Window
     // .rtf → RTF(Word 편집·인쇄용), 그 외(.html 등) → HTML(브라우저·인쇄용).
     private void ExportIndex_Click(object sender, RoutedEventArgs e)
     {
-        var baseName = string.IsNullOrWhiteSpace(_viewModel.CurrentBookName) ? "찬양집색인" : _viewModel.CurrentBookName;
+        var baseName = string.IsNullOrWhiteSpace(_viewModel.CurrentBookName) ? UiText.Get("PraiseBookIndexWindow", "DefaultFileName") : _viewModel.CurrentBookName;
         var dialog = new Microsoft.Win32.SaveFileDialog
         {
-            Title = "찬양집 색인 저장",
-            Filter = "HTML 문서 (*.html)|*.html|서식 있는 텍스트 RTF (*.rtf)|*.rtf|모든 파일 (*.*)|*.*",
+            Title = UiText.Get("PraiseBookIndexWindow", "ExportDialogTitle"),
+            Filter = UiText.Format("PraiseBookIndexWindow", "ExportFilter", "*.html", "*.rtf", "*.*"),
             FileName = $"{baseName}.html",
             DefaultExt = ".html",
         };
@@ -116,12 +117,12 @@ public partial class PraiseBookIndexWindow : Window
                 System.IO.File.WriteAllText(dialog.FileName, _viewModel.BuildIndexHtml(), System.Text.Encoding.UTF8);
             }
 
-            MessageBox.Show(this, $"색인을 저장했습니다:\n{dialog.FileName}", "찬양집 색인 내보내기", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show(this, UiText.Format("PraiseBookIndexWindow", "Exported", dialog.FileName), UiText.Get("PraiseBookIndexWindow", "ExportTitle"), MessageBoxButton.OK, MessageBoxImage.Information);
         }
         catch (System.Exception ex)
         {
             // 디스크 권한·잠김 등 저장 실패는 사용자에게 알리고 창은 유지(크래시 방지).
-            MessageBox.Show(this, $"저장에 실패했습니다:\n{ex.Message}", "찬양집 색인 내보내기", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show(this, UiText.Format("PraiseBookIndexWindow", "ExportFailed", ex.Message), UiText.Get("PraiseBookIndexWindow", "ExportTitle"), MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }
 

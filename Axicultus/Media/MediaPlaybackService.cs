@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Axicultus.Wpf.Localization;
 using Axicultus.Wpf.Settings;
 using Axicultus.Wpf.Shell;
 
@@ -211,7 +212,7 @@ public sealed class MediaPlaybackService : IMediaPlaybackService, IDisposable
 
     internal async Task SwitchLiveCameraAsync(InputDevice device, string displayId, CancellationToken ct)
     {
-        if (_backend is not ILiveCameraSwitchBackend output) throw new MediaPlaybackException("송출 창의 카메라를 사용할 수 없습니다.");
+        if (_backend is not ILiveCameraSwitchBackend output) throw new MediaPlaybackException(UiText.Get("MediaPlaybackService", "OutputCameraUnavailable"));
         var camera = _settings?.Current.Operator;
         var next = Current with
         {
@@ -221,7 +222,7 @@ public sealed class MediaPlaybackService : IMediaPlaybackService, IDisposable
             MediaType = "Live Camera", Source = CreateLiveCameraSource(device.CameraNumber), CameraDevicePath = device.Id,
             Duration = TimeSpan.Zero, Position = TimeSpan.Zero, OutputDisplayId = displayId, PlayerDisplay = null, ErrorMessage = null
         };
-        if (_pendingCamera != null) throw new MediaPlaybackException("카메라를 전환하는 중입니다.");
+        if (_pendingCamera != null) throw new MediaPlaybackException(UiText.Get("MediaPlaybackService", "CameraSwitching"));
         using var pending = CancellationTokenSource.CreateLinkedTokenSource(ct);
         _pendingCamera = pending;
         try
@@ -293,7 +294,7 @@ public sealed class MediaPlaybackService : IMediaPlaybackService, IDisposable
         catch (Exception ex)
         {
             // 백엔드 정리 실패는 무시 — 출력 패리티(상태 비움)가 우선.
-            System.Diagnostics.Debug.WriteLine($"[MEDIA] Unload 백엔드 정리 실패(무시): {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[MEDIA] Unload backend cleanup failed (ignored): {ex.Message}");
         }
 
         Update(MediaPlaybackSnapshot.Empty);

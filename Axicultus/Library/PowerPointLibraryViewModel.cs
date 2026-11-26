@@ -11,6 +11,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Axicultus.Wpf.Localization;
 using Axicultus.Wpf.Rendering;
 using Axicultus.Wpf.Support;
 using Axicultus.Module;
@@ -34,7 +35,7 @@ public sealed partial class PowerPointFileItem(string filePath) : ObservableObje
     private ImageSource? _thumbnailImage;
 
     [ObservableProperty]
-    private string _thumbnailStatus = "미리보기 대기";
+    private string _thumbnailStatus = UiText.Get("PowerPointLibraryWindow", "PreviewPending");
 }
 
 /// <summary>
@@ -269,15 +270,15 @@ public sealed partial class PowerPointLibraryViewModel : ObservableObject
 
         if (_allFiles.Count == 0)
         {
-            StatusText = "PowerPoint 파일이 없습니다(폴더를 확인하세요).";
+            StatusText = UiText.Get("PowerPointLibraryWindow", "NoFiles");
         }
         else if (Presentations.Count == _allFiles.Count)
         {
-            StatusText = $"{_allFiles.Count}개 PowerPoint";
+            StatusText = UiText.Format("PowerPointLibraryWindow", "FileCount", _allFiles.Count);
         }
         else
         {
-            StatusText = $"{Presentations.Count}/{_allFiles.Count}개 PowerPoint(검색 '{FilterText.Trim()}')";
+            StatusText = UiText.Format("PowerPointLibraryWindow", "FilteredCount", Presentations.Count, _allFiles.Count, FilterText.Trim());
         }
     }
 
@@ -294,7 +295,7 @@ public sealed partial class PowerPointLibraryViewModel : ObservableObject
             foreach (var item in items)
             {
                 item.ThumbnailImage = null;
-                item.ThumbnailStatus = _render is null ? "PPT 썸네일 렌더러 없음" : "PPT 썸네일 렌더링 중";
+                item.ThumbnailStatus = _render is null ? UiText.Get("PowerPointLibraryWindow", "NoRenderer") : UiText.Get("PowerPointLibraryWindow", "Rendering");
             }
 
             if (_render is null)
@@ -318,17 +319,17 @@ public sealed partial class PowerPointLibraryViewModel : ObservableObject
                         var thumbnail = await Task.Run(() => _decodeThumbnail(slide.ImageBytes), token).ConfigureAwait(true);
                         token.ThrowIfCancellationRequested();
                         item.ThumbnailImage = thumbnail;
-                        item.ThumbnailStatus = $"슬라이드 1/{slide.SlideCount}";
+                        item.ThumbnailStatus = UiText.Format("PowerPointLibraryWindow", "SlideOf", slide.SlideCount);
                     }
                     catch (Exception ex) when (
                         ex is NotSupportedException or FileFormatException or ArgumentException or OverflowException or IOException)
                     {
-                        item.ThumbnailStatus = "PPT 썸네일 디코드 실패";
+                        item.ThumbnailStatus = UiText.Get("PowerPointLibraryWindow", "DecodeFailed");
                     }
                 }
                 else
                 {
-                    item.ThumbnailStatus = result.ErrorMessage ?? "PPT 썸네일 렌더 실패";
+                    item.ThumbnailStatus = result.ErrorMessage ?? UiText.Get("PowerPointLibraryWindow", "RenderFailed");
                 }
             }
         }
@@ -337,7 +338,7 @@ public sealed partial class PowerPointLibraryViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            StatusText = $"PowerPoint 썸네일 렌더 실패: {ex.Message}";
+            StatusText = UiText.Format("PowerPointLibraryWindow", "RenderFailedStatus", ex.Message);
         }
         finally
         {
@@ -392,8 +393,8 @@ public sealed partial class PowerPointLibraryViewModel : ObservableObject
         }
 
         StatusText = selection.Count == 1
-            ? $"예배 순서에 추가: {selection[0].FileName}"
-            : $"예배 순서에 추가: {selection.Count}개 PowerPoint";
+            ? UiText.Format("PowerPointLibraryWindow", "AddedOne", selection[0].FileName)
+            : UiText.Format("PowerPointLibraryWindow", "AddedMany", selection.Count);
         return selection.Count;
     }
 
@@ -430,7 +431,7 @@ public sealed partial class PowerPointLibraryViewModel : ObservableObject
 
         if (deletedPaths.Count == 0)
         {
-            StatusText = "No PowerPoint file deleted.";
+            StatusText = UiText.Get("PowerPointLibraryWindow", "NoneDeleted");
             return 0;
         }
 
@@ -447,8 +448,8 @@ public sealed partial class PowerPointLibraryViewModel : ObservableObject
         }
 
         StatusText = deletedPaths.Count == 1
-            ? $"Deleted PowerPoint: {Path.GetFileName(deletedPaths.First())}"
-            : $"Deleted {deletedPaths.Count} PowerPoint files.";
+            ? UiText.Format("PowerPointLibraryWindow", "DeletedOne", Path.GetFileName(deletedPaths.First()))
+            : UiText.Format("PowerPointLibraryWindow", "DeletedMany", deletedPaths.Count);
         return deletedPaths.Count;
     }
 

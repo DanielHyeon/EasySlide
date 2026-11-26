@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using Axicultus.Wpf.Library;
+using Axicultus.Wpf.Localization;
 using Axicultus.Wpf.Shell;
 using Microsoft.Win32;
 
@@ -50,7 +51,7 @@ public partial class MediaAssignmentWindow : Window
     private void Browse_Click(object sender, RoutedEventArgs e)
     {
         var dialog = new OpenFileDialog { InitialDirectory = _initialDirectory,
-            Filter = SourceFileExtensions.DialogFilter("미디어", SourceFileExtensions.Media(WorkingFolder)) + "|모든 파일|*.*" };
+            Filter = SourceFileExtensions.DialogFilter(UiText.Get("MediaAssignmentWindow", "MediaFilter"), SourceFileExtensions.Media(WorkingFolder)) + UiText.Get("MediaAssignmentWindow", "AllFilesFilter") };
         if (dialog.ShowDialog(this) == true) { SourcePath.Text = dialog.FileName; ModeBox.SelectedIndex = 3; }
     }
 
@@ -66,7 +67,7 @@ public partial class MediaAssignmentWindow : Window
             return true;
         }
         if (!ReadNumber(VolumeBox.Text, 0, 100, out var volume) || !ReadNumber(BalanceBox.Text, -100, 100, out var balance))
-        { Status.Text = "음량은 0~100, 좌우 균형은 -100~100 사이로 입력하세요."; return false; }
+        { Status.Text = UiText.Get("MediaAssignmentWindow", "CheckRange"); return false; }
         int mode = ModeBox.SelectedIndex - 1;
         string path = SourcePath.Text.Trim();
         if (mode == -1 && path.Length > 0 && path != _initialOptions.FileName) mode = 2;
@@ -88,7 +89,7 @@ public partial class MediaAssignmentWindow : Window
                 : options.Mode == 1 && Directory.Exists(_initialDirectory) ? Directory.EnumerateFiles(_initialDirectory, "*", SearchOption.AllDirectories)
                     .FirstOrDefault(file => string.Equals(Path.GetFileNameWithoutExtension(file), Title, StringComparison.OrdinalIgnoreCase))
                 : options.Mode == 2 ? ResolveFile(options.FileName) : null;
-            if (!camera && !File.Exists(path)) { Status.Text = "재생할 파일을 찾을 수 없습니다."; return; }
+            if (!camera && !File.Exists(path)) { Status.Text = UiText.Get("MediaAssignmentWindow", "FileNotFound"); return; }
             var snapshot = MediaPlaybackSnapshot.Empty with { State = MediaPlaybackState.Playing, Source = path!, SourceKind = camera ? MediaSourceKind.CaptureDevice : MediaSourceKind.File,
                 Volume = options.Volume ?? 50, Balance = options.Balance ?? 0, IsMuted = Mute.IsChecked == true && options.Flags.HasValue,
                 IsWidescreen = Wide.IsChecked == true || !options.Flags.HasValue, IsRepeatEnabled = Repeat.IsChecked == true && options.Flags.HasValue };
@@ -143,7 +144,7 @@ public partial class MediaAssignmentWindow : Window
         if (!ReadOptions(out var options)) return;
         if (options.Mode == 2 && (options.FileName.Length == 0 ||
             (options.FileName != _initialOptions.FileName && !File.Exists(ResolveFile(options.FileName)))))
-        { Status.Text = "파일 위치를 확인하세요."; return; }
+        { Status.Text = UiText.Get("MediaAssignmentWindow", "CheckLocation"); return; }
         Options = options;
         DialogResult = true;
     }

@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Library;
 
@@ -26,7 +27,7 @@ public partial class ImageLibraryWindow : Window
     {
         var dialog = new Microsoft.Win32.OpenFolderDialog
         {
-            Title = "이미지 폴더 선택",
+            Title = UiText.Get("ImageLibraryWindow", "SelectFolder"),
         };
 
         if (!string.IsNullOrWhiteSpace(_viewModel.FolderPath))

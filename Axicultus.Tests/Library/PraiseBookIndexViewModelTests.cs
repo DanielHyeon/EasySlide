@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Axicultus.Wpf.Library;
+using Axicultus.Wpf.Localization;
 using FluentAssertions;
 using Xunit;
 
@@ -148,7 +149,7 @@ public class PraiseBookIndexViewModelTests
         sut.IsWordCountSortEnabled.Should().BeTrue();
         sut.Groups.Select(group => group.Key).Should().Equal("001", "002", "003");
         sut.Entries.Select(entry => entry.Title).Should().Equal("나", "가나", "가나다");
-        sut.StatusText.Should().Contain("CJK Word Count");
+        sut.StatusText.Should().Be(UiText.Get("PraiseBookIndexWindow", "SortWordCount"));
     }
 
     [Fact]

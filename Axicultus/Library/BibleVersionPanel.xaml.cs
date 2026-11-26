@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Windows;
+using Axicultus.Wpf.Localization;
 using Axicultus.Wpf.Shell;
 
 namespace Axicultus.Wpf.Library;
@@ -27,7 +28,7 @@ public partial class BibleVersionPanel : System.Windows.Controls.UserControl
         if (VersionList.SelectedItem is not BibleVersion version) return;
         if (!int.TryParse(LinkedFolder.Text, out var folder) || !int.TryParse(FontPoints.Text, out var size))
         {
-            MessageBox.Show(Window.GetWindow(this), "연결 폴더와 글자 크기를 숫자로 입력하세요.", "성경 표시 설정");
+            MessageBox.Show(Window.GetWindow(this), UiText.Get("BibleVersionPanel", "EnterNumbers"), UiText.Get("BibleVersionPanel", "LayoutTitle"));
             return;
         }
         Model.SetVersionLayout(version, folder, size);
@@ -42,8 +43,8 @@ public partial class BibleVersionPanel : System.Windows.Controls.UserControl
 
         // 기존 버전 이름들을 넘겨 중복을 막는다(다이얼로그 VM 이 자기 자신은 제외하고 검사).
         var dialogViewModel = new NameEntryViewModel(
-            "성경 버전 이름 변경",
-            $"'{version.Name}'의 새 이름:",
+            UiText.Get("BibleVersionPanel", "RenameTitle"),
+            UiText.Format("BibleVersionPanel", "RenamePrompt", version.Name),
             version.Name,
             Model.Versions.Select(v => v.Name));
         var dialog = new NameEntryWindow(dialogViewModel) { Owner = Window.GetWindow(this) };
@@ -79,8 +80,8 @@ public partial class BibleVersionPanel : System.Windows.Controls.UserControl
         // 삭제는 숨김(되돌릴 수 있음)이지만 운영 중 실수 방지를 위해 확인을 받는다.
         var confirm = MessageBox.Show(
             Window.GetWindow(this),
-            $"'{version.Name}' 버전을 목록에서 삭제할까요?\n(본문 파일은 보존되며 나중에 다시 추가할 수 있습니다.)",
-            "성경 버전 삭제",
+            UiText.Format("BibleVersionPanel", "DeleteConfirm", version.Name),
+            UiText.Get("BibleVersionPanel", "DeleteTitle"),
             MessageBoxButton.OKCancel,
             MessageBoxImage.Question);
         if (confirm == MessageBoxResult.OK)
@@ -96,8 +97,8 @@ public partial class BibleVersionPanel : System.Windows.Controls.UserControl
         {
             MessageBox.Show(
                 Window.GetWindow(this),
-                "추가할 수 있는 성경 파일이 없습니다.\n(HolyBibles 폴더의 성경 파일이 모두 이미 목록에 있습니다.)",
-                "성경 버전 추가",
+                UiText.Get("BibleVersionPanel", "NothingToAdd"),
+                UiText.Get("BibleVersionPanel", "AddTitle"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);
             return;

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="WindowsDefault" xml:space="preserve"><value>{0} (Windows 기본)</value></data>
+  <data name="Muted" xml:space="preserve"><value>음소거</value></data>
+  <data name="WaitingForInput" xml:space="preserve"><value>입력 대기</value></data>
+  <data name="SignalDetected" xml:space="preserve"><value>입력 신호 감지</value></data>
+  <data name="MicDisconnected" xml:space="preserve"><value>마이크 연결이 해제되었습니다.</value></data>
+  <data name="AccessDenied" xml:space="preserve"><value>접근 거부 · Windows에서 장치 사용 권한을 확인하세요.</value></data>
+  <data name="DeviceInUse" xml:space="preserve"><value>장치 사용 중 · 다른 앱의 단독 사용을 확인하세요.</value></data>
+  <data name="DeviceGone" xml:space="preserve"><value>장치 연결 해제 · 목록을 새로 고쳐 주세요.</value></data>
+</root>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Title" xml:space="preserve"><value>Browse media folder</value></data>
+  <data name="Intro" xml:space="preserve"><value>Choose video and audio files in the folder to add to the worship list.</value></data>
+  <data name="ChangeFolder" xml:space="preserve"><value>Change folder...</value></data>
+  <data name="Refresh" xml:space="preserve"><value>Refresh</value></data>
+  <data name="IncludeSubfolders" xml:space="preserve"><value>Include subfolders</value></data>
+  <data name="SearchTip" xml:space="preserve"><value>Search by file name (not case-sensitive). Leave empty to show all.</value></data>
+  <data name="AddToList" xml:space="preserve"><value>Add to worship list</value></data>
+  <data name="Close" xml:space="preserve"><value>Close</value></data>
+  <data name="SelectFolder" xml:space="preserve"><value>Select media folder</value></data>
+  <data name="NoMedia" xml:space="preserve"><value>No media files (check the folder).</value></data>
+  <data name="MediaCount" xml:space="preserve"><value>{0} media files</value></data>
+  <data name="FilteredCount" xml:space="preserve"><value>{0}/{1} media files (search '{2}')</value></data>
+  <data name="AddedOne" xml:space="preserve"><value>Added to worship list: {0}</value></data>
+  <data name="AddedMany" xml:space="preserve"><value>Added to worship list: {0} media files</value></data>
+  <data name="NoneDeleted" xml:space="preserve"><value>No media file deleted.</value></data>
+  <data name="DeletedOne" xml:space="preserve"><value>Deleted media: {0}</value></data>
+  <data name="DeletedMany" xml:space="preserve"><value>Deleted {0} media files.</value></data>
+</root>

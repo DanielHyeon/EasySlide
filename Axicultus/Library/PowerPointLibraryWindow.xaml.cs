@@ -1,4 +1,5 @@
 using System.Windows;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Library;
 
@@ -22,7 +23,7 @@ public partial class PowerPointLibraryWindow : Window
     {
         var dialog = new Microsoft.Win32.OpenFolderDialog
         {
-            Title = "PowerPoint 폴더 선택",
+            Title = UiText.Get("PowerPointLibraryWindow", "SelectFolder"),
         };
 
         if (!string.IsNullOrWhiteSpace(_viewModel.FolderPath))

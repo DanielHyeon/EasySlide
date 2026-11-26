@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Axicultus.Wpf.Localization;
 using Axicultus.Wpf.Settings;
 
 namespace Axicultus.Wpf.Library;
@@ -69,7 +70,7 @@ public sealed partial class BibleViewModel : ObservableObject
     public IEnumerable<BibleVersion> Region2VersionOptions => Versions;
 
     public ObservableCollection<BibleBook> Books { get; } = [];
-    private static readonly BibleBook ResultsBook = new(-1, "Search Results:");
+    private static readonly BibleBook ResultsBook = new(-1, UiText.Get("BibleWindow", "SearchResults"));
     public IEnumerable<BibleBook> BrowserBooks => _currentResult.IsSequential ? Books : Books.Append(ResultsBook);
     public BibleBook? SelectedBrowserBook
     {
@@ -160,11 +161,11 @@ public sealed partial class BibleViewModel : ObservableObject
             }
 
             ValidationMessage = Versions.Count == 0
-                ? "성경 목록 데이터베이스를 찾을 수 없습니다."
+                ? UiText.Get("BibleWindow", "NoCatalog")
                 : "";
             StatusMessage = Versions.Count == 0
                 ? ""
-                : $"{Versions.Count}개 성경 버전을 불러왔습니다.";
+                : UiText.Format("BibleWindow", "VersionsLoaded", Versions.Count);
         }
         catch (Exception ex) when (IsRecoverableBibleException(ex) || ex is ArgumentException)
         {
@@ -177,7 +178,7 @@ public sealed partial class BibleViewModel : ObservableObject
             PassageText = "";
             SetPassageResult(new BiblePassageResult("", [], IsSequential: true, WasLimited: false));
             ClearSelection();
-            ValidationMessage = $"성경 데이터를 불러오지 못했습니다: {ex.Message}";
+            ValidationMessage = UiText.Format("BibleWindow", "LoadFailed", ex.Message);
             StatusMessage = "";
         }
         finally
@@ -199,7 +200,7 @@ public sealed partial class BibleViewModel : ObservableObject
         var to = (newName ?? "").Trim();
         if (to.Length == 0)
         {
-            ValidationMessage = "버전 이름을 입력하세요.";
+            ValidationMessage = UiText.Get("BibleWindow", "EnterVersionName");
             return false;
         }
 
@@ -214,7 +215,7 @@ public sealed partial class BibleViewModel : ObservableObject
                 !string.Equals(other.FileName, version.FileName, StringComparison.OrdinalIgnoreCase)
                 && string.Equals(other.Name, to, StringComparison.OrdinalIgnoreCase)))
         {
-            ValidationMessage = "이미 있는 버전 이름입니다. 다른 이름을 입력하세요.";
+            ValidationMessage = UiText.Get("BibleWindow", "DuplicateVersionName");
             return false;
         }
 
@@ -225,13 +226,13 @@ public sealed partial class BibleViewModel : ObservableObject
         }
         catch (Exception ex) when (ex is IOException or System.Data.SQLite.SQLiteException or UnauthorizedAccessException)
         {
-            ValidationMessage = $"버전 이름을 바꾸지 못했습니다: {to}";
+            ValidationMessage = UiText.Format("BibleWindow", "RenameFailed", to);
             return false;
         }
 
         if (!renamed)
         {
-            ValidationMessage = $"버전을 찾을 수 없습니다: {version.Name}";
+            ValidationMessage = UiText.Format("BibleWindow", "VersionNotFound", version.Name);
             return false;
         }
 
@@ -255,7 +256,7 @@ public sealed partial class BibleViewModel : ObservableObject
         }
 
         ValidationMessage = "";
-        StatusMessage = $"버전 이름 변경: {version.Name} → {to}";
+        StatusMessage = UiText.Format("BibleWindow", "Renamed", version.Name, to);
         return true;
     }
 
@@ -287,7 +288,7 @@ public sealed partial class BibleViewModel : ObservableObject
         {
             if (!_repository.SetVersionLayout(WorkingFolder, version.FileName, folder, fontSize))
             {
-                ValidationMessage = "연결 폴더(1–40)와 글자 크기(5–200)를 확인하세요.";
+                ValidationMessage = UiText.Get("BibleWindow", "CheckLayout");
                 return false;
             }
             var updated = version with { SongFolderNo = folder, Size = fontSize };
@@ -298,7 +299,7 @@ public sealed partial class BibleViewModel : ObservableObject
             if (region1) PreviewRegion1Version = updated;
             if (region2) PreviewRegion2Version = updated;
             ValidationMessage = "";
-            StatusMessage = "성경 표시 설정을 저장했습니다.";
+            StatusMessage = UiText.Get("BibleWindow", "LayoutSaved");
             return true;
         }
         catch (Exception ex) when (IsRecoverableBibleException(ex))
@@ -344,19 +345,19 @@ public sealed partial class BibleViewModel : ObservableObject
         }
         catch (Exception ex) when (ex is IOException or System.Data.SQLite.SQLiteException or UnauthorizedAccessException)
         {
-            ValidationMessage = "버전 순서를 바꾸지 못했습니다.";
+            ValidationMessage = UiText.Get("BibleWindow", "ReorderFailed");
             return false;
         }
 
         if (!reordered)
         {
-            ValidationMessage = "버전 순서를 바꾸지 못했습니다.";
+            ValidationMessage = UiText.Get("BibleWindow", "ReorderFailed");
             return false;
         }
 
         ReloadPreservingSelection(version.FileName);
         ValidationMessage = "";
-        StatusMessage = $"버전 순서 변경: {version.Name}";
+        StatusMessage = UiText.Format("BibleWindow", "Reordered", version.Name);
         return true;
     }
 
@@ -390,19 +391,19 @@ public sealed partial class BibleViewModel : ObservableObject
         }
         catch (Exception ex) when (ex is IOException or System.Data.SQLite.SQLiteException or UnauthorizedAccessException)
         {
-            ValidationMessage = $"버전을 삭제하지 못했습니다: {version.Name}";
+            ValidationMessage = UiText.Format("BibleWindow", "DeleteFailed", version.Name);
             return false;
         }
 
         if (!deleted)
         {
-            ValidationMessage = $"버전을 삭제하지 못했습니다: {version.Name}";
+            ValidationMessage = UiText.Format("BibleWindow", "DeleteFailed", version.Name);
             return false;
         }
 
         ReloadPreservingSelection(nextSelection);
         ValidationMessage = "";
-        StatusMessage = $"버전 삭제(숨김): {version.Name}";
+        StatusMessage = UiText.Format("BibleWindow", "Deleted", version.Name);
         return true;
     }
 
@@ -419,20 +420,20 @@ public sealed partial class BibleViewModel : ObservableObject
         var to = (name ?? "").Trim();
         if (string.IsNullOrWhiteSpace(fileName))
         {
-            ValidationMessage = "추가할 성경 파일을 선택하세요.";
+            ValidationMessage = UiText.Get("BibleWindow", "SelectFileToAdd");
             return false;
         }
 
         if (to.Length == 0)
         {
-            ValidationMessage = "버전 이름을 입력하세요.";
+            ValidationMessage = UiText.Get("BibleWindow", "EnterVersionName");
             return false;
         }
 
         // 보이는 버전과 이름이 겹치면 거부(이름 변경과 동일 규칙).
         if (Versions.Any(other => string.Equals(other.Name, to, StringComparison.OrdinalIgnoreCase)))
         {
-            ValidationMessage = "이미 있는 버전 이름입니다. 다른 이름을 입력하세요.";
+            ValidationMessage = UiText.Get("BibleWindow", "DuplicateVersionName");
             return false;
         }
 
@@ -443,19 +444,19 @@ public sealed partial class BibleViewModel : ObservableObject
         }
         catch (Exception ex) when (ex is IOException or System.Data.SQLite.SQLiteException or UnauthorizedAccessException)
         {
-            ValidationMessage = $"버전을 추가하지 못했습니다: {to}";
+            ValidationMessage = UiText.Format("BibleWindow", "AddFailed", to);
             return false;
         }
 
         if (!added)
         {
-            ValidationMessage = $"버전을 추가하지 못했습니다: {to}";
+            ValidationMessage = UiText.Format("BibleWindow", "AddFailed", to);
             return false;
         }
 
         ReloadPreservingSelection(fileName);
         ValidationMessage = "";
-        StatusMessage = $"버전 추가: {to}";
+        StatusMessage = UiText.Format("BibleWindow", "Added", to);
         return true;
     }
 
@@ -489,7 +490,7 @@ public sealed partial class BibleViewModel : ObservableObject
     {
         if (SelectedVersion is null || SelectedBook is null)
         {
-            ValidationMessage = "성경 버전과 책을 선택하세요.";
+            ValidationMessage = UiText.Get("BibleWindow", "SelectVersionAndBook");
             NotifyCommands();
             return Task.CompletedTask;
         }
@@ -497,7 +498,7 @@ public sealed partial class BibleViewModel : ObservableObject
         return ExecuteOperationAsync(() =>
         {
             LoadSelectedBookCore();
-            StatusMessage = $"{_currentResult.Locations.Count}개 구절을 불러왔습니다.";
+            StatusMessage = UiText.Format("BibleWindow", "VersesLoaded", _currentResult.Locations.Count);
         });
     }
 
@@ -524,8 +525,8 @@ public sealed partial class BibleViewModel : ObservableObject
         var book = selectedBookOnly ? SelectedBook?.Number : null;
         if (version is null || string.IsNullOrWhiteSpace(query) || (selectedBookOnly && book is null))
         {
-            ValidationMessage = version is null ? "성경 버전을 선택하세요." :
-                string.IsNullOrWhiteSpace(query) ? "검색어를 입력하세요." : "검색할 성경 책을 선택하세요.";
+            ValidationMessage = version is null ? UiText.Get("BibleWindow", "SelectVersion") :
+                string.IsNullOrWhiteSpace(query) ? UiText.Get("BibleWindow", "EnterSearchText") : UiText.Get("BibleWindow", "SelectBookToSearch");
             NotifyCommands();
             return;
         }
@@ -556,13 +557,13 @@ public sealed partial class BibleViewModel : ObservableObject
             if (rememberReferences) _searchReferences = result;
             SetPassageResult(result);
             ClearSelection();
-            var suffix = result.WasLimited ? " 결과가 3000개로 제한되었습니다." : "";
-            StatusMessage = $"{result.Locations.Count}개 구절을 찾았습니다.{suffix}";
+            var suffix = result.WasLimited ? UiText.Get("BibleWindow", "ResultsLimited") : "";
+            StatusMessage = UiText.Format("BibleWindow", "VersesFound", result.Locations.Count, suffix);
         }
         catch (OperationCanceledException) when (search.IsCancellationRequested) { }
         catch (Exception ex) when (IsRecoverableBibleException(ex))
         {
-            if (!search.IsCancellationRequested) StatusMessage = $"성경 데이터를 불러오지 못했습니다: {ex.Message}";
+            if (!search.IsCancellationRequested) StatusMessage = UiText.Format("BibleWindow", "LoadFailed", ex.Message);
         }
         finally
         {
@@ -593,7 +594,7 @@ public sealed partial class BibleViewModel : ObservableObject
         CancelSearch();
         if (SelectedVersion is null)
         {
-            ValidationMessage = "성경 버전을 선택하세요.";
+            ValidationMessage = UiText.Get("BibleWindow", "SelectVersion");
             NotifyCommands();
             return new BibleSelection("", "");
         }
@@ -604,14 +605,14 @@ public sealed partial class BibleViewModel : ObservableObject
 
         if (!BibleReferenceParser.TryParse(TypedReference, out var reference))
         {
-            ValidationMessage = "구절 형식이 올바르지 않습니다 (예: 창 1:1-2:3).";
+            ValidationMessage = UiText.Get("BibleWindow", "BadReference");
             return new BibleSelection("", "");
         }
 
         var book = BibleReferenceParser.ResolveBook(Books, reference.BookToken);
         if (book is null)
         {
-            ValidationMessage = $"성경 책을 찾을 수 없습니다: {reference.BookToken}";
+            ValidationMessage = UiText.Format("BibleWindow", "BookNotFound", reference.BookToken);
             return new BibleSelection("", "");
         }
 
@@ -623,7 +624,7 @@ public sealed partial class BibleViewModel : ObservableObject
         }
         catch (Exception ex) when (IsRecoverableBibleException(ex))
         {
-            StatusMessage = $"성경 데이터를 불러오지 못했습니다: {ex.Message}";
+            StatusMessage = UiText.Format("BibleWindow", "LoadFailed", ex.Message);
             return new BibleSelection("", "");
         }
 
@@ -632,7 +633,7 @@ public sealed partial class BibleViewModel : ObservableObject
         var end = FindLocation(reference.EndChapter, reference.EndVerse);
         if (start is null || end is null)
         {
-            ValidationMessage = $"구절을 찾을 수 없습니다: {reference.BookToken} {reference.StartChapter}:{reference.StartVerse}";
+            ValidationMessage = UiText.Format("BibleWindow", "VerseNotFound", reference.BookToken, reference.StartChapter, reference.StartVerse);
             ClearSelection();
             return new BibleSelection("", "");
         }
@@ -642,7 +643,7 @@ public sealed partial class BibleViewModel : ObservableObject
         var selectionLength = (end.Start + end.Length) - selectionStart - 2;
         if (selectionLength <= 0)
         {
-            ValidationMessage = "구절 범위가 올바르지 않습니다.";
+            ValidationMessage = UiText.Get("BibleWindow", "BadRange");
             ClearSelection();
             return new BibleSelection("", "");
         }
@@ -700,7 +701,7 @@ public sealed partial class BibleViewModel : ObservableObject
     {
         if (SelectedVersion is null)
         {
-            ValidationMessage = "성경 버전을 선택하세요.";
+            ValidationMessage = UiText.Get("BibleWindow", "SelectVersion");
             return new BibleSelection("", "");
         }
 
@@ -715,7 +716,7 @@ public sealed partial class BibleViewModel : ObservableObject
             _settings.Get(AxicultusSettingKeys.BibleAdHocLimit));
         if (string.IsNullOrWhiteSpace(baseSelection.IdString))
         {
-            ValidationMessage = "선택된 구절이 없습니다.";
+            ValidationMessage = UiText.Get("BibleWindow", "NoVerseSelected");
             return new BibleSelection("", "");
         }
 
@@ -725,7 +726,7 @@ public sealed partial class BibleViewModel : ObservableObject
         UseRegion2Preview = region2 is not null;
         UpdatePreviewSelection();
         ValidationMessage = "";
-        StatusMessage = region2 is null ? "성경 구절을 선택했습니다." : $"이중 언어 구절: {PreviewRegionSummary}";
+        StatusMessage = region2 is null ? UiText.Get("BibleWindow", "PassageSelected") : UiText.Format("BibleWindow", "DualLanguage", PreviewRegionSummary);
         return SelectedSelection;
     }
 
@@ -733,7 +734,7 @@ public sealed partial class BibleViewModel : ObservableObject
     {
         if (SelectedVersion is null)
         {
-            ValidationMessage = "성경 버전을 선택하세요.";
+            ValidationMessage = UiText.Get("BibleWindow", "SelectVersion");
             NotifyCommands();
             return new BibleSelection("", "");
         }
@@ -752,11 +753,11 @@ public sealed partial class BibleViewModel : ObservableObject
 
         var selected = SelectedSelection;
         ValidationMessage = string.IsNullOrWhiteSpace(selected.IdString)
-            ? "선택된 구절이 없습니다."
+            ? UiText.Get("BibleWindow", "NoVerseSelected")
             : "";
         if (!string.IsNullOrWhiteSpace(selected.IdString))
         {
-            StatusMessage = "성경 구절을 선택했습니다.";
+            StatusMessage = UiText.Get("BibleWindow", "PassageSelected");
             SelectionChanged?.Invoke(this, new BibleSelectionChangedEventArgs(selected));
         }
 
@@ -771,7 +772,7 @@ public sealed partial class BibleViewModel : ObservableObject
 
         if (string.IsNullOrEmpty(PassageText) || _currentResult.Locations.Count == 0)
         {
-            ValidationMessage = "선택된 구절이 없습니다.";
+            ValidationMessage = UiText.Get("BibleWindow", "NoVerseSelected");
             NotifyCommands();
             return false;
         }
@@ -779,7 +780,7 @@ public sealed partial class BibleViewModel : ObservableObject
         var clickedIndex = FindVerseLocationIndexAtOffset(charIndex);
         if (clickedIndex < 0)
         {
-            ValidationMessage = "선택된 구절이 없습니다.";
+            ValidationMessage = UiText.Get("BibleWindow", "NoVerseSelected");
             NotifyCommands();
             return false;
         }
@@ -807,7 +808,7 @@ public sealed partial class BibleViewModel : ObservableObject
 
         if (selectionLength <= 0)
         {
-            ValidationMessage = "선택된 구절이 없습니다.";
+            ValidationMessage = UiText.Get("BibleWindow", "NoVerseSelected");
             NotifyCommands();
             return false;
         }
@@ -917,7 +918,7 @@ public sealed partial class BibleViewModel : ObservableObject
         }
         catch (Exception ex) when (IsRecoverableBibleException(ex))
         {
-            StatusMessage = $"성경 데이터를 불러오지 못했습니다: {ex.Message}";
+            StatusMessage = UiText.Format("BibleWindow", "LoadFailed", ex.Message);
         }
         finally
         {

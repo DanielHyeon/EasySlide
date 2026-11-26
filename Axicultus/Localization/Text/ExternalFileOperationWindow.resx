@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Title" xml:space="preserve"><value>Copy/move external files</value></data>
+  <data name="FileKind" xml:space="preserve"><value>File type</value></data>
+  <data name="Operation" xml:space="preserve"><value>Operation</value></data>
+  <data name="Destination" xml:space="preserve"><value>Destination</value></data>
+  <data name="AddFilesTip" xml:space="preserve"><value>Add external files to process</value></data>
+  <data name="AddFiles" xml:space="preserve"><value>Add files</value></data>
+  <data name="RemoveTip" xml:space="preserve"><value>Remove the selected file</value></data>
+  <data name="Remove" xml:space="preserve"><value>Remove</value></data>
+  <data name="FileColumn" xml:space="preserve"><value>File</value></data>
+  <data name="PathColumn" xml:space="preserve"><value>Path</value></data>
+  <data name="ExternalFolder" xml:space="preserve"><value>External destination folder</value></data>
+  <data name="SongFolder" xml:space="preserve"><value>Destination song folder</value></data>
+  <data name="RunTip" xml:space="preserve"><value>Process the external files</value></data>
+  <data name="Run" xml:space="preserve"><value>Run</value></data>
+  <data name="Close" xml:space="preserve"><value>Close</value></data>
+  <data name="SongFoldersFailed" xml:space="preserve"><value>Could not load the song folders: {0}</value></data>
+  <data name="Failed" xml:space="preserve"><value>External file processing failed</value></data>
+  <data name="FailedDetail" xml:space="preserve"><value>External file processing failed: {0}</value></data>
+  <data name="Processed" xml:space="preserve"><value>Processed {0} items.</value></data>
+  <data name="AddFilesFirst" xml:space="preserve"><value>Add the external files to process.</value></data>
+  <data name="SongFolderInfoScreenOnly" xml:space="preserve"><value>Importing into a song folder is only available when copying InfoScreen files.</value></data>
+  <data name="AdminDbPathMissing" xml:space="preserve"><value>Set the AdminDB path first.</value></data>
+  <data name="SelectSongFolder" xml:space="preserve"><value>Select the destination song folder.</value></data>
+  <data name="SelectExternalFolder" xml:space="preserve"><value>Select the external destination folder.</value></data>
+</root>

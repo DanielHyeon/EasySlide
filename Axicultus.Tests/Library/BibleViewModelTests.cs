@@ -344,7 +344,7 @@ public class BibleViewModelTests
         sut.SearchText.Should().Be("beginning");
         sut.PassageText.Should().Be("Genesis 1:1 In the beginning");
         sut.StatusMessage.Should().Be("1개 구절을 찾았습니다.");
-        sut.SelectedBrowserBook!.Name.Should().Be("Search Results:");
+        sut.SelectedBrowserBook!.Name.Should().Be("검색 결과:");
         sut.SelectedBrowserBook = sut.Books[0];
         sut.BrowserBooks.Should().Equal(sut.Books);
         sut.SelectedBrowserBook.Should().Be(sut.Books[0]);

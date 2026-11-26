@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Title" xml:space="preserve"><value>Browse PowerPoint folder</value></data>
+  <data name="Intro" xml:space="preserve"><value>Choose PowerPoint (.ppt/.pptx) files in the folder to add to the worship list.</value></data>
+  <data name="ChangeFolder" xml:space="preserve"><value>Change folder...</value></data>
+  <data name="Refresh" xml:space="preserve"><value>Refresh</value></data>
+  <data name="IncludeSubfolders" xml:space="preserve"><value>Include subfolders</value></data>
+  <data name="SearchTip" xml:space="preserve"><value>Search by file name (not case-sensitive). Leave empty to show all.</value></data>
+  <data name="SortTip" xml:space="preserve"><value>PowerPoint sort order</value></data>
+  <data name="SortByNumber" xml:space="preserve"><value>By hymn number</value></data>
+  <data name="SortByTitle" xml:space="preserve"><value>By title</value></data>
+  <data name="AddToList" xml:space="preserve"><value>Add to worship list</value></data>
+  <data name="Close" xml:space="preserve"><value>Close</value></data>
+  <data name="SelectFolder" xml:space="preserve"><value>Select PowerPoint folder</value></data>
+  <data name="PreviewPending" xml:space="preserve"><value>Preview pending</value></data>
+  <data name="NoFiles" xml:space="preserve"><value>No PowerPoint files (check the folder).</value></data>
+  <data name="FileCount" xml:space="preserve"><value>{0} PowerPoint files</value></data>
+  <data name="FilteredCount" xml:space="preserve"><value>{0}/{1} PowerPoint files (search '{2}')</value></data>
+  <data name="NoRenderer" xml:space="preserve"><value>No PPT thumbnail renderer</value></data>
+  <data name="Rendering" xml:space="preserve"><value>Rendering PPT thumbnail</value></data>
+  <data name="SlideOf" xml:space="preserve"><value>Slide 1/{0}</value></data>
+  <data name="DecodeFailed" xml:space="preserve"><value>PPT thumbnail could not be decoded</value></data>
+  <data name="RenderFailed" xml:space="preserve"><value>PPT thumbnail could not be rendered</value></data>
+  <data name="RenderFailedStatus" xml:space="preserve"><value>PowerPoint thumbnail could not be rendered: {0}</value></data>
+  <data name="AddedOne" xml:space="preserve"><value>Added to worship list: {0}</value></data>
+  <data name="AddedMany" xml:space="preserve"><value>Added to worship list: {0} PowerPoint files</value></data>
+  <data name="NoneDeleted" xml:space="preserve"><value>No PowerPoint file deleted.</value></data>
+  <data name="DeletedOne" xml:space="preserve"><value>Deleted PowerPoint: {0}</value></data>
+  <data name="DeletedMany" xml:space="preserve"><value>Deleted {0} PowerPoint files.</value></data>
+</root>

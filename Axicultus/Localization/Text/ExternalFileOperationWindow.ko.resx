@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Title" xml:space="preserve"><value>외부 파일 복사/이동</value></data>
+  <data name="FileKind" xml:space="preserve"><value>파일 종류</value></data>
+  <data name="Operation" xml:space="preserve"><value>작업</value></data>
+  <data name="Destination" xml:space="preserve"><value>대상</value></data>
+  <data name="AddFilesTip" xml:space="preserve"><value>처리할 외부 파일 추가</value></data>
+  <data name="AddFiles" xml:space="preserve"><value>파일 추가</value></data>
+  <data name="RemoveTip" xml:space="preserve"><value>선택 파일 제거</value></data>
+  <data name="Remove" xml:space="preserve"><value>제거</value></data>
+  <data name="FileColumn" xml:space="preserve"><value>파일</value></data>
+  <data name="PathColumn" xml:space="preserve"><value>경로</value></data>
+  <data name="ExternalFolder" xml:space="preserve"><value>외부 대상 폴더</value></data>
+  <data name="SongFolder" xml:space="preserve"><value>곡 대상 폴더</value></data>
+  <data name="RunTip" xml:space="preserve"><value>외부 파일 처리 실행</value></data>
+  <data name="Run" xml:space="preserve"><value>실행</value></data>
+  <data name="Close" xml:space="preserve"><value>닫기</value></data>
+  <data name="SongFoldersFailed" xml:space="preserve"><value>곡 폴더를 불러오지 못했습니다: {0}</value></data>
+  <data name="Failed" xml:space="preserve"><value>외부 파일 처리 실패</value></data>
+  <data name="FailedDetail" xml:space="preserve"><value>외부 파일 처리 실패: {0}</value></data>
+  <data name="Processed" xml:space="preserve"><value>{0}개 항목을 처리했습니다.</value></data>
+  <data name="AddFilesFirst" xml:space="preserve"><value>처리할 외부 파일을 추가하세요.</value></data>
+  <data name="SongFolderInfoScreenOnly" xml:space="preserve"><value>곡 폴더로 가져오기는 InfoScreen 복사에서만 사용할 수 있습니다.</value></data>
+  <data name="AdminDbPathMissing" xml:space="preserve"><value>AdminDB 경로를 설정해야 합니다.</value></data>
+  <data name="SelectSongFolder" xml:space="preserve"><value>대상 곡 폴더를 선택하세요.</value></data>
+  <data name="SelectExternalFolder" xml:space="preserve"><value>대상 외부 폴더를 선택하세요.</value></data>
+</root>

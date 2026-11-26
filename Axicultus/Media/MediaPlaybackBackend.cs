@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Windows.Controls;
 using System.Windows.Media;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Media;
 
@@ -72,10 +73,10 @@ public sealed partial class WpfMediaElementPlaybackBackend(MediaElement element,
             const string prefix = "<<Capture>>";
             if (_videoSurface == null || !snapshot.Source.StartsWith(prefix, StringComparison.Ordinal)
                 || !int.TryParse(snapshot.Source.AsSpan(prefix.Length), out int index))
-                throw new MediaPlaybackException("카메라를 선택할 수 없습니다.");
-            if (_ownership?.ObsOwnsCamera == true) throw new MediaPlaybackException("OBS 카메라 모드입니다.");
+                throw new MediaPlaybackException(UiText.Get("WpfMediaElementPlaybackBackend", "CameraNotSelectable"));
+            if (_ownership?.ObsOwnsCamera == true) throw new MediaPlaybackException(UiText.Get("WpfMediaElementPlaybackBackend", "ObsCameraMode"));
             if (_ownership != null && !_ownership.TryAcquire(this))
-                throw new MediaPlaybackException("이미 로컬 카메라를 사용 중입니다. 카메라 하단 자막 창에서 미리보기를 확인하세요.");
+                throw new MediaPlaybackException(UiText.Get("WpfMediaElementPlaybackBackend", "CameraInUse"));
             try { _directShow = new DirectShowVideo(_videoSurface, index, snapshot.CameraDevicePath, embeddedAudio: true); }
             catch { _ownership?.Release(this); throw; }
             ObserveCamera(_directShow);

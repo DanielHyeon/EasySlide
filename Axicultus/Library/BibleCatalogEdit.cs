@@ -1,6 +1,7 @@
 using System;
 using System.Data.SQLite;
 using System.IO;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Library;
 
@@ -40,7 +41,7 @@ internal sealed class BibleCatalogEdit : IDisposable
         if (_draftVersion == draftVersion) return false;
         using var transaction = _source.BeginTransaction();
         if (Version(_source, transaction) != _originalVersion)
-            throw new InvalidOperationException("다른 창에서 성경 목록을 변경했습니다. 옵션을 다시 열어 주세요.");
+            throw new InvalidOperationException(UiText.Get("BibleCatalogEdit", "ChangedElsewhere"));
         using var command = _source.CreateCommand();
         command.Transaction = transaction;
         command.CommandText = """

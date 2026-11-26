@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Title" xml:space="preserve"><value>Praise book — index · save/open</value></data>
+  <data name="Intro" xml:space="preserve"><value>Shows the song list grouped by first letter (Korean consonants · A–Z · # · other). Double-click a song to add it to the worship list. You can also save the list under a name as a praise book and open it again.</value></data>
+  <data name="PraiseBook" xml:space="preserve"><value>Praise book</value></data>
+  <data name="Open" xml:space="preserve"><value>Open</value></data>
+  <data name="Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="SaveList" xml:space="preserve"><value>Save current list...</value></data>
+  <data name="EntryTip" xml:space="preserve"><value>Double-click to add to the worship list</value></data>
+  <data name="ExportIndex" xml:space="preserve"><value>Export index...</value></data>
+  <data name="ExportTip" xml:space="preserve"><value>Choose the format in the save dialog: HTML (browser, printing) or RTF (editing in Word)</value></data>
+  <data name="Close" xml:space="preserve"><value>Close</value></data>
+  <data name="SaveTitle" xml:space="preserve"><value>Save praise book</value></data>
+  <data name="SavePrompt" xml:space="preserve"><value>Name of the praise book to save:</value></data>
+  <data name="DeleteConfirm" xml:space="preserve"><value>Delete the praise book '{0}'?</value></data>
+  <data name="DeleteTitle" xml:space="preserve"><value>Delete praise book</value></data>
+  <data name="DefaultFileName" xml:space="preserve"><value>Praise book index</value></data>
+  <data name="ExportDialogTitle" xml:space="preserve"><value>Save praise book index</value></data>
+  <data name="ExportFilter" xml:space="preserve"><value>HTML document ({0})|{0}|Rich text RTF ({1})|{1}|All files ({2})|{2}</value></data>
+  <data name="Exported" xml:space="preserve"><value>Index saved:
+{0}</value></data>
+  <data name="ExportTitle" xml:space="preserve"><value>Export praise book index</value></data>
+  <data name="ExportFailed" xml:space="preserve"><value>Could not save:
+{0}</value></data>
+  <data name="NoSongs" xml:space="preserve"><value>No songs to index (select a song folder first).</value></data>
+  <data name="IndexSummary" xml:space="preserve"><value>{0} songs · {1} first-letter groups</value></data>
+  <data name="SortWordCount" xml:space="preserve"><value>Praise book sort: CJK Word Count</value></data>
+  <data name="SortAlpha" xml:space="preserve"><value>Praise book sort: alphabetical</value></data>
+  <data name="Saved" xml:space="preserve"><value>Praise book saved: {0} ({1} songs)</value></data>
+  <data name="Opened" xml:space="preserve"><value>Praise book opened: {0} ({1} songs)</value></data>
+  <data name="Deleted" xml:space="preserve"><value>Praise book deleted: {0}</value></data>
+  <data name="EntryAdded" xml:space="preserve"><value>Praise book entry added: {0}</value></data>
+  <data name="EntriesRemoved" xml:space="preserve"><value>Praise book entries removed: {0} songs</value></data>
+  <data name="Cleared" xml:space="preserve"><value>Praise book list cleared.</value></data>
+</root>

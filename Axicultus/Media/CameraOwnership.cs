@@ -1,12 +1,13 @@
 using System;
 using CommunityToolkit.Mvvm.ComponentModel;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Media;
 
 public sealed class CameraOwnership : ObservableObject
 {
     private bool _obsOwnsCamera;
-    private string _status = "로컬 카메라 대기";
+    private string _status = UiText.Get("CameraOwnership", "LocalCameraIdle");
     public bool ObsOwnsCamera
     {
         get => _obsOwnsCamera;
@@ -18,7 +19,7 @@ public sealed class CameraOwnership : ObservableObject
                 YieldCheck();
                 ReleaseLocalCamera?.Invoke();
             }
-            Status = value ? "OBS가 카메라를 사용합니다." : "로컬 카메라 대기";
+            Status = value ? UiText.Get("CameraOwnership", "ObsOwnsCamera") : UiText.Get("CameraOwnership", "LocalCameraIdle");
         }
     }
     public string Status { get => _status; internal set => SetProperty(ref _status, value); }
@@ -64,7 +65,7 @@ public sealed class CameraOwnership : ObservableObject
         _localOwner = null;
         OnPropertyChanged(nameof(HasLocalCapture));
         Preview = null;
-        Status = ObsOwnsCamera ? "OBS가 카메라를 사용합니다." : "로컬 카메라 대기";
+        Status = ObsOwnsCamera ? UiText.Get("CameraOwnership", "ObsOwnsCamera") : UiText.Get("CameraOwnership", "LocalCameraIdle");
     }
 
     internal event Action? ReleaseLocalCamera;

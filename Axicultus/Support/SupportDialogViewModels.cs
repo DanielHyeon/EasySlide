@@ -149,6 +149,6 @@ public sealed partial class RegistrationWindowViewModel : ObservableObject
     {
         StatusMessage = _launcher.TryOpen(RegisterUrl)
             ? ""
-            : "등록 페이지를 열 수 없습니다.";
+            : UiText.Get("RegistrationWindow", "OpenFailed");
     }
 }

@@ -25,13 +25,13 @@ public sealed class PraiseBookIndexExporter : IPraiseBookIndexExporter
     public string BuildHtml(string title, IReadOnlyList<PraiseBookIndexGroup> groups)
     {
         ArgumentNullException.ThrowIfNull(groups);
-        var safeTitle = Escape(string.IsNullOrWhiteSpace(title) ? "찬양집 색인" : title);
+        var safeTitle = Escape(string.IsNullOrWhiteSpace(title) ? "찬양집 색인" : title); // not UI text
 
         var sb = new StringBuilder();
         sb.Append("<!DOCTYPE html><html lang=\"ko\"><head><meta charset=\"utf-8\">");
         sb.Append("<title>").Append(safeTitle).Append("</title>");
         sb.Append("<style>");
-        sb.Append("body{font-family:'Malgun Gothic','맑은 고딕',sans-serif;margin:24px;color:#222;}");
+        sb.Append("body{font-family:'Malgun Gothic','맑은 고딕',sans-serif;margin:24px;color:#222;}"); // not UI text
         sb.Append("h1{font-size:20px;border-bottom:2px solid #444;padding-bottom:6px;}");
         sb.Append("h2{font-size:16px;margin:16px 0 4px;color:#1a4d8f;}");
         sb.Append("table{width:100%;border-collapse:collapse;}");
@@ -64,7 +64,7 @@ public sealed class PraiseBookIndexExporter : IPraiseBookIndexExporter
     public string BuildRtf(string title, IReadOnlyList<PraiseBookIndexGroup> groups)
     {
         ArgumentNullException.ThrowIfNull(groups);
-        var safeTitle = EscapeRtf(string.IsNullOrWhiteSpace(title) ? "찬양집 색인" : title);
+        var safeTitle = EscapeRtf(string.IsNullOrWhiteSpace(title) ? "찬양집 색인" : title); // not UI text
 
         var sb = new StringBuilder();
         // RTF 머리말 — 한글 글꼴(맑은 고딕, 한글 charset 129) + 유니코드 1글자 폴백(\uc1: \uN 뒤 ? 한 글자가 폴백).

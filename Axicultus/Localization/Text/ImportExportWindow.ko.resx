@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Title" xml:space="preserve"><value>가져오기/내보내기</value></data>
+  <data name="Reload" xml:space="preserve"><value>다시 불러오기</value></data>
+  <data name="ImportTab" xml:space="preserve"><value>가져오기</value></data>
+  <data name="Source" xml:space="preserve"><value>원본</value></data>
+  <data name="File" xml:space="preserve"><value>파일</value></data>
+  <data name="Folder" xml:space="preserve"><value>폴더</value></data>
+  <data name="AccessTable" xml:space="preserve"><value>액세스 테이블</value></data>
+  <data name="SongTitle" xml:space="preserve"><value>제목</value></data>
+  <data name="LyricsMerge" xml:space="preserve"><value>가사 병합</value></data>
+  <data name="AltTitle" xml:space="preserve"><value>대체 제목</value></data>
+  <data name="SongNumber" xml:space="preserve"><value>곡 번호</value></data>
+  <data name="Writer" xml:space="preserve"><value>작사·작곡</value></data>
+  <data name="LoadSchemaTip" xml:space="preserve"><value>액세스 데이터베이스 구조 불러오기</value></data>
+  <data name="Copyright" xml:space="preserve"><value>저작권</value></data>
+  <data name="Key" xml:space="preserve"><value>조</value></data>
+  <data name="Timing" xml:space="preserve"><value>박자</value></data>
+  <data name="BookRef" xml:space="preserve"><value>책 참조</value></data>
+  <data name="UserRef" xml:space="preserve"><value>사용자 참조</value></data>
+  <data name="Admin" xml:space="preserve"><value>라이선스 관리자</value></data>
+  <data name="SourceFolders" xml:space="preserve"><value>원본 폴더</value></data>
+  <data name="Songs" xml:space="preserve"><value>곡 수</value></data>
+  <data name="Target" xml:space="preserve"><value>대상</value></data>
+  <data name="Duplicates" xml:space="preserve"><value>중복 처리</value></data>
+  <data name="Preview" xml:space="preserve"><value>미리보기</value></data>
+  <data name="Import" xml:space="preserve"><value>가져오기</value></data>
+  <data name="ExportTab" xml:space="preserve"><value>내보내기</value></data>
+  <data name="Format" xml:space="preserve"><value>형식</value></data>
+  <data name="Find" xml:space="preserve"><value>찾기</value></data>
+  <data name="PraiseBookOptions" xml:space="preserve"><value>찬양집 옵션</value></data>
+  <data name="Number" xml:space="preserve"><value>번호</value></data>
+  <data name="Capo" xml:space="preserve"><value>카포</value></data>
+  <data name="Chords" xml:space="preserve"><value>코드</value></data>
+  <data name="Index" xml:space="preserve"><value>색인</value></data>
+  <data name="PagePerSong" xml:space="preserve"><value>곡마다 새 페이지</value></data>
+  <data name="NumberColumn" xml:space="preserve"><value>번호</value></data>
+  <data name="Browse" xml:space="preserve"><value>찾아보기</value></data>
+  <data name="Export" xml:space="preserve"><value>내보내기</value></data>
+  <data name="Close" xml:space="preserve"><value>닫기</value></data>
+</root>

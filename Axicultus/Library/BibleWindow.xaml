@@ -4,7 +4,8 @@
         xmlns:theme="clr-namespace:Axicultus.Wpf.Theme"
         xmlns:composites="clr-namespace:Axicultus.Wpf.Composites"
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-        Title="성경"
+        xmlns:loc="clr-namespace:Axicultus.Wpf.Localization"
+        Title="{loc:Text BibleWindow.Title}"
         Width="920"
         Height="680"
         MinWidth="780"
@@ -26,7 +27,7 @@
                            FontSize="28"
                            Margin="0,2,10,0" />
             <StackPanel>
-                <TextBlock Text="성경"
+                <TextBlock Text="{loc:Text BibleWindow.Title}"
                            Style="{StaticResource Type.Title1.Style}"
                            Foreground="{DynamicResource Brush.Text.Primary}" />
                 <TextBlock Text="{Binding WorkingFolder}"
@@ -59,7 +60,7 @@
                      AutomationProperties.Name="성경 본문" />
 
             <StackPanel Grid.Column="2">
-                <TextBlock Text="검색 옵션"
+                <TextBlock Text="{loc:Text BibleWindow.SearchOptions}"
                            Style="{StaticResource Type.Caption.Style}"
                            Foreground="{DynamicResource Brush.Text.Tertiary}" />
                 <ComboBox ItemsSource="{Binding MatchModes}"
@@ -67,14 +68,14 @@
                           MinHeight="36"
                           Margin="0,4,0,12"
                           AutomationProperties.Name="성경 검색 방식" />
-                <CheckBox Content="선택한 책 안에서만 검색"
+                <CheckBox Content="{loc:Text BibleWindow.SelectedBookOnly}"
                           IsChecked="{Binding SearchSelectedBookOnly, Mode=TwoWay}" Margin="0,0,0,8" />
-                <CheckBox Content="구절 표시"
+                <CheckBox Content="{loc:Text BibleWindow.ShowVerses}"
                           IsChecked="{Binding ShowVerses, Mode=TwoWay}"
                           Margin="0,0,0,18"
                           AutomationProperties.Name="성경 구절 표시" />
 
-                <TextBlock Text="선택 구절"
+                <TextBlock Text="{loc:Text BibleWindow.SelectedPassage}"
                            Style="{StaticResource Type.Caption.Style}"
                            Foreground="{DynamicResource Brush.Text.Tertiary}" />
                 <TextBlock Text="{Binding SelectedPassageTitle}"
@@ -88,7 +89,7 @@
                          MinHeight="76"
                          AutomationProperties.Name="성경 선택 ID" />
 
-                <TextBlock Text="Region 1"
+                <TextBlock Text="{loc:Text BibleWindow.Region1}"
                            Style="{StaticResource Type.Caption.Style}"
                            Foreground="{DynamicResource Brush.Text.Tertiary}"
                            Margin="0,14,0,0" />
@@ -98,7 +99,7 @@
                           MinHeight="36"
                           Margin="0,4,0,8"
                           AutomationProperties.Name="Bible preview region 1" />
-                <CheckBox Content="Region 2"
+                <CheckBox Content="{loc:Text BibleWindow.Region2}"
                           IsChecked="{Binding UseRegion2Preview, Mode=TwoWay}"
                           Margin="0,0,0,8"
                           AutomationProperties.Name="Use Bible preview region 2" />
@@ -144,21 +145,21 @@
                         HorizontalAlignment="Right">
                 <Button Style="{StaticResource EsButton.Primary}"
                         Click="Select_Click"
-                        ToolTip="본문에서 선택한 구절 사용"
+                        ToolTip="{loc:Text BibleWindow.UseSelectedTip}"
                         AutomationProperties.Name="성경 선택 구절 사용"
                         Margin="0,0,8,0">
                     <StackPanel Orientation="Horizontal">
                         <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.StatusCheck}" Margin="0,0,6,0" />
-                        <TextBlock Text="Insert" />
+                        <TextBlock Text="{loc:Text BibleWindow.Insert}" />
                     </StackPanel>
                 </Button>
                 <Button Style="{StaticResource EsButton.Secondary}"
                         Click="Close_Click"
-                        ToolTip="닫기"
+                        ToolTip="{loc:Text BibleWindow.Close}"
                         AutomationProperties.Name="성경 창 닫기">
                     <StackPanel Orientation="Horizontal">
                         <ui:SymbolIcon Symbol="Dismiss24" Margin="0,0,6,0" />
-                        <TextBlock Text="닫기" />
+                        <TextBlock Text="{loc:Text BibleWindow.Close}" />
                     </StackPanel>
                 </Button>
             </StackPanel>

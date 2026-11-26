@@ -1,4 +1,5 @@
 using System.Windows;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Library;
 
@@ -23,7 +24,7 @@ public partial class MediaLibraryWindow : Window
     {
         var dialog = new Microsoft.Win32.OpenFolderDialog
         {
-            Title = "미디어 폴더 선택",
+            Title = UiText.Get("MediaLibraryWindow", "SelectFolder"),
         };
 
         if (!string.IsNullOrWhiteSpace(_viewModel.FolderPath))
