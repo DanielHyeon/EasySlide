@@ -1817,9 +1817,10 @@ namespace Axicultus;
 			}
 		}
 
-		public static bool FormInUse(string InFormName)
+		// By type, not by title: the titles are in the UI language (a Korean title is not found by its English one).
+		public static bool FormInUse<TForm>() where TForm : Form
 		{
-			return !Windows.Win32.PInvoke.FindWindow(null, InFormName).IsNull;
+			return Application.OpenForms.OfType<TForm>().Any();
 		}
 
 		public static void SetMenuItem(ref ToolStripMenuItem InMenuItem, string ItemName, string DefaultText, string MergedText, bool DisableWhenBlank)

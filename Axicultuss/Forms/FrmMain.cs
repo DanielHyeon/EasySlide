@@ -5877,7 +5877,7 @@ public partial class FrmMain : Form
 
     private void ShowAlertForm()
     {
-        if (Gf.FormInUse("Show Alert"))
+        if (Gf.FormInUse<FrmShowAlert>())
         {
             Gf.AlertRestoreWindow = true;
             return;
@@ -6349,7 +6349,7 @@ public partial class FrmMain : Form
     {
         Gf.FindFolderItems = false;
         Gf.FindBibleVerses = IsSelectedTab(tabControlSource, "tabBibles");
-        if (Gf.FormInUse("Search for Axicultus Items"))
+        if (Gf.FormInUse<FrmFind>())
         {
             Gf.FindItemRestoreWindow = true;
             return;
@@ -7006,7 +7006,7 @@ public partial class FrmMain : Form
     {
         Gf.CurFolderName = SongFolder.Text;
         Gf.DB_CurSongID = 0;
-        if (Gf.FormInUse("Edit Database Item"))
+        if (Gf.FormInUse<FrmEditItem>())
         {
             Gf.Edit_RequestReceived = true;
         }
@@ -7068,7 +7068,7 @@ public partial class FrmMain : Form
             Gf.DB_CurSongID = DataUtil.StringToInt(idValue);
             if (Gf.ValidSongID(Gf.DB_CurSongID))
             {
-                if (Gf.FormInUse("Edit Database Item"))
+                if (Gf.FormInUse<FrmEditItem>())
                 {
                     Gf.Edit_RequestReceived = true;
                 }
@@ -7271,7 +7271,7 @@ public partial class FrmMain : Form
 
     private void ShowInfoScreen(string TitleString)
     {
-        if (Gf.FormInUse("InfoScreen"))
+        if (Gf.FormInUse<FrmInfoScreen>())
         {
             Gf.InfoScreenFileName = TitleString;
             Gf.InfoScreen_RequestReceived = true;
@@ -8602,7 +8602,7 @@ public partial class FrmMain : Form
     private void Image_Import_Click(object sender, EventArgs e)
     {
         string folderPath = Gf.PictureGroups[ImagesFolder.SelectedIndex].Path;
-        openFileDialog1.Filter = UiText.Format(nameof(FrmMain), "ImageFileFilter", "*.jpg,*jpeg,*.bmp,*.gif,*.ico", "*.jpg;*jpeg;*.bmp;*.gif;*.ico");
+        openFileDialog1.Filter = UiText.Format(nameof(FrmMain), "ImageFileFilter", "*.jpg,*.jpeg,*.bmp,*.gif,*.ico", "*.jpg;*.jpeg;*.bmp;*.gif;*.ico");
         openFileDialog1.Title = UiText.Format(nameof(FrmMain), "ImportImageTitle", ImagesFolder.Text);
         if (openFileDialog1.ShowDialog() == DialogResult.OK)
         {
@@ -9029,7 +9029,7 @@ public partial class FrmMain : Form
         }
         string songSequence = Gf.PreviewItem.SongSequence;
         Gf.PreviewItem.SongSequence = Gf.PreviewItem.SongOriginalLoadedSequence;
-        if (Gf.SaveXMLInfoScreen(Gf.PreviewItem, Gf.PreviewItem.ItemID, null, ReloadImageData, UseOriginalNotations: true) && Gf.FormInUse("InfoScreen"))
+        if (Gf.SaveXMLInfoScreen(Gf.PreviewItem, Gf.PreviewItem.ItemID, null, ReloadImageData, UseOriginalNotations: true) && Gf.FormInUse<FrmInfoScreen>())
         {
             Gf.InfoScreenAction = InfoType.FormatStringUpdate;
             Gf.InfoScreenFileName = Gf.PreviewItem.ItemID;
