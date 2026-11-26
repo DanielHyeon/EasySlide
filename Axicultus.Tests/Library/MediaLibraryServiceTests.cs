@@ -94,7 +94,7 @@ public class MediaLibraryServiceTests : IDisposable
     public void FileDialogFilters_ListTheExtensionsTheBrowsersList()
     {
         ExternalFileOperationWindow.GetFileDialogFilter(ExternalFileItemKind.PowerPoint, workingFolder: null)
-            .Should().Be("PowerPoint (*.ppt;*.pptx)|*.ppt;*.pptx|All files (*.*)|*.*");
+            .Should().Be("PowerPoint (*.ppt;*.pptx)|*.ppt;*.pptx|" + Axicultus.Wpf.Localization.UiText.Get("ExternalFileOperationWindow", "FilterAllFiles") + " (*.*)|*.*");
         ExternalFileOperationWindow.GetFileDialogFilter(ExternalFileItemKind.Media, workingFolder: null)
             .Should().Contain("*.mp3").And.Contain("*.mp4").And.Contain("*.m4v");
     }
@@ -140,7 +140,7 @@ public class MediaLibraryServiceTests : IDisposable
         var result = sut.EnumerateFolders(_dir);
 
         result.Select(f => f.DisplayName).Should().Equal(
-            "Media Files",
+            Axicultus.Wpf.Localization.UiText.Get("MediaLibraryService", "RootFolder"),
             @"\말씀",
             @"\찬양",
             @"\찬양\절기");

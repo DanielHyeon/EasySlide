@@ -394,8 +394,8 @@ public class OutputWindowViewModelTests
             IsBlackout: true));
 
         sut.State.Should().Be(LiveState.Hidden);
-        sut.DisplayTitle.Should().Be("BLACK");
-        sut.StatusLabel.Should().Be("BLACKOUT");
+        sut.DisplayTitle.Should().Be(Axicultus.Wpf.Localization.UiText.Get("OutputRenderer", "Black"));
+        sut.StatusLabel.Should().Be(Axicultus.Wpf.Localization.UiText.Get("OutputRenderer", "Blackout"));
         sut.IsBlackout.Should().BeTrue();
         sut.Scene.Kind.Should().Be(OutputSceneKind.Blackout);
     }
@@ -1513,7 +1513,7 @@ public class OutputWindowViewModelTests
 
         loaderCalls.Should().Be(0);
         sut.GapLogoVisibility.Should().Be(Visibility.Collapsed);
-        sut.DisplayTitle.Should().Be("OUTPUT READY");
+        sut.DisplayTitle.Should().Be(Axicultus.Wpf.Localization.UiText.Get("OutputRenderer", "OutputReady"));
         sut.DisplayTitleVisibility.Should().Be(Visibility.Visible);
     }
 

@@ -154,7 +154,7 @@ public sealed class PraiseBookStore(string directory, ISettingsService? settings
     public void Rename(string oldName, string newName) =>
         StoreFileNaming.RenameList(ResolvePath(oldName), ResolvePath(newName), ResolveLegacyPath(oldName), ResolveLegacyPath(newName));
 
-    private string ResolvePath(string name) => StoreFileNaming.ResolveJsonPath(_directory, name, "찬양집"); // not UI text
+    private string ResolvePath(string name) => StoreFileNaming.ResolveJsonPath(_directory, name, UiText.Get("PraiseBookStore", "Kind"));
 
     private IEnumerable<string> EnumerateLegacyNames()
     {

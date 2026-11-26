@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Axicultus.Wpf.Interop;
+using Axicultus.Wpf.Localization;
 using Axicultus.Wpf.Settings;
 
 namespace Axicultus.Wpf.Rendering;
@@ -149,7 +150,7 @@ public sealed class PowerPointRenderService : IPowerPointRenderService, IDisposa
         if (normalized.UseCache && _diskCache != null && Interlocked.Read(ref _diskLimit) > 0)
         {
             var stored = await _diskCache.ReadAsync(cacheKey, Interlocked.Read(ref _diskLimit)).ConfigureAwait(false);
-            if (cancellationToken.IsCancellationRequested) return Failure(PowerPointRenderErrorKind.Cancelled, "Cancelled", stopwatch.Elapsed);
+            if (cancellationToken.IsCancellationRequested) return Failure(PowerPointRenderErrorKind.Cancelled, UiText.Get(nameof(PowerPointRenderService), "Cancelled"), stopwatch.Elapsed);
             if (stored != null)
             {
                 var restored = stored with { FilePath = normalized.FilePath };
@@ -178,7 +179,7 @@ public sealed class PowerPointRenderService : IPowerPointRenderService, IDisposa
                 var kind = cancellationToken.IsCancellationRequested
                     ? PowerPointRenderErrorKind.Cancelled
                     : PowerPointRenderErrorKind.Timeout;
-                return Failure(kind, kind.ToString(), stopwatch.Elapsed);
+                return Failure(kind, UiText.Get(nameof(PowerPointRenderService), kind.ToString()), stopwatch.Elapsed);
             }
 
             var slide = await renderTask.ConfigureAwait(false);
@@ -198,11 +199,11 @@ public sealed class PowerPointRenderService : IPowerPointRenderService, IDisposa
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            return Failure(PowerPointRenderErrorKind.Cancelled, "Cancelled", stopwatch.Elapsed);
+            return Failure(PowerPointRenderErrorKind.Cancelled, UiText.Get(nameof(PowerPointRenderService), "Cancelled"), stopwatch.Elapsed);
         }
         catch (OperationCanceledException)
         {
-            return Failure(PowerPointRenderErrorKind.Timeout, "Timeout", stopwatch.Elapsed);
+            return Failure(PowerPointRenderErrorKind.Timeout, UiText.Get(nameof(PowerPointRenderService), "Timeout"), stopwatch.Elapsed);
         }
         catch (COMException ex)
         {
@@ -242,7 +243,7 @@ public sealed class PowerPointRenderService : IPowerPointRenderService, IDisposa
     {
         normalized = request;
         fileInfo = null;
-        failure = Failure(PowerPointRenderErrorKind.InvalidRequest, "Invalid request.", TimeSpan.Zero);
+        failure = Failure(PowerPointRenderErrorKind.InvalidRequest, UiText.Get(nameof(PowerPointRenderService), "InvalidRequest"), TimeSpan.Zero);
 
         if (string.IsNullOrWhiteSpace(request.FilePath)
             || request.SlideNumber < 1
@@ -255,7 +256,7 @@ public sealed class PowerPointRenderService : IPowerPointRenderService, IDisposa
         var extension = Path.GetExtension(request.FilePath);
         if (!SupportedExtensions.Contains(extension))
         {
-            failure = Failure(PowerPointRenderErrorKind.UnsupportedFile, $"Unsupported PowerPoint file: {extension}", TimeSpan.Zero);
+            failure = Failure(PowerPointRenderErrorKind.UnsupportedFile, UiText.Format(nameof(PowerPointRenderService), "UnsupportedFile", extension), TimeSpan.Zero);
             return false;
         }
 
@@ -263,7 +264,7 @@ public sealed class PowerPointRenderService : IPowerPointRenderService, IDisposa
         fileInfo = new FileInfo(fullPath);
         if (!fileInfo.Exists)
         {
-            failure = Failure(PowerPointRenderErrorKind.FileNotFound, $"File not found: {fullPath}", TimeSpan.Zero);
+            failure = Failure(PowerPointRenderErrorKind.FileNotFound, UiText.Format(nameof(PowerPointRenderService), "FileNotFound", fullPath), TimeSpan.Zero);
             return false;
         }
 
@@ -298,7 +299,7 @@ public sealed class PowerPointRenderService : IPowerPointRenderService, IDisposa
 
     private static bool CanOpenForRead(string path, out PowerPointRenderResult failure)
     {
-        failure = Failure(PowerPointRenderErrorKind.FileLocked, $"File is locked: {path}", TimeSpan.Zero);
+        failure = Failure(PowerPointRenderErrorKind.FileLocked, UiText.Format(nameof(PowerPointRenderService), "FileLocked", path), TimeSpan.Zero);
 
         try
         {

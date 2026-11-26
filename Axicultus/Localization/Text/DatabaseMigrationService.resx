@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="PathEmpty" xml:space="preserve"><value>Database path cannot be empty.</value></data>
+  <data name="PathIsDirectory" xml:space="preserve"><value>Database path is a directory: {0}</value></data>
+  <data name="FileMissing" xml:space="preserve"><value>Database file does not exist: {0}</value></data>
+  <data name="OpenFailed" xml:space="preserve"><value>Unable to open SQLite database: {0}</value></data>
+  <data name="SchemaAhead" xml:space="preserve"><value>Database schema is newer than this WPF build.</value></data>
+  <data name="BackupFailed" xml:space="preserve"><value>Unable to create database backup: {0}</value></data>
+  <data name="MigrationFailed" xml:space="preserve"><value>Migration failed: {0}</value></data>
+  <data name="RestoreFailed" xml:space="preserve"><value>Backup restore failed: {0}</value></data>
+  <data name="BackupRootEmpty" xml:space="preserve"><value>Backup root cannot be empty.</value></data>
+</root>

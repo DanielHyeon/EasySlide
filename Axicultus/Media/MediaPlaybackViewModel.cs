@@ -2,6 +2,7 @@ using System;
 using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Axicultus.Wpf.Localization;
 using Axicultus.Wpf.Theme;
 using Wpf.Ui.Controls;
 
@@ -25,7 +26,7 @@ public sealed partial class MediaPlaybackViewModel : ObservableObject, IDisposab
     [ObservableProperty] private bool _isMuted;
     [ObservableProperty] private bool _isRepeatEnabled;
     [ObservableProperty] private bool _isWidescreen = true;
-    [ObservableProperty] private string _statusText = "NO MEDIA";
+    [ObservableProperty] private string _statusText = UiText.Get(nameof(MediaPlaybackViewModel), "NoMedia");
     // 재생/일시정지 텍스트("Play"/"Pause"). 버튼은 이제 아이콘(PlayPauseSymbol)을 쓰지만, 자동화·툴팁·향후 용도를 위해 유지.
     [ObservableProperty] private string _playPauseLabel = "Play";
     // 재생/일시정지 버튼의 Fluent 아이콘 — 재생 중이면 일시정지 아이콘, 아니면 재생 아이콘(레이블과 짝).
@@ -153,8 +154,8 @@ public sealed partial class MediaPlaybackViewModel : ObservableObject, IDisposab
 
     private static string CreateStatusText(MediaPlaybackSnapshot snapshot)
         => snapshot.State == MediaPlaybackState.Failed && !string.IsNullOrWhiteSpace(snapshot.ErrorMessage)
-            ? $"FAILED: {snapshot.ErrorMessage}"
-            : snapshot.State.ToString().ToUpperInvariant();
+            ? UiText.Format(nameof(MediaPlaybackViewModel), "FailedDetail", snapshot.ErrorMessage)
+            : UiText.Get(nameof(MediaPlaybackViewModel), snapshot.State.ToString());
 
     private static string FormatTime(TimeSpan value)
         => value.TotalHours >= 1

@@ -67,7 +67,11 @@
                           SelectedItem="{Binding MatchMode, Mode=TwoWay}"
                           MinHeight="36"
                           Margin="0,4,0,12"
-                          AutomationProperties.Name="성경 검색 방식" />
+                          AutomationProperties.Name="성경 검색 방식">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate><TextBlock Text="{Binding Converter={x:Static loc:EnumTextConverter.Instance}}" /></DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
                 <CheckBox Content="{loc:Text BibleWindow.SelectedBookOnly}"
                           IsChecked="{Binding SearchSelectedBookOnly, Mode=TwoWay}" Margin="0,0,0,8" />
                 <CheckBox Content="{loc:Text BibleWindow.ShowVerses}"

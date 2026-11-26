@@ -270,6 +270,7 @@
         </Style>
         <DataTemplate x:Key="DefaultStripText"><TextBlock Text="{Binding}" FontSize="{DynamicResource Type.Body.FontSize}" Style="{x:Null}" /></DataTemplate>
         <DataTemplate x:Key="DefaultChoiceText"><TextBlock Text="{Binding DisplayName}" FontSize="{DynamicResource Type.Body.FontSize}" Style="{x:Null}" /></DataTemplate>
+        <DataTemplate x:Key="DefaultTransitionText"><TextBlock Text="{Binding Label}" FontSize="{DynamicResource Type.Body.FontSize}" Style="{x:Null}" /></DataTemplate>
         <Style x:Key="DefaultStripButton" TargetType="Button" BasedOn="{StaticResource FrmMainButton}">
             <Setter Property="Width" Value="23" /><Setter Property="Height" Value="29" />
             <Setter Property="Padding" Value="0" /><Setter Property="Margin" Value="0" />
@@ -2129,8 +2130,8 @@
                                         <Button x:Name="Def_AssignMedia" Style="{StaticResource DefaultStripButton}" Width="Auto" MaxWidth="100" Padding="4,0" Click="SelectDefaultMedia_Click" ToolTip="{Binding DefaultMediaToolTip}"><TextBlock Text="{Binding DefaultMediaCaption}" TextTrimming="CharacterEllipsis" /></Button>
                                     </WrapPanel>
                                     <WrapPanel MinHeight="31" ItemHeight="31">
-                                        <ComboBox x:Name="Def_TransItem" Style="{StaticResource DefaultFieldCombo}" Width="104" MinHeight="22" Margin="0,0,2,0" VerticalAlignment="Center" ItemsSource="{Binding LegacyTransitionOptions}" ItemTemplate="{StaticResource DefaultChoiceText}" SelectedValuePath="Kind" SelectedValue="{Binding DefaultItemTransitionKindInput, Mode=TwoWay}" ToolTip="{loc:Text MainWindow.ItemTransition}" />
-                                        <ComboBox x:Name="Def_TransSlides" Style="{StaticResource DefaultFieldCombo}" Width="104" MinHeight="22" Margin="0,0,2,0" VerticalAlignment="Center" ItemsSource="{Binding LegacyTransitionOptions}" ItemTemplate="{StaticResource DefaultChoiceText}" SelectedValuePath="Kind" SelectedValue="{Binding DefaultSlideTransitionKindInput, Mode=TwoWay}" ToolTip="{loc:Text MainWindow.SlideTransition}" />
+                                        <ComboBox x:Name="Def_TransItem" Style="{StaticResource DefaultFieldCombo}" Width="104" MinHeight="22" Margin="0,0,2,0" VerticalAlignment="Center" ItemsSource="{Binding LegacyTransitionOptions}" ItemTemplate="{StaticResource DefaultTransitionText}" SelectedValuePath="Kind" SelectedValue="{Binding DefaultItemTransitionKindInput, Mode=TwoWay}" ToolTip="{loc:Text MainWindow.ItemTransition}" />
+                                        <ComboBox x:Name="Def_TransSlides" Style="{StaticResource DefaultFieldCombo}" Width="104" MinHeight="22" Margin="0,0,2,0" VerticalAlignment="Center" ItemsSource="{Binding LegacyTransitionOptions}" ItemTemplate="{StaticResource DefaultTransitionText}" SelectedValuePath="Kind" SelectedValue="{Binding DefaultSlideTransitionKindInput, Mode=TwoWay}" ToolTip="{loc:Text MainWindow.SlideTransition}" />
                                     </WrapPanel>
                                 </StackPanel>
                             </GroupBox>
@@ -3391,7 +3392,7 @@
                                                         <ComboBox x:Name="Ind_TransItem"
                                                                   Tag="Ind_TransItem"
                                                                   ItemsSource="{Binding LegacyTransitionOptions}"
-                                                                  DisplayMemberPath="DisplayName"
+                                                                  DisplayMemberPath="Label"
                                                                   SelectedValuePath="Kind"
                                                                   SelectedValue="{Binding SelectedItemTransitionKindInput, Mode=TwoWay}"
                                                                   MinWidth="132"
@@ -3402,7 +3403,7 @@
                                                         <ComboBox x:Name="Ind_TransSlides"
                                                                   Tag="Ind_TransSlides"
                                                                   ItemsSource="{Binding LegacyTransitionOptions}"
-                                                                  DisplayMemberPath="DisplayName"
+                                                                  DisplayMemberPath="Label"
                                                                   SelectedValuePath="Kind"
                                                                   SelectedValue="{Binding SelectedSlideTransitionKindInput, Mode=TwoWay}"
                                                                   MinWidth="132"

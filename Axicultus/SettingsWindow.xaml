@@ -868,7 +868,7 @@
                             Width="326" Height="179" Header="{loc:Text SettingsWindow.HeadingsFont}">
                             <Canvas>
                                 <ComboBox Style="{x:Null}" Canvas.Left="9" Canvas.Top="72" Width="306" Height="28"
-                                    ItemsSource="{x:Static options:OptionChoices.Headings}" DisplayMemberPath="Name"
+                                    ItemsSource="{x:Static options:OptionChoices.Headings}" DisplayMemberPath="Label"
                                     SelectedValuePath="Id"
                                     SelectedValue="{Binding SelectedItem.[HeadingOption], ElementName=FolderList, Mode=TwoWay}"
                                     AutomationProperties.Name="Heading Option" ToolTip="{loc:Text SettingsWindow.HeadingOption}" />
@@ -1327,7 +1327,7 @@
                                     <GroupBox Header="{loc:Text SettingsWindow.Display}" Padding="10" Margin="4">
                                         <StackPanel>
                                             <TextBlock x:Name="LblTheme" Text="{loc:Text SettingsWindow.Theme}" Style="{StaticResource Type.Caption.Style}" Foreground="{DynamicResource Brush.Text.Tertiary}" />
-                                            <ComboBox ItemsSource="{Binding ThemeOptions}" SelectedItem="{Binding Theme, Mode=TwoWay}" Style="{StaticResource EsComboBox.Default}" AutomationProperties.LabeledBy="{Binding ElementName=LblTheme}" Margin="0,4,0,16" />
+                                            <ComboBox ItemsSource="{Binding ThemeOptions}" SelectedItem="{Binding Theme, Mode=TwoWay}" Style="{StaticResource EsComboBox.Default}" AutomationProperties.LabeledBy="{Binding ElementName=LblTheme}" Margin="0,4,0,16"><ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding Converter={x:Static loc:EnumTextConverter.Instance}}" /></DataTemplate></ComboBox.ItemTemplate></ComboBox>
                                         </StackPanel>
                                     </GroupBox>
                                 </StackPanel>

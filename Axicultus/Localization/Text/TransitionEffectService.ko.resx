@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="None" xml:space="preserve"><value>없음</value></data>
+  <data name="Ascend" xml:space="preserve"><value>상승</value></data>
+  <data name="Away" xml:space="preserve"><value>멀어지기</value></data>
+  <data name="BlindsHorizontal" xml:space="preserve"><value>블라인드(가로)</value></data>
+  <data name="BlindsVertical" xml:space="preserve"><value>블라인드(세로)</value></data>
+  <data name="BowTie" xml:space="preserve"><value>나비넥타이</value></data>
+  <data name="Checkerboard" xml:space="preserve"><value>체커보드</value></data>
+  <data name="Circle" xml:space="preserve"><value>원</value></data>
+  <data name="CircularWipe" xml:space="preserve"><value>원형 와이프</value></data>
+  <data name="Cross" xml:space="preserve"><value>십자</value></data>
+  <data name="Descend" xml:space="preserve"><value>하강</value></data>
+  <data name="Diamond" xml:space="preserve"><value>다이아몬드</value></data>
+  <data name="Dissolve" xml:space="preserve"><value>디졸브</value></data>
+  <data name="DoorsOpen" xml:space="preserve"><value>양문 열기</value></data>
+  <data name="DoorsClose" xml:space="preserve"><value>양문 닫기</value></data>
+  <data name="Fade" xml:space="preserve"><value>페이드</value></data>
+  <data name="FanUp" xml:space="preserve"><value>부채 펼침</value></data>
+  <data name="FlipHorizontal" xml:space="preserve"><value>뒤집기(가로)</value></data>
+  <data name="FlipVertical" xml:space="preserve"><value>뒤집기(세로)</value></data>
+  <data name="GentleZoom" xml:space="preserve"><value>부드러운 확대</value></data>
+  <data name="Heart" xml:space="preserve"><value>하트</value></data>
+  <data name="Mesh" xml:space="preserve"><value>메시</value></data>
+  <data name="InTop" xml:space="preserve"><value>들어오기(위)</value></data>
+  <data name="InLeft" xml:space="preserve"><value>들어오기(왼쪽)</value></data>
+  <data name="InRight" xml:space="preserve"><value>들어오기(오른쪽)</value></data>
+  <data name="InBottom" xml:space="preserve"><value>들어오기(아래)</value></data>
+  <data name="InTopLeft" xml:space="preserve"><value>들어오기(왼쪽 위)</value></data>
+  <data name="InTopRight" xml:space="preserve"><value>들어오기(오른쪽 위)</value></data>
+  <data name="InBottomLeft" xml:space="preserve"><value>들어오기(왼쪽 아래)</value></data>
+  <data name="InBottomRight" xml:space="preserve"><value>들어오기(오른쪽 아래)</value></data>
+  <data name="Mosaic" xml:space="preserve"><value>모자이크</value></data>
+  <data name="OutTop" xml:space="preserve"><value>나가기(위)</value></data>
+  <data name="OutLeft" xml:space="preserve"><value>나가기(왼쪽)</value></data>
+  <data name="OutRight" xml:space="preserve"><value>나가기(오른쪽)</value></data>
+  <data name="OutBottom" xml:space="preserve"><value>나가기(아래)</value></data>
+  <data name="OutTopLeft" xml:space="preserve"><value>나가기(왼쪽 위)</value></data>
+  <data name="OutTopRight" xml:space="preserve"><value>나가기(오른쪽 위)</value></data>
+  <data name="OutBottomLeft" xml:space="preserve"><value>나가기(왼쪽 아래)</value></data>
+  <data name="OutBottomRight" xml:space="preserve"><value>나가기(오른쪽 아래)</value></data>
+  <data name="Oval" xml:space="preserve"><value>타원</value></data>
+  <data name="RandomBars" xml:space="preserve"><value>무작위 막대</value></data>
+  <data name="Rectangle" xml:space="preserve"><value>사각형</value></data>
+  <data name="RectangleIn" xml:space="preserve"><value>사각형 안쪽으로</value></data>
+  <data name="RevealTopDown" xml:space="preserve"><value>펼치기(위→아래)</value></data>
+  <data name="RevealLeftRight" xml:space="preserve"><value>펼치기(왼쪽→오른쪽)</value></data>
+  <data name="RevealRightLeft" xml:space="preserve"><value>펼치기(오른쪽→왼쪽)</value></data>
+  <data name="RevealDownUp" xml:space="preserve"><value>펼치기(아래→위)</value></data>
+  <data name="Scroll" xml:space="preserve"><value>스크롤</value></data>
+  <data name="Spin" xml:space="preserve"><value>회전</value></data>
+  <data name="Spiral" xml:space="preserve"><value>나선</value></data>
+  <data name="Star" xml:space="preserve"><value>별</value></data>
+  <data name="StretchHorizontal" xml:space="preserve"><value>늘이기(가로)</value></data>
+  <data name="StretchVertical" xml:space="preserve"><value>늘이기(세로)</value></data>
+  <data name="Wedge" xml:space="preserve"><value>시계 와이프</value></data>
+  <data name="WindMill" xml:space="preserve"><value>바람개비</value></data>
+  <data name="ZoomAway" xml:space="preserve"><value>줌 사라지기</value></data>
+  <data name="ZoomIn" xml:space="preserve"><value>줌 인</value></data>
+  <data name="ZoomOut" xml:space="preserve"><value>줌 아웃</value></data>
+</root>

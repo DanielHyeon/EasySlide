@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using Axicultus.Wpf.Localization;
 using Axicultus.Wpf.Settings;
 using Microsoft.Win32;
 
@@ -74,17 +75,12 @@ public sealed class SupportInfoService(ISettingsService settings) : ISupportInfo
         "Copyright (C) 2007 EasiSlides, All rights reserved.\r\n" +
         "Internet: http://www.EasiSlides.com";
 
-    private const string RegistrationBody =
-        "Axicultus is provided free of charge and for your indefinite use provided you abide by the End User Licence Agreement (EULA).\r\n\r\n" +
-        "If you intend to use this software on an on-going basis, you are invited to register your use of the software. " +
-        "Registration is voluntary and is free of charge. The registration information you provide helps monitor the spread of Axicultus around the world.";
-
     private readonly ISettingsService _settings = settings ?? throw new ArgumentNullException(nameof(settings));
 
     public AboutInfo GetAboutInfo()
         => new(
             "Axicultus",
-            $"Software Version: {GetProductVersion()}",
+            UiText.Format(nameof(SupportInfoService), "VersionLabel", GetProductVersion()),
             "Copyright (C) 2019 daniel park revision",
             WebsiteUrl,
             GetSystemInfoPath(),
@@ -93,37 +89,37 @@ public sealed class SupportInfoService(ISettingsService settings) : ISupportInfo
 
     public RegistrationInfo GetRegistrationInfo()
         => new(
-            "Register Use of Axicultus",
+            UiText.Get(nameof(SupportInfoService), "RegistrationTitle"),
             RegistrationUrl,
-            RegistrationBody);
+            UiText.Get(nameof(SupportInfoService), "RegistrationBody"));
 
     public KeyboardHelpInfo GetKeyboardHelp(LegacyKeyboardOption option)
         => option == LegacyKeyboardOption.ArrowNavigation
             ? new KeyboardHelpInfo(
                 [
-                    new("First item", "Left Arrow"),
-                    new("Last item", "Right Arrow"),
-                    new("Previous item", "Up Arrow"),
-                    new("Next item", "Down Arrow"),
+                    new(UiText.Get(nameof(SupportInfoService), "FirstItem"), UiText.Get(nameof(SupportInfoService), "KeyLeft")),
+                    new(UiText.Get(nameof(SupportInfoService), "LastItem"), UiText.Get(nameof(SupportInfoService), "KeyRight")),
+                    new(UiText.Get(nameof(SupportInfoService), "PreviousItem"), UiText.Get(nameof(SupportInfoService), "KeyUp")),
+                    new(UiText.Get(nameof(SupportInfoService), "NextItem"), UiText.Get(nameof(SupportInfoService), "KeyDown")),
                 ],
                 [
-                    new("First slide", "Home"),
-                    new("Last slide", "End"),
-                    new("Previous slide", "Page Up"),
-                    new("Next slide", "Page Down, Space"),
+                    new(UiText.Get(nameof(SupportInfoService), "FirstSlide"), UiText.Get(nameof(SupportInfoService), "KeyHome")),
+                    new(UiText.Get(nameof(SupportInfoService), "LastSlide"), UiText.Get(nameof(SupportInfoService), "KeyEnd")),
+                    new(UiText.Get(nameof(SupportInfoService), "PreviousSlide"), UiText.Get(nameof(SupportInfoService), "KeyPageUp")),
+                    new(UiText.Get(nameof(SupportInfoService), "NextSlide"), UiText.Get(nameof(SupportInfoService), "KeyPageDownSpace")),
                 ])
             : new KeyboardHelpInfo(
                 [
-                    new("First item", "Home"),
-                    new("Last item", "End"),
-                    new("Previous item", "Page Up"),
-                    new("Next item", "Page Down"),
+                    new(UiText.Get(nameof(SupportInfoService), "FirstItem"), UiText.Get(nameof(SupportInfoService), "KeyHome")),
+                    new(UiText.Get(nameof(SupportInfoService), "LastItem"), UiText.Get(nameof(SupportInfoService), "KeyEnd")),
+                    new(UiText.Get(nameof(SupportInfoService), "PreviousItem"), UiText.Get(nameof(SupportInfoService), "KeyPageUp")),
+                    new(UiText.Get(nameof(SupportInfoService), "NextItem"), UiText.Get(nameof(SupportInfoService), "KeyPageDown")),
                 ],
                 [
-                    new("First slide", "Left Arrow"),
-                    new("Last slide", "Right Arrow"),
-                    new("Previous slide", "Up Arrow"),
-                    new("Next slide", "Down Arrow, Space"),
+                    new(UiText.Get(nameof(SupportInfoService), "FirstSlide"), UiText.Get(nameof(SupportInfoService), "KeyLeft")),
+                    new(UiText.Get(nameof(SupportInfoService), "LastSlide"), UiText.Get(nameof(SupportInfoService), "KeyRight")),
+                    new(UiText.Get(nameof(SupportInfoService), "PreviousSlide"), UiText.Get(nameof(SupportInfoService), "KeyUp")),
+                    new(UiText.Get(nameof(SupportInfoService), "NextSlide"), UiText.Get(nameof(SupportInfoService), "KeyDownSpace")),
                 ]);
 
     public SettingsResult SaveRegistrationUser(string registrationUser)

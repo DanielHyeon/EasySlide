@@ -173,7 +173,7 @@
                                                    Style="{StaticResource Type.BodyLarge.Style}"
                                                    Foreground="{DynamicResource Brush.Text.Primary}"
                                                    TextTrimming="CharacterEllipsis" />
-                                        <TextBlock Text="{Binding FolderNo, StringFormat=Folder {0}}"
+                                        <TextBlock Text="{Binding FolderNo, StringFormat={loc:Text LibraryWindow.FolderNumber}}"
                                                    Style="{StaticResource Type.Caption.Style}"
                                                    Foreground="{DynamicResource Brush.Text.Tertiary}" />
                                     </StackPanel>

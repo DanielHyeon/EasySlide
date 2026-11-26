@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Windows;
+using Axicultus.Wpf.Localization;
 using Microsoft.Win32;
 using Forms = System.Windows.Forms;
 
@@ -41,7 +42,7 @@ public partial class ImportExportWindow : Window
 
         var dialog = new OpenFileDialog
         {
-            Filter = "Axicultus (*.esf;*.est;*.esn;*.xml;*.json)|*.esf;*.est;*.esn;*.xml;*.json|Access Database (*.mdb)|*.mdb|All files (*.*)|*.*",
+            Filter = "Axicultus (*.esf;*.est;*.esn;*.xml;*.json)|*.esf;*.est;*.esn;*.xml;*.json|" + UiText.Get("ImportExportWindow", "FilterAccessDatabase") + " (*.mdb)|*.mdb|" + UiText.Get("ImportExportWindow", "FilterAllFiles") + " (*.*)|*.*",
             InitialDirectory = ResolveInitialDirectory(viewModel.ImportSourcePath, viewModel.WorkingFolder),
             CheckFileExists = true,
         };
@@ -61,7 +62,7 @@ public partial class ImportExportWindow : Window
 
         using var dialog = new Forms.FolderBrowserDialog
         {
-            Description = "Select a folder containing .txt, .doc, or .docx files.",
+            Description = UiText.Get("ImportExportWindow", "ImportFolderDescription"),
             SelectedPath = ResolveInitialDirectory(viewModel.ImportSourcePath, viewModel.WorkingFolder),
             UseDescriptionForTitle = true,
         };
@@ -83,7 +84,7 @@ public partial class ImportExportWindow : Window
         {
             using var folderDialog = new Forms.FolderBrowserDialog
             {
-                Description = "Select an HTML export folder.",
+                Description = UiText.Get("ImportExportWindow", "HtmlExportFolderDescription"),
                 SelectedPath = ResolveInitialDirectory(viewModel.ExportOutputPath, viewModel.WorkingFolder),
                 UseDescriptionForTitle = true,
             };
@@ -136,9 +137,9 @@ public partial class ImportExportWindow : Window
         => format switch
         {
             ExportFormat.Json => "Axicultus JSON (*.json)|*.json",
-            ExportFormat.AxicultusText => "Axicultus Text (*.esn)|*.esn",
-            ExportFormat.AxicultusDatabase => "Axicultus Database (*.esf)|*.esf",
-            ExportFormat.Rtf => "Rich Text (*.rtf)|*.rtf",
+            ExportFormat.AxicultusText => UiText.Get("ImportExportWindow", "FilterAxicultusText") + " (*.esn)|*.esn",
+            ExportFormat.AxicultusDatabase => UiText.Get("ImportExportWindow", "FilterAxicultusDatabase") + " (*.esf)|*.esf",
+            ExportFormat.Rtf => UiText.Get("ImportExportWindow", "FilterRichText") + " (*.rtf)|*.rtf",
             _ => "Axicultus XML (*.xml)|*.xml",
         };
 

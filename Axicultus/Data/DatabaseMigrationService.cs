@@ -6,6 +6,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Data;
 
@@ -90,7 +91,7 @@ public sealed class DatabaseMigrationService : IDatabaseMigrationService
         {
             return AnalysisFailure(
                 databasePath,
-                Issue(DatabaseMigrationIssueKind.SourceMissing, "Database path cannot be empty."));
+                Issue(DatabaseMigrationIssueKind.SourceMissing, UiText.Get(nameof(DatabaseMigrationService), "PathEmpty")));
         }
 
         var fullPath = Path.GetFullPath(databasePath);
@@ -98,14 +99,14 @@ public sealed class DatabaseMigrationService : IDatabaseMigrationService
         {
             return AnalysisFailure(
                 fullPath,
-                Issue(DatabaseMigrationIssueKind.SourceNotFile, $"Database path is a directory: {fullPath}"));
+                Issue(DatabaseMigrationIssueKind.SourceNotFile, UiText.Format(nameof(DatabaseMigrationService), "PathIsDirectory", fullPath)));
         }
 
         if (!File.Exists(fullPath))
         {
             return AnalysisFailure(
                 fullPath,
-                Issue(DatabaseMigrationIssueKind.SourceMissing, $"Database file does not exist: {fullPath}"));
+                Issue(DatabaseMigrationIssueKind.SourceMissing, UiText.Format(nameof(DatabaseMigrationService), "FileMissing", fullPath)));
         }
 
         try
@@ -124,7 +125,7 @@ public sealed class DatabaseMigrationService : IDatabaseMigrationService
         {
             return AnalysisFailure(
                 fullPath,
-                Issue(DatabaseMigrationIssueKind.OpenFailed, $"Unable to open SQLite database: {ex.Message}"));
+                Issue(DatabaseMigrationIssueKind.OpenFailed, UiText.Format(nameof(DatabaseMigrationService), "OpenFailed", ex.Message)));
         }
     }
 
@@ -144,7 +145,7 @@ public sealed class DatabaseMigrationService : IDatabaseMigrationService
                 analysis.SchemaVersion,
                 analysis.SchemaVersion,
                 null,
-                [Issue(DatabaseMigrationIssueKind.SchemaAhead, "Database schema is newer than this WPF build.")]);
+                [Issue(DatabaseMigrationIssueKind.SchemaAhead, UiText.Get(nameof(DatabaseMigrationService), "SchemaAhead"))]);
         }
 
         var (Steps, Issues) = BuildMigrationPath(analysis.SchemaVersion, request.TargetVersion, request.Steps);
@@ -185,7 +186,7 @@ public sealed class DatabaseMigrationService : IDatabaseMigrationService
                 analysis.SchemaVersion,
                 analysis.SchemaVersion,
                 null,
-                [Issue(DatabaseMigrationIssueKind.BackupFailed, $"Unable to create database backup: {ex.Message}")]);
+                [Issue(DatabaseMigrationIssueKind.BackupFailed, UiText.Format(nameof(DatabaseMigrationService), "BackupFailed", ex.Message))]);
         }
 
         var applied = new List<DatabaseMigrationStep>();
@@ -213,7 +214,7 @@ public sealed class DatabaseMigrationService : IDatabaseMigrationService
         }
         catch (Exception ex) when (IsSqliteOpenException(ex) || ex is InvalidOperationException)
         {
-            issues.Add(Issue(DatabaseMigrationIssueKind.MigrationFailed, $"Migration failed: {ex.Message}"));
+            issues.Add(Issue(DatabaseMigrationIssueKind.MigrationFailed, UiText.Format(nameof(DatabaseMigrationService), "MigrationFailed", ex.Message)));
             if (request.RestoreBackupOnFailure)
             {
                 try
@@ -224,7 +225,7 @@ public sealed class DatabaseMigrationService : IDatabaseMigrationService
                 {
                     issues.Add(Issue(
                         DatabaseMigrationIssueKind.RestoreFailed,
-                        $"Backup restore failed: {restoreEx.Message}",
+                        UiText.Format(nameof(DatabaseMigrationService), "RestoreFailed", restoreEx.Message),
                         DatabaseMigrationIssueSeverity.Warning));
                 }
             }
@@ -302,7 +303,7 @@ public sealed class DatabaseMigrationService : IDatabaseMigrationService
     {
         if (string.IsNullOrWhiteSpace(backupRoot))
         {
-            throw new IOException("Backup root cannot be empty.");
+            throw new IOException(UiText.Get(nameof(DatabaseMigrationService), "BackupRootEmpty"));
         }
 
         Directory.CreateDirectory(backupRoot);

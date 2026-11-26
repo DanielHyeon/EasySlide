@@ -3,6 +3,7 @@ using System.Linq;
 using System.Text;
 using System.Xml;
 using System.Xml.Linq;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Shell;
 
@@ -11,7 +12,7 @@ namespace Axicultus.Wpf.Shell;
 /// </summary>
 public static class IndividualFormatTemplateFile
 {
-    public const string DialogFilter = "Axicultus Template File (*.est)|*.est|All files (*.*)|*.*";
+    public static string DialogFilter => UiText.Get(nameof(IndividualFormatTemplateFile), "DialogFilter");
 
     public static string LoadFormatData(string filePath)
     {

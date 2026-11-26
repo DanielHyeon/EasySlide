@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Windows;
 using Axicultus.Wpf.Controls;
+using Axicultus.Wpf.Localization;
 using Axicultus.Wpf.Settings;
 using Axicultus.Wpf.Shell;
 
@@ -785,29 +786,29 @@ public sealed class OutputRenderer(IImageAssetService imageAssets, ITransitionEf
         LiveOutputRenderSettings settings)
         => kind switch
         {
-            OutputSceneKind.Blackout => ("BLACK", "BLACKOUT"),
-            OutputSceneKind.Hidden => ("HIDDEN", "HIDDEN"),
+            OutputSceneKind.Blackout => (UiText.Get(nameof(OutputRenderer), "Black"), UiText.Get(nameof(OutputRenderer), "Blackout")),
+            OutputSceneKind.Hidden => (UiText.Get(nameof(OutputRenderer), "Hidden"), UiText.Get(nameof(OutputRenderer), "Hidden")),
             // 비우기는 배경만 보이므로 타이틀은 비우고 상태 라벨만 둔다(패널 오버레이가 숨겨져 화면엔 안 보임).
-            OutputSceneKind.Cleared => ("", "CLEARED"),
+            OutputSceneKind.Cleared => ("", UiText.Get(nameof(OutputRenderer), "Cleared")),
             OutputSceneKind.Live => (string.IsNullOrWhiteSpace(session.CurrentItemTitle) ? "LIVE" : session.CurrentItemTitle, "LIVE"),
             OutputSceneKind.Ready => GetReadyDisplayText(settings),
-            _ => ("STANDBY", "STANDBY")
+            _ => (UiText.Get(nameof(OutputRenderer), "Standby"), UiText.Get(nameof(OutputRenderer), "Standby"))
         };
 
     private static (string Title, string Status) GetReadyDisplayText(LiveOutputRenderSettings settings)
         => settings.GapItemOption switch
         {
             // Black 은 깨끗한 검은 화면이라 타이틀을 비운다(오버레이도 ShouldShowPanelOverlay 에서 숨김 — Cleared 와 같은 결).
-            GapItemMode.Black => ("", "GAP"),
-            GapItemMode.Default => ("OUTPUT READY", "GAP"),
-            GapItemMode.User => (GetGapLogoTitle(settings.GapItemLogoFile), "GAP"),
-            _ => ("OUTPUT READY", "READY")
+            GapItemMode.Black => ("", UiText.Get(nameof(OutputRenderer), "Gap")),
+            GapItemMode.Default => (UiText.Get(nameof(OutputRenderer), "OutputReady"), UiText.Get(nameof(OutputRenderer), "Gap")),
+            GapItemMode.User => (GetGapLogoTitle(settings.GapItemLogoFile), UiText.Get(nameof(OutputRenderer), "Gap")),
+            _ => (UiText.Get(nameof(OutputRenderer), "OutputReady"), UiText.Get(nameof(OutputRenderer), "Ready"))
         };
 
     private static string GetGapLogoTitle(string gapLogoFile)
     {
         var title = Path.GetFileNameWithoutExtension(gapLogoFile);
-        return string.IsNullOrWhiteSpace(title) ? "USER GAP" : title;
+        return string.IsNullOrWhiteSpace(title) ? UiText.Get(nameof(OutputRenderer), "UserGap") : title;
     }
 
     private static string GetOutputMonitorName(LiveSessionSnapshot session, OutputWindowState output)

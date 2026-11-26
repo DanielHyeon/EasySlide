@@ -6,4 +6,13 @@
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <data name="AllScreens" xml:space="preserve"><value>All notice screens</value></data>
   <data name="DefaultFolder" xml:space="preserve"><value>Default folder</value></data>
+  <data name="NoneSaved" xml:space="preserve"><value>No saved InfoScreens.</value></data>
+  <data name="SavedCount" xml:space="preserve"><value>{0} saved InfoScreens.</value></data>
+  <data name="NoneSelected" xml:space="preserve"><value>No InfoScreen selected.</value></data>
+  <data name="NotFound" xml:space="preserve"><value>InfoScreen not found: {0}</value></data>
+  <data name="Empty" xml:space="preserve"><value>InfoScreen is empty: {0}</value></data>
+  <data name="Added" xml:space="preserve"><value>Added to Worship List: {0}</value></data>
+  <data name="NoneDeleted" xml:space="preserve"><value>No InfoScreen deleted.</value></data>
+  <data name="DeletedOne" xml:space="preserve"><value>Deleted InfoScreen: {0}</value></data>
+  <data name="DeletedMany" xml:space="preserve"><value>Deleted {0} InfoScreens.</value></data>
 </root>

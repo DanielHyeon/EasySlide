@@ -6,4 +6,5 @@
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <data name="InvalidName" xml:space="preserve"><value>The praise book name has characters or a form that cannot be used: {0}</value></data>
   <data name="NameOutsidePath" xml:space="preserve"><value>The praise book name leads outside the allowed path: {0}</value></data>
+  <data name="Kind" xml:space="preserve"><value>praise book</value></data>
 </root>

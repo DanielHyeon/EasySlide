@@ -28,4 +28,8 @@
   <data name="AdminDbPathMissing" xml:space="preserve"><value>Set the AdminDB path first.</value></data>
   <data name="SelectSongFolder" xml:space="preserve"><value>Select the destination song folder.</value></data>
   <data name="SelectExternalFolder" xml:space="preserve"><value>Select the external destination folder.</value></data>
+  <data name="FilterAllFiles" xml:space="preserve"><value>All files</value></data>
+  <data name="FilterInfoScreen" xml:space="preserve"><value>InfoScreen</value></data>
+  <data name="FilterMedia" xml:space="preserve"><value>Media</value></data>
+  <data name="SelectedItemsTitle" xml:space="preserve"><value>{1} {0}</value></data>
 </root>

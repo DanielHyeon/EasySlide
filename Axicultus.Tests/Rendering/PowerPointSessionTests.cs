@@ -68,7 +68,7 @@ public class PowerPointSessionTests
         {
             var blocked = session.StartSlideShowAsync("deck.pptx", 1, "");
             var error = await Assert.ThrowsAsync<TimeoutException>(() => blocked.WaitAsync(TimeSpan.FromSeconds(10)));
-            Assert.Contains("did not answer", error.Message);
+            Assert.Equal(Axicultus.Wpf.Localization.UiText.Get("OfficePptSession", "NotAnswering"), error.Message);
 
             release.Set();
             await Assert.ThrowsAsync<COMException>(() => session.StartSlideShowAsync("deck.pptx", 1, "").WaitAsync(TimeSpan.FromSeconds(10)));
@@ -99,9 +99,9 @@ public class PowerPointSessionTests
             var close = session.CloseAsync();
 
             var dropped = await Assert.ThrowsAsync<TimeoutException>(() => step.WaitAsync(TimeSpan.FromSeconds(10)));
-            Assert.Contains("busy", dropped.Message);
+            Assert.Equal(Axicultus.Wpf.Localization.UiText.Get("OfficePptSession", "Busy"), dropped.Message);
             var waiting = await Assert.ThrowsAsync<TimeoutException>(() => close.WaitAsync(TimeSpan.FromSeconds(10)));
-            Assert.Contains("busy", waiting.Message);
+            Assert.Equal(Axicultus.Wpf.Localization.UiText.Get("OfficePptSession", "Busy"), waiting.Message);
             Assert.Equal(new[] { PptCall.Start }, started.ToArray());
 
             release.Set();

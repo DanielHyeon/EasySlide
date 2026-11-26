@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="SourcePathEmpty" xml:space="preserve"><value>Source path is empty.</value></data>
+  <data name="SourceFileMissing" xml:space="preserve"><value>Source file does not exist.</value></data>
+  <data name="NoSongsSelected" xml:space="preserve"><value>No songs were selected for export.</value></data>
+  <data name="SongNotFound" xml:space="preserve"><value>Song {0} was not found.</value></data>
+  <data name="UnsupportedSource" xml:space="preserve"><value>Unsupported import source format.</value></data>
+  <data name="TextTooShort" xml:space="preserve"><value>Text import file is too short.</value></data>
+  <data name="TextHeaderInvalid" xml:space="preserve"><value>Text import header is not an Axicultus header.</value></data>
+  <data name="AccessNoMapping" xml:space="preserve"><value>Access MDB helper could not infer a table mapping.</value></data>
+  <data name="AccessTableMissing" xml:space="preserve"><value>Access table '{0}' was not found.</value></data>
+  <data name="AccessNoTables" xml:space="preserve"><value>Access MDB file does not contain importable tables.</value></data>
+  <data name="AccessTitleColumnMissing" xml:space="preserve"><value>Access title column is not selected or does not exist.</value></data>
+  <data name="AccessLyricsColumnsMissing" xml:space="preserve"><value>Access lyrics merge columns are not selected or do not exist.</value></data>
+  <data name="AccessColumnMissing" xml:space="preserve"><value>Access column '{0}' does not exist.</value></data>
+  <data name="DefaultSourceFolder" xml:space="preserve"><value>Default Folder</value></data>
+</root>

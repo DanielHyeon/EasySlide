@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="GestureEmpty" xml:space="preserve"><value>단축키를 입력해야 합니다.</value></data>
+  <data name="UnsupportedModifier" xml:space="preserve"><value>'{0}'은(는) 단축키 조합 키로 쓸 수 없습니다.</value></data>
+  <data name="UnsupportedKey" xml:space="preserve"><value>'{0}'은(는) 단축키로 쓸 수 없습니다.</value></data>
+  <data name="ModifierOnly" xml:space="preserve"><value>단축키에는 Ctrl·Shift·Alt 외의 키가 하나 있어야 합니다.</value></data>
+</root>

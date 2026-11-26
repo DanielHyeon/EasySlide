@@ -129,9 +129,9 @@ public class ImageLibraryServiceTests
         var result = sut.EnumerateFolders(folder.Path);
 
         result.Select(f => f.DisplayName).Should().Equal(
-            "Scenery",
-            "Tiles",
-            "Images",
+            Axicultus.Wpf.Localization.UiText.Get("ImageLibraryService", "Scenery"),
+            Axicultus.Wpf.Localization.UiText.Get("ImageLibraryService", "Tiles"),
+            Axicultus.Wpf.Localization.UiText.Get("ImageLibraryService", "Images"),
             @"\Custom",
             @"\Custom\Deep");
         result[0].FolderPath.Should().Be(System.IO.Path.Combine(System.IO.Path.GetFullPath(folder.Path), "Scenery"));

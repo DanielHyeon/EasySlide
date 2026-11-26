@@ -28,4 +28,8 @@
   <data name="AdminDbPathMissing" xml:space="preserve"><value>AdminDB 경로를 설정해야 합니다.</value></data>
   <data name="SelectSongFolder" xml:space="preserve"><value>대상 곡 폴더를 선택하세요.</value></data>
   <data name="SelectExternalFolder" xml:space="preserve"><value>대상 외부 폴더를 선택하세요.</value></data>
+  <data name="FilterAllFiles" xml:space="preserve"><value>모든 파일</value></data>
+  <data name="FilterInfoScreen" xml:space="preserve"><value>공지 화면</value></data>
+  <data name="FilterMedia" xml:space="preserve"><value>미디어</value></data>
+  <data name="SelectedItemsTitle" xml:space="preserve"><value>{0} {1}</value></data>
 </root>

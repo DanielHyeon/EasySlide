@@ -103,7 +103,7 @@ public sealed class InfoScreenSourceViewModelTests : IDisposable
 
         selection.Should().BeNull();
         added.Should().BeEmpty();
-        sut.StatusText.Should().Contain("empty");
+        sut.StatusText.Should().Be(Axicultus.Wpf.Localization.UiText.Format("InfoScreenSourceViewModel", "Empty", "빈 공지"));
     }
 
     [Fact]

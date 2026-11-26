@@ -23,13 +23,13 @@ public class LiveBarViewModelTests
 
     [Theory]
     [InlineData(LiveState.Active, "LIVE")]
-    [InlineData(LiveState.Standby, "STANDBY")]
-    [InlineData(LiveState.Hidden, "HIDDEN")]
+    [InlineData(LiveState.Standby, "Standby")]
+    [InlineData(LiveState.Hidden, "Hidden")]
     [InlineData(LiveState.Off, "")]
-    public void StateLabel_MapsCorrectly(LiveState state, string expected)
+    public void StateLabel_MapsCorrectly(LiveState state, string expected) // expected: the text, or the LiveBar text key
     {
         var sut = new LiveBarViewModel { State = state };
-        sut.StateLabel.Should().Be(expected);
+        sut.StateLabel.Should().Be(expected is "Standby" or "Hidden" ? Axicultus.Wpf.Localization.UiText.Get("LiveBar", expected) : expected);
     }
 
     [Fact]

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Rendering;
 
@@ -111,7 +112,11 @@ public sealed record TransitionEffectDescriptor(
     TransitionEffectKind Kind,
     string DisplayName,
     int LegacyIndex,
-    TransitionMotionKind MotionKind);
+    TransitionMotionKind MotionKind)
+{
+    /// <summary>The name shown in the UI language (DisplayName is the name saved in the settings and the songs).</summary>
+    public string Label => UiText.Get(nameof(TransitionEffectService), Kind.ToString());
+}
 
 public sealed record TransitionEffectRequest(
     TransitionEffectKind StoredKind,

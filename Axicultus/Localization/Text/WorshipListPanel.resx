@@ -41,4 +41,6 @@
   <data name="ListAlreadyEmpty" xml:space="preserve"><value>Worship list is already empty.</value></data>
   <data name="NoListLoaded" xml:space="preserve"><value>No worship list is currently loaded.</value></data>
   <data name="ClearListConfirm" xml:space="preserve"><value>Really clear the worship list '{0}'?&#10;&#10;The current worship list will be moved to trash.</value></data>
+  <data name="DefaultDocumentName" xml:space="preserve"><value>Worship List</value></data>
+  <data name="FilterRtf" xml:space="preserve"><value>Rich Text Format</value></data>
 </root>

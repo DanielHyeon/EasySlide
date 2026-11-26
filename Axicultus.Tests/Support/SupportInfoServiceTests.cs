@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Axicultus.Wpf.Input;
+using Axicultus.Wpf.Localization;
 using Axicultus.Wpf.Settings;
 using Axicultus.Wpf.Shell;
 using Axicultus.Wpf.Support;
@@ -23,7 +24,7 @@ public class SupportInfoServiceTests
         var about = sut.GetAboutInfo();
 
         about.ProductName.Should().Be("Axicultus");
-        about.VersionLabel.Should().StartWith("Software Version:");
+        about.VersionLabel.Should().StartWith(UiText.Format("SupportInfoService", "VersionLabel", ""));
         about.WebsiteUrl.Should().Be("http://www.easislides.com");
         about.RegistrationUser.Should().Be("Grace Church");
         about.EulaText.Should().Contain("end user licence agreement");
@@ -79,10 +80,9 @@ public class SupportInfoServiceTests
 
         var registration = sut.GetRegistrationInfo();
 
-        registration.Title.Should().Be("Register Use of Axicultus");
+        registration.Title.Should().Be(UiText.Get("SupportInfoService", "RegistrationTitle"));
         registration.RegisterUrl.Should().Be("http://www.easislides.com/register");
-        registration.Body.Should().Contain("provided free of charge");
-        registration.Body.Should().Contain("Registration is voluntary");
+        registration.Body.Should().Be(UiText.Get("SupportInfoService", "RegistrationBody"));
     }
 
     [Fact]
@@ -105,14 +105,14 @@ public class SupportInfoServiceTests
 
         var help = sut.GetKeyboardHelp(LegacyKeyboardOption.Default);
 
-        help.ItemShortcuts.Should().Contain(new KeyboardHelpEntry("First item", "Home"));
-        help.ItemShortcuts.Should().Contain(new KeyboardHelpEntry("Last item", "End"));
-        help.ItemShortcuts.Should().Contain(new KeyboardHelpEntry("Previous item", "Page Up"));
-        help.ItemShortcuts.Should().Contain(new KeyboardHelpEntry("Next item", "Page Down"));
-        help.SlideShortcuts.Should().Contain(new KeyboardHelpEntry("First slide", "Left Arrow"));
-        help.SlideShortcuts.Should().Contain(new KeyboardHelpEntry("Last slide", "Right Arrow"));
-        help.SlideShortcuts.Should().Contain(new KeyboardHelpEntry("Previous slide", "Up Arrow"));
-        help.SlideShortcuts.Should().Contain(new KeyboardHelpEntry("Next slide", "Down Arrow, Space"));
+        help.ItemShortcuts.Should().Contain(Entry("FirstItem", "KeyHome"));
+        help.ItemShortcuts.Should().Contain(Entry("LastItem", "KeyEnd"));
+        help.ItemShortcuts.Should().Contain(Entry("PreviousItem", "KeyPageUp"));
+        help.ItemShortcuts.Should().Contain(Entry("NextItem", "KeyPageDown"));
+        help.SlideShortcuts.Should().Contain(Entry("FirstSlide", "KeyLeft"));
+        help.SlideShortcuts.Should().Contain(Entry("LastSlide", "KeyRight"));
+        help.SlideShortcuts.Should().Contain(Entry("PreviousSlide", "KeyUp"));
+        help.SlideShortcuts.Should().Contain(Entry("NextSlide", "KeyDownSpace"));
     }
 
     [Fact]
@@ -123,14 +123,14 @@ public class SupportInfoServiceTests
 
         var help = sut.GetKeyboardHelp(LegacyKeyboardOption.ArrowNavigation);
 
-        help.ItemShortcuts.Should().Contain(new KeyboardHelpEntry("First item", "Left Arrow"));
-        help.ItemShortcuts.Should().Contain(new KeyboardHelpEntry("Last item", "Right Arrow"));
-        help.ItemShortcuts.Should().Contain(new KeyboardHelpEntry("Previous item", "Up Arrow"));
-        help.ItemShortcuts.Should().Contain(new KeyboardHelpEntry("Next item", "Down Arrow"));
-        help.SlideShortcuts.Should().Contain(new KeyboardHelpEntry("First slide", "Home"));
-        help.SlideShortcuts.Should().Contain(new KeyboardHelpEntry("Last slide", "End"));
-        help.SlideShortcuts.Should().Contain(new KeyboardHelpEntry("Previous slide", "Page Up"));
-        help.SlideShortcuts.Should().Contain(new KeyboardHelpEntry("Next slide", "Page Down, Space"));
+        help.ItemShortcuts.Should().Contain(Entry("FirstItem", "KeyLeft"));
+        help.ItemShortcuts.Should().Contain(Entry("LastItem", "KeyRight"));
+        help.ItemShortcuts.Should().Contain(Entry("PreviousItem", "KeyUp"));
+        help.ItemShortcuts.Should().Contain(Entry("NextItem", "KeyDown"));
+        help.SlideShortcuts.Should().Contain(Entry("FirstSlide", "KeyHome"));
+        help.SlideShortcuts.Should().Contain(Entry("LastSlide", "KeyEnd"));
+        help.SlideShortcuts.Should().Contain(Entry("PreviousSlide", "KeyPageUp"));
+        help.SlideShortcuts.Should().Contain(Entry("NextSlide", "KeyPageDownSpace"));
     }
 
     [Fact]
@@ -147,9 +147,12 @@ public class SupportInfoServiceTests
 
         var sut = new HelpWindowViewModel(new SupportInfoService(settings), settings);
 
-        sut.ItemShortcuts.Should().Contain(new KeyboardHelpEntry("First item", "Left Arrow"));
-        sut.SlideShortcuts.Should().Contain(new KeyboardHelpEntry("Next slide", "Page Down, Space"));
+        sut.ItemShortcuts.Should().Contain(Entry("FirstItem", "KeyLeft"));
+        sut.SlideShortcuts.Should().Contain(Entry("NextSlide", "KeyPageDownSpace"));
     }
+
+    private static KeyboardHelpEntry Entry(string action, string gesture)
+        => new(UiText.Get("SupportInfoService", action), UiText.Get("SupportInfoService", gesture));
 
     private sealed class TempSettingsFolder : IDisposable
     {

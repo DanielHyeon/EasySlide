@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Left" xml:space="preserve"><value>Left</value></data>
+  <data name="Centre" xml:space="preserve"><value>Centre</value></data>
+  <data name="Right" xml:space="preserve"><value>Right</value></data>
+  <data name="Top" xml:space="preserve"><value>Top</value></data>
+  <data name="Bottom" xml:space="preserve"><value>Bottom</value></data>
+  <data name="Off" xml:space="preserve"><value>Off</value></data>
+  <data name="Italic" xml:space="preserve"><value>Italic</value></data>
+  <data name="Chorusonly" xml:space="preserve"><value>Chorus only</value></data>
+  <data name="UseRegion1settingsonly" xml:space="preserve"><value>Use Region 1 settings only</value></data>
+  <data name="UseRegion1plusformattingbelow" xml:space="preserve"><value>Use Region 1 plus formatting below</value></data>
+  <data name="Useonlyformattingbelow" xml:space="preserve"><value>Use only formatting below</value></data>
+  <data name="VideoSize" xml:space="preserve"><value>Video Size</value></data>
+  <data name="Region1Top" xml:space="preserve"><value>Region 1 Top</value></data>
+  <data name="Region2Top" xml:space="preserve"><value>Region 2 Top</value></data>
+</root>

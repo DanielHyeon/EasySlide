@@ -10528,7 +10528,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ActiveTransitionKind = motionKind;
         OnPropertyChanged(nameof(DefaultItemTransitionKind));
         OnPropertyChanged(nameof(DefaultItemTransitionKindInput));
-        StatusText = UiText.Format("MainViewModel", "ItemTransition", displayName);
+        StatusText = UiText.Format("MainViewModel", "ItemTransition", LegacyTransitionLabel(kind));
     }
 
     public void SetDefaultSlideTransition(TransitionEffectKind kind)
@@ -10542,7 +10542,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(DefaultSlideTransitionKind));
         OnPropertyChanged(nameof(DefaultSlideTransitionKindInput));
         OnPropertyChanged(nameof(SlideTransitionKindInput));
-        StatusText = UiText.Format("MainViewModel", "SlideTransition", displayName);
+        StatusText = UiText.Format("MainViewModel", "SlideTransition", LegacyTransitionLabel(kind));
     }
 
     public void SetSelectedItemTransition(TransitionEffectKind kind)
@@ -10553,7 +10553,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             OnPropertyChanged(nameof(SelectedItemTransitionKind));
             OnPropertyChanged(nameof(SelectedItemTransitionKindInput));
-            StatusText = UiText.Format("MainViewModel", "ItemTransitionIndividual", displayName, (turnedOn ? UiText.Get("MainViewModel", "IndividualFormatOnSuffix") : ""));
+            StatusText = UiText.Format("MainViewModel", "ItemTransitionIndividual", LegacyTransitionLabel(kind), (turnedOn ? UiText.Get("MainViewModel", "IndividualFormatOnSuffix") : ""));
         }
     }
 
@@ -10565,7 +10565,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             OnPropertyChanged(nameof(SelectedSlideTransitionKind));
             OnPropertyChanged(nameof(SelectedSlideTransitionKindInput));
-            StatusText = UiText.Format("MainViewModel", "SlideTransitionIndividual", displayName, (turnedOn ? UiText.Get("MainViewModel", "IndividualFormatOnSuffix") : ""));
+            StatusText = UiText.Format("MainViewModel", "SlideTransitionIndividual", LegacyTransitionLabel(kind), (turnedOn ? UiText.Get("MainViewModel", "IndividualFormatOnSuffix") : ""));
         }
     }
 
@@ -10574,6 +10574,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private static string LegacyTransitionDisplayName(TransitionEffectKind kind)
         => LegacyTransitionEffectService.GetDisplayName(NormalizeLegacyTransitionKind(kind));
+
+    private static string LegacyTransitionLabel(TransitionEffectKind kind)
+        => LegacyTransitionDescriptors.First(effect => effect.Kind == NormalizeLegacyTransitionKind(kind)).Label;
 
     private static TransitionEffectKind ResolveLegacyTransitionName(string? displayName, TransitionEffectKind fallback)
     {

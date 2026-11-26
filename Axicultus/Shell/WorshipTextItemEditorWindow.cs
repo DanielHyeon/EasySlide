@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Shell;
 
@@ -10,7 +11,7 @@ public sealed class WorshipTextItemEditorWindow : Window
 
     public WorshipTextItemEditorWindow(string title, string text)
     {
-        Title = "Edit Worship List Item";
+        Title = UiText.Get(nameof(WorshipTextItemEditorWindow), "Title");
         Width = 560;
         Height = 430;
         MinWidth = 420;
@@ -29,7 +30,7 @@ public sealed class WorshipTextItemEditorWindow : Window
 
         var titleLabel = new TextBlock
         {
-            Text = "Title",
+            Text = UiText.Get(nameof(WorshipTextItemEditorWindow), "ItemTitle"),
             Margin = new Thickness(0, 0, 0, 4),
         };
         Grid.SetRow(titleLabel, 0);
@@ -45,7 +46,7 @@ public sealed class WorshipTextItemEditorWindow : Window
 
         var bodyLabel = new TextBlock
         {
-            Text = "Text",
+            Text = UiText.Get(nameof(WorshipTextItemEditorWindow), "ItemText"),
             Margin = new Thickness(0, 0, 0, 4),
         };
         Grid.SetRow(bodyLabel, 2);
@@ -72,7 +73,7 @@ public sealed class WorshipTextItemEditorWindow : Window
 
         var ok = new Button
         {
-            Content = "OK",
+            Content = UiText.Get(nameof(WorshipTextItemEditorWindow), "Ok"),
             IsDefault = true,
             MinWidth = 76,
             Margin = new Thickness(0, 0, 8, 0),
@@ -86,7 +87,7 @@ public sealed class WorshipTextItemEditorWindow : Window
 
         var cancel = new Button
         {
-            Content = "Cancel",
+            Content = UiText.Get(nameof(WorshipTextItemEditorWindow), "Cancel"),
             IsCancel = true,
             MinWidth = 76,
         };

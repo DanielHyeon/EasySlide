@@ -53,8 +53,8 @@ public sealed partial class LiveBarViewModel : ObservableObject
     public string StateLabel => State switch
     {
         Controls.LiveState.Active => "LIVE",
-        Controls.LiveState.Standby => "STANDBY",
-        Controls.LiveState.Hidden => "HIDDEN",
+        Controls.LiveState.Standby => UiText.Get("LiveBar", "Standby"),
+        Controls.LiveState.Hidden => UiText.Get("LiveBar", "Hidden"),
         _ => string.Empty,
     };
 

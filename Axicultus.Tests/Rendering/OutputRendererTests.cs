@@ -112,8 +112,8 @@ public class OutputRendererTests
             ContentPixelHeight: 1080));
 
         scene.Kind.Should().Be(OutputSceneKind.Blackout);
-        scene.DisplayTitle.Should().Be("BLACK");
-        scene.StatusLabel.Should().Be("BLACKOUT");
+        scene.DisplayTitle.Should().Be(Axicultus.Wpf.Localization.UiText.Get("OutputRenderer", "Black"));
+        scene.StatusLabel.Should().Be(Axicultus.Wpf.Localization.UiText.Get("OutputRenderer", "Blackout"));
         scene.IsBlackout.Should().BeTrue();
         scene.ContentPlacement.Should().Be(ImagePlacement.Empty);
     }
@@ -148,7 +148,7 @@ public class OutputRendererTests
         scene.ShowsContent.Should().BeFalse();
         scene.ContentPlacement.Should().Be(ImagePlacement.Empty);
         scene.ShowsPanelOverlay.Should().BeFalse("비우기 화면엔 모니터/상태 오버레이도 감춤");
-        scene.StatusLabel.Should().Be("CLEARED");
+        scene.StatusLabel.Should().Be(Axicultus.Wpf.Localization.UiText.Get("OutputRenderer", "Cleared"));
         scene.BackgroundImagePath.Should().Be("worship-background.jpg");
         scene.LyricsMonitorBackgroundColorArgb.Should().Be(unchecked((int)0xff23648a));
     }
@@ -165,8 +165,8 @@ public class OutputRendererTests
             ViewportHeight: 720));
 
         scene.Kind.Should().Be(OutputSceneKind.Standby);
-        scene.DisplayTitle.Should().Be("STANDBY");
-        scene.StatusLabel.Should().Be("STANDBY");
+        scene.DisplayTitle.Should().Be(Axicultus.Wpf.Localization.UiText.Get("OutputRenderer", "Standby"));
+        scene.StatusLabel.Should().Be(Axicultus.Wpf.Localization.UiText.Get("OutputRenderer", "Standby"));
         scene.IsOutputOpen.Should().BeFalse();
         scene.Viewport.Should().Be(new Rect(0, 0, 1280, 720));
     }
@@ -1696,7 +1696,7 @@ public class OutputRendererTests
 
         scene.Kind.Should().Be(OutputSceneKind.Ready);
         scene.DisplayTitle.Should().Be("gap-logo");
-        scene.StatusLabel.Should().Be("GAP");
+        scene.StatusLabel.Should().Be(Axicultus.Wpf.Localization.UiText.Get("OutputRenderer", "Gap"));
         scene.GapItemOption.Should().Be(GapItemMode.User);
         scene.GapItemLogoFile.Should().Be(@"C:\Axicultus\Images\gap-logo.png");
         scene.GapItemUseFade.Should().BeTrue();

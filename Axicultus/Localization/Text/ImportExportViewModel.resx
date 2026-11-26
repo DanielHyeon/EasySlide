@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="FoldersLoaded" xml:space="preserve"><value>{0} folders loaded.</value></data>
+  <data name="SourcePathEmpty" xml:space="preserve"><value>Import source path is empty.</value></data>
+  <data name="AccessTablesLoaded" xml:space="preserve"><value>{0} Access MDB tables loaded.</value></data>
+  <data name="AccessSchemaFailed" xml:space="preserve"><value>Access MDB schema failed.</value></data>
+  <data name="AccessMappingIncomplete" xml:space="preserve"><value>Access MDB mapping is incomplete.</value></data>
+  <data name="ImportItemsFound" xml:space="preserve"><value>{0} import items found.</value></data>
+  <data name="PreviewFailed" xml:space="preserve"><value>Import preview failed.</value></data>
+  <data name="TargetFolderNotSelected" xml:space="preserve"><value>Import target folder is not selected.</value></data>
+  <data name="NoSourceFolders" xml:space="preserve"><value>No import source folders are selected.</value></data>
+  <data name="Imported" xml:space="preserve"><value>{0} imported, {1} skipped.</value></data>
+  <data name="ImportFailed" xml:space="preserve"><value>{0} imported, {1} failed.</value></data>
+  <data name="ExportFolderNotSelected" xml:space="preserve"><value>Export folder is not selected.</value></data>
+  <data name="ExportItemsFound" xml:space="preserve"><value>{0} export items found.</value></data>
+  <data name="ExportPathEmpty" xml:space="preserve"><value>Export output path is empty.</value></data>
+  <data name="NoExportSongs" xml:space="preserve"><value>No export songs are selected.</value></data>
+  <data name="Exported" xml:space="preserve"><value>{0} songs exported.</value></data>
+  <data name="ExportFailed" xml:space="preserve"><value>Export failed.</value></data>
+</root>

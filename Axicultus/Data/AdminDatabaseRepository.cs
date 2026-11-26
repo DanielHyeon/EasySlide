@@ -531,7 +531,7 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
         {
             return Task.FromResult(FailedWriteReport(
                 AdminDatabaseWriteOperation.MoveSongs, databasePath, backupPath: null, new AdminDatabaseWriteOutcome(),
-                [WriteIssue(AdminDatabaseWriteIssueKind.InvalidRequest, "Target folder number must be positive.")]));
+                [WriteIssue(AdminDatabaseWriteIssueKind.InvalidRequest, UiText.Get("AdminDatabaseRepository", "TargetFolderNotPositive"))]));
         }
 
         return Task.FromResult(ExecuteWrite(
@@ -614,7 +614,7 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
             return FailedWriteReport(
                 AdminDatabaseWriteOperation.Compact, inventory.DatabasePath, backupPath: null,
                 new AdminDatabaseWriteOutcome(),
-                [WriteIssue(AdminDatabaseWriteIssueKind.InvalidRequest, "Backup root cannot be empty.")]);
+                [WriteIssue(AdminDatabaseWriteIssueKind.InvalidRequest, UiText.Get("AdminDatabaseRepository", "BackupRootEmpty"))]);
         }
 
         string backupPath;
@@ -627,7 +627,7 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
             return FailedWriteReport(
                 AdminDatabaseWriteOperation.Compact, inventory.DatabasePath, backupPath: null,
                 new AdminDatabaseWriteOutcome(),
-                [WriteIssue(AdminDatabaseWriteIssueKind.BackupFailed, $"Unable to create AdminDB backup: {ex.Message}")]);
+                [WriteIssue(AdminDatabaseWriteIssueKind.BackupFailed, UiText.Format("AdminDatabaseRepository", "BackupFailed", ex.Message))]);
         }
 
         try
@@ -642,7 +642,7 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
             return FailedWriteReport(
                 AdminDatabaseWriteOperation.Compact, inventory.DatabasePath, backupPath,
                 new AdminDatabaseWriteOutcome(),
-                [WriteIssue(AdminDatabaseWriteIssueKind.WriteFailed, $"Database compaction failed: {ex.Message}")]);
+                [WriteIssue(AdminDatabaseWriteIssueKind.WriteFailed, UiText.Format("AdminDatabaseRepository", "CompactFailed", ex.Message))]);
         }
 
         return new AdminDatabaseWriteReport(
@@ -683,7 +683,7 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
         {
             return InventoryFailure(
                 pathResult.Path,
-                Issue(AdminDatabaseIssueKind.OpenFailed, $"Unable to open AdminDB SQLite database: {ex.Message}"));
+                Issue(AdminDatabaseIssueKind.OpenFailed, UiText.Format("AdminDatabaseRepository", "OpenFailed", ex.Message)));
         }
     }
 
@@ -955,7 +955,7 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
                 inventory.DatabasePath,
                 backupPath: null,
                 new AdminDatabaseWriteOutcome(),
-                [WriteIssue(AdminDatabaseWriteIssueKind.InvalidRequest, "Backup root cannot be empty.")]);
+                [WriteIssue(AdminDatabaseWriteIssueKind.InvalidRequest, UiText.Get("AdminDatabaseRepository", "BackupRootEmpty"))]);
         }
 
         var outcome = new AdminDatabaseWriteOutcome();
@@ -971,7 +971,7 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
                 inventory.DatabasePath,
                 backupPath: null,
                 outcome,
-                [WriteIssue(AdminDatabaseWriteIssueKind.BackupFailed, $"Unable to create AdminDB backup: {ex.Message}")]);
+                [WriteIssue(AdminDatabaseWriteIssueKind.BackupFailed, UiText.Format("AdminDatabaseRepository", "BackupFailed", ex.Message))]);
         }
 
         try
@@ -1002,7 +1002,7 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
                 inventory.DatabasePath,
                 backupPath,
                 outcome,
-                [WriteIssue(AdminDatabaseWriteIssueKind.WriteFailed, $"AdminDB write failed: {ex.Message}")]);
+                [WriteIssue(AdminDatabaseWriteIssueKind.WriteFailed, UiText.Format("AdminDatabaseRepository", "WriteFailed", ex.Message))]);
         }
 
         return new AdminDatabaseWriteReport(
@@ -1035,7 +1035,7 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
         {
             throw new AdminDatabaseWriteException(
                 AdminDatabaseWriteIssueKind.InvalidRequest,
-                $"A new folder must be numbered 1 to {LastFolderNo}.");
+                UiText.Format("AdminDatabaseRepository", "NewFolderNumberRange", LastFolderNo));
         }
 
         var hasGroupStyle = folderColumns.TryGetValue("GroupStyle", out var groupStyleColumn);
@@ -1180,7 +1180,7 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
         {
             throw new AdminDatabaseWriteException(
                 AdminDatabaseWriteIssueKind.InvalidRequest,
-                "At least one folder delete is required.");
+                UiText.Get("AdminDatabaseRepository", "FolderDeleteRequired"));
         }
 
         SetFolderUse(
@@ -1201,7 +1201,7 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
         {
             throw new AdminDatabaseWriteException(
                 AdminDatabaseWriteIssueKind.InvalidRequest,
-                "At least one folder recovery is required.");
+                UiText.Get("AdminDatabaseRepository", "FolderRecoveryRequired"));
         }
 
         SetFolderUse(
@@ -1223,14 +1223,14 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
         {
             throw new AdminDatabaseWriteException(
                 AdminDatabaseWriteIssueKind.InvalidRequest,
-                "Folder numbers must be positive.");
+                UiText.Get("AdminDatabaseRepository", "FolderNumbersNotPositive"));
         }
 
         if (folderNos.Distinct().Count() != folderNos.Length)
         {
             throw new AdminDatabaseWriteException(
                 AdminDatabaseWriteIssueKind.InvalidRequest,
-                "Folder requests must contain distinct folder numbers.");
+                UiText.Get("AdminDatabaseRepository", "FolderNumbersNotDistinct"));
         }
 
         var columns = ReadColumnMap(connection, "FOLDER");
@@ -1251,7 +1251,7 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
             {
                 throw new AdminDatabaseWriteException(
                     AdminDatabaseWriteIssueKind.NotFound,
-                    $"Folder was not found: {folderNo}");
+                    UiText.Format("AdminDatabaseRepository", "FolderNotFound", folderNo));
             }
 
             outcome.FolderNos.Add(folderNo);
@@ -1297,7 +1297,7 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
             {
                 throw new AdminDatabaseWriteException(
                     AdminDatabaseWriteIssueKind.NotFound,
-                    $"Song was not found: {song.SongId.Value}");
+                    UiText.Format("AdminDatabaseRepository", "SongIdNotFound", song.SongId.Value));
             }
 
             outcome.SongIds.Add(song.SongId.Value);
@@ -1333,7 +1333,7 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
         {
             throw new AdminDatabaseWriteException(
                 AdminDatabaseWriteIssueKind.InvalidRequest,
-                "At least one song move is required.");
+                UiText.Get("AdminDatabaseRepository", "SongMoveRequired"));
         }
 
         var columns = ReadColumnMap(connection, "SONG");
@@ -1370,7 +1370,7 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
             {
                 throw new AdminDatabaseWriteException(
                     AdminDatabaseWriteIssueKind.NotFound,
-                    $"Song was not found: {move.SongId}");
+                    UiText.Format("AdminDatabaseRepository", "SongIdNotFound", move.SongId));
             }
 
             outcome.SongIds.Add(move.SongId);
@@ -1387,7 +1387,7 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
         {
             throw new AdminDatabaseWriteException(
                 AdminDatabaseWriteIssueKind.InvalidRequest,
-                "At least one song delete is required.");
+                UiText.Get("AdminDatabaseRepository", "SongDeleteRequired"));
         }
 
         MoveSongs(
@@ -1411,7 +1411,7 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
         {
             throw new AdminDatabaseWriteException(
                 AdminDatabaseWriteIssueKind.InvalidRequest,
-                "At least one song recovery is required.");
+                UiText.Get("AdminDatabaseRepository", "SongRecoveryRequired"));
         }
 
         var columns = ReadColumnMap(connection, "SONG");
@@ -1460,14 +1460,14 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
         {
             throw new AdminDatabaseWriteException(
                 AdminDatabaseWriteIssueKind.InvalidRequest,
-                "At least one folder reorder request is required.");
+                UiText.Get("AdminDatabaseRepository", "FolderReorderRequired"));
         }
 
         if (order.Any(item => item.FolderNo <= 0 || item.NewFolderNo <= 0))
         {
             throw new AdminDatabaseWriteException(
                 AdminDatabaseWriteIssueKind.InvalidRequest,
-                "Folder numbers must be positive.");
+                UiText.Get("AdminDatabaseRepository", "FolderNumbersNotPositive"));
         }
 
         if (order.Select(item => item.FolderNo).Distinct().Count() != order.Count ||
@@ -1475,7 +1475,7 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
         {
             throw new AdminDatabaseWriteException(
                 AdminDatabaseWriteIssueKind.InvalidRequest,
-                "Folder reorder requests must contain distinct source and target folder numbers.");
+                UiText.Get("AdminDatabaseRepository", "FolderReorderNotDistinct"));
         }
 
         var folderColumns = ReadColumnMap(connection, "FOLDER");
@@ -1493,7 +1493,7 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
             {
                 throw new AdminDatabaseWriteException(
                     AdminDatabaseWriteIssueKind.NotFound,
-                    $"Folder was not found: {item.FolderNo}");
+                    UiText.Format("AdminDatabaseRepository", "FolderNotFound", item.FolderNo));
             }
 
             if (!sourceNumbers.Contains(item.NewFolderNo))
@@ -1508,7 +1508,7 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
                 {
                     throw new AdminDatabaseWriteException(
                         AdminDatabaseWriteIssueKind.InvalidRequest,
-                        $"Target folder number is already in use: {item.NewFolderNo}");
+                        UiText.Format("AdminDatabaseRepository", "TargetFolderInUse", item.NewFolderNo));
                 }
             }
         }
@@ -1566,7 +1566,7 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
             {
                 throw new AdminDatabaseWriteException(
                     AdminDatabaseWriteIssueKind.NotFound,
-                    $"Folder was not found: {item.FolderNo}");
+                    UiText.Format("AdminDatabaseRepository", "FolderNotFound", item.FolderNo));
             }
         }
 
@@ -1583,7 +1583,7 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
             {
                 throw new AdminDatabaseWriteException(
                     AdminDatabaseWriteIssueKind.NotFound,
-                    $"Folder was not found: {item.FolderNo}");
+                    UiText.Format("AdminDatabaseRepository", "FolderNotFound", item.FolderNo));
             }
 
             outcome.FolderNos.Add(item.NewFolderNo);
@@ -1601,21 +1601,21 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
         {
             throw new AdminDatabaseWriteException(
                 AdminDatabaseWriteIssueKind.InvalidRequest,
-                "Folder number must be positive.");
+                UiText.Get("AdminDatabaseRepository", "FolderNumberNotPositive"));
         }
 
         if (order.Count == 0)
         {
             throw new AdminDatabaseWriteException(
                 AdminDatabaseWriteIssueKind.InvalidRequest,
-                "At least one song reorder request is required.");
+                UiText.Get("AdminDatabaseRepository", "SongReorderRequired"));
         }
 
         if (order.Any(item => item.SongId <= 0 || item.SongNumber <= 0))
         {
             throw new AdminDatabaseWriteException(
                 AdminDatabaseWriteIssueKind.InvalidRequest,
-                "Song ids and song numbers must be positive.");
+                UiText.Get("AdminDatabaseRepository", "SongNumbersNotPositive"));
         }
 
         if (order.Select(item => item.SongId).Distinct().Count() != order.Count ||
@@ -1623,7 +1623,7 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
         {
             throw new AdminDatabaseWriteException(
                 AdminDatabaseWriteIssueKind.InvalidRequest,
-                "Song reorder requests must contain distinct song ids and song numbers.");
+                UiText.Get("AdminDatabaseRepository", "SongReorderNotDistinct"));
         }
 
         var columns = ReadColumnMap(connection, "SONG");
@@ -1646,7 +1646,7 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
             {
                 throw new AdminDatabaseWriteException(
                     AdminDatabaseWriteIssueKind.NotFound,
-                    $"Song was not found in folder {folderNo}: {item.SongId}");
+                    UiText.Format("AdminDatabaseRepository", "SongNotFoundInFolder", folderNo, item.SongId));
             }
 
             outcome.SongIds.Add(item.SongId);
@@ -1810,25 +1810,25 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
         }
 
         var detail = string.Join("; ", inventory.Issues.Select(issue => issue.Message));
-        throw new InvalidOperationException($"AdminDB schema is not compatible: {detail}");
+        throw new InvalidOperationException(UiText.Format("AdminDatabaseRepository", "SchemaIncompatible", detail));
     }
 
     private static (string Path, AdminDatabaseIssue? Issue) NormalizeExistingDatabasePath(string databasePath)
     {
         if (string.IsNullOrWhiteSpace(databasePath))
         {
-            return (databasePath, Issue(AdminDatabaseIssueKind.SourceMissing, "AdminDB path cannot be empty."));
+            return (databasePath, Issue(AdminDatabaseIssueKind.SourceMissing, UiText.Get("AdminDatabaseRepository", "PathEmpty")));
         }
 
         var fullPath = Path.GetFullPath(databasePath);
         if (Directory.Exists(fullPath))
         {
-            return (fullPath, Issue(AdminDatabaseIssueKind.SourceNotFile, $"AdminDB path is a directory: {fullPath}"));
+            return (fullPath, Issue(AdminDatabaseIssueKind.SourceNotFile, UiText.Format("AdminDatabaseRepository", "PathIsDirectory", fullPath)));
         }
 
         if (!File.Exists(fullPath))
         {
-            return (fullPath, Issue(AdminDatabaseIssueKind.SourceMissing, $"AdminDB file does not exist: {fullPath}"));
+            return (fullPath, Issue(AdminDatabaseIssueKind.SourceMissing, UiText.Format("AdminDatabaseRepository", "FileMissing", fullPath)));
         }
 
         return (fullPath, null);
@@ -1888,7 +1888,7 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
             {
                 issues.Add(Issue(
                     AdminDatabaseIssueKind.MissingTable,
-                    $"Required AdminDB table is missing: {tableName}",
+                    UiText.Format("AdminDatabaseRepository", "TableMissing", tableName),
                     tableName));
                 continue;
             }
@@ -1898,7 +1898,7 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
             {
                 issues.Add(Issue(
                     AdminDatabaseIssueKind.MissingColumn,
-                    $"Required AdminDB column is missing: {tableName}.{columnName}",
+                    UiText.Format("AdminDatabaseRepository", "ColumnMissing", tableName, columnName),
                     tableName,
                     columnName));
             }

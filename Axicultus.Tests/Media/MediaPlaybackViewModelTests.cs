@@ -18,7 +18,7 @@ public class MediaPlaybackViewModelTests
         sut.Source.Should().Be("intro.mp4");
         sut.MediaType.Should().Be("Video");
         sut.DurationText.Should().Be("02:05");
-        sut.StatusText.Should().Be("READY");
+        sut.StatusText.Should().Be(Axicultus.Wpf.Localization.UiText.Get("MediaPlaybackViewModel", "Ready"));
         sut.PlayPauseCommand.CanExecute(null).Should().BeTrue();
         sut.StopCommand.CanExecute(null).Should().BeTrue();
     }
