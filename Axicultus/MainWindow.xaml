@@ -2667,9 +2667,10 @@
                                    Height="*"
                                    MinHeight="135" />
                     <RowDefinition Height="4" />
+                    <!-- 25: FrmMain splitContainerPreview.Panel2MinSize (the default), so the screen shrinks as far as there. -->
                     <RowDefinition x:Name="ClassicBottomScreenRow"
                                    Height="*"
-                                   MinHeight="130" />
+                                   MinHeight="25" />
                 </Grid.RowDefinitions>
             <GridSplitter Grid.Row="1"
                           Height="4"
@@ -3854,9 +3855,10 @@
                                    Height="*"
                                    MinHeight="135" />
                     <RowDefinition Height="4" />
+                    <!-- 25: FrmMain splitContainerOutput.Panel2MinSize (the default), as the preview's. -->
                     <RowDefinition x:Name="OutputBottomScreenRow"
                                    Height="*"
-                                   MinHeight="130" />
+                                   MinHeight="25" />
                 </Grid.RowDefinitions>
             <GridSplitter Grid.Row="1"
                           Height="4"
