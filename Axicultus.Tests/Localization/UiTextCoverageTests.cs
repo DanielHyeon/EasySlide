@@ -147,7 +147,6 @@ public sealed class UiTextCoverageTests
         "Axicultus/Shell/InfoScreenStore.cs",
         "Axicultus/Shell/ItemDisplayOptionsWindow.cs",
         "Axicultus/Shell/LyricsDisplayFormatter.cs",
-        "Axicultus/Shell/MainViewModel.cs",
         "Axicultus/Shell/ManageWorshipListsWindow.xaml.cs",
         "Axicultus/Shell/NameEntryViewModel.cs",
         "Axicultus/Shell/NoticeScreenViewModel.cs",
@@ -258,7 +257,7 @@ public sealed class UiTextCoverageTests
         // (bounded by non-ASCII-letters: a Korean particle may follow a name, "Axicultus를")
         + @"(?<![A-Za-z])(Axicultus|Axicultuss|EasiSlides|PowerPoint|PPTX?|OBS|Windows|Office|Word|Excel|SQLite|MySQL|MariaDB|CCLI|DirectShow|"
         + @"JSON|XML|HTML|CSV|RTF|PDF|EULA|URL|USB|DPI|PC|ID|IP|NDI|WPF|WinForms|InfoScreen|Copyright|"
-        + @"Ctrl|Alt|Shift|Esc|Enter|Space|Tab|PgUp|PgDn|PageUp|PageDown|Home|End|Del|Insert|F\d{1,2})(?![A-Za-z])|"
+        + @"Ctrl|Alt|Shift|Esc|Enter|Space|Tab|PgUp|PgDn|PageUp|PageDown|Home|End|Del|Insert|F\d{1,2}|px|pt|ms)(?![A-Za-z])|"
         + @"\.(esw|est|esi|esp|txt|pptx?|ppsx?|docx?|rtf|jpe?g|png|gif|bmp|mp[34]|wmv|avi|xml|json|db|sqlite)(?![A-Za-z])",
         RegexOptions.CultureInvariant);
 

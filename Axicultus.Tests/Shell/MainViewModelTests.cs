@@ -691,7 +691,7 @@ public partial class MainViewModelTests
         sut.RegionDisplayIsRegion2Only.Should().BeTrue();
         sut.RegionDisplayIsBoth.Should().BeFalse("이전 둘 다 체크 해제");
         settings.Get(AxicultusSettingKeys.LyricsMonitorRegionDisplay).Should().Be(LyricsRegionDisplay.Region2Only);
-        sut.StatusText.Should().Contain("Region 2만");
+        sut.StatusText.Should().Contain("보조 영역만");
     }
 
     [Fact]
@@ -791,7 +791,7 @@ public partial class MainViewModelTests
         await sut.ValidateWorshipListAsync();
 
         sut.WorshipListProblems.Should().BeEmpty("DB 경로 없으면 곡 검사 생략 → 곡은 문제로 잡히지 않음");
-        sut.StatusText.Should().Contain("곡 DB 검증 생략", "곡 DB 가 검증되지 않았음을 운영자에게 명시(조용한 생략 방지)");
+        sut.StatusText.Should().Contain("곡 데이터베이스 검증 생략", "곡 DB 가 검증되지 않았음을 운영자에게 명시(조용한 생략 방지)");
     }
 
     [Fact]
@@ -1520,7 +1520,7 @@ public partial class MainViewModelTests
         sut.SelectedItem.Should().BeNull("the praise-book preview is a source preview; it does not take over the worship-list selection");
         sut.Queue.Should().BeEmpty("PraiseBook 단일 선택은 예배 순서에 추가하지 않는다");
         sut.PreviewLyricsText.Should().Be("1절 가사");
-        sut.StatusText.Should().Be("PraiseBook 미리보기: 은혜로다");
+        sut.StatusText.Should().Be("찬양집 미리보기: 은혜로다");
     }
 
     [Fact]
@@ -2829,7 +2829,7 @@ public partial class MainViewModelTests
         usage.LastAddRequest.Records
             .Select(record => (record.SongId, record.SongTitle, record.SongNumber, record.WorshipList))
             .Should().Equal((10, "♪입례", 7, "1.주일예배"), (11, "봉헌", 9, "1.주일예배"));
-        sut.StatusText.Should().Be("사용 이력에 DB 곡 2개 추가됨");
+        sut.StatusText.Should().Be("사용 이력에 데이터베이스 곡 2개 추가됨");
     }
 
     [Fact]
@@ -3132,7 +3132,7 @@ public partial class MainViewModelTests
 
         await sut.ValidateWorshipListAsync();
         sut.WorshipListProblems.Should().BeEmpty("an unreadable database says nothing about the song");
-        sut.StatusText.Should().Contain("곡 DB 검증 생략");
+        sut.StatusText.Should().Contain("곡 데이터베이스 검증 생략");
         await sut.Invoking(vm => vm.AddWorshipListSongsToUsagesAsync()).Should().NotThrowAsync();
     }
 
@@ -5076,7 +5076,7 @@ public partial class MainViewModelTests
         sut.OutputVisualFillMode.Should().Be(ImageFillMode.Fit);
         sut.OutputPowerPoint.LoadedContentPath.Should().Be("deck.pptx");
         sut.IsOutputHeaderTextVisible.Should().BeFalse("FrmMain flowLayoutOutputPowerPoint uses the panel display row for the deck title, not an extra yellow lyrics header");
-        sut.StatusText.Should().Be("Output 준비: Deck");
+        sut.StatusText.Should().Be("송출 준비: Deck");
     }
 
     [Fact]
@@ -5433,7 +5433,7 @@ public partial class MainViewModelTests
         sut.SelectedItem.Should().BeSameAs(second, "Preview 선택만 다음 항목으로 이동해야 함");
         sut.Session.Current.State.Should().Be(LiveState.Off, "btnToOutputMoveNext 는 라이브 송출을 시작하지 않는다");
         sut.LiveItemId.Should().BeNull("라이브 항목 표시는 바뀌지 않는다");
-        sut.StatusText.Should().Be("Output 준비: 입례 찬양 / Preview 다음: 봉헌 찬양");
+        sut.StatusText.Should().Be("송출 준비: 입례 찬양 / 미리보기 다음: 봉헌 찬양");
     }
 
     [Fact]
@@ -5471,7 +5471,7 @@ public partial class MainViewModelTests
         sut.Session.Current.CurrentItemBodyText.Should().Be("Preview chorus");
         sut.OutputLyricsText.Should().Be("Preview chorus");
         sut.PreviewLyricsText.Should().Be("Next verse");
-        sut.StatusText.Should().Be("Output 준비: Preview song / Preview 다음: Next song");
+        sut.StatusText.Should().Be("송출 준비: Preview song / 미리보기 다음: Next song");
     }
 
     [Fact]
@@ -5530,7 +5530,7 @@ public partial class MainViewModelTests
         sut.OutputItem.Should().BeSameAs(only);
         sut.SelectedItem.Should().BeSameAs(only, "다음 항목이 없으면 Preview 선택은 그대로 둔다");
         sut.Session.Current.State.Should().Be(LiveState.Off);
-        sut.StatusText.Should().Be("Output 준비: 마지막 찬양");
+        sut.StatusText.Should().Be("송출 준비: 마지막 찬양");
     }
 
     [Fact]
@@ -6442,7 +6442,7 @@ public partial class MainViewModelTests
         sut.LiveItemId.Should().Be(live.Id);
         sut.Session.Current.CurrentItemTitle.Should().Be("Live song");
         sut.Session.Current.CurrentItemBodyText.Should().Be("Live verse");
-        sut.StatusText.Should().Be("Preview 선택: Next preview");
+        sut.StatusText.Should().Be("미리보기 선택: Next preview");
 
         sut.PreviousPreviewItemCommand.Execute(null);
 
@@ -6509,7 +6509,7 @@ public partial class MainViewModelTests
         sut.SelectedItem.Should().BeSameAs(target, "Preview J should move within the selected Preview context");
         sut.OutputItem.Should().BeSameAs(live, "Preview J must not copy the new Preview selection into Output");
         sut.Session.Current.State.Should().Be(LiveState.Off, "prepared Output should stay off");
-        sut.StatusText.Should().Be("Preview 회전 제외 항목 선택: Target notice");
+        sut.StatusText.Should().Be("미리보기 회전 제외 항목 선택: Target notice");
     }
 
     [Fact]
@@ -8057,7 +8057,7 @@ public partial class MainViewModelTests
 
         sut.ActivePanelTextColorAsRegion1.Should().BeFalse();
         settings.Get(AxicultusSettingKeys.LyricsMonitorPanelTextColorFollowRegion1).Should().BeFalse();
-        sut.StatusText.Should().Contain("패널 글자색 Region1");
+        sut.StatusText.Should().Contain("패널 글자색 본문");
     }
 
     [Fact]
@@ -9387,7 +9387,7 @@ public partial class MainViewModelTests
         sut.Media.PlayerDisplay.Should().Be(sut.SelectedOutputDisplay);
         sut.Media.Source.Should().Be(mediaFile);
         sut.Media.State.Should().Be(MediaPlaybackState.Playing);
-        sut.StatusText.Should().Contain("Output 미디어 재생").And.Contain("welcome.mp4");
+        sut.StatusText.Should().Contain("송출 미디어 재생").And.Contain("welcome.mp4");
     }
 
     [Theory]
@@ -9880,7 +9880,7 @@ public partial class MainViewModelTests
         sut.Media.Source.Should().Be(outputMedia);
         sut.Media.Source.Should().NotBe(previewMedia);
         sut.Media.State.Should().Be(MediaPlaybackState.Playing);
-        sut.StatusText.Should().Contain("Output 미디어 재생").And.Contain("Output Song.mp4");
+        sut.StatusText.Should().Contain("송출 미디어 재생").And.Contain("Output Song.mp4");
 
         sut.PlayOutputMediaCommand.Execute(null);
 
@@ -9888,7 +9888,7 @@ public partial class MainViewModelTests
         sut.OutputItem.Should().BeSameAs(outputItem);
         sut.Media.Source.Should().Be(outputMedia);
         sut.Media.State.Should().Be(MediaPlaybackState.Paused, "FrmMain OutputBtnMedia maps to the live media pause/resume action for the current Output item");
-        sut.StatusText.Should().Contain("Output 미디어 일시정지").And.Contain("Output Song.mp4");
+        sut.StatusText.Should().Contain("송출 미디어 일시정지").And.Contain("Output Song.mp4");
 
         sut.PlayOutputMediaCommand.Execute(null);
 
@@ -9896,7 +9896,7 @@ public partial class MainViewModelTests
         sut.OutputItem.Should().BeSameAs(outputItem);
         sut.Media.Source.Should().Be(outputMedia);
         sut.Media.State.Should().Be(MediaPlaybackState.Playing);
-        sut.StatusText.Should().Contain("Output 미디어 재생").And.Contain("Output Song.mp4");
+        sut.StatusText.Should().Contain("송출 미디어 재생").And.Contain("Output Song.mp4");
     }
 
     [Fact]
@@ -13037,7 +13037,7 @@ public partial class MainViewModelTests
         sut.LiveItemId.Should().Be(next.Id);
         sut.Session.Current.CurrentItemTitle.Should().Be("Next live");
         sut.Session.Current.CurrentItemBodyText.Should().Be("Next verse");
-        sut.StatusText.Should().Be("Output 숨김 준비: Next live");
+        sut.StatusText.Should().Be("송출 숨김 준비: Next live");
 
         sut.RestoreOutputCommand.Execute(null);
 
@@ -13074,7 +13074,7 @@ public partial class MainViewModelTests
         sut.OutputItem.Should().BeSameAs(next);
         sut.Session.Current.State.Should().Be(LiveState.Off, "Output 준비 이동은 라이브를 시작하지 않는다");
         sut.LiveItemId.Should().BeNull();
-        sut.StatusText.Should().Be("Output 준비: Prepared next");
+        sut.StatusText.Should().Be("송출 준비: Prepared next");
     }
 
     [Fact]
@@ -13152,7 +13152,7 @@ public partial class MainViewModelTests
         sut.OutputItem.Should().BeSameAs(first);
         sut.Session.Current.State.Should().Be(LiveState.Off);
         sut.LiveItemId.Should().BeNull();
-        sut.StatusText.Should().Be("Output 준비: First output");
+        sut.StatusText.Should().Be("송출 준비: First output");
 
         sut.LastOutputItemCommand.CanExecute(null).Should().BeTrue();
         await sut.LastOutputItemCommand.ExecuteAsync(null);
@@ -13161,7 +13161,7 @@ public partial class MainViewModelTests
         sut.OutputItem.Should().BeSameAs(last, "FrmMain Output End 는 Output context 를 마지막 항목으로 이동한다");
         sut.Session.Current.State.Should().Be(LiveState.Off);
         sut.LiveItemId.Should().BeNull();
-        sut.StatusText.Should().Be("Output 준비: Last output");
+        sut.StatusText.Should().Be("송출 준비: Last output");
     }
 
     [Fact]
@@ -13260,7 +13260,7 @@ public partial class MainViewModelTests
         sut.PreviewVisualTitle.Should().Be("Preview song");
         sut.Session.Current.State.Should().Be(LiveState.Off, "준비 Output 슬라이드 이동은 라이브를 시작하지 않는다");
         sut.LiveItemId.Should().BeNull();
-        sut.StatusText.Should().Be("Output 슬라이드 2/3 준비");
+        sut.StatusText.Should().Be("송출 슬라이드 2/3 준비");
     }
 
     [Fact]
@@ -13475,7 +13475,7 @@ public partial class MainViewModelTests
         sut.OutputLyricsText.Should().Be("Prepared chorus");
         sut.Session.Current.State.Should().Be(LiveState.Off, "준비 Output 절 이동은 라이브를 시작하지 않는다");
         sut.LiveItemId.Should().BeNull();
-        sut.StatusText.Should().Be("Output 가사 2/3절 준비");
+        sut.StatusText.Should().Be("송출 가사 2/3절 준비");
 
         sut.PreviousOutputSlideCommand.CanExecute(null).Should().BeTrue();
         await sut.PreviousOutputSlideCommand.ExecuteAsync(null);
@@ -13583,7 +13583,7 @@ public partial class MainViewModelTests
         sut.SelectedItem.Should().BeSameAs(preview, "Output jump must not change Preview selection");
         sut.OutputItem.Should().BeSameAs(nonRotating, "multi-page lyrics are rotating in the current WPF model, so the notice is the next non-rotate item");
         sut.Session.Current.State.Should().Be(LiveState.Off, "prepared Output jump does not start live output");
-        sut.StatusText.Should().Be("Output 회전 제외 항목 준비: Target notice");
+        sut.StatusText.Should().Be("송출 회전 제외 항목 준비: Target notice");
     }
 
     [Fact]
@@ -13626,7 +13626,7 @@ public partial class MainViewModelTests
         sut.OutputPowerPoint.SlideCount.Should().Be(1);
         sut.OutputPowerPoint.SlideNumber.Should().Be(1);
         sut.Session.Current.State.Should().Be(LiveState.Off, "prepared Output jump does not start live output");
-        sut.StatusText.Should().Be("Output 회전 제외 항목 준비: Single slide deck");
+        sut.StatusText.Should().Be("송출 회전 제외 항목 준비: Single slide deck");
     }
 
     [Fact]
