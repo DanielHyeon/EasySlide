@@ -69,7 +69,6 @@ public sealed class UiTextCoverageTests
         "Axicultus/MainWindow.LiveDevices.cs",
         "Axicultus/MainWindow.OperatorMenus.cs",
         "Axicultus/MainWindow.xaml.cs",
-        "Axicultus/Shell/MainViewModel.cs",
         "Axicultus/Startup/LegacyUiLauncher.cs",
         "Axicultus/Theme/ThemeService.cs",
         "Axicultus/Theme/WorshipItemIcon.cs",

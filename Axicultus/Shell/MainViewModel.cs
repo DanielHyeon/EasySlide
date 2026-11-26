@@ -20,6 +20,7 @@ using Axicultus.Wpf.Composites;
 using Axicultus.Wpf.Controls;
 using Axicultus.Wpf.Input;
 using Axicultus.Wpf.Library;
+using Axicultus.Wpf.Localization;
 using Axicultus.Wpf.Media;
 using Axicultus.Wpf.Platform;
 using Axicultus.Wpf.Rendering;
@@ -139,7 +140,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // 스테이지(Preview) 모니터로 선택된 디스플레이 + 창 열림 여부(메뉴·버튼 활성 상태에 쓰임).
     [ObservableProperty] private OutputDisplay? _selectedPreviewDisplay;
     [ObservableProperty] private bool _isStageMonitorOpen;
-    [ObservableProperty] private string _statusText = "WPF 운영 준비됨";
+    [ObservableProperty] private string _statusText = UiText.Get("MainViewModel", "Ready");
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(SendLiveMessageCommand))]
     [NotifyCanExecuteChangedFor(nameof(ClearLiveMessageCommand))]
@@ -319,7 +320,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        StatusText = "Gap 화면 송출 중";
+        StatusText = UiText.Get("MainViewModel", "GapShown");
         _telemetry.Record(MainCommandIds.LiveNext, succeeded: true, StatusText);
         NotifyCommandStates();
     }
@@ -333,7 +334,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private bool IsOutputHideActive => _session.Current is { State: LiveState.Hidden, IsBlackout: false, IsCleared: false };
 
     public string OutputScreenStatus =>
-        $"Show: {(_session.Current.State == LiveState.Off ? "OFF" : "ON")}     Text: {(IsOutputClearActive ? "hidden" : "shown")}     Screen: {(IsOutputBlackActive ? "black" : IsOutputHideActive ? "hidden" : IsGapItemOnDisplay ? "gap" : "normal")}";
+        UiText.Format("MainViewModel", "OutputScreenStatus", (_session.Current.State == LiveState.Off ? UiText.Get("MainViewModel", "StateOff") : UiText.Get("MainViewModel", "StateOn")), (IsOutputClearActive ? UiText.Get("MainViewModel", "StateHidden") : UiText.Get("MainViewModel", "StateShown")), (IsOutputBlackActive ? UiText.Get("MainViewModel", "StateBlack") : IsOutputHideActive ? UiText.Get("MainViewModel", "StateHidden") : IsGapItemOnDisplay ? UiText.Get("MainViewModel", "StateGap") : UiText.Get("MainViewModel", "StateNormal")));
 
     /// <summary>FrmMain OutputBtnRefAlert 상태: 현재 라이브 출력의 구절/제목 알림 오버레이가 표시 중인가.</summary>
     public bool IsOutputReferenceAlertActive => _session.Current.IsReferenceAlertVisible;
@@ -363,7 +364,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
             var status = string.Equals(Media.Source, mediaPath, StringComparison.OrdinalIgnoreCase)
                 ? BuildOutputMediaStatusText()
-                : "READY";
+                : UiText.Get("MainViewModel", "MediaReady");
             var fileName = Path.GetFileName(mediaPath);
             return string.IsNullOrWhiteSpace(fileName)
                 ? status
@@ -406,7 +407,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public LiveQueueItem? PreviewPanelItem => PreviewItem;
 
     /// <summary>FrmMain PreviewPanelDisplayName 출처 셀: 선택된 Preview 항목의 legacy 종류.</summary>
-    public string PreviewPanelSourceText => BuildPanelSourceText(PreviewItem, "Preview");
+    public string PreviewPanelSourceText => BuildPanelSourceText(PreviewItem, UiText.Get("MainViewModel", "PanelPreview"));
 
     /// <summary>FrmMain PreviewPanelDisplayName 상태 셀: Preview 전용 절/슬라이드 위치.</summary>
     public string PreviewPanelStatusText => BuildPreviewPanelStatusText();
@@ -417,7 +418,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public LiveQueueItem? OutputPanelItem => GetOutputNavigationItem();
 
     /// <summary>FrmMain OutputPanelDisplayName 출처 셀: 준비/라이브 Output 항목의 legacy 종류.</summary>
-    public string OutputPanelSourceText => BuildPanelSourceText(GetOutputNavigationItem(), "Output");
+    public string OutputPanelSourceText => BuildPanelSourceText(GetOutputNavigationItem(), UiText.Get("MainViewModel", "PanelOutput"));
 
     /// <summary>FrmMain OutputPanelDisplayName 상태 셀: Output 전용 준비/LIVE/숨김 상태와 위치.</summary>
     public string OutputPanelStatusText => BuildOutputPanelStatusText(GetOutputNavigationItem());
@@ -659,18 +660,18 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public string ActiveLyricsAlignmentLabel
         => ActiveLyricsAlignment switch
         {
-            LyricsTextAlignment.Left => "왼쪽",
-            LyricsTextAlignment.Right => "오른쪽",
-            _ => "가운데",
+            LyricsTextAlignment.Left => UiText.Get("MainViewModel", "AlignLeft"),
+            LyricsTextAlignment.Right => UiText.Get("MainViewModel", "AlignRight"),
+            _ => UiText.Get("MainViewModel", "AlignCenter"),
         };
 
     /// <summary>현재 가사 세로 정렬의 한글 라벨.</summary>
     public string ActiveLyricsVerticalAlignmentLabel
         => ActiveLyricsVerticalAlignment switch
         {
-            LyricsVerticalAlignment.Top => "위",
-            LyricsVerticalAlignment.Bottom => "아래",
-            _ => "가운데",
+            LyricsVerticalAlignment.Top => UiText.Get("MainViewModel", "AlignTop"),
+            LyricsVerticalAlignment.Bottom => UiText.Get("MainViewModel", "AlignBottom"),
+            _ => UiText.Get("MainViewModel", "AlignCenter"),
         };
 
     private async Task<bool> TryLoadLegacyWorshipListAsync(string name)
@@ -715,7 +716,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var items = EswWorshipListParser.Parse(xml, out var sessionFormat, out var sessionNotes);
         if (items.Count == 0 && sessionNotes is null)
         {
-            StatusText = $"Legacy worship list is empty: {name} (.esw)";
+            StatusText = UiText.Format("MainViewModel", "LegacyListEmpty", name);
             return;
         }
 
@@ -733,12 +734,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             // and the next start opens it once it has been saved.
             HasPendingWorshipListSave = true;
             _settings.Set(AxicultusSettingKeys.CurrentWorshipListName, name);
-            StatusText = $"예배 순서 가져옴: {name} ({items.Count}개 항목)" + SongDatabaseErrorSuffix();
+            StatusText = UiText.Format("MainViewModel", "WorshipListImported", name, items.Count) + SongDatabaseErrorSuffix();
             return;
         }
         RecordRecentWorshipList(name, sessionNotes);
         WorshipListHasUnsavedChanges = false;
-        StatusText = $"Legacy worship list loaded: {name} ({items.Count} .esw items)" + SongDatabaseErrorSuffix();
+        StatusText = UiText.Format("MainViewModel", "LegacyListLoaded", name, items.Count) + SongDatabaseErrorSuffix();
     }
 
     private string GetAvailableImportName(string name)
@@ -751,7 +752,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
         catch (ArgumentException)
         {
-            candidate = "가져온 예배 순서";
+            candidate = UiText.Get("MainViewModel", "ImportedListName");
             if (!saved.Contains(candidate) && !SessionNotes.HasNotes(candidate)) return candidate;
         }
 
@@ -779,13 +780,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var items = EswWorshipListParser.Parse(xml);
         if (items.Count == 0)
         {
-            StatusText = $"Legacy worship list merge skipped: {name} (.esw is empty)";
+            StatusText = UiText.Format("MainViewModel", "LegacyListMergeSkipped", name);
             return true;
         }
 
         _songDatabaseError = null;
         var added = await InsertEswWorshipListItemsAsync(items, targetItem: null).ConfigureAwait(true);
-        StatusText = $"Legacy worship list merged: {name} ({added} added, total {Queue.Count})" + SongDatabaseErrorSuffix();
+        StatusText = UiText.Format("MainViewModel", "LegacyListMerged", name, added, Queue.Count) + SongDatabaseErrorSuffix();
         return true;
     }
 
@@ -795,10 +796,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// </summary>
     public IReadOnlyList<OutputAppearancePreset> OutputAppearancePresets { get; } = new[]
     {
-        new OutputAppearancePreset("흰 글자 · 검정", unchecked((int)0xFFFFFFFF), unchecked((int)0xFF000000), unchecked((int)0xFF000000), IsGradient: false),
-        new OutputAppearancePreset("흰 글자 · 네이비 그라데이션", unchecked((int)0xFFFFFFFF), unchecked((int)0xFF1B2A4A), unchecked((int)0xFF0A1020), IsGradient: true),
-        new OutputAppearancePreset("검정 글자 · 흰 배경", unchecked((int)0xFF000000), unchecked((int)0xFFFFFFFF), unchecked((int)0xFFFFFFFF), IsGradient: false),
-        new OutputAppearancePreset("노랑 글자 · 진남색", unchecked((int)0xFFFFD24A), unchecked((int)0xFF101830), unchecked((int)0xFF101830), IsGradient: false),
+        new OutputAppearancePreset(UiText.Get("MainViewModel", "PresetWhiteOnBlack"), unchecked((int)0xFFFFFFFF), unchecked((int)0xFF000000), unchecked((int)0xFF000000), IsGradient: false),
+        new OutputAppearancePreset(UiText.Get("MainViewModel", "PresetWhiteOnNavyGradient"), unchecked((int)0xFFFFFFFF), unchecked((int)0xFF1B2A4A), unchecked((int)0xFF0A1020), IsGradient: true),
+        new OutputAppearancePreset(UiText.Get("MainViewModel", "PresetBlackOnWhite"), unchecked((int)0xFF000000), unchecked((int)0xFFFFFFFF), unchecked((int)0xFFFFFFFF), IsGradient: false),
+        new OutputAppearancePreset(UiText.Get("MainViewModel", "PresetYellowOnDeepNavy"), unchecked((int)0xFFFFD24A), unchecked((int)0xFF101830), unchecked((int)0xFF101830), IsGradient: false),
     };
 
     /// <summary>
@@ -871,7 +872,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (live is not null)
         {
             SelectedItem = live;
-            StatusText = $"현재 송출 항목 선택: {live.Title}";
+            StatusText = UiText.Format("MainViewModel", "LiveItemSelected", live.Title);
         }
     }
 
@@ -889,12 +890,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var match = Queue.FirstOrDefault(q => q is not null && string.Equals(q.Id, problem.Item.Id, StringComparison.Ordinal));
         if (match is null)
         {
-            StatusText = "이미 예배 순서에서 제거된 항목입니다.";
+            StatusText = UiText.Get("MainViewModel", "ItemAlreadyRemoved");
             return;
         }
 
         SelectedItem = match;
-        StatusText = $"검증 문제 항목 선택: {(string.IsNullOrWhiteSpace(match.Title) ? match.Id : match.Title)}";
+        StatusText = UiText.Format("MainViewModel", "ProblemItemSelected", (string.IsNullOrWhiteSpace(match.Title) ? match.Id : match.Title));
     }
 
     // "이 항목 서식 복사"로 담아 둔 항목별 서식(FormatData 문자열). 다른 항목에 "붙여넣기"하면 그대로 적용된다(없으면 null=붙여넣기 비활성).
@@ -925,7 +926,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public string LyricsPageLabel
         => LyricsPageCount <= 1
             ? string.Empty
-            : $"{LyricsPageIndex + 1}/{LyricsPageCount}절";
+            : UiText.Format("MainViewModel", "VersePosition", LyricsPageIndex + 1, LyricsPageCount);
 
     // 현재 곡의 페이지별 절 라벨(ToVersePages 와 1:1 정렬) — 절 라벨 직접 점프(JumpToLyricsSection)의 인덱스 근거.
     private IReadOnlyList<string> _pageLabels = Array.Empty<string>();
@@ -1542,8 +1543,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public bool BackgroundModeIsTile => ActiveBackgroundMode == LyricsBackgroundMode.Tile;
     public bool CanClearOutputBackgroundImage => !string.IsNullOrWhiteSpace(ActiveOutputBackgroundImagePath);
     public string OutputBackgroundNoImageToolTip => CanClearOutputBackgroundImage
-        ? $"Remove Default Background '{ActiveOutputBackgroundImagePath}'"
-        : "No Default Background";
+        ? UiText.Format("MainViewModel", "RemoveDefaultBackground", ActiveOutputBackgroundImagePath)
+        : UiText.Get("MainViewModel", "NoDefaultBackground");
     public string PanelFontFamily
     {
         get => _settings.Get(AxicultusSettingKeys.PanelFontFamily) is { Length: > 0 } name ? name : "Microsoft Sans Serif";
@@ -1608,9 +1609,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     public string DefaultRegion2ColorHex => LyricsTextColor2Input == 0 ? ActiveTextColorHex : FormatColorHex(LyricsTextColor2Input);
-    public string DefaultMediaCaption => "Media: " + (ItemMediaOptions.Read(DefaultMediaFormat).Mode switch
+    public string DefaultMediaCaption => UiText.Get("MainViewModel", "DefaultMediaCaptionPrefix") + (ItemMediaOptions.Read(DefaultMediaFormat).Mode switch
     {
-        1 => "As Title", 2 => "Specific", 3 => "Live Feed", _ => string.IsNullOrWhiteSpace(DefaultMediaPath) ? "None" : "Specific"
+        1 => UiText.Get("MainViewModel", "MediaAsTitle"), 2 => UiText.Get("MainViewModel", "MediaSpecific"), 3 => UiText.Get("MainViewModel", "MediaLiveFeed"), _ => string.IsNullOrWhiteSpace(DefaultMediaPath) ? UiText.Get("MainViewModel", "MediaNone") : UiText.Get("MainViewModel", "MediaSpecific")
     });
 
     public int PanelHeightPercent
@@ -1624,8 +1625,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ? _settings.Get(AxicultusSettingKeys.DefaultMediaPath) : ItemMediaOptions.Read(DefaultMediaFormat).FileName;
     public bool CanClearDefaultMedia => DefaultMediaFormat.Length > 0 || !string.IsNullOrWhiteSpace(DefaultMediaPath);
     public string DefaultMediaToolTip => CanClearDefaultMedia
-        ? $"Remove Default Media '{Path.GetFileName(DefaultMediaPath)}'"
-        : "No Default Media";
+        ? UiText.Format("MainViewModel", "RemoveDefaultMedia", Path.GetFileName(DefaultMediaPath))
+        : UiText.Get("MainViewModel", "NoDefaultMedia");
 
     public IRelayCommand<LyricsGradientDirection> ApplyGradientDirectionCommand { get; }
 
@@ -1794,8 +1795,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     /// <summary>라이브 조옮김 상태 라벨(예: "원조", "조옮김 +2", "조옮김 -1") — 메뉴/툴팁 표시용.</summary>
     public string LiveTransposeLabel => LiveTransposeSemitones == 0
-        ? "원조"
-        : $"조옮김 {(LiveTransposeSemitones > 0 ? "+" : "")}{LiveTransposeSemitones}";
+        ? UiText.Get("MainViewModel", "OriginalKey")
+        : UiText.Format("MainViewModel", "TransposeLabel", (LiveTransposeSemitones > 0 ? "+" : ""), LiveTransposeSemitones);
 
     /// <summary>라이브 코드 조옮김 ↑(반음 올림, 레거시 Transpose Up Semi-Tone). 코드 표시 on 일 때 송출 코드 이동.</summary>
     public IRelayCommand TransposeLiveUpCommand { get; }
@@ -1880,7 +1881,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         EndShowIfQueueEmpty();
         FollowOutputRowIntoLoadedList();
-        StatusText = Queue.Count == 0 ? "송출할 항목이 없습니다" : $"{Queue.Count}개 항목 로드됨";
+        StatusText = Queue.Count == 0 ? UiText.Get("MainViewModel", "NothingToShow") : UiText.Format("MainViewModel", "ItemsLoaded", Queue.Count);
         RefreshPowerPointLimitState(updateStatus: true);
         // 전체 교체(불러오기/시작 시드)는 "깨끗한" 상태 — 위 Add 들이 켠 미저장 표시를 끈다(사용자 편집만 미저장으로 남게).
         WorshipListHasUnsavedChanges = false;
@@ -1915,7 +1916,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Queue.Insert(insertIndex, item);
         SelectedItem = item;
         if (!string.IsNullOrEmpty(item.FormatData) || !item.UseIndividualFormatting) SaveItemFormatting();
-        StatusText = $"성경 구절 추가됨: {selection.Title}";
+        StatusText = UiText.Format("MainViewModel", "BibleVersesAdded", selection.Title);
         NotifyCommandStates();
         return item;
     }
@@ -1943,7 +1944,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _sourcePreviewItem = item;
         RefreshLyricsPages(item);
         UpdateContentTabForItem(item);
-        StatusText = $"Preview Bible: {selection.Title}";
+        StatusText = UiText.Format("MainViewModel", "PreviewBible", selection.Title);
         NotifyPreviewItemProperties();
         NotifyCommandStates();
         return item;
@@ -1969,7 +1970,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var insertIndex = selectedIndex >= 0 ? selectedIndex + 1 : Queue.Count;
         Queue.Insert(insertIndex, item);
         SelectedItem = item;
-        StatusText = $"텍스트 항목 추가됨: {item.Title}";
+        StatusText = UiText.Format("MainViewModel", "TextItemAdded", item.Title);
         NotifyCommandStates();
         return item;
     }
@@ -1991,7 +1992,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var insertIndex = targetIndex >= 0 ? targetIndex : Queue.Count;
         Queue.Insert(insertIndex, item);
         SelectedItem = item;
-        StatusText = $"텍스트 항목 추가됨: {item.Title}";
+        StatusText = UiText.Format("MainViewModel", "TextItemAdded", item.Title);
         NotifyCommandStates();
         return item;
     }
@@ -2000,7 +2001,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (string.IsNullOrWhiteSpace(text))
         {
-            StatusText = "추가할 텍스트가 없습니다.";
+            StatusText = UiText.Get("MainViewModel", "NoTextToAdd");
             return null;
         }
 
@@ -2027,7 +2028,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (string.IsNullOrWhiteSpace(extractedText))
         {
-            StatusText = "Word 문서를 읽지 못했습니다(Word 설치 필요 또는 빈 문서).";
+            StatusText = UiText.Get("MainViewModel", "WordReadFailed");
             NotifyCommandStates();
             return null;
         }
@@ -2040,7 +2041,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (string.IsNullOrWhiteSpace(text))
         {
-            StatusText = "추가할 텍스트 파일 내용이 없습니다.";
+            StatusText = UiText.Get("MainViewModel", "TextFileEmpty");
             NotifyCommandStates();
             return null;
         }
@@ -2056,7 +2057,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var insertIndex = selectedIndex >= 0 ? selectedIndex + 1 : Queue.Count;
         Queue.Insert(insertIndex, item);
         SelectedItem = item;
-        StatusText = $"텍스트 파일 항목 추가: {item.Title}";
+        StatusText = UiText.Format("MainViewModel", "TextFileItemAdded", item.Title);
         NotifyCommandStates();
         return item;
     }
@@ -2066,7 +2067,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var firstLine = text.Replace("\r", string.Empty).Split('\n')[0].Trim();
         if (firstLine.Length == 0)
         {
-            return "텍스트";
+            return UiText.Get("MainViewModel", "TextItemTitle");
         }
 
         const int max = 30;
@@ -2092,7 +2093,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Queue.Insert(insertIndex, item);
         SelectedItem = item;
         if (!string.IsNullOrEmpty(item.FormatData) || !item.UseIndividualFormatting) SaveItemFormatting();
-        StatusText = $"성경 구절 추가됨: {selection.Title}";
+        StatusText = UiText.Format("MainViewModel", "BibleVersesAdded", selection.Title);
         NotifyCommandStates();
         return item;
     }
@@ -2111,7 +2112,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (song is null || string.IsNullOrWhiteSpace(song.Title))
         {
-            StatusText = "선택된 곡이 없습니다.";
+            StatusText = UiText.Get("MainViewModel", "NoSongSelected");
             NotifyCommandStates();
             return null;
         }
@@ -2123,7 +2124,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var insertIndex = targetIndex >= 0 ? targetIndex : Queue.Count;
         Queue.Insert(insertIndex, item);
         SelectedItem = item;
-        StatusText = $"곡 추가됨: {song.Title}";
+        StatusText = UiText.Format("MainViewModel", "SongAdded", song.Title);
         NotifyCommandStates();
         return item;
     }
@@ -2164,7 +2165,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (string.IsNullOrWhiteSpace(selection.IdString) || string.IsNullOrWhiteSpace(selection.Title))
         {
-            StatusText = "선택된 성경 구절이 없습니다.";
+            StatusText = UiText.Get("MainViewModel", "NoBibleVersesSelected");
             NotifyCommandStates();
             return null;
         }
@@ -2197,7 +2198,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (song is null || string.IsNullOrWhiteSpace(song.Title))
         {
-            StatusText = "선택된 곡이 없습니다.";
+            StatusText = UiText.Get("MainViewModel", "NoSongSelected");
             NotifyCommandStates();
             return null;
         }
@@ -2207,7 +2208,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var insertIndex = selectedIndex >= 0 ? selectedIndex + 1 : Queue.Count;
         Queue.Insert(insertIndex, item);
         SelectedItem = item;
-        StatusText = $"곡 추가됨: {song.Title}";
+        StatusText = UiText.Format("MainViewModel", "SongAdded", song.Title);
         NotifyCommandStates();
         return item;
     }
@@ -2222,14 +2223,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         if (SelectedItem is not { Kind: LiveItemKinds.Song } item || !TryGetSongDatabaseId(item, out var selectedSongId))
         {
-            StatusText = "편집할 곡 항목을 선택하세요.";
+            StatusText = UiText.Get("MainViewModel", "SelectSongItemToEdit");
             NotifyCommandStates();
             return false;
         }
 
         if (selectedSongId != song.SongId)
         {
-            StatusText = "편집한 곡과 선택 항목이 일치하지 않습니다.";
+            StatusText = UiText.Get("MainViewModel", "EditedSongMismatch");
             NotifyCommandStates();
             return false;
         }
@@ -2237,7 +2238,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var index = IndexOfReference(item);
         if (index < 0)
         {
-            StatusText = "선택 항목을 예배 순서에서 찾을 수 없습니다.";
+            StatusText = UiText.Get("MainViewModel", "SelectedItemNotInList");
             NotifyCommandStates();
             return false;
         }
@@ -2266,7 +2267,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         SelectedItem = updated;
         RepublishLiveSongForBodyChange();
         NotifyCommandStates();
-        StatusText = $"예배 순서 항목 갱신: {song.Title}";
+        StatusText = UiText.Format("MainViewModel", "ListItemUpdated", song.Title);
         return true;
     }
 
@@ -2277,14 +2278,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (SelectedItem is not { } item || item.Kind is not (LiveItemKinds.Bible or LiveItemKinds.Notice))
         {
-            StatusText = "편집할 성경/텍스트 항목을 선택하세요.";
+            StatusText = UiText.Get("MainViewModel", "SelectBibleOrTextToEdit");
             NotifyCommandStates();
             return false;
         }
 
         if (string.IsNullOrWhiteSpace(text))
         {
-            StatusText = "편집할 본문이 없습니다.";
+            StatusText = UiText.Get("MainViewModel", "NoTextToEdit");
             NotifyCommandStates();
             return false;
         }
@@ -2292,7 +2293,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var index = IndexOfReference(item);
         if (index < 0)
         {
-            StatusText = "선택 항목을 예배 순서에서 찾을 수 없습니다.";
+            StatusText = UiText.Get("MainViewModel", "SelectedItemNotInList");
             NotifyCommandStates();
             return false;
         }
@@ -2317,7 +2318,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         RepublishLiveSongForBodyChange();
         NotifyCommandStates();
-        StatusText = $"예배 순서 항목 갱신: {updated.Title}";
+        StatusText = UiText.Format("MainViewModel", "ListItemUpdated", updated.Title);
         return true;
     }
 
@@ -2334,7 +2335,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (Queue.Count == 0)
         {
-            StatusText = "현재 예배 순서에 항목이 없습니다.";
+            StatusText = UiText.Get("MainViewModel", "WorshipListHasNoItems");
             NotifyCommandStates();
             return 0;
         }
@@ -2342,7 +2343,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var songItems = Queue.Where(IsUsageSong).ToArray();
         if (songItems.Length == 0)
         {
-            StatusText = "예배 순서에 DB 곡 항목이 없습니다.";
+            StatusText = UiText.Get("MainViewModel", "NoDatabaseSongsInList");
             NotifyCommandStates();
             return 0;
         }
@@ -2353,15 +2354,15 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             var detail = string.Join(" ", report.Issues.Select(issue => issue.Message).Where(message => !string.IsNullOrWhiteSpace(message)));
             StatusText = string.IsNullOrWhiteSpace(detail)
-                ? "사용 이력 기록 실패"
-                : $"사용 이력 기록 실패: {detail}";
+                ? UiText.Get("MainViewModel", "UsageRecordFailed")
+                : UiText.Format("MainViewModel", "UsageRecordFailedDetail", detail);
             NotifyCommandStates();
             return 0;
         }
 
         StatusText = report.AddedCount == 1
-            ? "사용 이력에 DB 곡 1개 추가됨"
-            : $"사용 이력에 DB 곡 {report.AddedCount}개 추가됨";
+            ? UiText.Get("MainViewModel", "UsageAddedOne")
+            : UiText.Format("MainViewModel", "UsageAddedMany", report.AddedCount);
         NotifyCommandStates();
         return report.AddedCount;
     }
@@ -2454,7 +2455,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             {
                 ShowWorshipSelectionPreview();
             }
-            StatusText = "PraiseBook 선택 없음";
+            StatusText = UiText.Get("MainViewModel", "NoPraiseBookSelected");
             NotifyCommandStates();
             return null;
         }
@@ -2475,7 +2476,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         // A source preview, as for a library song: FrmMain PraiseBookListIndexChanged fills the preview and
         // leaves the worship-list selection alone, so the next add still goes in after the selected row.
         SetSourcePreview(item);
-        StatusText = $"PraiseBook 미리보기: {item.Title}";
+        StatusText = UiText.Format("MainViewModel", "PraiseBookPreview", item.Title);
         NotifyCommandStates();
         return item;
     }
@@ -2488,7 +2489,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (entry is null)
         {
-            StatusText = "선택된 곡이 없습니다.";
+            StatusText = UiText.Get("MainViewModel", "NoSongSelected");
             NotifyCommandStates();
             return null;
         }
@@ -2518,7 +2519,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (entry is null || string.IsNullOrWhiteSpace(entry.Title))
         {
-            StatusText = "선택된 곡이 없습니다.";
+            StatusText = UiText.Get("MainViewModel", "NoSongSelected");
             NotifyCommandStates();
             return null;
         }
@@ -2532,7 +2533,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 var detail = await ReadSongDetailOrNullAsync(databasePath, entry.SongId).ConfigureAwait(true);
                 if (detail is { FolderNo: <= 0 })
                 {
-                    StatusText = $"라이브러리에서 삭제된 찬양집 곡입니다: {entry.Title}";
+                    StatusText = UiText.Format("MainViewModel", "PraiseBookSongDeleted", entry.Title);
                     return null;
                 }
                 if (detail is not null)
@@ -2560,7 +2561,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             ? await Library.FindLegacyPraiseBookSongAsync(entry)
             : ResolvePraiseBookSong(entry.Title, entry.Number, entry.SongId);
         // The songs already listed in the library tab still serve when the database cannot be read.
-        if (song is null) StatusText = _songDatabaseError ?? $"찬양집 곡을 식별할 수 없습니다: {entry.Title}";
+        if (song is null) StatusText = _songDatabaseError ?? UiText.Format("MainViewModel", "PraiseBookSongUnknown", entry.Title);
         return song is null ? null : new ResolvedPraiseBookSong(song, null, null, null, null);
     }
 
@@ -2568,7 +2569,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (string.IsNullOrWhiteSpace(title))
         {
-            StatusText = "선택된 곡이 없습니다.";
+            StatusText = UiText.Get("MainViewModel", "NoSongSelected");
             NotifyCommandStates();
             return null;
         }
@@ -2580,7 +2581,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         if (song is null)
         {
-            StatusText = $"라이브러리에서 곡을 찾을 수 없습니다: {title}";
+            StatusText = UiText.Format("MainViewModel", "SongNotInLibrary", title);
             NotifyCommandStates();
             return null;
         }
@@ -2604,7 +2605,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var result = SelectedSearchResult;
         if (result is null)
         {
-            StatusText = "선택된 검색 결과가 없습니다.";
+            StatusText = UiText.Get("MainViewModel", "NoSearchResultSelected");
             NotifyCommandStates();
             return;
         }
@@ -2621,7 +2622,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var candidate = SelectedTitleCandidate;
         if (candidate is null)
         {
-            StatusText = "선택된 제목이 없습니다.";
+            StatusText = UiText.Get("MainViewModel", "NoTitleSelected");
             NotifyCommandStates();
             return;
         }
@@ -2640,7 +2641,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var databasePath = Search.DatabasePath;
         if (string.IsNullOrWhiteSpace(databasePath))
         {
-            StatusText = "검색 DB 경로가 설정되지 않았습니다.";
+            StatusText = UiText.Get("MainViewModel", "SearchDatabasePathNotSet");
             NotifyCommandStates();
             return;
         }
@@ -2649,7 +2650,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var detail = await ReadSongDetailOrNullAsync(databasePath, songId).ConfigureAwait(true);
         if (detail is null)
         {
-            StatusText = _songDatabaseError ?? $"곡을 찾을 수 없습니다: {fallbackTitle}";
+            StatusText = _songDatabaseError ?? UiText.Format("MainViewModel", "SongNotFound", fallbackTitle);
             NotifyCommandStates();
             return;
         }
@@ -2822,7 +2823,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var copy = item with { };
         Queue.Insert(index + 1, copy);
         SelectedItem = copy;
-        StatusText = $"항목 복제: {copy.Title}";
+        StatusText = UiText.Format("MainViewModel", "ItemDuplicated", copy.Title);
         NotifyCommandStates();
         return copy;
     }
@@ -2852,7 +2853,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             }
 
             SelectedItem = Queue.Count == 0 ? null : Queue[Math.Min(rows[^1], Queue.Count - 1)];
-            StatusText = $"항목 {rows.Length}개 제거";
+            StatusText = UiText.Format("MainViewModel", "ItemsRemoved", rows.Length);
             if (outputRowRemoved) CopySelectionToOutputAfterRemoval();
             NotifyCommandStates();
             return;
@@ -2878,7 +2879,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         SelectedItem = Queue.Count == 0 ? null : Queue[Math.Min(index, Queue.Count - 1)];
-        StatusText = $"항목 제거: {item.Title}";
+        StatusText = UiText.Format("MainViewModel", "ItemRemoved", item.Title);
         if (outputRemoved) CopySelectionToOutputAfterRemoval();
         NotifyCommandStates();
     }
@@ -2918,7 +2919,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
         {
-            StatusText = $"예배 순서를 휴지통으로 이동하지 못했습니다. {ex.Message}";
+            StatusText = UiText.Format("MainViewModel", "MoveListToTrashFailed", ex.Message);
         }
     }
 
@@ -2938,7 +2939,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         SelectedItem = null;
         EndShowIfQueueEmpty();
         SetLiveItemId(null); // 큐가 비었으니 라이브 추적 정리(큐에 없는 고아 Id 로 슬라이드 가드가 오판하지 않도록)
-        StatusText = $"예배 순서 {count}개 항목을 비웠습니다 (되돌리기로 복구 가능)";
+        StatusText = UiText.Format("MainViewModel", "ListCleared", count);
         NotifyCommandStates();
     }
 
@@ -3004,15 +3005,15 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var count = _clearedWorshipBackup.Count;
         _clearedWorshipBackup.Clear();
         SelectedItem = Queue.FirstOrDefault();
-        StatusText = $"예배 순서 {count}개 항목을 복구했습니다";
+        StatusText = UiText.Format("MainViewModel", "ListRestored", count);
         NotifyCommandStates();
     }
 
     /// <summary>PowerPoint 파일을 예배 순서(큐)에 추가(선택 시 썸네일 렌더 디스패치).</summary>
-    public LiveQueueItem? AddPowerPoint(string filePath) => AddExternalFileItem(filePath, LiveItemKinds.PowerPoint, "PowerPoint 파일");
+    public LiveQueueItem? AddPowerPoint(string filePath) => AddExternalFileItem(filePath, LiveItemKinds.PowerPoint, UiText.Get("MainViewModel", "PowerPointFileLabel"));
 
     /// <summary>미디어 파일을 예배 순서(큐)에 추가(선택 시 미디어 Load 디스패치).</summary>
-    public LiveQueueItem? AddMedia(string filePath) => AddExternalFileItem(filePath, LiveItemKinds.Media, "미디어 파일");
+    public LiveQueueItem? AddMedia(string filePath) => AddExternalFileItem(filePath, LiveItemKinds.Media, UiText.Get("MainViewModel", "MediaFileLabel"));
 
     /// <summary>
     /// 탐색기 등에서 끌어다 놓은 외부 파일 여러 개를 확장자에 맞춰 예배 순서의 <b>드롭 위치</b>에 추가한다(레거시 외부 파일 드래그).
@@ -3088,8 +3089,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         StatusText = skipped > 0
-            ? $"외부 파일 {added}개 추가, {skipped}개 건너뜀(지원하지 않는 형식)"
-            : $"외부 파일 {added}개 추가";
+            ? UiText.Format("MainViewModel", "ExternalFilesAddedSkipped", added, skipped)
+            : UiText.Format("MainViewModel", "ExternalFilesAdded", added);
         NotifyCommandStates();
         return added;
     }
@@ -3125,7 +3126,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (string.IsNullOrWhiteSpace(filePath))
         {
-            StatusText = $"선택된 {label}이 없습니다.";
+            StatusText = UiText.Format("MainViewModel", "NoFileSelected", label);
             NotifyCommandStates();
             return null;
         }
@@ -3135,7 +3136,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var insertIndex = selectedIndex >= 0 ? selectedIndex + 1 : Queue.Count;
         Queue.Insert(insertIndex, item);
         SelectedItem = item;
-        StatusText = $"{label} 추가됨: {item.Title}";
+        StatusText = UiText.Format("MainViewModel", "FileItemAdded", label, item.Title);
         NotifyCommandStates();
         return item;
     }
@@ -3218,7 +3219,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (string.IsNullOrWhiteSpace(name))
         {
-            StatusText = "저장할 예배 순서 이름을 입력하세요.";
+            StatusText = UiText.Get("MainViewModel", "EnterListNameToSave");
             return false;
         }
 
@@ -3234,7 +3235,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             await _worshipListWrite.ConfigureAwait(true);
             if (SessionNotes.GetNotes(name) != notes && !SessionNotes.SetNotes(name, notes))
             {
-                StatusText = "예배 순서를 저장했지만 세션 메모를 저장할 수 없습니다.";
+                StatusText = UiText.Get("MainViewModel", "SessionNotesSaveFailed");
                 return false;
             }
             if (owner != CurrentWorshipListName) return true;
@@ -3249,17 +3250,17 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 WorshipListHasUnsavedChanges = false;
             }
             // The save that follows every edit must not replace the status line of the edit itself.
-            if (!pendingChangesOnly) StatusText = $"예배 순서 저장됨: {name} ({Queue.Count}개)";
+            if (!pendingChangesOnly) StatusText = UiText.Format("MainViewModel", "ListSaved", name, Queue.Count);
             return true;
         }
         catch (ArgumentException)
         {
-            StatusText = "예배 순서 이름에 사용할 수 없는 문자가 있습니다.";
+            StatusText = UiText.Get("MainViewModel", "ListNameInvalid");
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
             // async void 핸들러로 새지 않도록 IO 실패를 status 로 변환(앱 크래시 방지).
-            StatusText = $"예배 순서 저장 실패: {ex.Message}";
+            StatusText = UiText.Format("MainViewModel", "ListSaveFailed", ex.Message);
         }
         finally { _worshipListSaveGate.Release(); }
         return false;
@@ -3286,7 +3287,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
         catch (Exception ex) when (ex is ArgumentException or IOException or UnauthorizedAccessException)
         {
-            StatusText = $"예배 순서 저장 실패: {ex.Message}";
+            StatusText = UiText.Format("MainViewModel", "ListSaveFailed", ex.Message);
             return false;
         }
     }
@@ -3299,7 +3300,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (string.IsNullOrWhiteSpace(CurrentWorshipListName))
         {
-            StatusText = "저장할 세션 이름이 없습니다. '순서' 버튼에서 이름을 정해 저장하세요.";
+            StatusText = UiText.Get("MainViewModel", "NoSessionNameToSave");
             return;
         }
 
@@ -3325,7 +3326,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             // A renamed or deleted list can still be in the recent menu; FrmMain keeps the current list in that case.
             if (!_worshipLists.ListNames().Contains(name.Trim(), StringComparer.OrdinalIgnoreCase))
             {
-                StatusText = $"예배 순서를 찾을 수 없습니다: {name.Trim()}";
+                StatusText = UiText.Format("MainViewModel", "ListNotFound", name.Trim());
                 return;
             }
 
@@ -3345,11 +3346,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
             LoadQueue(items.Select(RestoreBibleLayout), format);
             RecordRecentWorshipList(name.Trim());
-            StatusText = $"예배 순서 불러옴: {name.Trim()} ({items.Count}개)" + SongDatabaseErrorSuffix() + SongsKeptFromListSuffix();
+            StatusText = UiText.Format("MainViewModel", "ListLoaded", name.Trim(), items.Count) + SongDatabaseErrorSuffix() + SongsKeptFromListSuffix();
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException || IsSongDatabaseError(ex))
         {
-            StatusText = $"예배 순서 불러오기 실패: {ex.Message}";
+            StatusText = UiText.Format("MainViewModel", "ListLoadFailed", ex.Message);
         }
     }
 
@@ -3418,7 +3419,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private string SongDatabaseErrorSuffix() => _songDatabaseError is not null ? $" — {_songDatabaseError}" : "";
 
     private string SongsKeptFromListSuffix() => _songDatabaseError is null && _songsKeptFromList > 0
-        ? $" — 곡 {_songsKeptFromList}개는 DB 의 같은 번호 곡과 제목·가사가 달라 저장된 내용을 유지" : "";
+        ? UiText.Format("MainViewModel", "SongsKeptFromList", _songsKeptFromList) : "";
 
     // The song database can be locked, replaced or on a share that dropped. A failed read is reported and
     // treated as "no detail": no UI handler crashes and the caller keeps what it already has.
@@ -3430,7 +3431,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
         catch (Exception ex) when (IsSongDatabaseError(ex))
         {
-            _songDatabaseError = $"곡 데이터베이스를 읽을 수 없습니다: {ex.Message}";
+            _songDatabaseError = UiText.Format("MainViewModel", "SongDatabaseUnreadable", ex.Message);
             StatusText = _songDatabaseError;
             return null;
         }
@@ -3472,13 +3473,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 SelectedItem = Queue.FirstOrDefault();
             }
 
-            StatusText = $"예배 순서 병합: {name.Trim()} ({items.Count}개 추가, 총 {Queue.Count}개)" + SongDatabaseErrorSuffix() + SongsKeptFromListSuffix();
+            StatusText = UiText.Format("MainViewModel", "ListMerged", name.Trim(), items.Count, Queue.Count) + SongDatabaseErrorSuffix() + SongsKeptFromListSuffix();
             RefreshPowerPointLimitState(updateStatus: false);
             NotifyCommandStates();
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException || IsSongDatabaseError(ex))
         {
-            StatusText = $"예배 순서 병합 실패: {ex.Message}";
+            StatusText = UiText.Format("MainViewModel", "ListMergeFailed", ex.Message);
         }
     }
 
@@ -3493,7 +3494,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ArgumentNullException.ThrowIfNull(items); // LoadQueue 와 동일하게 입력을 방어(널이면 즉시 알림).
 
         LoadQueue(items.Select(BuildEswQueueItem));
-        StatusText = $"레거시 예배 순서 가져옴: {Queue.Count}개 항목";
+        StatusText = UiText.Format("MainViewModel", "LegacyListImported", Queue.Count);
         // PPT 개수 제한 위반 플래그(HasPowerPointLimitViolation)는 갱신하되 상태줄은 덮지 않는다(updateStatus:false)
         // — 방금 띄운 "가져옴: N개" 안내를 PPT 경고가 즉시 지우지 않게(위반은 UI 배지로 계속 보인다). LoadQueue(true)와 의도된 차이.
     }
@@ -3503,7 +3504,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (!IsLegacyWorshipListFile(filePath))
         {
-            StatusText = "Legacy worship list file (.esw) was not found.";
+            StatusText = UiText.Get("MainViewModel", "LegacyListFileNotFound");
             NotifyCommandStates();
             return 0;
         }
@@ -3515,7 +3516,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            StatusText = $"Could not read worship list file: {ex.Message}";
+            StatusText = UiText.Format("MainViewModel", "ListFileReadFailed", ex.Message);
             NotifyCommandStates();
             return 0;
         }
@@ -3523,13 +3524,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var items = EswWorshipListParser.Parse(xml);
         if (items.Count == 0)
         {
-            StatusText = "Legacy worship list file has no importable items.";
+            StatusText = UiText.Get("MainViewModel", "LegacyListFileNoItems");
             NotifyCommandStates();
             return 0;
         }
 
         var added = InsertEswWorshipListItems(items, targetItem);
-        StatusText = $"Legacy worship list added: {Path.GetFileNameWithoutExtension(filePath)} ({added})";
+        StatusText = UiText.Format("MainViewModel", "LegacyListAdded", Path.GetFileNameWithoutExtension(filePath), added);
         return added;
     }
 
@@ -3812,7 +3813,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     internal WorshipSessionNotesService SessionNotes { get; }
     private string _importedNotes = "";
     public string CurrentSessionNotes => SessionNotes.GetNotes(
-        string.IsNullOrWhiteSpace(CurrentWorshipListName) ? "일반" : CurrentWorshipListName, _importedNotes);
+        string.IsNullOrWhiteSpace(CurrentWorshipListName) ? "일반" : CurrentWorshipListName, _importedNotes); // not UI text
     internal void RefreshSessionNotes() => OnPropertyChanged(nameof(CurrentSessionNotes));
 
     // 최근 예배 순서에 이름을 기록하고 메뉴 바인딩 컬렉션을 갱신한다(저장·불러오기 성공 시 호출).
@@ -3858,7 +3859,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         LiveTransposeSemitones = clamped;
         RepublishLiveSongForBodyChange();
-        StatusText = LiveTransposeSemitones == 0 ? "조옮김: 원조" : $"조옮김: {LiveTransposeLabel}";
+        StatusText = LiveTransposeSemitones == 0 ? UiText.Get("MainViewModel", "TransposeOriginal") : UiText.Format("MainViewModel", "TransposeStatus", LiveTransposeLabel);
     }
 
     /// <summary>
@@ -3903,8 +3904,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                     var label = string.IsNullOrWhiteSpace(item.Title) ? item.Id : item.Title;
                     problems.Add(new WorshipItemProblem(
                         item, WorshipItemProblemKind.SongNotInDatabase, IsSongShownFromSavedCopy(item)
-                            ? $"{label}: 가사 DB 에 없는 곡입니다(예배 순서에 저장된 가사로 송출)."
-                            : $"{label}: 곡을 가사 DB 에서 찾을 수 없습니다."));
+                            ? UiText.Format("MainViewModel", "SongNotInDatabaseShownFromList", label)
+                            : UiText.Format("MainViewModel", "SongNotInDatabase", label)));
                 }
             }
         }
@@ -3933,8 +3934,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (problems.Count == 0)
         {
             StatusText = Queue.Count == 0
-                ? "예배 순서가 비어 있습니다."
-                : $"예배 순서 검증: 모든 항목 정상 ({Queue.Count}개).";
+                ? UiText.Get("MainViewModel", "ListEmpty")
+                : UiText.Format("MainViewModel", "ValidationAllGood", Queue.Count);
         }
         else
         {
@@ -3943,10 +3944,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             var summary = string.Join(" · ", titles);
             if (problems.Count > 3)
             {
-                summary += $" 외 {problems.Count - 3}건";
+                summary += UiText.Format("MainViewModel", "ValidationMore", problems.Count - 3);
             }
 
-            StatusText = $"예배 순서 검증: 문제 {problems.Count}건 — {summary}";
+            StatusText = UiText.Format("MainViewModel", "ValidationProblems", problems.Count, summary);
         }
 
         // DB 경로가 없어 곡 DB 검사를 건너뛰었고, 검사 대상 곡이 큐에 있었다면 그 사실을 상태바에 명시한다 —
@@ -3954,11 +3955,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (string.IsNullOrWhiteSpace(databasePath)
             && Queue.Any(i => i is not null && TryGetSongDatabaseId(i, out _)))
         {
-            StatusText += " (곡 DB 검증 생략 — DB 경로 없음)";
+            StatusText += UiText.Get("MainViewModel", "ValidationSkippedNoPath");
         }
         else if (_songDatabaseError is not null)
         {
-            StatusText += $" (곡 DB 검증 생략 — {_songDatabaseError})";
+            StatusText += UiText.Format("MainViewModel", "ValidationSkipped", _songDatabaseError);
         }
     }
 
@@ -4004,7 +4005,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
         catch (Exception ex) when (ex is ArgumentException or IOException or UnauthorizedAccessException)
         {
-            StatusText = $"예배 순서를 삭제하지 못했습니다: {ex.Message}";
+            StatusText = UiText.Format("MainViewModel", "ListDeleteFailed", ex.Message);
             return;
         }
 
@@ -4015,7 +4016,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             SetCurrentWorshipList("", null);
         }
         RefreshSavedWorshipListNames(); // 삭제한 목록이 세션 콤보에서 바로 빠지도록(저장 경로와 대칭).
-        StatusText = $"예배 순서 삭제됨: {name.Trim()}";
+        StatusText = UiText.Format("MainViewModel", "ListDeleted", name.Trim());
     }
 
     /// <summary>Lists in Trash (FrmManageItemLists Trash tab). A folder that cannot be read gives an empty list.</summary>
@@ -4027,7 +4028,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            StatusText = $"휴지통을 읽을 수 없습니다: {ex.Message}";
+            StatusText = UiText.Format("MainViewModel", "TrashUnreadable", ex.Message);
             return [];
         }
     }
@@ -4045,12 +4046,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         // being overwritten by the next save of the list on screen.
         if (names.Contains(CurrentWorshipListName, StringComparer.OrdinalIgnoreCase)
             && !SaveCurrentWorshipListNow(pendingChangesOnly: false)) return 0;
-        return ChangeTrashedWorshipLists(names, name => _worshipLists.RestoreFromTrash(name), "복원");
+        return ChangeTrashedWorshipLists(names, name => _worshipLists.RestoreFromTrash(name), UiText.Get("MainViewModel", "VerbRestored"));
     }
 
     /// <summary>FrmManageItemLists.DeletePermanentlyBtn_Click / EmptyTrashBtn_Click: deletes lists in Trash for good.</summary>
     public int DeleteTrashedWorshipLists(IReadOnlyList<string> names)
-        => ChangeTrashedWorshipLists(names, name => _worshipLists.DeleteFromTrash(name), "영구 삭제");
+        => ChangeTrashedWorshipLists(names, name => _worshipLists.DeleteFromTrash(name), UiText.Get("MainViewModel", "VerbDeletedForGood"));
 
     private int ChangeTrashedWorshipLists(IReadOnlyList<string> names, Action<string> change, string verb)
     {
@@ -4073,8 +4074,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (done > 0) RefreshSavedWorshipListNames();
         var failed = names.Count - done;
         StatusText = failed == 0
-            ? $"예배 순서 {verb}: {done}개"
-            : $"예배 순서 {verb}: {done}개, 실패 {failed}개 — {firstError}";
+            ? UiText.Format("MainViewModel", "TrashChanged", verb, done)
+            : UiText.Format("MainViewModel", "TrashChangedWithFailures", verb, done, failed, firstError);
         return done;
     }
 
@@ -4089,7 +4090,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var to = (newName ?? "").Trim();
         if (string.IsNullOrEmpty(from) || string.IsNullOrEmpty(to))
         {
-            StatusText = "이름이 비어 있어 변경할 수 없습니다.";
+            StatusText = UiText.Get("MainViewModel", "RenameEmpty");
             return false;
         }
 
@@ -4105,7 +4106,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (string.Equals(CurrentWorshipListName, to, StringComparison.OrdinalIgnoreCase)
             || _worshipLists.ListNames().Any(n => string.Equals(n, to, StringComparison.OrdinalIgnoreCase)))
         {
-            StatusText = $"이미 있는 이름입니다: {to}";
+            StatusText = UiText.Format("MainViewModel", "NameExists", to);
             return false;
         }
 
@@ -4117,7 +4118,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
         catch (Exception ex) when (ex is ArgumentException or IOException or UnauthorizedAccessException)
         {
-            StatusText = $"이름을 바꾸지 못했습니다: {to}";
+            StatusText = UiText.Format("MainViewModel", "RenameFailed", to);
             return false;
         }
 
@@ -4133,7 +4134,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         RefreshSavedWorshipListNames(); // 바뀐 이름이 세션 콤보에 바로 반영되도록(저장·삭제 경로와 대칭).
-        StatusText = $"예배 순서 이름 변경: {from} → {to}";
+        StatusText = UiText.Format("MainViewModel", "ListRenamed", from, to);
         return true;
     }
 
@@ -4336,7 +4337,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             _output.MoveTo(value, _output.Current.Placement.IsWindowed);
             LiveBar.OutputMonitorName = value.Name;
-            StatusText = $"출력 모니터 이동: {value.Name}";
+            StatusText = UiText.Format("MainViewModel", "OutputMonitorMoved", value.Name);
         }
         else
         {
@@ -4349,11 +4350,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         RefreshDisplays();
         if (SelectedPreviewDisplay is not { } stage)
         {
-            StatusText = "스테이지 모니터로 사용할 별도 화면이 없습니다.";
+            StatusText = UiText.Get("MainViewModel", "NoStageMonitorScreen");
             return;
         }
         _preview.Open(stage, windowed: false);
-        StatusText = $"스테이지 모니터 열림: {stage.Name}";
+        StatusText = UiText.Format("MainViewModel", "StageMonitorOpened", stage.Name);
     }
 
     // 스테이지 모니터를 닫는다 — 회중 출력과 무관(송출 안 함)하므로 출력 닫기(CloseOutputAsync)와 달리 라이브 안전 확인이 필요 없다.
@@ -4362,7 +4363,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _stageWaitingForDisplay = false;
         _preview.Close();
         CloseStageMonitorCommand.NotifyCanExecuteChanged();
-        StatusText = "스테이지 모니터 닫힘";
+        StatusText = UiText.Get("MainViewModel", "StageMonitorClosed");
     }
 
     // 스테이지 창 상태(열림/닫힘)가 바뀌면 메뉴·버튼 활성(IsStageMonitorOpen)을 따라가게 한다.
@@ -4406,7 +4407,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         _preview.MoveTo(value, windowed: false);
-        StatusText = $"스테이지 모니터 이동: {value.Name}";
+        StatusText = UiText.Format("MainViewModel", "StageMonitorMoved", value.Name);
     }
 
     // PPT 렌더 크기 — FrmMain OfficeLib.PowerPoint의 JPG export 크기(640x480)에 맞춘다.
@@ -4568,50 +4569,50 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (item is null)
         {
-            return "선택 항목 없음";
+            return UiText.Get("MainViewModel", "NoItemSelected");
         }
 
         var lines = new List<string>
         {
-            $"제목: {item.Title}",
-            $"종류: {item.Kind}",
+            UiText.Format("MainViewModel", "InfoTitle", item.Title),
+            UiText.Format("MainViewModel", "InfoKind", item.Kind),
             $"ID: {item.Id}",
-            $"개별 서식: {(item.UseIndividualFormatting ? "켬" : "끔")}",
+            UiText.Format("MainViewModel", "InfoIndividualFormat", (item.UseIndividualFormatting ? UiText.Get("MainViewModel", "On") : UiText.Get("MainViewModel", "Off"))),
         };
 
         if (item.SongNumber > 0)
         {
-            lines.Add($"곡 번호: {item.SongNumber}");
+            lines.Add(UiText.Format("MainViewModel", "InfoSongNumber", item.SongNumber));
         }
 
         if (!string.IsNullOrWhiteSpace(item.ContentPath))
         {
-            lines.Add($"파일: {item.ContentPath}");
+            lines.Add(UiText.Format("MainViewModel", "InfoFile", item.ContentPath));
         }
 
         if (item.SlideNumber > 0)
         {
-            lines.Add($"슬라이드: {item.SlideNumber}");
+            lines.Add(UiText.Format("MainViewModel", "InfoSlide", item.SlideNumber));
         }
 
         if (!string.IsNullOrWhiteSpace(item.Sequence))
         {
-            lines.Add($"절 순서: {item.Sequence}");
+            lines.Add(UiText.Format("MainViewModel", "InfoSequence", item.Sequence));
         }
 
         if (!string.IsNullOrWhiteSpace(item.Copyright))
         {
-            lines.Add($"저작권: {item.Copyright}");
+            lines.Add(UiText.Format("MainViewModel", "InfoCopyright", item.Copyright));
         }
 
         if (!string.IsNullOrWhiteSpace(item.FormatData))
         {
-            lines.Add($"서식 데이터: {JsonSerializer.Serialize(item.FormatData, FormatInfoOptions)}");
+            lines.Add(UiText.Format("MainViewModel", "InfoFormatData", JsonSerializer.Serialize(item.FormatData, FormatInfoOptions)));
         }
 
         if (!string.IsNullOrWhiteSpace(item.Lyrics))
         {
-            lines.Add($"가사 줄: {CountNonEmptyLines(item.Lyrics)}");
+            lines.Add(UiText.Format("MainViewModel", "InfoLyricsLines", CountNonEmptyLines(item.Lyrics)));
         }
 
         return string.Join(Environment.NewLine, lines);
@@ -4620,27 +4621,27 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private static string BuildPanelSourceText(LiveQueueItem? item, string fallback)
         => item?.Kind switch
         {
-            LiveItemKinds.Song => "곡",
-            LiveItemKinds.Bible => "성경",
+            LiveItemKinds.Song => UiText.Get("MainViewModel", "KindSong"),
+            LiveItemKinds.Bible => UiText.Get("MainViewModel", "KindBible"),
             LiveItemKinds.PowerPoint => "PowerPoint",
-            LiveItemKinds.Media => "미디어",
-            LiveItemKinds.Notice => "공지",
+            LiveItemKinds.Media => UiText.Get("MainViewModel", "KindMedia"),
+            LiveItemKinds.Notice => UiText.Get("MainViewModel", "KindNotice"),
             null => fallback,
             "" => fallback,
-            _ => "항목",
+            _ => UiText.Get("MainViewModel", "KindItem"),
         };
 
     private string BuildPreviewPanelStatusText()
     {
         if (PreviewItem is not { } item)
         {
-            return "대기";
+            return UiText.Get("MainViewModel", "PanelWaiting");
         }
 
         var position = PreviewNavigationPositionLabel;
         return string.IsNullOrWhiteSpace(position)
-            ? "선택"
-            : $"선택 {position}";
+            ? UiText.Get("MainViewModel", "PanelSelected")
+            : UiText.Format("MainViewModel", "PanelSelectedAt", position);
     }
 
     private string BuildOutputPanelStatusText(LiveQueueItem? item)
@@ -4648,7 +4649,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (item is null)
         {
             return _session.Current.State == LiveState.Off
-                ? "대기"
+                ? UiText.Get("MainViewModel", "PanelWaiting")
                 : BuildOutputLiveStateText();
         }
 
@@ -4662,12 +4663,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private string BuildOutputLiveStateText()
         => _session.Current.State switch
         {
-            LiveState.Active => "LIVE",
-            LiveState.Hidden when _session.Current.IsBlackout => "BLACK",
-            LiveState.Hidden when _session.Current.IsCleared => "CLEAR",
-            LiveState.Hidden => "HIDDEN",
-            LiveState.Standby => "STANDBY",
-            _ => "준비",
+            LiveState.Active => UiText.Get("MainViewModel", "PanelLive"),
+            LiveState.Hidden when _session.Current.IsBlackout => UiText.Get("MainViewModel", "PanelBlack"),
+            LiveState.Hidden when _session.Current.IsCleared => UiText.Get("MainViewModel", "PanelClear"),
+            LiveState.Hidden => UiText.Get("MainViewModel", "PanelHidden"),
+            LiveState.Standby => UiText.Get("MainViewModel", "PanelStandby"),
+            _ => UiText.Get("MainViewModel", "PanelReady"),
         };
 
     private static int CountNonEmptyLines(string value)
@@ -5028,7 +5029,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         LyricsPageIndex = target;
         StatusText = LyricsPageCount > 1
-            ? $"가사 {LyricsPageIndex + 1}/{LyricsPageCount}절"
+            ? UiText.Format("MainViewModel", "LyricsVersePosition", LyricsPageIndex + 1, LyricsPageCount)
             : StatusText;
         NotifyCommandStates();
     }
@@ -5085,7 +5086,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         LyricsPageIndex = index;
         StatusText = LyricsPageCount > 1
-            ? $"가사 {LyricsPageIndex + 1}/{LyricsPageCount}절"
+            ? UiText.Format("MainViewModel", "LyricsVersePosition", LyricsPageIndex + 1, LyricsPageCount)
             : StatusText;
     }
 
@@ -5119,7 +5120,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         LyricsPageIndex++;
         StatusText = LyricsPageCount > 1
-            ? $"가사 {LyricsPageIndex + 1}/{LyricsPageCount}절"
+            ? UiText.Format("MainViewModel", "LyricsVersePosition", LyricsPageIndex + 1, LyricsPageCount)
             : StatusText;
     }
 
@@ -5131,7 +5132,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         LyricsPageIndex--;
         StatusText = LyricsPageCount > 1
-            ? $"가사 {LyricsPageIndex + 1}/{LyricsPageCount}절"
+            ? UiText.Format("MainViewModel", "LyricsVersePosition", LyricsPageIndex + 1, LyricsPageCount)
             : StatusText;
     }
 
@@ -5143,7 +5144,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private void ToggleAutoRotate()
     {
         IsAutoRotating = !IsAutoRotating;
-        StatusText = IsAutoRotating ? $"자동 회전 켬 ({AutoRotateIntervalSeconds}초)" : "자동 회전 끔";
+        StatusText = IsAutoRotating ? UiText.Format("MainViewModel", "AutoRotateOn", AutoRotateIntervalSeconds) : UiText.Get("MainViewModel", "AutoRotateOff");
     }
 
     /// <summary>
@@ -5194,7 +5195,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             case AutoRotateMode.One:
                 // 한 항목만 — 끝까지 가면 자동 회전을 멈춘다(반복·항목 이동 없음).
                 IsAutoRotating = false;
-                StatusText = "자동 회전 완료(한 항목)";
+                StatusText = UiText.Get("MainViewModel", "AutoRotateDoneItem");
                 // FrmLaunchShow TimerRotate: a rotation with no next target ends on the gap screen.
                 if (CanShowGapItem()) _ = ShowGapItemAsync();
                 break;
@@ -5203,7 +5204,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 if (!TryAdvanceAutoRotationToNextItem())
                 {
                     IsAutoRotating = false;
-                    StatusText = "자동 회전 완료(그룹 끝)";
+                    StatusText = UiText.Get("MainViewModel", "AutoRotateDoneGroup");
                     if (CanShowGapItem()) _ = ShowGapItemAsync();
                 }
                 break;
@@ -5261,10 +5262,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// <summary>FrmMain Main_RotateStyle dropdown items in legacy order.</summary>
     public IReadOnlyList<AutoRotateModeOption> AutoRotateModeOptions { get; } =
     [
-        new("Main_Rotate0", "Auto Rotate One Item", "0", AutoRotateMode.One),
-        new("Main_Rotate1", "Auto Rotate One Item - Repeat", "1", AutoRotateMode.OneRepeat),
-        new("Main_Rotate2", "Auto Rotate Group", "2", AutoRotateMode.Group),
-        new("Main_Rotate3", "Auto Rotate Group - Repeat", "3", AutoRotateMode.GroupRepeat),
+        new("Main_Rotate0", UiText.Get("MainViewModel", "AutoRotateOne"), "0", AutoRotateMode.One),
+        new("Main_Rotate1", UiText.Get("MainViewModel", "AutoRotateOneRepeat"), "1", AutoRotateMode.OneRepeat),
+        new("Main_Rotate2", UiText.Get("MainViewModel", "AutoRotateGroup"), "2", AutoRotateMode.Group),
+        new("Main_Rotate3", UiText.Get("MainViewModel", "AutoRotateGroupRepeat"), "3", AutoRotateMode.GroupRepeat),
     ];
 
     /// <summary>자동 회전 모드 선택(콤보 양방향 바인딩). 바뀌면 설정에 저장하고 인스펙터 표시를 동기화한다.</summary>
@@ -5289,10 +5290,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// <summary>대기 화면(Gap) 모드 콤보의 (한글 라벨 → 모드) 목록 — 출력 메뉴에서 빠르게 고른다.</summary>
     public IReadOnlyList<KeyValuePair<string, GapItemMode>> GapItemModeOptions { get; } =
     [
-        new("없음(대기 문구)", GapItemMode.None),
-        new("검정(검은 화면)", GapItemMode.Black),
-        new("기본(대기 문구)", GapItemMode.Default),
-        new("로고 이미지", GapItemMode.User),
+        new(UiText.Get("MainViewModel", "GapModeNone"), GapItemMode.None),
+        new(UiText.Get("MainViewModel", "GapModeBlack"), GapItemMode.Black),
+        new(UiText.Get("MainViewModel", "GapModeDefault"), GapItemMode.Default),
+        new(UiText.Get("MainViewModel", "GapModeLogo"), GapItemMode.User),
     ];
 
     /// <summary>대기 화면(Gap) 모드 선택(콤보 양방향). 바뀌면 설정에 저장(출력이 라이브 갱신)하고 Active 동기화.</summary>
@@ -5309,7 +5310,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             _settings.Set(AxicultusSettingKeys.GapItemOption, value);
             ActiveGapItemOption = value;
             var label = GapItemModeOptions.FirstOrDefault(o => o.Value == value).Key;
-            StatusText = $"대기 화면(Gap) 모드: {(string.IsNullOrEmpty(label) ? value.ToString() : label)}";
+            StatusText = UiText.Format("MainViewModel", "GapModeStatus", (string.IsNullOrEmpty(label) ? value.ToString() : label));
         }
     }
 
@@ -5332,8 +5333,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         StatusText = ActiveGapItemOption == GapItemMode.None
-            ? "Gap item off"
-            : $"Gap item restored: {ActiveGapItemOption}";
+            ? UiText.Get("MainViewModel", "GapItemOff")
+            : UiText.Format("MainViewModel", "GapItemRestored", GapItemModeOptions.FirstOrDefault(o => o.Value == ActiveGapItemOption).Key ?? ActiveGapItemOption.ToString());
     }
 
     /// <summary>대기 화면(Gap) 전환 페이드 사용을 켜고 끈다(출력 메뉴 토글). 설정 저장 → 출력 라이브 갱신.</summary>
@@ -5342,7 +5343,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var next = !ActiveGapItemUseFade;
         _settings.Set(AxicultusSettingKeys.GapItemUseFade, next);
         ActiveGapItemUseFade = next;
-        StatusText = next ? "대기 화면 페이드: 켜짐" : "대기 화면 페이드: 꺼짐";
+        StatusText = next ? UiText.Get("MainViewModel", "GapFadeOn") : UiText.Get("MainViewModel", "GapFadeOff");
     }
 
     /// <summary>
@@ -5357,7 +5358,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         if (logo.Length == 0)
         {
-            StatusText = "대기 화면 로고: 지움";
+            StatusText = UiText.Get("MainViewModel", "GapLogoCleared");
             return;
         }
 
@@ -5367,7 +5368,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             GapItemModeInput = GapItemMode.User;
         }
 
-        StatusText = $"대기 화면 로고: {System.IO.Path.GetFileName(logo)}";
+        StatusText = UiText.Format("MainViewModel", "GapLogoSet", System.IO.Path.GetFileName(logo));
     }
 
     /// <summary>
@@ -5380,7 +5381,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (string.IsNullOrWhiteSpace(filePath))
         {
-            StatusText = "Preview PowerPoint file path is empty.";
+            StatusText = UiText.Get("MainViewModel", "PreviewPowerPointPathEmpty");
             NotifyCommandStates();
             return;
         }
@@ -5397,11 +5398,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             await PowerPoint.LoadAsync(filePath, 1, renderWidth, renderHeight).ConfigureAwait(true);
             EnsurePowerPointThumbnails(PowerPoint, filePath);
 
-            StatusText = $"Preview PowerPoint: {item.Title}";
+            StatusText = UiText.Format("MainViewModel", "PreviewPowerPoint", item.Title);
         }
         catch (Exception ex)
         {
-            StatusText = $"Preview PowerPoint load failed: {ex.Message}";
+            StatusText = UiText.Format("MainViewModel", "PreviewPowerPointLoadFailed", ex.Message);
         }
         finally
         {
@@ -5466,7 +5467,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
         catch (Exception ex)
         {
-            StatusText = $"항목 콘텐츠 로드 실패: {ex.Message}";
+            StatusText = UiText.Format("MainViewModel", "ItemContentLoadFailed", ex.Message);
         }
     }
 
@@ -5570,20 +5571,20 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (SelectedItem is not { } item)
         {
-            StatusText = "재생할 Worship 항목을 선택하세요.";
+            StatusText = UiText.Get("MainViewModel", "SelectItemToPlay");
             return;
         }
 
         var mediaPath = ResolveWorshipOutputMediaPath(item);
         if (string.IsNullOrWhiteSpace(mediaPath))
         {
-            StatusText = $"미디어 파일을 찾을 수 없습니다: {item.Title}";
+            StatusText = UiText.Format("MainViewModel", "MediaFileNotFound", item.Title);
             return;
         }
 
         if (mediaPath.StartsWith("<<Capture>>", StringComparison.Ordinal))
         {
-            StatusText = "연결된 카메라는 송출 모니터 재생에서 열 수 있습니다.";
+            StatusText = UiText.Get("MainViewModel", "CameraOpensInOutput");
             return;
         }
 
@@ -5591,16 +5592,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             if (_worshipMediaLauncher(mediaPath))
             {
-                StatusText = $"미디어 재생: {Path.GetFileName(mediaPath)}";
+                StatusText = UiText.Format("MainViewModel", "MediaPlaying", Path.GetFileName(mediaPath));
             }
             else
             {
-                StatusText = $"미디어 파일을 열 수 없습니다: {mediaPath}";
+                StatusText = UiText.Format("MainViewModel", "MediaOpenFailed", mediaPath);
             }
         }
         catch (Exception ex)
         {
-            StatusText = $"미디어 파일을 열 수 없습니다: {ex.Message}";
+            StatusText = UiText.Format("MainViewModel", "MediaOpenFailed", ex.Message);
         }
 
         NotifyCommandStates();
@@ -5615,22 +5616,22 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (SelectedItem is not { } item || !(IsPowerPointItem(item) || IsMediaItem(item)))
         {
-            StatusText = "편집할 외부 예배 순서 항목을 선택하세요.";
+            StatusText = UiText.Get("MainViewModel", "SelectExternalItemToEdit");
             NotifyCommandStates();
             return false;
         }
 
-        var label = IsPowerPointItem(item) ? "PowerPoint" : "미디어";
+        var label = IsPowerPointItem(item) ? "PowerPoint" : UiText.Get("MainViewModel", "KindMedia");
         if (string.IsNullOrWhiteSpace(item.ContentPath))
         {
-            StatusText = $"{label} 파일 경로가 없습니다: {item.Title}";
+            StatusText = UiText.Format("MainViewModel", "ExternalFilePathEmpty", label, item.Title);
             NotifyCommandStates();
             return false;
         }
 
         if (!TryResolveExistingFile(item.ContentPath, out var resolvedPath))
         {
-            StatusText = $"{label} 파일을 찾을 수 없습니다: {item.ContentPath}";
+            StatusText = UiText.Format("MainViewModel", "ExternalFileNotFound", label, item.ContentPath);
             NotifyCommandStates();
             return false;
         }
@@ -5639,16 +5640,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             if (_worshipItemEditLauncher(resolvedPath))
             {
-                StatusText = $"{label} 편집 열기: {Path.GetFileName(resolvedPath)}";
+                StatusText = UiText.Format("MainViewModel", "ExternalFileEditOpened", label, Path.GetFileName(resolvedPath));
                 NotifyCommandStates();
                 return true;
             }
 
-            StatusText = $"{label} 파일을 열 수 없습니다: {resolvedPath}";
+            StatusText = UiText.Format("MainViewModel", "ExternalFileOpenFailed", label, resolvedPath);
         }
         catch (Exception ex)
         {
-            StatusText = $"{label} 파일을 열 수 없습니다: {ex.Message}";
+            StatusText = UiText.Format("MainViewModel", "ExternalFileOpenFailed", label, ex.Message);
         }
 
         NotifyCommandStates();
@@ -5743,21 +5744,21 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var display = EnsureLiveOutputDisplay();
         Media.LoadLiveCamera(display.Id);
         if (Media.PlayPauseCommand.CanExecute(null)) Media.PlayPauseCommand.Execute(null);
-        StatusText = Media.State == MediaPlaybackState.Failed ? Media.StatusText : "카메라 송출";
+        StatusText = Media.State == MediaPlaybackState.Failed ? Media.StatusText : UiText.Get("MainViewModel", "CameraOutput");
     }
 
     private void PlaySelectedWorshipMediaOnOutput()
     {
         if (SelectedItem is not { } item)
         {
-            StatusText = "Output으로 재생할 Worship 항목을 선택하세요.";
+            StatusText = UiText.Get("MainViewModel", "SelectItemToPlayInOutput");
             return;
         }
 
         var mediaPath = ResolveWorshipOutputMediaPath(item);
         if (string.IsNullOrWhiteSpace(mediaPath))
         {
-            StatusText = $"Output 미디어 파일을 찾을 수 없습니다: {item.Title}";
+            StatusText = UiText.Format("MainViewModel", "OutputMediaNotFound", item.Title);
             return;
         }
 
@@ -5780,7 +5781,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             Media.PlayPauseCommand.Execute(null);
         }
 
-        StatusText = Media.State == MediaPlaybackState.Failed ? Media.StatusText : $"Output 미디어 재생: {Path.GetFileName(mediaPath)}";
+        StatusText = Media.State == MediaPlaybackState.Failed ? Media.StatusText : UiText.Format("MainViewModel", "OutputMediaPlaying", Path.GetFileName(mediaPath));
         NotifyCommandStates();
     }
 
@@ -5788,7 +5789,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (GetOutputNavigationItem() is not { } item)
         {
-            StatusText = "Output 미디어를 재생할 항목이 없습니다.";
+            StatusText = UiText.Get("MainViewModel", "NoOutputMediaItem");
             NotifyCommandStates();
             return;
         }
@@ -5796,7 +5797,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var mediaPath = ResolveWorshipOutputMediaPath(item);
         if (string.IsNullOrWhiteSpace(mediaPath))
         {
-            StatusText = $"Output 미디어 파일을 찾을 수 없습니다: {item.Title}";
+            StatusText = UiText.Format("MainViewModel", "OutputMediaNotFound", item.Title);
             NotifyCommandStates();
             return;
         }
@@ -5818,14 +5819,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         if (!Media.PlayPauseCommand.CanExecute(null))
         {
-            StatusText = $"Output 미디어를 제어할 수 없습니다: {Path.GetFileName(mediaPath)}";
+            StatusText = UiText.Format("MainViewModel", "OutputMediaCannotControl", Path.GetFileName(mediaPath));
             NotifyCommandStates();
             return;
         }
 
         Media.PlayPauseCommand.Execute(null);
-        var action = Media.State == MediaPlaybackState.Playing ? "재생" : "일시정지";
-        StatusText = $"Output 미디어 {action}: {Path.GetFileName(mediaPath)}";
+        var action = Media.State == MediaPlaybackState.Playing ? UiText.Get("MainViewModel", "MediaActionPlay") : UiText.Get("MainViewModel", "MediaActionPause");
+        StatusText = UiText.Format("MainViewModel", "OutputMediaAction", action, Path.GetFileName(mediaPath));
         NotifyCommandStates();
     }
 
@@ -5891,7 +5892,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
         {
-            StatusText = $"Output 미디어 폴더 검색 실패: {ex.Message}";
+            StatusText = UiText.Format("MainViewModel", "OutputMediaFolderSearchFailed", ex.Message);
             return null;
         }
     }
@@ -6129,8 +6130,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         await PowerPoint.LoadAsync(path, target, width, height).ConfigureAwait(true);
         EnsurePowerPointThumbnails(PowerPoint, path);
         StatusText = PowerPoint.SlideCount > 1
-            ? $"Preview PPT slide {target}/{PowerPoint.SlideCount} replayed"
-            : "Preview PPT slide replayed";
+            ? UiText.Format("MainViewModel", "PreviewSlideReplayedAt", target, PowerPoint.SlideCount)
+            : UiText.Get("MainViewModel", "PreviewSlideReplayed");
 
         NotifyCommandStates();
     }
@@ -6165,7 +6166,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                     && await StopPowerPointSlideShowForLiveAsync().ConfigureAwait(true) is { } stopError)
                 {
                     // The deck's show may still cover the audience window: the operator has to know.
-                    StatusText = $"PowerPoint 슬라이드 쇼 종료 실패: {stopError}";
+                    StatusText = UiText.Format("MainViewModel", "SlideShowStopFailed", stopError);
                     NotifyCommandStates();
                     return false;
                 }
@@ -6184,7 +6185,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Debug.WriteLine($"[PPT] Slide show start failed: {ex.Message}");
-            StatusText = $"PowerPoint 슬라이드 쇼 시작 실패: {ex.Message}";
+            StatusText = UiText.Format("MainViewModel", "SlideShowStartFailed", ex.Message);
             _telemetry.Record(MainCommandIds.LiveGo, succeeded: false, StatusText);
             NotifyCommandStates();
             return false;
@@ -6253,7 +6254,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 }
                 else
                 {
-                    StatusText = "Output 다음 슬라이드/절이 없습니다.";
+                    StatusText = UiText.Get("MainViewModel", "NoNextOutputSlide");
                 }
 
                 return true;
@@ -6264,7 +6265,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             stepped?.Invoke();
             await picture.ConfigureAwait(true);
         }
-        catch (Exception ex) { StatusText = $"PowerPoint 슬라이드 진행 실패: {ex.Message}"; }
+        catch (Exception ex) { StatusText = UiText.Format("MainViewModel", "SlideAdvanceFailed", ex.Message); }
         return true;
     }
 
@@ -6379,14 +6380,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             if (ShowsNativeDeck(_session.Current))
                 await StartPowerPointSlideShowForLiveAsync(updated, GetPowerPointOutputMonitorName(_output.Current.Display ?? OutputDisplay.PrimaryFallback)).ConfigureAwait(true);
             StatusText = OutputPowerPoint.SlideCount > 1
-                ? $"Output 슬라이드 {target}/{OutputPowerPoint.SlideCount} 숨김 준비"
+                ? UiText.Format("MainViewModel", "OutputSlideHiddenReady", target, OutputPowerPoint.SlideCount)
                 : StatusText;
         }
         else
         {
             OutputItem = item with { SlideNumber = target };
             StatusText = OutputPowerPoint.SlideCount > 1
-                ? $"Output 슬라이드 {target}/{OutputPowerPoint.SlideCount} 준비"
+                ? UiText.Format("MainViewModel", "OutputSlideReady", target, OutputPowerPoint.SlideCount)
                 : StatusText;
         }
 
@@ -6414,8 +6415,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 target,
                 PowerPointSlideShowTarget.Output).ConfigureAwait(true);
             StatusText = OutputPowerPoint.SlideCount > 1
-                ? $"Output PPT slide {target}/{OutputPowerPoint.SlideCount} replayed"
-                : "Output PPT slide replayed";
+                ? UiText.Format("MainViewModel", "OutputSlideReplayedAt", target, OutputPowerPoint.SlideCount)
+                : UiText.Get("MainViewModel", "OutputSlideReplayed");
             NotifyCommandStates();
         }
     }
@@ -6614,7 +6615,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var monitorName = _output.Current.Display?.Name ?? OutputDisplay.PrimaryFallback.Name;
         _session.GoLive(ResolveLiveProjection(item with { LyricsPageIndex = target }), monitorName);
         StatusText = pageCount > 1
-            ? $"Output 가사 {target + 1}/{pageCount}절"
+            ? UiText.Format("MainViewModel", "OutputLyricsPosition", target + 1, pageCount)
             : StatusText;
         NotifyCommandStates();
     }
@@ -6658,7 +6659,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         RefreshHiddenOutputPayloadAtCurrentPosition(updated, MainCommandIds.LivePreviewToOutput);
         if (row is not null && row.Id == updated.Id) (_outputFormatSource, _outputFromSourcePreview) = (row, fromSourcePreview);
         StatusText = pageCount > 1
-            ? $"Output 가사 {target + 1}/{pageCount}절 숨김 준비"
+            ? UiText.Format("MainViewModel", "OutputLyricsHiddenReady", target + 1, pageCount)
             : StatusText;
     }
 
@@ -6668,7 +6669,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OutputItem = updated;
         OutputLyricsText = BuildOutputSurfaceText(updated);
         StatusText = pageCount > 1
-            ? $"Output 가사 {target + 1}/{pageCount}절 준비"
+            ? UiText.Format("MainViewModel", "OutputLyricsReady", target + 1, pageCount)
             : StatusText;
         NotifyCommandStates();
     }
@@ -6835,20 +6836,20 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         && !Platform.WindowPlacementService.UsesCustomBounds(_settings.Current.LiveOutput);
 
     /// <summary>The caption of the output monitor combo; it says so when the output is off.</summary>
-    public string OutputMonitorCaption => IsOutputDisabled ? "출력 — 없음 (송출 안 함)" : "출력";
+    public string OutputMonitorCaption => IsOutputDisabled ? UiText.Get("MainViewModel", "OutputCaptionDisabled") : UiText.Get("MainViewModel", "OutputCaption");
 
     // True, with the reason in the status line, when nothing may be put on an audience screen.
     private bool RefuseDisabledOutput()
     {
         if (!IsOutputDisabled) return false;
-        StatusText = "출력 모니터가 '없음'으로 설정되어 송출하지 않습니다. 옵션에서 출력 모니터를 선택하세요.";
+        StatusText = UiText.Get("MainViewModel", "OutputDisabled");
         NotifyCommandStates();
         return true;
     }
 
     // The saved custom output area lies off every screen, so the whole monitor is used instead.
     private string OutputAreaNote => _output.Current is { IsOpen: true, Placement.CustomAreaOffScreen: true }
-        ? " — 사용자 지정 출력 영역이 화면 밖이라 모니터 전체에 송출합니다"
+        ? UiText.Get("MainViewModel", "OutputAreaOffScreen")
         : string.Empty;
 
     private void OpenOutput()
@@ -6859,7 +6860,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _output.Open(display, windowed: true);
         SelectedOutputDisplay = display;
         LiveBar.OutputMonitorName = _output.Current.Display?.Name ?? string.Empty;
-        StatusText = $"출력 창 열림: {LiveBar.OutputMonitorName}{OutputAreaNote}";
+        StatusText = UiText.Format("MainViewModel", "OutputWindowOpened", LiveBar.OutputMonitorName, OutputAreaNote);
         _telemetry.Record(MainCommandIds.OutputOpen, succeeded: true, StatusText);
         NotifyCommandStates();
     }
@@ -6895,8 +6896,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             var ok = await ConfirmLiveSafetyAsync(
                 MainCommandIds.OutputClose,
-                "라이브 중 출력 창을 닫을까요?",
-                "현재 송출이 중지되고 출력 창이 닫힙니다. 5초 안에 확인하지 않으면 취소됩니다.").ConfigureAwait(true);
+                UiText.Get("MainViewModel", "ConfirmCloseOutputTitle"),
+                UiText.Get("MainViewModel", "ConfirmCloseOutputMessage")).ConfigureAwait(true);
             if (!ok)
             {
                 return;
@@ -6922,7 +6923,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _listLoadedDuringShow = false; // the panel is emptied; a list loaded during the show has nothing to follow
         OutputPowerPoint.Clear();
         LiveBar.OutputMonitorName = string.Empty;
-        StatusText = "출력 창 닫힘";
+        StatusText = UiText.Get("MainViewModel", "OutputWindowClosed");
         _telemetry.Record(MainCommandIds.OutputClose, succeeded: true, StatusText);
         NotifyCommandStates();
     }
@@ -6945,7 +6946,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         RefreshHiddenOutputPayload(item, MainCommandIds.LivePreviewToOutput);
-        StatusText = $"Output 준비: {item.Title}";
+        StatusText = UiText.Format("MainViewModel", "OutputReady", item.Title);
         NotifyCommandStates();
     }
 
@@ -6968,8 +6969,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         var next = MovePreviewSelectionToNext(item);
         StatusText = next is null
-            ? $"Output 준비: {item.Title}"
-            : $"Output 준비: {item.Title} / Preview 다음: {next.Title}";
+            ? UiText.Format("MainViewModel", "OutputReady", item.Title)
+            : UiText.Format("MainViewModel", "OutputReadyNextPreview", item.Title, next.Title);
         NotifyCommandStates();
     }
 
@@ -6993,7 +6994,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             RefreshHiddenOutputPayload(item, commandId);
             _session.SetBlackout(false);
-            StatusText = "화면 비움(배경 유지)";
+            StatusText = UiText.Get("MainViewModel", "ScreenCleared");
             NotifyCommandStates();
             return;
         }
@@ -7007,7 +7008,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         RefreshHiddenOutputPayload(item, commandId);
-        StatusText = $"Output 준비: {item.Title}";
+        StatusText = UiText.Format("MainViewModel", "OutputReady", item.Title);
         NotifyCommandStates();
     }
 
@@ -7033,7 +7034,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (_session.Current.State == LiveState.Hidden)
         {
             RefreshHiddenOutputPayload(item, MainCommandIds.LiveGo);
-            StatusText = $"Output 준비: {item.Title}";
+            StatusText = UiText.Format("MainViewModel", "OutputReady", item.Title);
             NotifyCommandStates();
             return Task.CompletedTask;
         }
@@ -7058,7 +7059,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (SelectedItem is not { } item)
         {
-            StatusText = "더블클릭할 Worship 항목을 선택하세요.";
+            StatusText = UiText.Get("MainViewModel", "SelectItemToDoubleClick");
             NotifyCommandStates();
             return;
         }
@@ -7090,7 +7091,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             EnsurePowerPointThumbnails(OutputPowerPoint, deck);
         }
 
-        StatusText = $"Output 준비: {prepared.Title}";
+        StatusText = UiText.Format("MainViewModel", "OutputReady", prepared.Title);
         NotifyCommandStates();
     }
 
@@ -7154,7 +7155,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (PreviewItem is not { } item)
         {
-            StatusText = "Output으로 복사할 Preview 항목이 없습니다.";
+            StatusText = UiText.Get("MainViewModel", "NoPreviewItemToCopy");
             NotifyCommandStates();
             return null;
         }
@@ -7200,7 +7201,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (PreviewItem is not { } item)
         {
-            _telemetry.Record(MainCommandIds.LiveGo, succeeded: false, "선택 항목 없음");
+            _telemetry.Record(MainCommandIds.LiveGo, succeeded: false, "No item selected");
             return;
         }
 
@@ -7211,7 +7212,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (GetOutputLiveStartItem() is not { } item)
         {
-            _telemetry.Record(MainCommandIds.LiveGo, succeeded: false, "Output 항목 없음");
+            _telemetry.Record(MainCommandIds.LiveGo, succeeded: false, "No output item");
             NotifyOutputLiveSafetyProperties();
             return;
         }
@@ -7243,7 +7244,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             case null:
                 if (IsShowRunning) return; // another start went live meanwhile
-                StatusText = "송출 칸 항목이 바뀌어 송출을 시작하지 않았습니다.";
+                StatusText = UiText.Get("MainViewModel", "OutputItemChanged");
                 _telemetry.Record(MainCommandIds.LiveGo, succeeded: false, StatusText);
                 NotifyCommandStates();
                 return;
@@ -7347,7 +7348,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (PreviewItem is not { } item)
         {
-            _telemetry.Record(MainCommandIds.LiveGo, succeeded: false, "선택 항목 없음");
+            _telemetry.Record(MainCommandIds.LiveGo, succeeded: false, "No item selected");
             return;
         }
 
@@ -7371,8 +7372,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         var ok = await ConfirmLiveSafetyAsync(
             MainCommandIds.LiveStop,
-            "현재 라이브 송출을 중지할까요?",
-            "출력 화면이 대기 상태로 돌아갑니다. 5초 안에 확인하지 않으면 취소됩니다.").ConfigureAwait(true);
+            UiText.Get("MainViewModel", "ConfirmStopLiveTitle"),
+            UiText.Get("MainViewModel", "ConfirmStopLiveMessage")).ConfigureAwait(true);
         if (!ok)
         {
             NotifyOutputLiveSafetyProperties();
@@ -7394,8 +7395,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             try
             {
                 StatusText = await StopPowerPointSlideShowForLiveAsync().ConfigureAwait(true) is { } stopError
-                    ? $"PowerPoint 종료 실패: {stopError}"
-                    : "PowerPoint 슬라이드 쇼 종료";
+                    ? UiText.Format("MainViewModel", "PowerPointStopFailed", stopError)
+                    : UiText.Get("MainViewModel", "SlideShowEnded");
             }
             finally { _endingShow = false; }
             return;
@@ -7412,8 +7413,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             // The output panel keeps its item, so its deck's thumbnails and slide too (WinForms GoLive(false)).
             if (_listLoadedDuringShow) FollowOutputRowIntoLoadedList();
             StatusText = powerPointStopError is null
-                ? "라이브 중지"
-                : $"라이브 중지 (PowerPoint 종료 실패: {powerPointStopError})";
+                ? UiText.Get("MainViewModel", "LiveStopped")
+                : UiText.Format("MainViewModel", "LiveStoppedPowerPointFailed", powerPointStopError);
             _telemetry.Record(MainCommandIds.LiveStop, powerPointStopError is null, StatusText);
             NotifyCommandStates();
         }
@@ -7436,7 +7437,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     internal bool ReportErrorDuringShow(Exception error)
     {
         if (!IsShowRunning) return false;
-        try { StatusText = $"오류가 발생했지만 송출은 유지합니다: {error.Message}"; }
+        try { StatusText = UiText.Format("MainViewModel", "ErrorOutputKept", error.Message); }
         catch (Exception) { /* the status line is best effort; the show must stay up */ }
         return true;
     }
@@ -7486,7 +7487,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             try { await _liveKeyTurn.WaitAsync(wait).ConfigureAwait(true); }
             catch (TimeoutException)
             {
-                StatusText = "이전 이동을 처리하는 중이라 이 키 입력은 건너뜁니다.";
+                StatusText = UiText.Get("MainViewModel", "KeySkippedBusy");
                 return;
             }
         }
@@ -7546,8 +7547,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             }
 
             StatusText = direction > 0
-                ? "Output 다음 슬라이드/절이 없습니다."
-                : "Output 이전 슬라이드/절이 없습니다.";
+                ? UiText.Get("MainViewModel", "NoNextOutputSlide")
+                : UiText.Get("MainViewModel", "NoPreviousOutputSlide");
             NotifyCommandStates();
             return;
         }
@@ -7622,7 +7623,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         var clamped = Math.Clamp(targetIndex, 0, Queue.Count - 1);
         SelectedItem = Queue[clamped];
-        StatusText = $"Preview 선택: {SelectedItem.Title}";
+        StatusText = UiText.Format("MainViewModel", "PreviewSelected", SelectedItem.Title);
         NotifyCommandStates();
     }
 
@@ -7674,13 +7675,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var target = await FindNextNonRotatingPreviewItemAsync().ConfigureAwait(true);
         if (target is null)
         {
-            StatusText = "다음 회전 제외 Preview 항목이 없습니다.";
+            StatusText = UiText.Get("MainViewModel", "NoNextPreviewNonRotating");
             NotifyCommandStates();
             return;
         }
 
         MovePreviewItemToIndex(IndexOfReference(target));
-        StatusText = $"Preview 회전 제외 항목 선택: {target.Title}";
+        StatusText = UiText.Format("MainViewModel", "PreviewNonRotatingSelected", target.Title);
         NotifyCommandStates();
     }
 
@@ -7885,12 +7886,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (_session.Current.State == LiveState.Hidden)
         {
             RefreshHiddenOutputPayload(target, delta > 0 ? MainCommandIds.LiveNext : MainCommandIds.LivePrevious, page);
-            StatusText = $"Output 숨김 준비: {target.Title}";
+            StatusText = UiText.Format("MainViewModel", "OutputHiddenReady", target.Title);
             NotifyCommandStates();
             return;
         }
 
-        StatusText = $"Output 준비: {target.Title}";
+        StatusText = UiText.Format("MainViewModel", "OutputReady", target.Title);
         NotifyCommandStates();
     }
 
@@ -7920,12 +7921,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (_session.Current.State == LiveState.Hidden)
         {
             RefreshHiddenOutputPayload(target, commandId, page: 0);
-            StatusText = $"Output 숨김 준비: {target.Title}";
+            StatusText = UiText.Format("MainViewModel", "OutputHiddenReady", target.Title);
             NotifyCommandStates();
             return;
         }
 
-        StatusText = $"Output 준비: {target.Title}";
+        StatusText = UiText.Format("MainViewModel", "OutputReady", target.Title);
         NotifyCommandStates();
     }
 
@@ -7966,7 +7967,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private bool RefuseWhileShowCloses()
     {
         if (!ShowClosing) return false;
-        StatusText = "쇼를 끝내는 중입니다. 끝난 뒤 다시 송출하세요.";
+        StatusText = UiText.Get("MainViewModel", "ShowEnding");
         return true;
     }
 
@@ -7990,7 +7991,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        StatusText = $"LIVE: {prepared.Title}{OutputAreaNote}";
+        StatusText = UiText.Format("MainViewModel", "LiveStatus", prepared.Title, OutputAreaNote);
         _telemetry.Record(commandId, succeeded: true, prepared.Title);
         NotifyCommandStates();
     }
@@ -8035,7 +8036,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (show != _showGeneration) return;
         if (target is null)
         {
-            StatusText = "다음 회전 제외 Output 항목이 없습니다.";
+            StatusText = UiText.Get("MainViewModel", "NoNextOutputNonRotating");
             NotifyCommandStates();
             return;
         }
@@ -8051,12 +8052,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (_session.Current.State == LiveState.Hidden)
         {
             RefreshHiddenOutputPayload(target, MainCommandIds.LiveNext, page: 0);
-            StatusText = $"Output 회전 제외 항목 숨김 준비: {target.Title}";
+            StatusText = UiText.Format("MainViewModel", "OutputNonRotatingHiddenReady", target.Title);
             NotifyCommandStates();
             return;
         }
 
-        StatusText = $"Output 회전 제외 항목 준비: {target.Title}";
+        StatusText = UiText.Format("MainViewModel", "OutputNonRotatingReady", target.Title);
         NotifyCommandStates();
     }
 
@@ -8219,7 +8220,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             if (_hiddenUnderBlack && !IsOutputClearActive) _session.HideOutput(blackout: false);
             else _session.SetBlackout(false);
             _hiddenUnderBlack = false;
-            StatusText = IsOutputClearActive ? "화면 비움(배경 유지)" : IsOutputHideActive ? "출력 숨김" : "출력 복귀";
+            StatusText = IsOutputClearActive ? UiText.Get("MainViewModel", "ScreenCleared") : IsOutputHideActive ? UiText.Get("MainViewModel", "OutputHidden") : UiText.Get("MainViewModel", "OutputRestored");
             NotifyCommandStates();
             return;
         }
@@ -8234,7 +8235,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (IsOutputClearActive)
         {
             _session.SetCleared(false);
-            StatusText = IsOutputBlackActive ? "검은 화면 송출 중" : "출력 복귀";
+            StatusText = IsOutputBlackActive ? UiText.Get("MainViewModel", "BlackScreenShown") : UiText.Get("MainViewModel", "OutputRestored");
             NotifyCommandStates();
             return;
         }
@@ -8266,8 +8267,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             var ok = await ConfirmLiveSafetyAsync(
                 actionName,
-                "현재 송출을 숨길까요?",
-                "라이브 출력 상태가 즉시 바뀝니다. 5초 안에 확인하지 않으면 취소됩니다.").ConfigureAwait(true);
+                UiText.Get("MainViewModel", "ConfirmHideTitle"),
+                UiText.Get("MainViewModel", "ConfirmHideMessage")).ConfigureAwait(true);
             if (!ok)
             {
                 NotifyOutputLiveSafetyProperties();
@@ -8279,7 +8280,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (blackout) _hiddenUnderBlack = IsOutputHideActive;
         if (blackout) _session.SetBlackout(true);
         else _session.HideOutput(blackout: false);
-        StatusText = blackout ? "검은 화면 송출 중" : "출력 숨김";
+        StatusText = blackout ? UiText.Get("MainViewModel", "BlackScreenShown") : UiText.Get("MainViewModel", "OutputHidden");
         _telemetry.Record(actionName, succeeded: true, StatusText);
         NotifyCommandStates();
     }
@@ -8290,7 +8291,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (Media.IsOutputPlayerVisible) Media.Unload();
         _session.SetCleared(true);
-        StatusText = IsOutputBlackActive ? "검은 화면 송출 중" : "화면 비움(배경 유지)";
+        StatusText = IsOutputBlackActive ? UiText.Get("MainViewModel", "BlackScreenShown") : UiText.Get("MainViewModel", "ScreenCleared");
         _telemetry.Record(MainCommandIds.LiveClear, succeeded: true, StatusText);
         NotifyCommandStates();
         return Task.CompletedTask;
@@ -8300,7 +8301,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private void RestoreOutput()
     {
         _session.Restore();
-        StatusText = "출력 복귀";
+        StatusText = UiText.Get("MainViewModel", "OutputRestored");
         NotifyCommandStates();
     }
 
@@ -8352,7 +8353,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             }
         }
 
-        StatusText = $"처음으로: {item.Title}";
+        StatusText = UiText.Format("MainViewModel", "BackToStart", item.Title);
         _telemetry.Record(MainCommandIds.LiveRestart, succeeded: true, StatusText);
         NotifyCommandStates();
     }
@@ -8381,12 +8382,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         if (!Media.RestartCommand.CanExecute(null))
         {
-            StatusText = $"Output media cannot restart: {Path.GetFileName(mediaPath)}";
+            StatusText = UiText.Format("MainViewModel", "OutputMediaCannotRestart", Path.GetFileName(mediaPath));
             return true;
         }
 
         Media.RestartCommand.Execute(null);
-        StatusText = $"Output media restarted: {Path.GetFileName(mediaPath)}";
+        StatusText = UiText.Format("MainViewModel", "OutputMediaRestarted", Path.GetFileName(mediaPath));
         return true;
     }
 
@@ -8399,10 +8400,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         var shouldResumeOutputMedia = Media.State == MediaPlaybackState.Playing;
         _session.Refresh();
-        StatusText = "출력 새로고침";
+        StatusText = UiText.Get("MainViewModel", "OutputRefreshed");
         if (TryRefreshOutputMedia(shouldResumeOutputMedia, out var refreshedMediaName))
         {
-            StatusText = $"Output media refreshed: {refreshedMediaName}";
+            StatusText = UiText.Format("MainViewModel", "OutputMediaRefreshed", refreshedMediaName);
         }
 
         _telemetry.Record(MainCommandIds.LiveRefresh, succeeded: true, StatusText);
@@ -8447,7 +8448,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             OutputItem = prepared;
             SetLiveItemId(prepared.Id);
             _session.GoLive(ResolveLiveProjection(prepared), monitorName);
-            StatusText = $"Output visual refreshed: {prepared.Title}";
+            StatusText = UiText.Format("MainViewModel", "OutputVisualRefreshed", prepared.Title);
             _telemetry.Record(MainCommandIds.LiveRefresh, succeeded: true, StatusText);
             NotifyCommandStates();
             return;
@@ -8458,14 +8459,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             OutputItem = prepared;
             SetLiveItemId(prepared.Id);
             _session.UpdateHiddenContent(ResolveLiveProjection(prepared), monitorName);
-            StatusText = $"Output visual refreshed while hidden: {prepared.Title}";
+            StatusText = UiText.Format("MainViewModel", "OutputVisualRefreshedHidden", prepared.Title);
             _telemetry.Record(MainCommandIds.LiveRefresh, succeeded: true, StatusText);
             NotifyCommandStates();
             return;
         }
 
         OutputItem = prepared;
-        StatusText = $"Output visual ready: {prepared.Title}";
+        StatusText = UiText.Format("MainViewModel", "OutputVisualReady", prepared.Title);
         NotifyCommandStates();
     }
 
@@ -8482,8 +8483,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return true;
         }
 
-        _telemetry.Record(actionName, succeeded: false, "사용자 취소");
-        StatusText = "라이브 안전 확인 취소";
+        _telemetry.Record(actionName, succeeded: false, "Cancelled by the user");
+        StatusText = UiText.Get("MainViewModel", "LiveSafetyCancelled");
         NotifyCommandStates();
         return false;
     }
@@ -8497,7 +8498,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (PreviewItem is not { } item)
         {
-            _telemetry.Record(MainCommandIds.LiveGo, succeeded: false, "선택 항목 없음");
+            _telemetry.Record(MainCommandIds.LiveGo, succeeded: false, "No item selected");
             return;
         }
 
@@ -8516,7 +8517,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        StatusText = $"LIVE: {prepared.Title}{OutputAreaNote}";
+        StatusText = UiText.Format("MainViewModel", "LiveStatus", prepared.Title, OutputAreaNote);
         _telemetry.Record(MainCommandIds.LiveGo, succeeded: true, StatusText);
         if (autoAdvance && ReferenceEquals(item, SelectedItem))
         {
@@ -8567,7 +8568,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (PreviewItem is not { } item) return;
         var updated = item with { UseIndividualFormatting = !item.UseIndividualFormatting };
         if (ReplacePreviewFormatting(item, updated))
-            StatusText = updated.UseIndividualFormatting ? "개별 서식 사용" : "전역 기본 서식 사용";
+            StatusText = updated.UseIndividualFormatting ? UiText.Get("MainViewModel", "IndividualFormatOn") : UiText.Get("MainViewModel", "GlobalFormatUsed");
     }
 
     /// <summary>
@@ -8612,7 +8613,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var updated = item with { Sequence = trimmed };
         Queue[index] = updated;
         SelectedItem = updated; // 선택 변경 → RefreshLyricsPages 로 새 절 순서 기준 페이지·라벨 재계산(LyricsPageIndex 0 리셋).
-        StatusText = trimmed is null ? "절 순서 해제(선형 송출)" : $"절 순서: {trimmed}";
+        StatusText = trimmed is null ? UiText.Get("MainViewModel", "SequenceCleared") : UiText.Format("MainViewModel", "SequenceSet", trimmed);
 
         // 라이브 송출 중이면 같은 절로 다시 송출해 새 절 순서를 즉시 반영(세션 실제 라이브 절 사용 — 0절로 안 튀게).
         RepublishLiveSongForBodyChange();
@@ -8671,8 +8672,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         };
         if (!ReplacePreviewFormatting(item, updated)) return false;
         StatusText = encoded is null
-            ? "개별 설정 템플릿 적용: 빈 서식"
-            : "개별 설정 템플릿 적용";
+            ? UiText.Get("MainViewModel", "TemplateAppliedEmpty")
+            : UiText.Get("MainViewModel", "TemplateApplied");
         return true;
     }
 
@@ -8727,7 +8728,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (ApplySelectedSongFormatChange(_ => new SongFormatData(), wantsIndividual: false, out _, clearAll: true))
         {
-            StatusText = "이 항목 서식 모두 지움(전역 기본)";
+            StatusText = UiText.Get("MainViewModel", "ItemFormatCleared");
         }
     }
 
@@ -8750,7 +8751,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         _copiedItemFormatData = PreviewItem?.FormatData;
-        StatusText = "이 항목 서식 복사함(다른 항목에 붙여넣기 가능)";
+        StatusText = UiText.Get("MainViewModel", "ItemFormatCopied");
         NotifyCommandStates(); // 붙여넣기 활성화 통지.
     }
 
@@ -8766,7 +8767,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         if (ApplySelectedItemFormatDataTemplate(_copiedItemFormatData))
-            StatusText = "이 항목에 서식 붙여넣음";
+            StatusText = UiText.Get("MainViewModel", "ItemFormatPasted");
     }
 
     /// <summary>"복사한 서식을 전 항목에 적용"을 누를 수 있는지 — 담아 둔 서식이 있고, 큐에 서식 적용 가능한 항목(곡·성경)이 하나라도 있을 때.</summary>
@@ -8789,7 +8790,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var encoded = _copiedItemFormatData?.TrimEnd('>');
         if (string.IsNullOrEmpty(encoded))
         {
-            StatusText = "복사한 서식이 비어 있습니다.";
+            StatusText = UiText.Get("MainViewModel", "CopiedFormatEmpty");
             return;
         }
 
@@ -8816,7 +8817,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         if (changed == 0)
         {
-            StatusText = "이미 모든 대상 항목이 같은 서식을 쓰고 있습니다.";
+            StatusText = UiText.Get("MainViewModel", "FormatAlreadySame");
             return;
         }
 
@@ -8828,7 +8829,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         RepublishLiveSongForBodyChange();
         NotifyCommandStates();
         SaveItemFormatting();
-        StatusText = $"{changed}개 항목에 복사한 서식 적용";
+        StatusText = UiText.Format("MainViewModel", "FormatPastedOnItems", changed);
     }
 
     /// <summary>
@@ -8881,7 +8882,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         SaveItemFormatting();
         RepublishLiveSongForBodyChange();
         NotifyCommandStates();
-        StatusText = $"{cleared}개 항목 서식 지움(전역 기본)";
+        StatusText = UiText.Format("MainViewModel", "FormatClearedOnItems", cleared);
     }
 
     /// <summary>현재 선택한 항목에 적용된 글자색(이 항목만, "#AARRGGBB"). 없으면 빈 문자열(전역 기본색 추종).</summary>
@@ -8936,8 +8937,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (ApplySelectedSongFormatChange(format => format with { TextColorArgb1 = argb }, wantsIndividual: argb is not null, out var turnedOn))
         {
             StatusText = argb is null
-                ? "항목 글자색: 전역 기본"
-                : $"항목 글자색: {SongFormatData.ArgbToHex(argb)}{(turnedOn ? " (개별 서식 켜짐)" : "")}";
+                ? UiText.Get("MainViewModel", "ItemTextColorDefault")
+                : UiText.Format("MainViewModel", "ItemTextColor", SongFormatData.ArgbToHex(argb), (turnedOn ? UiText.Get("MainViewModel", "IndividualFormatOnSuffix") : ""));
         }
     }
 
@@ -8955,8 +8956,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         int? align = int.TryParse(alignmentParam, out var n) && n is >= 1 and <= 3 ? n : null;
         if (ApplySelectedSongFormatChange(format => format with { Alignment1 = align }, wantsIndividual: align is not null, out var turnedOn))
         {
-            var label = align switch { 1 => "왼쪽", 2 => "가운데", 3 => "오른쪽", _ => "전역 기본" };
-            StatusText = $"항목 정렬: {label}{(turnedOn ? " (개별 서식 켜짐)" : "")}";
+            var label = align switch { 1 => UiText.Get("MainViewModel", "AlignLeft"), 2 => UiText.Get("MainViewModel", "AlignCenter"), 3 => UiText.Get("MainViewModel", "AlignRight"), _ => UiText.Get("MainViewModel", "GlobalDefault") };
+            StatusText = UiText.Format("MainViewModel", "ItemAlignment", label, (turnedOn ? UiText.Get("MainViewModel", "IndividualFormatOnSuffix") : ""));
         }
     }
 
@@ -9027,8 +9028,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (ApplySelectedSongFormatChange(format => format with { FontSize1 = size }, wantsIndividual: size is not null, out var turnedOn))
         {
             StatusText = size is null
-                ? "항목 글자 크기: 전역 기본"
-                : $"항목 글자 크기: {size}pt{(turnedOn ? " (개별 서식 켜짐)" : "")}";
+                ? UiText.Get("MainViewModel", "ItemFontSizeDefault")
+                : UiText.Format("MainViewModel", "ItemFontSize", size, (turnedOn ? UiText.Get("MainViewModel", "IndividualFormatOnSuffix") : ""));
         }
     }
 
@@ -9047,8 +9048,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (ApplySelectedSongFormatChange(format => format with { FontName1 = fontName }, wantsIndividual: fontName.Length > 0, out var turnedOn))
         {
             StatusText = fontName.Length == 0
-                ? "항목 글꼴: 전역 기본"
-                : $"항목 글꼴: {fontName}{(turnedOn ? " (개별 서식 켜짐)" : "")}";
+                ? UiText.Get("MainViewModel", "ItemFontDefault")
+                : UiText.Format("MainViewModel", "ItemFont", fontName, (turnedOn ? UiText.Get("MainViewModel", "IndividualFormatOnSuffix") : ""));
         }
     }
 
@@ -9072,8 +9073,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (ApplySelectedSongFormatChange(format => format with { BackgroundColorArgb1 = argb }, wantsIndividual: argb is not null, out var turnedOn))
         {
             StatusText = argb is null
-                ? "항목 배경색: 전역 기본"
-                : $"항목 배경색: {SongFormatData.ArgbToHex(argb)}{(turnedOn ? " (개별 서식 켜짐)" : "")}";
+                ? UiText.Get("MainViewModel", "ItemBackColorDefault")
+                : UiText.Format("MainViewModel", "ItemBackColor", SongFormatData.ArgbToHex(argb), (turnedOn ? UiText.Get("MainViewModel", "IndividualFormatOnSuffix") : ""));
         }
     }
 
@@ -9094,8 +9095,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public bool CanClearSelectedItemBackgroundImage
         => CanEditSelectedItemColor && !string.IsNullOrWhiteSpace(SelectedItemBackgroundImagePath);
     public string SelectedItemBackgroundNoImageToolTip => CanClearSelectedItemBackgroundImage
-        ? $"Remove Item Background '{SelectedItemBackgroundImagePath}'"
-        : "No Item Background";
+        ? UiText.Format("MainViewModel", "RemoveItemBackground", SelectedItemBackgroundImagePath)
+        : UiText.Get("MainViewModel", "NoItemBackground");
 
     public string SelectedItemMediaPath
         => SongFormatData.Parse(PreviewItem?.FormatData)?.MediaPath ?? string.Empty;
@@ -9104,8 +9105,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         => CanEditSelectedItemColor && !string.IsNullOrWhiteSpace(SelectedItemMediaPath);
 
     public string SelectedItemMediaToolTip => CanClearSelectedItemMedia
-        ? $"Remove Item Media '{SelectedItemMediaPath}'"
-        : "No Item Media";
+        ? UiText.Format("MainViewModel", "RemoveItemMedia", SelectedItemMediaPath)
+        : UiText.Get("MainViewModel", "NoItemMedia");
 
     public LyricsBackgroundMode SelectedItemBackgroundImageMode
         => SongFormatData.Parse(PreviewItem?.FormatData)?.BackgroundImageMode ?? LyricsBackgroundMode.Fill;
@@ -9147,7 +9148,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             OnPropertyChanged(nameof(SelectedItemVerticalAlignmentIsTop));
             OnPropertyChanged(nameof(SelectedItemVerticalAlignmentIsCenter));
             OnPropertyChanged(nameof(SelectedItemVerticalAlignmentIsBottom));
-            StatusText = $"Item vertical align: {alignment}{(turnedOn ? " (individual formatting on)" : "")}";
+            StatusText = UiText.Format("MainViewModel", "ItemVerticalAlignment", alignment switch { LyricsVerticalAlignment.Top => UiText.Get("MainViewModel", "AlignTop"), LyricsVerticalAlignment.Bottom => UiText.Get("MainViewModel", "AlignBottom"), _ => UiText.Get("MainViewModel", "AlignCenter") },(turnedOn ? UiText.Get("MainViewModel", "IndividualFormatOnSuffix") : ""));
         }
     }
 
@@ -9156,7 +9157,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             marginParam,
             max: 40,
             (format, margin) => format with { BodyLeftMargin = margin },
-            "left margin",
+            UiText.Get("MainViewModel", "MarginLeft"),
             nameof(SelectedItemLeftMarginInput));
 
     public void SetSelectedItemRightMargin(string? marginParam)
@@ -9164,7 +9165,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             marginParam,
             max: 40,
             (format, margin) => format with { BodyRightMargin = margin },
-            "right margin",
+            UiText.Get("MainViewModel", "MarginRight"),
             nameof(SelectedItemRightMarginInput));
 
     public void SetSelectedItemBottomMargin(string? marginParam)
@@ -9180,7 +9181,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
         SetSelectedItemMargin(marginParam, 100, (format, margin) => format with { BodyBottomMargin = margin },
-            "bottom margin", nameof(SelectedItemBottomMarginInput));
+            UiText.Get("MainViewModel", "MarginBottom"), nameof(SelectedItemBottomMarginInput));
     }
 
     private void SetSelectedItemMargin(
@@ -9195,8 +9196,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             OnPropertyChanged(inputPropertyName);
             StatusText = margin is null
-                ? $"Item {label}: default"
-                : $"Item {label}: {margin}{(turnedOn ? " (individual formatting on)" : "")}";
+                ? UiText.Format("MainViewModel", "ItemMarginDefault", label)
+                : UiText.Format("MainViewModel", "ItemMargin", label, margin, (turnedOn ? UiText.Get("MainViewModel", "IndividualFormatOnSuffix") : ""));
         }
     }
 
@@ -9274,8 +9275,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             OnPropertyChanged(nameof(CanClearSelectedItemBackgroundImage));
             OnPropertyChanged(nameof(SelectedItemBackgroundNoImageToolTip));
             StatusText = imagePath.Length == 0
-                ? "항목 배경 이미지: 전역 기본"
-                : $"항목 배경 이미지: {System.IO.Path.GetFileName(imagePath)}{(turnedOn ? " (개별 서식 켜짐)" : "")}";
+                ? UiText.Get("MainViewModel", "ItemBackImageDefault")
+                : UiText.Format("MainViewModel", "ItemBackImage", System.IO.Path.GetFileName(imagePath), (turnedOn ? UiText.Get("MainViewModel", "IndividualFormatOnSuffix") : ""));
         }
     }
 
@@ -9288,8 +9289,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             OnPropertyChanged(nameof(CanClearSelectedItemMedia));
             OnPropertyChanged(nameof(SelectedItemMediaToolTip));
             StatusText = mediaPath.Length == 0
-                ? "항목 미디어: 없음"
-                : $"항목 미디어: {System.IO.Path.GetFileName(mediaPath)}{(turnedOn ? " (개별 서식 켜짐)" : "")}";
+                ? UiText.Get("MainViewModel", "ItemMediaNone")
+                : UiText.Format("MainViewModel", "ItemMedia", System.IO.Path.GetFileName(mediaPath), (turnedOn ? UiText.Get("MainViewModel", "IndividualFormatOnSuffix") : ""));
         }
     }
 
@@ -9309,11 +9310,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             OnPropertyChanged(nameof(SelectedItemBackgroundModeIsTile));
             var label = mode switch
             {
-                LyricsBackgroundMode.Tile => "Tile Image",
-                LyricsBackgroundMode.Fit or LyricsBackgroundMode.Center => "Centre Image",
-                _ => "Best Fit Image",
+                LyricsBackgroundMode.Tile => UiText.Get("MainViewModel", "ItemBackTile"),
+                LyricsBackgroundMode.Fit or LyricsBackgroundMode.Center => UiText.Get("MainViewModel", "ItemBackCentre"),
+                _ => UiText.Get("MainViewModel", "ItemBackBestFit"),
             };
-            StatusText = $"Item background picture format: {label}{(turnedOn ? " (individual formatting on)" : "")}";
+            StatusText = UiText.Format("MainViewModel", "ItemBackImageFormat", label, (turnedOn ? UiText.Get("MainViewModel", "IndividualFormatOnSuffix") : ""));
         }
     }
 
@@ -9374,8 +9375,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (ApplySelectedSongFormatChange(format => format with { TextColorArgb2 = argb }, wantsIndividual: argb is not null, out var turnedOn))
         {
             StatusText = argb is null
-                ? "보조 영역 글자색: 본문과 동일"
-                : $"보조 영역 글자색: {SongFormatData.ArgbToHex(argb)}{(turnedOn ? " (개별 서식 켜짐)" : "")}";
+                ? UiText.Get("MainViewModel", "Region2TextColorSame")
+                : UiText.Format("MainViewModel", "Region2TextColor", SongFormatData.ArgbToHex(argb), (turnedOn ? UiText.Get("MainViewModel", "IndividualFormatOnSuffix") : ""));
         }
     }
 
@@ -9393,8 +9394,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         int? align = int.TryParse(alignmentParam, out var n) && n is >= 1 and <= 3 ? n : null;
         if (ApplySelectedSongFormatChange(format => format with { Alignment2 = align }, wantsIndividual: align is not null, out var turnedOn))
         {
-            var label = align switch { 1 => "왼쪽", 2 => "가운데", 3 => "오른쪽", _ => "본문과 동일" };
-            StatusText = $"보조 영역 정렬: {label}{(turnedOn ? " (개별 서식 켜짐)" : "")}";
+            var label = align switch { 1 => UiText.Get("MainViewModel", "AlignLeft"), 2 => UiText.Get("MainViewModel", "AlignCenter"), 3 => UiText.Get("MainViewModel", "AlignRight"), _ => UiText.Get("MainViewModel", "SameAsMain") };
+            StatusText = UiText.Format("MainViewModel", "Region2Alignment", label, (turnedOn ? UiText.Get("MainViewModel", "IndividualFormatOnSuffix") : ""));
         }
     }
 
@@ -9412,8 +9413,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (ApplySelectedSongFormatChange(format => format with { FontSize2 = size }, wantsIndividual: size is not null, out var turnedOn))
         {
             StatusText = size is null
-                ? "보조 영역 글자 크기: 본문과 동일"
-                : $"보조 영역 글자 크기: {size}pt{(turnedOn ? " (개별 서식 켜짐)" : "")}";
+                ? UiText.Get("MainViewModel", "Region2FontSizeSame")
+                : UiText.Format("MainViewModel", "Region2FontSize", size, (turnedOn ? UiText.Get("MainViewModel", "IndividualFormatOnSuffix") : ""));
         }
     }
 
@@ -9433,8 +9434,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (ApplySelectedSongFormatChange(format => format with { FontName2 = fontName }, wantsIndividual: fontName.Length > 0, out var turnedOn))
         {
             StatusText = fontName.Length == 0
-                ? "보조 영역 글꼴: 본문과 동일"
-                : $"보조 영역 글꼴: {fontName}{(turnedOn ? " (개별 서식 켜짐)" : "")}";
+                ? UiText.Get("MainViewModel", "Region2FontSame")
+                : UiText.Format("MainViewModel", "Region2Font", fontName, (turnedOn ? UiText.Get("MainViewModel", "IndividualFormatOnSuffix") : ""));
         }
     }
 
@@ -9449,7 +9450,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (Queue.Count == 0)
         {
-            StatusText = "예배 순서가 비어 있습니다.";
+            StatusText = UiText.Get("MainViewModel", "ListEmpty");
             return;
         }
 
@@ -9486,7 +9487,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             await QuickSaveWorshipListAsync();
             if (WorshipListHasUnsavedChanges) return;
         }
-        StatusText = changed == 0 ? "이미 모든 항목이 전역 기본 서식을 사용 중입니다." : $"{changed}개 항목에 전역 기본 서식 적용";
+        StatusText = changed == 0 ? UiText.Get("MainViewModel", "AllUseGlobalFormat") : UiText.Format("MainViewModel", "GlobalFormatAppliedOnItems", changed);
     }
 
     internal LiveQueueItem ProjectLyricsPage(LiveQueueItem item, int pageIndex)
@@ -9965,7 +9966,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _settings.Set(AxicultusSettingKeys.LyricsMonitorBackgroundPattern, -1);
         _settings.Set(AxicultusSettingKeys.LyricsMonitorBackgroundIsGradient, preset.IsGradient);
         RefreshActiveAppearance();
-        StatusText = $"출력 모양: {preset.Name}";
+        StatusText = UiText.Format("MainViewModel", "OutputAppearance", preset.Name);
     }
 
     // 인-셸 가사 가로 정렬 적용 — 설정을 쓰면 출력 VM 이 SettingsChanged 로 라이브 출력을 즉시 갱신한다(§7.3-A).
@@ -9973,7 +9974,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         _settings.Set(AxicultusSettingKeys.LyricsMonitorTextAlignment, alignment);
         ActiveLyricsAlignment = alignment;
-        StatusText = $"가사 정렬: {alignment switch { LyricsTextAlignment.Left => "왼쪽", LyricsTextAlignment.Right => "오른쪽", _ => "가운데" }}";
+        StatusText = UiText.Format("MainViewModel", "LyricsAlignment", alignment switch { LyricsTextAlignment.Left => UiText.Get("MainViewModel", "AlignLeft"), LyricsTextAlignment.Right => UiText.Get("MainViewModel", "AlignRight"), _ => UiText.Get("MainViewModel", "AlignCenter") });
     }
 
     // 배경 이미지 표시 모드 적용 — 설정을 쓰면 출력 VM 이 SettingsChanged 로 배경 브러시를 다시 만들어 즉시 반영(레거시 Def_ImageMode).
@@ -9981,13 +9982,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         _settings.Set(AxicultusSettingKeys.LyricsMonitorBackgroundMode, mode);
         ActiveBackgroundMode = mode;
-        StatusText = $"배경 표시 모드: {mode switch
+        StatusText = UiText.Format("MainViewModel", "BackgroundMode", mode switch
         {
-            LyricsBackgroundMode.Fit => "맞춤(전체 보임)",
-            LyricsBackgroundMode.Center => "가운데(원본 크기)",
-            LyricsBackgroundMode.Tile => "타일(반복)",
-            _ => "채움(가득)",
-        }}";
+            LyricsBackgroundMode.Fit => UiText.Get("MainViewModel", "BackgroundFit"),
+            LyricsBackgroundMode.Center => UiText.Get("MainViewModel", "BackgroundCenter"),
+            LyricsBackgroundMode.Tile => UiText.Get("MainViewModel", "BackgroundTile"),
+            _ => UiText.Get("MainViewModel", "BackgroundFill"),
+        });
     }
 
     // 배경 그라데이션 방향 적용 — 설정→출력 VM 이 SettingsChanged 로 LinearGradientBrush 를 다시 만들어 즉시 반영(FrmMain Def_BackColour 패턴).
@@ -9999,13 +10000,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             [AxicultusSettingKeys.LyricsMonitorBackgroundGradientDirection.Id] = direction
         });
         ActiveGradientDirection = direction;
-        StatusText = $"그라데이션 방향: {direction switch
+        StatusText = UiText.Format("MainViewModel", "GradientDirection", direction switch
         {
-            LyricsGradientDirection.Horizontal => "가로(좌→우)",
-            LyricsGradientDirection.DiagonalDown => "대각선 ↘",
-            LyricsGradientDirection.DiagonalUp => "대각선 ↗",
-            _ => "세로(위→아래)",
-        }}";
+            LyricsGradientDirection.Horizontal => UiText.Get("MainViewModel", "GradientHorizontal"),
+            LyricsGradientDirection.DiagonalDown => UiText.Get("MainViewModel", "GradientDiagonalDown"),
+            LyricsGradientDirection.DiagonalUp => UiText.Get("MainViewModel", "GradientDiagonalUp"),
+            _ => UiText.Get("MainViewModel", "GradientVertical"),
+        });
     }
 
     // 이중 언어 영역 표시 모드 적용 — 설정→출력 VM 라이브 반영(레거시 Def_ShowRegion1/2/Both).
@@ -10013,12 +10014,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         _settings.Set(AxicultusSettingKeys.LyricsMonitorRegionDisplay, mode);
         ActiveRegionDisplay = mode;
-        StatusText = $"영역 표시: {mode switch
+        StatusText = UiText.Format("MainViewModel", "RegionDisplay", mode switch
         {
-            LyricsRegionDisplay.Region1Only => "Region 1만",
-            LyricsRegionDisplay.Region2Only => "Region 2만",
-            _ => "둘 다",
-        }}";
+            LyricsRegionDisplay.Region1Only => UiText.Get("MainViewModel", "RegionMainOnly"),
+            LyricsRegionDisplay.Region2Only => UiText.Get("MainViewModel", "RegionSecondaryOnly"),
+            _ => UiText.Get("MainViewModel", "RegionBoth"),
+        });
     }
 
     // 인-셸 제목 헤딩 가로 정렬 적용 — 가사 정렬과 동일 경로(설정→출력 VM 라이브 반영, §7.3-A Heading Align).
@@ -10026,7 +10027,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         _settings.Set(AxicultusSettingKeys.LyricsMonitorTitleHeadingAlignment, alignment);
         ActiveTitleHeadingAlignment = alignment;
-        StatusText = $"제목 정렬: {alignment switch { LyricsTextAlignment.Left => "왼쪽", LyricsTextAlignment.Right => "오른쪽", _ => "가운데" }}";
+        StatusText = UiText.Format("MainViewModel", "TitleAlignment", alignment switch { LyricsTextAlignment.Left => UiText.Get("MainViewModel", "AlignLeft"), LyricsTextAlignment.Right => UiText.Get("MainViewModel", "AlignRight"), _ => UiText.Get("MainViewModel", "AlignCenter") });
     }
 
     // FrmMain Def_HeadAlign 드롭다운은 AsR1/AsR2/Left/Centre/Right 중 하나만 선택한다.
@@ -10042,31 +10043,31 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (string.Equals(normalized, "AsR1", StringComparison.OrdinalIgnoreCase))
         {
             followBody = true;
-            label = "Region 1 정렬 따름";
+            label = UiText.Get("MainViewModel", "FollowMainAlignment");
         }
         else if (string.Equals(normalized, "AsR2", StringComparison.OrdinalIgnoreCase))
         {
             followRegion2 = true;
-            label = "Region 2 정렬 따름";
+            label = UiText.Get("MainViewModel", "FollowRegion2Alignment");
         }
         else if (string.Equals(normalized, "Left", StringComparison.OrdinalIgnoreCase))
         {
             alignment = LyricsTextAlignment.Left;
-            label = "왼쪽";
+            label = UiText.Get("MainViewModel", "AlignLeft");
         }
         else if (string.Equals(normalized, "Centre", StringComparison.OrdinalIgnoreCase) ||
                  string.Equals(normalized, "Center", StringComparison.OrdinalIgnoreCase))
         {
-            label = "가운데";
+            label = UiText.Get("MainViewModel", "AlignCenter");
         }
         else if (string.Equals(normalized, "Right", StringComparison.OrdinalIgnoreCase))
         {
             alignment = LyricsTextAlignment.Right;
-            label = "오른쪽";
+            label = UiText.Get("MainViewModel", "AlignRight");
         }
         else
         {
-            StatusText = "제목 정렬 선택을 인식할 수 없습니다.";
+            StatusText = UiText.Get("MainViewModel", "TitleAlignmentUnknown");
             return;
         }
 
@@ -10076,7 +10077,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ActiveTitleHeadingFollowBody = followBody;
         ActiveTitleHeadingFollowRegion2 = followRegion2;
         ActiveTitleHeadingAlignment = alignment;
-        StatusText = $"제목 정렬: {label}";
+        StatusText = UiText.Format("MainViewModel", "TitleAlignment", label);
     }
 
     // FrmLaunchShow R and V keys step through the three region views / vertical alignments.
@@ -10131,7 +10132,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         _settings.Set(AxicultusSettingKeys.LyricsMonitorVerticalAlignment, alignment);
         ActiveLyricsVerticalAlignment = alignment;
-        StatusText = $"가사 세로 정렬: {alignment switch { LyricsVerticalAlignment.Top => "위", LyricsVerticalAlignment.Bottom => "아래", _ => "가운데" }}";
+        StatusText = UiText.Format("MainViewModel", "LyricsVerticalAlignment", alignment switch { LyricsVerticalAlignment.Top => UiText.Get("MainViewModel", "AlignTop"), LyricsVerticalAlignment.Bottom => UiText.Get("MainViewModel", "AlignBottom"), _ => UiText.Get("MainViewModel", "AlignCenter") });
     }
 
     // ─── 출력 모양 설정 템플릿(저장/불러오기) §7.3-A ──────────────────────────
@@ -10157,7 +10158,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var name = NewAppearanceTemplateName?.Trim();
         if (string.IsNullOrEmpty(name))
         {
-            StatusText = "저장할 템플릿 이름을 입력하세요.";
+            StatusText = UiText.Get("MainViewModel", "EnterTemplateName");
             return;
         }
 
@@ -10169,15 +10170,15 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             RefreshAppearanceTemplateNames();
             SelectedAppearanceTemplate = name;
             NewAppearanceTemplateName = "";
-            StatusText = overwrote ? $"출력 모양 템플릿 저장(덮어씀): {name}" : $"출력 모양 템플릿 저장: {name}";
+            StatusText = overwrote ? UiText.Format("MainViewModel", "AppearanceTemplateOverwritten", name) : UiText.Format("MainViewModel", "AppearanceTemplateSaved", name);
         }
         catch (ArgumentException)
         {
-            StatusText = "템플릿 이름에 사용할 수 없는 문자/형식입니다(100자 이내, 예약명·경로 문자 제외).";
+            StatusText = UiText.Get("MainViewModel", "TemplateNameInvalid");
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            StatusText = $"템플릿 저장 실패: {ex.Message}";
+            StatusText = UiText.Format("MainViewModel", "TemplateSaveFailed", ex.Message);
         }
     }
 
@@ -10195,18 +10196,18 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             var template = await _appearanceTemplates.LoadAsync(name).ConfigureAwait(true);
             if (template is null)
             {
-                StatusText = $"템플릿을 찾을 수 없습니다: {name}";
+                StatusText = UiText.Format("MainViewModel", "TemplateNotFound", name);
                 RefreshAppearanceTemplateNames();
                 return;
             }
 
             template.ApplyTo(_settings);
             RefreshActiveAppearance(); // 인스펙터 표시(색·정렬·크기·효과 등) 동기화
-            StatusText = $"출력 모양 템플릿 적용: {name}";
+            StatusText = UiText.Format("MainViewModel", "AppearanceTemplateApplied", name);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
         {
-            StatusText = $"템플릿 적용 실패: {ex.Message}";
+            StatusText = UiText.Format("MainViewModel", "TemplateApplyFailed", ex.Message);
         }
     }
 
@@ -10250,7 +10251,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _settings.Set(AxicultusSettingKeys.LyricsMonitorRegion2Underline, AxicultusSettingKeys.LyricsMonitorRegion2Underline.DefaultValue);
 
         RefreshActiveAppearance(); // 인스펙터 표시(색·정렬·크기·효과·전환·배경·영역표시·글꼴 등) 동기화
-        StatusText = "출력 모양 기본값 복원";
+        StatusText = UiText.Get("MainViewModel", "AppearanceDefaultsRestored");
     }
 
     private void DeleteAppearanceTemplate()
@@ -10264,7 +10265,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _appearanceTemplates.Delete(name);
         RefreshAppearanceTemplateNames();
         SelectedAppearanceTemplate = null;
-        StatusText = $"출력 모양 템플릿 삭제: {name}";
+        StatusText = UiText.Format("MainViewModel", "AppearanceTemplateDeleted", name);
     }
 
     private void RefreshAppearanceTemplateNames()
@@ -10289,7 +10290,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (!TryParseHexColor(hex, out var argb))
         {
-            StatusText = "색 형식이 올바르지 않습니다(예: #1A2B3C).";
+            StatusText = UiText.Format("MainViewModel", "ColorFormatInvalid", "#1A2B3C");
             return;
         }
 
@@ -10298,12 +10299,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             _settings.Set(AxicultusSettingKeys.LyricsMonitorBackgroundColorArgb, argb);
             _settings.Set(AxicultusSettingKeys.LyricsMonitorBackgroundColor2Argb, argb);
             _settings.Set(AxicultusSettingKeys.LyricsMonitorBackgroundIsGradient, false);
-            StatusText = $"배경색: {FormatColorHex(argb)}";
+            StatusText = UiText.Format("MainViewModel", "BackColor", FormatColorHex(argb));
         }
         else
         {
             _settings.Set(AxicultusSettingKeys.LyricsMonitorTextColorArgb, argb);
-            StatusText = $"글자색: {FormatColorHex(argb)}";
+            StatusText = UiText.Format("MainViewModel", "TextColor", FormatColorHex(argb));
         }
 
         RefreshActiveAppearance();
@@ -10318,14 +10319,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (!TryParseHexColor(hex, out var rgbArgb))
         {
-            StatusText = "색 형식이 올바르지 않습니다(예: #1A2B3C).";
+            StatusText = UiText.Format("MainViewModel", "ColorFormatInvalid", "#1A2B3C");
             return;
         }
 
         // TryParseHexColor 는 불투명(0xFF) 알파를 주므로, RGB 만 떼어 반투명(0x66) 알파와 다시 합친다.
         var panelArgb = unchecked((int)(0x66000000u | ((uint)rgbArgb & 0x00FFFFFFu)));
         _settings.Set(AxicultusSettingKeys.LyricsMonitorPanelColorArgb, panelArgb);
-        StatusText = $"패널 색: {FormatColorHex(rgbArgb)} (반투명)";
+        StatusText = UiText.Format("MainViewModel", "PanelColor", FormatColorHex(rgbArgb));
         RefreshActiveAppearance();
     }
 
@@ -10333,12 +10334,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (!TryParseHexColor(hex, out var argb))
         {
-            StatusText = "색 형식이 올바르지 않습니다(예: #1A2B3C).";
+            StatusText = UiText.Format("MainViewModel", "ColorFormatInvalid", "#1A2B3C");
             return;
         }
 
         _settings.Set(AxicultusSettingKeys.LyricsMonitorPanelTextColorArgb, argb);
-        StatusText = $"패널 글자색: {FormatColorHex(argb)}";
+        StatusText = UiText.Format("MainViewModel", "PanelTextColor", FormatColorHex(argb));
         RefreshActiveAppearance();
     }
 
@@ -10380,33 +10381,33 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var next = !current;
         _settings.Set(key, next);
         // 효과별 한글 라벨 — 새 효과를 이 헬퍼로 추가하면 여기에 명시 분기를 더한다(암묵적 fallback 방지).
-        var label = key.Id == AxicultusSettingKeys.LyricsMonitorBold.Id ? "굵게"
-            : key.Id == AxicultusSettingKeys.LyricsMonitorItalic.Id ? "기울임"
-            : key.Id == AxicultusSettingKeys.LyricsMonitorShadow.Id ? "그림자"
-            : key.Id == AxicultusSettingKeys.LyricsMonitorShowNotations.Id ? "코드 표시"
-            : key.Id == AxicultusSettingKeys.LyricsMonitorUnderline.Id ? "밑줄"
-            : key.Id == AxicultusSettingKeys.LyricsMonitorEmphasisChorusOnly.Id ? "강조 후렴만"
-            : key.Id == AxicultusSettingKeys.LyricsMonitorInterlace.Id ? "줄 교차"
-            : key.Id == AxicultusSettingKeys.LyricsMonitorShowDisplayPanel.Id ? "정보 패널 표시"
-            : key.Id == AxicultusSettingKeys.LyricsMonitorShowPositionIndicator.Id ? "위치 표시"
-            : key.Id == AxicultusSettingKeys.LyricsMonitorShowVerseHeading.Id ? "절 헤딩"
-            : key.Id == AxicultusSettingKeys.LyricsMonitorShowTitleHeading.Id ? "제목 표시"
-            : key.Id == AxicultusSettingKeys.LyricsMonitorOutline.Id ? "외곽선"
-            : key.Id == AxicultusSettingKeys.LyricsMonitorTitleHeadingFirstScreenOnly.Id ? "제목 첫 화면만"
-            : key.Id == AxicultusSettingKeys.LyricsMonitorTitleHeadingFollowBody.Id ? "제목 본문 정렬 따름"
-            : key.Id == AxicultusSettingKeys.LyricsMonitorTitleHeadingFollowRegion2.Id ? "제목 보조영역 정렬 따름"
-            : key.Id == AxicultusSettingKeys.LyricsMonitorShowItemNumber.Id ? "곡 번호"
-            : key.Id == AxicultusSettingKeys.LyricsMonitorShowTitleOnPanel.Id ? "패널 제목"
-            : key.Id == AxicultusSettingKeys.LyricsMonitorShowCopyright.Id ? "저작권"
-            : key.Id == AxicultusSettingKeys.LyricsMonitorShowNextItem.Id ? "다음 항목"
-            : key.Id == AxicultusSettingKeys.LyricsMonitorPanelTransparent.Id ? "패널 투명 배경"
-            : key.Id == AxicultusSettingKeys.LyricsMonitorPanelTextColorFollowRegion1.Id ? "패널 글자색 Region1 추종"
-            : key.Id == AxicultusSettingKeys.LyricsMonitorPanelBold.Id ? "패널 굵게"
-            : key.Id == AxicultusSettingKeys.LyricsMonitorPanelItalic.Id ? "패널 기울임"
-            : key.Id == AxicultusSettingKeys.LyricsMonitorPanelUnderline.Id ? "패널 밑줄"
-            : key.Id == AxicultusSettingKeys.LyricsMonitorUseFadeTransition.Id ? "전환 페이드"
+        var label = key.Id == AxicultusSettingKeys.LyricsMonitorBold.Id ? UiText.Get("MainViewModel", "EffectBold")
+            : key.Id == AxicultusSettingKeys.LyricsMonitorItalic.Id ? UiText.Get("MainViewModel", "EffectItalic")
+            : key.Id == AxicultusSettingKeys.LyricsMonitorShadow.Id ? UiText.Get("MainViewModel", "EffectShadow")
+            : key.Id == AxicultusSettingKeys.LyricsMonitorShowNotations.Id ? UiText.Get("MainViewModel", "EffectShowChords")
+            : key.Id == AxicultusSettingKeys.LyricsMonitorUnderline.Id ? UiText.Get("MainViewModel", "EffectUnderline")
+            : key.Id == AxicultusSettingKeys.LyricsMonitorEmphasisChorusOnly.Id ? UiText.Get("MainViewModel", "EffectEmphasisChorusOnly")
+            : key.Id == AxicultusSettingKeys.LyricsMonitorInterlace.Id ? UiText.Get("MainViewModel", "EffectInterlace")
+            : key.Id == AxicultusSettingKeys.LyricsMonitorShowDisplayPanel.Id ? UiText.Get("MainViewModel", "EffectShowPanel")
+            : key.Id == AxicultusSettingKeys.LyricsMonitorShowPositionIndicator.Id ? UiText.Get("MainViewModel", "EffectShowPosition")
+            : key.Id == AxicultusSettingKeys.LyricsMonitorShowVerseHeading.Id ? UiText.Get("MainViewModel", "EffectVerseHeading")
+            : key.Id == AxicultusSettingKeys.LyricsMonitorShowTitleHeading.Id ? UiText.Get("MainViewModel", "EffectShowTitle")
+            : key.Id == AxicultusSettingKeys.LyricsMonitorOutline.Id ? UiText.Get("MainViewModel", "EffectOutline")
+            : key.Id == AxicultusSettingKeys.LyricsMonitorTitleHeadingFirstScreenOnly.Id ? UiText.Get("MainViewModel", "EffectTitleFirstScreenOnly")
+            : key.Id == AxicultusSettingKeys.LyricsMonitorTitleHeadingFollowBody.Id ? UiText.Get("MainViewModel", "EffectTitleFollowMain")
+            : key.Id == AxicultusSettingKeys.LyricsMonitorTitleHeadingFollowRegion2.Id ? UiText.Get("MainViewModel", "EffectTitleFollowRegion2")
+            : key.Id == AxicultusSettingKeys.LyricsMonitorShowItemNumber.Id ? UiText.Get("MainViewModel", "EffectSongNumber")
+            : key.Id == AxicultusSettingKeys.LyricsMonitorShowTitleOnPanel.Id ? UiText.Get("MainViewModel", "EffectPanelTitle")
+            : key.Id == AxicultusSettingKeys.LyricsMonitorShowCopyright.Id ? UiText.Get("MainViewModel", "EffectCopyright")
+            : key.Id == AxicultusSettingKeys.LyricsMonitorShowNextItem.Id ? UiText.Get("MainViewModel", "EffectNextItem")
+            : key.Id == AxicultusSettingKeys.LyricsMonitorPanelTransparent.Id ? UiText.Get("MainViewModel", "EffectPanelTransparent")
+            : key.Id == AxicultusSettingKeys.LyricsMonitorPanelTextColorFollowRegion1.Id ? UiText.Get("MainViewModel", "EffectPanelTextFollowMain")
+            : key.Id == AxicultusSettingKeys.LyricsMonitorPanelBold.Id ? UiText.Get("MainViewModel", "EffectPanelBold")
+            : key.Id == AxicultusSettingKeys.LyricsMonitorPanelItalic.Id ? UiText.Get("MainViewModel", "EffectPanelItalic")
+            : key.Id == AxicultusSettingKeys.LyricsMonitorPanelUnderline.Id ? UiText.Get("MainViewModel", "EffectPanelUnderline")
+            : key.Id == AxicultusSettingKeys.LyricsMonitorUseFadeTransition.Id ? UiText.Get("MainViewModel", "EffectFadeTransition")
             : key.Id;
-        StatusText = $"가사 {label}: {(next ? "켬" : "끔")}";
+        StatusText = UiText.Format("MainViewModel", "LyricsEffectToggled", label, (next ? UiText.Get("MainViewModel", "On") : UiText.Get("MainViewModel", "Off")));
     }
 
     // 출력 전환(페이드) 길이 프리셋 적용(빠르게 150 / 보통 250 / 느리게 500 ms). 범위(0~2000) 클램프 후 저장.
@@ -10415,7 +10416,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var next = Math.Clamp(durationMs, 0, 2000);
         _settings.Set(AxicultusSettingKeys.LyricsMonitorTransitionDurationMs, next);
         ActiveTransitionDurationMs = next;
-        StatusText = $"전환 길이: {next}ms";
+        StatusText = UiText.Format("MainViewModel", "TransitionDuration", next);
     }
 
     // 출력 전환 모션 종류 적용(Fade/Slide 4방향). 저장 후 Active 동기화는 RefreshActiveAppearance 가 담당.
@@ -10426,42 +10427,42 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ActiveTransitionKind = kind;
         OnPropertyChanged(nameof(DefaultItemTransitionKind));
         OnPropertyChanged(nameof(DefaultItemTransitionKindInput));
-        StatusText = $"항목 전환 효과: {TransitionKindLabel(kind)}";
+        StatusText = UiText.Format("MainViewModel", "ItemTransition", TransitionKindLabel(kind));
     }
 
     // 전환 효과 종류 → 한글 라벨(항목 전환 메뉴·슬라이드 전환 콤보 공용).
     private static string TransitionKindLabel(LyricsTransitionKind kind) => kind switch
     {
-        LyricsTransitionKind.Fade => "페이드",
-        LyricsTransitionKind.SlideFromLeft => "슬라이드(왼쪽)",
-        LyricsTransitionKind.SlideFromRight => "슬라이드(오른쪽)",
-        LyricsTransitionKind.SlideFromTop => "슬라이드(위)",
-        LyricsTransitionKind.SlideFromBottom => "슬라이드(아래)",
-        LyricsTransitionKind.ZoomIn => "줌 인",
-        LyricsTransitionKind.ZoomOut => "줌 아웃",
-        LyricsTransitionKind.Spin => "회전",
-        LyricsTransitionKind.FlipHorizontal => "뒤집기(가로)",
-        LyricsTransitionKind.FlipVertical => "뒤집기(세로)",
-        LyricsTransitionKind.RevealCircle => "원형 리빌",
-        LyricsTransitionKind.RevealRectangle => "사각 리빌",
-        LyricsTransitionKind.WipeRight => "와이프(→)",
-        LyricsTransitionKind.WipeLeft => "와이프(←)",
-        LyricsTransitionKind.WipeDown => "와이프(↓)",
-        LyricsTransitionKind.WipeUp => "와이프(↑)",
-        LyricsTransitionKind.BlindsHorizontal => "블라인드(가로)",
-        LyricsTransitionKind.BlindsVertical => "블라인드(세로)",
-        LyricsTransitionKind.Checkerboard => "체커보드",
-        LyricsTransitionKind.Diamond => "다이아몬드",
-        LyricsTransitionKind.DoorsOpen => "양문 열기",
-        LyricsTransitionKind.DoorsClose => "양문 닫기",
-        LyricsTransitionKind.Star => "별",
-        LyricsTransitionKind.Cross => "십자(2-레이어)",
-        LyricsTransitionKind.BowTie => "나비넥타이(2-레이어)",
-        LyricsTransitionKind.Heart => "하트(2-레이어)",
-        LyricsTransitionKind.Wedge => "시계 와이프",
-        LyricsTransitionKind.Spiral => "나선",
-        LyricsTransitionKind.WindMill => "바람개비",
-        LyricsTransitionKind.FanUp => "부채 펼침",
+        LyricsTransitionKind.Fade => UiText.Get("MainViewModel", "TransitionFade"),
+        LyricsTransitionKind.SlideFromLeft => UiText.Get("MainViewModel", "TransitionSlideFromLeft"),
+        LyricsTransitionKind.SlideFromRight => UiText.Get("MainViewModel", "TransitionSlideFromRight"),
+        LyricsTransitionKind.SlideFromTop => UiText.Get("MainViewModel", "TransitionSlideFromTop"),
+        LyricsTransitionKind.SlideFromBottom => UiText.Get("MainViewModel", "TransitionSlideFromBottom"),
+        LyricsTransitionKind.ZoomIn => UiText.Get("MainViewModel", "TransitionZoomIn"),
+        LyricsTransitionKind.ZoomOut => UiText.Get("MainViewModel", "TransitionZoomOut"),
+        LyricsTransitionKind.Spin => UiText.Get("MainViewModel", "TransitionSpin"),
+        LyricsTransitionKind.FlipHorizontal => UiText.Get("MainViewModel", "TransitionFlipHorizontal"),
+        LyricsTransitionKind.FlipVertical => UiText.Get("MainViewModel", "TransitionFlipVertical"),
+        LyricsTransitionKind.RevealCircle => UiText.Get("MainViewModel", "TransitionRevealCircle"),
+        LyricsTransitionKind.RevealRectangle => UiText.Get("MainViewModel", "TransitionRevealRectangle"),
+        LyricsTransitionKind.WipeRight => UiText.Get("MainViewModel", "TransitionWipeRight"),
+        LyricsTransitionKind.WipeLeft => UiText.Get("MainViewModel", "TransitionWipeLeft"),
+        LyricsTransitionKind.WipeDown => UiText.Get("MainViewModel", "TransitionWipeDown"),
+        LyricsTransitionKind.WipeUp => UiText.Get("MainViewModel", "TransitionWipeUp"),
+        LyricsTransitionKind.BlindsHorizontal => UiText.Get("MainViewModel", "TransitionBlindsHorizontal"),
+        LyricsTransitionKind.BlindsVertical => UiText.Get("MainViewModel", "TransitionBlindsVertical"),
+        LyricsTransitionKind.Checkerboard => UiText.Get("MainViewModel", "TransitionCheckerboard"),
+        LyricsTransitionKind.Diamond => UiText.Get("MainViewModel", "TransitionDiamond"),
+        LyricsTransitionKind.DoorsOpen => UiText.Get("MainViewModel", "TransitionDoorsOpen"),
+        LyricsTransitionKind.DoorsClose => UiText.Get("MainViewModel", "TransitionDoorsClose"),
+        LyricsTransitionKind.Star => UiText.Get("MainViewModel", "TransitionStar"),
+        LyricsTransitionKind.Cross => UiText.Get("MainViewModel", "TransitionCross"),
+        LyricsTransitionKind.BowTie => UiText.Get("MainViewModel", "TransitionBowTie"),
+        LyricsTransitionKind.Heart => UiText.Get("MainViewModel", "TransitionHeart"),
+        LyricsTransitionKind.Wedge => UiText.Get("MainViewModel", "TransitionWedge"),
+        LyricsTransitionKind.Spiral => UiText.Get("MainViewModel", "TransitionSpiral"),
+        LyricsTransitionKind.WindMill => UiText.Get("MainViewModel", "TransitionWindMill"),
+        LyricsTransitionKind.FanUp => UiText.Get("MainViewModel", "TransitionFanUp"),
         _ => kind.ToString(),
     };
 
@@ -10527,7 +10528,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ActiveTransitionKind = motionKind;
         OnPropertyChanged(nameof(DefaultItemTransitionKind));
         OnPropertyChanged(nameof(DefaultItemTransitionKindInput));
-        StatusText = $"Item transition: {displayName}";
+        StatusText = UiText.Format("MainViewModel", "ItemTransition", displayName);
     }
 
     public void SetDefaultSlideTransition(TransitionEffectKind kind)
@@ -10541,7 +10542,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(DefaultSlideTransitionKind));
         OnPropertyChanged(nameof(DefaultSlideTransitionKindInput));
         OnPropertyChanged(nameof(SlideTransitionKindInput));
-        StatusText = $"Slide transition: {displayName}";
+        StatusText = UiText.Format("MainViewModel", "SlideTransition", displayName);
     }
 
     public void SetSelectedItemTransition(TransitionEffectKind kind)
@@ -10552,7 +10553,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             OnPropertyChanged(nameof(SelectedItemTransitionKind));
             OnPropertyChanged(nameof(SelectedItemTransitionKindInput));
-            StatusText = $"Item transition: {displayName}{(turnedOn ? " (individual formatting on)" : "")}";
+            StatusText = UiText.Format("MainViewModel", "ItemTransitionIndividual", displayName, (turnedOn ? UiText.Get("MainViewModel", "IndividualFormatOnSuffix") : ""));
         }
     }
 
@@ -10564,7 +10565,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             OnPropertyChanged(nameof(SelectedSlideTransitionKind));
             OnPropertyChanged(nameof(SelectedSlideTransitionKindInput));
-            StatusText = $"Slide transition: {displayName}{(turnedOn ? " (individual formatting on)" : "")}";
+            StatusText = UiText.Format("MainViewModel", "SlideTransitionIndividual", displayName, (turnedOn ? UiText.Get("MainViewModel", "IndividualFormatOnSuffix") : ""));
         }
     }
 
@@ -10686,7 +10687,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             ActiveSlideTransitionKind = value;
             OnPropertyChanged(nameof(DefaultSlideTransitionKind));
             OnPropertyChanged(nameof(DefaultSlideTransitionKindInput));
-            StatusText = $"슬라이드 전환 효과: {TransitionKindLabel(value)}";
+            StatusText = UiText.Format("MainViewModel", "SlideTransition", TransitionKindLabel(value));
         }
     }
 
@@ -10785,7 +10786,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var message = OutputLiveMessage.Trim();
         _session.SetLyricsAlertMessage(message);
         OutputLiveMessage = message;
-        StatusText = "라이브 메시지 표시";
+        StatusText = UiText.Get("MainViewModel", "LiveMessageShown");
         NotifyCommandStates();
     }
 
@@ -10811,7 +10812,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             CancelReferenceAlertAutoHide();
             _session.SetReferenceAlert(visible: false, string.Empty);
-            StatusText = "구절 알림 없음";
+            StatusText = UiText.Get("MainViewModel", "NoVerseAlert");
             NotifyCommandStates();
             return;
         }
@@ -10826,7 +10827,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             CancelReferenceAlertAutoHide();
         }
 
-        StatusText = show ? "구절 알림 표시" : "구절 알림 숨김";
+        StatusText = show ? UiText.Get("MainViewModel", "VerseAlertShown") : UiText.Get("MainViewModel", "VerseAlertHidden");
         NotifyCommandStates();
     }
 
@@ -10856,7 +10857,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         _session.SetReferenceAlert(visible: false, string.Empty);
-        StatusText = "구절 알림 숨김";
+        StatusText = UiText.Get("MainViewModel", "VerseAlertHidden");
         NotifyCommandStates();
     }
 
@@ -10988,7 +10989,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         // 글자 크기·정렬·색을 레거시 FormatData(47=pt·31=정렬·29=색)로 실어 기존 곡별 오버라이드 파이프라인을 그대로 재사용.
         // 모두 0(미지정)이면 FormatData 없음 → 출력 기본 사용. 디코더가 6~100pt·정렬 1~3·ARGB 로 검증한다.
         var formatData = BuildNoticeFormatData(options);
-        var notice = new LiveQueueItem(LiveItemKinds.NoticeLiveId, "공지", LiveItemKinds.Notice)
+        var notice = new LiveQueueItem(LiveItemKinds.NoticeLiveId, UiText.Get("MainViewModel", "NoticeTitle"), LiveItemKinds.Notice)
         {
             Lyrics = text,
             FormatData = formatData,
@@ -11000,7 +11001,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         // 책임진다(여기서 건드리지 않음) — 공지 중 조옮김을 눌러도 RepublishLiveSongForBodyChange 가 센티넬을
         // 큐에서 못 찾아 무시하므로 안전하다.
         _session.GoLive(notice, monitorName);
-        StatusText = "공지 화면 송출";
+        StatusText = UiText.Get("MainViewModel", "NoticeShown");
         NotifyCommandStates();
         return true;
     }
@@ -11016,7 +11017,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         _session.HideOutput(blackout: true);
         SetLiveItemId(null);
-        StatusText = "공지 숨김(검은 화면)";
+        StatusText = UiText.Get("MainViewModel", "NoticeHidden");
         NotifyCommandStates();
     }
 
@@ -11038,7 +11039,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         _settings.Set(AxicultusSettingKeys.LyricsMonitorBackgroundImagePath, imagePath);
         ActiveOutputBackgroundImagePath = imagePath;
-        StatusText = $"출력 배경 이미지: {System.IO.Path.GetFileName(imagePath)}";
+        StatusText = UiText.Format("MainViewModel", "OutputBackImage", System.IO.Path.GetFileName(imagePath));
     }
 
     public void ApplyImageBackgroundItemFirst(string? imagePath)
@@ -11067,7 +11068,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         _settings.Set(AxicultusSettingKeys.LyricsMonitorBackgroundImagePath, string.Empty);
         ActiveOutputBackgroundImagePath = string.Empty;
-        StatusText = "출력 배경 이미지 해제";
+        StatusText = UiText.Get("MainViewModel", "OutputBackImageCleared");
     }
 
     // 인-셸 가사 폰트 크기 조절(+/- 단계) — 절대값 커밋 함수에 위임(직접 수치 입력과 동일 경로).
@@ -11079,11 +11080,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             [AxicultusSettingKeys.DefaultMediaPath.Id] = normalized,
             [AxicultusSettingKeys.DefaultMediaFormat.Id] = options?.ApplyTo("") ?? ""
         });
-        if (!result.Succeeded) { StatusText = "기본 미디어 설정을 저장할 수 없습니다."; return; }
+        if (!result.Succeeded) { StatusText = UiText.Get("MainViewModel", "DefaultMediaSaveFailed"); return; }
         NotifyDefaultMediaProperties();
-        StatusText = options is { Mode: 1 or 3 } ? "기본 미디어 설정을 저장했습니다." : string.IsNullOrWhiteSpace(normalized)
-            ? "Default media cleared"
-            : $"Default media: {Path.GetFileName(normalized)}";
+        StatusText = options is { Mode: 1 or 3 } ? UiText.Get("MainViewModel", "DefaultMediaSaved") : string.IsNullOrWhiteSpace(normalized)
+            ? UiText.Get("MainViewModel", "DefaultMediaCleared")
+            : UiText.Format("MainViewModel", "DefaultMedia", Path.GetFileName(normalized));
     }
 
     private void ClearDefaultMedia()
@@ -11112,7 +11113,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         _settings.Set(AxicultusSettingKeys.LyricsMonitorFontSize, next);
         ActiveLyricsFontSize = next;
-        StatusText = $"가사 크기: {next}px";
+        StatusText = UiText.Format("MainViewModel", "LyricsSize", next);
     }
 
     /// <summary>가사 폰트 크기 직접 수치 입력(TextBox 양방향 바인딩). 범위 밖 값은 클램프되고 입력 박스가 자동 보정된다.</summary>
@@ -11186,7 +11187,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         _settings.Set(AxicultusSettingKeys.LyricsMonitorFontFamily, next);
         ActiveLyricsFontFamily = next;
-        StatusText = next.Length == 0 ? "출력 글꼴: 기본(테마)" : $"출력 글꼴: {next}";
+        StatusText = next.Length == 0 ? UiText.Get("MainViewModel", "OutputFontDefault") : UiText.Format("MainViewModel", "OutputFont", next);
     }
 
     // 글꼴명이 다른 경로(설정 창·기본값 복원 등)로 바뀌어도 콤보가 따라가도록 통지.
@@ -11213,7 +11214,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         _settings.Set(AxicultusSettingKeys.LyricsMonitorFontFamily2, next);
         ActiveLyricsFontFamily2 = next;
-        StatusText = next.Length == 0 ? "보조영역 글꼴: 본문과 동일" : $"보조영역 글꼴: {next}";
+        StatusText = next.Length == 0 ? UiText.Get("MainViewModel", "Region2FontSameShort") : UiText.Format("MainViewModel", "Region2FontShort", next);
     }
 
     // 보조영역 글꼴명이 다른 경로로 바뀌어도 콤보가 따라가도록 통지.
@@ -11222,12 +11223,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// <summary>보조 영역(Region2) 글자색 콤보의 (라벨 → ARGB) 프리셋. 0=본문 색 추종, 그 외는 불투명(0xFF..) 색.</summary>
     public IReadOnlyList<KeyValuePair<string, int>> LyricsTextColor2Presets { get; } =
     [
-        new("본문과 동일", 0),
-        new("흰색", unchecked((int)0xFFFFFFFF)),
-        new("노랑", unchecked((int)0xFFFFE066)),
-        new("하늘", unchecked((int)0xFF66CCFF)),
-        new("연두", unchecked((int)0xFF99E066)),
-        new("연회색", unchecked((int)0xFFCCCCCC)),
+        new(UiText.Get("MainViewModel", "SameAsMain"), 0),
+        new(UiText.Get("MainViewModel", "ColorWhite"), unchecked((int)0xFFFFFFFF)),
+        new(UiText.Get("MainViewModel", "ColorYellow"), unchecked((int)0xFFFFE066)),
+        new(UiText.Get("MainViewModel", "ColorSkyBlue"), unchecked((int)0xFF66CCFF)),
+        new(UiText.Get("MainViewModel", "ColorLightGreen"), unchecked((int)0xFF99E066)),
+        new(UiText.Get("MainViewModel", "ColorLightGray"), unchecked((int)0xFFCCCCCC)),
     ];
 
     /// <summary>보조 영역(Region2) 전역 글자색 선택(콤보 양방향 바인딩). 0=본문(Region1) 색 추종. 바뀌면 설정 저장(라이브 반영).</summary>
@@ -11243,7 +11244,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
             _settings.Set(AxicultusSettingKeys.LyricsMonitorTextColor2Argb, value);
             ActiveLyricsTextColor2Argb = value;
-            StatusText = value == 0 ? "보조영역 글자색: 본문과 동일" : $"보조영역 글자색: {FormatColorHex(value)}";
+            StatusText = value == 0 ? UiText.Get("MainViewModel", "Region2TextColorSameShort") : UiText.Format("MainViewModel", "Region2TextColorShort", FormatColorHex(value));
         }
     }
 
@@ -11253,10 +11254,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// <summary>보조 영역(Region2) 가로 정렬 콤보의 (라벨 → 모드) 프리셋. FollowRegion1=본문 정렬 추종.</summary>
     public IReadOnlyList<KeyValuePair<string, LyricsRegion2Alignment>> LyricsRegion2AlignmentPresets { get; } =
     [
-        new("본문과 동일", LyricsRegion2Alignment.FollowRegion1),
-        new("왼쪽", LyricsRegion2Alignment.Left),
-        new("가운데", LyricsRegion2Alignment.Center),
-        new("오른쪽", LyricsRegion2Alignment.Right),
+        new(UiText.Get("MainViewModel", "SameAsMain"), LyricsRegion2Alignment.FollowRegion1),
+        new(UiText.Get("MainViewModel", "AlignLeft"), LyricsRegion2Alignment.Left),
+        new(UiText.Get("MainViewModel", "AlignCenter"), LyricsRegion2Alignment.Center),
+        new(UiText.Get("MainViewModel", "AlignRight"), LyricsRegion2Alignment.Right),
     ];
 
     /// <summary>보조 영역(Region2) 전역 가로 정렬 선택(콤보 양방향 바인딩). FollowRegion1=본문 정렬 추종. 바뀌면 설정 저장(라이브 반영).</summary>
@@ -11273,8 +11274,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             _settings.Set(AxicultusSettingKeys.LyricsMonitorRegion2Alignment, value);
             ActiveLyricsRegion2Alignment = value;
             StatusText = value == LyricsRegion2Alignment.FollowRegion1
-                ? "보조영역 정렬: 본문과 동일"
-                : $"보조영역 정렬: {value}";
+                ? UiText.Get("MainViewModel", "Region2AlignmentSameShort")
+                : UiText.Format("MainViewModel", "Region2AlignmentShort", value);
         }
     }
 
@@ -11284,9 +11285,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// <summary>보조 영역(Region2) 굵게 콤보의 (라벨 → 3-상태) 프리셋. FollowRegion1=본문 굵게 추종.</summary>
     public IReadOnlyList<KeyValuePair<string, LyricsRegion2Emphasis>> LyricsRegion2BoldPresets { get; } =
     [
-        new("본문과 동일", LyricsRegion2Emphasis.FollowRegion1),
-        new("굵게", LyricsRegion2Emphasis.On),
-        new("보통", LyricsRegion2Emphasis.Off),
+        new(UiText.Get("MainViewModel", "SameAsMain"), LyricsRegion2Emphasis.FollowRegion1),
+        new(UiText.Get("MainViewModel", "EmphasisBold"), LyricsRegion2Emphasis.On),
+        new(UiText.Get("MainViewModel", "EmphasisRegular"), LyricsRegion2Emphasis.Off),
     ];
 
     /// <summary>보조 영역(Region2) 전역 굵게 선택(콤보 양방향 바인딩). FollowRegion1=본문 굵게 추종. 바뀌면 설정 저장(라이브 반영).</summary>
@@ -11304,9 +11305,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             ActiveLyricsRegion2Bold = value;
             StatusText = value switch
             {
-                LyricsRegion2Emphasis.On => "보조영역 굵게: 켬",
-                LyricsRegion2Emphasis.Off => "보조영역 굵게: 보통",
-                _ => "보조영역 굵게: 본문과 동일",
+                LyricsRegion2Emphasis.On => UiText.Get("MainViewModel", "Region2BoldOn"),
+                LyricsRegion2Emphasis.Off => UiText.Get("MainViewModel", "Region2BoldOff"),
+                _ => UiText.Get("MainViewModel", "Region2BoldSame"),
             };
         }
     }
@@ -11317,9 +11318,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// <summary>보조 영역(Region2) 기울임 콤보의 (라벨 → 3-상태) 프리셋. FollowRegion1=본문 기울임 추종.</summary>
     public IReadOnlyList<KeyValuePair<string, LyricsRegion2Emphasis>> LyricsRegion2ItalicPresets { get; } =
     [
-        new("본문과 동일", LyricsRegion2Emphasis.FollowRegion1),
-        new("기울임", LyricsRegion2Emphasis.On),
-        new("곧게", LyricsRegion2Emphasis.Off),
+        new(UiText.Get("MainViewModel", "SameAsMain"), LyricsRegion2Emphasis.FollowRegion1),
+        new(UiText.Get("MainViewModel", "EmphasisItalic"), LyricsRegion2Emphasis.On),
+        new(UiText.Get("MainViewModel", "EmphasisUpright"), LyricsRegion2Emphasis.Off),
     ];
 
     /// <summary>보조 영역(Region2) 전역 기울임 선택(콤보 양방향 바인딩). FollowRegion1=본문 기울임 추종. 바뀌면 설정 저장(라이브 반영).</summary>
@@ -11337,9 +11338,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             ActiveLyricsRegion2Italic = value;
             StatusText = value switch
             {
-                LyricsRegion2Emphasis.On => "보조영역 기울임: 켬",
-                LyricsRegion2Emphasis.Off => "보조영역 기울임: 곧게",
-                _ => "보조영역 기울임: 본문과 동일",
+                LyricsRegion2Emphasis.On => UiText.Get("MainViewModel", "Region2ItalicOn"),
+                LyricsRegion2Emphasis.Off => UiText.Get("MainViewModel", "Region2ItalicOff"),
+                _ => UiText.Get("MainViewModel", "Region2ItalicSame"),
             };
         }
     }
@@ -11350,9 +11351,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// <summary>보조 영역(Region2) 밑줄 콤보의 (라벨 → 3-상태) 프리셋. FollowRegion1=본문 밑줄 추종.</summary>
     public IReadOnlyList<KeyValuePair<string, LyricsRegion2Emphasis>> LyricsRegion2UnderlinePresets { get; } =
     [
-        new("본문과 동일", LyricsRegion2Emphasis.FollowRegion1),
-        new("밑줄", LyricsRegion2Emphasis.On),
-        new("없음", LyricsRegion2Emphasis.Off),
+        new(UiText.Get("MainViewModel", "SameAsMain"), LyricsRegion2Emphasis.FollowRegion1),
+        new(UiText.Get("MainViewModel", "EmphasisUnderline"), LyricsRegion2Emphasis.On),
+        new(UiText.Get("MainViewModel", "EmphasisNone"), LyricsRegion2Emphasis.Off),
     ];
 
     /// <summary>보조 영역(Region2) 전역 밑줄 선택(콤보 양방향 바인딩). FollowRegion1=본문 밑줄 추종. 바뀌면 설정 저장(라이브 반영).</summary>
@@ -11370,9 +11371,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             ActiveLyricsRegion2Underline = value;
             StatusText = value switch
             {
-                LyricsRegion2Emphasis.On => "보조영역 밑줄: 켬",
-                LyricsRegion2Emphasis.Off => "보조영역 밑줄: 없음",
-                _ => "보조영역 밑줄: 본문과 동일",
+                LyricsRegion2Emphasis.On => UiText.Get("MainViewModel", "Region2UnderlineOn"),
+                LyricsRegion2Emphasis.Off => UiText.Get("MainViewModel", "Region2UnderlineOff"),
+                _ => UiText.Get("MainViewModel", "Region2UnderlineSame"),
             };
         }
     }
@@ -11391,7 +11392,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         _settings.Set(AxicultusSettingKeys.LyricsMonitorPanelFontScalePercent, next);
         ActivePanelFontScale = next;
-        StatusText = $"패널 글자 크기: {next}%";
+        StatusText = UiText.Format("MainViewModel", "PanelFontSize", next);
     }
 
     // 보조 영역(Region2) 전역 폰트 크기 절대값 커밋 — 0(자동=본문 동일)은 허용, 그 외엔 24~120 으로 클램프(FrmMain Ind_Reg2SizeUpDown).
@@ -11406,7 +11407,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         _settings.Set(AxicultusSettingKeys.LyricsMonitorFontSize2, next);
         ActiveLyricsFontSize2 = next;
-        StatusText = next == 0 ? "보조영역 크기: 본문과 동일(자동)" : $"보조영역 크기: {next}px";
+        StatusText = next == 0 ? UiText.Get("MainViewModel", "Region2SizeSame") : UiText.Format("MainViewModel", "Region2Size", next);
     }
 
     /// <summary>보조 영역(Region2) 폰트 크기 직접 수치 입력. 0=본문과 동일(자동), 그 외 24~120 클램프.</summary>
@@ -11433,7 +11434,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         _settings.Set(AxicultusSettingKeys.LyricsMonitorLineSpacingPercent, next);
         ActiveLyricsLineSpacing = next;
-        StatusText = $"줄 간격: {next}%";
+        StatusText = UiText.Format("MainViewModel", "LineSpacing", next);
     }
 
     /// <summary>가사 줄 간격(%) 직접 수치 입력(TextBox 양방향 바인딩). 범위 밖 값은 클램프되고 입력 박스가 자동 보정된다.</summary>
@@ -11461,7 +11462,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         _settings.Set(AxicultusSettingKeys.LyricsMonitorBodyLeftMargin, next);
         ActiveLyricsLeftMargin = next;
-        StatusText = $"본문 왼쪽 여백: {next}px";
+        StatusText = UiText.Format("MainViewModel", "MainLeftMargin", next);
     }
 
     /// <summary>본문 왼쪽 여백 직접 수치 입력(TextBox 양방향). 범위 밖 값은 클램프되고 입력 박스가 자동 보정.</summary>
@@ -11487,7 +11488,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         _settings.Set(AxicultusSettingKeys.LyricsMonitorBodyRightMargin, next);
         ActiveLyricsRightMargin = next;
-        StatusText = $"본문 오른쪽 여백: {next}px";
+        StatusText = UiText.Format("MainViewModel", "MainRightMargin", next);
     }
 
     /// <summary>본문 오른쪽 여백 직접 수치 입력(TextBox 양방향).</summary>
@@ -11510,7 +11511,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         _settings.Set(AxicultusSettingKeys.LyricsMonitorRegionGapPx, next);
         ActiveRegionGap = next;
-        StatusText = $"영역 간 간격: {next}px";
+        StatusText = UiText.Format("MainViewModel", "RegionGap", next);
     }
 
     // 본문 세로 위치 오프셋 조절(+/- 단계, px) — 영역 간격 증감과 동일 구조. 범위 클램프 후 설정 저장(FrmMain Ind_Reg1TopUpDown).
@@ -11524,7 +11525,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         _settings.Set(AxicultusSettingKeys.LyricsMonitorBodyVerticalOffset, next);
         ActiveBodyVerticalOffset = next;
-        StatusText = next == 0 ? "본문 세로 위치: 기본" : $"본문 세로 위치: {(next > 0 ? "+" : "")}{next}px";
+        StatusText = next == 0 ? UiText.Get("MainViewModel", "MainVerticalOffsetDefault") : UiText.Format("MainViewModel", "MainVerticalOffset", (next > 0 ? "+" : ""), next);
     }
 
     // 본문 아래 여백 조절(+/- 단계) — 절대값 커밋에 위임(FrmMain ShowBottomMargin).
@@ -11541,7 +11542,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         _settings.Set(AxicultusSettingKeys.LyricsMonitorBodyBottomMargin, next);
         ActiveLyricsBottomMargin = next;
-        StatusText = $"본문 아래 여백: {next}px";
+        StatusText = UiText.Format("MainViewModel", "MainBottomMargin", next);
     }
 
     /// <summary>본문 아래 여백 직접 수치 입력(TextBox 양방향).</summary>
@@ -11565,7 +11566,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         var match = OutputAppearancePresets.FirstOrDefault(p =>
             p.TextArgb == textColorArgb && p.Background1Argb == bg1 && p.Background2Argb == bg2 && p.IsGradient == gradient);
-        ActiveAppearanceName = match?.Name ?? "사용자 지정";
+        ActiveAppearanceName = match?.Name ?? UiText.Get("MainViewModel", "CustomAppearance");
 
         // 가사 정렬(가로/세로)·폰트 크기 활성 상태도 함께 동기화(Settings 창 등 다른 경로 변경도 인스펙터가 따라가도록).
         ActiveLyricsAlignment = _settings.Get(AxicultusSettingKeys.LyricsMonitorTextAlignment);
@@ -11676,11 +11677,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         HasPowerPointLimitViolation = PowerPointFileCount > PowerPointMaxFiles;
         if (updateStatus && HasPowerPointLimitViolation)
         {
-            StatusText = $"PowerPoint 제한 초과: {PowerPointFileCount}/{PowerPointMaxFiles}";
+            StatusText = UiText.Format("MainViewModel", "PowerPointLimitExceeded", PowerPointFileCount, PowerPointMaxFiles);
         }
         else if (updateStatus && wasViolation)
         {
-            StatusText = Queue.Count == 0 ? "송출할 항목이 없습니다" : $"{Queue.Count}개 항목 로드됨";
+            StatusText = Queue.Count == 0 ? UiText.Get("MainViewModel", "NothingToShow") : UiText.Format("MainViewModel", "ItemsLoaded", Queue.Count);
         }
     }
 
@@ -11721,7 +11722,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private async Task SetPowerPointBlackoutAsync(bool black)
     {
         try { await _powerPointSlideShow.SetBlackoutAsync(black).ConfigureAwait(true); }
-        catch (Exception ex) { StatusText = $"PowerPoint 암전 전환 실패: {ex.Message}"; }
+        catch (Exception ex) { StatusText = UiText.Format("MainViewModel", "PowerPointBlackoutFailed", ex.Message); }
     }
 
     // The native slide show is a window of its own over the audience window. While it is blacked, and when the
@@ -11736,7 +11737,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             {
                 if ((_powerPointSlideShow.HasOutputShow || _nativeShowMayExist)
                     && await StopPowerPointSlideShowForLiveAsync().ConfigureAwait(true) is { } stopError)
-                    StatusText = $"PowerPoint 슬라이드 쇼 종료 실패: {stopError}";
+                    StatusText = UiText.Format("MainViewModel", "SlideShowStopFailed", stopError);
                 return;
             }
 
@@ -11752,7 +11753,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 && unblack && !_nativeBlackout)
                 await SetPowerPointBlackoutAsync(false).ConfigureAwait(true);
         }
-        catch (Exception ex) { StatusText = $"PowerPoint 슬라이드 쇼 맞춤 실패: {ex.Message}"; }
+        catch (Exception ex) { StatusText = UiText.Format("MainViewModel", "SlideShowFitFailed", ex.Message); }
     }
 
     private void ApplyLiveSnapshot(LiveSessionSnapshot snapshot)
@@ -11965,8 +11966,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             if (!options.GlobalArrow && !(modifiers == System.Windows.Input.ModifierKeys.Control && options.GlobalCtrlArrow)) continue;
             foreach (var (key, command, label) in new[] {
-                (System.Windows.Input.Key.Up, MainCommandIds.LivePrevious, "이전 슬라이드"),
-                (System.Windows.Input.Key.Down, MainCommandIds.LiveNext, "다음 슬라이드") })
+                (System.Windows.Input.Key.Up, MainCommandIds.LivePrevious, UiText.Get("MainViewModel", "PreviousSlide")),
+                (System.Windows.Input.Key.Down, MainCommandIds.LiveNext, UiText.Get("MainViewModel", "NextSlide")) })
             {
                 if (!shortcuts.Any(s => s.Key == key && s.Modifiers == modifiers))
                     shortcuts.Add(new(key, modifiers, command, true, label));

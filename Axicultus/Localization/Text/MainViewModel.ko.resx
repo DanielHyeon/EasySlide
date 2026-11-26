@@ -1,0 +1,477 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Ready" xml:space="preserve"><value>WPF 운영 준비됨</value></data>
+  <data name="GapShown" xml:space="preserve"><value>대기 화면 송출 중</value></data>
+  <data name="AlignLeft" xml:space="preserve"><value>왼쪽</value></data>
+  <data name="AlignRight" xml:space="preserve"><value>오른쪽</value></data>
+  <data name="AlignCenter" xml:space="preserve"><value>가운데</value></data>
+  <data name="AlignTop" xml:space="preserve"><value>위</value></data>
+  <data name="AlignBottom" xml:space="preserve"><value>아래</value></data>
+  <data name="WorshipListImported" xml:space="preserve"><value>예배 순서 가져옴: {0} ({1}개 항목)</value></data>
+  <data name="ImportedListName" xml:space="preserve"><value>가져온 예배 순서</value></data>
+  <data name="PresetWhiteOnBlack" xml:space="preserve"><value>흰 글자 · 검정</value></data>
+  <data name="PresetWhiteOnNavyGradient" xml:space="preserve"><value>흰 글자 · 네이비 그라데이션</value></data>
+  <data name="PresetBlackOnWhite" xml:space="preserve"><value>검정 글자 · 흰 배경</value></data>
+  <data name="PresetYellowOnDeepNavy" xml:space="preserve"><value>노랑 글자 · 진남색</value></data>
+  <data name="LiveItemSelected" xml:space="preserve"><value>현재 송출 항목 선택: {0}</value></data>
+  <data name="ItemAlreadyRemoved" xml:space="preserve"><value>이미 예배 순서에서 제거된 항목입니다.</value></data>
+  <data name="ProblemItemSelected" xml:space="preserve"><value>검증 문제 항목 선택: {0}</value></data>
+  <data name="VersePosition" xml:space="preserve"><value>{0}/{1}절</value></data>
+  <data name="OriginalKey" xml:space="preserve"><value>원조</value></data>
+  <data name="TransposeLabel" xml:space="preserve"><value>조옮김 {0}{1}</value></data>
+  <data name="NothingToShow" xml:space="preserve"><value>송출할 항목이 없습니다</value></data>
+  <data name="ItemsLoaded" xml:space="preserve"><value>{0}개 항목 로드됨</value></data>
+  <data name="BibleVersesAdded" xml:space="preserve"><value>성경 구절 추가됨: {0}</value></data>
+  <data name="TextItemAdded" xml:space="preserve"><value>텍스트 항목 추가됨: {0}</value></data>
+  <data name="NoTextToAdd" xml:space="preserve"><value>추가할 텍스트가 없습니다.</value></data>
+  <data name="WordReadFailed" xml:space="preserve"><value>Word 문서를 읽지 못했습니다(Word 설치 필요 또는 빈 문서).</value></data>
+  <data name="TextFileEmpty" xml:space="preserve"><value>추가할 텍스트 파일 내용이 없습니다.</value></data>
+  <data name="TextFileItemAdded" xml:space="preserve"><value>텍스트 파일 항목 추가: {0}</value></data>
+  <data name="TextItemTitle" xml:space="preserve"><value>텍스트</value></data>
+  <data name="NoSongSelected" xml:space="preserve"><value>선택된 곡이 없습니다.</value></data>
+  <data name="SongAdded" xml:space="preserve"><value>곡 추가됨: {0}</value></data>
+  <data name="NoBibleVersesSelected" xml:space="preserve"><value>선택된 성경 구절이 없습니다.</value></data>
+  <data name="SelectSongItemToEdit" xml:space="preserve"><value>편집할 곡 항목을 선택하세요.</value></data>
+  <data name="EditedSongMismatch" xml:space="preserve"><value>편집한 곡과 선택 항목이 일치하지 않습니다.</value></data>
+  <data name="SelectedItemNotInList" xml:space="preserve"><value>선택 항목을 예배 순서에서 찾을 수 없습니다.</value></data>
+  <data name="ListItemUpdated" xml:space="preserve"><value>예배 순서 항목 갱신: {0}</value></data>
+  <data name="SelectBibleOrTextToEdit" xml:space="preserve"><value>편집할 성경/텍스트 항목을 선택하세요.</value></data>
+  <data name="NoTextToEdit" xml:space="preserve"><value>편집할 본문이 없습니다.</value></data>
+  <data name="WorshipListHasNoItems" xml:space="preserve"><value>현재 예배 순서에 항목이 없습니다.</value></data>
+  <data name="NoDatabaseSongsInList" xml:space="preserve"><value>예배 순서에 데이터베이스 곡 항목이 없습니다.</value></data>
+  <data name="UsageRecordFailed" xml:space="preserve"><value>사용 이력 기록 실패</value></data>
+  <data name="UsageRecordFailedDetail" xml:space="preserve"><value>사용 이력 기록 실패: {0}</value></data>
+  <data name="UsageAddedOne" xml:space="preserve"><value>사용 이력에 데이터베이스 곡 1개 추가됨</value></data>
+  <data name="UsageAddedMany" xml:space="preserve"><value>사용 이력에 데이터베이스 곡 {0}개 추가됨</value></data>
+  <data name="NoPraiseBookSelected" xml:space="preserve"><value>찬양집 선택 없음</value></data>
+  <data name="PraiseBookPreview" xml:space="preserve"><value>찬양집 미리보기: {0}</value></data>
+  <data name="PraiseBookSongDeleted" xml:space="preserve"><value>라이브러리에서 삭제된 찬양집 곡입니다: {0}</value></data>
+  <data name="PraiseBookSongUnknown" xml:space="preserve"><value>찬양집 곡을 식별할 수 없습니다: {0}</value></data>
+  <data name="SongNotInLibrary" xml:space="preserve"><value>라이브러리에서 곡을 찾을 수 없습니다: {0}</value></data>
+  <data name="NoSearchResultSelected" xml:space="preserve"><value>선택된 검색 결과가 없습니다.</value></data>
+  <data name="NoTitleSelected" xml:space="preserve"><value>선택된 제목이 없습니다.</value></data>
+  <data name="SearchDatabasePathNotSet" xml:space="preserve"><value>검색 데이터베이스 경로가 설정되지 않았습니다.</value></data>
+  <data name="SongNotFound" xml:space="preserve"><value>곡을 찾을 수 없습니다: {0}</value></data>
+  <data name="ItemDuplicated" xml:space="preserve"><value>항목 복제: {0}</value></data>
+  <data name="ItemsRemoved" xml:space="preserve"><value>항목 {0}개 제거</value></data>
+  <data name="ItemRemoved" xml:space="preserve"><value>항목 제거: {0}</value></data>
+  <data name="MoveListToTrashFailed" xml:space="preserve"><value>예배 순서를 휴지통으로 이동하지 못했습니다. {0}</value></data>
+  <data name="ListCleared" xml:space="preserve"><value>예배 순서 {0}개 항목을 비웠습니다 (되돌리기로 복구 가능)</value></data>
+  <data name="ListRestored" xml:space="preserve"><value>예배 순서 {0}개 항목을 복구했습니다</value></data>
+  <data name="PowerPointFileLabel" xml:space="preserve"><value>PowerPoint 파일</value></data>
+  <data name="MediaFileLabel" xml:space="preserve"><value>미디어 파일</value></data>
+  <data name="ExternalFilesAddedSkipped" xml:space="preserve"><value>외부 파일 {0}개 추가, {1}개 건너뜀(지원하지 않는 형식)</value></data>
+  <data name="ExternalFilesAdded" xml:space="preserve"><value>외부 파일 {0}개 추가</value></data>
+  <data name="NoFileSelected" xml:space="preserve"><value>선택된 {0}이 없습니다.</value></data>
+  <data name="FileItemAdded" xml:space="preserve"><value>{0} 추가됨: {1}</value></data>
+  <data name="EnterListNameToSave" xml:space="preserve"><value>저장할 예배 순서 이름을 입력하세요.</value></data>
+  <data name="SessionNotesSaveFailed" xml:space="preserve"><value>예배 순서를 저장했지만 세션 메모를 저장할 수 없습니다.</value></data>
+  <data name="ListSaved" xml:space="preserve"><value>예배 순서 저장됨: {0} ({1}개)</value></data>
+  <data name="ListNameInvalid" xml:space="preserve"><value>예배 순서 이름에 사용할 수 없는 문자가 있습니다.</value></data>
+  <data name="ListSaveFailed" xml:space="preserve"><value>예배 순서 저장 실패: {0}</value></data>
+  <data name="NoSessionNameToSave" xml:space="preserve"><value>저장할 세션 이름이 없습니다. '순서' 버튼에서 이름을 정해 저장하세요.</value></data>
+  <data name="ListNotFound" xml:space="preserve"><value>예배 순서를 찾을 수 없습니다: {0}</value></data>
+  <data name="ListLoaded" xml:space="preserve"><value>예배 순서 불러옴: {0} ({1}개)</value></data>
+  <data name="ListLoadFailed" xml:space="preserve"><value>예배 순서 불러오기 실패: {0}</value></data>
+  <data name="SongsKeptFromList" xml:space="preserve"><value> — 곡 {0}개는 데이터베이스의 같은 번호 곡과 제목·가사가 달라 저장된 내용을 유지</value></data>
+  <data name="SongDatabaseUnreadable" xml:space="preserve"><value>곡 데이터베이스를 읽을 수 없습니다: {0}</value></data>
+  <data name="ListMerged" xml:space="preserve"><value>예배 순서 병합: {0} ({1}개 추가, 총 {2}개)</value></data>
+  <data name="ListMergeFailed" xml:space="preserve"><value>예배 순서 병합 실패: {0}</value></data>
+  <data name="LegacyListImported" xml:space="preserve"><value>레거시 예배 순서 가져옴: {0}개 항목</value></data>
+  <data name="TransposeOriginal" xml:space="preserve"><value>조옮김: 원조</value></data>
+  <data name="TransposeStatus" xml:space="preserve"><value>조옮김: {0}</value></data>
+  <data name="SongNotInDatabaseShownFromList" xml:space="preserve"><value>{0}: 가사 데이터베이스에 없는 곡입니다(예배 순서에 저장된 가사로 송출).</value></data>
+  <data name="SongNotInDatabase" xml:space="preserve"><value>{0}: 곡을 가사 데이터베이스에서 찾을 수 없습니다.</value></data>
+  <data name="ListEmpty" xml:space="preserve"><value>예배 순서가 비어 있습니다.</value></data>
+  <data name="ValidationAllGood" xml:space="preserve"><value>예배 순서 검증: 모든 항목 정상 ({0}개).</value></data>
+  <data name="ValidationMore" xml:space="preserve"><value> 외 {0}건</value></data>
+  <data name="ValidationProblems" xml:space="preserve"><value>예배 순서 검증: 문제 {0}건 — {1}</value></data>
+  <data name="ValidationSkippedNoPath" xml:space="preserve"><value> (곡 데이터베이스 검증 생략 — 데이터베이스 경로 없음)</value></data>
+  <data name="ValidationSkipped" xml:space="preserve"><value> (곡 데이터베이스 검증 생략 — {0})</value></data>
+  <data name="ListDeleteFailed" xml:space="preserve"><value>예배 순서를 삭제하지 못했습니다: {0}</value></data>
+  <data name="ListDeleted" xml:space="preserve"><value>예배 순서 삭제됨: {0}</value></data>
+  <data name="TrashUnreadable" xml:space="preserve"><value>휴지통을 읽을 수 없습니다: {0}</value></data>
+  <data name="VerbRestored" xml:space="preserve"><value>복원</value></data>
+  <data name="VerbDeletedForGood" xml:space="preserve"><value>영구 삭제</value></data>
+  <data name="TrashChanged" xml:space="preserve"><value>예배 순서 {0}: {1}개</value></data>
+  <data name="TrashChangedWithFailures" xml:space="preserve"><value>예배 순서 {0}: {1}개, 실패 {2}개 — {3}</value></data>
+  <data name="RenameEmpty" xml:space="preserve"><value>이름이 비어 있어 변경할 수 없습니다.</value></data>
+  <data name="NameExists" xml:space="preserve"><value>이미 있는 이름입니다: {0}</value></data>
+  <data name="RenameFailed" xml:space="preserve"><value>이름을 바꾸지 못했습니다: {0}</value></data>
+  <data name="ListRenamed" xml:space="preserve"><value>예배 순서 이름 변경: {0} → {1}</value></data>
+  <data name="OutputMonitorMoved" xml:space="preserve"><value>출력 모니터 이동: {0}</value></data>
+  <data name="NoStageMonitorScreen" xml:space="preserve"><value>스테이지 모니터로 사용할 별도 화면이 없습니다.</value></data>
+  <data name="StageMonitorOpened" xml:space="preserve"><value>스테이지 모니터 열림: {0}</value></data>
+  <data name="StageMonitorClosed" xml:space="preserve"><value>스테이지 모니터 닫힘</value></data>
+  <data name="StageMonitorMoved" xml:space="preserve"><value>스테이지 모니터 이동: {0}</value></data>
+  <data name="NoItemSelected" xml:space="preserve"><value>선택 항목 없음</value></data>
+  <data name="InfoTitle" xml:space="preserve"><value>제목: {0}</value></data>
+  <data name="InfoKind" xml:space="preserve"><value>종류: {0}</value></data>
+  <data name="InfoIndividualFormat" xml:space="preserve"><value>개별 서식: {0}</value></data>
+  <data name="InfoSongNumber" xml:space="preserve"><value>곡 번호: {0}</value></data>
+  <data name="InfoFile" xml:space="preserve"><value>파일: {0}</value></data>
+  <data name="InfoSlide" xml:space="preserve"><value>슬라이드: {0}</value></data>
+  <data name="InfoSequence" xml:space="preserve"><value>절 순서: {0}</value></data>
+  <data name="InfoCopyright" xml:space="preserve"><value>저작권: {0}</value></data>
+  <data name="InfoFormatData" xml:space="preserve"><value>서식 데이터: {0}</value></data>
+  <data name="InfoLyricsLines" xml:space="preserve"><value>가사 줄: {0}</value></data>
+  <data name="KindSong" xml:space="preserve"><value>곡</value></data>
+  <data name="KindBible" xml:space="preserve"><value>성경</value></data>
+  <data name="KindMedia" xml:space="preserve"><value>미디어</value></data>
+  <data name="KindNotice" xml:space="preserve"><value>공지</value></data>
+  <data name="KindItem" xml:space="preserve"><value>항목</value></data>
+  <data name="PanelWaiting" xml:space="preserve"><value>대기</value></data>
+  <data name="PanelSelected" xml:space="preserve"><value>선택</value></data>
+  <data name="PanelSelectedAt" xml:space="preserve"><value>선택 {0}</value></data>
+  <data name="PanelReady" xml:space="preserve"><value>준비</value></data>
+  <data name="LyricsVersePosition" xml:space="preserve"><value>가사 {0}/{1}절</value></data>
+  <data name="AutoRotateOn" xml:space="preserve"><value>자동 회전 켬 ({0}초)</value></data>
+  <data name="AutoRotateOff" xml:space="preserve"><value>자동 회전 끔</value></data>
+  <data name="AutoRotateDoneItem" xml:space="preserve"><value>자동 회전 완료(한 항목)</value></data>
+  <data name="AutoRotateDoneGroup" xml:space="preserve"><value>자동 회전 완료(그룹 끝)</value></data>
+  <data name="GapModeNone" xml:space="preserve"><value>없음(대기 문구)</value></data>
+  <data name="GapModeBlack" xml:space="preserve"><value>검정(검은 화면)</value></data>
+  <data name="GapModeDefault" xml:space="preserve"><value>기본(대기 문구)</value></data>
+  <data name="GapModeLogo" xml:space="preserve"><value>로고 이미지</value></data>
+  <data name="GapModeStatus" xml:space="preserve"><value>대기 화면 모드: {0}</value></data>
+  <data name="GapFadeOn" xml:space="preserve"><value>대기 화면 페이드: 켜짐</value></data>
+  <data name="GapFadeOff" xml:space="preserve"><value>대기 화면 페이드: 꺼짐</value></data>
+  <data name="GapLogoCleared" xml:space="preserve"><value>대기 화면 로고: 지움</value></data>
+  <data name="GapLogoSet" xml:space="preserve"><value>대기 화면 로고: {0}</value></data>
+  <data name="ItemContentLoadFailed" xml:space="preserve"><value>항목 콘텐츠 로드 실패: {0}</value></data>
+  <data name="SelectItemToPlay" xml:space="preserve"><value>재생할 예배 순서 항목을 선택하세요.</value></data>
+  <data name="MediaFileNotFound" xml:space="preserve"><value>미디어 파일을 찾을 수 없습니다: {0}</value></data>
+  <data name="CameraOpensInOutput" xml:space="preserve"><value>연결된 카메라는 송출 모니터 재생에서 열 수 있습니다.</value></data>
+  <data name="MediaPlaying" xml:space="preserve"><value>미디어 재생: {0}</value></data>
+  <data name="MediaOpenFailed" xml:space="preserve"><value>미디어 파일을 열 수 없습니다: {0}</value></data>
+  <data name="SelectExternalItemToEdit" xml:space="preserve"><value>편집할 외부 예배 순서 항목을 선택하세요.</value></data>
+  <data name="ExternalFilePathEmpty" xml:space="preserve"><value>{0} 파일 경로가 없습니다: {1}</value></data>
+  <data name="ExternalFileNotFound" xml:space="preserve"><value>{0} 파일을 찾을 수 없습니다: {1}</value></data>
+  <data name="ExternalFileEditOpened" xml:space="preserve"><value>{0} 편집 열기: {1}</value></data>
+  <data name="ExternalFileOpenFailed" xml:space="preserve"><value>{0} 파일을 열 수 없습니다: {1}</value></data>
+  <data name="CameraOutput" xml:space="preserve"><value>카메라 송출</value></data>
+  <data name="SelectItemToPlayInOutput" xml:space="preserve"><value>송출 화면에서 재생할 예배 순서 항목을 선택하세요.</value></data>
+  <data name="OutputMediaNotFound" xml:space="preserve"><value>송출 미디어 파일을 찾을 수 없습니다: {0}</value></data>
+  <data name="OutputMediaPlaying" xml:space="preserve"><value>송출 미디어 재생: {0}</value></data>
+  <data name="NoOutputMediaItem" xml:space="preserve"><value>송출 미디어를 재생할 항목이 없습니다.</value></data>
+  <data name="OutputMediaCannotControl" xml:space="preserve"><value>송출 미디어를 제어할 수 없습니다: {0}</value></data>
+  <data name="MediaActionPlay" xml:space="preserve"><value>재생</value></data>
+  <data name="MediaActionPause" xml:space="preserve"><value>일시정지</value></data>
+  <data name="OutputMediaAction" xml:space="preserve"><value>송출 미디어 {0}: {1}</value></data>
+  <data name="OutputMediaFolderSearchFailed" xml:space="preserve"><value>송출 미디어 폴더 검색 실패: {0}</value></data>
+  <data name="SlideShowStopFailed" xml:space="preserve"><value>PowerPoint 슬라이드 쇼 종료 실패: {0}</value></data>
+  <data name="SlideShowStartFailed" xml:space="preserve"><value>PowerPoint 슬라이드 쇼 시작 실패: {0}</value></data>
+  <data name="NoNextOutputSlide" xml:space="preserve"><value>송출할 다음 슬라이드/절이 없습니다.</value></data>
+  <data name="SlideAdvanceFailed" xml:space="preserve"><value>PowerPoint 슬라이드 진행 실패: {0}</value></data>
+  <data name="OutputSlideHiddenReady" xml:space="preserve"><value>송출 슬라이드 {0}/{1} 숨김 준비</value></data>
+  <data name="OutputSlideReady" xml:space="preserve"><value>송출 슬라이드 {0}/{1} 준비</value></data>
+  <data name="OutputLyricsPosition" xml:space="preserve"><value>송출 가사 {0}/{1}절</value></data>
+  <data name="OutputLyricsHiddenReady" xml:space="preserve"><value>송출 가사 {0}/{1}절 숨김 준비</value></data>
+  <data name="OutputLyricsReady" xml:space="preserve"><value>송출 가사 {0}/{1}절 준비</value></data>
+  <data name="OutputCaptionDisabled" xml:space="preserve"><value>출력 — 없음 (송출 안 함)</value></data>
+  <data name="OutputCaption" xml:space="preserve"><value>출력</value></data>
+  <data name="OutputDisabled" xml:space="preserve"><value>출력 모니터가 '없음'으로 설정되어 송출하지 않습니다. 옵션에서 출력 모니터를 선택하세요.</value></data>
+  <data name="OutputAreaOffScreen" xml:space="preserve"><value> — 사용자 지정 출력 영역이 화면 밖이라 모니터 전체에 송출합니다</value></data>
+  <data name="OutputWindowOpened" xml:space="preserve"><value>출력 창 열림: {0}{1}</value></data>
+  <data name="ConfirmCloseOutputTitle" xml:space="preserve"><value>라이브 중 출력 창을 닫을까요?</value></data>
+  <data name="ConfirmCloseOutputMessage" xml:space="preserve"><value>현재 송출이 중지되고 출력 창이 닫힙니다. 5초 안에 확인하지 않으면 취소됩니다.</value></data>
+  <data name="OutputWindowClosed" xml:space="preserve"><value>출력 창 닫힘</value></data>
+  <data name="OutputReady" xml:space="preserve"><value>송출 준비: {0}</value></data>
+  <data name="OutputReadyNextPreview" xml:space="preserve"><value>송출 준비: {0} / 미리보기 다음: {1}</value></data>
+  <data name="ScreenCleared" xml:space="preserve"><value>화면 비움(배경 유지)</value></data>
+  <data name="SelectItemToDoubleClick" xml:space="preserve"><value>더블클릭할 예배 순서 항목을 선택하세요.</value></data>
+  <data name="NoPreviewItemToCopy" xml:space="preserve"><value>송출로 복사할 미리보기 항목이 없습니다.</value></data>
+  <data name="OutputItemChanged" xml:space="preserve"><value>송출 칸 항목이 바뀌어 송출을 시작하지 않았습니다.</value></data>
+  <data name="ConfirmStopLiveTitle" xml:space="preserve"><value>현재 라이브 송출을 중지할까요?</value></data>
+  <data name="ConfirmStopLiveMessage" xml:space="preserve"><value>출력 화면이 대기 상태로 돌아갑니다. 5초 안에 확인하지 않으면 취소됩니다.</value></data>
+  <data name="PowerPointStopFailed" xml:space="preserve"><value>PowerPoint 종료 실패: {0}</value></data>
+  <data name="SlideShowEnded" xml:space="preserve"><value>PowerPoint 슬라이드 쇼 종료</value></data>
+  <data name="LiveStopped" xml:space="preserve"><value>라이브 중지</value></data>
+  <data name="LiveStoppedPowerPointFailed" xml:space="preserve"><value>라이브 중지 (PowerPoint 종료 실패: {0})</value></data>
+  <data name="ErrorOutputKept" xml:space="preserve"><value>오류가 발생했지만 송출은 유지합니다: {0}</value></data>
+  <data name="KeySkippedBusy" xml:space="preserve"><value>이전 이동을 처리하는 중이라 이 키 입력은 건너뜁니다.</value></data>
+  <data name="NoPreviousOutputSlide" xml:space="preserve"><value>송출할 이전 슬라이드/절이 없습니다.</value></data>
+  <data name="PreviewSelected" xml:space="preserve"><value>미리보기 선택: {0}</value></data>
+  <data name="NoNextPreviewNonRotating" xml:space="preserve"><value>다음 회전 제외 미리보기 항목이 없습니다.</value></data>
+  <data name="PreviewNonRotatingSelected" xml:space="preserve"><value>미리보기 회전 제외 항목 선택: {0}</value></data>
+  <data name="OutputHiddenReady" xml:space="preserve"><value>송출 숨김 준비: {0}</value></data>
+  <data name="ShowEnding" xml:space="preserve"><value>쇼를 끝내는 중입니다. 끝난 뒤 다시 송출하세요.</value></data>
+  <data name="NoNextOutputNonRotating" xml:space="preserve"><value>다음 회전 제외 송출 항목이 없습니다.</value></data>
+  <data name="OutputNonRotatingHiddenReady" xml:space="preserve"><value>송출 회전 제외 항목 숨김 준비: {0}</value></data>
+  <data name="OutputNonRotatingReady" xml:space="preserve"><value>송출 회전 제외 항목 준비: {0}</value></data>
+  <data name="OutputHidden" xml:space="preserve"><value>출력 숨김</value></data>
+  <data name="OutputRestored" xml:space="preserve"><value>출력 복귀</value></data>
+  <data name="BlackScreenShown" xml:space="preserve"><value>검은 화면 송출 중</value></data>
+  <data name="ConfirmHideTitle" xml:space="preserve"><value>현재 송출을 숨길까요?</value></data>
+  <data name="ConfirmHideMessage" xml:space="preserve"><value>라이브 출력 상태가 즉시 바뀝니다. 5초 안에 확인하지 않으면 취소됩니다.</value></data>
+  <data name="BackToStart" xml:space="preserve"><value>처음으로: {0}</value></data>
+  <data name="OutputRefreshed" xml:space="preserve"><value>출력 새로고침</value></data>
+  <data name="LiveSafetyCancelled" xml:space="preserve"><value>라이브 안전 확인 취소</value></data>
+  <data name="IndividualFormatOn" xml:space="preserve"><value>개별 서식 사용</value></data>
+  <data name="GlobalFormatUsed" xml:space="preserve"><value>전역 기본 서식 사용</value></data>
+  <data name="SequenceCleared" xml:space="preserve"><value>절 순서 해제(선형 송출)</value></data>
+  <data name="SequenceSet" xml:space="preserve"><value>절 순서: {0}</value></data>
+  <data name="TemplateAppliedEmpty" xml:space="preserve"><value>개별 설정 템플릿 적용: 빈 서식</value></data>
+  <data name="TemplateApplied" xml:space="preserve"><value>개별 설정 템플릿 적용</value></data>
+  <data name="ItemFormatCleared" xml:space="preserve"><value>이 항목 서식 모두 지움(전역 기본)</value></data>
+  <data name="ItemFormatCopied" xml:space="preserve"><value>이 항목 서식 복사함(다른 항목에 붙여넣기 가능)</value></data>
+  <data name="ItemFormatPasted" xml:space="preserve"><value>이 항목에 서식 붙여넣음</value></data>
+  <data name="CopiedFormatEmpty" xml:space="preserve"><value>복사한 서식이 비어 있습니다.</value></data>
+  <data name="FormatAlreadySame" xml:space="preserve"><value>이미 모든 대상 항목이 같은 서식을 쓰고 있습니다.</value></data>
+  <data name="FormatPastedOnItems" xml:space="preserve"><value>{0}개 항목에 복사한 서식 적용</value></data>
+  <data name="FormatClearedOnItems" xml:space="preserve"><value>{0}개 항목 서식 지움(전역 기본)</value></data>
+  <data name="ItemTextColorDefault" xml:space="preserve"><value>항목 글자색: 전역 기본</value></data>
+  <data name="ItemTextColor" xml:space="preserve"><value>항목 글자색: {0}{1}</value></data>
+  <data name="GlobalDefault" xml:space="preserve"><value>전역 기본</value></data>
+  <data name="ItemAlignment" xml:space="preserve"><value>항목 정렬: {0}{1}</value></data>
+  <data name="ItemFontSizeDefault" xml:space="preserve"><value>항목 글자 크기: 전역 기본</value></data>
+  <data name="ItemFontSize" xml:space="preserve"><value>항목 글자 크기: {0}pt{1}</value></data>
+  <data name="ItemFontDefault" xml:space="preserve"><value>항목 글꼴: 전역 기본</value></data>
+  <data name="ItemFont" xml:space="preserve"><value>항목 글꼴: {0}{1}</value></data>
+  <data name="ItemBackColorDefault" xml:space="preserve"><value>항목 배경색: 전역 기본</value></data>
+  <data name="ItemBackColor" xml:space="preserve"><value>항목 배경색: {0}{1}</value></data>
+  <data name="ItemBackImageDefault" xml:space="preserve"><value>항목 배경 이미지: 전역 기본</value></data>
+  <data name="ItemBackImage" xml:space="preserve"><value>항목 배경 이미지: {0}{1}</value></data>
+  <data name="ItemMediaNone" xml:space="preserve"><value>항목 미디어: 없음</value></data>
+  <data name="ItemMedia" xml:space="preserve"><value>항목 미디어: {0}{1}</value></data>
+  <data name="Region2TextColorSame" xml:space="preserve"><value>보조 영역 글자색: 본문과 동일</value></data>
+  <data name="Region2TextColor" xml:space="preserve"><value>보조 영역 글자색: {0}{1}</value></data>
+  <data name="SameAsMain" xml:space="preserve"><value>본문과 동일</value></data>
+  <data name="Region2Alignment" xml:space="preserve"><value>보조 영역 정렬: {0}{1}</value></data>
+  <data name="Region2FontSizeSame" xml:space="preserve"><value>보조 영역 글자 크기: 본문과 동일</value></data>
+  <data name="Region2FontSize" xml:space="preserve"><value>보조 영역 글자 크기: {0}pt{1}</value></data>
+  <data name="Region2FontSame" xml:space="preserve"><value>보조 영역 글꼴: 본문과 동일</value></data>
+  <data name="Region2Font" xml:space="preserve"><value>보조 영역 글꼴: {0}{1}</value></data>
+  <data name="AllUseGlobalFormat" xml:space="preserve"><value>이미 모든 항목이 전역 기본 서식을 사용 중입니다.</value></data>
+  <data name="GlobalFormatAppliedOnItems" xml:space="preserve"><value>{0}개 항목에 전역 기본 서식 적용</value></data>
+  <data name="OutputAppearance" xml:space="preserve"><value>출력 모양: {0}</value></data>
+  <data name="LyricsAlignment" xml:space="preserve"><value>가사 정렬: {0}</value></data>
+  <data name="BackgroundMode" xml:space="preserve"><value>배경 표시 모드: {0}</value></data>
+  <data name="GradientDirection" xml:space="preserve"><value>그라데이션 방향: {0}</value></data>
+  <data name="RegionDisplay" xml:space="preserve"><value>영역 표시: {0}</value></data>
+  <data name="TitleAlignment" xml:space="preserve"><value>제목 정렬: {0}</value></data>
+  <data name="FollowMainAlignment" xml:space="preserve"><value>본문 정렬 따름</value></data>
+  <data name="FollowRegion2Alignment" xml:space="preserve"><value>보조영역 정렬 따름</value></data>
+  <data name="TitleAlignmentUnknown" xml:space="preserve"><value>제목 정렬 선택을 인식할 수 없습니다.</value></data>
+  <data name="LyricsVerticalAlignment" xml:space="preserve"><value>가사 세로 정렬: {0}</value></data>
+  <data name="EnterTemplateName" xml:space="preserve"><value>저장할 템플릿 이름을 입력하세요.</value></data>
+  <data name="AppearanceTemplateOverwritten" xml:space="preserve"><value>출력 모양 템플릿 저장(덮어씀): {0}</value></data>
+  <data name="AppearanceTemplateSaved" xml:space="preserve"><value>출력 모양 템플릿 저장: {0}</value></data>
+  <data name="TemplateNameInvalid" xml:space="preserve"><value>템플릿 이름에 사용할 수 없는 문자/형식입니다(100자 이내, 예약명·경로 문자 제외).</value></data>
+  <data name="TemplateSaveFailed" xml:space="preserve"><value>템플릿 저장 실패: {0}</value></data>
+  <data name="TemplateNotFound" xml:space="preserve"><value>템플릿을 찾을 수 없습니다: {0}</value></data>
+  <data name="AppearanceTemplateApplied" xml:space="preserve"><value>출력 모양 템플릿 적용: {0}</value></data>
+  <data name="TemplateApplyFailed" xml:space="preserve"><value>템플릿 적용 실패: {0}</value></data>
+  <data name="AppearanceDefaultsRestored" xml:space="preserve"><value>출력 모양 기본값 복원</value></data>
+  <data name="AppearanceTemplateDeleted" xml:space="preserve"><value>출력 모양 템플릿 삭제: {0}</value></data>
+  <data name="ColorFormatInvalid" xml:space="preserve"><value>색 형식이 올바르지 않습니다(예: {0}).</value></data>
+  <data name="BackColor" xml:space="preserve"><value>배경색: {0}</value></data>
+  <data name="TextColor" xml:space="preserve"><value>글자색: {0}</value></data>
+  <data name="PanelColor" xml:space="preserve"><value>패널 색: {0} (반투명)</value></data>
+  <data name="PanelTextColor" xml:space="preserve"><value>패널 글자색: {0}</value></data>
+  <data name="EffectBold" xml:space="preserve"><value>굵게</value></data>
+  <data name="EffectItalic" xml:space="preserve"><value>기울임</value></data>
+  <data name="EffectShadow" xml:space="preserve"><value>그림자</value></data>
+  <data name="EffectShowChords" xml:space="preserve"><value>코드 표시</value></data>
+  <data name="EffectUnderline" xml:space="preserve"><value>밑줄</value></data>
+  <data name="EffectEmphasisChorusOnly" xml:space="preserve"><value>강조 후렴만</value></data>
+  <data name="EffectInterlace" xml:space="preserve"><value>줄 교차</value></data>
+  <data name="EffectShowPanel" xml:space="preserve"><value>정보 패널 표시</value></data>
+  <data name="EffectShowPosition" xml:space="preserve"><value>위치 표시</value></data>
+  <data name="EffectVerseHeading" xml:space="preserve"><value>절 헤딩</value></data>
+  <data name="EffectShowTitle" xml:space="preserve"><value>제목 표시</value></data>
+  <data name="EffectOutline" xml:space="preserve"><value>외곽선</value></data>
+  <data name="EffectTitleFirstScreenOnly" xml:space="preserve"><value>제목 첫 화면만</value></data>
+  <data name="EffectTitleFollowMain" xml:space="preserve"><value>제목 본문 정렬 따름</value></data>
+  <data name="EffectTitleFollowRegion2" xml:space="preserve"><value>제목 보조영역 정렬 따름</value></data>
+  <data name="EffectSongNumber" xml:space="preserve"><value>곡 번호</value></data>
+  <data name="EffectPanelTitle" xml:space="preserve"><value>패널 제목</value></data>
+  <data name="EffectCopyright" xml:space="preserve"><value>저작권</value></data>
+  <data name="EffectNextItem" xml:space="preserve"><value>다음 항목</value></data>
+  <data name="EffectPanelTransparent" xml:space="preserve"><value>패널 투명 배경</value></data>
+  <data name="EffectPanelTextFollowMain" xml:space="preserve"><value>패널 글자색 본문 추종</value></data>
+  <data name="EffectPanelBold" xml:space="preserve"><value>패널 굵게</value></data>
+  <data name="EffectPanelItalic" xml:space="preserve"><value>패널 기울임</value></data>
+  <data name="EffectPanelUnderline" xml:space="preserve"><value>패널 밑줄</value></data>
+  <data name="EffectFadeTransition" xml:space="preserve"><value>전환 페이드</value></data>
+  <data name="LyricsEffectToggled" xml:space="preserve"><value>가사 {0}: {1}</value></data>
+  <data name="TransitionDuration" xml:space="preserve"><value>전환 길이: {0}ms</value></data>
+  <data name="ItemTransition" xml:space="preserve"><value>항목 전환 효과: {0}</value></data>
+  <data name="TransitionFade" xml:space="preserve"><value>페이드</value></data>
+  <data name="TransitionSlideFromLeft" xml:space="preserve"><value>슬라이드(왼쪽)</value></data>
+  <data name="TransitionSlideFromRight" xml:space="preserve"><value>슬라이드(오른쪽)</value></data>
+  <data name="TransitionSlideFromTop" xml:space="preserve"><value>슬라이드(위)</value></data>
+  <data name="TransitionSlideFromBottom" xml:space="preserve"><value>슬라이드(아래)</value></data>
+  <data name="TransitionZoomIn" xml:space="preserve"><value>줌 인</value></data>
+  <data name="TransitionZoomOut" xml:space="preserve"><value>줌 아웃</value></data>
+  <data name="TransitionSpin" xml:space="preserve"><value>회전</value></data>
+  <data name="TransitionFlipHorizontal" xml:space="preserve"><value>뒤집기(가로)</value></data>
+  <data name="TransitionFlipVertical" xml:space="preserve"><value>뒤집기(세로)</value></data>
+  <data name="TransitionRevealCircle" xml:space="preserve"><value>원형 리빌</value></data>
+  <data name="TransitionRevealRectangle" xml:space="preserve"><value>사각 리빌</value></data>
+  <data name="TransitionWipeRight" xml:space="preserve"><value>와이프(→)</value></data>
+  <data name="TransitionWipeLeft" xml:space="preserve"><value>와이프(←)</value></data>
+  <data name="TransitionWipeDown" xml:space="preserve"><value>와이프(↓)</value></data>
+  <data name="TransitionWipeUp" xml:space="preserve"><value>와이프(↑)</value></data>
+  <data name="TransitionBlindsHorizontal" xml:space="preserve"><value>블라인드(가로)</value></data>
+  <data name="TransitionBlindsVertical" xml:space="preserve"><value>블라인드(세로)</value></data>
+  <data name="TransitionCheckerboard" xml:space="preserve"><value>체커보드</value></data>
+  <data name="TransitionDiamond" xml:space="preserve"><value>다이아몬드</value></data>
+  <data name="TransitionDoorsOpen" xml:space="preserve"><value>양문 열기</value></data>
+  <data name="TransitionDoorsClose" xml:space="preserve"><value>양문 닫기</value></data>
+  <data name="TransitionStar" xml:space="preserve"><value>별</value></data>
+  <data name="TransitionCross" xml:space="preserve"><value>십자(2-레이어)</value></data>
+  <data name="TransitionBowTie" xml:space="preserve"><value>나비넥타이(2-레이어)</value></data>
+  <data name="TransitionHeart" xml:space="preserve"><value>하트(2-레이어)</value></data>
+  <data name="TransitionWedge" xml:space="preserve"><value>시계 와이프</value></data>
+  <data name="TransitionSpiral" xml:space="preserve"><value>나선</value></data>
+  <data name="TransitionWindMill" xml:space="preserve"><value>바람개비</value></data>
+  <data name="TransitionFanUp" xml:space="preserve"><value>부채 펼침</value></data>
+  <data name="SlideTransition" xml:space="preserve"><value>슬라이드 전환 효과: {0}</value></data>
+  <data name="LiveMessageShown" xml:space="preserve"><value>라이브 메시지 표시</value></data>
+  <data name="NoVerseAlert" xml:space="preserve"><value>구절 알림 없음</value></data>
+  <data name="VerseAlertShown" xml:space="preserve"><value>구절 알림 표시</value></data>
+  <data name="VerseAlertHidden" xml:space="preserve"><value>구절 알림 숨김</value></data>
+  <data name="NoticeTitle" xml:space="preserve"><value>공지</value></data>
+  <data name="NoticeShown" xml:space="preserve"><value>공지 화면 송출</value></data>
+  <data name="NoticeHidden" xml:space="preserve"><value>공지 숨김(검은 화면)</value></data>
+  <data name="OutputBackImage" xml:space="preserve"><value>출력 배경 이미지: {0}</value></data>
+  <data name="OutputBackImageCleared" xml:space="preserve"><value>출력 배경 이미지 해제</value></data>
+  <data name="DefaultMediaSaveFailed" xml:space="preserve"><value>기본 미디어 설정을 저장할 수 없습니다.</value></data>
+  <data name="DefaultMediaSaved" xml:space="preserve"><value>기본 미디어 설정을 저장했습니다.</value></data>
+  <data name="LyricsSize" xml:space="preserve"><value>가사 크기: {0}px</value></data>
+  <data name="OutputFontDefault" xml:space="preserve"><value>출력 글꼴: 기본(테마)</value></data>
+  <data name="OutputFont" xml:space="preserve"><value>출력 글꼴: {0}</value></data>
+  <data name="Region2FontSameShort" xml:space="preserve"><value>보조영역 글꼴: 본문과 동일</value></data>
+  <data name="Region2FontShort" xml:space="preserve"><value>보조영역 글꼴: {0}</value></data>
+  <data name="ColorWhite" xml:space="preserve"><value>흰색</value></data>
+  <data name="ColorYellow" xml:space="preserve"><value>노랑</value></data>
+  <data name="ColorSkyBlue" xml:space="preserve"><value>하늘</value></data>
+  <data name="ColorLightGreen" xml:space="preserve"><value>연두</value></data>
+  <data name="ColorLightGray" xml:space="preserve"><value>연회색</value></data>
+  <data name="Region2TextColorSameShort" xml:space="preserve"><value>보조영역 글자색: 본문과 동일</value></data>
+  <data name="Region2TextColorShort" xml:space="preserve"><value>보조영역 글자색: {0}</value></data>
+  <data name="Region2AlignmentSameShort" xml:space="preserve"><value>보조영역 정렬: 본문과 동일</value></data>
+  <data name="Region2AlignmentShort" xml:space="preserve"><value>보조영역 정렬: {0}</value></data>
+  <data name="EmphasisBold" xml:space="preserve"><value>굵게</value></data>
+  <data name="EmphasisRegular" xml:space="preserve"><value>보통</value></data>
+  <data name="Region2BoldOn" xml:space="preserve"><value>보조영역 굵게: 켬</value></data>
+  <data name="Region2BoldOff" xml:space="preserve"><value>보조영역 굵게: 보통</value></data>
+  <data name="Region2BoldSame" xml:space="preserve"><value>보조영역 굵게: 본문과 동일</value></data>
+  <data name="EmphasisItalic" xml:space="preserve"><value>기울임</value></data>
+  <data name="EmphasisUpright" xml:space="preserve"><value>곧게</value></data>
+  <data name="Region2ItalicOn" xml:space="preserve"><value>보조영역 기울임: 켬</value></data>
+  <data name="Region2ItalicOff" xml:space="preserve"><value>보조영역 기울임: 곧게</value></data>
+  <data name="Region2ItalicSame" xml:space="preserve"><value>보조영역 기울임: 본문과 동일</value></data>
+  <data name="EmphasisUnderline" xml:space="preserve"><value>밑줄</value></data>
+  <data name="EmphasisNone" xml:space="preserve"><value>없음</value></data>
+  <data name="Region2UnderlineOn" xml:space="preserve"><value>보조영역 밑줄: 켬</value></data>
+  <data name="Region2UnderlineOff" xml:space="preserve"><value>보조영역 밑줄: 없음</value></data>
+  <data name="Region2UnderlineSame" xml:space="preserve"><value>보조영역 밑줄: 본문과 동일</value></data>
+  <data name="PanelFontSize" xml:space="preserve"><value>패널 글자 크기: {0}%</value></data>
+  <data name="Region2SizeSame" xml:space="preserve"><value>보조영역 크기: 본문과 동일(자동)</value></data>
+  <data name="Region2Size" xml:space="preserve"><value>보조영역 크기: {0}px</value></data>
+  <data name="LineSpacing" xml:space="preserve"><value>줄 간격: {0}%</value></data>
+  <data name="MainLeftMargin" xml:space="preserve"><value>본문 왼쪽 여백: {0}px</value></data>
+  <data name="MainRightMargin" xml:space="preserve"><value>본문 오른쪽 여백: {0}px</value></data>
+  <data name="RegionGap" xml:space="preserve"><value>영역 간 간격: {0}px</value></data>
+  <data name="MainVerticalOffsetDefault" xml:space="preserve"><value>본문 세로 위치: 기본</value></data>
+  <data name="MainVerticalOffset" xml:space="preserve"><value>본문 세로 위치: {0}{1}px</value></data>
+  <data name="MainBottomMargin" xml:space="preserve"><value>본문 아래 여백: {0}px</value></data>
+  <data name="CustomAppearance" xml:space="preserve"><value>사용자 지정</value></data>
+  <data name="PowerPointLimitExceeded" xml:space="preserve"><value>PowerPoint 제한 초과: {0}/{1}</value></data>
+  <data name="PowerPointBlackoutFailed" xml:space="preserve"><value>PowerPoint 암전 전환 실패: {0}</value></data>
+  <data name="SlideShowFitFailed" xml:space="preserve"><value>PowerPoint 슬라이드 쇼 맞춤 실패: {0}</value></data>
+  <data name="PreviousSlide" xml:space="preserve"><value>이전 슬라이드</value></data>
+  <data name="NextSlide" xml:space="preserve"><value>다음 슬라이드</value></data>
+  <data name="On" xml:space="preserve"><value>켬</value></data>
+  <data name="Off" xml:space="preserve"><value>끔</value></data>
+  <data name="IndividualFormatOnSuffix" xml:space="preserve"><value> (개별 서식 켜짐)</value></data>
+  <data name="BackgroundFit" xml:space="preserve"><value>맞춤(전체 보임)</value></data>
+  <data name="BackgroundCenter" xml:space="preserve"><value>가운데(원본 크기)</value></data>
+  <data name="BackgroundTile" xml:space="preserve"><value>타일(반복)</value></data>
+  <data name="BackgroundFill" xml:space="preserve"><value>채움(가득)</value></data>
+  <data name="GradientHorizontal" xml:space="preserve"><value>가로(좌→우)</value></data>
+  <data name="GradientDiagonalDown" xml:space="preserve"><value>대각선 ↘</value></data>
+  <data name="GradientDiagonalUp" xml:space="preserve"><value>대각선 ↗</value></data>
+  <data name="GradientVertical" xml:space="preserve"><value>세로(위→아래)</value></data>
+  <data name="RegionMainOnly" xml:space="preserve"><value>본문 영역만</value></data>
+  <data name="RegionSecondaryOnly" xml:space="preserve"><value>보조 영역만</value></data>
+  <data name="RegionBoth" xml:space="preserve"><value>둘 다</value></data>
+  <data name="OutputScreenStatus" xml:space="preserve"><value>송출: {0}     글자: {1}     화면: {2}</value></data>
+  <data name="MediaReady" xml:space="preserve"><value>준비</value></data>
+  <data name="PanelPreview" xml:space="preserve"><value>미리보기</value></data>
+  <data name="PanelOutput" xml:space="preserve"><value>송출</value></data>
+  <data name="LegacyListEmpty" xml:space="preserve"><value>레거시 예배 순서가 비어 있습니다: {0} (.esw)</value></data>
+  <data name="LegacyListLoaded" xml:space="preserve"><value>레거시 예배 순서 불러옴: {0} (.esw 항목 {1}개)</value></data>
+  <data name="LegacyListMergeSkipped" xml:space="preserve"><value>레거시 예배 순서 병합 건너뜀: {0} (.esw가 비어 있음)</value></data>
+  <data name="LegacyListMerged" xml:space="preserve"><value>레거시 예배 순서 병합: {0} ({1}개 추가, 총 {2}개)</value></data>
+  <data name="RemoveDefaultBackground" xml:space="preserve"><value>기본 배경 '{0}' 제거</value></data>
+  <data name="NoDefaultBackground" xml:space="preserve"><value>기본 배경 없음</value></data>
+  <data name="DefaultMediaCaptionPrefix" xml:space="preserve"><value>미디어:</value></data>
+  <data name="MediaAsTitle" xml:space="preserve"><value>제목 기준</value></data>
+  <data name="MediaSpecific" xml:space="preserve"><value>지정 파일</value></data>
+  <data name="MediaLiveFeed" xml:space="preserve"><value>실시간 영상</value></data>
+  <data name="MediaNone" xml:space="preserve"><value>없음</value></data>
+  <data name="RemoveDefaultMedia" xml:space="preserve"><value>기본 미디어 '{0}' 제거</value></data>
+  <data name="NoDefaultMedia" xml:space="preserve"><value>기본 미디어 없음</value></data>
+  <data name="PreviewBible" xml:space="preserve"><value>성경 미리보기: {0}</value></data>
+  <data name="LegacyListFileNotFound" xml:space="preserve"><value>레거시 예배 순서 파일(.esw)을 찾을 수 없습니다.</value></data>
+  <data name="ListFileReadFailed" xml:space="preserve"><value>예배 순서 파일을 읽을 수 없습니다: {0}</value></data>
+  <data name="LegacyListFileNoItems" xml:space="preserve"><value>레거시 예배 순서 파일에 가져올 항목이 없습니다.</value></data>
+  <data name="LegacyListAdded" xml:space="preserve"><value>레거시 예배 순서 추가: {0} ({1}개)</value></data>
+  <data name="PanelLive" xml:space="preserve"><value>라이브</value></data>
+  <data name="PanelBlack" xml:space="preserve"><value>검은 화면</value></data>
+  <data name="PanelClear" xml:space="preserve"><value>화면 지우기</value></data>
+  <data name="PanelHidden" xml:space="preserve"><value>숨김</value></data>
+  <data name="PanelStandby" xml:space="preserve"><value>대기</value></data>
+  <data name="AutoRotateOne" xml:space="preserve"><value>한 항목 자동 회전</value></data>
+  <data name="AutoRotateOneRepeat" xml:space="preserve"><value>한 항목 자동 회전 - 반복</value></data>
+  <data name="AutoRotateGroup" xml:space="preserve"><value>그룹 자동 회전</value></data>
+  <data name="AutoRotateGroupRepeat" xml:space="preserve"><value>그룹 자동 회전 - 반복</value></data>
+  <data name="GapItemOff" xml:space="preserve"><value>대기 화면 끔</value></data>
+  <data name="GapItemRestored" xml:space="preserve"><value>대기 화면 복원: {0}</value></data>
+  <data name="PreviewPowerPointPathEmpty" xml:space="preserve"><value>미리보기할 PowerPoint 파일 경로가 없습니다.</value></data>
+  <data name="PreviewPowerPoint" xml:space="preserve"><value>PowerPoint 미리보기: {0}</value></data>
+  <data name="PreviewPowerPointLoadFailed" xml:space="preserve"><value>PowerPoint 미리보기를 불러오지 못했습니다: {0}</value></data>
+  <data name="PreviewSlideReplayedAt" xml:space="preserve"><value>미리보기 PPT 슬라이드 {0}/{1} 다시 표시</value></data>
+  <data name="PreviewSlideReplayed" xml:space="preserve"><value>미리보기 PPT 슬라이드 다시 표시</value></data>
+  <data name="OutputSlideReplayedAt" xml:space="preserve"><value>송출 PPT 슬라이드 {0}/{1} 다시 표시</value></data>
+  <data name="OutputSlideReplayed" xml:space="preserve"><value>송출 PPT 슬라이드 다시 표시</value></data>
+  <data name="LiveStatus" xml:space="preserve"><value>라이브: {0}{1}</value></data>
+  <data name="OutputMediaCannotRestart" xml:space="preserve"><value>송출 미디어를 다시 시작할 수 없습니다: {0}</value></data>
+  <data name="OutputMediaRestarted" xml:space="preserve"><value>송출 미디어 다시 시작: {0}</value></data>
+  <data name="OutputMediaRefreshed" xml:space="preserve"><value>송출 미디어 새로고침: {0}</value></data>
+  <data name="OutputVisualRefreshed" xml:space="preserve"><value>송출 화면 새로고침: {0}</value></data>
+  <data name="OutputVisualRefreshedHidden" xml:space="preserve"><value>숨김 중 송출 화면 새로고침: {0}</value></data>
+  <data name="OutputVisualReady" xml:space="preserve"><value>송출 화면 준비: {0}</value></data>
+  <data name="RemoveItemBackground" xml:space="preserve"><value>항목 배경 '{0}' 제거</value></data>
+  <data name="NoItemBackground" xml:space="preserve"><value>항목 배경 없음</value></data>
+  <data name="RemoveItemMedia" xml:space="preserve"><value>항목 미디어 '{0}' 제거</value></data>
+  <data name="NoItemMedia" xml:space="preserve"><value>항목 미디어 없음</value></data>
+  <data name="ItemVerticalAlignment" xml:space="preserve"><value>항목 세로 정렬: {0}{1}</value></data>
+  <data name="MarginLeft" xml:space="preserve"><value>왼쪽 여백</value></data>
+  <data name="MarginRight" xml:space="preserve"><value>오른쪽 여백</value></data>
+  <data name="MarginBottom" xml:space="preserve"><value>아래 여백</value></data>
+  <data name="ItemMarginDefault" xml:space="preserve"><value>항목 {0}: 기본</value></data>
+  <data name="ItemMargin" xml:space="preserve"><value>항목 {0}: {1}{2}</value></data>
+  <data name="ItemBackTile" xml:space="preserve"><value>타일 이미지</value></data>
+  <data name="ItemBackCentre" xml:space="preserve"><value>가운데 이미지</value></data>
+  <data name="ItemBackBestFit" xml:space="preserve"><value>맞춤 이미지</value></data>
+  <data name="ItemBackImageFormat" xml:space="preserve"><value>항목 배경 그림 형식: {0}{1}</value></data>
+  <data name="ItemTransitionIndividual" xml:space="preserve"><value>항목 전환 효과: {0}{1}</value></data>
+  <data name="SlideTransitionIndividual" xml:space="preserve"><value>슬라이드 전환 효과: {0}{1}</value></data>
+  <data name="DefaultMediaCleared" xml:space="preserve"><value>기본 미디어 해제</value></data>
+  <data name="DefaultMedia" xml:space="preserve"><value>기본 미디어: {0}</value></data>
+  <data name="StateOff" xml:space="preserve"><value>꺼짐</value></data>
+  <data name="StateOn" xml:space="preserve"><value>켜짐</value></data>
+  <data name="StateHidden" xml:space="preserve"><value>숨김</value></data>
+  <data name="StateShown" xml:space="preserve"><value>표시</value></data>
+  <data name="StateBlack" xml:space="preserve"><value>검은 화면</value></data>
+  <data name="StateGap" xml:space="preserve"><value>대기 화면</value></data>
+  <data name="StateNormal" xml:space="preserve"><value>보통</value></data>
+</root>

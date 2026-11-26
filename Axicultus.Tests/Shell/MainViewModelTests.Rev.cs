@@ -180,22 +180,22 @@ public partial class MainViewModelTests
         await sut.GoLiveCommand.ExecuteAsync(null);
 
         await sut.HideOutputCommand.ExecuteAsync(null);
-        sut.OutputScreenStatus.Should().Contain("Screen: hidden");
+        sut.OutputScreenStatus.Should().Contain("화면: 숨김");
         await sut.ToggleOutputBlackCommand.ExecuteAsync(null);
         sut.IsOutputBlackActive.Should().BeTrue();
-        sut.OutputScreenStatus.Should().Contain("Screen: black");
+        sut.OutputScreenStatus.Should().Contain("화면: 검은 화면");
         await sut.ToggleOutputBlackCommand.ExecuteAsync(null);
 
         sut.IsOutputBlackActive.Should().BeFalse();
         sut.Session.Current.State.Should().Be(LiveState.Hidden, "turning Black off must not show a hidden output");
         sut.StatusText.Should().Be("출력 숨김");
-        sut.OutputScreenStatus.Should().Contain("Screen: hidden");
+        sut.OutputScreenStatus.Should().Contain("화면: 숨김");
 
         sut.RestoreOutputCommand.Execute(null);
         await sut.ToggleOutputBlackCommand.ExecuteAsync(null);
         await sut.ToggleOutputBlackCommand.ExecuteAsync(null);
         sut.Session.Current.State.Should().Be(LiveState.Active, "Black alone still returns to the output");
-        sut.OutputScreenStatus.Should().Contain("Screen: normal");
+        sut.OutputScreenStatus.Should().Contain("화면: 보통");
     }
 
     [Fact]

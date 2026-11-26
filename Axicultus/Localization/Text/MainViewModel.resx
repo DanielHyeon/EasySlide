@@ -1,0 +1,477 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Ready" xml:space="preserve"><value>WPF ready</value></data>
+  <data name="GapShown" xml:space="preserve"><value>Showing the gap screen</value></data>
+  <data name="AlignLeft" xml:space="preserve"><value>Left</value></data>
+  <data name="AlignRight" xml:space="preserve"><value>Right</value></data>
+  <data name="AlignCenter" xml:space="preserve"><value>Center</value></data>
+  <data name="AlignTop" xml:space="preserve"><value>Top</value></data>
+  <data name="AlignBottom" xml:space="preserve"><value>Bottom</value></data>
+  <data name="WorshipListImported" xml:space="preserve"><value>Worship list imported: {0} ({1} items)</value></data>
+  <data name="ImportedListName" xml:space="preserve"><value>Imported worship list</value></data>
+  <data name="PresetWhiteOnBlack" xml:space="preserve"><value>White text · black</value></data>
+  <data name="PresetWhiteOnNavyGradient" xml:space="preserve"><value>White text · navy gradient</value></data>
+  <data name="PresetBlackOnWhite" xml:space="preserve"><value>Black text · white background</value></data>
+  <data name="PresetYellowOnDeepNavy" xml:space="preserve"><value>Yellow text · deep navy</value></data>
+  <data name="LiveItemSelected" xml:space="preserve"><value>Current output item selected: {0}</value></data>
+  <data name="ItemAlreadyRemoved" xml:space="preserve"><value>This item has already been removed from the worship list.</value></data>
+  <data name="ProblemItemSelected" xml:space="preserve"><value>Item with a problem selected: {0}</value></data>
+  <data name="VersePosition" xml:space="preserve"><value>Verse {0}/{1}</value></data>
+  <data name="OriginalKey" xml:space="preserve"><value>Original key</value></data>
+  <data name="TransposeLabel" xml:space="preserve"><value>Transpose {0}{1}</value></data>
+  <data name="NothingToShow" xml:space="preserve"><value>No items to show</value></data>
+  <data name="ItemsLoaded" xml:space="preserve"><value>{0} items loaded</value></data>
+  <data name="BibleVersesAdded" xml:space="preserve"><value>Bible verses added: {0}</value></data>
+  <data name="TextItemAdded" xml:space="preserve"><value>Text item added: {0}</value></data>
+  <data name="NoTextToAdd" xml:space="preserve"><value>There is no text to add.</value></data>
+  <data name="WordReadFailed" xml:space="preserve"><value>Could not read the Word document (Word is not installed or the document is empty).</value></data>
+  <data name="TextFileEmpty" xml:space="preserve"><value>The text file has nothing to add.</value></data>
+  <data name="TextFileItemAdded" xml:space="preserve"><value>Text file item added: {0}</value></data>
+  <data name="TextItemTitle" xml:space="preserve"><value>Text</value></data>
+  <data name="NoSongSelected" xml:space="preserve"><value>No song selected.</value></data>
+  <data name="SongAdded" xml:space="preserve"><value>Song added: {0}</value></data>
+  <data name="NoBibleVersesSelected" xml:space="preserve"><value>No Bible verses selected.</value></data>
+  <data name="SelectSongItemToEdit" xml:space="preserve"><value>Select a song item to edit.</value></data>
+  <data name="EditedSongMismatch" xml:space="preserve"><value>The edited song does not match the selected item.</value></data>
+  <data name="SelectedItemNotInList" xml:space="preserve"><value>The selected item was not found in the worship list.</value></data>
+  <data name="ListItemUpdated" xml:space="preserve"><value>Worship list item updated: {0}</value></data>
+  <data name="SelectBibleOrTextToEdit" xml:space="preserve"><value>Select a Bible or text item to edit.</value></data>
+  <data name="NoTextToEdit" xml:space="preserve"><value>There is no text to edit.</value></data>
+  <data name="WorshipListHasNoItems" xml:space="preserve"><value>The current worship list has no items.</value></data>
+  <data name="NoDatabaseSongsInList" xml:space="preserve"><value>The worship list has no songs from the database.</value></data>
+  <data name="UsageRecordFailed" xml:space="preserve"><value>Could not record the usage</value></data>
+  <data name="UsageRecordFailedDetail" xml:space="preserve"><value>Could not record the usage: {0}</value></data>
+  <data name="UsageAddedOne" xml:space="preserve"><value>1 song from the database added to the usage record</value></data>
+  <data name="UsageAddedMany" xml:space="preserve"><value>{0} songs from the database added to the usage record</value></data>
+  <data name="NoPraiseBookSelected" xml:space="preserve"><value>No praise book selected</value></data>
+  <data name="PraiseBookPreview" xml:space="preserve"><value>Praise book preview: {0}</value></data>
+  <data name="PraiseBookSongDeleted" xml:space="preserve"><value>This praise book song was deleted from the library: {0}</value></data>
+  <data name="PraiseBookSongUnknown" xml:space="preserve"><value>Could not identify the praise book song: {0}</value></data>
+  <data name="SongNotInLibrary" xml:space="preserve"><value>Song not found in the library: {0}</value></data>
+  <data name="NoSearchResultSelected" xml:space="preserve"><value>No search result selected.</value></data>
+  <data name="NoTitleSelected" xml:space="preserve"><value>No title selected.</value></data>
+  <data name="SearchDatabasePathNotSet" xml:space="preserve"><value>The search database path is not set.</value></data>
+  <data name="SongNotFound" xml:space="preserve"><value>Song not found: {0}</value></data>
+  <data name="ItemDuplicated" xml:space="preserve"><value>Item duplicated: {0}</value></data>
+  <data name="ItemsRemoved" xml:space="preserve"><value>{0} items removed</value></data>
+  <data name="ItemRemoved" xml:space="preserve"><value>Item removed: {0}</value></data>
+  <data name="MoveListToTrashFailed" xml:space="preserve"><value>Could not move the worship list to the trash. {0}</value></data>
+  <data name="ListCleared" xml:space="preserve"><value>Cleared {0} items from the worship list (Undo brings them back)</value></data>
+  <data name="ListRestored" xml:space="preserve"><value>Restored {0} items to the worship list</value></data>
+  <data name="PowerPointFileLabel" xml:space="preserve"><value>PowerPoint file</value></data>
+  <data name="MediaFileLabel" xml:space="preserve"><value>media file</value></data>
+  <data name="ExternalFilesAddedSkipped" xml:space="preserve"><value>{0} external files added, {1} skipped (unsupported format)</value></data>
+  <data name="ExternalFilesAdded" xml:space="preserve"><value>{0} external files added</value></data>
+  <data name="NoFileSelected" xml:space="preserve"><value>No {0} selected.</value></data>
+  <data name="FileItemAdded" xml:space="preserve"><value>Added {0}: {1}</value></data>
+  <data name="EnterListNameToSave" xml:space="preserve"><value>Enter a name to save the worship list as.</value></data>
+  <data name="SessionNotesSaveFailed" xml:space="preserve"><value>The worship list was saved, but its session notes could not be saved.</value></data>
+  <data name="ListSaved" xml:space="preserve"><value>Worship list saved: {0} ({1} items)</value></data>
+  <data name="ListNameInvalid" xml:space="preserve"><value>The worship list name has characters that cannot be used.</value></data>
+  <data name="ListSaveFailed" xml:space="preserve"><value>Could not save the worship list: {0}</value></data>
+  <data name="NoSessionNameToSave" xml:space="preserve"><value>There is no session name to save under. Choose a name with the 'List' button and save.</value></data>
+  <data name="ListNotFound" xml:space="preserve"><value>Worship list not found: {0}</value></data>
+  <data name="ListLoaded" xml:space="preserve"><value>Worship list loaded: {0} ({1} items)</value></data>
+  <data name="ListLoadFailed" xml:space="preserve"><value>Could not load the worship list: {0}</value></data>
+  <data name="SongsKeptFromList" xml:space="preserve"><value> — {0} songs differ in title or lyrics from the database song with the same number, so the saved text is kept</value></data>
+  <data name="SongDatabaseUnreadable" xml:space="preserve"><value>Cannot read the song database: {0}</value></data>
+  <data name="ListMerged" xml:space="preserve"><value>Worship list merged: {0} ({1} added, {2} in total)</value></data>
+  <data name="ListMergeFailed" xml:space="preserve"><value>Could not merge the worship list: {0}</value></data>
+  <data name="LegacyListImported" xml:space="preserve"><value>Legacy worship list imported: {0} items</value></data>
+  <data name="TransposeOriginal" xml:space="preserve"><value>Transpose: original key</value></data>
+  <data name="TransposeStatus" xml:space="preserve"><value>Transpose: {0}</value></data>
+  <data name="SongNotInDatabaseShownFromList" xml:space="preserve"><value>{0}: this song is not in the lyrics database (shown with the lyrics saved in the worship list).</value></data>
+  <data name="SongNotInDatabase" xml:space="preserve"><value>{0}: the song was not found in the lyrics database.</value></data>
+  <data name="ListEmpty" xml:space="preserve"><value>The worship list is empty.</value></data>
+  <data name="ValidationAllGood" xml:space="preserve"><value>Worship list check: all items OK ({0}).</value></data>
+  <data name="ValidationMore" xml:space="preserve"><value> and {0} more</value></data>
+  <data name="ValidationProblems" xml:space="preserve"><value>Worship list check: {0} problems — {1}</value></data>
+  <data name="ValidationSkippedNoPath" xml:space="preserve"><value> (song database check skipped — no database path)</value></data>
+  <data name="ValidationSkipped" xml:space="preserve"><value> (song database check skipped — {0})</value></data>
+  <data name="ListDeleteFailed" xml:space="preserve"><value>Could not delete the worship list: {0}</value></data>
+  <data name="ListDeleted" xml:space="preserve"><value>Worship list deleted: {0}</value></data>
+  <data name="TrashUnreadable" xml:space="preserve"><value>Cannot read the trash: {0}</value></data>
+  <data name="VerbRestored" xml:space="preserve"><value>Restored</value></data>
+  <data name="VerbDeletedForGood" xml:space="preserve"><value>Permanently deleted</value></data>
+  <data name="TrashChanged" xml:space="preserve"><value>{0} worship lists: {1}</value></data>
+  <data name="TrashChangedWithFailures" xml:space="preserve"><value>{0} worship lists: {1}, failed {2} — {3}</value></data>
+  <data name="RenameEmpty" xml:space="preserve"><value>The name is empty, so it cannot be changed.</value></data>
+  <data name="NameExists" xml:space="preserve"><value>The name already exists: {0}</value></data>
+  <data name="RenameFailed" xml:space="preserve"><value>Could not rename: {0}</value></data>
+  <data name="ListRenamed" xml:space="preserve"><value>Worship list renamed: {0} → {1}</value></data>
+  <data name="OutputMonitorMoved" xml:space="preserve"><value>Output monitor moved: {0}</value></data>
+  <data name="NoStageMonitorScreen" xml:space="preserve"><value>There is no separate screen to use as the stage monitor.</value></data>
+  <data name="StageMonitorOpened" xml:space="preserve"><value>Stage monitor opened: {0}</value></data>
+  <data name="StageMonitorClosed" xml:space="preserve"><value>Stage monitor closed</value></data>
+  <data name="StageMonitorMoved" xml:space="preserve"><value>Stage monitor moved: {0}</value></data>
+  <data name="NoItemSelected" xml:space="preserve"><value>No item selected</value></data>
+  <data name="InfoTitle" xml:space="preserve"><value>Title: {0}</value></data>
+  <data name="InfoKind" xml:space="preserve"><value>Kind: {0}</value></data>
+  <data name="InfoIndividualFormat" xml:space="preserve"><value>Individual formatting: {0}</value></data>
+  <data name="InfoSongNumber" xml:space="preserve"><value>Song number: {0}</value></data>
+  <data name="InfoFile" xml:space="preserve"><value>File: {0}</value></data>
+  <data name="InfoSlide" xml:space="preserve"><value>Slide: {0}</value></data>
+  <data name="InfoSequence" xml:space="preserve"><value>Verse order: {0}</value></data>
+  <data name="InfoCopyright" xml:space="preserve"><value>Copyright: {0}</value></data>
+  <data name="InfoFormatData" xml:space="preserve"><value>Format data: {0}</value></data>
+  <data name="InfoLyricsLines" xml:space="preserve"><value>Lyrics lines: {0}</value></data>
+  <data name="KindSong" xml:space="preserve"><value>Song</value></data>
+  <data name="KindBible" xml:space="preserve"><value>Bible</value></data>
+  <data name="KindMedia" xml:space="preserve"><value>Media</value></data>
+  <data name="KindNotice" xml:space="preserve"><value>Notice</value></data>
+  <data name="KindItem" xml:space="preserve"><value>Item</value></data>
+  <data name="PanelWaiting" xml:space="preserve"><value>Waiting</value></data>
+  <data name="PanelSelected" xml:space="preserve"><value>Selected</value></data>
+  <data name="PanelSelectedAt" xml:space="preserve"><value>Selected {0}</value></data>
+  <data name="PanelReady" xml:space="preserve"><value>Ready</value></data>
+  <data name="LyricsVersePosition" xml:space="preserve"><value>Lyrics verse {0}/{1}</value></data>
+  <data name="AutoRotateOn" xml:space="preserve"><value>Auto rotate on ({0} s)</value></data>
+  <data name="AutoRotateOff" xml:space="preserve"><value>Auto rotate off</value></data>
+  <data name="AutoRotateDoneItem" xml:space="preserve"><value>Auto rotate finished (one item)</value></data>
+  <data name="AutoRotateDoneGroup" xml:space="preserve"><value>Auto rotate finished (end of group)</value></data>
+  <data name="GapModeNone" xml:space="preserve"><value>None (waiting text)</value></data>
+  <data name="GapModeBlack" xml:space="preserve"><value>Black (black screen)</value></data>
+  <data name="GapModeDefault" xml:space="preserve"><value>Default (waiting text)</value></data>
+  <data name="GapModeLogo" xml:space="preserve"><value>Logo image</value></data>
+  <data name="GapModeStatus" xml:space="preserve"><value>Gap screen mode: {0}</value></data>
+  <data name="GapFadeOn" xml:space="preserve"><value>Gap screen fade: on</value></data>
+  <data name="GapFadeOff" xml:space="preserve"><value>Gap screen fade: off</value></data>
+  <data name="GapLogoCleared" xml:space="preserve"><value>Gap screen logo: cleared</value></data>
+  <data name="GapLogoSet" xml:space="preserve"><value>Gap screen logo: {0}</value></data>
+  <data name="ItemContentLoadFailed" xml:space="preserve"><value>Could not load the item content: {0}</value></data>
+  <data name="SelectItemToPlay" xml:space="preserve"><value>Select a worship list item to play.</value></data>
+  <data name="MediaFileNotFound" xml:space="preserve"><value>Media file not found: {0}</value></data>
+  <data name="CameraOpensInOutput" xml:space="preserve"><value>A connected camera can be opened from playback on the output monitor.</value></data>
+  <data name="MediaPlaying" xml:space="preserve"><value>Playing media: {0}</value></data>
+  <data name="MediaOpenFailed" xml:space="preserve"><value>Cannot open the media file: {0}</value></data>
+  <data name="SelectExternalItemToEdit" xml:space="preserve"><value>Select an external worship list item to edit.</value></data>
+  <data name="ExternalFilePathEmpty" xml:space="preserve"><value>{0} file path is empty: {1}</value></data>
+  <data name="ExternalFileNotFound" xml:space="preserve"><value>{0} file not found: {1}</value></data>
+  <data name="ExternalFileEditOpened" xml:space="preserve"><value>Opened {0} for editing: {1}</value></data>
+  <data name="ExternalFileOpenFailed" xml:space="preserve"><value>Cannot open the {0} file: {1}</value></data>
+  <data name="CameraOutput" xml:space="preserve"><value>Camera output</value></data>
+  <data name="SelectItemToPlayInOutput" xml:space="preserve"><value>Select a worship list item to play in the output.</value></data>
+  <data name="OutputMediaNotFound" xml:space="preserve"><value>Output media file not found: {0}</value></data>
+  <data name="OutputMediaPlaying" xml:space="preserve"><value>Playing output media: {0}</value></data>
+  <data name="NoOutputMediaItem" xml:space="preserve"><value>There is no item to play output media for.</value></data>
+  <data name="OutputMediaCannotControl" xml:space="preserve"><value>Cannot control the output media: {0}</value></data>
+  <data name="MediaActionPlay" xml:space="preserve"><value>playing</value></data>
+  <data name="MediaActionPause" xml:space="preserve"><value>paused</value></data>
+  <data name="OutputMediaAction" xml:space="preserve"><value>Output media {0}: {1}</value></data>
+  <data name="OutputMediaFolderSearchFailed" xml:space="preserve"><value>Could not search the output media folder: {0}</value></data>
+  <data name="SlideShowStopFailed" xml:space="preserve"><value>Could not end the PowerPoint slide show: {0}</value></data>
+  <data name="SlideShowStartFailed" xml:space="preserve"><value>Could not start the PowerPoint slide show: {0}</value></data>
+  <data name="NoNextOutputSlide" xml:space="preserve"><value>There is no next slide or verse in the output.</value></data>
+  <data name="SlideAdvanceFailed" xml:space="preserve"><value>Could not move the PowerPoint slide: {0}</value></data>
+  <data name="OutputSlideHiddenReady" xml:space="preserve"><value>Output slide {0}/{1} ready (hidden)</value></data>
+  <data name="OutputSlideReady" xml:space="preserve"><value>Output slide {0}/{1} ready</value></data>
+  <data name="OutputLyricsPosition" xml:space="preserve"><value>Output lyrics verse {0}/{1}</value></data>
+  <data name="OutputLyricsHiddenReady" xml:space="preserve"><value>Output lyrics verse {0}/{1} ready (hidden)</value></data>
+  <data name="OutputLyricsReady" xml:space="preserve"><value>Output lyrics verse {0}/{1} ready</value></data>
+  <data name="OutputCaptionDisabled" xml:space="preserve"><value>Output — none (not shown)</value></data>
+  <data name="OutputCaption" xml:space="preserve"><value>Output</value></data>
+  <data name="OutputDisabled" xml:space="preserve"><value>The output monitor is set to 'None', so nothing is shown. Choose an output monitor in Options.</value></data>
+  <data name="OutputAreaOffScreen" xml:space="preserve"><value> — the custom output area is off the screen, so the whole monitor is used</value></data>
+  <data name="OutputWindowOpened" xml:space="preserve"><value>Output window opened: {0}{1}</value></data>
+  <data name="ConfirmCloseOutputTitle" xml:space="preserve"><value>Close the output window while live?</value></data>
+  <data name="ConfirmCloseOutputMessage" xml:space="preserve"><value>The current output stops and the output window closes. It is cancelled if you do not confirm within 5 seconds.</value></data>
+  <data name="OutputWindowClosed" xml:space="preserve"><value>Output window closed</value></data>
+  <data name="OutputReady" xml:space="preserve"><value>Output ready: {0}</value></data>
+  <data name="OutputReadyNextPreview" xml:space="preserve"><value>Output ready: {0} / Preview next: {1}</value></data>
+  <data name="ScreenCleared" xml:space="preserve"><value>Screen cleared (background kept)</value></data>
+  <data name="SelectItemToDoubleClick" xml:space="preserve"><value>Select a worship list item to double-click.</value></data>
+  <data name="NoPreviewItemToCopy" xml:space="preserve"><value>There is no preview item to copy to the output.</value></data>
+  <data name="OutputItemChanged" xml:space="preserve"><value>The item in the output pane changed, so the output did not start.</value></data>
+  <data name="ConfirmStopLiveTitle" xml:space="preserve"><value>Stop the current live output?</value></data>
+  <data name="ConfirmStopLiveMessage" xml:space="preserve"><value>The output screen goes back to standby. It is cancelled if you do not confirm within 5 seconds.</value></data>
+  <data name="PowerPointStopFailed" xml:space="preserve"><value>Could not close PowerPoint: {0}</value></data>
+  <data name="SlideShowEnded" xml:space="preserve"><value>PowerPoint slide show ended</value></data>
+  <data name="LiveStopped" xml:space="preserve"><value>Live stopped</value></data>
+  <data name="LiveStoppedPowerPointFailed" xml:space="preserve"><value>Live stopped (could not close PowerPoint: {0})</value></data>
+  <data name="ErrorOutputKept" xml:space="preserve"><value>An error occurred, but the output continues: {0}</value></data>
+  <data name="KeySkippedBusy" xml:space="preserve"><value>The previous move is still being handled, so this key press is skipped.</value></data>
+  <data name="NoPreviousOutputSlide" xml:space="preserve"><value>There is no previous slide or verse in the output.</value></data>
+  <data name="PreviewSelected" xml:space="preserve"><value>Preview selected: {0}</value></data>
+  <data name="NoNextPreviewNonRotating" xml:space="preserve"><value>There is no next preview item excluded from rotation.</value></data>
+  <data name="PreviewNonRotatingSelected" xml:space="preserve"><value>Preview item excluded from rotation selected: {0}</value></data>
+  <data name="OutputHiddenReady" xml:space="preserve"><value>Output ready (hidden): {0}</value></data>
+  <data name="ShowEnding" xml:space="preserve"><value>The show is ending. Show it again once it has ended.</value></data>
+  <data name="NoNextOutputNonRotating" xml:space="preserve"><value>There is no next output item excluded from rotation.</value></data>
+  <data name="OutputNonRotatingHiddenReady" xml:space="preserve"><value>Output item excluded from rotation ready (hidden): {0}</value></data>
+  <data name="OutputNonRotatingReady" xml:space="preserve"><value>Output item excluded from rotation ready: {0}</value></data>
+  <data name="OutputHidden" xml:space="preserve"><value>Output hidden</value></data>
+  <data name="OutputRestored" xml:space="preserve"><value>Output restored</value></data>
+  <data name="BlackScreenShown" xml:space="preserve"><value>Black screen shown</value></data>
+  <data name="ConfirmHideTitle" xml:space="preserve"><value>Hide the current output?</value></data>
+  <data name="ConfirmHideMessage" xml:space="preserve"><value>The live output changes at once. It is cancelled if you do not confirm within 5 seconds.</value></data>
+  <data name="BackToStart" xml:space="preserve"><value>Back to the start: {0}</value></data>
+  <data name="OutputRefreshed" xml:space="preserve"><value>Output refreshed</value></data>
+  <data name="LiveSafetyCancelled" xml:space="preserve"><value>Live safety check cancelled</value></data>
+  <data name="IndividualFormatOn" xml:space="preserve"><value>Individual formatting used</value></data>
+  <data name="GlobalFormatUsed" xml:space="preserve"><value>Global default formatting used</value></data>
+  <data name="SequenceCleared" xml:space="preserve"><value>Verse order cleared (linear output)</value></data>
+  <data name="SequenceSet" xml:space="preserve"><value>Verse order: {0}</value></data>
+  <data name="TemplateAppliedEmpty" xml:space="preserve"><value>Individual settings template applied: empty format</value></data>
+  <data name="TemplateApplied" xml:space="preserve"><value>Individual settings template applied</value></data>
+  <data name="ItemFormatCleared" xml:space="preserve"><value>All formatting of this item cleared (global default)</value></data>
+  <data name="ItemFormatCopied" xml:space="preserve"><value>Formatting of this item copied (can be pasted on other items)</value></data>
+  <data name="ItemFormatPasted" xml:space="preserve"><value>Formatting pasted on this item</value></data>
+  <data name="CopiedFormatEmpty" xml:space="preserve"><value>The copied formatting is empty.</value></data>
+  <data name="FormatAlreadySame" xml:space="preserve"><value>All target items already use the same formatting.</value></data>
+  <data name="FormatPastedOnItems" xml:space="preserve"><value>Copied formatting applied to {0} items</value></data>
+  <data name="FormatClearedOnItems" xml:space="preserve"><value>Formatting of {0} items cleared (global default)</value></data>
+  <data name="ItemTextColorDefault" xml:space="preserve"><value>Item text color: global default</value></data>
+  <data name="ItemTextColor" xml:space="preserve"><value>Item text color: {0}{1}</value></data>
+  <data name="GlobalDefault" xml:space="preserve"><value>Global default</value></data>
+  <data name="ItemAlignment" xml:space="preserve"><value>Item alignment: {0}{1}</value></data>
+  <data name="ItemFontSizeDefault" xml:space="preserve"><value>Item font size: global default</value></data>
+  <data name="ItemFontSize" xml:space="preserve"><value>Item font size: {0}pt{1}</value></data>
+  <data name="ItemFontDefault" xml:space="preserve"><value>Item font: global default</value></data>
+  <data name="ItemFont" xml:space="preserve"><value>Item font: {0}{1}</value></data>
+  <data name="ItemBackColorDefault" xml:space="preserve"><value>Item background color: global default</value></data>
+  <data name="ItemBackColor" xml:space="preserve"><value>Item background color: {0}{1}</value></data>
+  <data name="ItemBackImageDefault" xml:space="preserve"><value>Item background image: global default</value></data>
+  <data name="ItemBackImage" xml:space="preserve"><value>Item background image: {0}{1}</value></data>
+  <data name="ItemMediaNone" xml:space="preserve"><value>Item media: none</value></data>
+  <data name="ItemMedia" xml:space="preserve"><value>Item media: {0}{1}</value></data>
+  <data name="Region2TextColorSame" xml:space="preserve"><value>Secondary area text color: same as main text</value></data>
+  <data name="Region2TextColor" xml:space="preserve"><value>Secondary area text color: {0}{1}</value></data>
+  <data name="SameAsMain" xml:space="preserve"><value>Same as main text</value></data>
+  <data name="Region2Alignment" xml:space="preserve"><value>Secondary area alignment: {0}{1}</value></data>
+  <data name="Region2FontSizeSame" xml:space="preserve"><value>Secondary area font size: same as main text</value></data>
+  <data name="Region2FontSize" xml:space="preserve"><value>Secondary area font size: {0}pt{1}</value></data>
+  <data name="Region2FontSame" xml:space="preserve"><value>Secondary area font: same as main text</value></data>
+  <data name="Region2Font" xml:space="preserve"><value>Secondary area font: {0}{1}</value></data>
+  <data name="AllUseGlobalFormat" xml:space="preserve"><value>All items already use the global default formatting.</value></data>
+  <data name="GlobalFormatAppliedOnItems" xml:space="preserve"><value>Global default formatting applied to {0} items</value></data>
+  <data name="OutputAppearance" xml:space="preserve"><value>Output appearance: {0}</value></data>
+  <data name="LyricsAlignment" xml:space="preserve"><value>Lyrics alignment: {0}</value></data>
+  <data name="BackgroundMode" xml:space="preserve"><value>Background display mode: {0}</value></data>
+  <data name="GradientDirection" xml:space="preserve"><value>Gradient direction: {0}</value></data>
+  <data name="RegionDisplay" xml:space="preserve"><value>Areas shown: {0}</value></data>
+  <data name="TitleAlignment" xml:space="preserve"><value>Title alignment: {0}</value></data>
+  <data name="FollowMainAlignment" xml:space="preserve"><value>Follow main text alignment</value></data>
+  <data name="FollowRegion2Alignment" xml:space="preserve"><value>Follow secondary area alignment</value></data>
+  <data name="TitleAlignmentUnknown" xml:space="preserve"><value>The title alignment choice was not recognized.</value></data>
+  <data name="LyricsVerticalAlignment" xml:space="preserve"><value>Lyrics vertical alignment: {0}</value></data>
+  <data name="EnterTemplateName" xml:space="preserve"><value>Enter a name to save the template as.</value></data>
+  <data name="AppearanceTemplateOverwritten" xml:space="preserve"><value>Output appearance template saved (overwritten): {0}</value></data>
+  <data name="AppearanceTemplateSaved" xml:space="preserve"><value>Output appearance template saved: {0}</value></data>
+  <data name="TemplateNameInvalid" xml:space="preserve"><value>The template name has characters or a form that cannot be used (up to 100 characters, no reserved names or path characters).</value></data>
+  <data name="TemplateSaveFailed" xml:space="preserve"><value>Could not save the template: {0}</value></data>
+  <data name="TemplateNotFound" xml:space="preserve"><value>Template not found: {0}</value></data>
+  <data name="AppearanceTemplateApplied" xml:space="preserve"><value>Output appearance template applied: {0}</value></data>
+  <data name="TemplateApplyFailed" xml:space="preserve"><value>Could not apply the template: {0}</value></data>
+  <data name="AppearanceDefaultsRestored" xml:space="preserve"><value>Output appearance defaults restored</value></data>
+  <data name="AppearanceTemplateDeleted" xml:space="preserve"><value>Output appearance template deleted: {0}</value></data>
+  <data name="ColorFormatInvalid" xml:space="preserve"><value>The color format is not valid (for example {0}).</value></data>
+  <data name="BackColor" xml:space="preserve"><value>Background color: {0}</value></data>
+  <data name="TextColor" xml:space="preserve"><value>Text color: {0}</value></data>
+  <data name="PanelColor" xml:space="preserve"><value>Panel color: {0} (semi-transparent)</value></data>
+  <data name="PanelTextColor" xml:space="preserve"><value>Panel text color: {0}</value></data>
+  <data name="EffectBold" xml:space="preserve"><value>bold</value></data>
+  <data name="EffectItalic" xml:space="preserve"><value>italic</value></data>
+  <data name="EffectShadow" xml:space="preserve"><value>shadow</value></data>
+  <data name="EffectShowChords" xml:space="preserve"><value>chord display</value></data>
+  <data name="EffectUnderline" xml:space="preserve"><value>underline</value></data>
+  <data name="EffectEmphasisChorusOnly" xml:space="preserve"><value>emphasis on chorus only</value></data>
+  <data name="EffectInterlace" xml:space="preserve"><value>interlaced lines</value></data>
+  <data name="EffectShowPanel" xml:space="preserve"><value>info panel</value></data>
+  <data name="EffectShowPosition" xml:space="preserve"><value>position indicator</value></data>
+  <data name="EffectVerseHeading" xml:space="preserve"><value>verse heading</value></data>
+  <data name="EffectShowTitle" xml:space="preserve"><value>title</value></data>
+  <data name="EffectOutline" xml:space="preserve"><value>outline</value></data>
+  <data name="EffectTitleFirstScreenOnly" xml:space="preserve"><value>title on the first screen only</value></data>
+  <data name="EffectTitleFollowMain" xml:space="preserve"><value>title follows main text alignment</value></data>
+  <data name="EffectTitleFollowRegion2" xml:space="preserve"><value>title follows secondary area alignment</value></data>
+  <data name="EffectSongNumber" xml:space="preserve"><value>song number</value></data>
+  <data name="EffectPanelTitle" xml:space="preserve"><value>panel title</value></data>
+  <data name="EffectCopyright" xml:space="preserve"><value>copyright</value></data>
+  <data name="EffectNextItem" xml:space="preserve"><value>next item</value></data>
+  <data name="EffectPanelTransparent" xml:space="preserve"><value>transparent panel background</value></data>
+  <data name="EffectPanelTextFollowMain" xml:space="preserve"><value>panel text color follows main text</value></data>
+  <data name="EffectPanelBold" xml:space="preserve"><value>panel bold</value></data>
+  <data name="EffectPanelItalic" xml:space="preserve"><value>panel italic</value></data>
+  <data name="EffectPanelUnderline" xml:space="preserve"><value>panel underline</value></data>
+  <data name="EffectFadeTransition" xml:space="preserve"><value>fade transition</value></data>
+  <data name="LyricsEffectToggled" xml:space="preserve"><value>Lyrics {0}: {1}</value></data>
+  <data name="TransitionDuration" xml:space="preserve"><value>Transition length: {0}ms</value></data>
+  <data name="ItemTransition" xml:space="preserve"><value>Item transition: {0}</value></data>
+  <data name="TransitionFade" xml:space="preserve"><value>Fade</value></data>
+  <data name="TransitionSlideFromLeft" xml:space="preserve"><value>Slide (left)</value></data>
+  <data name="TransitionSlideFromRight" xml:space="preserve"><value>Slide (right)</value></data>
+  <data name="TransitionSlideFromTop" xml:space="preserve"><value>Slide (top)</value></data>
+  <data name="TransitionSlideFromBottom" xml:space="preserve"><value>Slide (bottom)</value></data>
+  <data name="TransitionZoomIn" xml:space="preserve"><value>Zoom in</value></data>
+  <data name="TransitionZoomOut" xml:space="preserve"><value>Zoom out</value></data>
+  <data name="TransitionSpin" xml:space="preserve"><value>Spin</value></data>
+  <data name="TransitionFlipHorizontal" xml:space="preserve"><value>Flip (horizontal)</value></data>
+  <data name="TransitionFlipVertical" xml:space="preserve"><value>Flip (vertical)</value></data>
+  <data name="TransitionRevealCircle" xml:space="preserve"><value>Circle reveal</value></data>
+  <data name="TransitionRevealRectangle" xml:space="preserve"><value>Rectangle reveal</value></data>
+  <data name="TransitionWipeRight" xml:space="preserve"><value>Wipe (→)</value></data>
+  <data name="TransitionWipeLeft" xml:space="preserve"><value>Wipe (←)</value></data>
+  <data name="TransitionWipeDown" xml:space="preserve"><value>Wipe (↓)</value></data>
+  <data name="TransitionWipeUp" xml:space="preserve"><value>Wipe (↑)</value></data>
+  <data name="TransitionBlindsHorizontal" xml:space="preserve"><value>Blinds (horizontal)</value></data>
+  <data name="TransitionBlindsVertical" xml:space="preserve"><value>Blinds (vertical)</value></data>
+  <data name="TransitionCheckerboard" xml:space="preserve"><value>Checkerboard</value></data>
+  <data name="TransitionDiamond" xml:space="preserve"><value>Diamond</value></data>
+  <data name="TransitionDoorsOpen" xml:space="preserve"><value>Doors open</value></data>
+  <data name="TransitionDoorsClose" xml:space="preserve"><value>Doors close</value></data>
+  <data name="TransitionStar" xml:space="preserve"><value>Star</value></data>
+  <data name="TransitionCross" xml:space="preserve"><value>Cross (2 layers)</value></data>
+  <data name="TransitionBowTie" xml:space="preserve"><value>Bow tie (2 layers)</value></data>
+  <data name="TransitionHeart" xml:space="preserve"><value>Heart (2 layers)</value></data>
+  <data name="TransitionWedge" xml:space="preserve"><value>Clock wipe</value></data>
+  <data name="TransitionSpiral" xml:space="preserve"><value>Spiral</value></data>
+  <data name="TransitionWindMill" xml:space="preserve"><value>Windmill</value></data>
+  <data name="TransitionFanUp" xml:space="preserve"><value>Fan</value></data>
+  <data name="SlideTransition" xml:space="preserve"><value>Slide transition: {0}</value></data>
+  <data name="LiveMessageShown" xml:space="preserve"><value>Live message shown</value></data>
+  <data name="NoVerseAlert" xml:space="preserve"><value>No verse alert</value></data>
+  <data name="VerseAlertShown" xml:space="preserve"><value>Verse alert shown</value></data>
+  <data name="VerseAlertHidden" xml:space="preserve"><value>Verse alert hidden</value></data>
+  <data name="NoticeTitle" xml:space="preserve"><value>Notice</value></data>
+  <data name="NoticeShown" xml:space="preserve"><value>Notice screen shown</value></data>
+  <data name="NoticeHidden" xml:space="preserve"><value>Notice hidden (black screen)</value></data>
+  <data name="OutputBackImage" xml:space="preserve"><value>Output background image: {0}</value></data>
+  <data name="OutputBackImageCleared" xml:space="preserve"><value>Output background image cleared</value></data>
+  <data name="DefaultMediaSaveFailed" xml:space="preserve"><value>Cannot save the default media settings.</value></data>
+  <data name="DefaultMediaSaved" xml:space="preserve"><value>Default media settings saved.</value></data>
+  <data name="LyricsSize" xml:space="preserve"><value>Lyrics size: {0}px</value></data>
+  <data name="OutputFontDefault" xml:space="preserve"><value>Output font: default (theme)</value></data>
+  <data name="OutputFont" xml:space="preserve"><value>Output font: {0}</value></data>
+  <data name="Region2FontSameShort" xml:space="preserve"><value>Secondary area font: same as main text</value></data>
+  <data name="Region2FontShort" xml:space="preserve"><value>Secondary area font: {0}</value></data>
+  <data name="ColorWhite" xml:space="preserve"><value>White</value></data>
+  <data name="ColorYellow" xml:space="preserve"><value>Yellow</value></data>
+  <data name="ColorSkyBlue" xml:space="preserve"><value>Sky blue</value></data>
+  <data name="ColorLightGreen" xml:space="preserve"><value>Light green</value></data>
+  <data name="ColorLightGray" xml:space="preserve"><value>Light gray</value></data>
+  <data name="Region2TextColorSameShort" xml:space="preserve"><value>Secondary area text color: same as main text</value></data>
+  <data name="Region2TextColorShort" xml:space="preserve"><value>Secondary area text color: {0}</value></data>
+  <data name="Region2AlignmentSameShort" xml:space="preserve"><value>Secondary area alignment: same as main text</value></data>
+  <data name="Region2AlignmentShort" xml:space="preserve"><value>Secondary area alignment: {0}</value></data>
+  <data name="EmphasisBold" xml:space="preserve"><value>Bold</value></data>
+  <data name="EmphasisRegular" xml:space="preserve"><value>Regular</value></data>
+  <data name="Region2BoldOn" xml:space="preserve"><value>Secondary area bold: on</value></data>
+  <data name="Region2BoldOff" xml:space="preserve"><value>Secondary area bold: regular</value></data>
+  <data name="Region2BoldSame" xml:space="preserve"><value>Secondary area bold: same as main text</value></data>
+  <data name="EmphasisItalic" xml:space="preserve"><value>Italic</value></data>
+  <data name="EmphasisUpright" xml:space="preserve"><value>Upright</value></data>
+  <data name="Region2ItalicOn" xml:space="preserve"><value>Secondary area italic: on</value></data>
+  <data name="Region2ItalicOff" xml:space="preserve"><value>Secondary area italic: upright</value></data>
+  <data name="Region2ItalicSame" xml:space="preserve"><value>Secondary area italic: same as main text</value></data>
+  <data name="EmphasisUnderline" xml:space="preserve"><value>Underline</value></data>
+  <data name="EmphasisNone" xml:space="preserve"><value>None</value></data>
+  <data name="Region2UnderlineOn" xml:space="preserve"><value>Secondary area underline: on</value></data>
+  <data name="Region2UnderlineOff" xml:space="preserve"><value>Secondary area underline: none</value></data>
+  <data name="Region2UnderlineSame" xml:space="preserve"><value>Secondary area underline: same as main text</value></data>
+  <data name="PanelFontSize" xml:space="preserve"><value>Panel font size: {0}%</value></data>
+  <data name="Region2SizeSame" xml:space="preserve"><value>Secondary area size: same as main text (automatic)</value></data>
+  <data name="Region2Size" xml:space="preserve"><value>Secondary area size: {0}px</value></data>
+  <data name="LineSpacing" xml:space="preserve"><value>Line spacing: {0}%</value></data>
+  <data name="MainLeftMargin" xml:space="preserve"><value>Main text left margin: {0}px</value></data>
+  <data name="MainRightMargin" xml:space="preserve"><value>Main text right margin: {0}px</value></data>
+  <data name="RegionGap" xml:space="preserve"><value>Gap between areas: {0}px</value></data>
+  <data name="MainVerticalOffsetDefault" xml:space="preserve"><value>Main text vertical position: default</value></data>
+  <data name="MainVerticalOffset" xml:space="preserve"><value>Main text vertical position: {0}{1}px</value></data>
+  <data name="MainBottomMargin" xml:space="preserve"><value>Main text bottom margin: {0}px</value></data>
+  <data name="CustomAppearance" xml:space="preserve"><value>Custom</value></data>
+  <data name="PowerPointLimitExceeded" xml:space="preserve"><value>PowerPoint limit exceeded: {0}/{1}</value></data>
+  <data name="PowerPointBlackoutFailed" xml:space="preserve"><value>Could not switch PowerPoint to black: {0}</value></data>
+  <data name="SlideShowFitFailed" xml:space="preserve"><value>Could not fit the PowerPoint slide show: {0}</value></data>
+  <data name="PreviousSlide" xml:space="preserve"><value>Previous slide</value></data>
+  <data name="NextSlide" xml:space="preserve"><value>Next slide</value></data>
+  <data name="On" xml:space="preserve"><value>on</value></data>
+  <data name="Off" xml:space="preserve"><value>off</value></data>
+  <data name="IndividualFormatOnSuffix" xml:space="preserve"><value> (individual formatting on)</value></data>
+  <data name="BackgroundFit" xml:space="preserve"><value>Fit (whole picture)</value></data>
+  <data name="BackgroundCenter" xml:space="preserve"><value>Center (original size)</value></data>
+  <data name="BackgroundTile" xml:space="preserve"><value>Tile (repeat)</value></data>
+  <data name="BackgroundFill" xml:space="preserve"><value>Fill (whole screen)</value></data>
+  <data name="GradientHorizontal" xml:space="preserve"><value>Horizontal (left → right)</value></data>
+  <data name="GradientDiagonalDown" xml:space="preserve"><value>Diagonal ↘</value></data>
+  <data name="GradientDiagonalUp" xml:space="preserve"><value>Diagonal ↗</value></data>
+  <data name="GradientVertical" xml:space="preserve"><value>Vertical (top → bottom)</value></data>
+  <data name="RegionMainOnly" xml:space="preserve"><value>Main area only</value></data>
+  <data name="RegionSecondaryOnly" xml:space="preserve"><value>Secondary area only</value></data>
+  <data name="RegionBoth" xml:space="preserve"><value>Both</value></data>
+  <data name="OutputScreenStatus" xml:space="preserve"><value>Show: {0}     Text: {1}     Screen: {2}</value></data>
+  <data name="MediaReady" xml:space="preserve"><value>READY</value></data>
+  <data name="PanelPreview" xml:space="preserve"><value>Preview</value></data>
+  <data name="PanelOutput" xml:space="preserve"><value>Output</value></data>
+  <data name="LegacyListEmpty" xml:space="preserve"><value>Legacy worship list is empty: {0} (.esw)</value></data>
+  <data name="LegacyListLoaded" xml:space="preserve"><value>Legacy worship list loaded: {0} ({1} .esw items)</value></data>
+  <data name="LegacyListMergeSkipped" xml:space="preserve"><value>Legacy worship list merge skipped: {0} (.esw is empty)</value></data>
+  <data name="LegacyListMerged" xml:space="preserve"><value>Legacy worship list merged: {0} ({1} added, total {2})</value></data>
+  <data name="RemoveDefaultBackground" xml:space="preserve"><value>Remove Default Background '{0}'</value></data>
+  <data name="NoDefaultBackground" xml:space="preserve"><value>No Default Background</value></data>
+  <data name="DefaultMediaCaptionPrefix" xml:space="preserve"><value>Media: </value></data>
+  <data name="MediaAsTitle" xml:space="preserve"><value>As Title</value></data>
+  <data name="MediaSpecific" xml:space="preserve"><value>Specific</value></data>
+  <data name="MediaLiveFeed" xml:space="preserve"><value>Live Feed</value></data>
+  <data name="MediaNone" xml:space="preserve"><value>None</value></data>
+  <data name="RemoveDefaultMedia" xml:space="preserve"><value>Remove Default Media '{0}'</value></data>
+  <data name="NoDefaultMedia" xml:space="preserve"><value>No Default Media</value></data>
+  <data name="PreviewBible" xml:space="preserve"><value>Preview Bible: {0}</value></data>
+  <data name="LegacyListFileNotFound" xml:space="preserve"><value>Legacy worship list file (.esw) was not found.</value></data>
+  <data name="ListFileReadFailed" xml:space="preserve"><value>Could not read worship list file: {0}</value></data>
+  <data name="LegacyListFileNoItems" xml:space="preserve"><value>Legacy worship list file has no importable items.</value></data>
+  <data name="LegacyListAdded" xml:space="preserve"><value>Legacy worship list added: {0} ({1})</value></data>
+  <data name="PanelLive" xml:space="preserve"><value>LIVE</value></data>
+  <data name="PanelBlack" xml:space="preserve"><value>BLACK</value></data>
+  <data name="PanelClear" xml:space="preserve"><value>CLEAR</value></data>
+  <data name="PanelHidden" xml:space="preserve"><value>HIDDEN</value></data>
+  <data name="PanelStandby" xml:space="preserve"><value>STANDBY</value></data>
+  <data name="AutoRotateOne" xml:space="preserve"><value>Auto Rotate One Item</value></data>
+  <data name="AutoRotateOneRepeat" xml:space="preserve"><value>Auto Rotate One Item - Repeat</value></data>
+  <data name="AutoRotateGroup" xml:space="preserve"><value>Auto Rotate Group</value></data>
+  <data name="AutoRotateGroupRepeat" xml:space="preserve"><value>Auto Rotate Group - Repeat</value></data>
+  <data name="GapItemOff" xml:space="preserve"><value>Gap item off</value></data>
+  <data name="GapItemRestored" xml:space="preserve"><value>Gap item restored: {0}</value></data>
+  <data name="PreviewPowerPointPathEmpty" xml:space="preserve"><value>Preview PowerPoint file path is empty.</value></data>
+  <data name="PreviewPowerPoint" xml:space="preserve"><value>Preview PowerPoint: {0}</value></data>
+  <data name="PreviewPowerPointLoadFailed" xml:space="preserve"><value>Preview PowerPoint load failed: {0}</value></data>
+  <data name="PreviewSlideReplayedAt" xml:space="preserve"><value>Preview PPT slide {0}/{1} replayed</value></data>
+  <data name="PreviewSlideReplayed" xml:space="preserve"><value>Preview PPT slide replayed</value></data>
+  <data name="OutputSlideReplayedAt" xml:space="preserve"><value>Output PPT slide {0}/{1} replayed</value></data>
+  <data name="OutputSlideReplayed" xml:space="preserve"><value>Output PPT slide replayed</value></data>
+  <data name="LiveStatus" xml:space="preserve"><value>LIVE: {0}{1}</value></data>
+  <data name="OutputMediaCannotRestart" xml:space="preserve"><value>Output media cannot restart: {0}</value></data>
+  <data name="OutputMediaRestarted" xml:space="preserve"><value>Output media restarted: {0}</value></data>
+  <data name="OutputMediaRefreshed" xml:space="preserve"><value>Output media refreshed: {0}</value></data>
+  <data name="OutputVisualRefreshed" xml:space="preserve"><value>Output visual refreshed: {0}</value></data>
+  <data name="OutputVisualRefreshedHidden" xml:space="preserve"><value>Output visual refreshed while hidden: {0}</value></data>
+  <data name="OutputVisualReady" xml:space="preserve"><value>Output visual ready: {0}</value></data>
+  <data name="RemoveItemBackground" xml:space="preserve"><value>Remove Item Background '{0}'</value></data>
+  <data name="NoItemBackground" xml:space="preserve"><value>No Item Background</value></data>
+  <data name="RemoveItemMedia" xml:space="preserve"><value>Remove Item Media '{0}'</value></data>
+  <data name="NoItemMedia" xml:space="preserve"><value>No Item Media</value></data>
+  <data name="ItemVerticalAlignment" xml:space="preserve"><value>Item vertical align: {0}{1}</value></data>
+  <data name="MarginLeft" xml:space="preserve"><value>left margin</value></data>
+  <data name="MarginRight" xml:space="preserve"><value>right margin</value></data>
+  <data name="MarginBottom" xml:space="preserve"><value>bottom margin</value></data>
+  <data name="ItemMarginDefault" xml:space="preserve"><value>Item {0}: default</value></data>
+  <data name="ItemMargin" xml:space="preserve"><value>Item {0}: {1}{2}</value></data>
+  <data name="ItemBackTile" xml:space="preserve"><value>Tile Image</value></data>
+  <data name="ItemBackCentre" xml:space="preserve"><value>Centre Image</value></data>
+  <data name="ItemBackBestFit" xml:space="preserve"><value>Best Fit Image</value></data>
+  <data name="ItemBackImageFormat" xml:space="preserve"><value>Item background picture format: {0}{1}</value></data>
+  <data name="ItemTransitionIndividual" xml:space="preserve"><value>Item transition: {0}{1}</value></data>
+  <data name="SlideTransitionIndividual" xml:space="preserve"><value>Slide transition: {0}{1}</value></data>
+  <data name="DefaultMediaCleared" xml:space="preserve"><value>Default media cleared</value></data>
+  <data name="DefaultMedia" xml:space="preserve"><value>Default media: {0}</value></data>
+  <data name="StateOff" xml:space="preserve"><value>OFF</value></data>
+  <data name="StateOn" xml:space="preserve"><value>ON</value></data>
+  <data name="StateHidden" xml:space="preserve"><value>hidden</value></data>
+  <data name="StateShown" xml:space="preserve"><value>shown</value></data>
+  <data name="StateBlack" xml:space="preserve"><value>black</value></data>
+  <data name="StateGap" xml:space="preserve"><value>gap</value></data>
+  <data name="StateNormal" xml:space="preserve"><value>normal</value></data>
+</root>
