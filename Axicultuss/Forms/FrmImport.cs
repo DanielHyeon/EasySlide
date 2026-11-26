@@ -930,6 +930,9 @@ public partial class FrmImport : Form
 			using DataTable dataTable = DbController.GetDataTable(DbController.ConnectionStringForFile(ImportFileName, readOnly: true), "select * from " + DbController.QuoteIdentifier(Gf.Import_TableName));
 			if (dataTable.Rows.Count <= 0)
 			{
+				// (an empty table: the wait cursor and the progress bar do not stay)
+				ProgressBar1.Visible = false;
+				Cursor = Cursors.Default;
 				return;
 			}
 

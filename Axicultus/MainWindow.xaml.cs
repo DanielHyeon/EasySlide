@@ -3187,7 +3187,7 @@ public partial class MainWindow : Window
         var folderName = _inlineImages.SelectedFolder?.DisplayName ?? _inlineImages.FolderPath;
         var dialog = new Microsoft.Win32.OpenFileDialog
         {
-            Filter = UiText.Get("MainWindow", "FilterImages") + " (*.jpg,*jpeg,*.bmp,*.gif,*.ico)|*.jpg;*jpeg;*.bmp;*.gif;*.ico",
+            Filter = UiText.Get("MainWindow", "FilterImages") + " (*.jpg,*.jpeg,*.bmp,*.gif,*.ico)|*.jpg;*.jpeg;*.bmp;*.gif;*.ico",
             Title = UiText.Format("MainWindow", "ImportImageTitle", folderName),
             Multiselect = true,
             CheckFileExists = true,

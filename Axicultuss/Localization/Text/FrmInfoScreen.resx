@@ -62,8 +62,8 @@
   <data name="Menu_ShowAllButtons.Text" xml:space="preserve"><value>Show All &amp;Buttons</value></data>
   <data name="label16.Text" xml:space="preserve"><value>Verses</value></data>
   <data name="label17.Text" xml:space="preserve"><value>Sequence</value></data>
-  <data name="Verses_Add.ToolTipText" xml:space="preserve"><value>Move Item Up</value></data>
-  <data name="Verses_SmartAdd.ToolTipText" xml:space="preserve"><value>Move Item Down</value></data>
+  <data name="Verses_Add.ToolTipText" xml:space="preserve"><value>Add</value></data>
+  <data name="Verses_SmartAdd.ToolTipText" xml:space="preserve"><value>Smart Add</value></data>
   <data name="OrderList_Up.ToolTipText" xml:space="preserve"><value>Move Item Up</value></data>
   <data name="OrderList_Down.ToolTipText" xml:space="preserve"><value>Move Item Down</value></data>
   <data name="OrderList_Delete.ToolTipText" xml:space="preserve"><value>Delete</value></data>
@@ -114,7 +114,7 @@
   <data name="btnAddPosition.ToolTip" xml:space="preserve"><value>Copy current position to next blank timing</value></data>
   <data name="btnDuration.ToolTip" xml:space="preserve"><value>Click to Store length</value></data>
   <data name="Rotate_tbSourceLocation.ToolTip" xml:space="preserve"><value>Optional Media File for Reference (Filename will not be saved)</value></data>
-  <data name="btnClearMediaPositions.ToolTip" xml:space="preserve"><value>Copy to next blank Position</value></data>
+  <data name="btnClearMediaPositions.ToolTip" xml:space="preserve"><value>Clear all the media timings</value></data>
   <data name="Rotate_SlidesGapUpDown.ToolTip" xml:space="preserve"><value>Timing in seconds</value></data>
   <data name="Rotate_Equal.ToolTip" xml:space="preserve"><value>Rotate each slide in equal seconds</value></data>
   <data name="Title" xml:space="preserve"><value>Edit InfoScreen</value></data>

@@ -96,7 +96,7 @@
   <data name="btnDuration.ToolTip" xml:space="preserve"><value>Click to Store length</value></data>
   <data name="btnAddPosition.ToolTip" xml:space="preserve"><value>Copy current position to next blank timing</value></data>
   <data name="Rotate_tbSourceLocation.ToolTip" xml:space="preserve"><value>Optional Media File for Reference (Filename will not be saved)</value></data>
-  <data name="btnClearMediaPositions.ToolTip" xml:space="preserve"><value>Copy to next blank Position</value></data>
+  <data name="btnClearMediaPositions.ToolTip" xml:space="preserve"><value>Clear all the media timings</value></data>
   <data name="Rotate_SlidesGapUpDown.ToolTip" xml:space="preserve"><value>Timing in seconds</value></data>
   <data name="Rotate_Equal.ToolTip" xml:space="preserve"><value>Rotate each slide in equal seconds</value></data>
   <data name="EditScore" xml:space="preserve"><value>Edit score…</value></data>

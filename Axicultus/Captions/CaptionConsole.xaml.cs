@@ -1364,7 +1364,9 @@ public partial class CaptionConsole : Window
 
     private void ShowObsStatus(ObsStatus status)
     {
-        ObsLabel.Text = (status.Connected ? "● OBS " : "OBS ") + status.Message + (status.Scene.Length > 0 ? " · " + status.Scene : "");
+        // (most messages already name OBS: "OBS 연결 중", not "OBS OBS 연결 중")
+        string message = status.Message.StartsWith("OBS", StringComparison.Ordinal) ? status.Message : "OBS " + status.Message;
+        ObsLabel.Text = (status.Connected ? "● " : "") + message + (status.Scene.Length > 0 ? " · " + status.Scene : "");
         if (Scenes.Items.Cast<string>().SequenceEqual(status.Scenes)) return;
         Scenes.ItemsSource = status.Scenes;
         Scenes.SelectedItem = status.Scene;

@@ -339,7 +339,7 @@ public partial class FrmSmartMerge : Form
 						processedSongCount++;
 					}
 				}
-				ProgressBar1.Value = processedSongCount / selectedSongCount * 100;
+				ProgressBar1.Value = Math.Min(100, processedSongCount * 100 / selectedSongCount); // (multiplied first: integer division gave 0 until the end)
 			}
 			MessageBox.Show(UiText.Format(nameof(FrmSmartMerge), "MergeDone", processedSongCount, SongFolderC.Items[SongFolderC.SelectedIndex].ToString()));
 			ProgressBar1.Value = 0;

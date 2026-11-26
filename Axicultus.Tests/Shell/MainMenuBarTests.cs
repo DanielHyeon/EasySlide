@@ -1608,7 +1608,7 @@ public class MainMenuBarTests
         code.Should().Contain("UiText.Format(\"MainWindow\", \"ImportImageTitle\", folderName)", "Image_Import dialog title should match FrmMain");
         Axicultus.Wpf.Localization.UiText.Catalog.Manager("MainWindow").GetString("ImportImageTitle", System.Globalization.CultureInfo.InvariantCulture)
             .Should().Be("Import An Image into folder: {0}", "the English title is FrmMain's");
-        code.Should().Contain("UiText.Get(\"MainWindow\", \"FilterImages\") + \" (*.jpg,*jpeg,*.bmp,*.gif,*.ico)|*.jpg;*jpeg;*.bmp;*.gif;*.ico\"",
+        code.Should().Contain("UiText.Get(\"MainWindow\", \"FilterImages\") + \" (*.jpg,*.jpeg,*.bmp,*.gif,*.ico)|*.jpg;*.jpeg;*.bmp;*.gif;*.ico\"",
             "Image_Import should start with FrmMain's legacy image filter");
         code.Should().Contain("ImportImagesAsync(dialog.FileNames)", "Image_Import should import the selected files into the active ImagesFolder");
         code.Should().Contain("case \"ImagesSource\":", "Images source tab should participate in the shared Enter/add gesture route");

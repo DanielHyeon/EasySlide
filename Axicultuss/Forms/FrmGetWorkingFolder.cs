@@ -98,7 +98,7 @@ namespace Axicultus;
 			{
 				return true;
 			}
-			MessageBox.Show(UiText.Format(nameof(FrmGetWorkingFolder), "CreateFolderFailed", Gf.RootAxicultusDir));
+			MessageBox.Show(UiText.Format(nameof(FrmGetWorkingFolder), "CreateFolderFailed", NewLocation));
 			return false;
 		}
 
