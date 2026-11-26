@@ -421,7 +421,8 @@ public partial class CaptionConsole : Window
     private async Task SyncScreenAsync()
     {
         if (_closed || ScreenMode.IsChecked != true || !IsLoaded) return;
-        if ((ScreenDeck ?? (() => FindCurrentDeck(includeSelected: false)))() is var (path, slide))
+        var screen = ScreenDeck ?? (() => FindCurrentDeck(includeSelected: false));
+        if (screen() is var (path, slide))
         {
             if (_captions.Deck == null || !SamePath(_captions.Deck.Path, path))
             {
@@ -430,7 +431,8 @@ public partial class CaptionConsole : Window
                 _readingDeck = path;
                 try { if (!await PrepareDeckAsync(path, slide)) return; }
                 finally { _readingDeck = null; }
-                FollowLoadedDeck(slide);
+                // the slide the screen shows now: its panel may have drawn the deck (or turned) while it was read
+                FollowLoadedDeck(screen() is var (now, shown) && SamePath(now, path) ? shown : slide);
                 return;
             }
             if (!_captions.Following) FollowLoadedDeck(slide); // the slide the screen shows now, not the one last viewed
@@ -507,6 +509,9 @@ public partial class CaptionConsole : Window
 
     private void SlideImageChanged(object? sender, PropertyChangedEventArgs e)
     {
+        // The output panel is ready: only now is the deck it has drawn told (after its picture and slide), so its slide counts.
+        if (e.PropertyName == nameof(PowerPointPreviewViewModel.State) && ReferenceEquals(sender, _main.OutputPowerPoint)
+            && _main.OutputPowerPoint.State == PowerPointPreviewState.Ready) { _ = SyncScreenAsync(); return; }
         if (e.PropertyName is not (nameof(PowerPointPreviewViewModel.PreviewImage) or nameof(PowerPointPreviewViewModel.SlideNumber))) return;
         if (ReferenceEquals(sender, _main.OutputPowerPoint)) _ = SyncScreenAsync();
         UpdateScore();
@@ -1151,8 +1156,14 @@ public partial class CaptionConsole : Window
             LiveItemKindMatcher.IsPowerPoint(LiveItemKindMatcher.InferLegacyKind(item));
         var live = _main.Session.Current;
         if (live.PptPath is { Length: > 0 } path) return (path, live.PptSlideNumber);
-        // Not live: the deck in the output panel is what the output screen holds.
-        if (live.State == LiveState.Off && IsDeck(_main.OutputItem)) return (_main.OutputItem!.ContentPath!, Math.Max(1, _main.OutputPowerPoint.SlideNumber));
+        // Not live: the deck in the output panel is what the output screen holds, at the slide the panel shows; the item's
+        // own slide while the panel is empty or still holds the last deck (its slide number is that deck's).
+        if (live.State == LiveState.Off && IsDeck(_main.OutputItem))
+        {
+            var (item, panel) = (_main.OutputItem!, _main.OutputPowerPoint);
+            bool lastDeck = panel.LoadedContentPath is { } drawn && !SamePath(drawn, item.ContentPath!);
+            return (item.ContentPath!, Math.Max(1, lastDeck || panel.SlideNumber < 1 ? item.SlideNumber : panel.SlideNumber));
+        }
         if (includeSelected && IsDeck(_main.SelectedItem)) return (_main.SelectedItem!.ContentPath!, Math.Max(1, _main.PowerPoint.SlideNumber));
         return null;
     }

@@ -7,6 +7,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using Axicultus.Wpf.Captions;
+using Axicultus.Wpf.Rendering;
 using Axicultus.Wpf.Shell;
 using Xunit;
 
@@ -271,6 +272,52 @@ public sealed partial class CaptionConsoleTests
         main.Queue.Add(added);
         await Idle(console);
         Assert.Same(added, console.WorshipList.Items.Cast<LiveQueueItem>().Last());
+    });
+
+    // The next deck is sent while the output panel still holds the last deck's slide; the panel draws the new deck
+    // before or after the console has read it. The caption follows the new deck from the slide its own panel shows.
+    [Theory]
+    [InlineData(2, true)]
+    [InlineData(2, false)]
+    [InlineData(5, true)]
+    [InlineData(5, false)]
+    public Task TheNextDeckIsFollowedFromItsOwnSlideNotTheLastDecks(int slides, bool panelDrawnFirst) => WithConsole(async (console, session, directory) =>
+    {
+        var main = Main(console);
+        var output = main.OutputPowerPoint;
+        LiveQueueItem Deck(string name, int count) => new("ppt:" + name, name, LiveItemKinds.PowerPoint)
+        {
+            ContentPath = CaptionAllTextTests.WriteDeck(directory.CreateSubdirectory(name).FullName, [],
+                [.. Enumerable.Range(1, count).Select(n => CaptionAllTextTests.TextSlide($"{name} {n}장"))]),
+            SlideNumber = 1,
+        };
+        void Panel(string path, int slide) // as the panel's own load tells it: the slide, then whose it is, then ready
+        {
+            output.SlideNumber = slide;
+            typeof(PowerPointPreviewViewModel).GetProperty("LoadedContentPath")!.SetValue(output, path);
+            output.State = PowerPointPreviewState.Ready;
+        }
+        var (last, next) = (Deck("last", 4), Deck("next", slides));
+        Panel(last.ContentPath!, 4); // the last song ended on its fourth slide
+        main.OutputItem = last;
+        console.ScreenMode.IsChecked = true;
+        await Pump(console, 600);
+        Assert.Equal((true, 4), (session.Following, session.CurrentSlide));
+
+        main.OutputItem = next; // the click: the item first, then its panel is emptied and drawn
+        output.Clear();
+        if (!panelDrawnFirst) await Pump(console, 600); // the deck is read before the panel has drawn it
+        Panel(next.ContentPath!, 1);
+        await Pump(console, 600);
+
+        Assert.Equal((true, 1), (session.Following, session.CurrentSlide));
+        Assert.Equal("next 1장", session.ReadyText);
+        Assert.Equal(slides, console.StepStrip.Items.Count);
+
+        session.MoveToSlide(2); // the operator moves the caption: it stays while the panel does not turn
+        output.PreviewImage = new System.Windows.Media.Imaging.WriteableBitmap(4, 4, 96, 96, PixelFormats.Bgr32, null);
+        await Pump(console, 300);
+        Assert.Equal(2, session.CurrentSlide);
     });
 
     // The app's type sizes at an interface size (ThemeService's scaled sizes), on the console itself: the same whether or
