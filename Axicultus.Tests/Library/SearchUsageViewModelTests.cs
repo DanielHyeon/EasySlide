@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Axicultus.Wpf.Data;
 using Axicultus.Wpf.Library;
+using Axicultus.Wpf.Localization;
 using Axicultus.Wpf.Settings;
 using FluentAssertions;
 using Xunit;
@@ -231,7 +232,7 @@ public class SearchUsageViewModelTests
         fixture.Service.LastAddRequest.Should().NotBeNull();
         fixture.Service.LastAddRequest!.DatabasePath.Should().Be(Path.GetFullPath(fixture.UsageDatabasePath));
         fixture.Service.LastAddRequest.Records.Should().ContainSingle().Which.SongId.Should().Be(10);
-        sut.StatusMessage.Should().Be("1 usage records added.");
+        sut.StatusMessage.Should().Be(UiText.Format("SearchUsageWindow", "UsageAdded", 1));
     }
 
     [Fact]
@@ -253,7 +254,7 @@ public class SearchUsageViewModelTests
             .Which.RecordId.Should().Be(100);
         fixture.Service.LastDeletedRecordIds.Should().BeEmpty();
         fixture.Service.GetUsageCallCount.Should().Be(1);
-        sut.StatusMessage.Should().Be("Usage delete canceled.");
+        sut.StatusMessage.Should().Be(UiText.Get("SearchUsageWindow", "UsageDeleteCanceled"));
         sut.UsageRecords.Should().ContainSingle();
     }
 
@@ -273,7 +274,7 @@ public class SearchUsageViewModelTests
         fixture.Service.LastDeletedRecordIds.Should().Equal(100);
         fixture.Service.GetUsageCallCount.Should().Be(2);
         sut.UsageRecords.Should().BeEmpty();
-        sut.StatusMessage.Should().Be("1 usage records deleted.");
+        sut.StatusMessage.Should().Be(UiText.Format("SearchUsageWindow", "UsageDeleted", 1));
     }
 
     private sealed class SearchUsageViewModelFixture : IDisposable

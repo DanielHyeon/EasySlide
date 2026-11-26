@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Media;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Library;
 
@@ -42,8 +43,8 @@ public sealed class FolderLayoutSample : FrameworkElement
         double bottom = Math.Max(top, ActualHeight * (1 - Number("BMargin", 5) / 100));
         double split = Math.Clamp(ActualHeight * Number("Vpos1", 65) / 100, top, bottom);
         dc.DrawRectangle(Brushes.DimGray, null, new Rect(RenderSize));
-        DrawBand(top, split, Brushes.SteelBlue, "영역 1");
-        DrawBand(split, bottom, Brushes.DarkSlateBlue, "영역 2");
+        DrawBand(top, split, Brushes.SteelBlue, UiText.Get("FolderEditorWindow", "Area1"));
+        DrawBand(split, bottom, Brushes.DarkSlateBlue, UiText.Get("FolderEditorWindow", "Area2"));
         void DrawBand(double y, double end, Brush brush, string label)
         {
             if (end <= y || width < 1) return;

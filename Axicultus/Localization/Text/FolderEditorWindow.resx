@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Title" xml:space="preserve"><value>Edit folder</value></data>
+  <data name="FolderNumberFormat" xml:space="preserve"><value>Folder {0}</value></data>
+  <data name="FolderNumber" xml:space="preserve"><value>Folder number</value></data>
+  <data name="FolderName" xml:space="preserve"><value>Folder name</value></data>
+  <data name="Enabled" xml:space="preserve"><value>In use</value></data>
+  <data name="SaveFolder" xml:space="preserve"><value>Save the folder</value></data>
+  <data name="Save" xml:space="preserve"><value>Save</value></data>
+  <data name="Close" xml:space="preserve"><value>Close</value></data>
+  <data name="Area1" xml:space="preserve"><value>Area 1</value></data>
+  <data name="Area2" xml:space="preserve"><value>Area 2</value></data>
+  <data name="SaveFailed" xml:space="preserve"><value>Save failed</value></data>
+  <data name="SaveFailedDetail" xml:space="preserve"><value>Save failed: {0}</value></data>
+  <data name="Saved" xml:space="preserve"><value>Saved.</value></data>
+  <data name="CheckValue" xml:space="preserve"><value>Check the value of {0}.</value></data>
+  <data name="AdminDbPathRequired" xml:space="preserve"><value>Set the AdminDB path.</value></data>
+  <data name="AdminDbNotFound" xml:space="preserve"><value>AdminDB file not found: {0}</value></data>
+  <data name="InvalidFolderNumber" xml:space="preserve"><value>The folder number is not valid.</value></data>
+  <data name="NameRequired" xml:space="preserve"><value>Enter a folder name.</value></data>
+  <data name="NameTaken" xml:space="preserve"><value>A folder with this name already exists. Enter another name.</value></data>
+  <data name="NoFreeFolder" xml:space="preserve"><value>There is no room for a new folder: there can be up to 40 folders. Set a folder with no songs to 'not in use' and try again.</value></data>
+</root>

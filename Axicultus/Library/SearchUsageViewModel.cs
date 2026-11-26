@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Axicultus.Wpf.Data;
+using Axicultus.Wpf.Localization;
 using Axicultus.Wpf.Settings;
 
 namespace Axicultus.Wpf.Library;
@@ -200,7 +201,7 @@ public sealed partial class SearchUsageViewModel : ObservableObject
             var choices = await _service.GetFilterChoicesAsync(DatabasePath);
             SearchKeys.ReplaceWith(choices.Keys);
             SearchTimings.ReplaceWith(choices.Timings);
-            StatusMessage = $"{SearchFolders.Count} search folders loaded.";
+            StatusMessage = UiText.Format("SearchUsageWindow", "FoldersLoaded", SearchFolders.Count);
         }).ConfigureAwait(true);
     }
 
@@ -243,14 +244,14 @@ public sealed partial class SearchUsageViewModel : ObservableObject
             {
                 SearchResults.Clear();
                 HasSearched = true;
-                ValidationMessage = "검색할 폴더를 하나 이상 선택하세요.";
+                ValidationMessage = UiText.Get("SearchUsageWindow", "SelectFolder");
                 StatusMessage = ValidationMessage;
                 return;
             }
             if (UseModifiedDates && ModifiedFrom.Date > ModifiedTo.Date)
             {
                 SearchResults.Clear();
-                ValidationMessage = "시작일은 종료일보다 늦을 수 없습니다.";
+                ValidationMessage = UiText.Get("SearchUsageWindow", "DateOrder");
                 StatusMessage = ValidationMessage;
                 return;
             }
@@ -290,7 +291,7 @@ public sealed partial class SearchUsageViewModel : ObservableObject
                 [AxicultusSettingKeys.FindUseModifiedDates.Id] = useDates
             });
             HasSearched = true; // 검색을 실행했음을 표시 — 이제부터 결과 0건이면 "결과 없음" 안내가 뜬다.
-            StatusMessage = $"{SearchResults.Count} songs found.";
+            StatusMessage = UiText.Format("SearchUsageWindow", "SongsFound", SearchResults.Count);
             SongsFound?.Invoke(this, EventArgs.Empty);
         }).ConfigureAwait(true);
     }
@@ -308,7 +309,7 @@ public sealed partial class SearchUsageViewModel : ObservableObject
             var candidates = await _service.LookupTitlesAsync(DatabasePath, SearchText).ConfigureAwait(true);
             LookupCandidates.ReplaceWith(candidates);
             HasLookedUp = true; // 조회를 실행했음을 표시 — 이제부터 후보 0건이면 "결과 없음" 안내가 뜬다.
-            StatusMessage = $"{LookupCandidates.Count} title candidates found.";
+            StatusMessage = UiText.Format("SearchUsageWindow", "TitlesFound", LookupCandidates.Count);
         }).ConfigureAwait(true);
     }
 
@@ -317,7 +318,7 @@ public sealed partial class SearchUsageViewModel : ObservableObject
         ValidationMessage = "";
         if (string.IsNullOrWhiteSpace(UsageDatabasePath))
         {
-            ValidationMessage = "사용 이력 DB 경로가 아직 준비되지 않았습니다.";
+            ValidationMessage = UiText.Get("SearchUsageWindow", "UsageDatabaseNotReady");
             return;
         }
 
@@ -337,8 +338,8 @@ public sealed partial class SearchUsageViewModel : ObservableObject
             UsageRecords.ReplaceWith(_currentUsageReport.Records.Select(record => new SelectableUsageRecord(record)));
             UsageSummary.ReplaceWith(_currentUsageReport.Summary);
             StatusMessage = _currentUsageReport.Succeeded
-                ? $"{UsageRecords.Count} usage records loaded."
-                : FormatIssues(_currentUsageReport.Issues, "Usage refresh failed.");
+                ? UiText.Format("SearchUsageWindow", "UsageLoaded", UsageRecords.Count)
+                : FormatIssues(_currentUsageReport.Issues, UiText.Get("SearchUsageWindow", "UsageRefreshFailed"));
         }).ConfigureAwait(true);
     }
 
@@ -349,7 +350,7 @@ public sealed partial class SearchUsageViewModel : ObservableObject
         EnsureUsageDatabasePath();
         if (string.IsNullOrWhiteSpace(UsageDatabasePath))
         {
-            ValidationMessage = "사용 이력 DB 경로가 아직 준비되지 않았습니다.";
+            ValidationMessage = UiText.Get("SearchUsageWindow", "UsageDatabaseNotReady");
             return new UsageAddReport(
                 false,
                 UsageDatabasePath,
@@ -362,8 +363,8 @@ public sealed partial class SearchUsageViewModel : ObservableObject
         {
             report = await _service.AddUsageRecordsAsync(new UsageAddRequest(UsageDatabasePath, records)).ConfigureAwait(true);
             StatusMessage = report.Succeeded
-                ? $"{report.AddedCount} usage records added."
-                : FormatIssues(report.Issues, "Usage add failed.");
+                ? UiText.Format("SearchUsageWindow", "UsageAdded", report.AddedCount)
+                : FormatIssues(report.Issues, UiText.Get("SearchUsageWindow", "UsageAddFailed"));
         }).ConfigureAwait(true);
 
         return report;
@@ -380,7 +381,7 @@ public sealed partial class SearchUsageViewModel : ObservableObject
             .ToArray();
         if (selectedIds.Length == 0)
         {
-            ValidationMessage = "No usage records are selected.";
+            ValidationMessage = UiText.Get("SearchUsageWindow", "NoUsageSelected");
             return;
         }
 
@@ -392,7 +393,7 @@ public sealed partial class SearchUsageViewModel : ObservableObject
             selectedRecords.Select(record => record.Record).ToArray())).ConfigureAwait(true);
         if (!confirmed)
         {
-            StatusMessage = "Usage delete canceled.";
+            StatusMessage = UiText.Get("SearchUsageWindow", "UsageDeleteCanceled");
             return;
         }
 
@@ -401,15 +402,15 @@ public sealed partial class SearchUsageViewModel : ObservableObject
         {
             var report = await _service.DeleteUsageRecordsAsync(UsageDatabasePath, selectedIds).ConfigureAwait(true);
             StatusMessage = report.Succeeded
-                ? $"{report.DeletedCount} usage records deleted."
-                : FormatIssues(report.Issues, "Usage delete failed.");
+                ? UiText.Format("SearchUsageWindow", "UsageDeleted", report.DeletedCount)
+                : FormatIssues(report.Issues, UiText.Get("SearchUsageWindow", "UsageDeleteFailed"));
             deletedCount = report.Succeeded ? report.DeletedCount : 0;
         }).ConfigureAwait(true);
 
         if (deletedCount > 0)
         {
             await RefreshUsageAsync().ConfigureAwait(true);
-            StatusMessage = $"{deletedCount} usage records deleted.";
+            StatusMessage = UiText.Format("SearchUsageWindow", "UsageDeleted", deletedCount);
         }
     }
 
@@ -418,7 +419,7 @@ public sealed partial class SearchUsageViewModel : ObservableObject
         ValidationMessage = "";
         if (string.IsNullOrWhiteSpace(UsageReportOutputPath))
         {
-            ValidationMessage = "Usage report output path is empty.";
+            ValidationMessage = UiText.Get("SearchUsageWindow", "ReportPathEmpty");
             return;
         }
 
@@ -436,8 +437,8 @@ public sealed partial class SearchUsageViewModel : ObservableObject
         {
             var report = await _service.ExportUsageReportAsync(_currentUsageReport, UsageReportOutputPath).ConfigureAwait(true);
             StatusMessage = report.Succeeded
-                ? $"Usage report exported to {report.OutputPath}."
-                : FormatIssues(report.Issues, "Usage report export failed.");
+                ? UiText.Format("SearchUsageWindow", "ReportExported", report.OutputPath)
+                : FormatIssues(report.Issues, UiText.Get("SearchUsageWindow", "ReportExportFailed"));
         }).ConfigureAwait(true);
     }
 
@@ -496,7 +497,7 @@ public sealed partial class SearchUsageViewModel : ObservableObject
             return true;
         }
 
-        ValidationMessage = "검색 DB 경로가 아직 준비되지 않았습니다.";
+        ValidationMessage = UiText.Get("SearchUsageWindow", "SearchDatabaseNotReady");
         return false;
     }
 

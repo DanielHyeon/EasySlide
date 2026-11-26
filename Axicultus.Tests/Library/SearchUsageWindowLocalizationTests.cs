@@ -1,6 +1,8 @@
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
+using Axicultus.Wpf.Localization;
 using Axicultus.Wpf.Tests.Accessibility;
 using FluentAssertions;
 using Xunit;
@@ -20,8 +22,13 @@ public class SearchUsageWindowLocalizationTests
         return XDocument.Load(Path.Combine(repoRoot, "Axicultus/Library/SearchUsageWindow.xaml"), LoadOptions.None);
     }
 
+    // A "{loc:Text Area.Key}" value is read as its text in the UI language (Korean in the tests).
     private static string Attr(XElement e, string localName)
-        => e.Attributes().FirstOrDefault(a => a.Name.LocalName == localName)?.Value ?? string.Empty;
+    {
+        var value = e.Attributes().FirstOrDefault(a => a.Name.LocalName == localName)?.Value ?? string.Empty;
+        var text = Regex.Match(value, @"^\{loc:Text (\w+)\.(\w+)\}$");
+        return text.Success ? UiText.Get(text.Groups[1].Value, text.Groups[2].Value) : value;
+    }
 
     private static string[] AttrValues(XDocument doc, string localName)
         => doc.Descendants()
@@ -52,8 +59,7 @@ public class SearchUsageWindowLocalizationTests
         headers.Should().NotContain(new[] { "Songs", "Titles", "Usage" });
 
         // 창 제목도 한글.
-        var title = window.Root!.Attributes().First(a => a.Name.LocalName == "Title").Value;
-        title.Should().Be("검색 및 사용 현황");
+        Attr(window.Root!, "Title").Should().Be("검색 및 사용 현황");
     }
 
     [Fact]

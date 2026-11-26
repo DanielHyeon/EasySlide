@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Title" xml:space="preserve"><value>Search and usage</value></data>
+  <data name="RefreshTip" xml:space="preserve"><value>Refresh the search data</value></data>
+  <data name="Refresh" xml:space="preserve"><value>Refresh</value></data>
+  <data name="SongsTab" xml:space="preserve"><value>Songs</value></data>
+  <data name="ColumnTitle" xml:space="preserve"><value>Title</value></data>
+  <data name="ColumnFolder" xml:space="preserve"><value>Folder</value></data>
+  <data name="ColumnNumber" xml:space="preserve"><value>No.</value></data>
+  <data name="ColumnKey" xml:space="preserve"><value>Key</value></data>
+  <data name="ColumnMatch" xml:space="preserve"><value>Match</value></data>
+  <data name="ColumnSnippet" xml:space="preserve"><value>Excerpt</value></data>
+  <data name="BibleTab" xml:space="preserve"><value>Bible</value></data>
+  <data name="Version" xml:space="preserve"><value>Version</value></data>
+  <data name="SearchScope" xml:space="preserve"><value>Search in</value></data>
+  <data name="SearchWords" xml:space="preserve"><value>Search for</value></data>
+  <data name="MatchMode" xml:space="preserve"><value>Match</value></data>
+  <data name="MatchAllWords" xml:space="preserve"><value>All words</value></data>
+  <data name="MatchAnyWord" xml:space="preserve"><value>Any of the words</value></data>
+  <data name="MatchExactPhrase" xml:space="preserve"><value>Exact phrase</value></data>
+  <data name="FindBible" xml:space="preserve"><value>Find in Bible</value></data>
+  <data name="AllBooks" xml:space="preserve"><value>All books</value></data>
+  <data name="TitlesTab" xml:space="preserve"><value>Titles</value></data>
+  <data name="Lookup" xml:space="preserve"><value>Look up</value></data>
+  <data name="ColumnAlternateTitle" xml:space="preserve"><value>Alternate title</value></data>
+  <data name="ColumnBookReference" xml:space="preserve"><value>Book reference</value></data>
+  <data name="ColumnUserReference" xml:space="preserve"><value>User reference</value></data>
+  <data name="UsageTab" xml:space="preserve"><value>Usage</value></data>
+  <data name="Load" xml:space="preserve"><value>Load</value></data>
+  <data name="Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="BrowseReportTip" xml:space="preserve"><value>Choose where to save the usage report</value></data>
+  <data name="ExportRtfTip" xml:space="preserve"><value>Export the usage report as RTF</value></data>
+  <data name="ExportRtf" xml:space="preserve"><value>Export RTF</value></data>
+  <data name="ColumnDate" xml:space="preserve"><value>Date</value></data>
+  <data name="ColumnWorshipList" xml:space="preserve"><value>Worship list</value></data>
+  <data name="ColumnCount" xml:space="preserve"><value>Count</value></data>
+  <data name="Close" xml:space="preserve"><value>Close</value></data>
+  <data name="RtfFilter" xml:space="preserve"><value>Rich Text (*.rtf)|*.rtf</value></data>
+  <data name="FoldersLoaded" xml:space="preserve"><value>{0} search folders loaded.</value></data>
+  <data name="SelectFolder" xml:space="preserve"><value>Select at least one folder to search.</value></data>
+  <data name="DateOrder" xml:space="preserve"><value>The start date cannot be later than the end date.</value></data>
+  <data name="SongsFound" xml:space="preserve"><value>{0} songs found.</value></data>
+  <data name="TitlesFound" xml:space="preserve"><value>{0} title candidates found.</value></data>
+  <data name="UsageDatabaseNotReady" xml:space="preserve"><value>The usage history DB path is not ready yet.</value></data>
+  <data name="UsageLoaded" xml:space="preserve"><value>{0} usage records loaded.</value></data>
+  <data name="UsageRefreshFailed" xml:space="preserve"><value>Usage refresh failed.</value></data>
+  <data name="UsageAdded" xml:space="preserve"><value>{0} usage records added.</value></data>
+  <data name="UsageAddFailed" xml:space="preserve"><value>Usage add failed.</value></data>
+  <data name="NoUsageSelected" xml:space="preserve"><value>No usage records are selected.</value></data>
+  <data name="UsageDeleteCanceled" xml:space="preserve"><value>Usage delete canceled.</value></data>
+  <data name="UsageDeleted" xml:space="preserve"><value>{0} usage records deleted.</value></data>
+  <data name="UsageDeleteFailed" xml:space="preserve"><value>Usage delete failed.</value></data>
+  <data name="ReportPathEmpty" xml:space="preserve"><value>Usage report output path is empty.</value></data>
+  <data name="ReportExported" xml:space="preserve"><value>Usage report exported to {0}.</value></data>
+  <data name="ReportExportFailed" xml:space="preserve"><value>Usage report export failed.</value></data>
+  <data name="SearchDatabaseNotReady" xml:space="preserve"><value>The search DB path is not ready yet.</value></data>
+</root>

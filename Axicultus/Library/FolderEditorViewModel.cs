@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Axicultus.Wpf.Data;
+using Axicultus.Wpf.Localization;
 using Axicultus.Wpf.Settings;
 
 namespace Axicultus.Wpf.Library;
@@ -125,8 +126,8 @@ public sealed partial class FolderEditorViewModel : ObservableObject
             {
                 var detail = string.Join("; ", report.Issues.Select(issue => issue.Message));
                 StatusMessage = string.IsNullOrWhiteSpace(detail)
-                    ? "저장 실패"
-                    : $"저장 실패: {detail}";
+                    ? UiText.Get("FolderEditorWindow", "SaveFailed")
+                    : UiText.Format("FolderEditorWindow", "SaveFailedDetail", detail);
                 return;
             }
 
@@ -138,12 +139,12 @@ public sealed partial class FolderEditorViewModel : ObservableObject
             IsNew = false;
             HasChanges = false;
             ValidationMessage = "";
-            StatusMessage = "저장되었습니다.";
+            StatusMessage = UiText.Get("FolderEditorWindow", "Saved");
             Saved?.Invoke(this, new FolderEditorSavedEventArgs(FolderNo));
         }
         catch (Exception ex) when (IsRecoverableSaveException(ex))
         {
-            StatusMessage = $"저장 실패: {ex.Message}";
+            StatusMessage = UiText.Format("FolderEditorWindow", "SaveFailedDetail", ex.Message);
         }
         finally
         {
@@ -174,37 +175,37 @@ public sealed partial class FolderEditorViewModel : ObservableObject
         var invalid = FormatFields.FirstOrDefault(f => f.IsChanged && !f.Field.IsValid(f.Value));
         if (invalid is not null)
         {
-            ValidationMessage = $"{invalid.Field.Label} 값을 확인하세요.";
+            ValidationMessage = UiText.Format("FolderEditorWindow", "CheckValue", invalid.Field.Label);
             return false;
         }
         if (string.IsNullOrWhiteSpace(DatabasePath))
         {
-            ValidationMessage = "AdminDB 경로를 설정해야 합니다.";
+            ValidationMessage = UiText.Get("FolderEditorWindow", "AdminDbPathRequired");
             return false;
         }
 
         if (!File.Exists(DatabasePath))
         {
-            ValidationMessage = $"AdminDB 파일을 찾을 수 없습니다: {DatabasePath}";
+            ValidationMessage = UiText.Format("FolderEditorWindow", "AdminDbNotFound", DatabasePath);
             return false;
         }
 
         if (FolderNo <= 0)
         {
-            ValidationMessage = IsNew ? NoFreeFolderMessage : "폴더 번호가 올바르지 않습니다.";
+            ValidationMessage = IsNew ? NoFreeFolderMessage : UiText.Get("FolderEditorWindow", "InvalidFolderNumber");
             return false;
         }
 
         if (string.IsNullOrWhiteSpace(Name))
         {
-            ValidationMessage = "폴더 이름을 입력하세요.";
+            ValidationMessage = UiText.Get("FolderEditorWindow", "NameRequired");
             return false;
         }
 
         // 다른 폴더와 이름이 겹치면(대소문자 무시) 거부 — 같은 이름의 폴더가 둘 생기지 않게 한다.
         if (_otherFolderNames.Contains(Name.Trim()))
         {
-            ValidationMessage = "이미 있는 폴더 이름입니다. 다른 이름을 입력하세요.";
+            ValidationMessage = UiText.Get("FolderEditorWindow", "NameTaken");
             return false;
         }
 
@@ -229,8 +230,7 @@ public sealed partial class FolderEditorViewModel : ObservableObject
             "Backups");
     }
 
-    private const string NoFreeFolderMessage =
-        "새 폴더를 만들 자리가 없습니다. 폴더는 40개까지입니다. 곡이 없는 폴더를 '사용 안 함'으로 바꾼 뒤 다시 시도하세요.";
+    private static string NoFreeFolderMessage => UiText.Get("FolderEditorWindow", "NoFreeFolder");
 
     // The WinForms app has folders 1 to 40 and reads no others. A new folder takes the first of them
     // that is not in use and holds no songs (or has no row yet); 0 when there is none. A number that deleted songs
