@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="SourceNotDirectory" xml:space="preserve"><value>원본 위치가 폴더가 아닙니다.</value></data>
+  <data name="SourceMissing" xml:space="preserve"><value>원본 폴더가 없습니다.</value></data>
+  <data name="SameFileExists" xml:space="preserve"><value>대상에 같은 파일이 이미 있습니다.</value></data>
+  <data name="CopiedAs" xml:space="preserve"><value>대상에 같은 이름의 파일이 있어 {0}(으)로 복사했습니다.</value></data>
+  <data name="HashMismatch" xml:space="preserve"><value>복사한 파일의 내용이 원본과 다릅니다.</value></data>
+</root>

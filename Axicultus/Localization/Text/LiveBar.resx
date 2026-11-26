@@ -6,4 +6,6 @@
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <data name="ShortcutHint" xml:space="preserve"><value>Space=Next slide</value></data>
   <data name="NextItem" xml:space="preserve"><value>Next ▸ {0}</value></data>
+  <data name="Standby" xml:space="preserve"><value>STANDBY</value></data>
+  <data name="Hidden" xml:space="preserve"><value>HIDDEN</value></data>
 </root>

@@ -6,4 +6,34 @@
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <data name="SongNotFound" xml:space="preserve"><value>선택한 곡이 없습니다.</value></data>
   <data name="FolderFormatNotSaved" xml:space="preserve"><value>폴더 서식 값을 저장할 수 없습니다: {0}</value></data>
+  <data name="TargetFolderNotPositive" xml:space="preserve"><value>대상 폴더 번호는 1 이상이어야 합니다.</value></data>
+  <data name="BackupRootEmpty" xml:space="preserve"><value>백업 폴더를 지정해야 합니다.</value></data>
+  <data name="BackupFailed" xml:space="preserve"><value>AdminDB 백업을 만들 수 없습니다: {0}</value></data>
+  <data name="CompactFailed" xml:space="preserve"><value>데이터베이스를 압축하지 못했습니다: {0}</value></data>
+  <data name="OpenFailed" xml:space="preserve"><value>AdminDB SQLite 데이터베이스를 열 수 없습니다: {0}</value></data>
+  <data name="WriteFailed" xml:space="preserve"><value>AdminDB에 저장하지 못했습니다: {0}</value></data>
+  <data name="NewFolderNumberRange" xml:space="preserve"><value>새 폴더 번호는 1부터 {0}까지여야 합니다.</value></data>
+  <data name="FolderDeleteRequired" xml:space="preserve"><value>삭제할 폴더를 하나 이상 지정해야 합니다.</value></data>
+  <data name="FolderRecoveryRequired" xml:space="preserve"><value>복구할 폴더를 하나 이상 지정해야 합니다.</value></data>
+  <data name="FolderNumbersNotPositive" xml:space="preserve"><value>폴더 번호는 1 이상이어야 합니다.</value></data>
+  <data name="FolderNumbersNotDistinct" xml:space="preserve"><value>같은 폴더 번호를 두 번 지정할 수 없습니다.</value></data>
+  <data name="FolderNotFound" xml:space="preserve"><value>폴더를 찾을 수 없습니다: {0}</value></data>
+  <data name="SongIdNotFound" xml:space="preserve"><value>곡을 찾을 수 없습니다: {0}</value></data>
+  <data name="SongMoveRequired" xml:space="preserve"><value>옮길 곡을 하나 이상 지정해야 합니다.</value></data>
+  <data name="SongDeleteRequired" xml:space="preserve"><value>삭제할 곡을 하나 이상 지정해야 합니다.</value></data>
+  <data name="SongRecoveryRequired" xml:space="preserve"><value>복구할 곡을 하나 이상 지정해야 합니다.</value></data>
+  <data name="FolderReorderRequired" xml:space="preserve"><value>순서를 바꿀 폴더를 하나 이상 지정해야 합니다.</value></data>
+  <data name="FolderReorderNotDistinct" xml:space="preserve"><value>순서를 바꿀 폴더의 원래 번호와 새 번호가 겹치지 않아야 합니다.</value></data>
+  <data name="TargetFolderInUse" xml:space="preserve"><value>대상 폴더 번호를 이미 쓰고 있습니다: {0}</value></data>
+  <data name="FolderNumberNotPositive" xml:space="preserve"><value>폴더 번호는 1 이상이어야 합니다.</value></data>
+  <data name="SongReorderRequired" xml:space="preserve"><value>순서를 바꿀 곡을 하나 이상 지정해야 합니다.</value></data>
+  <data name="SongNumbersNotPositive" xml:space="preserve"><value>곡 ID와 곡 번호는 1 이상이어야 합니다.</value></data>
+  <data name="SongReorderNotDistinct" xml:space="preserve"><value>같은 곡 ID나 곡 번호를 두 번 지정할 수 없습니다.</value></data>
+  <data name="SongNotFoundInFolder" xml:space="preserve"><value>{0}번 폴더에서 곡을 찾을 수 없습니다: {1}</value></data>
+  <data name="SchemaIncompatible" xml:space="preserve"><value>AdminDB 구조가 호환되지 않습니다: {0}</value></data>
+  <data name="PathEmpty" xml:space="preserve"><value>AdminDB 경로를 지정해야 합니다.</value></data>
+  <data name="PathIsDirectory" xml:space="preserve"><value>AdminDB 경로가 폴더입니다: {0}</value></data>
+  <data name="FileMissing" xml:space="preserve"><value>AdminDB 파일이 없습니다: {0}</value></data>
+  <data name="TableMissing" xml:space="preserve"><value>AdminDB에 필요한 테이블이 없습니다: {0}</value></data>
+  <data name="ColumnMissing" xml:space="preserve"><value>AdminDB에 필요한 열이 없습니다: {0}.{1}</value></data>
 </root>

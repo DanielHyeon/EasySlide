@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="None" xml:space="preserve"><value>None</value></data>
+  <data name="Ascend" xml:space="preserve"><value>Ascend</value></data>
+  <data name="Away" xml:space="preserve"><value>Away</value></data>
+  <data name="BlindsHorizontal" xml:space="preserve"><value>Blinds Horizontal</value></data>
+  <data name="BlindsVertical" xml:space="preserve"><value>Blinds Vertical</value></data>
+  <data name="BowTie" xml:space="preserve"><value>Bow Tie</value></data>
+  <data name="Checkerboard" xml:space="preserve"><value>Checkerboard</value></data>
+  <data name="Circle" xml:space="preserve"><value>Circle</value></data>
+  <data name="CircularWipe" xml:space="preserve"><value>Circular Wipe</value></data>
+  <data name="Cross" xml:space="preserve"><value>Cross</value></data>
+  <data name="Descend" xml:space="preserve"><value>Descend</value></data>
+  <data name="Diamond" xml:space="preserve"><value>Diamond</value></data>
+  <data name="Dissolve" xml:space="preserve"><value>Dissolve</value></data>
+  <data name="DoorsOpen" xml:space="preserve"><value>Doors Open</value></data>
+  <data name="DoorsClose" xml:space="preserve"><value>Doors Close</value></data>
+  <data name="Fade" xml:space="preserve"><value>Fade</value></data>
+  <data name="FanUp" xml:space="preserve"><value>Fan Up</value></data>
+  <data name="FlipHorizontal" xml:space="preserve"><value>Flip Horizontal</value></data>
+  <data name="FlipVertical" xml:space="preserve"><value>Flip Vertical</value></data>
+  <data name="GentleZoom" xml:space="preserve"><value>Gentle Zoom</value></data>
+  <data name="Heart" xml:space="preserve"><value>Heart</value></data>
+  <data name="Mesh" xml:space="preserve"><value>Mesh</value></data>
+  <data name="InTop" xml:space="preserve"><value>In Top</value></data>
+  <data name="InLeft" xml:space="preserve"><value>In Left</value></data>
+  <data name="InRight" xml:space="preserve"><value>In Right</value></data>
+  <data name="InBottom" xml:space="preserve"><value>In Bottom</value></data>
+  <data name="InTopLeft" xml:space="preserve"><value>In Top Left</value></data>
+  <data name="InTopRight" xml:space="preserve"><value>In Top Right</value></data>
+  <data name="InBottomLeft" xml:space="preserve"><value>In Bottom Left</value></data>
+  <data name="InBottomRight" xml:space="preserve"><value>In Bottom Right</value></data>
+  <data name="Mosaic" xml:space="preserve"><value>Mosaic</value></data>
+  <data name="OutTop" xml:space="preserve"><value>Out Top</value></data>
+  <data name="OutLeft" xml:space="preserve"><value>Out Left</value></data>
+  <data name="OutRight" xml:space="preserve"><value>Out Right</value></data>
+  <data name="OutBottom" xml:space="preserve"><value>Out Bottom</value></data>
+  <data name="OutTopLeft" xml:space="preserve"><value>Out Top Left</value></data>
+  <data name="OutTopRight" xml:space="preserve"><value>Out Top Right</value></data>
+  <data name="OutBottomLeft" xml:space="preserve"><value>Out Bottom Left</value></data>
+  <data name="OutBottomRight" xml:space="preserve"><value>Out Bottom Right</value></data>
+  <data name="Oval" xml:space="preserve"><value>Oval</value></data>
+  <data name="RandomBars" xml:space="preserve"><value>Random Bars</value></data>
+  <data name="Rectangle" xml:space="preserve"><value>Rectangle</value></data>
+  <data name="RectangleIn" xml:space="preserve"><value>Rectangle In</value></data>
+  <data name="RevealTopDown" xml:space="preserve"><value>Reveal Top Down</value></data>
+  <data name="RevealLeftRight" xml:space="preserve"><value>Reveal Left Right</value></data>
+  <data name="RevealRightLeft" xml:space="preserve"><value>Reveal Right Left</value></data>
+  <data name="RevealDownUp" xml:space="preserve"><value>Reveal Down Up</value></data>
+  <data name="Scroll" xml:space="preserve"><value>Scroll</value></data>
+  <data name="Spin" xml:space="preserve"><value>Spin</value></data>
+  <data name="Spiral" xml:space="preserve"><value>Spiral</value></data>
+  <data name="Star" xml:space="preserve"><value>Star</value></data>
+  <data name="StretchHorizontal" xml:space="preserve"><value>Stretch Horizontal</value></data>
+  <data name="StretchVertical" xml:space="preserve"><value>Stretch Vertical</value></data>
+  <data name="Wedge" xml:space="preserve"><value>Wedge</value></data>
+  <data name="WindMill" xml:space="preserve"><value>WindMill</value></data>
+  <data name="ZoomAway" xml:space="preserve"><value>Zoom Away</value></data>
+  <data name="ZoomIn" xml:space="preserve"><value>Zoom In</value></data>
+  <data name="ZoomOut" xml:space="preserve"><value>Zoom Out</value></data>
+</root>

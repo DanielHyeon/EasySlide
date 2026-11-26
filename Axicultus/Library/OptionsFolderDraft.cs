@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Axicultus.Wpf.Data;
+using Axicultus.Wpf.Localization;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace Axicultus.Wpf.Library;
@@ -13,7 +14,7 @@ public sealed partial class OptionsFolderDraft(SongFolderSummary source) : Obser
     private readonly Dictionary<string, string> _changes = new(StringComparer.OrdinalIgnoreCase);
     [ObservableProperty, NotifyPropertyChangedFor(nameof(GroupHeader))] private string _name = source.Name;
     [ObservableProperty] private bool _isEnabled = source.IsEnabled;
-    public string GroupHeader => $"Settings for the {Name} Folder";
+    public string GroupHeader => UiText.Format(nameof(OptionsFolderDraft), "GroupHeader", Name);
     public int Id => _original.FolderNo;
 
     public object this[string key]

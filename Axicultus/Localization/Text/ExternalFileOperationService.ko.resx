@@ -13,4 +13,7 @@
   <data name="AdminDbSaveFailed" xml:space="preserve"><value>AdminDB 저장 실패</value></data>
   <data name="SourceNotFile" xml:space="preserve"><value>소스는 파일이어야 합니다.</value></data>
   <data name="SourceMissing" xml:space="preserve"><value>소스 파일을 찾을 수 없습니다.</value></data>
+  <data name="InfoScreenRoot" xml:space="preserve"><value>공지 화면 항목</value></data>
+  <data name="PowerPointRoot" xml:space="preserve"><value>PowerPoint 항목</value></data>
+  <data name="MediaRoot" xml:space="preserve"><value>미디어 항목</value></data>
 </root>

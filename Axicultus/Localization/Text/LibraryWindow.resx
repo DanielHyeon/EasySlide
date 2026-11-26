@@ -53,4 +53,5 @@
   <data name="SelectSongToCopy" xml:space="preserve"><value>Select a song to copy.</value></data>
   <data name="SelectSongToMove" xml:space="preserve"><value>Select a song to move.</value></data>
   <data name="SelectSongToDelete" xml:space="preserve"><value>Select a song to delete.</value></data>
+  <data name="FolderNumber" xml:space="preserve"><value>Folder {0}</value></data>
 </root>

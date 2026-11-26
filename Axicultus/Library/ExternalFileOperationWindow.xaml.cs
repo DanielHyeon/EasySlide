@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using Axicultus.Wpf.Localization;
 using Microsoft.Win32;
 
 namespace Axicultus.Wpf.Library;
@@ -20,7 +21,7 @@ public partial class ExternalFileOperationWindow : Window
 
     internal void UseSelectedSourceItems(ExternalFileItemKind kind, ExternalFileOperationKind operation)
     {
-        Title = $"{kind} {(operation == ExternalFileOperationKind.Move ? "이동" : "복사")}";
+        Title = UiText.Format("ExternalFileOperationWindow", "SelectedItemsTitle", EnumTextConverter.Text(kind), EnumTextConverter.Text(operation));
         ItemKindPicker.IsEnabled = OperationPicker.IsEnabled = false;
         SourceActions.Visibility = Visibility.Collapsed;
     }
@@ -80,11 +81,11 @@ public partial class ExternalFileOperationWindow : Window
     internal static string GetFileDialogFilter(ExternalFileItemKind itemKind, string? workingFolder)
         => itemKind switch
         {
-            ExternalFileItemKind.InfoScreen => "InfoScreen (*.esi)|*.esi|All files (*.*)|*.*",
-            ExternalFileItemKind.PowerPoint => SourceFileExtensions.DialogFilter("PowerPoint", SourceFileExtensions.PowerPoint) + "|All files (*.*)|*.*",
-            ExternalFileItemKind.Media => SourceFileExtensions.DialogFilter("Media",
-                SourceFileExtensions.Audio(workingFolder).Concat(SourceFileExtensions.Video(workingFolder))) + "|All files (*.*)|*.*",
-            _ => "All files (*.*)|*.*",
+            ExternalFileItemKind.InfoScreen => UiText.Get("ExternalFileOperationWindow", "FilterInfoScreen") + " (*.esi)|*.esi|" + UiText.Get("ExternalFileOperationWindow", "FilterAllFiles") + " (*.*)|*.*",
+            ExternalFileItemKind.PowerPoint => SourceFileExtensions.DialogFilter("PowerPoint", SourceFileExtensions.PowerPoint) + "|" + UiText.Get("ExternalFileOperationWindow", "FilterAllFiles") + " (*.*)|*.*",
+            ExternalFileItemKind.Media => SourceFileExtensions.DialogFilter(UiText.Get("ExternalFileOperationWindow", "FilterMedia"),
+                SourceFileExtensions.Audio(workingFolder).Concat(SourceFileExtensions.Video(workingFolder))) + "|" + UiText.Get("ExternalFileOperationWindow", "FilterAllFiles") + " (*.*)|*.*",
+            _ => UiText.Get("ExternalFileOperationWindow", "FilterAllFiles") + " (*.*)|*.*",
         };
 
     private static string ResolveInitialDirectory(ExternalFileOperationViewModel viewModel)

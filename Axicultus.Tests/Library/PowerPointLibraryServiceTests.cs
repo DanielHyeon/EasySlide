@@ -60,7 +60,7 @@ public class PowerPointLibraryServiceTests : IDisposable
         var tab = new PowerPointLibraryViewModel(new PowerPointLibraryService(), path => added = path, _dir);
         tab.LoadCommand.Execute(null);
         var expected = relativePaths.Select(path => Path.GetFullPath(Path.Combine(_dir, path))).ToArray();
-        tab.FolderGroups.Select(group => group.DisplayName).Should().Equal("Powerpoint Items", @"\2부", @"\10부");
+        tab.FolderGroups.Select(group => group.DisplayName).Should().Equal(Axicultus.Wpf.Localization.UiText.Get("PowerPointLibraryService", "RootFolder"), @"\2부", @"\10부");
         tab.Presentations.Select(item => item.FilePath).Should().Equal(expected);
         tab.UsePreviewStyleCommand.Execute(null);
         tab.Presentations.Select(item => item.FilePath).Should().Equal(expected);
@@ -175,7 +175,7 @@ public class PowerPointLibraryServiceTests : IDisposable
         var result = sut.EnumerateFolders(_dir);
 
         result.Select(f => f.DisplayName).Should().Equal(
-            "Powerpoint Items",
+            Axicultus.Wpf.Localization.UiText.Get("PowerPointLibraryService", "RootFolder"),
             @"\말씀",
             @"\찬양",
             @"\찬양\절기");

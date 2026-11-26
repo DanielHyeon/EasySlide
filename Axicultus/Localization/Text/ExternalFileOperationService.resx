@@ -13,4 +13,7 @@
   <data name="AdminDbSaveFailed" xml:space="preserve"><value>Could not save to AdminDB</value></data>
   <data name="SourceNotFile" xml:space="preserve"><value>The source must be a file.</value></data>
   <data name="SourceMissing" xml:space="preserve"><value>The source file cannot be found.</value></data>
+  <data name="InfoScreenRoot" xml:space="preserve"><value>InfoScreen Items</value></data>
+  <data name="PowerPointRoot" xml:space="preserve"><value>Powerpoint Items</value></data>
+  <data name="MediaRoot" xml:space="preserve"><value>Media Items</value></data>
 </root>

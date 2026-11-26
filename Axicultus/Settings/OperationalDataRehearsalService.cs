@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Axicultus.Wpf.Data;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Settings;
 
@@ -85,7 +86,7 @@ public sealed class OperationalDataRehearsalService(
                 OperationalDataRehearsalIssueKind.WorkingFolderNotDirectory,
                 OperationalDataRehearsalIssueSeverity.Error,
                 sourceRoot,
-                "Working folder points to a file, not a directory."));
+                UiText.Get(nameof(OperationalDataRehearsalService), "WorkingFolderIsFile")));
 
             return CreateReport(snapshot, sourceRoot, destinationRoot, backupRoot, adminDatabasePath, null, null, issues);
         }
@@ -96,7 +97,7 @@ public sealed class OperationalDataRehearsalService(
                 OperationalDataRehearsalIssueKind.WorkingFolderMissing,
                 OperationalDataRehearsalIssueSeverity.Error,
                 sourceRoot,
-                "Working folder does not exist."));
+                UiText.Get(nameof(OperationalDataRehearsalService), "WorkingFolderMissing")));
 
             return CreateReport(snapshot, sourceRoot, destinationRoot, backupRoot, adminDatabasePath, null, null, issues);
         }
@@ -107,7 +108,7 @@ public sealed class OperationalDataRehearsalService(
                 OperationalDataRehearsalIssueKind.BackupRootMissing,
                 OperationalDataRehearsalIssueSeverity.Error,
                 backupRoot,
-                "Backup root is required for an operational data rehearsal."));
+                UiText.Get(nameof(OperationalDataRehearsalService), "BackupRootRequired")));
 
             return CreateReport(snapshot, sourceRoot, destinationRoot, backupRoot, adminDatabasePath, null, null, issues);
         }
@@ -138,7 +139,7 @@ public sealed class OperationalDataRehearsalService(
             if (!databaseInventory.Succeeded)
             {
                 var message = databaseInventory.Issues.Count == 0
-                    ? "Admin database is not compatible with the expected legacy schema."
+                    ? UiText.Get(nameof(OperationalDataRehearsalService), "AdminDbIncompatible")
                     : string.Join(" ", databaseInventory.Issues.Select(issue => issue.Message));
                 issues.Add(new OperationalDataRehearsalIssue(
                     OperationalDataRehearsalIssueKind.AdminDatabaseIncompatible,
@@ -153,7 +154,7 @@ public sealed class OperationalDataRehearsalService(
                 OperationalDataRehearsalIssueKind.AdminDatabaseMissing,
                 OperationalDataRehearsalIssueSeverity.Warning,
                 adminDatabasePath,
-                "Admin database was not found; asset rehearsal can continue without database inventory."));
+                UiText.Get(nameof(OperationalDataRehearsalService), "AdminDbMissing")));
         }
 
         return CreateReport(snapshot, sourceRoot, destinationRoot, backupRoot, adminDatabasePath, assetReport, databaseInventory, issues);

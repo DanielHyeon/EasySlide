@@ -63,8 +63,8 @@ public class OutputWindowHostTests
         session.GoLive(new LiveQueueItem("song-1", "Amazing Grace"), "Primary");
         session.HideOutput(blackout: true);
 
-        surfaces[0].ViewModel!.DisplayTitle.Should().Be("BLACK");
-        surfaces[0].ViewModel!.StatusLabel.Should().Be("BLACKOUT");
+        surfaces[0].ViewModel!.DisplayTitle.Should().Be(Axicultus.Wpf.Localization.UiText.Get("OutputRenderer", "Black"));
+        surfaces[0].ViewModel!.StatusLabel.Should().Be(Axicultus.Wpf.Localization.UiText.Get("OutputRenderer", "Blackout"));
         surfaces[0].ViewModel!.IsBlackout.Should().BeTrue();
     }
 

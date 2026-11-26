@@ -6,4 +6,5 @@
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <data name="InvalidName" xml:space="preserve"><value>찬양집 이름에 사용할 수 없는 문자/형식입니다: {0}</value></data>
   <data name="NameOutsidePath" xml:space="preserve"><value>찬양집 이름이 허용 경로를 벗어납니다: {0}</value></data>
+  <data name="Kind" xml:space="preserve"><value>찬양집</value></data>
 </root>

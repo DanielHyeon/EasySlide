@@ -3,12 +3,18 @@ using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Media;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Controls;
 
 public static class OptionChoices
 {
-    public sealed record Choice(int Id, string Name, string Icon);
+    public sealed record Choice(int Id, string Name, string Icon)
+    {
+        /// <summary>The name shown in the UI language (Name stays the accessible name).</summary>
+        public string Label => UiText.Get(nameof(OptionLayoutPreview), Name.Replace(" ", ""));
+    }
+
     public static Choice[] Horizontal { get; } = [new(1, "Left", "text_align_left"), new(2, "Centre", "text_align_center"), new(3, "Right", "text_align_right")];
     public static Choice[] Vertical { get; } = [new(0, "Top", "textbox_align_top"), new(1, "Centre", "textbox_align_middle"), new(2, "Bottom", "textbox_align_bottom")];
     public static Choice[] Italics { get; } = [new(0, "Off", "italic_off"), new(1, "Italic", "text_italic"), new(2, "Chorus only", "italic_chorus")];
@@ -44,7 +50,7 @@ public sealed class OptionLayoutPreview : FrameworkElement
             double fraction = Math.Clamp(First / 100, 0, 1);
             var video = new Rect(w * (1 - fraction) / 2, h * (1 - fraction) * Math.Clamp(Second / 2, 0, 1),
                 w * fraction, h * fraction);
-            DrawRegion(video, "Video Size", Brushes.SlateBlue);
+            DrawRegion(video, UiText.Get(nameof(OptionLayoutPreview), "VideoSize"), Brushes.SlateBlue);
             return;
         }
 
@@ -53,8 +59,8 @@ public sealed class OptionLayoutPreview : FrameworkElement
         double bottom = h * (1 - Math.Clamp(BottomMarginPercent, 0, 100) / 100);
         double top = Math.Min(bottom, h * Math.Clamp(First, 0, 100) / 100);
         double split = Math.Clamp(h * Second / 100, top, bottom);
-        DrawRegion(new Rect(left, top, right - left, split - top), "Region 1 Top", Brushes.SlateBlue);
-        DrawRegion(new Rect(left, split, right - left, bottom - split), "Region 2 Top", Brushes.DarkMagenta);
+        DrawRegion(new Rect(left, top, right - left, split - top), UiText.Get(nameof(OptionLayoutPreview), "Region1Top"), Brushes.SlateBlue);
+        DrawRegion(new Rect(left, split, right - left, bottom - split), UiText.Get(nameof(OptionLayoutPreview), "Region2Top"), Brushes.DarkMagenta);
 
         void DrawRegion(Rect area, string label, Brush brush)
         {

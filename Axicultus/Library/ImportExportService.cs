@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using Axicultus.Module;
 using Axicultus.Wpf.Data;
+using Axicultus.Wpf.Localization;
 using OfficeLib;
 
 namespace Axicultus.Wpf.Library;
@@ -213,7 +214,7 @@ public sealed class ImportExportService(
     IAdminSongDetailRepository songDetails,
     IDocumentTextExtractor documentTextExtractor) : IImportExportService
 {
-    private const string DefaultSourceFolder = "Default Folder";
+    private static string DefaultSourceFolder => UiText.Get(nameof(ImportExportService), "DefaultSourceFolder");
     private const string DocumentSourceFolder = "Documents";
 
     private readonly IAdminDatabaseRepository _adminDatabase = adminDatabase ?? throw new ArgumentNullException(nameof(adminDatabase));
@@ -237,7 +238,7 @@ public sealed class ImportExportService(
                 sourcePath,
                 [],
                 null,
-                [new ImportExportIssue(ImportExportIssueSeverity.Error, "Source path is empty.")]));
+                [new ImportExportIssue(ImportExportIssueSeverity.Error, UiText.Get(nameof(ImportExportService), "SourcePathEmpty"))]));
         }
 
         var fullPath = Path.GetFullPath(sourcePath);
@@ -248,7 +249,7 @@ public sealed class ImportExportService(
                 fullPath,
                 [],
                 null,
-                [new ImportExportIssue(ImportExportIssueSeverity.Error, "Source file does not exist.")]));
+                [new ImportExportIssue(ImportExportIssueSeverity.Error, UiText.Get(nameof(ImportExportService), "SourceFileMissing"))]));
         }
 
         try
@@ -429,7 +430,7 @@ public sealed class ImportExportService(
         if (request.SongIds.Count == 0)
         {
             return new ExportReport(false, request.OutputPath, request.Format, 0, [
-                new ImportExportIssue(ImportExportIssueSeverity.Error, "No songs were selected for export."),
+                new ImportExportIssue(ImportExportIssueSeverity.Error, UiText.Get(nameof(ImportExportService), "NoSongsSelected")),
             ]);
         }
 
@@ -445,7 +446,7 @@ public sealed class ImportExportService(
             var detail = await _songDetails.GetSongDetailAsync(request.DatabasePath, songId).ConfigureAwait(false);
             if (detail is null)
             {
-                issues.Add(new ImportExportIssue(ImportExportIssueSeverity.Warning, $"Song {songId} was not found."));
+                issues.Add(new ImportExportIssue(ImportExportIssueSeverity.Warning, UiText.Format(nameof(ImportExportService), "SongNotFound", songId)));
                 continue;
             }
 
@@ -523,7 +524,7 @@ public sealed class ImportExportService(
     {
         if (string.IsNullOrWhiteSpace(sourcePath))
         {
-            return Failed(ImportSourceKind.Unknown, sourcePath, "Source path is empty.");
+            return Failed(ImportSourceKind.Unknown, sourcePath, UiText.Get(nameof(ImportExportService), "SourcePathEmpty"));
         }
 
         var fullPath = Path.GetFullPath(sourcePath);
@@ -534,7 +535,7 @@ public sealed class ImportExportService(
 
         if (!File.Exists(fullPath))
         {
-            return Failed(ImportSourceKind.Unknown, fullPath, "Source file does not exist.");
+            return Failed(ImportSourceKind.Unknown, fullPath, UiText.Get(nameof(ImportExportService), "SourceFileMissing"));
         }
 
         if (GetExchangeKind(fullPath) is { } kind) return LoadExchange(fullPath, kind);
@@ -544,7 +545,7 @@ public sealed class ImportExportService(
             ".esn" or ".est" => LoadLegacyText(fullPath),
             ".esf" => LoadDatabase(fullPath),
             ".mdb" => LoadAccessDatabase(fullPath, accessMapping),
-            _ => Failed(ImportSourceKind.Unknown, fullPath, "Unsupported import source format."),
+            _ => Failed(ImportSourceKind.Unknown, fullPath, UiText.Get(nameof(ImportExportService), "UnsupportedSource")),
         };
     }
 
@@ -553,7 +554,7 @@ public sealed class ImportExportService(
         var fileContents = NormalizeLineEndings(File.ReadAllText(path));
         if (fileContents.Length < 8)
         {
-            return Failed(ImportSourceKind.AxicultusText, path, "Text import file is too short.");
+            return Failed(ImportSourceKind.AxicultusText, path, UiText.Get(nameof(ImportExportService), "TextTooShort"));
         }
 
         var header = fileContents[..8].ToLowerInvariant();
@@ -565,7 +566,7 @@ public sealed class ImportExportService(
         };
         if (separator == '\0')
         {
-            return Failed(ImportSourceKind.AxicultusText, path, "Text import header is not an Axicultus header.");
+            return Failed(ImportSourceKind.AxicultusText, path, UiText.Get(nameof(ImportExportService), "TextHeaderInvalid"));
         }
 
         var marker = "[" + separator;
@@ -761,14 +762,14 @@ public sealed class ImportExportService(
             var mapping = accessMapping ?? schema.SuggestedMapping;
             if (mapping is null)
             {
-                return Failed(ImportSourceKind.AccessDatabase, path, "Access MDB helper could not infer a table mapping.");
+                return Failed(ImportSourceKind.AccessDatabase, path, UiText.Get(nameof(ImportExportService), "AccessNoMapping"));
             }
 
             var table = schema.Tables.FirstOrDefault(candidate =>
                 string.Equals(candidate.Name, mapping.TableName, StringComparison.OrdinalIgnoreCase));
             if (table is null)
             {
-                return Failed(ImportSourceKind.AccessDatabase, path, $"Access table '{mapping.TableName}' was not found.");
+                return Failed(ImportSourceKind.AccessDatabase, path, UiText.Format(nameof(ImportExportService), "AccessTableMissing", mapping.TableName));
             }
 
             var issues = ValidateAccessMapping(table, mapping);
@@ -842,7 +843,7 @@ public sealed class ImportExportService(
 
         var suggested = BuildSuggestedAccessMapping(hydrated);
         IReadOnlyList<ImportExportIssue> issues = hydrated.Length == 0
-            ? [new ImportExportIssue(ImportExportIssueSeverity.Error, "Access MDB file does not contain importable tables.")]
+            ? [new ImportExportIssue(ImportExportIssueSeverity.Error, UiText.Get(nameof(ImportExportService), "AccessNoTables"))]
             : [];
         return new AccessImportSchema(hydrated.Length > 0, path, hydrated, suggested, issues);
     }
@@ -907,12 +908,12 @@ public sealed class ImportExportService(
         var issues = new List<ImportExportIssue>();
         if (!ColumnExists(table.Columns, mapping.TitleColumn))
         {
-            issues.Add(new ImportExportIssue(ImportExportIssueSeverity.Error, "Access title column is not selected or does not exist."));
+            issues.Add(new ImportExportIssue(ImportExportIssueSeverity.Error, UiText.Get(nameof(ImportExportService), "AccessTitleColumnMissing")));
         }
 
         if (mapping.LyricsColumns.Count == 0 || mapping.LyricsColumns.Any(column => !ColumnExists(table.Columns, column)))
         {
-            issues.Add(new ImportExportIssue(ImportExportIssueSeverity.Error, "Access lyrics merge columns are not selected or do not exist."));
+            issues.Add(new ImportExportIssue(ImportExportIssueSeverity.Error, UiText.Get(nameof(ImportExportService), "AccessLyricsColumnsMissing")));
         }
 
         foreach (var column in new[]
@@ -931,7 +932,7 @@ public sealed class ImportExportService(
         {
             if (!string.IsNullOrWhiteSpace(column) && !ColumnExists(table.Columns, column))
             {
-                issues.Add(new ImportExportIssue(ImportExportIssueSeverity.Error, $"Access column '{column}' does not exist."));
+                issues.Add(new ImportExportIssue(ImportExportIssueSeverity.Error, UiText.Format(nameof(ImportExportService), "AccessColumnMissing", column)));
             }
         }
 

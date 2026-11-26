@@ -100,13 +100,13 @@ public partial class WorshipListPanel : UserControl
         }
 
         var documentName = string.IsNullOrWhiteSpace(viewModel.CurrentWorshipListName)
-            ? "Worship List"
+            ? UiText.Get("WorshipListPanel", "DefaultDocumentName")
             : viewModel.CurrentWorshipListName;
         var dialog = new Microsoft.Win32.SaveFileDialog
         {
             Title = UiText.Get("WorshipListPanel", "GenerateRtf"),
             DefaultExt = ".rtf",
-            Filter = "Rich Text Format (*.rtf)|*.rtf|" + UiText.Get("WorshipListPanel", "FilterAllFiles") + " (*.*)|*.*",
+            Filter = UiText.Get("WorshipListPanel", "FilterRtf") + " (*.rtf)|*.rtf|" + UiText.Get("WorshipListPanel", "FilterAllFiles") + " (*.*)|*.*",
             FileName = BuildWorshipListExportFileName(documentName),
         };
 
@@ -130,7 +130,7 @@ public partial class WorshipListPanel : UserControl
 
     private static string BuildWorshipListExportFileName(string name)
     {
-        var safe = string.IsNullOrWhiteSpace(name) ? "Worship List" : name.Trim();
+        var safe = string.IsNullOrWhiteSpace(name) ? UiText.Get("WorshipListPanel", "DefaultDocumentName") : name.Trim();
         foreach (var invalid in Path.GetInvalidFileNameChars())
         {
             safe = safe.Replace(invalid, '_');

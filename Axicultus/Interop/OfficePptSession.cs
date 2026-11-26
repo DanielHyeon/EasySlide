@@ -3,6 +3,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Axicultus.Wpf.Localization;
 using NetOffice.OfficeApi.Enums;
 using NetOffice.PowerPointApi;
 using NetOffice.PowerPointApi.Enums;
@@ -51,8 +52,8 @@ public sealed partial class OfficePptSession : IDisposable
     private const int StepQueueMs = 2000;
     // Time for a call cancelled at its limit to fail by itself before the caller stops waiting.
     private const int GraceMs = 1000;
-    private const string NotAnswering = "PowerPoint did not answer.";
-    private const string Busy = "PowerPoint is still busy with an earlier request.";
+    private static string NotAnswering => UiText.Get(nameof(OfficePptSession), "NotAnswering");
+    private static string Busy => UiText.Get(nameof(OfficePptSession), "Busy");
 
     private const int RPC_S_SERVER_UNAVAILABLE = unchecked((int)0x800706BA);
     private const int RPC_S_CALL_FAILED = unchecked((int)0x800706BE);
@@ -809,7 +810,7 @@ public sealed partial class OfficePptSession : IDisposable
         if (OfficeLib.PowerPointCallLimit.CurrentAbandoned) throw new TimeoutException(NotAnswering);
         // PowerPoint is busy (a modal dialog is open in it): the show is still on the screen. The caller is told,
         // and the copies stay owned for the next close.
-        if (_unclosed.Count != 0) throw new InvalidOperationException("PowerPoint is busy: the slide show could not be closed.");
+        if (_unclosed.Count != 0) throw new InvalidOperationException(UiText.Get(nameof(OfficePptSession), "ShowNotClosed"));
 
         try
         {

@@ -136,7 +136,7 @@ public class ExternalFileOperationServiceTests
         var folders = sut.GetFolders(fixture.WorkingRoot, ExternalFileItemKind.InfoScreen);
 
         folders.Select(folder => folder.Name).Should().Equal(
-            "InfoScreen Items",
+            Axicultus.Wpf.Localization.UiText.Get("ExternalFileOperationService", "InfoScreenRoot"),
             "\\A",
             "\\A\\Child",
             "\\B");
@@ -154,7 +154,7 @@ public class ExternalFileOperationServiceTests
         var folders = sut.GetFolders(fixture.WorkingRoot, ExternalFileItemKind.Media);
 
         folders.Select(folder => folder.Name).Should().Equal(
-            "Media Items",
+            Axicultus.Wpf.Localization.UiText.Get("ExternalFileOperationService", "MediaRoot"),
             "\\Audio",
             "\\Audio\\Loops",
             "\\Video");

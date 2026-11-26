@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Axicultus.Wpf.Localization;
 using Axicultus.Wpf.Rendering;
 
 namespace Axicultus.Wpf.Library;
@@ -36,7 +37,7 @@ public sealed class MediaLibraryService(string? workingFolder = null) : IMediaLi
         var root = Path.GetFullPath(rootFolder);
         var folders = new List<MediaFolderItem>
         {
-            new("Media Files", root),
+            new(UiText.Get(nameof(MediaLibraryService), "RootFolder"), root),
         };
 
         try

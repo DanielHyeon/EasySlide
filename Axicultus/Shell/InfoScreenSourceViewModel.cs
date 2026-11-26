@@ -86,11 +86,11 @@ public sealed partial class InfoScreenSourceViewModel : ObservableObject
         if (Screens.Count == 0)
         {
             SelectedScreen = null;
-            StatusText = "No saved InfoScreens.";
+            StatusText = UiText.Get("InfoScreenSourceViewModel", "NoneSaved");
         }
         else
         {
-            StatusText = $"{Screens.Count} saved InfoScreens.";
+            StatusText = UiText.Format("InfoScreenSourceViewModel", "SavedCount", Screens.Count);
         }
     }
 
@@ -103,20 +103,20 @@ public sealed partial class InfoScreenSourceViewModel : ObservableObject
     {
         if (screen is null)
         {
-            StatusText = "No InfoScreen selected.";
+            StatusText = UiText.Get("InfoScreenSourceViewModel", "NoneSelected");
             return null;
         }
 
         var dto = await _store.LoadAsync(screen.Name, cancellationToken).ConfigureAwait(true);
         if (dto is null)
         {
-            StatusText = $"InfoScreen not found: {screen.Name}";
+            StatusText = UiText.Format("InfoScreenSourceViewModel", "NotFound", screen.Name);
             return null;
         }
 
         if (string.IsNullOrWhiteSpace(dto.Text))
         {
-            StatusText = $"InfoScreen is empty: {screen.Name}";
+            StatusText = UiText.Format("InfoScreenSourceViewModel", "Empty", screen.Name);
             return null;
         }
 
@@ -146,7 +146,7 @@ public sealed partial class InfoScreenSourceViewModel : ObservableObject
 
         if (_addToQueue(selection))
         {
-            StatusText = $"Added to Worship List: {selection.Name}";
+            StatusText = UiText.Format("InfoScreenSourceViewModel", "Added", selection.Name);
         }
     }
 
@@ -162,7 +162,7 @@ public sealed partial class InfoScreenSourceViewModel : ObservableObject
 
         if (names.Length == 0)
         {
-            StatusText = "No InfoScreen selected.";
+            StatusText = UiText.Get("InfoScreenSourceViewModel", "NoneSelected");
             return 0;
         }
 
@@ -178,9 +178,9 @@ public sealed partial class InfoScreenSourceViewModel : ObservableObject
         Load();
         StatusText = deleted switch
         {
-            0 => "No InfoScreen deleted.",
-            1 => $"Deleted InfoScreen: {names[0]}",
-            _ => $"Deleted {deleted} InfoScreens.",
+            0 => UiText.Get("InfoScreenSourceViewModel", "NoneDeleted"),
+            1 => UiText.Format("InfoScreenSourceViewModel", "DeletedOne", names[0]),
+            _ => UiText.Format("InfoScreenSourceViewModel", "DeletedMany", deleted),
         };
         return deleted;
     }

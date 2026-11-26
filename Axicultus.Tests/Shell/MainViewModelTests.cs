@@ -9930,7 +9930,7 @@ public partial class MainViewModelTests
         sut.OutputItem.Should().BeSameAs(outputItem);
         sut.OutputMediaTitle.Should().Be("Output Song");
         sut.OutputMediaSourceText.Should().Be(outputMedia);
-        sut.OutputMediaStatusText.Should().Contain("PLAYING").And.Contain("Output Song.mp4");
+        sut.OutputMediaStatusText.Should().Contain(Axicultus.Wpf.Localization.UiText.Get("MediaPlaybackViewModel", "Playing")).And.Contain("Output Song.mp4");
     }
 
     [Fact]
@@ -9961,12 +9961,12 @@ public partial class MainViewModelTests
             }
         };
 
-        sut.OutputMediaStatusText.Should().Contain("READY 00:00/02:05").And.Contain("Output Song.mp4");
+        sut.OutputMediaStatusText.Should().Contain(Axicultus.Wpf.Localization.UiText.Get("MediaPlaybackViewModel", "Ready") + " 00:00/02:05").And.Contain("Output Song.mp4");
 
         sut.Media.PlayPauseCommand.Execute(null);
         sut.Media.FastForwardCommand.Execute(null);
 
-        sut.OutputMediaStatusText.Should().Contain("PLAYING 00:05/02:05").And.Contain("Output Song.mp4");
+        sut.OutputMediaStatusText.Should().Contain(Axicultus.Wpf.Localization.UiText.Get("MediaPlaybackViewModel", "Playing") + " 00:05/02:05").And.Contain("Output Song.mp4");
         changes.Should().BeGreaterThanOrEqualTo(2, "playback state and seek updates should refresh the FrmMain-style output media status");
     }
 

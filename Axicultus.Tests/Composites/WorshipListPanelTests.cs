@@ -542,7 +542,7 @@ public class WorshipListPanelTests
             "saving Bible/Notice edits should replace the selected queue row");
         windowCode.Should().Contain("viewModel.EditSelectedExternalWorshipItem",
             "PPT/Media Worship rows should not fall through to the generic rejected selection status");
-        editorCode.Should().Contain("Edit Worship List Item")
+        editorCode.Should().Contain("UiText.Get(nameof(WorshipTextItemEditorWindow), \"Title\")")
             .And.Contain("ItemTitle")
             .And.Contain("ItemText",
                 "the text editor should expose editable title/body values back to MainWindow");

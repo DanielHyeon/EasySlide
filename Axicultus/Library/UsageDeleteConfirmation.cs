@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using Axicultus.Wpf.Composites;
 using Axicultus.Wpf.Data;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Library;
 
@@ -31,11 +32,11 @@ public sealed class WpfUsageDeleteConfirmation : IUsageDeleteConfirmation
             return false;
         }
 
-        var session = string.IsNullOrWhiteSpace(request.Session) ? "All sessions" : request.Session;
+        var session = string.IsNullOrWhiteSpace(request.Session) ? UiText.Get("UsageDeleteConfirmation", "AllSessions") : request.Session;
         var subtext = $"{request.From:yyyy-MM-dd} - {request.To:yyyy-MM-dd}, {session}.";
         return await SafetyConfirm.AskAsync(
             anchor,
-            $"Delete {request.RecordCount} usage record(s)?",
+            UiText.Format("UsageDeleteConfirmation", "Question", request.RecordCount),
             subtext,
             TimeSpan.FromSeconds(15)).ConfigureAwait(true);
     }

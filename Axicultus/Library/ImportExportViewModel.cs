@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Axicultus.Wpf.Data;
+using Axicultus.Wpf.Localization;
 using Axicultus.Wpf.Settings;
 
 namespace Axicultus.Wpf.Library;
@@ -204,7 +205,7 @@ public sealed partial class ImportExportViewModel : ObservableObject
             Folders.ReplaceWith(folders);
             SelectedTargetFolder = Folders.FirstOrDefault();
             SelectedExportFolder = Folders.FirstOrDefault();
-            StatusMessage = $"{Folders.Count} folders loaded.";
+            StatusMessage = UiText.Format(nameof(ImportExportViewModel), "FoldersLoaded", Folders.Count);
         }).ConfigureAwait(true);
     }
 
@@ -213,7 +214,7 @@ public sealed partial class ImportExportViewModel : ObservableObject
         ValidationMessage = "";
         if (string.IsNullOrWhiteSpace(ImportSourcePath))
         {
-            ValidationMessage = "Import source path is empty.";
+            ValidationMessage = UiText.Get(nameof(ImportExportViewModel), "SourcePathEmpty");
             return;
         }
 
@@ -233,8 +234,8 @@ public sealed partial class ImportExportViewModel : ObservableObject
             }
 
             StatusMessage = schema.Succeeded
-                ? $"{schema.Tables.Count} Access MDB tables loaded."
-                : FormatIssues(schema.Issues, "Access MDB schema failed.");
+                ? UiText.Format(nameof(ImportExportViewModel), "AccessTablesLoaded", schema.Tables.Count)
+                : FormatIssues(schema.Issues, UiText.Get(nameof(ImportExportViewModel), "AccessSchemaFailed"));
         }).ConfigureAwait(true);
     }
 
@@ -243,14 +244,14 @@ public sealed partial class ImportExportViewModel : ObservableObject
         ValidationMessage = "";
         if (string.IsNullOrWhiteSpace(ImportSourcePath))
         {
-            ValidationMessage = "Import source path is empty.";
+            ValidationMessage = UiText.Get(nameof(ImportExportViewModel), "SourcePathEmpty");
             return;
         }
 
         var accessMapping = await ResolveAccessMappingAsync().ConfigureAwait(true);
         if (IsAccessImportSource && accessMapping is null)
         {
-            ValidationMessage = "Access MDB mapping is incomplete.";
+            ValidationMessage = UiText.Get(nameof(ImportExportViewModel), "AccessMappingIncomplete");
             return;
         }
 
@@ -259,8 +260,8 @@ public sealed partial class ImportExportViewModel : ObservableObject
             var preview = await _service.PreviewImportAsync(ImportSourcePath, accessMapping).ConfigureAwait(true);
             ImportSourceFolders.ReplaceWith(preview.Folders.Select(folder => new SelectableImportSourceFolder(folder)));
             StatusMessage = preview.Succeeded
-                ? $"{preview.TotalSongs} import items found."
-                : FormatIssues(preview.Issues, "Import preview failed.");
+                ? UiText.Format(nameof(ImportExportViewModel), "ImportItemsFound", preview.TotalSongs)
+                : FormatIssues(preview.Issues, UiText.Get(nameof(ImportExportViewModel), "PreviewFailed"));
         }).ConfigureAwait(true);
     }
 
@@ -269,7 +270,7 @@ public sealed partial class ImportExportViewModel : ObservableObject
         ValidationMessage = "";
         if (SelectedTargetFolder is null)
         {
-            ValidationMessage = "Import target folder is not selected.";
+            ValidationMessage = UiText.Get(nameof(ImportExportViewModel), "TargetFolderNotSelected");
             return;
         }
 
@@ -284,14 +285,14 @@ public sealed partial class ImportExportViewModel : ObservableObject
             .ToArray();
         if (selectedFolders.Length == 0)
         {
-            ValidationMessage = "No import source folders are selected.";
+            ValidationMessage = UiText.Get(nameof(ImportExportViewModel), "NoSourceFolders");
             return;
         }
 
         var accessMapping = await ResolveAccessMappingAsync().ConfigureAwait(true);
         if (IsAccessImportSource && accessMapping is null)
         {
-            ValidationMessage = "Access MDB mapping is incomplete.";
+            ValidationMessage = UiText.Get(nameof(ImportExportViewModel), "AccessMappingIncomplete");
             return;
         }
 
@@ -306,8 +307,8 @@ public sealed partial class ImportExportViewModel : ObservableObject
                 ImportDuplicatePolicy,
                 AccessMapping: accessMapping)).ConfigureAwait(true);
             StatusMessage = report.Succeeded
-                ? $"{report.ImportedNew + report.Replaced} imported, {report.Skipped} skipped."
-                : FormatIssues(report.Issues, $"{report.ImportedNew + report.Replaced} imported, {report.Failed} failed.");
+                ? UiText.Format(nameof(ImportExportViewModel), "Imported", report.ImportedNew + report.Replaced, report.Skipped)
+                : FormatIssues(report.Issues, UiText.Format(nameof(ImportExportViewModel), "ImportFailed", report.ImportedNew + report.Replaced, report.Failed));
         }).ConfigureAwait(true);
     }
 
@@ -316,7 +317,7 @@ public sealed partial class ImportExportViewModel : ObservableObject
         ValidationMessage = "";
         if (SelectedExportFolder is null)
         {
-            ValidationMessage = "Export folder is not selected.";
+            ValidationMessage = UiText.Get(nameof(ImportExportViewModel), "ExportFolderNotSelected");
             return;
         }
 
@@ -326,7 +327,7 @@ public sealed partial class ImportExportViewModel : ObservableObject
                 DatabasePath,
                 [SelectedExportFolder.FolderNo]).ConfigureAwait(true);
             ExportCandidates.ReplaceWith(candidates.Select(candidate => new SelectableExportSongCandidate(candidate)));
-            StatusMessage = $"{ExportCandidates.Count} export items found.";
+            StatusMessage = UiText.Format(nameof(ImportExportViewModel), "ExportItemsFound", ExportCandidates.Count);
         }).ConfigureAwait(true);
     }
 
@@ -335,7 +336,7 @@ public sealed partial class ImportExportViewModel : ObservableObject
         ValidationMessage = "";
         if (string.IsNullOrWhiteSpace(ExportOutputPath))
         {
-            ValidationMessage = "Export output path is empty.";
+            ValidationMessage = UiText.Get(nameof(ImportExportViewModel), "ExportPathEmpty");
             return;
         }
 
@@ -350,7 +351,7 @@ public sealed partial class ImportExportViewModel : ObservableObject
             .ToArray();
         if (selectedSongs.Length == 0)
         {
-            ValidationMessage = "No export songs are selected.";
+            ValidationMessage = UiText.Get(nameof(ImportExportViewModel), "NoExportSongs");
             return;
         }
 
@@ -364,8 +365,8 @@ public sealed partial class ImportExportViewModel : ObservableObject
                 SelectedExportFolder is null ? [] : [SelectedExportFolder.FolderNo],
                 BuildPraiseBookOptions())).ConfigureAwait(true);
             StatusMessage = report.Succeeded
-                ? $"{report.ExportedSongs} songs exported."
-                : FormatIssues(report.Issues, "Export failed.");
+                ? UiText.Format(nameof(ImportExportViewModel), "Exported", report.ExportedSongs)
+                : FormatIssues(report.Issues, UiText.Get(nameof(ImportExportViewModel), "ExportFailed"));
         }).ConfigureAwait(true);
     }
 

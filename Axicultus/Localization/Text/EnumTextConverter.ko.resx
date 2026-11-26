@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="BibleSearchMatchMode.AllWords" xml:space="preserve"><value>모든 단어</value></data>
+  <data name="BibleSearchMatchMode.AnyWord" xml:space="preserve"><value>아무 단어나</value></data>
+  <data name="BibleSearchMatchMode.ExactPhrase" xml:space="preserve"><value>정확한 구절</value></data>
+  <data name="ExternalFileItemKind.InfoScreen" xml:space="preserve"><value>공지 화면</value></data>
+  <data name="ExternalFileItemKind.PowerPoint" xml:space="preserve"><value>PowerPoint</value></data>
+  <data name="ExternalFileItemKind.Media" xml:space="preserve"><value>미디어</value></data>
+  <data name="ExternalFileOperationKind.Copy" xml:space="preserve"><value>복사</value></data>
+  <data name="ExternalFileOperationKind.Move" xml:space="preserve"><value>이동</value></data>
+  <data name="ExternalFileDestinationKind.ExternalFolder" xml:space="preserve"><value>외부 폴더</value></data>
+  <data name="ExternalFileDestinationKind.SongFolder" xml:space="preserve"><value>곡 폴더</value></data>
+  <data name="ImportDuplicatePolicy.KeepExisting" xml:space="preserve"><value>둘 다 두기(새 항목으로 추가)</value></data>
+  <data name="ImportDuplicatePolicy.SkipExisting" xml:space="preserve"><value>같은 제목은 건너뛰기</value></data>
+  <data name="ImportDuplicatePolicy.ReplaceExisting" xml:space="preserve"><value>기존 항목 바꾸기</value></data>
+  <data name="ExportFormat.Xml" xml:space="preserve"><value>XML</value></data>
+  <data name="ExportFormat.AxicultusText" xml:space="preserve"><value>Axicultus 텍스트</value></data>
+  <data name="ExportFormat.AxicultusDatabase" xml:space="preserve"><value>Axicultus 데이터베이스</value></data>
+  <data name="ExportFormat.Html" xml:space="preserve"><value>HTML</value></data>
+  <data name="ExportFormat.Rtf" xml:space="preserve"><value>RTF</value></data>
+  <data name="ExportFormat.Json" xml:space="preserve"><value>JSON</value></data>
+  <data name="ColorTheme.Light" xml:space="preserve"><value>밝게</value></data>
+  <data name="ColorTheme.Dark" xml:space="preserve"><value>어둡게</value></data>
+</root>

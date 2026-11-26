@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Axicultus.Module;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Library;
 
@@ -37,7 +38,7 @@ public sealed class PowerPointLibraryService : IPowerPointLibraryService
         var root = Path.GetFullPath(rootFolder);
         var folders = new List<PowerPointFolderItem>
         {
-            new("Powerpoint Items", root),
+            new(UiText.Get(nameof(PowerPointLibraryService), "RootFolder"), root),
         };
 
         folders.AddRange(PowerPointSourceFiles.ListSubfolders(root)

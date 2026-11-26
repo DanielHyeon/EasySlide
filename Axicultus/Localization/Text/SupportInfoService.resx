@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="VersionLabel" xml:space="preserve"><value>Software Version: {0}</value></data>
+  <data name="RegistrationTitle" xml:space="preserve"><value>Register Use of Axicultus</value></data>
+  <data name="RegistrationBody" xml:space="preserve"><value>Axicultus is provided free of charge and for your indefinite use provided you abide by the End User Licence Agreement (EULA).
+
+If you intend to use this software on an on-going basis, you are invited to register your use of the software. Registration is voluntary and is free of charge. The registration information you provide helps monitor the spread of Axicultus around the world.</value></data>
+  <data name="FirstItem" xml:space="preserve"><value>First item</value></data>
+  <data name="LastItem" xml:space="preserve"><value>Last item</value></data>
+  <data name="PreviousItem" xml:space="preserve"><value>Previous item</value></data>
+  <data name="NextItem" xml:space="preserve"><value>Next item</value></data>
+  <data name="FirstSlide" xml:space="preserve"><value>First slide</value></data>
+  <data name="LastSlide" xml:space="preserve"><value>Last slide</value></data>
+  <data name="PreviousSlide" xml:space="preserve"><value>Previous slide</value></data>
+  <data name="NextSlide" xml:space="preserve"><value>Next slide</value></data>
+  <data name="KeyLeft" xml:space="preserve"><value>Left Arrow</value></data>
+  <data name="KeyRight" xml:space="preserve"><value>Right Arrow</value></data>
+  <data name="KeyUp" xml:space="preserve"><value>Up Arrow</value></data>
+  <data name="KeyDown" xml:space="preserve"><value>Down Arrow</value></data>
+  <data name="KeyHome" xml:space="preserve"><value>Home</value></data>
+  <data name="KeyEnd" xml:space="preserve"><value>End</value></data>
+  <data name="KeyPageUp" xml:space="preserve"><value>Page Up</value></data>
+  <data name="KeyPageDown" xml:space="preserve"><value>Page Down</value></data>
+  <data name="KeyPageDownSpace" xml:space="preserve"><value>Page Down, Space</value></data>
+  <data name="KeyDownSpace" xml:space="preserve"><value>Down Arrow, Space</value></data>
+</root>

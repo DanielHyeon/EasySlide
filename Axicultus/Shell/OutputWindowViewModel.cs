@@ -47,8 +47,8 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
     private OutputWindowState _output = OutputWindowState.Closed;
     private string _currentItemTitle = string.Empty;
     private string _outputMonitorName = string.Empty;
-    private string _displayTitle = "STANDBY";
-    private string _statusLabel = "STANDBY";
+    private string _displayTitle = UiText.Get(nameof(OutputRenderer), "Standby");
+    private string _statusLabel = UiText.Get(nameof(OutputRenderer), "Standby");
     private string _bodyText = string.Empty;
     // 이중 언어 Region2(보조 언어) 본문 + 표시 + 글자색(Region2 색). 단일 영역이면 빈 문자열·Collapsed(무회귀).
     private string _bodyText2 = string.Empty;

@@ -53,4 +53,5 @@
   <data name="SelectSongToCopy" xml:space="preserve"><value>복사할 곡을 선택하세요.</value></data>
   <data name="SelectSongToMove" xml:space="preserve"><value>이동할 곡을 선택하세요.</value></data>
   <data name="SelectSongToDelete" xml:space="preserve"><value>삭제할 곡을 선택하세요.</value></data>
+  <data name="FolderNumber" xml:space="preserve"><value>폴더 {0}</value></data>
 </root>

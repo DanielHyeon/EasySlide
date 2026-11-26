@@ -371,9 +371,9 @@ public sealed class ExternalFileOperationService(IAdminDatabaseRepository adminD
     private static string GetDisplayRootName(ExternalFileItemKind itemKind)
         => itemKind switch
         {
-            ExternalFileItemKind.InfoScreen => "InfoScreen Items",
-            ExternalFileItemKind.PowerPoint => "Powerpoint Items",
-            ExternalFileItemKind.Media => "Media Items",
+            ExternalFileItemKind.InfoScreen => UiText.Get("ExternalFileOperationService", "InfoScreenRoot"),
+            ExternalFileItemKind.PowerPoint => UiText.Get("ExternalFileOperationService", "PowerPointRoot"),
+            ExternalFileItemKind.Media => UiText.Get("ExternalFileOperationService", "MediaRoot"),
             _ => throw new ArgumentOutOfRangeException(nameof(itemKind), itemKind, null),
         };
 

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="SourcePathEmpty" xml:space="preserve"><value>가져올 파일 경로가 비어 있습니다.</value></data>
+  <data name="SourceFileMissing" xml:space="preserve"><value>가져올 파일이 없습니다.</value></data>
+  <data name="NoSongsSelected" xml:space="preserve"><value>내보낼 곡을 선택하지 않았습니다.</value></data>
+  <data name="SongNotFound" xml:space="preserve"><value>곡 {0}을(를) 찾을 수 없습니다.</value></data>
+  <data name="UnsupportedSource" xml:space="preserve"><value>가져올 수 없는 파일 형식입니다.</value></data>
+  <data name="TextTooShort" xml:space="preserve"><value>가져올 텍스트 파일이 너무 짧습니다.</value></data>
+  <data name="TextHeaderInvalid" xml:space="preserve"><value>가져올 텍스트 파일의 머리글이 Axicultus 형식이 아닙니다.</value></data>
+  <data name="AccessNoMapping" xml:space="preserve"><value>액세스 데이터베이스에서 가져올 테이블과 열을 알아내지 못했습니다.</value></data>
+  <data name="AccessTableMissing" xml:space="preserve"><value>액세스 테이블 '{0}'을(를) 찾을 수 없습니다.</value></data>
+  <data name="AccessNoTables" xml:space="preserve"><value>액세스 데이터베이스 파일에 가져올 수 있는 테이블이 없습니다.</value></data>
+  <data name="AccessTitleColumnMissing" xml:space="preserve"><value>액세스 제목 열을 선택하지 않았거나 그 열이 없습니다.</value></data>
+  <data name="AccessLyricsColumnsMissing" xml:space="preserve"><value>액세스 가사 합치기 열을 선택하지 않았거나 그 열이 없습니다.</value></data>
+  <data name="AccessColumnMissing" xml:space="preserve"><value>액세스 열 '{0}'이(가) 없습니다.</value></data>
+  <data name="DefaultSourceFolder" xml:space="preserve"><value>기본 폴더</value></data>
+</root>

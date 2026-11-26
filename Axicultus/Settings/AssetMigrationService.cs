@@ -6,6 +6,7 @@ using System.Security.Cryptography;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Settings;
 
@@ -101,7 +102,7 @@ public sealed class AssetMigrationService : IAssetMigrationService
                 AssetMigrationIssueKind.SourceNotDirectory,
                 AssetMigrationIssueSeverity.Error,
                 sourceRoot,
-                "Source root is not a directory."));
+                UiText.Get(nameof(AssetMigrationService), "SourceNotDirectory")));
 
             return CreateReport(request, sourceRoot, destinationRoot, backupRoot, backupDirectory: null, items, issues);
         }
@@ -112,7 +113,7 @@ public sealed class AssetMigrationService : IAssetMigrationService
                 AssetMigrationIssueKind.SourceMissing,
                 AssetMigrationIssueSeverity.Error,
                 sourceRoot,
-                "Source root does not exist."));
+                UiText.Get(nameof(AssetMigrationService), "SourceMissing")));
 
             return CreateReport(request, sourceRoot, destinationRoot, backupRoot, backupDirectory: null, items, issues);
         }
@@ -155,7 +156,7 @@ public sealed class AssetMigrationService : IAssetMigrationService
                             sourceInfo.Length,
                             sourceHash,
                             AssetMigrationItemStatus.SkippedExisting,
-                            "Destination already contains the same file."));
+                            UiText.Get(nameof(AssetMigrationService), "SameFileExists")));
                         continue;
                     }
 
@@ -165,7 +166,7 @@ public sealed class AssetMigrationService : IAssetMigrationService
                         AssetMigrationIssueKind.DestinationConflict,
                         AssetMigrationIssueSeverity.Warning,
                         preferredDestinationPath,
-                        $"Destination already exists. Copied as {Path.GetFileName(destinationPath)}."));
+                        UiText.Format(nameof(AssetMigrationService), "CopiedAs", Path.GetFileName(destinationPath))));
                 }
 
                 Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
@@ -179,7 +180,7 @@ public sealed class AssetMigrationService : IAssetMigrationService
                         AssetMigrationIssueKind.HashMismatch,
                         AssetMigrationIssueSeverity.Error,
                         destinationPath,
-                        "Copied file hash does not match source hash."));
+                        UiText.Get(nameof(AssetMigrationService), "HashMismatch")));
                 }
 
                 items.Add(new AssetMigrationItem(

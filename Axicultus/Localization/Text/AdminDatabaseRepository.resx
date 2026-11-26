@@ -6,4 +6,34 @@
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <data name="SongNotFound" xml:space="preserve"><value>The selected song no longer exists.</value></data>
   <data name="FolderFormatNotSaved" xml:space="preserve"><value>The folder format value cannot be saved: {0}</value></data>
+  <data name="TargetFolderNotPositive" xml:space="preserve"><value>Target folder number must be positive.</value></data>
+  <data name="BackupRootEmpty" xml:space="preserve"><value>Backup root cannot be empty.</value></data>
+  <data name="BackupFailed" xml:space="preserve"><value>Unable to create AdminDB backup: {0}</value></data>
+  <data name="CompactFailed" xml:space="preserve"><value>Database compaction failed: {0}</value></data>
+  <data name="OpenFailed" xml:space="preserve"><value>Unable to open AdminDB SQLite database: {0}</value></data>
+  <data name="WriteFailed" xml:space="preserve"><value>AdminDB write failed: {0}</value></data>
+  <data name="NewFolderNumberRange" xml:space="preserve"><value>A new folder must be numbered 1 to {0}.</value></data>
+  <data name="FolderDeleteRequired" xml:space="preserve"><value>At least one folder delete is required.</value></data>
+  <data name="FolderRecoveryRequired" xml:space="preserve"><value>At least one folder recovery is required.</value></data>
+  <data name="FolderNumbersNotPositive" xml:space="preserve"><value>Folder numbers must be positive.</value></data>
+  <data name="FolderNumbersNotDistinct" xml:space="preserve"><value>Folder requests must contain distinct folder numbers.</value></data>
+  <data name="FolderNotFound" xml:space="preserve"><value>Folder was not found: {0}</value></data>
+  <data name="SongIdNotFound" xml:space="preserve"><value>Song was not found: {0}</value></data>
+  <data name="SongMoveRequired" xml:space="preserve"><value>At least one song move is required.</value></data>
+  <data name="SongDeleteRequired" xml:space="preserve"><value>At least one song delete is required.</value></data>
+  <data name="SongRecoveryRequired" xml:space="preserve"><value>At least one song recovery is required.</value></data>
+  <data name="FolderReorderRequired" xml:space="preserve"><value>At least one folder reorder request is required.</value></data>
+  <data name="FolderReorderNotDistinct" xml:space="preserve"><value>Folder reorder requests must contain distinct source and target folder numbers.</value></data>
+  <data name="TargetFolderInUse" xml:space="preserve"><value>Target folder number is already in use: {0}</value></data>
+  <data name="FolderNumberNotPositive" xml:space="preserve"><value>Folder number must be positive.</value></data>
+  <data name="SongReorderRequired" xml:space="preserve"><value>At least one song reorder request is required.</value></data>
+  <data name="SongNumbersNotPositive" xml:space="preserve"><value>Song ids and song numbers must be positive.</value></data>
+  <data name="SongReorderNotDistinct" xml:space="preserve"><value>Song reorder requests must contain distinct song ids and song numbers.</value></data>
+  <data name="SongNotFoundInFolder" xml:space="preserve"><value>Song was not found in folder {0}: {1}</value></data>
+  <data name="SchemaIncompatible" xml:space="preserve"><value>AdminDB schema is not compatible: {0}</value></data>
+  <data name="PathEmpty" xml:space="preserve"><value>AdminDB path cannot be empty.</value></data>
+  <data name="PathIsDirectory" xml:space="preserve"><value>AdminDB path is a directory: {0}</value></data>
+  <data name="FileMissing" xml:space="preserve"><value>AdminDB file does not exist: {0}</value></data>
+  <data name="TableMissing" xml:space="preserve"><value>Required AdminDB table is missing: {0}</value></data>
+  <data name="ColumnMissing" xml:space="preserve"><value>Required AdminDB column is missing: {0}.{1}</value></data>
 </root>

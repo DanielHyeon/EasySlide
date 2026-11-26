@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Rendering;
 
@@ -47,9 +48,9 @@ with(StringComparer.OrdinalIgnoreCase),         ".bmp", ".gif", ".ico", ".jpg", 
         var tiles = Path.Combine(root, "Tiles");
         var folders = new List<ImageFolderItem>
         {
-            new("Scenery", scenery),
-            new("Tiles", tiles),
-            new("Images", root),
+            new(UiText.Get(nameof(ImageLibraryService), "Scenery"), scenery),
+            new(UiText.Get(nameof(ImageLibraryService), "Tiles"), tiles),
+            new(UiText.Get(nameof(ImageLibraryService), "Images"), root),
         };
 
         var legacyBuiltIns = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
@@ -82,17 +83,17 @@ with(StringComparer.OrdinalIgnoreCase),         ".bmp", ".gif", ".ico", ".jpg", 
         var source = sourceFilePath ?? string.Empty;
         if (string.IsNullOrWhiteSpace(source) || !File.Exists(source))
         {
-            return new ImageImportResult(false, source, string.Empty, "Image file not found.");
+            return new ImageImportResult(false, source, string.Empty, UiText.Get(nameof(ImageLibraryService), "FileNotFound"));
         }
 
         if (!ImageExtensions.Contains(Path.GetExtension(source)))
         {
-            return new ImageImportResult(false, source, string.Empty, "Unsupported image file.");
+            return new ImageImportResult(false, source, string.Empty, UiText.Get(nameof(ImageLibraryService), "Unsupported"));
         }
 
         if (string.IsNullOrWhiteSpace(destinationFolderPath))
         {
-            return new ImageImportResult(false, source, string.Empty, "Image folder is not selected.");
+            return new ImageImportResult(false, source, string.Empty, UiText.Get(nameof(ImageLibraryService), "NoFolder"));
         }
 
         var destinationPath = Path.Combine(destinationFolderPath, Path.GetFileName(source));
@@ -101,7 +102,7 @@ with(StringComparer.OrdinalIgnoreCase),         ".bmp", ".gif", ".ico", ".jpg", 
             Directory.CreateDirectory(destinationFolderPath);
             if (File.Exists(destinationPath))
             {
-                return new ImageImportResult(false, source, destinationPath, "Image file already exists in the selected folder.");
+                return new ImageImportResult(false, source, destinationPath, UiText.Get(nameof(ImageLibraryService), "AlreadyExists"));
             }
 
             File.Copy(source, destinationPath, overwrite: false);

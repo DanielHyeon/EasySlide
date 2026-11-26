@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="BibleSearchMatchMode.AllWords" xml:space="preserve"><value>All words</value></data>
+  <data name="BibleSearchMatchMode.AnyWord" xml:space="preserve"><value>Any word</value></data>
+  <data name="BibleSearchMatchMode.ExactPhrase" xml:space="preserve"><value>Exact phrase</value></data>
+  <data name="ExternalFileItemKind.InfoScreen" xml:space="preserve"><value>InfoScreen</value></data>
+  <data name="ExternalFileItemKind.PowerPoint" xml:space="preserve"><value>PowerPoint</value></data>
+  <data name="ExternalFileItemKind.Media" xml:space="preserve"><value>Media</value></data>
+  <data name="ExternalFileOperationKind.Copy" xml:space="preserve"><value>Copy</value></data>
+  <data name="ExternalFileOperationKind.Move" xml:space="preserve"><value>Move</value></data>
+  <data name="ExternalFileDestinationKind.ExternalFolder" xml:space="preserve"><value>External folder</value></data>
+  <data name="ExternalFileDestinationKind.SongFolder" xml:space="preserve"><value>Song folder</value></data>
+  <data name="ImportDuplicatePolicy.KeepExisting" xml:space="preserve"><value>Keep both (add as a new item)</value></data>
+  <data name="ImportDuplicatePolicy.SkipExisting" xml:space="preserve"><value>Skip titles that already exist</value></data>
+  <data name="ImportDuplicatePolicy.ReplaceExisting" xml:space="preserve"><value>Replace the existing item</value></data>
+  <data name="ExportFormat.Xml" xml:space="preserve"><value>XML</value></data>
+  <data name="ExportFormat.AxicultusText" xml:space="preserve"><value>Axicultus text</value></data>
+  <data name="ExportFormat.AxicultusDatabase" xml:space="preserve"><value>Axicultus database</value></data>
+  <data name="ExportFormat.Html" xml:space="preserve"><value>HTML</value></data>
+  <data name="ExportFormat.Rtf" xml:space="preserve"><value>RTF</value></data>
+  <data name="ExportFormat.Json" xml:space="preserve"><value>JSON</value></data>
+  <data name="ColorTheme.Light" xml:space="preserve"><value>Light</value></data>
+  <data name="ColorTheme.Dark" xml:space="preserve"><value>Dark</value></data>
+</root>

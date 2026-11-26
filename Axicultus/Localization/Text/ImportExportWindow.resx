@@ -42,4 +42,11 @@
   <data name="Browse" xml:space="preserve"><value>Browse</value></data>
   <data name="Export" xml:space="preserve"><value>Export</value></data>
   <data name="Close" xml:space="preserve"><value>Close</value></data>
+  <data name="FilterAccessDatabase" xml:space="preserve"><value>Access Database</value></data>
+  <data name="FilterAllFiles" xml:space="preserve"><value>All files</value></data>
+  <data name="ImportFolderDescription" xml:space="preserve"><value>Select a folder containing .txt, .doc, or .docx files.</value></data>
+  <data name="HtmlExportFolderDescription" xml:space="preserve"><value>Select an HTML export folder.</value></data>
+  <data name="FilterAxicultusText" xml:space="preserve"><value>Axicultus Text</value></data>
+  <data name="FilterAxicultusDatabase" xml:space="preserve"><value>Axicultus Database</value></data>
+  <data name="FilterRichText" xml:space="preserve"><value>Rich Text</value></data>
 </root>

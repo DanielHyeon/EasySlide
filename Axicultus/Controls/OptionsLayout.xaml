@@ -58,6 +58,6 @@
         </Setter>
     </Style>
     <DataTemplate x:Key="OptionIconItem">
-        <options:FrmIcon Icon="{Binding Icon}" Width="17" Height="17" ToolTip="{Binding Name}" AutomationProperties.Name="{Binding Name}" />
+        <options:FrmIcon Icon="{Binding Icon}" Width="17" Height="17" ToolTip="{Binding Label}" AutomationProperties.Name="{Binding Name}" />
     </DataTemplate>
 </ResourceDictionary>

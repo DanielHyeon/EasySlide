@@ -41,4 +41,6 @@
   <data name="ListAlreadyEmpty" xml:space="preserve"><value>예배 순서가 이미 비어 있습니다.</value></data>
   <data name="NoListLoaded" xml:space="preserve"><value>불러온 예배 순서가 없습니다.</value></data>
   <data name="ClearListConfirm" xml:space="preserve"><value>예배 순서 '{0}'을(를) 비우시겠습니까?&#10;&#10;현재 예배 순서는 휴지통으로 이동합니다.</value></data>
+  <data name="DefaultDocumentName" xml:space="preserve"><value>예배 순서</value></data>
+  <data name="FilterRtf" xml:space="preserve"><value>서식 있는 텍스트</value></data>
 </root>

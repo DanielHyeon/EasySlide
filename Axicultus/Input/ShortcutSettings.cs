@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Input;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Input;
 
@@ -41,7 +42,7 @@ public static class ShortcutSettings
 
         if (string.IsNullOrWhiteSpace(gesture))
         {
-            error = "Shortcut gesture cannot be empty.";
+            error = UiText.Get("ShortcutSettings", "GestureEmpty");
             return false;
         }
 
@@ -50,7 +51,7 @@ public static class ShortcutSettings
             .ToArray();
         if (parts.Length == 0)
         {
-            error = "Shortcut gesture cannot be empty.";
+            error = UiText.Get("ShortcutSettings", "GestureEmpty");
             return false;
         }
 
@@ -62,19 +63,19 @@ public static class ShortcutSettings
                 continue;
             }
 
-            error = $"'{part}' is not a supported shortcut modifier.";
+            error = UiText.Format("ShortcutSettings", "UnsupportedModifier", part);
             return false;
         }
 
         if (!Enum.TryParse(parts[^1], ignoreCase: true, out key) || key == Key.None)
         {
-            error = $"'{parts[^1]}' is not a supported shortcut key.";
+            error = UiText.Format("ShortcutSettings", "UnsupportedKey", parts[^1]);
             return false;
         }
 
         if (IsModifierKey(key))
         {
-            error = "Shortcut must include a non-modifier key.";
+            error = UiText.Get("ShortcutSettings", "ModifierOnly");
             return false;
         }
 
