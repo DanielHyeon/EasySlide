@@ -147,7 +147,6 @@ public sealed class UiTextCoverageTests
         "Axicultuss/Forms/FrmLaunchShow.Designer.cs",
         "Axicultuss/Forms/FrmLookupTitles.Designer.cs",
         "Axicultuss/Forms/FrmLyricsScreen.Designer.cs",
-        "Axicultuss/Forms/FrmMain.Designer.cs",
         "Axicultuss/Forms/FrmManageItemLists.Designer.cs",
         "Axicultuss/Forms/FrmMediaPlayerControl.Designer.cs",
         "Axicultuss/Forms/FrmMove.Designer.cs",
@@ -178,9 +177,6 @@ public sealed class UiTextCoverageTests
         "Axicultuss/Forms/FrmImport.cs",
         "Axicultuss/Forms/FrmImportAccessHelper.cs",
         "Axicultuss/Forms/FrmImportFolder.cs",
-        "Axicultuss/Forms/FrmMain.cs",
-        "Axicultuss/Forms/FrmMain.Logic.cs",
-        "Axicultuss/Forms/FrmMain.ModernUi.ImageList.cs",
         "Axicultuss/Forms/FrmManageItemLists.cs",
         "Axicultuss/Forms/FrmMove.cs",
         "Axicultuss/Forms/FrmRearrangeFolderPositions.cs",
@@ -188,7 +184,6 @@ public sealed class UiTextCoverageTests
         "Axicultuss/Forms/FrmSmartMerge.cs",
         "Axicultuss/Forms/FrmUpdateFileName.cs",
         "Axicultuss/Forms/FrmUsages.cs",
-        "Axicultuss/Forms/Program.cs",
         "Axicultuss/Global/gfBible.cs",
         "Axicultuss/Global/gfConfig.cs",
         "Axicultuss/Global/gfConstants.cs",
@@ -213,7 +208,9 @@ public sealed class UiTextCoverageTests
         + @"Ctrl|Alt|Shift|Esc|Enter|Space|Tab|PgUp|PgDn|PageUp|PageDown|Home|End|Del|Insert|F\d{1,2}|"
         // (a single capital letter: a key name, "M", or a list mark, "A.")
         + @"[A-Z])(?![A-Za-z])|"
-        + @"\.(esw|est|esi|esp|txt|pptx?|ppsx?|docx?|rtf|jpe?g|png|gif|bmp|ico|mp[34]|wmv|avi|xml|json|db|sqlite)(?![A-Za-z])",
+        + @"\.(esw|est|esi|esp|txt|pptx?|ppsx?|docx?|rtf|jpe?g|png|gif|bmp|ico|mp[34]|wmv|avi|xml|json|db|sqlite)(?![A-Za-z])|"
+        // (a text that is one key letter: the verse buttons p, c, b, e… are the keys that jump there)
+        + @"^[A-Za-z]$",
         RegexOptions.CultureInvariant);
 
     private static bool HasHangul(string text) => text.Any(c => c is >= '가' and <= '힣' or >= 'ㄱ' and <= 'ㆎ');
@@ -469,18 +466,16 @@ public sealed class UiTextCoverageTests
     }
 
     private static readonly Regex MessageBoxCall = new(@"\bMessageBox\.Show\(");
+    private static readonly Regex UiTextArguments = new(@"UiText\.(?:Get|Format)\(\s*(?:nameof\(\w+\)|(?<area>""\w+""))\s*,\s*(?<key>""[^""]+"")");
 
-    // The area or key of a UiText.Get/Format call: a resource name, not a text.
-    private static readonly Regex UiTextArgumentBefore = new(@"UiText\.(?:Get|Format)\(\s*(?:(?:nameof\(\w+\)|""\w+"")\s*,\s*)?$");
-
-    private static bool IsUiTextArgument(string code, int start) =>
-        UiTextArgumentBefore.IsMatch(code.Substring(Math.Max(0, start - 120), Math.Min(start, 120)));
-
-    /// <summary>Literal texts with letters given to MessageBox.Show (in the call, up to its end).</summary>
+    /// <summary>Literal texts with letters given to MessageBox.Show (in the call, up to its end); a UiText area or key is not one.</summary>
     internal static IEnumerable<string> MessageBoxLiterals(string path)
     {
         var (lines, literals) = Parse(path);
         string code = string.Join('\n', lines);
+        var resourceNames = UiTextArguments.Matches(code).SelectMany(m => new[] { m.Groups["area"], m.Groups["key"] })
+            .Where(g => g.Success).Select(g => g.Index).ToHashSet();
+        literals = literals.Where(l => !resourceNames.Contains(l.Start)).ToList();
         foreach (Match call in MessageBoxCall.Matches(code))
         {
             int depth = 0, end = call.Index + call.Length - 1;
@@ -492,7 +487,7 @@ public sealed class UiTextCoverageTests
                 else if (code[i] == ')' && --depth == 0) { end = i; break; }
             }
             foreach (var literal in literals.Where(l => l.Start > call.Index && l.End <= end && NeedsText(l.Text)))
-                if (!Marked(lines[literal.Line - 1]) && !IsUiTextArgument(code, literal.Start))
+                if (!Marked(lines[literal.Line - 1]))
                     yield return $"line {literal.Line}: \"{literal.Text}\"";
         }
     }

@@ -12,6 +12,7 @@ using System.Linq;
 using System.Data;
 using System.Threading.Tasks;
 using Axicultus.Util;
+using Axicultus.Localization;
 using System.Threading;
 using Axicultus.SQLite;
 using Axicultus.Module;
@@ -506,7 +507,7 @@ public partial class FrmMain : Form
     // Message part of the notice shown now (count, prefix and suffix are added when it is laid out).
     private string errorNoticeMessage = "";
 
-    private const string ErrorNoticeSuffix = " — see Axicultus_Debug.log";
+    private const string ErrorNoticeLogName = "Axicultus_Debug.log"; // not UI text
     // While a notice is shown, the output monitor pane keeps at least this width (logical pixels),
     // and the summary and preview panes give up width down to PaneMinWidth before the notice is cut.
     private const int OutputPaneMinWidth = 120;
@@ -643,7 +644,7 @@ public partial class FrmMain : Form
             // The newest message is shown: a failure that repeats (a timer, a paint) leaves the text as
             // it is and only raises the count.
             errorNoticeMessage = shortMessage;
-            errorNoticeLabel.ToolTipText = ErrorNoticeText(errorNoticeMessage) + " (click to hide)";
+            errorNoticeLabel.ToolTipText = UiText.Format(nameof(FrmMain), "ErrorNoticeTip", ErrorNoticeText(errorNoticeMessage));
             errorNoticeLabel.Visible = true;
             SetStatusbarSize();
         }
@@ -670,7 +671,7 @@ public partial class FrmMain : Form
 
     private string ErrorNoticeText(string shownMessage)
     {
-        return "Error (" + errorNoticeCount + "): " + shownMessage + ErrorNoticeSuffix;
+        return UiText.Format(nameof(FrmMain), "ErrorNotice", errorNoticeCount, shownMessage, ErrorNoticeLogName);
     }
 
     private int NoticeTextWidth(string text)
@@ -723,23 +724,23 @@ public partial class FrmMain : Form
         string paneText = "";
         if (!IsSelectedTab(tabControlSource, "tabBibles"))
         {
-            paneText = (IsSelectedTab(tabControlSource, "tabFiles") ? ("InfoScreen: " + InfoScreenList.Items.Count + " Listed. / ") : ((!IsSelectedTab(tabControlSource, "tabMedia")) ? ("Folder: " + SongFolderCountText()) : ("Media: " + MediaList.Items.Count + " Listed. / ")));
+            paneText = (IsSelectedTab(tabControlSource, "tabFiles") ? UiText.Format(nameof(FrmMain), "StatusInfoScreens", InfoScreenList.Items.Count) : ((!IsSelectedTab(tabControlSource, "tabMedia")) ? UiText.Format(nameof(FrmMain), "StatusFolder", SongFolderCountText()) : UiText.Format(nameof(FrmMain), "StatusMedia", MediaList.Items.Count)));
         }
         else if (BibleText.Text != "")
         {
-            paneText = "Verses listed: " + Gf.HB_VersesLocation[0].Version + " / ";
+            paneText = UiText.Format(nameof(FrmMain), "StatusVerses", Gf.HB_VersesLocation[0].Version);
         }
         else if (Gf.BibleVersions.Count > 0)
         {
-            paneText = "Verses listed: 0 / ";
+            paneText = UiText.Format(nameof(FrmMain), "StatusVerses", 0);
         }
         if (Gf.AxicultusMode == UsageMode.Worship)
         {
-            paneText = paneText + "Worship: " + WorshipListItems.Items.Count + ((WorshipListItems.Items.Count < 1) ? " item." : " items. ");
+            paneText += UiText.Format(nameof(FrmMain), (WorshipListItems.Items.Count < 1) ? "StatusWorshipItem" : "StatusWorshipItems", WorshipListItems.Items.Count);
         }
         else if (Gf.AxicultusMode == UsageMode.PraiseBook)
         {
-            paneText = paneText + "PraiseBook: " + PraiseBookItems.Items.Count + ((PraiseBookItems.Items.Count < 1) ? " item." : " items. ");
+            paneText += UiText.Format(nameof(FrmMain), (PraiseBookItems.Items.Count < 1) ? "StatusPraiseBookItem" : "StatusPraiseBookItems", PraiseBookItems.Items.Count);
         }
         statusStripMain.Items[0].Text = paneText;
         paneText = "";
@@ -764,11 +765,11 @@ public partial class FrmMain : Form
         }
         else if (Gf.PreviewItem.Source == ItemSource.HolyBible)
         {
-            paneText += "Holy Bible";
+            paneText += UiText.Get(nameof(FrmMain), "SourceBible");
         }
         else if (Gf.PreviewItem.Source == ItemSource.WorshipList)
         {
-            paneText += "Worship";
+            paneText += UiText.Get(nameof(FrmMain), "SourceWorship");
             if (Gf.PreviewItem.Type == "D" && Gf.PreviewItem.FolderNo > 0)
             {
                 paneText = paneText + " (" + Gf.Folders[Gf.PreviewItem.FolderNo].Name + ")";
@@ -776,7 +777,7 @@ public partial class FrmMain : Form
         }
         else if (Gf.PreviewItem.Source == ItemSource.PraiseBook)
         {
-            paneText += "PraiseBook";
+            paneText += UiText.Get(nameof(FrmMain), "SourcePraiseBook");
             if (Gf.PreviewItem.Type == "D" && Gf.PreviewItem.FolderNo > 0)
             {
                 paneText = paneText + " (" + Gf.Folders[Gf.PreviewItem.FolderNo].Name + ")";
@@ -801,7 +802,7 @@ public partial class FrmMain : Form
             if (Gf.OutputItem.ItemID != "")
             {
                 string previousText = outputText;
-                outputText = $"{previousText}{Gf.OutputItem.CurSlide}/{Gf.OutputItem.TotalSlides} [Ad-hoc]";
+                outputText = UiText.Format(nameof(FrmMain), "StatusAdHocSlide", previousText, Gf.OutputItem.CurSlide, Gf.OutputItem.TotalSlides);
             }
             else
             {
@@ -814,14 +815,21 @@ public partial class FrmMain : Form
             string previousText = outputText;
             outputText = $"[{Convert.ToString(Gf.OutputItem.CurItemNo)}/{WorshipListItems.Items.Count}] {Gf.OutputItem.Title} {previousText}{Gf.OutputItem.CurSlide}/{Gf.OutputItem.TotalSlides} ";
         }
-        outputText += ((Gf.GapItemOption > GapType.None) ? (((outputText == "") ? "" : " ") + "(" + Gf.GapItemOption.ToString() + " Gap)") : "");
+        string gapText = Gf.GapItemOption switch
+        {
+            GapType.Black => UiText.Get(nameof(FrmMain), "StatusGapBlack"),
+            GapType.Default => UiText.Get(nameof(FrmMain), "StatusGapDefault"),
+            GapType.User => UiText.Get(nameof(FrmMain), "StatusGapUser"),
+            _ => ""
+        };
+        outputText += ((gapText != "") ? (((outputText == "") ? "" : " ") + gapText) : "");
         statusStripMain.Items[2].Image = (Gf.DualMonitorMode ? DualMonIcon : SingleMonIcon);
         statusStripMain.Items[2].Text = outputText;
         statusStripMain.Items[2].ToolTipText = Gf.OutputMonitorText;
         if (Gf.KeyBoardOption == 1)
         {
             statusStripMain.Items[3].Image = Keyboard1Icon;
-            statusStripMain.Items[3].ToolTipText = "Use Alternate Keyboard keys";
+            statusStripMain.Items[3].ToolTipText = UiText.Get(nameof(FrmMain), "AlternateKeys");
         }
         else
         {

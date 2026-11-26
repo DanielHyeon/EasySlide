@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
 using Axicultus.Util;
+using Axicultus.Localization;
 using System.Threading;
 using Axicultus.SQLite;
 using Axicultus.Module;
@@ -167,8 +168,8 @@ public partial class FrmMain : Form
 
     private void LoadWorshipListTemplate()
     {
-        openFileDialog1.Filter = "Axicultus Template File (*.est)|*.est";
-        openFileDialog1.Title = "Load Session Settings from a Template";
+        openFileDialog1.Filter = UiText.Get(nameof(FrmMain), "TemplateFileFilter");
+        openFileDialog1.Title = UiText.Get(nameof(FrmMain), "LoadSessionTemplate");
         openFileDialog1.InitialDirectory = Gf.WorshipTemplatesDir;
         if (openFileDialog1.ShowDialog() == DialogResult.OK)
         {
@@ -181,8 +182,8 @@ public partial class FrmMain : Form
 
     private void SaveWorshipListTemplate(string InFileName, string InitDirectory)
     {
-        saveFileDialog1.Filter = "Axicultus Template File (*.est)|*.est";
-        saveFileDialog1.Title = "Save Current Session Settings to a Template";
+        saveFileDialog1.Filter = UiText.Get(nameof(FrmMain), "TemplateFileFilter");
+        saveFileDialog1.Title = UiText.Get(nameof(FrmMain), "SaveSessionTemplate");
         saveFileDialog1.InitialDirectory = InitDirectory;
         saveFileDialog1.FileName = Gf.GetDisplayNameOnly(ref InFileName, UpdateByRef: false, KeepExt: true);
         saveFileDialog1.OverwritePrompt = true;
@@ -197,7 +198,7 @@ public partial class FrmMain : Form
             }
             catch
             {
-                MessageBox.Show("Error Saving File, please make sure you have write access and try again");
+                MessageBox.Show(UiText.Get(nameof(FrmMain), "SaveFileFailed"));
             }
         }
     }
@@ -292,8 +293,8 @@ public partial class FrmMain : Form
 
     private void LoadIndividualTemplate()
     {
-        openFileDialog1.Filter = "Axicultus Template File (*.est)|*.est";
-        openFileDialog1.Title = "Load Individual Settings from a Template";
+        openFileDialog1.Filter = UiText.Get(nameof(FrmMain), "TemplateFileFilter");
+        openFileDialog1.Title = UiText.Get(nameof(FrmMain), "LoadIndividualTemplate");
         openFileDialog1.InitialDirectory = Gf.SettingsTemplatesDir;
         if (openFileDialog1.ShowDialog() != DialogResult.OK)
         {
@@ -344,8 +345,8 @@ public partial class FrmMain : Form
     private void SaveIndividualTemplate(string InTitle)
     {
         InTitle = Gf.MakeTitleValidFileName(InTitle);
-        saveFileDialog1.Filter = "Axicultus Template File (*.est)|*.est";
-        saveFileDialog1.Title = "Save Current Individual Settings to a Template";
+        saveFileDialog1.Filter = UiText.Get(nameof(FrmMain), "TemplateFileFilter");
+        saveFileDialog1.Title = UiText.Get(nameof(FrmMain), "SaveIndividualTemplate");
         saveFileDialog1.InitialDirectory = Gf.SettingsTemplatesDir;
         saveFileDialog1.FileName = InTitle;
         saveFileDialog1.OverwritePrompt = true;
@@ -360,7 +361,7 @@ public partial class FrmMain : Form
             }
             catch
             {
-                MessageBox.Show("Error Saving File, please make sure you have write access and try again");
+                MessageBox.Show(UiText.Get(nameof(FrmMain), "SaveFileFailed"));
             }
         }
     }
@@ -369,10 +370,10 @@ public partial class FrmMain : Form
     {
         InButton.Text = InMediaOption switch
         {
-            1 => "Media: As Title",
-            2 => "Media: Specific",
-            3 => "Media: Live Feed",
-            _ => "Media: None",
+            1 => UiText.Get(nameof(FrmMain), "MediaAsTitle"),
+            2 => UiText.Get(nameof(FrmMain), "MediaSpecific"),
+            3 => UiText.Get(nameof(FrmMain), "MediaLiveFeed"),
+            _ => UiText.Get(nameof(FrmMain), "MediaNone"),
         };
     }
 
@@ -408,9 +409,9 @@ public partial class FrmMain : Form
     private void BuildPicturesFolderList()
     {
         Gf.PictureGroups.Clear();
-        Gf.PictureGroups.Add(new FolderGroup { Name = "Scenery", Path = Gf.RootAxicultusDir + "Images\\" + "Scenery" + "\\" });
-        Gf.PictureGroups.Add(new FolderGroup { Name = "Tiles", Path = Gf.RootAxicultusDir + "Images\\" + "Tiles" + "\\" });
-        Gf.PictureGroups.Add(new FolderGroup { Name = "Images", Path = Gf.ImagesDir });
+        Gf.PictureGroups.Add(new FolderGroup { Name = UiText.Get(nameof(FrmMain), "GroupScenery"), Path = Gf.RootAxicultusDir + "Images\\" + "Scenery" + "\\" });
+        Gf.PictureGroups.Add(new FolderGroup { Name = UiText.Get(nameof(FrmMain), "GroupTiles"), Path = Gf.RootAxicultusDir + "Images\\" + "Tiles" + "\\" });
+        Gf.PictureGroups.Add(new FolderGroup { Name = UiText.Get(nameof(FrmMain), "GroupImages"), Path = Gf.ImagesDir });
         string[] directories = Directory.GetDirectories(Gf.ImagesDir);
         if (directories.Length > 0)
         {
@@ -429,7 +430,7 @@ public partial class FrmMain : Form
     private void BuildInfoScreenFolderList()
     {
         Gf.InfoScreenGroups.Clear();
-        Gf.InfoScreenGroups.Add(new FolderGroup { Name = "InfoScreen Items", Path = Gf.InfoScreenDir });
+        Gf.InfoScreenGroups.Add(new FolderGroup { Name = UiText.Get(nameof(FrmMain), "GroupInfoScreens"), Path = Gf.InfoScreenDir });
         Gf.BuildSubFolderList(Gf.InfoScreenDir, Gf.InfoScreenDir, Gf.InfoScreenGroups);
         InfoScreenFolder.Items.Clear();
         for (int i = 0; i < Gf.InfoScreenGroups.Count; i++)
@@ -445,7 +446,7 @@ public partial class FrmMain : Form
     private void BuildPowerpointFolderList()
     {
         Gf.PowerpointGroups.Clear();
-        Gf.PowerpointGroups.Add(new FolderGroup { Name = "Powerpoint Items", Path = Gf.PowerpointDir });
+        Gf.PowerpointGroups.Add(new FolderGroup { Name = UiText.Get(nameof(FrmMain), "GroupPowerPoint"), Path = Gf.PowerpointDir });
         foreach (var path in PowerPointSourceFiles.ListSubfolders(Gf.PowerpointDir))
             Gf.PowerpointGroups.Add(new FolderGroup
             {
@@ -469,7 +470,7 @@ public partial class FrmMain : Form
     private void BuildMediaFolderList()
     {
         Gf.MediaGroups.Clear();
-        Gf.MediaGroups.Add(new FolderGroup { Name = "Media Files", Path = Gf.MediaDir });
+        Gf.MediaGroups.Add(new FolderGroup { Name = UiText.Get(nameof(FrmMain), "GroupMedia"), Path = Gf.MediaDir });
         Gf.BuildSubFolderList(Gf.MediaDir, Gf.MediaDir, Gf.MediaGroups);
         var selected = SourceFileFolder.IncludeSelection(Gf.MediaGroups,
             RegUtil.GetRegValue("options", "MediaSourceFolder", ""), group => group.Path,
@@ -489,7 +490,7 @@ public partial class FrmMain : Form
     {
         if (ImplementFolderChange && SongFolder.Text != "")
         {
-            if (SongFolder.Items[SongFolder.Items.Count - 1].ToString() == "Search Results:")
+            if (SongFolder.Items[SongFolder.Items.Count - 1].ToString() == SongSearchResultsFolder)
             {
                 SongFolder.Items.RemoveAt(SongFolder.Items.Count - 1);
             }
@@ -661,7 +662,7 @@ public partial class FrmMain : Form
                     if (!found)
                     {
                         listItemId = "D0";
-                        DisplayName1 += " <Error - Item Not Found>";
+                        DisplayName1 += UiText.Get(nameof(FrmMain), "ItemNotFoundSuffix");
                     }
                 }
                 catch (Exception ex)
@@ -669,7 +670,7 @@ public partial class FrmMain : Form
                     Console.WriteLine(ex.Message);
                     Console.WriteLine(ex.StackTrace);
                     listItemId = "D0";
-                    DisplayName1 += " <Error - Item Not Found>";
+                    DisplayName1 += UiText.Get(nameof(FrmMain), "ItemNotFoundSuffix");
                 }
             }
             else
@@ -1520,7 +1521,7 @@ public partial class FrmMain : Form
 
                 if (!found)
                 {
-                    DisplayName1 += " <Error - Item Not Found>";
+                    DisplayName1 += UiText.Get(nameof(FrmMain), "ItemNotFoundSuffix");
                     listItemId = "D0";
                 }
             }
@@ -1529,7 +1530,7 @@ public partial class FrmMain : Form
                 Console.WriteLine(ex.Message);
                 Console.WriteLine(ex.StackTrace);
                 listItemId = "D0";
-                DisplayName1 += " <Error - Item Not Found>";
+                DisplayName1 += UiText.Get(nameof(FrmMain), "ItemNotFoundSuffix");
             }
         }
         else if (reference.Kind == LegacyListItemKind.BiblePassage)
@@ -2006,7 +2007,7 @@ public partial class FrmMain : Form
         }
         if (InItem.Title2 != "")
         {
-            InTextBox.Text = InTextBox.Text + "Title2: " + InItem.Title2 + "\n";
+            InTextBox.Text = InTextBox.Text + UiText.Format(nameof(FrmMain), "InfoTitle2", InItem.Title2) + "\n";
         }
         if (InItem.Format.BackgroundPicture != "" && InItem.Type != "P")
         {
@@ -2014,24 +2015,24 @@ public partial class FrmMain : Form
             {
                 InTextBox.Text += "\n";
             }
-            InTextBox.Text = InTextBox.Text + "(Image: " + InItem.Format.BackgroundPicture + ")\n";
+            InTextBox.Text = InTextBox.Text + UiText.Format(nameof(FrmMain), "InfoImage", InItem.Format.BackgroundPicture) + "\n";
         }
         mediaLocation = ((InItem.Format.MediaOption is 1 or 2) ? Gf.GetMediaLocation(InItem) : "");
         if (mediaLocation != "")
         {
-            InTextBox.Text = InTextBox.Text + "(Media: " + mediaLocation + ")\n";
+            InTextBox.Text = InTextBox.Text + UiText.Format(nameof(FrmMain), "InfoMedia", mediaLocation) + "\n";
         }
         if (InItem.Writer != "")
         {
-            InTextBox.Text = InTextBox.Text + "Writer: " + InItem.Writer + "\n";
+            InTextBox.Text = InTextBox.Text + UiText.Format(nameof(FrmMain), "InfoWriter", InItem.Writer) + "\n";
         }
         if (InItem.Copyright != "")
         {
-            InTextBox.Text = InTextBox.Text + "Copyright: " + InItem.Copyright + "\n";
+            InTextBox.Text = InTextBox.Text + UiText.Format(nameof(FrmMain), "InfoCopyright", InItem.Copyright) + "\n";
         }
         if (InItem.Capo > 0 || InItem.MusicKey != "" || InItem.Timing != "")
         {
-            KeyCapoText = ((InItem.MusicKey != "") ? ("Key: " + InItem.MusicKey + " ") : "") + ((InItem.Capo > 0) ? (" Capo " + Convert.ToString(InItem.Capo) + " ") : "") + ((InItem.Timing != "") ? (" (" + InItem.Timing + ")") : "");
+            KeyCapoText = ((InItem.MusicKey != "") ? UiText.Format(nameof(FrmMain), "InfoKey", InItem.MusicKey) : "") + ((InItem.Capo > 0) ? UiText.Format(nameof(FrmMain), "InfoCapo", InItem.Capo) : "") + ((InItem.Timing != "") ? (" (" + InItem.Timing + ")") : "");
             InTextBox.Text = InTextBox.Text + KeyCapoText + "\n";
         }
         else
@@ -2040,11 +2041,11 @@ public partial class FrmMain : Form
         }
         if (InItem.Book_Reference != "")
         {
-            InTextBox.Text = InTextBox.Text + "Book Ref: " + InItem.Book_Reference + "\n";
+            InTextBox.Text = InTextBox.Text + UiText.Format(nameof(FrmMain), "InfoBookRef", InItem.Book_Reference) + "\n";
         }
         if (InItem.User_Reference != "")
         {
-            InTextBox.Text = InTextBox.Text + "User Ref: " + InItem.User_Reference + "\n";
+            InTextBox.Text = InTextBox.Text + UiText.Format(nameof(FrmMain), "InfoUserRef", InItem.User_Reference) + "\n";
         }
     }
 
@@ -2078,11 +2079,11 @@ public partial class FrmMain : Form
             // Once per item in this show (preview load, output load and a failed run of it are one problem).
             if (Gf.FirstMissingFileReport(originalPath))
             {
-                ReportErrorNotice(message);
+                ReportErrorNotice(UiText.Format(nameof(FrmMain), InItem.OutputStyleScreen ? "PowerPointNotFoundShowCopy" : "PowerPointNotFound", originalPath));
             }
             return false;
         }
-        MessageBox.Show(this, "Sorry - Can't find the Powerpoint File '" + InItem.Path + "'");
+        MessageBox.Show(this, UiText.Format(nameof(FrmMain), "PowerPointFileMissing", InItem.Path));
         InItem.Path = "";
         return false;
     }

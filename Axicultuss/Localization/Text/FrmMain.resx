@@ -1,0 +1,419 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Ind_HeadFirstScreen.Text" xml:space="preserve"><value>Heading At First Screen Only</value></data>
+  <data name="IndradioButtonInfo.Text" xml:space="preserve"><value>Info</value></data>
+  <data name="IndradioButtonFormat.Text" xml:space="preserve"><value>Set</value></data>
+  <data name="IndradioButtonText.Text" xml:space="preserve"><value>Text</value></data>
+  <data name="Ind_HeadAllTitles.Text" xml:space="preserve"><value>Show All Headings</value></data>
+  <data name="Ind_Region.ToolTipText" xml:space="preserve"><value>Show Region Text</value></data>
+  <data name="Ind_ShowRegion1.Text" xml:space="preserve"><value>Region 1 Only</value></data>
+  <data name="Ind_ShowRegion2.Text" xml:space="preserve"><value>Region 2 Only</value></data>
+  <data name="Ind_ShowRegionBoth.Text" xml:space="preserve"><value>Regions 1 &amp;&amp; 2</value></data>
+  <data name="Ind_VAlign.ToolTipText" xml:space="preserve"><value>Vertical Alignment</value></data>
+  <data name="Ind_VAlignTop.Text" xml:space="preserve"><value>Align Top</value></data>
+  <data name="Ind_VAlignCentre.Text" xml:space="preserve"><value>Align Centre</value></data>
+  <data name="Ind_VAlignBottom.Text" xml:space="preserve"><value>Align Bottom</value></data>
+  <data name="Ind_Outline.ToolTipText" xml:space="preserve"><value>Outline Font</value></data>
+  <data name="Ind_Interlace.ToolTipText" xml:space="preserve"><value>Interlace Region1/Region2</value></data>
+  <data name="Ind_Notations.ToolTipText" xml:space="preserve"><value>Show Notations</value></data>
+  <data name="Ind_checkBox.Text" xml:space="preserve"><value>Use Individual Settings</value></data>
+  <data name="Ind_Shadow.ToolTipText" xml:space="preserve"><value>Shadow Font</value></data>
+  <data name="Ind_R2Italics0.Text" xml:space="preserve"><value>No Italics</value></data>
+  <data name="Ind_R2Italics1.Text" xml:space="preserve"><value>Italics</value></data>
+  <data name="Ind_R2Italics2.Text" xml:space="preserve"><value>Chorus Italics Only</value></data>
+  <data name="labelGapItem.Text" xml:space="preserve"><value>Gap Item</value></data>
+  <data name="labelHideText.Text" xml:space="preserve"><value>Hide Text</value></data>
+  <data name="labelBlackScreen.Text" xml:space="preserve"><value>Black Screen</value></data>
+  <data name="Ind_HeadNoTitles.Text" xml:space="preserve"><value>No Headings</value></data>
+  <data name="IndgroupBox2.Text" xml:space="preserve"><value>Background</value></data>
+  <data name="Ind_TransItem.ToolTipText" xml:space="preserve"><value>Item Transition</value></data>
+  <data name="Ind_TransSlides.ToolTipText" xml:space="preserve"><value>Slide Transition</value></data>
+  <data name="Ind_ImageMode.ToolTipText" xml:space="preserve"><value>Background Picture Format</value></data>
+  <data name="Ind_ImageTile.Text" xml:space="preserve"><value>Tile Image</value></data>
+  <data name="Ind_ImageCentre.Text" xml:space="preserve"><value>Centre Image</value></data>
+  <data name="Ind_ImageBestFit.Text" xml:space="preserve"><value>Best Fit Image</value></data>
+  <data name="Ind_BackColour.Text" xml:space="preserve"><value>Colours</value></data>
+  <data name="Ind_BackColour.ToolTipText" xml:space="preserve"><value>Background Colours and Patterns</value></data>
+  <data name="Ind_AssignMedia.Text" xml:space="preserve"><value>Media</value></data>
+  <data name="label3.Text" xml:space="preserve"><value>Bottom:</value></data>
+  <data name="label2.Text" xml:space="preserve"><value>Right:</value></data>
+  <data name="label1.Text" xml:space="preserve"><value>Left:</value></data>
+  <data name="Ind_R1Colour.Text" xml:space="preserve"><value>Colour</value></data>
+  <data name="Ind_R1AlignRight.Text" xml:space="preserve"><value>Align Right</value></data>
+  <data name="Ind_R1AlignCentre.Text" xml:space="preserve"><value>Align Centre</value></data>
+  <data name="Ind_R1AlignLeft.Text" xml:space="preserve"><value>Align Left</value></data>
+  <data name="Ind_R1Italics2.Text" xml:space="preserve"><value>Chorus Italics Only</value></data>
+  <data name="Ind_R1Italics1.Text" xml:space="preserve"><value>Italics</value></data>
+  <data name="Ind_R1Italics0.Text" xml:space="preserve"><value>No Italics</value></data>
+  <data name="labelBlackScreenOn.Text" xml:space="preserve"><value>Size:</value></data>
+  <data name="Ind_R2AlignLeft.Text" xml:space="preserve"><value>Align Left</value></data>
+  <data name="Ind_R2AlignCentre.Text" xml:space="preserve"><value>Align Centre</value></data>
+  <data name="Ind_R2AlignRight.Text" xml:space="preserve"><value>Align Right</value></data>
+  <data name="Ind_R2Colour.Text" xml:space="preserve"><value>Colour</value></data>
+  <data name="label7.Text" xml:space="preserve"><value>Top:</value></data>
+  <data name="IndgroupBox3.Text" xml:space="preserve"><value>Region 1</value></data>
+  <data name="label4.Text" xml:space="preserve"><value>Top:</value></data>
+  <data name="Ind_HeadAlign.ToolTipText" xml:space="preserve"><value>Display Title/Verse Headings</value></data>
+  <data name="Ind_HeadAlignAsR1.Text" xml:space="preserve"><value>Headings Align As Region 1</value></data>
+  <data name="Ind_HeadAlignAsR2.Text" xml:space="preserve"><value>Headings Align As region 2</value></data>
+  <data name="Ind_HeadAlignLeft.Text" xml:space="preserve"><value>Headings Align Left</value></data>
+  <data name="Ind_HeadAlignCentre.Text" xml:space="preserve"><value>Headings Align Centre</value></data>
+  <data name="Ind_HeadAlignRight.Text" xml:space="preserve"><value>Headings Align Right</value></data>
+  <data name="Ind_CapoDown.ToolTipText" xml:space="preserve"><value>Transpose Down 1 Semi-Tone</value></data>
+  <data name="Ind_CapoUp.ToolTipText" xml:space="preserve"><value>Transpose Up 1 Semi-Tone</value></data>
+  <data name="Ind_HideDisplayPanel.ToolTipText" xml:space="preserve"><value>Do not show Display Panel Data</value></data>
+  <data name="IndgroupBox1.Text" xml:space="preserve"><value>Layout</value></data>
+  <data name="Ind_Head.ToolTipText" xml:space="preserve"><value>Display Title/Verse Headings</value></data>
+  <data name="DefApplyDefaultsBtn.Text" xml:space="preserve"><value>Apply to All Except InfoScreens</value></data>
+  <data name="CMenuImages_AddItem.Text" xml:space="preserve"><value>Add to Item</value></data>
+  <data name="CMenuImages_AddDefault.Text" xml:space="preserve"><value>Add to Default</value></data>
+  <data name="CMenuImages_Refresh.Text" xml:space="preserve"><value>Refresh Images Lists</value></data>
+  <data name="Main_New.ToolTipText" xml:space="preserve"><value>New</value></data>
+  <data name="Main_Edit.ToolTipText" xml:space="preserve"><value>Edit</value></data>
+  <data name="Main_Copy.ToolTipText" xml:space="preserve"><value>Copy</value></data>
+  <data name="Main_Move.ToolTipText" xml:space="preserve"><value>Move</value></data>
+  <data name="Main_Delete.ToolTipText" xml:space="preserve"><value>Delete</value></data>
+  <data name="Main_Media.ToolTipText" xml:space="preserve"><value>Play Media</value></data>
+  <data name="Main_Refresh.ToolTipText" xml:space="preserve"><value>Refresh</value></data>
+  <data name="Main_Options.ToolTipText" xml:space="preserve"><value>Options</value></data>
+  <data name="Main_NoRotate.ToolTipText" xml:space="preserve"><value>Stop Auto Rotate</value></data>
+  <data name="Main_RotateStyle.ToolTipText" xml:space="preserve"><value>Rotate Style</value></data>
+  <data name="Main_Rotate0.Text" xml:space="preserve"><value>Auto Rotate One Item</value></data>
+  <data name="Main_Rotate1.Text" xml:space="preserve"><value>Auto Rotate One Item - Repeat</value></data>
+  <data name="Main_Rotate2.Text" xml:space="preserve"><value>Auto Rotate Group</value></data>
+  <data name="Main_Rotate3.Text" xml:space="preserve"><value>Auto Rotate Group - Repeat</value></data>
+  <data name="Main_Alerts.ToolTipText" xml:space="preserve"><value>Alerts</value></data>
+  <data name="Main_Chinese.ToolTipText" xml:space="preserve"><value>Trad/Simp Chinese</value></data>
+  <data name="Main_Find.ToolTipText" xml:space="preserve"><value>Find</value></data>
+  <data name="Main_QuickFind.Text" xml:space="preserve"><value>Search Phrase</value></data>
+  <data name="Main_QuickFind.ToolTipText" xml:space="preserve"><value>Enter phrase and  press Keyboard Enter key</value></data>
+  <data name="Image_Import.Text" xml:space="preserve"><value>Import An Image</value></data>
+  <data name="CMenuBible_CopyInfoScreen.Text" xml:space="preserve"><value>Copy to &amp;InfoScreen</value></data>
+  <data name="Bibles_Go.ToolTipText" xml:space="preserve"><value>Select typed-in reference</value></data>
+  <data name="CMenuBible_Copy.Text" xml:space="preserve"><value>&amp;Copy</value></data>
+  <data name="tabPage1.Text" xml:space="preserve"><value>No Bible</value></data>
+  <data name="tabImages.Text" xml:space="preserve"><value>Images</value></data>
+  <data name="Image_OpenFolder.ToolTipText" xml:space="preserve"><value>Open Folder</value></data>
+  <data name="PP_ListStyle.Text" xml:space="preserve"><value>Powerpoint Listing</value></data>
+  <data name="PP_PreviewStyle.Text" xml:space="preserve"><value>Powerpoint Preview</value></data>
+  <data name="PP_OpenFolder.ToolTipText" xml:space="preserve"><value>Open Powerpoint Folder</value></data>
+  <data name="PP_Import.ToolTipText" xml:space="preserve"><value>Import a Powerpoint File into Folder</value></data>
+  <data name="CMenuBible_AddRegion2.Text" xml:space="preserve"><value>Add &amp;Region 2</value></data>
+  <data name="tabBibles.Text" xml:space="preserve"><value>Bibles</value></data>
+  <data name="CMenuBible_SelectAll.Text" xml:space="preserve"><value>Select &amp;All</value></data>
+  <data name="CMenuBible_UnselectAll.Text" xml:space="preserve"><value>&amp;Unselect All</value></data>
+  <data name="CMenuBible_AddShow.Text" xml:space="preserve"><value>Add &amp;&amp; &amp;Show</value></data>
+  <data name="tabMedia.Text" xml:space="preserve"><value>Media</value></data>
+  <data name="Media_OpenFolder.ToolTipText" xml:space="preserve"><value>Open Folder</value></data>
+  <data name="Media_Import.ToolTipText" xml:space="preserve"><value>Import A Media File into Folder</value></data>
+  <data name="CMenuFiles_SelectAll.Text" xml:space="preserve"><value>Select &amp;All</value></data>
+  <data name="CMenuFiles_UnselectAll.Text" xml:space="preserve"><value>&amp;Unselect All</value></data>
+  <data name="CMenuFiles_AddShow.Text" xml:space="preserve"><value>Add &amp;&amp; &amp;Show</value></data>
+  <data name="CMenuFiles_Edit.Text" xml:space="preserve"><value>Edit</value></data>
+  <data name="CMenuFiles_Copy.Text" xml:space="preserve"><value>Copy</value></data>
+  <data name="CMenuFiles_Refresh.Text" xml:space="preserve"><value>Refresh</value></data>
+  <data name="Def_SaveTemplate.ToolTipText" xml:space="preserve"><value>Save Settings as a Template</value></data>
+  <data name="DefgroupBox2.Text" xml:space="preserve"><value>Default Background</value></data>
+  <data name="Def_TransItem.ToolTipText" xml:space="preserve"><value>Item Transition</value></data>
+  <data name="Def_TransSlides.ToolTipText" xml:space="preserve"><value>Slide Transition</value></data>
+  <data name="Def_ImageMode.ToolTipText" xml:space="preserve"><value>Background Picture Format</value></data>
+  <data name="Def_ImageTile.Text" xml:space="preserve"><value>Tile Image</value></data>
+  <data name="Def_ImageCentre.Text" xml:space="preserve"><value>Centre Image</value></data>
+  <data name="Def_ImageBestFit.Text" xml:space="preserve"><value>Best Fit Image</value></data>
+  <data name="Def_NoImage.ToolTipText" xml:space="preserve"><value>No Background Picture</value></data>
+  <data name="Def_BackColour.Text" xml:space="preserve"><value>Colours</value></data>
+  <data name="Def_BackColour.ToolTipText" xml:space="preserve"><value>Background Colours and Patterns</value></data>
+  <data name="Def_AssignMedia.Text" xml:space="preserve"><value>Media</value></data>
+  <data name="Def_LoadTemplate.ToolTipText" xml:space="preserve"><value>Load Settings Template</value></data>
+  <data name="tabDefault.Text" xml:space="preserve"><value>Default</value></data>
+  <data name="DefgroupBox3.Text" xml:space="preserve"><value>Display Panel</value></data>
+  <data name="Def_PanelAsR1.ToolTipText" xml:space="preserve"><value>Text Colour As Region 1</value></data>
+  <data name="Def_PanelTextColour.Text" xml:space="preserve"><value>Text Colour</value></data>
+  <data name="Def_PanelTransparent.ToolTipText" xml:space="preserve"><value>Transparent Background</value></data>
+  <data name="Def_PanelBackColour.Text" xml:space="preserve"><value>Back Colour</value></data>
+  <data name="Def_PanelShow.ToolTipText" xml:space="preserve"><value>Show Display Panel</value></data>
+  <data name="Def_PanelTitle.ToolTipText" xml:space="preserve"><value>Show Title</value></data>
+  <data name="Def_PanelCopyright.ToolTipText" xml:space="preserve"><value>Show Copyright Information</value></data>
+  <data name="Def_PanelSong.ToolTipText" xml:space="preserve"><value>Show Item Number</value></data>
+  <data name="Def_PanelSlides.ToolTipText" xml:space="preserve"><value>Show Verse/Slide Indicators</value></data>
+  <data name="Def_PanelPrevNext.ToolTipText" xml:space="preserve"><value>Show Previous/Next Item</value></data>
+  <data name="label5.Text" xml:space="preserve"><value>Height</value></data>
+  <data name="DefgroupBox1.Text" xml:space="preserve"><value>Default Layout</value></data>
+  <data name="Def_HeadAlignAsR1.Text" xml:space="preserve"><value>Headings Align As Region 1</value></data>
+  <data name="Def_HeadAlignAsR2.Text" xml:space="preserve"><value>Headings Align As Region 2</value></data>
+  <data name="Def_HeadAlignLeft.Text" xml:space="preserve"><value>Headings Align Left</value></data>
+  <data name="Def_HeadAlignCentre.Text" xml:space="preserve"><value>Headings Align Centre</value></data>
+  <data name="Def_HeadAlignRight.Text" xml:space="preserve"><value>Headings Align Right</value></data>
+  <data name="Def_R1AlignLeft.Text" xml:space="preserve"><value>Region 1 Align Left</value></data>
+  <data name="Def_R1AlignCentre.Text" xml:space="preserve"><value>Region 1 Align Centre</value></data>
+  <data name="Def_R1AlignRight.Text" xml:space="preserve"><value>Region 1 Align Right</value></data>
+  <data name="Def_R1Colour.Text" xml:space="preserve"><value>R1 Col</value></data>
+  <data name="Def_R1Colour.ToolTipText" xml:space="preserve"><value>Region 1 Text Colour</value></data>
+  <data name="Def_R2AlignLeft.Text" xml:space="preserve"><value>Region 2 Align Left</value></data>
+  <data name="Def_R2AlignCentre.Text" xml:space="preserve"><value>Region 2 Align Centre</value></data>
+  <data name="Def_R2AlignRight.Text" xml:space="preserve"><value>Region 2 Align Right</value></data>
+  <data name="Def_R2Colour.Text" xml:space="preserve"><value>R2 Col</value></data>
+  <data name="Def_R2Colour.ToolTipText" xml:space="preserve"><value>Region 2 Text Colour</value></data>
+  <data name="Def_Head.ToolTipText" xml:space="preserve"><value>Display Title/Verse Headings</value></data>
+  <data name="Def_HeadNoTitles.Text" xml:space="preserve"><value>No Headings</value></data>
+  <data name="Def_HeadAllTitles.Text" xml:space="preserve"><value>Show All Headings</value></data>
+  <data name="Def_HeadFirstScreen.Text" xml:space="preserve"><value>Heading At First Screen Only</value></data>
+  <data name="Def_Region.ToolTipText" xml:space="preserve"><value>Show Region Text</value></data>
+  <data name="Def_ShowRegion1.Text" xml:space="preserve"><value>Region 1 Only</value></data>
+  <data name="Def_ShowRegion2.Text" xml:space="preserve"><value>Region 2 Only</value></data>
+  <data name="Def_ShowRegionBoth.Text" xml:space="preserve"><value>Regions 1 and 2</value></data>
+  <data name="Def_VAlign.ToolTipText" xml:space="preserve"><value>Vertical Alignment</value></data>
+  <data name="Def_VAlignTop.Text" xml:space="preserve"><value>Align Top</value></data>
+  <data name="Def_VAlignCentre.Text" xml:space="preserve"><value>Align Centre</value></data>
+  <data name="Def_VAlignBottom.Text" xml:space="preserve"><value>Align Bottom</value></data>
+  <data name="Def_Shadow.ToolTipText" xml:space="preserve"><value>Shadow Font</value></data>
+  <data name="Def_Outline.ToolTipText" xml:space="preserve"><value>Outline Font</value></data>
+  <data name="Def_Interlace.ToolTipText" xml:space="preserve"><value>Interlace Region1/Regions2</value></data>
+  <data name="Def_Notations.ToolTipText" xml:space="preserve"><value>Show Notations</value></data>
+  <data name="Def_ToZero.ToolTipText" xml:space="preserve"><value>To Capo 0</value></data>
+  <data name="InfoScreen_Delete.ToolTipText" xml:space="preserve"><value>Delete</value></data>
+  <data name="CMenuSongs_AddShow.Text" xml:space="preserve"><value>Add &amp;&amp; &amp;Show</value></data>
+  <data name="CMenuSongs_Edit.Text" xml:space="preserve"><value>Edit item</value></data>
+  <data name="CMenuSongs_Copy.Text" xml:space="preserve"><value>Copy item</value></data>
+  <data name="CMenuSongs_Refresh.Text" xml:space="preserve"><value>Refresh</value></data>
+  <data name="CMenuSongs_UnselectAll.Text" xml:space="preserve"><value>&amp;Unselect All</value></data>
+  <data name="InfoScreen_New.ToolTipText" xml:space="preserve"><value>New</value></data>
+  <data name="InfoScreen_Edit.ToolTipText" xml:space="preserve"><value>Edit</value></data>
+  <data name="InfoScreen_Copy.ToolTipText" xml:space="preserve"><value>Copy</value></data>
+  <data name="InfoScreen_Move.ToolTipText" xml:space="preserve"><value>Move</value></data>
+  <data name="tabFiles.Text" xml:space="preserve"><value>InfoScr</value></data>
+  <data name="InfoScreen_OpenFolder.ToolTipText" xml:space="preserve"><value>Open Folder</value></data>
+  <data name="InfoScreen_Import.ToolTipText" xml:space="preserve"><value>Import an InfoScreen Into Folder</value></data>
+  <data name="CMenuSongs_SelectAll.Text" xml:space="preserve"><value>Select &amp;All</value></data>
+  <data name="tabFolders.Text" xml:space="preserve"><value>Folders</value></data>
+  <data name="Folders_WordCount.ToolTipText" xml:space="preserve"><value>Sort by CJK Word Count</value></data>
+  <data name="Powerpoint_Edit.ToolTipText" xml:space="preserve"><value>Edit</value></data>
+  <data name="Powerpoint_Copy.ToolTipText" xml:space="preserve"><value>Copy</value></data>
+  <data name="Powerpoint_Move.ToolTipText" xml:space="preserve"><value>Move</value></data>
+  <data name="Powerpoint_Delete.ToolTipText" xml:space="preserve"><value>Delete</value></data>
+  <data name="tabWorshipList.Text" xml:space="preserve"><value>Worship List</value></data>
+  <data name="WL_Up.ToolTipText" xml:space="preserve"><value>Move Item Up</value></data>
+  <data name="WL_Down.ToolTipText" xml:space="preserve"><value>Move Item Down</value></data>
+  <data name="WL_Delete.ToolTipText" xml:space="preserve"><value>Delete</value></data>
+  <data name="WL_Word.ToolTipText" xml:space="preserve"><value>Generate RTF Document</value></data>
+  <data name="WL_Notes.ToolTipText" xml:space="preserve"><value>Edit Session Notes</value></data>
+  <data name="WL_Manage.ToolTipText" xml:space="preserve"><value>Manage Worship Lists</value></data>
+  <data name="WL_Add.ToolTipText" xml:space="preserve"><value>Add to Worship List</value></data>
+  <data name="WL_Open.ToolTipText" xml:space="preserve"><value>Add External Document to Worship List</value></data>
+  <data name="CMenuWorship_SelectAll.Text" xml:space="preserve"><value>Select &amp;All</value></data>
+  <data name="CMenuWorship_UnselectAll.Text" xml:space="preserve"><value>&amp;Unselect All</value></data>
+  <data name="CMenuWorship_Clear.Text" xml:space="preserve"><value>Clear Worship List</value></data>
+  <data name="CMenuWorship_Edit.Text" xml:space="preserve"><value>Edit item</value></data>
+  <data name="CMenuWorship_Play.Text" xml:space="preserve"><value>Play Media</value></data>
+  <data name="CMenuWorship_PlayOnOutput.Text" xml:space="preserve"><value>Play Media on Output Monitor</value></data>
+  <data name="CMenuWorship_AddUsages.Text" xml:space="preserve"><value>Add Songs to Usages</value></data>
+  <data name="tabPraiseBook.Text" xml:space="preserve"><value>Praise Book</value></data>
+  <data name="PB_Delete.ToolTipText" xml:space="preserve"><value>Delete</value></data>
+  <data name="PB_Word.ToolTipText" xml:space="preserve"><value>Generate RTF Document</value></data>
+  <data name="PB_Html.ToolTipText" xml:space="preserve"><value>Generate HTML Document</value></data>
+  <data name="PB_Manage.ToolTipText" xml:space="preserve"><value>Manage PraiseBooks</value></data>
+  <data name="PB_Add.ToolTipText" xml:space="preserve"><value>Add to PraiseBook</value></data>
+  <data name="PB_WordCount.ToolTipText" xml:space="preserve"><value>Sort by CJK Word Count</value></data>
+  <data name="CMenuPraiseB_SelectAll.Text" xml:space="preserve"><value>Select &amp;All</value></data>
+  <data name="CMenuPraiseB_UnselectAll.Text" xml:space="preserve"><value>&amp;Unselect All</value></data>
+  <data name="CMenuPraiseB_Clear.Text" xml:space="preserve"><value>Clear PraiseBook List</value></data>
+  <data name="CMenuPraiseB_Edit.Text" xml:space="preserve"><value>Edit item</value></data>
+  <data name="Ind_LoadTemplate.ToolTipText" xml:space="preserve"><value>Load Settings Template</value></data>
+  <data name="Ind_SaveTemplate.ToolTipText" xml:space="preserve"><value>Save Settings as a Template</value></data>
+  <data name="IndgroupBox4.Text" xml:space="preserve"><value>Region 2</value></data>
+  <data name="label6.Text" xml:space="preserve"><value>Size:</value></data>
+  <data name="PreviewBtnSlideDown.ToolTip" xml:space="preserve"><value>Next Slide</value></data>
+  <data name="PreviewBtnSlideUp.ToolTip" xml:space="preserve"><value>Previous Slide</value></data>
+  <data name="PreviewBtnItemDown.ToolTip" xml:space="preserve"><value>Next Item</value></data>
+  <data name="PreviewBtnItemUp.ToolTip" xml:space="preserve"><value>Previous Item</value></data>
+  <data name="IndradioButtonFormat.ToolTip" xml:space="preserve"><value>Format Text</value></data>
+  <data name="IndcbPreviewNotes.ToolTip" xml:space="preserve"><value>Show Session Notes</value></data>
+  <data name="btnToLive.ToolTip" xml:space="preserve"><value>Copy to Output and Start Show</value></data>
+  <data name="btnToOutputMoveNext.ToolTip" xml:space="preserve"><value>Copy to Output and Preview Next Worship List Item</value></data>
+  <data name="btnToOutput.ToolTip" xml:space="preserve"><value>Copy to Output</value></data>
+  <data name="cbOutputBlack.ToolTip" xml:space="preserve"><value>Black Screen</value></data>
+  <data name="cbOutputClear.ToolTip" xml:space="preserve"><value>Hide Text</value></data>
+  <data name="cbGoLive.ToolTip" xml:space="preserve"><value>Start Show</value></data>
+  <data name="OutputBtnLMSend.ToolTip" xml:space="preserve"><value>Send Message to Lyrics Monitor</value></data>
+  <data name="OutputBtnLMClear.ToolTip" xml:space="preserve"><value>Clear Lyrics Monitor Message</value></data>
+  <data name="OutputBtnSlideDown.ToolTip" xml:space="preserve"><value>Next Slide</value></data>
+  <data name="OutputBtnSlideUp.ToolTip" xml:space="preserve"><value>Previous Slide</value></data>
+  <data name="OutputBtnItemDown.ToolTip" xml:space="preserve"><value>Next Item</value></data>
+  <data name="OutputBtnItemUp.ToolTip" xml:space="preserve"><value>Previous Item</value></data>
+  <data name="OutputBtnRefAlert.ToolTip" xml:space="preserve"><value>Show/Stop Reference Alert</value></data>
+  <data name="OutputBtnMedia.ToolTip" xml:space="preserve"><value>Media Pause/Resume</value></data>
+  <data name="OutputBtnJumpToNonRotate.ToolTip" xml:space="preserve"><value>Jump To Non-Rotating Item</value></data>
+  <data name="DefApplyDefaultsBtn.ToolTip" xml:space="preserve"><value>Apply Defaults to all on Worship List except InfoScreen Items</value></data>
+  <data name="PP_SortByNumber.Text" xml:space="preserve"><value>By Hymn Number</value></data>
+  <data name="PP_SortByTitle.Text" xml:space="preserve"><value>By Title</value></data>
+  <data name="tabPowerpoint.Text" xml:space="preserve"><value>PowerP</value></data>
+  <data name="RemoveDefaultBackground" xml:space="preserve"><value>Remove Default Background '{0}'</value></data>
+  <data name="NoDefaultBackground" xml:space="preserve"><value>No Default Background</value></data>
+  <data name="VideoDebugOn" xml:space="preserve"><value>Video Debug Message Turned On</value></data>
+  <data name="VideoDebugOff" xml:space="preserve"><value>Video Debug Message Turned Off</value></data>
+  <data name="EditItem" xml:space="preserve"><value>Edit Item</value></data>
+  <data name="Edit" xml:space="preserve"><value>Edit</value></data>
+  <data name="ErrorNotice" xml:space="preserve"><value>Error ({0}): {1} — see {2}</value></data>
+  <data name="ErrorNoticeTip" xml:space="preserve"><value>{0} (click to hide)</value></data>
+  <data name="StatusInfoScreens" xml:space="preserve"><value>InfoScreen: {0} Listed. / </value></data>
+  <data name="StatusFolder" xml:space="preserve"><value>Folder: {0}</value></data>
+  <data name="StatusMedia" xml:space="preserve"><value>Media: {0} Listed. / </value></data>
+  <data name="StatusVerses" xml:space="preserve"><value>Verses listed: {0} / </value></data>
+  <data name="StatusWorshipItem" xml:space="preserve"><value>Worship: {0} item.</value></data>
+  <data name="StatusWorshipItems" xml:space="preserve"><value>Worship: {0} items. </value></data>
+  <data name="StatusPraiseBookItem" xml:space="preserve"><value>PraiseBook: {0} item.</value></data>
+  <data name="StatusPraiseBookItems" xml:space="preserve"><value>PraiseBook: {0} items. </value></data>
+  <data name="SourceBible" xml:space="preserve"><value>Holy Bible</value></data>
+  <data name="SourceWorship" xml:space="preserve"><value>Worship</value></data>
+  <data name="SourcePraiseBook" xml:space="preserve"><value>PraiseBook</value></data>
+  <data name="StatusAdHocSlide" xml:space="preserve"><value>{0}{1}/{2} [Ad-hoc]</value></data>
+  <data name="StatusGapBlack" xml:space="preserve"><value>(Black Gap)</value></data>
+  <data name="StatusGapDefault" xml:space="preserve"><value>(Default Gap)</value></data>
+  <data name="StatusGapUser" xml:space="preserve"><value>(User Gap)</value></data>
+  <data name="AlternateKeys" xml:space="preserve"><value>Use Alternate Keyboard keys</value></data>
+  <data name="FolderCountOfOne" xml:space="preserve"><value>{0} of {1} item / </value></data>
+  <data name="FolderCountOf" xml:space="preserve"><value>{0} of {1} items / </value></data>
+  <data name="FolderCountNone" xml:space="preserve"><value>{0} item. /</value></data>
+  <data name="FolderCount" xml:space="preserve"><value>{0} items / </value></data>
+  <data name="SearchResultsFolder" xml:space="preserve"><value>Search Results:</value></data>
+  <data name="LivePowerPointNotStarted" xml:space="preserve"><value>PowerPoint: NOT STARTED</value></data>
+  <data name="LivePowerPointNotRunning" xml:space="preserve"><value>PowerPoint: NOT RUNNING</value></data>
+  <data name="LiveShowOn" xml:space="preserve"><value>Show: ON</value></data>
+  <data name="LiveShowOff" xml:space="preserve"><value>Show: OFF</value></data>
+  <data name="LiveTextHidden" xml:space="preserve"><value>Text: HIDDEN</value></data>
+  <data name="LiveTextShown" xml:space="preserve"><value>Text: shown</value></data>
+  <data name="LiveScreenBlack" xml:space="preserve"><value>Screen: BLACK</value></data>
+  <data name="LiveScreenNormal" xml:space="preserve"><value>Screen: normal</value></data>
+  <data name="LiveGapItem" xml:space="preserve"><value>Gap item</value></data>
+  <data name="TagLive" xml:space="preserve"><value>LIVE</value></data>
+  <data name="TagOutput" xml:space="preserve"><value>OUT</value></data>
+  <data name="TagPreview" xml:space="preserve"><value>PREVIEW</value></data>
+  <data name="TagSong" xml:space="preserve"><value>Song</value></data>
+  <data name="TagBible" xml:space="preserve"><value>Bible</value></data>
+  <data name="TagText" xml:space="preserve"><value>Text</value></data>
+  <data name="TagInfo" xml:space="preserve"><value>Info</value></data>
+  <data name="TagDoc" xml:space="preserve"><value>Doc</value></data>
+  <data name="TagMedia" xml:space="preserve"><value>Media</value></data>
+  <data name="ToolbarNew" xml:space="preserve"><value>New</value></data>
+  <data name="ToolbarEdit" xml:space="preserve"><value>Edit</value></data>
+  <data name="ToolbarCopy" xml:space="preserve"><value>Copy</value></data>
+  <data name="ToolbarMove" xml:space="preserve"><value>Move</value></data>
+  <data name="ToolbarDelete" xml:space="preserve"><value>Delete</value></data>
+  <data name="ToolbarMedia" xml:space="preserve"><value>Media</value></data>
+  <data name="ToolbarRefresh" xml:space="preserve"><value>Refresh</value></data>
+  <data name="ToolbarOptions" xml:space="preserve"><value>Options</value></data>
+  <data name="TemplateFileFilter" xml:space="preserve"><value>Axicultus Template File (*.est)|*.est</value></data>
+  <data name="LoadSessionTemplate" xml:space="preserve"><value>Load Session Settings from a Template</value></data>
+  <data name="SaveSessionTemplate" xml:space="preserve"><value>Save Current Session Settings to a Template</value></data>
+  <data name="LoadIndividualTemplate" xml:space="preserve"><value>Load Individual Settings from a Template</value></data>
+  <data name="SaveIndividualTemplate" xml:space="preserve"><value>Save Current Individual Settings to a Template</value></data>
+  <data name="SaveFileFailed" xml:space="preserve"><value>Error Saving File, please make sure you have write access and try again</value></data>
+  <data name="MediaAsTitle" xml:space="preserve"><value>Media: As Title</value></data>
+  <data name="MediaSpecific" xml:space="preserve"><value>Media: Specific</value></data>
+  <data name="MediaLiveFeed" xml:space="preserve"><value>Media: Live Feed</value></data>
+  <data name="MediaNone" xml:space="preserve"><value>Media: None</value></data>
+  <data name="GroupScenery" xml:space="preserve"><value>Scenery</value></data>
+  <data name="GroupTiles" xml:space="preserve"><value>Tiles</value></data>
+  <data name="GroupImages" xml:space="preserve"><value>Images</value></data>
+  <data name="GroupInfoScreens" xml:space="preserve"><value>InfoScreen Items</value></data>
+  <data name="GroupPowerPoint" xml:space="preserve"><value>Powerpoint Items</value></data>
+  <data name="GroupMedia" xml:space="preserve"><value>Media Files</value></data>
+  <data name="ItemNotFoundSuffix" xml:space="preserve"><value> &lt;Error - Item Not Found&gt;</value></data>
+  <data name="InfoTitle2" xml:space="preserve"><value>Title2: {0}</value></data>
+  <data name="InfoImage" xml:space="preserve"><value>(Image: {0})</value></data>
+  <data name="InfoMedia" xml:space="preserve"><value>(Media: {0})</value></data>
+  <data name="InfoWriter" xml:space="preserve"><value>Writer: {0}</value></data>
+  <data name="InfoCopyright" xml:space="preserve"><value>Copyright: {0}</value></data>
+  <data name="InfoKey" xml:space="preserve"><value>Key: {0} </value></data>
+  <data name="InfoCapo" xml:space="preserve"><value> Capo {0} </value></data>
+  <data name="InfoBookRef" xml:space="preserve"><value>Book Ref: {0}</value></data>
+  <data name="InfoUserRef" xml:space="preserve"><value>User Ref: {0}</value></data>
+  <data name="PowerPointFileMissing" xml:space="preserve"><value>Sorry - Can't find the Powerpoint File '{0}'</value></data>
+  <data name="PowerPointNotFound" xml:space="preserve"><value>The PowerPoint file was not found: {0}</value></data>
+  <data name="PowerPointNotFoundShowCopy" xml:space="preserve"><value>The PowerPoint file was not found: {0} (the copy opened at show start is used if it is still open)</value></data>
+  <data name="SortByTitle" xml:space="preserve"><value>Sort by Title</value></data>
+  <data name="SortByWordCount" xml:space="preserve"><value>Sort by CJK Word Count</value></data>
+  <data name="SortBySongNumber" xml:space="preserve"><value>Sort by Song Number</value></data>
+  <data name="PraiseBookEmptyGenerate" xml:space="preserve"><value>Can't Generate because the PraiseBook List is empty!</value></data>
+  <data name="EditSessionNotes" xml:space="preserve"><value>Edit Session Notes</value></data>
+  <data name="PraiseBookSongNotFound" xml:space="preserve"><value>Cannot find the selected Praise Book song in the song database.</value></data>
+  <data name="SongAddedListNotSaved" xml:space="preserve"><value>Song added but the Worship List could not be saved.</value></data>
+  <data name="SelectOnePraiseBookItemToEdit" xml:space="preserve"><value>Please select ONE item from the PraiseBook List to edit</value></data>
+  <data name="WorshipListEmptyDocument" xml:space="preserve"><value>Can't produce lyrics document because the Worship List is empty!</value></data>
+  <data name="PraiseBookEmptyDocument" xml:space="preserve"><value>Can't produce lyrics document because the PraiseBook is empty!</value></data>
+  <data name="WorshipItemNotMoved" xml:space="preserve"><value>The worship list item could not be moved; the list is unchanged</value></data>
+  <data name="WorshipListEmptyShow" xml:space="preserve"><value>Can't start the Show because the Worship List is empty!</value></data>
+  <data name="SongNotInDatabase" xml:space="preserve"><value>Sorry - Can't find the song '{0}' in the Database!</value></data>
+  <data name="SongDeleted" xml:space="preserve"><value>Sorry - Can't show the Database song '{0}' because it has been deleted!</value></data>
+  <data name="NoPowerPointApp" xml:space="preserve"><value>No application is associated with the PowerPoint file '{0}'.</value></data>
+  <data name="SelectFolderForIndex" xml:space="preserve"><value>Please select the Song Folder for which you want an index of the database items.</value></data>
+  <data name="IndexDatabaseItemsOnly" xml:space="preserve"><value>Index of Selected Folder are for Database Items only!</value></data>
+  <data name="SelectOneSongToPlay" xml:space="preserve"><value>Please select ONE item from the Songs List to play</value></data>
+  <data name="NotAllSongsDeleted" xml:space="preserve"><value>Error encountered - Not all the songs were deleted. Please try again later.</value></data>
+  <data name="WorshipListAlreadyEmpty" xml:space="preserve"><value>Worship list is already empty.</value></data>
+  <data name="NoWorshipListLoaded" xml:space="preserve"><value>No worship list is currently loaded.</value></data>
+  <data name="SelectOneWorshipItemToEdit" xml:space="preserve"><value>Please select ONE item from the Worship List to edit</value></data>
+  <data name="SelectOneWorshipItemToPlay" xml:space="preserve"><value>Please select ONE item from the Worship List to play</value></data>
+  <data name="MediaFileNotFound" xml:space="preserve"><value>Sorry, cannot find the media file '{0}'.</value></data>
+  <data name="MediaFileNotOpened" xml:space="preserve"><value>Sorry, cannot open the media file '{0}'.</value></data>
+  <data name="NoMediaForSong" xml:space="preserve"><value>Sorry, cannot find any media file for '{0}'</value></data>
+  <data name="ConfigureOutputMonitor" xml:space="preserve"><value>Please configure Output Monitor in Options first.</value></data>
+  <data name="MediaPlayError" xml:space="preserve"><value>Error playing media: {0}</value></data>
+  <data name="WorshipListNoItems" xml:space="preserve"><value>There are no items on the current Worship List</value></data>
+  <data name="UsagesWriteFailed" xml:space="preserve"><value>Error writing usages details to the Usages Database. Please re-start Axicultuss and try again.</value></data>
+  <data name="UsageItemWriteFailed" xml:space="preserve"><value>Error writing Item {0} to Usages Database.</value></data>
+  <data name="NoDatabaseItemsOnList" xml:space="preserve"><value>There are no Database Items on the Worship List!</value></data>
+  <data name="UsageAddedOne" xml:space="preserve"><value>Done. Detail of {0} Database Item was added to Usages record.</value></data>
+  <data name="UsageAddedMany" xml:space="preserve"><value>Done. Details of {0} Database Items were added to the Usages record.</value></data>
+  <data name="HelpFileMissing" xml:space="preserve"><value>Cannot find the Help File - please Reinstall/Repair Axicultuss to install the Help Files.</value></data>
+  <data name="HelpWebUnavailable" xml:space="preserve"><value>Error - Cannot access {0}. Please enable your internet connection and then try again.</value></data>
+  <data name="SelectOneSongToEdit" xml:space="preserve"><value>Please select ONE item from the Songs List to edit.</value></data>
+  <data name="PowerPointNotInstalled" xml:space="preserve"><value>Cannot edit Powerpoint document!  It appears Powerpoint is not installed on this machine.</value></data>
+  <data name="PowerPointFileGone" xml:space="preserve"><value>The Powerpoint File is missing!</value></data>
+  <data name="NoTextEditor" xml:space="preserve"><value>Cannot edit text file! Please set a default text editor and try again.</value></data>
+  <data name="TextFileGone" xml:space="preserve"><value>The Text File is missing!</value></data>
+  <data name="WordNotInstalled" xml:space="preserve"><value>Cannot edit Word document!  It appears Microsoft Word is not installed on this machine.</value></data>
+  <data name="WordFileGone" xml:space="preserve"><value>The Word Document is missing!</value></data>
+  <data name="ListingTypeUnsupported" xml:space="preserve"><value>You haven't specified a supported Listing File Type.  Please retry and select a proper file type</value></data>
+  <data name="ListingFailed" xml:space="preserve"><value>Error generating listing {0}. Document might be in use.</value></data>
+  <data name="SelectOneInfoScreenToEdit" xml:space="preserve"><value>Please select ONE InfoScreen to edit</value></data>
+  <data name="SelectOnePowerPointToEdit" xml:space="preserve"><value>Please select ONE Powerpoint file to edit</value></data>
+  <data name="ImageImportFailed" xml:space="preserve"><value>Image File could not be imported. This is possibly because there is already a file with the same name in the folder.</value></data>
+  <data name="InfoScreenImportFailed" xml:space="preserve"><value>InfoScreen could not be imported. This is possibly because there is already a file with the same name in the folder.</value></data>
+  <data name="PowerPointImportFailed" xml:space="preserve"><value>Powerpoint File could not be imported. This is possibly because there is already a file with the same name in the folder.</value></data>
+  <data name="MediaImportFailed" xml:space="preserve"><value>Media File could not be imported. Please check you have write access to the folder</value></data>
+  <data name="OpenPowerPointFolder" xml:space="preserve"><value>Open Powerpoint Folder</value></data>
+  <data name="PowerPointViewAndSort" xml:space="preserve"><value>PowerPoint View and Sort</value></data>
+  <data name="ShowWindowError" xml:space="preserve"><value>Show window: {0}</value></data>
+  <data name="TooManyPowerPoints" xml:space="preserve"><value>Error - There are {0} Powerpoint files on the Worship List but you are only permitted to have {1}.</value></data>
+  <data name="DeleteSongConfirm" xml:space="preserve"><value>Are you really sure you want to delete the selected song?</value></data>
+  <data name="DeleteSongsConfirm" xml:space="preserve"><value>Are you really sure you want to delete the {0} songs you have selected?</value></data>
+  <data name="DeleteSongsTitle" xml:space="preserve"><value>Delete Selected Song(s)</value></data>
+  <data name="EmptyDeletedConfirm" xml:space="preserve"><value>This will permanently remove all the songs in the Deleted Folder - Are you really sure?</value></data>
+  <data name="EmptyDeletedTitle" xml:space="preserve"><value>Permanent Delete Song(s)</value></data>
+  <data name="ClearWorshipListConfirm" xml:space="preserve"><value>Really clear the worship list '{0}'?&#10;&#10;The current worship list will be moved to trash.</value></data>
+  <data name="ClearWorshipListTitle" xml:space="preserve"><value>Clear Worship List</value></data>
+  <data name="MoveToTrashFailed" xml:space="preserve"><value>Error moving worship list to trash: {0}</value></data>
+  <data name="ErrorTitle" xml:space="preserve"><value>Error</value></data>
+  <data name="MediaLoadFailed" xml:space="preserve"><value>Failed to load media file: {0}&#10;&#10;Please check if DirectShow is installed and the file format is supported.</value></data>
+  <data name="KindInfoScreens" xml:space="preserve"><value>InfoScreen(s)</value></data>
+  <data name="KindPowerPoints" xml:space="preserve"><value>Powerpoint File(s)</value></data>
+  <data name="RecycleConfirm" xml:space="preserve"><value>Delete Selected {0} to Windows Recycle Bin?</value></data>
+  <data name="RecycleTitle" xml:space="preserve"><value>Delete {0}</value></data>
+  <data name="ExternalFileFilter" xml:space="preserve"><value>Valid External Files (*.ppt,*.pptx,*.doc,*.docx,*.txt,*.esi,*.esw,*.json)|*.ppt;*.pptx;*.doc;*.docx;*.txt;*.esi;*.esw;*.json|Powerpoint Files (*.ppt)|*.ppt|Powerpoint Files (*.pptx)|*.pptx|Word Documents (*.doc)|*.doc|Word Documents (*.docx)|*.docx|Text Files (*.txt)|*.txt|InfoScreens (*.esi)|*.esi|Worship Lists (*.esw;*.json)|*.esw;*.json</value></data>
+  <data name="MediaFilesFilter" xml:space="preserve"><value>Media Files ({0})|{1}</value></data>
+  <data name="ListingFileFilter" xml:space="preserve"><value>Rich Text Document (*.rtf)|*.rtf|Tab delimted Text File (*.txt)|*.txt</value></data>
+  <data name="ListingTitle" xml:space="preserve"><value>Listing of Folder</value></data>
+  <data name="ImageFileFilter" xml:space="preserve"><value>Images ({0})|{1}</value></data>
+  <data name="ImportImageTitle" xml:space="preserve"><value>Import An Image into folder: {0}</value></data>
+  <data name="InfoScreenFileFilter" xml:space="preserve"><value>InfoScreens (*.esi)|*.esi</value></data>
+  <data name="ImportInfoScreenTitle" xml:space="preserve"><value>Import An InfoScreen into folder: {0}</value></data>
+  <data name="PowerPointFileFilter" xml:space="preserve"><value>Powerpoint Files (*.ppt)|*.ppt|Powerpoint Files (*.pptx)|*.pptx</value></data>
+  <data name="ImportPowerPointTitle" xml:space="preserve"><value>Import a Powerpoint File into folder: {0}</value></data>
+  <data name="ImportMediaTitle" xml:space="preserve"><value>Import A Media File into folder: {0}</value></data>
+  <data name="JumpFolderTip" xml:space="preserve"><value>{0} Folder</value></data>
+</root>

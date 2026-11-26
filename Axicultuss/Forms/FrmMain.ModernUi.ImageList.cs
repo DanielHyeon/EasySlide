@@ -45,7 +45,7 @@ public partial class FrmMain
     /// Folder name parts that make a database item a "Word" item (scripture text) instead of a song
     /// (design D25). Ordinal "contains" on the item's folder name.
     /// </summary>
-    private static readonly string[] WordFolderKeywords = ["말씀"];
+    private static readonly string[] WordFolderKeywords = ["말씀"]; // not UI text
 
     /// <summary>
     /// Item type pairs (design D25): even index = the normal picture, odd index = the live row's flash,

@@ -1,0 +1,419 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Ind_HeadFirstScreen.Text" xml:space="preserve"><value>첫 화면에만 머리글</value></data>
+  <data name="IndradioButtonInfo.Text" xml:space="preserve"><value>정보</value></data>
+  <data name="IndradioButtonFormat.Text" xml:space="preserve"><value>서식</value></data>
+  <data name="IndradioButtonText.Text" xml:space="preserve"><value>텍스트</value></data>
+  <data name="Ind_HeadAllTitles.Text" xml:space="preserve"><value>모든 머리글 표시</value></data>
+  <data name="Ind_Region.ToolTipText" xml:space="preserve"><value>영역 텍스트 표시</value></data>
+  <data name="Ind_ShowRegion1.Text" xml:space="preserve"><value>영역 1만</value></data>
+  <data name="Ind_ShowRegion2.Text" xml:space="preserve"><value>영역 2만</value></data>
+  <data name="Ind_ShowRegionBoth.Text" xml:space="preserve"><value>영역 1과 2</value></data>
+  <data name="Ind_VAlign.ToolTipText" xml:space="preserve"><value>세로 정렬</value></data>
+  <data name="Ind_VAlignTop.Text" xml:space="preserve"><value>위쪽 정렬</value></data>
+  <data name="Ind_VAlignCentre.Text" xml:space="preserve"><value>가운데 정렬</value></data>
+  <data name="Ind_VAlignBottom.Text" xml:space="preserve"><value>아래쪽 정렬</value></data>
+  <data name="Ind_Outline.ToolTipText" xml:space="preserve"><value>외곽선 글꼴</value></data>
+  <data name="Ind_Interlace.ToolTipText" xml:space="preserve"><value>영역 1/영역 2 번갈아 표시</value></data>
+  <data name="Ind_Notations.ToolTipText" xml:space="preserve"><value>표기 보이기</value></data>
+  <data name="Ind_checkBox.Text" xml:space="preserve"><value>개별 설정 사용</value></data>
+  <data name="Ind_Shadow.ToolTipText" xml:space="preserve"><value>그림자 글꼴</value></data>
+  <data name="Ind_R2Italics0.Text" xml:space="preserve"><value>기울임 없음</value></data>
+  <data name="Ind_R2Italics1.Text" xml:space="preserve"><value>기울임</value></data>
+  <data name="Ind_R2Italics2.Text" xml:space="preserve"><value>후렴만 기울임</value></data>
+  <data name="labelGapItem.Text" xml:space="preserve"><value>간격 항목</value></data>
+  <data name="labelHideText.Text" xml:space="preserve"><value>텍스트 숨김</value></data>
+  <data name="labelBlackScreen.Text" xml:space="preserve"><value>검은 화면</value></data>
+  <data name="Ind_HeadNoTitles.Text" xml:space="preserve"><value>머리글 없음</value></data>
+  <data name="IndgroupBox2.Text" xml:space="preserve"><value>배경</value></data>
+  <data name="Ind_TransItem.ToolTipText" xml:space="preserve"><value>항목 전환 효과</value></data>
+  <data name="Ind_TransSlides.ToolTipText" xml:space="preserve"><value>슬라이드 전환 효과</value></data>
+  <data name="Ind_ImageMode.ToolTipText" xml:space="preserve"><value>배경 그림 형식</value></data>
+  <data name="Ind_ImageTile.Text" xml:space="preserve"><value>바둑판식 배열</value></data>
+  <data name="Ind_ImageCentre.Text" xml:space="preserve"><value>가운데 배치</value></data>
+  <data name="Ind_ImageBestFit.Text" xml:space="preserve"><value>화면에 맞춤</value></data>
+  <data name="Ind_BackColour.Text" xml:space="preserve"><value>색</value></data>
+  <data name="Ind_BackColour.ToolTipText" xml:space="preserve"><value>배경 색과 무늬</value></data>
+  <data name="Ind_AssignMedia.Text" xml:space="preserve"><value>미디어</value></data>
+  <data name="label3.Text" xml:space="preserve"><value>아래:</value></data>
+  <data name="label2.Text" xml:space="preserve"><value>오른쪽:</value></data>
+  <data name="label1.Text" xml:space="preserve"><value>왼쪽:</value></data>
+  <data name="Ind_R1Colour.Text" xml:space="preserve"><value>색</value></data>
+  <data name="Ind_R1AlignRight.Text" xml:space="preserve"><value>오른쪽 정렬</value></data>
+  <data name="Ind_R1AlignCentre.Text" xml:space="preserve"><value>가운데 정렬</value></data>
+  <data name="Ind_R1AlignLeft.Text" xml:space="preserve"><value>왼쪽 정렬</value></data>
+  <data name="Ind_R1Italics2.Text" xml:space="preserve"><value>후렴만 기울임</value></data>
+  <data name="Ind_R1Italics1.Text" xml:space="preserve"><value>기울임</value></data>
+  <data name="Ind_R1Italics0.Text" xml:space="preserve"><value>기울임 없음</value></data>
+  <data name="labelBlackScreenOn.Text" xml:space="preserve"><value>크기:</value></data>
+  <data name="Ind_R2AlignLeft.Text" xml:space="preserve"><value>왼쪽 정렬</value></data>
+  <data name="Ind_R2AlignCentre.Text" xml:space="preserve"><value>가운데 정렬</value></data>
+  <data name="Ind_R2AlignRight.Text" xml:space="preserve"><value>오른쪽 정렬</value></data>
+  <data name="Ind_R2Colour.Text" xml:space="preserve"><value>색</value></data>
+  <data name="label7.Text" xml:space="preserve"><value>위:</value></data>
+  <data name="IndgroupBox3.Text" xml:space="preserve"><value>영역 1</value></data>
+  <data name="label4.Text" xml:space="preserve"><value>위:</value></data>
+  <data name="Ind_HeadAlign.ToolTipText" xml:space="preserve"><value>제목/절 머리글 표시</value></data>
+  <data name="Ind_HeadAlignAsR1.Text" xml:space="preserve"><value>머리글을 영역 1처럼 정렬</value></data>
+  <data name="Ind_HeadAlignAsR2.Text" xml:space="preserve"><value>머리글을 영역 2처럼 정렬</value></data>
+  <data name="Ind_HeadAlignLeft.Text" xml:space="preserve"><value>머리글 왼쪽 정렬</value></data>
+  <data name="Ind_HeadAlignCentre.Text" xml:space="preserve"><value>머리글 가운데 정렬</value></data>
+  <data name="Ind_HeadAlignRight.Text" xml:space="preserve"><value>머리글 오른쪽 정렬</value></data>
+  <data name="Ind_CapoDown.ToolTipText" xml:space="preserve"><value>반음 내리기</value></data>
+  <data name="Ind_CapoUp.ToolTipText" xml:space="preserve"><value>반음 올리기</value></data>
+  <data name="Ind_HideDisplayPanel.ToolTipText" xml:space="preserve"><value>표시 패널 정보 숨기기</value></data>
+  <data name="IndgroupBox1.Text" xml:space="preserve"><value>레이아웃</value></data>
+  <data name="Ind_Head.ToolTipText" xml:space="preserve"><value>제목/절 머리글 표시</value></data>
+  <data name="DefApplyDefaultsBtn.Text" xml:space="preserve"><value>공지 화면 외 모두에 적용</value></data>
+  <data name="CMenuImages_AddItem.Text" xml:space="preserve"><value>항목에 추가</value></data>
+  <data name="CMenuImages_AddDefault.Text" xml:space="preserve"><value>기본값에 추가</value></data>
+  <data name="CMenuImages_Refresh.Text" xml:space="preserve"><value>이미지 목록 새로 고침</value></data>
+  <data name="Main_New.ToolTipText" xml:space="preserve"><value>새로 만들기</value></data>
+  <data name="Main_Edit.ToolTipText" xml:space="preserve"><value>편집</value></data>
+  <data name="Main_Copy.ToolTipText" xml:space="preserve"><value>복사</value></data>
+  <data name="Main_Move.ToolTipText" xml:space="preserve"><value>이동</value></data>
+  <data name="Main_Delete.ToolTipText" xml:space="preserve"><value>삭제</value></data>
+  <data name="Main_Media.ToolTipText" xml:space="preserve"><value>미디어 재생</value></data>
+  <data name="Main_Refresh.ToolTipText" xml:space="preserve"><value>새로 고침</value></data>
+  <data name="Main_Options.ToolTipText" xml:space="preserve"><value>옵션</value></data>
+  <data name="Main_NoRotate.ToolTipText" xml:space="preserve"><value>자동 순환 중지</value></data>
+  <data name="Main_RotateStyle.ToolTipText" xml:space="preserve"><value>순환 방식</value></data>
+  <data name="Main_Rotate0.Text" xml:space="preserve"><value>한 항목 자동 순환</value></data>
+  <data name="Main_Rotate1.Text" xml:space="preserve"><value>한 항목 자동 순환 - 반복</value></data>
+  <data name="Main_Rotate2.Text" xml:space="preserve"><value>그룹 자동 순환</value></data>
+  <data name="Main_Rotate3.Text" xml:space="preserve"><value>그룹 자동 순환 - 반복</value></data>
+  <data name="Main_Alerts.ToolTipText" xml:space="preserve"><value>알림</value></data>
+  <data name="Main_Chinese.ToolTipText" xml:space="preserve"><value>번체/간체 중국어</value></data>
+  <data name="Main_Find.ToolTipText" xml:space="preserve"><value>찾기</value></data>
+  <data name="Main_QuickFind.Text" xml:space="preserve"><value>검색어</value></data>
+  <data name="Main_QuickFind.ToolTipText" xml:space="preserve"><value>검색어를 입력하고 Enter 키를 누르세요</value></data>
+  <data name="Image_Import.Text" xml:space="preserve"><value>이미지 가져오기</value></data>
+  <data name="CMenuBible_CopyInfoScreen.Text" xml:space="preserve"><value>공지 화면으로 복사(&amp;I)</value></data>
+  <data name="Bibles_Go.ToolTipText" xml:space="preserve"><value>입력한 구절 선택</value></data>
+  <data name="CMenuBible_Copy.Text" xml:space="preserve"><value>복사(&amp;C)</value></data>
+  <data name="tabPage1.Text" xml:space="preserve"><value>성경 없음</value></data>
+  <data name="tabImages.Text" xml:space="preserve"><value>이미지</value></data>
+  <data name="Image_OpenFolder.ToolTipText" xml:space="preserve"><value>폴더 열기</value></data>
+  <data name="PP_ListStyle.Text" xml:space="preserve"><value>PowerPoint 목록</value></data>
+  <data name="PP_PreviewStyle.Text" xml:space="preserve"><value>PowerPoint 미리보기</value></data>
+  <data name="PP_OpenFolder.ToolTipText" xml:space="preserve"><value>PowerPoint 폴더 열기</value></data>
+  <data name="PP_Import.ToolTipText" xml:space="preserve"><value>PowerPoint 파일을 폴더로 가져오기</value></data>
+  <data name="CMenuBible_AddRegion2.Text" xml:space="preserve"><value>영역 2에 추가(&amp;R)</value></data>
+  <data name="tabBibles.Text" xml:space="preserve"><value>성경</value></data>
+  <data name="CMenuBible_SelectAll.Text" xml:space="preserve"><value>모두 선택(&amp;A)</value></data>
+  <data name="CMenuBible_UnselectAll.Text" xml:space="preserve"><value>모두 선택 해제(&amp;U)</value></data>
+  <data name="CMenuBible_AddShow.Text" xml:space="preserve"><value>추가 후 송출(&amp;S)</value></data>
+  <data name="tabMedia.Text" xml:space="preserve"><value>미디어</value></data>
+  <data name="Media_OpenFolder.ToolTipText" xml:space="preserve"><value>폴더 열기</value></data>
+  <data name="Media_Import.ToolTipText" xml:space="preserve"><value>미디어 파일을 폴더로 가져오기</value></data>
+  <data name="CMenuFiles_SelectAll.Text" xml:space="preserve"><value>모두 선택(&amp;A)</value></data>
+  <data name="CMenuFiles_UnselectAll.Text" xml:space="preserve"><value>모두 선택 해제(&amp;U)</value></data>
+  <data name="CMenuFiles_AddShow.Text" xml:space="preserve"><value>추가 후 송출(&amp;S)</value></data>
+  <data name="CMenuFiles_Edit.Text" xml:space="preserve"><value>편집</value></data>
+  <data name="CMenuFiles_Copy.Text" xml:space="preserve"><value>복사</value></data>
+  <data name="CMenuFiles_Refresh.Text" xml:space="preserve"><value>새로 고침</value></data>
+  <data name="Def_SaveTemplate.ToolTipText" xml:space="preserve"><value>설정을 템플릿으로 저장</value></data>
+  <data name="DefgroupBox2.Text" xml:space="preserve"><value>기본 배경</value></data>
+  <data name="Def_TransItem.ToolTipText" xml:space="preserve"><value>항목 전환 효과</value></data>
+  <data name="Def_TransSlides.ToolTipText" xml:space="preserve"><value>슬라이드 전환 효과</value></data>
+  <data name="Def_ImageMode.ToolTipText" xml:space="preserve"><value>배경 그림 형식</value></data>
+  <data name="Def_ImageTile.Text" xml:space="preserve"><value>바둑판식 배열</value></data>
+  <data name="Def_ImageCentre.Text" xml:space="preserve"><value>가운데 배치</value></data>
+  <data name="Def_ImageBestFit.Text" xml:space="preserve"><value>화면에 맞춤</value></data>
+  <data name="Def_NoImage.ToolTipText" xml:space="preserve"><value>배경 그림 없음</value></data>
+  <data name="Def_BackColour.Text" xml:space="preserve"><value>색</value></data>
+  <data name="Def_BackColour.ToolTipText" xml:space="preserve"><value>배경 색과 무늬</value></data>
+  <data name="Def_AssignMedia.Text" xml:space="preserve"><value>미디어</value></data>
+  <data name="Def_LoadTemplate.ToolTipText" xml:space="preserve"><value>설정 템플릿 불러오기</value></data>
+  <data name="tabDefault.Text" xml:space="preserve"><value>기본</value></data>
+  <data name="DefgroupBox3.Text" xml:space="preserve"><value>표시 패널</value></data>
+  <data name="Def_PanelAsR1.ToolTipText" xml:space="preserve"><value>글자 색을 영역 1과 같게</value></data>
+  <data name="Def_PanelTextColour.Text" xml:space="preserve"><value>글자 색</value></data>
+  <data name="Def_PanelTransparent.ToolTipText" xml:space="preserve"><value>투명 배경</value></data>
+  <data name="Def_PanelBackColour.Text" xml:space="preserve"><value>배경 색</value></data>
+  <data name="Def_PanelShow.ToolTipText" xml:space="preserve"><value>표시 패널 보이기</value></data>
+  <data name="Def_PanelTitle.ToolTipText" xml:space="preserve"><value>제목 표시</value></data>
+  <data name="Def_PanelCopyright.ToolTipText" xml:space="preserve"><value>저작권 정보 표시</value></data>
+  <data name="Def_PanelSong.ToolTipText" xml:space="preserve"><value>항목 번호 표시</value></data>
+  <data name="Def_PanelSlides.ToolTipText" xml:space="preserve"><value>절/슬라이드 표시 보이기</value></data>
+  <data name="Def_PanelPrevNext.ToolTipText" xml:space="preserve"><value>이전/다음 항목 표시</value></data>
+  <data name="label5.Text" xml:space="preserve"><value>높이</value></data>
+  <data name="DefgroupBox1.Text" xml:space="preserve"><value>기본 레이아웃</value></data>
+  <data name="Def_HeadAlignAsR1.Text" xml:space="preserve"><value>머리글을 영역 1처럼 정렬</value></data>
+  <data name="Def_HeadAlignAsR2.Text" xml:space="preserve"><value>머리글을 영역 2처럼 정렬</value></data>
+  <data name="Def_HeadAlignLeft.Text" xml:space="preserve"><value>머리글 왼쪽 정렬</value></data>
+  <data name="Def_HeadAlignCentre.Text" xml:space="preserve"><value>머리글 가운데 정렬</value></data>
+  <data name="Def_HeadAlignRight.Text" xml:space="preserve"><value>머리글 오른쪽 정렬</value></data>
+  <data name="Def_R1AlignLeft.Text" xml:space="preserve"><value>영역 1 왼쪽 정렬</value></data>
+  <data name="Def_R1AlignCentre.Text" xml:space="preserve"><value>영역 1 가운데 정렬</value></data>
+  <data name="Def_R1AlignRight.Text" xml:space="preserve"><value>영역 1 오른쪽 정렬</value></data>
+  <data name="Def_R1Colour.Text" xml:space="preserve"><value>영역1 색</value></data>
+  <data name="Def_R1Colour.ToolTipText" xml:space="preserve"><value>영역 1 글자 색</value></data>
+  <data name="Def_R2AlignLeft.Text" xml:space="preserve"><value>영역 2 왼쪽 정렬</value></data>
+  <data name="Def_R2AlignCentre.Text" xml:space="preserve"><value>영역 2 가운데 정렬</value></data>
+  <data name="Def_R2AlignRight.Text" xml:space="preserve"><value>영역 2 오른쪽 정렬</value></data>
+  <data name="Def_R2Colour.Text" xml:space="preserve"><value>영역2 색</value></data>
+  <data name="Def_R2Colour.ToolTipText" xml:space="preserve"><value>영역 2 글자 색</value></data>
+  <data name="Def_Head.ToolTipText" xml:space="preserve"><value>제목/절 머리글 표시</value></data>
+  <data name="Def_HeadNoTitles.Text" xml:space="preserve"><value>머리글 없음</value></data>
+  <data name="Def_HeadAllTitles.Text" xml:space="preserve"><value>모든 머리글 표시</value></data>
+  <data name="Def_HeadFirstScreen.Text" xml:space="preserve"><value>첫 화면에만 머리글</value></data>
+  <data name="Def_Region.ToolTipText" xml:space="preserve"><value>영역 텍스트 표시</value></data>
+  <data name="Def_ShowRegion1.Text" xml:space="preserve"><value>영역 1만</value></data>
+  <data name="Def_ShowRegion2.Text" xml:space="preserve"><value>영역 2만</value></data>
+  <data name="Def_ShowRegionBoth.Text" xml:space="preserve"><value>영역 1과 2</value></data>
+  <data name="Def_VAlign.ToolTipText" xml:space="preserve"><value>세로 정렬</value></data>
+  <data name="Def_VAlignTop.Text" xml:space="preserve"><value>위쪽 정렬</value></data>
+  <data name="Def_VAlignCentre.Text" xml:space="preserve"><value>가운데 정렬</value></data>
+  <data name="Def_VAlignBottom.Text" xml:space="preserve"><value>아래쪽 정렬</value></data>
+  <data name="Def_Shadow.ToolTipText" xml:space="preserve"><value>그림자 글꼴</value></data>
+  <data name="Def_Outline.ToolTipText" xml:space="preserve"><value>외곽선 글꼴</value></data>
+  <data name="Def_Interlace.ToolTipText" xml:space="preserve"><value>영역 1/영역 2 번갈아 표시</value></data>
+  <data name="Def_Notations.ToolTipText" xml:space="preserve"><value>표기 보이기</value></data>
+  <data name="Def_ToZero.ToolTipText" xml:space="preserve"><value>카포 0으로</value></data>
+  <data name="InfoScreen_Delete.ToolTipText" xml:space="preserve"><value>삭제</value></data>
+  <data name="CMenuSongs_AddShow.Text" xml:space="preserve"><value>추가 후 송출(&amp;S)</value></data>
+  <data name="CMenuSongs_Edit.Text" xml:space="preserve"><value>항목 편집</value></data>
+  <data name="CMenuSongs_Copy.Text" xml:space="preserve"><value>항목 복사</value></data>
+  <data name="CMenuSongs_Refresh.Text" xml:space="preserve"><value>새로 고침</value></data>
+  <data name="CMenuSongs_UnselectAll.Text" xml:space="preserve"><value>모두 선택 해제(&amp;U)</value></data>
+  <data name="InfoScreen_New.ToolTipText" xml:space="preserve"><value>새로 만들기</value></data>
+  <data name="InfoScreen_Edit.ToolTipText" xml:space="preserve"><value>편집</value></data>
+  <data name="InfoScreen_Copy.ToolTipText" xml:space="preserve"><value>복사</value></data>
+  <data name="InfoScreen_Move.ToolTipText" xml:space="preserve"><value>이동</value></data>
+  <data name="tabFiles.Text" xml:space="preserve"><value>공지</value></data>
+  <data name="InfoScreen_OpenFolder.ToolTipText" xml:space="preserve"><value>폴더 열기</value></data>
+  <data name="InfoScreen_Import.ToolTipText" xml:space="preserve"><value>공지 화면을 폴더로 가져오기</value></data>
+  <data name="CMenuSongs_SelectAll.Text" xml:space="preserve"><value>모두 선택(&amp;A)</value></data>
+  <data name="tabFolders.Text" xml:space="preserve"><value>폴더</value></data>
+  <data name="Folders_WordCount.ToolTipText" xml:space="preserve"><value>한중일 글자 수로 정렬</value></data>
+  <data name="Powerpoint_Edit.ToolTipText" xml:space="preserve"><value>편집</value></data>
+  <data name="Powerpoint_Copy.ToolTipText" xml:space="preserve"><value>복사</value></data>
+  <data name="Powerpoint_Move.ToolTipText" xml:space="preserve"><value>이동</value></data>
+  <data name="Powerpoint_Delete.ToolTipText" xml:space="preserve"><value>삭제</value></data>
+  <data name="tabWorshipList.Text" xml:space="preserve"><value>예배 순서</value></data>
+  <data name="WL_Up.ToolTipText" xml:space="preserve"><value>항목 위로 이동</value></data>
+  <data name="WL_Down.ToolTipText" xml:space="preserve"><value>항목 아래로 이동</value></data>
+  <data name="WL_Delete.ToolTipText" xml:space="preserve"><value>삭제</value></data>
+  <data name="WL_Word.ToolTipText" xml:space="preserve"><value>RTF 문서 만들기</value></data>
+  <data name="WL_Notes.ToolTipText" xml:space="preserve"><value>예배 순서 메모 편집</value></data>
+  <data name="WL_Manage.ToolTipText" xml:space="preserve"><value>예배 순서 관리</value></data>
+  <data name="WL_Add.ToolTipText" xml:space="preserve"><value>예배 순서에 추가</value></data>
+  <data name="WL_Open.ToolTipText" xml:space="preserve"><value>외부 문서를 예배 순서에 추가</value></data>
+  <data name="CMenuWorship_SelectAll.Text" xml:space="preserve"><value>모두 선택(&amp;A)</value></data>
+  <data name="CMenuWorship_UnselectAll.Text" xml:space="preserve"><value>모두 선택 해제(&amp;U)</value></data>
+  <data name="CMenuWorship_Clear.Text" xml:space="preserve"><value>예배 순서 비우기</value></data>
+  <data name="CMenuWorship_Edit.Text" xml:space="preserve"><value>항목 편집</value></data>
+  <data name="CMenuWorship_Play.Text" xml:space="preserve"><value>미디어 재생</value></data>
+  <data name="CMenuWorship_PlayOnOutput.Text" xml:space="preserve"><value>송출 모니터에서 미디어 재생</value></data>
+  <data name="CMenuWorship_AddUsages.Text" xml:space="preserve"><value>곡을 사용 기록에 추가</value></data>
+  <data name="tabPraiseBook.Text" xml:space="preserve"><value>찬양집</value></data>
+  <data name="PB_Delete.ToolTipText" xml:space="preserve"><value>삭제</value></data>
+  <data name="PB_Word.ToolTipText" xml:space="preserve"><value>RTF 문서 만들기</value></data>
+  <data name="PB_Html.ToolTipText" xml:space="preserve"><value>HTML 문서 만들기</value></data>
+  <data name="PB_Manage.ToolTipText" xml:space="preserve"><value>찬양집 관리</value></data>
+  <data name="PB_Add.ToolTipText" xml:space="preserve"><value>찬양집에 추가</value></data>
+  <data name="PB_WordCount.ToolTipText" xml:space="preserve"><value>한중일 글자 수로 정렬</value></data>
+  <data name="CMenuPraiseB_SelectAll.Text" xml:space="preserve"><value>모두 선택(&amp;A)</value></data>
+  <data name="CMenuPraiseB_UnselectAll.Text" xml:space="preserve"><value>모두 선택 해제(&amp;U)</value></data>
+  <data name="CMenuPraiseB_Clear.Text" xml:space="preserve"><value>찬양집 목록 비우기</value></data>
+  <data name="CMenuPraiseB_Edit.Text" xml:space="preserve"><value>항목 편집</value></data>
+  <data name="Ind_LoadTemplate.ToolTipText" xml:space="preserve"><value>설정 템플릿 불러오기</value></data>
+  <data name="Ind_SaveTemplate.ToolTipText" xml:space="preserve"><value>설정을 템플릿으로 저장</value></data>
+  <data name="IndgroupBox4.Text" xml:space="preserve"><value>영역 2</value></data>
+  <data name="label6.Text" xml:space="preserve"><value>크기:</value></data>
+  <data name="PreviewBtnSlideDown.ToolTip" xml:space="preserve"><value>다음 슬라이드</value></data>
+  <data name="PreviewBtnSlideUp.ToolTip" xml:space="preserve"><value>이전 슬라이드</value></data>
+  <data name="PreviewBtnItemDown.ToolTip" xml:space="preserve"><value>다음 항목</value></data>
+  <data name="PreviewBtnItemUp.ToolTip" xml:space="preserve"><value>이전 항목</value></data>
+  <data name="IndradioButtonFormat.ToolTip" xml:space="preserve"><value>텍스트 서식</value></data>
+  <data name="IndcbPreviewNotes.ToolTip" xml:space="preserve"><value>예배 순서 메모 보기</value></data>
+  <data name="btnToLive.ToolTip" xml:space="preserve"><value>송출로 보내고 송출 시작</value></data>
+  <data name="btnToOutputMoveNext.ToolTip" xml:space="preserve"><value>송출로 보내고 다음 예배 순서 항목 미리보기</value></data>
+  <data name="btnToOutput.ToolTip" xml:space="preserve"><value>송출로 보내기</value></data>
+  <data name="cbOutputBlack.ToolTip" xml:space="preserve"><value>검은 화면</value></data>
+  <data name="cbOutputClear.ToolTip" xml:space="preserve"><value>텍스트 숨기기</value></data>
+  <data name="cbGoLive.ToolTip" xml:space="preserve"><value>송출 시작</value></data>
+  <data name="OutputBtnLMSend.ToolTip" xml:space="preserve"><value>가사 모니터로 메시지 보내기</value></data>
+  <data name="OutputBtnLMClear.ToolTip" xml:space="preserve"><value>가사 모니터 메시지 지우기</value></data>
+  <data name="OutputBtnSlideDown.ToolTip" xml:space="preserve"><value>다음 슬라이드</value></data>
+  <data name="OutputBtnSlideUp.ToolTip" xml:space="preserve"><value>이전 슬라이드</value></data>
+  <data name="OutputBtnItemDown.ToolTip" xml:space="preserve"><value>다음 항목</value></data>
+  <data name="OutputBtnItemUp.ToolTip" xml:space="preserve"><value>이전 항목</value></data>
+  <data name="OutputBtnRefAlert.ToolTip" xml:space="preserve"><value>참조 알림 표시/중지</value></data>
+  <data name="OutputBtnMedia.ToolTip" xml:space="preserve"><value>미디어 일시 정지/다시 시작</value></data>
+  <data name="OutputBtnJumpToNonRotate.ToolTip" xml:space="preserve"><value>순환하지 않는 항목으로 이동</value></data>
+  <data name="DefApplyDefaultsBtn.ToolTip" xml:space="preserve"><value>공지 화면 항목을 제외한 예배 순서 전체에 기본값 적용</value></data>
+  <data name="PP_SortByNumber.Text" xml:space="preserve"><value>장 번호순</value></data>
+  <data name="PP_SortByTitle.Text" xml:space="preserve"><value>가나다순</value></data>
+  <data name="tabPowerpoint.Text" xml:space="preserve"><value>PPT</value></data>
+  <data name="RemoveDefaultBackground" xml:space="preserve"><value>기본 배경 '{0}' 제거</value></data>
+  <data name="NoDefaultBackground" xml:space="preserve"><value>기본 배경 없음</value></data>
+  <data name="VideoDebugOn" xml:space="preserve"><value>비디오 디버그 메시지를 켰습니다.</value></data>
+  <data name="VideoDebugOff" xml:space="preserve"><value>비디오 디버그 메시지를 껐습니다.</value></data>
+  <data name="EditItem" xml:space="preserve"><value>항목 편집</value></data>
+  <data name="Edit" xml:space="preserve"><value>편집</value></data>
+  <data name="ErrorNotice" xml:space="preserve"><value>오류({0}): {1} — {2} 파일을 확인하세요</value></data>
+  <data name="ErrorNoticeTip" xml:space="preserve"><value>{0} (클릭하면 숨겨집니다)</value></data>
+  <data name="StatusInfoScreens" xml:space="preserve"><value>공지 화면: {0}개 /</value></data>
+  <data name="StatusFolder" xml:space="preserve"><value>폴더: {0}</value></data>
+  <data name="StatusMedia" xml:space="preserve"><value>미디어: {0}개 /</value></data>
+  <data name="StatusVerses" xml:space="preserve"><value>표시된 절: {0} /</value></data>
+  <data name="StatusWorshipItem" xml:space="preserve"><value>예배 순서: {0}개 항목</value></data>
+  <data name="StatusWorshipItems" xml:space="preserve"><value>예배 순서: {0}개 항목</value></data>
+  <data name="StatusPraiseBookItem" xml:space="preserve"><value>찬양집: {0}개 항목</value></data>
+  <data name="StatusPraiseBookItems" xml:space="preserve"><value>찬양집: {0}개 항목</value></data>
+  <data name="SourceBible" xml:space="preserve"><value>성경</value></data>
+  <data name="SourceWorship" xml:space="preserve"><value>예배 순서</value></data>
+  <data name="SourcePraiseBook" xml:space="preserve"><value>찬양집</value></data>
+  <data name="StatusAdHocSlide" xml:space="preserve"><value>{0}{1}/{2} [임시]</value></data>
+  <data name="StatusGapBlack" xml:space="preserve"><value>(검은 화면 간격)</value></data>
+  <data name="StatusGapDefault" xml:space="preserve"><value>(기본 간격)</value></data>
+  <data name="StatusGapUser" xml:space="preserve"><value>(사용자 간격)</value></data>
+  <data name="AlternateKeys" xml:space="preserve"><value>대체 키보드 키 사용</value></data>
+  <data name="FolderCountOfOne" xml:space="preserve"><value>{0}/{1}개 항목 / </value></data>
+  <data name="FolderCountOf" xml:space="preserve"><value>{0}/{1}개 항목 / </value></data>
+  <data name="FolderCountNone" xml:space="preserve"><value>{0}개 항목 /</value></data>
+  <data name="FolderCount" xml:space="preserve"><value>{0}개 항목 / </value></data>
+  <data name="SearchResultsFolder" xml:space="preserve"><value>검색 결과:</value></data>
+  <data name="LivePowerPointNotStarted" xml:space="preserve"><value>PowerPoint: 시작 안 됨</value></data>
+  <data name="LivePowerPointNotRunning" xml:space="preserve"><value>PowerPoint: 실행 중 아님</value></data>
+  <data name="LiveShowOn" xml:space="preserve"><value>송출: 켜짐</value></data>
+  <data name="LiveShowOff" xml:space="preserve"><value>송출: 꺼짐</value></data>
+  <data name="LiveTextHidden" xml:space="preserve"><value>텍스트: 숨김</value></data>
+  <data name="LiveTextShown" xml:space="preserve"><value>텍스트: 표시</value></data>
+  <data name="LiveScreenBlack" xml:space="preserve"><value>화면: 검은 화면</value></data>
+  <data name="LiveScreenNormal" xml:space="preserve"><value>화면: 보통</value></data>
+  <data name="LiveGapItem" xml:space="preserve"><value>간격 항목</value></data>
+  <data name="TagLive" xml:space="preserve"><value>라이브</value></data>
+  <data name="TagOutput" xml:space="preserve"><value>송출</value></data>
+  <data name="TagPreview" xml:space="preserve"><value>미리보기</value></data>
+  <data name="TagSong" xml:space="preserve"><value>곡</value></data>
+  <data name="TagBible" xml:space="preserve"><value>성경</value></data>
+  <data name="TagText" xml:space="preserve"><value>텍스트</value></data>
+  <data name="TagInfo" xml:space="preserve"><value>공지</value></data>
+  <data name="TagDoc" xml:space="preserve"><value>문서</value></data>
+  <data name="TagMedia" xml:space="preserve"><value>미디어</value></data>
+  <data name="ToolbarNew" xml:space="preserve"><value>새로 만들기</value></data>
+  <data name="ToolbarEdit" xml:space="preserve"><value>편집</value></data>
+  <data name="ToolbarCopy" xml:space="preserve"><value>복사</value></data>
+  <data name="ToolbarMove" xml:space="preserve"><value>이동</value></data>
+  <data name="ToolbarDelete" xml:space="preserve"><value>삭제</value></data>
+  <data name="ToolbarMedia" xml:space="preserve"><value>미디어</value></data>
+  <data name="ToolbarRefresh" xml:space="preserve"><value>새로 고침</value></data>
+  <data name="ToolbarOptions" xml:space="preserve"><value>옵션</value></data>
+  <data name="TemplateFileFilter" xml:space="preserve"><value>Axicultus 템플릿 파일 (*.est)|*.est</value></data>
+  <data name="LoadSessionTemplate" xml:space="preserve"><value>템플릿에서 예배 순서 설정 불러오기</value></data>
+  <data name="SaveSessionTemplate" xml:space="preserve"><value>현재 예배 순서 설정을 템플릿으로 저장</value></data>
+  <data name="LoadIndividualTemplate" xml:space="preserve"><value>템플릿에서 개별 설정 불러오기</value></data>
+  <data name="SaveIndividualTemplate" xml:space="preserve"><value>현재 개별 설정을 템플릿으로 저장</value></data>
+  <data name="SaveFileFailed" xml:space="preserve"><value>파일을 저장하지 못했습니다. 쓰기 권한이 있는지 확인한 뒤 다시 시도하세요.</value></data>
+  <data name="MediaAsTitle" xml:space="preserve"><value>미디어: 제목과 같게</value></data>
+  <data name="MediaSpecific" xml:space="preserve"><value>미디어: 지정</value></data>
+  <data name="MediaLiveFeed" xml:space="preserve"><value>미디어: 라이브 영상</value></data>
+  <data name="MediaNone" xml:space="preserve"><value>미디어: 없음</value></data>
+  <data name="GroupScenery" xml:space="preserve"><value>풍경</value></data>
+  <data name="GroupTiles" xml:space="preserve"><value>타일</value></data>
+  <data name="GroupImages" xml:space="preserve"><value>이미지</value></data>
+  <data name="GroupInfoScreens" xml:space="preserve"><value>공지 화면 항목</value></data>
+  <data name="GroupPowerPoint" xml:space="preserve"><value>PowerPoint 항목</value></data>
+  <data name="GroupMedia" xml:space="preserve"><value>미디어 파일</value></data>
+  <data name="ItemNotFoundSuffix" xml:space="preserve"><value> &lt;오류 - 항목을 찾을 수 없음&gt;</value></data>
+  <data name="InfoTitle2" xml:space="preserve"><value>제목 2: {0}</value></data>
+  <data name="InfoImage" xml:space="preserve"><value>(이미지: {0})</value></data>
+  <data name="InfoMedia" xml:space="preserve"><value>(미디어: {0})</value></data>
+  <data name="InfoWriter" xml:space="preserve"><value>작사/작곡: {0}</value></data>
+  <data name="InfoCopyright" xml:space="preserve"><value>저작권: {0}</value></data>
+  <data name="InfoKey" xml:space="preserve"><value>조: {0} </value></data>
+  <data name="InfoCapo" xml:space="preserve"><value> 카포 {0} </value></data>
+  <data name="InfoBookRef" xml:space="preserve"><value>찬양집 참조: {0}</value></data>
+  <data name="InfoUserRef" xml:space="preserve"><value>사용자 참조: {0}</value></data>
+  <data name="PowerPointFileMissing" xml:space="preserve"><value>PowerPoint 파일 '{0}'을(를) 찾을 수 없습니다.</value></data>
+  <data name="PowerPointNotFound" xml:space="preserve"><value>PowerPoint 파일을 찾을 수 없습니다: {0}</value></data>
+  <data name="PowerPointNotFoundShowCopy" xml:space="preserve"><value>PowerPoint 파일을 찾을 수 없습니다: {0} (송출 시작 때 연 사본이 아직 열려 있으면 그 사본을 사용합니다)</value></data>
+  <data name="SortByTitle" xml:space="preserve"><value>제목순 정렬</value></data>
+  <data name="SortByWordCount" xml:space="preserve"><value>한중일 글자 수로 정렬</value></data>
+  <data name="SortBySongNumber" xml:space="preserve"><value>곡 번호순 정렬</value></data>
+  <data name="PraiseBookEmptyGenerate" xml:space="preserve"><value>찬양집 목록이 비어 있어 만들 수 없습니다.</value></data>
+  <data name="EditSessionNotes" xml:space="preserve"><value>예배 순서 메모 편집</value></data>
+  <data name="PraiseBookSongNotFound" xml:space="preserve"><value>선택한 찬양집 곡을 곡 데이터베이스에서 찾을 수 없습니다.</value></data>
+  <data name="SongAddedListNotSaved" xml:space="preserve"><value>곡은 추가했지만 예배 순서를 저장하지 못했습니다.</value></data>
+  <data name="SelectOnePraiseBookItemToEdit" xml:space="preserve"><value>편집할 항목을 찬양집 목록에서 하나만 선택하세요.</value></data>
+  <data name="WorshipListEmptyDocument" xml:space="preserve"><value>예배 순서가 비어 있어 가사 문서를 만들 수 없습니다.</value></data>
+  <data name="PraiseBookEmptyDocument" xml:space="preserve"><value>찬양집이 비어 있어 가사 문서를 만들 수 없습니다.</value></data>
+  <data name="WorshipItemNotMoved" xml:space="preserve"><value>예배 순서 항목을 옮기지 못했습니다. 목록은 바뀌지 않았습니다.</value></data>
+  <data name="WorshipListEmptyShow" xml:space="preserve"><value>예배 순서가 비어 있어 송출을 시작할 수 없습니다.</value></data>
+  <data name="SongNotInDatabase" xml:space="preserve"><value>데이터베이스에서 곡 '{0}'을(를) 찾을 수 없습니다.</value></data>
+  <data name="SongDeleted" xml:space="preserve"><value>데이터베이스 곡 '{0}'은(는) 삭제되어 표시할 수 없습니다.</value></data>
+  <data name="NoPowerPointApp" xml:space="preserve"><value>PowerPoint 파일 '{0}'에 연결된 프로그램이 없습니다.</value></data>
+  <data name="SelectFolderForIndex" xml:space="preserve"><value>데이터베이스 항목 색인을 만들 곡 폴더를 선택하세요.</value></data>
+  <data name="IndexDatabaseItemsOnly" xml:space="preserve"><value>선택한 폴더의 색인은 데이터베이스 항목만 만들 수 있습니다.</value></data>
+  <data name="SelectOneSongToPlay" xml:space="preserve"><value>재생할 항목을 곡 목록에서 하나만 선택하세요.</value></data>
+  <data name="NotAllSongsDeleted" xml:space="preserve"><value>오류가 발생해 일부 곡을 삭제하지 못했습니다. 나중에 다시 시도하세요.</value></data>
+  <data name="WorshipListAlreadyEmpty" xml:space="preserve"><value>예배 순서가 이미 비어 있습니다.</value></data>
+  <data name="NoWorshipListLoaded" xml:space="preserve"><value>불러온 예배 순서가 없습니다.</value></data>
+  <data name="SelectOneWorshipItemToEdit" xml:space="preserve"><value>편집할 항목을 예배 순서에서 하나만 선택하세요.</value></data>
+  <data name="SelectOneWorshipItemToPlay" xml:space="preserve"><value>재생할 항목을 예배 순서에서 하나만 선택하세요.</value></data>
+  <data name="MediaFileNotFound" xml:space="preserve"><value>미디어 파일 '{0}'을(를) 찾을 수 없습니다.</value></data>
+  <data name="MediaFileNotOpened" xml:space="preserve"><value>미디어 파일 '{0}'을(를) 열 수 없습니다.</value></data>
+  <data name="NoMediaForSong" xml:space="preserve"><value>'{0}'에 맞는 미디어 파일을 찾을 수 없습니다.</value></data>
+  <data name="ConfigureOutputMonitor" xml:space="preserve"><value>먼저 옵션에서 송출 모니터를 설정하세요.</value></data>
+  <data name="MediaPlayError" xml:space="preserve"><value>미디어를 재생하는 중 오류가 발생했습니다: {0}</value></data>
+  <data name="WorshipListNoItems" xml:space="preserve"><value>현재 예배 순서에 항목이 없습니다.</value></data>
+  <data name="UsagesWriteFailed" xml:space="preserve"><value>사용 기록 데이터베이스에 기록하지 못했습니다. Axicultuss를 다시 시작한 뒤 다시 시도하세요.</value></data>
+  <data name="UsageItemWriteFailed" xml:space="preserve"><value>항목 {0}을(를) 사용 기록 데이터베이스에 기록하지 못했습니다.</value></data>
+  <data name="NoDatabaseItemsOnList" xml:space="preserve"><value>예배 순서에 데이터베이스 항목이 없습니다.</value></data>
+  <data name="UsageAddedOne" xml:space="preserve"><value>완료했습니다. 데이터베이스 항목 {0}개를 사용 기록에 추가했습니다.</value></data>
+  <data name="UsageAddedMany" xml:space="preserve"><value>완료했습니다. 데이터베이스 항목 {0}개를 사용 기록에 추가했습니다.</value></data>
+  <data name="HelpFileMissing" xml:space="preserve"><value>도움말 파일을 찾을 수 없습니다. Axicultuss를 다시 설치하거나 복구해 도움말 파일을 설치하세요.</value></data>
+  <data name="HelpWebUnavailable" xml:space="preserve"><value>{0}에 접속할 수 없습니다. 인터넷 연결을 켠 뒤 다시 시도하세요.</value></data>
+  <data name="SelectOneSongToEdit" xml:space="preserve"><value>편집할 항목을 곡 목록에서 하나만 선택하세요.</value></data>
+  <data name="PowerPointNotInstalled" xml:space="preserve"><value>PowerPoint 문서를 편집할 수 없습니다. 이 컴퓨터에 PowerPoint가 설치되어 있지 않은 것 같습니다.</value></data>
+  <data name="PowerPointFileGone" xml:space="preserve"><value>PowerPoint 파일이 없습니다.</value></data>
+  <data name="NoTextEditor" xml:space="preserve"><value>텍스트 파일을 편집할 수 없습니다. 기본 텍스트 편집기를 지정한 뒤 다시 시도하세요.</value></data>
+  <data name="TextFileGone" xml:space="preserve"><value>텍스트 파일이 없습니다.</value></data>
+  <data name="WordNotInstalled" xml:space="preserve"><value>Word 문서를 편집할 수 없습니다. 이 컴퓨터에 Word가 설치되어 있지 않은 것 같습니다.</value></data>
+  <data name="WordFileGone" xml:space="preserve"><value>Word 문서가 없습니다.</value></data>
+  <data name="ListingTypeUnsupported" xml:space="preserve"><value>지원하는 목록 파일 형식이 아닙니다. 다시 시도해 올바른 파일 형식을 선택하세요.</value></data>
+  <data name="ListingFailed" xml:space="preserve"><value>목록 {0}을(를) 만들지 못했습니다. 문서가 사용 중일 수 있습니다.</value></data>
+  <data name="SelectOneInfoScreenToEdit" xml:space="preserve"><value>편집할 공지 화면을 하나만 선택하세요.</value></data>
+  <data name="SelectOnePowerPointToEdit" xml:space="preserve"><value>편집할 PowerPoint 파일을 하나만 선택하세요.</value></data>
+  <data name="ImageImportFailed" xml:space="preserve"><value>이미지 파일을 가져오지 못했습니다. 폴더에 같은 이름의 파일이 이미 있을 수 있습니다.</value></data>
+  <data name="InfoScreenImportFailed" xml:space="preserve"><value>공지 화면을 가져오지 못했습니다. 폴더에 같은 이름의 파일이 이미 있을 수 있습니다.</value></data>
+  <data name="PowerPointImportFailed" xml:space="preserve"><value>PowerPoint 파일을 가져오지 못했습니다. 폴더에 같은 이름의 파일이 이미 있을 수 있습니다.</value></data>
+  <data name="MediaImportFailed" xml:space="preserve"><value>미디어 파일을 가져오지 못했습니다. 폴더에 쓰기 권한이 있는지 확인하세요.</value></data>
+  <data name="OpenPowerPointFolder" xml:space="preserve"><value>PowerPoint 폴더 열기</value></data>
+  <data name="PowerPointViewAndSort" xml:space="preserve"><value>PowerPoint 보기 및 정렬</value></data>
+  <data name="ShowWindowError" xml:space="preserve"><value>송출 창: {0}</value></data>
+  <data name="TooManyPowerPoints" xml:space="preserve"><value>예배 순서에 PowerPoint 파일이 {0}개 있지만 최대 {1}개까지만 사용할 수 있습니다.</value></data>
+  <data name="DeleteSongConfirm" xml:space="preserve"><value>선택한 곡을 정말 삭제하시겠습니까?</value></data>
+  <data name="DeleteSongsConfirm" xml:space="preserve"><value>선택한 곡 {0}개를 정말 삭제하시겠습니까?</value></data>
+  <data name="DeleteSongsTitle" xml:space="preserve"><value>선택한 곡 삭제</value></data>
+  <data name="EmptyDeletedConfirm" xml:space="preserve"><value>삭제 폴더의 곡을 모두 영구히 지웁니다. 정말 계속하시겠습니까?</value></data>
+  <data name="EmptyDeletedTitle" xml:space="preserve"><value>곡 영구 삭제</value></data>
+  <data name="ClearWorshipListConfirm" xml:space="preserve"><value>예배 순서 '{0}'을(를) 정말 비우시겠습니까?&#10;&#10;현재 예배 순서는 휴지통으로 옮겨집니다.</value></data>
+  <data name="ClearWorshipListTitle" xml:space="preserve"><value>예배 순서 비우기</value></data>
+  <data name="MoveToTrashFailed" xml:space="preserve"><value>예배 순서를 휴지통으로 옮기지 못했습니다: {0}</value></data>
+  <data name="ErrorTitle" xml:space="preserve"><value>오류</value></data>
+  <data name="MediaLoadFailed" xml:space="preserve"><value>미디어 파일을 불러오지 못했습니다: {0}&#10;&#10;DirectShow가 설치되어 있는지, 지원하는 파일 형식인지 확인하세요.</value></data>
+  <data name="KindInfoScreens" xml:space="preserve"><value>공지 화면</value></data>
+  <data name="KindPowerPoints" xml:space="preserve"><value>PowerPoint 파일</value></data>
+  <data name="RecycleConfirm" xml:space="preserve"><value>선택한 {0}을(를) Windows 휴지통으로 삭제하시겠습니까?</value></data>
+  <data name="RecycleTitle" xml:space="preserve"><value>{0} 삭제</value></data>
+  <data name="ExternalFileFilter" xml:space="preserve"><value>사용할 수 있는 외부 파일 (*.ppt,*.pptx,*.doc,*.docx,*.txt,*.esi,*.esw,*.json)|*.ppt;*.pptx;*.doc;*.docx;*.txt;*.esi;*.esw;*.json|PowerPoint 파일 (*.ppt)|*.ppt|PowerPoint 파일 (*.pptx)|*.pptx|Word 문서 (*.doc)|*.doc|Word 문서 (*.docx)|*.docx|텍스트 파일 (*.txt)|*.txt|공지 화면 (*.esi)|*.esi|예배 순서 (*.esw;*.json)|*.esw;*.json</value></data>
+  <data name="MediaFilesFilter" xml:space="preserve"><value>미디어 파일 ({0})|{1}</value></data>
+  <data name="ListingFileFilter" xml:space="preserve"><value>서식 있는 텍스트 문서 (*.rtf)|*.rtf|탭으로 구분한 텍스트 파일 (*.txt)|*.txt</value></data>
+  <data name="ListingTitle" xml:space="preserve"><value>폴더 목록</value></data>
+  <data name="ImageFileFilter" xml:space="preserve"><value>이미지 ({0})|{1}</value></data>
+  <data name="ImportImageTitle" xml:space="preserve"><value>폴더로 이미지 가져오기: {0}</value></data>
+  <data name="InfoScreenFileFilter" xml:space="preserve"><value>공지 화면 (*.esi)|*.esi</value></data>
+  <data name="ImportInfoScreenTitle" xml:space="preserve"><value>폴더로 공지 화면 가져오기: {0}</value></data>
+  <data name="PowerPointFileFilter" xml:space="preserve"><value>PowerPoint 파일 (*.ppt)|*.ppt|PowerPoint 파일 (*.pptx)|*.pptx</value></data>
+  <data name="ImportPowerPointTitle" xml:space="preserve"><value>폴더로 PowerPoint 파일 가져오기: {0}</value></data>
+  <data name="ImportMediaTitle" xml:space="preserve"><value>폴더로 미디어 파일 가져오기: {0}</value></data>
+  <data name="JumpFolderTip" xml:space="preserve"><value>{0} 폴더</value></data>
+</root>

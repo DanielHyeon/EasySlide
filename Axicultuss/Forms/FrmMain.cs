@@ -13,6 +13,7 @@ using System.Linq;
 using System.Data;
 using System.Threading.Tasks;
 using Axicultus.Util;
+using Axicultus.Localization;
 using System.Threading;
 using Axicultus.SQLite;
 using Axicultus.Module;
@@ -53,6 +54,7 @@ public partial class FrmMain : Form
     public FrmMain()
     {
         InitializeComponent();
+        UiText.ApplyTo(this);
         ApplyMenuText();
         FormClosed += Form1_FormClosed;
         WatchFirstShown();
@@ -360,11 +362,11 @@ public partial class FrmMain : Form
         if (Gf.BackgroundPicture != "")
         {
             Def_NoImage.Enabled = true;
-            Def_NoImage.ToolTipText = "Remove Default Background '" + Gf.BackgroundPicture + "'";
+            Def_NoImage.ToolTipText = UiText.Format(nameof(FrmMain), "RemoveDefaultBackground", Gf.BackgroundPicture);
         }
         else
         {
-            Def_NoImage.ToolTipText = "No Default Background";
+            Def_NoImage.ToolTipText = UiText.Get(nameof(FrmMain), "NoDefaultBackground");
             Def_NoImage.Enabled = false;
         }
     }
@@ -734,7 +736,7 @@ public partial class FrmMain : Form
         else if (e.Control && e.Alt && e.KeyCode == Keys.V)
         {
             Gf.ShowDebugVideoMessages = !Gf.ShowDebugVideoMessages;
-            MessageBox.Show("Video Debug Message Turned " + (Gf.ShowDebugVideoMessages ? "On" : "Off"));
+            MessageBox.Show(Gf.ShowDebugVideoMessages ? UiText.Get(nameof(FrmMain), "VideoDebugOn") : UiText.Get(nameof(FrmMain), "VideoDebugOff"));
         }
         else
         {
@@ -759,7 +761,7 @@ public partial class FrmMain : Form
                 SongsListIndexChanged();
             }
             Gf.GetSelectedIndex(SongsList, ref OutString);
-            Gf.SetMenuItem(ref CMenuSongs_Edit, OutString, "Edit Item", "Edit", DisableWhenBlank: true);
+            Gf.SetMenuItem(ref CMenuSongs_Edit, OutString, UiText.Get(nameof(FrmMain), "EditItem"), UiText.Get(nameof(FrmMain), "Edit"), DisableWhenBlank: true);
             CMenuSongs.Show(SongsList, e.X, e.Y);
         }
         SongsList.Focus();
@@ -1388,7 +1390,7 @@ public partial class FrmMain : Form
             Point point = default(Point);
             point = WorshipListItems.PointToClient(Cursor.Position);
             Gf.GetSelectedIndex(WorshipListItems, ref OutString);
-            Gf.SetMenuItem(ref CMenuWorship_Edit, OutString, "Edit Item", "Edit", DisableWhenBlank: true);
+            Gf.SetMenuItem(ref CMenuWorship_Edit, OutString, UiText.Get(nameof(FrmMain), "EditItem"), UiText.Get(nameof(FrmMain), "Edit"), DisableWhenBlank: true);
             bool canPlayMedia = IsSelectedWorshipListMediaItem();
             CMenuWorship_Play.Enabled = canPlayMedia;
             CMenuWorship_PlayOnOutput.Enabled = canPlayMedia;
@@ -1622,7 +1624,7 @@ public partial class FrmMain : Form
             Point point = default(Point);
             point = PraiseBookItems.PointToClient(Cursor.Position);
             Gf.GetSelectedIndex(PraiseBookItems, ref OutString, "", 2);
-            Gf.SetMenuItem(ref CMenuPraiseB_Edit, OutString, "Edit Item", "Edit", DisableWhenBlank: true);
+            Gf.SetMenuItem(ref CMenuPraiseB_Edit, OutString, UiText.Get(nameof(FrmMain), "EditItem"), UiText.Get(nameof(FrmMain), "Edit"), DisableWhenBlank: true);
             CMenuPraiseB.Show(PraiseBookItems, point);
         }
         else
@@ -1640,7 +1642,7 @@ public partial class FrmMain : Form
         var song = connection == null ? null : SongQueries.FindPraiseBookSong(connection, id);
         if (song == null)
         {
-            ReportErrorNotice("Cannot find the selected Praise Book song in the song database.");
+            ReportErrorNotice(UiText.Get(nameof(FrmMain), "PraiseBookSongNotFound"));
             return;
         }
 
@@ -1654,7 +1656,7 @@ public partial class FrmMain : Form
         WorshipListItems.EnsureVisible(index);
         UpdateOutputCurItemNo();
         ShowStatusBarSummary();
-        if (!saved) ReportErrorNotice("Song added but the Worship List could not be saved.");
+        if (!saved) ReportErrorNotice(UiText.Get(nameof(FrmMain), "SongAddedListNotSaved"));
     }
 
     private void PraiseBookListIndexChanged()
@@ -1684,7 +1686,7 @@ public partial class FrmMain : Form
         }
         if (PraiseBookItems.SelectedItems.Count != 1)
         {
-            MessageBox.Show("Please select ONE item from the PraiseBook List to edit");
+            MessageBox.Show(UiText.Get(nameof(FrmMain), "SelectOnePraiseBookItemToEdit"));
             return;
         }
         string OutString = "PraiseBook List";
@@ -2078,7 +2080,7 @@ public partial class FrmMain : Form
     private void EditSessionNotes()
     {
         Gf.EditNotes = Gf.CurSessionNotes;
-        Gf.EditNotesHeading = "Edit Session Notes";
+        Gf.EditNotesHeading = UiText.Get(nameof(FrmMain), "EditSessionNotes");
         FrmEditNotes frmEditNotes = new();
         if (frmEditNotes.ShowDialog() == DialogResult.OK)
         {
@@ -2131,18 +2133,18 @@ public partial class FrmMain : Form
         }
         else
         {
-            MessageBox.Show("Can't Generate because the PraiseBook List is empty!");
+            MessageBox.Show(UiText.Get(nameof(FrmMain), "PraiseBookEmptyGenerate"));
         }
     }
 
     // ----- Folder sort menu (openspec change add-song-number-sort, design N3) -----
 
     /// <summary>The choices of the folder sort menu, in menu order.</summary>
-    private static readonly (SortBy Mode, string Text)[] FolderSortChoices =
+    private static (SortBy Mode, string Text)[] FolderSortChoices =>
     [
-        (SortBy.Alpha, "Sort by Title"),
-        (SortBy.WordCount, "Sort by CJK Word Count"),
-        (SortBy.Number, "Sort by Song Number"),
+        (SortBy.Alpha, UiText.Get(nameof(FrmMain), "SortByTitle")),
+        (SortBy.WordCount, UiText.Get(nameof(FrmMain), "SortByWordCount")),
+        (SortBy.Number, UiText.Get(nameof(FrmMain), "SortBySongNumber")),
     ];
 
     // Opened by Folders_WordCount; built once in InitFormControls (before ApplyModernUi, so the modern
@@ -2887,7 +2889,7 @@ public partial class FrmMain : Form
             Gf.TotalPraiseBookItems = WorshipListItems.Items.Count;
             return true;
         }
-        MessageBox.Show("Can't produce lyrics document because the Worship List is empty!");
+        MessageBox.Show(UiText.Get(nameof(FrmMain), "WorshipListEmptyDocument"));
         return false;
     }
 
@@ -2898,7 +2900,7 @@ public partial class FrmMain : Form
             ValidatePraiseBookItems();
             return true;
         }
-        MessageBox.Show("Can't produce lyrics document because the PraiseBook is empty!");
+        MessageBox.Show(UiText.Get(nameof(FrmMain), "PraiseBookEmptyDocument"));
         return false;
     }
 
@@ -3870,7 +3872,7 @@ public partial class FrmMain : Form
                 powerpointCount++;
             }
         }
-        string filter = "Valid External Files (*.ppt,*.pptx,*.doc,*.docx,*.txt,*.esi,*.esw,*.json)|*.ppt;*.pptx;*.doc;*.docx;*.txt;*.esi;*.esw;*.json|Powerpoint Files (*.ppt)|*.ppt|Powerpoint Files (*.pptx)|*.pptx|Word Documents (*.doc)|*.doc|Word Documents (*.docx)|*.docx|Text Files (*.txt)|*.txt|InfoScreens (*.esi)|*.esi|Worship Lists (*.esw;*.json)|*.esw;*.json";
+        string filter = UiText.Get(nameof(FrmMain), "ExternalFileFilter");
         if (Gf.MediaFileExtensions.Count > 0)
         {
             string mediaLabel = "";
@@ -3886,7 +3888,7 @@ public partial class FrmMain : Form
                 mediaLabel += "*" + ext;
                 mediaPattern += "*" + ext;
             }
-            filter += "|Media Files (" + mediaLabel + ")|" + mediaPattern;
+            filter += "|" + UiText.Format(nameof(FrmMain), "MediaFilesFilter", mediaLabel, mediaPattern);
         }
         openFileDialog1.Filter = filter;
         openFileDialog1.InitialDirectory = Gf.DocumentsDir;
@@ -4503,7 +4505,7 @@ public partial class FrmMain : Form
                 }
             }
             WriteDebugLogThrottled("MoveSelectedWorshipListRows", ex);
-            ReportErrorNotice("The worship list item could not be moved; the list is unchanged");
+            ReportErrorNotice(UiText.Get(nameof(FrmMain), "WorshipItemNotMoved"));
             return;
         }
         RemoveWorshipListSong(UpdateCurItemNo: false);
@@ -4635,7 +4637,7 @@ public partial class FrmMain : Form
             if (Gf.OutputItem.ItemID == "")
             {
                 GoLive(InStatus: false);
-                MessageBox.Show("Can't start the Show because the Worship List is empty!");
+                MessageBox.Show(UiText.Get(nameof(FrmMain), "WorshipListEmptyShow"));
                 return;
             }
         }
@@ -4792,7 +4794,7 @@ public partial class FrmMain : Form
             if (Gf.OutputItem.ItemID == "")
             {
                 GoLive(InStatus: false);
-                MessageBox.Show("Can't start the Show because the Worship List is empty!");
+                MessageBox.Show(UiText.Get(nameof(FrmMain), "WorshipListEmptyShow"));
                 return;
             }
         }
@@ -5039,7 +5041,7 @@ public partial class FrmMain : Form
                 {
                     if (ShowErrorMessage)
                     {
-                        MessageBox.Show(this, "Sorry - Can't find the song '" + Gf.RemoveMusicSym(title) + "' in the Database!");
+                        MessageBox.Show(this, UiText.Format(nameof(FrmMain), "SongNotInDatabase", Gf.RemoveMusicSym(title)));
                     }
                     return i;
                 }
@@ -5047,7 +5049,7 @@ public partial class FrmMain : Form
                 {
                     if (ShowErrorMessage)
                     {
-                        MessageBox.Show(this, "Sorry - Can't show the Database song '" + Gf.RemoveMusicSym(title) + "' because it has been deleted!");
+                        MessageBox.Show(this, UiText.Format(nameof(FrmMain), "SongDeleted", Gf.RemoveMusicSym(title)));
                     }
                     return i;
                 }
@@ -5059,14 +5061,14 @@ public partial class FrmMain : Form
                 {
                     if (ShowErrorMessage)
                     {
-                        MessageBox.Show(this, "Sorry - Can't find the Powerpoint File '" + Gf.RemoveMusicSym(title) + "'");
+                        MessageBox.Show(this, UiText.Format(nameof(FrmMain), "PowerPointFileMissing", Gf.RemoveMusicSym(title)));
                     }
                     return i;
                 }
                 if (checkedPowerPointExtensions.Add(Path.GetExtension(powerpointPath)) && !Gf.HasAssociatedExecutable(powerpointPath))
                 {
                     if (ShowErrorMessage)
-                        MessageBox.Show(this, "No application is associated with the PowerPoint file '" + Gf.RemoveMusicSym(title) + "'.");
+                        MessageBox.Show(this, UiText.Format(nameof(FrmMain), "NoPowerPointApp", Gf.RemoveMusicSym(title)));
                     return i;
                 }
                 powerpointCount++;
@@ -5121,7 +5123,7 @@ public partial class FrmMain : Form
         Gf.TotalWorshipListItems = WorshipListItems.Items.Count;
         if (powerpointCount > Gf.PP_MaxFiles)
         {
-            string maxFilesMessage = "Error - There are " + powerpointCount + " Powerpoint files on the Worship List but you are only permitted to have " + Gf.PP_MaxFiles + ".";
+            string maxFilesMessage = UiText.Format(nameof(FrmMain), "TooManyPowerPoints", powerpointCount, Gf.PP_MaxFiles);
             if (ShowErrorMessage)
             {
                 MessageBox.Show(this, maxFilesMessage);
@@ -5239,12 +5241,12 @@ public partial class FrmMain : Form
             }
             else
             {
-                MessageBox.Show("Please select the Song Folder for which you want an index of the database items.");
+                MessageBox.Show(UiText.Get(nameof(FrmMain), "SelectFolderForIndex"));
             }
         }
         else
         {
-            MessageBox.Show("Index of Selected Folder are for Database Items only!");
+            MessageBox.Show(UiText.Get(nameof(FrmMain), "IndexDatabaseItemsOnly"));
         }
     }
 
@@ -5590,7 +5592,7 @@ public partial class FrmMain : Form
         string prompt = "";
         if (Gf.SelectedItemsCount == 1)
         {
-            prompt = "Are you really sure you want to delete the selected song?";
+            prompt = UiText.Get(nameof(FrmMain), "DeleteSongConfirm");
         }
         else
         {
@@ -5598,9 +5600,9 @@ public partial class FrmMain : Form
             {
                 return;
             }
-            prompt = "Are you really sure you want to delete the " + Convert.ToString(Gf.SelectedItemsCount) + " songs you have selected?";
+            prompt = UiText.Format(nameof(FrmMain), "DeleteSongsConfirm", Gf.SelectedItemsCount);
         }
-        if (MessageBox.Show(prompt, "Delete Selected Song(s)", MessageBoxButtons.YesNo) != DialogResult.Yes)
+        if (MessageBox.Show(prompt, UiText.Get(nameof(FrmMain), "DeleteSongsTitle"), MessageBoxButtons.YesNo) != DialogResult.Yes)
         {
             return;
         }
@@ -5855,15 +5857,15 @@ public partial class FrmMain : Form
         }
         if (!toolTipA.Contains(folderWord, StringComparison.OrdinalIgnoreCase))
         {
-            toolTipA = (Gf.Folders[Gf.JumpToA]?.Name ?? "") + " Folder";
+            toolTipA = UiText.Format(nameof(FrmMain), "JumpFolderTip", Gf.Folders[Gf.JumpToA]?.Name ?? "");
         }
         if (!toolTipB.Contains(folderWord, StringComparison.OrdinalIgnoreCase))
         {
-            toolTipB = (Gf.Folders[Gf.JumpToB]?.Name ?? "") + " Folder";
+            toolTipB = UiText.Format(nameof(FrmMain), "JumpFolderTip", Gf.Folders[Gf.JumpToB]?.Name ?? "");
         }
         if (!toolTipC.Contains(folderWord, StringComparison.OrdinalIgnoreCase))
         {
-            toolTipC = (Gf.Folders[Gf.JumpToC]?.Name ?? "") + " Folder";
+            toolTipC = UiText.Format(nameof(FrmMain), "JumpFolderTip", Gf.Folders[Gf.JumpToC]?.Name ?? "");
         }
         Main_JumpA.Text = labelA;
         Main_JumpA.ToolTipText = toolTipA;
@@ -6079,7 +6081,7 @@ public partial class FrmMain : Form
                     }
                     if (selectedCount != 1)
                     {
-                        MessageBox.Show("Please select ONE item from the Songs List to play");
+                        MessageBox.Show(UiText.Get(nameof(FrmMain), "SelectOneSongToPlay"));
                         break;
                     }
                     songTitle = Gf.RemoveMusicSym(SongsList.Items[index].Text);
@@ -6189,12 +6191,12 @@ public partial class FrmMain : Form
 
     private void Menu_Empty_Click(object sender, EventArgs e)
     {
-        if (MessageBox.Show("This will permanently remove all the songs in the Deleted Folder - Are you really sure?", "Permanent Delete Song(s)", MessageBoxButtons.YesNo) == DialogResult.Yes)
+        if (MessageBox.Show(UiText.Get(nameof(FrmMain), "EmptyDeletedConfirm"), UiText.Get(nameof(FrmMain), "EmptyDeletedTitle"), MessageBoxButtons.YesNo) == DialogResult.Yes)
         {
             Cursor = Cursors.WaitCursor;
             if (!Gf.EmptyDelFolder())
             {
-                MessageBox.Show("Error encountered - Not all the songs were deleted. Please try again later.");
+                MessageBox.Show(UiText.Get(nameof(FrmMain), "NotAllSongsDeleted"));
             }
             Cursor = Cursors.Default;
         }
@@ -6286,9 +6288,9 @@ public partial class FrmMain : Form
             Gf.FindFolderItems = false;
             tabControlSource.SelectedIndex = GetTabIndex(tabControlSource, "tabFolders");
             ImplementFolderChange = false;
-            if (SongFolder.Text != "Search Results:")
+            if (SongFolder.Text != SongSearchResultsFolder)
             {
-                SongFolder.Items.Add("Search Results:");
+                SongFolder.Items.Add(SongSearchResultsFolder);
             }
             SongFolder.SelectedIndex = SongFolder.Items.Count - 1;
             ImplementFolderChange = true;
@@ -6455,20 +6457,20 @@ public partial class FrmMain : Form
     {
         if (WorshipListItems.Items.Count == 0)
         {
-            MessageBox.Show("Worship list is already empty.");
+            MessageBox.Show(UiText.Get(nameof(FrmMain), "WorshipListAlreadyEmpty"));
             return;
         }
 
         string currentSession = Gf.CurSession;
         if (string.IsNullOrEmpty(currentSession))
         {
-            MessageBox.Show("No worship list is currently loaded.");
+            MessageBox.Show(UiText.Get(nameof(FrmMain), "NoWorshipListLoaded"));
             return;
         }
 
         DialogResult result = MessageBox.Show(
-            "Really clear the worship list '" + currentSession + "'?\n\nThe current worship list will be moved to trash.",
-            "Clear Worship List",
+            UiText.Format(nameof(FrmMain), "ClearWorshipListConfirm", currentSession),
+            UiText.Get(nameof(FrmMain), "ClearWorshipListTitle"),
             MessageBoxButtons.YesNo,
             MessageBoxIcon.Question);
 
@@ -6502,7 +6504,7 @@ public partial class FrmMain : Form
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error moving worship list to trash: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(UiText.Format(nameof(FrmMain), "MoveToTrashFailed", ex.Message), UiText.Get(nameof(FrmMain), "ErrorTitle"), MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }
@@ -6520,7 +6522,7 @@ public partial class FrmMain : Form
         }
         if (WorshipListItems.SelectedItems.Count != 1)
         {
-            MessageBox.Show("Please select ONE item from the Worship List to edit");
+            MessageBox.Show(UiText.Get(nameof(FrmMain), "SelectOneWorshipItemToEdit"));
             return;
         }
         string OutString = "Worship List";
@@ -6575,7 +6577,7 @@ public partial class FrmMain : Form
         }
         if (selectedCount != 1)
         {
-            MessageBox.Show("Please select ONE item from the Worship List to play");
+            MessageBox.Show(UiText.Get(nameof(FrmMain), "SelectOneWorshipItemToPlay"));
             return;
         }
         string songTitle = Gf.RemoveMusicSym(WorshipListItems.Items[index].Text);
@@ -6586,12 +6588,12 @@ public partial class FrmMain : Form
         {
             if (string.IsNullOrWhiteSpace(idValue) || !File.Exists(idValue))
             {
-                MessageBox.Show("Sorry, cannot find the media file '" + idValue + "'.");
+                MessageBox.Show(UiText.Format(nameof(FrmMain), "MediaFileNotFound", idValue));
                 return;
             }
             if (!Gf.RunProcess(idValue))
             {
-                MessageBox.Show("Sorry, cannot open the media file '" + idValue + "'.");
+                MessageBox.Show(UiText.Format(nameof(FrmMain), "MediaFileNotOpened", idValue));
             }
             return;
         }
@@ -6635,7 +6637,7 @@ public partial class FrmMain : Form
 
         if (selectedCount != 1)
         {
-            MessageBox.Show("Please select ONE item from the Worship List to play");
+            MessageBox.Show(UiText.Get(nameof(FrmMain), "SelectOneWorshipItemToPlay"));
             return;
         }
 
@@ -6648,7 +6650,7 @@ public partial class FrmMain : Form
         {
             if (string.IsNullOrWhiteSpace(idValue) || !File.Exists(idValue))
             {
-                MessageBox.Show("Sorry, cannot find the media file '" + idValue + "'.");
+                MessageBox.Show(UiText.Format(nameof(FrmMain), "MediaFileNotFound", idValue));
                 return;
             }
 
@@ -6671,7 +6673,7 @@ public partial class FrmMain : Form
         }
         else
         {
-            MessageBox.Show("Sorry, cannot find any media file for '" + songTitle + "'");
+            MessageBox.Show(UiText.Format(nameof(FrmMain), "NoMediaForSong", songTitle));
         }
     }
 
@@ -6685,7 +6687,7 @@ public partial class FrmMain : Form
         var output = DisplayInfo.ResolveLaunchDisplays().Output;
         if (!output.Enabled)
         {
-            MessageBox.Show("Please configure Output Monitor in Options first.");
+            MessageBox.Show(UiText.Get(nameof(FrmMain), "ConfigureOutputMonitor"));
             return;
         }
 
@@ -6738,7 +6740,7 @@ public partial class FrmMain : Form
             int result = _mediaPlayerWindow.PlayStandaloneFile(mediaFilePath);
             if (result == 0)
             {
-                MessageBox.Show("Failed to load media file: " + mediaFilePath + "\n\nPlease check if DirectShow is installed and the file format is supported.");
+                MessageBox.Show(UiText.Format(nameof(FrmMain), "MediaLoadFailed", mediaFilePath));
             }
             else
             {
@@ -6750,7 +6752,7 @@ public partial class FrmMain : Form
         }
         catch (Exception ex)
         {
-            MessageBox.Show("Error playing media: " + ex.Message);
+            MessageBox.Show(UiText.Format(nameof(FrmMain), "MediaPlayError", ex.Message));
         }
     }
 
@@ -6898,7 +6900,7 @@ public partial class FrmMain : Form
     {
         if (WorshipListItems.Items.Count == 0)
         {
-            MessageBox.Show("There are no items on the current Worship List");
+            MessageBox.Show(UiText.Get(nameof(FrmMain), "WorshipListNoItems"));
             return;
         }
         int addedCount = 0;
@@ -6941,11 +6943,11 @@ public partial class FrmMain : Form
             insertAttempted = true;
             if (itemNo < 1)
             {
-                MessageBox.Show("Error writing usages details to the Usages Database. Please re-start Axicultuss and try again.");
+                MessageBox.Show(UiText.Get(nameof(FrmMain), "UsagesWriteFailed"));
             }
             else
             {
-                MessageBox.Show("Error writing Item " + itemNo + " to Usages Database.");
+                MessageBox.Show(UiText.Format(nameof(FrmMain), "UsageItemWriteFailed", itemNo));
             }
         }
         switch (addedCount)
@@ -6953,14 +6955,14 @@ public partial class FrmMain : Form
             case 0:
                 if (!insertAttempted)
                 {
-                    MessageBox.Show("There are no Database Items on the Worship List!");
+                    MessageBox.Show(UiText.Get(nameof(FrmMain), "NoDatabaseItemsOnList"));
                 }
                 break;
             case 1:
-                MessageBox.Show("Done. Detail of " + Convert.ToString(addedCount) + " Database Item was added to Usages record.");
+                MessageBox.Show(UiText.Format(nameof(FrmMain), "UsageAddedOne", addedCount));
                 break;
             default:
-                MessageBox.Show("Done. Details of " + Convert.ToString(addedCount) + " Database Items were added to the Usages record.");
+                MessageBox.Show(UiText.Format(nameof(FrmMain), "UsageAddedMany", addedCount));
                 break;
         }
     }
@@ -6975,7 +6977,7 @@ public partial class FrmMain : Form
     {
         if (!Gf.RunProcess(Gf.HelpFile_Location))
         {
-            MessageBox.Show("Cannot find the Help File - please Reinstall/Repair Axicultuss to install the Help Files.");
+            MessageBox.Show(UiText.Get(nameof(FrmMain), "HelpFileMissing"));
         }
     }
 
@@ -6983,7 +6985,7 @@ public partial class FrmMain : Form
     {
         if (!Gf.RunProcess("http://www.easislides.com/help"))
         {
-            MessageBox.Show("Error - Cannot access www.EasiSlides.com. Please enable your internet connection and then try again.");
+            MessageBox.Show(UiText.Format(nameof(FrmMain), "HelpWebUnavailable", "www.EasiSlides.com"));
         }
     }
 
@@ -7022,7 +7024,7 @@ public partial class FrmMain : Form
         }
         if (SongsList.SelectedItems.Count != 1)
         {
-            MessageBox.Show("Please select ONE item from the Songs List to edit.");
+            MessageBox.Show(UiText.Get(nameof(FrmMain), "SelectOneSongToEdit"));
             return;
         }
         string OutString = "Songs List";
@@ -7083,12 +7085,12 @@ public partial class FrmMain : Form
             {
                 if (!Gf.RunProcess(idValue))
                 {
-                    MessageBox.Show("Cannot edit Powerpoint document!  It appears Powerpoint is not installed on this machine.");
+                    MessageBox.Show(UiText.Get(nameof(FrmMain), "PowerPointNotInstalled"));
                 }
             }
             else
             {
-                MessageBox.Show("The Powerpoint File is missing!");
+                MessageBox.Show(UiText.Get(nameof(FrmMain), "PowerPointFileGone"));
             }
             return "";
         }
@@ -7113,12 +7115,12 @@ public partial class FrmMain : Form
             {
                 if (!Gf.RunProcess(idValue))
                 {
-                    MessageBox.Show("Cannot edit text file! Please set a default text editor and try again.");
+                    MessageBox.Show(UiText.Get(nameof(FrmMain), "NoTextEditor"));
                 }
             }
             else
             {
-                MessageBox.Show("The Text File is missing!");
+                MessageBox.Show(UiText.Get(nameof(FrmMain), "TextFileGone"));
             }
         }
         else if (typeSymbol == "I")
@@ -7139,12 +7141,12 @@ public partial class FrmMain : Form
             {
                 if (!Gf.RunProcess(idValue))
                 {
-                    MessageBox.Show("Cannot edit Word document!  It appears Microsoft Word is not installed on this machine.");
+                    MessageBox.Show(UiText.Get(nameof(FrmMain), "WordNotInstalled"));
                 }
             }
             else
             {
-                MessageBox.Show("The Word Document is missing!");
+                MessageBox.Show(UiText.Get(nameof(FrmMain), "WordFileGone"));
             }
         }
         else if (typeSymbol == "M")
@@ -7540,7 +7542,7 @@ public partial class FrmMain : Form
         }
         else if (fileName != "")
         {
-            MessageBox.Show("You haven't specified a supported Listing File Type.  Please retry and select a proper file type");
+            MessageBox.Show(UiText.Get(nameof(FrmMain), "ListingTypeUnsupported"));
         }
     }
 
@@ -7578,7 +7580,7 @@ public partial class FrmMain : Form
             {
                 //streamWriter.Flush();
                 //streamWriter.Close();
-                MessageBox.Show("Error generating listing " + OutputFileName + ". Document might be in use.");
+                MessageBox.Show(UiText.Format(nameof(FrmMain), "ListingFailed", OutputFileName));
             }
         }
         catch
@@ -7667,8 +7669,8 @@ public partial class FrmMain : Form
 
     private string SaveListingOfFolder(ref string InFileName, ref string InitDirectory)
     {
-        saveFileDialog1.Filter = "Rich Text Document (*.rtf)|*.rtf|Tab delimted Text File (*.txt)|*.txt";
-        saveFileDialog1.Title = "Listing of Folder";
+        saveFileDialog1.Filter = UiText.Get(nameof(FrmMain), "ListingFileFilter");
+        saveFileDialog1.Title = UiText.Get(nameof(FrmMain), "ListingTitle");
         saveFileDialog1.InitialDirectory = InitDirectory;
         saveFileDialog1.OverwritePrompt = true;
         saveFileDialog1.AddExtension = true;
@@ -7814,7 +7816,7 @@ public partial class FrmMain : Form
     {
         // Logged in full once, repeats only counted (Remote_GetMediaTimings runs every 600 ms).
         WriteDebugLogThrottled(where, ex);
-        ShowErrorNotice("Show window: " + ex.Message);
+        ShowErrorNotice(UiText.Format(nameof(FrmMain), "ShowWindowError", ex.Message));
     }
 
     private void InfoScreenFolder_SelectedIndexChanged(object sender, EventArgs e)
@@ -7975,7 +7977,7 @@ public partial class FrmMain : Form
             }
             else
             {
-                MessageBox.Show("Please select ONE InfoScreen to edit");
+                MessageBox.Show(UiText.Get(nameof(FrmMain), "SelectOneInfoScreenToEdit"));
             }
         }
     }
@@ -8105,7 +8107,7 @@ public partial class FrmMain : Form
         string itemKind = "";
         if (InFileSymbol == "I")
         {
-            itemKind = "InfoScreen(s)";
+            itemKind = UiText.Get(nameof(FrmMain), "KindInfoScreens");
         }
         else
         {
@@ -8113,9 +8115,9 @@ public partial class FrmMain : Form
             {
                 return;
             }
-            itemKind = "Powerpint File(s)";
+            itemKind = UiText.Get(nameof(FrmMain), "KindPowerPoints");
         }
-        if (MessageBox.Show("Delete Selected " + itemKind + " to Windows Recycle Bin?", "Delete " + itemKind, MessageBoxButtons.YesNo) != DialogResult.Yes)
+        if (MessageBox.Show(UiText.Format(nameof(FrmMain), "RecycleConfirm", itemKind), UiText.Format(nameof(FrmMain), "RecycleTitle", itemKind), MessageBoxButtons.YesNo) != DialogResult.Yes)
         {
             return;
         }
@@ -8254,7 +8256,7 @@ public partial class FrmMain : Form
     private void PowerpointStyle_Changed(bool RebuildPowerpointFolders)
     {
         UpdatePowerPointSortMenu();
-        PP_OpenFolder.ToolTipText = "Open Powerpoint Folder";
+        PP_OpenFolder.ToolTipText = UiText.Get(nameof(FrmMain), "OpenPowerPointFolder");
         if (Gf.PowerpointListingStyle == 0)
         {
             PowerpointList.Visible = true;
@@ -8279,7 +8281,7 @@ public partial class FrmMain : Form
     {
         PP_SortByNumber.Checked = Gf.PowerPointSourceOrder == PowerPointSortOrder.HymnNumber;
         PP_SortByTitle.Checked = Gf.PowerPointSourceOrder == PowerPointSortOrder.Title;
-        PP_ListType.ToolTipText = "PowerPoint 보기 및 정렬";
+        PP_ListType.ToolTipText = UiText.Get(nameof(FrmMain), "PowerPointViewAndSort");
     }
 
     private void PP_Edit_Clicked()
@@ -8292,7 +8294,7 @@ public partial class FrmMain : Form
             }
             else
             {
-                MessageBox.Show("Please select ONE Powerpoint file to edit");
+                MessageBox.Show(UiText.Get(nameof(FrmMain), "SelectOnePowerPointToEdit"));
             }
         }
     }
@@ -8600,8 +8602,8 @@ public partial class FrmMain : Form
     private void Image_Import_Click(object sender, EventArgs e)
     {
         string folderPath = Gf.PictureGroups[ImagesFolder.SelectedIndex].Path;
-        openFileDialog1.Filter = "Images (*.jpg,*jpeg,*.bmp,*.gif,*.ico)|*.jpg;*jpeg;*.bmp;*.gif;*.ico";
-        openFileDialog1.Title = "Import An Image into folder: " + ImagesFolder.Text;
+        openFileDialog1.Filter = UiText.Format(nameof(FrmMain), "ImageFileFilter", "*.jpg,*jpeg,*.bmp,*.gif,*.ico", "*.jpg;*jpeg;*.bmp;*.gif;*.ico");
+        openFileDialog1.Title = UiText.Format(nameof(FrmMain), "ImportImageTitle", ImagesFolder.Text);
         if (openFileDialog1.ShowDialog() == DialogResult.OK)
         {
             string fileName = openFileDialog1.FileName;
@@ -8612,7 +8614,7 @@ public partial class FrmMain : Form
             }
             catch
             {
-                MessageBox.Show("Image File could not be imported. This is possibly because there is already a file with the same name in the folder.");
+                MessageBox.Show(UiText.Get(nameof(FrmMain), "ImageImportFailed"));
             }
         }
     }
@@ -8620,8 +8622,8 @@ public partial class FrmMain : Form
     private void InfoScreen_Import_Click(object sender, EventArgs e)
     {
         string folderPath = Gf.InfoScreenGroups[InfoScreenFolder.SelectedIndex].Path;
-        openFileDialog1.Filter = "InfoScreens (*.esi)|*.esi";
-        openFileDialog1.Title = "Import An InfoScreen into folder: " + InfoScreenFolder.Text;
+        openFileDialog1.Filter = UiText.Get(nameof(FrmMain), "InfoScreenFileFilter");
+        openFileDialog1.Title = UiText.Format(nameof(FrmMain), "ImportInfoScreenTitle", InfoScreenFolder.Text);
         if (openFileDialog1.ShowDialog() == DialogResult.OK)
         {
             string fileName = openFileDialog1.FileName;
@@ -8648,7 +8650,7 @@ public partial class FrmMain : Form
             }
             catch
             {
-                MessageBox.Show("InfoScreen could not be imported. This is possibly because there is already a file with the same name in the folder.");
+                MessageBox.Show(UiText.Get(nameof(FrmMain), "InfoScreenImportFailed"));
             }
         }
     }
@@ -8658,8 +8660,8 @@ public partial class FrmMain : Form
         string folderPath = Gf.PowerpointGroups[PowerpointFolder.SelectedIndex].Path;
         //openFileDialog1.Filter = "Powerpoint Files (*.ppt)|*.ppt";
 
-        openFileDialog1.Filter = "Powerpoint Files (*.ppt)|*.ppt|Powerpoint Files (*.pptx)|*.pptx";
-        openFileDialog1.Title = "Import a Powerpoint File into folder: " + PowerpointFolder.Text;
+        openFileDialog1.Filter = UiText.Get(nameof(FrmMain), "PowerPointFileFilter");
+        openFileDialog1.Title = UiText.Format(nameof(FrmMain), "ImportPowerPointTitle", PowerpointFolder.Text);
         if (openFileDialog1.ShowDialog() == DialogResult.OK)
         {
             string fileName = openFileDialog1.FileName;
@@ -8690,7 +8692,7 @@ public partial class FrmMain : Form
             }
             catch
             {
-                MessageBox.Show("Powerpoint File could not be imported. This is possibly because there is already a file with the same name in the folder.");
+                MessageBox.Show(UiText.Get(nameof(FrmMain), "PowerPointImportFailed"));
             }
         }
     }
@@ -8698,16 +8700,16 @@ public partial class FrmMain : Form
     private void Media_Import_Click(object sender, EventArgs e)
     {
         string folderPath = Gf.MediaGroups[MediaFolder.SelectedIndex].Path;
-        string filterLabel = (Gf.MediaFileExtensions.Count > 0) ? "Media Files (" : "";
-        string filterPattern = (Gf.MediaFileExtensions.Count > 0) ? ")|" : "";
+        string filterLabel = "";
+        string filterPattern = "";
         for (int i = 0; i < Gf.MediaFileExtensions.Count; i++)
         {
             filterLabel = filterLabel + ((i > 0) ? "," : "") + "*" + Gf.MediaFileExtensions[i].Extension.ToLower();
             filterPattern = filterPattern + ((i > 0) ? ";" : "") + "*" + Gf.MediaFileExtensions[i].Extension.ToLower();
         }
-        string filter = filterLabel + filterPattern;
+        string filter = (Gf.MediaFileExtensions.Count > 0) ? UiText.Format(nameof(FrmMain), "MediaFilesFilter", filterLabel, filterPattern) : "";
         openFileDialog1.Filter = filter;
-        openFileDialog1.Title = "Import A Media File into folder: " + MediaFolder.Text;
+        openFileDialog1.Title = UiText.Format(nameof(FrmMain), "ImportMediaTitle", MediaFolder.Text);
         if (openFileDialog1.ShowDialog() == DialogResult.OK)
         {
             string fileName = openFileDialog1.FileName;
@@ -8734,7 +8736,7 @@ public partial class FrmMain : Form
             }
             catch
             {
-                MessageBox.Show("Media File could not be imported. Please check you have write access to the folder");
+                MessageBox.Show(UiText.Get(nameof(FrmMain), "MediaImportFailed"));
             }
         }
     }

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="ProfileLoadFailed" xml:space="preserve"><value>Could not load the user settings. Check the settings file and its access permissions.&#10;&#10;{0}</value></data>
+  <data name="ProfileLoadFailedTitle" xml:space="preserve"><value>Axicultuss — Settings migration</value></data>
+  <data name="StartupError" xml:space="preserve"><value>An error occurred while Axicultuss was starting:&#10;&#10;{0}&#10;&#10;See {1} for details.</value></data>
+</root>
