@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>  <data name="tabPageMainWindow.Text" xml:space="preserve"><value>Main Window</value></data>
+  <data name="groupBox24.Text" xml:space="preserve"><value>Other Settings</value></data>
+  <data name="checkBoxLMBox.Text" xml:space="preserve"><value>Show Lyrics Monitor Alert Box</value></data>
+  <data name="groupBox12.Text" xml:space="preserve"><value>Jump To Folder Icons</value></data>
+  <data name="groupBox22.Text" xml:space="preserve"><value>Powerpoint</value></data>
+  <data name="checkBoxPPTab.Text" xml:space="preserve"><value>Show Powerpoint Tab</value></data>
+  <data name="label3.Text" xml:space="preserve"><value>Max Powerpoint Files allowed:</value></data>
+  <data name="groupBox7.Text" xml:space="preserve"><value>Preview Text Areas</value></data>
+  <data name="btnTextRegionSlideBackColour.Text" xml:space="preserve"><value>Selected Back</value></data>
+  <data name="btnTextRegionSlideTextColour.Text" xml:space="preserve"><value>Selected Colour</value></data>
+  <data name="btnTextRegionChangeColour.Text" xml:space="preserve"><value>Focused Colour</value></data>
+  <data name="label37.Text" xml:space="preserve"><value>Font Size</value></data>
+  <data name="TextRegionUseColour.Text" xml:space="preserve"><value>Use Focused Colour</value></data>
+  <data name="cbPreviewShowNotations.Text" xml:space="preserve"><value>Show Notations</value></data>
+  <data name="cbLineBetweenScreens.Text" xml:space="preserve"><value>Line between Screens</value></data>
+  <data name="groupBox6.Text" xml:space="preserve"><value>Media Files</value></data>
+  <data name="checkBoxMediaTab.Text" xml:space="preserve"><value>Show Media Tab</value></data>
+  <data name="MusicLocationBtn.ToolTipText" xml:space="preserve"><value>Change Location</value></data>
+  <data name="groupBox1.Text" xml:space="preserve"><value>Maximum Setting</value></data>
+  <data name="label4.Text" xml:space="preserve"><value>Max Edit History items listed:</value></data>
+  <data name="label2.Text" xml:space="preserve"><value>Max Bible Search Selection:</value></data>
+  <data name="label1.Text" xml:space="preserve"><value>Max Bible Verses Selection:</value></data>
+  <data name="tabPageShow.Text" xml:space="preserve"><value>Show</value></data>
+  <data name="label58.Text" xml:space="preserve"><value>** Applicable in Dual Monitor Only</value></data>
+  <data name="groupBox5.Text" xml:space="preserve"><value>Other Settings</value></data>
+  <data name="cbDisableScreenSaver.Text" xml:space="preserve"><value>Disable Screen Saver during Show</value></data>
+  <data name="cbAdvanceNextItem.Text" xml:space="preserve"><value>Advance Next Item</value></data>
+  <data name="checkBoxMediaNoPanel.Text" xml:space="preserve"><value>No Panel Overlay For Media **</value></data>
+  <data name="checkBoxPPNoPanel.Text" xml:space="preserve"><value>No Panel Overlay For Powerpoint **</value></data>
+  <data name="groupBox3.Text" xml:space="preserve"><value>Gap between items</value></data>
+  <data name="cbGapItemUseFade.Text" xml:space="preserve"><value>Use Fade Transition</value></data>
+  <data name="GapLogoLocationBtn.ToolTipText" xml:space="preserve"><value>Lookup Logo File</value></data>
+  <data name="rbGapItemOption1.Text" xml:space="preserve"><value>Black Screen</value></data>
+  <data name="rbGapItemOption0.Text" xml:space="preserve"><value>No Gap</value></data>
+  <data name="rbGapItemOption2.Text" xml:space="preserve"><value>Default Session Background</value></data>
+  <data name="groupBox2.Text" xml:space="preserve"><value>Video Background</value></data>
+  <data name="label51.Text" xml:space="preserve"><value>Align:</value></data>
+  <data name="Video_VAlign.ToolTipText" xml:space="preserve"><value>Vertical Alignment</value></data>
+  <data name="Video_VAlignTop.Text" xml:space="preserve"><value>Align Top</value></data>
+  <data name="Video_VAlignCentre.Text" xml:space="preserve"><value>Align Centre</value></data>
+  <data name="Video_VAlignBottom.Text" xml:space="preserve"><value>Align Bottom</value></data>
+  <data name="label14.Text" xml:space="preserve"><value>Size:</value></data>
+  <data name="label50.Text" xml:space="preserve"><value>Video Size</value></data>
+  <data name="groupBox4.Text" xml:space="preserve"><value>Text Settings</value></data>
+  <data name="label54.Text" xml:space="preserve"><value>Size of Notations to Folder Font (%):</value></data>
+  <data name="cbWordWrapLeftAlignIndent.Text" xml:space="preserve"><value>Indent Word Wrapped Text</value></data>
+  <data name="cbLineBetweenRegions.Text" xml:space="preserve"><value>Line between Regions</value></data>
+  <data name="cbUseLargestFont.Text" xml:space="preserve"><value>Use Largest Font</value></data>
+  <data name="cbAutoTextOverflow.Text" xml:space="preserve"><value>Auto Text Overflow</value></data>
+  <data name="cbFitTextFileParagraphs.Text" xml:space="preserve"><value>Fit each text file paragraph on one slide</value></data>
+  <data name="tabPageMonitors.Text" xml:space="preserve"><value>Monitors</value></data>
+  <data name="groupBox23.Text" xml:space="preserve"><value>Live Cam Settings</value></data>
+  <data name="checkBoxLiveCamNoPanel.Text" xml:space="preserve"><value>No Panel Overlay For Live Cam **</value></data>
+  <data name="label53.Text" xml:space="preserve"><value>Min</value></data>
+  <data name="cbWidescreen.Text" xml:space="preserve"><value>WideScreen</value></data>
+  <data name="cbMute.Text" xml:space="preserve"><value>Mute</value></data>
+  <data name="label52.Text" xml:space="preserve"><value>Max</value></data>
+  <data name="groupBoxLM.Text" xml:space="preserve"><value>Lyrics Monitor</value></data>
+  <data name="cbLMBroadcast.Text" xml:space="preserve"><value>Broadcast Lyrics</value></data>
+  <data name="btnLMHighlightColour.Text" xml:space="preserve"><value>Selected Colour</value></data>
+  <data name="btnLMBackColour.Text" xml:space="preserve"><value>Back Colour</value></data>
+  <data name="btnLMTextColour.Text" xml:space="preserve"><value>Text Colour</value></data>
+  <data name="label23.Text" xml:space="preserve"><value>Top:</value></data>
+  <data name="label26.Text" xml:space="preserve"><value>Left:</value></data>
+  <data name="LM_AlwaysUse.Text" xml:space="preserve"><value>Use another monitor if unavailable</value></data>
+  <data name="LyricsMonitor_Info.ToolTipText" xml:space="preserve"><value>Monitor Info</value></data>
+  <data name="optLM1.Text" xml:space="preserve"><value>Custom:</value></data>
+  <data name="label25.Text" xml:space="preserve"><value>Height:</value></data>
+  <data name="label48.Text" xml:space="preserve"><value>Width:</value></data>
+  <data name="label9.Text" xml:space="preserve"><value>Size:</value></data>
+  <data name="cbLMShowNotations.Text" xml:space="preserve"><value>Show Notations</value></data>
+  <data name="label49.Text" xml:space="preserve"><value>Main Font Size:</value></data>
+  <data name="groupBoxDM.Text" xml:space="preserve"><value>Live Output Monitor</value></data>
+  <data name="optWide.Text" xml:space="preserve"><value>wide(16:9)</value></data>
+  <data name="optStandard.Text" xml:space="preserve"><value>standard(4:3)</value></data>
+  <data name="DM_CustomAsSingleMonitor.Text" xml:space="preserve"><value>Act as Single Monitor Mode</value></data>
+  <data name="label44.Text" xml:space="preserve"><value>Top:</value></data>
+  <data name="optDM1.Text" xml:space="preserve"><value>Custom:</value></data>
+  <data name="Monitor_Info.ToolTipText" xml:space="preserve"><value>Monitor Info</value></data>
+  <data name="DM_AlwaysUseSecondaryMonitor.Text" xml:space="preserve"><value>Prefer a secondary monitor</value></data>
+  <data name="label46.Text" xml:space="preserve"><value>Height:</value></data>
+  <data name="label43.Text" xml:space="preserve"><value>Left:</value></data>
+  <data name="label45.Text" xml:space="preserve"><value>Width:</value></data>
+  <data name="tabPageAlerts.Text" xml:space="preserve"><value>Alerts</value></data>
+  <data name="groupBox8.Text" xml:space="preserve"><value>Display Reference On New Item</value></data>
+  <data name="groupBox11.Text" xml:space="preserve"><value>Pick &amp;&amp; Substitute</value></data>
+  <data name="cbPickBlank.Text" xml:space="preserve"><value>Blank if not found</value></data>
+  <data name="cbPick.Text" xml:space="preserve"><value>Enable</value></data>
+  <data name="label42.Text" xml:space="preserve"><value>Substitute:</value></data>
+  <data name="label24.Text" xml:space="preserve"><value>Pick:</value></data>
+  <data name="groupBox9.Text" xml:space="preserve"><value>Select Reference</value></data>
+  <data name="Reference_Source1.Text" xml:space="preserve"><value>Song Title</value></data>
+  <data name="Reference_Source2.Text" xml:space="preserve"><value>Song Number</value></data>
+  <data name="Reference_Source0.Text" xml:space="preserve"><value>No Reference</value></data>
+  <data name="Reference_Source3.Text" xml:space="preserve"><value>Book Reference</value></data>
+  <data name="Reference_Source4.Text" xml:space="preserve"><value>User Reference</value></data>
+  <data name="btnReferenceChangeBackColour.Text" xml:space="preserve"><value>Back Colour</value></data>
+  <data name="btnReferenceChangeTextColour.Text" xml:space="preserve"><value>Text Colour</value></data>
+  <data name="Reference_Scroll.ToolTipText" xml:space="preserve"><value>Scroll</value></data>
+  <data name="Reference_Flash.ToolTipText" xml:space="preserve"><value>Flash</value></data>
+  <data name="Reference_Transparent.ToolTipText" xml:space="preserve"><value>Transparent</value></data>
+  <data name="Reference_AlignLeft.Text" xml:space="preserve"><value>Align Left</value></data>
+  <data name="Reference_AlignCentre.Text" xml:space="preserve"><value>Align Centre</value></data>
+  <data name="Reference_AlignRight.Text" xml:space="preserve"><value>Align Right</value></data>
+  <data name="Reference_VAlign.ToolTipText" xml:space="preserve"><value>Vertical Alignment</value></data>
+  <data name="Reference_VAlignTop.Text" xml:space="preserve"><value>Align Top</value></data>
+  <data name="Reference_VAlignCentre.Text" xml:space="preserve"><value>Align Near-Bottom</value></data>
+  <data name="Reference_VAlignBottom.Text" xml:space="preserve"><value>Align Bottom</value></data>
+  <data name="label38.Text" xml:space="preserve"><value>Font Name:</value></data>
+  <data name="label40.Text" xml:space="preserve"><value>Font Size Max:</value></data>
+  <data name="label41.Text" xml:space="preserve"><value>Duration (secs):</value></data>
+  <data name="groupBox16.Text" xml:space="preserve"><value>Parental Alert</value></data>
+  <data name="btnParentalChangeBackColour.Text" xml:space="preserve"><value>Back Colour</value></data>
+  <data name="btnParentalChangeTextColour.Text" xml:space="preserve"><value>Text Colour</value></data>
+  <data name="label30.Text" xml:space="preserve"><value>Optional Prefix:</value></data>
+  <data name="Parental_Scroll.ToolTipText" xml:space="preserve"><value>Scroll</value></data>
+  <data name="Parental_Flash.ToolTipText" xml:space="preserve"><value>Flash</value></data>
+  <data name="Parental_Transparent.ToolTipText" xml:space="preserve"><value>Transparent</value></data>
+  <data name="Parental_AlignLeft.Text" xml:space="preserve"><value>Align Left</value></data>
+  <data name="Parental_AlignCentre.Text" xml:space="preserve"><value>Align Centre</value></data>
+  <data name="Parental_AlignRight.Text" xml:space="preserve"><value>Align Right</value></data>
+  <data name="Parental_VAlign.Text" xml:space="preserve"><value>Align Bottom</value></data>
+  <data name="Parental_VAlign.ToolTipText" xml:space="preserve"><value>Alert At Bottom of Screen</value></data>
+  <data name="Parental_VAlignTop.Text" xml:space="preserve"><value>Align Top</value></data>
+  <data name="Parental_VAlignBottom.Text" xml:space="preserve"><value>Align Bottom</value></data>
+  <data name="label27.Text" xml:space="preserve"><value>Font Name:</value></data>
+  <data name="label28.Text" xml:space="preserve"><value>Font Size Max:</value></data>
+  <data name="label29.Text" xml:space="preserve"><value>Duration (secs):</value></data>
+  <data name="groupBox15.Text" xml:space="preserve"><value>Message Alert</value></data>
+  <data name="btnMessageChangeBackColour.Text" xml:space="preserve"><value>Back Colour</value></data>
+  <data name="btnMessageChangeTextColour.Text" xml:space="preserve"><value>Text Colour</value></data>
+  <data name="Message_Scroll.ToolTipText" xml:space="preserve"><value>Scroll</value></data>
+  <data name="Message_Flash.ToolTipText" xml:space="preserve"><value>Flash</value></data>
+  <data name="Message_Transparent.ToolTipText" xml:space="preserve"><value>Transparent</value></data>
+  <data name="Message_AlignLeft.Text" xml:space="preserve"><value>Align Left</value></data>
+  <data name="Message_AlignCentre.Text" xml:space="preserve"><value>Align Centre</value></data>
+  <data name="Message_AlignRight.Text" xml:space="preserve"><value>Align Right</value></data>
+  <data name="Message_VAlign.Text" xml:space="preserve"><value>Align Bottom</value></data>
+  <data name="Message_VAlignTop.Text" xml:space="preserve"><value>Align Top</value></data>
+  <data name="Message_VAlignBottom.Text" xml:space="preserve"><value>Align Bottom</value></data>
+  <data name="label21.Text" xml:space="preserve"><value>Font Name:</value></data>
+  <data name="label22.Text" xml:space="preserve"><value>Font Size Max:</value></data>
+  <data name="label20.Text" xml:space="preserve"><value>Duration (secs):</value></data>
+  <data name="tabPageFolders.Text" xml:space="preserve"><value>Folders</value></data>
+  <data name="SelectedFolderGroupBox.Text" xml:space="preserve"><value>Settings for the English Folder</value></data>
+  <data name="groupBox14.Text" xml:space="preserve"><value>Reg. 1-2 Line Spacing</value></data>
+  <data name="groupBox13.Text" xml:space="preserve"><value>Headings Text</value></data>
+  <data name="label47.Text" xml:space="preserve"><value>Chorus:</value></data>
+  <data name="label13.Text" xml:space="preserve"><value>Ending:</value></data>
+  <data name="label12.Text" xml:space="preserve"><value>Bridge:</value></data>
+  <data name="label11.Text" xml:space="preserve"><value>PreChr:</value></data>
+  <data name="GroupBoxFont1.Text" xml:space="preserve"><value>Region 2 Font</value></data>
+  <data name="ToolBarFont_R2Italics0.Text" xml:space="preserve"><value>No Italics</value></data>
+  <data name="ToolBarFont_R2Italics1.Text" xml:space="preserve"><value>Italics</value></data>
+  <data name="ToolBarFont_R2Italics2.Text" xml:space="preserve"><value>Chorus Italics Only</value></data>
+  <data name="ToolBarFont_R2RTL.ToolTipText" xml:space="preserve"><value>Right-To-Left</value></data>
+  <data name="GroupBoxFont0.Text" xml:space="preserve"><value>Region 1 Font</value></data>
+  <data name="ToolBarFont_R1Italics0.Text" xml:space="preserve"><value>No Italics</value></data>
+  <data name="ToolBarFont_R1Italics1.Text" xml:space="preserve"><value>Italics</value></data>
+  <data name="ToolBarFont_R1Italics2.Text" xml:space="preserve"><value>Chorus Italics Only</value></data>
+  <data name="ToolBarFont_R1RTL.ToolTipText" xml:space="preserve"><value>Right-To-Left</value></data>
+  <data name="groupBox10.Text" xml:space="preserve"><value>Region Positions</value></data>
+  <data name="labelPreviewCentreBottom.Text" xml:space="preserve"><value>Region 2 Top</value></data>
+  <data name="labelPreviewCentreTop.Text" xml:space="preserve"><value>Region 1 Top</value></data>
+  <data name="label15.Text" xml:space="preserve"><value>Left - Right</value></data>
+  <data name="GroupBoxHeadings.Text" xml:space="preserve"><value>Headings Font for the Selected Folder</value></data>
+  <data name="HeadingsFont_Italics0.Text" xml:space="preserve"><value>No Italics</value></data>
+  <data name="HeadingsFont_Italics1.Text" xml:space="preserve"><value>Italics</value></data>
+  <data name="HeadingsFont_Italics2.Text" xml:space="preserve"><value>Chorus Italics Only</value></data>
+  <data name="label6.Text" xml:space="preserve"><value>Headings Size (% Region 1):</value></data>
+  <data name="label8.Text" xml:space="preserve"><value>Formatting:</value></data>
+  <data name="GroupBoxFolder.Text" xml:space="preserve"><value>Select Folder to Update</value></data>
+  <data name="SongFolder_Rename.Text" xml:space="preserve"><value>Rename</value></data>
+  <data name="cbFolderUse.Text" xml:space="preserve"><value>Use Folder</value></data>
+  <data name="tabPageBibles.Text" xml:space="preserve"><value>Bibles</value></data>
+  <data name="groupBox19.Text" xml:space="preserve"><value>Add Holy Bibles</value></data>
+  <data name="label32.Text" xml:space="preserve"><value>Click Search to list Bibles in the Axicultus Holy Bible Folder.  If Bibles are listed, select and click Add to use them in Axicultuss.</value></data>
+  <data name="btnBibleAdd.Text" xml:space="preserve"><value>Add</value></data>
+  <data name="btnBibleSearch.Text" xml:space="preserve"><value>Search</value></data>
+  <data name="columnHeader12.Text" xml:space="preserve"><value>Name</value></data>
+  <data name="columnHeader13.Text" xml:space="preserve"><value>Description</value></data>
+  <data name="columnHeader14.Text" xml:space="preserve"><value>File Name</value></data>
+  <data name="groupBox17.Text" xml:space="preserve"><value>Current Holy Bibles in Axicultuss</value></data>
+  <data name="btnBibleRemove.Text" xml:space="preserve"><value>Remove</value></data>
+  <data name="btnBibleNameChange.Text" xml:space="preserve"><value>Rename</value></data>
+  <data name="Bibles_Info.ToolTipText" xml:space="preserve"><value>Bible Info</value></data>
+  <data name="Bibles_Up.ToolTipText" xml:space="preserve"><value>Move Item Up</value></data>
+  <data name="Bibles_Down.ToolTipText" xml:space="preserve"><value>Move Item Down</value></data>
+  <data name="groupBox18.Text" xml:space="preserve"><value>Use Song Folder Settings</value></data>
+  <data name="label31.Text" xml:space="preserve"><value>Font Size (%):</value></data>
+  <data name="columnHeader4.Text" xml:space="preserve"><value>Name</value></data>
+  <data name="columnHeader5.Text" xml:space="preserve"><value>Description</value></data>
+  <data name="columnHeader6.Text" xml:space="preserve"><value>File Name</value></data>
+  <data name="columnHeader8.Text" xml:space="preserve"><value>Song Folder</value></data>
+  <data name="columnHeader9.Text" xml:space="preserve"><value>Size</value></data>
+  <data name="tabPageLicence.Text" xml:space="preserve"><value>Licence</value></data>
+  <data name="groupBox20.Text" xml:space="preserve"><value>Licence Administration Details</value></data>
+  <data name="cbEnforceDisplay.Text" xml:space="preserve"><value>Enforce Display of Copyright on First Showing</value></data>
+  <data name="AdminLicPreview2.Text" xml:space="preserve"><value>Public Domain</value></data>
+  <data name="label36.Text" xml:space="preserve"><value>How it will appear on Screen</value></data>
+  <data name="AdminLicNo2.Text" xml:space="preserve"><value>Blank</value></data>
+  <data name="AdminLicNo1.Text" xml:space="preserve"><value>Blank</value></data>
+  <data name="label35.Text" xml:space="preserve"><value>Licence Number</value></data>
+  <data name="AdminLic2.Text" xml:space="preserve"><value>Public Domain</value></data>
+  <data name="AdminLic1.Text" xml:space="preserve"><value>None</value></data>
+  <data name="label33.Text" xml:space="preserve"><value>Administrator</value></data>
+  <data name="label34.Text" xml:space="preserve"><value>Number Symbol:</value></data>
+  <data name="tabPageKeyboard.Text" xml:space="preserve"><value>Keyboard</value></data>
+  <data name="ChkGlobalHookF7.Text" xml:space="preserve"><value>F7 (turn off Black Output)</value></data>
+  <data name="ChkGlobalHookF8.Text" xml:space="preserve"><value>F8 (no control Output)</value></data>
+  <data name="ChkGlobalHookCtrlArrow.Text" xml:space="preserve"><value>OutputView_CtrlArrowKeys</value></data>
+  <data name="ChkGlobalHookArrow.Text" xml:space="preserve"><value>OutputView_ArrowKeys</value></data>
+  <data name="label60.Text" xml:space="preserve"><value>CopyPreviewToOutput</value></data>
+  <data name="groupBox21.Text" xml:space="preserve"><value>Keyboard Mapping during Show and in Preview.Output Areas</value></data>
+  <data name="kbSelect16.Text" xml:space="preserve"><value>Page Down / Space Bar</value></data>
+  <data name="kbSelect07.Text" xml:space="preserve"><value>Right Arrow</value></data>
+  <data name="kbSelect15.Text" xml:space="preserve"><value>Page Up</value></data>
+  <data name="kbSelect06.Text" xml:space="preserve"><value>Down Arrow / Space Bar</value></data>
+  <data name="kbSelect05.Text" xml:space="preserve"><value>Up Arrow</value></data>
+  <data name="kbSelect13.Text" xml:space="preserve"><value>Right Arrow</value></data>
+  <data name="kbSelect04.Text" xml:space="preserve"><value>Left Arrow</value></data>
+  <data name="kbSelect12.Text" xml:space="preserve"><value>Down Arrow</value></data>
+  <data name="kbSelect11.Text" xml:space="preserve"><value>Up Arrow</value></data>
+  <data name="kbSelect02.Text" xml:space="preserve"><value>Page down</value></data>
+  <data name="kbSelect01.Text" xml:space="preserve"><value>Page Up</value></data>
+  <data name="kbSelect10.Text" xml:space="preserve"><value>Left Arrow</value></data>
+  <data name="rbKeyBoardOpt1.Text" xml:space="preserve"><value>Alternative</value></data>
+  <data name="rbKeyBoardOpt0.Text" xml:space="preserve"><value>Default</value></data>
+  <data name="kbAction7.Text" xml:space="preserve"><value>Last Slide</value></data>
+  <data name="kbAction6.Text" xml:space="preserve"><value>Next Slide</value></data>
+  <data name="kbAction5.Text" xml:space="preserve"><value>Previous Slide</value></data>
+  <data name="kbAction4.Text" xml:space="preserve"><value>First Slide</value></data>
+  <data name="kbAction3.Text" xml:space="preserve"><value>Last Item</value></data>
+  <data name="kbAction2.Text" xml:space="preserve"><value>Next Item</value></data>
+  <data name="kbAction1.Text" xml:space="preserve"><value>Previous Item</value></data>
+  <data name="kbAction0.Text" xml:space="preserve"><value>First Item</value></data>
+  <data name="label39.Text" xml:space="preserve"><value>Action:</value></data>
+  <data name="label59.Text" xml:space="preserve"><value>SlideUpDown</value></data>
+  <data name="label57.Text" xml:space="preserve"><value>Black Screen</value></data>
+  <data name="BtnCancel.Text" xml:space="preserve"><value>Cancel</value></data>
+  <data name="BtnOK.Text" xml:space="preserve"><value>OK</value></data>
+  <data name="$this.Text" xml:space="preserve"><value>Options</value></data>
+  <data name="ChoosePowerPointFolder" xml:space="preserve"><value>Choose PowerPoint source folder</value></data>
+  <data name="ChooseMediaFolder" xml:space="preserve"><value>Choose audio and video source folder</value></data>
+  <data name="BibleListSaveFailed" xml:space="preserve"><value>Could not save the Bible list</value></data>
+  <data name="FolderSettings" xml:space="preserve"><value>Settings for the {0} Folder</value></data>
+  <data name="NoFolderSettings" xml:space="preserve"><value>Settings for the above selected folder Folder</value></data>
+  <data name="FolderNameTaken" xml:space="preserve"><value>There is already another folder with the same name! Please try a different name.</value></data>
+  <data name="BibleNotFound" xml:space="preserve"><value>** Cannot find Bible - please check Filename!</value></data>
+  <data name="NoBiblesToAdd" xml:space="preserve"><value>There are no Bibles to add - try clicking the 'Search' button first</value></data>
+  <data name="SelectBibleToAdd" xml:space="preserve"><value>Please select a Bible from the list to Add!</value></data>
+  <data name="NoBiblesToRemove" xml:space="preserve"><value>There are no Bibles to remove!</value></data>
+  <data name="SelectBibleToRemove" xml:space="preserve"><value>Please select a Bible from the list to Remove</value></data>
+  <data name="ReopenToReloadBibles" xml:space="preserve"><value>Reopen Options to reload the Bible list before saving.</value></data>
+  <data name="NoOutputMonitor" xml:space="preserve"><value>No Output Monitor</value></data>
+  <data name="NoLyricsMonitor" xml:space="preserve"><value>No Lyrics Monitor</value></data>
+  <data name="MonitorInfo" xml:space="preserve"><value>{0}
+Top:	{1}
+Left:	{2}
+Width:	{3}
+Height:	{4}</value></data>
+  <data name="MediaFolderDescription" xml:space="preserve"><value>Select Folder where media files for the lyrics are held</value></data>
+  <data name="ImageFilter" xml:space="preserve"><value>Image Files (*.jpg,*.jpeg,*.bmp,*.gif,*.ico)|*.jpg;*.jpeg;*.bmp;*.gif;*.ico</value></data>
+  <data name="HeadingRegion1Only" xml:space="preserve"><value>Use Region 1 settings only</value></data>
+  <data name="HeadingRegion1PlusFormatting" xml:space="preserve"><value>Use Region 1 plus formatting below</value></data>
+  <data name="HeadingFormattingOnly" xml:space="preserve"><value>Use only formatting below</value></data>
+</root>

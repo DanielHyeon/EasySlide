@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>  <data name="Main_New.ToolTipText" xml:space="preserve"><value>New Item</value></data>
+  <data name="Main_Save.ToolTipText" xml:space="preserve"><value>Save Item</value></data>
+  <data name="Main_SaveExit.ToolTipText" xml:space="preserve"><value>Save and Exit</value></data>
+  <data name="Main_Import.ToolTipText" xml:space="preserve"><value>Import Word/Text File</value></data>
+  <data name="Main_WordWrap.ToolTipText" xml:space="preserve"><value>Word Wrap</value></data>
+  <data name="Main_ChordsMenu.ToolTipText" xml:space="preserve"><value>Right Click Chords Menu</value></data>
+  <data name="Main_TransposeDown.ToolTipText" xml:space="preserve"><value>Transpose Chord Down</value></data>
+  <data name="Main_TransposeUp.ToolTipText" xml:space="preserve"><value>Transpose Chord Up</value></data>
+  <data name="ComboFontName.Text" xml:space="preserve"><value>Font Name</value></data>
+  <data name="ComboFontName.ToolTipText" xml:space="preserve"><value>Font Name</value></data>
+  <data name="ComboMainFontSize.ToolTipText" xml:space="preserve"><value>Font Size</value></data>
+  <data name="ComboNotationFontSize.ToolTipText" xml:space="preserve"><value>Notation Size</value></data>
+  <data name="toolStripStatusLabel1.Text" xml:space="preserve"><value>Database Item</value></data>
+  <data name="Title2_LookUp.ToolTipText" xml:space="preserve"><value>Look Up Title</value></data>
+  <data name="label1.Text" xml:space="preserve"><value>Folder:</value></data>
+  <data name="label2.Text" xml:space="preserve"><value>Title:</value></data>
+  <data name="label3.Text" xml:space="preserve"><value>Title2:</value></data>
+  <data name="label4.Text" xml:space="preserve"><value>Writer:</value></data>
+  <data name="label11.Text" xml:space="preserve"><value>Key:</value></data>
+  <data name="label12.Text" xml:space="preserve"><value>Timing:</value></data>
+  <data name="label8.Text" xml:space="preserve"><value>Book Ref:</value></data>
+  <data name="label7.Text" xml:space="preserve"><value>Song No.:</value></data>
+  <data name="label6.Text" xml:space="preserve"><value>Capo:</value></data>
+  <data name="label9.Text" xml:space="preserve"><value>User Ref:</value></data>
+  <data name="label10.Text" xml:space="preserve"><value>Admin 1:</value></data>
+  <data name="label16.Text" xml:space="preserve"><value>Verses</value></data>
+  <data name="label17.Text" xml:space="preserve"><value>Sequence</value></data>
+  <data name="Verses_Add.ToolTipText" xml:space="preserve"><value>Add</value></data>
+  <data name="Verses_SmartAdd.ToolTipText" xml:space="preserve"><value>Smart Add</value></data>
+  <data name="OrderList_Up.ToolTipText" xml:space="preserve"><value>Move Item Up</value></data>
+  <data name="OrderList_Down.ToolTipText" xml:space="preserve"><value>Move Item Down</value></data>
+  <data name="OrderList_Delete.ToolTipText" xml:space="preserve"><value>Delete</value></data>
+  <data name="CMRegion1_Copy.Text" xml:space="preserve"><value>Copy</value></data>
+  <data name="CMRegion1_Paste.Text" xml:space="preserve"><value>Paste</value></data>
+  <data name="LabeltbLyrics.Text" xml:space="preserve"><value>Lyrics (Region 1)</value></data>
+  <data name="R1VerseFormat.Text" xml:space="preserve"><value>Format</value></data>
+  <data name="tabRight_Region2.Text" xml:space="preserve"><value>Region 2</value></data>
+  <data name="CMRegion2_Copy.Text" xml:space="preserve"><value>Copy</value></data>
+  <data name="CMRegion2_Paste.Text" xml:space="preserve"><value>Paste</value></data>
+  <data name="LabeltbLyrics2.Text" xml:space="preserve"><value>Additional lyrics</value></data>
+  <data name="R2VerseFormat.Text" xml:space="preserve"><value>Format</value></data>
+  <data name="tabRight_Rotate.Text" xml:space="preserve"><value>Timing and media</value></data>
+  <data name="label23.Text" xml:space="preserve"><value>Verses</value></data>
+  <data name="label24.Text" xml:space="preserve"><value>Sequence</value></data>
+  <data name="Rotate_Verses_Add.ToolTipText" xml:space="preserve"><value>Add</value></data>
+  <data name="Rotate_Verses_SmartAdd.ToolTipText" xml:space="preserve"><value>Smart Add</value></data>
+  <data name="Rotate_OrderList_Up.ToolTipText" xml:space="preserve"><value>Move Item Up</value></data>
+  <data name="Rotate_OrderList_Down.ToolTipText" xml:space="preserve"><value>Move Item Down</value></data>
+  <data name="Rotate_OrderList_Delete.ToolTipText" xml:space="preserve"><value>Delete</value></data>
+  <data name="labelDur.Text" xml:space="preserve"><value>Length:</value></data>
+  <data name="LabelMediaType.Text" xml:space="preserve"><value>None</value></data>
+  <data name="labelMed.Text" xml:space="preserve"><value>Media:</value></data>
+  <data name="label14.Text" xml:space="preserve"><value>to view / listen to Media Backgrounds.</value></data>
+  <data name="labelNoPlayer1.Text" xml:space="preserve"><value>Please install</value></data>
+  <data name="labelNoPlayer2.Text" xml:space="preserve"><value>Windows Media Player 10 or DirectX 9</value></data>
+  <data name="labelPos.Text" xml:space="preserve"><value>Position:</value></data>
+  <data name="Rotate_LocationBtn.ToolTipText" xml:space="preserve"><value>Media File Location</value></data>
+  <data name="StopBtn.Text" xml:space="preserve"><value>Stop</value></data>
+  <data name="PlayPauseBtn.Text" xml:space="preserve"><value>Play</value></data>
+  <data name="labelVol.Text" xml:space="preserve"><value>Volume</value></data>
+  <data name="btnClearMediaPositions.Text" xml:space="preserve"><value>Clear All Timings</value></data>
+  <data name="label21.Text" xml:space="preserve"><value>Sequence/Start mm:ss</value></data>
+  <data name="label19.Text" xml:space="preserve"><value>Length:</value></data>
+  <data name="Rotate_Equal.Text" xml:space="preserve"><value>Simple:</value></data>
+  <data name="Rotate_Multiple.Text" xml:space="preserve"><value>Sequence:</value></data>
+  <data name="Menu_MainFile.Text" xml:space="preserve"><value>&amp;File</value></data>
+  <data name="Menu_New.Text" xml:space="preserve"><value>&amp;New</value></data>
+  <data name="Menu_Save.Text" xml:space="preserve"><value>&amp;Save</value></data>
+  <data name="Menu_SaveExit.Text" xml:space="preserve"><value>Save &amp;&amp; &amp;Exit</value></data>
+  <data name="Menu_EditHistoryList.Text" xml:space="preserve"><value>&amp;Recent Edits</value></data>
+  <data name="Menu_Exit.Text" xml:space="preserve"><value>E&amp;xit</value></data>
+  <data name="Menu_MainTools.Text" xml:space="preserve"><value>&amp;Tools</value></data>
+  <data name="Menu_Import.Text" xml:space="preserve"><value>&amp;Import...</value></data>
+  <data name="Menu_WordWrap.Text" xml:space="preserve"><value>&amp;Word Wrap</value></data>
+  <data name="Menu_ChordsMenu.Text" xml:space="preserve"><value>Right-Click Chords Menu</value></data>
+  <data name="Menu_TransposeDown.Text" xml:space="preserve"><value>Transpose Chord &amp;Down</value></data>
+  <data name="Menu_TransposeUp.Text" xml:space="preserve"><value>Transpose Chord &amp;Up</value></data>
+  <data name="$this.Text" xml:space="preserve"><value>Edit Database Item</value></data>
+  <data name="R1RightToLeft.ToolTip" xml:space="preserve"><value>Right-To-Left Text</value></data>
+  <data name="R1VerseFormat.ToolTip" xml:space="preserve"><value>Verses Format</value></data>
+  <data name="R1Redo.ToolTip" xml:space="preserve"><value>Redo</value></data>
+  <data name="R1Undo.ToolTip" xml:space="preserve"><value>Undo</value></data>
+  <data name="R1Chinese.ToolTip" xml:space="preserve"><value>Switch Trad/Simp Chinese</value></data>
+  <data name="SyncBtnDown.ToolTip" xml:space="preserve"><value>Highlight Next Slide</value></data>
+  <data name="SyncBtnUp.ToolTip" xml:space="preserve"><value>Highlight Previous Slide</value></data>
+  <data name="R2RightToLeft.ToolTip" xml:space="preserve"><value>Right-To-Left Text</value></data>
+  <data name="R2VerseFormat.ToolTip" xml:space="preserve"><value>Verses Format</value></data>
+  <data name="R2Redo.ToolTip" xml:space="preserve"><value>Redo</value></data>
+  <data name="R2Undo.ToolTip" xml:space="preserve"><value>Undo</value></data>
+  <data name="R2Chinese.ToolTip" xml:space="preserve"><value>Switch Trad/Simp Chinese</value></data>
+  <data name="btnDuration.ToolTip" xml:space="preserve"><value>Click to Store length</value></data>
+  <data name="btnAddPosition.ToolTip" xml:space="preserve"><value>Copy current position to next blank timing</value></data>
+  <data name="Rotate_tbSourceLocation.ToolTip" xml:space="preserve"><value>Optional Media File for Reference (Filename will not be saved)</value></data>
+  <data name="btnClearMediaPositions.ToolTip" xml:space="preserve"><value>Copy to next blank Position</value></data>
+  <data name="Rotate_SlidesGapUpDown.ToolTip" xml:space="preserve"><value>Timing in seconds</value></data>
+  <data name="Rotate_Equal.ToolTip" xml:space="preserve"><value>Rotate each slide in equal seconds</value></data>
+  <data name="EditScore" xml:space="preserve"><value>Edit score…</value></data>
+  <data name="LookUpSecondTitle" xml:space="preserve"><value>Look up second title</value></data>
+  <data name="ChooseMediaFile" xml:space="preserve"><value>Choose media file</value></data>
+  <data name="FormatVersesTip" xml:space="preserve"><value>Format verses in Region {0}</value></data>
+  <data name="Insert" xml:space="preserve"><value>Insert</value></data>
+  <data name="InsertTip" xml:space="preserve"><value>Insert a verse, chorus, screen break or chord notation</value></data>
+  <data name="InsertVerse" xml:space="preserve"><value>Verse</value></data>
+  <data name="InsertVerseNumber" xml:space="preserve"><value>Verse {0}</value></data>
+  <data name="InsertPreChorus" xml:space="preserve"><value>Pre-chorus</value></data>
+  <data name="InsertPreChorus2" xml:space="preserve"><value>Pre-chorus 2</value></data>
+  <data name="InsertChorus" xml:space="preserve"><value>Chorus</value></data>
+  <data name="InsertChorus2" xml:space="preserve"><value>Chorus 2</value></data>
+  <data name="InsertBridge" xml:space="preserve"><value>Bridge</value></data>
+  <data name="InsertBridge2" xml:space="preserve"><value>Bridge 2</value></data>
+  <data name="InsertEnding" xml:space="preserve"><value>Ending</value></data>
+  <data name="InsertScreenBreak" xml:space="preserve"><value>Screen break</value></data>
+  <data name="InsertChordNotation" xml:space="preserve"><value>Chord notation</value></data>
+  <data name="LyricsRegion1" xml:space="preserve"><value>Lyrics (Region 1)</value></data>
+  <data name="LyricsRegion1RightToLeft" xml:space="preserve"><value>Lyrics (Region 1) : Right-To-Left Text On</value></data>
+  <data name="AdditionalLyrics" xml:space="preserve"><value>Additional lyrics</value></data>
+  <data name="AdditionalLyricsRightToLeft" xml:space="preserve"><value>Additional lyrics : Right-To-Left Text On</value></data>
+  <data name="SaveChangesPrompt" xml:space="preserve"><value>Do you wish to save the changes you have made to {0}?</value></data>
+  <data name="SaveNewItemPrompt" xml:space="preserve"><value>Do you wish to save the new Item {0} to the Songs Database?</value></data>
+  <data name="SongSaved" xml:space="preserve"><value>Song saved</value></data>
+  <data name="SaveFailed" xml:space="preserve"><value>Error encountered - Item NOT saved.</value></data>
+  <data name="NoSongTitle" xml:space="preserve"><value>There is no Song Title!</value></data>
+  <data name="FieldSongTitle" xml:space="preserve"><value>Song Title</value></data>
+  <data name="FieldLinkTitle" xml:space="preserve"><value>Link Title</value></data>
+  <data name="FieldCopyright" xml:space="preserve"><value>Copyright Info</value></data>
+  <data name="FieldBookReference" xml:space="preserve"><value>Book Reference Info</value></data>
+  <data name="FieldWriter" xml:space="preserve"><value>Writer Info</value></data>
+  <data name="SongNumberNotNumeric" xml:space="preserve"><value>Song Number must be numeric and without spaces</value></data>
+  <data name="NoLyricsToSave" xml:space="preserve"><value>There are no Lyrics to save!</value></data>
+  <data name="SequenceHasMissingVerse" xml:space="preserve"><value>Sequence contains Verse {0} which is not in the lyrics!</value></data>
+  <data name="SequenceHasMissingItem" xml:space="preserve"><value>Sequence contains a {0} which is not in the lyrics!</value></data>
+  <data name="Region2NotPermitted" xml:space="preserve"><value>REGION 2 indicator is not permitted - please remove</value></data>
+  <data name="DuplicateVerse" xml:space="preserve"><value>Duplicate Verse {0} indicator found - please amend.</value></data>
+  <data name="DuplicateIndicator" xml:space="preserve"><value>Duplicate {0} indicator found - please amend.</value></data>
+  <data name="VerseMissing" xml:space="preserve"><value>Verse {0} indicator is missing.</value></data>
+  <data name="IndicatorRequiredBeforeVerse" xml:space="preserve"><value>Indicator is required for the lyrics before Verse {0}</value></data>
+  <data name="IndicatorRequiredBefore" xml:space="preserve"><value>Indicator is required for the lyrics before the {0}</value></data>
+  <data name="Play" xml:space="preserve"><value>Play</value></data>
+  <data name="Pause" xml:space="preserve"><value>Pause</value></data>
+  <data name="Stream" xml:space="preserve"><value>Stream</value></data>
+  <data name="Copy" xml:space="preserve"><value>Copy</value></data>
+  <data name="Paste" xml:space="preserve"><value>Paste</value></data>
+  <data name="DocumentFilter" xml:space="preserve"><value>Word Documents and Text Files (*.doc;*.docx;*.txt) | *.doc;*.docx;*.txt|Word Documents (*.doc;*.docx)|*.doc;*.docx|Text Files (*.txt)|*.txt</value></data>
+  <data name="AllFilesFilter" xml:space="preserve"><value>All Files (*.*) | *.*</value></data>
+</root>

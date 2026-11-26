@@ -7,6 +7,7 @@ using System.Windows.Forms;
 using Axicultus.Util;
 using Axicultus.Module;
 using Axicultus.Global;
+using Axicultus.Localization;
 using System.Collections.Generic;
 
 namespace Axicultus;
@@ -40,6 +41,11 @@ public partial class FrmOptions : Form
     {
         tempFolders[0] = new FolderSettings { Name = null };
         InitializeComponent();
+        UiText.ApplyTo(this);
+        // The designer's items, by position (the code reads SelectedIndex only).
+        ComboLyricsHeading.Items[0] = UiText.Get(nameof(FrmOptions), "HeadingRegion1Only");
+        ComboLyricsHeading.Items[1] = UiText.Get(nameof(FrmOptions), "HeadingRegion1PlusFormatting");
+        ComboLyricsHeading.Items[2] = UiText.Get(nameof(FrmOptions), "HeadingFormattingOnly");
         InitModernUi();
     }
 
@@ -51,7 +57,7 @@ public partial class FrmOptions : Form
         bool powerPoint = sender == choosePowerPointFolder;
         using var picker = new FolderBrowserDialog
         {
-            Description = powerPoint ? "Choose PowerPoint source folder" : "Choose audio and video source folder",
+            Description = powerPoint ? UiText.Get(nameof(FrmOptions), "ChoosePowerPointFolder") : UiText.Get(nameof(FrmOptions), "ChooseMediaFolder"),
             UseDescriptionForTitle = true,
             SelectedPath = powerPoint ? _powerPointSourceFolder : _mediaSourceFolder
         };
@@ -106,22 +112,22 @@ public partial class FrmOptions : Form
         char c6 = '창';
         tbLyricsHeading0.Items.Clear();
         tbLyricsHeading0.Items.Add("");
-        tbLyricsHeading0.Items.Add("PreChorus:");
+        tbLyricsHeading0.Items.Add("PreChorus:"); // not UI text
         tbLyricsHeading0.Items.Add(c + c2 + ":");
         tbLyricsHeading0.Items.Add(c3 + c4 + ":");
         tbLyricsHeading0.Items.Add(c5 + c6 + ":");
         tbLyricsHeading1.Items.Clear();
         tbLyricsHeading1.Items.Add("");
-        tbLyricsHeading1.Items.Add("Chorus:");
+        tbLyricsHeading1.Items.Add("Chorus:"); // not UI text
         tbLyricsHeading1.Items.Add(c + c2 + ":");
         tbLyricsHeading1.Items.Add(c3 + c4 + ":");
         tbLyricsHeading1.Items.Add(c5 + c6 + ":");
         tbLyricsHeading2.Items.Clear();
         tbLyricsHeading2.Items.Add("");
-        tbLyricsHeading2.Items.Add("Bridge:");
+        tbLyricsHeading2.Items.Add("Bridge:"); // not UI text
         tbLyricsHeading3.Items.Clear();
         tbLyricsHeading3.Items.Add("");
-        tbLyricsHeading3.Items.Add("End...");
+        tbLyricsHeading3.Items.Add("End..."); // not UI text
         Gf.BuildFontsList(ref ComboFontName0);
         Gf.BuildFontsList(ref ComboFontName1);
         Gf.BuildFontsList(ref MessageComboFont);
@@ -166,7 +172,7 @@ public partial class FrmOptions : Form
             }
             catch (Exception ex)
             {
-                MessageBox.Show(this, ex.Message, "Could not save the Bible list", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(this, ex.Message, UiText.Get(nameof(FrmOptions), "BibleListSaveFailed"), MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
         }
@@ -572,11 +578,11 @@ public partial class FrmOptions : Form
     {
         if (CurFolder > 0)
         {
-            SelectedFolderGroupBox.Text = "Settings for the " + tempFolders[CurFolder].Name + " Folder";
+            SelectedFolderGroupBox.Text = UiText.Format(nameof(FrmOptions), "FolderSettings", tempFolders[CurFolder].Name);
         }
         else
         {
-            SelectedFolderGroupBox.Text = "Settings for the above selected folder Folder";
+            SelectedFolderGroupBox.Text = UiText.Get(nameof(FrmOptions), "NoFolderSettings");
         }
     }
 
@@ -936,7 +942,7 @@ public partial class FrmOptions : Form
             }
             else
             {
-                MessageBox.Show("There is already another folder with the same name! Please try a different name.");
+                MessageBox.Show(UiText.Get(nameof(FrmOptions), "FolderNameTaken"));
                 e.CancelEdit = true;
                 SongFolder.Items[selectedIndex].BeginEdit();
             }
@@ -964,7 +970,7 @@ public partial class FrmOptions : Form
     private void AddBibleRow(BibleVersion version)
     {
         bool available = File.Exists(Gf.BibleDir + version.FileName);
-        string description = available ? version.Description : "** Cannot find Bible - please check Filename!";
+        string description = available ? version.Description : UiText.Get(nameof(FrmOptions), "BibleNotFound");
         BibleList.Items.Add(new ListViewItem([version.Name, description, Path.GetFileName(version.FileName),
             version.Copyright, version.SongFolder.ToString(), version.FontSize.ToString()], available ? 4 : 27)
             { Tag = version });
@@ -1036,12 +1042,12 @@ public partial class FrmOptions : Form
     {
         if (BibleSearchList.Items.Count == 0)
         {
-            MessageBox.Show("There are no Bibles to add - try clicking the 'Search' button first");
+            MessageBox.Show(UiText.Get(nameof(FrmOptions), "NoBiblesToAdd"));
             return;
         }
         if (Gf.GetSelectedIndex(BibleSearchList) < 0)
         {
-            MessageBox.Show("Please select a Bible from the list to Add!");
+            MessageBox.Show(UiText.Get(nameof(FrmOptions), "SelectBibleToAdd"));
             return;
         }
         for (int index = BibleSearchList.Items.Count - 1; index >= 0; index--)
@@ -1061,12 +1067,12 @@ public partial class FrmOptions : Form
     {
         if (BibleList.Items.Count == 0)
         {
-            MessageBox.Show("There are no Bibles to remove!");
+            MessageBox.Show(UiText.Get(nameof(FrmOptions), "NoBiblesToRemove"));
             return;
         }
         if (Gf.GetSelectedIndex(BibleList) < 0)
         {
-            MessageBox.Show("Please select a Bible from the list to Remove");
+            MessageBox.Show(UiText.Get(nameof(FrmOptions), "SelectBibleToRemove"));
             return;
         }
         for (int bibleIndex = BibleList.Items.Count - 1; bibleIndex >= 0; bibleIndex--)
@@ -1138,7 +1144,7 @@ public partial class FrmOptions : Form
     public void SaveBibleChanges()
     {
         if (originalBibleVersions == null)
-            throw new InvalidOperationException("Reopen Options to reload the Bible list before saving.");
+            throw new InvalidOperationException(UiText.Get(nameof(FrmOptions), "ReopenToReloadBibles"));
         var edited = new List<BibleVersion>(BibleList.Items.Count);
         foreach (ListViewItem item in BibleList.Items)
             edited.Add((BibleVersion)item.Tag);
@@ -1521,13 +1527,13 @@ public partial class FrmOptions : Form
         string name = MonitorPicker.SelectedId(DualMonitorList.ComboBox);
         if (name == MonitorLayout.Auto)
             name = MonitorLayout.ResolveOutput(displays, name, DM_AlwaysUseSecondaryMonitor.Checked, optWide.Checked).DeviceName;
-        ShowMonitorInfo(MonitorLayout.FindDisplay(displays, name), "No Output Monitor");
+        ShowMonitorInfo(MonitorLayout.FindDisplay(displays, name), UiText.Get(nameof(FrmOptions), "NoOutputMonitor"));
     }
 
     private void LyricsMonitor_Info_Click(object sender, EventArgs e)
     {
         var display = MonitorLayout.FindDisplay(DisplayInfo.GetDisplays(), MonitorPicker.SelectedId(LyricsMonitorList.ComboBox));
-        ShowMonitorInfo(display is { IsPrimary: false } ? display : null, "No Lyrics Monitor");
+        ShowMonitorInfo(display is { IsPrimary: false } ? display : null, UiText.Get(nameof(FrmOptions), "NoLyricsMonitor"));
     }
 
     private static void ShowMonitorInfo(MonitorDevice display, string missingMessage)
@@ -1538,7 +1544,7 @@ public partial class FrmOptions : Form
             return;
         }
         Rectangle bounds = display.Bounds;
-        MessageBox.Show($"{display.Label}\nTop:\t{bounds.Top}\nLeft:\t{bounds.Left}\nWidth:\t{bounds.Width}\nHeight:\t{bounds.Height}");
+        MessageBox.Show(UiText.Format(nameof(FrmOptions), "MonitorInfo", display.Label, bounds.Top, bounds.Left, bounds.Width, bounds.Height));
     }
     private void btnTextRegionChangeColour_Click(object sender, EventArgs e)
     {
@@ -1706,7 +1712,7 @@ public partial class FrmOptions : Form
     private void MusicLocationBtn_Click(object sender, EventArgs e)
     {
         folderBrowserDialog1.SelectedPath = ((DataUtil.Trim(tbMusicLocation.Text) != "") ? DataUtil.Trim(tbMusicLocation.Text) : Gf.MediaDir);
-        folderBrowserDialog1.Description = "Select Folder where media files for the lyrics are held";
+        folderBrowserDialog1.Description = UiText.Get(nameof(FrmOptions), "MediaFolderDescription");
         if (folderBrowserDialog1.ShowDialog() == DialogResult.OK)
         {
             tbMusicLocation.Text = folderBrowserDialog1.SelectedPath;
@@ -1725,7 +1731,7 @@ public partial class FrmOptions : Form
         {
             initialDirectory = Gf.ImagesDir;
         }
-        OpenFileDialog1.Filter = "Image Files (*.jpg,*.jpeg,*.bmp,*.gif,*.ico)|*.jpg;*.jpeg;*.bmp;*.gif;*.ico";
+        OpenFileDialog1.Filter = UiText.Get(nameof(FrmOptions), "ImageFilter");
         OpenFileDialog1.InitialDirectory = initialDirectory;
         OpenFileDialog1.AddExtension = true;
         OpenFileDialog1.FileName = "";

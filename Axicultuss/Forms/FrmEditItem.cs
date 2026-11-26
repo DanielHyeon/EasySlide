@@ -5,6 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
+using Axicultus.Localization;
 using Axicultus.Module;
 using Axicultus.Properties;
 using Axicultus.SQLite;
@@ -210,6 +211,7 @@ namespace Axicultus;
 		public FrmEditItem()
 		{
 			InitializeComponent();
+			UiText.ApplyTo(this);
 			popupHelper = new PopupWindowHelper();
 			popupHelper.PopupClosed += popupHelper_PopupClosed;
 			RegionSlideNavigation.Apply(SyncBtnUp, SyncBtnDown);
@@ -689,7 +691,7 @@ namespace Axicultus;
 		/// </summary>
 		private void ExternalDocumentBtnPressed()
 		{
-			OpenFileDialog1.Filter = "Word Documents and Text Files (*.doc;*.docx;*.txt) | *.doc;*.docx;*.txt|Word Documents (*.doc;*.docx)|*.doc;*.docx|Text Files (*.txt)|*.txt";
+			OpenFileDialog1.Filter = UiText.Get(nameof(FrmEditItem), "DocumentFilter");
 			OpenFileDialog1.InitialDirectory = Gf.EditOpenDocumentDir;
 			OpenFileDialog1.FileName = "";
 			if (OpenFileDialog1.ShowDialog() == DialogResult.OK)
@@ -1046,14 +1048,14 @@ namespace Axicultus;
 			{
 				LabeltbLyrics.Font = new System.Drawing.Font(LabeltbLyrics.Font, FontStyle.Regular);
 				LabeltbLyrics.BackColor = label1.BackColor;
-				LabeltbLyrics.Text = "Lyrics (Region 1)" + (SetRightToLeft1 ? " : Right-To-Left Text On" : "");
+				LabeltbLyrics.Text = SetRightToLeft1 ? UiText.Get(nameof(FrmEditItem), "LyricsRegion1RightToLeft") : UiText.Get(nameof(FrmEditItem), "LyricsRegion1");
 				ScreenBreak1Available = false;
 			}
 			if (Region is 0 or 2)
 			{
 				LabeltbLyrics2.Font = new System.Drawing.Font(LabeltbLyrics2.Font, FontStyle.Regular);
 				LabeltbLyrics2.BackColor = label1.BackColor;
-				LabeltbLyrics2.Text = "Additional lyrics" + (SetRightToLeft2 ? " : Right-To-Left Text On" : "");
+				LabeltbLyrics2.Text = SetRightToLeft2 ? UiText.Get(nameof(FrmEditItem), "AdditionalLyricsRightToLeft") : UiText.Get(nameof(FrmEditItem), "AdditionalLyrics");
 				ScreenBreak2Available = false;
 			}
 		}
@@ -1087,7 +1089,7 @@ namespace Axicultus;
 			{
 				return DialogResult.Yes;
 			}
-			string prompt = (CurSongID >= 0) ? ("Do you wish to save the changes you have made to " + SongTitle.Text + "?") : ("Do you wish to save the new Item " + SongTitle.Text + " to the Songs Database?");
+			string prompt = (CurSongID >= 0) ? UiText.Format(nameof(FrmEditItem), "SaveChangesPrompt", SongTitle.Text) : UiText.Format(nameof(FrmEditItem), "SaveNewItemPrompt", SongTitle.Text);
 			switch (MessageBox.Show(prompt, "", MessageBoxButtons.YesNoCancel))
 			{
 			case DialogResult.Yes:
@@ -1188,11 +1190,11 @@ namespace Axicultus;
 			}
 			if (itemSaved)
 			{
-				ShowMessage(1, "Song saved");
+				ShowMessage(1, UiText.Get(nameof(FrmEditItem), "SongSaved"));
 			}
 			else
 			{
-				ShowMessage(1, "Error encountered - Item NOT saved.");
+				ShowMessage(1, UiText.Get(nameof(FrmEditItem), "SaveFailed"));
 			}
 			RotateString = Gf.EditItem1.RotateString;
 			UpdateSavedStrings();
@@ -1381,26 +1383,26 @@ namespace Axicultus;
 		{
 			if (DataUtil.Trim(SongTitle.Text) == "")
 			{
-				ShowMessage(1, "There is no Song Title!");
+				ShowMessage(1, UiText.Get(nameof(FrmEditItem), "NoSongTitle"));
 				return false;
 			}
-			if (!Gf.ValidateTitleDetails(SongTitle.Text, "Song Title"))
+			if (!Gf.ValidateTitleDetails(SongTitle.Text, UiText.Get(nameof(FrmEditItem), "FieldSongTitle")))
 			{
 				return false;
 			}
-			if (!Gf.ValidateTitleDetails(SongTitle2.Text, "Link Title"))
+			if (!Gf.ValidateTitleDetails(SongTitle2.Text, UiText.Get(nameof(FrmEditItem), "FieldLinkTitle")))
 			{
 				return false;
 			}
-			if (!Gf.ValidateTitleDetails(CopyrightInfo.Text, "Copyright Info"))
+			if (!Gf.ValidateTitleDetails(CopyrightInfo.Text, UiText.Get(nameof(FrmEditItem), "FieldCopyright")))
 			{
 				return false;
 			}
-			if (!Gf.ValidateTitleDetails(BookReference.Text, "Book Reference Info"))
+			if (!Gf.ValidateTitleDetails(BookReference.Text, UiText.Get(nameof(FrmEditItem), "FieldBookReference")))
 			{
 				return false;
 			}
-			if (!Gf.ValidateTitleDetails(WriterInfo.Text, "Writer Info"))
+			if (!Gf.ValidateTitleDetails(WriterInfo.Text, UiText.Get(nameof(FrmEditItem), "FieldWriter")))
 			{
 				return false;
 			}
@@ -1409,13 +1411,13 @@ namespace Axicultus;
 				int songNumber = DataUtil.StringToInt(SongNumber.Text, Minus1IfBlank: true);
 				if (songNumber < 0)
 				{
-					MessageBox.Show("Song Number must be numeric and without spaces");
+					MessageBox.Show(UiText.Get(nameof(FrmEditItem), "SongNumberNotNumeric"));
 					return false;
 				}
 			}
 			if ((tbLyrics1.TextLength < 1) && (tbLyrics2.TextLength < 1))
 			{
-				ShowMessage(1, "There are no Lyrics to save!");
+				ShowMessage(1, UiText.Get(nameof(FrmEditItem), "NoLyricsToSave"));
 				return false;
 			}
 			return true;
@@ -1430,11 +1432,11 @@ namespace Axicultus;
 				{
 					if (verseIndex is > 0 and < 13)
 					{
-						ShowMessage(1, "Sequence contains Verse " + Gf.VerseTitle[verseIndex] + " which is not in the lyrics!");
+						ShowMessage(1, UiText.Format(nameof(FrmEditItem), "SequenceHasMissingVerse", Gf.VerseTitle[verseIndex]));
 					}
 					else
 					{
-						ShowMessage(1, "Sequence contains a " + Gf.VerseTitle[verseIndex] + " which is not in the lyrics!");
+						ShowMessage(1, UiText.Format(nameof(FrmEditItem), "SequenceHasMissingItem", Gf.VerseTitle[verseIndex]));
 					}
 					i = OrderList.Items.Count - 1;
 					return false;
@@ -1502,7 +1504,7 @@ namespace Axicultus;
 			int region2IndicatorPos = tbWorkspace.Text.IndexOf(Gf.VerseSymbol[150]);
 			if (region2IndicatorPos >= 0)
 			{
-				ShowMessage(Region, "REGION 2 indicator is not permitted - please remove");
+				ShowMessage(Region, UiText.Get(nameof(FrmEditItem), "Region2NotPermitted"));
 				InTextBox.Focus();
 				InTextBox.SelectionStart = region2IndicatorPos;
 				InTextBox.SelectionLength = Gf.VerseSymbol[150].Length;
@@ -1582,11 +1584,11 @@ namespace Axicultus;
 				}
 				if (verseIndex is > 0 and < 13)
 				{
-					ShowMessage(Region, "Duplicate Verse " + Gf.VerseTitle[verseIndex] + " indicator found - please amend.");
+					ShowMessage(Region, UiText.Format(nameof(FrmEditItem), "DuplicateVerse", Gf.VerseTitle[verseIndex]));
 				}
 				else
 				{
-					ShowMessage(Region, "Duplicate " + Gf.VerseTitle[verseIndex] + " indicator found - please amend.");
+					ShowMessage(Region, UiText.Format(nameof(FrmEditItem), "DuplicateIndicator", Gf.VerseTitle[verseIndex]));
 				}
 				InTextBox.Focus();
 				InTextBox.SelectionStart = duplicatePos;
@@ -1595,18 +1597,18 @@ namespace Axicultus;
 			}
 			if (missingVerse > 0)
 			{
-				ShowMessage(Region, "Verse " + missingVerse + " indicator is missing.");
+				ShowMessage(Region, UiText.Format(nameof(FrmEditItem), "VerseMissing", missingVerse));
 				return false;
 			}
 			if (foundIndicator > 0 && tbWorkspace.Text.AsSpan(0, firstVersePos).Trim('\n').Length > 0)
 			{
 				if (firstVerseIndex is > 0 and < 13)
 				{
-					ShowMessage(Region, "Indicator is required for the lyrics before Verse " + firstVerseIndex);
+					ShowMessage(Region, UiText.Format(nameof(FrmEditItem), "IndicatorRequiredBeforeVerse", firstVerseIndex));
 				}
 				else
 				{
-					ShowMessage(Region, "Indicator is required for the lyrics before the " + Gf.VerseTitle[firstVerseIndex]);
+					ShowMessage(Region, UiText.Format(nameof(FrmEditItem), "IndicatorRequiredBefore", Gf.VerseTitle[firstVerseIndex]));
 				}
 				return false;
 			}
@@ -2559,22 +2561,22 @@ namespace Axicultus;
 			case PlayState.Running:
 				PlayPauseBtn.Enabled = true;
 				StopBtn.Enabled = true;
-				PlayPauseBtn.Text = "Pause";
+				PlayPauseBtn.Text = UiText.Get(nameof(FrmEditItem), "Pause");
 				LabelMediaType.Text = DShowPlayer.GetStatusText();
 				Cursor = Cursors.Default;
 				break;
 			case PlayState.Paused:
-				PlayPauseBtn.Text = "Play";
+				PlayPauseBtn.Text = UiText.Get(nameof(FrmEditItem), "Play");
 				Cursor = Cursors.Default;
 				break;
 			case PlayState.Stopped:
 				StopBtn.Enabled = false;
-				PlayPauseBtn.Text = "Play";
+				PlayPauseBtn.Text = UiText.Get(nameof(FrmEditItem), "Play");
 				Cursor = Cursors.Default;
 				break;
 			default:
 				StopBtn.Enabled = false;
-				PlayPauseBtn.Text = "Play";
+				PlayPauseBtn.Text = UiText.Get(nameof(FrmEditItem), "Play");
 				break;
 			}
 		}
@@ -2606,7 +2608,7 @@ namespace Axicultus;
 			{
 			}
 			initialDir = ((initialDir != "") ? initialDir : Gf.MediaDir);
-			OpenFileDialog1.Filter = "All Files (*.*) | *.*";
+			OpenFileDialog1.Filter = UiText.Get(nameof(FrmEditItem), "AllFilesFilter");
 			OpenFileDialog1.InitialDirectory = initialDir;
 			OpenFileDialog1.AddExtension = true;
 			OpenFileDialog1.FileName = Rotate_tbSourceLocation.Text;
@@ -2738,7 +2740,7 @@ namespace Axicultus;
 			{
 				if (LabelMediaType.Text != "" && ((LabelMediaType.Text[0] == 'A') || (LabelMediaType.Text[0] == 'V')))
 				{
-					LabelDuration.Text = "Stream";
+					LabelDuration.Text = UiText.Get(nameof(FrmEditItem), "Stream");
 				}
 				else
 				{
@@ -3022,7 +3024,7 @@ namespace Axicultus;
 			ToolStripMenuItem toolStripMenuItem = new();
 			toolStripMenuItem = new ToolStripMenuItem();
 			toolStripMenuItem.Name = InContextMenu.Name + "_Copy";
-			toolStripMenuItem.Text = "Copy";
+			toolStripMenuItem.Text = UiText.Get(nameof(FrmEditItem), "Copy");
 			InContextMenu.Items.Add(toolStripMenuItem);
 			if (InRegion == 1)
 			{
@@ -3034,7 +3036,7 @@ namespace Axicultus;
 			}
 			toolStripMenuItem = new ToolStripMenuItem();
 			toolStripMenuItem.Name = InContextMenu.Name + "_Paste";
-			toolStripMenuItem.Text = "Paste";
+			toolStripMenuItem.Text = UiText.Get(nameof(FrmEditItem), "Paste");
 			InContextMenu.Items.Add(toolStripMenuItem);
 			if (InRegion == 1)
 			{

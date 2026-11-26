@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>  <data name="CloseBtn.Text" xml:space="preserve"><value>Close</value></data>
+  <data name="label53.Text" xml:space="preserve"><value>Restart Current Item</value></data>
+  <data name="label51.Text" xml:space="preserve"><value>Media - Pause/Resume</value></data>
+  <data name="label7.Text" xml:space="preserve"><value>Jump To Next Non-Rotating Item</value></data>
+  <data name="label5.Text" xml:space="preserve"><value>Gap item On/Off</value></data>
+  <data name="label3.Text" xml:space="preserve"><value>Reference On/Off</value></data>
+  <data name="label1.Text" xml:space="preserve"><value>Live Cam On/Off</value></data>
+  <data name="label41.Text" xml:space="preserve"><value>End Show</value></data>
+  <data name="label42.Text" xml:space="preserve"><value>Vertical Alignment</value></data>
+  <data name="label43.Text" xml:space="preserve"><value>Outline Font On/Off</value></data>
+  <data name="label44.Text" xml:space="preserve"><value>Shadow Font On/Off</value></data>
+  <data name="label45.Text" xml:space="preserve"><value>Region 1, 2 Lyrics</value></data>
+  <data name="label21.Text" xml:space="preserve"><value>Notations On/Off</value></data>
+  <data name="label22.Text" xml:space="preserve"><value>Interlace On/Off</value></data>
+  <data name="label23.Text" xml:space="preserve"><value>Headings Style</value></data>
+  <data name="label24.Text" xml:space="preserve"><value>Display Panel  On/Off</value></data>
+  <data name="label25.Text" xml:space="preserve"><value>Auto Rotate On/Off</value></data>
+  <data name="label26.Text" xml:space="preserve"><value>Black Screen On/Off (global)</value></data>
+  <data name="label27.Text" xml:space="preserve"><value>Black Screen On/Off (global)</value></data>
+  <data name="label28.Text" xml:space="preserve"><value>Clear Text On/Off</value></data>
+  <data name="label30.Text" xml:space="preserve"><value>PreChorus1/2,  Bridge1/2,  Chorus2 ,  Ending</value></data>
+  <data name="label31.Text" xml:space="preserve"><value>Chorus</value></data>
+  <data name="label32.Text" xml:space="preserve"><value>Verse 1 .. 9</value></data>
+  <data name="label33.Text" xml:space="preserve"><value>Next Slide</value></data>
+  <data name="label34.Text" xml:space="preserve"><value>Previous Slide</value></data>
+  <data name="label35.Text" xml:space="preserve"><value>Last Slide</value></data>
+  <data name="label36.Text" xml:space="preserve"><value>First Slide</value></data>
+  <data name="label_PreviousSlide.Text" xml:space="preserve"><value>Up Arrow</value></data>
+  <data name="label_LastSlide.Text" xml:space="preserve"><value>Right Arrow</value></data>
+  <data name="label_FirstSlide.Text" xml:space="preserve"><value>Left Arrow</value></data>
+  <data name="label_NextItem.Text" xml:space="preserve"><value>Page Down</value></data>
+  <data name="label_PreviousItem.Text" xml:space="preserve"><value>Page Up</value></data>
+  <data name="label_NextSlide.Text" xml:space="preserve"><value>Down Arrow, Space</value></data>
+  <data name="label37.Text" xml:space="preserve"><value>Next item</value></data>
+  <data name="label38.Text" xml:space="preserve"><value>Previous Item</value></data>
+  <data name="label39.Text" xml:space="preserve"><value>Last Item</value></data>
+  <data name="label40.Text" xml:space="preserve"><value>First Item</value></data>
+  <data name="$this.Text" xml:space="preserve"><value>Keyboard Keys</value></data>
+  <data name="LeftArrow" xml:space="preserve"><value>Left Arrow</value></data>
+  <data name="RightArrow" xml:space="preserve"><value>Right Arrow</value></data>
+  <data name="UpArrow" xml:space="preserve"><value>Up Arrow</value></data>
+  <data name="DownArrow" xml:space="preserve"><value>Down Arrow</value></data>
+  <data name="PageUp" xml:space="preserve"><value>Page Up</value></data>
+  <data name="PageDownSpace" xml:space="preserve"><value>Page Down, Space</value></data>
+</root>

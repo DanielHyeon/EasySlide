@@ -1,6 +1,7 @@
 using System;
 using System.Drawing;
 using System.Windows.Forms;
+using Axicultus.Localization;
 
 namespace Axicultus;
 
@@ -11,7 +12,7 @@ public partial class FrmEditItem
         SuspendLayout();
         try
         {
-            Menu_MainTools.DropDownItems.Add("악보 편집…", null, (_, _) =>
+            Menu_MainTools.DropDownItems.Add(UiText.Get(nameof(FrmEditItem), "EditScore"), null, (_, _) =>
                 Axicultus.ScoreEditor.SongScoreEditor.Show(Handle, SongTitle.Text));
             LyricsEditorLayout.FileActions(Main_New, Main_Save, Main_SaveExit, Main_Import, Menu_Save);
             LyricsEditorLayout.AddFormattingRow(this, splitContainerMain, ComboFontName, ComboMainFontSize,
@@ -22,6 +23,9 @@ public partial class FrmEditItem
                 Rotate_OrderList_Down, Rotate_OrderList_Delete);
             LyricsEditorLayout.ConfigureAction(Title2_LookUp, "Look up second title", "search");
             LyricsEditorLayout.ConfigureAction(Rotate_LocationBtn, "Choose media file", "folder_open");
+            // (the accessible names above stay as they are; the tooltips are in the UI language)
+            Title2_LookUp.ToolTipText = UiText.Get(nameof(FrmEditItem), "LookUpSecondTitle");
+            Rotate_LocationBtn.ToolTipText = UiText.Get(nameof(FrmEditItem), "ChooseMediaFile");
             foreach (var (menu, action) in new[]
                 {
                     (Menu_New, Main_New), (Menu_Save, Main_Save), (Menu_SaveExit, Main_SaveExit),
@@ -54,7 +58,7 @@ public partial class FrmEditItem
     private void ConfigureRegionTools(Panel rail, Button undo, Button format, int region)
     {
         format.AccessibleName = $"Format verses in Region {region}";
-        toolTip1.SetToolTip(format, format.AccessibleName);
+        toolTip1.SetToolTip(format, UiText.Format(nameof(FrmEditItem), "FormatVersesTip", region));
         int toolsWidth = Math.Max(rail.Width, format.GetPreferredSize(Size.Empty).Width);
         var sidebar = (Panel)rail.Parent;
         sidebar.Width += toolsWidth - rail.Width;
@@ -71,27 +75,27 @@ public partial class FrmEditItem
             Bounds = new Rectangle(undo.Left, undo.Bottom, rail.ClientSize.Width, undo.Height),
             TabStop = true
         };
-        var insert = new ToolStripDropDownButton("Insert")
+        var insert = new ToolStripDropDownButton(UiText.Get(nameof(FrmEditItem), "Insert"))
         {
             AccessibleName = $"Insert in Region {region}",
-            ToolTipText = "Insert a verse, chorus, screen break or chord notation"
+            ToolTipText = UiText.Get(nameof(FrmEditItem), "InsertTip")
         };
         strip.Items.Add(insert);
         rail.Controls.Add(strip);
-        var verses = new ToolStripMenuItem("Verse");
+        var verses = new ToolStripMenuItem(UiText.Get(nameof(FrmEditItem), "InsertVerse"));
         insert.DropDownItems.Add(verses);
         for (int number = 1; number <= 10; number++)
-            AddMarker(verses, $"Verse {number}", number);
-        AddMarker(insert, "Pre-chorus", Gf.PRECHORUS);
-        AddMarker(insert, "Pre-chorus 2", Gf.PRECHORUS2);
-        AddMarker(insert, "Chorus", Gf.CHORUS);
-        AddMarker(insert, "Chorus 2", Gf.CHORUS2);
-        AddMarker(insert, "Bridge", Gf.BRIDGE);
-        AddMarker(insert, "Bridge 2", Gf.BRIDGE2);
-        AddMarker(insert, "Ending", Gf.ENDING);
+            AddMarker(verses, UiText.Format(nameof(FrmEditItem), "InsertVerseNumber", number), number);
+        AddMarker(insert, UiText.Get(nameof(FrmEditItem), "InsertPreChorus"), Gf.PRECHORUS);
+        AddMarker(insert, UiText.Get(nameof(FrmEditItem), "InsertPreChorus2"), Gf.PRECHORUS2);
+        AddMarker(insert, UiText.Get(nameof(FrmEditItem), "InsertChorus"), Gf.CHORUS);
+        AddMarker(insert, UiText.Get(nameof(FrmEditItem), "InsertChorus2"), Gf.CHORUS2);
+        AddMarker(insert, UiText.Get(nameof(FrmEditItem), "InsertBridge"), Gf.BRIDGE);
+        AddMarker(insert, UiText.Get(nameof(FrmEditItem), "InsertBridge2"), Gf.BRIDGE2);
+        AddMarker(insert, UiText.Get(nameof(FrmEditItem), "InsertEnding"), Gf.ENDING);
         insert.DropDownItems.Add(new ToolStripSeparator());
-        AddMarker(insert, "Screen break", Gf.NEWSCREEN);
-        AddMarker(insert, "Chord notation", Gf.NOTE);
+        AddMarker(insert, UiText.Get(nameof(FrmEditItem), "InsertScreenBreak"), Gf.NEWSCREEN);
+        AddMarker(insert, UiText.Get(nameof(FrmEditItem), "InsertChordNotation"), Gf.NOTE);
 
         void AddMarker(ToolStripDropDownItem parent, string caption, int marker) =>
             parent.DropDownItems.Add(caption, null, (_, _) => InsertMarker(region, marker));
