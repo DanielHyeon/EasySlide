@@ -33,7 +33,8 @@ public sealed class ProductIdentityTests
             using var shellIcon = Icon.ExtractIcon(executable, 0, size);
             Assert.NotNull(shellIcon);
             using var window = new FrmAbout();
-            Assert.Equal("About Axicultuss", window.Text);
+            Assert.Equal(Axicultus.Localization.UiText.Get(nameof(FrmAbout), "$this.Text"), window.Text); // in the UI language
+            Assert.Equal("Axicultuss 정보", window.Text); // Korean, the tests' language
             using var frame = new Icon(window.Icon, size, size);
             using var expected = shellIcon.ToBitmap();
             using var actual = frame.ToBitmap();

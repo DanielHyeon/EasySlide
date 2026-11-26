@@ -4,6 +4,7 @@ using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Axicultus.Wpf.Input;
+using Axicultus.Wpf.Localization;
 using Axicultus.Wpf.Settings;
 using Axicultus.Wpf.Shell;
 
@@ -31,9 +32,9 @@ public sealed partial class AboutWindowViewModel : ObservableObject
         EulaText = about.EulaText;
         _registrationUser = about.RegistrationUser;
 
-        OpenWebsiteCommand = new RelayCommand(() => Open(WebsiteUrl, "웹사이트를 열 수 없습니다."));
+        OpenWebsiteCommand = new RelayCommand(() => Open(WebsiteUrl, UiText.Get("AboutWindow", "WebsiteFailed")));
         OpenSystemInfoCommand = new RelayCommand(
-            () => Open(SystemInfoPath!, "시스템 정보 도구를 열 수 없습니다."),
+            () => Open(SystemInfoPath!, UiText.Get("AboutWindow", "SystemInfoFailed")),
             () => !string.IsNullOrWhiteSpace(SystemInfoPath));
         SaveRegistrationUserCommand = new RelayCommand(SaveRegistrationUser);
     }
@@ -60,7 +61,7 @@ public sealed partial class AboutWindowViewModel : ObservableObject
     {
         var result = _supportInfo.SaveRegistrationUser(RegistrationUser);
         StatusMessage = result.Succeeded
-            ? "등록 정보가 저장되었습니다."
+            ? UiText.Get("AboutWindow", "RegistrationSaved")
             : string.Join(" ", result.Issues.Select(issue => issue.Message));
     }
 

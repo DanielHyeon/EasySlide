@@ -2,7 +2,8 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-        Title="Axicultus 정보"
+        xmlns:loc="clr-namespace:Axicultus.Wpf.Localization"
+        Title="{loc:Text AboutWindow.Title}"
         Width="680"
         Height="620"
         MinWidth="560"
@@ -34,7 +35,7 @@
                       VerticalScrollBarVisibility="Auto">
             <StackPanel>
                 <TextBlock x:Name="LblRegistrationUser"
-                           Text="등록 사용자"
+                           Text="{loc:Text AboutWindow.RegistrationUser}"
                            Style="{StaticResource Type.Caption.Style}"
                            Foreground="{DynamicResource Brush.Text.Tertiary}" />
                 <TextBox Text="{Binding RegistrationUser, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -42,7 +43,7 @@
                          Margin="0,4,0,16"
                          MinHeight="36" />
 
-                <TextBlock Text="웹사이트"
+                <TextBlock Text="{loc:Text AboutWindow.Website}"
                            Style="{StaticResource Type.Caption.Style}"
                            Foreground="{DynamicResource Brush.Text.Tertiary}" />
                 <TextBlock Text="{Binding WebsiteUrl}"
@@ -50,7 +51,7 @@
                            Foreground="{DynamicResource Brush.Text.Primary}"
                            Margin="0,4,0,16" />
 
-                <TextBlock Text="라이선스"
+                <TextBlock Text="{loc:Text AboutWindow.Licence}"
                            Style="{StaticResource Type.Caption.Style}"
                            Foreground="{DynamicResource Brush.Text.Tertiary}" />
                 <TextBox Text="{Binding EulaText, Mode=OneWay}"
@@ -77,41 +78,41 @@
                         HorizontalAlignment="Right">
                 <Button Command="{Binding OpenWebsiteCommand}"
                         Style="{StaticResource EsButton.Secondary}"
-                        ToolTip="Axicultus 웹사이트 열기"
+                        ToolTip="{loc:Text AboutWindow.OpenWebsite}"
                         AutomationProperties.Name="Axicultus 웹사이트 열기"
                         Margin="0,0,8,0">
                     <StackPanel Orientation="Horizontal">
                         <ui:SymbolIcon Symbol="Info24" Margin="0,0,6,0" />
-                        <TextBlock Text="웹사이트" />
+                        <TextBlock Text="{loc:Text AboutWindow.Website}" />
                     </StackPanel>
                 </Button>
                 <Button Command="{Binding OpenSystemInfoCommand}"
                         Style="{StaticResource EsButton.Secondary}"
-                        ToolTip="Windows 시스템 정보 열기"
+                        ToolTip="{loc:Text AboutWindow.OpenSystemInfo}"
                         AutomationProperties.Name="Windows 시스템 정보 열기"
                         Margin="0,0,8,0">
                     <StackPanel Orientation="Horizontal">
                         <ui:SymbolIcon Symbol="Search24" Margin="0,0,6,0" />
-                        <TextBlock Text="시스템 정보" />
+                        <TextBlock Text="{loc:Text AboutWindow.SystemInfo}" />
                     </StackPanel>
                 </Button>
                 <Button Command="{Binding SaveRegistrationUserCommand}"
                         Style="{StaticResource EsButton.Primary}"
-                        ToolTip="등록 사용자 저장"
+                        ToolTip="{loc:Text AboutWindow.SaveRegistrationUser}"
                         AutomationProperties.Name="등록 사용자 저장"
                         Margin="0,0,8,0">
                     <StackPanel Orientation="Horizontal">
                         <ui:SymbolIcon Symbol="Save24" Margin="0,0,6,0" />
-                        <TextBlock Text="저장" />
+                        <TextBlock Text="{loc:Text AboutWindow.Save}" />
                     </StackPanel>
                 </Button>
                 <Button Style="{StaticResource EsButton.Secondary}"
                         Click="Close_Click"
-                        ToolTip="닫기"
+                        ToolTip="{loc:Text AboutWindow.Close}"
                         AutomationProperties.Name="정보 창 닫기">
                     <StackPanel Orientation="Horizontal">
                         <ui:SymbolIcon Symbol="Dismiss24" Margin="0,0,6,0" />
-                        <TextBlock Text="닫기" />
+                        <TextBlock Text="{loc:Text AboutWindow.Close}" />
                     </StackPanel>
                 </Button>
             </StackPanel>

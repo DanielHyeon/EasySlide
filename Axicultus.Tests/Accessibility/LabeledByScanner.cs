@@ -154,6 +154,11 @@ internal static class LabeledByScanner
         {
             return attr;
         }
+        // A UI text from the resources ({loc:Text Area.Key} or the main menu's {loc:MenuText Key}) is a static caption.
+        if (attr is not null && Regex.IsMatch(attr, @"^\{loc:(Menu)?Text \S+\}$"))
+        {
+            return attr;
+        }
 
         // 인라인 콘텐츠: <TextBlock>제목</TextBlock>
         var inner = string.Concat(e.Nodes().OfType<XText>().Select(t => t.Value)).Trim();

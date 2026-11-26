@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
+using Axicultus.Localization;
 using Axicultus.Util;
 using Microsoft.Win32;
 
@@ -14,12 +15,13 @@ namespace Axicultus;
 		public FrmAbout()
 		{
 			InitializeComponent();
+			UiText.ApplyTo(this);
 		}
 
 		private void FrmAbout_Load(object sender, EventArgs e)
 		{
 			lblRegDetails.Text = RegUtil.GetRegValue("config", "RegistrationUser", "");
-			lblVersion.Text = "Software Version: 5.0.0";
+			lblVersion.Text = UiText.Format(nameof(FrmAbout), "SoftwareVersion", "5.0.0");
 			lblCopyright.Text = "Copyright " + '©' + " 2019 daniel park revision";
 			lbleula.Text = Gf.EULA;
 			lbleula.SelectionStart = 0;
