@@ -60,7 +60,7 @@ public sealed partial class CaptionConsoleTests
             Assert.True(console.HiddenBadge.IsVisible);
             Assert.Equal("화면 꺼짐 · 내보내지 않습니다", console.HiddenBadgeText.Text);
             Assert.Equal(Visibility.Visible, console.HeldCaption.Visibility); // what goes out when the screen is back, dim
-            Assert.Equal("주님은 나의 목자", console.HeldCaption.LowerThirdText.Text);
+            Assert.Equal("주님은 나의 목자", console.HeldCaption.LowerThirdText.Text.Replace("\u2060", ""));
             Assert.Equal(Visibility.Collapsed, console.PreviewHint.Visibility);
             await ClickAsync(console.AirButton); // hidden by the operator
             Assert.Equal("숨김 중 · 내보내지 않습니다", console.HiddenBadgeText.Text);
@@ -199,7 +199,7 @@ public sealed partial class CaptionConsoleTests
         await ClickAsync(console.AirButton); // hidden
         console.Draft.SetCurrentValue(TextBox.TextProperty, "2절 주님"); // typed, not taken
         await Idle(console);
-        Assert.Equal("1절", console.HeldCaption.LowerThirdText.Text); // what Space would put on air
+        Assert.Equal("1절", console.HeldCaption.LowerThirdText.Text.Replace("\u2060", "")); // what Space would put on air
         Assert.Equal("", session.PublicText);
     });
 

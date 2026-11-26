@@ -1433,7 +1433,7 @@ public sealed partial class CaptionConsoleTests
         Assert.False(session.Visible);
         Assert.Equal(("", null, "", false), (session.Published.Text, session.Published.Image, session.ForObs.Text, session.HasAudienceText));
         Assert.Equal(Visibility.Visible, console.HeldCaption.Visibility);
-        Assert.Equal("주님은 나의 목자", console.HeldCaption.LowerThirdText.Text);
+        Assert.Equal("주님은 나의 목자", console.HeldCaption.LowerThirdText.Text.Replace("\u2060", ""));
         Assert.Equal(0.5, console.HeldCaption.Opacity);
         Assert.Equal(Visibility.Collapsed, console.PreviewCaption.Visibility);
         Assert.True(console.HiddenBadge.IsVisible);

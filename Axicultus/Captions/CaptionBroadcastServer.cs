@@ -129,7 +129,7 @@ public sealed class CaptionBroadcastServer : IDisposable
         finally { _start.Release(); }
     }
 
-    private const string Page = """
+    internal const string Page = """
         <!doctype html><html lang="ko"><meta charset="utf-8"><style>
         html,body{margin:0;height:100%;overflow:hidden;background:transparent}
         body{display:flex;flex-direction:column;align-items:center;justify-content:flex-end}
@@ -138,7 +138,8 @@ public sealed class CaptionBroadcastServer : IDisposable
           background:#101010cf;display:flex;align-items:center;justify-content:center}
         #caption.plain{background:transparent;text-shadow:0 0 .12em #000,0 0 .12em #000,.05em .05em .1em #000}
         #caption.empty{display:none}
-        #text{width:100%;color:white;text-align:center;font:600 5vh/1.28 'Malgun Gothic',sans-serif;white-space:pre-wrap;overflow-wrap:anywhere}
+        /* A line breaks between words, not inside a Korean word (keep-all); only a word longer than the line is split. */
+        #text{width:100%;color:white;text-align:center;font:600 5vh/1.28 'Malgun Gothic',sans-serif;white-space:pre-wrap;word-break:keep-all;overflow-wrap:break-word}
         #score{display:none;max-width:92%;max-height:42vh;margin-bottom:4vh;border-radius:.3em}</style>
         <img id="score" alt=""><div id="caption" class="empty"><div id="text"></div></div><script>
         const caption=document.getElementById('caption'),text=document.getElementById('text'),score=document.getElementById('score');
