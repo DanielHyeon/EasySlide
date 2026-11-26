@@ -9,6 +9,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Threading;
 using Axicultus.Wpf.Captions;
+using Axicultus.Wpf.Localization;
 using Axicultus.Wpf.Media;
 using Axicultus.Wpf.Settings;
 
@@ -85,8 +86,8 @@ public partial class DeviceCheckPanel : UserControl
     private void ObsChanged(ObsStatus status)
     {
         ObsAddress.Text = $"WebSocket · {_obs!.Host}:{_obs.Port}";
-        ObsStatusText.Text = "앱 연결 상태 · " + (status.Connected ? "연결됨" : status.Message);
-        ObsSceneText.Text = status.Scene.Length == 0 ? "" : "현재 프로그램 씬 · " + status.Scene;
+        ObsStatusText.Text = UiText.Format("DeviceCheckPanel", "AppConnectionStatus", status.Connected ? UiText.Get("DeviceCheckPanel", "Connected") : status.Message);
+        ObsSceneText.Text = status.Scene.Length == 0 ? "" : UiText.Format("DeviceCheckPanel", "ProgramScene", status.Scene);
     }
 
     private async void Obs_Click(object sender, RoutedEventArgs e)
@@ -95,17 +96,17 @@ public partial class DeviceCheckPanel : UserControl
         using var pending = new CancellationTokenSource();
         _probe = pending;
         ObsButton.IsEnabled = false;
-        ObsResult.Text = "OBS 응답 확인 중…";
+        ObsResult.Text = UiText.Get("DeviceCheckPanel", "CheckingObs");
         try
         {
             var task = _obs!.CheckConnectionAsync(ObsPassword.Password, pending.Token);
             ObsPassword.Clear();
             var scene = await task;
-            if (_probe == pending) ObsResult.Text = $"최근 점검 {DateTime.Now:HH:mm:ss} · 응답 확인 · {scene}";
+            if (_probe == pending) ObsResult.Text = UiText.Format("DeviceCheckPanel", "ObsChecked", DateTime.Now.ToString("HH:mm:ss"), scene);
         }
         catch (Exception ex) when (!pending.IsCancellationRequested)
         {
-            if (_probe == pending) ObsResult.Text = "연결 점검 실패 · " + ex.Message;
+            if (_probe == pending) ObsResult.Text = UiText.Format("DeviceCheckPanel", "ConnectionCheckFailed", ex.Message);
         }
         catch (Exception) when (pending.IsCancellationRequested) { }
         finally
@@ -128,7 +129,7 @@ public partial class DeviceCheckPanel : UserControl
         var mic = MicrophoneList.SelectedItem as InputDevice;
         StopCamera();
         StopMic();
-        _cameraListError = _micListError = "장치 검색 중…";
+        _cameraListError = _micListError = UiText.Get("DeviceCheckPanel", "SearchingDevices");
         RefreshDevices.IsEnabled = false;
         CameraList.ItemsSource = MicrophoneList.ItemsSource = null;
         UpdateCameraControls();
@@ -141,7 +142,7 @@ public partial class DeviceCheckPanel : UserControl
             InputDevice[] devices = [];
             string? error = null;
             try { devices = await Task.Run(video ? (Func<InputDevice[]>)_backend.Cameras : _backend.Microphones); }
-            catch (Exception ex) { error = "장치 검색 실패 · " + DeviceCheckBackend.Failure(ex); }
+            catch (Exception ex) { error = UiText.Format("DeviceCheckPanel", "DeviceSearchFailed", DeviceCheckBackend.Failure(ex)); }
             if (revision != _revision) return;
             if (video)
             {
@@ -176,17 +177,17 @@ public partial class DeviceCheckPanel : UserControl
         bool shared = ownership.ObsOwnsCamera || ownership.HasLocalCapture;
         bool available = !shared && CameraList.SelectedItem != null;
         CameraList.IsEnabled = CameraButton.IsEnabled = available;
-        CameraButton.Content = _camera == null ? "영상 확인" : "점검 중지";
+        CameraButton.Content = UiText.Get("DeviceCheckPanel", _camera == null ? "CheckVideo" : "StopCheck");
         SharedVideo.Source = shared ? ownership.Preview : null;
         SharedVideo.RenderTransform = ownership.ScaleY < 0 ? Flipped : Transform.Identity;
         if (shared)
         {
             CameraStatus.Text = ownership.ObsOwnsCamera
-                ? "OBS 카메라 모드 · " + (ownership.Preview == null ? "OBS에서 카메라 신호를 확인하세요." : "현재 OBS 미리보기")
-                : "앱에서 카메라 사용 중 · " + ownership.Status;
+                ? UiText.Format("DeviceCheckPanel", "ObsCameraMode", UiText.Get("DeviceCheckPanel", ownership.Preview == null ? "CheckObsCameraSignal" : "CurrentObsPreview"))
+                : UiText.Format("DeviceCheckPanel", "AppUsesCamera", ownership.Status);
         }
         else if (_camera == null)
-            CameraStatus.Text = _cameraListError ?? (available ? "연결된 장치 · 영상 확인을 누르세요." : "연결된 카메라가 없습니다.");
+            CameraStatus.Text = _cameraListError ?? UiText.Get("DeviceCheckPanel", available ? "PressCheckVideo" : "NoCamera");
     }
     private static readonly ScaleTransform Flipped = MakeFlip();
     private static ScaleTransform MakeFlip() { var flip = new ScaleTransform(1,-1); flip.Freeze(); return flip; }
@@ -204,7 +205,7 @@ public partial class DeviceCheckPanel : UserControl
         if (!_active || CameraList.SelectedItem is not InputDevice device || !_ownership!.TryBeginCheck(StopCamera)) return;
         try
         {
-            _cameraSignal = "카메라 연결 중…";
+            _cameraSignal = UiText.Get("DeviceCheckPanel", "ConnectingCamera");
             _camera = _backend.StartCamera(device, Video,
                 status => { _lastFrame = 0; _cameraSignal = status; }, () => _lastFrame = Stopwatch.GetTimestamp());
             UpdateCameraControls();
@@ -215,7 +216,7 @@ public partial class DeviceCheckPanel : UserControl
         {
             StopCamera();
             UpdateCameraControls();
-            CameraStatus.Text = "영상 점검 실패 · " + DeviceCheckBackend.Failure(ex);
+            CameraStatus.Text = UiText.Format("DeviceCheckPanel", "VideoCheckFailed", DeviceCheckBackend.Failure(ex));
         }
     }
 
@@ -240,9 +241,9 @@ public partial class DeviceCheckPanel : UserControl
     {
         bool available = MicrophoneList.SelectedItem != null;
         MicrophoneList.IsEnabled = MicButton.IsEnabled = available;
-        MicButton.Content = _mic == null ? "입력 확인" : "점검 중지";
+        MicButton.Content = UiText.Get("DeviceCheckPanel", _mic == null ? "CheckInput" : "StopCheck");
         if (_mic == null)
-            MicStatus.Text = _micListError ?? (available ? "연결된 장치 · 입력 확인을 누르고 말씀해 주세요." : "연결된 마이크가 없습니다.");
+            MicStatus.Text = _micListError ?? UiText.Get("DeviceCheckPanel", available ? "PressCheckInput" : "NoMicrophone");
     }
 
     private void Microphone_Click(object sender, RoutedEventArgs e)
@@ -251,7 +252,7 @@ public partial class DeviceCheckPanel : UserControl
         if (!_active || MicrophoneList.SelectedItem is not InputDevice device) return;
         var run = _mic = new MicCheck();
         UpdateMicControls();
-        MicStatus.Text = "마이크 연결 중…";
+        MicStatus.Text = UiText.Get("DeviceCheckPanel", "ConnectingMicrophone");
         _timer.Start();
         _micCleanup = MonitorAsync(_micCleanup, run, device.Id);
     }
@@ -263,7 +264,7 @@ public partial class DeviceCheckPanel : UserControl
             await previous;
             var token = run.Stop.Token;
             await Task.Run(() => _backend.MonitorMicrophone(id, reading => run.Latest = reading, token), token);
-            if (!token.IsCancellationRequested) throw new System.IO.IOException("입력 스트림이 종료되었습니다.");
+            if (!token.IsCancellationRequested) throw new System.IO.IOException(UiText.Get("DeviceCheckPanel", "InputStreamEnded"));
         }
         catch (Exception ex) when (run.Stop.IsCancellationRequested) { Debug.WriteLine(ex.Message); }
         catch (Exception ex)
@@ -272,7 +273,7 @@ public partial class DeviceCheckPanel : UserControl
             {
                 StopMic();
                 UpdateMicControls();
-                MicStatus.Text = "마이크 점검 실패 · " + DeviceCheckBackend.Failure(ex);
+                MicStatus.Text = UiText.Format("DeviceCheckPanel", "MicCheckFailed", DeviceCheckBackend.Failure(ex));
             }
         }
         finally { run.Stop.Dispose(); }
@@ -294,8 +295,8 @@ public partial class DeviceCheckPanel : UserControl
         {
             bool receiving = _lastFrame != 0 && Stopwatch.GetElapsedTime(_lastFrame) <= TimeSpan.FromSeconds(2);
             Video.Visibility = receiving ? Visibility.Visible : Visibility.Hidden;
-            CameraStatus.Text = receiving ? "영상 수신 중" :
-                _lastFrame != 0 ? "영상 신호 없음" : string.IsNullOrEmpty(_cameraSignal) ? "영상 대기" : _cameraSignal + " · 영상 대기";
+            CameraStatus.Text = receiving ? UiText.Get("DeviceCheckPanel", "ReceivingVideo") :
+                _lastFrame != 0 ? UiText.Get("DeviceCheckPanel", "NoVideoSignal") : string.IsNullOrEmpty(_cameraSignal) ? UiText.Get("DeviceCheckPanel", "WaitingForVideo") : UiText.Format("DeviceCheckPanel", "SignalWaitingForVideo", _cameraSignal);
         }
         if (_mic?.Latest is { } reading)
         {

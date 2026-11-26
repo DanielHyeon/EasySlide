@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="WorshipList" xml:space="preserve"><value>Worship list</value></data>
+  <data name="Modified" xml:space="preserve"><value>● Modified</value></data>
+  <data name="ModifiedTip" xml:space="preserve"><value>The worship list has changed since it was saved. Use 'Save' to keep it.</value></data>
+  <data name="SavedListsTip" xml:space="preserve"><value>Choosing a saved worship list loads it at once. Opening the list refreshes it.</value></data>
+  <data name="ManageWorshipLists" xml:space="preserve"><value>Manage Worship Lists</value></data>
+  <data name="AddToWorshipList" xml:space="preserve"><value>Add to Worship List</value></data>
+  <data name="AddExternalDocument" xml:space="preserve"><value>Add External Document to Worship List</value></data>
+  <data name="MoveUpTip" xml:space="preserve"><value>Move the selected item up (Ctrl+Shift+↑)</value></data>
+  <data name="MoveDownTip" xml:space="preserve"><value>Move the selected item down (Ctrl+Shift+↓)</value></data>
+  <data name="RemoveTip" xml:space="preserve"><value>Remove the selected item from the worship list (Del)</value></data>
+  <data name="GenerateRtf" xml:space="preserve"><value>Generate RTF Document</value></data>
+  <data name="EditSessionNotes" xml:space="preserve"><value>Edit session notes</value></data>
+  <data name="ProblemSelectTip" xml:space="preserve"><value>Click to select this item in the worship list.</value></data>
+  <data name="Live" xml:space="preserve"><value>LIVE</value></data>
+  <data name="SelectAll" xml:space="preserve"><value>Select All</value></data>
+  <data name="UnselectAll" xml:space="preserve"><value>Unselect All</value></data>
+  <data name="ClearWorshipList" xml:space="preserve"><value>Clear Worship List</value></data>
+  <data name="EditItem" xml:space="preserve"><value>Edit item</value></data>
+  <data name="PlayMedia" xml:space="preserve"><value>Play Media</value></data>
+  <data name="PlayMediaOnOutput" xml:space="preserve"><value>Play Media on Output Monitor</value></data>
+  <data name="AddSongsToUsages" xml:space="preserve"><value>Add Songs to Usages</value></data>
+  <data name="ProblemCount" xml:space="preserve"><value>⚠ {0} validation problems</value></data>
+  <data name="EmptyListNoDocument" xml:space="preserve"><value>Can't produce lyrics document because the Worship List is empty!</value></data>
+  <data name="RtfSaved" xml:space="preserve"><value>Worship List RTF saved: {0}</value></data>
+  <data name="RtfSaveFailed" xml:space="preserve"><value>Worship List RTF could not be saved: {0}</value></data>
+  <data name="AddExternalFileTitle" xml:space="preserve"><value>Select external files to add to the worship list</value></data>
+  <data name="FilterValidExternal" xml:space="preserve"><value>Valid External Files</value></data>
+  <data name="FilterWordDocuments" xml:space="preserve"><value>Word documents</value></data>
+  <data name="FilterTextInfoScreen" xml:space="preserve"><value>Text/InfoScreen</value></data>
+  <data name="FilterWorshipLists" xml:space="preserve"><value>Worship Lists</value></data>
+  <data name="FilterMedia" xml:space="preserve"><value>Media</value></data>
+  <data name="FilterAllFiles" xml:space="preserve"><value>All files</value></data>
+  <data name="ReadingWordDocument" xml:space="preserve"><value>Reading the Word document...</value></data>
+  <data name="TextFileReadFailed" xml:space="preserve"><value>The text file could not be read: {0}</value></data>
+  <data name="ListAlreadyEmpty" xml:space="preserve"><value>Worship list is already empty.</value></data>
+  <data name="NoListLoaded" xml:space="preserve"><value>No worship list is currently loaded.</value></data>
+  <data name="ClearListConfirm" xml:space="preserve"><value>Really clear the worship list '{0}'?&#10;&#10;The current worship list will be moved to trash.</value></data>
+</root>

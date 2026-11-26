@@ -39,7 +39,7 @@ public class MainStatusBarTests
     }
 
     [Theory]
-    [InlineData("{Binding Queue.Count, StringFormat='Worship: {0} items'}")] // 예배 순서 항목 수
+    [InlineData("{Binding Queue.Count, StringFormat={loc:Text MainWindow.WorshipItemCount}}")] // 예배 순서 항목 수
     [InlineData("Text=\"{Binding LyricsPageLabel}\"")]                    // 현재 절 위치
     [InlineData("Text=\"{Binding StatusText}\"")]                        // 운영 상태
     [InlineData("Text=\"{Binding SelectedOutputDisplay.Name}\"")]        // 출력 모니터

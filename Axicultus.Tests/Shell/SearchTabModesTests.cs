@@ -2,6 +2,7 @@ using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 using Axicultus.Wpf.Tests.Accessibility;
+using Axicultus.Wpf.Tests.Localization;
 using FluentAssertions;
 using Xunit;
 
@@ -83,7 +84,7 @@ public sealed class SearchTabModesTests
         var emptyState = songs.Descendants().SingleOrDefault(
             e => e.Name.LocalName == "TextBlock" && Attr(e, "Visibility").Contains("HasNoSearchResults"));
         emptyState.Should().NotBeNull("검색 결과 빈 상태 안내가 HasNoSearchResults 에 바인딩돼야 함");
-        Attr(emptyState!, "Text").Should().Contain("결과가 없습니다", "운영자에게 결과 없음을 안내");
+        XamlText.Korean(Attr(emptyState!, "Text")).Should().Contain("결과가 없습니다", "운영자에게 결과 없음을 안내");
         // 빈 상태는 클릭을 막지 않아야 한다(아래 목록·더블클릭 추가가 가려지지 않도록).
         Attr(emptyState!, "IsHitTestVisible").Should().Be("False", "안내는 클릭을 통과시켜야 함");
         // 안내와 결과 목록이 같은 셀(Row 3)에 겹쳐야 "오버레이"가 성립한다 — 둘 다 Grid.Row=3 인지 고정.
@@ -103,7 +104,7 @@ public sealed class SearchTabModesTests
         var emptyState = titles.Descendants().SingleOrDefault(
             e => e.Name.LocalName == "TextBlock" && Attr(e, "Visibility").Contains("HasNoLookupResults"));
         emptyState.Should().NotBeNull("제목 조회 빈 상태 안내가 HasNoLookupResults 에 바인딩돼야 함");
-        Attr(emptyState!, "Text").Should().Contain("없습니다", "운영자에게 결과 없음을 안내");
+        XamlText.Korean(Attr(emptyState!, "Text")).Should().Contain("없습니다", "운영자에게 결과 없음을 안내");
         Attr(emptyState!, "IsHitTestVisible").Should().Be("False", "안내는 클릭을 통과시켜야 함");
         // 안내와 후보 목록이 같은 셀(Row 2)에 겹쳐야 오버레이가 성립한다.
         var lookupList = titles.Descendants().Single(

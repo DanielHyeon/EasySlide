@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Automation.Peers;
 using System.Windows.Controls;
+using Axicultus.Wpf.Localization;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace Axicultus.Wpf.Composites;
@@ -35,7 +36,7 @@ public sealed partial class LiveBarViewModel : ObservableObject
     [ObservableProperty] private string _outputMonitorName = string.Empty;
 
     /// <summary>사용자에게 보여줄 단축키 힌트 (예: "Space=Next").</summary>
-    [ObservableProperty] private string _shortcutHint = "Space=다음 슬라이드";
+    [ObservableProperty] private string _shortcutHint = UiText.Get("LiveBar", "ShortcutHint");
 
     /// <summary>State가 Off일 때는 LiveBar 전체를 숨김.</summary>
     public Visibility BarVisibility => State == Controls.LiveState.Off

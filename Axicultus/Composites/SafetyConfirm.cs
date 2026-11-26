@@ -6,6 +6,7 @@ using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Composites;
 
@@ -142,7 +143,7 @@ public static class SafetyConfirm
         // 취소 버튼 — IsCancel=true로 WPF가 Esc 키를 자동 라우팅 (포커스 없어도 동작)
         var cancelBtn = new Button
         {
-            Content = "취소",
+            Content = UiText.Get("SafetyConfirm", "Cancel"),
             Margin = new Thickness(0, 0, 8, 0),
             MinWidth = 70,
             IsCancel = true,
@@ -154,7 +155,7 @@ public static class SafetyConfirm
         // 확인 버튼 — IsDefault=true로 Enter 키 자동 라우팅
         var confirmBtn = new Button
         {
-            Content = "확인",
+            Content = UiText.Get("SafetyConfirm", "Confirm"),
             MinWidth = 70,
             IsDefault = true,
         };

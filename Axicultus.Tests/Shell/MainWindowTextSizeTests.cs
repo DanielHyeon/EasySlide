@@ -186,7 +186,7 @@ public sealed class MainWindowTextSizeTests
                     || e.Name.LocalName == "Setter" && Attr(e, "Property") == "FontSize" && Literal(Attr(e, "Value")))
                 // Deliberate exemptions: none of these is text that reads at the interface size.
                 .Where(e => e.Name.LocalName != "SymbolIcon") // icon glyphs sized to their buttons
-                .Where(e => Attr(e, "Text") != "Aa") // the colour sample inside its fixed 34x22 swatch
+                .Where(e => Attr(e, "Text") != "{loc:Text MainWindow.AppearanceSample}") // the colour sample inside its fixed 34x22 swatch
                 .Where(e => !e.Ancestors().Any(a => Attr(a, "Name") == "CommandPaletteOverlay")) // the palette overlay keeps its own scale
                 .Where(e => !e.Ancestors().Any(a => Attr(a, "Key") == "DefaultSpinnerButton")) // the spinner's arrow glyphs
                 .Where(e => !e.Ancestors().Any(a => Attr(a, "Name") == "ClassicWorshipListToolStrip2")) // the icon-only side rail
@@ -311,6 +311,7 @@ public sealed class MainWindowTextSizeTests
     {
         var bar = Load("MainWindow.xaml").Descendants().Single(e => Attr(e, "Name") == "StatusBar");
         bar.Attributes().Where(a => a.Name.LocalName == "Visibility").Remove(); // bound to a menu item outside this element
+        bar.SetAttributeValue(XNamespace.Xmlns + "loc", "clr-namespace:Axicultus.Wpf.Localization"); // used only inside attribute values
         var element = (FrameworkElement)XamlReader.Parse(WithAssembly(bar.ToString()));
         element.DataContext = new
         {
@@ -383,7 +384,7 @@ public sealed class MainWindowTextSizeTests
         titles.Should().HaveCountGreaterThan(5);
         foreach (var title in titles)
             Bounds(title, panel).Right.Should().BeLessThanOrEqualTo(barLeft + 0.5, $"{title.Text} ends before the scroll bar");
-        var badge = Descendants(list).OfType<Border>().Single(b => Shown(b) && b.Child is TextBlock { Text: "LIVE" });
+        var badge = Descendants(list).OfType<Border>().Single(b => Shown(b) && b.Child is TextBlock { Text: var badgeText } && badgeText == Axicultus.Wpf.Localization.UiText.Get("WorshipListPanel", "Live"));
         Bounds(badge, panel).Right.Should().BeLessThanOrEqualTo(barLeft + 0.5, "the LIVE badge ends before the scroll bar");
         ((TextBlock)badge.Child).FontSize.Should().Be((double)Application.Current.Resources["Type.Badge.FontSize"], "the badge scales with the interface size");
         var liveRow = badge.Ancestors<ListViewItem>().First();

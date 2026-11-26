@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Camera" xml:space="preserve"><value>카메라</value></data>
+  <data name="CheckVideo" xml:space="preserve"><value>영상 확인</value></data>
+  <data name="RefreshDevices" xml:space="preserve"><value>장치 목록 새로고침</value></data>
+  <data name="Microphone" xml:space="preserve"><value>마이크</value></data>
+  <data name="CheckInput" xml:space="preserve"><value>입력 확인</value></data>
+  <data name="ObsStudio" xml:space="preserve"><value>OBS 스튜디오</value></data>
+  <data name="CheckPassword" xml:space="preserve"><value>점검용 암호 (선택)</value></data>
+  <data name="CheckPasswordTip" xml:space="preserve"><value>비워 두면 현재 연결 또는 저장된 암호를 사용합니다.</value></data>
+  <data name="CheckConnection" xml:space="preserve"><value>연결 확인</value></data>
+  <data name="AppConnectionStatus" xml:space="preserve"><value>앱 연결 상태 · {0}</value></data>
+  <data name="Connected" xml:space="preserve"><value>연결됨</value></data>
+  <data name="ProgramScene" xml:space="preserve"><value>현재 프로그램 씬 · {0}</value></data>
+  <data name="CheckingObs" xml:space="preserve"><value>OBS 응답 확인 중…</value></data>
+  <data name="ObsChecked" xml:space="preserve"><value>최근 점검 {0} · 응답 확인 · {1}</value></data>
+  <data name="ConnectionCheckFailed" xml:space="preserve"><value>연결 점검 실패 · {0}</value></data>
+  <data name="SearchingDevices" xml:space="preserve"><value>장치 검색 중…</value></data>
+  <data name="DeviceSearchFailed" xml:space="preserve"><value>장치 검색 실패 · {0}</value></data>
+  <data name="StopCheck" xml:space="preserve"><value>점검 중지</value></data>
+  <data name="ObsCameraMode" xml:space="preserve"><value>OBS 카메라 모드 · {0}</value></data>
+  <data name="CheckObsCameraSignal" xml:space="preserve"><value>OBS에서 카메라 신호를 확인하세요.</value></data>
+  <data name="CurrentObsPreview" xml:space="preserve"><value>현재 OBS 미리보기</value></data>
+  <data name="AppUsesCamera" xml:space="preserve"><value>앱에서 카메라 사용 중 · {0}</value></data>
+  <data name="PressCheckVideo" xml:space="preserve"><value>연결된 장치 · 영상 확인을 누르세요.</value></data>
+  <data name="NoCamera" xml:space="preserve"><value>연결된 카메라가 없습니다.</value></data>
+  <data name="ConnectingCamera" xml:space="preserve"><value>카메라 연결 중…</value></data>
+  <data name="VideoCheckFailed" xml:space="preserve"><value>영상 점검 실패 · {0}</value></data>
+  <data name="PressCheckInput" xml:space="preserve"><value>연결된 장치 · 입력 확인을 누르고 말씀해 주세요.</value></data>
+  <data name="NoMicrophone" xml:space="preserve"><value>연결된 마이크가 없습니다.</value></data>
+  <data name="ConnectingMicrophone" xml:space="preserve"><value>마이크 연결 중…</value></data>
+  <data name="InputStreamEnded" xml:space="preserve"><value>입력 스트림이 종료되었습니다.</value></data>
+  <data name="MicCheckFailed" xml:space="preserve"><value>마이크 점검 실패 · {0}</value></data>
+  <data name="ReceivingVideo" xml:space="preserve"><value>영상 수신 중</value></data>
+  <data name="NoVideoSignal" xml:space="preserve"><value>영상 신호 없음</value></data>
+  <data name="WaitingForVideo" xml:space="preserve"><value>영상 대기</value></data>
+  <data name="SignalWaitingForVideo" xml:space="preserve"><value>{0} · 영상 대기</value></data>
+</root>

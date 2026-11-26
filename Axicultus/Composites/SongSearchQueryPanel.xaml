@@ -1,6 +1,7 @@
 <UserControl x:Class="Axicultus.Wpf.Composites.SongSearchQueryPanel"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="clr-namespace:Axicultus.Wpf.Localization"
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
 
     <!--
@@ -17,7 +18,7 @@
             Padding="{StaticResource Thickness.Lg}">
         <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel>
-                <TextBlock Text="검색"
+                <TextBlock Text="{loc:Text SongSearchQueryPanel.Search}"
                            Style="{StaticResource Type.Title3.Style}"
                            Foreground="{DynamicResource Brush.Text.Primary}" />
                 <TextBox x:Name="PhraseBox" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
@@ -28,39 +29,39 @@
                     </TextBox.InputBindings>
                 </TextBox>
                 <UniformGrid Columns="2">
-                    <CheckBox Content="제목" IsChecked="{Binding SearchTitle, Mode=TwoWay}" Margin="0,0,8,8" />
-                    <CheckBox Content="가사" IsChecked="{Binding SearchLyrics, Mode=TwoWay}" Margin="0,0,8,8" />
-                    <CheckBox Content="번호" IsChecked="{Binding SearchSongNumber, Mode=TwoWay}" Margin="0,0,8,8" />
-                    <CheckBox Content="교단 참조" IsChecked="{Binding SearchBookReference, Mode=TwoWay}" Margin="0,0,8,8" />
-                    <CheckBox Content="사용자 참조" IsChecked="{Binding SearchUserReference, Mode=TwoWay}" Margin="0,0,8,8" />
-                    <CheckBox Content="라이선스 관리자" IsChecked="{Binding SearchLicenceAdmin, Mode=TwoWay}" Margin="0,0,8,8" />
-                    <CheckBox Content="작사·작곡" IsChecked="{Binding SearchWriter, Mode=TwoWay}" Margin="0,0,8,8" />
-                    <CheckBox Content="저작권" IsChecked="{Binding SearchCopyright, Mode=TwoWay}" Margin="0,0,8,8" />
+                    <CheckBox Content="{loc:Text SongSearchQueryPanel.Title}" IsChecked="{Binding SearchTitle, Mode=TwoWay}" Margin="0,0,8,8" />
+                    <CheckBox Content="{loc:Text SongSearchQueryPanel.Lyrics}" IsChecked="{Binding SearchLyrics, Mode=TwoWay}" Margin="0,0,8,8" />
+                    <CheckBox Content="{loc:Text SongSearchQueryPanel.Number}" IsChecked="{Binding SearchSongNumber, Mode=TwoWay}" Margin="0,0,8,8" />
+                    <CheckBox Content="{loc:Text SongSearchQueryPanel.DenominationRef}" IsChecked="{Binding SearchBookReference, Mode=TwoWay}" Margin="0,0,8,8" />
+                    <CheckBox Content="{loc:Text SongSearchQueryPanel.UserRef}" IsChecked="{Binding SearchUserReference, Mode=TwoWay}" Margin="0,0,8,8" />
+                    <CheckBox Content="{loc:Text SongSearchQueryPanel.LicenseAdmin}" IsChecked="{Binding SearchLicenceAdmin, Mode=TwoWay}" Margin="0,0,8,8" />
+                    <CheckBox Content="{loc:Text SongSearchQueryPanel.WriterComposer}" IsChecked="{Binding SearchWriter, Mode=TwoWay}" Margin="0,0,8,8" />
+                    <CheckBox Content="{loc:Text SongSearchQueryPanel.Copyright}" IsChecked="{Binding SearchCopyright, Mode=TwoWay}" Margin="0,0,8,8" />
                 </UniformGrid>
-                <TextBlock Text="키"
+                <TextBlock Text="{loc:Text SongSearchQueryPanel.Key}"
                            Style="{StaticResource Type.Caption.Style}"
                            Foreground="{DynamicResource Brush.Text.Secondary}" />
                 <ComboBox IsEditable="True" ItemsSource="{Binding SearchKeys}" Text="{Binding SearchKey, UpdateSourceTrigger=PropertyChanged}"
                          AutomationProperties.Name="조(Key) 검색"
                          Margin="0,4,0,10" />
-                <TextBlock Text="타이밍"
+                <TextBlock Text="{loc:Text SongSearchQueryPanel.Timing}"
                            Style="{StaticResource Type.Caption.Style}"
                            Foreground="{DynamicResource Brush.Text.Secondary}" />
                 <ComboBox IsEditable="True" ItemsSource="{Binding SearchTimings}" Text="{Binding SearchTiming, UpdateSourceTrigger=PropertyChanged}"
                          AutomationProperties.Name="타이밍 검색"
                          Margin="0,4,0,10" />
-                <CheckBox Content="코드 표기 있음"
+                <CheckBox Content="{loc:Text SongSearchQueryPanel.HasChords}"
                           IsChecked="{Binding NotationsOnly, Mode=TwoWay}"
                           Margin="0,0,0,8" />
-                <CheckBox Content="미디어 항목"
+                <CheckBox Content="{loc:Text SongSearchQueryPanel.MediaItem}"
                           IsChecked="{Binding MediaOnly, Mode=TwoWay}"
                           Margin="0,0,0,8" />
-                <CheckBox Content="수정일"
+                <CheckBox Content="{loc:Text SongSearchQueryPanel.Modified}"
                           IsChecked="{Binding UseModifiedDates, Mode=TwoWay}"
                           Margin="0,0,0,8" />
                 <DatePicker IsEnabled="{Binding UseModifiedDates}" SelectedDate="{Binding ModifiedFrom}" Margin="0,0,0,6" />
                 <DatePicker IsEnabled="{Binding UseModifiedDates}" SelectedDate="{Binding ModifiedTo}" Margin="0,0,0,14" />
-                <TextBlock Text="폴더"
+                <TextBlock Text="{loc:Text SongSearchQueryPanel.Folder}"
                            Style="{StaticResource Type.Title3.Style}"
                            Foreground="{DynamicResource Brush.Text.Primary}"
                            Margin="0,0,0,8" />
@@ -79,7 +80,7 @@
                         Margin="0,14,0,0">
                     <StackPanel Orientation="Horizontal">
                         <ui:SymbolIcon Symbol="Search24" Margin="0,0,6,0" />
-                        <TextBlock Text="검색" />
+                        <TextBlock Text="{loc:Text SongSearchQueryPanel.Search}" />
                     </StackPanel>
                 </Button>
             </StackPanel>

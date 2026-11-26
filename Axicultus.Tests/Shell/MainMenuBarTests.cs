@@ -1013,7 +1013,7 @@ public class MainMenuBarTests
         tabs.Should().Contain("PART_SelectedContentHost", "the FrmMain tab template should render selected content separately from the bottom tab strip");
         tabs.Should().Contain("Grid.Row=\"1\"", "the FrmMain tab template should dock the header strip below selected content");
         SectionBetween(xaml, "Tag=\"PowerPointSource\"", "</TabItem.Header>")
-            .Should().Contain("Text=\"PowerP\"",
+            .Should().Contain("Text=\"{loc:Text MainWindow.PowerP}\"",
                 "FrmMain tabPowerpoint.Text is the compact 'PowerP' label, which keeps Default visible in the left source strip");
 
         var cursor = -1;
@@ -1506,7 +1506,7 @@ public class MainMenuBarTests
         var tab = XDocument.Parse(xaml).Descendants().Single(e => (string?)e.Attribute("Tag") == "DefaultSource");
         XNamespace names = "http://schemas.microsoft.com/winfx/2006/xaml";
         var groups = tab.Descendants().Where(e => e.Name.LocalName == "GroupBox").ToArray();
-        groups.Select(e => (string?)e.Attribute("Header")).Should().Equal("Default Layout", "Default Background", "Display Panel");
+        groups.Select(e => Localization.XamlText.English((string?)e.Attribute("Header") ?? "")).Should().Equal("Default Layout", "Default Background", "Display Panel");
         string[] Controls(XElement row) => row.Elements().Select(e => (string?)e.Attribute(names + "Name")).OfType<string>().ToArray();
         var rows = groups.SelectMany(g => g.Elements().Single().Elements()).ToArray();
         rows.Should().HaveCount(7);
@@ -1605,8 +1605,10 @@ public class MainMenuBarTests
         code.Should().Contain("EnsureInlineImageLoadedOnce(viewModel)", "Images source tab should lazy-load on first selection");
         code.Should().Contain("ImagesSourceTab.DataContext = _inlineImages", "inline Images tab should bind to ImageLibraryViewModel");
         code.Should().Contain("private async void ImageImport_Click", "Image_Import should use a real WPF shell handler");
-        code.Should().Contain("Import An Image into folder:", "Image_Import dialog title should match FrmMain");
-        code.Should().Contain("Images (*.jpg,*jpeg,*.bmp,*.gif,*.ico)|*.jpg;*jpeg;*.bmp;*.gif;*.ico",
+        code.Should().Contain("UiText.Format(\"MainWindow\", \"ImportImageTitle\", folderName)", "Image_Import dialog title should match FrmMain");
+        Axicultus.Wpf.Localization.UiText.Catalog.Manager("MainWindow").GetString("ImportImageTitle", System.Globalization.CultureInfo.InvariantCulture)
+            .Should().Be("Import An Image into folder: {0}", "the English title is FrmMain's");
+        code.Should().Contain("UiText.Get(\"MainWindow\", \"FilterImages\") + \" (*.jpg,*jpeg,*.bmp,*.gif,*.ico)|*.jpg;*jpeg;*.bmp;*.gif;*.ico\"",
             "Image_Import should start with FrmMain's legacy image filter");
         code.Should().Contain("ImportImagesAsync(dialog.FileNames)", "Image_Import should import the selected files into the active ImagesFolder");
         code.Should().Contain("case \"ImagesSource\":", "Images source tab should participate in the shared Enter/add gesture route");

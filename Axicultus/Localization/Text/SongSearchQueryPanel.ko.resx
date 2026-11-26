@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Search" xml:space="preserve"><value>검색</value></data>
+  <data name="Title" xml:space="preserve"><value>제목</value></data>
+  <data name="Lyrics" xml:space="preserve"><value>가사</value></data>
+  <data name="Number" xml:space="preserve"><value>번호</value></data>
+  <data name="DenominationRef" xml:space="preserve"><value>교단 참조</value></data>
+  <data name="UserRef" xml:space="preserve"><value>사용자 참조</value></data>
+  <data name="LicenseAdmin" xml:space="preserve"><value>라이선스 관리자</value></data>
+  <data name="WriterComposer" xml:space="preserve"><value>작사·작곡</value></data>
+  <data name="Copyright" xml:space="preserve"><value>저작권</value></data>
+  <data name="Key" xml:space="preserve"><value>키</value></data>
+  <data name="Timing" xml:space="preserve"><value>타이밍</value></data>
+  <data name="HasChords" xml:space="preserve"><value>코드 표기 있음</value></data>
+  <data name="MediaItem" xml:space="preserve"><value>미디어 항목</value></data>
+  <data name="Modified" xml:space="preserve"><value>수정일</value></data>
+  <data name="Folder" xml:space="preserve"><value>폴더</value></data>
+</root>

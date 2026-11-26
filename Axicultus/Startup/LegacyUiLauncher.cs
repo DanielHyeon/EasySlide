@@ -90,7 +90,7 @@ public sealed class LegacyUiLauncher : ILegacyUiLauncher
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"[LEGACY-UI] legacy 실행 파일 시작 실패: {ex}");
+            Debug.WriteLine($"[LEGACY-UI] Legacy executable failed to start: {ex}");
             return LegacyUiLaunchOutcome.LaunchFailed;
         }
     }

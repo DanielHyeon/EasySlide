@@ -1,6 +1,7 @@
 <UserControl x:Class="Axicultus.Wpf.Composites.DeviceCheckPanel"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="clr-namespace:Axicultus.Wpf.Localization">
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
         <Grid Margin="{DynamicResource Thickness.Xl}">
 
@@ -10,7 +11,7 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <StackPanel>
-                <TextBlock Text="카메라" Style="{DynamicResource Type.Title3.Style}"/>
+                <TextBlock Text="{loc:Text DeviceCheckPanel.Camera}" Style="{DynamicResource Type.Title3.Style}"/>
                 <ComboBox x:Name="CameraList" DisplayMemberPath="DisplayName" Margin="0,8,0,0"
                           Style="{DynamicResource EsComboBox.Default}" ToolTip="{Binding SelectedItem.Name, RelativeSource={RelativeSource Self}}"
                           AutomationProperties.Name="점검할 카메라" SelectionChanged="CameraSelectionChanged"/>
@@ -22,21 +23,21 @@
                     </Grid>
                 </Border>
                 <WrapPanel Margin="0,8,0,0">
-                    <Button x:Name="CameraButton" Content="영상 확인" Click="Camera_Click"
+                    <Button x:Name="CameraButton" Content="{loc:Text DeviceCheckPanel.CheckVideo}" Click="Camera_Click"
                             Style="{DynamicResource EsButton.Secondary}" Margin="0,0,8,0"/>
                     <Button x:Name="RefreshDevices" Style="{DynamicResource EsButton.Secondary}"
-                            Content="장치 목록 새로고침" Click="Refresh_Click"/>
+                            Content="{loc:Text DeviceCheckPanel.RefreshDevices}" Click="Refresh_Click"/>
                 </WrapPanel>
                 <TextBlock x:Name="CameraStatus" TextWrapping="Wrap" Margin="0,8,0,0" AutomationProperties.LiveSetting="Polite"/>
             </StackPanel>
             <StackPanel Grid.Column="2">
-                <TextBlock Text="마이크" Style="{DynamicResource Type.Title3.Style}"/>
+                <TextBlock Text="{loc:Text DeviceCheckPanel.Microphone}" Style="{DynamicResource Type.Title3.Style}"/>
                 <Grid Margin="0,8,0,0">
                     <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                     <ComboBox x:Name="MicrophoneList" DisplayMemberPath="DisplayName"
                               Style="{DynamicResource EsComboBox.Default}" ToolTip="{Binding SelectedItem.Name, RelativeSource={RelativeSource Self}}"
                               AutomationProperties.Name="점검할 마이크" SelectionChanged="MicrophoneSelectionChanged"/>
-                    <Button x:Name="MicButton" Grid.Column="1" Content="입력 확인" Click="Microphone_Click"
+                    <Button x:Name="MicButton" Grid.Column="1" Content="{loc:Text DeviceCheckPanel.CheckInput}" Click="Microphone_Click"
                             Style="{DynamicResource EsButton.Secondary}" Margin="8,0,0,0"/>
                 </Grid>
                 <DockPanel Margin="0,8,0,0">
@@ -47,16 +48,16 @@
 
                 <TextBlock x:Name="MicStatus" TextWrapping="Wrap" Margin="0,8,0,0" AutomationProperties.LiveSetting="Polite"/>
                 <Separator Margin="0,16,0,12"/>
-                <TextBlock Text="OBS Studio" Style="{DynamicResource Type.Title3.Style}"/>
+                <TextBlock Text="{loc:Text DeviceCheckPanel.ObsStudio}" Style="{DynamicResource Type.Title3.Style}"/>
                 <TextBlock x:Name="ObsAddress" Margin="0,8,0,0"/>
                 <TextBlock x:Name="ObsStatusText" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite"/>
                 <TextBlock x:Name="ObsSceneText" TextWrapping="Wrap"/>
-                <Label Content="점검용 암호 (선택)" Target="{Binding ElementName=ObsPassword}" Padding="0" Margin="0,8,0,4"/>
+                <Label Content="{loc:Text DeviceCheckPanel.CheckPassword}" Target="{Binding ElementName=ObsPassword}" Padding="0" Margin="0,8,0,4"/>
                 <Grid>
                     <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                     <PasswordBox x:Name="ObsPassword" AutomationProperties.Name="OBS 점검용 암호"
-                                 ToolTip="비워 두면 현재 연결 또는 저장된 암호를 사용합니다."/>
-                    <Button x:Name="ObsButton" Grid.Column="1" Content="연결 확인" Click="Obs_Click"
+                                 ToolTip="{loc:Text DeviceCheckPanel.CheckPasswordTip}"/>
+                    <Button x:Name="ObsButton" Grid.Column="1" Content="{loc:Text DeviceCheckPanel.CheckConnection}" Click="Obs_Click"
                             Style="{DynamicResource EsButton.Secondary}" Margin="8,0,0,0"/>
                 </Grid>
                 <TextBlock x:Name="ObsResult" TextWrapping="Wrap" Margin="0,8,0,0" AutomationProperties.LiveSetting="Polite"/>

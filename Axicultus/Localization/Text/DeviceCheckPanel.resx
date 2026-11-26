@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Camera" xml:space="preserve"><value>Camera</value></data>
+  <data name="CheckVideo" xml:space="preserve"><value>Check video</value></data>
+  <data name="RefreshDevices" xml:space="preserve"><value>Refresh device list</value></data>
+  <data name="Microphone" xml:space="preserve"><value>Microphone</value></data>
+  <data name="CheckInput" xml:space="preserve"><value>Check input</value></data>
+  <data name="ObsStudio" xml:space="preserve"><value>OBS Studio</value></data>
+  <data name="CheckPassword" xml:space="preserve"><value>Password for the check (optional)</value></data>
+  <data name="CheckPasswordTip" xml:space="preserve"><value>Leave empty to use the current connection or the saved password.</value></data>
+  <data name="CheckConnection" xml:space="preserve"><value>Check connection</value></data>
+  <data name="AppConnectionStatus" xml:space="preserve"><value>App connection · {0}</value></data>
+  <data name="Connected" xml:space="preserve"><value>Connected</value></data>
+  <data name="ProgramScene" xml:space="preserve"><value>Current program scene · {0}</value></data>
+  <data name="CheckingObs" xml:space="preserve"><value>Checking the OBS response…</value></data>
+  <data name="ObsChecked" xml:space="preserve"><value>Last check {0} · responded · {1}</value></data>
+  <data name="ConnectionCheckFailed" xml:space="preserve"><value>Connection check failed · {0}</value></data>
+  <data name="SearchingDevices" xml:space="preserve"><value>Searching for devices…</value></data>
+  <data name="DeviceSearchFailed" xml:space="preserve"><value>Device search failed · {0}</value></data>
+  <data name="StopCheck" xml:space="preserve"><value>Stop check</value></data>
+  <data name="ObsCameraMode" xml:space="preserve"><value>OBS camera mode · {0}</value></data>
+  <data name="CheckObsCameraSignal" xml:space="preserve"><value>Check the camera signal in OBS.</value></data>
+  <data name="CurrentObsPreview" xml:space="preserve"><value>Current OBS preview</value></data>
+  <data name="AppUsesCamera" xml:space="preserve"><value>The app is using the camera · {0}</value></data>
+  <data name="PressCheckVideo" xml:space="preserve"><value>Device connected · press Check video.</value></data>
+  <data name="NoCamera" xml:space="preserve"><value>No camera is connected.</value></data>
+  <data name="ConnectingCamera" xml:space="preserve"><value>Connecting to the camera…</value></data>
+  <data name="VideoCheckFailed" xml:space="preserve"><value>Video check failed · {0}</value></data>
+  <data name="PressCheckInput" xml:space="preserve"><value>Device connected · press Check input and speak.</value></data>
+  <data name="NoMicrophone" xml:space="preserve"><value>No microphone is connected.</value></data>
+  <data name="ConnectingMicrophone" xml:space="preserve"><value>Connecting to the microphone…</value></data>
+  <data name="InputStreamEnded" xml:space="preserve"><value>The input stream ended.</value></data>
+  <data name="MicCheckFailed" xml:space="preserve"><value>Microphone check failed · {0}</value></data>
+  <data name="ReceivingVideo" xml:space="preserve"><value>Receiving video</value></data>
+  <data name="NoVideoSignal" xml:space="preserve"><value>No video signal</value></data>
+  <data name="WaitingForVideo" xml:space="preserve"><value>Waiting for video</value></data>
+  <data name="SignalWaitingForVideo" xml:space="preserve"><value>{0} · waiting for video</value></data>
+</root>

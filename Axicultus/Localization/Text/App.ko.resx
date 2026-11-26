@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="LegacyUiFailed" xml:space="preserve"><value>이전 버전 화면({0})을 시작하지 못했습니다.&#10;&#10;새 화면으로 계속 시작합니다.</value></data>
+  <data name="LegacyUiTitle" xml:space="preserve"><value>Axicultus — 이전 버전 화면</value></data>
+  <data name="EarlierSettingsNotCopied" xml:space="preserve"><value>이전 설정 파일을 복사하지 못해 기본 설정으로 시작합니다. 이번 실행에서 바꾼 설정은 저장되지 않으며, 다음 시작 때 다시 복사를 시도합니다.</value></data>
+  <data name="SomeSettingsNotCopied" xml:space="preserve"><value>기존 설정 일부를 복사하지 못했습니다. 프로그램은 계속 시작하며, 다음 시작 때 다시 시도합니다.</value></data>
+  <data name="ProfileMigrationTitle" xml:space="preserve"><value>Axicultus — 설정 이전</value></data>
+  <data name="GlobalHotkeysFailed" xml:space="preserve"><value>전역 단축키를 시작하지 못했습니다.&#10;&#10;앱 내부 단축키는 계속 사용할 수 있습니다.</value></data>
+  <data name="GlobalHotkeysTitle" xml:space="preserve"><value>Axicultus — 전역 단축키</value></data>
+</root>

@@ -24,11 +24,6 @@ public sealed class UiTextCoverageTests
     [
         "Axicultus/Captions/CaptionConsole.xaml",
         "Axicultus/Captions/CaptionSettingsWindow.xaml",
-        "Axicultus/Composites/BibleVerseFinder.xaml",
-        "Axicultus/Composites/DeviceCheckPanel.xaml",
-        "Axicultus/Composites/OutputPlacementEditor.xaml",
-        "Axicultus/Composites/SongSearchQueryPanel.xaml",
-        "Axicultus/Composites/WorshipListPanel.xaml",
         "Axicultus/Library/BibleVersionAddWindow.xaml",
         "Axicultus/Library/BibleVersionManagerWindow.xaml",
         "Axicultus/Library/BibleVersionPanel.xaml",
@@ -49,10 +44,7 @@ public sealed class UiTextCoverageTests
         "Axicultus/Library/SongMergeWindow.xaml",
         "Axicultus/Library/SongMoveWindow.xaml",
         "Axicultus/Library/SongRecoveryWindow.xaml",
-        "Axicultus/MainWindow.xaml",
         "Axicultus/Media/MediaAssignmentWindow.xaml",
-        "Axicultus/OutputWindow.xaml",
-        "Axicultus/PreviewWindow.xaml",
         "Axicultus/SettingsWindow.xaml",
         "Axicultus/Shell/DefaultBackgroundWindow.xaml",
         "Axicultus/Shell/ManageWorshipListsWindow.xaml",
@@ -67,7 +59,6 @@ public sealed class UiTextCoverageTests
 
     private static readonly string[] WpfCodeNotYet =
     [
-        "Axicultus/App.xaml.cs",
         "Axicultus/Captions/CaptionConsole.Operator.cs",
         "Axicultus/Captions/CaptionConsole.xaml.cs",
         "Axicultus/Captions/CaptionDeck.cs",
@@ -79,10 +70,6 @@ public sealed class UiTextCoverageTests
         "Axicultus/Captions/ObsOperator.cs",
         "Axicultus/Captions/QueueRecoveryJournal.cs",
         "Axicultus/Captions/SongLyrics.cs",
-        "Axicultus/Composites/DeviceCheckPanel.xaml.cs",
-        "Axicultus/Composites/LiveBar.cs",
-        "Axicultus/Composites/SafetyConfirm.cs",
-        "Axicultus/Composites/WorshipListPanel.xaml.cs",
         "Axicultus/Controls/OperatorOptionPanel.cs",
         "Axicultus/Data/AdminDatabaseRepository.cs",
         "Axicultus/Data/FolderFormatField.cs",
@@ -122,9 +109,6 @@ public sealed class UiTextCoverageTests
         "Axicultus/Library/SongMoveViewModel.cs",
         "Axicultus/Library/SongRecoveryViewModel.cs",
         "Axicultus/Library/SongSelectionText.cs",
-        "Axicultus/MainWindow.LiveDevices.cs",
-        "Axicultus/MainWindow.OperatorMenus.cs",
-        "Axicultus/MainWindow.xaml.cs",
         "Axicultus/Media/AttachableMediaPlaybackBackend.cs",
         "Axicultus/Media/CameraOwnership.cs",
         "Axicultus/Media/DeviceCheckBackend.cs",
@@ -162,10 +146,7 @@ public sealed class UiTextCoverageTests
         "Axicultus/Shell/WorshipListValidator.cs",
         "Axicultus/Shell/WorshipSessionNotesService.cs",
         "Axicultus/Shell/WorshipSessionNotesViewModel.cs",
-        "Axicultus/Startup/LegacyUiLauncher.cs",
         "Axicultus/Support/SupportDialogViewModels.cs",
-        "Axicultus/Theme/ThemeService.cs",
-        "Axicultus/Theme/WorshipItemIcon.cs",
     ];
 
     private static readonly string[] WinFormsDesignerNotYet =
@@ -258,6 +239,8 @@ public sealed class UiTextCoverageTests
         // (bounded by non-ASCII-letters: a Korean particle may follow a name, "Axicultus를")
         + @"(?<![A-Za-z])(Axicultus|Axicultuss|EasiSlides|PowerPoint|PPTX?|OBS|Windows|Office|Word|Excel|SQLite|MySQL|MariaDB|CCLI|DirectShow|"
         + @"JSON|XML|HTML|CSV|RTF|PDF|EULA|URL|USB|DPI|PC|ID|IP|NDI|WPF|WinForms|InfoScreen|Copyright|"
+        // (units; a lone letter: a key name "(M)" or a lyrics section code "p", "c", "b"; the AdminDB database's name)
+        + @"px|pt|[A-Za-z]|AdminDB|"
         + @"Ctrl|Alt|Shift|Esc|Enter|Space|Tab|PgUp|PgDn|PageUp|PageDown|Home|End|Del|Insert|F\d{1,2})(?![A-Za-z])|"
         + @"\.(esw|est|esi|esp|txt|pptx?|ppsx?|docx?|rtf|jpe?g|png|gif|bmp|mp[34]|wmv|avi|xml|json|db|sqlite)(?![A-Za-z])",
         RegexOptions.CultureInvariant);
