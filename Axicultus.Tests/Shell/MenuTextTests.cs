@@ -38,6 +38,25 @@ public class MenuTextTests
         Assert.Contains("Language", MenuText.ResourceManager.GetString(nameof(MenuText.View_Language), CultureInfo.GetCultureInfo(UiLanguage.Korean)));
     }
 
+    // Both apps show the EULA from the shared LegalText resources: the English original, or the Korean translation
+    // that says the original prevails.
+    [Fact]
+    public void TheEulaIsInBothLanguages()
+    {
+        string english = LegalText.ResourceManager.GetString(nameof(LegalText.Eula), CultureInfo.GetCultureInfo(UiLanguage.English))!;
+        string korean = LegalText.ResourceManager.GetString(nameof(LegalText.Eula), CultureInfo.GetCultureInfo(UiLanguage.Korean))!;
+        Assert.StartsWith("EasiSlides Software", english);
+        Assert.Contains("laws of Northern Ireland", english);
+        Assert.Contains("Copyright (C) 2007 EasiSlides, All rights reserved.", english);
+        Assert.DoesNotContain(english, c => c is >= '가' and <= '힣');
+        Assert.StartsWith("EasiSlides 소프트웨어", korean);
+        Assert.Contains("북아일랜드 법률", korean);
+        Assert.Contains("영문 원문이 우선합니다", korean);
+        // the same paragraphs and the same five restrictions
+        Assert.Equal(english.Split("\n\n").Length + 1, korean.Split("\n\n").Length); // (plus the translation note)
+        Assert.Equal(5, korean.Split('\n').Count(line => System.Text.RegularExpressions.Regex.IsMatch(line, @"^\((가|나|다|라|마)\)")));
+    }
+
     [Theory]
     [InlineData(null, UiLanguage.Korean)]
     [InlineData("", UiLanguage.Korean)]

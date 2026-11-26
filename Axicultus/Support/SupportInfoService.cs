@@ -50,30 +50,8 @@ public sealed class SupportInfoService(ISettingsService settings) : ISupportInfo
     public const string WebsiteUrl = "http://www.easislides.com";
     public const string RegistrationUrl = "http://www.easislides.com/register";
 
-    private const string EulaText =
-        "EasiSlides Software\r\n\r\n" +
-        "IMPORTANT: This software end user licence agreement ('EULA') is a legal agreement between you and EasiSlides. " +
-        "Read it carefully before completing the installation process and using the software. It provides a licence to use the software. " +
-        "By installing and using the software, you are confirming your acceptance of the software and agreeing to become bound by the terms of this agreement. " +
-        "If you do not agree with the terms of this licence you must remove EasiSlides Software files from your storage devices and cease to use the product.\r\n\r\n" +
-        "All copyrights to 'EasiSlides Software', hereafter shall be referred to as 'the software', are exclusively owned by EasiSlides. " +
-        "Your licence confers no title or ownership in the software and should not be construed as a sale of any right in the software.\r\n\r\n" +
-        "You MUST NOT use this software for purposes which are unlawful, including, but not limited to, the transmission of obscene or offensive content, " +
-        "or contents which may harass or cause distress to any person.\r\n\r\n" +
-        "You may use this software for any length of time.\r\n\r\n" +
-        "You are hereby licenced to make any number of backup copies of this software and documentation. " +
-        "You can give the copy of the software to anyone or distribute the software provided you abide by the following Licence restrictions:\r\n" +
-        "(a) You may not reproduce or distribute the software for the purpose of promoting other non-EasiSlides products or organisations unless specific permission to do so have been obtained from the EasiSlides Copyright holder.\r\n" +
-        "(b) You may not alter, merge, modify, adapt or translate the software, or decompile, reverse engineer, disassemble, or otherwise reduce the Software to a human-perceivable form.\r\n" +
-        "(c) You may not rent, lease, or sublicence the Software.\r\n" +
-        "(d) Where the software is placed on a network for distribution, you must place alongside the distributed software a fully functional and visible hyperlink to the official EasiSlides website at http://www.EasiSlides.com.\r\n" +
-        "(e) No fee is charged for the software.\r\n\r\n" +
-        "EASISLIDES SOFTWARE IS DISTRIBUTED 'AS IS'. NO WARRANTY OF ANY KIND IS EXPRESSED OR IMPLIED. " +
-        "YOU USE IT AT YOUR OWN RISK. EASISLIDES WILL NOT BE LIABLE FOR DATA LOSS, DAMAGES, LOSS OF PROFITS OR ANY OTHER KIND OF LOSS WHILE USING OR MISUSING THIS SOFTWARE.\r\n\r\n" +
-        "This EULA shall be governed by and construed in accordance with the laws of Northern Ireland. " +
-        "Any dispute arising under this EULA shall be subject to the exclusive jurisdiction of the courts of Northern Ireland.\r\n\r\n" +
-        "Copyright (C) 2007 EasiSlides, All rights reserved.\r\n" +
-        "Internet: http://www.EasiSlides.com";
+    // The EULA in the UI language (the English original, or its Korean translation), shared with the WinForms app.
+    private static string EulaText => Axicultus.Localization.LegalText.Eula;
 
     private readonly ISettingsService _settings = settings ?? throw new ArgumentNullException(nameof(settings));
 

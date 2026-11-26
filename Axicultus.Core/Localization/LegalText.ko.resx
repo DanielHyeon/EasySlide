@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The Korean translation of the legal texts; the same keys as LegalText.resx (the English original). -->
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Eula" xml:space="preserve"><value>EasiSlides 소프트웨어
+
+중요: 이 소프트웨어 최종 사용자 사용권 계약("EULA")은 귀하와 EasiSlides 사이의 법적 계약입니다. 설치를 마치고 소프트웨어를 사용하기 전에 주의 깊게 읽으십시오. 이 계약은 소프트웨어를 사용할 수 있는 사용권을 부여합니다. 소프트웨어를 설치하고 사용하면 귀하는 소프트웨어를 받아들이고 이 계약의 조건에 따르기로 동의하는 것입니다. 이 사용권의 조건에 동의하지 않으면 저장 장치에서 EasiSlides 소프트웨어 파일을 삭제하고 제품 사용을 중단해야 합니다.
+
+'EasiSlides 소프트웨어'(이하 '본 소프트웨어')의 모든 저작권은 EasiSlides가 독점적으로 소유합니다. 귀하의 사용권은 본 소프트웨어에 대한 어떠한 권원이나 소유권도 부여하지 않으며, 본 소프트웨어에 대한 권리를 판매한 것으로 해석되지 않습니다.
+
+음란하거나 불쾌한 내용, 또는 다른 사람을 괴롭히거나 고통을 줄 수 있는 내용의 전송을 포함하되 이에 한정되지 않는 불법적인 목적으로 본 소프트웨어를 사용해서는 안 됩니다.
+
+본 소프트웨어는 기간 제한 없이 사용할 수 있습니다.
+
+귀하는 본 소프트웨어와 설명서의 백업 사본을 개수에 제한 없이 만들 수 있습니다. 다음 사용권 제한을 지키는 경우, 본 소프트웨어의 사본을 누구에게나 주거나 배포할 수 있습니다.
+(가) EasiSlides 저작권자의 명시적인 허락을 받지 않은 한, EasiSlides가 아닌 다른 제품이나 단체를 홍보할 목적으로 본 소프트웨어를 복제하거나 배포할 수 없습니다.
+(나) 본 소프트웨어를 변경, 병합, 수정, 개작 또는 번역하거나, 디컴파일, 리버스 엔지니어링, 디스어셈블하거나, 그 밖의 방법으로 사람이 읽을 수 있는 형태로 바꿀 수 없습니다.
+(다) 본 소프트웨어를 대여하거나 임대하거나, 다른 사람에게 재사용권을 줄 수 없습니다.
+(라) 배포를 위해 본 소프트웨어를 네트워크에 올리는 경우, 배포하는 소프트웨어 옆에 공식 EasiSlides 웹사이트(http://www.EasiSlides.com)로 연결되며 제대로 작동하고 눈에 잘 보이는 하이퍼링크를 함께 두어야 합니다.
+(마) 본 소프트웨어는 무료입니다.
+
+EASISLIDES 소프트웨어는 '있는 그대로' 배포됩니다. 명시적이든 묵시적이든 어떠한 종류의 보증도 하지 않습니다. 사용에 따른 위험은 귀하가 부담합니다. EASISLIDES는 본 소프트웨어를 사용하거나 잘못 사용하는 동안 생긴 데이터 손실, 손해, 이익 손실 또는 그 밖의 어떠한 종류의 손실에도 책임을 지지 않습니다.
+
+이 EULA는 북아일랜드 법률에 따라 규율되고 해석됩니다. 이 EULA에서 비롯되는 모든 분쟁은 북아일랜드 법원의 전속 관할에 따릅니다.
+
+Copyright (C) 2007 EasiSlides, All rights reserved.
+인터넷: http://www.EasiSlides.com
+
+※ 이 번역은 이해를 돕기 위한 참고용입니다. 영문 원문과 내용이 다를 경우 영문 원문이 우선합니다.</value></data>
+</root>

@@ -27,8 +27,9 @@ public class SupportInfoServiceTests
         about.VersionLabel.Should().StartWith(UiText.Format("SupportInfoService", "VersionLabel", ""));
         about.WebsiteUrl.Should().Be("http://www.easislides.com");
         about.RegistrationUser.Should().Be("Grace Church");
-        about.EulaText.Should().Contain("end user licence agreement");
-        about.EulaText.Should().Contain("EASISLIDES SOFTWARE IS DISTRIBUTED 'AS IS'");
+        about.EulaText.Should().Be(Axicultus.Localization.LegalText.Eula, "the shared EULA in the UI language");
+        about.EulaText.Should().Contain("최종 사용자 사용권 계약"); // Korean, the tests' language
+        about.EulaText.Should().Contain("EASISLIDES 소프트웨어는 '있는 그대로' 배포됩니다");
     }
 
     [Fact]

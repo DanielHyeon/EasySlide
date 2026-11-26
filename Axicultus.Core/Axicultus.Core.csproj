@@ -31,6 +31,18 @@
     <EmbeddedResource Update="Localization\MenuText.ko.resx">
       <LogicalName>Axicultus.Localization.MenuText.ko.resources</LogicalName>
     </EmbeddedResource>
+    <!-- The legal texts both apps show (the EULA): the English original and its Korean translation. -->
+    <EmbeddedResource Update="Localization\LegalText.resx">
+      <StronglyTypedLanguage>CSharp</StronglyTypedLanguage>
+      <StronglyTypedNamespace>Axicultus.Localization</StronglyTypedNamespace>
+      <StronglyTypedClassName>LegalText</StronglyTypedClassName>
+      <StronglyTypedFileName>$(IntermediateOutputPath)LegalText.Designer.cs</StronglyTypedFileName>
+      <PublicClass>true</PublicClass>
+      <LogicalName>Axicultus.Localization.LegalText.resources</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Localization\LegalText.ko.resx">
+      <LogicalName>Axicultus.Localization.LegalText.ko.resources</LogicalName>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>
