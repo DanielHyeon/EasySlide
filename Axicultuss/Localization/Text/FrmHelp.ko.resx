@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>  <data name="CloseBtn.Text" xml:space="preserve"><value>닫기</value></data>
+  <data name="label53.Text" xml:space="preserve"><value>현재 항목 다시 시작</value></data>
+  <data name="label51.Text" xml:space="preserve"><value>미디어 - 일시 정지/다시 재생</value></data>
+  <data name="label7.Text" xml:space="preserve"><value>자동 넘김이 없는 다음 항목으로 이동</value></data>
+  <data name="label5.Text" xml:space="preserve"><value>항목 사이 간격 켜기/끄기</value></data>
+  <data name="label3.Text" xml:space="preserve"><value>참조 표시 켜기/끄기</value></data>
+  <data name="label1.Text" xml:space="preserve"><value>라이브 캠 켜기/끄기</value></data>
+  <data name="label41.Text" xml:space="preserve"><value>송출 종료</value></data>
+  <data name="label42.Text" xml:space="preserve"><value>세로 정렬</value></data>
+  <data name="label43.Text" xml:space="preserve"><value>외곽선 글꼴 켜기/끄기</value></data>
+  <data name="label44.Text" xml:space="preserve"><value>그림자 글꼴 켜기/끄기</value></data>
+  <data name="label45.Text" xml:space="preserve"><value>영역 1, 2 가사</value></data>
+  <data name="label21.Text" xml:space="preserve"><value>코드 표기 켜기/끄기</value></data>
+  <data name="label22.Text" xml:space="preserve"><value>교차 표시 켜기/끄기</value></data>
+  <data name="label23.Text" xml:space="preserve"><value>머리글 스타일</value></data>
+  <data name="label24.Text" xml:space="preserve"><value>표시 패널 켜기/끄기</value></data>
+  <data name="label25.Text" xml:space="preserve"><value>자동 넘김 켜기/끄기</value></data>
+  <data name="label26.Text" xml:space="preserve"><value>검은 화면 켜기/끄기 (전체)</value></data>
+  <data name="label27.Text" xml:space="preserve"><value>검은 화면 켜기/끄기 (전체)</value></data>
+  <data name="label28.Text" xml:space="preserve"><value>텍스트 지우기 켜기/끄기</value></data>
+  <data name="label30.Text" xml:space="preserve"><value>프리코러스1/2,  브리지1/2,  후렴2,  엔딩</value></data>
+  <data name="label31.Text" xml:space="preserve"><value>후렴</value></data>
+  <data name="label32.Text" xml:space="preserve"><value>1 .. 9절</value></data>
+  <data name="label33.Text" xml:space="preserve"><value>다음 슬라이드</value></data>
+  <data name="label34.Text" xml:space="preserve"><value>이전 슬라이드</value></data>
+  <data name="label35.Text" xml:space="preserve"><value>마지막 슬라이드</value></data>
+  <data name="label36.Text" xml:space="preserve"><value>첫 슬라이드</value></data>
+  <data name="label_PreviousSlide.Text" xml:space="preserve"><value>위쪽 화살표</value></data>
+  <data name="label_LastSlide.Text" xml:space="preserve"><value>오른쪽 화살표</value></data>
+  <data name="label_FirstSlide.Text" xml:space="preserve"><value>왼쪽 화살표</value></data>
+  <data name="label_NextItem.Text" xml:space="preserve"><value>PageDown</value></data>
+  <data name="label_PreviousItem.Text" xml:space="preserve"><value>PageUp</value></data>
+  <data name="label_NextSlide.Text" xml:space="preserve"><value>아래쪽 화살표, Space</value></data>
+  <data name="label37.Text" xml:space="preserve"><value>다음 항목</value></data>
+  <data name="label38.Text" xml:space="preserve"><value>이전 항목</value></data>
+  <data name="label39.Text" xml:space="preserve"><value>마지막 항목</value></data>
+  <data name="label40.Text" xml:space="preserve"><value>첫 항목</value></data>
+  <data name="$this.Text" xml:space="preserve"><value>키보드 단축키</value></data>
+  <data name="LeftArrow" xml:space="preserve"><value>왼쪽 화살표</value></data>
+  <data name="RightArrow" xml:space="preserve"><value>오른쪽 화살표</value></data>
+  <data name="UpArrow" xml:space="preserve"><value>위쪽 화살표</value></data>
+  <data name="DownArrow" xml:space="preserve"><value>아래쪽 화살표</value></data>
+  <data name="PageUp" xml:space="preserve"><value>PageUp</value></data>
+  <data name="PageDownSpace" xml:space="preserve"><value>PageDown, Space</value></data>
+</root>

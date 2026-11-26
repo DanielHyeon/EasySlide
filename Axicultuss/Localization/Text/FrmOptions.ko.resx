@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>  <data name="tabPageMainWindow.Text" xml:space="preserve"><value>메인 창</value></data>
+  <data name="groupBox24.Text" xml:space="preserve"><value>기타 설정</value></data>
+  <data name="checkBoxLMBox.Text" xml:space="preserve"><value>가사 모니터 알림 상자 표시</value></data>
+  <data name="groupBox12.Text" xml:space="preserve"><value>폴더 바로 가기 아이콘</value></data>
+  <data name="groupBox22.Text" xml:space="preserve"><value>PowerPoint</value></data>
+  <data name="checkBoxPPTab.Text" xml:space="preserve"><value>PowerPoint 탭 표시</value></data>
+  <data name="label3.Text" xml:space="preserve"><value>최대 PowerPoint 파일 수:</value></data>
+  <data name="groupBox7.Text" xml:space="preserve"><value>미리보기 텍스트 영역</value></data>
+  <data name="btnTextRegionSlideBackColour.Text" xml:space="preserve"><value>선택 배경색</value></data>
+  <data name="btnTextRegionSlideTextColour.Text" xml:space="preserve"><value>선택 글자색</value></data>
+  <data name="btnTextRegionChangeColour.Text" xml:space="preserve"><value>포커스 색</value></data>
+  <data name="label37.Text" xml:space="preserve"><value>글꼴 크기</value></data>
+  <data name="TextRegionUseColour.Text" xml:space="preserve"><value>포커스 색 사용</value></data>
+  <data name="cbPreviewShowNotations.Text" xml:space="preserve"><value>코드 표기 표시</value></data>
+  <data name="cbLineBetweenScreens.Text" xml:space="preserve"><value>화면 사이 구분선</value></data>
+  <data name="groupBox6.Text" xml:space="preserve"><value>미디어 파일</value></data>
+  <data name="checkBoxMediaTab.Text" xml:space="preserve"><value>미디어 탭 표시</value></data>
+  <data name="MusicLocationBtn.ToolTipText" xml:space="preserve"><value>위치 변경</value></data>
+  <data name="groupBox1.Text" xml:space="preserve"><value>최대값 설정</value></data>
+  <data name="label4.Text" xml:space="preserve"><value>최근 편집 목록 최대 개수:</value></data>
+  <data name="label2.Text" xml:space="preserve"><value>성경 검색 최대 선택 수:</value></data>
+  <data name="label1.Text" xml:space="preserve"><value>성경 구절 최대 선택 수:</value></data>
+  <data name="tabPageShow.Text" xml:space="preserve"><value>송출</value></data>
+  <data name="label58.Text" xml:space="preserve"><value>** 듀얼 모니터에서만 적용</value></data>
+  <data name="groupBox5.Text" xml:space="preserve"><value>기타 설정</value></data>
+  <data name="cbDisableScreenSaver.Text" xml:space="preserve"><value>송출 중 화면 보호기 끄기</value></data>
+  <data name="cbAdvanceNextItem.Text" xml:space="preserve"><value>다음 항목으로 자동 진행</value></data>
+  <data name="checkBoxMediaNoPanel.Text" xml:space="preserve"><value>미디어에 패널 오버레이 안 함 **</value></data>
+  <data name="checkBoxPPNoPanel.Text" xml:space="preserve"><value>PowerPoint에 패널 오버레이 안 함 **</value></data>
+  <data name="groupBox3.Text" xml:space="preserve"><value>항목 사이 간격</value></data>
+  <data name="cbGapItemUseFade.Text" xml:space="preserve"><value>페이드 전환 효과 사용</value></data>
+  <data name="GapLogoLocationBtn.ToolTipText" xml:space="preserve"><value>로고 파일 찾기</value></data>
+  <data name="rbGapItemOption1.Text" xml:space="preserve"><value>검은 화면</value></data>
+  <data name="rbGapItemOption0.Text" xml:space="preserve"><value>간격 없음</value></data>
+  <data name="rbGapItemOption2.Text" xml:space="preserve"><value>예배 순서 기본 배경</value></data>
+  <data name="groupBox2.Text" xml:space="preserve"><value>동영상 배경</value></data>
+  <data name="label51.Text" xml:space="preserve"><value>정렬:</value></data>
+  <data name="Video_VAlign.ToolTipText" xml:space="preserve"><value>세로 정렬</value></data>
+  <data name="Video_VAlignTop.Text" xml:space="preserve"><value>위쪽 정렬</value></data>
+  <data name="Video_VAlignCentre.Text" xml:space="preserve"><value>가운데 정렬</value></data>
+  <data name="Video_VAlignBottom.Text" xml:space="preserve"><value>아래쪽 정렬</value></data>
+  <data name="label14.Text" xml:space="preserve"><value>크기:</value></data>
+  <data name="label50.Text" xml:space="preserve"><value>동영상 크기</value></data>
+  <data name="groupBox4.Text" xml:space="preserve"><value>텍스트 설정</value></data>
+  <data name="label54.Text" xml:space="preserve"><value>폴더 글꼴 대비 코드 표기 크기(%):</value></data>
+  <data name="cbWordWrapLeftAlignIndent.Text" xml:space="preserve"><value>자동 줄 바꿈된 텍스트 들여쓰기</value></data>
+  <data name="cbLineBetweenRegions.Text" xml:space="preserve"><value>영역 사이 구분선</value></data>
+  <data name="cbUseLargestFont.Text" xml:space="preserve"><value>가장 큰 글꼴 사용</value></data>
+  <data name="cbAutoTextOverflow.Text" xml:space="preserve"><value>텍스트 넘침 자동 처리</value></data>
+  <data name="cbFitTextFileParagraphs.Text" xml:space="preserve"><value>텍스트 파일의 각 문단을 한 슬라이드에 맞춤</value></data>
+  <data name="tabPageMonitors.Text" xml:space="preserve"><value>모니터</value></data>
+  <data name="groupBox23.Text" xml:space="preserve"><value>라이브 캠 설정</value></data>
+  <data name="checkBoxLiveCamNoPanel.Text" xml:space="preserve"><value>라이브 캠에 패널 오버레이 안 함 **</value></data>
+  <data name="label53.Text" xml:space="preserve"><value>최소</value></data>
+  <data name="cbWidescreen.Text" xml:space="preserve"><value>와이드스크린</value></data>
+  <data name="cbMute.Text" xml:space="preserve"><value>음소거</value></data>
+  <data name="label52.Text" xml:space="preserve"><value>최대</value></data>
+  <data name="groupBoxLM.Text" xml:space="preserve"><value>가사 모니터</value></data>
+  <data name="cbLMBroadcast.Text" xml:space="preserve"><value>가사 브로드캐스트</value></data>
+  <data name="btnLMHighlightColour.Text" xml:space="preserve"><value>선택 색</value></data>
+  <data name="btnLMBackColour.Text" xml:space="preserve"><value>배경색</value></data>
+  <data name="btnLMTextColour.Text" xml:space="preserve"><value>글자색</value></data>
+  <data name="label23.Text" xml:space="preserve"><value>위쪽:</value></data>
+  <data name="label26.Text" xml:space="preserve"><value>왼쪽:</value></data>
+  <data name="LM_AlwaysUse.Text" xml:space="preserve"><value>사용할 수 없으면 다른 모니터 사용</value></data>
+  <data name="LyricsMonitor_Info.ToolTipText" xml:space="preserve"><value>모니터 정보</value></data>
+  <data name="optLM1.Text" xml:space="preserve"><value>사용자 지정:</value></data>
+  <data name="label25.Text" xml:space="preserve"><value>높이:</value></data>
+  <data name="label48.Text" xml:space="preserve"><value>너비:</value></data>
+  <data name="label9.Text" xml:space="preserve"><value>크기:</value></data>
+  <data name="cbLMShowNotations.Text" xml:space="preserve"><value>코드 표기 표시</value></data>
+  <data name="label49.Text" xml:space="preserve"><value>기본 글꼴 크기:</value></data>
+  <data name="groupBoxDM.Text" xml:space="preserve"><value>라이브 송출 모니터</value></data>
+  <data name="optWide.Text" xml:space="preserve"><value>와이드(16:9)</value></data>
+  <data name="optStandard.Text" xml:space="preserve"><value>표준(4:3)</value></data>
+  <data name="DM_CustomAsSingleMonitor.Text" xml:space="preserve"><value>싱글 모니터 모드로 동작</value></data>
+  <data name="label44.Text" xml:space="preserve"><value>위쪽:</value></data>
+  <data name="optDM1.Text" xml:space="preserve"><value>사용자 지정:</value></data>
+  <data name="Monitor_Info.ToolTipText" xml:space="preserve"><value>모니터 정보</value></data>
+  <data name="DM_AlwaysUseSecondaryMonitor.Text" xml:space="preserve"><value>보조 모니터 우선 사용</value></data>
+  <data name="label46.Text" xml:space="preserve"><value>높이:</value></data>
+  <data name="label43.Text" xml:space="preserve"><value>왼쪽:</value></data>
+  <data name="label45.Text" xml:space="preserve"><value>너비:</value></data>
+  <data name="tabPageAlerts.Text" xml:space="preserve"><value>알림</value></data>
+  <data name="groupBox8.Text" xml:space="preserve"><value>새 항목에 참조 표시</value></data>
+  <data name="groupBox11.Text" xml:space="preserve"><value>선택 &amp;&amp; 대체</value></data>
+  <data name="cbPickBlank.Text" xml:space="preserve"><value>찾지 못하면 비움</value></data>
+  <data name="cbPick.Text" xml:space="preserve"><value>사용</value></data>
+  <data name="label42.Text" xml:space="preserve"><value>대체:</value></data>
+  <data name="label24.Text" xml:space="preserve"><value>선택:</value></data>
+  <data name="groupBox9.Text" xml:space="preserve"><value>참조 선택</value></data>
+  <data name="Reference_Source1.Text" xml:space="preserve"><value>곡 제목</value></data>
+  <data name="Reference_Source2.Text" xml:space="preserve"><value>곡 번호</value></data>
+  <data name="Reference_Source0.Text" xml:space="preserve"><value>참조 없음</value></data>
+  <data name="Reference_Source3.Text" xml:space="preserve"><value>찬양집 참조</value></data>
+  <data name="Reference_Source4.Text" xml:space="preserve"><value>사용자 참조</value></data>
+  <data name="btnReferenceChangeBackColour.Text" xml:space="preserve"><value>배경색</value></data>
+  <data name="btnReferenceChangeTextColour.Text" xml:space="preserve"><value>글자색</value></data>
+  <data name="Reference_Scroll.ToolTipText" xml:space="preserve"><value>스크롤</value></data>
+  <data name="Reference_Flash.ToolTipText" xml:space="preserve"><value>깜박임</value></data>
+  <data name="Reference_Transparent.ToolTipText" xml:space="preserve"><value>투명</value></data>
+  <data name="Reference_AlignLeft.Text" xml:space="preserve"><value>왼쪽 정렬</value></data>
+  <data name="Reference_AlignCentre.Text" xml:space="preserve"><value>가운데 정렬</value></data>
+  <data name="Reference_AlignRight.Text" xml:space="preserve"><value>오른쪽 정렬</value></data>
+  <data name="Reference_VAlign.ToolTipText" xml:space="preserve"><value>세로 정렬</value></data>
+  <data name="Reference_VAlignTop.Text" xml:space="preserve"><value>위쪽 정렬</value></data>
+  <data name="Reference_VAlignCentre.Text" xml:space="preserve"><value>아래쪽 가까이 정렬</value></data>
+  <data name="Reference_VAlignBottom.Text" xml:space="preserve"><value>아래쪽 정렬</value></data>
+  <data name="label38.Text" xml:space="preserve"><value>글꼴 이름:</value></data>
+  <data name="label40.Text" xml:space="preserve"><value>최대 글꼴 크기:</value></data>
+  <data name="label41.Text" xml:space="preserve"><value>표시 시간(초):</value></data>
+  <data name="groupBox16.Text" xml:space="preserve"><value>부모 호출 알림</value></data>
+  <data name="btnParentalChangeBackColour.Text" xml:space="preserve"><value>배경색</value></data>
+  <data name="btnParentalChangeTextColour.Text" xml:space="preserve"><value>글자색</value></data>
+  <data name="label30.Text" xml:space="preserve"><value>접두어 (선택 사항):</value></data>
+  <data name="Parental_Scroll.ToolTipText" xml:space="preserve"><value>스크롤</value></data>
+  <data name="Parental_Flash.ToolTipText" xml:space="preserve"><value>깜박임</value></data>
+  <data name="Parental_Transparent.ToolTipText" xml:space="preserve"><value>투명</value></data>
+  <data name="Parental_AlignLeft.Text" xml:space="preserve"><value>왼쪽 정렬</value></data>
+  <data name="Parental_AlignCentre.Text" xml:space="preserve"><value>가운데 정렬</value></data>
+  <data name="Parental_AlignRight.Text" xml:space="preserve"><value>오른쪽 정렬</value></data>
+  <data name="Parental_VAlign.Text" xml:space="preserve"><value>아래쪽 정렬</value></data>
+  <data name="Parental_VAlign.ToolTipText" xml:space="preserve"><value>화면 아래쪽에 알림 표시</value></data>
+  <data name="Parental_VAlignTop.Text" xml:space="preserve"><value>위쪽 정렬</value></data>
+  <data name="Parental_VAlignBottom.Text" xml:space="preserve"><value>아래쪽 정렬</value></data>
+  <data name="label27.Text" xml:space="preserve"><value>글꼴 이름:</value></data>
+  <data name="label28.Text" xml:space="preserve"><value>최대 글꼴 크기:</value></data>
+  <data name="label29.Text" xml:space="preserve"><value>표시 시간(초):</value></data>
+  <data name="groupBox15.Text" xml:space="preserve"><value>메시지 알림</value></data>
+  <data name="btnMessageChangeBackColour.Text" xml:space="preserve"><value>배경색</value></data>
+  <data name="btnMessageChangeTextColour.Text" xml:space="preserve"><value>글자색</value></data>
+  <data name="Message_Scroll.ToolTipText" xml:space="preserve"><value>스크롤</value></data>
+  <data name="Message_Flash.ToolTipText" xml:space="preserve"><value>깜박임</value></data>
+  <data name="Message_Transparent.ToolTipText" xml:space="preserve"><value>투명</value></data>
+  <data name="Message_AlignLeft.Text" xml:space="preserve"><value>왼쪽 정렬</value></data>
+  <data name="Message_AlignCentre.Text" xml:space="preserve"><value>가운데 정렬</value></data>
+  <data name="Message_AlignRight.Text" xml:space="preserve"><value>오른쪽 정렬</value></data>
+  <data name="Message_VAlign.Text" xml:space="preserve"><value>아래쪽 정렬</value></data>
+  <data name="Message_VAlignTop.Text" xml:space="preserve"><value>위쪽 정렬</value></data>
+  <data name="Message_VAlignBottom.Text" xml:space="preserve"><value>아래쪽 정렬</value></data>
+  <data name="label21.Text" xml:space="preserve"><value>글꼴 이름:</value></data>
+  <data name="label22.Text" xml:space="preserve"><value>최대 글꼴 크기:</value></data>
+  <data name="label20.Text" xml:space="preserve"><value>표시 시간(초):</value></data>
+  <data name="tabPageFolders.Text" xml:space="preserve"><value>폴더</value></data>
+  <data name="SelectedFolderGroupBox.Text" xml:space="preserve"><value>선택한 폴더 설정</value></data>
+  <data name="groupBox14.Text" xml:space="preserve"><value>영역 1-2 줄 간격</value></data>
+  <data name="groupBox13.Text" xml:space="preserve"><value>머리글 텍스트</value></data>
+  <data name="label47.Text" xml:space="preserve"><value>후렴:</value></data>
+  <data name="label13.Text" xml:space="preserve"><value>엔딩:</value></data>
+  <data name="label12.Text" xml:space="preserve"><value>브리지:</value></data>
+  <data name="label11.Text" xml:space="preserve"><value>프리코러스:</value></data>
+  <data name="GroupBoxFont1.Text" xml:space="preserve"><value>영역 2 글꼴</value></data>
+  <data name="ToolBarFont_R2Italics0.Text" xml:space="preserve"><value>기울임 없음</value></data>
+  <data name="ToolBarFont_R2Italics1.Text" xml:space="preserve"><value>기울임</value></data>
+  <data name="ToolBarFont_R2Italics2.Text" xml:space="preserve"><value>후렴만 기울임</value></data>
+  <data name="ToolBarFont_R2RTL.ToolTipText" xml:space="preserve"><value>오른쪽에서 왼쪽</value></data>
+  <data name="GroupBoxFont0.Text" xml:space="preserve"><value>영역 1 글꼴</value></data>
+  <data name="ToolBarFont_R1Italics0.Text" xml:space="preserve"><value>기울임 없음</value></data>
+  <data name="ToolBarFont_R1Italics1.Text" xml:space="preserve"><value>기울임</value></data>
+  <data name="ToolBarFont_R1Italics2.Text" xml:space="preserve"><value>후렴만 기울임</value></data>
+  <data name="ToolBarFont_R1RTL.ToolTipText" xml:space="preserve"><value>오른쪽에서 왼쪽</value></data>
+  <data name="groupBox10.Text" xml:space="preserve"><value>영역 위치</value></data>
+  <data name="labelPreviewCentreBottom.Text" xml:space="preserve"><value>영역 2 위쪽</value></data>
+  <data name="labelPreviewCentreTop.Text" xml:space="preserve"><value>영역 1 위쪽</value></data>
+  <data name="label15.Text" xml:space="preserve"><value>왼쪽 - 오른쪽</value></data>
+  <data name="GroupBoxHeadings.Text" xml:space="preserve"><value>선택한 폴더의 머리글 글꼴</value></data>
+  <data name="HeadingsFont_Italics0.Text" xml:space="preserve"><value>기울임 없음</value></data>
+  <data name="HeadingsFont_Italics1.Text" xml:space="preserve"><value>기울임</value></data>
+  <data name="HeadingsFont_Italics2.Text" xml:space="preserve"><value>후렴만 기울임</value></data>
+  <data name="label6.Text" xml:space="preserve"><value>머리글 크기 (영역 1 대비 %):</value></data>
+  <data name="label8.Text" xml:space="preserve"><value>서식:</value></data>
+  <data name="GroupBoxFolder.Text" xml:space="preserve"><value>업데이트할 폴더 선택</value></data>
+  <data name="SongFolder_Rename.Text" xml:space="preserve"><value>이름 바꾸기</value></data>
+  <data name="cbFolderUse.Text" xml:space="preserve"><value>폴더 사용</value></data>
+  <data name="tabPageBibles.Text" xml:space="preserve"><value>성경</value></data>
+  <data name="groupBox19.Text" xml:space="preserve"><value>성경 추가</value></data>
+  <data name="label32.Text" xml:space="preserve"><value>검색을 누르면 Axicultus 성경 폴더에 있는 성경이 나열됩니다. 성경이 나열되면 선택한 뒤 추가를 눌러 Axicultuss에서 사용하세요.</value></data>
+  <data name="btnBibleAdd.Text" xml:space="preserve"><value>추가</value></data>
+  <data name="btnBibleSearch.Text" xml:space="preserve"><value>검색</value></data>
+  <data name="columnHeader12.Text" xml:space="preserve"><value>이름</value></data>
+  <data name="columnHeader13.Text" xml:space="preserve"><value>설명</value></data>
+  <data name="columnHeader14.Text" xml:space="preserve"><value>파일 이름</value></data>
+  <data name="groupBox17.Text" xml:space="preserve"><value>Axicultuss의 현재 성경</value></data>
+  <data name="btnBibleRemove.Text" xml:space="preserve"><value>제거</value></data>
+  <data name="btnBibleNameChange.Text" xml:space="preserve"><value>이름 바꾸기</value></data>
+  <data name="Bibles_Info.ToolTipText" xml:space="preserve"><value>성경 정보</value></data>
+  <data name="Bibles_Up.ToolTipText" xml:space="preserve"><value>항목 위로 이동</value></data>
+  <data name="Bibles_Down.ToolTipText" xml:space="preserve"><value>항목 아래로 이동</value></data>
+  <data name="groupBox18.Text" xml:space="preserve"><value>곡 폴더 설정 사용</value></data>
+  <data name="label31.Text" xml:space="preserve"><value>글꼴 크기(%):</value></data>
+  <data name="columnHeader4.Text" xml:space="preserve"><value>이름</value></data>
+  <data name="columnHeader5.Text" xml:space="preserve"><value>설명</value></data>
+  <data name="columnHeader6.Text" xml:space="preserve"><value>파일 이름</value></data>
+  <data name="columnHeader8.Text" xml:space="preserve"><value>곡 폴더</value></data>
+  <data name="columnHeader9.Text" xml:space="preserve"><value>크기</value></data>
+  <data name="tabPageLicence.Text" xml:space="preserve"><value>라이선스</value></data>
+  <data name="groupBox20.Text" xml:space="preserve"><value>라이선스 관리 정보</value></data>
+  <data name="cbEnforceDisplay.Text" xml:space="preserve"><value>처음 표시할 때 저작권 표시 강제</value></data>
+  <data name="AdminLicPreview2.Text" xml:space="preserve"><value>퍼블릭 도메인</value></data>
+  <data name="label36.Text" xml:space="preserve"><value>화면에 표시되는 모양</value></data>
+  <data name="AdminLicNo2.Text" xml:space="preserve"><value>비움</value></data>
+  <data name="AdminLicNo1.Text" xml:space="preserve"><value>비움</value></data>
+  <data name="label35.Text" xml:space="preserve"><value>라이선스 번호</value></data>
+  <data name="AdminLic2.Text" xml:space="preserve"><value>퍼블릭 도메인</value></data>
+  <data name="AdminLic1.Text" xml:space="preserve"><value>없음</value></data>
+  <data name="label33.Text" xml:space="preserve"><value>관리자</value></data>
+  <data name="label34.Text" xml:space="preserve"><value>번호 기호:</value></data>
+  <data name="tabPageKeyboard.Text" xml:space="preserve"><value>키보드</value></data>
+  <data name="ChkGlobalHookF7.Text" xml:space="preserve"><value>F7 (검은 송출 끄기)</value></data>
+  <data name="ChkGlobalHookF8.Text" xml:space="preserve"><value>F8 (송출 제어 안 함)</value></data>
+  <data name="ChkGlobalHookCtrlArrow.Text" xml:space="preserve"><value>송출 화면 Ctrl+화살표 키</value></data>
+  <data name="ChkGlobalHookArrow.Text" xml:space="preserve"><value>송출 화면 화살표 키</value></data>
+  <data name="label60.Text" xml:space="preserve"><value>미리보기를 송출로 복사</value></data>
+  <data name="groupBox21.Text" xml:space="preserve"><value>송출 중과 미리보기·송출 영역의 키보드 배치</value></data>
+  <data name="kbSelect16.Text" xml:space="preserve"><value>PageDown / Space 키</value></data>
+  <data name="kbSelect07.Text" xml:space="preserve"><value>오른쪽 화살표</value></data>
+  <data name="kbSelect15.Text" xml:space="preserve"><value>PageUp</value></data>
+  <data name="kbSelect06.Text" xml:space="preserve"><value>아래쪽 화살표 / Space 키</value></data>
+  <data name="kbSelect05.Text" xml:space="preserve"><value>위쪽 화살표</value></data>
+  <data name="kbSelect13.Text" xml:space="preserve"><value>오른쪽 화살표</value></data>
+  <data name="kbSelect04.Text" xml:space="preserve"><value>왼쪽 화살표</value></data>
+  <data name="kbSelect12.Text" xml:space="preserve"><value>아래쪽 화살표</value></data>
+  <data name="kbSelect11.Text" xml:space="preserve"><value>위쪽 화살표</value></data>
+  <data name="kbSelect02.Text" xml:space="preserve"><value>PageDown</value></data>
+  <data name="kbSelect01.Text" xml:space="preserve"><value>PageUp</value></data>
+  <data name="kbSelect10.Text" xml:space="preserve"><value>왼쪽 화살표</value></data>
+  <data name="rbKeyBoardOpt1.Text" xml:space="preserve"><value>대체</value></data>
+  <data name="rbKeyBoardOpt0.Text" xml:space="preserve"><value>기본</value></data>
+  <data name="kbAction7.Text" xml:space="preserve"><value>마지막 슬라이드</value></data>
+  <data name="kbAction6.Text" xml:space="preserve"><value>다음 슬라이드</value></data>
+  <data name="kbAction5.Text" xml:space="preserve"><value>이전 슬라이드</value></data>
+  <data name="kbAction4.Text" xml:space="preserve"><value>첫 슬라이드</value></data>
+  <data name="kbAction3.Text" xml:space="preserve"><value>마지막 항목</value></data>
+  <data name="kbAction2.Text" xml:space="preserve"><value>다음 항목</value></data>
+  <data name="kbAction1.Text" xml:space="preserve"><value>이전 항목</value></data>
+  <data name="kbAction0.Text" xml:space="preserve"><value>첫 항목</value></data>
+  <data name="label39.Text" xml:space="preserve"><value>동작:</value></data>
+  <data name="label59.Text" xml:space="preserve"><value>슬라이드 위/아래</value></data>
+  <data name="label57.Text" xml:space="preserve"><value>검은 화면</value></data>
+  <data name="BtnCancel.Text" xml:space="preserve"><value>취소</value></data>
+  <data name="BtnOK.Text" xml:space="preserve"><value>확인</value></data>
+  <data name="$this.Text" xml:space="preserve"><value>옵션</value></data>
+  <data name="ChoosePowerPointFolder" xml:space="preserve"><value>PowerPoint 원본 폴더 선택</value></data>
+  <data name="ChooseMediaFolder" xml:space="preserve"><value>오디오·비디오 원본 폴더 선택</value></data>
+  <data name="BibleListSaveFailed" xml:space="preserve"><value>성경 목록을 저장하지 못했습니다</value></data>
+  <data name="FolderSettings" xml:space="preserve"><value>{0} 폴더 설정</value></data>
+  <data name="NoFolderSettings" xml:space="preserve"><value>위에서 선택한 폴더 설정</value></data>
+  <data name="FolderNameTaken" xml:space="preserve"><value>같은 이름의 폴더가 이미 있습니다. 다른 이름을 입력하세요.</value></data>
+  <data name="BibleNotFound" xml:space="preserve"><value>** 성경을 찾을 수 없습니다. 파일 이름을 확인하세요!</value></data>
+  <data name="NoBiblesToAdd" xml:space="preserve"><value>추가할 성경이 없습니다. 먼저 '검색' 단추를 눌러 보세요.</value></data>
+  <data name="SelectBibleToAdd" xml:space="preserve"><value>추가할 성경을 목록에서 선택하세요.</value></data>
+  <data name="NoBiblesToRemove" xml:space="preserve"><value>제거할 성경이 없습니다.</value></data>
+  <data name="SelectBibleToRemove" xml:space="preserve"><value>제거할 성경을 목록에서 선택하세요.</value></data>
+  <data name="ReopenToReloadBibles" xml:space="preserve"><value>저장하기 전에 옵션을 다시 열어 성경 목록을 다시 불러오세요.</value></data>
+  <data name="NoOutputMonitor" xml:space="preserve"><value>송출 모니터가 없습니다.</value></data>
+  <data name="NoLyricsMonitor" xml:space="preserve"><value>가사 모니터가 없습니다.</value></data>
+  <data name="MonitorInfo" xml:space="preserve"><value>{0}
+위쪽:	{1}
+왼쪽:	{2}
+너비:	{3}
+높이:	{4}</value></data>
+  <data name="MediaFolderDescription" xml:space="preserve"><value>가사에 쓸 미디어 파일이 있는 폴더를 선택하세요</value></data>
+  <data name="ImageFilter" xml:space="preserve"><value>이미지 파일 (*.jpg,*.jpeg,*.bmp,*.gif,*.ico)|*.jpg;*.jpeg;*.bmp;*.gif;*.ico</value></data>
+  <data name="HeadingRegion1Only" xml:space="preserve"><value>영역 1 설정만 사용</value></data>
+  <data name="HeadingRegion1PlusFormatting" xml:space="preserve"><value>영역 1 설정과 아래 서식 사용</value></data>
+  <data name="HeadingFormattingOnly" xml:space="preserve"><value>아래 서식만 사용</value></data>
+</root>

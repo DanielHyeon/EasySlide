@@ -95,8 +95,8 @@ public class LyricsProcessingTests
     }
 
     [Theory]
-    [InlineData(1, "Verse", "Verse 10", "[10]")]
-    [InlineData(2, null, "Chorus", "[chorus]")]
+    [InlineData(1, "절", "10절", "[10]")]   // (the menu in Korean: "Verse", "Verse 10")
+    [InlineData(2, null, "후렴", "[chorus]")] // ("Chorus")
     public void SongEditorInsertMenuTargetsTheChosenLyricsRegion(int region, string submenu, string action, string marker)
     {
         OnSta(() =>

@@ -5,6 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
+using Axicultus.Localization;
 using Axicultus.Module;
 using Axicultus.Properties;
 using Axicultus.SQLite;
@@ -194,6 +195,7 @@ namespace Axicultus;
 		public FrmInfoScreen()
 		{
 			InitializeComponent();
+			UiText.ApplyTo(this);
 			popupHelper = new PopupWindowHelper();
 			popupHelper.PopupClosed += popupHelper_PopupClosed;
 			RegionSlideNavigation.Apply(SyncBtnUp, SyncBtnDown);
@@ -763,7 +765,7 @@ namespace Axicultus;
 		/// </summary>
 		private void ExternalDocumentBtnPressed()
 		{
-			OpenFileDialog1.Filter = "Word Documents and Text Files (*.doc;*.docx;*.txt) | *.doc;*.docx;*.txt|Word Documents (*.doc;*.docx)|*.doc;*.docx|Text Files (*.txt)|*.txt";
+			OpenFileDialog1.Filter = UiText.Get(nameof(FrmInfoScreen), "DocumentFilter");
 			OpenFileDialog1.InitialDirectory = Gf.EditOpenDocumentDir;
 			OpenFileDialog1.FileName = "";
 			if (OpenFileDialog1.ShowDialog() == DialogResult.OK)
@@ -1115,14 +1117,14 @@ namespace Axicultus;
 			{
 				LabeltbLyrics.Font = new Font(LabeltbLyrics.Font, FontStyle.Regular);
 				LabeltbLyrics.BackColor = label2.BackColor;
-				LabeltbLyrics.Text = "Region 1" + (SetRightToLeft1 ? " : Right-To-Left Text On" : "");
+				LabeltbLyrics.Text = SetRightToLeft1 ? UiText.Get(nameof(FrmInfoScreen), "Region1RightToLeft") : UiText.Get(nameof(FrmInfoScreen), "Region1");
 				ScreenBreak1Available = false;
 			}
 			if (Region is 0 or 2)
 			{
 				LabeltbLyrics2.Font = new Font(LabeltbLyrics2.Font, FontStyle.Regular);
 				LabeltbLyrics2.BackColor = label2.BackColor;
-				LabeltbLyrics2.Text = "Region 2" + (SetRightToLeft2 ? " : Right-To-Left Text On" : "");
+				LabeltbLyrics2.Text = SetRightToLeft2 ? UiText.Get(nameof(FrmInfoScreen), "Region2RightToLeft") : UiText.Get(nameof(FrmInfoScreen), "Region2");
 				ScreenBreak2Available = false;
 			}
 		}
@@ -1156,7 +1158,7 @@ namespace Axicultus;
 			{
 				return DialogResult.Yes;
 			}
-			string prompt = "Do you wish to save the current InfoScreen?";
+			string prompt = UiText.Get(nameof(FrmInfoScreen), "SavePrompt");
 			switch (MessageBox.Show(prompt, "", MessageBoxButtons.YesNoCancel))
 			{
 			case DialogResult.Yes:
@@ -1258,8 +1260,8 @@ namespace Axicultus;
 			{
 				if (CurFileName == "" || UseDialog)
 				{
-					saveFileDialog1.Filter = "Axicultus InfoScreens (*.esi)|*.esi";
-					saveFileDialog1.Title = "Save InfoScreen";
+					saveFileDialog1.Filter = UiText.Get(nameof(FrmInfoScreen), "SaveFilter");
+					saveFileDialog1.Title = UiText.Get(nameof(FrmInfoScreen), "SaveDialogTitle");
 					saveFileDialog1.InitialDirectory = initialDirectory;
 					saveFileDialog1.FileName = ThisItemFileName;
 					saveFileDialog1.OverwritePrompt = true;
@@ -1278,20 +1280,20 @@ namespace Axicultus;
 			}
 			catch
 			{
-				ShowMessage(1, "Error encountered - InfoScreen NOT saved. Please make sure you have write access.");
+				ShowMessage(1, UiText.Get(nameof(FrmInfoScreen), "SaveFailed"));
 				return false;
 			}
 			try
 			{
 				Gf.SaveXMLInfoScreen(Gf.InfoItem1, fileName, Info_HeaderData, Gf.InfoScreenLoadNewBackground, UseOriginalNotations: false);
-				ShowMessage(1, "InfoScreen saved");
+				ShowMessage(1, UiText.Get(nameof(FrmInfoScreen), "Saved"));
 				CurFileName = fileName;
 				ThisItemFileName = Gf.GetDisplayNameOnly(ref CurFileName, UpdateByRef: false);
 				return true;
 			}
 			catch
 			{
-				ShowMessage(1, "Error encountered - InfoScreen NOT saved. Please make sure you have write access.");
+				ShowMessage(1, UiText.Get(nameof(FrmInfoScreen), "SaveFailed"));
 				return false;
 			}
 		}
@@ -1454,23 +1456,23 @@ namespace Axicultus;
 
 		private bool ValidateTitles()
 		{
-			if (!Gf.ValidateTitleDetails(SongTitle.Text, "Title"))
+			if (!Gf.ValidateTitleDetails(SongTitle.Text, UiText.Get(nameof(FrmInfoScreen), "FieldTitle")))
 			{
 				return false;
 			}
-			if (!Gf.ValidateTitleDetails(SongTitle2.Text, "Link Title"))
+			if (!Gf.ValidateTitleDetails(SongTitle2.Text, UiText.Get(nameof(FrmInfoScreen), "FieldLinkTitle")))
 			{
 				return false;
 			}
-			if (!Gf.ValidateTitleDetails(CopyrightInfo.Text, "Copyright Info"))
+			if (!Gf.ValidateTitleDetails(CopyrightInfo.Text, UiText.Get(nameof(FrmInfoScreen), "FieldCopyright")))
 			{
 				return false;
 			}
-			if (!Gf.ValidateTitleDetails(BookReference.Text, "Book Reference Info"))
+			if (!Gf.ValidateTitleDetails(BookReference.Text, UiText.Get(nameof(FrmInfoScreen), "FieldBookReference")))
 			{
 				return false;
 			}
-			if (!Gf.ValidateTitleDetails(WriterInfo.Text, "Writer Info"))
+			if (!Gf.ValidateTitleDetails(WriterInfo.Text, UiText.Get(nameof(FrmInfoScreen), "FieldWriter")))
 			{
 				return false;
 			}
@@ -1479,13 +1481,13 @@ namespace Axicultus;
 				int songNumber = DataUtil.StringToInt(SongNumber.Text, Minus1IfBlank: true);
 				if (songNumber < 0)
 				{
-					MessageBox.Show("Song Number must be numeric and without spaces");
+					MessageBox.Show(UiText.Get(nameof(FrmInfoScreen), "SongNumberNotNumeric"));
 					return false;
 				}
 			}
 			if ((tbLyrics1.TextLength < 1) && (tbLyrics2.TextLength < 1))
 			{
-				ShowMessage(1, "There are no contents to save!");
+				ShowMessage(1, UiText.Get(nameof(FrmInfoScreen), "NoContentsToSave"));
 				return false;
 			}
 			return true;
@@ -1500,11 +1502,11 @@ namespace Axicultus;
 				{
 					if (verseIndex is > 0 and < 13)
 					{
-						ShowMessage(1, "Sequence contains Verse " + Gf.VerseTitle[verseIndex] + " which is not in the lyrics!");
+						ShowMessage(1, UiText.Format(nameof(FrmInfoScreen), "SequenceHasMissingVerse", Gf.VerseTitle[verseIndex]));
 					}
 					else
 					{
-						ShowMessage(1, "Sequence contains a " + Gf.VerseTitle[verseIndex] + " which is not in the lyrics!");
+						ShowMessage(1, UiText.Format(nameof(FrmInfoScreen), "SequenceHasMissingItem", Gf.VerseTitle[verseIndex]));
 					}
 					i = OrderList.Items.Count - 1;
 					return false;
@@ -1572,7 +1574,7 @@ namespace Axicultus;
 			int region2IndicatorPos = tbWorkspace.Text.IndexOf(Gf.VerseSymbol[150]);
 			if (region2IndicatorPos >= 0)
 			{
-				ShowMessage(Region, "REGION 2 indicator is not permitted - please remove");
+				ShowMessage(Region, UiText.Get(nameof(FrmInfoScreen), "Region2NotPermitted"));
 				InTextBox.Focus();
 				InTextBox.SelectionStart = region2IndicatorPos;
 				InTextBox.SelectionLength = Gf.VerseSymbol[150].Length;
@@ -1650,11 +1652,11 @@ namespace Axicultus;
 				}
 				if (verseIndex is > 0 and < 13)
 				{
-					ShowMessage(Region, "Duplicate Verse " + Gf.VerseTitle[verseIndex] + " indicator found - please amend.");
+					ShowMessage(Region, UiText.Format(nameof(FrmInfoScreen), "DuplicateVerse", Gf.VerseTitle[verseIndex]));
 				}
 				else
 				{
-					ShowMessage(Region, "Duplicate " + Gf.VerseTitle[verseIndex] + " indicator found - please amend.");
+					ShowMessage(Region, UiText.Format(nameof(FrmInfoScreen), "DuplicateIndicator", Gf.VerseTitle[verseIndex]));
 				}
 				InTextBox.Focus();
 				InTextBox.SelectionStart = duplicatePos;
@@ -1663,18 +1665,18 @@ namespace Axicultus;
 			}
 			if (missingVerse > 0)
 			{
-				ShowMessage(Region, "Verse " + missingVerse + " indicator is missing.");
+				ShowMessage(Region, UiText.Format(nameof(FrmInfoScreen), "VerseMissing", missingVerse));
 				return false;
 			}
 			if (foundIndicator > 0 && firstVersePos != 0)
 			{
 				if (firstVerseIndex is > 0 and < 13)
 				{
-					ShowMessage(Region, "Indicator is required for the lyrics before Verse " + firstVerseIndex);
+					ShowMessage(Region, UiText.Format(nameof(FrmInfoScreen), "IndicatorRequiredBeforeVerse", firstVerseIndex));
 				}
 				else
 				{
-					ShowMessage(Region, "Indicator is required for the lyrics before the " + Gf.VerseTitle[firstVerseIndex]);
+					ShowMessage(Region, UiText.Format(nameof(FrmInfoScreen), "IndicatorRequiredBefore", Gf.VerseTitle[firstVerseIndex]));
 				}
 				return false;
 			}
@@ -2646,22 +2648,22 @@ namespace Axicultus;
 			case PlayState.Running:
 				PlayPauseBtn.Enabled = true;
 				StopBtn.Enabled = true;
-				PlayPauseBtn.Text = "Pause";
+				PlayPauseBtn.Text = UiText.Get(nameof(FrmInfoScreen), "Pause");
 				LabelMediaType.Text = DShowPlayer.GetStatusText();
 				Cursor = Cursors.Default;
 				break;
 			case PlayState.Paused:
-				PlayPauseBtn.Text = "Play";
+				PlayPauseBtn.Text = UiText.Get(nameof(FrmInfoScreen), "Play");
 				Cursor = Cursors.Default;
 				break;
 			case PlayState.Stopped:
 				StopBtn.Enabled = false;
-				PlayPauseBtn.Text = "Play";
+				PlayPauseBtn.Text = UiText.Get(nameof(FrmInfoScreen), "Play");
 				Cursor = Cursors.Default;
 				break;
 			default:
 				StopBtn.Enabled = false;
-				PlayPauseBtn.Text = "Play";
+				PlayPauseBtn.Text = UiText.Get(nameof(FrmInfoScreen), "Play");
 				break;
 			}
 		}
@@ -2693,7 +2695,7 @@ namespace Axicultus;
 			{
 			}
 			initialDir = ((initialDir != "") ? initialDir : Gf.MediaDir);
-			OpenFileDialog1.Filter = "All Files (*.*) | *.*";
+			OpenFileDialog1.Filter = UiText.Get(nameof(FrmInfoScreen), "AllFilesFilter");
 			OpenFileDialog1.InitialDirectory = initialDir;
 			OpenFileDialog1.AddExtension = true;
 			OpenFileDialog1.FileName = Rotate_tbSourceLocation.Text;
@@ -2825,7 +2827,7 @@ namespace Axicultus;
 			{
 				if (LabelMediaType.Text != "" && ((LabelMediaType.Text[0] == 'A') || (LabelMediaType.Text[0] == 'V')))
 				{
-					LabelDuration.Text = "Stream";
+					LabelDuration.Text = UiText.Get(nameof(FrmInfoScreen), "Stream");
 				}
 				else
 				{
@@ -3118,7 +3120,7 @@ namespace Axicultus;
 			ToolStripMenuItem toolStripMenuItem = new();
 			toolStripMenuItem = new ToolStripMenuItem();
 			toolStripMenuItem.Name = InContextMenu.Name + "_Copy";
-			toolStripMenuItem.Text = "Copy";
+			toolStripMenuItem.Text = UiText.Get(nameof(FrmInfoScreen), "Copy");
 			InContextMenu.Items.Add(toolStripMenuItem);
 			if (InRegion == 1)
 			{
@@ -3130,7 +3132,7 @@ namespace Axicultus;
 			}
 			toolStripMenuItem = new ToolStripMenuItem();
 			toolStripMenuItem.Name = InContextMenu.Name + "_Paste";
-			toolStripMenuItem.Text = "Paste";
+			toolStripMenuItem.Text = UiText.Get(nameof(FrmInfoScreen), "Paste");
 			InContextMenu.Items.Add(toolStripMenuItem);
 			if (InRegion == 1)
 			{

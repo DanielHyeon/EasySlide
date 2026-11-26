@@ -205,7 +205,7 @@ public sealed class BibleVersionCatalogTests
                 _ = list.Handle;
                 type.GetMethod("BuildBibleList", flags).Invoke(options, null);
                 type.GetField("InitFormLoad", flags).SetValue(options, false);
-                Assert.Contains("Cannot find Bible", list.Items[0].SubItems[1].Text);
+                Assert.Equal(Axicultus.Localization.UiText.Get(nameof(FrmOptions), "BibleNotFound"), list.Items[0].SubItems[1].Text);
                 type.GetMethod("MoveSelectedBible", flags).Invoke(options, [1]);
                 size.Value = 105;
                 folders.SelectedIndex = 1;

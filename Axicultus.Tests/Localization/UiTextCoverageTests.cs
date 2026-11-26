@@ -175,18 +175,15 @@ public sealed class UiTextCoverageTests
         "Axicultuss/Forms/FrmCopy.Designer.cs",
         "Axicultuss/Forms/FrmCopyMoveExternal.Designer.cs",
         "Axicultuss/Forms/FrmEditBibleItem.Designer.cs",
-        "Axicultuss/Forms/FrmEditItem.Designer.cs",
         "Axicultuss/Forms/FrmEditNotes.Designer.cs",
         "Axicultuss/Forms/FrmExport.Designer.cs",
         "Axicultuss/Forms/FrmFind.Designer.cs",
         "Axicultuss/Forms/FrmGenerateDoc.Designer.cs",
         "Axicultuss/Forms/FrmGenerateHtml.Designer.cs",
         "Axicultuss/Forms/FrmGetWorkingFolder.Designer.cs",
-        "Axicultuss/Forms/FrmHelp.Designer.cs",
         "Axicultuss/Forms/FrmImport.Designer.cs",
         "Axicultuss/Forms/FrmImportAccessHelper.Designer.cs",
         "Axicultuss/Forms/FrmImportFolder.Designer.cs",
-        "Axicultuss/Forms/FrmInfoScreen.Designer.cs",
         "Axicultuss/Forms/FrmLaunchShow.Designer.cs",
         "Axicultuss/Forms/FrmLookupTitles.Designer.cs",
         "Axicultuss/Forms/FrmLyricsScreen.Designer.cs",
@@ -194,7 +191,6 @@ public sealed class UiTextCoverageTests
         "Axicultuss/Forms/FrmManageItemLists.Designer.cs",
         "Axicultuss/Forms/FrmMediaPlayerControl.Designer.cs",
         "Axicultuss/Forms/FrmMove.Designer.cs",
-        "Axicultuss/Forms/FrmOptions.Designer.cs",
         "Axicultuss/Forms/FrmPopupText.Designer.cs",
         "Axicultuss/Forms/FrmRearrangeFolderPositions.Designer.cs",
         "Axicultuss/Forms/FrmRecoverDeleted.Designer.cs",
@@ -214,8 +210,6 @@ public sealed class UiTextCoverageTests
         "Axicultuss/Forms/FrmCopy.cs",
         "Axicultuss/Forms/FrmCopyMoveExternal.cs",
         "Axicultuss/Forms/FrmEditBibleItem.cs",
-        "Axicultuss/Forms/FrmEditItem.cs",
-        "Axicultuss/Forms/FrmEditItem.Presentation.cs",
         "Axicultuss/Forms/FrmExport.cs",
         "Axicultuss/Forms/FrmFind.cs",
         "Axicultuss/Forms/FrmGenerateDoc.cs",
@@ -224,13 +218,11 @@ public sealed class UiTextCoverageTests
         "Axicultuss/Forms/FrmImport.cs",
         "Axicultuss/Forms/FrmImportAccessHelper.cs",
         "Axicultuss/Forms/FrmImportFolder.cs",
-        "Axicultuss/Forms/FrmInfoScreen.cs",
         "Axicultuss/Forms/FrmMain.cs",
         "Axicultuss/Forms/FrmMain.Logic.cs",
         "Axicultuss/Forms/FrmMain.ModernUi.ImageList.cs",
         "Axicultuss/Forms/FrmManageItemLists.cs",
         "Axicultuss/Forms/FrmMove.cs",
-        "Axicultuss/Forms/FrmOptions.cs",
         "Axicultuss/Forms/FrmRearrangeFolderPositions.cs",
         "Axicultuss/Forms/FrmRecoverDeleted.cs",
         "Axicultuss/Forms/FrmSmartMerge.cs",
@@ -256,10 +248,12 @@ public sealed class UiTextCoverageTests
     private static readonly Regex Untranslated = new(
         @"https?://\S+|www\.\S+|\{\d+(:[^}]*)?\}|\(&\w\)|\(_\w\)|&&|"
         // (bounded by non-ASCII-letters: a Korean particle may follow a name, "Axicultus를")
-        + @"(?<![A-Za-z])(Axicultus|Axicultuss|EasiSlides|PowerPoint|PPTX?|OBS|Windows|Office|Word|Excel|SQLite|MySQL|MariaDB|CCLI|DirectShow|"
+        + @"(?<![A-Za-z])(Axicultus|Axicultuss|EasiSlides|PowerPoint|PPTX?|OBS|Windows|Office|Word|Excel|SQLite|MySQL|MariaDB|CCLI|DirectShow|DirectX|"
         + @"JSON|XML|HTML|CSV|RTF|PDF|EULA|URL|USB|DPI|PC|ID|IP|NDI|WPF|WinForms|InfoScreen|Copyright|"
-        + @"Ctrl|Alt|Shift|Esc|Enter|Space|Tab|PgUp|PgDn|PageUp|PageDown|Home|End|Del|Insert|F\d{1,2})(?![A-Za-z])|"
-        + @"\.(esw|est|esi|esp|txt|pptx?|ppsx?|docx?|rtf|jpe?g|png|gif|bmp|mp[34]|wmv|avi|xml|json|db|sqlite)(?![A-Za-z])",
+        + @"Ctrl|Alt|Shift|Esc|Enter|Space|Tab|PgUp|PgDn|PageUp|PageDown|Home|End|Del|Insert|F\d{1,2}|"
+        // (a single capital letter: a key name, "M", or a list mark, "A.")
+        + @"[A-Z])(?![A-Za-z])|"
+        + @"\.(esw|est|esi|esp|txt|pptx?|ppsx?|docx?|rtf|jpe?g|png|gif|bmp|ico|mp[34]|wmv|avi|xml|json|db|sqlite)(?![A-Za-z])",
         RegexOptions.CultureInvariant);
 
     private static bool HasHangul(string text) => text.Any(c => c is >= '가' and <= '힣' or >= 'ㄱ' and <= 'ㆎ');
@@ -516,6 +510,12 @@ public sealed class UiTextCoverageTests
 
     private static readonly Regex MessageBoxCall = new(@"\bMessageBox\.Show\(");
 
+    // The area or key of a UiText.Get/Format call: a resource name, not a text.
+    private static readonly Regex UiTextArgumentBefore = new(@"UiText\.(?:Get|Format)\(\s*(?:(?:nameof\(\w+\)|""\w+"")\s*,\s*)?$");
+
+    private static bool IsUiTextArgument(string code, int start) =>
+        UiTextArgumentBefore.IsMatch(code.Substring(Math.Max(0, start - 120), Math.Min(start, 120)));
+
     /// <summary>Literal texts with letters given to MessageBox.Show (in the call, up to its end).</summary>
     internal static IEnumerable<string> MessageBoxLiterals(string path)
     {
@@ -532,7 +532,7 @@ public sealed class UiTextCoverageTests
                 else if (code[i] == ')' && --depth == 0) { end = i; break; }
             }
             foreach (var literal in literals.Where(l => l.Start > call.Index && l.End <= end && NeedsText(l.Text)))
-                if (!Marked(lines[literal.Line - 1]))
+                if (!Marked(lines[literal.Line - 1]) && !IsUiTextArgument(code, literal.Start))
                     yield return $"line {literal.Line}: \"{literal.Text}\"";
         }
     }

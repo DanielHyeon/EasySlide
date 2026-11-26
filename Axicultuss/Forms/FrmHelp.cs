@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
+using Axicultus.Localization;
 
 namespace Axicultus;
 
@@ -11,6 +12,7 @@ public partial class FrmHelp : Form
 		public FrmHelp()
     {
         InitializeComponent();
+        UiText.ApplyTo(this);
     }
 
     private void FrmHelp_Load(object sender, EventArgs e)
@@ -18,14 +20,14 @@ public partial class FrmHelp : Form
         int keyBoardOption = Gf.KeyBoardOption;
         if (keyBoardOption == 1)
         {
-            label_FirstItem.Text = "Left Arrow";
-            label_LastItem.Text = "Right Arrow";
-            label_PreviousItem.Text = "Up Arrow";
-            label_NextItem.Text = "Down Arrow";
-            label_FirstSlide.Text = "Home";
-            label_LastSlide.Text = "End";
-            label_PreviousSlide.Text = "Page Up";
-            label_NextSlide.Text = "Page Down, Space";
+            label_FirstItem.Text = UiText.Get(nameof(FrmHelp), "LeftArrow");
+            label_LastItem.Text = UiText.Get(nameof(FrmHelp), "RightArrow");
+            label_PreviousItem.Text = UiText.Get(nameof(FrmHelp), "UpArrow");
+            label_NextItem.Text = UiText.Get(nameof(FrmHelp), "DownArrow");
+            label_FirstSlide.Text = "Home"; // same in every language
+            label_LastSlide.Text = "End"; // same in every language
+            label_PreviousSlide.Text = UiText.Get(nameof(FrmHelp), "PageUp");
+            label_NextSlide.Text = UiText.Get(nameof(FrmHelp), "PageDownSpace");
         }
         Cursor.Position = new Point(base.Left + CloseBtn.Left + 50, base.Top + CloseBtn.Top + 40);
         Cursor.Current = Cursors.Default;

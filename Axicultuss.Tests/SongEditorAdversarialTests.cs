@@ -369,6 +369,8 @@ public class SongEditorAdversarialTests
     {
         OnSta(() =>
         {
+            // The refusals above are the English texts.
+            System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo(Axicultus.Localization.UiLanguage.English);
             Gf.InitializeVerseHeadings();
             using var editor = new Editor();
             var (valid, message) = editor.Validate(pane1, pane2);

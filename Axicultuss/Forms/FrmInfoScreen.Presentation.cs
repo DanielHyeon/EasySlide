@@ -1,3 +1,5 @@
+using Axicultus.Localization;
+
 namespace Axicultus;
 
 public partial class FrmInfoScreen
@@ -7,7 +9,7 @@ public partial class FrmInfoScreen
         SuspendLayout();
         try
         {
-            Text = "Edit InfoScreen";
+            Text = UiText.Get(nameof(FrmInfoScreen), "Title");
             LyricsEditorLayout.FileActions(Main_New, Main_Save, Main_SaveExit, Main_Import, Menu_Save);
             LyricsEditorLayout.AddFormattingRow(this, splitContainerMain, ComboFontName, ComboMainFontSize,
                 ComboNotationFontSize, toolStripSeparator4, Main_WordWrap, Main_ChordsMenu, toolStripSeparator2,
@@ -17,6 +19,9 @@ public partial class FrmInfoScreen
                 Rotate_OrderList_Down, Rotate_OrderList_Delete);
             LyricsEditorLayout.ConfigureAction(Title2_LookUp, "Look up second title", "search");
             LyricsEditorLayout.ConfigureAction(Rotate_LocationBtn, "Choose media file", "folder_open");
+            // (the accessible names above stay as they are; the tooltips are in the UI language)
+            Title2_LookUp.ToolTipText = UiText.Get(nameof(FrmInfoScreen), "LookUpSecondTitle");
+            Rotate_LocationBtn.ToolTipText = UiText.Get(nameof(FrmInfoScreen), "ChooseMediaFile");
             LyricsEditorLayout.AddDetailsTabs(splitContainerMain.Panel1, "Notice", groupBox1, groupBox2,
                 panel7, panel8, ResizeTitleFields);
         }
