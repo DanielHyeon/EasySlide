@@ -228,40 +228,59 @@ public sealed class UiTextCoverageTests
 
     internal sealed record Literal(int Line, int Start, int End, string Text);
 
-    /// <summary>The string literals of a C# file with their lines, outside comments (regular, verbatim, interpolated, raw).</summary>
+    /// <summary>
+    /// The string literals of a C# file with their lines, outside comments (regular, verbatim, interpolated, raw). An
+    /// interpolation hole is read as code, so the literals inside it count on their own (<c>$"{(a ? "이동" : "복사")}"</c>);
+    /// the outer literal keeps "{}" in the hole's place.
+    /// </summary>
     internal static List<Literal> StringLiterals(string code)
     {
         var literals = new List<Literal>();
-        int line = 1;
-        for (int i = 0; i < code.Length; i++)
+        int line = 1, i = 0;
+        Code(hole: false);
+        return literals;
+
+        // Code to its end, or (in an interpolation hole) to the brace that closes the hole, i left on it.
+        void Code(bool hole)
         {
-            char c = code[i];
-            if (c == '\n') { line++; continue; }
-            if (c == '/' && i + 1 < code.Length && code[i + 1] == '/') { while (i < code.Length && code[i] != '\n') i++; line++; continue; }
-            if (c == '/' && i + 1 < code.Length && code[i + 1] == '*')
+            int depth = 0;
+            for (; i < code.Length; i++)
             {
-                for (i += 2; i + 1 < code.Length && !(code[i] == '*' && code[i + 1] == '/'); i++) if (code[i] == '\n') line++;
-                i++;
-                continue;
+                char c = code[i];
+                if (c == '\n') { line++; continue; }
+                if (hole && c == '{') depth++;
+                else if (hole && c == '}' && depth-- == 0) return;
+                if (c == '/' && i + 1 < code.Length && code[i + 1] == '/') { while (i + 1 < code.Length && code[i + 1] != '\n') i++; continue; }
+                if (c == '/' && i + 1 < code.Length && code[i + 1] == '*')
+                {
+                    for (i += 2; i + 1 < code.Length && !(code[i] == '*' && code[i + 1] == '/'); i++) if (code[i] == '\n') line++;
+                    i++;
+                    continue;
+                }
+                if (c == '\'')
+                {
+                    for (i++; i < code.Length && code[i] != '\''; i++) if (code[i] == '\\') i++;
+                    continue;
+                }
+                if (c == '"') String();
             }
-            if (c == '\'')
-            {
-                for (i++; i < code.Length && code[i] != '\''; i++) if (code[i] == '\\') i++;
-                continue;
-            }
-            if (c != '"') continue;
+        }
+
+        // A string literal starting at i; i left on its closing quote.
+        void String()
+        {
             int start = i, startLine = line;
-            bool verbatim = false;
-            for (int p = i - 1; p >= 0 && code[p] is '@' or '$'; p--) verbatim |= code[p] == '@';
+            bool verbatim = false, interpolated = false;
+            for (int p = i - 1; p >= 0 && code[p] is '@' or '$'; p--) { verbatim |= code[p] == '@'; interpolated |= code[p] == '$'; }
             var text = new StringBuilder();
             int quotes = 0;
             while (i + quotes < code.Length && code[i + quotes] == '"') quotes++;
             if (quotes >= 3 && !verbatim)
             {
-                // raw string: ends at the same number of quotes
+                // raw string: ends at the same number of quotes (shortcut: a raw interpolated string's holes are not read)
                 string fence = new('"', quotes);
                 int end = code.IndexOf(fence, i + quotes, StringComparison.Ordinal);
-                if (end < 0) break;
+                if (end < 0) { i = code.Length; return; }
                 text.Append(code, i + quotes, end - i - quotes);
                 line += text.ToString().Count(ch => ch == '\n');
                 i = end + quotes - 1;
@@ -273,6 +292,14 @@ public sealed class UiTextCoverageTests
                 {
                     if (code[i] == '\n') { line++; if (!verbatim) break; }
                     if (!verbatim && code[i] == '\\') { text.Append(code[i]).Append(code[i + 1]); i++; continue; }
+                    if (interpolated && code[i] is '{' or '}' && i + 1 < code.Length && code[i + 1] == code[i]) { text.Append(code[i]); i++; continue; }
+                    if (interpolated && code[i] == '{')
+                    {
+                        text.Append("{}");
+                        i++;
+                        Code(hole: true);
+                        continue;
+                    }
                     if (code[i] == '"')
                     {
                         if (verbatim && i + 1 < code.Length && code[i + 1] == '"') { text.Append('"'); i++; continue; }
@@ -283,7 +310,14 @@ public sealed class UiTextCoverageTests
             }
             literals.Add(new(startLine, start, i, text.ToString()));
         }
-        return literals;
+    }
+
+    [Fact]
+    public void LiteralsInsideAnInterpolationAreReadOnTheirOwn()
+    {
+        var literals = StringLiterals("var t = $\"{kind} {(move ? \"이동\" : \"복사\")} {{x}}\"; // \"주석\"\nvar u = @\"a\"\"b\"; var v = \"\"\"\n원시\n\"\"\";");
+        Assert.Equal(["이동", "복사", "{} {} {x}", "a\"b", "\n원시\n"], literals.Select(l => l.Text).ToArray());
+        Assert.Equal([1, 1, 1, 2, 2], literals.Select(l => l.Line).ToArray());
     }
 
     private static readonly Dictionary<string, (string[] Lines, List<Literal> Literals)> Parsed = [];
