@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Shell;
 
@@ -60,7 +61,7 @@ public partial class ManageWorshipListsWindow : Window
         if (SavedListBox.SelectedItem is string name)
         {
             // FrmManageItemLists asks before deleting.
-            if (MessageBox.Show(this, $"'{name}' 예배 순서를 휴지통으로 옮기시겠습니까?", "예배 순서 삭제",
+            if (MessageBox.Show(this, UiText.Format("ManageWorshipListsWindow", "DeleteConfirm", name), UiText.Get("ManageWorshipListsWindow", "DeleteTitle"),
                     MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No) != MessageBoxResult.Yes) return;
             _viewModel.DeleteWorshipList(name);
             RefreshSavedLists();
@@ -101,13 +102,13 @@ public partial class ManageWorshipListsWindow : Window
         var names = SelectedTrashedLists();
         if (names.Length == 0)
         {
-            MessageBox.Show(this, "복원할 예배 순서를 선택하세요.", "복원", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show(this, UiText.Get("ManageWorshipListsWindow", "RestoreNone"), UiText.Get("ManageWorshipListsWindow", "Restore"), MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
 
-        var question = names.Length == 1 ? $"'{names[0]}' 예배 순서를 복원하시겠습니까?" : $"선택한 예배 순서 {names.Length}개를 복원하시겠습니까?";
-        if (MessageBox.Show(this, question, "복원", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No) != MessageBoxResult.Yes) return;
-        ReportTrashResult(_viewModel.RestoreWorshipLists(names), names.Length, "복원");
+        var question = names.Length == 1 ? UiText.Format("ManageWorshipListsWindow", "RestoreOne", names[0]) : UiText.Format("ManageWorshipListsWindow", "RestoreMany", names.Length);
+        if (MessageBox.Show(this, question, UiText.Get("ManageWorshipListsWindow", "Restore"), MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No) != MessageBoxResult.Yes) return;
+        ReportTrashResult(_viewModel.RestoreWorshipLists(names), names.Length, restore: true);
     }
 
     private void DeletePermanently_Click(object sender, RoutedEventArgs e)
@@ -115,15 +116,15 @@ public partial class ManageWorshipListsWindow : Window
         var names = SelectedTrashedLists();
         if (names.Length == 0)
         {
-            MessageBox.Show(this, "영구 삭제할 예배 순서를 선택하세요.", "영구 삭제", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show(this, UiText.Get("ManageWorshipListsWindow", "DeleteNone"), UiText.Get("ManageWorshipListsWindow", "DeletePermanently"), MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
 
         var question = names.Length == 1
-            ? $"'{names[0]}' 예배 순서를 영구 삭제하시겠습니까? 되돌릴 수 없습니다."
-            : $"선택한 예배 순서 {names.Length}개를 영구 삭제하시겠습니까? 되돌릴 수 없습니다.";
-        if (MessageBox.Show(this, question, "영구 삭제", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No) != MessageBoxResult.Yes) return;
-        ReportTrashResult(_viewModel.DeleteTrashedWorshipLists(names), names.Length, "영구 삭제");
+            ? UiText.Format("ManageWorshipListsWindow", "DeleteOne", names[0])
+            : UiText.Format("ManageWorshipListsWindow", "DeleteMany", names.Length);
+        if (MessageBox.Show(this, question, UiText.Get("ManageWorshipListsWindow", "DeletePermanently"), MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No) != MessageBoxResult.Yes) return;
+        ReportTrashResult(_viewModel.DeleteTrashedWorshipLists(names), names.Length, restore: false);
     }
 
     private void EmptyTrash_Click(object sender, RoutedEventArgs e)
@@ -131,23 +132,24 @@ public partial class ManageWorshipListsWindow : Window
         RefreshTrashedLists();
         if (TrashedLists.Count == 0)
         {
-            MessageBox.Show(this, "휴지통이 이미 비어 있습니다.", "휴지통 비우기", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show(this, UiText.Get("ManageWorshipListsWindow", "TrashEmpty"), UiText.Get("ManageWorshipListsWindow", "EmptyTrash"), MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
 
-        if (MessageBox.Show(this, "휴지통을 비우시겠습니까? 휴지통의 모든 예배 순서가 영구 삭제되며 되돌릴 수 없습니다.", "휴지통 비우기",
+        if (MessageBox.Show(this, UiText.Get("ManageWorshipListsWindow", "EmptyTrashConfirm"), UiText.Get("ManageWorshipListsWindow", "EmptyTrash"),
                 MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No) != MessageBoxResult.Yes) return;
         string[] names = [.. TrashedLists];
-        ReportTrashResult(_viewModel.DeleteTrashedWorshipLists(names), names.Length, "영구 삭제");
+        ReportTrashResult(_viewModel.DeleteTrashedWorshipLists(names), names.Length, restore: false);
     }
 
     // FrmManageItemLists reports the files it could not move or delete; the reason is in the status line.
-    private void ReportTrashResult(int done, int requested, string verb)
+    private void ReportTrashResult(int done, int requested, bool restore)
     {
         RefreshTrashedLists();
         if (done < requested)
         {
-            MessageBox.Show(this, $"{requested - done}개는 {verb}하지 못했습니다. {done}개는 처리했습니다.\n\n{_viewModel.StatusText}", verb,
+            MessageBox.Show(this, UiText.Format("ManageWorshipListsWindow", restore ? "RestoreIncomplete" : "DeleteIncomplete", requested - done, done, _viewModel.StatusText),
+                UiText.Get("ManageWorshipListsWindow", restore ? "Restore" : "DeletePermanently"),
                 MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }
@@ -162,8 +164,8 @@ public partial class ManageWorshipListsWindow : Window
 
         // 기존 이름 목록을 넘겨 중복을 막는다(다이얼로그 VM 이 자기 자신은 제외하고 검사).
         var dialogViewModel = new NameEntryViewModel(
-            "예배 순서 이름 변경",
-            $"'{oldName}'의 새 이름:",
+            UiText.Get("ManageWorshipListsWindow", "RenameTitle"),
+            UiText.Format("ManageWorshipListsWindow", "RenamePrompt", oldName),
             oldName,
             _viewModel.GetSavedWorshipLists());
         var dialog = new NameEntryWindow(dialogViewModel) { Owner = this };

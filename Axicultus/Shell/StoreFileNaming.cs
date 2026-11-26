@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Shell;
 
@@ -15,7 +16,7 @@ internal static class StoreFileNaming
         bool local = File.Exists(oldPath), imported = File.Exists(oldImport);
         if ((!local && !imported) || string.Equals(oldPath, newPath, StringComparison.OrdinalIgnoreCase)) return;
         if (File.Exists(newPath) || File.Exists(newImport))
-            throw new ArgumentException($"이미 있는 이름입니다: {Path.GetFileNameWithoutExtension(newPath)}");
+            throw new ArgumentException(UiText.Format("StoreFileNaming", "AlreadyExists", Path.GetFileNameWithoutExtension(newPath)));
         if (imported) File.Move(oldImport!, newImport!);
         try { if (local) File.Move(oldPath, newPath); }
         catch
@@ -31,7 +32,7 @@ internal static class StoreFileNaming
     {
         if (string.IsNullOrWhiteSpace(name))
         {
-            throw new ArgumentException($"{kindLabel} 이름이 비어 있습니다.", nameof(name));
+            throw new ArgumentException(UiText.Format("StoreFileNaming", "NameEmpty", kindLabel), nameof(name));
         }
 
         var trimmed = name.Trim();
@@ -41,7 +42,7 @@ internal static class StoreFileNaming
             || trimmed.EndsWith('.')
             || IsReservedDeviceName(trimmed))
         {
-            throw new ArgumentException($"{kindLabel} 이름에 사용할 수 없는 문자/형식입니다: {name}", nameof(name));
+            throw new ArgumentException(UiText.Format("StoreFileNaming", "NameInvalid", kindLabel, name), nameof(name));
         }
 
         // 정규화 후 의도한 디렉터리 바로 밑인지 최종 확인(블랙리스트 우회까지 막는 화이트리스트 방어선).
@@ -50,7 +51,7 @@ internal static class StoreFileNaming
         var rootPrefix = root.EndsWith(Path.DirectorySeparatorChar) ? root : root + Path.DirectorySeparatorChar;
         if (!full.StartsWith(rootPrefix, StringComparison.OrdinalIgnoreCase))
         {
-            throw new ArgumentException($"{kindLabel} 이름이 허용 경로를 벗어납니다: {name}", nameof(name));
+            throw new ArgumentException(UiText.Format("StoreFileNaming", "NameOutside", kindLabel, name), nameof(name));
         }
 
         return full;

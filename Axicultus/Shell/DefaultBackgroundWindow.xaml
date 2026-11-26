@@ -1,19 +1,20 @@
 <Window x:Class="Axicultus.Wpf.Shell.DefaultBackgroundWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Select Default Background Colours and Pattern" WindowStartupLocation="CenterOwner"
+        xmlns:loc="clr-namespace:Axicultus.Wpf.Localization"
+        Title="{loc:Text DefaultBackgroundWindow.Title}" WindowStartupLocation="CenterOwner"
         SizeToContent="WidthAndHeight" ResizeMode="NoResize" ShowInTaskbar="False">
     <StackPanel Margin="10">
         <StackPanel Orientation="Horizontal">
-            <Button x:Name="Colour1" Content="Colour 1" Padding="8,3" Click="PickColour" />
-            <CheckBox x:Name="UseSecond" ToolTip="Use Colour 2" VerticalAlignment="Center" Margin="10,0,0,0" Click="ChangeSecondColour" />
-            <Button x:Name="Colour2" Content="Colour 2" Padding="8,3" Click="PickColour" />
-            <Button x:Name="Swap" Content="⇄" ToolTip="Swap colours" Margin="4,0" Click="SwapColours" />
+            <Button x:Name="Colour1" Content="{loc:Text DefaultBackgroundWindow.Colour1}" Padding="8,3" Click="PickColour" />
+            <CheckBox x:Name="UseSecond" ToolTip="{loc:Text DefaultBackgroundWindow.UseColour2}" VerticalAlignment="Center" Margin="10,0,0,0" Click="ChangeSecondColour" />
+            <Button x:Name="Colour2" Content="{loc:Text DefaultBackgroundWindow.Colour2}" Padding="8,3" Click="PickColour" />
+            <Button x:Name="Swap" Content="⇄" ToolTip="{loc:Text DefaultBackgroundWindow.Swap}" Margin="4,0" Click="SwapColours" />
         </StackPanel>
-        <GroupBox Header="Patterns" Margin="0,8"><UniformGrid x:Name="Samples" Columns="4" Rows="3" /></GroupBox>
+        <GroupBox Header="{loc:Text DefaultBackgroundWindow.Patterns}" Margin="0,8"><UniformGrid x:Name="Samples" Columns="4" Rows="3" /></GroupBox>
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Content="OK" IsDefault="True" Width="65" Click="Accept" />
-            <Button Content="Cancel" IsCancel="True" Width="65" Margin="4,0,0,0" />
+            <Button Content="{loc:Text DefaultBackgroundWindow.OK}" IsDefault="True" Width="65" Click="Accept" />
+            <Button Content="{loc:Text DefaultBackgroundWindow.Cancel}" IsCancel="True" Width="65" Margin="4,0,0,0" />
         </StackPanel>
     </StackPanel>
 </Window>

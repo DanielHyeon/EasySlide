@@ -990,7 +990,7 @@ public static class LyricsDisplayFormatter
         return t.Equals("C", StringComparison.OrdinalIgnoreCase)
             || t.Equals("Chorus", StringComparison.OrdinalIgnoreCase)
             || t.Equals("Refrain", StringComparison.OrdinalIgnoreCase)
-            || t.Equals("후렴", StringComparison.Ordinal);
+            || t.Equals("후렴", StringComparison.Ordinal); // not UI text
     }
 
     // A sequence token names a verse by its heading text or by the FrmMain sequence symbol (c, b, e, p, t, w, q).

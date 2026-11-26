@@ -10,6 +10,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using Axicultus.Wpf.Controls;
 using Axicultus.Wpf.Rendering;
 using Axicultus.Wpf.Settings;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Shell;
 
@@ -1183,7 +1184,7 @@ public sealed class OutputWindowViewModel : ObservableObject, IDisposable
         TitleOnPanelVisibility = scene.ShowsTitleOnPanel ? Visibility.Visible : Visibility.Collapsed;
         CopyrightText = scene.CopyrightLabel;
         CopyrightVisibility = scene.ShowsCopyright ? Visibility.Visible : Visibility.Collapsed;
-        NextItemText = scene.ShowsNextItem ? $"다음 ▶ {scene.NextItemLabel}" : string.Empty;
+        NextItemText = scene.ShowsNextItem ? UiText.Format("OutputWindowViewModel", "NextItem", scene.NextItemLabel) : string.Empty;
         NextItemVisibility = scene.ShowsNextItem ? Visibility.Visible : Visibility.Collapsed;
         // 제목 헤딩: 설정 on + 가사 본문 송출 중일 때만 상단 배너로 곡 제목 노출(§7.3-A).
         TitleHeadingVisibility = scene.ShowsTitleHeading ? Visibility.Visible : Visibility.Collapsed;

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Shell;
 
@@ -59,7 +60,7 @@ public sealed class WorshipListValidator(Func<string, bool>? fileExists = null)
                 if (LiveItemKindMatcher.IsPowerPoint(item.Kind))
                 {
                     problems.Add(new WorshipItemProblem(
-                        item, WorshipItemProblemKind.MissingFilePath, $"{Label(item)}: 연결된 파일이 없습니다."));
+                        item, WorshipItemProblemKind.MissingFilePath, UiText.Format("WorshipListValidator", "MissingFile", Label(item))));
                 }
 
                 continue; // 경로 없는 곡·성경·공지·입력 장치 등은 파일 검사 대상이 아님.
@@ -75,7 +76,7 @@ public sealed class WorshipListValidator(Func<string, bool>? fileExists = null)
             if (!_fileExists(item.ContentPath!))
             {
                 problems.Add(new WorshipItemProblem(
-                    item, WorshipItemProblemKind.FileNotFound, $"{Label(item)}: 파일을 찾을 수 없습니다 ({item.ContentPath})."));
+                    item, WorshipItemProblemKind.FileNotFound, UiText.Format("WorshipListValidator", "FileNotFound", Label(item), item.ContentPath)));
             }
         }
 

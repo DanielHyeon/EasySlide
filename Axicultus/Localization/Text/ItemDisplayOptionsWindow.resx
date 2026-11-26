@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Title" xml:space="preserve"><value>Item display settings</value></data>
+  <data name="OK" xml:space="preserve"><value>OK</value></data>
+  <data name="Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="TabDisplay" xml:space="preserve"><value>Display</value></data>
+  <data name="DisplayLanguage" xml:space="preserve"><value>Languages shown</value></data>
+  <data name="MainLanguage" xml:space="preserve"><value>Main language</value></data>
+  <data name="SecondLanguage" xml:space="preserve"><value>Second language</value></data>
+  <data name="BothLanguages" xml:space="preserve"><value>Both languages</value></data>
+  <data name="SongTitle" xml:space="preserve"><value>Title</value></data>
+  <data name="Hide" xml:space="preserve"><value>Hide</value></data>
+  <data name="AllScreens" xml:space="preserve"><value>Every screen</value></data>
+  <data name="FirstScreen" xml:space="preserve"><value>First screen</value></data>
+  <data name="TitleAlignment" xml:space="preserve"><value>Title alignment</value></data>
+  <data name="FollowMain" xml:space="preserve"><value>Follow the main language</value></data>
+  <data name="FollowSecond" xml:space="preserve"><value>Follow the second language</value></data>
+  <data name="Left" xml:space="preserve"><value>Left</value></data>
+  <data name="Center" xml:space="preserve"><value>Center</value></data>
+  <data name="Right" xml:space="preserve"><value>Right</value></data>
+  <data name="Shadow" xml:space="preserve"><value>Shadow</value></data>
+  <data name="Chords" xml:space="preserve"><value>Show chords</value></data>
+  <data name="Interlace" xml:space="preserve"><value>Interlace the two languages</value></data>
+  <data name="Outline" xml:space="preserve"><value>Outline</value></data>
+  <data name="HidePanel" xml:space="preserve"><value>Hide the info panel</value></data>
+  <data name="Transpose" xml:space="preserve"><value>Chord transpose (0~11)</value></data>
+  <data name="Font" xml:space="preserve"><value>Font</value></data>
+  <data name="FontSize" xml:space="preserve"><value>Text size (pt)</value></data>
+  <data name="TextColor" xml:space="preserve"><value>Text color ({0})</value></data>
+  <data name="HorizontalAlignment" xml:space="preserve"><value>Horizontal alignment</value></data>
+  <data name="VerticalPosition" xml:space="preserve"><value>Position from the top of the screen (%)</value></data>
+  <data name="Bold" xml:space="preserve"><value>Bold</value></data>
+  <data name="Italic" xml:space="preserve"><value>Italic</value></data>
+  <data name="Underline" xml:space="preserve"><value>Underline</value></data>
+  <data name="ChorusItalic" xml:space="preserve"><value>Chorus in italics</value></data>
+  <data name="DefaultTip" xml:space="preserve"><value>Default {0}. Clear it to follow the default setting.</value></data>
+  <data name="CheckValue" xml:space="preserve"><value>Check the value of {0}.</value></data>
+  <data name="NoGreaterThan" xml:space="preserve"><value>{0} cannot contain the &gt; character.</value></data>
+  <data name="FollowDefault" xml:space="preserve"><value>Follow the default setting</value></data>
+  <data name="SecondBelowMain" xml:space="preserve"><value>The second language's vertical position must be below the main language's.</value></data>
+</root>

@@ -52,13 +52,6 @@ public sealed class UiTextCoverageTests
         "Axicultus/OutputWindow.xaml",
         "Axicultus/PreviewWindow.xaml",
         "Axicultus/SettingsWindow.xaml",
-        "Axicultus/Shell/DefaultBackgroundWindow.xaml",
-        "Axicultus/Shell/ManageWorshipListsWindow.xaml",
-        "Axicultus/Shell/NameEntryWindow.xaml",
-        "Axicultus/Shell/NoticeScreenWindow.xaml",
-        "Axicultus/Shell/OutputAlertsWindow.xaml",
-        "Axicultus/Shell/OutputFormatWindow.xaml",
-        "Axicultus/Shell/WorshipSessionNotesWindow.xaml",
         "Axicultus/Support/HelpWindow.xaml",
         "Axicultus/Support/RegistrationWindow.xaml",
     ];
@@ -129,26 +122,7 @@ public sealed class UiTextCoverageTests
         "Axicultus/Settings/SettingsWindowViewModel.Options.cs",
         "Axicultus/Settings/WpfProfileUpgrade.cs",
         "Axicultus/SettingsWindow.xaml.cs",
-        "Axicultus/Shell/AppearanceTemplateStore.cs",
-        "Axicultus/Shell/InfoScreenSourceViewModel.cs",
-        "Axicultus/Shell/InfoScreenStore.cs",
-        "Axicultus/Shell/ItemDisplayOptionsWindow.cs",
-        "Axicultus/Shell/LyricsDisplayFormatter.cs",
         "Axicultus/Shell/MainViewModel.cs",
-        "Axicultus/Shell/ManageWorshipListsWindow.xaml.cs",
-        "Axicultus/Shell/NameEntryViewModel.cs",
-        "Axicultus/Shell/NoticeScreenViewModel.cs",
-        "Axicultus/Shell/OutputAlertsWindow.xaml.cs",
-        "Axicultus/Shell/OutputFormatWindow.xaml.cs",
-        "Axicultus/Shell/OutputWindowService.cs",
-        "Axicultus/Shell/OutputWindowViewModel.cs",
-        "Axicultus/Shell/SessionFormatTemplate.cs",
-        "Axicultus/Shell/StoreFileNaming.cs",
-        "Axicultus/Shell/SystemFontCatalog.cs",
-        "Axicultus/Shell/WorshipListStore.cs",
-        "Axicultus/Shell/WorshipListValidator.cs",
-        "Axicultus/Shell/WorshipSessionNotesService.cs",
-        "Axicultus/Shell/WorshipSessionNotesViewModel.cs",
         "Axicultus/Startup/LegacyUiLauncher.cs",
         "Axicultus/Support/SupportDialogViewModels.cs",
         "Axicultus/Theme/ThemeService.cs",
@@ -241,10 +215,10 @@ public sealed class UiTextCoverageTests
 
     /// <summary>Written the same in both languages: product, format and key names, URLs, placeholders and access keys.</summary>
     private static readonly Regex Untranslated = new(
-        @"https?://\S+|www\.\S+|\{\d+(:[^}]*)?\}|\(&\w\)|\(_\w\)|&&|"
+        @"https?://\S+|www\.\S+|\{\d+(:[^}]*)?\}|\(&\w\)|\(_\w\)|&&|(?<=(Ctrl|Alt|Shift)\+)[A-Z](?![A-Za-z])|"
         // (bounded by non-ASCII-letters: a Korean particle may follow a name, "Axicultus를")
         + @"(?<![A-Za-z])(Axicultus|Axicultuss|EasiSlides|PowerPoint|PPTX?|OBS|Windows|Office|Word|Excel|SQLite|MySQL|MariaDB|CCLI|DirectShow|"
-        + @"JSON|XML|HTML|CSV|RTF|PDF|EULA|URL|USB|DPI|PC|ID|IP|NDI|OCR|WebSocket|LIVE|WPF|WinForms|InfoScreen|Copyright|"
+        + @"JSON|XML|HTML|CSV|RTF|PDF|EULA|URL|USB|DPI|PC|ID|IP|NDI|OCR|WebSocket|LIVE|pt|px|WPF|WinForms|InfoScreen|Copyright|"
         + @"Ctrl|Alt|Shift|Esc|Enter|Space|Tab|PgUp|PgDn|PageUp|PageDown|Home|End|Del|Insert|F\d{1,2})(?![A-Za-z])|"
         + @"\.(esw|est|esi|esp|txt|pptx?|ppsx?|docx?|rtf|jpe?g|png|gif|bmp|mp[34]|wmv|avi|xml|json|db|sqlite)(?![A-Za-z])",
         RegexOptions.CultureInvariant);

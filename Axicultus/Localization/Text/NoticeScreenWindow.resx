@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Title" xml:space="preserve"><value>Edit notice screen · InfoScreen</value></data>
+  <data name="NoticeName" xml:space="preserve"><value>Notice name</value></data>
+  <data name="Save" xml:space="preserve"><value>Save</value></data>
+  <data name="SaveTip" xml:space="preserve"><value>Save the notice under this name (Ctrl+S)</value></data>
+  <data name="SavedNotices" xml:space="preserve"><value>Saved notices</value></data>
+  <data name="Open" xml:space="preserve"><value>Open</value></data>
+  <data name="Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="Close" xml:space="preserve"><value>Close</value></data>
+  <data name="AddToQueue" xml:space="preserve"><value>Add to worship list</value></data>
+  <data name="SendNow" xml:space="preserve"><value>Output now</value></data>
+  <data name="ClearOutput" xml:space="preserve"><value>Take off output</value></data>
+  <data name="ClearOutputTip" xml:space="preserve"><value>Turns the output screen black</value></data>
+  <data name="NoticeText" xml:space="preserve"><value>Notice text</value></data>
+  <data name="OutputFormat" xml:space="preserve"><value>Output format</value></data>
+  <data name="Font" xml:space="preserve"><value>Font</value></data>
+  <data name="Size" xml:space="preserve"><value>Size (pt)</value></data>
+  <data name="Alignment" xml:space="preserve"><value>Alignment</value></data>
+  <data name="TextColor" xml:space="preserve"><value>Text color</value></data>
+  <data name="BackgroundColor" xml:space="preserve"><value>Background color</value></data>
+  <data name="Bold" xml:space="preserve"><value>Bold</value></data>
+  <data name="Italic" xml:space="preserve"><value>Italic</value></data>
+  <data name="Underline" xml:space="preserve"><value>Underline</value></data>
+  <data name="Default" xml:space="preserve"><value>Default</value></data>
+  <data name="Left" xml:space="preserve"><value>Left</value></data>
+  <data name="Center" xml:space="preserve"><value>Center</value></data>
+  <data name="Right" xml:space="preserve"><value>Right</value></data>
+  <data name="White" xml:space="preserve"><value>White</value></data>
+  <data name="Yellow" xml:space="preserve"><value>Yellow</value></data>
+  <data name="SkyBlue" xml:space="preserve"><value>Sky blue</value></data>
+  <data name="LightGreen" xml:space="preserve"><value>Light green</value></data>
+  <data name="Black" xml:space="preserve"><value>Black</value></data>
+  <data name="DarkGray" xml:space="preserve"><value>Dark gray</value></data>
+  <data name="Navy" xml:space="preserve"><value>Navy</value></data>
+  <data name="DeepPurple" xml:space="preserve"><value>Deep purple</value></data>
+  <data name="Sent" xml:space="preserve"><value>The notice was sent to the output.</value></data>
+  <data name="OutputClosed" xml:space="preserve"><value>The output window is not open. Open the output first.</value></data>
+  <data name="Cleared" xml:space="preserve"><value>The notice was taken off (black screen).</value></data>
+  <data name="Added" xml:space="preserve"><value>Added to the worship list as a text item.</value></data>
+  <data name="AddFailed" xml:space="preserve"><value>Could not add it to the worship list.</value></data>
+  <data name="SaveFailed" xml:space="preserve"><value>Could not save the notice screen: {0}</value></data>
+  <data name="Saved" xml:space="preserve"><value>Notice screen saved: {0}</value></data>
+  <data name="OpenFailed" xml:space="preserve"><value>Could not open the notice screen: {0}</value></data>
+  <data name="NotFound" xml:space="preserve"><value>Notice screen not found: {0}</value></data>
+  <data name="Opened" xml:space="preserve"><value>Notice screen opened: {0}</value></data>
+  <data name="DeleteFailed" xml:space="preserve"><value>Could not delete the notice screen: {0}</value></data>
+  <data name="Deleted" xml:space="preserve"><value>Notice screen deleted: {0}</value></data>
+</root>

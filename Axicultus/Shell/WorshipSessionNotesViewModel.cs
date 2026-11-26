@@ -1,6 +1,7 @@
 using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Shell;
 
@@ -22,7 +23,7 @@ public sealed partial class WorshipSessionNotesViewModel : ObservableObject
     public WorshipSessionNotesViewModel(IWorshipSessionNotes notes, string sessionKey)
     {
         _notes = notes ?? throw new ArgumentNullException(nameof(notes));
-        _sessionKey = string.IsNullOrWhiteSpace(sessionKey) ? "일반" : sessionKey.Trim();
+        _sessionKey = string.IsNullOrWhiteSpace(sessionKey) ? "일반" : sessionKey.Trim(); // not UI text
 
         NotesText = _notes.GetNotes(_sessionKey);
         SaveCommand = new RelayCommand(Save);
@@ -37,9 +38,9 @@ public sealed partial class WorshipSessionNotesViewModel : ObservableObject
     {
         var ok = _notes.SetNotes(_sessionKey, NotesText ?? string.Empty);
         StatusText = !ok
-            ? "메모 저장에 실패했습니다(디스크 권한·공간을 확인하세요)."
+            ? UiText.Get("WorshipSessionNotesWindow", "SaveFailed")
             : string.IsNullOrWhiteSpace(NotesText)
-                ? "메모를 비웠습니다."
-                : "메모를 저장했습니다.";
+                ? UiText.Get("WorshipSessionNotesWindow", "Cleared")
+                : UiText.Get("WorshipSessionNotesWindow", "Saved");
     }
 }

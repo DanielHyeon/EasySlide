@@ -1,7 +1,8 @@
 <Window x:Class="Axicultus.Wpf.Shell.WorshipSessionNotesWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="세션 메모"
+        xmlns:loc="clr-namespace:Axicultus.Wpf.Localization"
+        Title="{loc:Text WorshipSessionNotesWindow.Title}"
         Width="520"
         Height="460"
         MinWidth="420"
@@ -20,9 +21,8 @@
         <TextBlock Margin="0,0,0,8"
                    Style="{StaticResource Type.Caption.Style}"
                    Foreground="{DynamicResource Brush.Text.Tertiary}"
-                   TextWrapping="Wrap">
-            <Run Text="세션 «" /><Run Text="{Binding SessionKey, Mode=OneWay}" /><Run Text="»의 진행 메모입니다(운영자 전용, 출력에는 나가지 않습니다)." />
-        </TextBlock>
+                   TextWrapping="Wrap"
+                   Text="{Binding SessionKey, Mode=OneWay, StringFormat={loc:Text WorshipSessionNotesWindow.Intro}}" />
 
         <TextBox Grid.Row="1"
                  Text="{Binding NotesText, UpdateSourceTrigger=PropertyChanged}"
@@ -48,11 +48,11 @@
             <Button Command="{Binding SaveCommand}"
                     Style="{StaticResource EsButton.Primary}"
                     Margin="0,0,8,0"
-                    Content="저장"
+                    Content="{loc:Text WorshipSessionNotesWindow.Save}"
                     AutomationProperties.Name="세션 메모 저장" />
             <Button Click="Close_Click"
                     Style="{StaticResource EsButton.Secondary}"
-                    Content="닫기"
+                    Content="{loc:Text WorshipSessionNotesWindow.Close}"
                     AutomationProperties.Name="닫기" />
         </StackPanel>
     </Grid>

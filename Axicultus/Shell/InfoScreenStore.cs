@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using Axicultus.Wpf.Settings;
 using Axicultus.Wpf.Support;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Shell;
 
@@ -187,10 +188,10 @@ public sealed class InfoScreenStore : IInfoScreenStore
     private string ResolvePath(string name)
     {
         if (string.IsNullOrWhiteSpace(name) || Path.IsPathRooted(name) || !IsSafeLegacyRelativePath(name))
-            throw new ArgumentException("정보 화면 이름이 올바르지 않습니다.", nameof(name));
+            throw new ArgumentException(UiText.Get("InfoScreenStore", "NameInvalid"), nameof(name));
         var parent = Path.GetDirectoryName(name);
         return StoreFileNaming.ResolveJsonPath(string.IsNullOrEmpty(parent) ? _directory : Path.Combine(_directory, parent),
-            Path.GetFileName(name), "정보 화면");
+            Path.GetFileName(name), UiText.Get("InfoScreenStore", "Kind"));
     }
 
     private string? TryResolvePath(string name)
