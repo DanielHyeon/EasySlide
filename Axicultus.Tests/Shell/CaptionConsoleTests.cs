@@ -528,6 +528,44 @@ public sealed partial class CaptionConsoleTests
         Assert.Equal(3, session.CurrentSlide);
     });
 
+    // A renderer whose first renders of slide 2 fail (PowerPoint busy), then give a score.
+    private sealed class FailingRender(int failures) : IPowerPointRenderService
+    {
+        private int _asked;
+
+        public Task<PowerPointRenderResult> RenderSlideAsync(PowerPointRenderRequest request, CancellationToken cancellationToken = default) =>
+            request.SlideNumber == 2 && ++_asked <= failures
+                ? Task.FromResult(new PowerPointRenderResult(PowerPointRenderErrorKind.Timeout, null, "PowerPoint 응답 없음", false, TimeSpan.Zero))
+                : new StaffRender().RenderSlideAsync(request, cancellationToken);
+
+        public void ClearCache() { }
+    }
+
+    // The score of a slide comes from its render and the render fails: it is tried again while the slide is on air, and
+    // after the last failure the operator is told (never left at "making the score picture"); the text goes out meanwhile.
+    [Theory]
+    [InlineData(2, true)] // fails twice: the third render gives the row
+    [InlineData(int.MaxValue, false)]
+    public Task AFailedRenderOfTheSlideOnAirIsTriedAgainAndThenTold(int failures, bool row) => WithConsole(async (console, session, directory) =>
+    {
+        var path = CaptionAllTextTests.WriteDeck(directory.FullName, [],
+            CaptionAllTextTests.TextSlide("일장"), CaptionAllTextTests.TextSlide("이장"), CaptionAllTextTests.TextSlide("삼장"));
+        console.RenderRetryDelay = TimeSpan.FromMilliseconds(20);
+        console.ScreenDeck = () => (path, 2);
+        console.ScoreOnly.IsChecked = true;
+        console.ScreenMode.IsChecked = true;
+        await Pump(console, 1500);
+        Assert.Equal((true, 2), (session.Following, session.CurrentSlide));
+        Assert.Equal(row, session.ReadyImage != null);
+        if (row) Assert.Equal("", console.Status.Text);
+        else
+        {
+            Assert.StartsWith("악보 그림을 만들 수 없습니다", console.Status.Text);
+            Assert.Contains("PowerPoint 응답 없음", console.Status.Text);
+            Assert.Equal("이장", session.ReadyText); // the slide's text is the caption
+        }
+    }, render: new FailingRender(failures));
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)] // the settings window where the boxes now are, open

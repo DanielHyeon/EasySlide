@@ -608,28 +608,52 @@ public partial class CaptionConsole : Window
         return null;
     }
 
+    /// <summary>The wait before a failed render of the slide on air is tried again (twice, the second wait double); a test shortens it.</summary>
+    internal TimeSpan RenderRetryDelay { get; set; } = TimeSpan.FromSeconds(1);
+
+    // A render that fails (PowerPoint busy with the show, a timeout) is tried again while its slide is on air; after the
+    // third failure the operator is told, so the console is not left at "making the score picture" (the text goes out).
     private async Task RenderSharpAsync(string path, int slide)
     {
         if (_closed || _render == null || _sharp.ContainsKey((path, slide)) || !_rendering.Add((path, slide))) return;
+        bool OnAir() => !_closed && _captions.Deck?.Path == path && _captions.CurrentSlide == slide;
+        bool made = false;
+        Exception? failure = null;
         try
         {
-            if (await RenderSlideAsync(path, slide) is not { } rendered || _closed) return;
-            if (_captions.Deck?.Path == path && _captions.CurrentSlide == slide) UpdateScore();
-            else if (_captions.Deck?.Path == path && _captions.CurrentSlide + 1 == slide) UpdateSteps(); // the next preview's row
+            for (int attempt = 1; ; attempt++)
+            {
+                try { made = await RenderSlideAsync(path, slide, error => failure = error) is { }; }
+                catch (Exception error) when (error is not OperationCanceledException) { failure = error; }
+                if (made || attempt == 3 || !OnAir()) break;
+                await Task.Delay(RenderRetryDelay * attempt, _lifetime.Token);
+                if (!OnAir()) break;
+            }
         }
-        catch (Exception error) when (error is OperationCanceledException or IOException or NotSupportedException or FileFormatException or ArgumentException)
-        {
-            System.Diagnostics.Debug.WriteLine(error.Message);
-        }
+        catch (OperationCanceledException) { return; } // the console closes
         finally { _rendering.Remove((path, slide)); }
+        if (_closed) return;
+        if (!made)
+        {
+            // (a row cut from the operator's small picture of the slide stands in: nothing to tell)
+            if (!OnAir() || _rowShown) return;
+            _errors.Write($"악보 슬라이드 렌더 · {slide}장", failure ?? new InvalidOperationException("렌더 실패"));
+            Status.Text = "악보 그림을 만들 수 없습니다 · " + (failure?.Message ?? "렌더 실패");
+        }
+        else if (OnAir()) UpdateScore();
+        else if (_captions.Deck?.Path == path && _captions.CurrentSlide + 1 == slide) UpdateSteps(); // the next preview's row
     }
 
-    // A full-size picture of the slide, kept for the score; null when PowerPoint could not render it.
-    private async Task<(BitmapSource Image, byte[] Bytes, string ContentType)?> RenderSlideAsync(string path, int slide)
+    // A full-size picture of the slide, kept for the score; null when PowerPoint could not render it (failed is told why).
+    private async Task<(BitmapSource Image, byte[] Bytes, string ContentType)?> RenderSlideAsync(string path, int slide, Action<Exception>? failed = null)
     {
         if (_render == null) return null;
         var result = await _render.RenderSlideAsync(new(path, slide, 1920, 1080, TimeSpan.FromSeconds(30)), _lifetime.Token);
-        if (!result.Succeeded) return null;
+        if (!result.Succeeded)
+        {
+            failed?.Invoke(new PowerPointRenderException(result.ErrorKind, result.ErrorMessage ?? result.ErrorKind.ToString()));
+            return null;
+        }
         using var stream = new MemoryStream(result.Slide!.ImageBytes);
         var frame = BitmapDecoder.Create(stream, BitmapCreateOptions.PreservePixelFormat | BitmapCreateOptions.IgnoreColorProfile,
             BitmapCacheOption.OnLoad).Frames[0];
