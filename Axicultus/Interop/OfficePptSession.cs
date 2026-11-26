@@ -333,7 +333,7 @@ public sealed partial class OfficePptSession : IDisposable
     /// </summary>
     public Task<int> PingAsync() => RunOnStaAsync(() =>
     {
-        if (_ppt is null) throw new InvalidOperationException("PowerPoint 세션이 열려 있지 않음. OpenAsync 먼저 호출하세요.");
+        if (_ppt is null) throw new InvalidOperationException("The PowerPoint session is not open: call OpenAsync first.");
         return _ppt.Presentations.Count;
     });
 

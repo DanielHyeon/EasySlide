@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="ChoiceTop" xml:space="preserve"><value>위</value></data>
+  <data name="ChoiceMiddle" xml:space="preserve"><value>가운데</value></data>
+  <data name="ChoiceBottom" xml:space="preserve"><value>아래</value></data>
+  <data name="ChoiceLeft" xml:space="preserve"><value>왼쪽</value></data>
+  <data name="ChoiceCenter" xml:space="preserve"><value>가운데</value></data>
+  <data name="ChoiceRight" xml:space="preserve"><value>오른쪽</value></data>
+  <data name="PreviewFontPoints" xml:space="preserve"><value>미리보기 글자 크기 (pt)</value></data>
+  <data name="PreviewDivider" xml:space="preserve"><value>화면 사이 구분선</value></data>
+  <data name="PreviewFocusColorEnabled" xml:space="preserve"><value>포커스 영역 배경색 사용</value></data>
+  <data name="PreviewFocusArgb" xml:space="preserve"><value>포커스 배경색</value></data>
+  <data name="PreviewSelectionTextArgb" xml:space="preserve"><value>선택한 슬라이드 글자색</value></data>
+  <data name="PreviewSelectionBackgroundArgb" xml:space="preserve"><value>선택한 슬라이드 배경색</value></data>
+  <data name="EditHistoryLimit" xml:space="preserve"><value>최근 편집 항목 수</value></data>
+  <data name="BackgroundVideoPercent" xml:space="preserve"><value>배경 동영상 크기 (%)</value></data>
+  <data name="BackgroundVideoAlignment" xml:space="preserve"><value>배경 동영상 위치</value></data>
+  <data name="LargestFont" xml:space="preserve"><value>영역에 맞는 최대 글꼴 사용</value></data>
+  <data name="RegionDivider" xml:space="preserve"><value>두 가사 영역 사이 구분선</value></data>
+  <data name="HangingIndent" xml:space="preserve"><value>왼쪽 정렬 시 이어지는 줄 들여쓰기</value></data>
+  <data name="NotationPercent" xml:space="preserve"><value>코드 글꼴 크기 (%)</value></data>
+  <data name="PreventScreenSaver" xml:space="preserve"><value>송출 중 화면 보호기 억제</value></data>
+  <data name="StageFontPoints" xml:space="preserve"><value>가사 글자 크기 (pt)</value></data>
+  <data name="StageNotationPoints" xml:space="preserve"><value>코드 글자 크기 (pt)</value></data>
+  <data name="StageShowNotations" xml:space="preserve"><value>가사 모니터 코드 표기</value></data>
+  <data name="StageTextArgb" xml:space="preserve"><value>가사 글자색</value></data>
+  <data name="StageBackgroundArgb" xml:space="preserve"><value>가사 배경색</value></data>
+  <data name="StageBold" xml:space="preserve"><value>굵게</value></data>
+  <data name="StageItalic" xml:space="preserve"><value>기울임</value></data>
+  <data name="StageUnderline" xml:space="preserve"><value>밑줄</value></data>
+  <data name="OutputAsSingle" xml:space="preserve"><value>사용자 지정 송출을 단일 모니터처럼 사용</value></data>
+  <data name="StagePreferSecondary" xml:space="preserve"><value>보조 가사 모니터 우선</value></data>
+  <data name="StageCustom" xml:space="preserve"><value>가사 모니터 사용자 위치 사용</value></data>
+  <data name="StageLeft" xml:space="preserve"><value>가사 모니터 왼쪽 (px)</value></data>
+  <data name="StageTop" xml:space="preserve"><value>가사 모니터 위쪽 (px)</value></data>
+  <data name="StageWidth" xml:space="preserve"><value>가사 모니터 너비 (px)</value></data>
+  <data name="CameraWide" xml:space="preserve"><value>카메라 와이드 화면</value></data>
+  <data name="CameraHidePanel" xml:space="preserve"><value>카메라 송출 패널 숨김</value></data>
+  <data name="CameraVolume" xml:space="preserve"><value>카메라 음량</value></data>
+  <data name="CameraBalance" xml:space="preserve"><value>카메라 좌우 밸런스</value></data>
+  <data name="CameraMuted" xml:space="preserve"><value>카메라 음소거</value></data>
+  <data name="AlternateKeyboard" xml:space="preserve"><value>두 번째 키보드 배열 사용</value></data>
+  <data name="GlobalF7" xml:space="preserve"><value>전역 F7</value></data>
+  <data name="GlobalF8" xml:space="preserve"><value>전역 F8</value></data>
+  <data name="GlobalF9" xml:space="preserve"><value>전역 F9</value></data>
+  <data name="GlobalF10" xml:space="preserve"><value>전역 F10</value></data>
+  <data name="GlobalArrow" xml:space="preserve"><value>전역 방향키</value></data>
+  <data name="GlobalCtrlArrow" xml:space="preserve"><value>전역 Ctrl + 방향키</value></data>
+  <data name="MessageFamily" xml:space="preserve"><value>글꼴</value></data>
+  <data name="MessagePoints" xml:space="preserve"><value>글자 크기 (pt)</value></data>
+  <data name="MessageForegroundArgb" xml:space="preserve"><value>글자색</value></data>
+  <data name="MessageBackgroundArgb" xml:space="preserve"><value>배경색</value></data>
+  <data name="MessageHorizontal" xml:space="preserve"><value>가로 정렬</value></data>
+  <data name="MessageVertical" xml:space="preserve"><value>세로 정렬</value></data>
+  <data name="MessageBold" xml:space="preserve"><value>굵게</value></data>
+  <data name="MessageItalic" xml:space="preserve"><value>기울임</value></data>
+  <data name="MessageUnderline" xml:space="preserve"><value>밑줄</value></data>
+  <data name="MessageShadow" xml:space="preserve"><value>그림자</value></data>
+  <data name="MessageOutline" xml:space="preserve"><value>외곽선</value></data>
+  <data name="ParentalFamily" xml:space="preserve"><value>글꼴</value></data>
+  <data name="ParentalPoints" xml:space="preserve"><value>글자 크기 (pt)</value></data>
+  <data name="ParentalForegroundArgb" xml:space="preserve"><value>글자색</value></data>
+  <data name="ParentalBackgroundArgb" xml:space="preserve"><value>배경색</value></data>
+  <data name="ParentalHorizontal" xml:space="preserve"><value>가로 정렬</value></data>
+  <data name="ParentalVertical" xml:space="preserve"><value>세로 정렬</value></data>
+  <data name="ParentalBold" xml:space="preserve"><value>굵게</value></data>
+  <data name="ParentalItalic" xml:space="preserve"><value>기울임</value></data>
+  <data name="ParentalUnderline" xml:space="preserve"><value>밑줄</value></data>
+  <data name="ParentalShadow" xml:space="preserve"><value>그림자</value></data>
+  <data name="ParentalOutline" xml:space="preserve"><value>외곽선</value></data>
+  <data name="ReferenceFamily" xml:space="preserve"><value>글꼴</value></data>
+  <data name="ReferencePoints" xml:space="preserve"><value>글자 크기 (pt)</value></data>
+  <data name="ReferenceForegroundArgb" xml:space="preserve"><value>글자색</value></data>
+  <data name="ReferenceBackgroundArgb" xml:space="preserve"><value>배경색</value></data>
+  <data name="ReferenceHorizontal" xml:space="preserve"><value>가로 정렬</value></data>
+  <data name="ReferenceVertical" xml:space="preserve"><value>세로 정렬</value></data>
+  <data name="ReferenceBold" xml:space="preserve"><value>굵게</value></data>
+  <data name="ReferenceItalic" xml:space="preserve"><value>기울임</value></data>
+  <data name="ReferenceUnderline" xml:space="preserve"><value>밑줄</value></data>
+  <data name="ReferenceShadow" xml:space="preserve"><value>그림자</value></data>
+  <data name="ReferenceOutline" xml:space="preserve"><value>외곽선</value></data>
+</root>

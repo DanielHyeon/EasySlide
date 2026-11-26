@@ -42,7 +42,6 @@ public sealed class UiTextCoverageTests
         "Axicultus/MainWindow.xaml",
         "Axicultus/OutputWindow.xaml",
         "Axicultus/PreviewWindow.xaml",
-        "Axicultus/SettingsWindow.xaml",
         "Axicultus/Shell/DefaultBackgroundWindow.xaml",
         "Axicultus/Shell/ManageWorshipListsWindow.xaml",
         "Axicultus/Shell/NameEntryWindow.xaml",
@@ -70,11 +69,6 @@ public sealed class UiTextCoverageTests
         "Axicultus/Composites/LiveBar.cs",
         "Axicultus/Composites/SafetyConfirm.cs",
         "Axicultus/Composites/WorshipListPanel.xaml.cs",
-        "Axicultus/Controls/OperatorOptionPanel.cs",
-        "Axicultus/Data/AdminDatabaseRepository.cs",
-        "Axicultus/Data/FolderFormatField.cs",
-        "Axicultus/Input/CommandCatalog.cs",
-        "Axicultus/Interop/OfficePptSession.cs",
         "Axicultus/Library/FolderEditorViewModel.cs",
         "Axicultus/Library/FolderLayoutSample.cs",
         "Axicultus/Library/LibraryViewModel.cs",
@@ -95,14 +89,6 @@ public sealed class UiTextCoverageTests
         "Axicultus/MainWindow.LiveDevices.cs",
         "Axicultus/MainWindow.OperatorMenus.cs",
         "Axicultus/MainWindow.xaml.cs",
-        "Axicultus/Rendering/PowerPointPreviewViewModel.cs",
-        "Axicultus/Rendering/PowerPointWorker.cs",
-        "Axicultus/Settings/SettingsPathPicker.cs",
-        "Axicultus/Settings/SettingsService.cs",
-        "Axicultus/Settings/SettingsWindowViewModel.cs",
-        "Axicultus/Settings/SettingsWindowViewModel.Options.cs",
-        "Axicultus/Settings/WpfProfileUpgrade.cs",
-        "Axicultus/SettingsWindow.xaml.cs",
         "Axicultus/Shell/AppearanceTemplateStore.cs",
         "Axicultus/Shell/InfoScreenSourceViewModel.cs",
         "Axicultus/Shell/InfoScreenStore.cs",
@@ -204,10 +190,12 @@ public sealed class UiTextCoverageTests
         @"https?://\S+|www\.\S+|\{\d+(:[^}]*)?\}|\(&\w\)|\(_\w\)|&&|"
         // (bounded by non-ASCII-letters: a Korean particle may follow a name, "Axicultus를")
         + @"(?<![A-Za-z])(Axicultus|Axicultuss|EasiSlides|PowerPoint|PPTX?|OBS|Windows|Office|Word|Excel|SQLite|MySQL|MariaDB|CCLI|DirectShow|DirectX|AdminDB|HolyBibles|"
-        + @"JSON|XML|HTML|CSV|RTF|PDF|EULA|URL|USB|DPI|PC|ID|IP|NDI|WPF|WinForms|InfoScreen|Copyright|"
+        + @"JSON|XML|HTML|CSV|RTF|PDF|EULA|URL|USB|DPI|PC|ID|IP|NDI|WPF|WinForms|InfoScreen|Copyright|DB|MB|OCR|WebSocket|LIVE|pt|px|ms|"
         + @"Ctrl|Alt|Shift|Esc|Enter|Space|Tab|PgUp|PgDn|PageUp|PageDown|Home|End|Del|Insert|F\d{1,2}|"
         // (a single capital letter: a key name, "M", or a list mark, "A.")
         + @"[A-Z])(?![A-Za-z])|"
+        // (the key after a modifier: "Ctrl+S")
+        + @"(?<=(Ctrl|Alt|Shift)\+)[A-Za-z0-9](?![A-Za-z])|"
         + @"\.(esw|est|esi|esp|txt|pptx?|ppsx?|docx?|rtf|jpe?g|png|gif|bmp|ico|mp[34]|wmv|avi|xml|json|db|sqlite)(?![A-Za-z])|"
         // (a text that is one key letter: the verse buttons p, c, b, e… are the keys that jump there)
         + @"^[A-Za-z]$",

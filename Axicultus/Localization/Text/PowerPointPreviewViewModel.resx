@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="NoPpt" xml:space="preserve"><value>No PPT</value></data>
+  <data name="Rendering" xml:space="preserve"><value>Rendering…</value></data>
+  <data name="DecodeFailed" xml:space="preserve"><value>Image decoding failed: {0}</value></data>
+  <data name="RenderCancelled" xml:space="preserve"><value>Rendering cancelled</value></data>
+  <data name="SlideOf" xml:space="preserve"><value>Slide {0}/{1}</value></data>
+  <data name="RenderFailed" xml:space="preserve"><value>PPT rendering failed</value></data>
+  <data name="SlideFromThumbnail" xml:space="preserve"><value>Slide {0} (from thumbnail)</value></data>
+</root>

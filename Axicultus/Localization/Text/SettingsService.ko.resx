@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="StoredValueReplaced" xml:space="preserve"><value>저장된 값이 올바르지 않아 다른 값으로 바꿨습니다.</value></data>
+  <data name="ShortcutSlotEmpty" xml:space="preserve"><value>단축키 슬롯 ID를 입력하세요.</value></data>
+  <data name="ShortcutGestureEmpty" xml:space="preserve"><value>단축키를 입력하세요.</value></data>
+  <data name="EnterFontName" xml:space="preserve"><value>글꼴 이름을 입력하세요.</value></data>
+  <data name="SchemaVersionUnsupported" xml:space="preserve"><value>스키마 버전 1만 지원합니다.</value></data>
+  <data name="ThemeUnsupported" xml:space="preserve"><value>지원하지 않는 테마 값입니다.</value></data>
+  <data name="InterfaceSizeUnsupported" xml:space="preserve"><value>지원하지 않는 인터페이스 크기 값입니다.</value></data>
+  <data name="GapItemOptionUnsupported" xml:space="preserve"><value>지원하지 않는 항목 사이 간격 화면 값입니다.</value></data>
+  <data name="LyricsTextAlignmentUnsupported" xml:space="preserve"><value>지원하지 않는 가사 정렬 값입니다.</value></data>
+  <data name="LyricsVerticalAlignmentUnsupported" xml:space="preserve"><value>지원하지 않는 가사 세로 정렬 값입니다.</value></data>
+  <data name="TitleHeadingAlignmentUnsupported" xml:space="preserve"><value>지원하지 않는 제목 정렬 값입니다.</value></data>
+  <data name="BackgroundModeUnsupported" xml:space="preserve"><value>지원하지 않는 배경 이미지 방식입니다.</value></data>
+  <data name="BackgroundPatternRange" xml:space="preserve"><value>배경 무늬는 0에서 11 사이에서 선택하세요.</value></data>
+  <data name="GradientDirectionUnsupported" xml:space="preserve"><value>지원하지 않는 배경 그라데이션 방향입니다.</value></data>
+  <data name="RegionDisplayUnsupported" xml:space="preserve"><value>지원하지 않는 영역 표시 방식입니다.</value></data>
+  <data name="AutoRotateUnsupported" xml:space="preserve"><value>지원하지 않는 자동 회전 방식입니다.</value></data>
+  <data name="Region2AlignmentUnsupported" xml:space="preserve"><value>지원하지 않는 영역 2 정렬 값입니다.</value></data>
+  <data name="Region2BoldUnsupported" xml:space="preserve"><value>지원하지 않는 영역 2 굵게 값입니다.</value></data>
+  <data name="Region2ItalicUnsupported" xml:space="preserve"><value>지원하지 않는 영역 2 기울임 값입니다.</value></data>
+  <data name="Region2UnderlineUnsupported" xml:space="preserve"><value>지원하지 않는 영역 2 밑줄 값입니다.</value></data>
+  <data name="PanelHeightRange" xml:space="preserve"><value>패널 높이는 0에서 20퍼센트 사이여야 합니다.</value></data>
+  <data name="ShortcutCommandEmpty" xml:space="preserve"><value>단축키 명령 ID를 입력하세요.</value></data>
+  <data name="ExportPathEmpty" xml:space="preserve"><value>내보낼 경로를 입력하세요.</value></data>
+  <data name="ImportPathEmpty" xml:space="preserve"><value>가져올 경로를 입력하세요.</value></data>
+  <data name="LegacyWorkingFolderMissing" xml:space="preserve"><value>이전 작업 폴더 '{0}'이(가) 없어 현재 폴더를 그대로 사용합니다.</value></data>
+  <data name="LegacyNotReferenceStyle" xml:space="preserve"><value>이전 값 '{0}'은(는) 올바른 참조 알림 스타일 값이 아닙니다.</value></data>
+  <data name="LegacyNotBoolean" xml:space="preserve"><value>이전 값 '{0}'은(는) 올바른 참/거짓 값이 아닙니다.</value></data>
+  <data name="LegacyNotInteger" xml:space="preserve"><value>이전 값 '{0}'은(는) 올바른 정수가 아닙니다.</value></data>
+  <data name="LegacyNotNumber" xml:space="preserve"><value>이전 값 '{0}'은(는) 올바른 숫자가 아닙니다.</value></data>
+  <data name="LegacyNotEnum" xml:space="preserve"><value>이전 값 '{0}'은(는) 올바른 {1} 값이 아닙니다.</value></data>
+  <data name="LegacyKeyboardOption" xml:space="preserve"><value>이전 값 '{0}'은(는) 지원하지 않는 키보드 옵션입니다.</value></data>
+  <data name="ValueEmpty" xml:space="preserve"><value>값을 입력하세요.</value></data>
+  <data name="ValueRange" xml:space="preserve"><value>값은 {0}에서 {1} 사이여야 합니다.</value></data>
+  <data name="PathEmpty" xml:space="preserve"><value>경로를 입력하세요.</value></data>
+  <data name="PathInvalidChars" xml:space="preserve"><value>경로에 사용할 수 없는 문자가 있습니다.</value></data>
+  <data name="ValueControlChars" xml:space="preserve"><value>값에 제어 문자를 넣을 수 없습니다.</value></data>
+</root>

@@ -1,0 +1,352 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Title" xml:space="preserve"><value>Options</value></data>
+  <data name="TabMainWindow" xml:space="preserve"><value>Main Window</value></data>
+  <data name="OtherSettings" xml:space="preserve"><value>Other Settings</value></data>
+  <data name="ShowLyricsMonitorAlertBox" xml:space="preserve"><value>Show Lyrics Monitor Alert Box</value></data>
+  <data name="JumpToFolderIcons" xml:space="preserve"><value>Jump To Folder Icons</value></data>
+  <data name="JumpA" xml:space="preserve"><value>tool Strip Jump A</value></data>
+  <data name="JumpB" xml:space="preserve"><value>tool Strip Jump B</value></data>
+  <data name="JumpC" xml:space="preserve"><value>tool Strip Jump C</value></data>
+  <data name="PowerPointGroup" xml:space="preserve"><value>Powerpoint</value></data>
+  <data name="ShowPowerPointTab" xml:space="preserve"><value>Show Powerpoint Tab</value></data>
+  <data name="MaxPowerPointFiles" xml:space="preserve"><value>Max Powerpoint Files allowed:</value></data>
+  <data name="PreviewTextAreas" xml:space="preserve"><value>Preview Text Areas</value></data>
+  <data name="SelectedBack" xml:space="preserve"><value>Selected Back</value></data>
+  <data name="SelectedColour" xml:space="preserve"><value>Selected Colour</value></data>
+  <data name="FocusedColour" xml:space="preserve"><value>Focused Colour</value></data>
+  <data name="FontSize" xml:space="preserve"><value>Font Size</value></data>
+  <data name="UseFocusedColour" xml:space="preserve"><value>Use Focused Colour</value></data>
+  <data name="ShowNotations" xml:space="preserve"><value>Show Notations</value></data>
+  <data name="LineBetweenScreens" xml:space="preserve"><value>Line between Screens</value></data>
+  <data name="MediaFiles" xml:space="preserve"><value>Media Files</value></data>
+  <data name="ShowMediaTab" xml:space="preserve"><value>Show Media Tab</value></data>
+  <data name="ChangeLocation" xml:space="preserve"><value>Change Location</value></data>
+  <data name="MaximumSetting" xml:space="preserve"><value>Maximum Setting</value></data>
+  <data name="MaxEditHistory" xml:space="preserve"><value>Max Edit History items listed:</value></data>
+  <data name="MaxBibleSearchSelection" xml:space="preserve"><value>Max Bible Search Selection:</value></data>
+  <data name="MaxBibleVersesSelection" xml:space="preserve"><value>Max Bible Verses Selection:</value></data>
+  <data name="InterfaceSize" xml:space="preserve"><value>Screen font and interface size</value></data>
+  <data name="SizeSmall" xml:space="preserve"><value>Small font</value></data>
+  <data name="SizeStandard" xml:space="preserve"><value>Standard</value></data>
+  <data name="SizeLarge" xml:space="preserve"><value>Large text</value></data>
+  <data name="SizeSenior" xml:space="preserve"><value>Senior</value></data>
+  <data name="TabShow" xml:space="preserve"><value>Show</value></data>
+  <data name="DualMonitorOnly" xml:space="preserve"><value>** Applicable in Dual Monitor Only</value></data>
+  <data name="DisableScreenSaver" xml:space="preserve"><value>Disable Screen Saver during Show</value></data>
+  <data name="AdvanceNextItem" xml:space="preserve"><value>Advance Next Item</value></data>
+  <data name="NoPanelOverlayMedia" xml:space="preserve"><value>No Panel Overlay For Media **</value></data>
+  <data name="NoPanelOverlayPowerPoint" xml:space="preserve"><value>No Panel Overlay For Powerpoint **</value></data>
+  <data name="GapBetweenItems" xml:space="preserve"><value>Gap between items</value></data>
+  <data name="UseFadeTransition" xml:space="preserve"><value>Use Fade Transition</value></data>
+  <data name="LookupLogoFile" xml:space="preserve"><value>Lookup Logo File</value></data>
+  <data name="BlackScreen" xml:space="preserve"><value>Black Screen</value></data>
+  <data name="NoGap" xml:space="preserve"><value>No Gap</value></data>
+  <data name="DefaultSessionBackground" xml:space="preserve"><value>Default Session Background</value></data>
+  <data name="VideoBackground" xml:space="preserve"><value>Video Background</value></data>
+  <data name="AlignLabel" xml:space="preserve"><value>Align:</value></data>
+  <data name="VerticalAlignment" xml:space="preserve"><value>Vertical Alignment</value></data>
+  <data name="SizeLabel" xml:space="preserve"><value>Size:</value></data>
+  <data name="TextSettings" xml:space="preserve"><value>Text Settings</value></data>
+  <data name="NotationSize" xml:space="preserve"><value>Size of Notations to Folder Font (%):</value></data>
+  <data name="IndentWrappedText" xml:space="preserve"><value>Indent Word Wrapped Text</value></data>
+  <data name="LineBetweenRegions" xml:space="preserve"><value>Line between Regions</value></data>
+  <data name="UseLargestFont" xml:space="preserve"><value>Use Largest Font</value></data>
+  <data name="AutoTextOverflow" xml:space="preserve"><value>Auto Text Overflow</value></data>
+  <data name="FitParagraphOnSlide" xml:space="preserve"><value>Fit each text file paragraph on one slide</value></data>
+  <data name="TabMonitors" xml:space="preserve"><value>Monitors</value></data>
+  <data name="LiveCamSettings" xml:space="preserve"><value>Live Cam Settings</value></data>
+  <data name="NoPanelOverlayLiveCam" xml:space="preserve"><value>No Panel Overlay For Live Cam **</value></data>
+  <data name="LiveCamera" xml:space="preserve"><value>Live camera</value></data>
+  <data name="Min" xml:space="preserve"><value>Min</value></data>
+  <data name="Max" xml:space="preserve"><value>Max</value></data>
+  <data name="BalanceRight" xml:space="preserve"><value>R</value></data>
+  <data name="BalanceLeft" xml:space="preserve"><value>L</value></data>
+  <data name="WideScreen" xml:space="preserve"><value>WideScreen</value></data>
+  <data name="Mute" xml:space="preserve"><value>Mute</value></data>
+  <data name="LyricsMonitor" xml:space="preserve"><value>Lyrics Monitor</value></data>
+  <data name="BackColour" xml:space="preserve"><value>Back Colour</value></data>
+  <data name="TextColour" xml:space="preserve"><value>Text Colour</value></data>
+  <data name="TopLabel" xml:space="preserve"><value>Top:</value></data>
+  <data name="LeftLabel" xml:space="preserve"><value>Left:</value></data>
+  <data name="StageBold" xml:space="preserve"><value>Stage Bold</value></data>
+  <data name="StageItalic" xml:space="preserve"><value>Stage Italic</value></data>
+  <data name="StageUnderline" xml:space="preserve"><value>Stage Underline</value></data>
+  <data name="UseAnotherMonitor" xml:space="preserve"><value>Use another monitor if unavailable</value></data>
+  <data name="LyricsMonitorList" xml:space="preserve"><value>Lyrics Monitor List</value></data>
+  <data name="MonitorInfo" xml:space="preserve"><value>Monitor Info</value></data>
+  <data name="CustomLabel" xml:space="preserve"><value>Custom:</value></data>
+  <data name="HeightLabel" xml:space="preserve"><value>Height:</value></data>
+  <data name="WidthLabel" xml:space="preserve"><value>Width:</value></data>
+  <data name="MainFontSize" xml:space="preserve"><value>Main Font Size:</value></data>
+  <data name="LiveOutputMonitor" xml:space="preserve"><value>Live Output Monitor</value></data>
+  <data name="Wide169" xml:space="preserve"><value>wide(16:9)</value></data>
+  <data name="Standard43" xml:space="preserve"><value>standard(4:3)</value></data>
+  <data name="DualMonitorList" xml:space="preserve"><value>Dual Monitor List</value></data>
+  <data name="TabAlerts" xml:space="preserve"><value>Alerts</value></data>
+  <data name="DisplayReference" xml:space="preserve"><value>Display Reference On New Item</value></data>
+  <data name="PickSubstitute" xml:space="preserve"><value>Pick &amp; Substitute</value></data>
+  <data name="BlankIfNotFound" xml:space="preserve"><value>Blank if not found</value></data>
+  <data name="Enable" xml:space="preserve"><value>Enable</value></data>
+  <data name="SubstituteLabel" xml:space="preserve"><value>Substitute:</value></data>
+  <data name="PickLabel" xml:space="preserve"><value>Pick:</value></data>
+  <data name="SelectReference" xml:space="preserve"><value>Select Reference</value></data>
+  <data name="SongTitle" xml:space="preserve"><value>Song Title</value></data>
+  <data name="SongNumber" xml:space="preserve"><value>Song Number</value></data>
+  <data name="NoReference" xml:space="preserve"><value>No Reference</value></data>
+  <data name="BookReference" xml:space="preserve"><value>Book Reference</value></data>
+  <data name="UserReference" xml:space="preserve"><value>User Reference</value></data>
+  <data name="Scroll" xml:space="preserve"><value>Scroll</value></data>
+  <data name="Flash" xml:space="preserve"><value>Flash</value></data>
+  <data name="Transparent" xml:space="preserve"><value>Transparent</value></data>
+  <data name="ReferenceHorizontal" xml:space="preserve"><value>Reference Horizontal</value></data>
+  <data name="ReferenceBold" xml:space="preserve"><value>Reference Bold</value></data>
+  <data name="ReferenceItalic" xml:space="preserve"><value>Reference Italic</value></data>
+  <data name="ReferenceUnderline" xml:space="preserve"><value>Reference Underline</value></data>
+  <data name="ReferenceShadow" xml:space="preserve"><value>Reference Shadow</value></data>
+  <data name="ReferenceOutline" xml:space="preserve"><value>Reference Outline</value></data>
+  <data name="ReferenceFamily" xml:space="preserve"><value>Reference Family</value></data>
+  <data name="FontNameLabel" xml:space="preserve"><value>Font Name:</value></data>
+  <data name="FontSizeMax" xml:space="preserve"><value>Font Size Max:</value></data>
+  <data name="Duration" xml:space="preserve"><value>Duration (secs):</value></data>
+  <data name="ParentalAlert" xml:space="preserve"><value>Parental Alert</value></data>
+  <data name="OptionalPrefix" xml:space="preserve"><value>Optional Prefix:</value></data>
+  <data name="ParentalHorizontal" xml:space="preserve"><value>Parental Horizontal</value></data>
+  <data name="AlertAtBottom" xml:space="preserve"><value>Alert At Bottom of Screen</value></data>
+  <data name="ParentalBold" xml:space="preserve"><value>Parental Bold</value></data>
+  <data name="ParentalItalic" xml:space="preserve"><value>Parental Italic</value></data>
+  <data name="ParentalUnderline" xml:space="preserve"><value>Parental Underline</value></data>
+  <data name="ParentalShadow" xml:space="preserve"><value>Parental Shadow</value></data>
+  <data name="ParentalOutline" xml:space="preserve"><value>Parental Outline</value></data>
+  <data name="ParentalFamily" xml:space="preserve"><value>Parental Family</value></data>
+  <data name="MessageAlert" xml:space="preserve"><value>Message Alert</value></data>
+  <data name="MessageHorizontal" xml:space="preserve"><value>Message Horizontal</value></data>
+  <data name="AlignBottom" xml:space="preserve"><value>Align Bottom</value></data>
+  <data name="MessageBold" xml:space="preserve"><value>Message Bold</value></data>
+  <data name="MessageItalic" xml:space="preserve"><value>Message Italic</value></data>
+  <data name="MessageUnderline" xml:space="preserve"><value>Message Underline</value></data>
+  <data name="MessageShadow" xml:space="preserve"><value>Message Shadow</value></data>
+  <data name="MessageOutline" xml:space="preserve"><value>Message Outline</value></data>
+  <data name="MessageFamily" xml:space="preserve"><value>Message Family</value></data>
+  <data name="TabFolders" xml:space="preserve"><value>Folders</value></data>
+  <data name="LineSpacing12" xml:space="preserve"><value>Reg. 1-2 Line Spacing</value></data>
+  <data name="HeadingsText" xml:space="preserve"><value>Headings Text</value></data>
+  <data name="EndingHeading" xml:space="preserve"><value>Ending Heading</value></data>
+  <data name="BridgeHeading" xml:space="preserve"><value>Bridge Heading</value></data>
+  <data name="ChorusHeading" xml:space="preserve"><value>Chorus Heading</value></data>
+  <data name="PreChorusHeading" xml:space="preserve"><value>Pre Chorus Heading</value></data>
+  <data name="ChorusLabel" xml:space="preserve"><value>Chorus:</value></data>
+  <data name="EndingLabel" xml:space="preserve"><value>Ending:</value></data>
+  <data name="BridgeLabel" xml:space="preserve"><value>Bridge:</value></data>
+  <data name="PreChorusLabel" xml:space="preserve"><value>PreChr:</value></data>
+  <data name="Region2Font" xml:space="preserve"><value>Region 2 Font</value></data>
+  <data name="FontName1" xml:space="preserve"><value>Font Name1</value></data>
+  <data name="Region2Bold" xml:space="preserve"><value>Region 2 Bold</value></data>
+  <data name="Region2Italic" xml:space="preserve"><value>Region 2 Italic</value></data>
+  <data name="Region2Underline" xml:space="preserve"><value>Region 2 Underline</value></data>
+  <data name="RightToLeft" xml:space="preserve"><value>Right-To-Left</value></data>
+  <data name="Region1Font" xml:space="preserve"><value>Region 1 Font</value></data>
+  <data name="FontName0" xml:space="preserve"><value>Font Name0</value></data>
+  <data name="Region1Bold" xml:space="preserve"><value>Region 1 Bold</value></data>
+  <data name="Region1Italic" xml:space="preserve"><value>Region 1 Italic</value></data>
+  <data name="Region1Underline" xml:space="preserve"><value>Region 1 Underline</value></data>
+  <data name="RegionPositions" xml:space="preserve"><value>Region Positions</value></data>
+  <data name="LeftRight" xml:space="preserve"><value>Left - Right</value></data>
+  <data name="HeadingsFont" xml:space="preserve"><value>Headings Font for the Selected Folder</value></data>
+  <data name="HeadingOption" xml:space="preserve"><value>Heading Option</value></data>
+  <data name="HeadingBold" xml:space="preserve"><value>Region Heading Bold</value></data>
+  <data name="HeadingItalic" xml:space="preserve"><value>Region Heading Italic</value></data>
+  <data name="HeadingUnderline" xml:space="preserve"><value>Region Heading Underline</value></data>
+  <data name="HeadingsSize" xml:space="preserve"><value>Headings Size (% Region 1):</value></data>
+  <data name="Formatting" xml:space="preserve"><value>Formatting:</value></data>
+  <data name="SelectFolder" xml:space="preserve"><value>Select Folder to Update</value></data>
+  <data name="PptFolder" xml:space="preserve"><value>PPT folder…</value></data>
+  <data name="MediaFolder" xml:space="preserve"><value>Media folder…</value></data>
+  <data name="Rename" xml:space="preserve"><value>Rename</value></data>
+  <data name="UseFolder" xml:space="preserve"><value>Use Folder</value></data>
+  <data name="TabBibles" xml:space="preserve"><value>Bibles</value></data>
+  <data name="AddBibles" xml:space="preserve"><value>Add Holy Bibles</value></data>
+  <data name="BibleSearchHint" xml:space="preserve"><value>Click Search to list Bibles in the Holy Bible folder. Select a Bible and click Add.</value></data>
+  <data name="Add" xml:space="preserve"><value>Add</value></data>
+  <data name="Search" xml:space="preserve"><value>Search</value></data>
+  <data name="ColumnName" xml:space="preserve"><value>Name</value></data>
+  <data name="ColumnDescription" xml:space="preserve"><value>Description</value></data>
+  <data name="ColumnFileName" xml:space="preserve"><value>File Name</value></data>
+  <data name="CurrentBibles" xml:space="preserve"><value>Current Holy Bibles in Axicultus</value></data>
+  <data name="Remove" xml:space="preserve"><value>Remove</value></data>
+  <data name="BibleInfo" xml:space="preserve"><value>Bible Info</value></data>
+  <data name="MoveUp" xml:space="preserve"><value>Move Item Up</value></data>
+  <data name="MoveDown" xml:space="preserve"><value>Move Item Down</value></data>
+  <data name="UseSongFolderSettings" xml:space="preserve"><value>Use Song Folder Settings</value></data>
+  <data name="FontSizePercent" xml:space="preserve"><value>Font Size (%):</value></data>
+  <data name="BibleFolder" xml:space="preserve"><value>Bible Associated Folder</value></data>
+  <data name="TabLicence" xml:space="preserve"><value>Licence</value></data>
+  <data name="LicenceDetails" xml:space="preserve"><value>Licence Administration Details</value></data>
+  <data name="EnforceCopyright" xml:space="preserve"><value>Enforce Display of Copyright on First Showing</value></data>
+  <data name="HowItAppears" xml:space="preserve"><value>How it will appear on Screen</value></data>
+  <data name="Blank" xml:space="preserve"><value>Blank</value></data>
+  <data name="LicenceNumber" xml:space="preserve"><value>Licence Number</value></data>
+  <data name="Administrator" xml:space="preserve"><value>Administrator</value></data>
+  <data name="NumberSymbol" xml:space="preserve"><value>Number Symbol:</value></data>
+  <data name="TabKeyboard" xml:space="preserve"><value>Keyboard</value></data>
+  <data name="BasicKeys" xml:space="preserve"><value>Basic keys</value></data>
+  <data name="CopyPreviewToOutput" xml:space="preserve"><value>CopyPreviewToOutput</value></data>
+  <data name="SlideUpDown" xml:space="preserve"><value>SlideUpDown</value></data>
+  <data name="GlobalF7" xml:space="preserve"><value>F7 (turn off Black Output)</value></data>
+  <data name="GlobalF8" xml:space="preserve"><value>F8 (no control Output)</value></data>
+  <data name="OutputCtrlArrowKeys" xml:space="preserve"><value>OutputView_CtrlArrowKeys</value></data>
+  <data name="OutputArrowKeys" xml:space="preserve"><value>OutputView_ArrowKeys</value></data>
+  <data name="KeyboardMapping" xml:space="preserve"><value>Keyboard Mapping during Show and in Preview.Output Areas</value></data>
+  <data name="PageDownSpace" xml:space="preserve"><value>Page Down / Space Bar</value></data>
+  <data name="RightArrow" xml:space="preserve"><value>Right Arrow</value></data>
+  <data name="PageUp" xml:space="preserve"><value>Page Up</value></data>
+  <data name="DownArrowSpace" xml:space="preserve"><value>Down Arrow / Space Bar</value></data>
+  <data name="UpArrow" xml:space="preserve"><value>Up Arrow</value></data>
+  <data name="LeftArrow" xml:space="preserve"><value>Left Arrow</value></data>
+  <data name="DownArrow" xml:space="preserve"><value>Down Arrow</value></data>
+  <data name="PageDown" xml:space="preserve"><value>Page Down</value></data>
+  <data name="Alternative" xml:space="preserve"><value>Alternative</value></data>
+  <data name="Default" xml:space="preserve"><value>Default</value></data>
+  <data name="LastSlide" xml:space="preserve"><value>Last Slide</value></data>
+  <data name="NextSlide" xml:space="preserve"><value>Next Slide</value></data>
+  <data name="PreviousSlide" xml:space="preserve"><value>Previous Slide</value></data>
+  <data name="FirstSlide" xml:space="preserve"><value>First Slide</value></data>
+  <data name="LastItem" xml:space="preserve"><value>Last Item</value></data>
+  <data name="NextItem" xml:space="preserve"><value>Next Item</value></data>
+  <data name="PreviousItem" xml:space="preserve"><value>Previous Item</value></data>
+  <data name="FirstItem" xml:space="preserve"><value>First Item</value></data>
+  <data name="ActionLabel" xml:space="preserve"><value>Action:</value></data>
+  <data name="CustomShortcuts" xml:space="preserve"><value>Custom shortcuts</value></data>
+  <data name="Save" xml:space="preserve"><value>Save</value></data>
+  <data name="Reset" xml:space="preserve"><value>Reset</value></data>
+  <data name="TabMore" xml:space="preserve"><value>More settings</value></data>
+  <data name="GeneralAndDisplay" xml:space="preserve"><value>General and display</value></data>
+  <data name="General" xml:space="preserve"><value>General</value></data>
+  <data name="WorkingFolder" xml:space="preserve"><value>Working folder</value></data>
+  <data name="ChooseWorkingFolder" xml:space="preserve"><value>Choose working folder</value></data>
+  <data name="Browse" xml:space="preserve"><value>Browse</value></data>
+  <data name="Display" xml:space="preserve"><value>Display</value></data>
+  <data name="Theme" xml:space="preserve"><value>Theme</value></data>
+  <data name="PowerPointAndMedia" xml:space="preserve"><value>PowerPoint and media</value></data>
+  <data name="PowerPointRendering" xml:space="preserve"><value>PowerPoint rendering</value></data>
+  <data name="RenderTimeout" xml:space="preserve"><value>Render timeout (s)</value></data>
+  <data name="ThumbnailCache" xml:space="preserve"><value>Thumbnail cache (MB)</value></data>
+  <data name="MediaPlayback" xml:space="preserve"><value>Media playback</value></data>
+  <data name="Volume" xml:space="preserve"><value>Volume</value></data>
+  <data name="Balance" xml:space="preserve"><value>Balance</value></data>
+  <data name="Data" xml:space="preserve"><value>Data</value></data>
+  <data name="AdminDbPath" xml:space="preserve"><value>AdminDB path</value></data>
+  <data name="ChooseAdminDb" xml:space="preserve"><value>Choose AdminDB file</value></data>
+  <data name="BackupRoot" xml:space="preserve"><value>Backup root</value></data>
+  <data name="ChooseBackupRoot" xml:space="preserve"><value>Choose backup root</value></data>
+  <data name="DiagnosticTools" xml:space="preserve"><value>Diagnostic tools</value></data>
+  <data name="DiagnosticToolsTip" xml:space="preserve"><value>Use only when you suspect a problem with the data.</value></data>
+  <data name="AnalyzeDb" xml:space="preserve"><value>Analyze DB</value></data>
+  <data name="Rehearsal" xml:space="preserve"><value>Operational data rehearsal</value></data>
+  <data name="ImportExport" xml:space="preserve"><value>Import and export</value></data>
+  <data name="SettingsFilePath" xml:space="preserve"><value>Settings file path</value></data>
+  <data name="ChooseImportFile" xml:space="preserve"><value>Choose file to import</value></data>
+  <data name="Open" xml:space="preserve"><value>Open</value></data>
+  <data name="ChooseExportLocation" xml:space="preserve"><value>Choose export location</value></data>
+  <data name="SaveLocation" xml:space="preserve"><value>Save to</value></data>
+  <data name="Export" xml:space="preserve"><value>Export</value></data>
+  <data name="Import" xml:space="preserve"><value>Import</value></data>
+  <data name="LyricsAndOutput" xml:space="preserve"><value>Lyrics and output</value></data>
+  <data name="AudienceLyricsFormat" xml:space="preserve"><value>Lyrics format on the audience screen</value></data>
+  <data name="GradientEndColour" xml:space="preserve"><value>Gradient end colour</value></data>
+  <data name="GradientTip" xml:space="preserve"><value>With the gradient on, the background runs from the background colour into this colour.</value></data>
+  <data name="UseGradient" xml:space="preserve"><value>Use a vertical gradient behind the lyrics</value></data>
+  <data name="AudienceNotations" xml:space="preserve"><value>Show chords on the audience screen</value></data>
+  <data name="Bold" xml:space="preserve"><value>Bold</value></data>
+  <data name="Italic" xml:space="preserve"><value>Italic</value></data>
+  <data name="Underline" xml:space="preserve"><value>Underline</value></data>
+  <data name="SafetyConfirm" xml:space="preserve"><value>Live safety confirmation</value></data>
+  <data name="ReferenceSeparator" xml:space="preserve"><value>Reference separator</value></data>
+  <data name="Advanced" xml:space="preserve"><value>Advanced</value></data>
+  <data name="Reload" xml:space="preserve"><value>Reload</value></data>
+  <data name="RestoreDefaults" xml:space="preserve"><value>Restore defaults</value></data>
+  <data name="EnableDiagnostics" xml:space="preserve"><value>Enable diagnostic log</value></data>
+  <data name="DeviceCheck" xml:space="preserve"><value>Device check</value></data>
+  <data name="OK" xml:space="preserve"><value>OK</value></data>
+  <data name="Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="AutoSelect" xml:space="preserve"><value>Automatic</value></data>
+  <data name="NoOutput" xml:space="preserve"><value>No output</value></data>
+  <data name="RestoreDefaultsConfirm" xml:space="preserve"><value>Restore every setting to its default?
+
+These stay as they are: the working, backup, PowerPoint and media folders and the database path, the licence details, the registered user,
+the output and stage monitor choices and screen positions, the current worship list and window positions, and the menu language.
+The defaults are saved only when you press OK.</value></data>
+  <data name="BibleList" xml:space="preserve"><value>Bible list</value></data>
+  <data name="FolderNumber" xml:space="preserve"><value>Folder {0}</value></data>
+  <data name="RenameFolder" xml:space="preserve"><value>Rename folder</value></data>
+  <data name="NewName" xml:space="preserve"><value>New name</value></data>
+  <data name="RenameBible" xml:space="preserve"><value>Rename Bible</value></data>
+  <data name="RemoveBibleConfirm" xml:space="preserve"><value>Remove the '{0}' version from the list?</value></data>
+  <data name="AddBible" xml:space="preserve"><value>Add Bible</value></data>
+  <data name="NameToShow" xml:space="preserve"><value>Name to show</value></data>
+  <data name="ChoosePowerPointFolder" xml:space="preserve"><value>Choose PowerPoint folder</value></data>
+  <data name="ChooseAudioVideoFolder" xml:space="preserve"><value>Choose audio and video folder</value></data>
+  <data name="ChooseMediaFolder" xml:space="preserve"><value>Choose media folder</value></data>
+  <data name="ChooseGapLogo" xml:space="preserve"><value>Choose gap screen logo</value></data>
+  <data name="ImageFilter" xml:space="preserve"><value>Images|*.png;*.jpg;*.jpeg;*.bmp;*.gif|All files|*.*</value></data>
+  <data name="SaveFolders" xml:space="preserve"><value>Save folders</value></data>
+  <data name="SaveOptions" xml:space="preserve"><value>Save options</value></data>
+  <data name="Global" xml:space="preserve"><value>Global</value></data>
+  <data name="Local" xml:space="preserve"><value>Local</value></data>
+  <data name="StatusReady" xml:space="preserve"><value>Settings ready</value></data>
+  <data name="DbAnalysisWaiting" xml:space="preserve"><value>DB analysis not run yet</value></data>
+  <data name="RehearsalWaiting" xml:space="preserve"><value>Operational data rehearsal not run yet</value></data>
+  <data name="DefaultsRestored" xml:space="preserve"><value>Defaults restored</value></data>
+  <data name="EnterDbPath" xml:space="preserve"><value>Enter the DB path.</value></data>
+  <data name="DbAnalysisFailed" xml:space="preserve"><value>DB analysis failed</value></data>
+  <data name="NoDbPath" xml:space="preserve"><value>No DB path</value></data>
+  <data name="DbAnalysisDone" xml:space="preserve"><value>DB analysis done</value></data>
+  <data name="DbSummary" xml:space="preserve"><value>schema {0}, tables {1}</value></data>
+  <data name="NoDbInventory" xml:space="preserve"><value>No DB inventory</value></data>
+  <data name="RehearsalDoneSummary" xml:space="preserve"><value>Operational data rehearsal done: {0} files, {1} tables, {2} warnings</value></data>
+  <data name="RehearsalDone" xml:space="preserve"><value>Operational data rehearsal done</value></data>
+  <data name="RehearsalFailedSummary" xml:space="preserve"><value>Operational data rehearsal failed: {0} files, {1} errors, {2} warnings</value></data>
+  <data name="RehearsalFailed" xml:space="preserve"><value>Operational data rehearsal failed</value></data>
+  <data name="ExportDone" xml:space="preserve"><value>Settings exported</value></data>
+  <data name="ImportDone" xml:space="preserve"><value>Settings imported</value></data>
+  <data name="WorkingFolderChosen" xml:space="preserve"><value>Working folder selected</value></data>
+  <data name="AdminDbChosen" xml:space="preserve"><value>AdminDB path selected</value></data>
+  <data name="BackupRootChosen" xml:space="preserve"><value>Backup root selected</value></data>
+  <data name="ImportFileChosen" xml:space="preserve"><value>File to import selected</value></data>
+  <data name="ExportFileChosen" xml:space="preserve"><value>Export file selected</value></data>
+  <data name="ShortcutSaveFailed" xml:space="preserve"><value>Shortcut not saved</value></data>
+  <data name="ShortcutCollision" xml:space="preserve"><value>Shortcut conflict: {0} ({1})</value></data>
+  <data name="ShortcutSaved" xml:space="preserve"><value>Shortcut saved</value></data>
+  <data name="ShortcutReset" xml:space="preserve"><value>Shortcut default restored</value></data>
+  <data name="SectionMainWindow" xml:space="preserve"><value>Preview and file lists</value></data>
+  <data name="SectionShow" xml:space="preserve"><value>Text and item changes</value></data>
+  <data name="SectionMonitors" xml:space="preserve"><value>Screen layout and live camera</value></data>
+  <data name="SectionAlerts" xml:space="preserve"><value>Audience, parental alerts and item references</value></data>
+  <data name="SectionFolders" xml:space="preserve"><value>Song folders</value></data>
+  <data name="SectionBibles" xml:space="preserve"><value>Manage Bible versions</value></data>
+  <data name="SectionLicence" xml:space="preserve"><value>Administrators and numbers</value></data>
+  <data name="SectionKeyboard" xml:space="preserve"><value>Shortcuts and global keys</value></data>
+  <data name="SectionMore" xml:space="preserve"><value>General, display and data</value></data>
+  <data name="SectionDeviceCheck" xml:space="preserve"><value>Camera, microphone and OBS connection</value></data>
+  <data name="SaveOnOk" xml:space="preserve"><value>Press OK to save the settings.</value></data>
+  <data name="SettingsSaved" xml:space="preserve"><value>Settings saved</value></data>
+  <data name="SettingsSaveFailed" xml:space="preserve"><value>Settings not saved</value></data>
+  <data name="PathPickCancelled" xml:space="preserve"><value>Path selection cancelled</value></data>
+  <data name="KeyboardGuideAlternate" xml:space="preserve"><value>Previous/next slide  PageUp / PageDown　 First/last slide  Home / End
+Previous/next item  ↑ / ↓　 First/last item  ← / →</value></data>
+  <data name="KeyboardGuideDefault" xml:space="preserve"><value>Previous/next slide  ↑ / ↓　 First/last slide  ← / →
+Previous/next item  PageUp / PageDown　 First/last item  Home / End</value></data>
+  <data name="RefNone" xml:space="preserve"><value>Don't show</value></data>
+  <data name="RefDefault" xml:space="preserve"><value>Default reference</value></data>
+  <data name="PickWorkingFolder" xml:space="preserve"><value>Choose the working folder</value></data>
+  <data name="PickAdminDb" xml:space="preserve"><value>Choose AdminDB</value></data>
+  <data name="PickBackupRoot" xml:space="preserve"><value>Choose the backup root</value></data>
+  <data name="PickImportFile" xml:space="preserve"><value>Choose a settings file to import</value></data>
+  <data name="PickExportFile" xml:space="preserve"><value>Choose where to export the settings</value></data>
+  <data name="SettingsFilter" xml:space="preserve"><value>Axicultus settings (*.json)|*.json|All files (*.*)|*.*</value></data>
+  <data name="DatabaseFilter" xml:space="preserve"><value>SQLite/AdminDB (*.db;*.sqlite;*.sqlite3)|*.db;*.sqlite;*.sqlite3|All files (*.*)|*.*</value></data>
+</root>

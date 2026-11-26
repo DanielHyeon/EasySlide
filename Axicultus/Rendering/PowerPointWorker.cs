@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Axicultus.Wpf.Captions;
 using Axicultus.Wpf.Interop;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Rendering;
 
@@ -37,7 +38,7 @@ public sealed class PowerPointWorker : IPowerPointRenderBackend, IDisposable
     {
         var reply = await SendAsync(new(request.FilePath, request.SlideNumber, request.PixelWidth, request.PixelHeight, false),
             ct, CancellationToken.None, request.Timeout > TimeSpan.Zero ? request.Timeout : DefaultRenderLimit).ConfigureAwait(false);
-        var image = reply.Image ?? throw new InvalidDataException("PPT 워커가 이미지를 반환하지 않았습니다.");
+        var image = reply.Image ?? throw new InvalidDataException(UiText.Get("PowerPointWorker", "NoImage"));
         return new(request.FilePath, request.SlideNumber, image.SlideCount, image.PixelWidth, image.PixelHeight,
             image.ImageBytes, image.ContentType, DateTimeOffset.UtcNow) { RenderBounds = (request.PixelWidth, request.PixelHeight) };
     }
@@ -52,11 +53,11 @@ public sealed class PowerPointWorker : IPowerPointRenderBackend, IDisposable
             var reply = await SendAsync(new(path, 0, 0, 0, true), limit.Token, limit.Token, Timeout.InfiniteTimeSpan).ConfigureAwait(false);
             return reply.Deck is { Slides.Length: > 0 } deck
                 ? deck with { Slides = [.. deck.Slides.Select(CaptionDeck.WithAllText)] }
-                : throw new InvalidDataException("PPT 워커가 읽을 수 있는 슬라이드를 반환하지 않았습니다.");
+                : throw new InvalidDataException(UiText.Get("PowerPointWorker", "NoReadableSlides"));
         }
         catch (OperationCanceledException) when (!ct.IsCancellationRequested && limit.IsCancellationRequested)
         {
-            throw new TimeoutException("PPT 자막 변환 시간이 초과되었습니다.");
+            throw new TimeoutException(UiText.Get("PowerPointWorker", "CaptionTimeout"));
         }
     }
 
@@ -103,8 +104,8 @@ public sealed class PowerPointWorker : IPowerPointRenderBackend, IDisposable
                     await process.StandardInput.WriteLineAsync(JsonSerializer.Serialize(job).AsMemory(), token).ConfigureAwait(false);
                     await process.StandardInput.FlushAsync(token).ConfigureAwait(false);
                     var line = await process.StandardOutput.ReadLineAsync(token).ConfigureAwait(false);
-                    result = JsonSerializer.Deserialize<Reply>(line ?? throw new EndOfStreamException("PPT 워커가 종료되었습니다."))
-                        ?? throw new InvalidDataException("PPT 워커가 빈 응답을 반환했습니다.");
+                    result = JsonSerializer.Deserialize<Reply>(line ?? throw new EndOfStreamException(UiText.Get("PowerPointWorker", "WorkerEnded")))
+                        ?? throw new InvalidDataException(UiText.Get("PowerPointWorker", "EmptyReply"));
                 }
                 catch
                 {
@@ -121,7 +122,7 @@ public sealed class PowerPointWorker : IPowerPointRenderBackend, IDisposable
                     if (!resent && result.Error != PowerPointRenderErrorKind.None) continue;
                 }
                 if (result.Error != PowerPointRenderErrorKind.None)
-                    throw new PowerPointRenderException(result.Error, result.Message ?? "PPT 변환 실패");
+                    throw new PowerPointRenderException(result.Error, result.Message ?? UiText.Get("PowerPointWorker", "ConversionFailed"));
                 return result;
             }
         }
@@ -137,7 +138,7 @@ public sealed class PowerPointWorker : IPowerPointRenderBackend, IDisposable
             RedirectStandardOutput = true, StandardInputEncoding = new UTF8Encoding(false), StandardOutputEncoding = Encoding.UTF8
         };
         start.ArgumentList.Add(Switch);
-        return Process.Start(start) ?? throw new IOException("PPT 워커를 시작할 수 없습니다.");
+        return Process.Start(start) ?? throw new IOException(UiText.Get("PowerPointWorker", "StartFailed"));
     }
 
     private static void Discard(Process worker)
@@ -184,7 +185,7 @@ public sealed class PowerPointWorker : IPowerPointRenderBackend, IDisposable
             Reply reply;
             try
             {
-                var job = JsonSerializer.Deserialize<Job>(line) ?? throw new InvalidDataException("빈 PPT 요청");
+                var job = JsonSerializer.Deserialize<Job>(line) ?? throw new InvalidDataException(UiText.Get("PowerPointWorker", "EmptyRequest"));
                 if (job.TextOnly)
                     reply = new(null, await readDeck(job.File).ConfigureAwait(false), PowerPointRenderErrorKind.None, null);
                 else

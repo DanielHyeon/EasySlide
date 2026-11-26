@@ -21,6 +21,15 @@ public class CommandCatalogTests
     }
 
     [Fact]
+    public void All_HaveTheirTexts()
+    {
+        // The texts are looked up by the command's key: a missing one shows as "[CommandCatalog.Key]".
+        new CommandCatalog().All.Should().OnlyContain(command => !command.DisplayName.StartsWith('[')
+            && !command.Description.StartsWith('[') && !command.Category.StartsWith('[')
+            && command.DefaultShortcuts.All(shortcut => !shortcut.Description.StartsWith('[')));
+    }
+
+    [Fact]
     public void All_DefaultShortcutsReferenceKnownCommands()
     {
         var sut = new CommandCatalog();

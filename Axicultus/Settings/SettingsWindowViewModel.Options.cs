@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using CommunityToolkit.Mvvm.ComponentModel;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Settings;
 
@@ -28,7 +29,7 @@ public sealed partial class SettingsWindowViewModel
         if (value is true && option.Id == "operator.GlobalArrow") values["operator.GlobalCtrlArrow"] = false;
         if (value is true && option.Id == "operator.GlobalCtrlArrow") values["operator.GlobalArrow"] = false;
         var result = _settings.SetValues(values);
-        ApplyResult(result, IsEditing ? "확인을 누르면 설정을 저장합니다." : "설정 저장됨");
+        ApplyResult(result, IsEditing ? UiText.Get("SettingsWindow", "SaveOnOk") : UiText.Get("SettingsWindow", "SettingsSaved"));
         if (!result.Succeeded) throw new ArgumentException(result.Issues[0].Message);
         OnPropertyChanged(nameof(OperatorPreferences));
         OnPropertyChanged(System.Windows.Data.Binding.IndexerName);
@@ -47,8 +48,8 @@ public sealed partial class SettingsWindowViewModel
 
     public OperatorOptions OperatorPreferences => _settings.Current.Operator;
     public string KeyboardLayoutGuide => OperatorPreferences.AlternateKeyboard
-        ? "이전·다음 슬라이드  Page Up / Page Down　 첫·끝 슬라이드  Home / End\n이전·다음 항목  ↑ / ↓　 첫·끝 항목  ← / →"
-        : "이전·다음 슬라이드  ↑ / ↓　 첫·끝 슬라이드  ← / →\n이전·다음 항목  Page Up / Page Down　 첫·끝 항목  Home / End";
+        ? UiText.Get("SettingsWindow", "KeyboardGuideAlternate")
+        : UiText.Get("SettingsWindow", "KeyboardGuideDefault");
     public int StageHeight => Axicultus.Core.SlideAspectRatio.HeightForWidth(OperatorPreferences.StageWidth, IsMonitorWide);
     public int AudienceHeight => Axicultus.Core.SlideAspectRatio.HeightForWidth(DisplayCustomWidth, IsMonitorWide);
 
@@ -73,7 +74,7 @@ public sealed partial class SettingsWindowViewModel
     {
         if (!IsEditing) return true;
         var result = ((SettingsService)_settings).CommitEdit();
-        ApplyResult(result, "설정 저장됨");
+        ApplyResult(result, UiText.Get("SettingsWindow", "SettingsSaved"));
         if (!result.Succeeded) return false;
         if (_applicationSettings.Current.Appearance.Theme != _appearanceOnOpen?.Theme)
             _theme.ApplyTheme(_applicationSettings.Current.Appearance.Theme);
@@ -102,7 +103,7 @@ public sealed partial class SettingsWindowViewModel
     {
         if (EqualityComparer<T>.Default.Equals(_settings.Get(key), value)) return;
         var result = _settings.Set(key, value);
-        ApplyResult(result, IsEditing ? "확인을 누르면 설정을 저장합니다." : "설정 저장됨");
+        ApplyResult(result, IsEditing ? UiText.Get("SettingsWindow", "SaveOnOk") : UiText.Get("SettingsWindow", "SettingsSaved"));
         OnPropertyChanged(property);
     }
 
@@ -138,7 +139,7 @@ public sealed partial class SettingsWindowViewModel
     public string ReferenceAlertPickSeparator { get => _settings.Get(AxicultusSettingKeys.ReferenceAlertPickSeparator); set => ChangeOption(AxicultusSettingKeys.ReferenceAlertPickSeparator, value); }
     public string PreviewMonitorId { get => _settings.Get(AxicultusSettingKeys.PreviewMonitorId); set => ChangeOption(AxicultusSettingKeys.PreviewMonitorId, value); }
 
-    public IReadOnlyList<string> ReferenceSources { get; } = ["표시 안 함", "기본 참조", "곡 번호", "책 참조", "사용자 참조"];
+    public IReadOnlyList<string> ReferenceSources { get; } = [UiText.Get("SettingsWindow", "RefNone"), UiText.Get("SettingsWindow", "RefDefault"), UiText.Get("SettingsWindow", "SongNumber"), UiText.Get("SettingsWindow", "BookReference"), UiText.Get("SettingsWindow", "UserReference")];
     public IReadOnlyList<LicenceRow> LicenceRows { get; private set; } = [];
 
     public bool LicenceOnFirstPage { get => _settings.Get(AxicultusSettingKeys.LicenceOnFirstPage); set => ChangeOption(AxicultusSettingKeys.LicenceOnFirstPage, value); }

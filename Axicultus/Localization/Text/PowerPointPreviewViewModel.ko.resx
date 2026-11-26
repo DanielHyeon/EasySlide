@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="NoPpt" xml:space="preserve"><value>PPT 없음</value></data>
+  <data name="Rendering" xml:space="preserve"><value>렌더링 중…</value></data>
+  <data name="DecodeFailed" xml:space="preserve"><value>이미지 디코드 실패: {0}</value></data>
+  <data name="RenderCancelled" xml:space="preserve"><value>렌더링 취소됨</value></data>
+  <data name="SlideOf" xml:space="preserve"><value>슬라이드 {0}/{1}</value></data>
+  <data name="RenderFailed" xml:space="preserve"><value>PPT 렌더 실패</value></data>
+  <data name="SlideFromThumbnail" xml:space="preserve"><value>슬라이드 {0} (썸네일 사용)</value></data>
+</root>

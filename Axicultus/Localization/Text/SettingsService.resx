@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="StoredValueReplaced" xml:space="preserve"><value>The stored value is not valid and was replaced.</value></data>
+  <data name="ShortcutSlotEmpty" xml:space="preserve"><value>Shortcut slot id cannot be empty.</value></data>
+  <data name="ShortcutGestureEmpty" xml:space="preserve"><value>Shortcut gesture cannot be empty.</value></data>
+  <data name="EnterFontName" xml:space="preserve"><value>Enter a font name.</value></data>
+  <data name="SchemaVersionUnsupported" xml:space="preserve"><value>Only schema version 1 is supported.</value></data>
+  <data name="ThemeUnsupported" xml:space="preserve"><value>Theme value is not supported.</value></data>
+  <data name="InterfaceSizeUnsupported" xml:space="preserve"><value>Interface size value is not supported.</value></data>
+  <data name="GapItemOptionUnsupported" xml:space="preserve"><value>Gap item option value is not supported.</value></data>
+  <data name="LyricsTextAlignmentUnsupported" xml:space="preserve"><value>Lyrics text alignment value is not supported.</value></data>
+  <data name="LyricsVerticalAlignmentUnsupported" xml:space="preserve"><value>Lyrics vertical alignment value is not supported.</value></data>
+  <data name="TitleHeadingAlignmentUnsupported" xml:space="preserve"><value>Title heading alignment value is not supported.</value></data>
+  <data name="BackgroundModeUnsupported" xml:space="preserve"><value>Background image mode value is not supported.</value></data>
+  <data name="BackgroundPatternRange" xml:space="preserve"><value>Select a background pattern between 0 and 11.</value></data>
+  <data name="GradientDirectionUnsupported" xml:space="preserve"><value>Background gradient direction value is not supported.</value></data>
+  <data name="RegionDisplayUnsupported" xml:space="preserve"><value>Region display mode value is not supported.</value></data>
+  <data name="AutoRotateUnsupported" xml:space="preserve"><value>Auto-rotate mode value is not supported.</value></data>
+  <data name="Region2AlignmentUnsupported" xml:space="preserve"><value>Region2 alignment value is not supported.</value></data>
+  <data name="Region2BoldUnsupported" xml:space="preserve"><value>Region2 bold value is not supported.</value></data>
+  <data name="Region2ItalicUnsupported" xml:space="preserve"><value>Region2 italic value is not supported.</value></data>
+  <data name="Region2UnderlineUnsupported" xml:space="preserve"><value>Region2 underline value is not supported.</value></data>
+  <data name="PanelHeightRange" xml:space="preserve"><value>Panel height must be between 0 and 20 percent.</value></data>
+  <data name="ShortcutCommandEmpty" xml:space="preserve"><value>Shortcut command id cannot be empty.</value></data>
+  <data name="ExportPathEmpty" xml:space="preserve"><value>Export path cannot be empty.</value></data>
+  <data name="ImportPathEmpty" xml:space="preserve"><value>Import path cannot be empty.</value></data>
+  <data name="LegacyWorkingFolderMissing" xml:space="preserve"><value>Legacy working folder '{0}' does not exist; the current folder is kept.</value></data>
+  <data name="LegacyNotReferenceStyle" xml:space="preserve"><value>Legacy value '{0}' is not a valid reference-alert style bitfield.</value></data>
+  <data name="LegacyNotBoolean" xml:space="preserve"><value>Legacy value '{0}' is not a valid Boolean.</value></data>
+  <data name="LegacyNotInteger" xml:space="preserve"><value>Legacy value '{0}' is not a valid integer.</value></data>
+  <data name="LegacyNotNumber" xml:space="preserve"><value>Legacy value '{0}' is not a valid number.</value></data>
+  <data name="LegacyNotEnum" xml:space="preserve"><value>Legacy value '{0}' is not a valid {1}.</value></data>
+  <data name="LegacyKeyboardOption" xml:space="preserve"><value>Legacy value '{0}' is not a supported keyboard option.</value></data>
+  <data name="ValueEmpty" xml:space="preserve"><value>Value cannot be empty.</value></data>
+  <data name="ValueRange" xml:space="preserve"><value>Value must be between {0} and {1}.</value></data>
+  <data name="PathEmpty" xml:space="preserve"><value>Path cannot be empty.</value></data>
+  <data name="PathInvalidChars" xml:space="preserve"><value>Path contains invalid characters.</value></data>
+  <data name="ValueControlChars" xml:space="preserve"><value>Value cannot contain control characters.</value></data>
+</root>

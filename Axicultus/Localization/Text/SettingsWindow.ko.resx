@@ -1,0 +1,352 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Title" xml:space="preserve"><value>옵션</value></data>
+  <data name="TabMainWindow" xml:space="preserve"><value>메인 화면</value></data>
+  <data name="OtherSettings" xml:space="preserve"><value>기타 설정</value></data>
+  <data name="ShowLyricsMonitorAlertBox" xml:space="preserve"><value>가사 모니터에 알림 상자 표시</value></data>
+  <data name="JumpToFolderIcons" xml:space="preserve"><value>폴더 바로가기 아이콘</value></data>
+  <data name="JumpA" xml:space="preserve"><value>첫 번째 폴더 바로가기</value></data>
+  <data name="JumpB" xml:space="preserve"><value>두 번째 폴더 바로가기</value></data>
+  <data name="JumpC" xml:space="preserve"><value>세 번째 폴더 바로가기</value></data>
+  <data name="PowerPointGroup" xml:space="preserve"><value>PowerPoint</value></data>
+  <data name="ShowPowerPointTab" xml:space="preserve"><value>PowerPoint 탭 표시</value></data>
+  <data name="MaxPowerPointFiles" xml:space="preserve"><value>최대 PowerPoint 파일 수:</value></data>
+  <data name="PreviewTextAreas" xml:space="preserve"><value>미리보기 텍스트 영역</value></data>
+  <data name="SelectedBack" xml:space="preserve"><value>선택 배경색</value></data>
+  <data name="SelectedColour" xml:space="preserve"><value>선택 글자색</value></data>
+  <data name="FocusedColour" xml:space="preserve"><value>포커스 색</value></data>
+  <data name="FontSize" xml:space="preserve"><value>글자 크기</value></data>
+  <data name="UseFocusedColour" xml:space="preserve"><value>포커스 색 사용</value></data>
+  <data name="ShowNotations" xml:space="preserve"><value>코드 표기</value></data>
+  <data name="LineBetweenScreens" xml:space="preserve"><value>화면 사이 구분선</value></data>
+  <data name="MediaFiles" xml:space="preserve"><value>미디어 파일</value></data>
+  <data name="ShowMediaTab" xml:space="preserve"><value>미디어 탭 표시</value></data>
+  <data name="ChangeLocation" xml:space="preserve"><value>위치 변경</value></data>
+  <data name="MaximumSetting" xml:space="preserve"><value>최대값 설정</value></data>
+  <data name="MaxEditHistory" xml:space="preserve"><value>최근 편집 목록 최대 개수:</value></data>
+  <data name="MaxBibleSearchSelection" xml:space="preserve"><value>성경 검색 최대 선택 수:</value></data>
+  <data name="MaxBibleVersesSelection" xml:space="preserve"><value>성경 절 최대 선택 수:</value></data>
+  <data name="InterfaceSize" xml:space="preserve"><value>화면 글꼴 및 인터페이스 크기</value></data>
+  <data name="SizeSmall" xml:space="preserve"><value>작은 글꼴</value></data>
+  <data name="SizeStandard" xml:space="preserve"><value>표준</value></data>
+  <data name="SizeLarge" xml:space="preserve"><value>큰 글씨</value></data>
+  <data name="SizeSenior" xml:space="preserve"><value>시니어</value></data>
+  <data name="TabShow" xml:space="preserve"><value>송출</value></data>
+  <data name="DualMonitorOnly" xml:space="preserve"><value>** 듀얼 모니터에서만 적용</value></data>
+  <data name="DisableScreenSaver" xml:space="preserve"><value>송출 중 화면 보호기 끄기</value></data>
+  <data name="AdvanceNextItem" xml:space="preserve"><value>다음 항목으로 자동 진행</value></data>
+  <data name="NoPanelOverlayMedia" xml:space="preserve"><value>미디어에 패널 겹침 없음 **</value></data>
+  <data name="NoPanelOverlayPowerPoint" xml:space="preserve"><value>PowerPoint에 패널 겹침 없음 **</value></data>
+  <data name="GapBetweenItems" xml:space="preserve"><value>항목 사이 간격 화면</value></data>
+  <data name="UseFadeTransition" xml:space="preserve"><value>페이드 전환 효과 사용</value></data>
+  <data name="LookupLogoFile" xml:space="preserve"><value>로고 파일 찾기</value></data>
+  <data name="BlackScreen" xml:space="preserve"><value>검은 화면</value></data>
+  <data name="NoGap" xml:space="preserve"><value>간격 없음</value></data>
+  <data name="DefaultSessionBackground" xml:space="preserve"><value>기본 예배 순서 배경</value></data>
+  <data name="VideoBackground" xml:space="preserve"><value>동영상 배경</value></data>
+  <data name="AlignLabel" xml:space="preserve"><value>정렬:</value></data>
+  <data name="VerticalAlignment" xml:space="preserve"><value>세로 정렬</value></data>
+  <data name="SizeLabel" xml:space="preserve"><value>크기:</value></data>
+  <data name="TextSettings" xml:space="preserve"><value>텍스트 설정</value></data>
+  <data name="NotationSize" xml:space="preserve"><value>폴더 글꼴 대비 코드 크기 (%):</value></data>
+  <data name="IndentWrappedText" xml:space="preserve"><value>줄 바꿈된 텍스트 들여쓰기</value></data>
+  <data name="LineBetweenRegions" xml:space="preserve"><value>영역 사이 구분선</value></data>
+  <data name="UseLargestFont" xml:space="preserve"><value>가장 큰 글꼴 사용</value></data>
+  <data name="AutoTextOverflow" xml:space="preserve"><value>넘치는 텍스트 자동 처리</value></data>
+  <data name="FitParagraphOnSlide" xml:space="preserve"><value>텍스트 파일의 각 문단을 슬라이드 한 장에 맞춤</value></data>
+  <data name="TabMonitors" xml:space="preserve"><value>모니터</value></data>
+  <data name="LiveCamSettings" xml:space="preserve"><value>라이브 카메라 설정</value></data>
+  <data name="NoPanelOverlayLiveCam" xml:space="preserve"><value>라이브 카메라에 패널 겹침 없음 **</value></data>
+  <data name="LiveCamera" xml:space="preserve"><value>라이브 카메라</value></data>
+  <data name="Min" xml:space="preserve"><value>최소</value></data>
+  <data name="Max" xml:space="preserve"><value>최대</value></data>
+  <data name="BalanceRight" xml:space="preserve"><value>우</value></data>
+  <data name="BalanceLeft" xml:space="preserve"><value>좌</value></data>
+  <data name="WideScreen" xml:space="preserve"><value>와이드 화면</value></data>
+  <data name="Mute" xml:space="preserve"><value>음소거</value></data>
+  <data name="LyricsMonitor" xml:space="preserve"><value>가사 모니터</value></data>
+  <data name="BackColour" xml:space="preserve"><value>배경색</value></data>
+  <data name="TextColour" xml:space="preserve"><value>글자색</value></data>
+  <data name="TopLabel" xml:space="preserve"><value>위쪽:</value></data>
+  <data name="LeftLabel" xml:space="preserve"><value>왼쪽:</value></data>
+  <data name="StageBold" xml:space="preserve"><value>가사 굵게</value></data>
+  <data name="StageItalic" xml:space="preserve"><value>가사 기울임</value></data>
+  <data name="StageUnderline" xml:space="preserve"><value>가사 밑줄</value></data>
+  <data name="UseAnotherMonitor" xml:space="preserve"><value>사용할 수 없으면 다른 모니터 사용</value></data>
+  <data name="LyricsMonitorList" xml:space="preserve"><value>가사 모니터 목록</value></data>
+  <data name="MonitorInfo" xml:space="preserve"><value>모니터 정보</value></data>
+  <data name="CustomLabel" xml:space="preserve"><value>사용자 지정:</value></data>
+  <data name="HeightLabel" xml:space="preserve"><value>높이:</value></data>
+  <data name="WidthLabel" xml:space="preserve"><value>너비:</value></data>
+  <data name="MainFontSize" xml:space="preserve"><value>기본 글자 크기:</value></data>
+  <data name="LiveOutputMonitor" xml:space="preserve"><value>라이브 송출 모니터</value></data>
+  <data name="Wide169" xml:space="preserve"><value>와이드(16:9)</value></data>
+  <data name="Standard43" xml:space="preserve"><value>표준(4:3)</value></data>
+  <data name="DualMonitorList" xml:space="preserve"><value>송출 모니터 목록</value></data>
+  <data name="TabAlerts" xml:space="preserve"><value>알림</value></data>
+  <data name="DisplayReference" xml:space="preserve"><value>새 항목에 참조 표시</value></data>
+  <data name="PickSubstitute" xml:space="preserve"><value>선택 및 대체</value></data>
+  <data name="BlankIfNotFound" xml:space="preserve"><value>찾지 못하면 비움</value></data>
+  <data name="Enable" xml:space="preserve"><value>사용</value></data>
+  <data name="SubstituteLabel" xml:space="preserve"><value>대체:</value></data>
+  <data name="PickLabel" xml:space="preserve"><value>선택:</value></data>
+  <data name="SelectReference" xml:space="preserve"><value>참조 선택</value></data>
+  <data name="SongTitle" xml:space="preserve"><value>곡 제목</value></data>
+  <data name="SongNumber" xml:space="preserve"><value>곡 번호</value></data>
+  <data name="NoReference" xml:space="preserve"><value>참조 없음</value></data>
+  <data name="BookReference" xml:space="preserve"><value>책 참조</value></data>
+  <data name="UserReference" xml:space="preserve"><value>사용자 참조</value></data>
+  <data name="Scroll" xml:space="preserve"><value>스크롤</value></data>
+  <data name="Flash" xml:space="preserve"><value>깜박임</value></data>
+  <data name="Transparent" xml:space="preserve"><value>투명</value></data>
+  <data name="ReferenceHorizontal" xml:space="preserve"><value>참조 가로 정렬</value></data>
+  <data name="ReferenceBold" xml:space="preserve"><value>참조 굵게</value></data>
+  <data name="ReferenceItalic" xml:space="preserve"><value>참조 기울임</value></data>
+  <data name="ReferenceUnderline" xml:space="preserve"><value>참조 밑줄</value></data>
+  <data name="ReferenceShadow" xml:space="preserve"><value>참조 그림자</value></data>
+  <data name="ReferenceOutline" xml:space="preserve"><value>참조 외곽선</value></data>
+  <data name="ReferenceFamily" xml:space="preserve"><value>참조 글꼴</value></data>
+  <data name="FontNameLabel" xml:space="preserve"><value>글꼴:</value></data>
+  <data name="FontSizeMax" xml:space="preserve"><value>최대 글자 크기:</value></data>
+  <data name="Duration" xml:space="preserve"><value>표시 시간(초):</value></data>
+  <data name="ParentalAlert" xml:space="preserve"><value>보호자 호출 알림</value></data>
+  <data name="OptionalPrefix" xml:space="preserve"><value>머리말(선택):</value></data>
+  <data name="ParentalHorizontal" xml:space="preserve"><value>보호자 호출 가로 정렬</value></data>
+  <data name="AlertAtBottom" xml:space="preserve"><value>화면 아래쪽에 알림</value></data>
+  <data name="ParentalBold" xml:space="preserve"><value>보호자 호출 굵게</value></data>
+  <data name="ParentalItalic" xml:space="preserve"><value>보호자 호출 기울임</value></data>
+  <data name="ParentalUnderline" xml:space="preserve"><value>보호자 호출 밑줄</value></data>
+  <data name="ParentalShadow" xml:space="preserve"><value>보호자 호출 그림자</value></data>
+  <data name="ParentalOutline" xml:space="preserve"><value>보호자 호출 외곽선</value></data>
+  <data name="ParentalFamily" xml:space="preserve"><value>보호자 호출 글꼴</value></data>
+  <data name="MessageAlert" xml:space="preserve"><value>메시지 알림</value></data>
+  <data name="MessageHorizontal" xml:space="preserve"><value>메시지 가로 정렬</value></data>
+  <data name="AlignBottom" xml:space="preserve"><value>아래쪽 정렬</value></data>
+  <data name="MessageBold" xml:space="preserve"><value>메시지 굵게</value></data>
+  <data name="MessageItalic" xml:space="preserve"><value>메시지 기울임</value></data>
+  <data name="MessageUnderline" xml:space="preserve"><value>메시지 밑줄</value></data>
+  <data name="MessageShadow" xml:space="preserve"><value>메시지 그림자</value></data>
+  <data name="MessageOutline" xml:space="preserve"><value>메시지 외곽선</value></data>
+  <data name="MessageFamily" xml:space="preserve"><value>메시지 글꼴</value></data>
+  <data name="TabFolders" xml:space="preserve"><value>폴더</value></data>
+  <data name="LineSpacing12" xml:space="preserve"><value>영역 1-2 줄 간격</value></data>
+  <data name="HeadingsText" xml:space="preserve"><value>제목 텍스트</value></data>
+  <data name="EndingHeading" xml:space="preserve"><value>끝 제목</value></data>
+  <data name="BridgeHeading" xml:space="preserve"><value>브리지 제목</value></data>
+  <data name="ChorusHeading" xml:space="preserve"><value>후렴 제목</value></data>
+  <data name="PreChorusHeading" xml:space="preserve"><value>프리코러스 제목</value></data>
+  <data name="ChorusLabel" xml:space="preserve"><value>후렴:</value></data>
+  <data name="EndingLabel" xml:space="preserve"><value>끝:</value></data>
+  <data name="BridgeLabel" xml:space="preserve"><value>브리지:</value></data>
+  <data name="PreChorusLabel" xml:space="preserve"><value>프리코러스:</value></data>
+  <data name="Region2Font" xml:space="preserve"><value>영역 2 글꼴</value></data>
+  <data name="FontName1" xml:space="preserve"><value>영역 2 글꼴 이름</value></data>
+  <data name="Region2Bold" xml:space="preserve"><value>영역 2 굵게</value></data>
+  <data name="Region2Italic" xml:space="preserve"><value>영역 2 기울임</value></data>
+  <data name="Region2Underline" xml:space="preserve"><value>영역 2 밑줄</value></data>
+  <data name="RightToLeft" xml:space="preserve"><value>오른쪽에서 왼쪽</value></data>
+  <data name="Region1Font" xml:space="preserve"><value>영역 1 글꼴</value></data>
+  <data name="FontName0" xml:space="preserve"><value>영역 1 글꼴 이름</value></data>
+  <data name="Region1Bold" xml:space="preserve"><value>영역 1 굵게</value></data>
+  <data name="Region1Italic" xml:space="preserve"><value>영역 1 기울임</value></data>
+  <data name="Region1Underline" xml:space="preserve"><value>영역 1 밑줄</value></data>
+  <data name="RegionPositions" xml:space="preserve"><value>영역 위치</value></data>
+  <data name="LeftRight" xml:space="preserve"><value>왼쪽 - 오른쪽</value></data>
+  <data name="HeadingsFont" xml:space="preserve"><value>선택한 폴더의 제목 글꼴</value></data>
+  <data name="HeadingOption" xml:space="preserve"><value>제목 서식 옵션</value></data>
+  <data name="HeadingBold" xml:space="preserve"><value>제목 굵게</value></data>
+  <data name="HeadingItalic" xml:space="preserve"><value>제목 기울임</value></data>
+  <data name="HeadingUnderline" xml:space="preserve"><value>제목 밑줄</value></data>
+  <data name="HeadingsSize" xml:space="preserve"><value>제목 크기 (영역 1의 %):</value></data>
+  <data name="Formatting" xml:space="preserve"><value>서식:</value></data>
+  <data name="SelectFolder" xml:space="preserve"><value>수정할 폴더 선택</value></data>
+  <data name="PptFolder" xml:space="preserve"><value>PPT 폴더…</value></data>
+  <data name="MediaFolder" xml:space="preserve"><value>미디어 폴더…</value></data>
+  <data name="Rename" xml:space="preserve"><value>이름 바꾸기</value></data>
+  <data name="UseFolder" xml:space="preserve"><value>폴더 사용</value></data>
+  <data name="TabBibles" xml:space="preserve"><value>성경</value></data>
+  <data name="AddBibles" xml:space="preserve"><value>성경 추가</value></data>
+  <data name="BibleSearchHint" xml:space="preserve"><value>검색을 누르면 성경 폴더의 성경이 표시됩니다. 성경을 선택하고 추가를 누르세요.</value></data>
+  <data name="Add" xml:space="preserve"><value>추가</value></data>
+  <data name="Search" xml:space="preserve"><value>검색</value></data>
+  <data name="ColumnName" xml:space="preserve"><value>이름</value></data>
+  <data name="ColumnDescription" xml:space="preserve"><value>설명</value></data>
+  <data name="ColumnFileName" xml:space="preserve"><value>파일 이름</value></data>
+  <data name="CurrentBibles" xml:space="preserve"><value>Axicultus의 현재 성경</value></data>
+  <data name="Remove" xml:space="preserve"><value>제거</value></data>
+  <data name="BibleInfo" xml:space="preserve"><value>성경 정보</value></data>
+  <data name="MoveUp" xml:space="preserve"><value>위로 이동</value></data>
+  <data name="MoveDown" xml:space="preserve"><value>아래로 이동</value></data>
+  <data name="UseSongFolderSettings" xml:space="preserve"><value>곡 폴더 설정 사용</value></data>
+  <data name="FontSizePercent" xml:space="preserve"><value>글자 크기 (%):</value></data>
+  <data name="BibleFolder" xml:space="preserve"><value>성경에 연결된 폴더</value></data>
+  <data name="TabLicence" xml:space="preserve"><value>라이선스</value></data>
+  <data name="LicenceDetails" xml:space="preserve"><value>라이선스 관리 정보</value></data>
+  <data name="EnforceCopyright" xml:space="preserve"><value>처음 표시할 때 저작권 표시</value></data>
+  <data name="HowItAppears" xml:space="preserve"><value>화면에 표시되는 모양</value></data>
+  <data name="Blank" xml:space="preserve"><value>빈칸</value></data>
+  <data name="LicenceNumber" xml:space="preserve"><value>라이선스 번호</value></data>
+  <data name="Administrator" xml:space="preserve"><value>관리자</value></data>
+  <data name="NumberSymbol" xml:space="preserve"><value>번호 기호:</value></data>
+  <data name="TabKeyboard" xml:space="preserve"><value>키보드</value></data>
+  <data name="BasicKeys" xml:space="preserve"><value>기본 키 설정</value></data>
+  <data name="CopyPreviewToOutput" xml:space="preserve"><value>미리보기를 송출로 복사</value></data>
+  <data name="SlideUpDown" xml:space="preserve"><value>슬라이드 위/아래</value></data>
+  <data name="GlobalF7" xml:space="preserve"><value>F7 (검은 화면 해제)</value></data>
+  <data name="GlobalF8" xml:space="preserve"><value>F8 (송출 제어 안 함)</value></data>
+  <data name="OutputCtrlArrowKeys" xml:space="preserve"><value>송출 화면 Ctrl+방향키</value></data>
+  <data name="OutputArrowKeys" xml:space="preserve"><value>송출 화면 방향키</value></data>
+  <data name="KeyboardMapping" xml:space="preserve"><value>송출 중과 미리보기·송출 영역의 키보드 배치</value></data>
+  <data name="PageDownSpace" xml:space="preserve"><value>PageDown / Space</value></data>
+  <data name="RightArrow" xml:space="preserve"><value>오른쪽 화살표</value></data>
+  <data name="PageUp" xml:space="preserve"><value>PageUp</value></data>
+  <data name="DownArrowSpace" xml:space="preserve"><value>아래쪽 화살표 / Space</value></data>
+  <data name="UpArrow" xml:space="preserve"><value>위쪽 화살표</value></data>
+  <data name="LeftArrow" xml:space="preserve"><value>왼쪽 화살표</value></data>
+  <data name="DownArrow" xml:space="preserve"><value>아래쪽 화살표</value></data>
+  <data name="PageDown" xml:space="preserve"><value>PageDown</value></data>
+  <data name="Alternative" xml:space="preserve"><value>대체 배치</value></data>
+  <data name="Default" xml:space="preserve"><value>기본</value></data>
+  <data name="LastSlide" xml:space="preserve"><value>마지막 슬라이드</value></data>
+  <data name="NextSlide" xml:space="preserve"><value>다음 슬라이드</value></data>
+  <data name="PreviousSlide" xml:space="preserve"><value>이전 슬라이드</value></data>
+  <data name="FirstSlide" xml:space="preserve"><value>첫 슬라이드</value></data>
+  <data name="LastItem" xml:space="preserve"><value>마지막 항목</value></data>
+  <data name="NextItem" xml:space="preserve"><value>다음 항목</value></data>
+  <data name="PreviousItem" xml:space="preserve"><value>이전 항목</value></data>
+  <data name="FirstItem" xml:space="preserve"><value>첫 항목</value></data>
+  <data name="ActionLabel" xml:space="preserve"><value>동작:</value></data>
+  <data name="CustomShortcuts" xml:space="preserve"><value>사용자 지정 단축키</value></data>
+  <data name="Save" xml:space="preserve"><value>저장</value></data>
+  <data name="Reset" xml:space="preserve"><value>복원</value></data>
+  <data name="TabMore" xml:space="preserve"><value>추가 설정</value></data>
+  <data name="GeneralAndDisplay" xml:space="preserve"><value>일반 및 화면</value></data>
+  <data name="General" xml:space="preserve"><value>일반</value></data>
+  <data name="WorkingFolder" xml:space="preserve"><value>작업 폴더</value></data>
+  <data name="ChooseWorkingFolder" xml:space="preserve"><value>작업 폴더 선택</value></data>
+  <data name="Browse" xml:space="preserve"><value>찾기</value></data>
+  <data name="Display" xml:space="preserve"><value>화면</value></data>
+  <data name="Theme" xml:space="preserve"><value>테마</value></data>
+  <data name="PowerPointAndMedia" xml:space="preserve"><value>PowerPoint 및 미디어</value></data>
+  <data name="PowerPointRendering" xml:space="preserve"><value>PowerPoint 렌더링</value></data>
+  <data name="RenderTimeout" xml:space="preserve"><value>렌더 타임아웃(초)</value></data>
+  <data name="ThumbnailCache" xml:space="preserve"><value>썸네일 캐시(MB)</value></data>
+  <data name="MediaPlayback" xml:space="preserve"><value>미디어 파일 재생</value></data>
+  <data name="Volume" xml:space="preserve"><value>볼륨</value></data>
+  <data name="Balance" xml:space="preserve"><value>좌우 밸런스</value></data>
+  <data name="Data" xml:space="preserve"><value>데이터</value></data>
+  <data name="AdminDbPath" xml:space="preserve"><value>AdminDB 경로</value></data>
+  <data name="ChooseAdminDb" xml:space="preserve"><value>AdminDB 파일 선택</value></data>
+  <data name="BackupRoot" xml:space="preserve"><value>백업 루트</value></data>
+  <data name="ChooseBackupRoot" xml:space="preserve"><value>백업 루트 선택</value></data>
+  <data name="DiagnosticTools" xml:space="preserve"><value>진단 도구</value></data>
+  <data name="DiagnosticToolsTip" xml:space="preserve"><value>데이터에 문제가 의심될 때만 사용합니다.</value></data>
+  <data name="AnalyzeDb" xml:space="preserve"><value>DB 분석</value></data>
+  <data name="Rehearsal" xml:space="preserve"><value>운영 데이터 리허설</value></data>
+  <data name="ImportExport" xml:space="preserve"><value>가져오기·내보내기</value></data>
+  <data name="SettingsFilePath" xml:space="preserve"><value>설정 파일 경로</value></data>
+  <data name="ChooseImportFile" xml:space="preserve"><value>가져오기 파일 선택</value></data>
+  <data name="Open" xml:space="preserve"><value>열기</value></data>
+  <data name="ChooseExportLocation" xml:space="preserve"><value>내보내기 위치 선택</value></data>
+  <data name="SaveLocation" xml:space="preserve"><value>저장 위치</value></data>
+  <data name="Export" xml:space="preserve"><value>내보내기</value></data>
+  <data name="Import" xml:space="preserve"><value>가져오기</value></data>
+  <data name="LyricsAndOutput" xml:space="preserve"><value>가사·송출</value></data>
+  <data name="AudienceLyricsFormat" xml:space="preserve"><value>회중 송출 화면 가사 서식</value></data>
+  <data name="GradientEndColour" xml:space="preserve"><value>그라데이션 끝색</value></data>
+  <data name="GradientTip" xml:space="preserve"><value>그라데이션을 켜면 배경색에서 이 색으로 이어집니다.</value></data>
+  <data name="UseGradient" xml:space="preserve"><value>가사 배경 세로 그라데이션 사용</value></data>
+  <data name="AudienceNotations" xml:space="preserve"><value>회중 화면 코드 표기</value></data>
+  <data name="Bold" xml:space="preserve"><value>굵게</value></data>
+  <data name="Italic" xml:space="preserve"><value>기울임</value></data>
+  <data name="Underline" xml:space="preserve"><value>밑줄</value></data>
+  <data name="SafetyConfirm" xml:space="preserve"><value>라이브 안전 확인</value></data>
+  <data name="ReferenceSeparator" xml:space="preserve"><value>참조 구분 기호</value></data>
+  <data name="Advanced" xml:space="preserve"><value>고급</value></data>
+  <data name="Reload" xml:space="preserve"><value>다시 읽기</value></data>
+  <data name="RestoreDefaults" xml:space="preserve"><value>기본값 복원</value></data>
+  <data name="EnableDiagnostics" xml:space="preserve"><value>진단 로그 활성화</value></data>
+  <data name="DeviceCheck" xml:space="preserve"><value>장치 점검</value></data>
+  <data name="OK" xml:space="preserve"><value>확인</value></data>
+  <data name="Cancel" xml:space="preserve"><value>취소</value></data>
+  <data name="AutoSelect" xml:space="preserve"><value>자동 선택</value></data>
+  <data name="NoOutput" xml:space="preserve"><value>출력 안 함</value></data>
+  <data name="RestoreDefaultsConfirm" xml:space="preserve"><value>모든 설정을 기본값으로 되돌릴까요?
+
+다음은 그대로 둡니다: 작업·백업·PowerPoint·미디어 폴더와 데이터베이스 경로, 라이선스 정보, 등록 사용자,
+송출·무대 모니터 선택과 화면 위치, 현재 예배 순서와 창 위치, 메뉴 언어.
+확인을 눌러야 저장됩니다.</value></data>
+  <data name="BibleList" xml:space="preserve"><value>성경 목록</value></data>
+  <data name="FolderNumber" xml:space="preserve"><value>폴더 {0}</value></data>
+  <data name="RenameFolder" xml:space="preserve"><value>폴더 이름 변경</value></data>
+  <data name="NewName" xml:space="preserve"><value>새 이름</value></data>
+  <data name="RenameBible" xml:space="preserve"><value>성경 이름 변경</value></data>
+  <data name="RemoveBibleConfirm" xml:space="preserve"><value>'{0}' 버전을 목록에서 제거할까요?</value></data>
+  <data name="AddBible" xml:space="preserve"><value>성경 추가</value></data>
+  <data name="NameToShow" xml:space="preserve"><value>표시할 이름</value></data>
+  <data name="ChoosePowerPointFolder" xml:space="preserve"><value>PowerPoint 폴더 선택</value></data>
+  <data name="ChooseAudioVideoFolder" xml:space="preserve"><value>음원·동영상 폴더 선택</value></data>
+  <data name="ChooseMediaFolder" xml:space="preserve"><value>미디어 폴더 선택</value></data>
+  <data name="ChooseGapLogo" xml:space="preserve"><value>간격 화면 로고 선택</value></data>
+  <data name="ImageFilter" xml:space="preserve"><value>이미지|*.png;*.jpg;*.jpeg;*.bmp;*.gif|모든 파일|*.*</value></data>
+  <data name="SaveFolders" xml:space="preserve"><value>폴더 저장</value></data>
+  <data name="SaveOptions" xml:space="preserve"><value>옵션 저장</value></data>
+  <data name="Global" xml:space="preserve"><value>전역</value></data>
+  <data name="Local" xml:space="preserve"><value>로컬</value></data>
+  <data name="StatusReady" xml:space="preserve"><value>설정 준비됨</value></data>
+  <data name="DbAnalysisWaiting" xml:space="preserve"><value>DB 분석 대기</value></data>
+  <data name="RehearsalWaiting" xml:space="preserve"><value>운영 데이터 리허설 대기</value></data>
+  <data name="DefaultsRestored" xml:space="preserve"><value>기본값으로 복원됨</value></data>
+  <data name="EnterDbPath" xml:space="preserve"><value>DB 경로를 입력하세요.</value></data>
+  <data name="DbAnalysisFailed" xml:space="preserve"><value>DB 분석 실패</value></data>
+  <data name="NoDbPath" xml:space="preserve"><value>DB 경로 없음</value></data>
+  <data name="DbAnalysisDone" xml:space="preserve"><value>DB 분석 완료</value></data>
+  <data name="DbSummary" xml:space="preserve"><value>스키마 {0}, 테이블 {1}개</value></data>
+  <data name="NoDbInventory" xml:space="preserve"><value>DB 목록 없음</value></data>
+  <data name="RehearsalDoneSummary" xml:space="preserve"><value>운영 데이터 리허설 완료: 파일 {0}개, 테이블 {1}개, 경고 {2}개</value></data>
+  <data name="RehearsalDone" xml:space="preserve"><value>운영 데이터 리허설 완료</value></data>
+  <data name="RehearsalFailedSummary" xml:space="preserve"><value>운영 데이터 리허설 실패: 파일 {0}개, 오류 {1}개, 경고 {2}개</value></data>
+  <data name="RehearsalFailed" xml:space="preserve"><value>운영 데이터 리허설 실패</value></data>
+  <data name="ExportDone" xml:space="preserve"><value>설정 내보내기 완료</value></data>
+  <data name="ImportDone" xml:space="preserve"><value>설정 가져오기 완료</value></data>
+  <data name="WorkingFolderChosen" xml:space="preserve"><value>작업 폴더 선택됨</value></data>
+  <data name="AdminDbChosen" xml:space="preserve"><value>AdminDB 경로 선택됨</value></data>
+  <data name="BackupRootChosen" xml:space="preserve"><value>백업 루트 선택됨</value></data>
+  <data name="ImportFileChosen" xml:space="preserve"><value>가져오기 파일 선택됨</value></data>
+  <data name="ExportFileChosen" xml:space="preserve"><value>내보내기 파일 선택됨</value></data>
+  <data name="ShortcutSaveFailed" xml:space="preserve"><value>단축키 저장 실패</value></data>
+  <data name="ShortcutCollision" xml:space="preserve"><value>단축키 충돌: {0} ({1})</value></data>
+  <data name="ShortcutSaved" xml:space="preserve"><value>단축키 저장됨</value></data>
+  <data name="ShortcutReset" xml:space="preserve"><value>단축키 기본값 복원됨</value></data>
+  <data name="SectionMainWindow" xml:space="preserve"><value>미리보기와 파일 목록</value></data>
+  <data name="SectionShow" xml:space="preserve"><value>텍스트와 항목 전환</value></data>
+  <data name="SectionMonitors" xml:space="preserve"><value>화면 배치와 라이브 카메라</value></data>
+  <data name="SectionAlerts" xml:space="preserve"><value>회중, 보호자 호출 및 항목 참조</value></data>
+  <data name="SectionFolders" xml:space="preserve"><value>찬양 폴더</value></data>
+  <data name="SectionBibles" xml:space="preserve"><value>성경 버전 관리</value></data>
+  <data name="SectionLicence" xml:space="preserve"><value>관리자와 번호</value></data>
+  <data name="SectionKeyboard" xml:space="preserve"><value>단축키와 전역 키</value></data>
+  <data name="SectionMore" xml:space="preserve"><value>일반, 화면 및 데이터 관리</value></data>
+  <data name="SectionDeviceCheck" xml:space="preserve"><value>카메라, 마이크 및 OBS 연결 상태</value></data>
+  <data name="SaveOnOk" xml:space="preserve"><value>확인을 누르면 설정을 저장합니다.</value></data>
+  <data name="SettingsSaved" xml:space="preserve"><value>설정 저장됨</value></data>
+  <data name="SettingsSaveFailed" xml:space="preserve"><value>설정 저장 실패</value></data>
+  <data name="PathPickCancelled" xml:space="preserve"><value>경로 선택 취소됨</value></data>
+  <data name="KeyboardGuideAlternate" xml:space="preserve"><value>이전·다음 슬라이드  PageUp / PageDown　 첫·끝 슬라이드  Home / End
+이전·다음 항목  ↑ / ↓　 첫·끝 항목  ← / →</value></data>
+  <data name="KeyboardGuideDefault" xml:space="preserve"><value>이전·다음 슬라이드  ↑ / ↓　 첫·끝 슬라이드  ← / →
+이전·다음 항목  PageUp / PageDown　 첫·끝 항목  Home / End</value></data>
+  <data name="RefNone" xml:space="preserve"><value>표시 안 함</value></data>
+  <data name="RefDefault" xml:space="preserve"><value>기본 참조</value></data>
+  <data name="PickWorkingFolder" xml:space="preserve"><value>작업 폴더 선택</value></data>
+  <data name="PickAdminDb" xml:space="preserve"><value>AdminDB 선택</value></data>
+  <data name="PickBackupRoot" xml:space="preserve"><value>백업 루트 선택</value></data>
+  <data name="PickImportFile" xml:space="preserve"><value>설정 가져오기 파일 선택</value></data>
+  <data name="PickExportFile" xml:space="preserve"><value>설정 내보내기 파일 선택</value></data>
+  <data name="SettingsFilter" xml:space="preserve"><value>Axicultus 설정 (*.json)|*.json|모든 파일 (*.*)|*.*</value></data>
+  <data name="DatabaseFilter" xml:space="preserve"><value>SQLite/AdminDB (*.db;*.sqlite;*.sqlite3)|*.db;*.sqlite;*.sqlite3|모든 파일 (*.*)|*.*</value></data>
+</root>

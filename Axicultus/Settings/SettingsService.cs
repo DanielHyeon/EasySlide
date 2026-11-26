@@ -9,6 +9,7 @@ using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Axicultus.Wpf.Input;
+using Axicultus.Wpf.Localization;
 using Axicultus.Wpf.Shell;
 using Axicultus.Wpf.Theme;
 
@@ -227,7 +228,7 @@ public static class AxicultusSettingKeys
     public static readonly SettingKey<bool> ParentalAlertScroll = new("general.parentalAlertScroll", true);
     public static readonly SettingKey<bool> ParentalAlertTransparent = new("general.parentalAlertTransparent", false);
     public static readonly SettingKey<int> ParentalAlertDuration = new("general.parentalAlertDuration", 20);
-    public static readonly SettingKey<string> ParentalAlertHeading = new("general.parentalAlertHeading", "보호자 호출");
+    public static readonly SettingKey<string> ParentalAlertHeading = new("general.parentalAlertHeading", "보호자 호출"); // not UI text
     public static readonly SettingKey<bool> LicenceOnFirstPage = new("general.licenceOnFirstPage", true);
     public static readonly SettingKey<string> LicenceNumberSymbol = new("general.licenceNumberSymbol", "#");
     public static readonly SettingKey<string> LicenceNumber3 = new("general.licenceNumber3", "");
@@ -1135,7 +1136,7 @@ public sealed class SettingsService : ISettingsService
                 }
             }
 
-            repairs.Add(Warning(key, "The stored value is not valid and was replaced."));
+            repairs.Add(Warning(key, UiText.Get("SettingsService", "StoredValueReplaced")));
         }
 
         return Validate(snapshot).Succeeded ? snapshot : null;
@@ -1234,12 +1235,12 @@ public sealed class SettingsService : ISettingsService
     {
         if (string.IsNullOrWhiteSpace(slotId))
         {
-            return SettingsResult.Failure([Error("shortcuts", "Shortcut slot id cannot be empty.")]);
+            return SettingsResult.Failure([Error("shortcuts", UiText.Get("SettingsService", "ShortcutSlotEmpty"))]);
         }
 
         if (string.IsNullOrWhiteSpace(gesture))
         {
-            return SettingsResult.Failure([Error($"shortcuts.{slotId}", "Shortcut gesture cannot be empty.")]);
+            return SettingsResult.Failure([Error($"shortcuts.{slotId}", UiText.Get("SettingsService", "ShortcutGestureEmpty"))]);
         }
 
         var shortcuts = new Dictionary<string, string>(Current.Shortcuts, StringComparer.OrdinalIgnoreCase)
@@ -1255,7 +1256,7 @@ public sealed class SettingsService : ISettingsService
     {
         if (string.IsNullOrWhiteSpace(slotId))
         {
-            return SettingsResult.Failure([Error("shortcuts", "Shortcut slot id cannot be empty.")]);
+            return SettingsResult.Failure([Error("shortcuts", UiText.Get("SettingsService", "ShortcutSlotEmpty"))]);
         }
 
         var shortcuts = new Dictionary<string, string>(Current.Shortcuts, StringComparer.OrdinalIgnoreCase);
@@ -1274,12 +1275,12 @@ public sealed class SettingsService : ISettingsService
             if (value is int number && option.Minimum is int min && option.Maximum is int max)
                 RequireRange(number, min, max, option.Id, issues);
             if (option.Default is string && string.IsNullOrWhiteSpace(value as string))
-                issues.Add(Error(option.Id, "글꼴 이름을 입력하세요."));
+                issues.Add(Error(option.Id, UiText.Get("SettingsService", "EnterFontName")));
         }
 
         if (candidate.SchemaVersion != 1)
         {
-            issues.Add(Error("schemaVersion", "Only schema version 1 is supported."));
+            issues.Add(Error("schemaVersion", UiText.Get("SettingsService", "SchemaVersionUnsupported")));
         }
 
         RequireRange(candidate.General.BibleSequentialLimit, 1, 1000, AxicultusSettingKeys.BibleSequentialLimit.Id, issues);
@@ -1299,12 +1300,12 @@ public sealed class SettingsService : ISettingsService
 
         if (!Enum.IsDefined(candidate.Appearance.Theme))
         {
-            issues.Add(Error(AxicultusSettingKeys.Theme.Id, "Theme value is not supported."));
+            issues.Add(Error(AxicultusSettingKeys.Theme.Id, UiText.Get("SettingsService", "ThemeUnsupported")));
         }
 
         if (!Enum.IsDefined(candidate.Appearance.InterfaceSize))
         {
-            issues.Add(Error(AxicultusSettingKeys.InterfaceSize.Id, "Interface size value is not supported."));
+            issues.Add(Error(AxicultusSettingKeys.InterfaceSize.Id, UiText.Get("SettingsService", "InterfaceSizeUnsupported")));
         }
 
         if (!string.IsNullOrWhiteSpace(candidate.LiveOutput.DefaultOutputMonitorId))
@@ -1326,73 +1327,73 @@ public sealed class SettingsService : ISettingsService
 
         if (!Enum.IsDefined(candidate.LiveOutput.GapItemOption))
         {
-            issues.Add(Error(AxicultusSettingKeys.GapItemOption.Id, "Gap item option value is not supported."));
+            issues.Add(Error(AxicultusSettingKeys.GapItemOption.Id, UiText.Get("SettingsService", "GapItemOptionUnsupported")));
         }
 
         // 손상되거나 외부 편집된 settings.json 의 잘못된 정렬 값(예: 정수 99)을 임포트/로드 시 거른다(다른 enum 과 일관).
         if (!Enum.IsDefined(candidate.LiveOutput.LyricsMonitorTextAlignment))
         {
-            issues.Add(Error(AxicultusSettingKeys.LyricsMonitorTextAlignment.Id, "Lyrics text alignment value is not supported."));
+            issues.Add(Error(AxicultusSettingKeys.LyricsMonitorTextAlignment.Id, UiText.Get("SettingsService", "LyricsTextAlignmentUnsupported")));
         }
 
         if (!Enum.IsDefined(candidate.LiveOutput.LyricsMonitorVerticalAlignment))
         {
-            issues.Add(Error(AxicultusSettingKeys.LyricsMonitorVerticalAlignment.Id, "Lyrics vertical alignment value is not supported."));
+            issues.Add(Error(AxicultusSettingKeys.LyricsMonitorVerticalAlignment.Id, UiText.Get("SettingsService", "LyricsVerticalAlignmentUnsupported")));
         }
 
         if (!Enum.IsDefined(candidate.LiveOutput.LyricsMonitorTitleHeadingAlignment))
         {
-            issues.Add(Error(AxicultusSettingKeys.LyricsMonitorTitleHeadingAlignment.Id, "Title heading alignment value is not supported."));
+            issues.Add(Error(AxicultusSettingKeys.LyricsMonitorTitleHeadingAlignment.Id, UiText.Get("SettingsService", "TitleHeadingAlignmentUnsupported")));
         }
 
         // 배경 표시 모드도 잘못된 값(예: 정수 99)을 거른다(정렬 enum 과 일관).
         if (!Enum.IsDefined(candidate.LiveOutput.LyricsMonitorBackgroundMode))
         {
-            issues.Add(Error(AxicultusSettingKeys.LyricsMonitorBackgroundMode.Id, "Background image mode value is not supported."));
+            issues.Add(Error(AxicultusSettingKeys.LyricsMonitorBackgroundMode.Id, UiText.Get("SettingsService", "BackgroundModeUnsupported")));
         }
 
         // 그라데이션 방향도 잘못된 값을 거른다(enum 일관).
         if (candidate.LiveOutput.LyricsMonitorBackgroundPattern is < -1 or > 11)
-            issues.Add(Error(AxicultusSettingKeys.LyricsMonitorBackgroundPattern.Id, "Select a background pattern between 0 and 11."));
+            issues.Add(Error(AxicultusSettingKeys.LyricsMonitorBackgroundPattern.Id, UiText.Get("SettingsService", "BackgroundPatternRange")));
         if (!Enum.IsDefined(candidate.LiveOutput.LyricsMonitorBackgroundGradientDirection))
         {
-            issues.Add(Error(AxicultusSettingKeys.LyricsMonitorBackgroundGradientDirection.Id, "Background gradient direction value is not supported."));
+            issues.Add(Error(AxicultusSettingKeys.LyricsMonitorBackgroundGradientDirection.Id, UiText.Get("SettingsService", "GradientDirectionUnsupported")));
         }
 
         // 영역 표시 모드도 잘못된 값을 거른다(enum 일관).
         if (!Enum.IsDefined(candidate.LiveOutput.LyricsMonitorRegionDisplay))
         {
-            issues.Add(Error(AxicultusSettingKeys.LyricsMonitorRegionDisplay.Id, "Region display mode value is not supported."));
+            issues.Add(Error(AxicultusSettingKeys.LyricsMonitorRegionDisplay.Id, UiText.Get("SettingsService", "RegionDisplayUnsupported")));
         }
 
         // 자동 회전 모드도 잘못된 값(예: 정수 99)을 거른다(enum 일관).
         if (!Enum.IsDefined(candidate.LiveOutput.AutoRotateMode))
         {
-            issues.Add(Error(AxicultusSettingKeys.AutoRotateMode.Id, "Auto-rotate mode value is not supported."));
+            issues.Add(Error(AxicultusSettingKeys.AutoRotateMode.Id, UiText.Get("SettingsService", "AutoRotateUnsupported")));
         }
 
         // 보조 영역(Region2) 전역 정렬도 잘못된 값을 거른다(enum 일관).
         if (!Enum.IsDefined(candidate.LiveOutput.LyricsMonitorRegion2Alignment))
         {
-            issues.Add(Error(AxicultusSettingKeys.LyricsMonitorRegion2Alignment.Id, "Region2 alignment value is not supported."));
+            issues.Add(Error(AxicultusSettingKeys.LyricsMonitorRegion2Alignment.Id, UiText.Get("SettingsService", "Region2AlignmentUnsupported")));
         }
 
         // 보조 영역(Region2) 전역 굵게(3-상태)도 잘못된 값을 거른다(enum 일관).
         if (!Enum.IsDefined(candidate.LiveOutput.LyricsMonitorRegion2Bold))
         {
-            issues.Add(Error(AxicultusSettingKeys.LyricsMonitorRegion2Bold.Id, "Region2 bold value is not supported."));
+            issues.Add(Error(AxicultusSettingKeys.LyricsMonitorRegion2Bold.Id, UiText.Get("SettingsService", "Region2BoldUnsupported")));
         }
 
         // 보조 영역(Region2) 전역 기울임(3-상태)도 잘못된 값을 거른다(enum 일관).
         if (!Enum.IsDefined(candidate.LiveOutput.LyricsMonitorRegion2Italic))
         {
-            issues.Add(Error(AxicultusSettingKeys.LyricsMonitorRegion2Italic.Id, "Region2 italic value is not supported."));
+            issues.Add(Error(AxicultusSettingKeys.LyricsMonitorRegion2Italic.Id, UiText.Get("SettingsService", "Region2ItalicUnsupported")));
         }
 
         // 보조 영역(Region2) 전역 밑줄(3-상태)도 잘못된 값을 거른다(enum 일관).
         if (!Enum.IsDefined(candidate.LiveOutput.LyricsMonitorRegion2Underline))
         {
-            issues.Add(Error(AxicultusSettingKeys.LyricsMonitorRegion2Underline.Id, "Region2 underline value is not supported."));
+            issues.Add(Error(AxicultusSettingKeys.LyricsMonitorRegion2Underline.Id, UiText.Get("SettingsService", "Region2UnderlineUnsupported")));
         }
 
         // 폰트 크기 범위 가드(24~120px) — 0/음수/과대값이 들어와 출력이 깨지지 않도록(다른 수치 설정과 일관).
@@ -1539,7 +1540,7 @@ public sealed class SettingsService : ISettingsService
         ValidatePath(candidate.Media.SourceFolder, AxicultusSettingKeys.MediaSourceFolder.Id, issues, allowEmpty: true);
         ValidatePath(candidate.Media.Directory, AxicultusSettingKeys.MediaDirectory.Id, issues, allowEmpty: true);
         if (candidate.LiveOutput.PanelHeightPercent is < 0 or > 20)
-            issues.Add(Error(AxicultusSettingKeys.PanelHeightPercent.Id, "Panel height must be between 0 and 20 percent."));
+            issues.Add(Error(AxicultusSettingKeys.PanelHeightPercent.Id, UiText.Get("SettingsService", "PanelHeightRange")));
         ValidatePath(candidate.Media.DefaultMediaPath, AxicultusSettingKeys.DefaultMediaPath.Id, issues, allowEmpty: true);
         RequireRange(candidate.Media.Volume, min: 0.0, max: 1.0, AxicultusSettingKeys.MediaVolume.Id, issues);
         RequireRange(candidate.Media.Balance, min: -1.0, max: 1.0, AxicultusSettingKeys.MediaBalance.Id, issues);
@@ -1563,12 +1564,12 @@ public sealed class SettingsService : ISettingsService
         {
             if (string.IsNullOrWhiteSpace(shortcut.Key))
             {
-                issues.Add(Error("shortcuts", "Shortcut command id cannot be empty."));
+                issues.Add(Error("shortcuts", UiText.Get("SettingsService", "ShortcutCommandEmpty")));
             }
 
             if (string.IsNullOrWhiteSpace(shortcut.Value))
             {
-                issues.Add(Error($"shortcuts.{shortcut.Key}", "Shortcut gesture cannot be empty."));
+                issues.Add(Error($"shortcuts.{shortcut.Key}", UiText.Get("SettingsService", "ShortcutGestureEmpty")));
             }
         }
 
@@ -1640,7 +1641,7 @@ public sealed class SettingsService : ISettingsService
     {
         if (string.IsNullOrWhiteSpace(destinationPath))
         {
-            return SettingsResult.Failure([Error("export.path", "Export path cannot be empty.")]);
+            return SettingsResult.Failure([Error("export.path", UiText.Get("SettingsService", "ExportPathEmpty"))]);
         }
 
         try
@@ -1658,7 +1659,7 @@ public sealed class SettingsService : ISettingsService
     {
         if (string.IsNullOrWhiteSpace(sourcePath))
         {
-            return SettingsResult.Failure([Error("import.path", "Import path cannot be empty.")]);
+            return SettingsResult.Failure([Error("import.path", UiText.Get("SettingsService", "ImportPathEmpty"))]);
         }
 
         try
@@ -1699,7 +1700,7 @@ public sealed class SettingsService : ISettingsService
         next = ApplyLegacyString(legacySettings, LegacySettingsMap.GetAutomatedAliases(AxicultusSettingKeys.WorkingFolder.Id), next, value =>
         {
             if (Directory.Exists(value)) return next with { General = next.General with { WorkingFolder = value } };
-            issues.Add(Warning(AxicultusSettingKeys.WorkingFolder.Id, $"Legacy working folder '{value}' does not exist; the current folder is kept."));
+            issues.Add(Warning(AxicultusSettingKeys.WorkingFolder.Id, UiText.Format("SettingsService", "LegacyWorkingFolderMissing", value)));
             return next;
         });
         next = ApplyLegacyBool(legacySettings, LegacySettingsMap.GetAutomatedAliases(AxicultusSettingKeys.OnboardingCompleted.Id), next, issues, value => next with
@@ -3146,7 +3147,7 @@ public sealed class SettingsService : ISettingsService
 
         if (!int.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out var style))
         {
-            issues.Add(Warning(matchedKey, $"Legacy value '{raw}' is not a valid reference-alert style bitfield."));
+            issues.Add(Warning(matchedKey, UiText.Format("SettingsService", "LegacyNotReferenceStyle", raw)));
             return current;
         }
 
@@ -3193,7 +3194,7 @@ public sealed class SettingsService : ISettingsService
             return apply(parsed);
         }
 
-        issues.Add(Warning(matchedKey, $"Legacy value '{raw}' is not a valid Boolean."));
+        issues.Add(Warning(matchedKey, UiText.Format("SettingsService", "LegacyNotBoolean", raw)));
         return current;
     }
 
@@ -3222,7 +3223,7 @@ public sealed class SettingsService : ISettingsService
             return apply(parsed);
         }
 
-        issues.Add(Warning(matchedKey, $"Legacy value '{raw}' is not a valid integer."));
+        issues.Add(Warning(matchedKey, UiText.Format("SettingsService", "LegacyNotInteger", raw)));
         return current;
     }
 
@@ -3252,7 +3253,7 @@ public sealed class SettingsService : ISettingsService
             return apply(normalize(parsed));
         }
 
-        issues.Add(Warning(matchedKey, $"Legacy value '{raw}' is not a valid number."));
+        issues.Add(Warning(matchedKey, UiText.Format("SettingsService", "LegacyNotNumber", raw)));
         return current;
     }
 
@@ -3283,7 +3284,7 @@ public sealed class SettingsService : ISettingsService
             return apply(parsed);
         }
 
-        issues.Add(Warning(matchedKey, $"Legacy value '{raw}' is not a valid {typeof(TEnum).Name}."));
+        issues.Add(Warning(matchedKey, UiText.Format("SettingsService", "LegacyNotEnum", raw, typeof(TEnum).Name)));
         return current;
     }
 
@@ -3346,7 +3347,7 @@ public sealed class SettingsService : ISettingsService
             }
             else if (keyBoardOption != 0)
             {
-                issues.Add(Warning("KeyBoardOption", $"Legacy value '{keyBoardOption}' is not a supported keyboard option."));
+                issues.Add(Warning("KeyBoardOption", UiText.Format("SettingsService", "LegacyKeyboardOption", keyBoardOption)));
             }
         }
 
@@ -3379,7 +3380,7 @@ public sealed class SettingsService : ISettingsService
             return true;
         }
 
-        issues.Add(Warning(matchedKey, $"Legacy value '{raw}' is not a valid Boolean."));
+        issues.Add(Warning(matchedKey, UiText.Format("SettingsService", "LegacyNotBoolean", raw)));
         value = false;
         return false;
     }
@@ -3401,7 +3402,7 @@ public sealed class SettingsService : ISettingsService
             return true;
         }
 
-        issues.Add(Warning(matchedKey, $"Legacy value '{raw}' is not a valid integer."));
+        issues.Add(Warning(matchedKey, UiText.Format("SettingsService", "LegacyNotInteger", raw)));
         value = 0;
         return false;
     }
@@ -3461,7 +3462,7 @@ public sealed class SettingsService : ISettingsService
     {
         if (string.IsNullOrWhiteSpace(value))
         {
-            issues.Add(Error(key, "Value cannot be empty."));
+            issues.Add(Error(key, UiText.Get("SettingsService", "ValueEmpty")));
         }
     }
 
@@ -3469,7 +3470,7 @@ public sealed class SettingsService : ISettingsService
     {
         if (value < min || value > max)
         {
-            issues.Add(Error(key, $"Value must be between {min} and {max}."));
+            issues.Add(Error(key, UiText.Format("SettingsService", "ValueRange", min, max)));
         }
     }
 
@@ -3477,7 +3478,7 @@ public sealed class SettingsService : ISettingsService
     {
         if (double.IsNaN(value) || value < min || value > max)
         {
-            issues.Add(Error(key, $"Value must be between {min} and {max}."));
+            issues.Add(Error(key, UiText.Format("SettingsService", "ValueRange", min, max)));
         }
     }
 
@@ -3491,7 +3492,7 @@ public sealed class SettingsService : ISettingsService
         {
             if (!allowEmpty)
             {
-                issues.Add(Error(key, "Path cannot be empty."));
+                issues.Add(Error(key, UiText.Get("SettingsService", "PathEmpty")));
             }
 
             return;
@@ -3499,7 +3500,7 @@ public sealed class SettingsService : ISettingsService
 
         if (path.IndexOfAny(Path.GetInvalidPathChars()) >= 0)
         {
-            issues.Add(Error(key, "Path contains invalid characters."));
+            issues.Add(Error(key, UiText.Get("SettingsService", "PathInvalidChars")));
         }
     }
 
@@ -3508,7 +3509,7 @@ public sealed class SettingsService : ISettingsService
         // A hand-edited settings.json can hold an explicit null.
         if (value?.Any(char.IsControl) == true)
         {
-            issues.Add(Error(key, "Value cannot contain control characters."));
+            issues.Add(Error(key, UiText.Get("SettingsService", "ValueControlChars")));
         }
     }
 

@@ -289,7 +289,7 @@ public class SettingsWindowViewModelTests
         await sut.AnalyzeDatabaseAsync();
 
         fixture.Database.LastAnalyzedPath.Should().Be("AdminDB.sqlite");
-        sut.DatabaseAnalysisSummary.Should().Contain("schema 4");
+        sut.DatabaseAnalysisSummary.Should().Be(Axicultus.Wpf.Localization.UiText.Format("SettingsWindow", "DbSummary", 4, 1));
         sut.DatabaseTables.Should().ContainSingle(table => table.Name == "Items");
         sut.ValidationMessages.Should().BeEmpty();
     }
