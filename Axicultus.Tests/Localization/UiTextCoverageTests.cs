@@ -63,9 +63,6 @@ public sealed class UiTextCoverageTests
         "Axicultus/Shell/WorshipSessionNotesWindow.xaml",
         "Axicultus/Support/HelpWindow.xaml",
         "Axicultus/Support/RegistrationWindow.xaml",
-        "Axicultus/Theme/Tokens/Colors.Dark.xaml",
-        "Axicultus/Theme/Tokens/Colors.Light.xaml",
-        "Axicultus/Theme/Tokens/Typography.xaml",
     ];
 
     private static readonly string[] WpfCodeNotYet =
@@ -230,7 +227,6 @@ public sealed class UiTextCoverageTests
         "Axicultuss/Forms/FrmInfoScreen.cs",
         "Axicultuss/Forms/FrmMain.cs",
         "Axicultuss/Forms/FrmMain.Logic.cs",
-        "Axicultuss/Forms/FrmMain.MenuText.cs",
         "Axicultuss/Forms/FrmMain.ModernUi.ImageList.cs",
         "Axicultuss/Forms/FrmManageItemLists.cs",
         "Axicultuss/Forms/FrmMove.cs",
@@ -273,7 +269,12 @@ public sealed class UiTextCoverageTests
     /// <summary>A literal that needs a resource: it has a letter left after the untranslated names.</summary>
     private static bool NeedsText(string text) => Untranslated.Replace(text, " ").Any(char.IsLetter);
 
+    // A literal whose line ends with one of these is left as it is: data the app reads or writes (a Bible book name,
+    // a parsing token, a file name), or a text written the same in every language (a language's own name).
     private const string NotUiMarker = "// not UI text";
+    private const string SameMarker = "// same in every language";
+
+    private static bool Marked(string line) => line.Contains(NotUiMarker, StringComparison.Ordinal) || line.Contains(SameMarker, StringComparison.Ordinal);
 
     // ---- resources ----
 
@@ -344,6 +345,11 @@ public sealed class UiTextCoverageTests
     // The attributes that show text (AutomationProperties.Name, read by screen readers and by the tests, is left out).
     private static readonly HashSet<string> TextAttributes = ["Header", "Content", "Text", "ToolTip", "Title", "Description", "PlaceholderText", "Watermark", "Label"];
 
+    // The elements whose own text is shown (not a colour, a font name or another value).
+    private static readonly HashSet<string> TextElements = ["TextBlock", "Run", "Label", "Hyperlink", "Span", "Bold", "Italic", "Underline",
+        "Paragraph", "Button", "ToggleButton", "RepeatButton", "CheckBox", "RadioButton", "MenuItem", "ToolTip", "TabItem", "GroupBox",
+        "Expander", "ComboBoxItem", "ListBoxItem", "ContentControl", "String"];
+
     /// <summary>The literal texts of a XAML file that need a resource: attribute values, setter values and element text.</summary>
     internal static IEnumerable<string> XamlLiterals(string path)
     {
@@ -357,7 +363,7 @@ public sealed class UiTextCoverageTests
                 && (string?)element.Attribute("Value") is { } value && !value.StartsWith('{') && NeedsText(value))
                 yield return $"Setter {element.Attribute("Property")!.Value}=\"{value}\"";
             foreach (var text in element.Nodes().OfType<XText>())
-                if (NeedsText(text.Value) && element.Name.LocalName is not ("Code" or "String" or "Uri"))
+                if (NeedsText(text.Value) && TextElements.Contains(element.Name.LocalName))
                     yield return $"<{element.Name.LocalName}>{text.Value.Trim()}";
         }
     }
@@ -504,7 +510,7 @@ public sealed class UiTextCoverageTests
     internal static IEnumerable<string> KoreanLiterals(string path)
     {
         var (lines, literals) = Parse(path);
-        return literals.Where(l => HasHangul(l.Text) && !lines[l.Line - 1].Contains(NotUiMarker, StringComparison.Ordinal))
+        return literals.Where(l => HasHangul(l.Text) && !Marked(lines[l.Line - 1]))
             .Select(l => $"line {l.Line}: \"{l.Text}\"");
     }
 
@@ -526,7 +532,7 @@ public sealed class UiTextCoverageTests
                 else if (code[i] == ')' && --depth == 0) { end = i; break; }
             }
             foreach (var literal in literals.Where(l => l.Start > call.Index && l.End <= end && NeedsText(l.Text)))
-                if (!lines[literal.Line - 1].Contains(NotUiMarker, StringComparison.Ordinal))
+                if (!Marked(lines[literal.Line - 1]))
                     yield return $"line {literal.Line}: \"{literal.Text}\"";
         }
     }

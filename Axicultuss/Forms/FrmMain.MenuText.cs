@@ -79,7 +79,7 @@ public partial class FrmMain
     // View > Language: each language named in itself; the choice shows after a restart.
     private void AddLanguageMenu()
     {
-        Menu_LanguageKorean = new ToolStripMenuItem("한국어") { Tag = UiLanguage.Korean };
+        Menu_LanguageKorean = new ToolStripMenuItem("한국어") { Tag = UiLanguage.Korean }; // same in every language
         Menu_LanguageEnglish = new ToolStripMenuItem("English") { Tag = UiLanguage.English };
         Menu_LanguageKorean.Click += Menu_Language_Click;
         Menu_LanguageEnglish.Click += Menu_Language_Click;
