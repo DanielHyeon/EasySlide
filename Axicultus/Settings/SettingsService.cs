@@ -3522,6 +3522,31 @@ public sealed class SettingsService : ISettingsService
     private static bool IsFileSystemException(Exception ex)
         => ex is IOException or UnauthorizedAccessException or NotSupportedException;
 
+    /// <summary>
+    /// The kept UI language read straight from the settings file, before the settings are loaded (start-up messages
+    /// and the PowerPoint worker process show in it); null when the file is missing, unreadable or has none.
+    /// </summary>
+    public static string? ReadLanguage(string settingsFilePath)
+    {
+        try
+        {
+            if (!File.Exists(settingsFilePath)) return null;
+            using var document = JsonDocument.Parse(File.ReadAllText(settingsFilePath));
+            foreach (var section in document.RootElement.EnumerateObject())
+            {
+                if (!section.Name.Equals("General", StringComparison.OrdinalIgnoreCase) || section.Value.ValueKind != JsonValueKind.Object) continue;
+                foreach (var value in section.Value.EnumerateObject())
+                    if (value.Name.Equals("Language", StringComparison.OrdinalIgnoreCase) && value.Value.ValueKind == JsonValueKind.String)
+                        return value.Value.GetString();
+            }
+            return null;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException)
+        {
+            return null;
+        }
+    }
+
     private static JsonSerializerOptions CreateJsonOptions()
     {
         var options = new JsonSerializerOptions

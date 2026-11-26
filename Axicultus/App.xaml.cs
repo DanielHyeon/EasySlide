@@ -175,6 +175,9 @@ public partial class App : Application
 
     private async void OnStartup(object sender, StartupEventArgs e)
     {
+        // The kept language first: the messages below and the PowerPoint worker process show in it (OpenShell applies
+        // it again from the loaded settings).
+        Axicultus.Localization.UiLanguage.Apply(SettingsService.ReadLanguage(SettingsServiceOptions.CreateDefault().SettingsFilePath));
         if (e.Args.Length == 1 && e.Args[0] == PowerPointWorker.Switch)
         {
             ShutdownMode = ShutdownMode.OnExplicitShutdown;
