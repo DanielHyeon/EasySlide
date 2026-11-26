@@ -302,9 +302,9 @@ public partial class MainViewModelTests
         // FrmMain PreviewPanelDisplayName/OutputPanelDisplayName 은 단순 제목 라벨이 아니라
         // 현재 대상의 종류와 Preview/Output 위치 상태를 같은 행에서 보여 준다.
         var sut = CreateSut(seedSampleQueue: false);
-        sut.PreviewPanelSourceText.Should().Be("Preview");
+        sut.PreviewPanelSourceText.Should().Be("미리보기");
         sut.PreviewPanelStatusText.Should().Be("대기");
-        sut.OutputPanelSourceText.Should().Be("Output");
+        sut.OutputPanelSourceText.Should().Be("송출");
         sut.OutputPanelStatusText.Should().Be("대기");
 
         var item = new LiveQueueItem("song:1", "입례 찬양", LiveItemKinds.Song)
@@ -349,7 +349,7 @@ public partial class MainViewModelTests
         output.Current.Placement.IsWindowed.Should().BeFalse("Live 시작은 회중용 출력 모니터 전체화면을 바로 연다");
         sut.LiveBar.State.Should().Be(LiveState.Active);
         sut.LiveBar.CurrentItemTitle.Should().Be("입례 찬양");
-        sut.StatusText.Should().Contain("LIVE");
+        sut.StatusText.Should().Contain("라이브");
     }
 
     [Fact]
@@ -392,7 +392,7 @@ public partial class MainViewModelTests
         prompt.Requests.Should().BeEmpty("Live 버튼은 FrmMain처럼 확인창 없이 즉시 송출해야 한다");
         sut.LiveBar.State.Should().Be(LiveState.Active);
         sut.Session.Current.State.Should().Be(LiveState.Active);
-        sut.StatusText.Should().Contain("LIVE");
+        sut.StatusText.Should().Contain("라이브");
     }
 
     [Fact]
@@ -1133,8 +1133,8 @@ public partial class MainViewModelTests
         sut.Queue.Should().Equal([opener, sermon], "FrmMain Bibles_Go selects/previews the typed passage but AddFromHolyBible adds it later");
         sut.SelectedItem.Should().Be(opener);
         sut.PreviewPanelTitleText.Should().Be(selection.Title);
-        sut.PreviewPanelSourceText.Should().NotBe("Preview");
-        sut.StatusText.Should().Be($"Preview Bible: {selection.Title}");
+        sut.PreviewPanelSourceText.Should().NotBe("미리보기");
+        sut.StatusText.Should().Be($"성경 미리보기: {selection.Title}");
     }
 
     [Fact]
@@ -3338,7 +3338,7 @@ public partial class MainViewModelTests
         sut.Session.Current.State.Should().Be(LiveState.Active);
         sut.Session.Current.CurrentItemBodyText.Should().BeEmpty();
         sut.OutputItem!.Id.Should().Be("song-a", "the gap follows the output row");
-        sut.OutputScreenStatus.Should().Contain("Screen: gap");
+        sut.OutputScreenStatus.Should().Contain("화면: 대기 화면");
 
         await sut.LiveNextShortcutCommand.ExecuteAsync(null);
         sut.IsGapItemOnDisplay.Should().BeFalse();
@@ -5141,7 +5141,7 @@ public partial class MainViewModelTests
         sut.Session.Current.CurrentItemTitle.Should().Be("Live visual");
         sut.Session.Current.CurrentItemPreviewSource.Should().BeSameAs(expectedImage);
         sut.OutputVisualSource.Should().BeSameAs(expectedImage);
-        sut.StatusText.Should().Contain("Output visual refreshed");
+        sut.StatusText.Should().Contain("송출 화면 새로고침");
     }
 
     [Fact]
@@ -7002,7 +7002,7 @@ public partial class MainViewModelTests
         await sut.ToggleOutputClearCommand.ExecuteAsync(null);
         await sut.ToggleOutputBlackCommand.ExecuteAsync(null);
         (sut.IsOutputBlackActive, sut.IsOutputClearActive).Should().Be((true, true));
-        sut.OutputScreenStatus.Should().Contain("Text: hidden").And.Contain("Screen: black");
+        sut.OutputScreenStatus.Should().Contain("글자: 숨김").And.Contain("화면: 검은 화면");
 
         await sut.ToggleOutputBlackCommand.ExecuteAsync(null);
         (sut.IsOutputBlackActive, sut.IsOutputClearActive).Should().Be((false, true));
@@ -7713,7 +7713,7 @@ public partial class MainViewModelTests
         sut.LiveItemId.Should().Be(live.Id);
         sut.Media.Source.Should().Be(outputMedia);
         sut.Media.State.Should().Be(MediaPlaybackState.Playing);
-        sut.StatusText.Should().Contain("Output media restarted").And.Contain("Output Song.mp4");
+        sut.StatusText.Should().Contain("송출 미디어 다시 시작").And.Contain("Output Song.mp4");
     }
 
     [Fact]
@@ -7837,7 +7837,7 @@ public partial class MainViewModelTests
         sut.LiveItemId.Should().Be(live.Id);
         sut.Media.Source.Should().Be(outputMedia);
         sut.Media.State.Should().Be(MediaPlaybackState.Playing, "FrmMain Refresh Output refreshes the live media window without stopping an active media item");
-        sut.StatusText.Should().Contain("Output media refreshed").And.Contain("Output Song.mp4");
+        sut.StatusText.Should().Contain("송출 미디어 새로고침").And.Contain("Output Song.mp4");
     }
 
     [Fact]
@@ -8314,10 +8314,10 @@ public partial class MainViewModelTests
             option.LegacyTag,
             option.Value,
         }).Should().Equal(
-            new { Name = "Main_Rotate0", Text = "Auto Rotate One Item", LegacyTag = "0", Value = AutoRotateMode.One },
-            new { Name = "Main_Rotate1", Text = "Auto Rotate One Item - Repeat", LegacyTag = "1", Value = AutoRotateMode.OneRepeat },
-            new { Name = "Main_Rotate2", Text = "Auto Rotate Group", LegacyTag = "2", Value = AutoRotateMode.Group },
-            new { Name = "Main_Rotate3", Text = "Auto Rotate Group - Repeat", LegacyTag = "3", Value = AutoRotateMode.GroupRepeat });
+            new { Name = "Main_Rotate0", Text = "한 항목 자동 회전", LegacyTag = "0", Value = AutoRotateMode.One },
+            new { Name = "Main_Rotate1", Text = "한 항목 자동 회전 - 반복", LegacyTag = "1", Value = AutoRotateMode.OneRepeat },
+            new { Name = "Main_Rotate2", Text = "그룹 자동 회전", LegacyTag = "2", Value = AutoRotateMode.Group },
+            new { Name = "Main_Rotate3", Text = "그룹 자동 회전 - 반복", LegacyTag = "3", Value = AutoRotateMode.GroupRepeat });
     }
 
     [Fact]
@@ -11518,21 +11518,21 @@ public partial class MainViewModelTests
 
         sut.CanClearOutputBackgroundImage.Should().BeFalse();
         sut.ClearOutputBackgroundImageCommand.CanExecute(null).Should().BeFalse();
-        sut.OutputBackgroundNoImageToolTip.Should().Be("No Default Background");
+        sut.OutputBackgroundNoImageToolTip.Should().Be("기본 배경 없음");
 
         sut.SetOutputBackgroundImage(@"C:\bg\default.jpg");
 
         sut.ActiveOutputBackgroundImagePath.Should().Be(@"C:\bg\default.jpg");
         sut.CanClearOutputBackgroundImage.Should().BeTrue();
         sut.ClearOutputBackgroundImageCommand.CanExecute(null).Should().BeTrue();
-        sut.OutputBackgroundNoImageToolTip.Should().Be(@"Remove Default Background 'C:\bg\default.jpg'");
+        sut.OutputBackgroundNoImageToolTip.Should().Be(@"기본 배경 'C:\bg\default.jpg' 제거");
 
         sut.ClearOutputBackgroundImageCommand.Execute(null);
 
         sut.ActiveOutputBackgroundImagePath.Should().BeEmpty();
         sut.CanClearOutputBackgroundImage.Should().BeFalse();
         sut.ClearOutputBackgroundImageCommand.CanExecute(null).Should().BeFalse();
-        sut.OutputBackgroundNoImageToolTip.Should().Be("No Default Background");
+        sut.OutputBackgroundNoImageToolTip.Should().Be("기본 배경 없음");
     }
 
     [Fact]
@@ -11547,19 +11547,19 @@ public partial class MainViewModelTests
         sut.SelectedItem = sut.Queue[0];
 
         sut.CanClearSelectedItemBackgroundImage.Should().BeFalse();
-        sut.SelectedItemBackgroundNoImageToolTip.Should().Be("No Item Background");
+        sut.SelectedItemBackgroundNoImageToolTip.Should().Be("항목 배경 없음");
 
         sut.SetSelectedItemBackgroundImage(@"C:\bg\item.jpg");
 
         sut.SelectedItemBackgroundImagePath.Should().Be(@"C:\bg\item.jpg");
         sut.CanClearSelectedItemBackgroundImage.Should().BeTrue();
-        sut.SelectedItemBackgroundNoImageToolTip.Should().Be(@"Remove Item Background 'C:\bg\item.jpg'");
+        sut.SelectedItemBackgroundNoImageToolTip.Should().Be(@"항목 배경 'C:\bg\item.jpg' 제거");
 
         sut.SetSelectedItemBackgroundImage("");
 
         sut.SelectedItemBackgroundImagePath.Should().BeEmpty();
         sut.CanClearSelectedItemBackgroundImage.Should().BeFalse();
-        sut.SelectedItemBackgroundNoImageToolTip.Should().Be("No Item Background");
+        sut.SelectedItemBackgroundNoImageToolTip.Should().Be("항목 배경 없음");
     }
 
     [Fact]

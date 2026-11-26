@@ -334,7 +334,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private bool IsOutputHideActive => _session.Current is { State: LiveState.Hidden, IsBlackout: false, IsCleared: false };
 
     public string OutputScreenStatus =>
-        $"Show: {(_session.Current.State == LiveState.Off ? "OFF" : "ON")}     Text: {(IsOutputClearActive ? "hidden" : "shown")}     Screen: {(IsOutputBlackActive ? "black" : IsOutputHideActive ? "hidden" : IsGapItemOnDisplay ? "gap" : "normal")}";
+        UiText.Format("MainViewModel", "OutputScreenStatus", (_session.Current.State == LiveState.Off ? UiText.Get("MainViewModel", "StateOff") : UiText.Get("MainViewModel", "StateOn")), (IsOutputClearActive ? UiText.Get("MainViewModel", "StateHidden") : UiText.Get("MainViewModel", "StateShown")), (IsOutputBlackActive ? UiText.Get("MainViewModel", "StateBlack") : IsOutputHideActive ? UiText.Get("MainViewModel", "StateHidden") : IsGapItemOnDisplay ? UiText.Get("MainViewModel", "StateGap") : UiText.Get("MainViewModel", "StateNormal")));
 
     /// <summary>FrmMain OutputBtnRefAlert 상태: 현재 라이브 출력의 구절/제목 알림 오버레이가 표시 중인가.</summary>
     public bool IsOutputReferenceAlertActive => _session.Current.IsReferenceAlertVisible;
@@ -364,7 +364,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
             var status = string.Equals(Media.Source, mediaPath, StringComparison.OrdinalIgnoreCase)
                 ? BuildOutputMediaStatusText()
-                : "READY";
+                : UiText.Get("MainViewModel", "MediaReady");
             var fileName = Path.GetFileName(mediaPath);
             return string.IsNullOrWhiteSpace(fileName)
                 ? status
@@ -407,7 +407,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public LiveQueueItem? PreviewPanelItem => PreviewItem;
 
     /// <summary>FrmMain PreviewPanelDisplayName 출처 셀: 선택된 Preview 항목의 legacy 종류.</summary>
-    public string PreviewPanelSourceText => BuildPanelSourceText(PreviewItem, "Preview");
+    public string PreviewPanelSourceText => BuildPanelSourceText(PreviewItem, UiText.Get("MainViewModel", "PanelPreview"));
 
     /// <summary>FrmMain PreviewPanelDisplayName 상태 셀: Preview 전용 절/슬라이드 위치.</summary>
     public string PreviewPanelStatusText => BuildPreviewPanelStatusText();
@@ -418,7 +418,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public LiveQueueItem? OutputPanelItem => GetOutputNavigationItem();
 
     /// <summary>FrmMain OutputPanelDisplayName 출처 셀: 준비/라이브 Output 항목의 legacy 종류.</summary>
-    public string OutputPanelSourceText => BuildPanelSourceText(GetOutputNavigationItem(), "Output");
+    public string OutputPanelSourceText => BuildPanelSourceText(GetOutputNavigationItem(), UiText.Get("MainViewModel", "PanelOutput"));
 
     /// <summary>FrmMain OutputPanelDisplayName 상태 셀: Output 전용 준비/LIVE/숨김 상태와 위치.</summary>
     public string OutputPanelStatusText => BuildOutputPanelStatusText(GetOutputNavigationItem());
@@ -716,7 +716,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var items = EswWorshipListParser.Parse(xml, out var sessionFormat, out var sessionNotes);
         if (items.Count == 0 && sessionNotes is null)
         {
-            StatusText = $"Legacy worship list is empty: {name} (.esw)";
+            StatusText = UiText.Format("MainViewModel", "LegacyListEmpty", name);
             return;
         }
 
@@ -739,7 +739,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
         RecordRecentWorshipList(name, sessionNotes);
         WorshipListHasUnsavedChanges = false;
-        StatusText = $"Legacy worship list loaded: {name} ({items.Count} .esw items)" + SongDatabaseErrorSuffix();
+        StatusText = UiText.Format("MainViewModel", "LegacyListLoaded", name, items.Count) + SongDatabaseErrorSuffix();
     }
 
     private string GetAvailableImportName(string name)
@@ -780,13 +780,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var items = EswWorshipListParser.Parse(xml);
         if (items.Count == 0)
         {
-            StatusText = $"Legacy worship list merge skipped: {name} (.esw is empty)";
+            StatusText = UiText.Format("MainViewModel", "LegacyListMergeSkipped", name);
             return true;
         }
 
         _songDatabaseError = null;
         var added = await InsertEswWorshipListItemsAsync(items, targetItem: null).ConfigureAwait(true);
-        StatusText = $"Legacy worship list merged: {name} ({added} added, total {Queue.Count})" + SongDatabaseErrorSuffix();
+        StatusText = UiText.Format("MainViewModel", "LegacyListMerged", name, added, Queue.Count) + SongDatabaseErrorSuffix();
         return true;
     }
 
@@ -1543,8 +1543,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public bool BackgroundModeIsTile => ActiveBackgroundMode == LyricsBackgroundMode.Tile;
     public bool CanClearOutputBackgroundImage => !string.IsNullOrWhiteSpace(ActiveOutputBackgroundImagePath);
     public string OutputBackgroundNoImageToolTip => CanClearOutputBackgroundImage
-        ? $"Remove Default Background '{ActiveOutputBackgroundImagePath}'"
-        : "No Default Background";
+        ? UiText.Format("MainViewModel", "RemoveDefaultBackground", ActiveOutputBackgroundImagePath)
+        : UiText.Get("MainViewModel", "NoDefaultBackground");
     public string PanelFontFamily
     {
         get => _settings.Get(AxicultusSettingKeys.PanelFontFamily) is { Length: > 0 } name ? name : "Microsoft Sans Serif";
@@ -1609,9 +1609,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     public string DefaultRegion2ColorHex => LyricsTextColor2Input == 0 ? ActiveTextColorHex : FormatColorHex(LyricsTextColor2Input);
-    public string DefaultMediaCaption => "Media: " + (ItemMediaOptions.Read(DefaultMediaFormat).Mode switch
+    public string DefaultMediaCaption => UiText.Get("MainViewModel", "DefaultMediaCaptionPrefix") + (ItemMediaOptions.Read(DefaultMediaFormat).Mode switch
     {
-        1 => "As Title", 2 => "Specific", 3 => "Live Feed", _ => string.IsNullOrWhiteSpace(DefaultMediaPath) ? "None" : "Specific"
+        1 => UiText.Get("MainViewModel", "MediaAsTitle"), 2 => UiText.Get("MainViewModel", "MediaSpecific"), 3 => UiText.Get("MainViewModel", "MediaLiveFeed"), _ => string.IsNullOrWhiteSpace(DefaultMediaPath) ? UiText.Get("MainViewModel", "MediaNone") : UiText.Get("MainViewModel", "MediaSpecific")
     });
 
     public int PanelHeightPercent
@@ -1625,8 +1625,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ? _settings.Get(AxicultusSettingKeys.DefaultMediaPath) : ItemMediaOptions.Read(DefaultMediaFormat).FileName;
     public bool CanClearDefaultMedia => DefaultMediaFormat.Length > 0 || !string.IsNullOrWhiteSpace(DefaultMediaPath);
     public string DefaultMediaToolTip => CanClearDefaultMedia
-        ? $"Remove Default Media '{Path.GetFileName(DefaultMediaPath)}'"
-        : "No Default Media";
+        ? UiText.Format("MainViewModel", "RemoveDefaultMedia", Path.GetFileName(DefaultMediaPath))
+        : UiText.Get("MainViewModel", "NoDefaultMedia");
 
     public IRelayCommand<LyricsGradientDirection> ApplyGradientDirectionCommand { get; }
 
@@ -1944,7 +1944,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _sourcePreviewItem = item;
         RefreshLyricsPages(item);
         UpdateContentTabForItem(item);
-        StatusText = $"Preview Bible: {selection.Title}";
+        StatusText = UiText.Format("MainViewModel", "PreviewBible", selection.Title);
         NotifyPreviewItemProperties();
         NotifyCommandStates();
         return item;
@@ -3504,7 +3504,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (!IsLegacyWorshipListFile(filePath))
         {
-            StatusText = "Legacy worship list file (.esw) was not found.";
+            StatusText = UiText.Get("MainViewModel", "LegacyListFileNotFound");
             NotifyCommandStates();
             return 0;
         }
@@ -3516,7 +3516,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            StatusText = $"Could not read worship list file: {ex.Message}";
+            StatusText = UiText.Format("MainViewModel", "ListFileReadFailed", ex.Message);
             NotifyCommandStates();
             return 0;
         }
@@ -3524,13 +3524,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var items = EswWorshipListParser.Parse(xml);
         if (items.Count == 0)
         {
-            StatusText = "Legacy worship list file has no importable items.";
+            StatusText = UiText.Get("MainViewModel", "LegacyListFileNoItems");
             NotifyCommandStates();
             return 0;
         }
 
         var added = InsertEswWorshipListItems(items, targetItem);
-        StatusText = $"Legacy worship list added: {Path.GetFileNameWithoutExtension(filePath)} ({added})";
+        StatusText = UiText.Format("MainViewModel", "LegacyListAdded", Path.GetFileNameWithoutExtension(filePath), added);
         return added;
     }
 
@@ -4663,11 +4663,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private string BuildOutputLiveStateText()
         => _session.Current.State switch
         {
-            LiveState.Active => "LIVE",
-            LiveState.Hidden when _session.Current.IsBlackout => "BLACK",
-            LiveState.Hidden when _session.Current.IsCleared => "CLEAR",
-            LiveState.Hidden => "HIDDEN",
-            LiveState.Standby => "STANDBY",
+            LiveState.Active => UiText.Get("MainViewModel", "PanelLive"),
+            LiveState.Hidden when _session.Current.IsBlackout => UiText.Get("MainViewModel", "PanelBlack"),
+            LiveState.Hidden when _session.Current.IsCleared => UiText.Get("MainViewModel", "PanelClear"),
+            LiveState.Hidden => UiText.Get("MainViewModel", "PanelHidden"),
+            LiveState.Standby => UiText.Get("MainViewModel", "PanelStandby"),
             _ => UiText.Get("MainViewModel", "PanelReady"),
         };
 
@@ -5262,10 +5262,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// <summary>FrmMain Main_RotateStyle dropdown items in legacy order.</summary>
     public IReadOnlyList<AutoRotateModeOption> AutoRotateModeOptions { get; } =
     [
-        new("Main_Rotate0", "Auto Rotate One Item", "0", AutoRotateMode.One),
-        new("Main_Rotate1", "Auto Rotate One Item - Repeat", "1", AutoRotateMode.OneRepeat),
-        new("Main_Rotate2", "Auto Rotate Group", "2", AutoRotateMode.Group),
-        new("Main_Rotate3", "Auto Rotate Group - Repeat", "3", AutoRotateMode.GroupRepeat),
+        new("Main_Rotate0", UiText.Get("MainViewModel", "AutoRotateOne"), "0", AutoRotateMode.One),
+        new("Main_Rotate1", UiText.Get("MainViewModel", "AutoRotateOneRepeat"), "1", AutoRotateMode.OneRepeat),
+        new("Main_Rotate2", UiText.Get("MainViewModel", "AutoRotateGroup"), "2", AutoRotateMode.Group),
+        new("Main_Rotate3", UiText.Get("MainViewModel", "AutoRotateGroupRepeat"), "3", AutoRotateMode.GroupRepeat),
     ];
 
     /// <summary>자동 회전 모드 선택(콤보 양방향 바인딩). 바뀌면 설정에 저장하고 인스펙터 표시를 동기화한다.</summary>
@@ -5333,8 +5333,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         StatusText = ActiveGapItemOption == GapItemMode.None
-            ? "Gap item off"
-            : $"Gap item restored: {ActiveGapItemOption}";
+            ? UiText.Get("MainViewModel", "GapItemOff")
+            : UiText.Format("MainViewModel", "GapItemRestored", GapItemModeOptions.FirstOrDefault(o => o.Value == ActiveGapItemOption).Key ?? ActiveGapItemOption.ToString());
     }
 
     /// <summary>대기 화면(Gap) 전환 페이드 사용을 켜고 끈다(출력 메뉴 토글). 설정 저장 → 출력 라이브 갱신.</summary>
@@ -5381,7 +5381,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (string.IsNullOrWhiteSpace(filePath))
         {
-            StatusText = "Preview PowerPoint file path is empty.";
+            StatusText = UiText.Get("MainViewModel", "PreviewPowerPointPathEmpty");
             NotifyCommandStates();
             return;
         }
@@ -5398,11 +5398,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             await PowerPoint.LoadAsync(filePath, 1, renderWidth, renderHeight).ConfigureAwait(true);
             EnsurePowerPointThumbnails(PowerPoint, filePath);
 
-            StatusText = $"Preview PowerPoint: {item.Title}";
+            StatusText = UiText.Format("MainViewModel", "PreviewPowerPoint", item.Title);
         }
         catch (Exception ex)
         {
-            StatusText = $"Preview PowerPoint load failed: {ex.Message}";
+            StatusText = UiText.Format("MainViewModel", "PreviewPowerPointLoadFailed", ex.Message);
         }
         finally
         {
@@ -6130,8 +6130,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         await PowerPoint.LoadAsync(path, target, width, height).ConfigureAwait(true);
         EnsurePowerPointThumbnails(PowerPoint, path);
         StatusText = PowerPoint.SlideCount > 1
-            ? $"Preview PPT slide {target}/{PowerPoint.SlideCount} replayed"
-            : "Preview PPT slide replayed";
+            ? UiText.Format("MainViewModel", "PreviewSlideReplayedAt", target, PowerPoint.SlideCount)
+            : UiText.Get("MainViewModel", "PreviewSlideReplayed");
 
         NotifyCommandStates();
     }
@@ -6415,8 +6415,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 target,
                 PowerPointSlideShowTarget.Output).ConfigureAwait(true);
             StatusText = OutputPowerPoint.SlideCount > 1
-                ? $"Output PPT slide {target}/{OutputPowerPoint.SlideCount} replayed"
-                : "Output PPT slide replayed";
+                ? UiText.Format("MainViewModel", "OutputSlideReplayedAt", target, OutputPowerPoint.SlideCount)
+                : UiText.Get("MainViewModel", "OutputSlideReplayed");
             NotifyCommandStates();
         }
     }
@@ -7991,7 +7991,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        StatusText = $"LIVE: {prepared.Title}{OutputAreaNote}";
+        StatusText = UiText.Format("MainViewModel", "LiveStatus", prepared.Title, OutputAreaNote);
         _telemetry.Record(commandId, succeeded: true, prepared.Title);
         NotifyCommandStates();
     }
@@ -8382,12 +8382,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         if (!Media.RestartCommand.CanExecute(null))
         {
-            StatusText = $"Output media cannot restart: {Path.GetFileName(mediaPath)}";
+            StatusText = UiText.Format("MainViewModel", "OutputMediaCannotRestart", Path.GetFileName(mediaPath));
             return true;
         }
 
         Media.RestartCommand.Execute(null);
-        StatusText = $"Output media restarted: {Path.GetFileName(mediaPath)}";
+        StatusText = UiText.Format("MainViewModel", "OutputMediaRestarted", Path.GetFileName(mediaPath));
         return true;
     }
 
@@ -8403,7 +8403,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         StatusText = UiText.Get("MainViewModel", "OutputRefreshed");
         if (TryRefreshOutputMedia(shouldResumeOutputMedia, out var refreshedMediaName))
         {
-            StatusText = $"Output media refreshed: {refreshedMediaName}";
+            StatusText = UiText.Format("MainViewModel", "OutputMediaRefreshed", refreshedMediaName);
         }
 
         _telemetry.Record(MainCommandIds.LiveRefresh, succeeded: true, StatusText);
@@ -8448,7 +8448,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             OutputItem = prepared;
             SetLiveItemId(prepared.Id);
             _session.GoLive(ResolveLiveProjection(prepared), monitorName);
-            StatusText = $"Output visual refreshed: {prepared.Title}";
+            StatusText = UiText.Format("MainViewModel", "OutputVisualRefreshed", prepared.Title);
             _telemetry.Record(MainCommandIds.LiveRefresh, succeeded: true, StatusText);
             NotifyCommandStates();
             return;
@@ -8459,14 +8459,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             OutputItem = prepared;
             SetLiveItemId(prepared.Id);
             _session.UpdateHiddenContent(ResolveLiveProjection(prepared), monitorName);
-            StatusText = $"Output visual refreshed while hidden: {prepared.Title}";
+            StatusText = UiText.Format("MainViewModel", "OutputVisualRefreshedHidden", prepared.Title);
             _telemetry.Record(MainCommandIds.LiveRefresh, succeeded: true, StatusText);
             NotifyCommandStates();
             return;
         }
 
         OutputItem = prepared;
-        StatusText = $"Output visual ready: {prepared.Title}";
+        StatusText = UiText.Format("MainViewModel", "OutputVisualReady", prepared.Title);
         NotifyCommandStates();
     }
 
@@ -8517,7 +8517,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        StatusText = $"LIVE: {prepared.Title}{OutputAreaNote}";
+        StatusText = UiText.Format("MainViewModel", "LiveStatus", prepared.Title, OutputAreaNote);
         _telemetry.Record(MainCommandIds.LiveGo, succeeded: true, StatusText);
         if (autoAdvance && ReferenceEquals(item, SelectedItem))
         {
@@ -9095,8 +9095,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public bool CanClearSelectedItemBackgroundImage
         => CanEditSelectedItemColor && !string.IsNullOrWhiteSpace(SelectedItemBackgroundImagePath);
     public string SelectedItemBackgroundNoImageToolTip => CanClearSelectedItemBackgroundImage
-        ? $"Remove Item Background '{SelectedItemBackgroundImagePath}'"
-        : "No Item Background";
+        ? UiText.Format("MainViewModel", "RemoveItemBackground", SelectedItemBackgroundImagePath)
+        : UiText.Get("MainViewModel", "NoItemBackground");
 
     public string SelectedItemMediaPath
         => SongFormatData.Parse(PreviewItem?.FormatData)?.MediaPath ?? string.Empty;
@@ -9105,8 +9105,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         => CanEditSelectedItemColor && !string.IsNullOrWhiteSpace(SelectedItemMediaPath);
 
     public string SelectedItemMediaToolTip => CanClearSelectedItemMedia
-        ? $"Remove Item Media '{SelectedItemMediaPath}'"
-        : "No Item Media";
+        ? UiText.Format("MainViewModel", "RemoveItemMedia", SelectedItemMediaPath)
+        : UiText.Get("MainViewModel", "NoItemMedia");
 
     public LyricsBackgroundMode SelectedItemBackgroundImageMode
         => SongFormatData.Parse(PreviewItem?.FormatData)?.BackgroundImageMode ?? LyricsBackgroundMode.Fill;
@@ -9148,7 +9148,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             OnPropertyChanged(nameof(SelectedItemVerticalAlignmentIsTop));
             OnPropertyChanged(nameof(SelectedItemVerticalAlignmentIsCenter));
             OnPropertyChanged(nameof(SelectedItemVerticalAlignmentIsBottom));
-            StatusText = $"Item vertical align: {alignment}{(turnedOn ? " (individual formatting on)" : "")}";
+            StatusText = UiText.Format("MainViewModel", "ItemVerticalAlignment", alignment switch { LyricsVerticalAlignment.Top => UiText.Get("MainViewModel", "AlignTop"), LyricsVerticalAlignment.Bottom => UiText.Get("MainViewModel", "AlignBottom"), _ => UiText.Get("MainViewModel", "AlignCenter") },(turnedOn ? UiText.Get("MainViewModel", "IndividualFormatOnSuffix") : ""));
         }
     }
 
@@ -9157,7 +9157,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             marginParam,
             max: 40,
             (format, margin) => format with { BodyLeftMargin = margin },
-            "left margin",
+            UiText.Get("MainViewModel", "MarginLeft"),
             nameof(SelectedItemLeftMarginInput));
 
     public void SetSelectedItemRightMargin(string? marginParam)
@@ -9165,7 +9165,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             marginParam,
             max: 40,
             (format, margin) => format with { BodyRightMargin = margin },
-            "right margin",
+            UiText.Get("MainViewModel", "MarginRight"),
             nameof(SelectedItemRightMarginInput));
 
     public void SetSelectedItemBottomMargin(string? marginParam)
@@ -9181,7 +9181,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
         SetSelectedItemMargin(marginParam, 100, (format, margin) => format with { BodyBottomMargin = margin },
-            "bottom margin", nameof(SelectedItemBottomMarginInput));
+            UiText.Get("MainViewModel", "MarginBottom"), nameof(SelectedItemBottomMarginInput));
     }
 
     private void SetSelectedItemMargin(
@@ -9196,8 +9196,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             OnPropertyChanged(inputPropertyName);
             StatusText = margin is null
-                ? $"Item {label}: default"
-                : $"Item {label}: {margin}{(turnedOn ? " (individual formatting on)" : "")}";
+                ? UiText.Format("MainViewModel", "ItemMarginDefault", label)
+                : UiText.Format("MainViewModel", "ItemMargin", label, margin, (turnedOn ? UiText.Get("MainViewModel", "IndividualFormatOnSuffix") : ""));
         }
     }
 
@@ -9310,11 +9310,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             OnPropertyChanged(nameof(SelectedItemBackgroundModeIsTile));
             var label = mode switch
             {
-                LyricsBackgroundMode.Tile => "Tile Image",
-                LyricsBackgroundMode.Fit or LyricsBackgroundMode.Center => "Centre Image",
-                _ => "Best Fit Image",
+                LyricsBackgroundMode.Tile => UiText.Get("MainViewModel", "ItemBackTile"),
+                LyricsBackgroundMode.Fit or LyricsBackgroundMode.Center => UiText.Get("MainViewModel", "ItemBackCentre"),
+                _ => UiText.Get("MainViewModel", "ItemBackBestFit"),
             };
-            StatusText = $"Item background picture format: {label}{(turnedOn ? " (individual formatting on)" : "")}";
+            StatusText = UiText.Format("MainViewModel", "ItemBackImageFormat", label, (turnedOn ? UiText.Get("MainViewModel", "IndividualFormatOnSuffix") : ""));
         }
     }
 
@@ -10528,7 +10528,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ActiveTransitionKind = motionKind;
         OnPropertyChanged(nameof(DefaultItemTransitionKind));
         OnPropertyChanged(nameof(DefaultItemTransitionKindInput));
-        StatusText = $"Item transition: {displayName}";
+        StatusText = UiText.Format("MainViewModel", "ItemTransition", displayName);
     }
 
     public void SetDefaultSlideTransition(TransitionEffectKind kind)
@@ -10542,7 +10542,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(DefaultSlideTransitionKind));
         OnPropertyChanged(nameof(DefaultSlideTransitionKindInput));
         OnPropertyChanged(nameof(SlideTransitionKindInput));
-        StatusText = $"Slide transition: {displayName}";
+        StatusText = UiText.Format("MainViewModel", "SlideTransition", displayName);
     }
 
     public void SetSelectedItemTransition(TransitionEffectKind kind)
@@ -10553,7 +10553,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             OnPropertyChanged(nameof(SelectedItemTransitionKind));
             OnPropertyChanged(nameof(SelectedItemTransitionKindInput));
-            StatusText = $"Item transition: {displayName}{(turnedOn ? " (individual formatting on)" : "")}";
+            StatusText = UiText.Format("MainViewModel", "ItemTransitionIndividual", displayName, (turnedOn ? UiText.Get("MainViewModel", "IndividualFormatOnSuffix") : ""));
         }
     }
 
@@ -10565,7 +10565,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             OnPropertyChanged(nameof(SelectedSlideTransitionKind));
             OnPropertyChanged(nameof(SelectedSlideTransitionKindInput));
-            StatusText = $"Slide transition: {displayName}{(turnedOn ? " (individual formatting on)" : "")}";
+            StatusText = UiText.Format("MainViewModel", "SlideTransitionIndividual", displayName, (turnedOn ? UiText.Get("MainViewModel", "IndividualFormatOnSuffix") : ""));
         }
     }
 
@@ -11083,8 +11083,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (!result.Succeeded) { StatusText = UiText.Get("MainViewModel", "DefaultMediaSaveFailed"); return; }
         NotifyDefaultMediaProperties();
         StatusText = options is { Mode: 1 or 3 } ? UiText.Get("MainViewModel", "DefaultMediaSaved") : string.IsNullOrWhiteSpace(normalized)
-            ? "Default media cleared"
-            : $"Default media: {Path.GetFileName(normalized)}";
+            ? UiText.Get("MainViewModel", "DefaultMediaCleared")
+            : UiText.Format("MainViewModel", "DefaultMedia", Path.GetFileName(normalized));
     }
 
     private void ClearDefaultMedia()

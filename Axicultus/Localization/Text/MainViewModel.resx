@@ -402,4 +402,76 @@
   <data name="RegionMainOnly" xml:space="preserve"><value>Main area only</value></data>
   <data name="RegionSecondaryOnly" xml:space="preserve"><value>Secondary area only</value></data>
   <data name="RegionBoth" xml:space="preserve"><value>Both</value></data>
+  <data name="OutputScreenStatus" xml:space="preserve"><value>Show: {0}     Text: {1}     Screen: {2}</value></data>
+  <data name="MediaReady" xml:space="preserve"><value>READY</value></data>
+  <data name="PanelPreview" xml:space="preserve"><value>Preview</value></data>
+  <data name="PanelOutput" xml:space="preserve"><value>Output</value></data>
+  <data name="LegacyListEmpty" xml:space="preserve"><value>Legacy worship list is empty: {0} (.esw)</value></data>
+  <data name="LegacyListLoaded" xml:space="preserve"><value>Legacy worship list loaded: {0} ({1} .esw items)</value></data>
+  <data name="LegacyListMergeSkipped" xml:space="preserve"><value>Legacy worship list merge skipped: {0} (.esw is empty)</value></data>
+  <data name="LegacyListMerged" xml:space="preserve"><value>Legacy worship list merged: {0} ({1} added, total {2})</value></data>
+  <data name="RemoveDefaultBackground" xml:space="preserve"><value>Remove Default Background '{0}'</value></data>
+  <data name="NoDefaultBackground" xml:space="preserve"><value>No Default Background</value></data>
+  <data name="DefaultMediaCaptionPrefix" xml:space="preserve"><value>Media: </value></data>
+  <data name="MediaAsTitle" xml:space="preserve"><value>As Title</value></data>
+  <data name="MediaSpecific" xml:space="preserve"><value>Specific</value></data>
+  <data name="MediaLiveFeed" xml:space="preserve"><value>Live Feed</value></data>
+  <data name="MediaNone" xml:space="preserve"><value>None</value></data>
+  <data name="RemoveDefaultMedia" xml:space="preserve"><value>Remove Default Media '{0}'</value></data>
+  <data name="NoDefaultMedia" xml:space="preserve"><value>No Default Media</value></data>
+  <data name="PreviewBible" xml:space="preserve"><value>Preview Bible: {0}</value></data>
+  <data name="LegacyListFileNotFound" xml:space="preserve"><value>Legacy worship list file (.esw) was not found.</value></data>
+  <data name="ListFileReadFailed" xml:space="preserve"><value>Could not read worship list file: {0}</value></data>
+  <data name="LegacyListFileNoItems" xml:space="preserve"><value>Legacy worship list file has no importable items.</value></data>
+  <data name="LegacyListAdded" xml:space="preserve"><value>Legacy worship list added: {0} ({1})</value></data>
+  <data name="PanelLive" xml:space="preserve"><value>LIVE</value></data>
+  <data name="PanelBlack" xml:space="preserve"><value>BLACK</value></data>
+  <data name="PanelClear" xml:space="preserve"><value>CLEAR</value></data>
+  <data name="PanelHidden" xml:space="preserve"><value>HIDDEN</value></data>
+  <data name="PanelStandby" xml:space="preserve"><value>STANDBY</value></data>
+  <data name="AutoRotateOne" xml:space="preserve"><value>Auto Rotate One Item</value></data>
+  <data name="AutoRotateOneRepeat" xml:space="preserve"><value>Auto Rotate One Item - Repeat</value></data>
+  <data name="AutoRotateGroup" xml:space="preserve"><value>Auto Rotate Group</value></data>
+  <data name="AutoRotateGroupRepeat" xml:space="preserve"><value>Auto Rotate Group - Repeat</value></data>
+  <data name="GapItemOff" xml:space="preserve"><value>Gap item off</value></data>
+  <data name="GapItemRestored" xml:space="preserve"><value>Gap item restored: {0}</value></data>
+  <data name="PreviewPowerPointPathEmpty" xml:space="preserve"><value>Preview PowerPoint file path is empty.</value></data>
+  <data name="PreviewPowerPoint" xml:space="preserve"><value>Preview PowerPoint: {0}</value></data>
+  <data name="PreviewPowerPointLoadFailed" xml:space="preserve"><value>Preview PowerPoint load failed: {0}</value></data>
+  <data name="PreviewSlideReplayedAt" xml:space="preserve"><value>Preview PPT slide {0}/{1} replayed</value></data>
+  <data name="PreviewSlideReplayed" xml:space="preserve"><value>Preview PPT slide replayed</value></data>
+  <data name="OutputSlideReplayedAt" xml:space="preserve"><value>Output PPT slide {0}/{1} replayed</value></data>
+  <data name="OutputSlideReplayed" xml:space="preserve"><value>Output PPT slide replayed</value></data>
+  <data name="LiveStatus" xml:space="preserve"><value>LIVE: {0}{1}</value></data>
+  <data name="OutputMediaCannotRestart" xml:space="preserve"><value>Output media cannot restart: {0}</value></data>
+  <data name="OutputMediaRestarted" xml:space="preserve"><value>Output media restarted: {0}</value></data>
+  <data name="OutputMediaRefreshed" xml:space="preserve"><value>Output media refreshed: {0}</value></data>
+  <data name="OutputVisualRefreshed" xml:space="preserve"><value>Output visual refreshed: {0}</value></data>
+  <data name="OutputVisualRefreshedHidden" xml:space="preserve"><value>Output visual refreshed while hidden: {0}</value></data>
+  <data name="OutputVisualReady" xml:space="preserve"><value>Output visual ready: {0}</value></data>
+  <data name="RemoveItemBackground" xml:space="preserve"><value>Remove Item Background '{0}'</value></data>
+  <data name="NoItemBackground" xml:space="preserve"><value>No Item Background</value></data>
+  <data name="RemoveItemMedia" xml:space="preserve"><value>Remove Item Media '{0}'</value></data>
+  <data name="NoItemMedia" xml:space="preserve"><value>No Item Media</value></data>
+  <data name="ItemVerticalAlignment" xml:space="preserve"><value>Item vertical align: {0}{1}</value></data>
+  <data name="MarginLeft" xml:space="preserve"><value>left margin</value></data>
+  <data name="MarginRight" xml:space="preserve"><value>right margin</value></data>
+  <data name="MarginBottom" xml:space="preserve"><value>bottom margin</value></data>
+  <data name="ItemMarginDefault" xml:space="preserve"><value>Item {0}: default</value></data>
+  <data name="ItemMargin" xml:space="preserve"><value>Item {0}: {1}{2}</value></data>
+  <data name="ItemBackTile" xml:space="preserve"><value>Tile Image</value></data>
+  <data name="ItemBackCentre" xml:space="preserve"><value>Centre Image</value></data>
+  <data name="ItemBackBestFit" xml:space="preserve"><value>Best Fit Image</value></data>
+  <data name="ItemBackImageFormat" xml:space="preserve"><value>Item background picture format: {0}{1}</value></data>
+  <data name="ItemTransitionIndividual" xml:space="preserve"><value>Item transition: {0}{1}</value></data>
+  <data name="SlideTransitionIndividual" xml:space="preserve"><value>Slide transition: {0}{1}</value></data>
+  <data name="DefaultMediaCleared" xml:space="preserve"><value>Default media cleared</value></data>
+  <data name="DefaultMedia" xml:space="preserve"><value>Default media: {0}</value></data>
+  <data name="StateOff" xml:space="preserve"><value>OFF</value></data>
+  <data name="StateOn" xml:space="preserve"><value>ON</value></data>
+  <data name="StateHidden" xml:space="preserve"><value>hidden</value></data>
+  <data name="StateShown" xml:space="preserve"><value>shown</value></data>
+  <data name="StateBlack" xml:space="preserve"><value>black</value></data>
+  <data name="StateGap" xml:space="preserve"><value>gap</value></data>
+  <data name="StateNormal" xml:space="preserve"><value>normal</value></data>
 </root>
