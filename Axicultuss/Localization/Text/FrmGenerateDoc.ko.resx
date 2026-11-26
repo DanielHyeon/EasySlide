@@ -1,0 +1,63 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="groupBox5.Text" xml:space="preserve"><value>단</value></data>
+  <data name="OptShowColumns2.Text" xml:space="preserve"><value>2단</value></data>
+  <data name="OptShowColumns1.Text" xml:space="preserve"><value>1단</value></data>
+  <data name="groupBox7.Text" xml:space="preserve"><value>줄 간격</value></data>
+  <data name="optOneSongPerPage.Text" xml:space="preserve"><value>한 페이지에 한 곡</value></data>
+  <data name="optNewScreen.Text" xml:space="preserve"><value>화면 나누기마다 빈 줄 하나</value></data>
+  <data name="label6.Text" xml:space="preserve"><value>곡 사이:</value></data>
+  <data name="label7.Text" xml:space="preserve"><value>줄 사이:</value></data>
+  <data name="groupBox6.Text" xml:space="preserve"><value>가사 구성</value></data>
+  <data name="OptLyricsPattern1.Text" xml:space="preserve"><value>순서대로</value></data>
+  <data name="OptLyricsPattern0.Text" xml:space="preserve"><value>기본</value></data>
+  <data name="optCapoZero.Text" xml:space="preserve"><value>카포 0</value></data>
+  <data name="optShowTiming.Text" xml:space="preserve"><value>박자</value></data>
+  <data name="optPrinterSpaces.Text" xml:space="preserve"><value>인쇄용 공백</value></data>
+  <data name="optShowCapo.Text" xml:space="preserve"><value>카포</value></data>
+  <data name="optShowKey.Text" xml:space="preserve"><value>조</value></data>
+  <data name="optWords5.Text" xml:space="preserve"><value>표기</value></data>
+  <data name="groupBox3.Text" xml:space="preserve"><value>영역</value></data>
+  <data name="OptShowSection1.Text" xml:space="preserve"><value>영역 2</value></data>
+  <data name="OptShowSection0.Text" xml:space="preserve"><value>영역 1</value></data>
+  <data name="OptShowSection2.Text" xml:space="preserve"><value>모두</value></data>
+  <data name="BtnSaveExit.Text" xml:space="preserve"><value>저장 후 닫기</value></data>
+  <data name="BtnCancel.Text" xml:space="preserve"><value>닫기</value></data>
+  <data name="BtnOK.Text" xml:space="preserve"><value>만들기</value></data>
+  <data name="groupBox2.Text" xml:space="preserve"><value>표시할 항목</value></data>
+  <data name="optHeadings3.Text" xml:space="preserve"><value>프리코러스 제목</value></data>
+  <data name="optWords7.Text" xml:space="preserve"><value>사용자 참조</value></data>
+  <data name="optHeadings2.Text" xml:space="preserve"><value>브리지 제목</value></data>
+  <data name="optHeadings1.Text" xml:space="preserve"><value>후렴 제목</value></data>
+  <data name="optHeadings0.Text" xml:space="preserve"><value>절 제목</value></data>
+  <data name="optWords6.Text" xml:space="preserve"><value>찬양집 참조</value></data>
+  <data name="optWords2.Text" xml:space="preserve"><value>저작권</value></data>
+  <data name="optWords1.Text" xml:space="preserve"><value>곡 제목</value></data>
+  <data name="optWords0.Text" xml:space="preserve"><value>곡 번호</value></data>
+  <data name="groupBox1.Text" xml:space="preserve"><value>글꼴 크기</value></data>
+  <data name="label8.Text" xml:space="preserve"><value>표기:</value></data>
+  <data name="label5.Text" xml:space="preserve"><value>후렴/브리지:</value></data>
+  <data name="label4.Text" xml:space="preserve"><value>절:</value></data>
+  <data name="label3.Text" xml:space="preserve"><value>저작권/참조:</value></data>
+  <data name="label2.Text" xml:space="preserve"><value>곡 제목:</value></data>
+  <data name="label1.Text" xml:space="preserve"><value>곡 번호:</value></data>
+  <data name="BtnIndexOnly.Text" xml:space="preserve"><value>색인만</value></data>
+  <data name="BtnTitlesRef.Text" xml:space="preserve"><value>제목과 참조</value></data>
+  <data name="groupBox4.Text" xml:space="preserve"><value>용지 크기</value></data>
+  <data name="OptPageSize1.Text" xml:space="preserve"><value>레터</value></data>
+  <data name="OptPageSize0.Text" xml:space="preserve"><value>A4</value></data>
+  <data name="$this.Text" xml:space="preserve"><value>RTF 문서 만들기</value></data>
+  <data name="optPrinterSpaces.ToolTip" xml:space="preserve"><value>인쇄용 공백 추가</value></data>
+  <data name="PanelFontColour5.ToolTip" xml:space="preserve"><value>표기 색 설정</value></data>
+  <data name="PanelFontColour4.ToolTip" xml:space="preserve"><value>후렴/브리지 색 설정</value></data>
+  <data name="PanelFontColour3.ToolTip" xml:space="preserve"><value>절 색 설정</value></data>
+  <data name="PanelFontColour2.ToolTip" xml:space="preserve"><value>저작권/참조 색 설정</value></data>
+  <data name="PanelFontColour1.ToolTip" xml:space="preserve"><value>곡 제목 색 설정</value></data>
+  <data name="PanelFontColour0.ToolTip" xml:space="preserve"><value>곡 번호 색 설정</value></data>
+  <data name="OverwriteNote" xml:space="preserve"><value>참고: 만들기를 누르면 다음 파일을 덮어씁니다: {0}</value></data>
+  <data name="GenerateFailed" xml:space="preserve"><value>문서 {0}을(를) 만드는 중 오류가 발생했습니다. 문서가 열려 있을 수 있으니 먼저 닫으세요.</value></data>
+</root>

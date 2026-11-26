@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Windows.Forms;
 using System.Xml;
+using Axicultus.Localization;
 using Axicultus.Module;
 using Axicultus.Properties;
 //using Microsoft.Office.Interop.Access.Dao;
@@ -38,6 +39,7 @@ public partial class FrmExport : Form
 		public FrmExport()
 		{
 			InitializeComponent();
+			UiText.ApplyTo(this);
 		}
 
 		private void FrmExport_Load(object sender, EventArgs e)
@@ -128,11 +130,11 @@ public partial class FrmExport : Form
 				int count = SongsList.Items.Count;
 				if (count < 1)
 				{
-					SongsList.Columns[0].Text = "No Items found";
+					SongsList.Columns[0].Text = UiText.Get(nameof(FrmExport), "NoItemsFound");
 					return;
 				}
 				int count2 = SongsList.CheckedItems.Count;
-				SongsList.Columns[0].Text = " " + Convert.ToString(count) + " items found : " + Convert.ToString(count2) + " ticked.";
+				SongsList.Columns[0].Text = UiText.Format(nameof(FrmExport), "ItemsFound", count, count2);
 			}
 		}
 
@@ -264,7 +266,7 @@ public partial class FrmExport : Form
 
 		private void Export_FileName_Click(object sender, EventArgs e)
 		{
-			saveFileDialog1.Filter = "Axicultus XML File (*.xml)|*.xml|Axicultus Database File (*.esf)|*.esf|Axicultus Text File (*.esn)|*.esn|Axicultus JSON File (*.json)|*.json";
+			saveFileDialog1.Filter = UiText.Format(nameof(FrmExport), "ExportFilter", "*.xml", "*.esf", "*.esn", "*.json");
 			saveFileDialog1.InitialDirectory = Gf.ExportToDir;
 			string InFileName = tbExportTo.Text;
 			saveFileDialog1.FileName = Gf.GetDisplayNameOnly(ref InFileName, UpdateByRef: false, KeepExt: false);
@@ -292,18 +294,18 @@ public partial class FrmExport : Form
 		{
 			if (FolderList.CheckedItems.Count == 0)
 			{
-				MessageBox.Show("You have not selected any folders to export!");
+				MessageBox.Show(UiText.Get(nameof(FrmExport), "NoFoldersSelected"));
 				return;
 			}
 			if (SongsList.Items.Count < 1)
 			{
-				MessageBox.Show("No Songs exported - the Songs List is empty!");
+				MessageBox.Show(UiText.Get(nameof(FrmExport), "SongsListEmpty"));
 				return;
 			}
 			TotSongsSel = SongsList.CheckedItems.Count;
 			if (TotSongsSel < 1)
 			{
-				MessageBox.Show("Please Tick the songs you wish to export");
+				MessageBox.Show(UiText.Get(nameof(FrmExport), "TickSongs"));
 				return;
 			}
 			string outputPath = tbExportTo.Text;
@@ -311,12 +313,12 @@ public partial class FrmExport : Form
 			{
 				if (Gf.IsMainDatabaseFile(outputPath))
 				{
-					MessageBox.Show("Choose an export file other than the active song database.");
+					MessageBox.Show(UiText.Get(nameof(FrmExport), "ActiveDatabaseChosen"));
 					return;
 				}
-				if (MessageBox.Show("This will overwrite the existing document '" + outputPath + "' - OK to Continue?", "Overwrite", MessageBoxButtons.OKCancel) != DialogResult.OK)
+				if (MessageBox.Show(UiText.Format(nameof(FrmExport), "OverwriteConfirm", outputPath), UiText.Get(nameof(FrmExport), "OverwriteCaption"), MessageBoxButtons.OKCancel) != DialogResult.OK)
 				{
-					MessageBox.Show("Export file NOT produced.");
+					MessageBox.Show(UiText.Get(nameof(FrmExport), "ExportNotProduced"));
 					return;
 				}
 				try
@@ -325,7 +327,7 @@ public partial class FrmExport : Form
 				}
 				catch
 				{
-					MessageBox.Show("For some reason, Windows could not create the file '" + outputPath + "'. Export NOT done.");
+					MessageBox.Show(UiText.Format(nameof(FrmExport), "FileCreateFailed", outputPath));
 					ProgressBar1.Value = 0;
 					return;
 				}
@@ -392,16 +394,16 @@ public partial class FrmExport : Form
 					Cursor = Cursors.Default;
 					if (exportedSongId > 0)
 					{
-						MessageBox.Show("Export Completed. Total of " + Convert.ToString(SongsList.CheckedItems.Count) + " songs exported to " + ExportFileName);
+						MessageBox.Show(UiText.Format(nameof(FrmExport), "ExportCompleted", SongsList.CheckedItems.Count, ExportFileName));
 					}
 					else
 					{
-						MessageBox.Show("Error encountered when exporting to database file'" + ExportFileName + "'. Export NOT completed.");
+						MessageBox.Show(UiText.Format(nameof(FrmExport), "DatabaseExportFailed", ExportFileName));
 					}
 				}
 				else
 				{
-					MessageBox.Show("Error encountered when trying to create export database file'" + ExportFileName + "'. Export NOT completed.");
+					MessageBox.Show(UiText.Format(nameof(FrmExport), "DatabaseCreateFailed", ExportFileName));
 				}
 
 				ProgressBar1.Value = 0;
@@ -409,7 +411,7 @@ public partial class FrmExport : Form
 			}
 			else
 			{
-				MessageBox.Show("System Error: cannot create export database file. You may need to re-install Axicultuss Software.");
+				MessageBox.Show(UiText.Get(nameof(FrmExport), "TemplateMissing"));
 			}
 		}
 
@@ -520,11 +522,11 @@ public partial class FrmExport : Form
 
 			if (FileUtil.CreateNewFile(ExportFileName, FileUtil.FileContentsType.DoubleByte, stringBuilder.ToString()))
 			{
-				MessageBox.Show("Export Completed. Total of " + Convert.ToString(exportedSongCount) + " songs exported to " + ExportFileName);
+				MessageBox.Show(UiText.Format(nameof(FrmExport), "ExportCompleted", exportedSongCount, ExportFileName));
 			}
 			else
 			{
-				MessageBox.Show("Error encountered when trying to create export file'" + ExportFileName + "'. Export NOT completed.");
+				MessageBox.Show(UiText.Format(nameof(FrmExport), "ExportFileFailed", ExportFileName));
 			}
 			Cursor = Cursors.Default;
 			ProgressBar1.Visible = false;
@@ -564,17 +566,17 @@ public partial class FrmExport : Form
 					{
 						int id = DataUtil.StringToInt(item.SubItems[1].Text);
 						if (!rows.TryGetValue(id, out var row) || !Gf.LoadDataIntoItem(ref ExportItem, row))
-							throw new InvalidDataException("Could not read selected song " + id);
+							throw new InvalidDataException(UiText.Format(nameof(FrmExport), "SongReadFailed", id));
 						yield return Gf.ToExchangeSong(ExportItem, Gf.Folders[ExportItem.FolderNo].Name);
 						ProgressBar1.Value = (int)(++exported * 100L / checkedItems.Count);
 					}
 				}
 				SongExchangeFile.WriteJson(path, SelectedSongs());
-				MessageBox.Show($"Exported {exported} songs to {path}");
+				MessageBox.Show(UiText.Format(nameof(FrmExport), "ExportedSongs", exported, path));
 			}
 			catch (Exception ex) when (SongExchangeFile.IsReadError(ex))
 			{
-				MessageBox.Show("Could not export the song file. " + ex.Message);
+				MessageBox.Show(UiText.Format(nameof(FrmExport), "ExportSongFileFailed", ex.Message));
 			}
 			finally
 			{
@@ -622,14 +624,14 @@ public partial class FrmExport : Form
 				xtw.Flush();
 				xtw.Dispose();
 				Cursor = Cursors.Default;
-				MessageBox.Show("Export Completed. Total of " + Convert.ToString(exportedSongCount) + " songs exported to " + ExportFileName);
+				MessageBox.Show(UiText.Format(nameof(FrmExport), "ExportCompleted", exportedSongCount, ExportFileName));
 			}
 			catch
 			{
 				xtw?.Dispose();
 
 				Cursor = Cursors.Default;
-				MessageBox.Show("Error encountered when trying to create export file'" + ExportFileName + "'. Export NOT completed.");
+				MessageBox.Show(UiText.Format(nameof(FrmExport), "ExportFileFailed", ExportFileName));
 			}
 			ProgressBar1.Value = 0;
 		}

@@ -12,6 +12,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
+using Axicultus.Localization;
 using Axicultus.Module;
 using Axicultus.Util;
 using OfficeLib;
@@ -217,7 +218,7 @@ internal unsafe partial class Gf
 				// A missing file has already been reported for this item in this show (ValidatePowerpointItem).
 				if (!missingFileReported.Contains(itemPath ?? ""))
 				{
-					FrmMain.ReportErrorNotice("The PowerPoint item could not be started: " + runFailure);
+					FrmMain.ReportErrorNotice(UiText.Format("gfPowerPoint", "ItemNotStarted", runFailure));
 				}
 				return;
 			}
@@ -226,7 +227,7 @@ internal unsafe partial class Gf
 				return;
 			}
 			FrmMain.WriteDebugLogThrottled("RunPowerpointSong: bring the slide show to the front", new InvalidOperationException(error));
-			FrmMain.ReportErrorNotice("The PowerPoint slide show may be hidden behind another window on the output monitor: " + error);
+			FrmMain.ReportErrorNotice(UiText.Format("gfPowerPoint", "ShowMayBeHidden", error));
 		}
 
 		/// <summary>
@@ -360,7 +361,7 @@ internal unsafe partial class Gf
 				FrmMain.WriteDebugLogThrottled("PowerPoint slide movement", error);
 				if (navigationErrorReported.Add(InItem?.Path ?? ""))
 				{
-					FrmMain.ReportErrorNotice("The PowerPoint slide could not be moved: " + error.GetBaseException().Message);
+					FrmMain.ReportErrorNotice(UiText.Format("gfPowerPoint", "SlideNotMoved", error.GetBaseException().Message));
 				}
 				return;
 			}
@@ -422,7 +423,7 @@ internal unsafe partial class Gf
 			}
 			showLostReportedPath = path;
 			FrmMain.WriteDebugLog("PowerPoint: the slide show of '" + path + "' is no longer running (ended or closed in PowerPoint)");
-			FrmMain.ReportErrorNotice("The PowerPoint slide show of this item is no longer running (it was ended or closed in PowerPoint): " + Path.GetFileName(path));
+			FrmMain.ReportErrorNotice(UiText.Format("gfPowerPoint", "ShowNoLongerRunning", Path.GetFileName(path)));
 		}
 
 		/// <summary>
@@ -527,7 +528,7 @@ internal unsafe partial class Gf
 				return;
 			}
 			FrmMain.WriteDebugLogThrottled(where + ": take the slide show windows off the top", new InvalidOperationException(error));
-			FrmMain.ReportErrorNotice("A PowerPoint slide show window could not be taken off the top of the screen: " + error);
+			FrmMain.ReportErrorNotice(UiText.Format("gfPowerPoint", "WindowNotLowered", error));
 		}
 
 		public static int RunPowerpointSong(ref SongSettings InItem, ref PowerPoint InPPT, int StartingSlide)
@@ -558,8 +559,8 @@ internal unsafe partial class Gf
 			{
 				FrmMain.WriteDebugLog("PowerPoint gate: " + (notResponding ? "PowerPoint is not responding: " : "PowerPoint answers again: ") + reason);
 				FrmMain.ReportErrorNotice(notResponding
-					? "PowerPoint is not responding: PowerPoint items cannot be shown until it answers again"
-					: "PowerPoint answers again: load a PowerPoint item again to show it");
+					? UiText.Get("gfPowerPoint", "NotResponding")
+					: UiText.Get("gfPowerPoint", "AnswersAgain"));
 			};
 			PowerPointGate.Trace += text => FrmMain.WriteDebugLog(text);
 		}
@@ -819,7 +820,7 @@ internal unsafe partial class Gf
 				return;
 			}
 			FrmMain.WriteDebugLog(where + ": " + reason + "; the PowerPoint clean-up was skipped (" + pendingShowCopies.Count + " show copy(ies) kept for the next show start and app exit)");
-			FrmMain.ReportErrorNotice("PowerPoint is not responding: the show's PowerPoint copy could not be closed (tried again at the next show start)");
+			FrmMain.ReportErrorNotice(UiText.Get("gfPowerPoint", "ShowCopyNotClosed"));
 		}
 
 		/// <summary>
@@ -874,7 +875,7 @@ internal unsafe partial class Gf
 					PowerPointGate.NoteNotResponding(where + ": PowerPoint still does not answer (" + detail + ")");
 					if (pendingShowCopies.Count > 0)
 					{
-						FrmMain.ReportErrorNotice("PowerPoint is still not responding: the PowerPoint copy of an earlier show could not be closed");
+						FrmMain.ReportErrorNotice(UiText.Get("gfPowerPoint", "EarlierCopyNotClosed"));
 					}
 					return;
 				}
@@ -950,8 +951,8 @@ internal unsafe partial class Gf
 					if (failed > 0 || LivePP.LastCloseError != null)
 					{
 						string message = failed > 0
-							? "A PowerPoint copy of an earlier show could not be closed: " + LivePP.LastCloseFailedName
-							: "Not every PowerPoint copy of an earlier show could be checked for closing: " + LivePP.LastCloseError;
+							? UiText.Format("gfPowerPoint", "EarlierCopyCloseFailed", LivePP.LastCloseFailedName)
+							: UiText.Format("gfPowerPoint", "EarlierCopyCheckFailed", LivePP.LastCloseError);
 						FrmMain.WriteDebugLog(where + ": " + message);
 						FrmMain.ReportErrorNotice(message);
 					}
@@ -988,9 +989,9 @@ internal unsafe partial class Gf
 			}
 			string message = (failed > 0)
 				? (failed == 1
-					? "A PowerPoint presentation of this show could not be closed: " + LivePP.LastCloseFailedName
-					: failed + " PowerPoint presentations of this show could not be closed (first: " + LivePP.LastCloseFailedName + ")")
-				: "Not every PowerPoint presentation of this show could be checked for closing: " + error;
+					? UiText.Format("gfPowerPoint", "PresentationNotClosed", LivePP.LastCloseFailedName)
+					: UiText.Format("gfPowerPoint", "PresentationsNotClosed", failed, LivePP.LastCloseFailedName))
+				: UiText.Format("gfPowerPoint", "PresentationCheckFailed", error);
 			if (failed > 0 && error != null)
 			{
 				message += "; " + error;
@@ -1256,7 +1257,7 @@ internal unsafe partial class Gf
 					}
 					else
 					{
-						Console.WriteLine("RunProcessOnMonitor: process媛 null??��?李쎈�?李얠??????�뒿??�떎.");
+						Console.WriteLine("RunProcessOnMonitor: the process is null or its window was not found.");
 						return false;
 					}
 				}

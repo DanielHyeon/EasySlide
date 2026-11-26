@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="tabPage1.Text" xml:space="preserve"><value>Folder Search</value></data>
+  <data name="groupBox2.Text" xml:space="preserve"><value>Restrict To</value></data>
+  <data name="label7.Text" xml:space="preserve"><value>Timing:</value></data>
+  <data name="cbNotationsOnly.Text" xml:space="preserve"><value>With Notations</value></data>
+  <data name="cbMusicOnly.Text" xml:space="preserve"><value>With Music File</value></data>
+  <data name="label5.Text" xml:space="preserve"><value>Key:</value></data>
+  <data name="groupBox1.Text" xml:space="preserve"><value>Search On</value></data>
+  <data name="cbCopyright.Text" xml:space="preserve"><value>Copyright</value></data>
+  <data name="cbWriter.Text" xml:space="preserve"><value>Writer</value></data>
+  <data name="cbLicAdmin.Text" xml:space="preserve"><value>Lic Admin</value></data>
+  <data name="cbUserRef.Text" xml:space="preserve"><value>User Ref</value></data>
+  <data name="cbBookRef.Text" xml:space="preserve"><value>Book Ref</value></data>
+  <data name="cbSongNumber.Text" xml:space="preserve"><value>Song No.</value></data>
+  <data name="cbContents.Text" xml:space="preserve"><value>Contents</value></data>
+  <data name="cbTitle.Text" xml:space="preserve"><value>Title</value></data>
+  <data name="label1.Text" xml:space="preserve"><value>Enter search phrase:</value></data>
+  <data name="cbUseDates.Text" xml:space="preserve"><value>Search between</value></data>
+  <data name="label6.Text" xml:space="preserve"><value>and</value></data>
+  <data name="tabPage2.Text" xml:space="preserve"><value>Bible Search</value></data>
+  <data name="MatchPhrase.Text" xml:space="preserve"><value>Match the phrase exactly</value></data>
+  <data name="MatchAny.Text" xml:space="preserve"><value>Match any of the words</value></data>
+  <data name="MatchAll.Text" xml:space="preserve"><value>Match all the words</value></data>
+  <data name="label3.Text" xml:space="preserve"><value>Bible Version:</value></data>
+  <data name="label4.Text" xml:space="preserve"><value>Book:</value></data>
+  <data name="label2.Text" xml:space="preserve"><value>Enter search phrase:</value></data>
+  <data name="BtnCancel.Text" xml:space="preserve"><value>Close</value></data>
+  <data name="BtnOK.Text" xml:space="preserve"><value>Search</value></data>
+  <data name="$this.Text" xml:space="preserve"><value>Search for Axicultus Items</value></data>
+  <data name="NoFoldersSelected" xml:space="preserve"><value>You have not selected any folders to search!</value></data>
+</root>

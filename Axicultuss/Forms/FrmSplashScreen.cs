@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Windows.Forms;
+using Axicultus.Localization;
 
 namespace Axicultus;
 
@@ -10,9 +11,10 @@ public partial class FrmSplashScreen : Form
     {
         Cursor = Cursors.AppStarting;
         InitializeComponent();
+        UiText.ApplyTo(this);
         //base.Width = 466;
         //base.Height = 330;
-        labelVersion.Text = "Version: 5.0.0";
+        labelVersion.Text = UiText.Format(nameof(FrmSplashScreen), "Version", "5.0.0");
         labelCopyright.Text = '©' + " 2019 daniel park revision";
         //labelUser.Text = "산소망 교회";
         base.TopMost = false;

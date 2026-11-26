@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="$this.Text" xml:space="preserve"><value>Import</value></data>
+  <data name="groupBox1.Text" xml:space="preserve"><value>A - Import File:</value></data>
+  <data name="LocationBtn.ToolTipText" xml:space="preserve"><value>Export file name</value></data>
+  <data name="groupBox2.Text" xml:space="preserve"><value>B - Import File Folders (if any)</value></data>
+  <data name="groupBox3.Text" xml:space="preserve"><value>C - Select Folder to import into</value></data>
+  <data name="groupBox4.Text" xml:space="preserve"><value>D - If Title exists in Axicultuss</value></data>
+  <data name="OptImport2.Text" xml:space="preserve"><value>IMPORT and REPLACE existing item.</value></data>
+  <data name="OptImport1.Text" xml:space="preserve"><value>IMPORT but also KEEP existing item</value></data>
+  <data name="OptImport0.Text" xml:space="preserve"><value>DO NOT Import the item</value></data>
+  <data name="BtnCancel.Text" xml:space="preserve"><value>Close</value></data>
+  <data name="BtnOK.Text" xml:space="preserve"><value>Import</value></data>
+  <data name="columnHeader2.Text" xml:space="preserve"><value>Item</value></data>
+  <data name="columnHeader3.Text" xml:space="preserve"><value>Title</value></data>
+  <data name="columnHeader4.Text" xml:space="preserve"><value>Status</value></data>
+  <data name="ReadError" xml:space="preserve"><value>There was an error reading the Import File - the file might not be a valid Axicultus File</value></data>
+  <data name="DefaultFolder" xml:space="preserve"><value>Default Folder</value></data>
+  <data name="SongFileReadFailed" xml:space="preserve"><value>Could not read the song file. {0}</value></data>
+  <data name="ImportFilter" xml:space="preserve"><value>Axicultus Files ({0})|{1}|Access Database ({2})|{2}</value></data>
+  <data name="SpecifyImportFile" xml:space="preserve"><value>Please specify an import file (A).</value></data>
+  <data name="ImportFileMissing" xml:space="preserve"><value>The selected import file doesn't exist! Please re-select the import file (A).</value></data>
+  <data name="SelectImportFolders" xml:space="preserve"><value>Please select Folder(s) from the list of Import File Folders (B).</value></data>
+  <data name="SelectDestinationFolder" xml:space="preserve"><value>Please select a Folder to Import your items into (C).</value></data>
+  <data name="InvalidExtension" xml:space="preserve"><value>Sorry - The Import File you have selected in (A) does not have a valid Axicultus file extension.</value></data>
+  <data name="Importing" xml:space="preserve"><value>Importing...</value></data>
+  <data name="NoTitle" xml:space="preserve"><value>Item has No Title - Not Imported</value></data>
+  <data name="SongFileImportFailed" xml:space="preserve"><value>Could not import the song file. {0}</value></data>
+  <data name="NoSongsImported" xml:space="preserve"><value>No Songs were imported.</value></data>
+  <data name="ImportedNewSongs" xml:space="preserve"><value>Imported {0} new songs.</value></data>
+  <data name="ImportedOneNewSong" xml:space="preserve"><value>Imported one new song.</value></data>
+  <data name="ReplacedSongs" xml:space="preserve"><value>Replaced {0} existing songs.</value></data>
+  <data name="ReplacedOneSong" xml:space="preserve"><value>Replaced one existing song.</value></data>
+  <data name="Completed" xml:space="preserve"><value>Completed.</value></data>
+  <data name="CompletedSummary" xml:space="preserve"><value>Completed. {0}</value></data>
+  <data name="InsertFailed" xml:space="preserve"><value>Insert failed</value></data>
+  <data name="ImportedAsNew" xml:space="preserve"><value>++ Imported as a New Item ++</value></data>
+  <data name="UpdateFailed" xml:space="preserve"><value>Update failed</value></data>
+  <data name="ExistingReplaced" xml:space="preserve"><value>** Existing Item in Database Replaced **</value></data>
+  <data name="NotImported" xml:space="preserve"><value>Not Imported</value></data>
+  <data name="StartingImport" xml:space="preserve"><value>Starting Import...</value></data>
+  <data name="SongExists" xml:space="preserve"><value>Song exists in Database - NOT Imported</value></data>
+  <data name="HelperNoFile" xml:space="preserve"><value>Cannot start Helper - Please specify an Access Database file.</value></data>
+  <data name="HelperNoFolder" xml:space="preserve"><value>Cannot start Helper - Please select a Song Folder to Import Access database items into.</value></data>
+  <data name="HelperFileMissing" xml:space="preserve"><value>Cannot start Helper - The Access Database file specified does not exist - please select a valid import file!</value></data>
+  <data name="HelperNotAccess" xml:space="preserve"><value>Cannot start Helper - The specified file is not an Access Database file</value></data>
+  <data name="SelectSourceCdFolder" xml:space="preserve"><value>Please select a Folder to Import the Source materials into (C).</value></data>
+  <data name="SourceCdFolderMissing" xml:space="preserve"><value>The source CD Folder '{0}' does not exists!</value></data>
+</root>

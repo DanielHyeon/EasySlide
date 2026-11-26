@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="BtnCancel.Text" xml:space="preserve"><value>Close</value></data>
+  <data name="BtnOK.Text" xml:space="preserve"><value>Recover</value></data>
+  <data name="columnHeader2.Text" xml:space="preserve"><value>Restore to Folder</value></data>
+  <data name="columnHeader3.Text" xml:space="preserve"><value>Deleted (Y-M-D)</value></data>
+  <data name="columnHeader4.Text" xml:space="preserve"><value>Song ID</value></data>
+  <data name="columnHeader5.Text" xml:space="preserve"><value>FolderNo</value></data>
+  <data name="cbTickAll.Text" xml:space="preserve"><value>Tick All</value></data>
+  <data name="label1.Text" xml:space="preserve"><value>Tick the items you wish to restore and then click 'Recover':</value></data>
+  <data name="$this.Text" xml:space="preserve"><value>Recover Deleted Songs</value></data>
+  <data name="RecoverConfirm" xml:space="preserve"><value>Recover the Ticked song(s) to their Original Folders?</value></data>
+  <data name="RecoverCaption" xml:space="preserve"><value>Recover Song(s)</value></data>
+  <data name="NotAllRecovered" xml:space="preserve"><value>Not all the ticked songs were recovered, please try again</value></data>
+  <data name="ListedTicked" xml:space="preserve"><value>{0} items listed / {1} ticked for recovery.</value></data>
+</root>

@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="BtnCancel.Text" xml:space="preserve"><value>Close</value></data>
+  <data name="BtnOK.Text" xml:space="preserve"><value>Register...</value></data>
+  <data name="$this.Text" xml:space="preserve"><value>Register Use of Axicultuss</value></data>
+  <data name="Info" xml:space="preserve"><value>Axicultuss Version 4.0.5 is provided free of charge and for your indefinite use provided you abide by the End User Licence Agreement (EULA).
+
+If you intend to use this software on an on-going basis, you are invited to register your use of the software by clicking on the 'Register' button below which will take you to the Axicultuss Registration Page at http://www.easislides.com/register 
+
+Registration is voluntary and is free of charge.  The registration information you provide will help us to monitor the spread of use of Axicultuss around the world.</value></data>
+</root>

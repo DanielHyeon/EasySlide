@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Windows.Forms;
+using Axicultus.Localization;
 using Axicultus.SQLite;
 using Axicultus.Util;
 
@@ -18,6 +19,7 @@ namespace Axicultus;
 		public FrmLookupTitles()
 		{
 			InitializeComponent();
+			UiText.ApplyTo(this);
 		}
 
 		private void FrmLookupTitles_Load(object sender, EventArgs e)

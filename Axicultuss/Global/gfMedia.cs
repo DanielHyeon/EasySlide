@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using Axicultus.Global;
+using Axicultus.Localization;
 using Axicultus.Module;
 using Axicultus.Util;
 
@@ -247,7 +248,7 @@ internal unsafe partial class Gf
 			string mediaFileName = GetMediaFileName(title1, title2);
 			if (!RunProcess(mediaFileName))
 			{
-				MessageBox.Show("Sorry, cannot find any media file for '" + title1 + "'" + ((title2 != "") ? (" or '" + title2 + "'") : ""));
+				MessageBox.Show(title2 != "" ? UiText.Format("gfMedia", "MediaNotFoundEither", title1, title2) : UiText.Format("gfMedia", "MediaNotFound", title1));
 			}
 		}
 

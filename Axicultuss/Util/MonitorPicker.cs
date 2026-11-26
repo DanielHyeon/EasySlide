@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 using Axicultus.Core;
+using Axicultus.Localization;
 
 namespace Axicultus.Util;
 
@@ -21,9 +22,9 @@ internal static class MonitorPicker
     {
         var choices = new List<Choice>();
         if (purpose == MonitorPurpose.Media)
-            choices.Add(new Choice("", "기본 송출 모니터"));
+            choices.Add(new Choice("", UiText.Get(nameof(MonitorPicker), "DefaultOutputMonitor")));
         if (purpose == MonitorPurpose.Output)
-            choices.Add(new Choice(MonitorLayout.Auto, "자동 선택"));
+            choices.Add(new Choice(MonitorLayout.Auto, UiText.Get(nameof(MonitorPicker), "Auto")));
 
         foreach (var display in displays.OrderByDescending(d => d.IsPrimary)
                      .ThenBy(d => d.Bounds.Top).ThenBy(d => d.Bounds.Left).ThenBy(d => d.Name, StringComparer.CurrentCulture))
@@ -31,13 +32,13 @@ internal static class MonitorPicker
             if (purpose == MonitorPurpose.Lyrics && display.IsPrimary)
             {
                 if (string.Equals(display.Name, savedId, StringComparison.OrdinalIgnoreCase))
-                    choices.Add(new Choice(display.Name, $"{display.Label} (가사 모니터로 사용 불가)"));
+                    choices.Add(new Choice(display.Name, UiText.Format(nameof(MonitorPicker), "NotForLyrics", display.Label)));
             }
             else
                 choices.Add(new Choice(display.Name, display.Label));
         }
         if (purpose != MonitorPurpose.Media)
-            choices.Add(new Choice(MonitorLayout.None, "사용 안 함"));
+            choices.Add(new Choice(MonitorLayout.None, UiText.Get(nameof(MonitorPicker), "None")));
 
         var selected = choices.Find(c => string.Equals(c.Id, savedId, StringComparison.OrdinalIgnoreCase));
         if (selected is null && !string.IsNullOrWhiteSpace(savedId))

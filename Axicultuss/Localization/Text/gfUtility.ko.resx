@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="SaveFolderSettingsFailed" xml:space="preserve"><value>오류: 폴더 번호 {0}의 폴더 설정을 저장할 수 없습니다.</value></data>
+  <data name="SelectSongToEdit" xml:space="preserve"><value>{0}에서 편집할 곡을 선택하세요.</value></data>
+  <data name="ClearFormattingConfirm" xml:space="preserve"><value>가사 데이터베이스에 저장된 개별 서식을 모두 지웁니다. 계속하려면 '예'를 누르세요.</value></data>
+  <data name="ClearFormattingCaption" xml:space="preserve"><value>Axicultus 데이터베이스 정리</value></data>
+  <data name="ClearSettingsConfirm" xml:space="preserve"><value>경고: Axicultuss 설정을 모두 지우고 Axicultuss를 닫습니다. 다음에 Axicultuss를 다시 시작하면 Axicultuss 작업 폴더가 {0}(으)로 설정됩니다. 계속하려면 '예'를 누르세요.</value></data>
+  <data name="ClearSettingsCaption" xml:space="preserve"><value>Axicultuss 설정 지우기</value></data>
+</root>

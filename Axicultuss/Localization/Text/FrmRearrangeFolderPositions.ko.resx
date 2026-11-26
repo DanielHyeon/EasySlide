@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="OKBtn.Text" xml:space="preserve"><value>적용</value></data>
+  <data name="CancelBtn.Text" xml:space="preserve"><value>취소</value></data>
+  <data name="SF_Up.ToolTipText" xml:space="preserve"><value>위로 이동</value></data>
+  <data name="SF_Down.ToolTipText" xml:space="preserve"><value>아래로 이동</value></data>
+  <data name="$this.Text" xml:space="preserve"><value>곡 폴더 순서 바꾸기</value></data>
+  <data name="RearrangeFailed" xml:space="preserve"><value>일부 폴더의 순서를 바꾸는 중 오류가 발생했습니다. Axicultuss를 다시 시작한 후 다시 시도하세요.</value></data>
+</root>

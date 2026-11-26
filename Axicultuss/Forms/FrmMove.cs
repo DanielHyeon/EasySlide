@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
+using Axicultus.Localization;
 
 namespace Axicultus;
 
@@ -11,11 +12,12 @@ namespace Axicultus;
 		public FrmMove()
 		{
 			InitializeComponent();
+			UiText.ApplyTo(this);
 		}
 
 		private void FrmMove_Load(object sender, EventArgs e)
 		{
-			Label1.Text = "You have selected " + Gf.SelectedItemsCount + " item" + ((Gf.SelectedItemsCount > 1) ? "s" : "") + " for Moving. Please choose a folder to move the item" + ((Gf.SelectedItemsCount > 1) ? "s" : "") + " to, and then click OK.";
+			Label1.Text = UiText.Format(nameof(FrmMove), Gf.SelectedItemsCount > 1 ? "SelectedItems" : "SelectedItem", Gf.SelectedItemsCount);
 			Gf.MoveToFolder = -1;
 			SongFolder.Items.Clear();
 			for (int i = 1; i <= 40; i++)
@@ -39,12 +41,12 @@ namespace Axicultus;
 				}
 				else
 				{
-					MessageBox.Show("Please select a folder to move the songs to!");
+					MessageBox.Show(UiText.Get(nameof(FrmMove), "SelectFolder"));
 				}
 			}
 			else
 			{
-				MessageBox.Show("There are no Song Folders enabled!");
+				MessageBox.Show(UiText.Get(nameof(FrmMove), "NoFolders"));
 			}
 		}
 

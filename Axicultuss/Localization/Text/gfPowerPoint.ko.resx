@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="ItemNotStarted" xml:space="preserve"><value>PowerPoint 항목을 시작하지 못했습니다: {0}</value></data>
+  <data name="ShowMayBeHidden" xml:space="preserve"><value>PowerPoint 슬라이드 쇼가 송출 모니터에서 다른 창 뒤에 가려졌을 수 있습니다: {0}</value></data>
+  <data name="SlideNotMoved" xml:space="preserve"><value>PowerPoint 슬라이드를 넘기지 못했습니다: {0}</value></data>
+  <data name="ShowNoLongerRunning" xml:space="preserve"><value>이 항목의 PowerPoint 슬라이드 쇼가 더 이상 실행 중이 아닙니다(PowerPoint에서 끝났거나 닫혔습니다): {0}</value></data>
+  <data name="WindowNotLowered" xml:space="preserve"><value>PowerPoint 슬라이드 쇼 창을 맨 위에서 내리지 못했습니다: {0}</value></data>
+  <data name="NotResponding" xml:space="preserve"><value>PowerPoint가 응답하지 않습니다. 다시 응답할 때까지 PowerPoint 항목을 송출할 수 없습니다.</value></data>
+  <data name="AnswersAgain" xml:space="preserve"><value>PowerPoint가 다시 응답합니다. 송출하려면 PowerPoint 항목을 다시 불러오세요.</value></data>
+  <data name="ShowCopyNotClosed" xml:space="preserve"><value>PowerPoint가 응답하지 않아 송출용 PowerPoint 사본을 닫지 못했습니다(다음 송출을 시작할 때 다시 시도합니다).</value></data>
+  <data name="EarlierCopyNotClosed" xml:space="preserve"><value>PowerPoint가 여전히 응답하지 않아 이전 송출의 PowerPoint 사본을 닫지 못했습니다.</value></data>
+  <data name="EarlierCopyCloseFailed" xml:space="preserve"><value>이전 송출의 PowerPoint 사본을 닫지 못했습니다: {0}</value></data>
+  <data name="EarlierCopyCheckFailed" xml:space="preserve"><value>이전 송출의 PowerPoint 사본을 모두 확인해 닫지는 못했습니다: {0}</value></data>
+  <data name="PresentationNotClosed" xml:space="preserve"><value>이 송출의 PowerPoint 프레젠테이션을 닫지 못했습니다: {0}</value></data>
+  <data name="PresentationsNotClosed" xml:space="preserve"><value>이 송출의 PowerPoint 프레젠테이션 {0}개를 닫지 못했습니다 (첫 파일: {1})</value></data>
+  <data name="PresentationCheckFailed" xml:space="preserve"><value>이 송출의 PowerPoint 프레젠테이션을 모두 확인해 닫지는 못했습니다: {0}</value></data>
+</root>

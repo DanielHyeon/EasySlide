@@ -4,6 +4,7 @@ using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
 using Axicultus.Global;
+using Axicultus.Localization;
 using Axicultus.Module;
 using Axicultus.Util;
 
@@ -19,6 +20,7 @@ namespace Axicultus;
 		public FrmUpdateFileName()
 		{
 			InitializeComponent();
+			UiText.ApplyTo(this);
 		}
 
 		private void frmUpdateFileName_Load(object sender, EventArgs e)
@@ -26,54 +28,54 @@ namespace Axicultus;
 			if (Gf.AxicultusMode == UsageMode.Worship)
 			{
 				InputDir = Gf.WorshipDir;
-				ListText = "Worship List";
+				ListText = UiText.Get(nameof(FrmUpdateFileName), "WorshipList");
 			}
 			else
 			{
 				InputDir = Gf.PraiseBookDir;
-				ListText = "PraiseBook List";
+				ListText = UiText.Get(nameof(FrmUpdateFileName), "PraiseBookList");
 			}
 			if (Gf.NameChangeAction == 1)
 			{
-				Text = "Add New " + ListText;
-				Mess.Text = "Please enter title of the new " + ListText;
+				Text = UiText.Format(nameof(FrmUpdateFileName), "AddNewTitle", ListText);
+				Mess.Text = UiText.Format(nameof(FrmUpdateFileName), "EnterNewTitle", ListText);
 			}
 			else if (Gf.NameChangeAction == 2)
 			{
-				Text = "Rename " + ListText;
-				Mess.Text = "Rename '" + Gf.SelectedListName + "' to:";
+				Text = UiText.Format(nameof(FrmUpdateFileName), "RenameTitle", ListText);
+				Mess.Text = UiText.Format(nameof(FrmUpdateFileName), "RenameTo", Gf.SelectedListName);
 				tbFileName.Text = Gf.SelectedListName;
 				tbFileName.SelectAll();
 			}
 			else if (Gf.NameChangeAction == 3)
 			{
-				Text = "Rename Folder '" + Gf.Folders[Gf.FolderRenameNo].RenameName + "'";
-				Mess.Text = "Rename '" + Gf.SelectedListName + "' to:";
+				Text = UiText.Format(nameof(FrmUpdateFileName), "RenameFolderTitle", Gf.Folders[Gf.FolderRenameNo].RenameName);
+				Mess.Text = UiText.Format(nameof(FrmUpdateFileName), "RenameTo", Gf.SelectedListName);
 				tbFileName.Text = Gf.Folders[Gf.FolderRenameNo].RenameName;
 				tbFileName.SelectAll();
 			}
 			else if (Gf.NameChangeAction == 6)
 			{
-				Text = "Save InfoScreen as...";
-				Mess.Text = "Save as:";
+				Text = UiText.Get(nameof(FrmUpdateFileName), "SaveInfoScreenTitle");
+				Mess.Text = UiText.Get(nameof(FrmUpdateFileName), "SaveAs");
 				tbFileName.Text = Gf.Folders[Gf.FolderRenameNo].RenameName;
 				tbFileName.SelectAll();
 			}
 			else if (Gf.NameChangeAction == 7)
 			{
-				Text = "Copy Session to PraiseBook";
+				Text = UiText.Get(nameof(FrmUpdateFileName), "CopySessionTitle");
 				tbFileName.Text = Gf.GetDisplayNameOnly(ref Gf.SelectedListName, UpdateByRef: false, KeepExt: false);
 				tbFileName.SelectAll();
 				InputDir = Gf.PraiseBookDir;
-				Mess.Text = "Copy '" + tbFileName.Text + "' as:";
+				Mess.Text = UiText.Format(nameof(FrmUpdateFileName), "CopyAs", tbFileName.Text);
 			}
 			else if (Gf.NameChangeAction == 8)
 			{
-				Text = "Copy PraiseBook to Session";
+				Text = UiText.Get(nameof(FrmUpdateFileName), "CopyPraiseBookTitle");
 				tbFileName.Text = Gf.GetDisplayNameOnly(ref Gf.SelectedListName, UpdateByRef: false, KeepExt: false);
 				tbFileName.SelectAll();
 				InputDir = Gf.WorshipDir;
-				Mess.Text = "Copy '" + tbFileName.Text + "' as:";
+				Mess.Text = UiText.Format(nameof(FrmUpdateFileName), "CopyAs", tbFileName.Text);
 			}
 		}
 
@@ -96,13 +98,13 @@ namespace Axicultus;
 			if (Gf.NameChangeAction == 1)
 			{
 				listExtension = ".json";
-				if (!Gf.ValidateDirNameFormat(requestedName, ListText + " Title"))
+				if (!Gf.ValidateDirNameFormat(requestedName, UiText.Format(nameof(FrmUpdateFileName), "ListTitleHeading", ListText)))
 				{
 					return false;
 				}
 				if (File.Exists(InputDir + requestedName + listExtension))
 				{
-					MessageBox.Show("There is already a list with the same name, please try a different name.", "", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+					MessageBox.Show(UiText.Get(nameof(FrmUpdateFileName), "NameExists"), "", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
 					return false;
 				}
 				Gf.ValidateDir(InputDir, CreateDir: true);
@@ -114,19 +116,19 @@ namespace Axicultus;
 				}
 				catch
 				{
-					MessageBox.Show("Error encountered whilst create new file - Please ensure you have write access to " + InputDir, "", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+					MessageBox.Show(UiText.Format(nameof(FrmUpdateFileName), "CreateFailed", InputDir), "", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
 				}
 			}
 			else if (Gf.NameChangeAction == 2)
 			{
 				listExtension = ".json";
-				if (!Gf.ValidateDirNameFormat(requestedName, ListText + " Title"))
+				if (!Gf.ValidateDirNameFormat(requestedName, UiText.Format(nameof(FrmUpdateFileName), "ListTitleHeading", ListText)))
 				{
 					return false;
 				}
 				if (File.Exists(InputDir + requestedName + listExtension))
 				{
-					MessageBox.Show("There is already a list with the same name, please try a different name.", "", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+					MessageBox.Show(UiText.Get(nameof(FrmUpdateFileName), "NameExists"), "", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
 					return false;
 				}
 				Gf.ValidateDir(InputDir, CreateDir: true);
@@ -137,14 +139,14 @@ namespace Axicultus;
 				}
 				catch
 				{
-					MessageBox.Show("Error encountered whilst trying to rename the file - Please ensure you have write access to it.", "", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+					MessageBox.Show(UiText.Get(nameof(FrmUpdateFileName), "RenameFailed"), "", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
 				}
 			}
 			else
 			{
 				if (Gf.NameChangeAction == 3)
 				{
-					return Gf.ValidateDirNameFormat(requestedName, "New folder name")
+					return Gf.ValidateDirNameFormat(requestedName, UiText.Get(nameof(FrmUpdateFileName), "NewFolderName"))
 						&& TryRenameFolder(Gf.Folders, Gf.FolderRenameNo, requestedName);
 				}
 				if (Gf.NameChangeAction == 7)
@@ -157,7 +159,7 @@ namespace Axicultus;
 							File.Copy(Gf.SelectedListName, praiseBookPath, overwrite: true);
 							return true;
 						}
-						if (MessageBox.Show("PraiseBook already exists. Overwrite it?", "Overwrite", MessageBoxButtons.YesNo) == DialogResult.Yes)
+						if (MessageBox.Show(UiText.Get(nameof(FrmUpdateFileName), "PraiseBookExists"), UiText.Get(nameof(FrmUpdateFileName), "Overwrite"), MessageBoxButtons.YesNo) == DialogResult.Yes)
 						{
 							File.Copy(Gf.SelectedListName, praiseBookPath, overwrite: true);
 							return true;
@@ -166,7 +168,7 @@ namespace Axicultus;
 					}
 					catch
 					{
-						MessageBox.Show("Error Saving File, please make sure you have write access and try again");
+						MessageBox.Show(UiText.Get(nameof(FrmUpdateFileName), "SaveFailed"));
 						return false;
 					}
 				}
@@ -180,7 +182,7 @@ namespace Axicultus;
 							File.Copy(Gf.SelectedListName, worshipListPath, overwrite: true);
 							return true;
 						}
-						if (MessageBox.Show("WorshipList already exists. Overwrite it?", "Overwrite", MessageBoxButtons.YesNo) == DialogResult.Yes)
+						if (MessageBox.Show(UiText.Get(nameof(FrmUpdateFileName), "WorshipListExists"), UiText.Get(nameof(FrmUpdateFileName), "Overwrite"), MessageBoxButtons.YesNo) == DialogResult.Yes)
 						{
 							File.Copy(Gf.SelectedListName, worshipListPath, overwrite: true);
 							return true;
@@ -189,7 +191,7 @@ namespace Axicultus;
 					}
 					catch
 					{
-						MessageBox.Show("Error Saving File, please make sure you have write access and try again");
+						MessageBox.Show(UiText.Get(nameof(FrmUpdateFileName), "SaveFailed"));
 						return false;
 					}
 				}

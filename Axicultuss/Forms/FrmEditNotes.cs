@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel;
 using System.Windows.Forms;
+using Axicultus.Localization;
 
 namespace Axicultus;
 
@@ -10,6 +11,7 @@ namespace Axicultus;
 		public FrmEditNotes()
 		{
 			InitializeComponent();
+			UiText.ApplyTo(this);
 		}
 
 		private void FrmEditNotes_Load(object sender, EventArgs e)

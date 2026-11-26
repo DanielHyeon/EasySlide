@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
+using Axicultus.Localization;
 
 namespace Axicultus;
 
@@ -10,28 +11,26 @@ namespace Axicultus;
 
 		private string ActionString1 = "";
 
-		private string ActionString2 = "";
-
 		public FrmCopyMoveExternal()
 		{
 			InitializeComponent();
+			UiText.ApplyTo(this);
 		}
 
 		private void FrmCopyMoveExternal_Load(object sender, EventArgs e)
 		{
 			if (Gf.ExternalCopyFolder >= 1)
 			{
-				ActionString1 = "copying";
-				ActionString2 = "copy";
+				ActionString1 = "Copy";
 				switch (Gf.ExternalMoveCopyType)
 				{
 				case "I":
-					Text = "Copy InfoScreen(s)";
+					Text = UiText.Get(nameof(FrmCopyMoveExternal), "CopyInfoScreens");
 					optCopyToFolder.Enabled = true;
 					SongFolder.Enabled = true;
 					break;
 				case "P":
-					Text = "Copy Powerpoint File(s)";
+					Text = UiText.Get(nameof(FrmCopyMoveExternal), "CopyPowerPoints");
 					optCopyToInfoScreen.Checked = true;
 					optCopyToFolder.Enabled = false;
 					SongFolder.Enabled = false;
@@ -40,22 +39,21 @@ namespace Axicultus;
 			}
 			else
 			{
-				ActionString1 = "moving";
-				ActionString2 = "move";
+				ActionString1 = "Move";
 				optCopyToInfoScreen.Checked = true;
 				optCopyToFolder.Enabled = false;
 				SongFolder.Enabled = false;
 				switch (Gf.ExternalMoveCopyType)
 				{
 				case "I":
-					Text = "Move InfoScreen(s)";
+					Text = UiText.Get(nameof(FrmCopyMoveExternal), "MoveInfoScreens");
 					break;
 				case "P":
-					Text = "Move Powerpoint File(s)";
+					Text = UiText.Get(nameof(FrmCopyMoveExternal), "MovePowerPoints");
 					break;
 				}
 			}
-			Label1.Text = "You have selected " + Gf.SelectedItemsCount + " item" + ((Gf.SelectedItemsCount > 1) ? "s" : "") + " for " + ActionString1 + ". Please choose a folder to " + ActionString2 + " the item" + ((Gf.SelectedItemsCount > 1) ? "s" : "") + " to, and then click OK.";
+			Label1.Text = UiText.Format(nameof(FrmCopyMoveExternal), ActionString1 + (Gf.SelectedItemsCount > 1 ? "SelectedItems" : "SelectedItem"), Gf.SelectedItemsCount);
 			ExternalFilesFolder.Items.Clear();
 			switch (Gf.ExternalMoveCopyType)
 			{
@@ -86,6 +84,8 @@ namespace Axicultus;
 			}
 		}
 
+		private string SelectFolderText() => UiText.Get(nameof(FrmCopyMoveExternal), ActionString1 + "SelectFolder");
+
 		private void BtnOK_Click(object sender, EventArgs e)
 		{
 			if (optCopyToInfoScreen.Checked)
@@ -105,7 +105,7 @@ namespace Axicultus;
 				}
 				else
 				{
-					MessageBox.Show("Please select a folder to " + ActionString2 + " to!");
+					MessageBox.Show(SelectFolderText());
 				}
 			}
 			else if (SongFolder.Items.Count > 0)
@@ -125,12 +125,12 @@ namespace Axicultus;
 				}
 				else
 				{
-					MessageBox.Show("Please select a folder to " + ActionString2 + " to!");
+					MessageBox.Show(SelectFolderText());
 				}
 			}
 			else
 			{
-				MessageBox.Show("There are no Song Folders enabled!");
+				MessageBox.Show(UiText.Get(nameof(FrmCopyMoveExternal), "NoFolders"));
 			}
 		}
 

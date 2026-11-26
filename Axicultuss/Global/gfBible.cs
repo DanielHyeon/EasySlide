@@ -5,6 +5,7 @@ using System.Data.SQLite;
 using System.IO;
 using System.Text;
 using System.Windows.Forms;
+using Axicultus.Localization;
 using Axicultus.SQLite;
 using Axicultus.Util;
 
@@ -26,11 +27,11 @@ internal unsafe partial class Gf
 			catch (Exception ex)
 			{
 				Console.WriteLine($"[LoadBibleVersions] {ex}");
-				ShowBibleVersions(tabs, BibleVersionCatalog.Empty, "Error Loading Bibles");
+				ShowBibleVersions(tabs, BibleVersionCatalog.Empty, UiText.Get("gfBible", "ErrorLoadingBibles"));
 			}
 		}
 
-		internal static void ShowBibleVersions(TabControl tabs, BibleVersionCatalog versions, string emptyLabel = "No Bible")
+		internal static void ShowBibleVersions(TabControl tabs, BibleVersionCatalog versions, string emptyLabel = null)
 		{
 			BibleVersions = BibleVersionCatalog.Empty;
 			while (tabs.TabPages.Count > 0)
@@ -42,7 +43,7 @@ internal unsafe partial class Gf
 				tabs.TabPages.Add(new TabPage(version.Name) { ToolTipText = version.Description });
 			tabs.Enabled = versions.Count > 0;
 			if (versions.Count == 0)
-				tabs.TabPages.Add(emptyLabel);
+				tabs.TabPages.Add(emptyLabel ?? UiText.Get("gfBible", "NoBible"));
 		}
 
 		public static bool LoadBibleBooksList(TabControl InTab, ref ComboBox InChapterList, bool ShowSearchResultsLine, RichTextBox OutputTextBox)
@@ -63,7 +64,7 @@ internal unsafe partial class Gf
 			int previousIndex = Math.Max(InChapterList.SelectedIndex, 0);
 			InChapterList.Items.Clear();
 			if (ShowAllBooksLine)
-				InChapterList.Items.Add("All Books");
+				InChapterList.Items.Add(UiText.Get("gfBible", "AllBooks"));
 			if (!File.Exists(filePath))
 				return false;
 
@@ -86,7 +87,7 @@ internal unsafe partial class Gf
 				Console.WriteLine($"[LoadBibleBooksList] {ex.Message}");
 				InChapterList.Items.Clear();
 				if (ShowAllBooksLine)
-					InChapterList.Items.Add("All Books");
+					InChapterList.Items.Add(UiText.Get("gfBible", "AllBooks"));
 				return false;
 			}
 			finally
@@ -99,7 +100,7 @@ internal unsafe partial class Gf
 
 			// Selection changes can open a passage, so release the book reader before setting the index.
 			if (ShowSearchResultsLine)
-				InChapterList.SelectedIndex = InChapterList.Items.Add("Search Results:");
+				InChapterList.SelectedIndex = InChapterList.Items.Add(UiText.Get("gfBible", "SearchResults"));
 			else
 				InChapterList.SelectedIndex = previousIndex < InChapterList.Items.Count ? previousIndex : 0;
 			return true;
@@ -483,7 +484,7 @@ internal unsafe partial class Gf
 						InTextContainer.Text = DataUtil.TrimEnd(stringBuilder.ToString());
 						if (matchCount >= 3000)
 						{
-							MessageBox.Show("The number of search results has been limited to " + Convert.ToString(3000) + ".");
+							MessageBox.Show(UiText.Format("gfBible", "SearchResultsLimited", 3000));
 						}
 						return true;
 					}

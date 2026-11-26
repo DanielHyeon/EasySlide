@@ -7,6 +7,7 @@ using System.Data;
 //using System.Data.SQLite;
 using System.Windows.Forms;
 using Axicultus.Properties;
+using Axicultus.Localization;
 #if SQLite
 using DbConnection = System.Data.SQLite.SQLiteConnection;
 #elif MariaDB
@@ -27,11 +28,12 @@ public partial class FrmImportAccessHelper : Form
 		public FrmImportAccessHelper()
 		{
 			InitializeComponent();
+			UiText.ApplyTo(this);
 		}
 
 		private void FrmImportAccessHelper_Load(object sender, EventArgs e)
 		{
-			Text = "Access Helper: " + Gf.Import_AccessFileName;
+			Text = UiText.Format(nameof(FrmImportAccessHelper), "TitleWithFile", Gf.Import_AccessFileName);
 			Gf.Import_TableName = "";
 			Gf.Import_SongTitleColumnName = "";
 			Gf.Import_SongTitle2ColumnName = "";
@@ -78,7 +80,7 @@ public partial class FrmImportAccessHelper : Form
 			}
 			catch
 			{
-				MessageBox.Show("There was an error reading the Access Database File - please make sure its a proper Access Database File filled with data");
+				MessageBox.Show(UiText.Get(nameof(FrmImportAccessHelper), "ReadError"));
 				return false;
 			}
 
@@ -86,7 +88,7 @@ public partial class FrmImportAccessHelper : Form
 			{
 				return true;
 			}
-			MessageBox.Show("Sorry - the Access Database File does not contain any tables. Please quit out of this Helper.");
+			MessageBox.Show(UiText.Get(nameof(FrmImportAccessHelper), "NoTables"));
 
 			return false;
 		}
@@ -96,7 +98,7 @@ public partial class FrmImportAccessHelper : Form
 			string selectedTable = TablesList.Text;
 			if (selectedTable == "")
 			{
-				MessageBox.Show("Please select a Database Table under Step 1.");
+				MessageBox.Show(UiText.Get(nameof(FrmImportAccessHelper), "SelectTable"));
 				return;
 			}
 
@@ -109,12 +111,12 @@ public partial class FrmImportAccessHelper : Form
 			}
 			catch (Exception ex)
 			{
-				MessageBox.Show("Could not read the selected table: " + ex.Message);
+				MessageBox.Show(UiText.Format(nameof(FrmImportAccessHelper), "TableReadFailed", ex.Message));
 				return;
 			}
 			if (columns.Count == 0)
 			{
-				MessageBox.Show("Error Encountered - Cannot find the table " + selectedTable + " in the Access Database");
+				MessageBox.Show(UiText.Format(nameof(FrmImportAccessHelper), "TableNotFound", selectedTable));
 				return;
 			}
 			ClearColumns();
@@ -199,7 +201,7 @@ public partial class FrmImportAccessHelper : Form
 					}
 					displayedRowCount++;
 				}
-				label2.Text = "Records Found in selected table: " + ((displayedRowCount < totalRowCount) ? ("(Displaying " + displayedRowCount + "/" + totalRowCount + " records)") : ("(Displaying all " + totalRowCount + " records)"));
+				label2.Text = (displayedRowCount < totalRowCount) ? UiText.Format(nameof(FrmImportAccessHelper), "RecordsFoundSome", displayedRowCount, totalRowCount) : UiText.Format(nameof(FrmImportAccessHelper), "RecordsFoundAll", totalRowCount);
 			}
 
 			Cursor = Cursors.Default;
@@ -227,12 +229,12 @@ public partial class FrmImportAccessHelper : Form
 		{
 			if (AssignedTitle.Text == "")
 			{
-				MessageBox.Show("Please assign a column to the Title");
+				MessageBox.Show(UiText.Get(nameof(FrmImportAccessHelper), "AssignTitle"));
 				return false;
 			}
 			if (AssignedLyricsMergeOrderList.Items.Count == 0)
 			{
-				MessageBox.Show("'Lyrics Merge List' must have at least one column");
+				MessageBox.Show(UiText.Get(nameof(FrmImportAccessHelper), "MergeListEmpty"));
 				return false;
 			}
 			return true;

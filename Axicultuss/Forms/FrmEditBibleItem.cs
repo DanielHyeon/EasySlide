@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
+using Axicultus.Localization;
 using Axicultus.Util;
 
 namespace Axicultus;
@@ -20,6 +21,7 @@ namespace Axicultus;
 		public FrmEditBibleItem()
 		{
 			InitializeComponent();
+			UiText.ApplyTo(this);
 		}
 
 		private void FrmEditBibleItem_Load(object sender, EventArgs e)
@@ -69,7 +71,7 @@ namespace Axicultus;
 		{
 			if (BibleVersionsRegion1.SelectedIndex <= 0)
 			{
-				MessageBox.Show("You must select a Bible Version for Region 1");
+				MessageBox.Show(UiText.Get(nameof(FrmEditBibleItem), "SelectRegion1Version"));
 				return false;
 			}
 			return true;

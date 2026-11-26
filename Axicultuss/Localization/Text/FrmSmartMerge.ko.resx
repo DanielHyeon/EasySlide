@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="groupBox1.Text" xml:space="preserve"><value>원본 1과 원본 2에서 일치하는 제목 찾기</value></data>
+  <data name="groupBox5.Text" xml:space="preserve"><value>원본 2 (영역 2)</value></data>
+  <data name="OptionSourceBTitle2.Text" xml:space="preserve"><value>제목 2</value></data>
+  <data name="OptionSourceBTitle1.Text" xml:space="preserve"><value>제목 1</value></data>
+  <data name="groupBox3.Text" xml:space="preserve"><value>원본 1 (영역 1)</value></data>
+  <data name="OptionSourceATitle2.Text" xml:space="preserve"><value>제목 2</value></data>
+  <data name="OptionSourceATitle1.Text" xml:space="preserve"><value>제목 1</value></data>
+  <data name="groupBox2.Text" xml:space="preserve"><value>일치하는 항목 병합 방식</value></data>
+  <data name="groupBox6.Text" xml:space="preserve"><value>대상 폴더</value></data>
+  <data name="OptionNewTitleAB.Text" xml:space="preserve"><value>원본 1 제목만</value></data>
+  <data name="OptionNewTitleA.Text" xml:space="preserve"><value>원본 1·2 제목 병합</value></data>
+  <data name="BtnCancel.Text" xml:space="preserve"><value>닫기</value></data>
+  <data name="BtnOK.Text" xml:space="preserve"><value>병합 시작</value></data>
+  <data name="cbTickAll.Text" xml:space="preserve"><value>모두 선택</value></data>
+  <data name="groupBox4.Text" xml:space="preserve"><value>찾은 일치 항목</value></data>
+  <data name="columnHeader1.Text" xml:space="preserve"><value>항목</value></data>
+  <data name="columnHeader2.Text" xml:space="preserve"><value>원본 1 곡 ID</value></data>
+  <data name="columnHeader3.Text" xml:space="preserve"><value>원본 2 곡 ID</value></data>
+  <data name="columnHeader4.Text" xml:space="preserve"><value>원본 2 제목</value></data>
+  <data name="columnHeader5.Text" xml:space="preserve"><value>원본 1 제목</value></data>
+  <data name="$this.Text" xml:space="preserve"><value>스마트 병합</value></data>
+  <data name="NoMatchingItems" xml:space="preserve"><value>일치하는 항목이 없습니다</value></data>
+  <data name="ItemsIdentified" xml:space="preserve"><value>{0}개 항목 찾음 : 병합할 항목 {1}개 선택됨</value></data>
+  <data name="SelectSourceA" xml:space="preserve"><value>계속하기 전에 원본 1 폴더를 선택하세요.</value></data>
+  <data name="SelectSourceB" xml:space="preserve"><value>계속하기 전에 원본 2 폴더를 선택하세요.</value></data>
+  <data name="SelectDestination" xml:space="preserve"><value>병합된 새 항목을 저장할 대상 폴더를 선택하세요.</value></data>
+  <data name="NothingListed" xml:space="preserve"><value>병합할 항목이 목록에 없습니다.</value></data>
+  <data name="NothingTicked" xml:space="preserve"><value>병합하도록 선택한 항목이 없습니다.</value></data>
+  <data name="MergeDone" xml:space="preserve"><value>'{1}' 폴더에 병합된 새 항목 {0}개를 만들었습니다.</value></data>
+</root>

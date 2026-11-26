@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="ErrorLoadingBibles" xml:space="preserve"><value>성경을 불러오지 못함</value></data>
+  <data name="NoBible" xml:space="preserve"><value>성경 없음</value></data>
+  <data name="AllBooks" xml:space="preserve"><value>모든 책</value></data>
+  <data name="SearchResults" xml:space="preserve"><value>검색 결과:</value></data>
+  <data name="SearchResultsLimited" xml:space="preserve"><value>검색 결과는 {0}개까지만 표시됩니다.</value></data>
+</root>

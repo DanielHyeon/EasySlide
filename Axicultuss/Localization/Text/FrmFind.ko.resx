@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="tabPage1.Text" xml:space="preserve"><value>폴더 검색</value></data>
+  <data name="groupBox2.Text" xml:space="preserve"><value>검색 제한</value></data>
+  <data name="label7.Text" xml:space="preserve"><value>박자:</value></data>
+  <data name="cbNotationsOnly.Text" xml:space="preserve"><value>표기 포함</value></data>
+  <data name="cbMusicOnly.Text" xml:space="preserve"><value>음악 파일 포함</value></data>
+  <data name="label5.Text" xml:space="preserve"><value>조:</value></data>
+  <data name="groupBox1.Text" xml:space="preserve"><value>검색 대상</value></data>
+  <data name="cbCopyright.Text" xml:space="preserve"><value>저작권</value></data>
+  <data name="cbWriter.Text" xml:space="preserve"><value>작사/작곡</value></data>
+  <data name="cbLicAdmin.Text" xml:space="preserve"><value>라이선스 관리</value></data>
+  <data name="cbUserRef.Text" xml:space="preserve"><value>사용자 참조</value></data>
+  <data name="cbBookRef.Text" xml:space="preserve"><value>찬양집 참조</value></data>
+  <data name="cbSongNumber.Text" xml:space="preserve"><value>곡 번호</value></data>
+  <data name="cbContents.Text" xml:space="preserve"><value>내용</value></data>
+  <data name="cbTitle.Text" xml:space="preserve"><value>제목</value></data>
+  <data name="label1.Text" xml:space="preserve"><value>검색어 입력:</value></data>
+  <data name="cbUseDates.Text" xml:space="preserve"><value>검색 기간</value></data>
+  <data name="label6.Text" xml:space="preserve"><value>~</value></data>
+  <data name="tabPage2.Text" xml:space="preserve"><value>성경 검색</value></data>
+  <data name="MatchPhrase.Text" xml:space="preserve"><value>구문과 정확히 일치</value></data>
+  <data name="MatchAny.Text" xml:space="preserve"><value>단어 중 하나라도 일치</value></data>
+  <data name="MatchAll.Text" xml:space="preserve"><value>모든 단어 일치</value></data>
+  <data name="label3.Text" xml:space="preserve"><value>성경 역본:</value></data>
+  <data name="label4.Text" xml:space="preserve"><value>책:</value></data>
+  <data name="label2.Text" xml:space="preserve"><value>검색어 입력:</value></data>
+  <data name="BtnCancel.Text" xml:space="preserve"><value>닫기</value></data>
+  <data name="BtnOK.Text" xml:space="preserve"><value>검색</value></data>
+  <data name="$this.Text" xml:space="preserve"><value>Axicultus 항목 검색</value></data>
+  <data name="NoFoldersSelected" xml:space="preserve"><value>검색할 폴더를 선택하지 않았습니다.</value></data>
+</root>

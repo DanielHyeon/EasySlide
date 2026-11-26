@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
+using Axicultus.Localization;
 using Axicultus.Properties;
 using Axicultus.Util;
 
@@ -14,11 +15,12 @@ namespace Axicultus;
 		public FrmGetWorkingFolder()
 		{
 			InitializeComponent();
+			UiText.ApplyTo(this);
 		}
 
 		private void FrmGetWorkingFolder_Load(object sender, EventArgs e)
 		{
-			labelMsg.Text = "The Axicultus Working Folder at " + Gf.RootAxicultusDir + " is missing. Please select one of the following options and click OK.";
+			labelMsg.Text = UiText.Format(nameof(FrmGetWorkingFolder), "FolderMissing", Gf.RootAxicultusDir);
 		}
 
 		private void BtnOK_Click(object sender, EventArgs e)
@@ -51,7 +53,7 @@ namespace Axicultus;
 			string workingDirectory = tbLocation.Text.Trim();
 			if (workingDirectory == "")
 			{
-				MessageBox.Show("Please select a valid folder location.");
+				MessageBox.Show(UiText.Get(nameof(FrmGetWorkingFolder), "SelectValidFolder"));
 				return;
 			}
 			if (DataUtil.Right(workingDirectory, 1) != "\\")
@@ -64,7 +66,7 @@ namespace Axicultus;
 				base.DialogResult = DialogResult.OK;
 				Close();
 			}
-			else if (MessageBox.Show("Folder " + workingDirectory + " doesn't exist, do you want Axicultuss to create it?", "Create Folder", MessageBoxButtons.YesNo) == DialogResult.Yes)
+			else if (MessageBox.Show(UiText.Format(nameof(FrmGetWorkingFolder), "CreateFolderConfirm", workingDirectory), UiText.Get(nameof(FrmGetWorkingFolder), "CreateFolder"), MessageBoxButtons.YesNo) == DialogResult.Yes)
 			{
 				if (CreateFolder(workingDirectory))
 				{
@@ -75,7 +77,7 @@ namespace Axicultus;
 			}
 			else
 			{
-				MessageBox.Show("Folder NOT created as instructed - Please select another option.");
+				MessageBox.Show(UiText.Get(nameof(FrmGetWorkingFolder), "FolderNotCreated"));
 			}
 		}
 
@@ -83,7 +85,7 @@ namespace Axicultus;
 		{
 			FolderBrowserDialog folderBrowserDialog = new();
 			folderBrowserDialog.SelectedPath = "C:\\";
-			folderBrowserDialog.Description = "Please select a Folder from below to be the Axicultus Working Folder.";
+			folderBrowserDialog.Description = UiText.Get(nameof(FrmGetWorkingFolder), "BrowseDescription");
 			if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
 			{
 				tbLocation.Text = folderBrowserDialog.SelectedPath;
@@ -96,7 +98,7 @@ namespace Axicultus;
 			{
 				return true;
 			}
-			MessageBox.Show("Error encountered whilst creating folder: " + Gf.RootAxicultusDir + ". Make sure have write access to the area and try again");
+			MessageBox.Show(UiText.Format(nameof(FrmGetWorkingFolder), "CreateFolderFailed", Gf.RootAxicultusDir));
 			return false;
 		}
 

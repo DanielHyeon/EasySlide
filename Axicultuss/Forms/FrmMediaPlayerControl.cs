@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
+using Axicultus.Localization;
 using Axicultus.Module;
 using Axicultus.Util;
 
@@ -33,6 +34,7 @@ namespace Axicultus;
 		public FrmMediaPlayerControl()
 		{
 			InitializeComponent();
+			UiText.ApplyTo(this);
 		}
 
 		private void FrmMediaPlayerControl_Load(object sender, EventArgs e)
@@ -40,13 +42,13 @@ namespace Axicultus;
 			groupBox1.Enabled = ((!(Gf.Temp_MediaItemType == "M") || Gf.MPC_Type != MPCType.Individual) ? true : false);
 			if (Gf.MPC_Type == MPCType.Individual)
 			{
-				Text = "Assign Media " + ((Gf.Temp_MediaTitle1 != "") ? "for " : "") + Gf.Temp_MediaTitle1;
+				Text = (Gf.Temp_MediaTitle1 != "") ? UiText.Format(nameof(FrmMediaPlayerControl), "TitleForItem", Gf.Temp_MediaTitle1) : UiText.Get(nameof(FrmMediaPlayerControl), "$this.Text");
 			}
 			else
 			{
-				Text = "Assign Media - Default Settings";
+				Text = UiText.Get(nameof(FrmMediaPlayerControl), "TitleDefaultSettings");
 			}
-			SourceOption1.Text = "Play Media File based on Item Title (if any)";
+			SourceOption1.Text = UiText.Get(nameof(FrmMediaPlayerControl), "PlayByItemTitle");
 			Gf.LoadBlankCaptureDevices(ref cbCaptureDevices);
 			InitMediaPlayer();
 			LoadOutputMonitors();
@@ -252,7 +254,7 @@ namespace Axicultus;
 						Option1MediaFile = Gf.GetMediaFileName(Gf.Temp_MediaTitle1, Gf.Temp_MediaTitle2);
 						if (Option1MediaFile == "")
 						{
-							SourceOption1.Text = "Play Media File based on Item Title (if any)";
+							SourceOption1.Text = UiText.Get(nameof(FrmMediaPlayerControl), "PlayByItemTitle");
 							toolTip1.SetToolTip(SourceOption1, "");
 						}
 						else
@@ -338,23 +340,23 @@ namespace Axicultus;
 			case PlayState.Running:
 				PlayPauseBtn.Enabled = true;
 				StopBtn.Enabled = true;
-				PlayPauseBtn.Text = "Pause";
+				PlayPauseBtn.Text = UiText.Get(nameof(FrmMediaPlayerControl), "Pause");
 				LabelMediaType.Text = DShowPlayer.GetStatusText();
 				LabelResolution.Text = DShowPlayer.GetVideoSize();
 				Cursor = Cursors.Default;
 				break;
 			case PlayState.Paused:
-				PlayPauseBtn.Text = "Play";
+				PlayPauseBtn.Text = UiText.Get(nameof(FrmMediaPlayerControl), "Play");
 				Cursor = Cursors.Default;
 				break;
 			case PlayState.Stopped:
 				StopBtn.Enabled = false;
-				PlayPauseBtn.Text = "Play";
+				PlayPauseBtn.Text = UiText.Get(nameof(FrmMediaPlayerControl), "Play");
 				Cursor = Cursors.Default;
 				break;
 			default:
 				StopBtn.Enabled = false;
-				PlayPauseBtn.Text = "Play";
+				PlayPauseBtn.Text = UiText.Get(nameof(FrmMediaPlayerControl), "Play");
 				break;
 			}
 		}
@@ -476,7 +478,7 @@ namespace Axicultus;
 			{
 				if (LabelMediaType.Text != "" && ((LabelMediaType.Text[0] == 'A') | (LabelMediaType.Text[0] == 'V')))
 				{
-					LabelDuration.Text = "Streaming Contents";
+					LabelDuration.Text = UiText.Get(nameof(FrmMediaPlayerControl), "StreamingContents");
 				}
 				else
 				{

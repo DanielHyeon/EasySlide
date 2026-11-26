@@ -8,6 +8,7 @@ using System.Text;
 using System.Windows.Forms;
 using System.Xml;
 using Axicultus.Global;
+using Axicultus.Localization;
 using Axicultus.Module;
 using Axicultus.SQLite;
 using Axicultus.Util;
@@ -260,7 +261,7 @@ namespace Axicultus;
 				}
 				catch
 				{
-					MessageBox.Show("Error: Cannot Save Folder Settings for Folder Index: " + currentFolderIndex);
+					MessageBox.Show(UiText.Format("gfUtility", "SaveFolderSettingsFailed", currentFolderIndex));
 				}
 			}
 		}
@@ -551,7 +552,7 @@ namespace Axicultus;
 				}
 				if (InString != "")
 				{
-					MessageBox.Show("Please select a song from the " + InString + " to edit");
+					MessageBox.Show(UiText.Format("gfUtility", "SelectSongToEdit", InString));
 				}
 				return -1;
 			}
@@ -1746,7 +1747,7 @@ namespace Axicultus;
 
 		public static bool ClearAllFormatting()
 		{
-			if (MessageBox.Show("This will clear all individual formatting held in the Lyrics Database. Click Yes to proceed.", "Compact Axicultus Databases", MessageBoxButtons.YesNo) == DialogResult.Yes)
+			if (MessageBox.Show(UiText.Get("gfUtility", "ClearFormattingConfirm"), UiText.Get("gfUtility", "ClearFormattingCaption"), MessageBoxButtons.YesNo) == DialogResult.Yes)
 			{
 				try
 				{
@@ -1781,7 +1782,7 @@ namespace Axicultus;
 
 		public static bool ClearRegistrySettings()
 		{
-			if (MessageBox.Show($"Warning: This will clear all Axicultuss Settings and Axicultuss will then Close. Please note that the next time you restart Axicultuss, the Axicultuss Working Folder will be set to {DefaultAxicultusDir}. Click Yes if you wish to proceed.", "Clear Axicultuss Settings", MessageBoxButtons.YesNo) == DialogResult.Yes)
+			if (MessageBox.Show(UiText.Format("gfUtility", "ClearSettingsConfirm", DefaultAxicultusDir), UiText.Get("gfUtility", "ClearSettingsCaption"), MessageBoxButtons.YesNo) == DialogResult.Yes)
 			{
 				try
 				{

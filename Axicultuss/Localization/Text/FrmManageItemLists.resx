@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="ListsTab.Text" xml:space="preserve"><value>Lists</value></data>
+  <data name="TrashTab.Text" xml:space="preserve"><value>Trash</value></data>
+  <data name="AddBtn.Text" xml:space="preserve"><value>Add New</value></data>
+  <data name="RenameBtn.Text" xml:space="preserve"><value>Rename</value></data>
+  <data name="DelBtn.Text" xml:space="preserve"><value>Delete</value></data>
+  <data name="CloseBtn.Text" xml:space="preserve"><value>Close</value></data>
+  <data name="SaveAsBtn.Text" xml:space="preserve"><value>Save As</value></data>
+  <data name="SaveToBtn.Text" xml:space="preserve"><value>WorshipList</value></data>
+  <data name="SaveTemplateBtn.Text" xml:space="preserve"><value>Template</value></data>
+  <data name="RestoreBtn.Text" xml:space="preserve"><value>Restore</value></data>
+  <data name="DeletePermanentlyBtn.Text" xml:space="preserve"><value>Delete</value></data>
+  <data name="EmptyTrashBtn.Text" xml:space="preserve"><value>Empty Trash</value></data>
+  <data name="TitleWorshipLists" xml:space="preserve"><value>Manage Worship Lists</value></data>
+  <data name="TitlePraiseBooks" xml:space="preserve"><value>Manage PraiseBooks</value></data>
+  <data name="WorshipList" xml:space="preserve"><value>WorshipList</value></data>
+  <data name="PraiseBook" xml:space="preserve"><value>PraiseBook</value></data>
+  <data name="ErrorCaption" xml:space="preserve"><value>Error</value></data>
+  <data name="TrashFolderFailed" xml:space="preserve"><value>Error creating trash folder. Please ensure you have write access.</value></data>
+  <data name="SelectToDelete" xml:space="preserve"><value>You have not selected a {0} to delete!</value></data>
+  <data name="MoveOneToTrash" xml:space="preserve"><value>Really move '{0}' {1} to trash?</value></data>
+  <data name="MoveManyToTrash" xml:space="preserve"><value>Really move {0} selected {1}(s) to trash?</value></data>
+  <data name="MoveToTrashCaption" xml:space="preserve"><value>Move to Trash</value></data>
+  <data name="MoveToTrashFailed" xml:space="preserve"><value>Error: {0} file(s) could not be moved to trash. {1} file(s) moved successfully.</value></data>
+  <data name="SelectToRename" xml:space="preserve"><value>You have not selected a {0} to rename!</value></data>
+  <data name="SelectToSaveAs" xml:space="preserve"><value>You have not selected a {0} to Save As!</value></data>
+  <data name="SelectToSaveTo" xml:space="preserve"><value>You have not selected a {0} to Save To {1}</value></data>
+  <data name="SelectToSaveTemplate" xml:space="preserve"><value>You have not selected a {0} to Save As a Template!</value></data>
+  <data name="TemplateExists" xml:space="preserve"><value>There is already a template with the same name. Overwrite it?</value></data>
+  <data name="OverwriteCaption" xml:space="preserve"><value>Overwrite</value></data>
+  <data name="TemplateSourceMissing" xml:space="preserve"><value>Error Saving Template - cannot find the selected {0}!</value></data>
+  <data name="SaveFailed" xml:space="preserve"><value>Error Saving File, please make sure you have write access and try again</value></data>
+  <data name="SaveFilter" xml:space="preserve"><value>Axicultus {0} File (*{1})|*{1}</value></data>
+  <data name="SelectToRestore" xml:space="preserve"><value>You have not selected a {0} to restore!</value></data>
+  <data name="RestoreOne" xml:space="preserve"><value>Really restore '{0}' {1}?</value></data>
+  <data name="RestoreMany" xml:space="preserve"><value>Really restore {0} selected {1}(s)?</value></data>
+  <data name="RestoreCaption" xml:space="preserve"><value>Restore</value></data>
+  <data name="RestoreFailed" xml:space="preserve"><value>Error: {0} file(s) could not be restored. {1} file(s) restored successfully.</value></data>
+  <data name="SelectToDeletePermanently" xml:space="preserve"><value>You have not selected a {0} to delete permanently!</value></data>
+  <data name="DeleteOnePermanently" xml:space="preserve"><value>Really permanently delete '{0}' {1}? This action cannot be undone!</value></data>
+  <data name="DeleteManyPermanently" xml:space="preserve"><value>Really permanently delete {0} selected {1}(s)? This action cannot be undone!</value></data>
+  <data name="DeletePermanentlyCaption" xml:space="preserve"><value>Permanently Delete</value></data>
+  <data name="DeleteFailed" xml:space="preserve"><value>Error: {0} file(s) could not be deleted. {1} file(s) deleted successfully.</value></data>
+  <data name="TrashEmpty" xml:space="preserve"><value>Trash is already empty.</value></data>
+  <data name="EmptyTrashConfirm" xml:space="preserve"><value>Really empty the trash? This will permanently delete all items in trash. This action cannot be undone!</value></data>
+  <data name="EmptyTrashCaption" xml:space="preserve"><value>Empty Trash</value></data>
+</root>

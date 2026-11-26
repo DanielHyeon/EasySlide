@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="BtnCancel.Text" xml:space="preserve"><value>닫기</value></data>
+  <data name="BtnReCalc.Text" xml:space="preserve"><value>새로 고침</value></data>
+  <data name="label1.Text" xml:space="preserve"><value>시작일:</value></data>
+  <data name="label2.Text" xml:space="preserve"><value>종료일:</value></data>
+  <data name="BtnOccurrences.Text" xml:space="preserve"><value>사용 횟수</value></data>
+  <data name="BtnUsages.Text" xml:space="preserve"><value>전체 내역</value></data>
+  <data name="columnHeader1.Text" xml:space="preserve"><value>날짜</value></data>
+  <data name="columnHeader2.Text" xml:space="preserve"><value>예배 순서</value></data>
+  <data name="columnHeader3.Text" xml:space="preserve"><value>곡 제목</value></data>
+  <data name="columnHeader4.Text" xml:space="preserve"><value>번호</value></data>
+  <data name="columnHeader5.Text" xml:space="preserve"><value>관리자1</value></data>
+  <data name="columnHeader6.Text" xml:space="preserve"><value>관리자2</value></data>
+  <data name="columnHeader7.Text" xml:space="preserve"><value>곡 ID</value></data>
+  <data name="columnHeader8.Text" xml:space="preserve"><value>시스템 ID</value></data>
+  <data name="CMenuUsageDetails_SelectAll.Text" xml:space="preserve"><value>모두 선택(&amp;A)</value></data>
+  <data name="CMenuUsageDetails_UnselectAll.Text" xml:space="preserve"><value>모두 선택 해제(&amp;U)</value></data>
+  <data name="CMenuUsageDetails_Clear.Text" xml:space="preserve"><value>선택한 사용 기록 삭제</value></data>
+  <data name="CMenuUsageDetails_Report.Text" xml:space="preserve"><value>사용 기록 보고서 만들기</value></data>
+  <data name="columnHeader9.Text" xml:space="preserve"><value>횟수</value></data>
+  <data name="columnHeader10.Text" xml:space="preserve"><value>곡 제목</value></data>
+  <data name="columnHeader11.Text" xml:space="preserve"><value>번호</value></data>
+  <data name="columnHeader12.Text" xml:space="preserve"><value>ID</value></data>
+  <data name="$this.Text" xml:space="preserve"><value>사용 기록</value></data>
+  <data name="BtnGenerate.ToolTip" xml:space="preserve"><value>사용 기록 보고서 만들기</value></data>
+  <data name="BtnDelete.ToolTip" xml:space="preserve"><value>선택한 사용 기록 삭제</value></data>
+  <data name="DeleteConfirm" xml:space="preserve"><value>선택한 사용 기록을 영구히 삭제합니다. 삭제하려면 [예]를 누르세요.</value></data>
+  <data name="DeleteConfirmTitle" xml:space="preserve"><value>선택한 사용 기록 삭제</value></data>
+  <data name="OverwriteReport" xml:space="preserve"><value>이전 보고서 {0}을(를) 덮어씁니다. 계속하려면 [확인], 그만두려면 [취소]를 누르세요.</value></data>
+  <data name="ReportFailed" xml:space="preserve"><value>보고서 {0}을(를) 만드는 중 오류가 발생했습니다. 문서가 열려 있을 수 있습니다. 문서를 닫은 후 다시 시도하세요.</value></data>
+</root>

@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="OkBtn.Text" xml:space="preserve"><value>OK</value></data>
+  <data name="Colour1Btn.Text" xml:space="preserve"><value>Colour 1</value></data>
+  <data name="Colour2Btn.Text" xml:space="preserve"><value>Colour 2</value></data>
+  <data name="CancelBtn.Text" xml:space="preserve"><value>Cancel</value></data>
+  <data name="groupBox2.Text" xml:space="preserve"><value>Patterns</value></data>
+  <data name="$this.Text" xml:space="preserve"><value>Background Colours and Patterns</value></data>
+  <data name="SwapBtn.ToolTip" xml:space="preserve"><value>Swap Colour 1 with Colour 2</value></data>
+  <data name="checkBoxColour2.ToolTip" xml:space="preserve"><value>Use Colour 2</value></data>
+  <data name="DefaultTitle" xml:space="preserve"><value>Select Default Background Colours and Pattern</value></data>
+  <data name="ItemTitle" xml:space="preserve"><value>Background and Pattern for selected item</value></data>
+</root>

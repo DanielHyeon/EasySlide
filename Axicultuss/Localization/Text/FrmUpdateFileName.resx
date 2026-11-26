@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Mess.Text" xml:space="preserve"><value>T</value></data>
+  <data name="BtnCancel.Text" xml:space="preserve"><value>Cancel</value></data>
+  <data name="BtnOK.Text" xml:space="preserve"><value>OK</value></data>
+  <data name="WorshipList" xml:space="preserve"><value>Worship List</value></data>
+  <data name="PraiseBookList" xml:space="preserve"><value>PraiseBook List</value></data>
+  <data name="AddNewTitle" xml:space="preserve"><value>Add New {0}</value></data>
+  <data name="EnterNewTitle" xml:space="preserve"><value>Please enter title of the new {0}</value></data>
+  <data name="RenameTitle" xml:space="preserve"><value>Rename {0}</value></data>
+  <data name="RenameTo" xml:space="preserve"><value>Rename '{0}' to:</value></data>
+  <data name="RenameFolderTitle" xml:space="preserve"><value>Rename Folder '{0}'</value></data>
+  <data name="SaveInfoScreenTitle" xml:space="preserve"><value>Save InfoScreen as...</value></data>
+  <data name="SaveAs" xml:space="preserve"><value>Save as:</value></data>
+  <data name="CopySessionTitle" xml:space="preserve"><value>Copy Session to PraiseBook</value></data>
+  <data name="CopyPraiseBookTitle" xml:space="preserve"><value>Copy PraiseBook to Session</value></data>
+  <data name="CopyAs" xml:space="preserve"><value>Copy '{0}' as:</value></data>
+  <data name="ListTitleHeading" xml:space="preserve"><value>{0} Title</value></data>
+  <data name="NewFolderName" xml:space="preserve"><value>New folder name</value></data>
+  <data name="NameExists" xml:space="preserve"><value>There is already a list with the same name, please try a different name.</value></data>
+  <data name="CreateFailed" xml:space="preserve"><value>Error encountered whilst create new file - Please ensure you have write access to {0}</value></data>
+  <data name="RenameFailed" xml:space="preserve"><value>Error encountered whilst trying to rename the file - Please ensure you have write access to it.</value></data>
+  <data name="PraiseBookExists" xml:space="preserve"><value>PraiseBook already exists. Overwrite it?</value></data>
+  <data name="WorshipListExists" xml:space="preserve"><value>WorshipList already exists. Overwrite it?</value></data>
+  <data name="Overwrite" xml:space="preserve"><value>Overwrite</value></data>
+  <data name="SaveFailed" xml:space="preserve"><value>Error Saving File, please make sure you have write access and try again</value></data>
+</root>

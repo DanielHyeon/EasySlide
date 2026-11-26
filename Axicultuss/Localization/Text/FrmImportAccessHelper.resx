@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="$this.Text" xml:space="preserve"><value>Access Helper</value></data>
+  <data name="label1.Text" xml:space="preserve"><value>Step 1. Select the table which holds the songs details:</value></data>
+  <data name="label2.Text" xml:space="preserve"><value>Records Found in selected table:</value></data>
+  <data name="label3.Text" xml:space="preserve"><value>Step 2. Assign compulsory and optional columns</value></data>
+  <data name="groupBox2.Text" xml:space="preserve"><value>Mandatory Columns</value></data>
+  <data name="label16.Text" xml:space="preserve"><value>Lyrics:</value></data>
+  <data name="label4.Text" xml:space="preserve"><value>Title:</value></data>
+  <data name="label17.Text" xml:space="preserve"><value>Lyrics Merge List:</value></data>
+  <data name="Column_Add.ToolTipText" xml:space="preserve"><value>Add</value></data>
+  <data name="OrderList_Up.ToolTipText" xml:space="preserve"><value>Move Item Up</value></data>
+  <data name="OrderList_Down.ToolTipText" xml:space="preserve"><value>Move Item Down</value></data>
+  <data name="OrderList_Delete.ToolTipText" xml:space="preserve"><value>Delete</value></data>
+  <data name="groupBox1.Text" xml:space="preserve"><value>Optional Columns</value></data>
+  <data name="label15.Text" xml:space="preserve"><value>Admin 1</value></data>
+  <data name="label13.Text" xml:space="preserve"><value>Writer:</value></data>
+  <data name="label11.Text" xml:space="preserve"><value>Copyright:</value></data>
+  <data name="label9.Text" xml:space="preserve"><value>Song No.</value></data>
+  <data name="label6.Text" xml:space="preserve"><value>Title 2:</value></data>
+  <data name="label14.Text" xml:space="preserve"><value>Admin 2:</value></data>
+  <data name="label12.Text" xml:space="preserve"><value>Timing:</value></data>
+  <data name="label10.Text" xml:space="preserve"><value>Song key:</value></data>
+  <data name="label8.Text" xml:space="preserve"><value>User Ref:</value></data>
+  <data name="label7.Text" xml:space="preserve"><value>Book Ref:</value></data>
+  <data name="label5.Text" xml:space="preserve"><value>Step 3. Click Import &gt;&gt;&gt;</value></data>
+  <data name="BtnCancel.Text" xml:space="preserve"><value>Cancel</value></data>
+  <data name="BtnOK.Text" xml:space="preserve"><value>Import</value></data>
+  <data name="TitleWithFile" xml:space="preserve"><value>Access Helper: {0}</value></data>
+  <data name="ReadError" xml:space="preserve"><value>There was an error reading the Access Database File - please make sure its a proper Access Database File filled with data</value></data>
+  <data name="NoTables" xml:space="preserve"><value>Sorry - the Access Database File does not contain any tables. Please quit out of this Helper.</value></data>
+  <data name="SelectTable" xml:space="preserve"><value>Please select a Database Table under Step 1.</value></data>
+  <data name="TableReadFailed" xml:space="preserve"><value>Could not read the selected table: {0}</value></data>
+  <data name="TableNotFound" xml:space="preserve"><value>Error Encountered - Cannot find the table {0} in the Access Database</value></data>
+  <data name="RecordsFoundSome" xml:space="preserve"><value>Records Found in selected table: (Displaying {0}/{1} records)</value></data>
+  <data name="RecordsFoundAll" xml:space="preserve"><value>Records Found in selected table: (Displaying all {0} records)</value></data>
+  <data name="AssignTitle" xml:space="preserve"><value>Please assign a column to the Title</value></data>
+  <data name="MergeListEmpty" xml:space="preserve"><value>'Lyrics Merge List' must have at least one column</value></data>
+</root>

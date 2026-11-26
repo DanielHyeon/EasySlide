@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="groupBox1.Text" xml:space="preserve"><value>Identify Matching Titles from Source A and Source B</value></data>
+  <data name="groupBox5.Text" xml:space="preserve"><value>Source B (Region 2)</value></data>
+  <data name="OptionSourceBTitle2.Text" xml:space="preserve"><value>Title 2</value></data>
+  <data name="OptionSourceBTitle1.Text" xml:space="preserve"><value>Title 1</value></data>
+  <data name="groupBox3.Text" xml:space="preserve"><value>Source A (Region 1)</value></data>
+  <data name="OptionSourceATitle2.Text" xml:space="preserve"><value>Title 2</value></data>
+  <data name="OptionSourceATitle1.Text" xml:space="preserve"><value>Title 1</value></data>
+  <data name="groupBox2.Text" xml:space="preserve"><value>Merge Matching Items into</value></data>
+  <data name="groupBox6.Text" xml:space="preserve"><value>Destination Folder</value></data>
+  <data name="OptionNewTitleAB.Text" xml:space="preserve"><value>Source A Title Only</value></data>
+  <data name="OptionNewTitleA.Text" xml:space="preserve"><value>Merge Titles A &amp;&amp; B</value></data>
+  <data name="BtnCancel.Text" xml:space="preserve"><value>Close</value></data>
+  <data name="BtnOK.Text" xml:space="preserve"><value>Start Merge</value></data>
+  <data name="cbTickAll.Text" xml:space="preserve"><value>Tick All</value></data>
+  <data name="groupBox4.Text" xml:space="preserve"><value>Matching Items Found</value></data>
+  <data name="columnHeader1.Text" xml:space="preserve"><value>Items</value></data>
+  <data name="columnHeader2.Text" xml:space="preserve"><value>Song A ID</value></data>
+  <data name="columnHeader3.Text" xml:space="preserve"><value>Song B ID</value></data>
+  <data name="columnHeader4.Text" xml:space="preserve"><value>Title B</value></data>
+  <data name="columnHeader5.Text" xml:space="preserve"><value>Title A</value></data>
+  <data name="$this.Text" xml:space="preserve"><value>Smart Merge</value></data>
+  <data name="NoMatchingItems" xml:space="preserve"><value>No Matching Items found</value></data>
+  <data name="ItemsIdentified" xml:space="preserve"><value>{0} items identified : {1} ticked for Merging</value></data>
+  <data name="SelectSourceA" xml:space="preserve"><value>Please select a folder for Source A before proceeding</value></data>
+  <data name="SelectSourceB" xml:space="preserve"><value>Please select a folder for Source B before proceeding</value></data>
+  <data name="SelectDestination" xml:space="preserve"><value>Please select a Destination Folder to hold the new merged items</value></data>
+  <data name="NothingListed" xml:space="preserve"><value>There aren't any items listed for merging!</value></data>
+  <data name="NothingTicked" xml:space="preserve"><value>Cannot find any items Ticked for merging!</value></data>
+  <data name="MergeDone" xml:space="preserve"><value>{0} newly merged items have been created in Folder '{1}'</value></data>
+</root>

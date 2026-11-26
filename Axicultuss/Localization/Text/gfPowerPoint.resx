@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="ItemNotStarted" xml:space="preserve"><value>The PowerPoint item could not be started: {0}</value></data>
+  <data name="ShowMayBeHidden" xml:space="preserve"><value>The PowerPoint slide show may be hidden behind another window on the output monitor: {0}</value></data>
+  <data name="SlideNotMoved" xml:space="preserve"><value>The PowerPoint slide could not be moved: {0}</value></data>
+  <data name="ShowNoLongerRunning" xml:space="preserve"><value>The PowerPoint slide show of this item is no longer running (it was ended or closed in PowerPoint): {0}</value></data>
+  <data name="WindowNotLowered" xml:space="preserve"><value>A PowerPoint slide show window could not be taken off the top of the screen: {0}</value></data>
+  <data name="NotResponding" xml:space="preserve"><value>PowerPoint is not responding: PowerPoint items cannot be shown until it answers again</value></data>
+  <data name="AnswersAgain" xml:space="preserve"><value>PowerPoint answers again: load a PowerPoint item again to show it</value></data>
+  <data name="ShowCopyNotClosed" xml:space="preserve"><value>PowerPoint is not responding: the show's PowerPoint copy could not be closed (tried again at the next show start)</value></data>
+  <data name="EarlierCopyNotClosed" xml:space="preserve"><value>PowerPoint is still not responding: the PowerPoint copy of an earlier show could not be closed</value></data>
+  <data name="EarlierCopyCloseFailed" xml:space="preserve"><value>A PowerPoint copy of an earlier show could not be closed: {0}</value></data>
+  <data name="EarlierCopyCheckFailed" xml:space="preserve"><value>Not every PowerPoint copy of an earlier show could be checked for closing: {0}</value></data>
+  <data name="PresentationNotClosed" xml:space="preserve"><value>A PowerPoint presentation of this show could not be closed: {0}</value></data>
+  <data name="PresentationsNotClosed" xml:space="preserve"><value>{0} PowerPoint presentations of this show could not be closed (first: {1})</value></data>
+  <data name="PresentationCheckFailed" xml:space="preserve"><value>Not every PowerPoint presentation of this show could be checked for closing: {0}</value></data>
+</root>

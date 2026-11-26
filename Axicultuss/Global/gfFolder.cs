@@ -7,6 +7,7 @@ using System.IO;
 using System.Threading;
 using System.Windows.Forms;
 using Axicultus.Global;
+using Axicultus.Localization;
 using Axicultus.Module;
 using Axicultus.SQLite;
 using Axicultus.Util;
@@ -70,7 +71,7 @@ namespace Axicultus;
 			}
 			if (Heading != "")
 			{
-				MessageBox.Show(Heading + " must not contain the characters: \\ / : * ? \" < > |");
+				MessageBox.Show(UiText.Format("gfFolder", "InvalidNameChars", Heading));
 			}
 			return false;
 		}
