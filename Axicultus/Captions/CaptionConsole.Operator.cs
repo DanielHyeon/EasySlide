@@ -99,12 +99,14 @@ public partial class CaptionConsole
 
     private static bool ClickedControl(DependencyObject? element)
     {
+        // (up to the top: a look list's click lands on the button inside it, and a list left by the keyboard closes again)
+        bool clicked = false;
         for (; element != null; element = element is Visual or System.Windows.Media.Media3D.Visual3D ? VisualTreeHelper.GetParent(element) ?? LogicalTreeHelper.GetParent(element) : LogicalTreeHelper.GetParent(element))
         {
             if (element is TextBoxBase or PasswordBox or ComboBox or ComboBoxItem) return false;
-            if (element is ButtonBase or ListBoxItem or ListBox) return true;
+            clicked |= element is ButtonBase or ListBoxItem or ListBox;
         }
-        return false;
+        return clicked;
     }
 
     private void ReleaseFocus() => FocusKeepingColumn(DirectMode.IsChecked == true ? Draft : Surface);

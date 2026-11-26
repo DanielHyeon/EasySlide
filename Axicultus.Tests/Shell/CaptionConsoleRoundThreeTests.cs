@@ -401,6 +401,24 @@ public sealed partial class CaptionConsoleTests
         Assert.NotSame(console.Surface, FocusManager.GetFocusedElement(console)); // not taken away (the test window is not active)
     });
 
+    // A click on a look list lands on the button inside it, which opens it: the keyboard stays in the list (taken away,
+    // the list would close as soon as the mouse is let go).
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public Task AClickThatOpensALookListLeavesItTheKeyboard(bool scoreSize) => WithConsole(async (console, _, _) =>
+    {
+        console.ScreenMode.IsChecked = true;
+        await Idle(console);
+        var list = scoreSize ? console.ScoreSizeBox : console.LinesBox;
+        var button = Visuals(list).OfType<System.Windows.Controls.Primitives.ToggleButton>().First();
+        FocusManager.SetFocusedElement(console, list);
+        list.IsDropDownOpen = true;
+        button.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, 0, MouseButton.Left) { RoutedEvent = Mouse.PreviewMouseUpEvent });
+        await Idle(console);
+        Assert.NotSame(console.Surface, FocusManager.GetFocusedElement(console)); // (the open list's own item has it)
+    });
+
     [Fact]
     public Task AConsoleHiddenMaximizedComesBackOnAScreenThatIsStillThere()
     {
