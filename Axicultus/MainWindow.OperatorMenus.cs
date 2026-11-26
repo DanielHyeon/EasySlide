@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Controls;
 using Axicultus.Wpf.Data;
 using Axicultus.Wpf.Library;
+using Axicultus.Wpf.Localization;
 using Axicultus.Wpf.Settings;
 using Axicultus.Wpf.Shell;
 using Axicultus.Wpf.Support;
@@ -89,7 +90,7 @@ public partial class MainWindow
         try
         {
             Directory.CreateDirectory(folder);
-            if (!_services.GetRequiredService<ISupportLauncher>().TryOpen(Path.GetFullPath(folder))) _viewModel.StatusText = "폴더를 열 수 없습니다.";
+            if (!_services.GetRequiredService<ISupportLauncher>().TryOpen(Path.GetFullPath(folder))) _viewModel.StatusText = UiText.Get("MainWindow", "FolderOpenFailed");
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException) { _viewModel.StatusText = ex.Message; }
     }
@@ -99,12 +100,12 @@ public partial class MainWindow
         if (SelectedSourceFolder() is not { Length: > 0 } folder) return;
         var (kind, filter) = (LeftBrowserTabs.SelectedItem as TabItem)?.Tag switch
         {
-            "InfoScreenSource" => (ExternalFileItemKind.InfoScreen, "정보 화면|*.esi"),
+            "InfoScreenSource" => (ExternalFileItemKind.InfoScreen, UiText.Get("MainWindow", "FilterInfoScreens") + "|*.esi"),
             // What the tab lists (FrmMain.PP_Import_Click offers .ppt and .pptx); anything else would be copied in and not shown.
             "PowerPointSource" => (ExternalFileItemKind.PowerPoint, SourceFileExtensions.DialogFilter("PowerPoint", SourceFileExtensions.PowerPoint)),
-            _ => (ExternalFileItemKind.Media, _viewModel.MediaDialogFilter("미디어"))
+            _ => (ExternalFileItemKind.Media, _viewModel.MediaDialogFilter(UiText.Get("MainWindow", "FilterMedia")))
         };
-        var picker = new OpenFileDialog { Multiselect = true, Filter = filter, Title = $"{kind} 가져오기 · {folder}" };
+        var picker = new OpenFileDialog { Multiselect = true, Filter = filter, Title = UiText.Format("MainWindow", "ImportFilesTitle", kind switch { ExternalFileItemKind.InfoScreen => UiText.Get("MainWindow", "FilterInfoScreens"), ExternalFileItemKind.Media => UiText.Get("MainWindow", "FilterMedia"), _ => "PowerPoint" }, folder) };
         if (picker.ShowDialog(this) != true) return;
         var imported = new List<string>();
         var errors = new List<string>();
@@ -128,7 +129,7 @@ public partial class MainWindow
                     }
                 }
             });
-            _viewModel.StatusText = errors.Count > 0 ? string.Join(Environment.NewLine, errors) : $"{imported.Count}개 파일을 가져왔습니다.";
+            _viewModel.StatusText = errors.Count > 0 ? string.Join(Environment.NewLine, errors) : UiText.Format("MainWindow", "FilesImported", imported.Count);
             if (!string.Equals(folder, SelectedSourceFolder(), StringComparison.OrdinalIgnoreCase)) return;
             ShowTransferredFiles(kind, imported);
         }
@@ -180,13 +181,13 @@ public partial class MainWindow
 
     private async void LoadSessionTemplate_Click(object sender, RoutedEventArgs e)
     {
-        var dialog = new OpenFileDialog { Title = "Load Session Settings from a Template", Filter = IndividualFormatTemplateFile.DialogFilter, InitialDirectory = SessionTemplatesDirectory() };
+        var dialog = new OpenFileDialog { Title = UiText.Get("MainWindow", "LoadSessionTemplateTitle"), Filter = IndividualFormatTemplateFile.DialogFilter, InitialDirectory = SessionTemplatesDirectory() };
         if (dialog.ShowDialog(this) != true) return;
         try
         {
             string format = IndividualFormatTemplateFile.LoadFormatData(dialog.FileName);
             if (!await _viewModel.ApplySessionTemplateAsync(format)) return;
-            _viewModel.StatusText = $"세션 템플릿 적용: {Path.GetFileName(dialog.FileName)}";
+            _viewModel.StatusText = UiText.Format("MainWindow", "SessionTemplateApplied", Path.GetFileName(dialog.FileName));
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException or System.Xml.XmlException or FormatException or OverflowException)
         { _viewModel.StatusText = ex.Message; }
@@ -195,7 +196,7 @@ public partial class MainWindow
     private void SaveSessionTemplate_Click(object sender, RoutedEventArgs e)
     {
         var name = Path.GetFileName(_viewModel.CurrentWorshipListName);
-        var dialog = new SaveFileDialog { Title = "Save Current Session Settings to a Template",
+        var dialog = new SaveFileDialog { Title = UiText.Get("MainWindow", "SaveSessionTemplateTitle"),
             Filter = IndividualFormatTemplateFile.DialogFilter, InitialDirectory = SessionTemplatesDirectory(),
             DefaultExt = ".est", FileName = $"{(string.IsNullOrWhiteSpace(name) ? "Session" : name)}.est" };
         if (dialog.ShowDialog(this) != true) return;
@@ -203,7 +204,7 @@ public partial class MainWindow
         {
             var format = _viewModel.GetSessionFormat();
             IndividualFormatTemplateFile.SaveFormatData(dialog.FileName, format);
-            _viewModel.StatusText = $"세션 템플릿 저장: {Path.GetFileName(dialog.FileName)}";
+            _viewModel.StatusText = UiText.Format("MainWindow", "SessionTemplateSaved", Path.GetFileName(dialog.FileName));
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Xml.XmlException or ArgumentException)
         { _viewModel.StatusText = ex.Message; }
@@ -220,10 +221,10 @@ public partial class MainWindow
     private async void AddListUsages_Click(object sender, RoutedEventArgs e) => await _viewModel.AddWorshipListSongsToUsagesAsync();
 
     private void EmptyDeleted_Click(object sender, RoutedEventArgs e) =>
-        ConfirmSongMaintenance(AdminDatabaseWriteOperation.EmptyDeletedSongs, "삭제 폴더의 곡을 영구 삭제하시겠습니까?");
+        ConfirmSongMaintenance(AdminDatabaseWriteOperation.EmptyDeletedSongs, UiText.Get("MainWindow", "EmptyDeletedConfirm"));
 
     private void ClearDatabaseFormats_Click(object sender, RoutedEventArgs e) =>
-        ConfirmSongMaintenance(AdminDatabaseWriteOperation.ClearSongFormatting, "곡 데이터베이스의 개별 서식을 모두 지우시겠습니까?");
+        ConfirmSongMaintenance(AdminDatabaseWriteOperation.ClearSongFormatting, UiText.Get("MainWindow", "ClearDatabaseFormatsConfirm"));
 
     private async void ConfirmSongMaintenance(AdminDatabaseWriteOperation operation, string prompt)
     {
@@ -238,8 +239,8 @@ public partial class MainWindow
     {
         await EnsureLibraryLoadedOnceAsync();
         var library = _viewModel.Library;
-        if (library.SelectedFolder is not { } folder) { _viewModel.StatusText = "곡 폴더를 선택하세요."; return; }
-        var dialog = new SaveFileDialog { FileName = "Index Of Database Items.rtf", Filter = "서식 있는 문서|*.rtf|탭 구분 텍스트|*.txt", AddExtension = true };
+        if (library.SelectedFolder is not { } folder) { _viewModel.StatusText = UiText.Get("MainWindow", "SelectSongFolder"); return; }
+        var dialog = new SaveFileDialog { FileName = "Index Of Database Items.rtf", Filter = UiText.Get("MainWindow", "FilterRichText") + "|*.rtf|" + UiText.Get("MainWindow", "FilterTabText") + "|*.txt", AddExtension = true };
         if (dialog.ShowDialog(this) != true) return;
         try
         {
@@ -259,7 +260,7 @@ public partial class MainWindow
     private void WebHelp_Click(object sender, RoutedEventArgs e)
     {
         if (!_services.GetRequiredService<ISupportLauncher>().TryOpen("https://www.easislides.com/help"))
-            _viewModel.StatusText = "온라인 도움말을 열 수 없습니다.";
+            _viewModel.StatusText = UiText.Get("MainWindow", "OnlineHelpFailed");
     }
 
     private void HelpContents_Click(object sender, RoutedEventArgs e)

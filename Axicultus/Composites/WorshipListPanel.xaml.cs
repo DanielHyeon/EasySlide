@@ -10,6 +10,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Xml.Linq;
 using Axicultus.Wpf.Library;
+using Axicultus.Wpf.Localization;
 using Axicultus.Wpf.Shell;
 
 namespace Axicultus.Wpf.Composites;
@@ -90,8 +91,8 @@ public partial class WorshipListPanel : UserControl
         {
             MessageBox.Show(
                 Window.GetWindow(this),
-                "Can't produce lyrics document because the Worship List is empty!",
-                "Generate RTF Document",
+                UiText.Get("WorshipListPanel", "EmptyListNoDocument"),
+                UiText.Get("WorshipListPanel", "GenerateRtf"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);
             e.Handled = true;
@@ -103,9 +104,9 @@ public partial class WorshipListPanel : UserControl
             : viewModel.CurrentWorshipListName;
         var dialog = new Microsoft.Win32.SaveFileDialog
         {
-            Title = "Generate RTF Document",
+            Title = UiText.Get("WorshipListPanel", "GenerateRtf"),
             DefaultExt = ".rtf",
-            Filter = "Rich Text Format (*.rtf)|*.rtf|모든 파일 (*.*)|*.*",
+            Filter = "Rich Text Format (*.rtf)|*.rtf|" + UiText.Get("WorshipListPanel", "FilterAllFiles") + " (*.*)|*.*",
             FileName = BuildWorshipListExportFileName(documentName),
         };
 
@@ -115,12 +116,12 @@ public partial class WorshipListPanel : UserControl
             try
             {
                 File.WriteAllText(dialog.FileName, rtf, new UTF8Encoding(false));
-                viewModel.StatusText = $"Worship List RTF 저장: {dialog.FileName}";
+                viewModel.StatusText = UiText.Format("WorshipListPanel", "RtfSaved", dialog.FileName);
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
             {
                 // The target is often still open in Word.
-                viewModel.StatusText = $"Worship List RTF 저장 실패: {ex.Message}";
+                viewModel.StatusText = UiText.Format("WorshipListPanel", "RtfSaveFailed", ex.Message);
             }
         }
 
@@ -147,14 +148,14 @@ public partial class WorshipListPanel : UserControl
 
         var dialog = new Microsoft.Win32.OpenFileDialog
         {
-            Title = "예배 순서에 추가할 외부 파일 선택",
-            Filter = "Valid External Files (*.ppt;*.pptx;*.doc;*.docx;*.txt;*.esi;*.esw;*.json)|*.ppt;*.pptx;*.doc;*.docx;*.txt;*.esi;*.esw;*.json"
+            Title = UiText.Get("WorshipListPanel", "AddExternalFileTitle"),
+            Filter = UiText.Get("WorshipListPanel", "FilterValidExternal") + " (*.ppt;*.pptx;*.doc;*.docx;*.txt;*.esi;*.esw;*.json)|*.ppt;*.pptx;*.doc;*.docx;*.txt;*.esi;*.esw;*.json"
                 + "|" + SourceFileExtensions.DialogFilter("PowerPoint", SourceFileExtensions.PowerPoint)
-                + "|Word 문서 (*.doc;*.docx)|*.doc;*.docx"
-                + "|Text/InfoScreen (*.txt;*.esi)|*.txt;*.esi"
-                + "|Worship Lists (*.esw;*.json)|*.esw;*.json"
-                + "|" + viewModel.MediaDialogFilter("미디어")
-                + "|모든 파일 (*.*)|*.*",
+                + "|" + UiText.Get("WorshipListPanel", "FilterWordDocuments") + " (*.doc;*.docx)|*.doc;*.docx"
+                + "|" + UiText.Get("WorshipListPanel", "FilterTextInfoScreen") + " (*.txt;*.esi)|*.txt;*.esi"
+                + "|" + UiText.Get("WorshipListPanel", "FilterWorshipLists") + " (*.esw;*.json)|*.esw;*.json"
+                + "|" + viewModel.MediaDialogFilter(UiText.Get("WorshipListPanel", "FilterMedia"))
+                + "|" + UiText.Get("WorshipListPanel", "FilterAllFiles") + " (*.*)|*.*",
             CheckFileExists = true,
             Multiselect = true,
         };
@@ -190,7 +191,7 @@ public partial class WorshipListPanel : UserControl
 
     private static async Task AddWordDocumentAsync(MainViewModel viewModel, string fileName)
     {
-        viewModel.StatusText = "Word 문서를 읽는 중...";
+        viewModel.StatusText = UiText.Get("WorshipListPanel", "ReadingWordDocument");
         await System.Windows.Threading.Dispatcher.Yield(System.Windows.Threading.DispatcherPriority.Render);
 
         var documentText = new OfficeLib.WordDoc().GetContents(fileName);
@@ -206,7 +207,7 @@ public partial class WorshipListPanel : UserControl
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            viewModel.StatusText = $"텍스트 파일을 읽을 수 없습니다: {ex.Message}";
+            viewModel.StatusText = UiText.Format("WorshipListPanel", "TextFileReadFailed", ex.Message);
         }
     }
 
@@ -340,11 +341,11 @@ public partial class WorshipListPanel : UserControl
         var owner = Window.GetWindow(this);
         if (vm.Queue.Count == 0 || string.IsNullOrWhiteSpace(vm.CurrentWorshipListName))
         {
-            MessageBox.Show(owner, vm.Queue.Count == 0 ? "Worship list is already empty." : "No worship list is currently loaded.", "Clear Worship List");
+            MessageBox.Show(owner, UiText.Get("WorshipListPanel", vm.Queue.Count == 0 ? "ListAlreadyEmpty" : "NoListLoaded"), UiText.Get("WorshipListPanel", "ClearWorshipList"));
             return;
         }
-        if (MessageBox.Show(owner, $"Really clear the worship list '{vm.CurrentWorshipListName}'?\n\nThe current worship list will be moved to trash.",
-                "Clear Worship List", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No) == MessageBoxResult.Yes)
+        if (MessageBox.Show(owner, UiText.Format("WorshipListPanel", "ClearListConfirm", vm.CurrentWorshipListName),
+                UiText.Get("WorshipListPanel", "ClearWorshipList"), MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No) == MessageBoxResult.Yes)
             vm.ArchiveAndClearCurrentWorshipList();
     }
 

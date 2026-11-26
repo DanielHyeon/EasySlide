@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using Axicultus.Wpf.Captions;
+using Axicultus.Wpf.Localization;
 using Axicultus.Wpf.Media;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -36,7 +37,7 @@ public partial class MainWindow
             menuLifetime.Dispose();
             if (_liveDeviceMenu == menu) _liveDeviceMenu = null;
         };
-        var loading = Hint("장치 조회 중…");
+        var loading = Hint(UiText.Get("MainWindow", "LoadingDevices"));
         menu.Items.Add(loading);
         menu.IsOpen = true;
         try
@@ -56,14 +57,14 @@ public partial class MainWindow
                         : string.Equals(path, device.Id, StringComparison.OrdinalIgnoreCase));
                     AddChoice(menu, device.Name, selected, button, async change =>
                     {
-                        if (ownership.ObsOwnsCamera) throw new MediaPlaybackException("OBS 카메라 모드로 바뀌었습니다. 목록을 다시 여세요.");
-                        if (_viewModel.IsOutputDisabled) throw new MediaPlaybackException("출력 모니터가 '없음'으로 설정되어 송출하지 않습니다.");
+                        if (ownership.ObsOwnsCamera) throw new MediaPlaybackException(UiText.Get("MainWindow", "SwitchedToObsCameraMode"));
+                        if (_viewModel.IsOutputDisabled) throw new MediaPlaybackException(UiText.Get("MainWindow", "OutputMonitorNone"));
                         var display = _viewModel.EnsureCameraOutputDisplay();
                         await _services.GetRequiredService<MediaPlaybackService>().SwitchLiveCameraAsync(device, display.Id, change);
-                        return "송출 카메라 · " + device.Name;
+                        return UiText.Format("MainWindow", "OutputCameraSet", device.Name);
                     });
                 }
-                if (devices.Length == 0) menu.Items.Add(Hint("연결된 카메라가 없습니다."));
+                if (devices.Length == 0) menu.Items.Add(Hint(UiText.Get("MainWindow", "NoCameraConnected")));
                 return;
             }
 
@@ -75,17 +76,17 @@ public partial class MainWindow
             }
 
             menu.Items.Clear();
-            var obs = new MenuItem { Header = "OBS 방송", IsChecked = _liveMicrophones.HasObsSelection };
+            var obs = new MenuItem { Header = UiText.Get("MainWindow", "ObsBroadcast"), IsChecked = _liveMicrophones.HasObsSelection };
             menu.Items.Add(obs);
             LoadOnOpen(obs, () => PopulateObsInputsAsync(obs, button, false, menuToken), menuToken);
-            var venue = new MenuItem { Header = "현장 스피커", IsChecked = _liveMicrophones.LocalSelection != null };
+            var venue = new MenuItem { Header = UiText.Get("MainWindow", "VenueSpeaker"), IsChecked = _liveMicrophones.LocalSelection != null };
             menu.Items.Add(venue);
             LoadOnOpen(venue, () => PopulateSpeakersAsync(venue, button, menuToken), menuToken);
             if (_liveMicrophones.LocalSelection != null)
-                AddChoice(menu, "현장 마이크 끄기", false, button, _ =>
+                AddChoice(menu, UiText.Get("MainWindow", "TurnOffVenueMic"), false, button, _ =>
                 {
                     _liveMicrophones.StopSpeaker();
-                    return Task.FromResult("현장 마이크 꺼짐");
+                    return Task.FromResult(UiText.Get("MainWindow", "VenueMicOff"));
                 });
         }
         catch (Exception) when (menuToken.IsCancellationRequested) { }
@@ -97,7 +98,7 @@ public partial class MainWindow
         var connection = _services.GetRequiredService<ObsOperator>().Connection;
         if (connection?.IsIdentified != true)
         {
-            menu.Items.Add(Hint("카메라 하단 자막 → OBS에서 먼저 연결하세요."));
+            menu.Items.Add(Hint(UiText.Get("MainWindow", "ConnectObsFirst")));
             return;
         }
         var inputs = await connection.CaptureInputsAsync(camera, ct);
@@ -106,7 +107,7 @@ public partial class MainWindow
         {
             var active = await input.IsActiveAsync(ct);
             ct.ThrowIfCancellationRequested();
-            var source = new MenuItem { Header = input.Name + (active ? " · 프로그램 활성" : " · 프로그램 비활성"),
+            var source = new MenuItem { Header = UiText.Format("MainWindow", active ? "ObsInputActive" : "ObsInputInactive", input.Name),
                 IsChecked = !camera && _liveMicrophones.IsSelected(input) };
             menu.Items.Add(source);
             LoadOnOpen(source, async () =>
@@ -118,14 +119,14 @@ public partial class MainWindow
                     {
                         if (!camera) return await _liveMicrophones.ToObsAsync(connection, input, device, change);
                         if (!_services.GetRequiredService<CameraOwnership>().ObsOwnsCamera)
-                            throw new MediaPlaybackException("로컬 카메라 모드로 바뀌었습니다. 목록을 다시 여세요.");
+                            throw new MediaPlaybackException(UiText.Get("MainWindow", "SwitchedToLocalCameraMode"));
                         await input.SetDeviceAsync(device.Id, change);
-                        return $"OBS 카메라 설정 적용 · {input.Name} → {device.Name}";
+                        return UiText.Format("MainWindow", "ObsCameraApplied", input.Name, device.Name);
                     });
-                if (devices.Length == 0) source.Items.Add(Hint("사용 가능한 장치가 없습니다."));
+                if (devices.Length == 0) source.Items.Add(Hint(UiText.Get("MainWindow", "NoDeviceAvailable")));
             }, ct);
         }
-        if (inputs.Length == 0) menu.Items.Add(Hint(camera ? "OBS에 비디오 캡처 장치 소스를 추가하세요." : "OBS에 오디오 입력 캡처 소스를 추가하세요."));
+        if (inputs.Length == 0) menu.Items.Add(Hint(UiText.Get("MainWindow", camera ? "AddObsVideoSource" : "AddObsAudioSource")));
     }
 
     private async Task PopulateSpeakersAsync(MenuItem venue, Button button, CancellationToken ct)
@@ -134,7 +135,7 @@ public partial class MainWindow
         ct.ThrowIfCancellationRequested();
         if (Speakers.Length == 0 || Mics.Length == 0)
         {
-            venue.Items.Add(Hint(Mics.Length == 0 ? "연결된 마이크가 없습니다." : "연결된 스피커가 없습니다."));
+            venue.Items.Add(Hint(UiText.Get("MainWindow", Mics.Length == 0 ? "NoMicConnected" : "NoSpeakerConnected")));
             return;
         }
         foreach (var speaker in Speakers.OrderByDescending(x => x.IsDefault))
@@ -151,7 +152,7 @@ public partial class MainWindow
 
     private static void LoadOnOpen(MenuItem menu, Func<Task> load, CancellationToken ct)
     {
-        var placeholder = Hint("장치 조회 중…");
+        var placeholder = Hint(UiText.Get("MainWindow", "LoadingDevices"));
         menu.Items.Add(placeholder);
         bool started = false;
         menu.SubmenuOpened += async (_, args) =>
@@ -174,14 +175,14 @@ public partial class MainWindow
             using var pending = new CancellationTokenSource();
             if (camera) _cameraChange = pending; else _micChange = pending;
             button.IsEnabled = false;
-            _viewModel.StatusText = $"장치 전환 중 · {name}";
+            _viewModel.StatusText = UiText.Format("MainWindow", "SwitchingDevice", name);
             try
             {
                 var result = await apply(pending.Token);
                 if (!pending.IsCancellationRequested) _viewModel.StatusText = result;
             }
-            catch (OperationCanceledException) { if (!_liveDevicesClosed) _viewModel.StatusText = "장치 전환 취소"; }
-            catch (Exception ex) { if (!_liveDevicesClosed) _viewModel.StatusText = "장치 전환 실패 · " + DeviceCheckBackend.Failure(ex); }
+            catch (OperationCanceledException) { if (!_liveDevicesClosed) _viewModel.StatusText = UiText.Get("MainWindow", "DeviceSwitchCancelled"); }
+            catch (Exception ex) { if (!_liveDevicesClosed) _viewModel.StatusText = UiText.Format("MainWindow", "DeviceSwitchFailed", DeviceCheckBackend.Failure(ex)); }
             finally
             {
                 if (camera) _cameraChange = null; else _micChange = null;

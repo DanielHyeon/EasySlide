@@ -82,7 +82,7 @@ public sealed partial class ThemeService : ObservableObject, IThemeService
 
     [ObservableProperty] private ColorTheme _currentTheme = ColorTheme.Light;
     [ObservableProperty] private InterfaceSize _currentSize = InterfaceSize.Standard;
-    [ObservableProperty] private string _lastDiagnostic = "초기화됨";
+    [ObservableProperty] private string _lastDiagnostic = "Initialized";
 
     public double ScaleFactor => CurrentSize switch
     {
@@ -102,7 +102,7 @@ public sealed partial class ThemeService : ObservableObject, IThemeService
         _lightColors = TryLoadDictionary(ColorsLightPath);
         _darkColors = TryLoadDictionary(ColorsDarkPath);
 
-        LastDiagnostic = $"색 사전 로드 — Light={_lightColors?.Count ?? -1}, Dark={_darkColors?.Count ?? -1}";
+        LastDiagnostic = $"Colour dictionaries loaded: Light={_lightColors?.Count ?? -1}, Dark={_darkColors?.Count ?? -1}";
         System.Diagnostics.Debug.WriteLine($"[ThemeService] {LastDiagnostic}");
     }
 
@@ -114,7 +114,7 @@ public sealed partial class ThemeService : ObservableObject, IThemeService
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[ThemeService] 사전 로드 실패 ({packUri}): {ex}");
+            System.Diagnostics.Debug.WriteLine($"[ThemeService] Dictionary load failed ({packUri}): {ex}");
             return null;
         }
     }
@@ -143,7 +143,7 @@ public sealed partial class ThemeService : ObservableObject, IThemeService
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[ThemeService] WPF UI Apply 실패 (계속 진행): {ex}");
+            System.Diagnostics.Debug.WriteLine($"[ThemeService] WPF UI Apply failed (continuing): {ex}");
         }
 
         // 2. EasiDS 색 토큰을 Application.Current.Resources 최상위에 직접 갱신
@@ -151,7 +151,7 @@ public sealed partial class ThemeService : ObservableObject, IThemeService
         var source = theme == ColorTheme.Dark ? _darkColors : _lightColors;
         if (source == null)
         {
-            LastDiagnostic = $"⚠ {theme} 색 사전이 로드되지 않음";
+            LastDiagnostic = $"⚠ {theme} colour dictionary not loaded";
             System.Diagnostics.Debug.WriteLine($"[ThemeService] {LastDiagnostic}");
             return;
         }
@@ -173,7 +173,7 @@ public sealed partial class ThemeService : ObservableObject, IThemeService
         }
 
         CurrentTheme = theme;
-        LastDiagnostic = $"✓ {theme} 적용 — 색 토큰 {updated}개 갱신";
+        LastDiagnostic = $"✓ {theme} applied: {updated} colour tokens updated";
         System.Diagnostics.Debug.WriteLine($"[ThemeService] {LastDiagnostic}");
         ThemeChanged?.Invoke(this, EventArgs.Empty);
     }
@@ -214,7 +214,7 @@ public sealed partial class ThemeService : ObservableObject, IThemeService
             resources[key] = baseValue * factor;
         }
 
-        LastDiagnostic = $"✓ 크기 {size} (×{factor:F1}) — 폰트 {ScaledFontSizes.Length}개 / 간격 {ScaledSpacings.Length}개 갱신";
+        LastDiagnostic = $"✓ Size {size} (×{factor:F1}): {ScaledFontSizes.Length} font sizes / {ScaledSpacings.Length} spacings updated";
         System.Diagnostics.Debug.WriteLine($"[ThemeService] {LastDiagnostic}");
         SizeChanged?.Invoke(this, EventArgs.Empty);
         OnPropertyChanged(nameof(ScaleFactor));

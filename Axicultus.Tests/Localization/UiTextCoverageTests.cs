@@ -22,29 +22,10 @@ public sealed class UiTextCoverageTests
 
     private static readonly string[] WpfXamlNotYet =
     [
-        "Axicultus/Composites/BibleVerseFinder.xaml",
-        "Axicultus/Composites/DeviceCheckPanel.xaml",
-        "Axicultus/Composites/OutputPlacementEditor.xaml",
-        "Axicultus/Composites/SongSearchQueryPanel.xaml",
-        "Axicultus/Composites/WorshipListPanel.xaml",
-        "Axicultus/MainWindow.xaml",
-        "Axicultus/OutputWindow.xaml",
-        "Axicultus/PreviewWindow.xaml",
     ];
 
     private static readonly string[] WpfCodeNotYet =
     [
-        "Axicultus/App.xaml.cs",
-        "Axicultus/Composites/DeviceCheckPanel.xaml.cs",
-        "Axicultus/Composites/LiveBar.cs",
-        "Axicultus/Composites/SafetyConfirm.cs",
-        "Axicultus/Composites/WorshipListPanel.xaml.cs",
-        "Axicultus/MainWindow.LiveDevices.cs",
-        "Axicultus/MainWindow.OperatorMenus.cs",
-        "Axicultus/MainWindow.xaml.cs",
-        "Axicultus/Startup/LegacyUiLauncher.cs",
-        "Axicultus/Theme/ThemeService.cs",
-        "Axicultus/Theme/WorshipItemIcon.cs",
     ];
 
     private static readonly string[] WinFormsDesignerNotYet =
@@ -125,8 +106,8 @@ public sealed class UiTextCoverageTests
         + @"(?<![A-Za-z])(Axicultus|Axicultuss|EasiSlides|PowerPoint|PPTX?|OBS|Windows|Office|Word|Excel|SQLite|MySQL|MariaDB|CCLI|DirectShow|DirectX|AdminDB|HolyBibles|"
         + @"JSON|XML|HTML|CSV|RTF|PDF|EULA|URL|USB|DPI|PC|ID|IP|NDI|WPF|WinForms|InfoScreen|Copyright|DB|MB|OCR|WebSocket|LIVE|AARRGGBB|pt|px|ms|"
         + @"Ctrl|Alt|Shift|Esc|Enter|Space|Tab|PgUp|PgDn|PageUp|PageDown|Home|End|Del|Insert|F\d{1,2}|"
-        // (a single capital letter: a key name, "M", or a list mark, "A.")
-        + @"[A-Z])(?![A-Za-z])|"
+        // (a single letter: a key name, "M", a list mark, "A.", or a verse key, "p")
+        + @"[A-Za-z])(?![A-Za-z])|"
         // (the key after a modifier: "Ctrl+S")
         + @"(?<=(Ctrl|Alt|Shift)\+)[A-Za-z0-9](?![A-Za-z])|"
         + @"\.(esw|est|esi|esp|txt|pptx?|ppsx?|docx?|rtf|jpe?g|png|gif|bmp|ico|mp[34]|wmv|avi|xml|json|db|sqlite)(?![A-Za-z])|"

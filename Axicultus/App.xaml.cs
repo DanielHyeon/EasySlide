@@ -7,6 +7,7 @@ using Axicultus.Wpf.Data;
 using Axicultus.Wpf.Demo;
 using Axicultus.Wpf.Input;
 using Axicultus.Wpf.Library;
+using Axicultus.Wpf.Localization;
 using Axicultus.Wpf.Media;
 using Axicultus.Wpf.Platform;
 using Axicultus.Wpf.Rendering;
@@ -202,7 +203,7 @@ public partial class App : Application
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[LEGACY-UI] 안전망 예외(무시하고 신규 UI 계속): {ex}");
+                System.Diagnostics.Debug.WriteLine($"[LEGACY-UI] Safety-net exception (ignored; continuing with the new UI): {ex}");
             }
 
             if (outcome == LegacyUiLaunchOutcome.Launched)
@@ -212,8 +213,8 @@ public partial class App : Application
             }
 
             MessageBox.Show(
-                $"이전(legacy) UI({LegacyUiLauncher.LegacyExecutableName})를 시작하지 못했습니다.\n\n신규 UI로 계속 시작합니다.",
-                "Axicultus — legacy UI",
+                UiText.Format("App", "LegacyUiFailed", LegacyUiLauncher.LegacyExecutableName),
+                UiText.Get("App", "LegacyUiTitle"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
         }
@@ -230,10 +231,10 @@ public partial class App : Application
             OperationalErrorLog.Default.Write("Profile migration", profileError!);
             MessageBox.Show(
                 (earlierSettingsPending
-                    ? "이전 설정 파일을 복사하지 못해 기본 설정으로 시작합니다. 이번 실행에서 바꾼 설정은 저장되지 않으며, 다음 시작 때 다시 복사를 시도합니다."
-                    : "기존 설정 일부를 복사하지 못했습니다. 프로그램은 계속 시작하며, 다음 시작 때 다시 시도합니다.")
+                    ? UiText.Get("App", "EarlierSettingsNotCopied")
+                    : UiText.Get("App", "SomeSettingsNotCopied"))
                 + $"\n\n{profileError!.Message}",
-                "Axicultus — 설정 이전", MessageBoxButton.OK, MessageBoxImage.Warning);
+                UiText.Get("App", "ProfileMigrationTitle"), MessageBoxButton.OK, MessageBoxImage.Warning);
         }
 
         // DI 컨테이너 구성
@@ -289,8 +290,8 @@ public partial class App : Application
             if (!globalInput.Start())
             {
                 MessageBox.Show(
-                    "전역 단축키를 시작하지 못했습니다.\n\n앱 내부 단축키는 계속 사용할 수 있습니다.",
-                    "Axicultus — 전역 단축키",
+                    UiText.Get("App", "GlobalHotkeysFailed"),
+                    UiText.Get("App", "GlobalHotkeysTitle"),
                     MessageBoxButton.OK,
                     MessageBoxImage.Warning);
             }

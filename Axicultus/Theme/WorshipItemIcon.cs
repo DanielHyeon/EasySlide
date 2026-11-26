@@ -1,3 +1,4 @@
+using Axicultus.Wpf.Localization;
 using Axicultus.Wpf.Shell;
 using Wpf.Ui.Controls;
 
@@ -29,11 +30,11 @@ public static class WorshipItemIcon
     /// </summary>
     public static string KindLabel(string? kind) => kind switch
     {
-        LiveItemKinds.Song => "곡",
-        LiveItemKinds.Bible => "성경",
+        LiveItemKinds.Song => UiText.Get("WorshipItemIcon", "Song"),
+        LiveItemKinds.Bible => UiText.Get("WorshipItemIcon", "Bible"),
         LiveItemKinds.PowerPoint => "PowerPoint",
-        LiveItemKinds.Media => "미디어",
-        LiveItemKinds.Notice => "공지",
-        _ => "항목",
+        LiveItemKinds.Media => UiText.Get("WorshipItemIcon", "Media"),
+        LiveItemKinds.Notice => UiText.Get("WorshipItemIcon", "Notice"),
+        _ => UiText.Get("WorshipItemIcon", "Item"),
     };
 }

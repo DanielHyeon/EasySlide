@@ -1,6 +1,7 @@
 <UserControl x:Class="Axicultus.Wpf.Composites.BibleVerseFinder"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="clr-namespace:Axicultus.Wpf.Localization"
              xmlns:theme="clr-namespace:Axicultus.Wpf.Theme"
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
 
@@ -22,7 +23,7 @@
         </Grid.ColumnDefinitions>
 
         <StackPanel>
-            <TextBlock Text="버전"
+            <TextBlock Text="{loc:Text BibleVerseFinder.Version}"
                        Style="{StaticResource Type.Caption.Style}"
                        Foreground="{DynamicResource Brush.Text.Tertiary}" />
             <ComboBox ItemsSource="{Binding Versions}"
@@ -34,7 +35,7 @@
         </StackPanel>
 
         <StackPanel Grid.Column="2">
-            <TextBlock Text="책"
+            <TextBlock Text="{loc:Text BibleVerseFinder.Book}"
                        Style="{StaticResource Type.Caption.Style}"
                        Foreground="{DynamicResource Brush.Text.Tertiary}" />
             <ComboBox ItemsSource="{Binding Books}"
@@ -46,7 +47,7 @@
         </StackPanel>
 
         <StackPanel Grid.Column="4">
-            <TextBlock Text="검색"
+            <TextBlock Text="{loc:Text BibleVerseFinder.Search}"
                        Style="{StaticResource Type.Caption.Style}"
                        Foreground="{DynamicResource Brush.Text.Tertiary}" />
             <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
@@ -60,21 +61,21 @@
                     VerticalAlignment="Bottom">
             <Button Command="{Binding LoadSelectedBookCommand}"
                     Style="{StaticResource EsButton.Secondary}"
-                    ToolTip="선택한 책 불러오기"
+                    ToolTip="{loc:Text BibleVerseFinder.LoadBookTip}"
                     AutomationProperties.Name="성경 책 불러오기"
                     Margin="0,0,8,0">
                 <StackPanel Orientation="Horizontal">
                     <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionRefresh}" Margin="0,0,6,0" />
-                    <TextBlock Text="불러오기" />
+                    <TextBlock Text="{loc:Text BibleVerseFinder.Load}" />
                 </StackPanel>
             </Button>
             <Button Command="{Binding SearchCommand}"
                     Style="{StaticResource EsButton.Primary}"
-                    ToolTip="성경 검색"
+                    ToolTip="{loc:Text BibleVerseFinder.SearchBibleTip}"
                     AutomationProperties.Name="성경 검색">
                 <StackPanel Orientation="Horizontal">
                     <ui:SymbolIcon Symbol="{x:Static theme:EsIcons.ActionFind}" Margin="0,0,6,0" />
-                    <TextBlock Text="검색" />
+                    <TextBlock Text="{loc:Text BibleVerseFinder.Search}" />
                 </StackPanel>
             </Button>
         </StackPanel>

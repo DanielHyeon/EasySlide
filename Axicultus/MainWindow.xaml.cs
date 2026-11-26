@@ -16,6 +16,7 @@ using System.Xml;
 using Axicultus.Wpf.Data;
 using Axicultus.Wpf.Input;
 using Axicultus.Wpf.Library;
+using Axicultus.Wpf.Localization;
 using Axicultus.Wpf.Rendering;
 using Axicultus.Wpf.Settings;
 using Axicultus.Wpf.Shell;
@@ -1323,7 +1324,7 @@ public partial class MainWindow : Window
         var root = Path.Combine(_services.GetRequiredService<ISettingsService>().Current.General.WorkingFolder, "InfoScreens");
         var picker = new Microsoft.Win32.OpenFolderDialog
         {
-            Title = "정보 화면을 이동할 폴더",
+            Title = UiText.Get("MainWindow", "MoveInfoScreensTitle"),
             RootDirectory = root,
             InitialDirectory = SelectedSourceFolder() ?? root
         };
@@ -1342,7 +1343,7 @@ public partial class MainWindow : Window
                 string target = ExternalFileOperationService.GetAvailableDestinationPath(file, picker.FolderName);
                 File.Copy(file, target, overwrite: false);
                 moved.Add(target);
-                if (!store.Delete(screen.Name)) { _viewModel.StatusText = $"복사 후 원본을 이동하지 못했습니다: {screen.Name}"; break; }
+                if (!store.Delete(screen.Name)) { _viewModel.StatusText = UiText.Format("MainWindow", "MoveSourceNotRemoved", screen.Name); break; }
             }
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException)
@@ -1368,7 +1369,7 @@ public partial class MainWindow : Window
 
         if (library.SelectedFolder is null)
         {
-            library.StatusMessage = "New song needs a selected folder.";
+            library.StatusMessage = UiText.Get("MainWindow", "NewSongNeedsFolder");
             viewModel.StatusText = library.StatusMessage;
             return;
         }
@@ -1377,7 +1378,7 @@ public partial class MainWindow : Window
         editorWindow.Owner = this;
         if (editorWindow.DataContext is not SongEditorViewModel editorViewModel)
         {
-            library.StatusMessage = "Song editor could not be initialized.";
+            library.StatusMessage = UiText.Get("MainWindow", "SongEditorInitFailed");
             viewModel.StatusText = library.StatusMessage;
             return;
         }
@@ -1499,12 +1500,12 @@ public partial class MainWindow : Window
         try
         {
             var screen = info == null ? null : await store.LoadAsync(info.Name);
-            if (info != null && screen == null) { _viewModel.StatusText = "정보 화면을 찾을 수 없습니다."; return; }
+            if (info != null && screen == null) { _viewModel.StatusText = UiText.Get("MainWindow", "InfoScreenNotFound"); return; }
             string? format = song != null ? song.FormatData : screen != null ? screen.LegacyFormatData : _viewModel.DefaultMediaFormat;
             var options = Media.ItemMediaOptions.Read(format);
             string path = song != null ? options.FileName : screen != null ? screen.MediaPath ?? "" : _viewModel.DefaultMediaPath;
             if (options.Mode < 0 && path.Length > 0) options = options with { Mode = 2, FileName = path };
-            var window = new Media.MediaAssignmentWindow(song?.Title ?? info?.Name ?? "기본 미디어 설정",
+            var window = new Media.MediaAssignmentWindow(song?.Title ?? info?.Name ?? UiText.Get("MainWindow", "DefaultMediaSettings"),
                 options, ResolveMediaInitialFolder(), _viewModel.OutputDisplays, _services.GetService<Media.CameraOwnership>())
                 { Owner = this, WorkingFolder = _settings?.Current.General.WorkingFolder };
             if (window.ShowDialog() != true || options == window.Options) return;
@@ -1744,14 +1745,14 @@ public partial class MainWindow : Window
             return;
         }
 
-        viewModel.StatusText = "편집할 예배 순서 항목을 하나 선택하세요.";
+        viewModel.StatusText = UiText.Get("MainWindow", "SelectWorshipItemToEdit");
     }
 
     private async Task OpenSelectedWorshipSongEditorAsync(MainViewModel viewModel)
     {
         if (!TryGetSelectedWorshipSongId(viewModel.SelectedItem, out var songId))
         {
-            viewModel.StatusText = "편집할 DB 곡 항목을 하나 선택하세요.";
+            viewModel.StatusText = UiText.Get("MainWindow", "SelectDbSongToEdit");
             return;
         }
 
@@ -1760,7 +1761,7 @@ public partial class MainWindow : Window
         var databasePath = ResolveSongEditorDatabasePath(viewModel);
         if (string.IsNullOrWhiteSpace(databasePath))
         {
-            viewModel.StatusText = "AdminDB 경로를 찾을 수 없어 곡을 편집할 수 없습니다.";
+            viewModel.StatusText = UiText.Get("MainWindow", "AdminDbPathMissingForEdit");
             return;
         }
 
@@ -1773,17 +1774,17 @@ public partial class MainWindow : Window
         catch (Exception ex) when (MainViewModel.IsSongDatabaseError(ex))
         {
             // Called from async void handlers: a database that cannot be read must not end the app.
-            viewModel.StatusText = $"곡 데이터베이스를 읽을 수 없습니다: {ex.Message}";
+            viewModel.StatusText = UiText.Format("MainWindow", "SongDatabaseReadFailed", ex.Message);
             return;
         }
         if (detail is null)
         {
-            viewModel.StatusText = $"편집할 곡을 찾을 수 없습니다: {songId}";
+            viewModel.StatusText = UiText.Format("MainWindow", "SongToEditNotFound", songId);
             return;
         }
 
         var folder = viewModel.Library.Folders.FirstOrDefault(f => f.FolderNo == detail.FolderNo)
-            ?? new SongFolderSummary(detail.FolderNo, $"Folder {detail.FolderNo}", true, 0);
+            ?? new SongFolderSummary(detail.FolderNo, UiText.Format("MainWindow", "FolderFallbackName", detail.FolderNo), true, 0);
         var song = new SongSummary(
             detail.SongId,
             detail.Title,
@@ -1799,7 +1800,7 @@ public partial class MainWindow : Window
         editorWindow.Owner = this;
         if (editorWindow.DataContext is not SongEditorViewModel editorViewModel)
         {
-            viewModel.StatusText = "곡 편집기를 초기화할 수 없습니다.";
+            viewModel.StatusText = UiText.Get("MainWindow", "SongEditorInitFailed");
             return;
         }
 
@@ -1892,7 +1893,7 @@ public partial class MainWindow : Window
     {
         if (LeftBrowserTabs.SelectedItem is not TabItem { Tag: string tag })
         {
-            viewModel.StatusText = "추가할 소스 탭이 선택되지 않았습니다.";
+            viewModel.StatusText = UiText.Get("MainWindow", "NoSourceTabSelected");
             return;
         }
 
@@ -1911,7 +1912,7 @@ public partial class MainWindow : Window
                     BiblePassageBox.SelectionLength);
                 if (string.IsNullOrWhiteSpace(selection.IdString))
                 {
-                    viewModel.StatusText = "선택된 성경 구절이 없습니다.";
+                    viewModel.StatusText = UiText.Get("MainWindow", "NoBibleVerseSelected");
                     return;
                 }
 
@@ -1925,7 +1926,7 @@ public partial class MainWindow : Window
                 EnsureInlineInfoScreenLoadedOnce(viewModel);
                 if ((await AddInlineInfoScreenSelectionToWorshipListAsync().ConfigureAwait(true)).Count == 0)
                 {
-                    viewModel.StatusText = "선택된 InfoScreen 항목이 없습니다.";
+                    viewModel.StatusText = UiText.Get("MainWindow", "NoInfoScreenItemSelected");
                 }
 
                 break;
@@ -1934,7 +1935,7 @@ public partial class MainWindow : Window
                 EnsureInlinePowerPointLoadedOnce(viewModel);
                 if (AddInlinePowerPointSelectionToWorshipList().Count == 0)
                 {
-                    viewModel.StatusText = "선택된 PowerPoint 파일이 없습니다.";
+                    viewModel.StatusText = UiText.Get("MainWindow", "NoPowerPointFileSelected");
                 }
 
                 break;
@@ -1943,7 +1944,7 @@ public partial class MainWindow : Window
                 EnsureInlineMediaLoadedOnce(viewModel);
                 if (AddInlineMediaSelectionToWorshipList().Count == 0)
                 {
-                    viewModel.StatusText = "선택된 미디어 파일이 없습니다.";
+                    viewModel.StatusText = UiText.Get("MainWindow", "NoMediaFileSelected");
                 }
 
                 break;
@@ -1956,7 +1957,7 @@ public partial class MainWindow : Window
                 }
                 else
                 {
-                    viewModel.StatusText = "선택된 이미지가 없습니다.";
+                    viewModel.StatusText = UiText.Get("MainWindow", "NoImageSelected");
                 }
 
                 break;
@@ -1972,13 +1973,13 @@ public partial class MainWindow : Window
                 }
                 else
                 {
-                    viewModel.StatusText = "선택된 검색 결과가 없습니다.";
+                    viewModel.StatusText = UiText.Get("MainWindow", "NoSearchResultSelected");
                 }
 
                 break;
 
             default:
-                viewModel.StatusText = "현재 소스 탭은 예배 순서 추가 대상이 아닙니다.";
+                viewModel.StatusText = UiText.Get("MainWindow", "SourceTabNotAddable");
                 break;
         }
     }
@@ -2228,9 +2229,9 @@ public partial class MainWindow : Window
 
     internal static string EditItemMenuHeader(string? title)
     {
-        if (string.IsNullOrEmpty(title)) return "Edit Item";
+        if (string.IsNullOrEmpty(title)) return UiText.Get("MainWindow", "EditItemHeader");
         string display = title.Length > 20 ? title[..20] + "..." : title;
-        return $"Edit '{display.Replace("_", "__")}'";
+        return UiText.Format("MainWindow", "EditNamedItemHeader", display.Replace("_", "__"));
     }
 
     private void CMenuSongs_Opened(object sender, RoutedEventArgs e)
@@ -2269,7 +2270,7 @@ public partial class MainWindow : Window
         var added = AddSelectedLibrarySongsToWorshipList(viewModel);
         if (added.Count == 0)
         {
-            viewModel.StatusText = "Add & Show 할 곡을 선택하세요.";
+            viewModel.StatusText = UiText.Get("MainWindow", "SelectSongToAddAndShow");
             return;
         }
 
@@ -2342,13 +2343,13 @@ public partial class MainWindow : Window
         var folder = library.SelectedSongFolder;
         if (folder is null)
         {
-            library.StatusMessage = "편집할 폴더를 선택하세요.";
+            library.StatusMessage = UiText.Get("MainWindow", "SelectFolderToEdit");
             return;
         }
 
         if (library.SelectedSong is null)
         {
-            library.StatusMessage = "편집할 곡을 선택하세요.";
+            library.StatusMessage = UiText.Get("MainWindow", "SelectSongToEdit");
             return;
         }
 
@@ -2356,7 +2357,7 @@ public partial class MainWindow : Window
         editorWindow.Owner = this;
         if (editorWindow.DataContext is not SongEditorViewModel editorViewModel)
         {
-            library.StatusMessage = "곡 편집기를 초기화할 수 없습니다.";
+            library.StatusMessage = UiText.Get("MainWindow", "SongEditorInitFailed");
             return;
         }
 
@@ -2478,7 +2479,7 @@ public partial class MainWindow : Window
         var selections = await LoadInlineInfoScreenSelectionsAsync().ConfigureAwait(true);
         if (selections.Count == 0)
         {
-            _viewModel.StatusText = "선택된 InfoScreen 항목이 없습니다.";
+            _viewModel.StatusText = UiText.Get("MainWindow", "NoInfoScreenItemSelected");
             return Array.Empty<LiveQueueItem>();
         }
 
@@ -2498,12 +2499,12 @@ public partial class MainWindow : Window
 
         _viewModel.SelectedItem = added[0];
         _inlineInfoScreens?.StatusText = added.Count == 1
-                ? $"Added to Worship List: {selections[0].Name}"
-                : $"Added to Worship List: {added.Count} InfoScreens";
+                ? UiText.Format("MainWindow", "AddedToWorshipListNamed", selections[0].Name)
+                : UiText.Format("MainWindow", "AddedInfoScreensToWorshipList", added.Count);
 
         _viewModel.StatusText = added.Count == 1
-            ? $"InfoScreen 추가됨: {added[0].Title}"
-            : $"{added.Count}개 InfoScreen 추가됨";
+            ? UiText.Format("MainWindow", "InfoScreenAdded", added[0].Title)
+            : UiText.Format("MainWindow", "InfoScreensAdded", added.Count);
         return added;
     }
 
@@ -2535,7 +2536,7 @@ public partial class MainWindow : Window
         var selection = GetInlineInfoScreenSelection();
         if (selection.Count == 0)
         {
-            _viewModel.StatusText = "No InfoScreen selected.";
+            _viewModel.StatusText = UiText.Get("MainWindow", "NoInfoScreenSelected");
             InlineInfoScreenList.Focus();
             return;
         }
@@ -2549,7 +2550,7 @@ public partial class MainWindow : Window
         var selection = GetInlineInfoScreenSelection();
         if (selection.Count == 0)
         {
-            _viewModel.StatusText = "No InfoScreen selected.";
+            _viewModel.StatusText = UiText.Get("MainWindow", "NoInfoScreenSelected");
             InlineInfoScreenList.Focus();
             return;
         }
@@ -2561,14 +2562,14 @@ public partial class MainWindow : Window
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException or NotSupportedException)
         {
-            _viewModel.StatusText = $"InfoScreen copy source could not be prepared: {ex.Message}";
+            _viewModel.StatusText = UiText.Format("MainWindow", "InfoScreenCopySourceFailed", ex.Message);
             InlineInfoScreenList.Focus();
             return;
         }
 
         if (sourceFiles.Count == 0)
         {
-            _viewModel.StatusText = "No copyable InfoScreen selected.";
+            _viewModel.StatusText = UiText.Get("MainWindow", "NoCopyableInfoScreenSelected");
             InlineInfoScreenList.Focus();
             return;
         }
@@ -2582,17 +2583,17 @@ public partial class MainWindow : Window
         var selection = GetInlineInfoScreenSelection();
         if (_inlineInfoScreens is null || selection.Count == 0)
         {
-            _viewModel.StatusText = "No InfoScreen selected.";
+            _viewModel.StatusText = UiText.Get("MainWindow", "NoInfoScreenSelected");
             InlineInfoScreenList.Focus();
             return;
         }
 
         var message = selection.Count == 1
-            ? $"Delete selected InfoScreen '{selection[0].Name}'?"
-            : $"Delete selected {selection.Count} InfoScreens?";
+            ? UiText.Format("MainWindow", "DeleteInfoScreenConfirm", selection[0].Name)
+            : UiText.Format("MainWindow", "DeleteInfoScreensConfirm", selection.Count);
         if (MessageBox.Show(
                 message,
-                "Delete InfoScreen(s)",
+                UiText.Get("MainWindow", "DeleteInfoScreensTitle"),
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Warning) != MessageBoxResult.Yes)
         {
@@ -2603,9 +2604,9 @@ public partial class MainWindow : Window
         var deleted = _inlineInfoScreens.DeleteScreens(selection);
         _viewModel.StatusText = deleted switch
         {
-            0 => "No InfoScreen deleted.",
-            1 => "Deleted 1 InfoScreen.",
-            _ => $"Deleted {deleted} InfoScreens.",
+            0 => UiText.Get("MainWindow", "NoInfoScreenDeleted"),
+            1 => UiText.Get("MainWindow", "OneInfoScreenDeleted"),
+            _ => UiText.Format("MainWindow", "InfoScreensDeleted", deleted),
         };
         InlineInfoScreenList.Focus();
     }
@@ -2794,7 +2795,7 @@ public partial class MainWindow : Window
         var selection = GetInlinePowerPointSelection(powerPointList);
         if (selection.Count == 0)
         {
-            _viewModel.StatusText = "선택된 PowerPoint 파일이 없습니다.";
+            _viewModel.StatusText = UiText.Get("MainWindow", "NoPowerPointFileSelected");
             return Array.Empty<LiveQueueItem>();
         }
 
@@ -2814,12 +2815,12 @@ public partial class MainWindow : Window
 
         _viewModel.SelectedItem = added[0];
         _inlinePowerPoint?.StatusText = added.Count == 1
-                ? $"예배 순서에 추가: {selection[0].FileName}"
-                : $"예배 순서에 추가: {added.Count}개 PowerPoint";
+                ? UiText.Format("MainWindow", "AddedToWorshipListNamed", selection[0].FileName)
+                : UiText.Format("MainWindow", "AddedPowerPointsToWorshipList", added.Count);
 
         _viewModel.StatusText = added.Count == 1
-            ? $"PowerPoint 파일 추가됨: {added[0].Title}"
-            : $"{added.Count}개 PowerPoint 파일 추가됨";
+            ? UiText.Format("MainWindow", "PowerPointFileAdded", added[0].Title)
+            : UiText.Format("MainWindow", "PowerPointFilesAdded", added.Count);
         return added;
     }
 
@@ -2853,7 +2854,7 @@ public partial class MainWindow : Window
         var selection = GetInlinePowerPointSelection(activeList);
         if (selection.Count == 0)
         {
-            _viewModel.StatusText = "No PowerPoint file selected.";
+            _viewModel.StatusText = UiText.Get("MainWindow", "NoPowerPointFileSelected");
             activeList.Focus();
             return;
         }
@@ -2862,11 +2863,19 @@ public partial class MainWindow : Window
         activeList.Focus();
     }
 
+    // The callers name the source in English ("PowerPoint", "Media", "File"); the status line shows it in the UI language.
+    private static string ExternalSourceName(string sourceName) => sourceName switch
+    {
+        "Media" => UiText.Get("MainWindow", "SourceMedia"),
+        "File" => UiText.Get("MainWindow", "SourceFile"),
+        _ => sourceName,
+    };
+
     private bool LaunchExternalFileForEdit(string filePath, string sourceName)
     {
         if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
         {
-            _viewModel.StatusText = $"{sourceName} file not found: {filePath}";
+            _viewModel.StatusText = UiText.Format("MainWindow", "ExternalFileNotFound", ExternalSourceName(sourceName), filePath);
             return false;
         }
 
@@ -2878,12 +2887,12 @@ public partial class MainWindow : Window
             });
             if (IsEditableExternalMedia(filePath))
                 _recentEdits.Record(new(ResolveSongEditorDatabasePath(_viewModel), "file", filePath, Path.GetFileName(filePath)), _viewModel.EditHistoryLimit);
-            _viewModel.StatusText = $"{sourceName} edit opened: {Path.GetFileName(filePath)}";
+            _viewModel.StatusText = UiText.Format("MainWindow", "ExternalFileEditOpened", ExternalSourceName(sourceName), Path.GetFileName(filePath));
             return true;
         }
         catch (Exception ex)
         {
-            _viewModel.StatusText = $"{sourceName} file could not be opened: {ex.Message}";
+            _viewModel.StatusText = UiText.Format("MainWindow", "ExternalFileOpenFailed", ExternalSourceName(sourceName), ex.Message);
             Debug.WriteLine($"[MainWindow] {sourceName} edit launch failed: {ex.Message}");
             return false;
         }
@@ -2895,7 +2904,7 @@ public partial class MainWindow : Window
         var selection = GetInlinePowerPointSelection(activeList);
         if (selection.Count == 0)
         {
-            _viewModel.StatusText = "No PowerPoint file selected.";
+            _viewModel.StatusText = UiText.Get("MainWindow", "NoPowerPointFileSelected");
             activeList.Focus();
             return;
         }
@@ -2910,17 +2919,17 @@ public partial class MainWindow : Window
         var selection = GetInlinePowerPointSelection(activeList);
         if (_inlinePowerPoint is null || selection.Count == 0)
         {
-            _viewModel.StatusText = "No PowerPoint file selected.";
+            _viewModel.StatusText = UiText.Get("MainWindow", "NoPowerPointFileSelected");
             activeList.Focus();
             return;
         }
 
         var message = selection.Count == 1
-            ? $"Delete selected PowerPoint file '{selection[0].FileName}'?"
-            : $"Delete selected {selection.Count} PowerPoint files?";
+            ? UiText.Format("MainWindow", "DeletePowerPointFileConfirm", selection[0].FileName)
+            : UiText.Format("MainWindow", "DeletePowerPointFilesConfirm", selection.Count);
         if (MessageBox.Show(
                 message,
-                "Delete PowerPoint file(s)",
+                UiText.Get("MainWindow", "DeletePowerPointFilesTitle"),
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Warning) != MessageBoxResult.Yes)
         {
@@ -2931,9 +2940,9 @@ public partial class MainWindow : Window
         var deleted = _inlinePowerPoint.DeleteFiles(selection);
         _viewModel.StatusText = deleted switch
         {
-            0 => "No PowerPoint file deleted.",
-            1 => "Deleted 1 PowerPoint file.",
-            _ => $"Deleted {deleted} PowerPoint files.",
+            0 => UiText.Get("MainWindow", "NoPowerPointFileDeleted"),
+            1 => UiText.Get("MainWindow", "OnePowerPointFileDeleted"),
+            _ => UiText.Format("MainWindow", "PowerPointFilesDeleted", deleted),
         };
         activeList.Focus();
     }
@@ -3034,7 +3043,7 @@ public partial class MainWindow : Window
         var selection = GetInlineMediaSelection();
         if (selection.Count == 0)
         {
-            _viewModel.StatusText = "선택된 미디어 파일이 없습니다.";
+            _viewModel.StatusText = UiText.Get("MainWindow", "NoMediaFileSelected");
             return Array.Empty<LiveQueueItem>();
         }
 
@@ -3054,12 +3063,12 @@ public partial class MainWindow : Window
 
         _viewModel.SelectedItem = added[0];
         _inlineMedia?.StatusText = added.Count == 1
-                ? $"예배 순서에 추가: {selection[0].FileName}"
-                : $"예배 순서에 추가: {added.Count}개 미디어";
+                ? UiText.Format("MainWindow", "AddedToWorshipListNamed", selection[0].FileName)
+                : UiText.Format("MainWindow", "AddedMediaToWorshipList", added.Count);
 
         _viewModel.StatusText = added.Count == 1
-            ? $"미디어 파일 추가됨: {added[0].Title}"
-            : $"{added.Count}개 미디어 파일 추가됨";
+            ? UiText.Format("MainWindow", "MediaFileAdded", added[0].Title)
+            : UiText.Format("MainWindow", "MediaFilesAdded", added.Count);
         return added;
     }
 
@@ -3096,7 +3105,7 @@ public partial class MainWindow : Window
         var selection = GetInlineMediaSelection();
         if (selection.Count == 0)
         {
-            _viewModel.StatusText = "No media file selected.";
+            _viewModel.StatusText = UiText.Get("MainWindow", "NoMediaFileSelected");
             InlineMediaList.Focus();
             return;
         }
@@ -3110,7 +3119,7 @@ public partial class MainWindow : Window
         var selection = GetInlineMediaSelection();
         if (selection.Count == 0)
         {
-            _viewModel.StatusText = "No media file selected.";
+            _viewModel.StatusText = UiText.Get("MainWindow", "NoMediaFileSelected");
             InlineMediaList.Focus();
             return;
         }
@@ -3124,17 +3133,17 @@ public partial class MainWindow : Window
         var selection = GetInlineMediaSelection();
         if (_inlineMedia is null || selection.Count == 0)
         {
-            _viewModel.StatusText = "No media file selected.";
+            _viewModel.StatusText = UiText.Get("MainWindow", "NoMediaFileSelected");
             InlineMediaList.Focus();
             return;
         }
 
         var message = selection.Count == 1
-            ? $"Delete selected media file '{selection[0].FileName}'?"
-            : $"Delete selected {selection.Count} media files?";
+            ? UiText.Format("MainWindow", "DeleteMediaFileConfirm", selection[0].FileName)
+            : UiText.Format("MainWindow", "DeleteMediaFilesConfirm", selection.Count);
         if (MessageBox.Show(
                 message,
-                "Delete media file(s)",
+                UiText.Get("MainWindow", "DeleteMediaFilesTitle"),
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Warning) != MessageBoxResult.Yes)
         {
@@ -3145,9 +3154,9 @@ public partial class MainWindow : Window
         var deleted = _inlineMedia.DeleteFiles(selection);
         _viewModel.StatusText = deleted switch
         {
-            0 => "No media file deleted.",
-            1 => "Deleted 1 media file.",
-            _ => $"Deleted {deleted} media files.",
+            0 => UiText.Get("MainWindow", "NoMediaFileDeleted"),
+            1 => UiText.Get("MainWindow", "OneMediaFileDeleted"),
+            _ => UiText.Format("MainWindow", "MediaFilesDeleted", deleted),
         };
         InlineMediaList.Focus();
     }
@@ -3178,8 +3187,8 @@ public partial class MainWindow : Window
         var folderName = _inlineImages.SelectedFolder?.DisplayName ?? _inlineImages.FolderPath;
         var dialog = new Microsoft.Win32.OpenFileDialog
         {
-            Filter = "Images (*.jpg,*jpeg,*.bmp,*.gif,*.ico)|*.jpg;*jpeg;*.bmp;*.gif;*.ico",
-            Title = $"Import An Image into folder: {folderName}",
+            Filter = UiText.Get("MainWindow", "FilterImages") + " (*.jpg,*jpeg,*.bmp,*.gif,*.ico)|*.jpg;*jpeg;*.bmp;*.gif;*.ico",
+            Title = UiText.Format("MainWindow", "ImportImageTitle", folderName),
             Multiselect = true,
             CheckFileExists = true,
         };
@@ -3193,10 +3202,10 @@ public partial class MainWindow : Window
         var results = await _inlineImages.ImportImagesAsync(dialog.FileNames).ConfigureAwait(true);
         var importedCount = results.Count(result => result.Succeeded);
         _viewModel.StatusText = importedCount == 0
-            ? "Image could not be imported."
+            ? UiText.Get("MainWindow", "ImageImportFailed")
             : importedCount == 1
-                ? "Imported 1 image."
-                : $"Imported {importedCount} images.";
+                ? UiText.Get("MainWindow", "OneImageImported")
+                : UiText.Format("MainWindow", "ImagesImported", importedCount);
         InlineImagesList.Focus();
     }
 
@@ -3449,11 +3458,11 @@ public partial class MainWindow : Window
 
         var dialog = new Microsoft.Win32.OpenFileDialog
         {
-            Title = "예배 순서에 추가할 파일 선택",
+            Title = UiText.Get("MainWindow", "AddFileToWorshipListTitle"),
             Filter = SourceFileExtensions.DialogFilter("PowerPoint", SourceFileExtensions.PowerPoint)
-                + "|Word 문서 (*.doc;*.docx)|*.doc;*.docx"
-                + "|" + viewModel.MediaDialogFilter("미디어")
-                + "|모든 파일 (*.*)|*.*",
+                + "|" + UiText.Get("MainWindow", "FilterWordDocuments") + " (*.doc;*.docx)|*.doc;*.docx"
+                + "|" + viewModel.MediaDialogFilter(UiText.Get("MainWindow", "FilterMedia"))
+                + "|" + UiText.Get("MainWindow", "FilterAllFiles") + " (*.*)|*.*",
             CheckFileExists = true,
         };
 
@@ -3486,8 +3495,8 @@ public partial class MainWindow : Window
 
         var dialog = new Microsoft.Win32.OpenFileDialog
         {
-            Title = "가져올 레거시 예배 순서(.esw) 선택",
-            Filter = "Axicultus 예배 순서 (*.esw;*.json)|*.esw;*.json|모든 파일 (*.*)|*.*",
+            Title = UiText.Get("MainWindow", "ImportLegacyWorshipListTitle"),
+            Filter = UiText.Get("MainWindow", "FilterWorshipLists") + " (*.esw;*.json)|*.esw;*.json|" + UiText.Get("MainWindow", "FilterAllFiles") + " (*.*)|*.*",
             CheckFileExists = true,
         };
 
@@ -3504,12 +3513,12 @@ public partial class MainWindow : Window
         catch (System.IO.IOException ex)
         {
             // 파일을 못 읽으면(잠김·권한 등) 조용히 실패하지 않고 운영자에게 알린다.
-            viewModel.StatusText = $"예배 순서 파일을 읽을 수 없습니다: {ex.Message}";
+            viewModel.StatusText = UiText.Format("MainWindow", "WorshipListFileReadFailed", ex.Message);
             return;
         }
         catch (System.UnauthorizedAccessException ex)
         {
-            viewModel.StatusText = $"예배 순서 파일 접근 권한이 없습니다: {ex.Message}";
+            viewModel.StatusText = UiText.Format("MainWindow", "WorshipListFileAccessDenied", ex.Message);
             return;
         }
 
@@ -3519,7 +3528,7 @@ public partial class MainWindow : Window
     // 본문 추출(인터롭)은 여기서, 추출 결과를 항목으로 만드는 판단(빈 문서 처리 포함)은 검증된 VM(AddWordTextItem)이 맡는다.
     private static async void AddWordDocAsTextItem(MainViewModel viewModel, string filePath)
     {
-        viewModel.StatusText = "Word 문서를 읽는 중...";
+        viewModel.StatusText = UiText.Get("MainWindow", "ReadingWordDocument");
         // 상태 메시지가 화면에 먼저 그려질 틈을 준다 — 그러지 않으면 동기 COM 호출이 렌더 전에 UI 를 막아 "읽는 중"이 안 보인다.
         // (Word COM 은 STA 의존이라 Task.Run(MTA 스레드)으로 옮기지 않고, 렌더 양보 후 UI/STA 스레드에서 그대로 읽는다.)
         await Dispatcher.Yield(System.Windows.Threading.DispatcherPriority.Render);
@@ -3539,9 +3548,9 @@ public partial class MainWindow : Window
 
         var dialog = new Microsoft.Win32.OpenFileDialog
         {
-            Title = "출력 배경으로 사용할 이미지 선택",
-            Filter = "이미지 (*.jpg;*.jpeg;*.png;*.bmp;*.gif)|*.jpg;*.jpeg;*.png;*.bmp;*.gif"
-                + "|모든 파일 (*.*)|*.*",
+            Title = UiText.Get("MainWindow", "SelectOutputBackgroundTitle"),
+            Filter = UiText.Get("MainWindow", "FilterImages") + " (*.jpg;*.jpeg;*.png;*.bmp;*.gif)|*.jpg;*.jpeg;*.png;*.bmp;*.gif"
+                + "|" + UiText.Get("MainWindow", "FilterAllFiles") + " (*.*)|*.*",
             CheckFileExists = true,
         };
 
@@ -3560,9 +3569,9 @@ public partial class MainWindow : Window
 
         var dialog = new Microsoft.Win32.OpenFileDialog
         {
-            Title = "이 항목의 배경 이미지 선택",
-            Filter = "이미지 (*.jpg;*.jpeg;*.png;*.bmp;*.gif)|*.jpg;*.jpeg;*.png;*.bmp;*.gif"
-                + "|모든 파일 (*.*)|*.*",
+            Title = UiText.Get("MainWindow", "SelectItemBackgroundTitle"),
+            Filter = UiText.Get("MainWindow", "FilterImages") + " (*.jpg;*.jpeg;*.png;*.bmp;*.gif)|*.jpg;*.jpeg;*.png;*.bmp;*.gif"
+                + "|" + UiText.Get("MainWindow", "FilterAllFiles") + " (*.*)|*.*",
             CheckFileExists = true,
         };
 
@@ -3581,8 +3590,8 @@ public partial class MainWindow : Window
 
         var dialog = new Microsoft.Win32.OpenFileDialog
         {
-            Title = "이 항목의 미디어 선택",
-            Filter = viewModel.MediaDialogFilter("미디어") + "|모든 파일 (*.*)|*.*",
+            Title = UiText.Get("MainWindow", "SelectItemMediaTitle"),
+            Filter = viewModel.MediaDialogFilter(UiText.Get("MainWindow", "FilterMedia")) + "|" + UiText.Get("MainWindow", "FilterAllFiles") + " (*.*)|*.*",
             CheckFileExists = true,
             InitialDirectory = ResolveMediaInitialFolder(),
         };
@@ -3598,7 +3607,7 @@ public partial class MainWindow : Window
         var options = Media.ItemMediaOptions.Read(_viewModel.DefaultMediaFormat);
         if (options.Mode < 0 && !string.IsNullOrEmpty(_viewModel.DefaultMediaPath))
             options = options with { Mode = 2, FileName = _viewModel.DefaultMediaPath };
-        var dialog = new Media.MediaAssignmentWindow("Default Media", options, ResolveMediaInitialFolder(),
+        var dialog = new Media.MediaAssignmentWindow(UiText.Get("MainWindow", "DefaultMedia"), options, ResolveMediaInitialFolder(),
             _viewModel.OutputDisplays, _services.GetService<Media.CameraOwnership>())
             { Owner = this, WorkingFolder = _settings?.Current.General.WorkingFolder };
         if (dialog.ShowDialog() == true && options != dialog.Options)
@@ -3676,7 +3685,7 @@ public partial class MainWindow : Window
             LyricsMonitorBackgroundColor2Argb = format?.BackgroundColorArgb2 ?? format?.BackgroundColorArgb1 ?? defaults.LyricsMonitorBackgroundColor2Argb,
             LyricsMonitorBackgroundPattern = pattern,
             LyricsMonitorBackgroundIsGradient = pattern != 11
-        }) { Owner = this, Title = "항목 배경색 및 무늬" };
+        }) { Owner = this, Title = UiText.Get("MainWindow", "ItemBackgroundPatternTitle") };
         if (dialog.ShowDialog() == true)
             _viewModel.SetItemBackgroundPattern(dialog.FirstColour, dialog.SecondColour, dialog.Pattern);
     }
@@ -3735,7 +3744,7 @@ public partial class MainWindow : Window
 
         var dialog = new Microsoft.Win32.OpenFileDialog
         {
-            Title = "Load Individual Settings from a Template",
+            Title = UiText.Get("MainWindow", "LoadIndividualTemplateTitle"),
             Filter = IndividualFormatTemplateFile.DialogFilter,
             InitialDirectory = ResolveSettingsTemplateInitialFolder(),
             CheckFileExists = true,
@@ -3750,12 +3759,12 @@ public partial class MainWindow : Window
         {
             var formatData = IndividualFormatTemplateFile.LoadFormatData(dialog.FileName);
             viewModel.StatusText = viewModel.ApplySelectedItemFormatDataTemplate(formatData)
-                ? $"개별 설정 템플릿 불러옴: {Path.GetFileName(dialog.FileName)}"
-                : "개별 설정 템플릿을 적용할 수 없습니다.";
+                ? UiText.Format("MainWindow", "IndividualTemplateLoaded", Path.GetFileName(dialog.FileName))
+                : UiText.Get("MainWindow", "IndividualTemplateApplyFailed");
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or XmlException)
         {
-            viewModel.StatusText = $"개별 설정 템플릿을 읽을 수 없습니다: {ex.Message}";
+            viewModel.StatusText = UiText.Format("MainWindow", "IndividualTemplateReadFailed", ex.Message);
         }
     }
 
@@ -3768,7 +3777,7 @@ public partial class MainWindow : Window
 
         var dialog = new Microsoft.Win32.SaveFileDialog
         {
-            Title = "Save Current Individual Settings to a Template",
+            Title = UiText.Get("MainWindow", "SaveIndividualTemplateTitle"),
             Filter = IndividualFormatTemplateFile.DialogFilter,
             InitialDirectory = ResolveSettingsTemplateInitialFolder(),
             FileName = BuildPreviewItemTemplateFileName(viewModel.PreviewPanelItem?.Title, ".est"),
@@ -3785,11 +3794,11 @@ public partial class MainWindow : Window
         try
         {
             IndividualFormatTemplateFile.SaveFormatData(dialog.FileName, viewModel.SelectedItemFormatData);
-            viewModel.StatusText = $"개별 설정 템플릿 저장됨: {Path.GetFileName(dialog.FileName)}";
+            viewModel.StatusText = UiText.Format("MainWindow", "IndividualTemplateSaved", Path.GetFileName(dialog.FileName));
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            viewModel.StatusText = $"개별 설정 템플릿을 저장할 수 없습니다: {ex.Message}";
+            viewModel.StatusText = UiText.Format("MainWindow", "IndividualTemplateSaveFailed", ex.Message);
         }
     }
 
@@ -3859,9 +3868,9 @@ public partial class MainWindow : Window
 
         var dialog = new Microsoft.Win32.OpenFileDialog
         {
-            Title = "대기 화면(Gap) 로고로 사용할 이미지 선택",
-            Filter = "이미지 (*.jpg;*.jpeg;*.png;*.bmp;*.gif)|*.jpg;*.jpeg;*.png;*.bmp;*.gif"
-                + "|모든 파일 (*.*)|*.*",
+            Title = UiText.Get("MainWindow", "SelectGapLogoTitle"),
+            Filter = UiText.Get("MainWindow", "FilterImages") + " (*.jpg;*.jpeg;*.png;*.bmp;*.gif)|*.jpg;*.jpeg;*.png;*.bmp;*.gif"
+                + "|" + UiText.Get("MainWindow", "FilterAllFiles") + " (*.*)|*.*",
             CheckFileExists = true,
         };
 
@@ -3939,7 +3948,7 @@ public partial class MainWindow : Window
         if (obs.AutoConnect && IsLoaded)
         {
             try { await _services.GetRequiredService<Captions.CaptionBroadcastServer>().StartAsync(); }
-            catch (Exception ex) { _viewModel.StatusText = "OBS 자막 서버 시작 실패 · " + ex.Message; }
+            catch (Exception ex) { _viewModel.StatusText = UiText.Format("MainWindow", "CaptionServerStartFailed", ex.Message); }
         }
     }
     private readonly Captions.QueueRecoveryJournal? _queueRecovery;
@@ -4071,7 +4080,7 @@ public partial class MainWindow : Window
         var text = _viewModel.PreviewBibleSelection(selection)?.Lyrics?.Replace("\u0098", string.Empty);
         if (string.IsNullOrEmpty(text)) return;
         try { Clipboard.SetText(text); }
-        catch (System.Runtime.InteropServices.ExternalException) { _viewModel.StatusText = "클립보드를 사용할 수 없습니다."; }
+        catch (System.Runtime.InteropServices.ExternalException) { _viewModel.StatusText = UiText.Get("MainWindow", "ClipboardUnavailable"); }
         OpenNoticeScreen(text);
     }
 
@@ -4158,7 +4167,7 @@ public partial class MainWindow : Window
 
         if (viewModel.Library.SelectedSong is not { } song)
         {
-            _inlinePraiseBook.StatusText = "추가할 곡을 Folders 탭에서 선택하세요.";
+            _inlinePraiseBook.StatusText = UiText.Get("MainWindow", "SelectSongInFoldersTab");
             return;
         }
 
@@ -4257,7 +4266,7 @@ public partial class MainWindow : Window
             viewModel.SelectedItem = added[0];
             WorshipListPanel.QueueList.ScrollIntoView(added[0]);
             if (await viewModel.SavePendingWorshipListChangesAsync() && missing > 0)
-                viewModel.StatusText = $"예배 순서에 {added.Count}곡 추가됨. 찾을 수 없는 곡 {missing}개.";
+                viewModel.StatusText = UiText.Format("MainWindow", "PraiseBookSongsAdded", added.Count, missing);
         }
     }
 
@@ -4409,14 +4418,14 @@ public partial class MainWindow : Window
         var songId = await ResolvePraiseBookSongIdAsync(viewModel, entry);
         if (songId <= 0)
         {
-            viewModel.StatusText = "Select one Praise Book song to edit.";
+            viewModel.StatusText = UiText.Get("MainWindow", "SelectPraiseBookSongToEdit");
             return;
         }
 
         var databasePath = ResolveSongEditorDatabasePath(viewModel);
         if (string.IsNullOrWhiteSpace(databasePath))
         {
-            viewModel.StatusText = "AdminDB path is not available for Praise Book editing.";
+            viewModel.StatusText = UiText.Get("MainWindow", "AdminDbPathMissingForPraiseBook");
             return;
         }
 
@@ -4429,17 +4438,17 @@ public partial class MainWindow : Window
         catch (Exception ex) when (MainViewModel.IsSongDatabaseError(ex))
         {
             // Called from async void handlers: a database that cannot be read must not end the app.
-            viewModel.StatusText = $"곡 데이터베이스를 읽을 수 없습니다: {ex.Message}";
+            viewModel.StatusText = UiText.Format("MainWindow", "SongDatabaseReadFailed", ex.Message);
             return;
         }
         if (detail is null)
         {
-            viewModel.StatusText = $"Praise Book song was not found: {songId}";
+            viewModel.StatusText = UiText.Format("MainWindow", "PraiseBookSongNotFound", songId);
             return;
         }
 
         var folder = viewModel.Library.Folders.FirstOrDefault(f => f.FolderNo == detail.FolderNo)
-            ?? new SongFolderSummary(detail.FolderNo, $"Folder {detail.FolderNo}", true, 0);
+            ?? new SongFolderSummary(detail.FolderNo, UiText.Format("MainWindow", "FolderFallbackName", detail.FolderNo), true, 0);
         var song = new SongSummary(
             detail.SongId,
             detail.Title,
@@ -4455,7 +4464,7 @@ public partial class MainWindow : Window
         editorWindow.Owner = this;
         if (editorWindow.DataContext is not SongEditorViewModel editorViewModel)
         {
-            viewModel.StatusText = "Song editor could not be initialized.";
+            viewModel.StatusText = UiText.Get("MainWindow", "SongEditorInitFailed");
             return;
         }
 
@@ -4500,12 +4509,12 @@ public partial class MainWindow : Window
         var extension = html ? ".html" : ".rtf";
         var dialog = new Microsoft.Win32.SaveFileDialog
         {
-            Title = $"찬양집 {format} 저장", DefaultExt = extension,
+            Title = UiText.Format("MainWindow", "SavePraiseBookTitle", format), DefaultExt = extension,
             Filter = $"{format} (*{extension})|*{extension}",
             FileName = BuildPraiseBookExportFileName(extension)
         };
         if (dialog.ShowDialog(this) != true) return;
-        var title = string.IsNullOrWhiteSpace(book.CurrentBookName) ? "찬양집" : book.CurrentBookName;
+        var title = string.IsNullOrWhiteSpace(book.CurrentBookName) ? "찬양집" : book.CurrentBookName; // not UI text
         var entries = book.Entries.ToArray();
         var database = ResolveSongEditorDatabasePath(_viewModel);
         var repository = _services.GetRequiredService<IAdminDatabaseRepository>();
@@ -4516,12 +4525,12 @@ public partial class MainWindow : Window
                     entries.Where(e => e.SongId != 0).Select(e => e.SongId).ToHashSet(),
                     entries.Where(e => e.SongId == 0).Select(e => e.Title).ToHashSet(StringComparer.OrdinalIgnoreCase)).ConfigureAwait(false), html));
             await File.WriteAllTextAsync(dialog.FileName, document, new System.Text.UTF8Encoding(false));
-            book.StatusText = $"{format} 저장됨: {dialog.FileName}";
+            book.StatusText = UiText.Format("MainWindow", "PraiseBookSaved", format, dialog.FileName);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException or InvalidDataException or System.Data.Common.DbException)
         {
             book.StatusText = ex.Message;
-            MessageBox.Show(this, ex.Message, "찬양집 문서 생성", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show(this, ex.Message, UiText.Get("MainWindow", "PraiseBookDocumentTitle"), MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }
 
@@ -4630,7 +4639,7 @@ public partial class MainWindow : Window
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"[설정 초기화] 재시작 실행 실패: {ex.Message}");
+                Debug.WriteLine($"[ResetSettings] Restart launch failed: {ex.Message}");
             }
         }
 
@@ -4726,19 +4735,19 @@ public partial class MainWindow : Window
 
     private void SongCopy_Click(object sender, RoutedEventArgs e)
         => LaunchSongContextWindow<SongCopyWindow, SongCopyViewModel>(
-            "복사할 곡을 라이브러리 탭에서 선택하세요.",
+            UiText.Get("MainWindow", "SelectSongToCopy"),
             (vm, lib, songs) => vm.Load(lib.DatabasePath, songs, lib.Folders),
             vm => vm.StatusMessage);
 
     private void SongMove_Click(object sender, RoutedEventArgs e)
         => LaunchSongContextWindow<SongMoveWindow, SongMoveViewModel>(
-            "이동할 곡을 라이브러리 탭에서 선택하세요.",
+            UiText.Get("MainWindow", "SelectSongToMove"),
             (vm, lib, songs) => vm.Load(lib.DatabasePath, songs, lib.Folders),
             vm => vm.StatusMessage);
 
     private void SongDelete_Click(object sender, RoutedEventArgs e)
         => LaunchSongContextWindow<SongDeleteWindow, SongDeleteViewModel>(
-            "삭제할 곡을 라이브러리 탭에서 선택하세요.",
+            UiText.Get("MainWindow", "SelectSongToDelete"),
             (vm, lib, songs) => vm.Load(lib.DatabasePath, songs, lib.Folders),
             vm => vm.StatusMessage);
 
@@ -4815,7 +4824,7 @@ public partial class MainWindow : Window
         var lib = _viewModel.Library;
         if (string.IsNullOrWhiteSpace(lib.DatabasePath))
         {
-            lib.StatusMessage = "AdminDB 경로를 설정에서 먼저 지정하세요.";
+            lib.StatusMessage = UiText.Get("MainWindow", "SetAdminDbPathFirst");
             return;
         }
 
@@ -4849,8 +4858,8 @@ public partial class MainWindow : Window
         var folder = _services.GetRequiredService<ISettingsService>().Current.General.WorkingFolder;
         if (string.IsNullOrWhiteSpace(folder) || !Directory.Exists(folder))
         {
-            MessageBox.Show(this, "작업 폴더를 찾을 수 없습니다. 설정에서 작업 폴더를 먼저 지정하세요.",
-                "Axicultus 폴더", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show(this, UiText.Get("MainWindow", "WorkingFolderNotFound"),
+                UiText.Get("MainWindow", "AxicultusFolderTitle"), MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
 
@@ -4896,9 +4905,8 @@ public partial class MainWindow : Window
         if (!_discardWorshipListChangesOnClose && _viewModel.HasUnnamedWorshipListChanges)
         {
             var answer = MessageBox.Show(this,
-                $"이름 없는 예배 순서에 저장하지 않은 항목이 {_viewModel.Queue.Count}개 있습니다.\n\n"
-                + "예: 종료하지 않고 순서 관리 창에서 이름을 정해 저장합니다.\n아니요: 저장하지 않고 종료합니다.",
-                "예배 순서 저장", MessageBoxButton.YesNoCancel, MessageBoxImage.Warning, MessageBoxResult.Yes);
+                UiText.Format("MainWindow", "UnnamedWorshipListUnsaved", _viewModel.Queue.Count),
+                UiText.Get("MainWindow", "SaveWorshipListTitle"), MessageBoxButton.YesNoCancel, MessageBoxImage.Warning, MessageBoxResult.Yes);
             if (answer != MessageBoxResult.No)
             {
                 e.Cancel = true;
@@ -4922,8 +4930,8 @@ public partial class MainWindow : Window
         {
             if (!await _viewModel.SavePendingWorshipListChangesAsync())
             {
-                if (MessageBox.Show(this, _viewModel.StatusText + "\n\n변경 사항을 저장하지 않고 종료하시겠습니까?",
-                    "예배 순서 저장", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No)
+                if (MessageBox.Show(this, _viewModel.StatusText + "\n\n" + UiText.Get("MainWindow", "ExitWithoutSavingConfirm"),
+                    UiText.Get("MainWindow", "SaveWorshipListTitle"), MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No)
                     != MessageBoxResult.Yes) return;
                 _discardWorshipListChangesOnClose = true;
             }
@@ -4956,7 +4964,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"[MainWindow] 패널 비율 복원 실패: {ex.Message}");
+            Debug.WriteLine($"[MainWindow] Panel ratio restore failed: {ex.Message}");
         }
     }
 
@@ -4985,7 +4993,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"[MainWindow] 패널 비율 저장 실패: {ex.Message}");
+            Debug.WriteLine($"[MainWindow] Panel ratio save failed: {ex.Message}");
         }
     }
 
@@ -5030,7 +5038,7 @@ public partial class MainWindow : Window
         catch (Exception ex)
         {
             // 창 복원 실패가 시작 자체를 막으면 안 된다 — 기본 배치로 진행.
-            Debug.WriteLine($"[MainWindow] 창 위치 복원 실패: {ex.Message}");
+            Debug.WriteLine($"[MainWindow] Window placement restore failed: {ex.Message}");
         }
     }
 
@@ -5064,7 +5072,7 @@ public partial class MainWindow : Window
         catch (Exception ex)
         {
             // 저장 실패는 무시 — 다음 실행은 기본 배치로 시작.
-            Debug.WriteLine($"[MainWindow] 창 위치 저장 실패: {ex.Message}");
+            Debug.WriteLine($"[MainWindow] Window placement save failed: {ex.Message}");
         }
     }
 

@@ -1,6 +1,7 @@
 <UserControl x:Class="Axicultus.Wpf.Composites.WorshipListPanel"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="clr-namespace:Axicultus.Wpf.Localization"
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
              xmlns:controls="clr-namespace:Axicultus.Wpf.Controls"
              xmlns:conv="clr-namespace:Axicultus.Wpf.Converters"
@@ -35,16 +36,16 @@
                         DockPanel.Dock="Top"
                         Orientation="Horizontal"
                         Margin="0,0,0,3" Visibility="{Binding WorshipListHasUnsavedChanges, Converter={StaticResource BoolToVis}}">
-                <TextBlock Text="예배 순서"
+                <TextBlock Text="{loc:Text WorshipListPanel.WorshipList}"
                            Style="{StaticResource Type.Caption.Style}"
                            Foreground="{DynamicResource Brush.Text.Primary}"
                            VerticalAlignment="Center" />
-                <TextBlock Text="● 수정됨"
+                <TextBlock Text="{loc:Text WorshipListPanel.Modified}"
                            VerticalAlignment="Center"
                            Margin="10,0,0,0"
                            Style="{StaticResource Type.Caption.Style}"
                            Foreground="{DynamicResource Brush.Status.Warning}"
-                           ToolTip="저장한 이후 예배 순서가 바뀌었습니다. '저장'으로 보존하세요."
+                           ToolTip="{loc:Text WorshipListPanel.ModifiedTip}"
                            AutomationProperties.Name="미저장 변경 있음"
                            Visibility="{Binding WorshipListHasUnsavedChanges, Converter={StaticResource BoolToVis}}" />
             </StackPanel>
@@ -95,7 +96,7 @@
                           MinHeight="0"
                           Padding="8,2,4,2"
                           VerticalContentAlignment="Center"
-                          ToolTip="저장된 예배 순서를 고르면 바로 불러옵니다. 콤보를 열면 목록이 새로고침됩니다."
+                          ToolTip="{loc:Text WorshipListPanel.SavedListsTip}"
                           AutomationProperties.Name="저장된 예배 순서 선택" />
                 <StackPanel x:Name="ClassicWorshipListToolStrip1"
                             Grid.Column="2"
@@ -110,7 +111,7 @@
                         Width="29"
                         Height="33"
                         Padding="0"
-                        ToolTip="Manage Worship Lists"
+                        ToolTip="{loc:Text WorshipListPanel.ManageWorshipLists}"
                         AutomationProperties.Name="Manage Worship Lists"
                         Margin="0,0,3,0">
                     <controls:FrmIcon Icon="clipboard_task_list_ltr" Width="18" Height="18" />
@@ -121,7 +122,7 @@
                         Width="29"
                         Height="33"
                         Padding="0"
-                        ToolTip="Add to Worship List"
+                        ToolTip="{loc:Text WorshipListPanel.AddToWorshipList}"
                         AutomationProperties.Name="현재 소스 항목을 예배 순서에 추가"
                         Margin="0,0,3,0">
                     <controls:FrmIcon Icon="text_bullet_list_add" Width="18" Height="18" />
@@ -133,7 +134,7 @@
                         Width="29"
                         Height="33"
                         Padding="0"
-                        ToolTip="Add External Document to Worship List"
+                        ToolTip="{loc:Text WorshipListPanel.AddExternalDocument}"
                         AutomationProperties.Name="외부 파일을 예배 순서에 추가"
                         Margin="0">
                     <controls:FrmIcon Icon="folder_open" Width="18" Height="18" />
@@ -179,7 +180,7 @@
                         Width="22"
                         Height="22"
                         Padding="0"
-                        ToolTip="선택 항목을 위로 이동 (Ctrl+Shift+↑)"
+                        ToolTip="{loc:Text WorshipListPanel.MoveUpTip}"
                         AutomationProperties.Name="항목 위로 이동 (Ctrl+Shift+Up)"
                         Margin="0,0,0,3">
                     <controls:FrmIcon Icon="arrow_up" Width="18" Height="18" />
@@ -191,7 +192,7 @@
                         Width="22"
                         Height="22"
                         Padding="0"
-                        ToolTip="선택 항목을 아래로 이동 (Ctrl+Shift+↓)"
+                        ToolTip="{loc:Text WorshipListPanel.MoveDownTip}"
                         AutomationProperties.Name="항목 아래로 이동 (Ctrl+Shift+Down)"
                         Margin="0,0,0,3">
                     <controls:FrmIcon Icon="arrow_down" Width="18" Height="18" />
@@ -203,7 +204,7 @@
                         Width="22"
                         Height="22"
                         Padding="0"
-                        ToolTip="선택 항목을 예배 순서에서 제거 (Del)"
+                        ToolTip="{loc:Text WorshipListPanel.RemoveTip}"
                         AutomationProperties.Name="항목 제거 (Delete 키)"
                         Margin="0,0,0,3">
                     <controls:FrmIcon Icon="delete" Width="18" Height="18" />
@@ -218,7 +219,7 @@
                         Width="22"
                         Height="22"
                         Padding="0"
-                        ToolTip="Generate RTF Document"
+                        ToolTip="{loc:Text WorshipListPanel.GenerateRtf}"
                         AutomationProperties.Name="예배 순서 RTF 문서 생성"
                         Margin="0,0,0,3">
                     <controls:FrmIcon Icon="document_text" Width="18" Height="18" />
@@ -230,7 +231,7 @@
                         Width="22"
                         Height="22"
                         Padding="0"
-                        ToolTip="세션 메모 편집"
+                        ToolTip="{loc:Text WorshipListPanel.EditSessionNotes}"
                         AutomationProperties.Name="세션 메모 편집"
                         Margin="0">
                     <controls:FrmIcon Icon="note_edit" Width="18" Height="18" />
@@ -251,7 +252,7 @@
                     BorderThickness="1"
                     Visibility="{Binding HasWorshipListProblems, Converter={StaticResource BoolToVis}}">
                 <StackPanel>
-                    <TextBlock Text="{Binding WorshipListProblems.Count, StringFormat='⚠ 검증 문제 {0}건'}"
+                    <TextBlock Text="{Binding WorshipListProblems.Count, StringFormat={loc:Text WorshipListPanel.ProblemCount}}"
                                Style="{StaticResource Type.Caption.Style}"
                                Foreground="{DynamicResource Brush.Live.Active}"
                                Margin="0,0,0,4" />
@@ -265,7 +266,7 @@
                                         Command="{Binding DataContext.SelectWorshipProblemItemCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                         CommandParameter="{Binding}"
                                         Margin="0,1,0,1"
-                                        ToolTip="클릭하면 이 항목을 예배 순서에서 선택합니다."
+                                        ToolTip="{loc:Text WorshipListPanel.ProblemSelectTip}"
                                         AutomationProperties.Name="{Binding Message}">
                                     <TextBlock Text="{Binding Message}"
                                                TextWrapping="Wrap"
@@ -346,7 +347,7 @@
                                             <Binding Path="DataContext.LiveRow" RelativeSource="{RelativeSource AncestorType=ListView}" />
                                         </MultiBinding>
                                     </Border.Visibility>
-                                    <TextBlock Text="LIVE"
+                                    <TextBlock Text="{loc:Text WorshipListPanel.Live}"
                                                Foreground="White"
                                                FontSize="{DynamicResource Type.Badge.FontSize}"
                                                FontWeight="Bold"
@@ -364,33 +365,33 @@
                                      Tag="CMenuWorship"
                                      Opened="CMenuWorship_Opened">
                             <MenuItem x:Name="CMenuWorship_SelectAll"
-                                      Header="Select All"
+                                      Header="{loc:Text WorshipListPanel.SelectAll}"
                                       Tag="CMenuWorship_SelectAll"
                                       Click="CMenuWorship_SelectAll_Click" />
                             <MenuItem x:Name="CMenuWorship_UnselectAll"
-                                      Header="Unselect All"
+                                      Header="{loc:Text WorshipListPanel.UnselectAll}"
                                       Tag="CMenuWorship_UnselectAll"
                                       Click="CMenuWorship_UnselectAll_Click" />
                             <MenuItem x:Name="CMenuWorship_Clear"
-                                      Header="Clear Worship List"
+                                      Header="{loc:Text WorshipListPanel.ClearWorshipList}"
                                       Tag="CMenuWorship_Clear"
                                       Click="CMenuWorship_Clear_Click" />
                             <Separator />
                             <MenuItem x:Name="CMenuWorship_Edit"
-                                      Header="Edit item"
+                                      Header="{loc:Text WorshipListPanel.EditItem}"
                                       Tag="CMenuWorship_Edit"
                                       Click="CMenuWorship_Edit_Click" />
                             <MenuItem x:Name="CMenuWorship_Play"
-                                      Header="Play Media"
+                                      Header="{loc:Text WorshipListPanel.PlayMedia}"
                                       Tag="CMenuWorship_Play"
                                       Command="{Binding PlacementTarget.DataContext.PlaySelectedWorshipMediaCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
                             <MenuItem x:Name="CMenuWorship_PlayOnOutput"
-                                      Header="Play Media on Output Monitor"
+                                      Header="{loc:Text WorshipListPanel.PlayMediaOnOutput}"
                                       Tag="CMenuWorship_PlayOnOutput"
                                       Command="{Binding PlacementTarget.DataContext.PlaySelectedWorshipMediaOnOutputCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
                             <Separator />
                             <MenuItem x:Name="CMenuWorship_AddUsages"
-                                      Header="Add Songs to Usages"
+                                      Header="{loc:Text WorshipListPanel.AddSongsToUsages}"
                                       Tag="CMenuWorship_AddUsages"
                                       Click="CMenuWorship_AddUsages_Click" />
                         </ContextMenu>

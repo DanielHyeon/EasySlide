@@ -1,0 +1,451 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="New" xml:space="preserve"><value>New</value></data>
+  <data name="Edit" xml:space="preserve"><value>Edit</value></data>
+  <data name="Copy" xml:space="preserve"><value>Copy</value></data>
+  <data name="Move" xml:space="preserve"><value>Move</value></data>
+  <data name="Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="PlayMedia" xml:space="preserve"><value>Play Media</value></data>
+  <data name="Media" xml:space="preserve"><value>Media</value></data>
+  <data name="Refresh" xml:space="preserve"><value>Refresh</value></data>
+  <data name="Options" xml:space="preserve"><value>Options</value></data>
+  <data name="StopAutoRotate" xml:space="preserve"><value>Stop Auto Rotate</value></data>
+  <data name="RotateStyle" xml:space="preserve"><value>Rotate Style</value></data>
+  <data name="Alerts" xml:space="preserve"><value>Alerts</value></data>
+  <data name="TradSimpChinese" xml:space="preserve"><value>Trad/Simp Chinese</value></data>
+  <data name="Find" xml:space="preserve"><value>Find</value></data>
+  <data name="SearchPhraseTip" xml:space="preserve"><value>Enter phrase and press Keyboard Enter key</value></data>
+  <data name="SearchPhrase" xml:space="preserve"><value>Search Phrase</value></data>
+  <data name="GoLiveTip" xml:space="preserve"><value>Send the selected item live (F12)</value></data>
+  <data name="GoLiveNextTip" xml:space="preserve"><value>Send the selected item and move straight to the next item (F11)</value></data>
+  <data name="StopLiveTip" xml:space="preserve"><value>Stop the current live output</value></data>
+  <data name="BlackScreenTip" xml:space="preserve"><value>Switch to a black screen (F9)</value></data>
+  <data name="ClearScreenTip" xml:space="preserve"><value>Clear the lyrics/content and show only the background (F3)</value></data>
+  <data name="HideContentTip" xml:space="preserve"><value>Hide the lyrics/content (keep the background)</value></data>
+  <data name="RestoreOutputTip" xml:space="preserve"><value>Return from hide/black screen/clear to the previous output</value></data>
+  <data name="RestartLiveTip" xml:space="preserve"><value>Send the current live item again from the start (first verse/first slide)</value></data>
+  <data name="RedrawOutputTip" xml:space="preserve"><value>Redraw the output screen (recovers from display glitches)</value></data>
+  <data name="OpenOutputTip" xml:space="preserve"><value>Open the output window on the selected monitor</value></data>
+  <data name="CloseOutputTip" xml:space="preserve"><value>Close the output window</value></data>
+  <data name="CommandPaletteTip" xml:space="preserve"><value>Search all commands and windows (Ctrl+K)</value></data>
+  <data name="AddExternalTip" xml:space="preserve"><value>Add PowerPoint/media files to the worship list</value></data>
+  <data name="SaveLoadWorshipListTip" xml:space="preserve"><value>Save/load worship lists</value></data>
+  <data name="SearchUsageTip" xml:space="preserve"><value>Search and usage</value></data>
+  <data name="OpenSettingsTip" xml:space="preserve"><value>Open settings</value></data>
+  <data name="Folders" xml:space="preserve"><value>Folders</value></data>
+  <data name="SongSortTip" xml:space="preserve"><value>Choose the song list order</value></data>
+  <data name="SortByTitleStrokes" xml:space="preserve"><value>By title and strokes</value></data>
+  <data name="SortByLength" xml:space="preserve"><value>By character count</value></data>
+  <data name="SortBySongNumber" xml:space="preserve"><value>By song number</value></data>
+  <data name="SongTitleFilterTip" xml:space="preserve"><value>Filter the song titles of the current folder</value></data>
+  <data name="SelectAll" xml:space="preserve"><value>Select _All</value></data>
+  <data name="UnselectAll" xml:space="preserve"><value>_Unselect All</value></data>
+  <data name="AddAndShow" xml:space="preserve"><value>Add &amp; _Show</value></data>
+  <data name="EditItem" xml:space="preserve"><value>Edit item</value></data>
+  <data name="CopyItem" xml:space="preserve"><value>Copy item</value></data>
+  <data name="InfoScr" xml:space="preserve"><value>InfoScr</value></data>
+  <data name="OpenSelectedFolderTip" xml:space="preserve"><value>Open the selected folder</value></data>
+  <data name="ImportToSelectedFolderTip" xml:space="preserve"><value>Import into the selected folder</value></data>
+  <data name="PowerP" xml:space="preserve"><value>PowerP</value></data>
+  <data name="ListOrThumbnailTip" xml:space="preserve"><value>List or thumbnail view</value></data>
+  <data name="List" xml:space="preserve"><value>List</value></data>
+  <data name="Preview" xml:space="preserve"><value>Preview</value></data>
+  <data name="SortByHymnNumber" xml:space="preserve"><value>By hymn number</value></data>
+  <data name="SortAlphabetical" xml:space="preserve"><value>Alphabetical</value></data>
+  <data name="PowerPointSortTip" xml:space="preserve"><value>PowerPoint order</value></data>
+  <data name="IncludeSubfolders" xml:space="preserve"><value>Include subfolders</value></data>
+  <data name="FilterByFileName" xml:space="preserve"><value>Filter by file name</value></data>
+  <data name="Bibles" xml:space="preserve"><value>Bibles</value></data>
+  <data name="VerseEntryTip" xml:space="preserve"><value>Type a reference (e.g. Gen 1:1-2:3, John 3:16)</value></data>
+  <data name="GoToVerseTip" xml:space="preserve"><value>Go to the entered reference</value></data>
+  <data name="AddRegion2" xml:space="preserve"><value>Add _Region 2</value></data>
+  <data name="CopyAccess" xml:space="preserve"><value>_Copy</value></data>
+  <data name="CopyToInfoScreen" xml:space="preserve"><value>Copy to _InfoScreen</value></data>
+  <data name="Images" xml:space="preserve"><value>Images</value></data>
+  <data name="OpenFolder" xml:space="preserve"><value>Open Folder</value></data>
+  <data name="ImportImage" xml:space="preserve"><value>Import An Image</value></data>
+  <data name="AddToItem" xml:space="preserve"><value>Add to Item</value></data>
+  <data name="AddToDefault" xml:space="preserve"><value>Add to Default</value></data>
+  <data name="RefreshImageLists" xml:space="preserve"><value>Refresh Images Lists</value></data>
+  <data name="DefaultTab" xml:space="preserve"><value>Default</value></data>
+  <data name="ApplyToAllExceptInfoScreens" xml:space="preserve"><value>Apply to All Except InfoScreens</value></data>
+  <data name="LoadTemplate" xml:space="preserve"><value>Load Template</value></data>
+  <data name="SaveTemplate" xml:space="preserve"><value>Save Template</value></data>
+  <data name="DefaultLayout" xml:space="preserve"><value>Default Layout</value></data>
+  <data name="NoHeadings" xml:space="preserve"><value>No Headings</value></data>
+  <data name="ShowAllHeadings" xml:space="preserve"><value>Show All Headings</value></data>
+  <data name="HeadingFirstScreenOnly" xml:space="preserve"><value>Heading At First Screen Only</value></data>
+  <data name="Region1Only" xml:space="preserve"><value>Region 1 Only</value></data>
+  <data name="Region2Only" xml:space="preserve"><value>Region 2 Only</value></data>
+  <data name="Regions1And2" xml:space="preserve"><value>Regions 1 and 2</value></data>
+  <data name="AlignTop" xml:space="preserve"><value>Align Top</value></data>
+  <data name="AlignCentre" xml:space="preserve"><value>Align Centre</value></data>
+  <data name="AlignBottom" xml:space="preserve"><value>Align Bottom</value></data>
+  <data name="ShadowFont" xml:space="preserve"><value>Shadow Font</value></data>
+  <data name="OutlineFont" xml:space="preserve"><value>Outline Font</value></data>
+  <data name="InterlaceRegions" xml:space="preserve"><value>Interlace Region1/Regions2</value></data>
+  <data name="ShowNotations" xml:space="preserve"><value>Show Notations</value></data>
+  <data name="ToCapo0" xml:space="preserve"><value>To Capo 0</value></data>
+  <data name="HeadingsAsRegion1" xml:space="preserve"><value>Headings Align As Region 1</value></data>
+  <data name="HeadingsAsRegion2" xml:space="preserve"><value>Headings Align As Region 2</value></data>
+  <data name="HeadingsLeft" xml:space="preserve"><value>Headings Align Left</value></data>
+  <data name="HeadingsCentre" xml:space="preserve"><value>Headings Align Centre</value></data>
+  <data name="HeadingsRight" xml:space="preserve"><value>Headings Align Right</value></data>
+  <data name="Region1Left" xml:space="preserve"><value>Region 1 Align Left</value></data>
+  <data name="Region1Centre" xml:space="preserve"><value>Region 1 Align Centre</value></data>
+  <data name="Region1Right" xml:space="preserve"><value>Region 1 Align Right</value></data>
+  <data name="Region1Colour" xml:space="preserve"><value>R1 Col</value></data>
+  <data name="Region2Left" xml:space="preserve"><value>Region 2 Align Left</value></data>
+  <data name="Region2Centre" xml:space="preserve"><value>Region 2 Align Centre</value></data>
+  <data name="Region2Right" xml:space="preserve"><value>Region 2 Align Right</value></data>
+  <data name="Region2Colour" xml:space="preserve"><value>R2 Col</value></data>
+  <data name="DefaultBackground" xml:space="preserve"><value>Default Background</value></data>
+  <data name="TileImage" xml:space="preserve"><value>Tile Image</value></data>
+  <data name="CentreImage" xml:space="preserve"><value>Centre Image</value></data>
+  <data name="BestFitImage" xml:space="preserve"><value>Best Fit Image</value></data>
+  <data name="Colours" xml:space="preserve"><value>Colours</value></data>
+  <data name="ItemTransition" xml:space="preserve"><value>Item transition</value></data>
+  <data name="SlideTransition" xml:space="preserve"><value>Slide transition</value></data>
+  <data name="DisplayPanel" xml:space="preserve"><value>Display Panel</value></data>
+  <data name="UseRegion1TextColour" xml:space="preserve"><value>Use Region 1 text colour</value></data>
+  <data name="TextColour" xml:space="preserve"><value>Text Colour</value></data>
+  <data name="TransparentBackground" xml:space="preserve"><value>Transparent background</value></data>
+  <data name="BackColour" xml:space="preserve"><value>Back Colour</value></data>
+  <data name="ShowDisplayPanel" xml:space="preserve"><value>Show Display Panel</value></data>
+  <data name="ShowTitle" xml:space="preserve"><value>Show title</value></data>
+  <data name="ShowCopyright" xml:space="preserve"><value>Show copyright</value></data>
+  <data name="ShowSongNumber" xml:space="preserve"><value>Show song number</value></data>
+  <data name="ShowSlideNumber" xml:space="preserve"><value>Show slide number</value></data>
+  <data name="ShowPreviousNext" xml:space="preserve"><value>Show previous/next</value></data>
+  <data name="Height" xml:space="preserve"><value>Height</value></data>
+  <data name="Bold" xml:space="preserve"><value>Bold</value></data>
+  <data name="Italics" xml:space="preserve"><value>Italics</value></data>
+  <data name="Italic" xml:space="preserve"><value>Italic</value></data>
+  <data name="Underline" xml:space="preserve"><value>Underline</value></data>
+  <data name="Shadow" xml:space="preserve"><value>Shadow</value></data>
+  <data name="Outline" xml:space="preserve"><value>Outline</value></data>
+  <data name="DisplayPanelFont" xml:space="preserve"><value>Display Panel font</value></data>
+  <data name="Search" xml:space="preserve"><value>Search</value></data>
+  <data name="Songs" xml:space="preserve"><value>Songs</value></data>
+  <data name="CrossSearch" xml:space="preserve"><value>Cross search</value></data>
+  <data name="AddToWorshipList" xml:space="preserve"><value>Add to worship list</value></data>
+  <data name="SongSearchTip" xml:space="preserve"><value>Search by title, lyrics or number (press Enter)</value></data>
+  <data name="Title" xml:space="preserve"><value>Title</value></data>
+  <data name="Lyrics" xml:space="preserve"><value>Lyrics</value></data>
+  <data name="Number" xml:space="preserve"><value>Number</value></data>
+  <data name="NoSearchResults" xml:space="preserve"><value>No results.&#10;Try another search term or scope (title, lyrics, number).</value></data>
+  <data name="LookupTitles" xml:space="preserve"><value>Look up titles</value></data>
+  <data name="TitleLookupTip" xml:space="preserve"><value>Part of a title (press Enter to look it up)</value></data>
+  <data name="NoTitlesFound" xml:space="preserve"><value>No titles found.&#10;Change the part of the title and try again.</value></data>
+  <data name="Usage" xml:space="preserve"><value>Usage</value></data>
+  <data name="LoadHistory" xml:space="preserve"><value>Load history</value></data>
+  <data name="WorshipList" xml:space="preserve"><value>Worship List</value></data>
+  <data name="PraiseBook" xml:space="preserve"><value>Praise Book</value></data>
+  <data name="ManagePraiseBooks" xml:space="preserve"><value>Manage PraiseBooks</value></data>
+  <data name="AddSongToPraiseBook" xml:space="preserve"><value>Add selected song to PraiseBook</value></data>
+  <data name="SortByCjkWordCount" xml:space="preserve"><value>Sort by CJK Word Count</value></data>
+  <data name="GenerateRtf" xml:space="preserve"><value>Generate RTF Document</value></data>
+  <data name="GenerateHtml" xml:space="preserve"><value>Generate HTML Document</value></data>
+  <data name="ClearPraiseBookList" xml:space="preserve"><value>Clear PraiseBook List</value></data>
+  <data name="GoLiveSelectedTip" xml:space="preserve"><value>Send the selected item live</value></data>
+  <data name="CopyToOutputNextTip" xml:space="preserve"><value>Copy to Output, then move Preview to the next item</value></data>
+  <data name="CopyToOutputTip" xml:space="preserve"><value>Copy the selected item to Output</value></data>
+  <data name="UseIndividualSettings" xml:space="preserve"><value>Use Individual Settings</value></data>
+  <data name="IndividualSettingsTip" xml:space="preserve"><value>Changes apply to the preview at once. Items of a named worship list are saved automatically.</value></data>
+  <data name="LanguageDisplaySettings" xml:space="preserve"><value>Primary/secondary language display…</value></data>
+  <data name="LoadIndividualTemplate" xml:space="preserve"><value>Load an individual settings template</value></data>
+  <data name="SaveIndividualTemplate" xml:space="preserve"><value>Save the individual settings template</value></data>
+  <data name="Text" xml:space="preserve"><value>Text</value></data>
+  <data name="Yellow" xml:space="preserve"><value>Yellow</value></data>
+  <data name="White" xml:space="preserve"><value>White</value></data>
+  <data name="Red" xml:space="preserve"><value>Red</value></data>
+  <data name="Blue" xml:space="preserve"><value>Blue</value></data>
+  <data name="Black" xml:space="preserve"><value>Black</value></data>
+  <data name="Default" xml:space="preserve"><value>Default</value></data>
+  <data name="CustomTextColour" xml:space="preserve"><value>Custom text colour</value></data>
+  <data name="AlignSize" xml:space="preserve"><value>Align / Size</value></data>
+  <data name="Left" xml:space="preserve"><value>Left</value></data>
+  <data name="Center" xml:space="preserve"><value>Center</value></data>
+  <data name="Right" xml:space="preserve"><value>Right</value></data>
+  <data name="PrimaryLanguage" xml:space="preserve"><value>Primary language</value></data>
+  <data name="SecondaryLanguage" xml:space="preserve"><value>Secondary language</value></data>
+  <data name="SizePt" xml:space="preserve"><value>Size (pt)</value></data>
+  <data name="TopPercent" xml:space="preserve"><value>Top (%)</value></data>
+  <data name="ResetSize" xml:space="preserve"><value>Reset size</value></data>
+  <data name="ResetPrimarySizeTip" xml:space="preserve"><value>Takes the primary language text size from the default settings.</value></data>
+  <data name="ResetSecondarySizeTip" xml:space="preserve"><value>Takes the secondary language text size from the default settings.</value></data>
+  <data name="Position" xml:space="preserve"><value>Position</value></data>
+  <data name="AlignItemTopTip" xml:space="preserve"><value>Align the selected item to the top</value></data>
+  <data name="AlignItemMiddleTip" xml:space="preserve"><value>Centre the selected item vertically</value></data>
+  <data name="AlignItemBottomTip" xml:space="preserve"><value>Align the selected item to the bottom</value></data>
+  <data name="Top" xml:space="preserve"><value>Top</value></data>
+  <data name="Middle" xml:space="preserve"><value>Middle</value></data>
+  <data name="Bottom" xml:space="preserve"><value>Bottom</value></data>
+  <data name="FontBack" xml:space="preserve"><value>Font / Back</value></data>
+  <data name="Malgun" xml:space="preserve"><value>Malgun</value></data>
+  <data name="ItemBackgroundPatternTip" xml:space="preserve"><value>Choose this item's two background colours and pattern</value></data>
+  <data name="Image" xml:space="preserve"><value>Image</value></data>
+  <data name="SelectEllipsis" xml:space="preserve"><value>Select...</value></data>
+  <data name="BackgroundPictureFormat" xml:space="preserve"><value>Background Picture Format</value></data>
+  <data name="MediaEllipsis" xml:space="preserve"><value>Media...</value></data>
+  <data name="AssignMedia" xml:space="preserve"><value>Assign Media</value></data>
+  <data name="None" xml:space="preserve"><value>None</value></data>
+  <data name="Transition" xml:space="preserve"><value>Transition</value></data>
+  <data name="CopyClear" xml:space="preserve"><value>Copy / Clear</value></data>
+  <data name="Paste" xml:space="preserve"><value>Paste</value></data>
+  <data name="All" xml:space="preserve"><value>All</value></data>
+  <data name="Clear" xml:space="preserve"><value>Clear</value></data>
+  <data name="Rewind" xml:space="preserve"><value>Rewind</value></data>
+  <data name="PlayPauseTip" xml:space="preserve"><value>Play/pause (Space)</value></data>
+  <data name="RestartTip" xml:space="preserve"><value>Play again from the start (Enter)</value></data>
+  <data name="StopTip" xml:space="preserve"><value>Stop (Esc or S)</value></data>
+  <data name="FastForward" xml:space="preserve"><value>Fast forward</value></data>
+  <data name="MuteTip" xml:space="preserve"><value>Toggle mute (M)</value></data>
+  <data name="Mute" xml:space="preserve"><value>Mute</value></data>
+  <data name="LoopTip" xml:space="preserve"><value>Toggle loop playback</value></data>
+  <data name="Loop" xml:space="preserve"><value>Loop</value></data>
+  <data name="MediaFolder" xml:space="preserve"><value>Media folder</value></data>
+  <data name="SessionNotes" xml:space="preserve"><value>Session notes</value></data>
+  <data name="ViewTextTip" xml:space="preserve"><value>View text</value></data>
+  <data name="Set" xml:space="preserve"><value>Set</value></data>
+  <data name="FormatSettingsTip" xml:space="preserve"><value>Format settings</value></data>
+  <data name="Info" xml:space="preserve"><value>Info</value></data>
+  <data name="ItemInfoTip" xml:space="preserve"><value>Item information</value></data>
+  <data name="PreviousItem" xml:space="preserve"><value>Previous item</value></data>
+  <data name="NextItem" xml:space="preserve"><value>Next item</value></data>
+  <data name="PreviousSlide" xml:space="preserve"><value>Previous slide</value></data>
+  <data name="NextSlide" xml:space="preserve"><value>Next slide</value></data>
+  <data name="EditSessionNotes" xml:space="preserve"><value>Edit session notes</value></data>
+  <data name="ChooseCameraTip" xml:space="preserve"><value>Choose the output camera</value></data>
+  <data name="ChooseMicTip" xml:space="preserve"><value>Choose the output microphone and destination</value></data>
+  <data name="BlackScreen" xml:space="preserve"><value>Black screen</value></data>
+  <data name="ClearScreen" xml:space="preserve"><value>Clear screen</value></data>
+  <data name="StartStopLiveTip" xml:space="preserve"><value>Start or stop the output (F12)</value></data>
+  <data name="RefreshOutputVisualsTip" xml:space="preserve"><value>Refresh the Output visuals</value></data>
+  <data name="MediaPlayPauseTip" xml:space="preserve"><value>Play/pause media</value></data>
+  <data name="GoToNonRotatingTip" xml:space="preserve"><value>Go to the items outside the rotation</value></data>
+  <data name="BibleVerseAlertTip" xml:space="preserve"><value>Bible verse alert</value></data>
+  <data name="SendLiveMessageTip" xml:space="preserve"><value>Send the live message</value></data>
+  <data name="ClearLiveMessageTip" xml:space="preserve"><value>Clear the live message</value></data>
+  <data name="OperationStatus" xml:space="preserve"><value>Operation status</value></data>
+  <data name="StageMonitor" xml:space="preserve"><value>Stage monitor</value></data>
+  <data name="Output" xml:space="preserve"><value>Output</value></data>
+  <data name="Selection" xml:space="preserve"><value>Selection</value></data>
+  <data name="OutputAppearance" xml:space="preserve"><value>Output appearance</value></data>
+  <data name="AppearanceSample" xml:space="preserve"><value>Aa</value></data>
+  <data name="CustomColourHex" xml:space="preserve"><value>Custom colour (#RRGGBB)</value></data>
+  <data name="TextShort" xml:space="preserve"><value>Text</value></data>
+  <data name="Background" xml:space="preserve"><value>Background</value></data>
+  <data name="LyricsAlignment" xml:space="preserve"><value>Lyrics alignment</value></data>
+  <data name="LyricsVerticalAlignment" xml:space="preserve"><value>Lyrics vertical alignment</value></data>
+  <data name="LyricsSize" xml:space="preserve"><value>Lyrics size</value></data>
+  <data name="LyricsSmallerTip" xml:space="preserve"><value>Smaller lyrics text</value></data>
+  <data name="LyricsLargerTip" xml:space="preserve"><value>Larger lyrics text</value></data>
+  <data name="LyricsSizeTip" xml:space="preserve"><value>Type the lyrics text size (24–120px); a red border means it is not a number</value></data>
+  <data name="OutputFont" xml:space="preserve"><value>Output font (empty = default)</value></data>
+  <data name="OutputFontTip" xml:space="preserve"><value>The default font of the congregation output lyrics. Pick one from the list or type a font name. Empty uses the theme's default font. A song with its own font uses that font.</value></data>
+  <data name="Region2Size" xml:space="preserve"><value>Secondary area size (0 = same as main text)</value></data>
+  <data name="Region2SizeTip" xml:space="preserve"><value>Text size of the secondary area (Region 2) of bilingual songs. 0 = same as the main text, otherwise 24–120px. A red border means it is not a number</value></data>
+  <data name="Region2Font" xml:space="preserve"><value>Secondary area font (empty = same as main text)</value></data>
+  <data name="Region2FontTip" xml:space="preserve"><value>The default font of the secondary area (translation) of bilingual songs. Empty follows the main text (Region 1) font. A song with its own font uses that font.</value></data>
+  <data name="Region2Colour2" xml:space="preserve"><value>Secondary area text colour (same as main text = follow)</value></data>
+  <data name="Region2ColourTip" xml:space="preserve"><value>The text colour of the secondary area (translation) of bilingual songs. 'Same as main text' follows the main text (Region 1) colour. A song with its own colour uses that colour.</value></data>
+  <data name="Region2Alignment" xml:space="preserve"><value>Secondary area alignment (same as main text = follow)</value></data>
+  <data name="Region2AlignmentTip" xml:space="preserve"><value>The horizontal alignment of the secondary area (translation) of bilingual songs. 'Same as main text' follows the main text (Region 1) alignment. A song with its own alignment uses that alignment.</value></data>
+  <data name="Region2Bold" xml:space="preserve"><value>Secondary area bold (same as main text = follow)</value></data>
+  <data name="Region2BoldTip" xml:space="preserve"><value>Bold for the secondary area (translation) of bilingual songs. 'Same as main text' follows the main text (Region 1) bold (it can differ, e.g. only the translation in regular). A song with its own bold setting uses that setting.</value></data>
+  <data name="Region2Italic" xml:space="preserve"><value>Secondary area italic (same as main text = follow)</value></data>
+  <data name="Region2ItalicTip" xml:space="preserve"><value>Italic for the secondary area (translation) of bilingual songs. 'Same as main text' follows the main text (Region 1) italic (it can differ, e.g. only the translation in italic). A song with its own italic setting uses that setting.</value></data>
+  <data name="Region2Underline" xml:space="preserve"><value>Secondary area underline (same as main text = follow)</value></data>
+  <data name="Region2UnderlineTip" xml:space="preserve"><value>Underline for the secondary area (translation) of bilingual songs. 'Same as main text' follows the main text (Region 1) underline. A song with its own underline setting uses that setting.</value></data>
+  <data name="LineSpacing" xml:space="preserve"><value>Line spacing</value></data>
+  <data name="LineSpacingNarrowerTip" xml:space="preserve"><value>Narrower line spacing</value></data>
+  <data name="LineSpacingWiderTip" xml:space="preserve"><value>Wider line spacing</value></data>
+  <data name="LineSpacingTip" xml:space="preserve"><value>Type the lyrics line spacing (100–220%); a red border means it is not a number</value></data>
+  <data name="TextMargins" xml:space="preserve"><value>Text margins (px)</value></data>
+  <data name="LeftMarginTip" xml:space="preserve"><value>Left text margin (0–400px)</value></data>
+  <data name="RightMarginTip" xml:space="preserve"><value>Right text margin (0–400px)</value></data>
+  <data name="BottomMarginTip" xml:space="preserve"><value>Bottom text margin (0–400px)</value></data>
+  <data name="LyricsEffects" xml:space="preserve"><value>Lyrics effects</value></data>
+  <data name="BoldGlyph" xml:space="preserve"><value>B</value></data>
+  <data name="ItalicGlyph" xml:space="preserve"><value>I</value></data>
+  <data name="UnderlineGlyph" xml:space="preserve"><value>U</value></data>
+  <data name="LyricsBoldTip" xml:space="preserve"><value>Bold lyrics</value></data>
+  <data name="LyricsItalicTip" xml:space="preserve"><value>Italic lyrics</value></data>
+  <data name="LyricsUnderlineTip" xml:space="preserve"><value>Underlined lyrics</value></data>
+  <data name="LyricsShadowTip" xml:space="preserve"><value>Lyrics shadow (readable on dark backgrounds)</value></data>
+  <data name="PositionIndicatorTip" xml:space="preserve"><value>Show the verse/slide position indicator (bottom right of the output)</value></data>
+  <data name="TitleBannerTip" xml:space="preserve"><value>Show the song title as a banner above the lyrics</value></data>
+  <data name="LyricsOutlineTip" xml:space="preserve"><value>Outline the lyrics text, readable on dark or video backgrounds</value></data>
+  <data name="TitleAlignment" xml:space="preserve"><value>Title alignment</value></data>
+  <data name="FirstVerseOnly" xml:space="preserve"><value>First verse only</value></data>
+  <data name="FirstVerseOnlyTip" xml:space="preserve"><value>Show the title heading only on the song's first verse (first screen)</value></data>
+  <data name="FollowMainAlignment" xml:space="preserve"><value>Follow main text alignment</value></data>
+  <data name="FollowMainAlignmentTip" xml:space="preserve"><value>The title heading follows the horizontal alignment of the main text (Region 1). When on, the left/centre/right setting above is ignored</value></data>
+  <data name="FollowRegion2Alignment" xml:space="preserve"><value>Follow secondary area alignment</value></data>
+  <data name="FollowRegion2AlignmentTip" xml:space="preserve"><value>The title heading follows the horizontal alignment of the secondary area (Region 2). For bilingual songs. When on, it wins over following the main text and over left/centre/right</value></data>
+  <data name="AppearanceTemplates" xml:space="preserve"><value>Appearance templates</value></data>
+  <data name="NewTemplateName" xml:space="preserve"><value>New template name</value></data>
+  <data name="Save" xml:space="preserve"><value>Save</value></data>
+  <data name="SavedTemplates" xml:space="preserve"><value>Saved templates</value></data>
+  <data name="Apply" xml:space="preserve"><value>Apply</value></data>
+  <data name="RestoreDefaults" xml:space="preserve"><value>Restore defaults</value></data>
+  <data name="RestoreDefaultsTip" xml:space="preserve"><value>Resets the whole output appearance (colours, alignment, fonts, effects, margins, panels, gradients…) to the defaults (the legacy Default Layout).</value></data>
+  <data name="NoMatchingCommands" xml:space="preserve"><value>No matching commands.</value></data>
+  <data name="DangerCommandTip" xml:space="preserve"><value>A command that affects the live output; use with care</value></data>
+  <data name="Danger" xml:space="preserve"><value>Danger</value></data>
+  <data name="WorshipItemCount" xml:space="preserve"><value>Worship: {0} items</value></data>
+  <data name="PreviewPosition" xml:space="preserve"><value>Preview {0}</value></data>
+  <data name="SlideNumber" xml:space="preserve"><value>Slide {0}</value></data>
+  <data name="OutputPosition" xml:space="preserve"><value>Output {0}</value></data>
+  <data name="CurrentAppearance" xml:space="preserve"><value>Current: {0}</value></data>
+  <data name="CurrentAlignment" xml:space="preserve"><value>Current alignment: {0}</value></data>
+  <data name="CurrentVertical" xml:space="preserve"><value>Current vertical: {0}</value></data>
+  <data name="MoveInfoScreensTitle" xml:space="preserve"><value>Folder to move the info screens to</value></data>
+  <data name="MoveSourceNotRemoved" xml:space="preserve"><value>Copied, but the original could not be moved: {0}</value></data>
+  <data name="NewSongNeedsFolder" xml:space="preserve"><value>A new song needs a selected folder.</value></data>
+  <data name="SongEditorInitFailed" xml:space="preserve"><value>The song editor could not be initialized.</value></data>
+  <data name="InfoScreenNotFound" xml:space="preserve"><value>The info screen could not be found.</value></data>
+  <data name="DefaultMediaSettings" xml:space="preserve"><value>Default media settings</value></data>
+  <data name="SelectWorshipItemToEdit" xml:space="preserve"><value>Select one worship list item to edit.</value></data>
+  <data name="SelectDbSongToEdit" xml:space="preserve"><value>Select one database song item to edit.</value></data>
+  <data name="AdminDbPathMissingForEdit" xml:space="preserve"><value>The song cannot be edited because the AdminDB path could not be found.</value></data>
+  <data name="SongDatabaseReadFailed" xml:space="preserve"><value>The song database could not be read: {0}</value></data>
+  <data name="SongToEditNotFound" xml:space="preserve"><value>The song to edit could not be found: {0}</value></data>
+  <data name="FolderFallbackName" xml:space="preserve"><value>Folder {0}</value></data>
+  <data name="NoSourceTabSelected" xml:space="preserve"><value>No source tab is selected to add from.</value></data>
+  <data name="NoBibleVerseSelected" xml:space="preserve"><value>No Bible verse is selected.</value></data>
+  <data name="NoInfoScreenItemSelected" xml:space="preserve"><value>No InfoScreen item is selected.</value></data>
+  <data name="NoPowerPointFileSelected" xml:space="preserve"><value>No PowerPoint file selected.</value></data>
+  <data name="NoMediaFileSelected" xml:space="preserve"><value>No media file selected.</value></data>
+  <data name="NoImageSelected" xml:space="preserve"><value>No image is selected.</value></data>
+  <data name="NoSearchResultSelected" xml:space="preserve"><value>No search result is selected.</value></data>
+  <data name="SourceTabNotAddable" xml:space="preserve"><value>Items of the current source tab cannot be added to the worship list.</value></data>
+  <data name="EditItemHeader" xml:space="preserve"><value>Edit Item</value></data>
+  <data name="EditNamedItemHeader" xml:space="preserve"><value>Edit '{0}'</value></data>
+  <data name="SelectSongToAddAndShow" xml:space="preserve"><value>Select a song to add and show.</value></data>
+  <data name="SelectFolderToEdit" xml:space="preserve"><value>Select a folder to edit.</value></data>
+  <data name="SelectSongToEdit" xml:space="preserve"><value>Select a song to edit.</value></data>
+  <data name="AddedToWorshipListNamed" xml:space="preserve"><value>Added to Worship List: {0}</value></data>
+  <data name="AddedInfoScreensToWorshipList" xml:space="preserve"><value>Added to Worship List: {0} InfoScreens</value></data>
+  <data name="InfoScreenAdded" xml:space="preserve"><value>InfoScreen added: {0}</value></data>
+  <data name="InfoScreensAdded" xml:space="preserve"><value>{0} InfoScreens added</value></data>
+  <data name="NoInfoScreenSelected" xml:space="preserve"><value>No InfoScreen selected.</value></data>
+  <data name="InfoScreenCopySourceFailed" xml:space="preserve"><value>InfoScreen copy source could not be prepared: {0}</value></data>
+  <data name="NoCopyableInfoScreenSelected" xml:space="preserve"><value>No copyable InfoScreen selected.</value></data>
+  <data name="DeleteInfoScreenConfirm" xml:space="preserve"><value>Delete selected InfoScreen '{0}'?</value></data>
+  <data name="DeleteInfoScreensConfirm" xml:space="preserve"><value>Delete selected {0} InfoScreens?</value></data>
+  <data name="DeleteInfoScreensTitle" xml:space="preserve"><value>Delete InfoScreen(s)</value></data>
+  <data name="NoInfoScreenDeleted" xml:space="preserve"><value>No InfoScreen deleted.</value></data>
+  <data name="OneInfoScreenDeleted" xml:space="preserve"><value>Deleted 1 InfoScreen.</value></data>
+  <data name="InfoScreensDeleted" xml:space="preserve"><value>Deleted {0} InfoScreens.</value></data>
+  <data name="AddedPowerPointsToWorshipList" xml:space="preserve"><value>Added to Worship List: {0} PowerPoint files</value></data>
+  <data name="PowerPointFileAdded" xml:space="preserve"><value>PowerPoint file added: {0}</value></data>
+  <data name="PowerPointFilesAdded" xml:space="preserve"><value>{0} PowerPoint files added</value></data>
+  <data name="SourceMedia" xml:space="preserve"><value>Media</value></data>
+  <data name="SourceFile" xml:space="preserve"><value>External</value></data>
+  <data name="ExternalFileNotFound" xml:space="preserve"><value>{0} file not found: {1}</value></data>
+  <data name="ExternalFileEditOpened" xml:space="preserve"><value>{0} edit opened: {1}</value></data>
+  <data name="ExternalFileOpenFailed" xml:space="preserve"><value>{0} file could not be opened: {1}</value></data>
+  <data name="DeletePowerPointFileConfirm" xml:space="preserve"><value>Delete selected PowerPoint file '{0}'?</value></data>
+  <data name="DeletePowerPointFilesConfirm" xml:space="preserve"><value>Delete selected {0} PowerPoint files?</value></data>
+  <data name="DeletePowerPointFilesTitle" xml:space="preserve"><value>Delete PowerPoint file(s)</value></data>
+  <data name="NoPowerPointFileDeleted" xml:space="preserve"><value>No PowerPoint file deleted.</value></data>
+  <data name="OnePowerPointFileDeleted" xml:space="preserve"><value>Deleted 1 PowerPoint file.</value></data>
+  <data name="PowerPointFilesDeleted" xml:space="preserve"><value>Deleted {0} PowerPoint files.</value></data>
+  <data name="AddedMediaToWorshipList" xml:space="preserve"><value>Added to Worship List: {0} media files</value></data>
+  <data name="MediaFileAdded" xml:space="preserve"><value>Media file added: {0}</value></data>
+  <data name="MediaFilesAdded" xml:space="preserve"><value>{0} media files added</value></data>
+  <data name="DeleteMediaFileConfirm" xml:space="preserve"><value>Delete selected media file '{0}'?</value></data>
+  <data name="DeleteMediaFilesConfirm" xml:space="preserve"><value>Delete selected {0} media files?</value></data>
+  <data name="DeleteMediaFilesTitle" xml:space="preserve"><value>Delete media file(s)</value></data>
+  <data name="NoMediaFileDeleted" xml:space="preserve"><value>No media file deleted.</value></data>
+  <data name="OneMediaFileDeleted" xml:space="preserve"><value>Deleted 1 media file.</value></data>
+  <data name="MediaFilesDeleted" xml:space="preserve"><value>Deleted {0} media files.</value></data>
+  <data name="FilterImages" xml:space="preserve"><value>Images</value></data>
+  <data name="FilterWordDocuments" xml:space="preserve"><value>Word documents</value></data>
+  <data name="FilterMedia" xml:space="preserve"><value>Media</value></data>
+  <data name="FilterAllFiles" xml:space="preserve"><value>All files</value></data>
+  <data name="FilterWorshipLists" xml:space="preserve"><value>Axicultus worship lists</value></data>
+  <data name="ImportImageTitle" xml:space="preserve"><value>Import An Image into folder: {0}</value></data>
+  <data name="ImageImportFailed" xml:space="preserve"><value>Image could not be imported.</value></data>
+  <data name="OneImageImported" xml:space="preserve"><value>Imported 1 image.</value></data>
+  <data name="ImagesImported" xml:space="preserve"><value>Imported {0} images.</value></data>
+  <data name="AddFileToWorshipListTitle" xml:space="preserve"><value>Select a file to add to the worship list</value></data>
+  <data name="ImportLegacyWorshipListTitle" xml:space="preserve"><value>Select a legacy worship list (.esw) to import</value></data>
+  <data name="WorshipListFileReadFailed" xml:space="preserve"><value>The worship list file could not be read: {0}</value></data>
+  <data name="WorshipListFileAccessDenied" xml:space="preserve"><value>No permission to access the worship list file: {0}</value></data>
+  <data name="ReadingWordDocument" xml:space="preserve"><value>Reading the Word document...</value></data>
+  <data name="SelectOutputBackgroundTitle" xml:space="preserve"><value>Select an image to use as the output background</value></data>
+  <data name="SelectItemBackgroundTitle" xml:space="preserve"><value>Select a background image for this item</value></data>
+  <data name="SelectItemMediaTitle" xml:space="preserve"><value>Select media for this item</value></data>
+  <data name="DefaultMedia" xml:space="preserve"><value>Default Media</value></data>
+  <data name="ItemBackgroundPatternTitle" xml:space="preserve"><value>Item background colours and pattern</value></data>
+  <data name="LoadIndividualTemplateTitle" xml:space="preserve"><value>Load Individual Settings from a Template</value></data>
+  <data name="IndividualTemplateLoaded" xml:space="preserve"><value>Individual settings template loaded: {0}</value></data>
+  <data name="IndividualTemplateApplyFailed" xml:space="preserve"><value>The individual settings template could not be applied.</value></data>
+  <data name="IndividualTemplateReadFailed" xml:space="preserve"><value>The individual settings template could not be read: {0}</value></data>
+  <data name="SaveIndividualTemplateTitle" xml:space="preserve"><value>Save Current Individual Settings to a Template</value></data>
+  <data name="IndividualTemplateSaved" xml:space="preserve"><value>Individual settings template saved: {0}</value></data>
+  <data name="IndividualTemplateSaveFailed" xml:space="preserve"><value>The individual settings template could not be saved: {0}</value></data>
+  <data name="SelectGapLogoTitle" xml:space="preserve"><value>Select an image to use as the gap screen logo</value></data>
+  <data name="CaptionServerStartFailed" xml:space="preserve"><value>OBS caption server failed to start · {0}</value></data>
+  <data name="ClipboardUnavailable" xml:space="preserve"><value>The clipboard is not available.</value></data>
+  <data name="SelectSongInFoldersTab" xml:space="preserve"><value>Select a song to add in the Folders tab.</value></data>
+  <data name="PraiseBookSongsAdded" xml:space="preserve"><value>{0} songs added to the worship list. {1} songs could not be found.</value></data>
+  <data name="SelectPraiseBookSongToEdit" xml:space="preserve"><value>Select one Praise Book song to edit.</value></data>
+  <data name="AdminDbPathMissingForPraiseBook" xml:space="preserve"><value>AdminDB path is not available for Praise Book editing.</value></data>
+  <data name="PraiseBookSongNotFound" xml:space="preserve"><value>Praise Book song was not found: {0}</value></data>
+  <data name="SavePraiseBookTitle" xml:space="preserve"><value>Save the praise book as {0}</value></data>
+  <data name="PraiseBookSaved" xml:space="preserve"><value>{0} saved: {1}</value></data>
+  <data name="PraiseBookDocumentTitle" xml:space="preserve"><value>Praise book document</value></data>
+  <data name="SelectSongToCopy" xml:space="preserve"><value>Select the songs to copy in the library tab.</value></data>
+  <data name="SelectSongToMove" xml:space="preserve"><value>Select the songs to move in the library tab.</value></data>
+  <data name="SelectSongToDelete" xml:space="preserve"><value>Select the songs to delete in the library tab.</value></data>
+  <data name="SetAdminDbPathFirst" xml:space="preserve"><value>Set the AdminDB path in the settings first.</value></data>
+  <data name="WorkingFolderNotFound" xml:space="preserve"><value>The working folder could not be found. Set the working folder in the settings first.</value></data>
+  <data name="AxicultusFolderTitle" xml:space="preserve"><value>Axicultus folder</value></data>
+  <data name="UnnamedWorshipListUnsaved" xml:space="preserve"><value>The unnamed worship list has {0} unsaved items.&#10;&#10;Yes: don't exit; name and save it in the worship list manager.&#10;No: exit without saving.</value></data>
+  <data name="SaveWorshipListTitle" xml:space="preserve"><value>Save worship list</value></data>
+  <data name="ExitWithoutSavingConfirm" xml:space="preserve"><value>Exit without saving the changes?</value></data>
+  <data name="LoadingDevices" xml:space="preserve"><value>Looking up devices…</value></data>
+  <data name="SwitchedToObsCameraMode" xml:space="preserve"><value>Switched to OBS camera mode. Open the list again.</value></data>
+  <data name="OutputMonitorNone" xml:space="preserve"><value>The output monitor is set to 'None', so nothing is sent.</value></data>
+  <data name="OutputCameraSet" xml:space="preserve"><value>Output camera · {0}</value></data>
+  <data name="NoCameraConnected" xml:space="preserve"><value>No camera is connected.</value></data>
+  <data name="ObsBroadcast" xml:space="preserve"><value>OBS broadcast</value></data>
+  <data name="VenueSpeaker" xml:space="preserve"><value>Venue speakers</value></data>
+  <data name="TurnOffVenueMic" xml:space="preserve"><value>Turn off the venue microphone</value></data>
+  <data name="VenueMicOff" xml:space="preserve"><value>Venue microphone off</value></data>
+  <data name="ConnectObsFirst" xml:space="preserve"><value>Connect to OBS first in Camera lower-third captions.</value></data>
+  <data name="ObsInputActive" xml:space="preserve"><value>{0} · active in program</value></data>
+  <data name="ObsInputInactive" xml:space="preserve"><value>{0} · inactive in program</value></data>
+  <data name="SwitchedToLocalCameraMode" xml:space="preserve"><value>Switched to local camera mode. Open the list again.</value></data>
+  <data name="ObsCameraApplied" xml:space="preserve"><value>OBS camera setting applied · {0} → {1}</value></data>
+  <data name="NoDeviceAvailable" xml:space="preserve"><value>No device is available.</value></data>
+  <data name="AddObsVideoSource" xml:space="preserve"><value>Add a video capture device source in OBS.</value></data>
+  <data name="AddObsAudioSource" xml:space="preserve"><value>Add an audio input capture source in OBS.</value></data>
+  <data name="NoMicConnected" xml:space="preserve"><value>No microphone is connected.</value></data>
+  <data name="NoSpeakerConnected" xml:space="preserve"><value>No speaker is connected.</value></data>
+  <data name="SwitchingDevice" xml:space="preserve"><value>Switching device · {0}</value></data>
+  <data name="DeviceSwitchCancelled" xml:space="preserve"><value>Device switch cancelled</value></data>
+  <data name="DeviceSwitchFailed" xml:space="preserve"><value>Device switch failed · {0}</value></data>
+  <data name="FolderOpenFailed" xml:space="preserve"><value>The folder could not be opened.</value></data>
+  <data name="FilterInfoScreens" xml:space="preserve"><value>Info screens</value></data>
+  <data name="ImportFilesTitle" xml:space="preserve"><value>Import {0} · {1}</value></data>
+  <data name="FilesImported" xml:space="preserve"><value>Imported {0} files.</value></data>
+  <data name="LoadSessionTemplateTitle" xml:space="preserve"><value>Load Session Settings from a Template</value></data>
+  <data name="SessionTemplateApplied" xml:space="preserve"><value>Session template applied: {0}</value></data>
+  <data name="SaveSessionTemplateTitle" xml:space="preserve"><value>Save Current Session Settings to a Template</value></data>
+  <data name="SessionTemplateSaved" xml:space="preserve"><value>Session template saved: {0}</value></data>
+  <data name="EmptyDeletedConfirm" xml:space="preserve"><value>Permanently delete the songs in the deleted folder?</value></data>
+  <data name="ClearDatabaseFormatsConfirm" xml:space="preserve"><value>Clear all individual formats in the song database?</value></data>
+  <data name="SelectSongFolder" xml:space="preserve"><value>Select a song folder.</value></data>
+  <data name="FilterRichText" xml:space="preserve"><value>Rich text document</value></data>
+  <data name="FilterTabText" xml:space="preserve"><value>Tab-separated text</value></data>
+  <data name="OnlineHelpFailed" xml:space="preserve"><value>The online help could not be opened.</value></data>
+</root>

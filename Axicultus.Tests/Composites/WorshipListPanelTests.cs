@@ -4,6 +4,7 @@ using System.Xml.Linq;
 using Axicultus.Wpf.Input;
 using Axicultus.Wpf.Shell;
 using Axicultus.Wpf.Tests.Accessibility;
+using Axicultus.Wpf.Tests.Localization;
 using FluentAssertions;
 using Xunit;
 
@@ -72,7 +73,7 @@ public class WorshipListPanelTests
         Attr(rowPanel, "AutomationProperties.Name").Should().Contain("Title");
 
         // 카드 제목 보존.
-        composite.Descendants().Any(e => e.Name.LocalName == "TextBlock" && Attr(e, "Text") == "예배 순서")
+        composite.Descendants().Any(e => e.Name.LocalName == "TextBlock" && XamlText.Korean(Attr(e, "Text")) == "예배 순서")
             .Should().BeTrue("예배 순서 제목 보존");
 
         composite.Descendants().Any(e => e.Name.LocalName == "Grid" && Attr(e, "Name") == "ClassicWorshipListSessionStrip")
@@ -155,7 +156,7 @@ public class WorshipListPanelTests
         Attr(wlAdd, "Height").Should().Be("33", "the WPF visible button height should match the clipped 33px panel band");
         Attr(wlAdd, "Margin").Should().Be("0,0,3,0",
             "horizontal Worship List toolbar icons need a small right gap while staying in one WinForms-like row");
-        Attr(wlAdd, "ToolTip").Should().Be("Add to Worship List");
+        XamlText.English(Attr(wlAdd, "ToolTip")).Should().Be("Add to Worship List");
         Attr(wlAdd, "AutomationProperties.Name").Should().Contain("예배 순서에 추가");
         var wlOpen = composite.Descendants().Single(e => e.Name.LocalName == "Button" && Attr(e, "Name") == "WL_Open");
         Attr(wlOpen, "Tag").Should().Be("WL_Open", "FrmMain WL_Open role should be visible in the lower-left toolbar");
@@ -164,12 +165,12 @@ public class WorshipListPanelTests
         Attr(wlOpen, "Height").Should().Be("33", "the WPF visible button height should match the clipped 33px panel band");
         Attr(wlOpen, "Margin").Should().Be("0",
             "the final horizontal icon should not overflow the fixed 94px toolbar strip");
-        Attr(wlOpen, "ToolTip").Should().Be("Add External Document to Worship List");
+        XamlText.English(Attr(wlOpen, "ToolTip")).Should().Be("Add External Document to Worship List");
         Attr(wlOpen, "AutomationProperties.Name").Should().Contain("외부 파일");
         var wlWord = composite.Descendants().Single(e => e.Name.LocalName == "Button" && Attr(e, "Name") == "WL_Word");
         Attr(wlWord, "Tag").Should().Be("WL_Word", "FrmMain WL_Word role should be visible in the lower-left toolbar");
         Attr(wlWord, "Click").Should().Be("WL_Word_Click", "FrmMain WL_Word should generate an RTF document from the Worship List");
-        Attr(wlWord, "ToolTip").Should().Be("Generate RTF Document");
+        XamlText.English(Attr(wlWord, "ToolTip")).Should().Be("Generate RTF Document");
         Attr(wlWord, "AutomationProperties.Name").Should().Contain("RTF");
         wlWord.Descendants().Single(e => e.Name.LocalName == "FrmIcon")
             .Attribute("Icon")!.Value.Should().Be("document_text",
@@ -192,16 +193,16 @@ public class WorshipListPanelTests
         var path = name == "CMenuWorship" ? "Axicultus/Composites/WorshipListPanel.xaml" : "Axicultus/MainWindow.xaml";
         var menu = LoadXaml(path).Descendants().Single(e => Attr(e, "Name") == name);
         Attr(menu, "Style").Should().Contain("FrmMainListContextMenu");
-        var rows = menu.Elements().Select(e => e.Name.LocalName == "Separator" ? "-" : Attr(e, "Header").Replace("_", ""));
+        var rows = menu.Elements().Select(e => e.Name.LocalName == "Separator" ? "-" : XamlText.English(Attr(e, "Header")).Replace("_", ""));
         rows.Should().Equal(captions.Split('|'));
         menu.Elements().Should().OnlyContain(e => Attr(e, "Icon") == "");
     }
 
     [Theory]
-    [InlineData(null, "Edit Item")]
-    [InlineData("값비싼향유를주께드린211(새)", "Edit '값비싼향유를주께드린211(새)'")]
-    [InlineData("Rowley Jefferson's Awesome Friendly Adventure", "Edit 'Rowley Jefferson's A...'")]
-    [InlineData("A_B", "Edit 'A__B'")]
+    [InlineData(null, "항목 편집")]
+    [InlineData("값비싼향유를주께드린211(새)", "'값비싼향유를주께드린211(새)' 편집")]
+    [InlineData("Rowley Jefferson's Awesome Friendly Adventure", "'Rowley Jefferson's A...' 편집")]
+    [InlineData("A_B", "'A__B' 편집")]
     public void EditCaptionUsesTheSelectedTitle(string? title, string expected)
         => MainWindow.EditItemMenuHeader(title).Should().Be(expected);
 
@@ -234,7 +235,7 @@ public class WorshipListPanelTests
         {
             var menuItem = composite.Descendants().Single(
                 e => e.Name.LocalName == "MenuItem" && Attr(e, "Name") == name);
-            Attr(menuItem, "Header").Should().Be(header);
+            XamlText.English(Attr(menuItem, "Header")).Should().Be(header);
             Attr(menuItem, "Tag").Should().Be(name);
             if (!string.IsNullOrEmpty(click))
             {
@@ -339,7 +340,7 @@ public class WorshipListPanelTests
             .Should().BeFalse($"{tag} 탭은 FrmMain처럼 compact text-only 머리글");
         // 스크린리더가 글리프 대신 탭 이름을 읽도록 AutomationProperties.Name 고정.
         Attr(tab, "AutomationProperties.Name").Should().Be(accessibleName, "탭 접근성 이름은 한글 라벨");
-        header.Descendants().Any(e => e.Name.LocalName == "TextBlock" && Attr(e, "Text") == accessibleName)
+        header.Descendants().Any(e => e.Name.LocalName == "TextBlock" && (XamlText.English(Attr(e, "Text")) == accessibleName || XamlText.Korean(Attr(e, "Text")) == accessibleName))
             .Should().BeTrue($"{tag} 탭 머리글 텍스트 보존");
     }
 
@@ -359,7 +360,7 @@ public class WorshipListPanelTests
 
         var tab = window.Descendants().Single(
             e => e.Name.LocalName == "TabItem" && Attr(e, "AutomationProperties.Name") == label);
-        tab.Descendants().Any(e => e.Name.LocalName == "TextBlock" && Attr(e, "Text") == label)
+        tab.Descendants().Any(e => e.Name.LocalName == "TextBlock" && XamlText.English(Attr(e, "Text")) == label)
             .Should().BeTrue($"{label} content-switch header metadata 보존");
 
         var dictionary = LoadXaml("Axicultus/Controls/EsTabView.xaml");

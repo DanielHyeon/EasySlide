@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="SingleMonitorMode" xml:space="preserve"><value>단일 모니터 모드로 동작</value></data>
+  <data name="Top" xml:space="preserve"><value>위쪽:</value></data>
+  <data name="Custom" xml:space="preserve"><value>사용자 지정:</value></data>
+  <data name="PreferSecondary" xml:space="preserve"><value>보조 모니터 우선</value></data>
+  <data name="Height" xml:space="preserve"><value>높이:</value></data>
+  <data name="Left" xml:space="preserve"><value>왼쪽:</value></data>
+  <data name="Width" xml:space="preserve"><value>너비:</value></data>
+</root>

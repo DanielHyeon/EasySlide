@@ -2,6 +2,7 @@ using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 using Axicultus.Wpf.Tests.Accessibility;
+using Axicultus.Wpf.Tests.Localization;
 using FluentAssertions;
 using Xunit;
 
@@ -99,7 +100,7 @@ public class SongSearchQueryPanelTests
 
         var checkboxContents = composite.Descendants()
             .Where(e => e.Name.LocalName == "CheckBox")
-            .Select(e => Attr(e, "Content"))
+            .Select(e => XamlText.Korean(Attr(e, "Content")))
             .Where(content => content.Length > 0)
             .ToArray();
 
