@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Windows.Forms;
 using Axicultus.Module;
+using Axicultus.Localization;
 
 namespace Axicultus;
 
@@ -341,9 +342,9 @@ public partial class FrmMain
             }
             if (Gf.LivePowerPointNotStarted)
             {
-                return "PowerPoint: NOT STARTED";
+                return UiText.Get(nameof(FrmMain), "LivePowerPointNotStarted");
             }
-            return Gf.LivePowerPointEnded ? "PowerPoint: NOT RUNNING" : null;
+            return Gf.LivePowerPointEnded ? UiText.Get(nameof(FrmMain), "LivePowerPointNotRunning") : null;
         }
     }
 
@@ -435,13 +436,13 @@ public partial class FrmMain
         }
         liveStatusRow.Visible = true;
 
-        SetLiveStatus(liveStatusShow, state.ShowRunning ? "Show: ON" : "Show: OFF", true,
+        SetLiveStatus(liveStatusShow, UiText.Get(nameof(FrmMain), state.ShowRunning ? "LiveShowOn" : "LiveShowOff"), true,
             state.ShowRunning, ModernUiPalette.LiveAccent);
-        SetLiveStatus(liveStatusText, state.TextHidden ? "Text: HIDDEN" : "Text: shown", true,
+        SetLiveStatus(liveStatusText, UiText.Get(nameof(FrmMain), state.TextHidden ? "LiveTextHidden" : "LiveTextShown"), true,
             state.TextHidden, ModernUiPalette.TextPrimary);
-        SetLiveStatus(liveStatusScreen, state.Black ? "Screen: BLACK" : "Screen: normal", true,
+        SetLiveStatus(liveStatusScreen, UiText.Get(nameof(FrmMain), state.Black ? "LiveScreenBlack" : "LiveScreenNormal"), true,
             state.Black, ModernUiPalette.TextPrimary);
-        SetLiveStatus(liveStatusGap, "Gap item", state.Gap, true, ModernUiPalette.TextPrimary);
+        SetLiveStatus(liveStatusGap, UiText.Get(nameof(FrmMain), "LiveGapItem"), state.Gap, true, ModernUiPalette.TextPrimary);
         SetLiveStatus(liveStatusPowerPoint, state.PowerPointProblem ?? "", state.PowerPointProblem != null, true, ModernUiPalette.TextPrimary);
         LayoutLiveStatusRow();
 
@@ -1618,11 +1619,11 @@ internal sealed class WorshipListPainter : IDisposable
         switch (mark)
         {
             case MarkLive:
-                return "LIVE";
+                return UiText.Get(nameof(FrmMain), "TagLive");
             case MarkOutput:
-                return "OUT";
+                return UiText.Get(nameof(FrmMain), "TagOutput");
             case MarkPreview:
-                return "PREVIEW";
+                return UiText.Get(nameof(FrmMain), "TagPreview");
         }
         // Section rows get no type tag; a narrow list keeps its width for the title.
         if (section || list.ClientSize.Width < list.LogicalToDeviceUnits(TypeTagMinListWidth))
@@ -1641,13 +1642,13 @@ internal sealed class WorshipListPainter : IDisposable
         }
         return item.SubItems[1].Text[0] switch
         {
-            'D' => "Song",
+            'D' => UiText.Get(nameof(FrmMain), "TagSong"),
             'P' => "PPT",
-            'B' => "Bible",
-            'T' => "Text",
-            'I' => "Info",
-            'W' => "Doc",
-            'M' => "Media",
+            'B' => UiText.Get(nameof(FrmMain), "TagBible"),
+            'T' => UiText.Get(nameof(FrmMain), "TagText"),
+            'I' => UiText.Get(nameof(FrmMain), "TagInfo"),
+            'W' => UiText.Get(nameof(FrmMain), "TagDoc"),
+            'M' => UiText.Get(nameof(FrmMain), "TagMedia"),
             _ => null,
         };
     }

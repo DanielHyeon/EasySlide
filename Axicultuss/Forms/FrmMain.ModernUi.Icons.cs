@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Windows.Forms;
+using Axicultus.Localization;
 
 namespace Axicultus;
 
@@ -104,14 +105,14 @@ public partial class FrmMain
     /// <summary>Main toolbar buttons that show a word next to the icon (design D20): the tooltip's word.</summary>
     private (ToolStripItem Item, string Text)[] ToolbarTextTable() =>
     [
-        (Main_New, "New"),
-        (Main_Edit, "Edit"),
-        (Main_Copy, "Copy"),
-        (Main_Move, "Move"),
-        (Main_Delete, "Delete"),
-        (Main_Media, "Media"),
-        (Main_Refresh, "Refresh"),
-        (Main_Options, "Options"),
+        (Main_New, UiText.Get(nameof(FrmMain), "ToolbarNew")),
+        (Main_Edit, UiText.Get(nameof(FrmMain), "ToolbarEdit")),
+        (Main_Copy, UiText.Get(nameof(FrmMain), "ToolbarCopy")),
+        (Main_Move, UiText.Get(nameof(FrmMain), "ToolbarMove")),
+        (Main_Delete, UiText.Get(nameof(FrmMain), "ToolbarDelete")),
+        (Main_Media, UiText.Get(nameof(FrmMain), "ToolbarMedia")),
+        (Main_Refresh, UiText.Get(nameof(FrmMain), "ToolbarRefresh")),
+        (Main_Options, UiText.Get(nameof(FrmMain), "ToolbarOptions")),
     ];
 
     /// <summary>

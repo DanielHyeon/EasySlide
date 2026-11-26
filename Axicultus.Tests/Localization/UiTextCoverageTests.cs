@@ -190,7 +190,6 @@ public sealed class UiTextCoverageTests
         "Axicultuss/Forms/FrmLaunchShow.Designer.cs",
         "Axicultuss/Forms/FrmLookupTitles.Designer.cs",
         "Axicultuss/Forms/FrmLyricsScreen.Designer.cs",
-        "Axicultuss/Forms/FrmMain.Designer.cs",
         "Axicultuss/Forms/FrmManageItemLists.Designer.cs",
         "Axicultuss/Forms/FrmMediaPlayerControl.Designer.cs",
         "Axicultuss/Forms/FrmMove.Designer.cs",
@@ -225,9 +224,6 @@ public sealed class UiTextCoverageTests
         "Axicultuss/Forms/FrmImportAccessHelper.cs",
         "Axicultuss/Forms/FrmImportFolder.cs",
         "Axicultuss/Forms/FrmInfoScreen.cs",
-        "Axicultuss/Forms/FrmMain.cs",
-        "Axicultuss/Forms/FrmMain.Logic.cs",
-        "Axicultuss/Forms/FrmMain.ModernUi.ImageList.cs",
         "Axicultuss/Forms/FrmManageItemLists.cs",
         "Axicultuss/Forms/FrmMove.cs",
         "Axicultuss/Forms/FrmOptions.cs",
@@ -236,7 +232,6 @@ public sealed class UiTextCoverageTests
         "Axicultuss/Forms/FrmSmartMerge.cs",
         "Axicultuss/Forms/FrmUpdateFileName.cs",
         "Axicultuss/Forms/FrmUsages.cs",
-        "Axicultuss/Forms/Program.cs",
         "Axicultuss/Global/gfBible.cs",
         "Axicultuss/Global/gfConfig.cs",
         "Axicultuss/Global/gfConstants.cs",
@@ -259,7 +254,9 @@ public sealed class UiTextCoverageTests
         + @"(?<![A-Za-z])(Axicultus|Axicultuss|EasiSlides|PowerPoint|PPTX?|OBS|Windows|Office|Word|Excel|SQLite|MySQL|MariaDB|CCLI|DirectShow|"
         + @"JSON|XML|HTML|CSV|RTF|PDF|EULA|URL|USB|DPI|PC|ID|IP|NDI|WPF|WinForms|InfoScreen|Copyright|"
         + @"Ctrl|Alt|Shift|Esc|Enter|Space|Tab|PgUp|PgDn|PageUp|PageDown|Home|End|Del|Insert|F\d{1,2})(?![A-Za-z])|"
-        + @"\.(esw|est|esi|esp|txt|pptx?|ppsx?|docx?|rtf|jpe?g|png|gif|bmp|mp[34]|wmv|avi|xml|json|db|sqlite)(?![A-Za-z])",
+        + @"\.(esw|est|esi|esp|txt|pptx?|ppsx?|docx?|rtf|jpe?g|png|gif|bmp|mp[34]|wmv|avi|xml|json|db|sqlite)(?![A-Za-z])|"
+        // (a text that is one key letter: the verse buttons p, c, b, e… are the keys that jump there)
+        + @"^[A-Za-z]$",
         RegexOptions.CultureInvariant);
 
     private static bool HasHangul(string text) => text.Any(c => c is >= '가' and <= '힣' or >= 'ㄱ' and <= 'ㆎ');
@@ -515,12 +512,16 @@ public sealed class UiTextCoverageTests
     }
 
     private static readonly Regex MessageBoxCall = new(@"\bMessageBox\.Show\(");
+    private static readonly Regex UiTextArguments = new(@"UiText\.(?:Get|Format)\(\s*(?:nameof\(\w+\)|(?<area>""\w+""))\s*,\s*(?<key>""[^""]+"")");
 
-    /// <summary>Literal texts with letters given to MessageBox.Show (in the call, up to its end).</summary>
+    /// <summary>Literal texts with letters given to MessageBox.Show (in the call, up to its end); a UiText area or key is not one.</summary>
     internal static IEnumerable<string> MessageBoxLiterals(string path)
     {
         var (lines, literals) = Parse(path);
         string code = string.Join('\n', lines);
+        var resourceNames = UiTextArguments.Matches(code).SelectMany(m => new[] { m.Groups["area"], m.Groups["key"] })
+            .Where(g => g.Success).Select(g => g.Index).ToHashSet();
+        literals = literals.Where(l => !resourceNames.Contains(l.Start)).ToList();
         foreach (Match call in MessageBoxCall.Matches(code))
         {
             int depth = 0, end = call.Index + call.Length - 1;

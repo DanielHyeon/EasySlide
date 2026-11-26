@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Axicultus.Util;
+using Axicultus.Localization;
 
 namespace Axicultus;
 
@@ -67,8 +68,8 @@ static class Program
                 }
                 catch (Exception ex) when (ex is UnauthorizedAccessException or System.IO.IOException or System.Security.SecurityException or System.Text.Json.JsonException)
                 {
-                    MessageBox.Show($"사용자 설정을 불러오지 못했습니다. 설정 파일과 접근 권한을 확인해 주세요.\n\n{ex.Message}",
-                        "Axicultuss — 설정 이전", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(UiText.Format(nameof(Program), "ProfileLoadFailed", ex.Message),
+                        UiText.Get(nameof(Program), "ProfileLoadFailedTitle"), MessageBoxButtons.OK, MessageBoxIcon.Error);
                     Environment.ExitCode = 1;
                     return;
                 }
@@ -94,6 +95,8 @@ static class Program
             Gf.SplashScreenCanClose = true;
         }
     }
+
+    private const string DebugLogName = "Axicultus_Debug.log"; // not UI text
 
     // A start-up message box is open (OnUiThreadException); further start-up errors are only logged.
     private static bool startupMessageBoxOpen;
@@ -137,8 +140,7 @@ static class Program
             try
             {
                 Gf.SplashScreenCanClose = true;
-                MessageBox.Show("An error occurred while Axicultuss was starting:" + Environment.NewLine + Environment.NewLine
-                    + ex?.Message + Environment.NewLine + Environment.NewLine + "See Axicultus_Debug.log for details.",
+                MessageBox.Show(UiText.Format(nameof(Program), "StartupError", ex?.Message, DebugLogName),
                     "Axicultuss", MessageBoxButtons.OK, MessageBoxIcon.Error, MessageBoxDefaultButton.Button1,
                     MessageBoxOptions.DefaultDesktopOnly);
             }

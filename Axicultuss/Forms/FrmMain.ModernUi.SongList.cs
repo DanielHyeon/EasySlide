@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Windows.Forms;
 using Axicultus.Util;
+using Axicultus.Localization;
 #if SQLite
 using Axicultus.SQLite;
 using DbConnection = System.Data.SQLite.SQLiteConnection;
@@ -32,7 +33,8 @@ public partial class FrmMain
 
     // ----- 5.2 Find in this folder -----
 
-    private const string SongSearchResultsFolder = "Search Results:";
+    // The entry SongFolder lists the Find results under (in the UI language).
+    private static string SongSearchResultsFolder => UiText.Get(nameof(FrmMain), "SearchResultsFolder");
 
     private SongFindBox songFind;
 
@@ -296,9 +298,9 @@ public partial class FrmMain
         {
             int removed = songFindListedAtLoad >= 0 ? Math.Max(0, songFindListedAtLoad - count) : 0;
             int total = Math.Max(count, songFindFolderTotal - removed);
-            return count + " of " + total + ((total == 1) ? " item / " : " items / ");
+            return UiText.Format(nameof(FrmMain), (total == 1) ? "FolderCountOfOne" : "FolderCountOf", count, total);
         }
-        return count + ((count < 1) ? " item. /" : " items / ");
+        return UiText.Format(nameof(FrmMain), (count < 1) ? "FolderCountNone" : "FolderCount", count);
     }
 
     /// <summary>
