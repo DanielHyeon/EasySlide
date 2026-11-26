@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
+using Axicultus.Localization;
 using Axicultus.Properties;
 using Axicultus.Util;
 
@@ -20,6 +21,7 @@ namespace Axicultus;
 		public FrmShowAlert()
 		{
 			InitializeComponent();
+			UiText.ApplyTo(this);
 		}
 
 		private void FrmShowAlert_Load(object sender, EventArgs e)

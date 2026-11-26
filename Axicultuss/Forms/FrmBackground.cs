@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
+using Axicultus.Localization;
 using Axicultus.Properties;
 using Axicultus.Util;
 
@@ -23,12 +24,13 @@ namespace Axicultus;
 		public FrmBackground()
 		{
 			InitializeComponent();
+			UiText.ApplyTo(this);
 			LoadData();
 		}
 
 		private void LoadData()
 		{
-			Text = (Gf.ChangedIsDefault ? "Select Default Background Colours and Pattern" : "Background and Pattern for selected item");
+			Text = UiText.Get(nameof(FrmBackground), Gf.ChangedIsDefault ? "DefaultTitle" : "ItemTitle");
 			InColour1 = Gf.ChangedBackColour1;
 			InColour2 = Gf.ChangedBackColour2;
 			SelectedStyle = Gf.ChangedBackStyle;

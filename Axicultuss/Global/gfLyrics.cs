@@ -8,6 +8,7 @@ using System.IO;
 using System.Text;
 using System.Windows.Forms;
 using System.Xml;
+using Axicultus.Localization;
 using Axicultus.Module;
 using Axicultus.Util;
 
@@ -2196,12 +2197,12 @@ namespace Axicultus;
 			];
 			if (InString.IndexOfAny(anyOf) >= 0)
 			{
-				MessageBox.Show(Heading + " must not contain the characters: ] [ * \" < >");
+				MessageBox.Show(UiText.Format("gfLyrics", "InvalidTitleChars", Heading));
 				return false;
 			}
 			if (InString.Length > 100)
 			{
-				MessageBox.Show(Heading + " is too long (" + Convert.ToString(InString.Length) + "), maximum length is 100 characters including spaces");
+				MessageBox.Show(UiText.Format("gfLyrics", "TitleTooLong", Heading, InString.Length));
 				return false;
 			}
 			return true;
@@ -3966,7 +3967,7 @@ namespace Axicultus;
 				}
 				catch
 				{
-					MessageBox.Show("Error");
+					MessageBox.Show(UiText.Get("gfLyrics", "Error"));
 				}
 				textBuilder.Append('\n');
 				if (InItem.Slide[i, 2] >= 0)

@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="BtnCancel.Text" xml:space="preserve"><value>Cancel</value></data>
+  <data name="BtnOK.Text" xml:space="preserve"><value>OK</value></data>
+  <data name="optCopyToInfoScreen.Text" xml:space="preserve"><value>To Folder</value></data>
+  <data name="optCopyToFolder.Text" xml:space="preserve"><value>To Database Folder:</value></data>
+  <data name="$this.Text" xml:space="preserve"><value>External Files</value></data>
+  <data name="CopyInfoScreens" xml:space="preserve"><value>Copy InfoScreen(s)</value></data>
+  <data name="CopyPowerPoints" xml:space="preserve"><value>Copy Powerpoint File(s)</value></data>
+  <data name="MoveInfoScreens" xml:space="preserve"><value>Move InfoScreen(s)</value></data>
+  <data name="MovePowerPoints" xml:space="preserve"><value>Move Powerpoint File(s)</value></data>
+  <data name="CopySelectedItem" xml:space="preserve"><value>You have selected {0} item for copying. Please choose a folder to copy the item to, and then click OK.</value></data>
+  <data name="CopySelectedItems" xml:space="preserve"><value>You have selected {0} items for copying. Please choose a folder to copy the items to, and then click OK.</value></data>
+  <data name="MoveSelectedItem" xml:space="preserve"><value>You have selected {0} item for moving. Please choose a folder to move the item to, and then click OK.</value></data>
+  <data name="MoveSelectedItems" xml:space="preserve"><value>You have selected {0} items for moving. Please choose a folder to move the items to, and then click OK.</value></data>
+  <data name="CopySelectFolder" xml:space="preserve"><value>Please select a folder to copy to!</value></data>
+  <data name="MoveSelectFolder" xml:space="preserve"><value>Please select a folder to move to!</value></data>
+  <data name="NoFolders" xml:space="preserve"><value>There are no Song Folders enabled!</value></data>
+</root>

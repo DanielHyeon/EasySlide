@@ -9,6 +9,7 @@ using System.IO;
 using System.Text;
 using System.Windows.Forms;
 using System.Data;
+using Axicultus.Localization;
 using Axicultus.Util;
 
 using Axicultus.SQLite;
@@ -114,6 +115,7 @@ public partial class FrmImport : Form
 		public FrmImport()
 		{
 			InitializeComponent();
+			UiText.ApplyTo(this);
 		}
 
 		private void FrmImport_Load(object sender, EventArgs e)
@@ -206,7 +208,7 @@ public partial class FrmImport : Form
 			string InString = "";
 			if (!gfFileHelpers.LoadFileContents(ImportFileName, ref InString))
 			{
-				MessageBox.Show("There was an error reading the Import File - the file might not be a valid Axicultus File");
+				MessageBox.Show(UiText.Get(nameof(FrmImport), "ReadError"));
 				return;
 			}
 			TextImportFormat = DataUtil.Left(InString, 8).ToLower();
@@ -220,7 +222,7 @@ public partial class FrmImport : Form
 			{
 				if (TextImportFormat != "[est3.1]")
 				{
-					MessageBox.Show("There was an error reading the Import File - the file might not be a valid Axicultus File");
+					MessageBox.Show(UiText.Get(nameof(FrmImport), "ReadError"));
 					return;
 				}
 				esfSongFolder = ">f";
@@ -257,7 +259,7 @@ public partial class FrmImport : Form
 				}
 				else
 				{
-					folderName = "Default Folder";
+					folderName = UiText.Get(nameof(FrmImport), "DefaultFolder");
 				}
 				FolderLookupSongsCount++;
 				alreadyListed = false;
@@ -287,7 +289,7 @@ public partial class FrmImport : Form
 			}
 			catch (Exception ex) when (SongExchangeFile.IsReadError(ex))
 			{
-				MessageBox.Show("Could not read the song file. " + ex.Message);
+				MessageBox.Show(UiText.Format(nameof(FrmImport), "SongFileReadFailed", ex.Message));
 			}
 		}
 
@@ -296,7 +298,7 @@ public partial class FrmImport : Form
 
 		private void LocationBtn_Click(object sender, EventArgs e)
 		{
-			OpenFileDialog1.Filter = "Axicultus Files (*.esf,*.est,*.esn,*.xml,*.json)|*.esf;*.est;*.esn;*.xml;*.json|Access Database (*.mdb)|*.mdb";
+			OpenFileDialog1.Filter = UiText.Format(nameof(FrmImport), "ImportFilter", "*.esf,*.est,*.esn,*.xml,*.json", "*.esf;*.est;*.esn;*.xml;*.json", "*.mdb");
 			OpenFileDialog1.InitialDirectory = Gf.ImportFromDir;
 			OpenFileDialog1.AddExtension = true;
 			OpenFileDialog1.DefaultExt = "*.xml";
@@ -319,19 +321,19 @@ public partial class FrmImport : Form
 			string importPath = DataUtil.Trim(tbImportFrom.Text);
 			if (importPath == "")
 			{
-				MessageBox.Show("Please specify an import file (A).");
+				MessageBox.Show(UiText.Get(nameof(FrmImport), "SpecifyImportFile"));
 			}
 			else if (!File.Exists(importPath))
 			{
-				MessageBox.Show("The selected import file doesn't exist! Please re-select the import file (A).");
+				MessageBox.Show(UiText.Get(nameof(FrmImport), "ImportFileMissing"));
 			}
 			else if ((ImportFolderList.Items.Count > 0) && (ImportFolderList.CheckedItems.Count < 1))
 			{
-				MessageBox.Show("Please select Folder(s) from the list of Import File Folders (B).");
+				MessageBox.Show(UiText.Get(nameof(FrmImport), "SelectImportFolders"));
 			}
 			else if (SongFolder.SelectedItems.Count < 1)
 			{
-				MessageBox.Show("Please select a Folder to Import your items into (C).");
+				MessageBox.Show(UiText.Get(nameof(FrmImport), "SelectDestinationFolder"));
 			}
 			else
 			{
@@ -355,7 +357,7 @@ public partial class FrmImport : Form
 						AccessHelper(importPath);
 						break;
 					default:
-						MessageBox.Show("Sorry - The Import File you have selected in (A) does not have a valid Axicultus file extension.");
+						MessageBox.Show(UiText.Get(nameof(FrmImport), "InvalidExtension"));
 						break;
 				}
 			}
@@ -389,7 +391,7 @@ public partial class FrmImport : Form
 			{
 				dataTable.BeginInit();
 
-				listViewItem = SongsList.Items.Add("Importing...");
+				listViewItem = SongsList.Items.Add(UiText.Get(nameof(FrmImport), "Importing"));
 				int progressPercent = 0;
 				InFolderNo = Gf.GetFolderNumber(SongFolder.SelectedItems[0].Text);
 
@@ -486,7 +488,7 @@ public partial class FrmImport : Form
 					ProgressBar1.Value = (int)(processed * 100L / total);
 					if (string.IsNullOrWhiteSpace(song.Title1))
 					{
-						row.SubItems.Add("Item has No Title - Not Imported");
+						row.SubItems.Add(UiText.Get(nameof(FrmImport), "NoTitle"));
 						continue;
 					}
 					Gf.ApplyExchangeSong(song, ref ImportItem, sequence);
@@ -504,7 +506,7 @@ public partial class FrmImport : Form
 			}
 			catch (Exception ex) when (SongExchangeFile.IsReadError(ex))
 			{
-				MessageBox.Show("Could not import the song file. " + ex.Message);
+				MessageBox.Show(UiText.Format(nameof(FrmImport), "SongFileImportFailed", ex.Message));
 			}
 			finally
 			{
@@ -521,27 +523,28 @@ public partial class FrmImport : Form
 			string replacedMessage = "";
 			if ((SongsNew == 0) && (SongsUpdated == 0))
 			{
-				noImportMessage = "No Songs were imported. ";
+				noImportMessage = UiText.Get(nameof(FrmImport), "NoSongsImported");
 			}
 			else
 			{
 				if (SongsNew >= 1)
 				{
-					newSongsMessage = ((SongsNew != 1) ? ("Imported " + Convert.ToString(SongsNew) + " new songs. ") : "Imported one new song. ");
+					newSongsMessage = ((SongsNew != 1) ? UiText.Format(nameof(FrmImport), "ImportedNewSongs", SongsNew) : UiText.Get(nameof(FrmImport), "ImportedOneNewSong"));
 				}
 				if (SongsUpdated >= 1)
 				{
-					replacedMessage = ((SongsUpdated != 1) ? ("Replaced " + Convert.ToString(SongsUpdated) + " existing songs. ") : "Replaced one existing song. ");
+					replacedMessage = ((SongsUpdated != 1) ? UiText.Format(nameof(FrmImport), "ReplacedSongs", SongsUpdated) : UiText.Get(nameof(FrmImport), "ReplacedOneSong"));
 				}
 			}
+			string summary = string.Join(" ", new[] { noImportMessage, newSongsMessage, replacedMessage }.Where(message => message != ""));
 			listViewItem = SongsList.Items.Add("");
-			listViewItem.SubItems.Add("Completed.");
+			listViewItem.SubItems.Add(UiText.Get(nameof(FrmImport), "Completed"));
 			listViewItem = SongsList.Items.Add("");
-			listViewItem.SubItems.Add(noImportMessage + newSongsMessage + replacedMessage);
+			listViewItem.SubItems.Add(summary);
 			SongsList.Items.Add("");
 			SongsList.Items[SongsList.Items.Count - 1].EnsureVisible();
 			SongsList.Update();
-			MessageBox.Show("Completed. " + noImportMessage + newSongsMessage + replacedMessage);
+			MessageBox.Show(UiText.Format(nameof(FrmImport), "CompletedSummary", summary));
 			ProgressBar1.Visible = false;
 			string strExt = Path.GetExtension(tbImportFrom.Text).ToLower();
 			if (strExt == ".mdb")
@@ -570,26 +573,26 @@ public partial class FrmImport : Form
 				{
 					if (Gf.InsertItemIntoDatabase(Gf.ConnectStringMainDB, InItem) <= 0)
 					{
-						listItem.SubItems.Add("Insert failed");
+						listItem.SubItems.Add(UiText.Get(nameof(FrmImport), "InsertFailed"));
 						return;
 					}
-					listItem.SubItems.Add("++ Imported as a New Item ++");
+					listItem.SubItems.Add(UiText.Get(nameof(FrmImport), "ImportedAsNew"));
 					SongsNew++;
 				}
 				else
 				{
 					if (!Gf.UpdateDatabaseItem(Gf.ConnectStringMainDB, InItem, InSongID))
 					{
-						listItem.SubItems.Add("Update failed");
+						listItem.SubItems.Add(UiText.Get(nameof(FrmImport), "UpdateFailed"));
 						return;
 					}
-					listItem.SubItems.Add("** Existing Item in Database Replaced **");
+					listItem.SubItems.Add(UiText.Get(nameof(FrmImport), "ExistingReplaced"));
 					SongsUpdated++;
 				}
 			}
 			else
 			{
-				listItem.SubItems.Add("Not Imported");
+				listItem.SubItems.Add(UiText.Get(nameof(FrmImport), "NotImported"));
 			}
 		}
 
@@ -598,7 +601,7 @@ public partial class FrmImport : Form
 			string InString = "";
 			if (!gfFileHelpers.LoadFileContents(ImportFileName, ref InString))
 			{
-				MessageBox.Show("There was an error reading the Import File - the file might not be a valid Axicultus File");
+				MessageBox.Show(UiText.Get(nameof(FrmImport), "ReadError"));
 				ProgressBar1.Visible = false;
 				return;
 			}
@@ -628,7 +631,7 @@ public partial class FrmImport : Form
 			{
 				if (TextImportFormat != "[est3.1]")
 				{
-					MessageBox.Show("There was an error reading the Import File - the file might not be a valid Axicultus File");
+					MessageBox.Show(UiText.Get(nameof(FrmImport), "ReadError"));
 					ProgressBar1.Visible = false;
 					return;
 				}
@@ -663,7 +666,7 @@ public partial class FrmImport : Form
 
 			ProgressBar1.Visible = true;
 			listViewItem = SongsList.Items.Add("");
-			listViewItem.SubItems.Add("Starting Import...");
+			listViewItem.SubItems.Add(UiText.Get(nameof(FrmImport), "StartingImport"));
 			if (songBlocks != null && songBlocks.GetUpperBound(0) >= 0)
 			{
 				int itemNo = 0;
@@ -694,7 +697,7 @@ public partial class FrmImport : Form
 						}
 						else
 						{
-							folderName = "Default Folder";
+							folderName = UiText.Get(nameof(FrmImport), "DefaultFolder");
 						}
 						itemNo++;
 						progressPercent = itemNo * 100 / FolderLookupSongsCount;
@@ -755,12 +758,12 @@ public partial class FrmImport : Form
 								}
 								else
 								{
-									listViewItem.SubItems.Add("Item has No Title - Not Imported");
+									listViewItem.SubItems.Add(UiText.Get(nameof(FrmImport), "NoTitle"));
 								}
 							}
 							else
 							{
-								listViewItem.SubItems.Add("Song exists in Database - NOT Imported");
+								listViewItem.SubItems.Add(UiText.Get(nameof(FrmImport), "SongExists"));
 							}
 						}
 					}
@@ -932,7 +935,7 @@ public partial class FrmImport : Form
 
 			totalRows = dataTable.Rows.Count;
 
-			listViewItem = SongsList.Items.Add("Importing...");
+			listViewItem = SongsList.Items.Add(UiText.Get(nameof(FrmImport), "Importing"));
 			int progressPercent = 0;
 			int folderNumber = Gf.GetFolderNumber(SongFolder.SelectedItems[0].Text);
 
@@ -1046,18 +1049,18 @@ public partial class FrmImport : Form
 		{
 			if (DataUtil.Trim(tbImportFrom.Text) == "")
 			{
-				MessageBox.Show("Cannot start Helper - Please specify an Access Database file.");
+				MessageBox.Show(UiText.Get(nameof(FrmImport), "HelperNoFile"));
 				return;
 			}
 			if (SongFolder.SelectedItems.Count < 1)
 			{
-				MessageBox.Show("Cannot start Helper - Please select a Song Folder to Import Access database items into.");
+				MessageBox.Show(UiText.Get(nameof(FrmImport), "HelperNoFolder"));
 				return;
 			}
 			string importPath = DataUtil.Trim(tbImportFrom.Text);
 			if (!File.Exists(importPath))
 			{
-				MessageBox.Show("Cannot start Helper - The Access Database file specified does not exist - please select a valid import file!");
+				MessageBox.Show(UiText.Get(nameof(FrmImport), "HelperFileMissing"));
 			}
 			else if (string.Equals(Path.GetExtension(importPath), ".mdb", StringComparison.OrdinalIgnoreCase))
 			{
@@ -1071,7 +1074,7 @@ public partial class FrmImport : Form
 			}
 			else
 			{
-				MessageBox.Show("Cannot start Helper - The specified file is not an Access Database file");
+				MessageBox.Show(UiText.Get(nameof(FrmImport), "HelperNotAccess"));
 			}
 		}
 
@@ -1087,13 +1090,13 @@ public partial class FrmImport : Form
 		{
 			if (SongFolder.SelectedItems.Count < 1)
 			{
-				MessageBox.Show("Please select a Folder to Import the Source materials into (C).");
+				MessageBox.Show(UiText.Get(nameof(FrmImport), "SelectSourceCdFolder"));
 				return;
 			}
 			string sourceFolder = "D:\\Source CD\\hymns";
 			if (!Directory.Exists(sourceFolder))
 			{
-				MessageBox.Show("The source CD Folder '" + sourceFolder + "' does not exists!");
+				MessageBox.Show(UiText.Format(nameof(FrmImport), "SourceCdFolderMissing", sourceFolder));
 				return;
 			}
 			var songTitles = new Dictionary<int, string>();
@@ -1105,7 +1108,7 @@ public partial class FrmImport : Form
 				{
 					ListViewItem listViewItem = new();
 					bool songRequired = false;
-					listViewItem = SongsList.Items.Add("Importing...");
+					listViewItem = SongsList.Items.Add(UiText.Get(nameof(FrmImport), "Importing"));
 					int fileNo = 0;
 					SongsNew = 0;
 					SongsUpdated = 0;
@@ -1181,12 +1184,12 @@ public partial class FrmImport : Form
 							}
 							else
 							{
-								listViewItem.SubItems.Add("Item has No Title - Not Imported");
+								listViewItem.SubItems.Add(UiText.Get(nameof(FrmImport), "NoTitle"));
 							}
 						}
 						else
 						{
-							listViewItem.SubItems.Add("Song exists in Database - NOT Imported");
+							listViewItem.SubItems.Add(UiText.Get(nameof(FrmImport), "SongExists"));
 						}
 						SongsList.Items[SongsList.Items.Count - 1].EnsureVisible();
 						SongsList.Update();

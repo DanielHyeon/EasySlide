@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="AllFiles" xml:space="preserve"><value>All Files</value></data>
+  <data name="AudioFiles" xml:space="preserve"><value>Audio Files</value></data>
+  <data name="VideoFiles" xml:space="preserve"><value>Video Files</value></data>
+  <data name="MediaFilesAllTypes" xml:space="preserve"><value>Media Files (all types)</value></data>
+  <data name="TextFileUnreadable" xml:space="preserve"><value>Cannot open the selected text file. The text file might be corrupted</value></data>
+  <data name="PowerPointUnreachable" xml:space="preserve"><value>PowerPoint could not be reached from the main window: its slide keys may not move the slide show on the projector</value></data>
+  <data name="PowerPointFileNotOpened" xml:space="preserve"><value>A PowerPoint file could not be opened for the show: {0}</value></data>
+  <data name="PowerPointFilesNotOpened" xml:space="preserve"><value>{0} PowerPoint files could not be opened for the show (first: {1})</value></data>
+</root>

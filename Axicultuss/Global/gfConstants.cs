@@ -149,7 +149,7 @@ namespace Axicultus;
 
 		public const string WebPage_Ext = ".htm";
 
-		public const string NotationSym = "쨩";
+		public const string NotationSym = "쨩"; // not UI text
 
 		public const string MusicFlat = "b";
 
@@ -703,7 +703,7 @@ namespace Axicultus;
 
 		public static string DashesString = "----";
 
-		public static string DashesStringSubstitute = "짙!짭~짭";
+		public static string DashesStringSubstitute = "짙!짭~짭"; // not UI text
 
 		public static bool DoRTBOnEnterEvent = false;
 

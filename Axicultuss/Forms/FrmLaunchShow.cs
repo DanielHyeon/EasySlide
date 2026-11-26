@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
+using Axicultus.Localization;
 using Axicultus.Module;
 using Axicultus.Util;
 using OfficeLib;
@@ -99,6 +100,7 @@ namespace Axicultus;
 		public FrmLaunchShow()
 		{
 			InitializeComponent();
+			UiText.ApplyTo(this);
 			Disposed += (_, _) => CloseLiveMediaWindow();
 		}
 

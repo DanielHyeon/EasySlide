@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel;
 using System.Windows.Forms;
+using Axicultus.Localization;
 using Axicultus.Util;
 
 namespace Axicultus;
@@ -11,6 +12,7 @@ namespace Axicultus;
 		public FrmPopupText()
 		{
 			InitializeComponent();
+			UiText.ApplyTo(this);
 		}
 
 		private void FrmPopup_Load(object sender, EventArgs e)

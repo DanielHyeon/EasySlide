@@ -170,84 +170,23 @@ public sealed class UiTextCoverageTests
 
     private static readonly string[] WinFormsDesignerNotYet =
     [
-        "Axicultuss/Forms/FrmBackground.Designer.cs",
-        "Axicultuss/Forms/FrmBibleRename.Designer.cs",
-        "Axicultuss/Forms/FrmCopy.Designer.cs",
-        "Axicultuss/Forms/FrmCopyMoveExternal.Designer.cs",
-        "Axicultuss/Forms/FrmEditBibleItem.Designer.cs",
         "Axicultuss/Forms/FrmEditItem.Designer.cs",
-        "Axicultuss/Forms/FrmEditNotes.Designer.cs",
-        "Axicultuss/Forms/FrmExport.Designer.cs",
-        "Axicultuss/Forms/FrmFind.Designer.cs",
-        "Axicultuss/Forms/FrmGenerateDoc.Designer.cs",
-        "Axicultuss/Forms/FrmGenerateHtml.Designer.cs",
-        "Axicultuss/Forms/FrmGetWorkingFolder.Designer.cs",
         "Axicultuss/Forms/FrmHelp.Designer.cs",
-        "Axicultuss/Forms/FrmImport.Designer.cs",
-        "Axicultuss/Forms/FrmImportAccessHelper.Designer.cs",
-        "Axicultuss/Forms/FrmImportFolder.Designer.cs",
         "Axicultuss/Forms/FrmInfoScreen.Designer.cs",
-        "Axicultuss/Forms/FrmLaunchShow.Designer.cs",
-        "Axicultuss/Forms/FrmLookupTitles.Designer.cs",
-        "Axicultuss/Forms/FrmLyricsScreen.Designer.cs",
         "Axicultuss/Forms/FrmMain.Designer.cs",
-        "Axicultuss/Forms/FrmManageItemLists.Designer.cs",
-        "Axicultuss/Forms/FrmMediaPlayerControl.Designer.cs",
-        "Axicultuss/Forms/FrmMove.Designer.cs",
         "Axicultuss/Forms/FrmOptions.Designer.cs",
-        "Axicultuss/Forms/FrmPopupText.Designer.cs",
-        "Axicultuss/Forms/FrmRearrangeFolderPositions.Designer.cs",
-        "Axicultuss/Forms/FrmRecoverDeleted.Designer.cs",
-        "Axicultuss/Forms/FrmRegister.Designer.cs",
-        "Axicultuss/Forms/FrmShowAlert.Designer.cs",
-        "Axicultuss/Forms/FrmSingleMonitorAlert.Designer.cs",
-        "Axicultuss/Forms/FrmSmartMerge.Designer.cs",
-        "Axicultuss/Forms/FrmSplashScreen.Designer.cs",
-        "Axicultuss/Forms/FrmSplashScreenOld.Designer.cs",
-        "Axicultuss/Forms/FrmUpdateFileName.Designer.cs",
-        "Axicultuss/Forms/FrmUsages.Designer.cs",
     ];
 
     private static readonly string[] WinFormsCodeNotYet =
     [
-        "Axicultuss/Forms/FrmBibleRename.cs",
-        "Axicultuss/Forms/FrmCopy.cs",
-        "Axicultuss/Forms/FrmCopyMoveExternal.cs",
-        "Axicultuss/Forms/FrmEditBibleItem.cs",
         "Axicultuss/Forms/FrmEditItem.cs",
         "Axicultuss/Forms/FrmEditItem.Presentation.cs",
-        "Axicultuss/Forms/FrmExport.cs",
-        "Axicultuss/Forms/FrmFind.cs",
-        "Axicultuss/Forms/FrmGenerateDoc.cs",
-        "Axicultuss/Forms/FrmGenerateHtml.cs",
-        "Axicultuss/Forms/FrmGetWorkingFolder.cs",
-        "Axicultuss/Forms/FrmImport.cs",
-        "Axicultuss/Forms/FrmImportAccessHelper.cs",
-        "Axicultuss/Forms/FrmImportFolder.cs",
         "Axicultuss/Forms/FrmInfoScreen.cs",
         "Axicultuss/Forms/FrmMain.cs",
         "Axicultuss/Forms/FrmMain.Logic.cs",
         "Axicultuss/Forms/FrmMain.ModernUi.ImageList.cs",
-        "Axicultuss/Forms/FrmManageItemLists.cs",
-        "Axicultuss/Forms/FrmMove.cs",
         "Axicultuss/Forms/FrmOptions.cs",
-        "Axicultuss/Forms/FrmRearrangeFolderPositions.cs",
-        "Axicultuss/Forms/FrmRecoverDeleted.cs",
-        "Axicultuss/Forms/FrmSmartMerge.cs",
-        "Axicultuss/Forms/FrmUpdateFileName.cs",
-        "Axicultuss/Forms/FrmUsages.cs",
         "Axicultuss/Forms/Program.cs",
-        "Axicultuss/Global/gfBible.cs",
-        "Axicultuss/Global/gfConfig.cs",
-        "Axicultuss/Global/gfConstants.cs",
-        "Axicultuss/Global/gfDatabase.cs",
-        "Axicultuss/Global/gfFileHelpers.cs",
-        "Axicultuss/Global/gfFolder.cs",
-        "Axicultuss/Global/gfLyrics.cs",
-        "Axicultuss/Global/gfMedia.cs",
-        "Axicultuss/Global/gfPowerPoint.cs",
-        "Axicultuss/Global/gfUtility.cs",
-        "Axicultuss/Util/MonitorPicker.cs",
     ];
 
     // ---- the rules ----
@@ -256,7 +195,7 @@ public sealed class UiTextCoverageTests
     private static readonly Regex Untranslated = new(
         @"https?://\S+|www\.\S+|\{\d+(:[^}]*)?\}|\(&\w\)|\(_\w\)|&&|"
         // (bounded by non-ASCII-letters: a Korean particle may follow a name, "Axicultus를")
-        + @"(?<![A-Za-z])(Axicultus|Axicultuss|EasiSlides|PowerPoint|PPTX?|OBS|Windows|Office|Word|Excel|SQLite|MySQL|MariaDB|CCLI|DirectShow|"
+        + @"(?<![A-Za-z])(Axicultus|Axicultuss|EasiSlides|PowerPoint|PPTX?|OBS|Windows|Office|Word|Excel|SQLite|MySQL|MariaDB|CCLI|DirectShow|DirectX|A4|"
         + @"JSON|XML|HTML|CSV|RTF|PDF|EULA|URL|USB|DPI|PC|ID|IP|NDI|WPF|WinForms|InfoScreen|Copyright|"
         + @"Ctrl|Alt|Shift|Esc|Enter|Space|Tab|PgUp|PgDn|PageUp|PageDown|Home|End|Del|Insert|F\d{1,2})(?![A-Za-z])|"
         + @"\.(esw|est|esi|esp|txt|pptx?|ppsx?|docx?|rtf|jpe?g|png|gif|bmp|mp[34]|wmv|avi|xml|json|db|sqlite)(?![A-Za-z])",
@@ -516,6 +455,9 @@ public sealed class UiTextCoverageTests
 
     private static readonly Regex MessageBoxCall = new(@"\bMessageBox\.Show\(");
 
+    // The area and key of a UiText.Get/Format call (the literals that follow it) are not texts.
+    private static readonly Regex UiTextKey = new(@"UiText\.(?:Get|Format)\(\s*(?:(?:""\w+""|nameof\(\w+\))\s*,\s*)?$", RegexOptions.RightToLeft);
+
     /// <summary>Literal texts with letters given to MessageBox.Show (in the call, up to its end).</summary>
     internal static IEnumerable<string> MessageBoxLiterals(string path)
     {
@@ -532,7 +474,7 @@ public sealed class UiTextCoverageTests
                 else if (code[i] == ')' && --depth == 0) { end = i; break; }
             }
             foreach (var literal in literals.Where(l => l.Start > call.Index && l.End <= end && NeedsText(l.Text)))
-                if (!Marked(lines[literal.Line - 1]))
+                if (!Marked(lines[literal.Line - 1]) && !UiTextKey.Match(code, 0, literal.Start).Success)
                     yield return $"line {literal.Line}: \"{literal.Text}\"";
         }
     }

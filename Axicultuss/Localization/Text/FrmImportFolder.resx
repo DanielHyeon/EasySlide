@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="$this.Text" xml:space="preserve"><value>Import Folder</value></data>
+  <data name="groupBox1.Text" xml:space="preserve"><value>Import all Text/Word Documents from a particular Windows Folder into a Axicultus Database folder</value></data>
+  <data name="LocationBtn.ToolTipText" xml:space="preserve"><value>Media File Location</value></data>
+  <data name="label5.Text" xml:space="preserve"><value>C. Click Import to start the Import. Each title shall be based on the imported File name.</value></data>
+  <data name="label4.Text" xml:space="preserve"><value>B. Select the destination Axicultus Folder you wish to store the imported text into:</value></data>
+  <data name="label3.Text" xml:space="preserve"><value>A. Select the source Windows Folder which contains the  documents you wish to import:</value></data>
+  <data name="BtnCancel.Text" xml:space="preserve"><value>Close</value></data>
+  <data name="BtnOK.Text" xml:space="preserve"><value>Import</value></data>
+  <data name="SelectSourceFolder" xml:space="preserve"><value>Please select your Source Windows Folder.</value></data>
+  <data name="FolderImportCaption" xml:space="preserve"><value>Folder import</value></data>
+  <data name="WordDocument" xml:space="preserve"><value>{0} Word Document</value></data>
+  <data name="WordDocuments" xml:space="preserve"><value>{0} Word Documents</value></data>
+  <data name="TextFile" xml:space="preserve"><value>{0} Text File</value></data>
+  <data name="TextFiles" xml:space="preserve"><value>{0} Text Files</value></data>
+  <data name="ItemsSummary" xml:space="preserve"><value>{0} items ({1} and {2})</value></data>
+  <data name="ImportedInto" xml:space="preserve"><value>Imported {0} into {1}</value></data>
+  <data name="NoDocumentsFound" xml:space="preserve"><value>No Word/text documents were found for import</value></data>
+  <data name="NothingImported" xml:space="preserve"><value>Nothing Imported.  No Word or text Files were found in the Source Windows Folder</value></data>
+  <data name="SourceFolderMissing" xml:space="preserve"><value>Error - Source Windows Folder does not exist! Please enter a valid Source Windows Folder at A.</value></data>
+  <data name="DestinationFolderMissing" xml:space="preserve"><value>Error - Destination Axicultus Folder not yet selected! Please select a Destination Axicultus Folder at B.</value></data>
+</root>

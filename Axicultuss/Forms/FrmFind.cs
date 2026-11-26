@@ -5,6 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.Windows.Forms;
 using Axicultus.Global;
+using Axicultus.Localization;
 using Axicultus.SQLite;
 using Axicultus.Util;
 
@@ -25,6 +26,7 @@ namespace Axicultus;
 		public FrmFind()
 		{
 			InitializeComponent();
+			UiText.ApplyTo(this);
 		}
 
 		/// <summary>
@@ -249,7 +251,7 @@ namespace Axicultus;
 				if (FolderList.CheckedItems.Count == 0)
 				{
 					base.TopMost = false;
-					MessageBox.Show("You have not selected any folders to search!");
+					MessageBox.Show(UiText.Get(nameof(FrmFind), "NoFoldersSelected"));
 					base.TopMost = true;
 					return;
 				}

@@ -1,6 +1,7 @@
 //using NetOffice.DAOApi;
 //using NetOffice.DAOApi.Enums;
 
+using Axicultus.Localization;
 using Axicultus.Util;
 using System;
 using System.ComponentModel;
@@ -93,11 +94,12 @@ public partial class FrmGenerateHtml : Form
 		public FrmGenerateHtml()
 		{
 			InitializeComponent();
+			UiText.ApplyTo(this);
 		}
 
 		private void FrmGenerateHTML_Load(object sender, EventArgs e)
 		{
-			Text = "Generate HTML files for " + Gf.CurPraiseBook;
+			Text = UiText.Format(nameof(FrmGenerateHtml), "TitleFor", Gf.CurPraiseBook);
 			HeadingText0.Text = RegUtil.GetRegValue("config", "HTML_Publisher", "");
 			HeadingText1.Text = RegUtil.GetRegValue("config", "HTML_Web", "");
 			HeadingText2.Text = RegUtil.GetRegValue("config", "HTML_Info1", "");
@@ -129,7 +131,7 @@ public partial class FrmGenerateHtml : Form
 			}
 			RTFFontSize.Value = Gf.HTMLRTFFontSize;
 			Gf.GenHTMLDir = Gf.RootAxicultusDir + "Html\\";
-			WarningLabel.Text = "NOTE: Generate will Delete ALL existing HTML files in: '" + Gf.GenHTMLDir + "'";
+			WarningLabel.Text = UiText.Format(nameof(FrmGenerateHtml), "DeleteWarning", Gf.GenHTMLDir);
 			ToolTip1.SetToolTip(WarningLabel, WarningLabel.Text);
 			Gf.SetListViewColumns(SubDivideList, 6);
 			HtmlItem.Initialise();
@@ -563,7 +565,7 @@ public partial class FrmGenerateHtml : Form
 			{
 				//streamWriter.Flush();
 				//streamWriter.Close();
-				MessageBox.Show("Error generating listing " + OutputFileName + ". Document might be in use.");
+				MessageBox.Show(UiText.Format(nameof(FrmGenerateHtml), "GenerateFailed", OutputFileName));
 			}
 		}
 

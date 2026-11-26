@@ -8,6 +8,7 @@ using System.Threading;
 using System.Windows.Forms;
 using System.Xml;
 using Axicultus.Global;
+using Axicultus.Localization;
 using Axicultus.Module;
 using Axicultus.Util;
 using OfficeLib;
@@ -110,7 +111,7 @@ static class gfFileHelpers
         string openFileDialogMediaString = GetOpenFileDialogMediaString(MediaBackgroundStyle.None);
         string openFileDialogMediaString2 = GetOpenFileDialogMediaString(MediaBackgroundStyle.Audio);
         string openFileDialogMediaString3 = GetOpenFileDialogMediaString(MediaBackgroundStyle.Video);
-        string str = "All Files (*.*)|*.*";
+        string str = UiText.Get("gfFileHelpers", "AllFiles") + " (*.*)|*.*";
         openFileDialogMediaString = ((openFileDialogMediaString != "") ? (openFileDialogMediaString + "|") : "");
         openFileDialogMediaString2 = ((openFileDialogMediaString2 != "") ? (openFileDialogMediaString2 + "|") : "");
         openFileDialogMediaString3 = ((openFileDialogMediaString3 != "") ? (openFileDialogMediaString3 + "|") : "");
@@ -130,10 +131,10 @@ static class gfFileHelpers
         switch (InMediaType)
         {
             case MediaBackgroundStyle.Audio:
-                displayName.Append("Audio Files (");
+                displayName.Append(UiText.Get("gfFileHelpers", "AudioFiles") + " (");
                 break;
             case MediaBackgroundStyle.Video:
-                displayName.Append("Video Files (");
+                displayName.Append(UiText.Get("gfFileHelpers", "VideoFiles") + " (");
                 break;
         }
 
@@ -166,7 +167,7 @@ static class gfFileHelpers
         }
         else
         {
-            displayName.Append("Media Files (all types)");
+            displayName.Append(UiText.Get("gfFileHelpers", "MediaFilesAllTypes"));
         }
 
         return $"{displayName}|{extensions}";
@@ -315,7 +316,7 @@ static class gfFileHelpers
 
             if (ShowErrorMsg)
             {
-                MessageBox.Show("Cannot open the selected text file. The text file might be corrupted");
+                MessageBox.Show(UiText.Get("gfFileHelpers", "TextFileUnreadable"));
             }
             return "";
         }
@@ -457,7 +458,7 @@ static class gfFileHelpers
                                 FrmMain.WriteDebugLog("PreLoadPowerpointFiles: the main form's PowerPoint reference no longer answered and could not be attached again");
                                 if (Gf.FirstAttachFailureReport())
                                 {
-                                    FrmMain.ReportErrorNotice("PowerPoint could not be reached from the main window: its slide keys may not move the slide show on the projector");
+                                    FrmMain.ReportErrorNotice(UiText.Get("gfFileHelpers", "PowerPointUnreachable"));
                                 }
                             }
                         }
@@ -499,8 +500,8 @@ static class gfFileHelpers
             // One notice per pre-load.
             string name = Path.GetFileName(firstFailed);
             FrmMain.ReportErrorNotice(failedCount == 1
-                ? "A PowerPoint file could not be opened for the show: " + name
-                : failedCount + " PowerPoint files could not be opened for the show (first: " + name + ")");
+                ? UiText.Format("gfFileHelpers", "PowerPointFileNotOpened", name)
+                : UiText.Format("gfFileHelpers", "PowerPointFilesNotOpened", failedCount, name));
         }
     }
 }

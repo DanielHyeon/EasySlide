@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Axicultus.Global;
+using Axicultus.Localization;
 using Axicultus.Module;
 using Axicultus.SQLite;
 using Axicultus.Util;
@@ -176,7 +177,7 @@ namespace Axicultus;
 			catch (Exception ex)
 			{
 				Debug.WriteLine($"Error adding item to database: {ex.Message}");
-				MessageBox.Show("Error encountered whilst adding item to database - item NOT added");
+				MessageBox.Show(UiText.Get("gfDatabase", "AddItemFailed"));
 			}
 			return 0;
 		}
@@ -230,7 +231,7 @@ namespace Axicultus;
 			}
 			catch (Exception ex)
 			{
-				MessageBox.Show("Error when writing to Database: \n" + ex.Message + ex.StackTrace);
+				MessageBox.Show(UiText.Format("gfDatabase", "WriteFailed", ex.Message + ex.StackTrace));
 			}
 			return result;
 		}
@@ -273,17 +274,17 @@ namespace Axicultus;
 					{
 						Debug.WriteLine($"Failed to restore database file: {ex.Message}");
 					}
-					MessageBox.Show("Sorry, cannot install the new Lyrics Database. Please make sure the existing database is not in use and then try again.");
+					MessageBox.Show(UiText.Get("gfDatabase", "InstallDatabaseInUse"));
 					return "-1";
 				}
 				catch (Exception ex)
 				{
 					Debug.WriteLine($"Failed to create database directory or backup: {ex.Message}");
-					MessageBox.Show("Sorry, cannot install the new Lyrics Database. Please make sure the existing database is not in use and then try again.");
+					MessageBox.Show(UiText.Get("gfDatabase", "InstallDatabaseInUse"));
 					return "-1";
 				}
 			}
-			MessageBox.Show("Sorry, cannot install the new Lyrics Database. Please re-install Axicultuss Software.");
+			MessageBox.Show(UiText.Get("gfDatabase", "InstallDatabaseReinstall"));
 			return "-1";
 		}
 
@@ -340,7 +341,7 @@ namespace Axicultus;
 				File.Copy(sourceFileName, destFileName, overwrite: true);
 				return true;
 			}
-			MessageOverSplashScreen(@$"Sorry, cannot create new {dbFileName} database. Please re-install Axicultuss Software.");
+			MessageOverSplashScreen(UiText.Format("gfDatabase", "CreateDatabaseFailed", dbFileName));
 			return false;
 		}
 
@@ -966,8 +967,8 @@ namespace Axicultus;
 		// more verses, and an optional version tag: "(Acts 9:31)", "(1 Cor 13:4)", "(John 3:16a, 18)",
 		// "(Romans 8:28 NIV)", and the same with Korean book names and version names.
 		private static readonly Regex ScriptureReferenceAtEnd = new(
-			@"[\(（]\s*(?:[1-3]\s*)?\p{L}[\p{L}\p{M}\s.]{0,24}?\s*\d{1,3}\s*(?:[:：]\s*\d{1,3}|장\s*\d{1,3})\s*(?:절|[a-c])?"
-			+ @"(?:\s*[-~,]\s*\d{1,3}(?:\s*[:：]\s*\d{1,3})?\s*(?:절|[a-c])?)*(?:\s+(?:[A-Z]{2,5}|[가-힣]{2,4}))?\s*[\)）]\s*$",
+			@"[\(（]\s*(?:[1-3]\s*)?\p{L}[\p{L}\p{M}\s.]{0,24}?\s*\d{1,3}\s*(?:[:：]\s*\d{1,3}|장\s*\d{1,3})\s*(?:절|[a-c])?" // not UI text
+			+ @"(?:\s*[-~,]\s*\d{1,3}(?:\s*[:：]\s*\d{1,3})?\s*(?:절|[a-c])?)*(?:\s+(?:[A-Z]{2,5}|[가-힣]{2,4}))?\s*[\)）]\s*$", // not UI text
 			RegexOptions.CultureInvariant);
 
 		// SONGIDs of the scripture songs; null until first needed, after any song is added or saved, and after a

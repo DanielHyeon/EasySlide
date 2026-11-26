@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
+using Axicultus.Localization;
 using Axicultus.Module;
 using Axicultus.Properties;
 using Axicultus.Util;
@@ -59,6 +60,7 @@ namespace Axicultus;
 		public FrmGenerateDoc()
 		{
 			InitializeComponent();
+			UiText.ApplyTo(this);
 		}
 
 		private void FrmFormatPraiseBookDoc_Load(object sender, EventArgs e)
@@ -128,7 +130,7 @@ namespace Axicultus;
 			tbSpacing1.Value = Gf.PB_Spacing[1];
 			optNewScreen.Checked = ((Gf.PB_ShowScreenBreaks == 1) ? true : false);
 			optOneSongPerPage.Checked = ((Gf.PB_OneSongPerPage == 1) ? true : false);
-			Mess1.Text = "NOTE - Generate will overwrite: " + Gf.PB_FullFileName;
+			Mess1.Text = UiText.Format(nameof(FrmGenerateDoc), "OverwriteNote", Gf.PB_FullFileName);
 			DocItem.Initialise();
 			DocItem.SplitScreens = false;
 			Gf.SetListViewColumns(SubDivideList, 6);
@@ -658,13 +660,13 @@ namespace Axicultus;
 				{
 					//streamWriter?.Flush();
 					//streamWriter?.Close();
-					MessageBox.Show("Error generating document " + Gf.PB_FullFileName + ". The document might be opened - please close it first!");
+					MessageBox.Show(UiText.Format(nameof(FrmGenerateDoc), "GenerateFailed", Gf.PB_FullFileName));
 					return false;
 				}
 			}
 			catch
 			{
-				MessageBox.Show("Error generating document " + Gf.PB_FullFileName + ". The document might be opened - please close it first!");
+				MessageBox.Show(UiText.Format(nameof(FrmGenerateDoc), "GenerateFailed", Gf.PB_FullFileName));
 				return false;
 			}
 		}

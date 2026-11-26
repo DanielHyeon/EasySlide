@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.IO;
 using System.Windows.Forms;
+using Axicultus.Localization;
 using Axicultus.Module;
 using Axicultus.Util;
 
@@ -18,6 +19,7 @@ public partial class FrmImportFolder : Form
 		public FrmImportFolder()
 		{
 			InitializeComponent();
+			UiText.ApplyTo(this);
 		}
 
 		private void FrmImportFolder_Load(object sender, EventArgs e)
@@ -30,7 +32,7 @@ public partial class FrmImportFolder : Form
 		{
 			FolderBrowserDialog folderBrowserDialog = new();
 			folderBrowserDialog.SelectedPath = ((tbLocation.Text != "") ? tbLocation.Text : "C:\\");
-			folderBrowserDialog.Description = "Please select your Source Windows Folder.";
+			folderBrowserDialog.Description = UiText.Get(nameof(FrmImportFolder), "SelectSourceFolder");
 			if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
 			{
 				tbLocation.Text = folderBrowserDialog.SelectedPath;
@@ -60,7 +62,7 @@ public partial class FrmImportFolder : Form
 			catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
 			{
 				if (!scan.IsCancellationRequested && !IsDisposed)
-					MessageBox.Show(this, ex.Message, "Folder import", MessageBoxButtons.OK, MessageBoxIcon.Error);
+					MessageBox.Show(this, ex.Message, UiText.Get(nameof(FrmImportFolder), "FolderImportCaption"), MessageBoxButtons.OK, MessageBoxIcon.Error);
 			}
 			finally
 			{
@@ -99,15 +101,15 @@ public partial class FrmImportFolder : Form
 					Gf.InsertItemIntoDatabase(Gf.ConnectStringMainDB, ImportItem);
 				}
 				ProgressBar1.Value = 100;
-				string wordDocumentSummary = (wordDocumentCount > 0) ? (wordDocumentCount + " Word Document" + ((wordDocumentCount > 1) ? "s" : "")) : "";
-				string textFileSummary = (textFileCount > 0) ? (textFileCount + " Text File" + ((textFileCount > 1) ? "s" : "")) : "";
+				string wordDocumentSummary = (wordDocumentCount > 0) ? UiText.Format(nameof(FrmImportFolder), (wordDocumentCount > 1) ? "WordDocuments" : "WordDocument", wordDocumentCount) : "";
+				string textFileSummary = (textFileCount > 0) ? UiText.Format(nameof(FrmImportFolder), (textFileCount > 1) ? "TextFiles" : "TextFile", textFileCount) : "";
 				string importSummary = "";
-				importSummary = ((wordDocumentCount > 0 && textFileCount > 0) ? (documents.Count + " items (" + wordDocumentSummary + " and " + textFileSummary + ")") : ((wordDocumentCount > 0) ? wordDocumentSummary : ((textFileCount <= 0) ? "" : textFileSummary)));
-				MessageBox.Show((importSummary != "") ? ("Imported " + importSummary + " into " + SongFolder.Text) : "No Word/text documents were found for import");
+				importSummary = ((wordDocumentCount > 0 && textFileCount > 0) ? UiText.Format(nameof(FrmImportFolder), "ItemsSummary", documents.Count, wordDocumentSummary, textFileSummary) : ((wordDocumentCount > 0) ? wordDocumentSummary : ((textFileCount <= 0) ? "" : textFileSummary)));
+				MessageBox.Show((importSummary != "") ? UiText.Format(nameof(FrmImportFolder), "ImportedInto", importSummary, SongFolder.Text) : UiText.Get(nameof(FrmImportFolder), "NoDocumentsFound"));
 			}
 			else
 			{
-				MessageBox.Show("Nothing Imported.  No Word or text Files were found in the Source Windows Folder");
+				MessageBox.Show(UiText.Get(nameof(FrmImportFolder), "NothingImported"));
 			}
 		}
 
@@ -115,12 +117,12 @@ public partial class FrmImportFolder : Form
 		{
 			if (!Directory.Exists(tbLocation.Text))
 			{
-				MessageBox.Show("Error - Source Windows Folder does not exist! Please enter a valid Source Windows Folder at A.");
+				MessageBox.Show(UiText.Get(nameof(FrmImportFolder), "SourceFolderMissing"));
 				return false;
 			}
 			if (SongFolder.Text == "")
 			{
-				MessageBox.Show("Error - Destination Axicultus Folder not yet selected! Please select a Destination Axicultus Folder at B.");
+				MessageBox.Show(UiText.Get(nameof(FrmImportFolder), "DestinationFolderMissing"));
 				return false;
 			}
 			return true;

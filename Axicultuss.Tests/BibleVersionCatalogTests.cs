@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Windows.Forms;
+using Axicultus.Localization;
 using Xunit;
 
 namespace Axicultus.Tests;
@@ -74,8 +75,8 @@ public sealed class BibleVersionCatalogTests
                 command.ExecuteNonQuery();
             }
             Assert.True(Gf.LoadBibleBooksList(0, ref books, true, true));
-            Assert.Equal(new[] { "All Books", "Genesis", "Exodus", "Search Results:" }, books.Items.Cast<string>());
-            Assert.Equal("Search Results:", books.SelectedItem);
+            Assert.Equal(new[] { UiText.Get("gfBible", "AllBooks"), "Genesis", "Exodus", UiText.Get("gfBible", "SearchResults") }, books.Items.Cast<string>());
+            Assert.Equal(UiText.Get("gfBible", "SearchResults"), books.SelectedItem);
             Assert.True(Gf.LoadBibleBooksList(0, ref books, false, false));
             Assert.Equal("Genesis", books.SelectedItem);
             Gf.HB_VersesLocation[1].Book = 1;
@@ -90,7 +91,7 @@ public sealed class BibleVersionCatalogTests
             Assert.False(File.Exists(Gf.GetBibleFileName(1)));
             Gf.LoadBibleVersions(ref tabs);
             Assert.False(tabs.Enabled);
-            Assert.Equal("Error Loading Bibles", tabs.TabPages[0].Text);
+            Assert.Equal(UiText.Get("gfBible", "ErrorLoadingBibles"), tabs.TabPages[0].Text);
             Assert.Equal(-1, Gf.LookUpBibleVersionNumber("001.db"));
         }
         finally

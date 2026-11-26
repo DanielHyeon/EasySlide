@@ -5,6 +5,7 @@ using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
+using Axicultus.Localization;
 
 namespace Axicultus;
 
@@ -59,6 +60,7 @@ public partial class FrmLyricsScreen : Form
 		internal FrmLyricsScreen(MonitorPlacement placement, RegistrySettings settings = null)
 		{
 			InitializeComponent();
+			UiText.ApplyTo(this);
 			layoutSettings = settings ?? RegUtil.Settings;
 			StartPosition = FormStartPosition.Manual;
 			if (placement.Enabled)

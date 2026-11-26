@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
+using Axicultus.Localization;
 
 namespace Axicultus;
 
@@ -11,11 +12,12 @@ namespace Axicultus;
 		public FrmRegister()
 		{
 			InitializeComponent();
+			UiText.ApplyTo(this);
 		}
 
 		private void FrmRegister_Load(object sender, EventArgs e)
 		{
-			lblRegister.Text = "Axicultuss Version 4.0.5 is provided free of charge and for your indefinite use provided you abide by the End User Licence Agreement (EULA).  \r\n\r\nIf you intend to use this software on an on-going basis, you are invited to register your use of the software by clicking on the 'Register' button below which will take you to the Axicultuss Registration Page at http://www.easislides.com/register \r\n\r\nRegistration is voluntary and is free of charge.  The registration information you provide will help us to monitor the spread of use of Axicultuss around the world.";
+			lblRegister.Text = UiText.Get(nameof(FrmRegister), "Info");
 			lblRegister.SelectionStart = 0;
 			lblRegister.SelectionLength = 0;
 		}

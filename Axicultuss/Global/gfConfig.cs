@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
 using Axicultus.Global;
+using Axicultus.Localization;
 using Axicultus.Module;
 using Axicultus.SQLite;
 using Axicultus.Util;
@@ -61,8 +62,8 @@ namespace Axicultus;
 		{
 			SplashScreenBack = true;
 			bool result = MessageBox.Show(
-				"Would you like to Install the Axicultus Lyrics Database supplied with Axicultuss 4.0.5? Your existing Lyrics Database, if any, will be renamed and retained for backup.  Click Yes to Install, or No to continue using existing database.",
-				$"New Axicultuss Version {Axicultus_Version} ... Replace existing Database with Supplied Database?",
+				UiText.Get("gfConfig", "ReplaceDatabase"),
+				UiText.Format("gfConfig", "ReplaceDatabaseCaption", Axicultus_Version),
 				MessageBoxButtons.YesNo) == DialogResult.Yes;
 			SplashScreenBack = false;
 			return result;
@@ -75,8 +76,8 @@ namespace Axicultus;
 		{
 			SplashScreenBack = true;
 			bool result = MessageBox.Show(
-				"Cannot find the Lyrics Database.  Would you like to Install the Axicultus Lyrics Database supplied with Axicultuss 4.0.5?  Click Yes to Install, or No to create a new blank database.",
-				$"Loading Axicultuss {Axicultus_Version} ... Install Supplied Database?",
+				UiText.Get("gfConfig", "InstallDatabase"),
+				UiText.Format("gfConfig", "InstallDatabaseCaption", Axicultus_Version),
 				MessageBoxButtons.YesNo) == DialogResult.Yes;
 			SplashScreenBack = false;
 			return result;
@@ -106,10 +107,10 @@ namespace Axicultus;
 				string backupFileName = RestoreOriginalSongsDatabase();
 				if (backupFileName != "-1")
 				{
-					string message = "Lyrics Database installed successfully.";
+					string message = UiText.Get("gfConfig", "DatabaseInstalled");
 					if (!string.IsNullOrEmpty(backupFileName))
 					{
-						message += $" Existing database has been renamed to: {backupFileName}";
+						message = UiText.Format("gfConfig", "DatabaseInstalledRenamed", backupFileName);
 					}
 					MessageBox.Show(message);
 				}
@@ -368,7 +369,7 @@ namespace Axicultus;
 						RestoreBackgroundImages();
 						return true;
 					}
-					MessageOverSplashScreen("Error encountered whilst creating the Axicultus Working folder: " + RootAxicultusDir + ". Make sure have write access to the area and try again");
+					MessageOverSplashScreen(UiText.Format("gfConfig", "CreateWorkingFolderFailed", RootAxicultusDir));
 					return false;
 				}
 			}
@@ -600,7 +601,7 @@ namespace Axicultus;
 
 		public static bool ValidateMusicExt(ref string InExtension, bool ShowMessage)
 		{
-			if (!ValidateDirNameFormat(InExtension, ShowMessage ? "Music File Extension" : ""))
+			if (!ValidateDirNameFormat(InExtension, ShowMessage ? UiText.Get("gfConfig", "MusicFileExtension") : ""))
 			{
 				return false;
 			}

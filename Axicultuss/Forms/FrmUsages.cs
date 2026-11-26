@@ -1,3 +1,4 @@
+using Axicultus.Localization;
 using Axicultus.Properties;
 using Axicultus.Util;
 using Axicultus.SQLite;
@@ -39,6 +40,7 @@ namespace Axicultus;
 		public FrmUsages()
 		{
 			InitializeComponent();
+			UiText.ApplyTo(this);
 		}
 
 		private void FrmViewUsages_Load(object sender, EventArgs e)
@@ -291,7 +293,7 @@ namespace Axicultus;
 			{
 				try
 				{
-					if (MessageBox.Show("This will permanently delete the selected usages records. Please Yes to confirm the delete.", "Deleted Selected Usages", MessageBoxButtons.YesNo) == DialogResult.Yes)
+					if (MessageBox.Show(UiText.Get(nameof(FrmUsages), "DeleteConfirm"), UiText.Get(nameof(FrmUsages), "DeleteConfirmTitle"), MessageBoxButtons.YesNo) == DialogResult.Yes)
 					{
 						var rows = new System.Collections.Generic.List<ListViewItem>();
 						var ids = new System.Collections.Generic.List<long>();
@@ -357,7 +359,7 @@ namespace Axicultus;
 		private void GenerateReport()
 		{
 			string reportPath = Gf.RootAxicultusDir + "Documents\\Song Usages.rtf";
-			if (MessageBox.Show("This will overwrite previous report " + reportPath + ". Press OK to proceed or Cancel to quit.", "", MessageBoxButtons.OKCancel) == DialogResult.OK)
+			if (MessageBox.Show(UiText.Format(nameof(FrmUsages), "OverwriteReport", reportPath), "", MessageBoxButtons.OKCancel) == DialogResult.OK)
 			{
 				try
 				{
@@ -407,12 +409,12 @@ namespace Axicultus;
 					{
 						//streamWriter.Flush();
 						//streamWriter.Close();
-						MessageBox.Show("Error generating report " + reportPath + ". The document might still be open. Please close it first and try again.");
+						MessageBox.Show(UiText.Format(nameof(FrmUsages), "ReportFailed", reportPath));
 					}
 				}
 				catch
 				{
-					MessageBox.Show("Error generating report " + reportPath + ". The document might still be open. Please close it first and try again.");
+					MessageBox.Show(UiText.Format(nameof(FrmUsages), "ReportFailed", reportPath));
 				}
 				Cursor = Cursors.Default;
 			}

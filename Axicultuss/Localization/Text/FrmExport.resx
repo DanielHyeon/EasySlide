@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="$this.Text" xml:space="preserve"><value>Export</value></data>
+  <data name="BtnCancel.Text" xml:space="preserve"><value>Close</value></data>
+  <data name="BtnOK.Text" xml:space="preserve"><value>Export</value></data>
+  <data name="cbSongsListTickAll.Text" xml:space="preserve"><value>Tick All</value></data>
+  <data name="groupBox5.Text" xml:space="preserve"><value>List Items from Selected Folders</value></data>
+  <data name="OptExport1.Text" xml:space="preserve"><value>Items Added/Updated:</value></data>
+  <data name="OptExport0.Text" xml:space="preserve"><value>All Items</value></data>
+  <data name="label2.Text" xml:space="preserve"><value>To:</value></data>
+  <data name="label1.Text" xml:space="preserve"><value>From:</value></data>
+  <data name="Export_FileName.ToolTipText" xml:space="preserve"><value>Export file name</value></data>
+  <data name="groupBox1.Text" xml:space="preserve"><value>Select Song Folder to Export</value></data>
+  <data name="cbFolderListTickAll.Text" xml:space="preserve"><value>Tick All</value></data>
+  <data name="groupBox2.Text" xml:space="preserve"><value>Items Found:</value></data>
+  <data name="columnHeader1.Text" xml:space="preserve"><value>Tick the items you wish to Export</value></data>
+  <data name="columnHeader3.Text" xml:space="preserve"><value>ID</value></data>
+  <data name="columnHeader4.Text" xml:space="preserve"><value>Song Folder</value></data>
+  <data name="NoItemsFound" xml:space="preserve"><value>No Items found</value></data>
+  <data name="ItemsFound" xml:space="preserve"><value> {0} items found : {1} ticked.</value></data>
+  <data name="ExportFilter" xml:space="preserve"><value>Axicultus XML File ({0})|{0}|Axicultus Database File ({1})|{1}|Axicultus Text File ({2})|{2}|Axicultus JSON File ({3})|{3}</value></data>
+  <data name="NoFoldersSelected" xml:space="preserve"><value>You have not selected any folders to export!</value></data>
+  <data name="SongsListEmpty" xml:space="preserve"><value>No Songs exported - the Songs List is empty!</value></data>
+  <data name="TickSongs" xml:space="preserve"><value>Please Tick the songs you wish to export</value></data>
+  <data name="ActiveDatabaseChosen" xml:space="preserve"><value>Choose an export file other than the active song database.</value></data>
+  <data name="OverwriteConfirm" xml:space="preserve"><value>This will overwrite the existing document '{0}' - OK to Continue?</value></data>
+  <data name="OverwriteCaption" xml:space="preserve"><value>Overwrite</value></data>
+  <data name="ExportNotProduced" xml:space="preserve"><value>Export file NOT produced.</value></data>
+  <data name="FileCreateFailed" xml:space="preserve"><value>For some reason, Windows could not create the file '{0}'. Export NOT done.</value></data>
+  <data name="ExportCompleted" xml:space="preserve"><value>Export Completed. Total of {0} songs exported to {1}</value></data>
+  <data name="DatabaseExportFailed" xml:space="preserve"><value>Error encountered when exporting to database file'{0}'. Export NOT completed.</value></data>
+  <data name="DatabaseCreateFailed" xml:space="preserve"><value>Error encountered when trying to create export database file'{0}'. Export NOT completed.</value></data>
+  <data name="TemplateMissing" xml:space="preserve"><value>System Error: cannot create export database file. You may need to re-install Axicultuss Software.</value></data>
+  <data name="ExportFileFailed" xml:space="preserve"><value>Error encountered when trying to create export file'{0}'. Export NOT completed.</value></data>
+  <data name="SongReadFailed" xml:space="preserve"><value>Could not read selected song {0}</value></data>
+  <data name="ExportedSongs" xml:space="preserve"><value>Exported {0} songs to {1}</value></data>
+  <data name="ExportSongFileFailed" xml:space="preserve"><value>Could not export the song file. {0}</value></data>
+</root>

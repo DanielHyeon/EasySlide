@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
+using Axicultus.Localization;
 using Axicultus.Properties;
 
 namespace Axicultus;
@@ -14,6 +15,7 @@ namespace Axicultus;
 		public FrmRearrangeFolderPositions()
 		{
 			InitializeComponent();
+			UiText.ApplyTo(this);
 		}
 
 		private void FrmRearrangeFolderPositions_Load(object sender, EventArgs e)
@@ -102,7 +104,7 @@ namespace Axicultus;
 			}
 			else
 			{
-				MessageBox.Show("Error encountered whilst re-arranging some of the folders. Please restart Axicultuss and try again.");
+				MessageBox.Show(UiText.Get(nameof(FrmRearrangeFolderPositions), "RearrangeFailed"));
 				base.DialogResult = DialogResult.Cancel;
 			}
 			Cursor = Cursors.Default;

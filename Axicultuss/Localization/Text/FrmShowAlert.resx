@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="groupBox1.Text" xml:space="preserve"><value>Message Alert</value></data>
+  <data name="btnClearHistoryMessage.Text" xml:space="preserve"><value>Clear History</value></data>
+  <data name="Message_Scroll.ToolTipText" xml:space="preserve"><value>Scroll</value></data>
+  <data name="Message_Flash.ToolTipText" xml:space="preserve"><value>Flash</value></data>
+  <data name="Message_Transparent.ToolTipText" xml:space="preserve"><value>Transparent</value></data>
+  <data name="label1.Text" xml:space="preserve"><value>Alert:</value></data>
+  <data name="MessageShow.Text" xml:space="preserve"><value>Go Live</value></data>
+  <data name="BtnStop1.Text" xml:space="preserve"><value>Stop Alert</value></data>
+  <data name="groupBox2.Text" xml:space="preserve"><value>Parental Alert</value></data>
+  <data name="btnClearHistoryParental.Text" xml:space="preserve"><value>Clear History</value></data>
+  <data name="Parental_Scroll.ToolTipText" xml:space="preserve"><value>Scroll</value></data>
+  <data name="Parental_Flash.ToolTipText" xml:space="preserve"><value>Flash</value></data>
+  <data name="Parental_Transparent.ToolTipText" xml:space="preserve"><value>Transparent</value></data>
+  <data name="BtnStop2.Text" xml:space="preserve"><value>Stop Alert</value></data>
+  <data name="label2.Text" xml:space="preserve"><value>Alert:</value></data>
+  <data name="label3.Text" xml:space="preserve"><value>Prefix:</value></data>
+  <data name="ParentalShow.Text" xml:space="preserve"><value>Go Live</value></data>
+  <data name="BtnCancel.Text" xml:space="preserve"><value>Close</value></data>
+  <data name="groupBox3.Text" xml:space="preserve"><value>Lyrics Monitor Alert</value></data>
+  <data name="LyricsShow.Text" xml:space="preserve"><value>Send</value></data>
+  <data name="btnClearLyrics.Text" xml:space="preserve"><value>Clear</value></data>
+  <data name="$this.Text" xml:space="preserve"><value>Show Alert</value></data>
+</root>

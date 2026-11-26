@@ -4,6 +4,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
+using Axicultus.Localization;
 using Axicultus.Module;
 using Axicultus.Properties;
 
@@ -26,27 +27,28 @@ namespace Axicultus;
 		public FrmManageItemLists()
 		{
 			InitializeComponent();
+			UiText.ApplyTo(this);
 		}
 
 		private void FrmManageItemLists_Load(object sender, EventArgs e)
 		{
 			if (Gf.AxicultusMode == UsageMode.Worship)
 			{
-				Text = "Manage Worship Lists";
+				Text = UiText.Get(nameof(FrmManageItemLists), "TitleWorshipLists");
 				InputDir = Gf.WorshipDir;
 				TrashDir = InputDir + "Trash\\";
 				CurFile = Gf.CurSession;
-				ListText = "WorshipList";
-				ListTextTo = "PraiseBook";
+				ListText = UiText.Get(nameof(FrmManageItemLists), "WorshipList");
+				ListTextTo = UiText.Get(nameof(FrmManageItemLists), "PraiseBook");
 			}
 			else if (Gf.AxicultusMode == UsageMode.PraiseBook)
 			{
-				Text = "Manage PraiseBooks";
+				Text = UiText.Get(nameof(FrmManageItemLists), "TitlePraiseBooks");
 				InputDir = Gf.PraiseBookDir;
 				TrashDir = InputDir + "Trash\\";
 				CurFile = Gf.CurPraiseBook;
-				ListText = "PraiseBook";
-				ListTextTo = "WorshipList";
+				ListText = UiText.Get(nameof(FrmManageItemLists), "PraiseBook");
+				ListTextTo = UiText.Get(nameof(FrmManageItemLists), "WorshipList");
 			}
 			SaveToBtn.Text = ListTextTo;
 			InitializeTrash();
@@ -65,7 +67,9 @@ namespace Axicultus;
 			}
 			catch
 			{
-				MessageBox.Show("Error creating trash folder. Please ensure you have write access.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+				string text = UiText.Get(nameof(FrmManageItemLists), "TrashFolderFailed");
+				string caption = UiText.Get(nameof(FrmManageItemLists), "ErrorCaption");
+				MessageBox.Show(text, caption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
 			}
 		}
 
@@ -180,16 +184,18 @@ namespace Axicultus;
 
 			if (ItemList.SelectedItems.Count < 1)
 			{
-				MessageBox.Show("You have not selected a " + ListText + " to delete!");
+				string text = UiText.Format(nameof(FrmManageItemLists), "SelectToDelete", ListText);
+				MessageBox.Show(text);
 				return;
 			}
 
 			int selectedCount = ItemList.SelectedItems.Count;
 			string message = selectedCount == 1
-				? "Really move '" + ItemList.SelectedItems[0].Text + "' " + ListText + " to trash?"
-				: "Really move " + selectedCount + " selected " + ListText + "(s) to trash?";
+				? UiText.Format(nameof(FrmManageItemLists), "MoveOneToTrash", ItemList.SelectedItems[0].Text, ListText)
+				: UiText.Format(nameof(FrmManageItemLists), "MoveManyToTrash", selectedCount, ListText);
 
-			if (MessageBox.Show(message, "Move to Trash", MessageBoxButtons.YesNo) == DialogResult.Yes)
+			string moveCaption = UiText.Get(nameof(FrmManageItemLists), "MoveToTrashCaption");
+			if (MessageBox.Show(message, moveCaption, MessageBoxButtons.YesNo) == DialogResult.Yes)
 			{
 				int successCount = 0;
 				int failCount = 0;
@@ -221,7 +227,9 @@ namespace Axicultus;
 
 				if (failCount > 0)
 				{
-					MessageBox.Show($"Error: {failCount} file(s) could not be moved to trash. {successCount} file(s) moved successfully.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+					string text = UiText.Format(nameof(FrmManageItemLists), "MoveToTrashFailed", failCount, successCount);
+					string caption = UiText.Get(nameof(FrmManageItemLists), "ErrorCaption");
+					MessageBox.Show(text, caption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
 				}
 
 				UpdateLists();
@@ -246,7 +254,8 @@ namespace Axicultus;
 			Gf.NameChangeAction = 2;
 			if (ItemList.SelectedItems.Count < 1)
 			{
-				MessageBox.Show("You have not selected a " + ListText + " to rename!");
+				string text = UiText.Format(nameof(FrmManageItemLists), "SelectToRename", ListText);
+				MessageBox.Show(text);
 				return;
 			}
 			Gf.SelectedListName = ItemList.SelectedItems[0].Text;
@@ -279,7 +288,8 @@ namespace Axicultus;
 
 			if (ItemList.SelectedItems.Count < 1)
 			{
-				MessageBox.Show("You have not selected a " + ListText + " to Save As!");
+				string text = UiText.Format(nameof(FrmManageItemLists), "SelectToSaveAs", ListText);
+				MessageBox.Show(text);
 				return;
 			}
 			string selectedListName = ItemList.SelectedItems[0].Text;
@@ -303,7 +313,8 @@ namespace Axicultus;
 
 			if (ItemList.SelectedItems.Count < 1)
 			{
-				MessageBox.Show("You have not selected a " + ListText + " to Save To " + ListTextTo);
+				string text = UiText.Format(nameof(FrmManageItemLists), "SelectToSaveTo", ListText, ListTextTo);
+				MessageBox.Show(text);
 				return;
 			}
 			string selectedListName = ItemList.SelectedItems[0].Text;
@@ -335,7 +346,8 @@ namespace Axicultus;
 
 			if (ItemList.SelectedItems.Count < 1)
 			{
-				MessageBox.Show("You have not selected a " + ListText + " to Save As a Template!");
+				string text = UiText.Format(nameof(FrmManageItemLists), "SelectToSaveTemplate", ListText);
+				MessageBox.Show(text);
 				return;
 			}
 			string selectedListName = ItemList.SelectedItems[0].Text;
@@ -348,7 +360,9 @@ namespace Axicultus;
 					DialogResult dialogResult = DialogResult.Yes;
 					if (File.Exists(templatePath))
 					{
-						dialogResult = MessageBox.Show("There is already a template with the same name. Overwrite it?", "Overwrite", MessageBoxButtons.YesNo);
+						string text = UiText.Get(nameof(FrmManageItemLists), "TemplateExists");
+						string caption = UiText.Get(nameof(FrmManageItemLists), "OverwriteCaption");
+						dialogResult = MessageBox.Show(text, caption, MessageBoxButtons.YesNo);
 					}
 					if (dialogResult == DialogResult.Yes)
 					{
@@ -357,18 +371,20 @@ namespace Axicultus;
 				}
 				else
 				{
-					MessageBox.Show("Error Saving Template - cannot find the selected " + ListText + "!");
+					string text = UiText.Format(nameof(FrmManageItemLists), "TemplateSourceMissing", ListText);
+					MessageBox.Show(text);
 				}
 			}
 			catch
 			{
-				MessageBox.Show("Error Saving File, please make sure you have write access and try again");
+				string text = UiText.Get(nameof(FrmManageItemLists), "SaveFailed");
+				MessageBox.Show(text);
 			}
 		}
 
 		private string SaveAsItem(string InFileName)
 		{
-			saveFileDialog1.Filter = "Axicultus " + ListText + " File (*" + Ext_ToUse + ")|*" + Ext_ToUse;
+			saveFileDialog1.Filter = UiText.Format(nameof(FrmManageItemLists), "SaveFilter", ListText, Ext_ToUse);
 			saveFileDialog1.InitialDirectory = Path.GetDirectoryName(InFileName);
 			saveFileDialog1.FileName = Gf.GetDisplayNameOnly(ref InFileName, UpdateByRef: false, KeepExt: true);
 			saveFileDialog1.OverwritePrompt = true;
@@ -388,7 +404,8 @@ namespace Axicultus;
 				}
 				catch
 				{
-					MessageBox.Show("Error Saving File, please make sure you have write access and try again");
+					string text = UiText.Get(nameof(FrmManageItemLists), "SaveFailed");
+					MessageBox.Show(text);
 				}
 			}
 			return "";
@@ -430,16 +447,18 @@ namespace Axicultus;
 
 			if (TrashList.SelectedItems.Count < 1)
 			{
-				MessageBox.Show("You have not selected a " + ListText + " to restore!");
+				string text = UiText.Format(nameof(FrmManageItemLists), "SelectToRestore", ListText);
+				MessageBox.Show(text);
 				return;
 			}
 
 			int selectedCount = TrashList.SelectedItems.Count;
 			string message = selectedCount == 1
-				? "Really restore '" + TrashList.SelectedItems[0].Text + "' " + ListText + "?"
-				: "Really restore " + selectedCount + " selected " + ListText + "(s)?";
+				? UiText.Format(nameof(FrmManageItemLists), "RestoreOne", TrashList.SelectedItems[0].Text, ListText)
+				: UiText.Format(nameof(FrmManageItemLists), "RestoreMany", selectedCount, ListText);
 
-			if (MessageBox.Show(message, "Restore", MessageBoxButtons.YesNo) == DialogResult.Yes)
+			string restoreCaption = UiText.Get(nameof(FrmManageItemLists), "RestoreCaption");
+			if (MessageBox.Show(message, restoreCaption, MessageBoxButtons.YesNo) == DialogResult.Yes)
 			{
 				int successCount = 0;
 				int failCount = 0;
@@ -471,7 +490,9 @@ namespace Axicultus;
 
 				if (failCount > 0)
 				{
-					MessageBox.Show($"Error: {failCount} file(s) could not be restored. {successCount} file(s) restored successfully.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+					string text = UiText.Format(nameof(FrmManageItemLists), "RestoreFailed", failCount, successCount);
+					string caption = UiText.Get(nameof(FrmManageItemLists), "ErrorCaption");
+					MessageBox.Show(text, caption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
 				}
 
 				UpdateTrashList();
@@ -495,16 +516,18 @@ namespace Axicultus;
 
 			if (TrashList.SelectedItems.Count < 1)
 			{
-				MessageBox.Show("You have not selected a " + ListText + " to delete permanently!");
+				string text = UiText.Format(nameof(FrmManageItemLists), "SelectToDeletePermanently", ListText);
+				MessageBox.Show(text);
 				return;
 			}
 
 			int selectedCount = TrashList.SelectedItems.Count;
 			string message = selectedCount == 1
-				? "Really permanently delete '" + TrashList.SelectedItems[0].Text + "' " + ListText + "? This action cannot be undone!"
-				: "Really permanently delete " + selectedCount + " selected " + ListText + "(s)? This action cannot be undone!";
+				? UiText.Format(nameof(FrmManageItemLists), "DeleteOnePermanently", TrashList.SelectedItems[0].Text, ListText)
+				: UiText.Format(nameof(FrmManageItemLists), "DeleteManyPermanently", selectedCount, ListText);
 
-			if (MessageBox.Show(message, "Permanently Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
+			string deleteCaption = UiText.Get(nameof(FrmManageItemLists), "DeletePermanentlyCaption");
+			if (MessageBox.Show(message, deleteCaption, MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
 			{
 				int successCount = 0;
 				int failCount = 0;
@@ -526,7 +549,9 @@ namespace Axicultus;
 
 				if (failCount > 0)
 				{
-					MessageBox.Show($"Error: {failCount} file(s) could not be deleted. {successCount} file(s) deleted successfully.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+					string text = UiText.Format(nameof(FrmManageItemLists), "DeleteFailed", failCount, successCount);
+					string caption = UiText.Get(nameof(FrmManageItemLists), "ErrorCaption");
+					MessageBox.Show(text, caption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
 				}
 
 				UpdateTrashList();
@@ -540,11 +565,14 @@ namespace Axicultus;
 
 			if (TrashList.Items.Count == 0)
 			{
-				MessageBox.Show("Trash is already empty.");
+				string text = UiText.Get(nameof(FrmManageItemLists), "TrashEmpty");
+				MessageBox.Show(text);
 				return;
 			}
 
-			if (MessageBox.Show("Really empty the trash? This will permanently delete all items in trash. This action cannot be undone!", "Empty Trash", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
+			string confirm = UiText.Get(nameof(FrmManageItemLists), "EmptyTrashConfirm");
+			string emptyCaption = UiText.Get(nameof(FrmManageItemLists), "EmptyTrashCaption");
+			if (MessageBox.Show(confirm, emptyCaption, MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
 			{
 				int successCount = 0;
 				int failCount = 0;
@@ -566,7 +594,9 @@ namespace Axicultus;
 
 				if (failCount > 0)
 				{
-					MessageBox.Show($"Error: {failCount} file(s) could not be deleted. {successCount} file(s) deleted successfully.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+					string text = UiText.Format(nameof(FrmManageItemLists), "DeleteFailed", failCount, successCount);
+					string caption = UiText.Get(nameof(FrmManageItemLists), "ErrorCaption");
+					MessageBox.Show(text, caption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
 				}
 
 				UpdateTrashList();

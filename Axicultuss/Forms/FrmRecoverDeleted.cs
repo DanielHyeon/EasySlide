@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Windows.Forms;
+using Axicultus.Localization;
 using Axicultus.SQLite;
 using Axicultus.Util;
 
@@ -18,6 +19,7 @@ namespace Axicultus;
 		public FrmRecoverDeleted()
 		{
 			InitializeComponent();
+			UiText.ApplyTo(this);
 		}
 
 		private void FrmRecoverDeleted_Load(object sender, EventArgs e)
@@ -71,7 +73,7 @@ namespace Axicultus;
 				return;
 			}
 			Cursor = Cursors.WaitCursor;
-			if (MessageBox.Show("Recover the Ticked song(s) to their Original Folders?", "Recover Song(s)", MessageBoxButtons.YesNo) == DialogResult.Yes)
+			if (MessageBox.Show(UiText.Get(nameof(FrmRecoverDeleted), "RecoverConfirm"), UiText.Get(nameof(FrmRecoverDeleted), "RecoverCaption"), MessageBoxButtons.YesNo) == DialogResult.Yes)
 			{
 				if (Gf.ReFileSelectedSongs(ref SongsList) == 0)
 				{
@@ -81,7 +83,7 @@ namespace Axicultus;
 				}
 				else
 				{
-					MessageBox.Show("Not all the ticked songs were recovered, please try again");
+					MessageBox.Show(UiText.Get(nameof(FrmRecoverDeleted), "NotAllRecovered"));
 					SetButtons();
 				}
 			}
@@ -113,7 +115,7 @@ namespace Axicultus;
 					SongsList.Items[songIndex].Checked = false;
 				}
 			}
-			SongsList.Columns[0].Text = SongsList.Items.Count + " items listed / " + SongsList.CheckedItems.Count + " ticked for recovery.";
+			SongsList.Columns[0].Text = UiText.Format(nameof(FrmRecoverDeleted), "ListedTicked", SongsList.Items.Count, SongsList.CheckedItems.Count);
 			BtnOK.Enabled = ((SongsList.CheckedItems.Count > 0) ? true : false);
 			InitListItems = false;
 		}

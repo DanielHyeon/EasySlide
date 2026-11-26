@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="groupBox2.Text" xml:space="preserve"><value>Settings</value></data>
+  <data name="LabelResolution.Text" xml:space="preserve"><value>N/A</value></data>
+  <data name="label15.Text" xml:space="preserve"><value>Resolution:</value></data>
+  <data name="labelOutputMonitor.Text" xml:space="preserve"><value>Output Monitor:</value></data>
+  <data name="cbWidescreen.Text" xml:space="preserve"><value>Force WideScreen</value></data>
+  <data name="LabelMediaType.Text" xml:space="preserve"><value>None</value></data>
+  <data name="label10.Text" xml:space="preserve"><value>Media:</value></data>
+  <data name="label9.Text" xml:space="preserve"><value>to view / listen to Media Backgrounds.</value></data>
+  <data name="labelNoPlayer2.Text" xml:space="preserve"><value>Windows Media Player 10 or DirectX 9</value></data>
+  <data name="labelNoPlayer1.Text" xml:space="preserve"><value>Please install</value></data>
+  <data name="cbRepeat.Text" xml:space="preserve"><value>Repeat</value></data>
+  <data name="label8.Text" xml:space="preserve"><value>Position:</value></data>
+  <data name="label7.Text" xml:space="preserve"><value>Duration:</value></data>
+  <data name="label4.Text" xml:space="preserve"><value>Balance:</value></data>
+  <data name="label5.Text" xml:space="preserve"><value>R</value></data>
+  <data name="label6.Text" xml:space="preserve"><value>L</value></data>
+  <data name="label3.Text" xml:space="preserve"><value>Volume:</value></data>
+  <data name="label2.Text" xml:space="preserve"><value>Max</value></data>
+  <data name="cbMute.Text" xml:space="preserve"><value>Mute</value></data>
+  <data name="StopBtn.Text" xml:space="preserve"><value>Stop</value></data>
+  <data name="PlayPauseBtn.Text" xml:space="preserve"><value>Play</value></data>
+  <data name="label1.Text" xml:space="preserve"><value>Min</value></data>
+  <data name="BtnCancel.Text" xml:space="preserve"><value>Cancel</value></data>
+  <data name="BtnOK.Text" xml:space="preserve"><value>OK</value></data>
+  <data name="groupBox1.Text" xml:space="preserve"><value>Source Option</value></data>
+  <data name="SourceOption0.Text" xml:space="preserve"><value>No Media</value></data>
+  <data name="LocationBtn.ToolTipText" xml:space="preserve"><value>Media File Location</value></data>
+  <data name="SourceOption3.Text" xml:space="preserve"><value>Live Feed from:</value></data>
+  <data name="$this.Text" xml:space="preserve"><value>Assign Media</value></data>
+  <data name="TitleForItem" xml:space="preserve"><value>Assign Media for {0}</value></data>
+  <data name="TitleDefaultSettings" xml:space="preserve"><value>Assign Media - Default Settings</value></data>
+  <data name="PlayByItemTitle" xml:space="preserve"><value>Play Media File based on Item Title (if any)</value></data>
+  <data name="Play" xml:space="preserve"><value>Play</value></data>
+  <data name="Pause" xml:space="preserve"><value>Pause</value></data>
+  <data name="StreamingContents" xml:space="preserve"><value>Streaming Contents</value></data>
+</root>

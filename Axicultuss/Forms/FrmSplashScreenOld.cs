@@ -1,3 +1,4 @@
+using Axicultus.Localization;
 using Axicultus.Util;
 using System;
 using System.ComponentModel;
@@ -18,9 +19,10 @@ namespace Axicultus
 		{
 			Cursor = Cursors.AppStarting;
 			InitializeComponent();
+			UiText.ApplyTo(this);
 			//base.Width = 466;
 			//base.Height = 330;
-			labelVersion.Text = "Version: 5.0.0";
+			labelVersion.Text = UiText.Format(nameof(FrmSplashScreenOld), "Version", "5.0.0");
 			labelCopyright.Text = '©' + " 2019 daniel park revision";
 			labelUser.Text = DataUtil.Trim(RegUtil.GetRegValue("config", "RegistrationUser", ""));
 			base.TopMost = false;

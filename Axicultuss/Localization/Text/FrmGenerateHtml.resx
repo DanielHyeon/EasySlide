@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="label1.Text" xml:space="preserve"><value>Main Heading - (eg. XYZ Fellowship):</value></data>
+  <data name="label2.Text" xml:space="preserve"><value>Web Address Link for Main Heading  (eg. http://www.easislides.com):</value></data>
+  <data name="label3.Text" xml:space="preserve"><value>Secondary Heading (eg. List of Worship Songs)</value></data>
+  <data name="MusicLinkcb.Text" xml:space="preserve"><value>Link to Music Files if available</value></data>
+  <data name="MusicNumberscb.Text" xml:space="preserve"><value>Show Song Numbering</value></data>
+  <data name="ShowindexFilecb.Text" xml:space="preserve"><value>Show index.htm after generation</value></data>
+  <data name="BookRefcb.Text" xml:space="preserve"><value>Show Book Reference</value></data>
+  <data name="UserRefcb.Text" xml:space="preserve"><value>Show User Reference</value></data>
+  <data name="OptOutputHTML.Text" xml:space="preserve"><value>HTML Files</value></data>
+  <data name="OptOutputRTF.Text" xml:space="preserve"><value>RTF Files</value></data>
+  <data name="BtnCancel.Text" xml:space="preserve"><value>Close</value></data>
+  <data name="BtnOK.Text" xml:space="preserve"><value>Generate</value></data>
+  <data name="DoubleBytecb.Text" xml:space="preserve"><value>Use Double Byte Files</value></data>
+  <data name="label4.Text" xml:space="preserve"><value>Font Size:</value></data>
+  <data name="ChorusItaliccb.Text" xml:space="preserve"><value>Show Chorus in Italics</value></data>
+  <data name="$this.Text" xml:space="preserve"><value>Generate HTML</value></data>
+  <data name="OptOutputHTML.ToolTip" xml:space="preserve"><value>HTML style files</value></data>
+  <data name="OptOutputRTF.ToolTip" xml:space="preserve"><value>Rich Text Format Files with Notations (if any)</value></data>
+  <data name="TitleFor" xml:space="preserve"><value>Generate HTML files for {0}</value></data>
+  <data name="DeleteWarning" xml:space="preserve"><value>NOTE: Generate will Delete ALL existing HTML files in: '{0}'</value></data>
+  <data name="GenerateFailed" xml:space="preserve"><value>Error generating listing {0}. Document might be in use.</value></data>
+</root>

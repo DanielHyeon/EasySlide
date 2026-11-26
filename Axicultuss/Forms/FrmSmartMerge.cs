@@ -1,5 +1,6 @@
 //using NetOffice.DAOApi;
 
+using Axicultus.Localization;
 using Axicultus.Util;
 using System;
 using System.ComponentModel;
@@ -87,6 +88,7 @@ public partial class FrmSmartMerge : Form
 		public FrmSmartMerge()
 		{
 			InitializeComponent();
+			UiText.ApplyTo(this);
 		}
 
 		private void FrmSmartMerge_Load(object sender, EventArgs e)
@@ -131,11 +133,11 @@ public partial class FrmSmartMerge : Form
 			int count = SongsList.Items.Count;
 			if (count < 1)
 			{
-				SongsList.Columns[0].Text = "No Matching Items found";
+				SongsList.Columns[0].Text = UiText.Get(nameof(FrmSmartMerge), "NoMatchingItems");
 				return 0;
 			}
 			int count2 = SongsList.CheckedItems.Count;
-			SongsList.Columns[0].Text = " " + count + " items identified : " + Convert.ToString(count2) + " ticked for Merging";
+			SongsList.Columns[0].Text = " " + UiText.Format(nameof(FrmSmartMerge), "ItemsIdentified", count, count2);
 			return count2;
 		}
 
@@ -293,27 +295,27 @@ public partial class FrmSmartMerge : Form
 			int selectedSongCount = DisplayCount();
 			if (SongFolderA.Text == "")
 			{
-				MessageBox.Show("Please select a folder for Source A before proceeding");
+				MessageBox.Show(UiText.Get(nameof(FrmSmartMerge), "SelectSourceA"));
 				return;
 			}
 			if (SongFolderB.Text == "")
 			{
-				MessageBox.Show("Please select a folder for Source B before proceeding");
+				MessageBox.Show(UiText.Get(nameof(FrmSmartMerge), "SelectSourceB"));
 				return;
 			}
 			if (SongFolderC.Text == "")
 			{
-				MessageBox.Show("Please select a Destination Folder to hold the new merged items");
+				MessageBox.Show(UiText.Get(nameof(FrmSmartMerge), "SelectDestination"));
 				return;
 			}
 			if (SongsList.Items.Count <= 0)
 			{
-				MessageBox.Show("There aren't any items listed for merging!");
+				MessageBox.Show(UiText.Get(nameof(FrmSmartMerge), "NothingListed"));
 				return;
 			}
 			if (selectedSongCount <= 0)
 			{
-				MessageBox.Show("Cannot find any items Ticked for merging!");
+				MessageBox.Show(UiText.Get(nameof(FrmSmartMerge), "NothingTicked"));
 				return;
 			}
 			string CombinedLyrics = "";
@@ -339,7 +341,7 @@ public partial class FrmSmartMerge : Form
 				}
 				ProgressBar1.Value = processedSongCount / selectedSongCount * 100;
 			}
-			MessageBox.Show(processedSongCount + " newly merged items have been created in Folder '" + SongFolderC.Items[SongFolderC.SelectedIndex].ToString() + "'");
+			MessageBox.Show(UiText.Format(nameof(FrmSmartMerge), "MergeDone", processedSongCount, SongFolderC.Items[SongFolderC.SelectedIndex].ToString()));
 			ProgressBar1.Value = 0;
 		}
 
