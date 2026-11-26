@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using Axicultus.Wpf.Localization;
 using Microsoft.Win32;
 using Forms = System.Windows.Forms;
 
@@ -21,23 +22,23 @@ public interface ISettingsPathPicker
 
 public sealed class SettingsPathPicker : ISettingsPathPicker
 {
-    private const string SettingsJsonFilter = "Axicultus settings (*.json)|*.json|All files (*.*)|*.*";
-    private const string DatabaseFilter = "SQLite/AdminDB (*.db;*.sqlite;*.sqlite3)|*.db;*.sqlite;*.sqlite3|All files (*.*)|*.*";
+    private static string SettingsJsonFilter => UiText.Get("SettingsWindow", "SettingsFilter");
+    private static string DatabaseFilter => UiText.Get("SettingsWindow", "DatabaseFilter");
 
     public Task<string?> PickWorkingFolderAsync(string initialPath)
-        => PickFolderAsync("작업 폴더 선택", initialPath);
+        => PickFolderAsync(UiText.Get("SettingsWindow", "PickWorkingFolder"), initialPath);
 
     public Task<string?> PickAdminDatabaseAsync(string initialPath)
-        => PickOpenFileAsync("AdminDB 선택", DatabaseFilter, initialPath);
+        => PickOpenFileAsync(UiText.Get("SettingsWindow", "PickAdminDb"), DatabaseFilter, initialPath);
 
     public Task<string?> PickDataBackupRootAsync(string initialPath)
-        => PickFolderAsync("백업 루트 선택", initialPath);
+        => PickFolderAsync(UiText.Get("SettingsWindow", "PickBackupRoot"), initialPath);
 
     public Task<string?> PickSettingsImportAsync(string initialPath)
-        => PickOpenFileAsync("설정 가져오기 파일 선택", SettingsJsonFilter, initialPath);
+        => PickOpenFileAsync(UiText.Get("SettingsWindow", "PickImportFile"), SettingsJsonFilter, initialPath);
 
     public Task<string?> PickSettingsExportAsync(string initialPath)
-        => PickSaveFileAsync("설정 내보내기 파일 선택", SettingsJsonFilter, initialPath, "axicultus-settings.json");
+        => PickSaveFileAsync(UiText.Get("SettingsWindow", "PickExportFile"), SettingsJsonFilter, initialPath, "axicultus-settings.json");
 
     private static Task<string?> PickFolderAsync(string title, string initialPath)
     {

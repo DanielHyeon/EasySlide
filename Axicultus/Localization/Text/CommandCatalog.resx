@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="CategoryOutput" xml:space="preserve"><value>Output</value></data>
+  <data name="CategoryLive" xml:space="preserve"><value>Live</value></data>
+  <data name="CategoryWorshipList" xml:space="preserve"><value>Worship list</value></data>
+  <data name="CategoryWindow" xml:space="preserve"><value>Windows</value></data>
+  <data name="AccessibleNameDangerous" xml:space="preserve"><value>{0}, dangerous command, {1}</value></data>
+  <data name="AccessibleNameShortcut" xml:space="preserve"><value>{0}, shortcut {1}</value></data>
+  <data name="OutputOpen" xml:space="preserve"><value>Open output window</value></data>
+  <data name="OutputOpenDescription" xml:space="preserve"><value>Opens the WPF output window on the selected monitor.</value></data>
+  <data name="OutputClose" xml:space="preserve"><value>Close output window</value></data>
+  <data name="OutputCloseDescription" xml:space="preserve"><value>Closes the output window. While live, you are asked to confirm.</value></data>
+  <data name="LiveGo" xml:space="preserve"><value>Go Live</value></data>
+  <data name="LiveGoDescription" xml:space="preserve"><value>Sends the selected item to the live output.</value></data>
+  <data name="LiveGoAndNext" xml:space="preserve"><value>Go live and select next item</value></data>
+  <data name="LiveGoAndNextDescription" xml:space="preserve"><value>Sends the selected item live and moves the selection straight to the next item in the queue.</value></data>
+  <data name="LivePreviewToOutputClearBlack" xml:space="preserve"><value>Send preview to output and clear black</value></data>
+  <data name="LivePreviewToOutputClearBlackDescription" xml:space="preserve"><value>Global F7: copies the preview item to the output and turns off the black screen.</value></data>
+  <data name="LivePreviewToOutput" xml:space="preserve"><value>Send preview to output</value></data>
+  <data name="LivePreviewToOutputDescription" xml:space="preserve"><value>Global F8: copies the preview item to the output. While live, the current preview is sent again.</value></data>
+  <data name="LiveStop" xml:space="preserve"><value>Stop live</value></data>
+  <data name="LiveStopDescription" xml:space="preserve"><value>Stops the current live output.</value></data>
+  <data name="LiveNext" xml:space="preserve"><value>Next slide/verse</value></data>
+  <data name="LiveNextDescription" xml:space="preserve"><value>While live, moves to the next output slide or verse; at the end, goes on to the next output item when auto-advance is on.</value></data>
+  <data name="LivePrevious" xml:space="preserve"><value>Previous slide/verse</value></data>
+  <data name="LivePreviousDescription" xml:space="preserve"><value>While live, moves back one output slide or verse; at the start, goes back to the previous output item when auto-advance is on.</value></data>
+  <data name="LiveHide" xml:space="preserve"><value>Hide output</value></data>
+  <data name="LiveHideDescription" xml:space="preserve"><value>Hides the current live output.</value></data>
+  <data name="LiveBlack" xml:space="preserve"><value>Black screen</value></data>
+  <data name="LiveBlackDescription" xml:space="preserve"><value>Switches the current live output to a black screen.</value></data>
+  <data name="LiveClear" xml:space="preserve"><value>Clear screen</value></data>
+  <data name="LiveClearDescription" xml:space="preserve"><value>Clears the lyrics and content and shows only the background (not the same as the black screen).</value></data>
+  <data name="LiveRestart" xml:space="preserve"><value>Back to start</value></data>
+  <data name="LiveRestartDescription" xml:space="preserve"><value>Shows the current live item again from its first verse or slide.</value></data>
+  <data name="LiveRefresh" xml:space="preserve"><value>Refresh output</value></data>
+  <data name="LiveRefreshDescription" xml:space="preserve"><value>Redraws the output screen (recovers from display glitches).</value></data>
+  <data name="LiveRestore" xml:space="preserve"><value>Restore output</value></data>
+  <data name="LiveRestoreDescription" xml:space="preserve"><value>Goes back from hidden, black or clear to what was shown before.</value></data>
+  <data name="LiveAutoRotate" xml:space="preserve"><value>Toggle auto-rotate</value></data>
+  <data name="LiveAutoRotateDescription" xml:space="preserve"><value>Changes verses or slides automatically at a set interval while live.</value></data>
+  <data name="WorshipDuplicateItem" xml:space="preserve"><value>Duplicate item</value></data>
+  <data name="WorshipDuplicateItemDescription" xml:space="preserve"><value>Duplicates the selected worship list item and adds the copy right after it.</value></data>
+  <data name="WorshipMoveItemUp" xml:space="preserve"><value>Move item up</value></data>
+  <data name="WorshipMoveItemUpDescription" xml:space="preserve"><value>Moves the selected worship list item up one place.</value></data>
+  <data name="WorshipMoveItemDown" xml:space="preserve"><value>Move item down</value></data>
+  <data name="WorshipMoveItemDownDescription" xml:space="preserve"><value>Moves the selected worship list item down one place.</value></data>
+  <data name="WorshipMoveItemToTop" xml:space="preserve"><value>Move item to top</value></data>
+  <data name="WorshipMoveItemToTopDescription" xml:space="preserve"><value>Moves the selected worship list item to the top.</value></data>
+  <data name="WorshipMoveItemToBottom" xml:space="preserve"><value>Move item to bottom</value></data>
+  <data name="WorshipMoveItemToBottomDescription" xml:space="preserve"><value>Moves the selected worship list item to the bottom.</value></data>
+  <data name="WorshipQuickSave" xml:space="preserve"><value>Save worship list</value></data>
+  <data name="WorshipQuickSaveDescription" xml:space="preserve"><value>Saves the current worship list under its session name (with no name yet, set one in the worship list manager).</value></data>
+  <data name="WorshipSelectLiveItem" xml:space="preserve"><value>Select live item</value></data>
+  <data name="WorshipSelectLiveItemDescription" xml:space="preserve"><value>Moves the selection back to the item now live (after looking ahead in the preview).</value></data>
+  <data name="WindowLibrary" xml:space="preserve"><value>Open library</value></data>
+  <data name="WindowLibraryDescription" xml:space="preserve"><value>Opens the song library (search, copy, move and delete songs).</value></data>
+  <data name="WindowBible" xml:space="preserve"><value>Open Bible</value></data>
+  <data name="WindowBibleDescription" xml:space="preserve"><value>Opens the Bible window (versions and verse search).</value></data>
+  <data name="WindowManageBibleVersions" xml:space="preserve"><value>Manage Bible versions</value></data>
+  <data name="WindowManageBibleVersionsDescription" xml:space="preserve"><value>Renames Bible versions (the text stays as it is).</value></data>
+  <data name="WindowSearch" xml:space="preserve"><value>Search and usage</value></data>
+  <data name="WindowSearchDescription" xml:space="preserve"><value>Opens song search and the usage report.</value></data>
+  <data name="WindowImportExport" xml:space="preserve"><value>Import and export</value></data>
+  <data name="WindowImportExportDescription" xml:space="preserve"><value>Opens the import and export window (text, XML, DB, RTF, HTML).</value></data>
+  <data name="WindowExternalFiles" xml:space="preserve"><value>Copy or move external files</value></data>
+  <data name="WindowExternalFilesDescription" xml:space="preserve"><value>Opens the window to copy or move external files.</value></data>
+  <data name="WindowManageLists" xml:space="preserve"><value>Manage worship lists</value></data>
+  <data name="WindowManageListsDescription" xml:space="preserve"><value>Opens the window to save and load worship lists.</value></data>
+  <data name="WindowSettings" xml:space="preserve"><value>Open settings</value></data>
+  <data name="WindowSettingsDescription" xml:space="preserve"><value>Opens the settings window.</value></data>
+  <data name="WindowHelp" xml:space="preserve"><value>Open help</value></data>
+  <data name="WindowHelpDescription" xml:space="preserve"><value>Opens the help window.</value></data>
+  <data name="WindowRegistration" xml:space="preserve"><value>Registration</value></data>
+  <data name="WindowRegistrationDescription" xml:space="preserve"><value>Opens the registration page window.</value></data>
+  <data name="WindowAbout" xml:space="preserve"><value>About</value></data>
+  <data name="WindowAboutDescription" xml:space="preserve"><value>Opens the About Axicultus window.</value></data>
+  <data name="AddExternalFile" xml:space="preserve"><value>Add file</value></data>
+  <data name="AddExternalFileDescription" xml:space="preserve"><value>Adds a PowerPoint or media file to the worship list.</value></data>
+  <data name="ImportLegacyWorshipList" xml:space="preserve"><value>Import legacy worship list (.esw)</value></data>
+  <data name="ImportLegacyWorshipListDescription" xml:space="preserve"><value>Opens an older Axicultus worship list file (.esw) and brings it into the current worship list (songs are filled from the library lyrics).</value></data>
+  <data name="FindShortcut" xml:space="preserve"><value>Find</value></data>
+  <data name="HelpShortcut" xml:space="preserve"><value>Help</value></data>
+  <data name="PreviewToOutputClearBlackShortcut" xml:space="preserve"><value>Preview → Output + clear black</value></data>
+  <data name="PreviewToOutputShortcut" xml:space="preserve"><value>Preview → Output</value></data>
+</root>

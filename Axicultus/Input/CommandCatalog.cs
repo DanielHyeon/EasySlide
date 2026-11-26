@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Input;
+using Axicultus.Wpf.Localization;
 using Axicultus.Wpf.Shell;
 
 namespace Axicultus.Wpf.Input;
@@ -31,9 +32,9 @@ public sealed record CommandDescriptor(
         get
         {
             var basePart = IsDangerous
-                ? $"{DisplayName}, 위험 명령, {Category}"
+                ? UiText.Format(nameof(CommandCatalog), "AccessibleNameDangerous", DisplayName, Category)
                 : $"{DisplayName}, {Category}";
-            return ShortcutHint.Length > 0 ? $"{basePart}, 단축키 {ShortcutHint}" : basePart;
+            return ShortcutHint.Length > 0 ? UiText.Format(nameof(CommandCatalog), "AccessibleNameShortcut", basePart, ShortcutHint) : basePart;
         }
     }
 }
@@ -52,256 +53,220 @@ public sealed class CommandCatalog : ICommandCatalog
     {
         Command(
             MainCommandIds.OutputOpen,
-            "Output",
-            "출력 창 열기",
-            "선택한 모니터에 WPF 출력 창을 엽니다.",
+            Text("CategoryOutput"),
+            "OutputOpen",
             isDangerous: false),
         Command(
             MainCommandIds.OutputClose,
-            "Output",
-            "출력 창 닫기",
-            "출력 창을 닫습니다. 라이브 중이면 확인이 필요합니다.",
+            Text("CategoryOutput"),
+            "OutputClose",
             isDangerous: true),
         Command(
             MainCommandIds.LiveGo,
-            "Live",
-            "Go Live",
-            "선택한 항목을 라이브 출력으로 전환합니다.",
+            Text("CategoryLive"),
+            "LiveGo",
             isDangerous: true,
-            new Shortcut(Key.L, ModifierKeys.Control, MainCommandIds.LiveGo, IsGlobal: false, "Go Live"),
+            new Shortcut(Key.L, ModifierKeys.Control, MainCommandIds.LiveGo, IsGlobal: false, Text("LiveGo")),
             // FrmMain 파리티: F12 = Start Show/Go Live.
-            new Shortcut(Key.F12, ModifierKeys.None, MainCommandIds.LiveGo, IsGlobal: false, "Go Live")),
+            new Shortcut(Key.F12, ModifierKeys.None, MainCommandIds.LiveGo, IsGlobal: false, Text("LiveGo"))),
         Command(
             MainCommandIds.LiveGoAndNext,
-            "Live",
-            "송출 후 다음 항목",
-            "선택한 항목을 라이브로 송출하고 곧바로 다음 큐 항목으로 선택을 옮깁니다(레거시 btnToOutputMoveNext).",
+            Text("CategoryLive"),
+            "LiveGoAndNext",
             isDangerous: true,
             // FrmMain 파리티: F11 = Go Live and Move Next.
-            new Shortcut(Key.F11, ModifierKeys.None, MainCommandIds.LiveGoAndNext, IsGlobal: false, "송출 후 다음 항목")),
+            new Shortcut(Key.F11, ModifierKeys.None, MainCommandIds.LiveGoAndNext, IsGlobal: false, Text("LiveGoAndNext"))),
         Command(
             MainCommandIds.LivePreviewToOutputClearBlack,
-            "Live",
-            "Preview를 Output으로 보내고 Black 해제",
-            "FrmMain 글로벌 F7: Preview 항목을 Output으로 복사하고 검은 화면을 해제합니다.",
+            Text("CategoryLive"),
+            "LivePreviewToOutputClearBlack",
             isDangerous: true,
-            new Shortcut(Key.F7, ModifierKeys.None, MainCommandIds.LivePreviewToOutputClearBlack, IsGlobal: true, "Preview→Output + Black 해제")),
+            new Shortcut(Key.F7, ModifierKeys.None, MainCommandIds.LivePreviewToOutputClearBlack, IsGlobal: true, Text("PreviewToOutputClearBlackShortcut"))),
         Command(
             MainCommandIds.LivePreviewToOutput,
-            "Live",
-            "Preview를 Output으로 보내기",
-            "FrmMain 글로벌 F8: Preview 항목을 Output으로 복사합니다. 라이브 중이면 현재 Preview를 재송출합니다.",
+            Text("CategoryLive"),
+            "LivePreviewToOutput",
             isDangerous: true,
-            new Shortcut(Key.F8, ModifierKeys.None, MainCommandIds.LivePreviewToOutput, IsGlobal: true, "Preview→Output")),
+            new Shortcut(Key.F8, ModifierKeys.None, MainCommandIds.LivePreviewToOutput, IsGlobal: true, Text("PreviewToOutputShortcut"))),
         Command(
             MainCommandIds.LiveStop,
-            "Live",
-            "라이브 중지",
-            "현재 라이브 송출을 중지합니다.",
+            Text("CategoryLive"),
+            "LiveStop",
             isDangerous: true),
         Command(
             MainCommandIds.LiveNext,
-            "Live",
-            "다음 슬라이드/절",
-            "라이브 중에는 현재 Output 슬라이드/절을 넘기고, 끝에서는 자동 다음 항목 설정에 따라 다음 Output 항목으로 이동합니다.",
+            Text("CategoryLive"),
+            "LiveNext",
             isDangerous: false,
-            new Shortcut(Key.Space, ModifierKeys.None, MainCommandIds.LiveNext, IsGlobal: false, "다음 슬라이드/절"),
-            new Shortcut(Key.None, ModifierKeys.None, MainCommandIds.LiveNext, IsGlobal: true, "다음 슬라이드/절")),
+            new Shortcut(Key.Space, ModifierKeys.None, MainCommandIds.LiveNext, IsGlobal: false, Text("LiveNext")),
+            new Shortcut(Key.None, ModifierKeys.None, MainCommandIds.LiveNext, IsGlobal: true, Text("LiveNext"))),
         Command(
             MainCommandIds.LivePrevious,
-            "Live",
-            "이전 슬라이드/절",
-            "라이브 중에는 현재 Output 슬라이드/절을 되돌리고, 처음에서는 자동 다음 항목 설정에 따라 이전 Output 항목으로 이동합니다.",
+            Text("CategoryLive"),
+            "LivePrevious",
             isDangerous: false,
-            new Shortcut(Key.Space, ModifierKeys.Shift, MainCommandIds.LivePrevious, IsGlobal: false, "이전 슬라이드/절"),
-            new Shortcut(Key.F4, ModifierKeys.None, MainCommandIds.LivePrevious, IsGlobal: true, "이전 슬라이드/절")),
+            new Shortcut(Key.Space, ModifierKeys.Shift, MainCommandIds.LivePrevious, IsGlobal: false, Text("LivePrevious")),
+            new Shortcut(Key.F4, ModifierKeys.None, MainCommandIds.LivePrevious, IsGlobal: true, Text("LivePrevious"))),
         Command(
             MainCommandIds.LiveHide,
-            "Live",
-            "출력 숨김",
-            "현재 라이브 출력을 숨김 상태로 전환합니다.",
+            Text("CategoryLive"),
+            "LiveHide",
             isDangerous: true,
-            new Shortcut(Key.H, ModifierKeys.Control, MainCommandIds.LiveHide, IsGlobal: false, "출력 숨김")),
+            new Shortcut(Key.H, ModifierKeys.Control, MainCommandIds.LiveHide, IsGlobal: false, Text("LiveHide"))),
         Command(
             MainCommandIds.LiveBlack,
-            "Live",
-            "검은 화면",
-            "현재 라이브 출력을 검은 화면으로 전환합니다.",
+            Text("CategoryLive"),
+            "LiveBlack",
             isDangerous: true,
-            new Shortcut(Key.B, ModifierKeys.Control, MainCommandIds.LiveBlack, IsGlobal: false, "검은 화면"),
+            new Shortcut(Key.B, ModifierKeys.Control, MainCommandIds.LiveBlack, IsGlobal: false, Text("LiveBlack")),
             // FrmMain 파리티: F9 = Black Screen.
-            new Shortcut(Key.F9, ModifierKeys.None, MainCommandIds.LiveBlack, IsGlobal: false, "검은 화면"),
+            new Shortcut(Key.F9, ModifierKeys.None, MainCommandIds.LiveBlack, IsGlobal: false, Text("LiveBlack")),
             // FrmMain 글로벌 훅 파리티: F10 도 Black Screen 토글.
-            new Shortcut(Key.F10, ModifierKeys.None, MainCommandIds.LiveBlack, IsGlobal: true, "검은 화면")),
+            new Shortcut(Key.F10, ModifierKeys.None, MainCommandIds.LiveBlack, IsGlobal: true, Text("LiveBlack"))),
         // 화면 제어 보강(§7.3-B) — 명령 팔레트(⌘K)에서 검색·실행 + FrmMain F3 파리티.
         Command(
             MainCommandIds.LiveClear,
-            "Live",
-            "화면 비우기",
-            "가사/콘텐츠를 비우고 배경만 송출합니다(검은 화면과 구별).",
+            Text("CategoryLive"),
+            "LiveClear",
             isDangerous: true,
             // FrmMain 파리티: F3 = Clear Screen.
-            new Shortcut(Key.F3, ModifierKeys.None, MainCommandIds.LiveClear, IsGlobal: false, "화면 비우기")),
+            new Shortcut(Key.F3, ModifierKeys.None, MainCommandIds.LiveClear, IsGlobal: false, Text("LiveClear"))),
         Command(
             MainCommandIds.LiveRestart,
-            "Live",
-            "처음으로",
-            "현재 라이브 항목을 처음(첫 절/첫 슬라이드)으로 되돌려 재송출합니다.",
+            Text("CategoryLive"),
+            "LiveRestart",
             isDangerous: false,
-            new Shortcut(Key.F5, ModifierKeys.None, MainCommandIds.LiveRestart, IsGlobal: false, "처음으로"),
-            new Shortcut(Key.R, ModifierKeys.Control, MainCommandIds.LiveRestart, IsGlobal: false, "처음으로")),
+            new Shortcut(Key.F5, ModifierKeys.None, MainCommandIds.LiveRestart, IsGlobal: false, Text("LiveRestart")),
+            new Shortcut(Key.R, ModifierKeys.Control, MainCommandIds.LiveRestart, IsGlobal: false, Text("LiveRestart"))),
         Command(
             MainCommandIds.LiveRefresh,
-            "Live",
-            "출력 새로고침",
-            "출력 화면을 다시 그립니다(디스플레이 글리치 복구).",
+            Text("CategoryLive"),
+            "LiveRefresh",
             isDangerous: false,
             // 현대 단축키 — 새로고침 관용(Ctrl+F5, "하드 새로고침"). 전역 F5(다음 항목)와 수식 키가 달라 충돌하지 않는다.
-            new Shortcut(Key.F5, ModifierKeys.Control, MainCommandIds.LiveRefresh, IsGlobal: false, "출력 새로고침")),
+            new Shortcut(Key.F5, ModifierKeys.Control, MainCommandIds.LiveRefresh, IsGlobal: false, Text("LiveRefresh"))),
         Command(
             MainCommandIds.LiveRestore,
-            "Live",
-            "출력 복귀",
-            "숨김/검은 화면/비우기에서 직전 송출로 복귀합니다.",
+            Text("CategoryLive"),
+            "LiveRestore",
             isDangerous: false),
         Command(
             MainCommandIds.LiveAutoRotate,
-            "Live",
-            "자동 회전 토글",
-            "라이브 중 절/슬라이드를 일정 간격으로 자동 전환합니다(§7.3-B).",
+            Text("CategoryLive"),
+            "LiveAutoRotate",
             isDangerous: false),
         // 예배 순서 편집 — 선택 항목 복제(모던 단축키 Ctrl+D + 명령 팔레트 검색). 텍스트박스 타이핑과 충돌하지 않는 수식 키.
         Command(
             MainCommandIds.WorshipDuplicateItem,
-            "예배 순서",
-            "항목 복제",
-            "선택한 예배 순서 항목을 같은 내용으로 복제해 바로 뒤에 추가합니다.",
+            Text("CategoryWorshipList"),
+            "WorshipDuplicateItem",
             isDangerous: false,
-            new Shortcut(Key.D, ModifierKeys.Control, MainCommandIds.WorshipDuplicateItem, IsGlobal: false, "항목 복제")),
+            new Shortcut(Key.D, ModifierKeys.Control, MainCommandIds.WorshipDuplicateItem, IsGlobal: false, Text("WorshipDuplicateItem"))),
         // 예배 순서 재정렬(레거시 위/아래/맨위/맨아래 버튼) — 팔레트 검색 + 위/아래는 Ctrl+Shift+Up/Down 단축키.
         // 텍스트박스 편집과 충돌 않는 수식 키 조합(메인 창 텍스트박스는 단일 줄이라 Ctrl+Shift+Arrow 미사용).
         Command(
             MainCommandIds.WorshipMoveItemUp,
-            "예배 순서",
-            "항목 위로",
-            "선택한 예배 순서 항목을 한 칸 위로 옮깁니다.",
+            Text("CategoryWorshipList"),
+            "WorshipMoveItemUp",
             isDangerous: false,
-            new Shortcut(Key.Up, ModifierKeys.Control | ModifierKeys.Shift, MainCommandIds.WorshipMoveItemUp, IsGlobal: false, "항목 위로")),
+            new Shortcut(Key.Up, ModifierKeys.Control | ModifierKeys.Shift, MainCommandIds.WorshipMoveItemUp, IsGlobal: false, Text("WorshipMoveItemUp"))),
         Command(
             MainCommandIds.WorshipMoveItemDown,
-            "예배 순서",
-            "항목 아래로",
-            "선택한 예배 순서 항목을 한 칸 아래로 옮깁니다.",
+            Text("CategoryWorshipList"),
+            "WorshipMoveItemDown",
             isDangerous: false,
-            new Shortcut(Key.Down, ModifierKeys.Control | ModifierKeys.Shift, MainCommandIds.WorshipMoveItemDown, IsGlobal: false, "항목 아래로")),
+            new Shortcut(Key.Down, ModifierKeys.Control | ModifierKeys.Shift, MainCommandIds.WorshipMoveItemDown, IsGlobal: false, Text("WorshipMoveItemDown"))),
         Command(
             MainCommandIds.WorshipMoveItemToTop,
-            "예배 순서",
-            "항목 맨 위로",
-            "선택한 예배 순서 항목을 맨 위로 옮깁니다.",
+            Text("CategoryWorshipList"),
+            "WorshipMoveItemToTop",
             isDangerous: false),
         Command(
             MainCommandIds.WorshipMoveItemToBottom,
-            "예배 순서",
-            "항목 맨 아래로",
-            "선택한 예배 순서 항목을 맨 아래로 옮깁니다.",
+            Text("CategoryWorshipList"),
+            "WorshipMoveItemToBottom",
             isDangerous: false),
         // 빠른 저장(Ctrl+S, 표준 저장 단축키) — 현재 세션 이름으로 덮어 저장. 미저장 변경(● 수정됨)과 짝.
         Command(
             MainCommandIds.WorshipQuickSave,
-            "예배 순서",
-            "예배 순서 저장",
-            "현재 예배 순서를 지금 세션 이름으로 덮어 저장합니다(이름이 없으면 '순서' 관리 창에서 정하세요).",
+            Text("CategoryWorshipList"),
+            "WorshipQuickSave",
             isDangerous: false,
-            new Shortcut(Key.S, ModifierKeys.Control, MainCommandIds.WorshipQuickSave, IsGlobal: false, "예배 순서 저장")),
+            new Shortcut(Key.S, ModifierKeys.Control, MainCommandIds.WorshipQuickSave, IsGlobal: false, Text("WorshipQuickSave"))),
         // 현재 송출(LIVE) 항목 선택 — 팔레트·버튼. 송출 중이 아니면 CanExecute 가 막는다.
         Command(
             MainCommandIds.WorshipSelectLiveItem,
-            "예배 순서",
-            "현재 송출 항목 선택",
-            "지금 송출(LIVE) 중인 항목으로 선택을 되돌립니다(미리보기로 앞서 본 뒤 라이브로 복귀).",
+            Text("CategoryWorshipList"),
+            "WorshipSelectLiveItem",
             isDangerous: false),
         // 창 런처(§7.4) — FrmMain 의 분리 창을 명령 팔레트로 흡수. 실행은 View(MainWindow)가 등록.
         Command(
             MainCommandIds.WindowLibrary,
-            "창",
-            "라이브러리 열기",
-            "곡 라이브러리 창을 엽니다(곡 검색·복사·이동·삭제).",
+            Text("CategoryWindow"),
+            "WindowLibrary",
             isDangerous: false),
         Command(
             MainCommandIds.WindowBible,
-            "창",
-            "성경 열기",
-            "성경 창을 엽니다(버전·구절 검색).",
+            Text("CategoryWindow"),
+            "WindowBible",
             isDangerous: false),
         Command(
             MainCommandIds.WindowManageBibleVersions,
-            "창",
-            "성경 버전 관리",
-            "성경 버전 이름을 바꿉니다(본문은 그대로).",
+            Text("CategoryWindow"),
+            "WindowManageBibleVersions",
             isDangerous: false),
         Command(
             MainCommandIds.WindowSearch,
-            "창",
-            "검색·사용처",
-            "곡 검색 및 사용처 보고 창을 엽니다.",
+            Text("CategoryWindow"),
+            "WindowSearch",
             isDangerous: false,
-            new Shortcut(Key.F, ModifierKeys.Control, MainCommandIds.WindowSearch, IsGlobal: false, "찾기")),
+            new Shortcut(Key.F, ModifierKeys.Control, MainCommandIds.WindowSearch, IsGlobal: false, Text("FindShortcut"))),
         Command(
             MainCommandIds.WindowImportExport,
-            "창",
-            "가져오기·내보내기",
-            "Import/Export 창을 엽니다(텍스트/XML/DB/RTF/HTML).",
+            Text("CategoryWindow"),
+            "WindowImportExport",
             isDangerous: false),
         Command(
             MainCommandIds.WindowExternalFiles,
-            "창",
-            "외부 파일 복사·이동",
-            "외부 파일 복사/이동 창을 엽니다.",
+            Text("CategoryWindow"),
+            "WindowExternalFiles",
             isDangerous: false),
         Command(
             MainCommandIds.WindowManageLists,
-            "창",
-            "예배 순서 관리",
-            "예배 순서를 저장/불러오는 창을 엽니다.",
+            Text("CategoryWindow"),
+            "WindowManageLists",
             isDangerous: false),
         Command(
             MainCommandIds.WindowSettings,
-            "창",
-            "설정 열기",
-            "설정 창을 엽니다.",
+            Text("CategoryWindow"),
+            "WindowSettings",
             isDangerous: false),
         Command(
             MainCommandIds.WindowHelp,
-            "창",
-            "도움말 열기",
-            "도움말 창을 엽니다.",
+            Text("CategoryWindow"),
+            "WindowHelp",
             isDangerous: false,
             // FrmMain 파리티: F1 = Help Contents.
-            new Shortcut(Key.F1, ModifierKeys.None, MainCommandIds.WindowHelp, IsGlobal: false, "도움말")),
+            new Shortcut(Key.F1, ModifierKeys.None, MainCommandIds.WindowHelp, IsGlobal: false, Text("HelpShortcut"))),
         Command(
             MainCommandIds.WindowRegistration,
-            "창",
-            "등록 안내",
-            "등록 페이지 안내 창을 엽니다.",
+            Text("CategoryWindow"),
+            "WindowRegistration",
             isDangerous: false),
         Command(
             MainCommandIds.WindowAbout,
-            "창",
-            "정보",
-            "Axicultus 정보 창을 엽니다.",
+            Text("CategoryWindow"),
+            "WindowAbout",
             isDangerous: false),
         Command(
             MainCommandIds.AddExternalFile,
-            "예배 순서",
-            "파일 추가",
-            "PowerPoint/미디어 파일을 예배 순서에 추가합니다.",
+            Text("CategoryWorshipList"),
+            "AddExternalFile",
             isDangerous: false),
         Command(
             MainCommandIds.ImportLegacyWorshipList,
-            "예배 순서",
-            "레거시 예배 순서(.esw) 가져오기",
-            "예전 Axicultus(.esw) 예배 순서 파일을 열어 현재 예배 순서로 가져옵니다(곡은 라이브러리 가사로 채움).",
+            Text("CategoryWorshipList"),
+            "ImportLegacyWorshipList",
             isDangerous: false),
     };
 
@@ -328,12 +293,14 @@ public sealed class CommandCatalog : ICommandCatalog
     public IReadOnlyList<Shortcut> GetDefaultShortcuts()
         => All.SelectMany(command => command.DefaultShortcuts).ToList().AsReadOnly();
 
+    // The display name is the text <key>, the description <key>Description.
     private static CommandDescriptor Command(
         string id,
         string category,
-        string displayName,
-        string description,
+        string key,
         bool isDangerous,
         params Shortcut[] defaultShortcuts)
-        => new(id, category, displayName, description, isDangerous, Array.AsReadOnly(defaultShortcuts.ToArray()));
+        => new(id, category, Text(key), Text(key + "Description"), isDangerous, Array.AsReadOnly(defaultShortcuts.ToArray()));
+
+    private static string Text(string key) => UiText.Get(nameof(CommandCatalog), key);
 }

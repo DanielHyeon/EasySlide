@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Rendering;
 
@@ -88,7 +89,7 @@ public sealed partial class PowerPointPreviewViewModel(IPowerPointRenderService 
 
     [ObservableProperty] private ImageSource? _previewImage;
     [ObservableProperty] private PowerPointPreviewState _state = PowerPointPreviewState.Idle;
-    [ObservableProperty] private string _statusText = "PPT 없음";
+    [ObservableProperty] private string _statusText = UiText.Get("PowerPointPreviewViewModel", "NoPpt");
     [ObservableProperty] private int _slideNumber;
     [ObservableProperty] private int _slideCount;
 
@@ -166,7 +167,7 @@ public sealed partial class PowerPointPreviewViewModel(IPowerPointRenderService 
             ClearOutdatedStrip(filePath);
             _renderingPath = filePath;
             State = PowerPointPreviewState.Rendering;
-            StatusText = "렌더링 중…";
+            StatusText = UiText.Get("PowerPointPreviewViewModel", "Rendering");
         }
 
         var result = await _render.RenderSlideAsync(
@@ -187,14 +188,14 @@ public sealed partial class PowerPointPreviewViewModel(IPowerPointRenderService 
             {
                 // 렌더는 성공했으나 바이트 디코드 실패 — 상태 머신이 Rendering 에 고착되지 않도록 Failed 로 마무리.
                 if (generation != _previewGeneration) return PowerPointLoadResult.Superseded;
-                if (expectedVersion == null) SetFailed($"이미지 디코드 실패: {ex.Message}");
+                if (expectedVersion == null) SetFailed(UiText.Format("PowerPointPreviewViewModel", "DecodeFailed", ex.Message));
                 return PowerPointLoadResult.Failed;
             }
 
             if (generation != _previewGeneration) return PowerPointLoadResult.Superseded;
             if (cancellationToken.IsCancellationRequested)
             {
-                if (expectedVersion == null) SetFailed("렌더링 취소됨");
+                if (expectedVersion == null) SetFailed(UiText.Get("PowerPointPreviewViewModel", "RenderCancelled"));
                 return PowerPointLoadResult.Failed;
             }
             if (expectedVersion != null)
@@ -208,10 +209,10 @@ public sealed partial class PowerPointPreviewViewModel(IPowerPointRenderService 
             LoadedContentPath = filePath; // 성공 렌더의 신원 기록(출력 송출 시 항목 일치 확인)
             LoadedSourceVersion = sourceVersion;
             State = PowerPointPreviewState.Ready;
-            StatusText = $"슬라이드 {slide.SlideNumber}/{slide.SlideCount}";
+            StatusText = UiText.Format("PowerPointPreviewViewModel", "SlideOf", slide.SlideNumber, slide.SlideCount);
             return PowerPointLoadResult.Shown;
         }
-        if (expectedVersion == null) SetFailed(result.ErrorMessage ?? "PPT 렌더 실패");
+        if (expectedVersion == null) SetFailed(result.ErrorMessage ?? UiText.Get("PowerPointPreviewViewModel", "RenderFailed"));
         return PowerPointLoadResult.Failed;
     }
 
@@ -351,7 +352,7 @@ public sealed partial class PowerPointPreviewViewModel(IPowerPointRenderService 
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[PPT] 썸네일 로드 실패(무시): {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[PPT] Thumbnail load failed (ignored): {ex.Message}");
         }
         finally
         {
@@ -406,7 +407,7 @@ public sealed partial class PowerPointPreviewViewModel(IPowerPointRenderService 
             SlideNumber = slide;
             SlideCount = count;
             State = PowerPointPreviewState.Ready;
-            StatusText = $"슬라이드 {slide} (썸네일 사용)";
+            StatusText = UiText.Format("PowerPointPreviewViewModel", "SlideFromThumbnail", slide);
             return true;
         }
         return false;
@@ -435,7 +436,7 @@ public sealed partial class PowerPointPreviewViewModel(IPowerPointRenderService 
         if (State != PowerPointPreviewState.Rendering) return;
         if (PreviewImage is null || !string.Equals(LoadedContentPath, _renderingPath, StringComparison.OrdinalIgnoreCase)) { Clear(); return; }
         State = PowerPointPreviewState.Ready;
-        StatusText = $"슬라이드 {SlideNumber}/{SlideCount}";
+        StatusText = UiText.Format("PowerPointPreviewViewModel", "SlideOf", SlideNumber, SlideCount);
     }
 
     /// <summary>미리보기를 비우고 초기 상태로(다른 종류 항목 선택 시).</summary>
@@ -445,7 +446,7 @@ public sealed partial class PowerPointPreviewViewModel(IPowerPointRenderService 
         InvalidateThumbnailLoad();
         PreviewImage = null;
         State = PowerPointPreviewState.Idle;
-        StatusText = "PPT 없음";
+        StatusText = UiText.Get("PowerPointPreviewViewModel", "NoPpt");
         SlideNumber = 0;
         SlideCount = 0;
         LoadedContentPath = null; // 신원 무효화

@@ -6,6 +6,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Data;
 
@@ -397,7 +398,7 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
         {
             using var read = new SQLiteCommand("SELECT FORMATDATA FROM SONG WHERE SONGID = @id AND FOLDERNO > 0", connection, transaction);
             read.Parameters.AddWithValue("@id", songId);
-            var format = read.ExecuteScalar() ?? throw new InvalidOperationException("선택한 곡이 없습니다.");
+            var format = read.ExecuteScalar() ?? throw new InvalidOperationException(UiText.Get("AdminDatabaseRepository", "SongNotFound"));
             using var save = new SQLiteCommand("UPDATE SONG SET FORMATDATA = @format WHERE SONGID = @id", connection, transaction);
             save.Parameters.AddWithValue("@format", update(Convert.ToString(format)));
             save.Parameters.AddWithValue("@id", songId);
@@ -1071,7 +1072,7 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
             {
                 var field = Array.Find(FolderFormatField.All, f => f.Column == column);
                 if (field is null || !folderColumns.ContainsKey(column) || !field.IsValid(value))
-                    throw new InvalidOperationException($"폴더 서식 값을 저장할 수 없습니다: {column}");
+                    throw new InvalidOperationException(UiText.Format("AdminDatabaseRepository", "FolderFormatNotSaved", column));
                 string parameter = $"@format{assignments.Count}";
                 assignments.Add($"{QuoteIdentifier(field.Column)} = {parameter}");
                 format.Parameters.AddWithValue(parameter, value);

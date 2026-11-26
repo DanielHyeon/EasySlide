@@ -16,7 +16,7 @@ public class OutputPlacementEditorTests
     {
         var window = Read("SettingsWindow.xaml");
         var host = window.Descendants().Single(e => e.Name.LocalName == "OutputPlacementEditor");
-        host.Ancestors().First(e => e.Name.LocalName == "TabItem").Attribute("Header")!.Value.Should().Be("Monitors");
+        host.Ancestors().First(e => e.Name.LocalName == "TabItem").Attribute("Header")!.Value.Should().Be("{loc:Text SettingsWindow.TabMonitors}");
 
         var editors = Read("Composites/OutputPlacementEditor.xaml").Descendants()
             .Where(e => e.Name.LocalName is "OptionNumberBox" or "TextBox")
@@ -33,10 +33,11 @@ public class OutputPlacementEditorTests
     {
         var window = Read("SettingsWindow.xaml");
         var choices = window.Descendants().Where(e => (string?)e.Attribute("GroupName") == "InterfaceSize").ToArray();
-        choices.Select(e => (string?)e.Attribute("Content")).Should().Equal("작은 글꼴", "표준", "큰 글씨", "시니어");
+        choices.Select(e => (string?)e.Attribute("Content")).Should().Equal(
+            "{loc:Text SettingsWindow.SizeSmall}", "{loc:Text SettingsWindow.SizeStandard}", "{loc:Text SettingsWindow.SizeLarge}", "{loc:Text SettingsWindow.SizeSenior}");
         foreach (var (choice, size) in choices.Zip(new[] { "Small", "Standard", "Large", "Senior" }))
         {
-            choice.Ancestors().First(e => e.Name.LocalName == "TabItem").Attribute("Header")!.Value.Should().Be("Main Window");
+            choice.Ancestors().First(e => e.Name.LocalName == "TabItem").Attribute("Header")!.Value.Should().Be("{loc:Text SettingsWindow.TabMainWindow}");
             choice.Attribute("IsChecked")!.Value.Should().Contain("Binding InterfaceSize, Mode=TwoWay").And.Contain("ConverterParameter=" + size);
         }
     }
@@ -46,8 +47,8 @@ public class OutputPlacementEditorTests
     {
         var window = Read("SettingsWindow.xaml");
         var tabs = window.Descendants().First(e => e.Name.LocalName == "TabControl").Elements().ToArray();
-        var advanced = tabs.Single(tab => (string?)tab.Attribute("Header") == "추가 설정");
-        var keyboard = tabs.Single(tab => (string?)tab.Attribute("Header") == "Keyboard");
+        var advanced = tabs.Single(tab => (string?)tab.Attribute("Header") == "{loc:Text SettingsWindow.TabMore}");
+        var keyboard = tabs.Single(tab => (string?)tab.Attribute("Header") == "{loc:Text SettingsWindow.TabKeyboard}");
         var shortcuts = window.Descendants().Single(e => (string?)e.Attribute("ItemsSource") == "{Binding ShortcutItems}");
         shortcuts.Ancestors().Should().Contain(keyboard);
 
@@ -68,8 +69,9 @@ public class OutputPlacementEditorTests
         var pages = window.Descendants().First(e => e.Name.LocalName == "TabControl").Elements()
             .Where(e => e.Name.LocalName == "TabItem").ToArray();
         pages.Take(8).Select(e => (string?)e.Attribute("Header")).Should().Equal(
-            "Main Window", "Show", "Monitors", "Alerts", "Folders", "Bibles", "Licence", "Keyboard");
-        foreach (var alert in new[] { "Message Alert", "Parental Alert", "Display Reference On New Item" })
+            new[] { "TabMainWindow", "TabShow", "TabMonitors", "TabAlerts", "TabFolders", "TabBibles", "TabLicence", "TabKeyboard" }
+                .Select(key => "{loc:Text SettingsWindow." + key + "}"));
+        foreach (var alert in new[] { "{loc:Text SettingsWindow.MessageAlert}", "{loc:Text SettingsWindow.ParentalAlert}", "{loc:Text SettingsWindow.DisplayReference}" })
         {
             var group = pages[3].Descendants().Single(e => (string?)e.Attribute("Header") == alert);
             group.Descendants().Where(e => e.Name.LocalName == "FrmIcon").Select(e => (string?)e.Attribute("Icon"))

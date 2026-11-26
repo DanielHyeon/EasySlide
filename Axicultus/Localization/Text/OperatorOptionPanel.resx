@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="ChoiceTop" xml:space="preserve"><value>Top</value></data>
+  <data name="ChoiceMiddle" xml:space="preserve"><value>Middle</value></data>
+  <data name="ChoiceBottom" xml:space="preserve"><value>Bottom</value></data>
+  <data name="ChoiceLeft" xml:space="preserve"><value>Left</value></data>
+  <data name="ChoiceCenter" xml:space="preserve"><value>Centre</value></data>
+  <data name="ChoiceRight" xml:space="preserve"><value>Right</value></data>
+  <data name="PreviewFontPoints" xml:space="preserve"><value>Preview font size (pt)</value></data>
+  <data name="PreviewDivider" xml:space="preserve"><value>Line between screens</value></data>
+  <data name="PreviewFocusColorEnabled" xml:space="preserve"><value>Use a background colour for the focused area</value></data>
+  <data name="PreviewFocusArgb" xml:space="preserve"><value>Focus background colour</value></data>
+  <data name="PreviewSelectionTextArgb" xml:space="preserve"><value>Selected slide text colour</value></data>
+  <data name="PreviewSelectionBackgroundArgb" xml:space="preserve"><value>Selected slide background colour</value></data>
+  <data name="EditHistoryLimit" xml:space="preserve"><value>Recently edited items</value></data>
+  <data name="BackgroundVideoPercent" xml:space="preserve"><value>Background video size (%)</value></data>
+  <data name="BackgroundVideoAlignment" xml:space="preserve"><value>Background video position</value></data>
+  <data name="LargestFont" xml:space="preserve"><value>Use the largest font that fits the region</value></data>
+  <data name="RegionDivider" xml:space="preserve"><value>Line between the two lyrics regions</value></data>
+  <data name="HangingIndent" xml:space="preserve"><value>Indent continued lines when left-aligned</value></data>
+  <data name="NotationPercent" xml:space="preserve"><value>Chord font size (%)</value></data>
+  <data name="PreventScreenSaver" xml:space="preserve"><value>Keep the screen saver off during the show</value></data>
+  <data name="StageFontPoints" xml:space="preserve"><value>Lyrics font size (pt)</value></data>
+  <data name="StageNotationPoints" xml:space="preserve"><value>Chord font size (pt)</value></data>
+  <data name="StageShowNotations" xml:space="preserve"><value>Show chords on the lyrics monitor</value></data>
+  <data name="StageTextArgb" xml:space="preserve"><value>Lyrics text colour</value></data>
+  <data name="StageBackgroundArgb" xml:space="preserve"><value>Lyrics background colour</value></data>
+  <data name="StageBold" xml:space="preserve"><value>Bold</value></data>
+  <data name="StageItalic" xml:space="preserve"><value>Italic</value></data>
+  <data name="StageUnderline" xml:space="preserve"><value>Underline</value></data>
+  <data name="OutputAsSingle" xml:space="preserve"><value>Use the custom output like a single monitor</value></data>
+  <data name="StagePreferSecondary" xml:space="preserve"><value>Prefer the secondary lyrics monitor</value></data>
+  <data name="StageCustom" xml:space="preserve"><value>Use a custom lyrics monitor position</value></data>
+  <data name="StageLeft" xml:space="preserve"><value>Lyrics monitor left (px)</value></data>
+  <data name="StageTop" xml:space="preserve"><value>Lyrics monitor top (px)</value></data>
+  <data name="StageWidth" xml:space="preserve"><value>Lyrics monitor width (px)</value></data>
+  <data name="CameraWide" xml:space="preserve"><value>Camera widescreen</value></data>
+  <data name="CameraHidePanel" xml:space="preserve"><value>Hide the panel over the camera output</value></data>
+  <data name="CameraVolume" xml:space="preserve"><value>Camera volume</value></data>
+  <data name="CameraBalance" xml:space="preserve"><value>Camera balance</value></data>
+  <data name="CameraMuted" xml:space="preserve"><value>Mute camera</value></data>
+  <data name="AlternateKeyboard" xml:space="preserve"><value>Use the alternative keyboard layout</value></data>
+  <data name="GlobalF7" xml:space="preserve"><value>Global F7</value></data>
+  <data name="GlobalF8" xml:space="preserve"><value>Global F8</value></data>
+  <data name="GlobalF9" xml:space="preserve"><value>Global F9</value></data>
+  <data name="GlobalF10" xml:space="preserve"><value>Global F10</value></data>
+  <data name="GlobalArrow" xml:space="preserve"><value>Global arrow keys</value></data>
+  <data name="GlobalCtrlArrow" xml:space="preserve"><value>Global Ctrl + arrow keys</value></data>
+  <data name="MessageFamily" xml:space="preserve"><value>Font</value></data>
+  <data name="MessagePoints" xml:space="preserve"><value>Font size (pt)</value></data>
+  <data name="MessageForegroundArgb" xml:space="preserve"><value>Text colour</value></data>
+  <data name="MessageBackgroundArgb" xml:space="preserve"><value>Background colour</value></data>
+  <data name="MessageHorizontal" xml:space="preserve"><value>Horizontal alignment</value></data>
+  <data name="MessageVertical" xml:space="preserve"><value>Vertical alignment</value></data>
+  <data name="MessageBold" xml:space="preserve"><value>Bold</value></data>
+  <data name="MessageItalic" xml:space="preserve"><value>Italic</value></data>
+  <data name="MessageUnderline" xml:space="preserve"><value>Underline</value></data>
+  <data name="MessageShadow" xml:space="preserve"><value>Shadow</value></data>
+  <data name="MessageOutline" xml:space="preserve"><value>Outline</value></data>
+  <data name="ParentalFamily" xml:space="preserve"><value>Font</value></data>
+  <data name="ParentalPoints" xml:space="preserve"><value>Font size (pt)</value></data>
+  <data name="ParentalForegroundArgb" xml:space="preserve"><value>Text colour</value></data>
+  <data name="ParentalBackgroundArgb" xml:space="preserve"><value>Background colour</value></data>
+  <data name="ParentalHorizontal" xml:space="preserve"><value>Horizontal alignment</value></data>
+  <data name="ParentalVertical" xml:space="preserve"><value>Vertical alignment</value></data>
+  <data name="ParentalBold" xml:space="preserve"><value>Bold</value></data>
+  <data name="ParentalItalic" xml:space="preserve"><value>Italic</value></data>
+  <data name="ParentalUnderline" xml:space="preserve"><value>Underline</value></data>
+  <data name="ParentalShadow" xml:space="preserve"><value>Shadow</value></data>
+  <data name="ParentalOutline" xml:space="preserve"><value>Outline</value></data>
+  <data name="ReferenceFamily" xml:space="preserve"><value>Font</value></data>
+  <data name="ReferencePoints" xml:space="preserve"><value>Font size (pt)</value></data>
+  <data name="ReferenceForegroundArgb" xml:space="preserve"><value>Text colour</value></data>
+  <data name="ReferenceBackgroundArgb" xml:space="preserve"><value>Background colour</value></data>
+  <data name="ReferenceHorizontal" xml:space="preserve"><value>Horizontal alignment</value></data>
+  <data name="ReferenceVertical" xml:space="preserve"><value>Vertical alignment</value></data>
+  <data name="ReferenceBold" xml:space="preserve"><value>Bold</value></data>
+  <data name="ReferenceItalic" xml:space="preserve"><value>Italic</value></data>
+  <data name="ReferenceUnderline" xml:space="preserve"><value>Underline</value></data>
+  <data name="ReferenceShadow" xml:space="preserve"><value>Shadow</value></data>
+  <data name="ReferenceOutline" xml:space="preserve"><value>Outline</value></data>
+</root>

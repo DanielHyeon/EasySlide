@@ -1,95 +1,95 @@
-<Window x:Class="Axicultus.Wpf.SettingsWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml" xmlns:composites="clr-namespace:Axicultus.Wpf.Composites" xmlns:options="clr-namespace:Axicultus.Wpf.Controls" xmlns:library="clr-namespace:Axicultus.Wpf.Library" x:Name="OptionsWindow" Title="Options" Width="800" Height="705" MinWidth="540" MinHeight="430" FontFamily="Segoe UI" FontSize="14" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" WindowStartupLocation="CenterOwner">
+<Window x:Class="Axicultus.Wpf.SettingsWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml" xmlns:composites="clr-namespace:Axicultus.Wpf.Composites" xmlns:options="clr-namespace:Axicultus.Wpf.Controls" xmlns:library="clr-namespace:Axicultus.Wpf.Library" xmlns:loc="clr-namespace:Axicultus.Wpf.Localization" x:Name="OptionsWindow" Title="{loc:Text SettingsWindow.Title}" Width="800" Height="705" MinWidth="540" MinHeight="430" FontFamily="Segoe UI" FontSize="14" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" Foreground="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" WindowStartupLocation="CenterOwner">
     <Window.Resources><ResourceDictionary Source="Controls/OptionsLayout.xaml" /></Window.Resources>
     <Grid Margin="16">
         <Grid.RowDefinitions><RowDefinition /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
         <TabControl Style="{x:Null}" x:Name="OptionsTabs" SelectedIndex="{Binding SelectedTabIndex}" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
-            <TabItem Style="{x:Null}" Padding="10,5" Header="Main Window">
+            <TabItem Style="{x:Null}" Padding="10,5" Header="{loc:Text SettingsWindow.TabMainWindow}">
                 <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
                     <Canvas Width="719" Height="538" HorizontalAlignment="Left" VerticalAlignment="Top">
                         <GroupBox Style="{StaticResource ClassicOptionsGroup}" Canvas.Left="357" Canvas.Top="207"
-                            Width="342" Height="72" Header="Other Settings">
+                            Width="342" Height="72" Header="{loc:Text SettingsWindow.OtherSettings}">
                             <Canvas>
                                 <CheckBox Style="{x:Null}" Canvas.Left="15" Canvas.Top="32" Width="228" Height="24"
-                                    Content="Show Lyrics Monitor Alert Box"
+                                    Content="{loc:Text SettingsWindow.ShowLyricsMonitorAlertBox}"
                                     IsChecked="{Binding ShowLyricsMonitorAlertBox, Mode=TwoWay}"
                                     AutomationProperties.Name="Show Lyrics Monitor Alert Box" />
                             </Canvas>
                         </GroupBox>
                         <GroupBox Style="{StaticResource ClassicOptionsGroup}" Canvas.Left="357" Canvas.Top="287"
-                            Width="342" Height="160" Header="Jump To Folder Icons">
+                            Width="342" Height="160" Header="{loc:Text SettingsWindow.JumpToFolderIcons}">
                             <Canvas>
-                                <TextBlock Canvas.Left="26" Canvas.Top="107" Width="21" Height="20" Text="C." TextWrapping="Wrap" />
-                                <TextBlock Canvas.Left="26" Canvas.Top="73" Width="21" Height="20" Text="B." TextWrapping="Wrap" />
-                                <TextBlock Canvas.Left="26" Canvas.Top="40" Width="22" Height="20" Text="A." TextWrapping="Wrap" />
+                                <TextBlock Canvas.Left="26" Canvas.Top="107" Width="21" Height="20" Text="{}C." TextWrapping="Wrap" />
+                                <TextBlock Canvas.Left="26" Canvas.Top="73" Width="21" Height="20" Text="{}B." TextWrapping="Wrap" />
+                                <TextBlock Canvas.Left="26" Canvas.Top="40" Width="22" Height="20" Text="{}A." TextWrapping="Wrap" />
                                 <ComboBox Style="{x:Null}" Canvas.Left="58" Canvas.Top="34" Width="212" Height="28"
                                     ItemsSource="{Binding JumpFolders, ElementName=OptionsWindow}"
                                     DisplayMemberPath="Name" SelectedValuePath="Id"
                                     SelectedValue="{Binding JumpToA, Mode=TwoWay}"
-                                    AutomationProperties.Name="tool Strip Jump A" ToolTip="tool Strip Jump A" />
+                                    AutomationProperties.Name="tool Strip Jump A" ToolTip="{loc:Text SettingsWindow.JumpA}" />
                                 <ComboBox Style="{x:Null}" Canvas.Left="58" Canvas.Top="68" Width="211" Height="28"
                                     ItemsSource="{Binding JumpFolders, ElementName=OptionsWindow}"
                                     DisplayMemberPath="Name" SelectedValuePath="Id"
                                     SelectedValue="{Binding JumpToB, Mode=TwoWay}"
-                                    AutomationProperties.Name="tool Strip Jump B" ToolTip="tool Strip Jump B" />
+                                    AutomationProperties.Name="tool Strip Jump B" ToolTip="{loc:Text SettingsWindow.JumpB}" />
                                 <ComboBox Style="{x:Null}" Canvas.Left="58" Canvas.Top="102" Width="211" Height="28"
                                     ItemsSource="{Binding JumpFolders, ElementName=OptionsWindow}"
                                     DisplayMemberPath="Name" SelectedValuePath="Id"
                                     SelectedValue="{Binding JumpToC, Mode=TwoWay}"
-                                    AutomationProperties.Name="tool Strip Jump C" ToolTip="tool Strip Jump C" />
+                                    AutomationProperties.Name="tool Strip Jump C" ToolTip="{loc:Text SettingsWindow.JumpC}" />
                             </Canvas>
                         </GroupBox>
                         <GroupBox Style="{StaticResource ClassicOptionsGroup}" Canvas.Left="8" Canvas.Top="207"
-                            Width="336" Height="116" Header="Powerpoint">
+                            Width="336" Height="116" Header="{loc:Text SettingsWindow.PowerPointGroup}">
                             <Canvas>
                                 <CheckBox Style="{x:Null}" Canvas.Left="15" Canvas.Top="76" Width="173" Height="24"
-                                    Content="Show Powerpoint Tab" IsChecked="{Binding UsePowerPointTab, Mode=TwoWay}"
+                                    Content="{loc:Text SettingsWindow.ShowPowerPointTab}" IsChecked="{Binding UsePowerPointTab, Mode=TwoWay}"
                                     AutomationProperties.Name="Show Powerpoint Tab" />
                                 <options:OptionNumberBox Canvas.Left="248" Canvas.Top="32" Width="72" Height="27"
                                     Text="{Binding PowerPointMaxFiles, Mode=TwoWay, ValidatesOnExceptions=True}"
                                     Minimum="1" Maximum="100" AutomationProperties.Name="Power Point Max Files" />
                                 <TextBlock Canvas.Left="14" Canvas.Top="36" Width="209" Height="20"
-                                    Text="Max Powerpoint Files allowed:" TextWrapping="Wrap" />
+                                    Text="{loc:Text SettingsWindow.MaxPowerPointFiles}" TextWrapping="Wrap" />
                             </Canvas>
                         </GroupBox>
                         <GroupBox Style="{StaticResource ClassicOptionsGroup}" Canvas.Left="357" Canvas.Top="21"
-                            Width="342" Height="176" Header="Preview Text Areas">
+                            Width="342" Height="176" Header="{loc:Text SettingsWindow.PreviewTextAreas}">
                             <Canvas>
                                 <options:OptionColorButton Canvas.Left="202" Canvas.Top="123" Width="130" Height="39"
-                                    Content="Selected Back"
+                                    Content="{loc:Text SettingsWindow.SelectedBack}"
                                     Argb="{Binding [PreviewSelectionBackgroundArgb], Mode=TwoWay}"
                                     AutomationProperties.Name="Selected Back" />
                                 <options:OptionColorButton Canvas.Left="202" Canvas.Top="83" Width="130" Height="39"
-                                    Content="Selected Colour" Argb="{Binding [PreviewSelectionTextArgb], Mode=TwoWay}"
+                                    Content="{loc:Text SettingsWindow.SelectedColour}" Argb="{Binding [PreviewSelectionTextArgb], Mode=TwoWay}"
                                     AutomationProperties.Name="Selected Colour" />
                                 <options:OptionColorButton Canvas.Left="202" Canvas.Top="43" Width="130" Height="39"
-                                    Content="Focused Colour" Argb="{Binding [PreviewFocusArgb], Mode=TwoWay}"
+                                    Content="{loc:Text SettingsWindow.FocusedColour}" Argb="{Binding [PreviewFocusArgb], Mode=TwoWay}"
                                     IsEnabled="{Binding [PreviewFocusColorEnabled]}"
                                     AutomationProperties.Name="Focused Colour" />
                                 <options:OptionNumberBox Canvas.Left="88" Canvas.Top="29" Width="72" Height="27"
                                     Text="{Binding [PreviewFontPoints], Mode=TwoWay, ValidatesOnExceptions=True}"
                                     Minimum="8" Maximum="20" AutomationProperties.Name="Preview Font Points" />
-                                <TextBlock Canvas.Left="11" Canvas.Top="33" Width="69" Height="20" Text="Font Size" TextWrapping="Wrap" />
+                                <TextBlock Canvas.Left="11" Canvas.Top="33" Width="69" Height="20" Text="{loc:Text SettingsWindow.FontSize}" TextWrapping="Wrap" />
                                 <CheckBox Style="{x:Null}" Canvas.Left="16" Canvas.Top="100" Width="161" Height="24"
-                                    Content="Use Focused Colour"
+                                    Content="{loc:Text SettingsWindow.UseFocusedColour}"
                                     IsChecked="{Binding [PreviewFocusColorEnabled], Mode=TwoWay}"
                                     AutomationProperties.Name="Use Focused Colour" />
                                 <CheckBox Style="{x:Null}" Canvas.Left="16" Canvas.Top="69" Width="136" Height="24"
-                                    Content="Show Notations" IsChecked="{Binding PreviewAreaShowNotations, Mode=TwoWay}"
+                                    Content="{loc:Text SettingsWindow.ShowNotations}" IsChecked="{Binding PreviewAreaShowNotations, Mode=TwoWay}"
                                     AutomationProperties.Name="Show Notations" />
                                 <CheckBox Style="{x:Null}" Canvas.Left="16" Canvas.Top="131" Width="173" Height="24"
-                                    Content="Line between Screens" IsChecked="{Binding [PreviewDivider], Mode=TwoWay}"
+                                    Content="{loc:Text SettingsWindow.LineBetweenScreens}" IsChecked="{Binding [PreviewDivider], Mode=TwoWay}"
                                     AutomationProperties.Name="Line between Screens" />
                             </Canvas>
                         </GroupBox>
                         <GroupBox Style="{StaticResource ClassicOptionsGroup}" Canvas.Left="8" Canvas.Top="331"
-                            Width="336" Height="116" Header="Media Files">
+                            Width="336" Height="116" Header="{loc:Text SettingsWindow.MediaFiles}">
                             <Canvas>
                                 <CheckBox Style="{x:Null}" Canvas.Left="16" Canvas.Top="76" Width="140" Height="24"
-                                    Content="Show Media Tab" IsChecked="{Binding UseMediaTab, Mode=TwoWay}"
+                                    Content="{loc:Text SettingsWindow.ShowMediaTab}" IsChecked="{Binding UseMediaTab, Mode=TwoWay}"
                                     AutomationProperties.Name="Show Media Tab" />
                                 <Button Canvas.Left="297" Canvas.Top="33" Width="22" Height="22"
                                     Click="BrowseMediaFolder_Click" Style="{StaticResource OptionTool}"
-                                    AutomationProperties.Name="Change Location" ToolTip="Change Location">
+                                    AutomationProperties.Name="Change Location" ToolTip="{loc:Text SettingsWindow.ChangeLocation}">
                                     <options:FrmIcon Icon="folder_open" Width="18" Height="18" />
                                 </Button>
                                 <TextBox Style="{x:Null}" Canvas.Left="11" Canvas.Top="33" Width="278" Height="27"
@@ -98,75 +98,75 @@
                             </Canvas>
                         </GroupBox>
                         <GroupBox Style="{StaticResource ClassicOptionsGroup}" Canvas.Left="8" Canvas.Top="21"
-                            Width="336" Height="176" Header="Maximum Setting">
+                            Width="336" Height="176" Header="{loc:Text SettingsWindow.MaximumSetting}">
                             <Canvas>
                                 <options:OptionNumberBox Canvas.Left="247" Canvas.Top="123" Width="72" Height="27"
                                     Text="{Binding [EditHistoryLimit], Mode=TwoWay, ValidatesOnExceptions=True}"
                                     Minimum="0" Maximum="20" AutomationProperties.Name="Edit History Limit" />
                                 <TextBlock Canvas.Left="13" Canvas.Top="127" Width="201" Height="20"
-                                    Text="Max Edit History items listed:" TextWrapping="Wrap" />
+                                    Text="{loc:Text SettingsWindow.MaxEditHistory}" TextWrapping="Wrap" />
                                 <options:OptionNumberBox Canvas.Left="247" Canvas.Top="77" Width="72" Height="27"
                                     Text="{Binding BibleAdHocLimit, Mode=TwoWay, ValidatesOnExceptions=True}"
                                     Minimum="1" Maximum="500" AutomationProperties.Name="Bible Ad Hoc Limit" />
                                 <TextBlock Canvas.Left="13" Canvas.Top="81" Width="191" Height="20"
-                                    Text="Max Bible Search Selection:" TextWrapping="Wrap" />
+                                    Text="{loc:Text SettingsWindow.MaxBibleSearchSelection}" TextWrapping="Wrap" />
                                 <options:OptionNumberBox Canvas.Left="247" Canvas.Top="33" Width="72" Height="27"
                                     Text="{Binding BibleSequentialLimit, Mode=TwoWay, ValidatesOnExceptions=True}"
                                     Minimum="1" Maximum="500" AutomationProperties.Name="Bible Sequential Limit" />
                                 <TextBlock Canvas.Left="13" Canvas.Top="37" Width="188" Height="20"
-                                    Text="Max Bible Verses Selection:" TextWrapping="Wrap" />
+                                    Text="{loc:Text SettingsWindow.MaxBibleVersesSelection}" TextWrapping="Wrap" />
                             </Canvas>
                         </GroupBox>
                         <GroupBox Style="{StaticResource ClassicOptionsGroup}" Canvas.Left="8" Canvas.Top="458"
-                            Width="691" Height="70" Header="화면 글꼴 및 인터페이스 크기">
+                            Width="691" Height="70" Header="{loc:Text SettingsWindow.InterfaceSize}">
                             <StackPanel Orientation="Horizontal" Margin="15,20,0,0" VerticalAlignment="Center">
-                                <RadioButton Style="{x:Null}" GroupName="InterfaceSize" Content="작은 글꼴" FontSize="10" Margin="0,0,28,0"
+                                <RadioButton Style="{x:Null}" GroupName="InterfaceSize" Content="{loc:Text SettingsWindow.SizeSmall}" FontSize="10" Margin="0,0,28,0"
                                     IsChecked="{Binding InterfaceSize, Mode=TwoWay, Converter={StaticResource OptionChoice}, ConverterParameter=Small}" />
-                                <RadioButton Style="{x:Null}" GroupName="InterfaceSize" Content="표준" FontSize="11" Margin="0,0,28,0"
+                                <RadioButton Style="{x:Null}" GroupName="InterfaceSize" Content="{loc:Text SettingsWindow.SizeStandard}" FontSize="11" Margin="0,0,28,0"
                                     IsChecked="{Binding InterfaceSize, Mode=TwoWay, Converter={StaticResource OptionChoice}, ConverterParameter=Standard}" />
-                                <RadioButton Style="{x:Null}" GroupName="InterfaceSize" Content="큰 글씨" FontSize="16.8" Margin="0,0,28,0"
+                                <RadioButton Style="{x:Null}" GroupName="InterfaceSize" Content="{loc:Text SettingsWindow.SizeLarge}" FontSize="16.8" Margin="0,0,28,0"
                                     IsChecked="{Binding InterfaceSize, Mode=TwoWay, Converter={StaticResource OptionChoice}, ConverterParameter=Large}" />
-                                <RadioButton Style="{x:Null}" GroupName="InterfaceSize" Content="시니어" FontSize="19.6"
+                                <RadioButton Style="{x:Null}" GroupName="InterfaceSize" Content="{loc:Text SettingsWindow.SizeSenior}" FontSize="19.6"
                                     IsChecked="{Binding InterfaceSize, Mode=TwoWay, Converter={StaticResource OptionChoice}, ConverterParameter=Senior}" />
                             </StackPanel>
                         </GroupBox>
                     </Canvas>
                 </ScrollViewer>
             </TabItem>
-            <TabItem Style="{x:Null}" Padding="10,5" Header="Show">
+            <TabItem Style="{x:Null}" Padding="10,5" Header="{loc:Text SettingsWindow.TabShow}">
                 <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
                     <Canvas Width="719" Height="538" HorizontalAlignment="Left" VerticalAlignment="Top">
                         <TextBlock Canvas.Left="24" Canvas.Top="448" Width="239" Height="20"
-                            Text="** Applicable in Dual Monitor Only" TextWrapping="Wrap" />
+                            Text="{loc:Text SettingsWindow.DualMonitorOnly}" TextWrapping="Wrap" />
                         <GroupBox Style="{StaticResource ClassicOptionsGroup}" Canvas.Left="8" Canvas.Top="254"
-                            Width="334" Height="177" Header="Other Settings">
+                            Width="334" Height="177" Header="{loc:Text SettingsWindow.OtherSettings}">
                             <Canvas>
                                 <CheckBox Style="{x:Null}" Canvas.Left="15" Canvas.Top="132" Width="256" Height="24"
-                                    Content="Disable Screen Saver during Show"
+                                    Content="{loc:Text SettingsWindow.DisableScreenSaver}"
                                     IsChecked="{Binding [PreventScreenSaver], Mode=TwoWay}"
                                     AutomationProperties.Name="Disable Screen Saver during Show" />
                                 <CheckBox Style="{x:Null}" Canvas.Left="15" Canvas.Top="32" Width="157" Height="24"
-                                    Content="Advance Next Item" IsChecked="{Binding AdvanceNextItem, Mode=TwoWay}"
+                                    Content="{loc:Text SettingsWindow.AdvanceNextItem}" IsChecked="{Binding AdvanceNextItem, Mode=TwoWay}"
                                     AutomationProperties.Name="Advance Next Item" />
                                 <CheckBox Style="{x:Null}" Canvas.Left="15" Canvas.Top="88" Width="231" Height="24"
-                                    Content="No Panel Overlay For Media **"
+                                    Content="{loc:Text SettingsWindow.NoPanelOverlayMedia}"
                                     IsChecked="{Binding NoMediaPanelOverlay, Mode=TwoWay}"
                                     AutomationProperties.Name="No Panel Overlay For Media **" />
                                 <CheckBox Style="{x:Null}" Canvas.Left="15" Canvas.Top="60" Width="264" Height="24"
-                                    Content="No Panel Overlay For Powerpoint **"
+                                    Content="{loc:Text SettingsWindow.NoPanelOverlayPowerPoint}"
                                     IsChecked="{Binding NoPowerPointPanelOverlay, Mode=TwoWay}"
                                     AutomationProperties.Name="No Panel Overlay For Powerpoint **" />
                             </Canvas>
                         </GroupBox>
                         <GroupBox Style="{StaticResource ClassicOptionsGroup}" Canvas.Left="358" Canvas.Top="23"
-                            Width="342" Height="197" Header="Gap between items">
+                            Width="342" Height="197" Header="{loc:Text SettingsWindow.GapBetweenItems}">
                             <Canvas>
                                 <CheckBox Style="{x:Null}" Canvas.Left="14" Canvas.Top="149" Width="158" Height="24"
-                                    Content="Use Fade Transition" IsChecked="{Binding GapItemUseFade, Mode=TwoWay}"
+                                    Content="{loc:Text SettingsWindow.UseFadeTransition}" IsChecked="{Binding GapItemUseFade, Mode=TwoWay}"
                                     AutomationProperties.Name="Use Fade Transition" />
                                 <Button Canvas.Left="297" Canvas.Top="106" Width="22" Height="22"
                                     Click="BrowseGapLogo_Click" Style="{StaticResource OptionTool}"
-                                    AutomationProperties.Name="Lookup Logo File" ToolTip="Lookup Logo File">
+                                    AutomationProperties.Name="Lookup Logo File" ToolTip="{loc:Text SettingsWindow.LookupLogoFile}">
                                     <options:FrmIcon Icon="folder_open" Width="18" Height="18" />
                                 </Button>
                                 <TextBox Style="{x:Null}" Canvas.Left="38" Canvas.Top="107" Width="254" Height="27"
@@ -177,61 +177,61 @@
                                     IsChecked="{Binding GapItemOption, Mode=TwoWay, Converter={StaticResource OptionChoice}, ConverterParameter=User}"
                                     AutomationProperties.Name="rb Gap Item Option3" />
                                 <RadioButton Style="{x:Null}" Canvas.Left="14" Canvas.Top="52" Width="113" Height="24"
-                                    Content="Black Screen" GroupName="rbGapItemOption"
+                                    Content="{loc:Text SettingsWindow.BlackScreen}" GroupName="rbGapItemOption"
                                     IsChecked="{Binding GapItemOption, Mode=TwoWay, Converter={StaticResource OptionChoice}, ConverterParameter=Black}"
                                     AutomationProperties.Name="Black Screen" />
                                 <RadioButton Style="{x:Null}" Canvas.Left="14" Canvas.Top="24" Width="81" Height="24"
-                                    Content="No Gap" GroupName="rbGapItemOption"
+                                    Content="{loc:Text SettingsWindow.NoGap}" GroupName="rbGapItemOption"
                                     IsChecked="{Binding GapItemOption, Mode=TwoWay, Converter={StaticResource OptionChoice}, ConverterParameter=None}"
                                     AutomationProperties.Name="No Gap" />
                                 <RadioButton Style="{x:Null}" Canvas.Left="14" Canvas.Top="80" Width="215" Height="24"
-                                    Content="Default Session Background" GroupName="rbGapItemOption"
+                                    Content="{loc:Text SettingsWindow.DefaultSessionBackground}" GroupName="rbGapItemOption"
                                     IsChecked="{Binding GapItemOption, Mode=TwoWay, Converter={StaticResource OptionChoice}, ConverterParameter=Default}"
                                     AutomationProperties.Name="Default Session Background" />
                             </Canvas>
                         </GroupBox>
                         <GroupBox Style="{StaticResource ClassicOptionsGroup}" Canvas.Left="358" Canvas.Top="229"
-                            Width="342" Height="177" Header="Video Background">
+                            Width="342" Height="177" Header="{loc:Text SettingsWindow.VideoBackground}">
                             <Canvas>
-                                <TextBlock Canvas.Left="202" Canvas.Top="100" Width="47" Height="20" Text="Align:" TextWrapping="Wrap" />
+                                <TextBlock Canvas.Left="202" Canvas.Top="100" Width="47" Height="20" Text="{loc:Text SettingsWindow.AlignLabel}" TextWrapping="Wrap" />
                                 <ComboBox Style="{x:Null}" Canvas.Left="248" Canvas.Top="92" Width="38" Height="36"
                                     SelectedValuePath="Id"
                                     SelectedValue="{Binding [BackgroundVideoAlignment], Mode=TwoWay}"
                                     ItemsSource="{x:Static options:OptionChoices.Vertical}"
                                     ItemTemplate="{StaticResource OptionIconItem}" Padding="0" MinWidth="0"
-                                    AutomationProperties.Name="Vertical Alignment" ToolTip="Vertical Alignment" />
+                                    AutomationProperties.Name="Vertical Alignment" ToolTip="{loc:Text SettingsWindow.VerticalAlignment}" />
                                 <options:OptionNumberBox Canvas.Left="250" Canvas.Top="53" Width="64" Height="27"
                                     Text="{Binding [BackgroundVideoPercent], Mode=TwoWay, ValidatesOnExceptions=True}"
                                     Minimum="25" Maximum="100" AutomationProperties.Name="Background Video Percent" />
-                                <TextBlock Canvas.Left="202" Canvas.Top="60" Width="39" Height="20" Text="Size:" TextWrapping="Wrap" />
+                                <TextBlock Canvas.Left="202" Canvas.Top="60" Width="39" Height="20" Text="{loc:Text SettingsWindow.SizeLabel}" TextWrapping="Wrap" />
                                 <options:OptionLayoutPreview Canvas.Left="8" Canvas.Top="31" Width="156" Height="135"
                                     Mode="Video" First="{Binding [BackgroundVideoPercent], Mode=OneWay, Converter={StaticResource IntegerOption}}"
                                     Second="{Binding [BackgroundVideoAlignment], Mode=OneWay, Converter={StaticResource IntegerOption}}" />
                             </Canvas>
                         </GroupBox>
                         <GroupBox Style="{StaticResource ClassicOptionsGroup}" Canvas.Left="8" Canvas.Top="23"
-                            Width="334" Height="222" Header="Text Settings">
+                            Width="334" Height="222" Header="{loc:Text SettingsWindow.TextSettings}">
                             <Canvas>
                                 <options:OptionNumberBox Canvas.Left="255" Canvas.Top="176" Width="64" Height="27"
                                     Text="{Binding [NotationPercent], Mode=TwoWay, ValidatesOnExceptions=True}"
                                     Minimum="20" Maximum="200" AutomationProperties.Name="Notation Percent" />
                                 <TextBlock Canvas.Left="13" Canvas.Top="183" Width="249" Height="20"
-                                    Text="Size of Notations to Folder Font (%):" TextWrapping="Wrap" />
+                                    Text="{loc:Text SettingsWindow.NotationSize}" TextWrapping="Wrap" />
                                 <CheckBox Style="{x:Null}" Canvas.Left="15" Canvas.Top="144" Width="210" Height="24"
-                                    Content="Indent Word Wrapped Text"
+                                    Content="{loc:Text SettingsWindow.IndentWrappedText}"
                                     IsChecked="{Binding [HangingIndent], Mode=TwoWay}"
                                     AutomationProperties.Name="Indent Word Wrapped Text" />
                                 <CheckBox Style="{x:Null}" Canvas.Left="15" Canvas.Top="115" Width="176" Height="24"
-                                    Content="Line between Regions" IsChecked="{Binding [RegionDivider], Mode=TwoWay}"
+                                    Content="{loc:Text SettingsWindow.LineBetweenRegions}" IsChecked="{Binding [RegionDivider], Mode=TwoWay}"
                                     AutomationProperties.Name="Line between Regions" />
                                 <CheckBox Style="{x:Null}" Canvas.Left="15" Canvas.Top="86" Width="140" Height="24"
-                                    Content="Use Largest Font" IsChecked="{Binding [LargestFont], Mode=TwoWay}"
+                                    Content="{loc:Text SettingsWindow.UseLargestFont}" IsChecked="{Binding [LargestFont], Mode=TwoWay}"
                                     AutomationProperties.Name="Use Largest Font" />
                                 <CheckBox Style="{x:Null}" Canvas.Left="15" Canvas.Top="29" Width="158" Height="24"
-                                    Content="Auto Text Overflow" IsChecked="{Binding AutoTextOverflow, Mode=TwoWay}"
+                                    Content="{loc:Text SettingsWindow.AutoTextOverflow}" IsChecked="{Binding AutoTextOverflow, Mode=TwoWay}"
                                     AutomationProperties.Name="Auto Text Overflow" />
                                 <CheckBox Style="{x:Null}" Canvas.Left="15" Canvas.Top="57" Width="305" Height="24"
-                                    Content="Fit each text file paragraph on one slide"
+                                    Content="{loc:Text SettingsWindow.FitParagraphOnSlide}"
                                     IsChecked="{Binding FitTextFileParagraphs, Mode=TwoWay}"
                                     AutomationProperties.Name="Fit each text file paragraph on one slide" />
                             </Canvas>
@@ -239,14 +239,14 @@
                     </Canvas>
                 </ScrollViewer>
             </TabItem>
-            <TabItem Style="{x:Null}" Padding="10,5" Header="Monitors">
+            <TabItem Style="{x:Null}" Padding="10,5" Header="{loc:Text SettingsWindow.TabMonitors}">
                 <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
                     <Canvas Width="719" Height="538" HorizontalAlignment="Left" VerticalAlignment="Top">
                         <GroupBox Style="{StaticResource ClassicOptionsGroup}" Canvas.Left="9" Canvas.Top="285"
-                            Width="335" Height="221" Header="Live Cam Settings">
+                            Width="335" Height="221" Header="{loc:Text SettingsWindow.LiveCamSettings}">
                             <Canvas>
                                 <CheckBox Style="{x:Null}" Canvas.Left="14" Canvas.Top="187" Width="249" Height="24"
-                                    Content="No Panel Overlay For Live Cam **"
+                                    Content="{loc:Text SettingsWindow.NoPanelOverlayLiveCam}"
                                     IsChecked="{Binding [CameraHidePanel], Mode=TwoWay}"
                                     AutomationProperties.Name="No Panel Overlay For Live Cam **" />
                                 <ComboBox Style="{x:Null}" Canvas.Left="14" Canvas.Top="31" Width="306" Height="28"
@@ -254,10 +254,10 @@
                                     ItemsSource="{Binding CameraChoices, ElementName=OptionsWindow}"
                                     DisplayMemberPath="Name" SelectedValuePath="Id"
                                     SelectedValue="{Binding LiveCameraNumber, Mode=TwoWay}"
-                                    AutomationProperties.Name="Live camera" ToolTip="Live camera" />
-                                <TextBlock Canvas.Left="111" Canvas.Top="93" Width="34" Height="20" Text="Min" TextWrapping="Wrap" />
-                                <TextBlock Canvas.Left="298" Canvas.Top="149" Width="18" Height="20" Text="R" TextWrapping="Wrap" />
-                                <TextBlock Canvas.Left="119" Canvas.Top="149" Width="16" Height="20" Text="L" TextWrapping="Wrap" />
+                                    AutomationProperties.Name="Live camera" ToolTip="{loc:Text SettingsWindow.LiveCamera}" />
+                                <TextBlock Canvas.Left="111" Canvas.Top="93" Width="34" Height="20" Text="{loc:Text SettingsWindow.Min}" TextWrapping="Wrap" />
+                                <TextBlock Canvas.Left="298" Canvas.Top="149" Width="18" Height="20" Text="{loc:Text SettingsWindow.BalanceRight}" TextWrapping="Wrap" />
+                                <TextBlock Canvas.Left="119" Canvas.Top="149" Width="16" Height="20" Text="{loc:Text SettingsWindow.BalanceLeft}" TextWrapping="Wrap" />
                                 <Slider Style="{x:Null}" Canvas.Left="139" Canvas.Top="146" Width="154" Height="30"
                                     Minimum="-100" Maximum="100" TickFrequency="1" IsSnapToTickEnabled="True"
                                     Value="{Binding [CameraBalance], Mode=TwoWay, Converter={StaticResource IntegerOption}}" VerticalAlignment="Center"
@@ -267,60 +267,60 @@
                                     Value="{Binding [CameraVolume], Mode=TwoWay, Converter={StaticResource IntegerOption}}" VerticalAlignment="Center"
                                     AutomationProperties.Name="Camera Volume" />
                                 <CheckBox Style="{x:Null}" Canvas.Left="14" Canvas.Top="123" Width="110" Height="24"
-                                    Content="WideScreen" IsChecked="{Binding [CameraWide], Mode=TwoWay}"
+                                    Content="{loc:Text SettingsWindow.WideScreen}" IsChecked="{Binding [CameraWide], Mode=TwoWay}"
                                     AutomationProperties.Name="WideScreen" />
                                 <CheckBox Style="{x:Null}" Canvas.Left="14" Canvas.Top="88" Width="65" Height="24"
-                                    Content="Mute" IsChecked="{Binding [CameraMuted], Mode=TwoWay}"
+                                    Content="{loc:Text SettingsWindow.Mute}" IsChecked="{Binding [CameraMuted], Mode=TwoWay}"
                                     AutomationProperties.Name="Mute" />
-                                <TextBlock Canvas.Left="291" Canvas.Top="93" Width="37" Height="20" Text="Max" TextWrapping="Wrap" />
+                                <TextBlock Canvas.Left="291" Canvas.Top="93" Width="37" Height="20" Text="{loc:Text SettingsWindow.Max}" TextWrapping="Wrap" />
                             </Canvas>
                         </GroupBox>
                         <GroupBox Style="{StaticResource ClassicOptionsGroup}" Canvas.Left="360" Canvas.Top="21"
-                            Width="335" Height="491" Header="Lyrics Monitor"
+                            Width="335" Height="491" Header="{loc:Text SettingsWindow.LyricsMonitor}"
                             IsEnabled="{Binding CanConfigureDisplays, ElementName=OptionsWindow}">
                             <Canvas>
                                 <options:OptionColorButton Canvas.Left="25" Canvas.Top="323" Width="130" Height="39"
-                                    Content="Selected Colour"
+                                    Content="{loc:Text SettingsWindow.SelectedColour}"
                                     Argb="{Binding LyricsMonitorHighlightColorArgb, Mode=TwoWay}"
                                     AutomationProperties.Name="Selected Colour" />
                                 <options:OptionColorButton Canvas.Left="25" Canvas.Top="371" Width="130" Height="39"
-                                    Content="Back Colour" Argb="{Binding [StageBackgroundArgb], Mode=TwoWay}"
+                                    Content="{loc:Text SettingsWindow.BackColour}" Argb="{Binding [StageBackgroundArgb], Mode=TwoWay}"
                                     AutomationProperties.Name="Back Colour" />
                                 <options:OptionColorButton Canvas.Left="25" Canvas.Top="276" Width="130" Height="39"
-                                    Content="Text Colour" Argb="{Binding [StageTextArgb], Mode=TwoWay}"
+                                    Content="{loc:Text SettingsWindow.TextColour}" Argb="{Binding [StageTextArgb], Mode=TwoWay}"
                                     AutomationProperties.Name="Text Colour" />
                                 <options:OptionNumberBox Canvas.Left="129" Canvas.Top="152" Width="65" Height="27"
                                     Text="{Binding [StageLeft], Mode=TwoWay, ValidatesOnExceptions=True}"
                                     Minimum="-9999" Maximum="9999" IsEnabled="{Binding [StageCustom]}"
                                     AutomationProperties.Name="Stage Left" />
-                                <TextBlock Canvas.Left="89" Canvas.Top="117" Width="37" Height="20" Text="Top:" TextWrapping="Wrap" />
+                                <TextBlock Canvas.Left="89" Canvas.Top="117" Width="37" Height="20" Text="{loc:Text SettingsWindow.TopLabel}" TextWrapping="Wrap" />
                                 <options:OptionNumberBox Canvas.Left="129" Canvas.Top="113" Width="65" Height="27"
                                     Text="{Binding [StageTop], Mode=TwoWay, ValidatesOnExceptions=True}" Minimum="-9999"
                                     Maximum="9999" IsEnabled="{Binding [StageCustom]}"
                                     AutomationProperties.Name="Stage Top" />
-                                <TextBlock Canvas.Left="90" Canvas.Top="156" Width="37" Height="20" Text="Left:" TextWrapping="Wrap" />
+                                <TextBlock Canvas.Left="90" Canvas.Top="156" Width="37" Height="20" Text="{loc:Text SettingsWindow.LeftLabel}" TextWrapping="Wrap" />
                                 <options:OptionNumberBox Canvas.Left="255" Canvas.Top="239" Width="65" Height="27"
                                     Text="{Binding [StageNotationPoints], Mode=TwoWay, ValidatesOnExceptions=True}"
                                     Minimum="8" Maximum="40" AutomationProperties.Name="Stage Notation Points" />
                                 <ToggleButton Canvas.Left="208" Canvas.Top="199" Width="29" Height="36"
                                     IsChecked="{Binding [StageBold], Mode=TwoWay}" Style="{StaticResource OptionTool}"
-                                    AutomationProperties.Name="Stage Bold" ToolTip="Stage Bold">
+                                    AutomationProperties.Name="Stage Bold" ToolTip="{loc:Text SettingsWindow.StageBold}">
                                     <options:FrmIcon Icon="text_bold" Width="18" Height="18" />
                                 </ToggleButton>
                                 <ToggleButton Canvas.Left="238" Canvas.Top="199" Width="29" Height="36"
                                     IsChecked="{Binding [StageItalic], Mode=TwoWay}" Style="{StaticResource OptionTool}"
-                                    AutomationProperties.Name="Stage Italic" ToolTip="Stage Italic">
+                                    AutomationProperties.Name="Stage Italic" ToolTip="{loc:Text SettingsWindow.StageItalic}">
                                     <options:FrmIcon Icon="text_italic" Width="18" Height="18" />
                                 </ToggleButton>
                                 <ToggleButton Canvas.Left="268" Canvas.Top="199" Width="29" Height="36"
                                     IsChecked="{Binding [StageUnderline], Mode=TwoWay}"
                                     Style="{StaticResource OptionTool}" AutomationProperties.Name="Stage Underline"
-                                    ToolTip="Stage Underline">
+                                    ToolTip="{loc:Text SettingsWindow.StageUnderline}">
                                     <options:FrmIcon Icon="text_underline" Width="18" Height="18" />
                                 </ToggleButton>
                                 <CheckBox Style="{x:Null}" Canvas.Left="41" Canvas.Top="71" Width="264" Height="24"
                                     IsEnabled="{Binding [StageCustom], Mode=OneWay, Converter={StaticResource OptionChoice}, ConverterParameter=False}"
-                                    Content="Use another monitor if unavailable"
+                                    Content="{loc:Text SettingsWindow.UseAnotherMonitor}"
                                     IsChecked="{Binding [StagePreferSecondary], Mode=TwoWay}"
                                     AutomationProperties.Name="Use another monitor if unavailable" />
                                 <options:OptionNumberBox Canvas.Left="129" Canvas.Top="200" Width="65" Height="27"
@@ -335,10 +335,10 @@
                                     DisplayMemberPath="Name" SelectedValuePath="Id"
                                     SelectedValue="{Binding PreviewMonitorId, Mode=TwoWay}"
                                     IsEnabled="{Binding [StageCustom], Mode=OneWay, Converter={StaticResource OptionChoice}, ConverterParameter=False}"
-                                    AutomationProperties.Name="Lyrics Monitor List" ToolTip="Lyrics Monitor List" />
+                                    AutomationProperties.Name="Lyrics Monitor List" ToolTip="{loc:Text SettingsWindow.LyricsMonitorList}" />
                                 <Button Canvas.Left="297" Canvas.Top="31" Width="22" Height="22"
                                     Click="MonitorInfo_Click" Style="{StaticResource OptionTool}"
-                                    AutomationProperties.Name="Monitor Info" ToolTip="Monitor Info">
+                                    AutomationProperties.Name="Monitor Info" ToolTip="{loc:Text SettingsWindow.MonitorInfo}">
                                     <options:FrmIcon Icon="info" Width="18" Height="18" />
                                 </Button>
                                 <TextBox Style="{x:Null}" Canvas.Left="255" Canvas.Top="152" Width="65" Height="27"
@@ -350,28 +350,28 @@
                                     Maximum="9999" IsEnabled="{Binding [StageCustom]}"
                                     AutomationProperties.Name="Stage Width" />
                                 <RadioButton Style="{x:Null}" Canvas.Left="14" Canvas.Top="113" Width="83" Height="24"
-                                    Content="Custom:" GroupName="optLM" VerticalContentAlignment="Center"
+                                    Content="{loc:Text SettingsWindow.CustomLabel}" GroupName="optLM" VerticalContentAlignment="Center"
                                     IsChecked="{Binding [StageCustom], Mode=TwoWay, Converter={StaticResource OptionChoice}, ConverterParameter=True}"
                                     AutomationProperties.Name="Custom:" />
-                                <TextBlock Canvas.Left="201" Canvas.Top="159" Width="57" Height="20" Text="Height:" TextWrapping="Wrap" />
-                                <TextBlock Canvas.Left="203" Canvas.Top="117" Width="52" Height="20" Text="Width:" TextWrapping="Wrap" />
-                                <TextBlock Canvas.Left="215" Canvas.Top="241" Width="39" Height="20" Text="Size:" TextWrapping="Wrap" />
+                                <TextBlock Canvas.Left="201" Canvas.Top="159" Width="57" Height="20" Text="{loc:Text SettingsWindow.HeightLabel}" TextWrapping="Wrap" />
+                                <TextBlock Canvas.Left="203" Canvas.Top="117" Width="52" Height="20" Text="{loc:Text SettingsWindow.WidthLabel}" TextWrapping="Wrap" />
+                                <TextBlock Canvas.Left="215" Canvas.Top="241" Width="39" Height="20" Text="{loc:Text SettingsWindow.SizeLabel}" TextWrapping="Wrap" />
                                 <CheckBox Style="{x:Null}" Canvas.Left="25" Canvas.Top="240" Width="136" Height="24"
-                                    Content="Show Notations" IsChecked="{Binding [StageShowNotations], Mode=TwoWay}"
+                                    Content="{loc:Text SettingsWindow.ShowNotations}" IsChecked="{Binding [StageShowNotations], Mode=TwoWay}"
                                     AutomationProperties.Name="Show Notations" />
-                                <TextBlock Canvas.Left="22" Canvas.Top="204" Width="109" Height="20" Text="Main Font Size:" TextWrapping="Wrap" />
+                                <TextBlock Canvas.Left="22" Canvas.Top="204" Width="109" Height="20" Text="{loc:Text SettingsWindow.MainFontSize}" TextWrapping="Wrap" />
                             </Canvas>
                         </GroupBox>
                         <GroupBox Style="{StaticResource ClassicOptionsGroup}" Canvas.Left="9" Canvas.Top="21"
-                            Width="335" Height="256" Header="Live Output Monitor"
+                            Width="335" Height="256" Header="{loc:Text SettingsWindow.LiveOutputMonitor}"
                             IsEnabled="{Binding CanConfigureDisplays, ElementName=OptionsWindow}">
                             <Canvas>
                                 <RadioButton Style="{x:Null}" Canvas.Left="158" Canvas.Top="76" Width="99" Height="24"
-                                    Content="wide(16:9)" GroupName="Ratio"
+                                    Content="{loc:Text SettingsWindow.Wide169}" GroupName="Ratio"
                                     IsChecked="{Binding IsMonitorWide, Mode=TwoWay, Converter={StaticResource OptionChoice}, ConverterParameter=True}"
                                     AutomationProperties.Name="wide(16:9)" />
                                 <RadioButton Style="{x:Null}" Canvas.Left="44" Canvas.Top="76" Width="117" Height="24"
-                                    Content="standard(4:3)" GroupName="Ratio"
+                                    Content="{loc:Text SettingsWindow.Standard43}" GroupName="Ratio"
                                     IsChecked="{Binding IsMonitorWide, Mode=TwoWay, Converter={StaticResource OptionChoice}, ConverterParameter=False}"
                                     AutomationProperties.Name="standard(4:3)" />
                                 <composites:OutputPlacementEditor Canvas.Top="105" Width="335" Height="150" />
@@ -384,10 +384,10 @@
                                     DisplayMemberPath="Name" SelectedValuePath="Id"
                                     SelectedValue="{Binding DefaultOutputMonitorId, Mode=TwoWay}"
                                     IsEnabled="{Binding UseCustomOutputBounds, Mode=OneWay, Converter={StaticResource OptionChoice}, ConverterParameter=False}"
-                                    AutomationProperties.Name="Dual Monitor List" ToolTip="Dual Monitor List" />
+                                    AutomationProperties.Name="Dual Monitor List" ToolTip="{loc:Text SettingsWindow.DualMonitorList}" />
                                 <Button Canvas.Left="297" Canvas.Top="31" Width="22" Height="22"
                                     Click="MonitorInfo_Click" Style="{StaticResource OptionTool}"
-                                    AutomationProperties.Name="Monitor Info" ToolTip="Monitor Info">
+                                    AutomationProperties.Name="Monitor Info" ToolTip="{loc:Text SettingsWindow.MonitorInfo}">
                                     <options:FrmIcon Icon="info" Width="18" Height="18" />
                                 </Button>
                             </Canvas>
@@ -395,17 +395,17 @@
                     </Canvas>
                 </ScrollViewer>
             </TabItem>
-            <TabItem Style="{x:Null}" Padding="10,5" Header="Alerts">
+            <TabItem Style="{x:Null}" Padding="10,5" Header="{loc:Text SettingsWindow.TabAlerts}">
                 <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
                     <Canvas Width="719" Height="538" HorizontalAlignment="Left" VerticalAlignment="Top">
                         <GroupBox Style="{StaticResource ClassicOptionsGroup}" Canvas.Left="363" Canvas.Top="16"
-                            Width="342" Height="500" Header="Display Reference On New Item">
+                            Width="342" Height="500" Header="{loc:Text SettingsWindow.DisplayReference}">
                             <Canvas>
                                 <GroupBox Style="{StaticResource ClassicOptionsGroup}" Canvas.Left="170" Canvas.Top="29"
-                                    Width="161" Height="216" Header="Pick &amp; Substitute">
+                                    Width="161" Height="216" Header="{loc:Text SettingsWindow.PickSubstitute}">
                                     <Canvas>
                                         <CheckBox Style="{x:Null}" Canvas.Left="10" Canvas.Top="63" Width="149"
-                                            Height="24" Content="Blank if not found"
+                                            Height="24" Content="{loc:Text SettingsWindow.BlankIfNotFound}"
                                             IsChecked="{Binding ReferenceAlertBlankIfPickNotFound, Mode=TwoWay}"
                                             IsEnabled="{Binding ReferenceAlertUsePick}"
                                             AutomationProperties.Name="Blank if not found" />
@@ -415,7 +415,7 @@
                                             IsEnabled="{Binding ReferenceAlertUsePick}"
                                             AutomationProperties.Name="Reference Alert Pick Substitute" />
                                         <CheckBox Style="{x:Null}" Canvas.Left="10" Canvas.Top="33" Width="76"
-                                            Height="24" Content="Enable"
+                                            Height="24" Content="{loc:Text SettingsWindow.Enable}"
                                             IsChecked="{Binding ReferenceAlertUsePick, Mode=TwoWay}"
                                             AutomationProperties.Name="Enable" />
                                         <TextBox Style="{x:Null}" Canvas.Left="10" Canvas.Top="116" Width="82"
@@ -423,294 +423,294 @@
                                             Text="{Binding ReferenceAlertPickName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                             IsEnabled="{Binding ReferenceAlertUsePick}"
                                             AutomationProperties.Name="Reference Alert Pick Name" />
-                                        <TextBlock Canvas.Left="7" Canvas.Top="151" Width="78" Height="20" Text="Substitute:" TextWrapping="Wrap" />
-                                        <TextBlock Canvas.Left="8" Canvas.Top="91" Width="38" Height="20" Text="Pick:" TextWrapping="Wrap" />
+                                        <TextBlock Canvas.Left="7" Canvas.Top="151" Width="78" Height="20" Text="{loc:Text SettingsWindow.SubstituteLabel}" TextWrapping="Wrap" />
+                                        <TextBlock Canvas.Left="8" Canvas.Top="91" Width="38" Height="20" Text="{loc:Text SettingsWindow.PickLabel}" TextWrapping="Wrap" />
                                     </Canvas>
                                 </GroupBox>
                                 <GroupBox Style="{StaticResource ClassicOptionsGroup}" Canvas.Left="11" Canvas.Top="29"
-                                    Width="153" Height="216" Header="Select Reference">
+                                    Width="153" Height="216" Header="{loc:Text SettingsWindow.SelectReference}">
                                     <Canvas>
                                         <RadioButton Style="{x:Null}" Canvas.Left="10" Canvas.Top="68" Width="97"
-                                            Height="24" Content="Song Title" GroupName="Reference_Source"
+                                            Height="24" Content="{loc:Text SettingsWindow.SongTitle}" GroupName="Reference_Source"
                                             IsChecked="{Binding ReferenceAlertSource, Mode=TwoWay, Converter={StaticResource OptionChoice}, ConverterParameter=1}"
                                             AutomationProperties.Name="Song Title" />
                                         <RadioButton Style="{x:Null}" Canvas.Left="10" Canvas.Top="101" Width="122"
-                                            Height="24" Content="Song Number" GroupName="Reference_Source"
+                                            Height="24" Content="{loc:Text SettingsWindow.SongNumber}" GroupName="Reference_Source"
                                             IsChecked="{Binding ReferenceAlertSource, Mode=TwoWay, Converter={StaticResource OptionChoice}, ConverterParameter=2}"
                                             AutomationProperties.Name="Song Number" />
                                         <RadioButton Style="{x:Null}" Canvas.Left="10" Canvas.Top="33" Width="120"
-                                            Height="24" Content="No Reference" GroupName="Reference_Source"
+                                            Height="24" Content="{loc:Text SettingsWindow.NoReference}" GroupName="Reference_Source"
                                             IsChecked="{Binding ReferenceAlertSource, Mode=TwoWay, Converter={StaticResource OptionChoice}, ConverterParameter=0}"
                                             AutomationProperties.Name="No Reference" />
                                         <RadioButton Style="{x:Null}" Canvas.Left="10" Canvas.Top="136" Width="134"
-                                            Height="24" Content="Book Reference" GroupName="Reference_Source"
+                                            Height="24" Content="{loc:Text SettingsWindow.BookReference}" GroupName="Reference_Source"
                                             IsChecked="{Binding ReferenceAlertSource, Mode=TwoWay, Converter={StaticResource OptionChoice}, ConverterParameter=3}"
                                             AutomationProperties.Name="Book Reference" />
                                         <RadioButton Style="{x:Null}" Canvas.Left="10" Canvas.Top="171" Width="129"
-                                            Height="24" Content="User Reference" GroupName="Reference_Source"
+                                            Height="24" Content="{loc:Text SettingsWindow.UserReference}" GroupName="Reference_Source"
                                             IsChecked="{Binding ReferenceAlertSource, Mode=TwoWay, Converter={StaticResource OptionChoice}, ConverterParameter=4}"
                                             AutomationProperties.Name="User Reference" />
                                     </Canvas>
                                 </GroupBox>
                                 <options:OptionColorButton Canvas.Left="172" Canvas.Top="419" Width="151" Height="39"
-                                    Content="Back Colour" Argb="{Binding [ReferenceBackgroundArgb], Mode=TwoWay}"
+                                    Content="{loc:Text SettingsWindow.BackColour}" Argb="{Binding [ReferenceBackgroundArgb], Mode=TwoWay}"
                                     AutomationProperties.Name="Back Colour" />
                                 <options:OptionColorButton Canvas.Left="20" Canvas.Top="419" Width="152" Height="39"
-                                    Content="Text Colour" Argb="{Binding [ReferenceForegroundArgb], Mode=TwoWay}"
+                                    Content="{loc:Text SettingsWindow.TextColour}" Argb="{Binding [ReferenceForegroundArgb], Mode=TwoWay}"
                                     AutomationProperties.Name="Text Colour" />
                                 <ToggleButton Canvas.Left="14" Canvas.Top="266" Width="29" Height="36"
                                     IsChecked="{Binding ReferenceAlertScroll, Mode=TwoWay}"
                                     Style="{StaticResource OptionTool}" AutomationProperties.Name="Scroll"
-                                    ToolTip="Scroll">
+                                    ToolTip="{loc:Text SettingsWindow.Scroll}">
                                     <options:FrmIcon Icon="text_direction_horizontal_left" Width="18" Height="18" />
                                 </ToggleButton>
                                 <ToggleButton Canvas.Left="44" Canvas.Top="266" Width="29" Height="36"
                                     IsChecked="{Binding ReferenceAlertFlash, Mode=TwoWay}"
                                     Style="{StaticResource OptionTool}" AutomationProperties.Name="Flash"
-                                    ToolTip="Flash">
+                                    ToolTip="{loc:Text SettingsWindow.Flash}">
                                     <options:FrmIcon Icon="flash" Width="18" Height="18" />
                                 </ToggleButton>
                                 <ToggleButton Canvas.Left="74" Canvas.Top="266" Width="29" Height="36"
                                     IsChecked="{Binding ReferenceAlertTransparent, Mode=TwoWay}"
                                     Style="{StaticResource OptionTool}" AutomationProperties.Name="Transparent"
-                                    ToolTip="Transparent">
+                                    ToolTip="{loc:Text SettingsWindow.Transparent}">
                                     <options:FrmIcon Icon="transparency_square" Width="18" Height="18" />
                                 </ToggleButton>
                                 <ComboBox Style="{x:Null}" Canvas.Left="104" Canvas.Top="266" Width="38" Height="36"
                                     SelectedValuePath="Id" SelectedValue="{Binding [ReferenceHorizontal], Mode=TwoWay}"
                                     ItemsSource="{x:Static options:OptionChoices.Horizontal}"
                                     ItemTemplate="{StaticResource OptionIconItem}" Padding="0" MinWidth="0"
-                                    AutomationProperties.Name="Reference Horizontal" ToolTip="Reference Horizontal" />
+                                    AutomationProperties.Name="Reference Horizontal" ToolTip="{loc:Text SettingsWindow.ReferenceHorizontal}" />
                                 <ComboBox Style="{x:Null}" Canvas.Left="143" Canvas.Top="266" Width="38" Height="36"
                                     SelectedValuePath="Id" SelectedValue="{Binding [ReferenceVertical], Mode=TwoWay}"
                                     ItemsSource="{x:Static options:OptionChoices.Vertical}"
                                     ItemTemplate="{StaticResource OptionIconItem}" Padding="0" MinWidth="0"
-                                    AutomationProperties.Name="Vertical Alignment" ToolTip="Vertical Alignment" />
+                                    AutomationProperties.Name="Vertical Alignment" ToolTip="{loc:Text SettingsWindow.VerticalAlignment}" />
                                 <ToggleButton Canvas.Left="182" Canvas.Top="266" Width="29" Height="36"
                                     IsChecked="{Binding [ReferenceBold], Mode=TwoWay}"
                                     Style="{StaticResource OptionTool}" AutomationProperties.Name="Reference Bold"
-                                    ToolTip="Reference Bold">
+                                    ToolTip="{loc:Text SettingsWindow.ReferenceBold}">
                                     <options:FrmIcon Icon="text_bold" Width="18" Height="18" />
                                 </ToggleButton>
                                 <ToggleButton Canvas.Left="212" Canvas.Top="266" Width="29" Height="36"
                                     IsChecked="{Binding [ReferenceItalic], Mode=TwoWay}"
                                     Style="{StaticResource OptionTool}" AutomationProperties.Name="Reference Italic"
-                                    ToolTip="Reference Italic">
+                                    ToolTip="{loc:Text SettingsWindow.ReferenceItalic}">
                                     <options:FrmIcon Icon="text_italic" Width="18" Height="18" />
                                 </ToggleButton>
                                 <ToggleButton Canvas.Left="242" Canvas.Top="266" Width="29" Height="36"
                                     IsChecked="{Binding [ReferenceUnderline], Mode=TwoWay}"
                                     Style="{StaticResource OptionTool}" AutomationProperties.Name="Reference Underline"
-                                    ToolTip="Reference Underline">
+                                    ToolTip="{loc:Text SettingsWindow.ReferenceUnderline}">
                                     <options:FrmIcon Icon="text_underline" Width="18" Height="18" />
                                 </ToggleButton>
                                 <ToggleButton Canvas.Left="272" Canvas.Top="266" Width="29" Height="36"
                                     IsChecked="{Binding [ReferenceShadow], Mode=TwoWay}"
                                     Style="{StaticResource OptionTool}" AutomationProperties.Name="Reference Shadow"
-                                    ToolTip="Reference Shadow">
+                                    ToolTip="{loc:Text SettingsWindow.ReferenceShadow}">
                                     <options:FrmIcon Icon="text_shadow" Width="18" Height="18" />
                                 </ToggleButton>
                                 <ToggleButton Canvas.Left="302" Canvas.Top="266" Width="29" Height="36"
                                     IsChecked="{Binding [ReferenceOutline], Mode=TwoWay}"
                                     Style="{StaticResource OptionTool}" AutomationProperties.Name="Reference Outline"
-                                    ToolTip="Reference Outline">
+                                    ToolTip="{loc:Text SettingsWindow.ReferenceOutline}">
                                     <options:FrmIcon Icon="text_effects" Width="18" Height="18" />
                                 </ToggleButton>
-                                <TextBlock Canvas.Left="19" Canvas.Top="310" Width="85" Height="20" Text="Font Name:" TextWrapping="Wrap" />
+                                <TextBlock Canvas.Left="19" Canvas.Top="310" Width="85" Height="20" Text="{loc:Text SettingsWindow.FontNameLabel}" TextWrapping="Wrap" />
                                 <ComboBox Style="{x:Null}" Canvas.Left="120" Canvas.Top="302" Width="198" Height="28"
                                     ItemsSource="{x:Static options:OptionChoices.FontNames}" IsEditable="True"
                                     Text="{Binding [ReferenceFamily], Mode=TwoWay}"
-                                    AutomationProperties.Name="Reference Family" ToolTip="Reference Family" />
+                                    AutomationProperties.Name="Reference Family" ToolTip="{loc:Text SettingsWindow.ReferenceFamily}" />
                                 <options:OptionNumberBox Canvas.Left="249" Canvas.Top="381" Width="72" Height="27"
                                     Text="{Binding [ReferencePoints], Mode=TwoWay, ValidatesOnExceptions=True}"
                                     Minimum="15" Maximum="50" AutomationProperties.Name="Reference Points" />
-                                <TextBlock Canvas.Left="19" Canvas.Top="385" Width="104" Height="20" Text="Font Size Max:" TextWrapping="Wrap" />
+                                <TextBlock Canvas.Left="19" Canvas.Top="385" Width="104" Height="20" Text="{loc:Text SettingsWindow.FontSizeMax}" TextWrapping="Wrap" />
                                 <options:OptionNumberBox Canvas.Left="249" Canvas.Top="344" Width="72" Height="27"
                                     Text="{Binding ReferenceAlertDurationSeconds, Mode=TwoWay, ValidatesOnExceptions=True}"
                                     Minimum="0" Maximum="60"
                                     AutomationProperties.Name="Reference Alert Duration Seconds" />
-                                <TextBlock Canvas.Left="19" Canvas.Top="348" Width="111" Height="20" Text="Duration (secs):" TextWrapping="Wrap" />
+                                <TextBlock Canvas.Left="19" Canvas.Top="348" Width="111" Height="20" Text="{loc:Text SettingsWindow.Duration}" TextWrapping="Wrap" />
                             </Canvas>
                         </GroupBox>
                         <GroupBox Style="{StaticResource ClassicOptionsGroup}" Canvas.Left="10" Canvas.Top="251"
-                            Width="343" Height="261" Header="Parental Alert">
+                            Width="343" Height="261" Header="{loc:Text SettingsWindow.ParentalAlert}">
                             <Canvas>
                                 <TextBox Style="{x:Null}" Canvas.Left="128" Canvas.Top="227" Width="195" Height="27"
                                     Text="{Binding ParentalAlertHeading, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                     AutomationProperties.Name="Parental Alert Heading" />
                                 <options:OptionColorButton Canvas.Left="173" Canvas.Top="183" Width="151" Height="39"
-                                    Content="Back Colour" Argb="{Binding [ParentalBackgroundArgb], Mode=TwoWay}"
+                                    Content="{loc:Text SettingsWindow.BackColour}" Argb="{Binding [ParentalBackgroundArgb], Mode=TwoWay}"
                                     AutomationProperties.Name="Back Colour" />
                                 <options:OptionColorButton Canvas.Left="21" Canvas.Top="183" Width="152" Height="39"
-                                    Content="Text Colour" Argb="{Binding [ParentalForegroundArgb], Mode=TwoWay}"
+                                    Content="{loc:Text SettingsWindow.TextColour}" Argb="{Binding [ParentalForegroundArgb], Mode=TwoWay}"
                                     AutomationProperties.Name="Text Colour" />
-                                <TextBlock Canvas.Left="21" Canvas.Top="229" Width="111" Height="20" Text="Optional Prefix:" TextWrapping="Wrap" />
+                                <TextBlock Canvas.Left="21" Canvas.Top="229" Width="111" Height="20" Text="{loc:Text SettingsWindow.OptionalPrefix}" TextWrapping="Wrap" />
                                 <ToggleButton Canvas.Left="15" Canvas.Top="32" Width="29" Height="36"
                                     IsChecked="{Binding ParentalAlertScroll, Mode=TwoWay}"
                                     Style="{StaticResource OptionTool}" AutomationProperties.Name="Scroll"
-                                    ToolTip="Scroll">
+                                    ToolTip="{loc:Text SettingsWindow.Scroll}">
                                     <options:FrmIcon Icon="text_direction_horizontal_left" Width="18" Height="18" />
                                 </ToggleButton>
                                 <ToggleButton Canvas.Left="45" Canvas.Top="32" Width="29" Height="36"
                                     IsChecked="{Binding ParentalAlertFlash, Mode=TwoWay}"
                                     Style="{StaticResource OptionTool}" AutomationProperties.Name="Flash"
-                                    ToolTip="Flash">
+                                    ToolTip="{loc:Text SettingsWindow.Flash}">
                                     <options:FrmIcon Icon="flash" Width="18" Height="18" />
                                 </ToggleButton>
                                 <ToggleButton Canvas.Left="75" Canvas.Top="32" Width="29" Height="36"
                                     IsChecked="{Binding ParentalAlertTransparent, Mode=TwoWay}"
                                     Style="{StaticResource OptionTool}" AutomationProperties.Name="Transparent"
-                                    ToolTip="Transparent">
+                                    ToolTip="{loc:Text SettingsWindow.Transparent}">
                                     <options:FrmIcon Icon="transparency_square" Width="18" Height="18" />
                                 </ToggleButton>
                                 <ComboBox Style="{x:Null}" Canvas.Left="105" Canvas.Top="32" Width="38" Height="36"
                                     SelectedValuePath="Id" SelectedValue="{Binding [ParentalHorizontal], Mode=TwoWay}"
                                     ItemsSource="{x:Static options:OptionChoices.Horizontal}"
                                     ItemTemplate="{StaticResource OptionIconItem}" Padding="0" MinWidth="0"
-                                    AutomationProperties.Name="Parental Horizontal" ToolTip="Parental Horizontal" />
+                                    AutomationProperties.Name="Parental Horizontal" ToolTip="{loc:Text SettingsWindow.ParentalHorizontal}" />
                                 <ComboBox Style="{x:Null}" Canvas.Left="144" Canvas.Top="32" Width="38" Height="36"
                                     SelectedValuePath="Id" SelectedValue="{Binding [ParentalVertical], Mode=TwoWay}"
                                     ItemsSource="{x:Static options:OptionChoices.Vertical}"
                                     ItemTemplate="{StaticResource OptionIconItem}" Padding="0" MinWidth="0"
                                     AutomationProperties.Name="Alert At Bottom of Screen"
-                                    ToolTip="Alert At Bottom of Screen" />
+                                    ToolTip="{loc:Text SettingsWindow.AlertAtBottom}" />
                                 <ToggleButton Canvas.Left="183" Canvas.Top="32" Width="29" Height="36"
                                     IsChecked="{Binding [ParentalBold], Mode=TwoWay}"
                                     Style="{StaticResource OptionTool}" AutomationProperties.Name="Parental Bold"
-                                    ToolTip="Parental Bold">
+                                    ToolTip="{loc:Text SettingsWindow.ParentalBold}">
                                     <options:FrmIcon Icon="text_bold" Width="18" Height="18" />
                                 </ToggleButton>
                                 <ToggleButton Canvas.Left="213" Canvas.Top="32" Width="29" Height="36"
                                     IsChecked="{Binding [ParentalItalic], Mode=TwoWay}"
                                     Style="{StaticResource OptionTool}" AutomationProperties.Name="Parental Italic"
-                                    ToolTip="Parental Italic">
+                                    ToolTip="{loc:Text SettingsWindow.ParentalItalic}">
                                     <options:FrmIcon Icon="text_italic" Width="18" Height="18" />
                                 </ToggleButton>
                                 <ToggleButton Canvas.Left="243" Canvas.Top="32" Width="29" Height="36"
                                     IsChecked="{Binding [ParentalUnderline], Mode=TwoWay}"
                                     Style="{StaticResource OptionTool}" AutomationProperties.Name="Parental Underline"
-                                    ToolTip="Parental Underline">
+                                    ToolTip="{loc:Text SettingsWindow.ParentalUnderline}">
                                     <options:FrmIcon Icon="text_underline" Width="18" Height="18" />
                                 </ToggleButton>
                                 <ToggleButton Canvas.Left="273" Canvas.Top="32" Width="29" Height="36"
                                     IsChecked="{Binding [ParentalShadow], Mode=TwoWay}"
                                     Style="{StaticResource OptionTool}" AutomationProperties.Name="Parental Shadow"
-                                    ToolTip="Parental Shadow">
+                                    ToolTip="{loc:Text SettingsWindow.ParentalShadow}">
                                     <options:FrmIcon Icon="text_shadow" Width="18" Height="18" />
                                 </ToggleButton>
                                 <ToggleButton Canvas.Left="303" Canvas.Top="32" Width="29" Height="36"
                                     IsChecked="{Binding [ParentalOutline], Mode=TwoWay}"
                                     Style="{StaticResource OptionTool}" AutomationProperties.Name="Parental Outline"
-                                    ToolTip="Parental Outline">
+                                    ToolTip="{loc:Text SettingsWindow.ParentalOutline}">
                                     <options:FrmIcon Icon="text_effects" Width="18" Height="18" />
                                 </ToggleButton>
-                                <TextBlock Canvas.Left="20" Canvas.Top="78" Width="85" Height="20" Text="Font Name:" TextWrapping="Wrap" />
+                                <TextBlock Canvas.Left="20" Canvas.Top="78" Width="85" Height="20" Text="{loc:Text SettingsWindow.FontNameLabel}" TextWrapping="Wrap" />
                                 <ComboBox Style="{x:Null}" Canvas.Left="121" Canvas.Top="70" Width="198" Height="28"
                                     ItemsSource="{x:Static options:OptionChoices.FontNames}" IsEditable="True"
                                     Text="{Binding [ParentalFamily], Mode=TwoWay}"
-                                    AutomationProperties.Name="Parental Family" ToolTip="Parental Family" />
+                                    AutomationProperties.Name="Parental Family" ToolTip="{loc:Text SettingsWindow.ParentalFamily}" />
                                 <options:OptionNumberBox Canvas.Left="250" Canvas.Top="148" Width="72" Height="27"
                                     Text="{Binding [ParentalPoints], Mode=TwoWay, ValidatesOnExceptions=True}"
                                     Minimum="20" Maximum="50" AutomationProperties.Name="Parental Points" />
-                                <TextBlock Canvas.Left="20" Canvas.Top="152" Width="104" Height="20" Text="Font Size Max:" TextWrapping="Wrap" />
+                                <TextBlock Canvas.Left="20" Canvas.Top="152" Width="104" Height="20" Text="{loc:Text SettingsWindow.FontSizeMax}" TextWrapping="Wrap" />
                                 <options:OptionNumberBox Canvas.Left="250" Canvas.Top="112" Width="72" Height="27"
                                     Text="{Binding ParentalAlertDuration, Mode=TwoWay, ValidatesOnExceptions=True}"
                                     Minimum="0" Maximum="60" AutomationProperties.Name="Parental Alert Duration" />
-                                <TextBlock Canvas.Left="20" Canvas.Top="116" Width="111" Height="20" Text="Duration (secs):" TextWrapping="Wrap" />
+                                <TextBlock Canvas.Left="20" Canvas.Top="116" Width="111" Height="20" Text="{loc:Text SettingsWindow.Duration}" TextWrapping="Wrap" />
                             </Canvas>
                         </GroupBox>
                         <GroupBox Style="{StaticResource ClassicOptionsGroup}" Canvas.Left="10" Canvas.Top="16"
-                            Width="343" Height="228" Header="Message Alert">
+                            Width="343" Height="228" Header="{loc:Text SettingsWindow.MessageAlert}">
                             <Canvas>
                                 <options:OptionColorButton Canvas.Left="173" Canvas.Top="181" Width="151" Height="39"
-                                    Content="Back Colour" Argb="{Binding [MessageBackgroundArgb], Mode=TwoWay}"
+                                    Content="{loc:Text SettingsWindow.BackColour}" Argb="{Binding [MessageBackgroundArgb], Mode=TwoWay}"
                                     AutomationProperties.Name="Back Colour" />
                                 <options:OptionColorButton Canvas.Left="21" Canvas.Top="181" Width="152" Height="39"
-                                    Content="Text Colour" Argb="{Binding [MessageForegroundArgb], Mode=TwoWay}"
+                                    Content="{loc:Text SettingsWindow.TextColour}" Argb="{Binding [MessageForegroundArgb], Mode=TwoWay}"
                                     AutomationProperties.Name="Text Colour" />
                                 <ToggleButton Canvas.Left="15" Canvas.Top="28" Width="29" Height="36"
                                     IsChecked="{Binding MessageAlertScroll, Mode=TwoWay}"
                                     Style="{StaticResource OptionTool}" AutomationProperties.Name="Scroll"
-                                    ToolTip="Scroll">
+                                    ToolTip="{loc:Text SettingsWindow.Scroll}">
                                     <options:FrmIcon Icon="text_direction_horizontal_left" Width="18" Height="18" />
                                 </ToggleButton>
                                 <ToggleButton Canvas.Left="45" Canvas.Top="28" Width="29" Height="36"
                                     IsChecked="{Binding MessageAlertFlash, Mode=TwoWay}"
                                     Style="{StaticResource OptionTool}" AutomationProperties.Name="Flash"
-                                    ToolTip="Flash">
+                                    ToolTip="{loc:Text SettingsWindow.Flash}">
                                     <options:FrmIcon Icon="flash" Width="18" Height="18" />
                                 </ToggleButton>
                                 <ToggleButton Canvas.Left="75" Canvas.Top="28" Width="29" Height="36"
                                     IsChecked="{Binding MessageAlertTransparent, Mode=TwoWay}"
                                     Style="{StaticResource OptionTool}" AutomationProperties.Name="Transparent"
-                                    ToolTip="Transparent">
+                                    ToolTip="{loc:Text SettingsWindow.Transparent}">
                                     <options:FrmIcon Icon="transparency_square" Width="18" Height="18" />
                                 </ToggleButton>
                                 <ComboBox Style="{x:Null}" Canvas.Left="105" Canvas.Top="28" Width="38" Height="36"
                                     SelectedValuePath="Id" SelectedValue="{Binding [MessageHorizontal], Mode=TwoWay}"
                                     ItemsSource="{x:Static options:OptionChoices.Horizontal}"
                                     ItemTemplate="{StaticResource OptionIconItem}" Padding="0" MinWidth="0"
-                                    AutomationProperties.Name="Message Horizontal" ToolTip="Message Horizontal" />
+                                    AutomationProperties.Name="Message Horizontal" ToolTip="{loc:Text SettingsWindow.MessageHorizontal}" />
                                 <ComboBox Style="{x:Null}" Canvas.Left="144" Canvas.Top="28" Width="38" Height="36"
                                     SelectedValuePath="Id" SelectedValue="{Binding [MessageVertical], Mode=TwoWay}"
                                     ItemsSource="{x:Static options:OptionChoices.Vertical}"
                                     ItemTemplate="{StaticResource OptionIconItem}" Padding="0" MinWidth="0"
-                                    AutomationProperties.Name="Align Bottom" ToolTip="Align Bottom" />
+                                    AutomationProperties.Name="Align Bottom" ToolTip="{loc:Text SettingsWindow.AlignBottom}" />
                                 <ToggleButton Canvas.Left="183" Canvas.Top="28" Width="29" Height="36"
                                     IsChecked="{Binding [MessageBold], Mode=TwoWay}" Style="{StaticResource OptionTool}"
-                                    AutomationProperties.Name="Message Bold" ToolTip="Message Bold">
+                                    AutomationProperties.Name="Message Bold" ToolTip="{loc:Text SettingsWindow.MessageBold}">
                                     <options:FrmIcon Icon="text_bold" Width="18" Height="18" />
                                 </ToggleButton>
                                 <ToggleButton Canvas.Left="213" Canvas.Top="28" Width="29" Height="36"
                                     IsChecked="{Binding [MessageItalic], Mode=TwoWay}"
                                     Style="{StaticResource OptionTool}" AutomationProperties.Name="Message Italic"
-                                    ToolTip="Message Italic">
+                                    ToolTip="{loc:Text SettingsWindow.MessageItalic}">
                                     <options:FrmIcon Icon="text_italic" Width="18" Height="18" />
                                 </ToggleButton>
                                 <ToggleButton Canvas.Left="243" Canvas.Top="28" Width="29" Height="36"
                                     IsChecked="{Binding [MessageUnderline], Mode=TwoWay}"
                                     Style="{StaticResource OptionTool}" AutomationProperties.Name="Message Underline"
-                                    ToolTip="Message Underline">
+                                    ToolTip="{loc:Text SettingsWindow.MessageUnderline}">
                                     <options:FrmIcon Icon="text_underline" Width="18" Height="18" />
                                 </ToggleButton>
                                 <ToggleButton Canvas.Left="273" Canvas.Top="28" Width="29" Height="36"
                                     IsChecked="{Binding [MessageShadow], Mode=TwoWay}"
                                     Style="{StaticResource OptionTool}" AutomationProperties.Name="Message Shadow"
-                                    ToolTip="Message Shadow">
+                                    ToolTip="{loc:Text SettingsWindow.MessageShadow}">
                                     <options:FrmIcon Icon="text_shadow" Width="18" Height="18" />
                                 </ToggleButton>
                                 <ToggleButton Canvas.Left="303" Canvas.Top="28" Width="29" Height="36"
                                     IsChecked="{Binding [MessageOutline], Mode=TwoWay}"
                                     Style="{StaticResource OptionTool}" AutomationProperties.Name="Message Outline"
-                                    ToolTip="Message Outline">
+                                    ToolTip="{loc:Text SettingsWindow.MessageOutline}">
                                     <options:FrmIcon Icon="text_effects" Width="18" Height="18" />
                                 </ToggleButton>
-                                <TextBlock Canvas.Left="20" Canvas.Top="76" Width="85" Height="20" Text="Font Name:" TextWrapping="Wrap" />
+                                <TextBlock Canvas.Left="20" Canvas.Top="76" Width="85" Height="20" Text="{loc:Text SettingsWindow.FontNameLabel}" TextWrapping="Wrap" />
                                 <ComboBox Style="{x:Null}" Canvas.Left="121" Canvas.Top="68" Width="198" Height="28"
                                     ItemsSource="{x:Static options:OptionChoices.FontNames}" IsEditable="True"
                                     Text="{Binding [MessageFamily], Mode=TwoWay}"
-                                    AutomationProperties.Name="Message Family" ToolTip="Message Family" />
+                                    AutomationProperties.Name="Message Family" ToolTip="{loc:Text SettingsWindow.MessageFamily}" />
                                 <options:OptionNumberBox Canvas.Left="250" Canvas.Top="147" Width="72" Height="27"
                                     Text="{Binding [MessagePoints], Mode=TwoWay, ValidatesOnExceptions=True}"
                                     Minimum="20" Maximum="50" AutomationProperties.Name="Message Points" />
-                                <TextBlock Canvas.Left="20" Canvas.Top="151" Width="104" Height="20" Text="Font Size Max:" TextWrapping="Wrap" />
+                                <TextBlock Canvas.Left="20" Canvas.Top="151" Width="104" Height="20" Text="{loc:Text SettingsWindow.FontSizeMax}" TextWrapping="Wrap" />
                                 <options:OptionNumberBox Canvas.Left="250" Canvas.Top="111" Width="72" Height="27"
                                     Text="{Binding MessageAlertDuration, Mode=TwoWay, ValidatesOnExceptions=True}"
                                     Minimum="0" Maximum="999" AutomationProperties.Name="Message Alert Duration" />
-                                <TextBlock Canvas.Left="20" Canvas.Top="115" Width="111" Height="20" Text="Duration (secs):" TextWrapping="Wrap" />
+                                <TextBlock Canvas.Left="20" Canvas.Top="115" Width="111" Height="20" Text="{loc:Text SettingsWindow.Duration}" TextWrapping="Wrap" />
                             </Canvas>
                         </GroupBox>
                     </Canvas>
                 </ScrollViewer>
             </TabItem>
-            <TabItem Style="{x:Null}" Padding="10,5" Header="Folders">
+            <TabItem Style="{x:Null}" Padding="10,5" Header="{loc:Text SettingsWindow.TabFolders}">
                 <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
                     <Canvas Width="719" Height="538" HorizontalAlignment="Left" VerticalAlignment="Top">
                         <GroupBox Style="{StaticResource ClassicOptionsGroup}" Canvas.Left="8" Canvas.Top="213"
                             Width="699" Height="300" Header="{Binding SelectedItem.GroupHeader, ElementName=FolderList}">
                             <Canvas>
                                 <GroupBox Style="{StaticResource ClassicOptionsGroup}" Canvas.Left="519"
-                                    Canvas.Top="213" Width="174" Height="73" Header="Reg. 1-2 Line Spacing">
+                                    Canvas.Top="213" Width="174" Height="73" Header="{loc:Text SettingsWindow.LineSpacing12}">
                                     <Canvas>
                                         <options:OptionNumberBox Canvas.Left="95" Canvas.Top="29" Width="72" Height="27"
                                             Text="{Binding SelectedItem.[LineSpacing2], ElementName=FolderList, Mode=TwoWay, ValidatesOnExceptions=True}"
@@ -723,42 +723,42 @@
                                     </Canvas>
                                 </GroupBox>
                                 <GroupBox Style="{StaticResource ClassicOptionsGroup}" Canvas.Left="519" Canvas.Top="29"
-                                    Width="174" Height="179" Header="Headings Text">
+                                    Width="174" Height="179" Header="{loc:Text SettingsWindow.HeadingsText}">
                                     <Canvas>
                                         <ComboBox Style="{x:Null}" Canvas.Left="67" Canvas.Top="135" Width="92"
                                             Height="28" IsEditable="True"
                                             Text="{Binding SelectedItem.[EndingHeading], ElementName=FolderList, Mode=TwoWay}"
                                             ItemsSource="{x:Static options:OptionChoices.LyricHeadings}"
-                                            AutomationProperties.Name="Ending Heading" ToolTip="Ending Heading" />
+                                            AutomationProperties.Name="Ending Heading" ToolTip="{loc:Text SettingsWindow.EndingHeading}" />
                                         <ComboBox Style="{x:Null}" Canvas.Left="67" Canvas.Top="99" Width="92"
                                             Height="28" IsEditable="True"
                                             Text="{Binding SelectedItem.[BridgeHeading], ElementName=FolderList, Mode=TwoWay}"
                                             ItemsSource="{x:Static options:OptionChoices.LyricHeadings}"
-                                            AutomationProperties.Name="Bridge Heading" ToolTip="Bridge Heading" />
+                                            AutomationProperties.Name="Bridge Heading" ToolTip="{loc:Text SettingsWindow.BridgeHeading}" />
                                         <ComboBox Style="{x:Null}" Canvas.Left="67" Canvas.Top="63" Width="92"
                                             Height="28" IsEditable="True"
                                             Text="{Binding SelectedItem.[ChorusHeading], ElementName=FolderList, Mode=TwoWay}"
                                             ItemsSource="{x:Static options:OptionChoices.LyricHeadings}"
-                                            AutomationProperties.Name="Chorus Heading" ToolTip="Chorus Heading" />
-                                        <TextBlock Canvas.Left="8" Canvas.Top="72" Width="57" Height="20" Text="Chorus:" TextWrapping="Wrap" />
+                                            AutomationProperties.Name="Chorus Heading" ToolTip="{loc:Text SettingsWindow.ChorusHeading}" />
+                                        <TextBlock Canvas.Left="8" Canvas.Top="72" Width="57" Height="20" Text="{loc:Text SettingsWindow.ChorusLabel}" TextWrapping="Wrap" />
                                         <ComboBox Style="{x:Null}" Canvas.Left="67" Canvas.Top="28" Width="92"
                                             Height="28" IsEditable="True"
                                             Text="{Binding SelectedItem.[PreChorusHeading], ElementName=FolderList, Mode=TwoWay}"
                                             ItemsSource="{x:Static options:OptionChoices.LyricHeadings}"
-                                            AutomationProperties.Name="Pre Chorus Heading" ToolTip="Pre Chorus Heading" />
-                                        <TextBlock Canvas.Left="8" Canvas.Top="141" Width="58" Height="20" Text="Ending:" TextWrapping="Wrap" />
-                                        <TextBlock Canvas.Left="8" Canvas.Top="107" Width="56" Height="20" Text="Bridge:" TextWrapping="Wrap" />
-                                        <TextBlock Canvas.Left="8" Canvas.Top="36" Width="55" Height="20" Text="PreChr:" TextWrapping="Wrap" />
+                                            AutomationProperties.Name="Pre Chorus Heading" ToolTip="{loc:Text SettingsWindow.PreChorusHeading}" />
+                                        <TextBlock Canvas.Left="8" Canvas.Top="141" Width="58" Height="20" Text="{loc:Text SettingsWindow.EndingLabel}" TextWrapping="Wrap" />
+                                        <TextBlock Canvas.Left="8" Canvas.Top="107" Width="56" Height="20" Text="{loc:Text SettingsWindow.BridgeLabel}" TextWrapping="Wrap" />
+                                        <TextBlock Canvas.Left="8" Canvas.Top="36" Width="55" Height="20" Text="{loc:Text SettingsWindow.PreChorusLabel}" TextWrapping="Wrap" />
                                     </Canvas>
                                 </GroupBox>
                                 <GroupBox Style="{StaticResource ClassicOptionsGroup}" Canvas.Left="287"
-                                    Canvas.Top="163" Width="224" Height="124" Header="Region 2 Font">
+                                    Canvas.Top="163" Width="224" Height="124" Header="{loc:Text SettingsWindow.Region2Font}">
                                     <Canvas>
                                         <ComboBox Style="{x:Null}" Canvas.Left="11" Canvas.Top="28" Width="198"
                                             Height="28" ItemsSource="{x:Static options:OptionChoices.FontNames}"
                                             IsEditable="True"
                                             Text="{Binding SelectedItem.[FontName1], ElementName=FolderList, Mode=TwoWay}"
-                                            AutomationProperties.Name="Font Name1" ToolTip="Font Name1" />
+                                            AutomationProperties.Name="Font Name1" ToolTip="{loc:Text SettingsWindow.FontName1}" />
                                         <options:OptionNumberBox Canvas.Left="156" Canvas.Top="72" Width="56"
                                             Height="27"
                                             Text="{Binding SelectedItem.[Size1], ElementName=FolderList, Mode=TwoWay, ValidatesOnExceptions=True}"
@@ -766,7 +766,7 @@
                                         <ToggleButton Canvas.Left="11" Canvas.Top="71" Width="29" Height="36"
                                             IsChecked="{Binding SelectedItem.[BIU1_Bold], ElementName=FolderList, Mode=TwoWay}"
                                             Style="{StaticResource OptionTool}"
-                                            AutomationProperties.Name="Region 1 Bold" ToolTip="Region 1 Bold">
+                                            AutomationProperties.Name="Region 1 Bold" ToolTip="{loc:Text SettingsWindow.Region2Bold}">
                                             <options:FrmIcon Icon="text_bold" Width="18" Height="18" />
                                         </ToggleButton>
                                         <ComboBox Style="{x:Null}" Canvas.Left="41" Canvas.Top="71" Width="38"
@@ -774,29 +774,29 @@
                                             SelectedValue="{Binding SelectedItem.[BIU1_Italic], ElementName=FolderList, Mode=TwoWay}"
                                             ItemsSource="{x:Static options:OptionChoices.Italics}"
                                             ItemTemplate="{StaticResource OptionIconItem}" Padding="0" MinWidth="0"
-                                            AutomationProperties.Name="Region 1 Italic" ToolTip="Region 1 Italic" />
+                                            AutomationProperties.Name="Region 1 Italic" ToolTip="{loc:Text SettingsWindow.Region2Italic}" />
                                         <ToggleButton Canvas.Left="80" Canvas.Top="71" Width="29" Height="36"
                                             IsChecked="{Binding SelectedItem.[BIU1_Underline], ElementName=FolderList, Mode=TwoWay}"
                                             Style="{StaticResource OptionTool}"
-                                            AutomationProperties.Name="Region 1 Underline" ToolTip="Region 1 Underline">
+                                            AutomationProperties.Name="Region 1 Underline" ToolTip="{loc:Text SettingsWindow.Region2Underline}">
                                             <options:FrmIcon Icon="text_underline" Width="18" Height="18" />
                                         </ToggleButton>
                                         <ToggleButton Canvas.Left="110" Canvas.Top="71" Width="29" Height="36"
                                             IsChecked="{Binding SelectedItem.[BIU1_RTL], ElementName=FolderList, Mode=TwoWay}"
                                             Style="{StaticResource OptionTool}"
-                                            AutomationProperties.Name="Right-To-Left" ToolTip="Right-To-Left">
+                                            AutomationProperties.Name="Right-To-Left" ToolTip="{loc:Text SettingsWindow.RightToLeft}">
                                             <options:FrmIcon Icon="text_paragraph_direction_left" Width="18" Height="18" />
                                         </ToggleButton>
                                     </Canvas>
                                 </GroupBox>
                                 <GroupBox Style="{StaticResource ClassicOptionsGroup}" Canvas.Left="287" Canvas.Top="29"
-                                    Width="224" Height="124" Header="Region 1 Font">
+                                    Width="224" Height="124" Header="{loc:Text SettingsWindow.Region1Font}">
                                     <Canvas>
                                         <ComboBox Style="{x:Null}" Canvas.Left="11" Canvas.Top="28" Width="198"
                                             Height="28" ItemsSource="{x:Static options:OptionChoices.FontNames}"
                                             IsEditable="True"
                                             Text="{Binding SelectedItem.[FontName0], ElementName=FolderList, Mode=TwoWay}"
-                                            AutomationProperties.Name="Font Name0" ToolTip="Font Name0" />
+                                            AutomationProperties.Name="Font Name0" ToolTip="{loc:Text SettingsWindow.FontName0}" />
                                         <options:OptionNumberBox Canvas.Left="156" Canvas.Top="72" Width="56"
                                             Height="27"
                                             Text="{Binding SelectedItem.[Size0], ElementName=FolderList, Mode=TwoWay, ValidatesOnExceptions=True}"
@@ -804,7 +804,7 @@
                                         <ToggleButton Canvas.Left="11" Canvas.Top="71" Width="29" Height="36"
                                             IsChecked="{Binding SelectedItem.[BIU0_Bold], ElementName=FolderList, Mode=TwoWay}"
                                             Style="{StaticResource OptionTool}"
-                                            AutomationProperties.Name="Region  1 Bold" ToolTip="Region  1 Bold">
+                                            AutomationProperties.Name="Region  1 Bold" ToolTip="{loc:Text SettingsWindow.Region1Bold}">
                                             <options:FrmIcon Icon="text_bold" Width="18" Height="18" />
                                         </ToggleButton>
                                         <ComboBox Style="{x:Null}" Canvas.Left="41" Canvas.Top="71" Width="38"
@@ -812,24 +812,24 @@
                                             SelectedValue="{Binding SelectedItem.[BIU0_Italic], ElementName=FolderList, Mode=TwoWay}"
                                             ItemsSource="{x:Static options:OptionChoices.Italics}"
                                             ItemTemplate="{StaticResource OptionIconItem}" Padding="0" MinWidth="0"
-                                            AutomationProperties.Name="Region  1 Italic" ToolTip="Region  1 Italic" />
+                                            AutomationProperties.Name="Region  1 Italic" ToolTip="{loc:Text SettingsWindow.Region1Italic}" />
                                         <ToggleButton Canvas.Left="80" Canvas.Top="71" Width="29" Height="36"
                                             IsChecked="{Binding SelectedItem.[BIU0_Underline], ElementName=FolderList, Mode=TwoWay}"
                                             Style="{StaticResource OptionTool}"
                                             AutomationProperties.Name="Region  1 Underline"
-                                            ToolTip="Region  1 Underline">
+                                            ToolTip="{loc:Text SettingsWindow.Region1Underline}">
                                             <options:FrmIcon Icon="text_underline" Width="18" Height="18" />
                                         </ToggleButton>
                                         <ToggleButton Canvas.Left="110" Canvas.Top="71" Width="29" Height="36"
                                             IsChecked="{Binding SelectedItem.[BIU0_RTL], ElementName=FolderList, Mode=TwoWay}"
                                             Style="{StaticResource OptionTool}"
-                                            AutomationProperties.Name="Right-To-Left" ToolTip="Right-To-Left">
+                                            AutomationProperties.Name="Right-To-Left" ToolTip="{loc:Text SettingsWindow.RightToLeft}">
                                             <options:FrmIcon Icon="text_paragraph_direction_left" Width="18" Height="18" />
                                         </ToggleButton>
                                     </Canvas>
                                 </GroupBox>
                                 <GroupBox Style="{StaticResource ClassicOptionsGroup}" Canvas.Left="8" Canvas.Top="29"
-                                    Width="271" Height="259" Header="Region Positions">
+                                    Width="271" Height="259" Header="{loc:Text SettingsWindow.RegionPositions}">
                                     <Canvas>
                                         <options:OptionNumberBox Canvas.Left="203" Canvas.Top="49" Width="56"
                                             Height="27"
@@ -858,24 +858,24 @@
                                             LeftMarginPercent="{Binding SelectedItem.[LMargin], ElementName=FolderList}"
                                             RightMarginPercent="{Binding SelectedItem.[RMargin], ElementName=FolderList}"
                                             BottomMarginPercent="{Binding SelectedItem.[BMargin], ElementName=FolderList}" />
-                                        <TextBlock Canvas.Left="64" Canvas.Top="209" Width="83" Height="20" Text="Left - Right" TextWrapping="Wrap" />
+                                        <TextBlock Canvas.Left="64" Canvas.Top="209" Width="83" Height="20" Text="{loc:Text SettingsWindow.LeftRight}" TextWrapping="Wrap" />
                                         <TextBlock Canvas.Left="206" Canvas.Top="180" Width="33" Height="20" Text="100" TextWrapping="Wrap" />
                                     </Canvas>
                                 </GroupBox>
                             </Canvas>
                         </GroupBox>
                         <GroupBox Style="{StaticResource ClassicOptionsGroup}" Canvas.Left="383" Canvas.Top="27"
-                            Width="326" Height="179" Header="Headings Font for the Selected Folder">
+                            Width="326" Height="179" Header="{loc:Text SettingsWindow.HeadingsFont}">
                             <Canvas>
                                 <ComboBox Style="{x:Null}" Canvas.Left="9" Canvas.Top="72" Width="306" Height="28"
                                     ItemsSource="{x:Static options:OptionChoices.Headings}" DisplayMemberPath="Name"
                                     SelectedValuePath="Id"
                                     SelectedValue="{Binding SelectedItem.[HeadingOption], ElementName=FolderList, Mode=TwoWay}"
-                                    AutomationProperties.Name="Heading Option" ToolTip="Heading Option" />
+                                    AutomationProperties.Name="Heading Option" ToolTip="{loc:Text SettingsWindow.HeadingOption}" />
                                 <ToggleButton Canvas.Left="97" Canvas.Top="112" Width="29" Height="36"
                                     IsChecked="{Binding SelectedItem.[BIUHeading_Bold], ElementName=FolderList, Mode=TwoWay}"
                                     Style="{StaticResource OptionTool}" AutomationProperties.Name="Region Heading Bold"
-                                    ToolTip="Region Heading Bold">
+                                    ToolTip="{loc:Text SettingsWindow.HeadingBold}">
                                     <options:FrmIcon Icon="text_bold" Width="18" Height="18" />
                                 </ToggleButton>
                                 <ComboBox Style="{x:Null}" Canvas.Left="127" Canvas.Top="112" Width="38" Height="36"
@@ -883,35 +883,35 @@
                                     SelectedValue="{Binding SelectedItem.[BIUHeading_Italic], ElementName=FolderList, Mode=TwoWay}"
                                     ItemsSource="{x:Static options:OptionChoices.Italics}"
                                     ItemTemplate="{StaticResource OptionIconItem}" Padding="0" MinWidth="0"
-                                    AutomationProperties.Name="Region Heading Italic" ToolTip="Region Heading Italic" />
+                                    AutomationProperties.Name="Region Heading Italic" ToolTip="{loc:Text SettingsWindow.HeadingItalic}" />
                                 <ToggleButton Canvas.Left="166" Canvas.Top="112" Width="29" Height="36"
                                     IsChecked="{Binding SelectedItem.[BIUHeading_Underline], ElementName=FolderList, Mode=TwoWay}"
                                     Style="{StaticResource OptionTool}"
                                     AutomationProperties.Name="Region Heading Underline"
-                                    ToolTip="Region Heading Underline">
+                                    ToolTip="{loc:Text SettingsWindow.HeadingUnderline}">
                                     <options:FrmIcon Icon="text_underline" Width="18" Height="18" />
                                 </ToggleButton>
                                 <options:OptionNumberBox Canvas.Left="243" Canvas.Top="33" Width="72" Height="27"
                                     Text="{Binding SelectedItem.[HeadingSize], ElementName=FolderList, Mode=TwoWay, ValidatesOnExceptions=True}"
                                     Minimum="0" Maximum="150" AutomationProperties.Name="Heading Size" />
                                 <TextBlock Canvas.Left="14" Canvas.Top="37" Width="195" Height="20"
-                                    Text="Headings Size (% Region 1):" TextWrapping="Wrap" />
-                                <TextBlock Canvas.Left="14" Canvas.Top="119" Width="85" Height="20" Text="Formatting:" TextWrapping="Wrap" />
+                                    Text="{loc:Text SettingsWindow.HeadingsSize}" TextWrapping="Wrap" />
+                                <TextBlock Canvas.Left="14" Canvas.Top="119" Width="85" Height="20" Text="{loc:Text SettingsWindow.Formatting}" TextWrapping="Wrap" />
                             </Canvas>
                         </GroupBox>
                         <GroupBox Style="{StaticResource ClassicOptionsGroup}" Canvas.Left="8" Canvas.Top="27"
-                            Width="367" Height="179" Header="Select Folder to Update">
+                            Width="367" Height="179" Header="{loc:Text SettingsWindow.SelectFolder}">
                             <Canvas>
                                 <Button Style="{x:Null}" Canvas.Left="247" Canvas.Top="102" Width="104" Height="28"
-                                    Click="BrowseSourceFolder_Click" Tag="PowerPoint" Content="PPT folder…"
+                                    Click="BrowseSourceFolder_Click" Tag="PowerPoint" Content="{loc:Text SettingsWindow.PptFolder}"
                                     ToolTip="{Binding PowerPointSourceFolder}" AutomationProperties.Name="Choose PowerPoint source folder" />
                                 <Button Style="{x:Null}" Canvas.Left="247" Canvas.Top="134" Width="104" Height="28"
-                                    Click="BrowseSourceFolder_Click" Tag="Media" Content="Media folder…"
+                                    Click="BrowseSourceFolder_Click" Tag="Media" Content="{loc:Text SettingsWindow.MediaFolder}"
                                     ToolTip="{Binding MediaSourceFolder}" AutomationProperties.Name="Choose audio and video source folder" />
                                 <Button Style="{x:Null}" Canvas.Left="247" Canvas.Top="59" Width="104" Height="39"
-                                    Click="RenameFolder_Click" Content="Rename" AutomationProperties.Name="Rename" />
+                                    Click="RenameFolder_Click" Content="{loc:Text SettingsWindow.Rename}" AutomationProperties.Name="Rename" />
                                 <CheckBox Style="{x:Null}" Canvas.Left="247" Canvas.Top="29" Width="101" Height="24"
-                                    Content="Use Folder"
+                                    Content="{loc:Text SettingsWindow.UseFolder}"
                                     IsChecked="{Binding SelectedItem.IsEnabled, ElementName=FolderList, Mode=TwoWay}"
                                     AutomationProperties.Name="Use Folder" />
                                 <ListBox Style="{x:Null}" Canvas.Left="8" Canvas.Top="29" Width="229" Height="132"
@@ -934,55 +934,55 @@
                     </Canvas>
                 </ScrollViewer>
             </TabItem>
-            <TabItem Style="{x:Null}" Padding="10,5" Header="Bibles">
+            <TabItem Style="{x:Null}" Padding="10,5" Header="{loc:Text SettingsWindow.TabBibles}">
                 <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
                     <Canvas Width="719" Height="538" HorizontalAlignment="Left" VerticalAlignment="Top" x:Name="BiblePanel" DataContext="{x:Null}">
                         <GroupBox Style="{StaticResource ClassicOptionsGroup}" Canvas.Left="8" Canvas.Top="319"
-                            Width="699" Height="191" Header="Add Holy Bibles">
+                            Width="699" Height="191" Header="{loc:Text SettingsWindow.AddBibles}">
                             <Canvas>
                                 <TextBlock Canvas.Left="450" Canvas.Top="87" Width="224" Height="96"
-                                    Text="Click Search to list Bibles in the Holy Bible folder. Select a Bible and click Add."
+                                    Text="{loc:Text SettingsWindow.BibleSearchHint}"
                                     TextWrapping="Wrap" />
                                 <Button Style="{x:Null}" Canvas.Left="563" Canvas.Top="29" Width="104" Height="39"
-                                    Click="AddBible_Click" Content="Add" AutomationProperties.Name="Add" />
+                                    Click="AddBible_Click" Content="{loc:Text SettingsWindow.Add}" AutomationProperties.Name="Add" />
                                 <Button Style="{x:Null}" Canvas.Left="450" Canvas.Top="29" Width="104" Height="39"
-                                    Click="SearchBibles_Click" Content="Search" AutomationProperties.Name="Search" />
+                                    Click="SearchBibles_Click" Content="{loc:Text SettingsWindow.Search}" AutomationProperties.Name="Search" />
                                 <ListView Style="{x:Null}" Canvas.Left="8" Canvas.Top="29" Width="429" Height="151"
                                     x:Name="BibleSearchList" AutomationProperties.Name="Bible Search List">
                                     <ListView.View>
                                         <GridView>
-                                            <GridViewColumn Header="Name" Width="83" DisplayMemberBinding="{Binding SuggestedName}" />
-                                            <GridViewColumn Header="Description" Width="193" DisplayMemberBinding="{Binding Description}" />
-                                            <GridViewColumn Header="File Name" Width="150" DisplayMemberBinding="{Binding FileName}" />
+                                            <GridViewColumn Header="{loc:Text SettingsWindow.ColumnName}" Width="83" DisplayMemberBinding="{Binding SuggestedName}" />
+                                            <GridViewColumn Header="{loc:Text SettingsWindow.ColumnDescription}" Width="193" DisplayMemberBinding="{Binding Description}" />
+                                            <GridViewColumn Header="{loc:Text SettingsWindow.ColumnFileName}" Width="150" DisplayMemberBinding="{Binding FileName}" />
                                         </GridView>
                                     </ListView.View>
                                 </ListView>
                             </Canvas>
                         </GroupBox>
                         <GroupBox Style="{StaticResource ClassicOptionsGroup}" Canvas.Left="5" Canvas.Top="24"
-                            Width="699" Height="284" Header="Current Holy Bibles in Axicultus">
+                            Width="699" Height="284" Header="{loc:Text SettingsWindow.CurrentBibles}">
                             <Canvas>
                                 <Button Style="{x:Null}" Canvas.Left="523" Canvas.Top="77" Width="104" Height="39"
-                                    Click="RemoveBible_Click" Content="Remove" AutomationProperties.Name="Remove" />
+                                    Click="RemoveBible_Click" Content="{loc:Text SettingsWindow.Remove}" AutomationProperties.Name="Remove" />
                                 <Button Style="{x:Null}" Canvas.Left="523" Canvas.Top="29" Width="104" Height="39"
-                                    Click="RenameBible_Click" Content="Rename" AutomationProperties.Name="Rename" />
+                                    Click="RenameBible_Click" Content="{loc:Text SettingsWindow.Rename}" AutomationProperties.Name="Rename" />
                                 <Button Canvas.Left="450" Canvas.Top="29" Width="22" Height="22" Click="BibleInfo_Click"
                                     Style="{StaticResource OptionTool}" AutomationProperties.Name="Bible Info"
-                                    ToolTip="Bible Info">
+                                    ToolTip="{loc:Text SettingsWindow.BibleInfo}">
                                     <options:FrmIcon Icon="info" Width="18" Height="18" />
                                 </Button>
                                 <Button Canvas.Left="450" Canvas.Top="52" Width="22" Height="22" Click="BibleUp_Click"
                                     Style="{StaticResource OptionTool}" AutomationProperties.Name="Move Item Up"
-                                    ToolTip="Move Item Up">
+                                    ToolTip="{loc:Text SettingsWindow.MoveUp}">
                                     <options:FrmIcon Icon="arrow_up" Width="18" Height="18" />
                                 </Button>
                                 <Button Canvas.Left="450" Canvas.Top="75" Width="22" Height="22" Click="BibleDown_Click"
                                     Style="{StaticResource OptionTool}" AutomationProperties.Name="Move Item Down"
-                                    ToolTip="Move Item Down">
+                                    ToolTip="{loc:Text SettingsWindow.MoveDown}">
                                     <options:FrmIcon Icon="arrow_down" Width="18" Height="18" />
                                 </Button>
                                 <GroupBox Style="{StaticResource ClassicOptionsGroup}" Canvas.Left="455"
-                                    Canvas.Top="149" Width="238" Height="124" Header="Use Song Folder Settings">
+                                    Canvas.Top="149" Width="238" Height="124" Header="{loc:Text SettingsWindow.UseSongFolderSettings}">
                                     <Canvas>
                                         <options:OptionNumberBox Canvas.Left="155" Canvas.Top="72" Width="62"
                                             Height="27"
@@ -990,13 +990,13 @@
                                             Minimum="5" Maximum="200"
                                             AutomationProperties.Name="Bible Font Size Up Down" />
                                         <TextBlock Canvas.Left="15" Canvas.Top="77" Width="98" Height="20"
-                                            Text="Font Size (%):" TextWrapping="Wrap" />
+                                            Text="{loc:Text SettingsWindow.FontSizePercent}" TextWrapping="Wrap" />
                                         <ComboBox Style="{x:Null}" Canvas.Left="16" Canvas.Top="28" Width="198"
                                             Height="28" ItemsSource="{Binding JumpFolders, ElementName=OptionsWindow}"
                                             DisplayMemberPath="Name" SelectedValuePath="Id"
                                             SelectedValue="{Binding SelectedFolderNumber, Mode=TwoWay}"
                                             AutomationProperties.Name="Bible Associated Folder"
-                                            ToolTip="Bible Associated Folder" />
+                                            ToolTip="{loc:Text SettingsWindow.BibleFolder}" />
                                     </Canvas>
                                 </GroupBox>
                                 <ListView Style="{x:Null}" Canvas.Left="8" Canvas.Top="29" Width="434" Height="243"
@@ -1005,9 +1005,9 @@
                                     AutomationProperties.Name="Bible List">
                                     <ListView.View>
                                         <GridView>
-                                            <GridViewColumn Header="Name" Width="84" DisplayMemberBinding="{Binding Name}" />
-                                            <GridViewColumn Header="Description" Width="198" DisplayMemberBinding="{Binding Description}" />
-                                            <GridViewColumn Header="File Name" Width="142" DisplayMemberBinding="{Binding FileName}" />
+                                            <GridViewColumn Header="{loc:Text SettingsWindow.ColumnName}" Width="84" DisplayMemberBinding="{Binding Name}" />
+                                            <GridViewColumn Header="{loc:Text SettingsWindow.ColumnDescription}" Width="198" DisplayMemberBinding="{Binding Description}" />
+                                            <GridViewColumn Header="{loc:Text SettingsWindow.ColumnFileName}" Width="142" DisplayMemberBinding="{Binding FileName}" />
                                         </GridView>
                                     </ListView.View>
                                 </ListView>
@@ -1017,14 +1017,14 @@
                     </Canvas>
                 </ScrollViewer>
             </TabItem>
-            <TabItem Style="{x:Null}" Padding="10,5" Header="Licence">
+            <TabItem Style="{x:Null}" Padding="10,5" Header="{loc:Text SettingsWindow.TabLicence}">
                 <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
                     <Canvas Width="719" Height="538" HorizontalAlignment="Left" VerticalAlignment="Top">
                         <GroupBox Style="{StaticResource ClassicOptionsGroup}" Canvas.Left="8" Canvas.Top="24"
-                            Width="699" Height="497" Header="Licence Administration Details">
+                            Width="699" Height="497" Header="{loc:Text SettingsWindow.LicenceDetails}">
                             <Canvas>
                                 <CheckBox Style="{x:Null}" Canvas.Left="11" Canvas.Top="441" Width="334" Height="24"
-                                    Content="Enforce Display of Copyright on First Showing"
+                                    Content="{loc:Text SettingsWindow.EnforceCopyright}"
                                     IsChecked="{Binding LicenceOnFirstPage, Mode=TwoWay}"
                                     AutomationProperties.Name="Enforce Display of Copyright on First Showing" />
                                 <TextBox Style="{x:Null}" Canvas.Left="381" Canvas.Top="338" Width="252" Height="27"
@@ -1060,7 +1060,7 @@
                                     Text="{Binding LicenceRows[0].Preview, Mode=OneWay}"
                                     AutomationProperties.Name="Licence Rows[0].Preview" />
                                 <TextBlock Canvas.Left="380" Canvas.Top="40" Width="200" Height="20"
-                                    Text="How it will appear on Screen" TextWrapping="Wrap" />
+                                    Text="{loc:Text SettingsWindow.HowItAppears}" TextWrapping="Wrap" />
                                 <TextBox Style="{x:Null}" Canvas.Left="167" Canvas.Top="338" Width="198" Height="27"
                                     Text="{Binding LicenceRows[7].Number, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                     AutomationProperties.Name="Licence Rows[7].Number" />
@@ -1080,12 +1080,12 @@
                                     Text="{Binding LicenceRows[2].Number, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                     AutomationProperties.Name="Licence Rows[2].Number" />
                                 <TextBox Style="{x:Null}" Canvas.Left="166" Canvas.Top="101" Width="198" Height="27"
-                                    IsReadOnly="True" IsTabStop="False" VerticalContentAlignment="Center" Text="Blank"
+                                    IsReadOnly="True" IsTabStop="False" VerticalContentAlignment="Center" Text="{loc:Text SettingsWindow.Blank}"
                                     AutomationProperties.Name="Blank" />
                                 <TextBox Style="{x:Null}" Canvas.Left="166" Canvas.Top="65" Width="198" Height="27"
-                                    IsReadOnly="True" IsTabStop="False" VerticalContentAlignment="Center" Text="Blank"
+                                    IsReadOnly="True" IsTabStop="False" VerticalContentAlignment="Center" Text="{loc:Text SettingsWindow.Blank}"
                                     AutomationProperties.Name="Blank" />
-                                <TextBlock Canvas.Left="166" Canvas.Top="40" Width="116" Height="20" Text="Licence Number" TextWrapping="Wrap" />
+                                <TextBlock Canvas.Left="166" Canvas.Top="40" Width="116" Height="20" Text="{loc:Text SettingsWindow.LicenceNumber}" TextWrapping="Wrap" />
                                 <TextBox Style="{x:Null}" Canvas.Left="167" Canvas.Top="399" Width="118" Height="27"
                                     Text="{Binding LicenceNumberSymbol, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                     AutomationProperties.Name="Licence Number Symbol" />
@@ -1114,148 +1114,148 @@
                                 <TextBox Style="{x:Null}" Canvas.Left="13" Canvas.Top="65" Width="139" Height="27"
                                     IsReadOnly="True" IsTabStop="False" VerticalContentAlignment="Center"
                                     Text="{Binding LicenceRows[0].Name, Mode=OneWay}" AutomationProperties.Name="None" />
-                                <TextBlock Canvas.Left="13" Canvas.Top="40" Width="100" Height="20" Text="Administrator" TextWrapping="Wrap" />
-                                <TextBlock Canvas.Left="8" Canvas.Top="403" Width="120" Height="20" Text="Number Symbol:" TextWrapping="Wrap" />
+                                <TextBlock Canvas.Left="13" Canvas.Top="40" Width="100" Height="20" Text="{loc:Text SettingsWindow.Administrator}" TextWrapping="Wrap" />
+                                <TextBlock Canvas.Left="8" Canvas.Top="403" Width="120" Height="20" Text="{loc:Text SettingsWindow.NumberSymbol}" TextWrapping="Wrap" />
                             </Canvas>
                         </GroupBox>
                     </Canvas>
                 </ScrollViewer>
             </TabItem>
-            <TabItem Style="{x:Null}" Padding="10,5" Header="Keyboard">
+            <TabItem Style="{x:Null}" Padding="10,5" Header="{loc:Text SettingsWindow.TabKeyboard}">
                 <TabControl>
-                    <TabItem Header="기본 키 설정">
+                    <TabItem Header="{loc:Text SettingsWindow.BasicKeys}">
                         <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
                             <Canvas Width="719" Height="538" HorizontalAlignment="Left" VerticalAlignment="Top">
                                 <GroupBox Style="{StaticResource ClassicOptionsGroup}" Canvas.Left="173" Canvas.Top="435"
-                                    Width="235" Height="87" Header="CopyPreviewToOutput" />
+                                    Width="235" Height="87" Header="{loc:Text SettingsWindow.CopyPreviewToOutput}" />
                                 <GroupBox Style="{StaticResource ClassicOptionsGroup}" Canvas.Left="414" Canvas.Top="435"
-                                    Width="235" Height="87" Header="SlideUpDown" />
+                                    Width="235" Height="87" Header="{loc:Text SettingsWindow.SlideUpDown}" />
                                 <GroupBox Style="{StaticResource ClassicOptionsGroup}" Canvas.Left="8" Canvas.Top="435"
-                                    Width="159" Height="87" Header="Black Screen" />
+                                    Width="159" Height="87" Header="{loc:Text SettingsWindow.BlackScreen}" />
                                 <CheckBox Style="{x:Null}" Canvas.Left="207" Canvas.Top="463" Width="198" Height="24"
-                                    Content="F7 (turn off Black Output)" IsChecked="{Binding [GlobalF7], Mode=TwoWay}"
+                                    Content="{loc:Text SettingsWindow.GlobalF7}" IsChecked="{Binding [GlobalF7], Mode=TwoWay}"
                                     AutomationProperties.Name="F7 (turn off Black Output)" />
                                 <CheckBox Style="{x:Null}" Canvas.Left="207" Canvas.Top="492" Width="178" Height="24"
-                                    Content="F8 (no control Output)" IsChecked="{Binding [GlobalF8], Mode=TwoWay}"
+                                    Content="{loc:Text SettingsWindow.GlobalF8}" IsChecked="{Binding [GlobalF8], Mode=TwoWay}"
                                     AutomationProperties.Name="F8 (no control Output)" />
                                 <CheckBox Style="{x:Null}" Canvas.Left="418" Canvas.Top="489" Width="208" Height="24"
-                                    Content="OutputView_CtrlArrowKeys" IsChecked="{Binding [GlobalCtrlArrow], Mode=TwoWay}"
+                                    Content="{loc:Text SettingsWindow.OutputCtrlArrowKeys}" IsChecked="{Binding [GlobalCtrlArrow], Mode=TwoWay}"
                                     AutomationProperties.Name="OutputView_CtrlArrowKeys" />
                                 <CheckBox Style="{x:Null}" Canvas.Left="418" Canvas.Top="460" Width="185" Height="24"
-                                    Content="OutputView_ArrowKeys" IsChecked="{Binding [GlobalArrow], Mode=TwoWay}"
+                                    Content="{loc:Text SettingsWindow.OutputArrowKeys}" IsChecked="{Binding [GlobalArrow], Mode=TwoWay}"
                                     AutomationProperties.Name="OutputView_ArrowKeys" />
                                 <CheckBox Style="{x:Null}" Canvas.Left="95" Canvas.Top="476" Width="54" Height="24"
                                     Content="F10" IsChecked="{Binding [GlobalF10], Mode=TwoWay}" AutomationProperties.Name="F10" />
                                 <CheckBox Style="{x:Null}" Canvas.Left="29" Canvas.Top="476" Width="46" Height="24" Content="F9"
                                     IsChecked="{Binding [GlobalF9], Mode=TwoWay}" AutomationProperties.Name="F9" />
                                 <GroupBox Style="{StaticResource ClassicOptionsGroup}" Canvas.Left="8" Canvas.Top="23"
-                                    Width="699" Height="401" Header="Keyboard Mapping during Show and in Preview.Output Areas">
+                                    Width="699" Height="401" Header="{loc:Text SettingsWindow.KeyboardMapping}">
                                     <Canvas>
                                         <TextBox Style="{x:Null}" Canvas.Left="407" Canvas.Top="338" Width="226" Height="27"
                                             Text="End" IsReadOnly="True" IsTabStop="False" VerticalContentAlignment="Center"
                                             TextAlignment="Center" AutomationProperties.Name="End" />
                                         <TextBox Style="{x:Null}" Canvas.Left="408" Canvas.Top="301" Width="226" Height="27"
-                                            Text="Page Down / Space Bar" IsReadOnly="True" IsTabStop="False"
+                                            Text="{loc:Text SettingsWindow.PageDownSpace}" IsReadOnly="True" IsTabStop="False"
                                             VerticalContentAlignment="Center" TextAlignment="Center"
                                             AutomationProperties.Name="Page Down / Space Bar" />
                                         <TextBox Style="{x:Null}" Canvas.Left="167" Canvas.Top="338" Width="226" Height="27"
-                                            Text="Right Arrow" IsReadOnly="True" IsTabStop="False"
+                                            Text="{loc:Text SettingsWindow.RightArrow}" IsReadOnly="True" IsTabStop="False"
                                             VerticalContentAlignment="Center" TextAlignment="Center"
                                             AutomationProperties.Name="Right Arrow" />
                                         <TextBox Style="{x:Null}" Canvas.Left="408" Canvas.Top="265" Width="226" Height="27"
-                                            Text="Page Up" IsReadOnly="True" IsTabStop="False" VerticalContentAlignment="Center"
+                                            Text="{loc:Text SettingsWindow.PageUp}" IsReadOnly="True" IsTabStop="False" VerticalContentAlignment="Center"
                                             TextAlignment="Center" AutomationProperties.Name="Page Up" />
                                         <TextBox Style="{x:Null}" Canvas.Left="167" Canvas.Top="301" Width="226" Height="27"
-                                            Text="Down Arrow / Space Bar" IsReadOnly="True" IsTabStop="False"
+                                            Text="{loc:Text SettingsWindow.DownArrowSpace}" IsReadOnly="True" IsTabStop="False"
                                             VerticalContentAlignment="Center" TextAlignment="Center"
                                             AutomationProperties.Name="Down Arrow / Space Bar" />
                                         <TextBox Style="{x:Null}" Canvas.Left="408" Canvas.Top="228" Width="226" Height="27"
                                             Text="Home" IsReadOnly="True" IsTabStop="False" VerticalContentAlignment="Center"
                                             TextAlignment="Center" AutomationProperties.Name="Home" />
                                         <TextBox Style="{x:Null}" Canvas.Left="167" Canvas.Top="265" Width="226" Height="27"
-                                            Text="Up Arrow" IsReadOnly="True" IsTabStop="False"
+                                            Text="{loc:Text SettingsWindow.UpArrow}" IsReadOnly="True" IsTabStop="False"
                                             VerticalContentAlignment="Center" TextAlignment="Center"
                                             AutomationProperties.Name="Up Arrow" />
                                         <TextBox Style="{x:Null}" Canvas.Left="407" Canvas.Top="176" Width="226" Height="27"
-                                            Text="Right Arrow" IsReadOnly="True" IsTabStop="False"
+                                            Text="{loc:Text SettingsWindow.RightArrow}" IsReadOnly="True" IsTabStop="False"
                                             VerticalContentAlignment="Center" TextAlignment="Center"
                                             AutomationProperties.Name="Right Arrow" />
                                         <TextBox Style="{x:Null}" Canvas.Left="167" Canvas.Top="228" Width="226" Height="27"
-                                            Text="Left Arrow" IsReadOnly="True" IsTabStop="False"
+                                            Text="{loc:Text SettingsWindow.LeftArrow}" IsReadOnly="True" IsTabStop="False"
                                             VerticalContentAlignment="Center" TextAlignment="Center"
                                             AutomationProperties.Name="Left Arrow" />
                                         <TextBox Style="{x:Null}" Canvas.Left="407" Canvas.Top="138" Width="226" Height="27"
-                                            Text="Down Arrow" IsReadOnly="True" IsTabStop="False"
+                                            Text="{loc:Text SettingsWindow.DownArrow}" IsReadOnly="True" IsTabStop="False"
                                             VerticalContentAlignment="Center" TextAlignment="Center"
                                             AutomationProperties.Name="Down Arrow" />
                                         <TextBox Style="{x:Null}" Canvas.Left="166" Canvas.Top="176" Width="226" Height="27"
                                             Text="End" IsReadOnly="True" IsTabStop="False" VerticalContentAlignment="Center"
                                             TextAlignment="Center" AutomationProperties.Name="End" />
                                         <TextBox Style="{x:Null}" Canvas.Left="407" Canvas.Top="101" Width="226" Height="27"
-                                            Text="Up Arrow" IsReadOnly="True" IsTabStop="False"
+                                            Text="{loc:Text SettingsWindow.UpArrow}" IsReadOnly="True" IsTabStop="False"
                                             VerticalContentAlignment="Center" TextAlignment="Center"
                                             AutomationProperties.Name="Up Arrow" />
                                         <TextBox Style="{x:Null}" Canvas.Left="166" Canvas.Top="138" Width="226" Height="27"
-                                            Text="Page down" IsReadOnly="True" IsTabStop="False"
+                                            Text="{loc:Text SettingsWindow.PageDown}" IsReadOnly="True" IsTabStop="False"
                                             VerticalContentAlignment="Center" TextAlignment="Center"
                                             AutomationProperties.Name="Page down" />
                                         <TextBox Style="{x:Null}" Canvas.Left="166" Canvas.Top="101" Width="226" Height="27"
-                                            Text="Page Up" IsReadOnly="True" IsTabStop="False" VerticalContentAlignment="Center"
+                                            Text="{loc:Text SettingsWindow.PageUp}" IsReadOnly="True" IsTabStop="False" VerticalContentAlignment="Center"
                                             TextAlignment="Center" AutomationProperties.Name="Page Up" />
                                         <TextBox Style="{x:Null}" Canvas.Left="407" Canvas.Top="65" Width="226" Height="27"
-                                            Text="Left Arrow" IsReadOnly="True" IsTabStop="False"
+                                            Text="{loc:Text SettingsWindow.LeftArrow}" IsReadOnly="True" IsTabStop="False"
                                             VerticalContentAlignment="Center" TextAlignment="Center"
                                             AutomationProperties.Name="Left Arrow" />
                                         <TextBox Style="{x:Null}" Canvas.Left="166" Canvas.Top="65" Width="226" Height="27"
                                             Text="Home" IsReadOnly="True" IsTabStop="False" VerticalContentAlignment="Center"
                                             TextAlignment="Center" AutomationProperties.Name="Home" />
                                         <RadioButton Style="{x:Null}" Canvas.Left="465" Canvas.Top="37" Width="102" Height="24"
-                                            Content="Alternative" GroupName="rbKeyBoardOpt"
+                                            Content="{loc:Text SettingsWindow.Alternative}" GroupName="rbKeyBoardOpt"
                                             IsChecked="{Binding [AlternateKeyboard], Mode=TwoWay, Converter={StaticResource OptionChoice}, ConverterParameter=True}"
                                             AutomationProperties.Name="Alternative" />
                                         <RadioButton Style="{x:Null}" Canvas.Left="228" Canvas.Top="37" Width="79" Height="24"
-                                            Content="Default" GroupName="rbKeyBoardOpt"
+                                            Content="{loc:Text SettingsWindow.Default}" GroupName="rbKeyBoardOpt"
                                             IsChecked="{Binding [AlternateKeyboard], Mode=TwoWay, Converter={StaticResource OptionChoice}, ConverterParameter=False}"
                                             AutomationProperties.Name="Default" />
                                         <TextBox Style="{x:Null}" Canvas.Left="14" Canvas.Top="338" Width="139" Height="27"
-                                            Text="Last Slide" IsReadOnly="True" IsTabStop="False"
+                                            Text="{loc:Text SettingsWindow.LastSlide}" IsReadOnly="True" IsTabStop="False"
                                             VerticalContentAlignment="Center" TextAlignment="Left"
                                             AutomationProperties.Name="Last Slide" />
                                         <TextBox Style="{x:Null}" Canvas.Left="14" Canvas.Top="301" Width="139" Height="27"
-                                            Text="Next Slide" IsReadOnly="True" IsTabStop="False"
+                                            Text="{loc:Text SettingsWindow.NextSlide}" IsReadOnly="True" IsTabStop="False"
                                             VerticalContentAlignment="Center" TextAlignment="Left"
                                             AutomationProperties.Name="Next Slide" />
                                         <TextBox Style="{x:Null}" Canvas.Left="14" Canvas.Top="265" Width="139" Height="27"
-                                            Text="Previous Slide" IsReadOnly="True" IsTabStop="False"
+                                            Text="{loc:Text SettingsWindow.PreviousSlide}" IsReadOnly="True" IsTabStop="False"
                                             VerticalContentAlignment="Center" TextAlignment="Left"
                                             AutomationProperties.Name="Previous Slide" />
                                         <TextBox Style="{x:Null}" Canvas.Left="14" Canvas.Top="228" Width="139" Height="27"
-                                            Text="First Slide" IsReadOnly="True" IsTabStop="False"
+                                            Text="{loc:Text SettingsWindow.FirstSlide}" IsReadOnly="True" IsTabStop="False"
                                             VerticalContentAlignment="Center" TextAlignment="Left"
                                             AutomationProperties.Name="First Slide" />
                                         <TextBox Style="{x:Null}" Canvas.Left="13" Canvas.Top="176" Width="139" Height="27"
-                                            Text="Last Item" IsReadOnly="True" IsTabStop="False"
+                                            Text="{loc:Text SettingsWindow.LastItem}" IsReadOnly="True" IsTabStop="False"
                                             VerticalContentAlignment="Center" TextAlignment="Left"
                                             AutomationProperties.Name="Last Item" />
                                         <TextBox Style="{x:Null}" Canvas.Left="13" Canvas.Top="138" Width="139" Height="27"
-                                            Text="Next Item" IsReadOnly="True" IsTabStop="False"
+                                            Text="{loc:Text SettingsWindow.NextItem}" IsReadOnly="True" IsTabStop="False"
                                             VerticalContentAlignment="Center" TextAlignment="Left"
                                             AutomationProperties.Name="Next Item" />
                                         <TextBox Style="{x:Null}" Canvas.Left="13" Canvas.Top="101" Width="139" Height="27"
-                                            Text="Previous Item" IsReadOnly="True" IsTabStop="False"
+                                            Text="{loc:Text SettingsWindow.PreviousItem}" IsReadOnly="True" IsTabStop="False"
                                             VerticalContentAlignment="Center" TextAlignment="Left"
                                             AutomationProperties.Name="Previous Item" />
                                         <TextBox Style="{x:Null}" Canvas.Left="13" Canvas.Top="65" Width="139" Height="27"
-                                            Text="First Item" IsReadOnly="True" IsTabStop="False"
+                                            Text="{loc:Text SettingsWindow.FirstItem}" IsReadOnly="True" IsTabStop="False"
                                             VerticalContentAlignment="Center" TextAlignment="Left"
                                             AutomationProperties.Name="First Item" />
-                                        <TextBlock Canvas.Left="13" Canvas.Top="40" Width="55" Height="20" Text="Action:" TextWrapping="Wrap" />
+                                        <TextBlock Canvas.Left="13" Canvas.Top="40" Width="55" Height="20" Text="{loc:Text SettingsWindow.ActionLabel}" TextWrapping="Wrap" />
                                     </Canvas>
                                 </GroupBox>
                             </Canvas>
                         </ScrollViewer>
                     </TabItem>
-                    <TabItem Header="사용자 지정 단축키">
+                    <TabItem Header="{loc:Text SettingsWindow.CustomShortcuts}">
                         <ListBox ItemsSource="{Binding ShortcutItems}" Margin="{StaticResource Thickness.Xl}" BorderBrush="{DynamicResource Brush.Border.Default}" AutomationProperties.Name="단축키 편집 목록">
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
@@ -1278,13 +1278,13 @@
                                         <Button Grid.Column="4" Command="{Binding DataContext.SaveShortcutCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}" Style="{StaticResource EsButton.Secondary}" AutomationProperties.Name="단축키 저장" Margin="0,0,8,0">
                                             <StackPanel Orientation="Horizontal">
                                                 <ui:SymbolIcon Symbol="Save24" Margin="0,0,6,0" />
-                                                <TextBlock Text="저장" />
+                                                <TextBlock Text="{loc:Text SettingsWindow.Save}" />
                                             </StackPanel>
                                         </Button>
                                         <Button Grid.Column="5" Command="{Binding DataContext.ResetShortcutCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}" Style="{StaticResource EsButton.Secondary}" AutomationProperties.Name="단축키 기본값 복원">
                                             <StackPanel Orientation="Horizontal">
                                                 <ui:SymbolIcon Symbol="Eraser24" Margin="0,0,6,0" />
-                                                <TextBlock Text="복원" />
+                                                <TextBlock Text="{loc:Text SettingsWindow.Reset}" />
                                             </StackPanel>
                                         </Button>
                                     </Grid>
@@ -1294,9 +1294,9 @@
                     </TabItem>
                 </TabControl>
             </TabItem>
-            <TabItem Style="{x:Null}" Padding="10,5" Header="추가 설정">
+            <TabItem Style="{x:Null}" Padding="10,5" Header="{loc:Text SettingsWindow.TabMore}">
                 <TabControl Margin="8">
-                    <TabItem Header="일반 및 화면">
+                    <TabItem Header="{loc:Text SettingsWindow.GeneralAndDisplay}">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="8">
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -1304,19 +1304,19 @@
                                     <ColumnDefinition />
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="0">
-                                    <GroupBox Header="일반" Padding="10" Margin="4">
+                                    <GroupBox Header="{loc:Text SettingsWindow.General}" Padding="10" Margin="4">
                                         <StackPanel>
-                                            <TextBlock x:Name="LblWorkingFolder" Text="작업 폴더" Style="{StaticResource Type.Caption.Style}" Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                                            <TextBlock x:Name="LblWorkingFolder" Text="{loc:Text SettingsWindow.WorkingFolder}" Style="{StaticResource Type.Caption.Style}" Foreground="{DynamicResource Brush.Text.Tertiary}" />
                                             <Grid Margin="0,4,0,16">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="*" />
                                                     <ColumnDefinition Width="Auto" />
                                                 </Grid.ColumnDefinitions>
                                                 <TextBox Text="{Binding WorkingFolder}" Style="{StaticResource EsTextBox.Default}" AutomationProperties.LabeledBy="{Binding ElementName=LblWorkingFolder}" Margin="0,0,8,0" />
-                                                <Button Grid.Column="1" Command="{Binding BrowseWorkingFolderCommand}" Style="{StaticResource EsButton.Secondary}" ToolTip="작업 폴더 선택" AutomationProperties.Name="작업 폴더 선택">
+                                                <Button Grid.Column="1" Command="{Binding BrowseWorkingFolderCommand}" Style="{StaticResource EsButton.Secondary}" ToolTip="{loc:Text SettingsWindow.ChooseWorkingFolder}" AutomationProperties.Name="작업 폴더 선택">
                                                     <StackPanel Orientation="Horizontal">
                                                         <ui:SymbolIcon Symbol="FolderOpen24" Margin="0,0,6,0" />
-                                                        <TextBlock Text="찾기" />
+                                                        <TextBlock Text="{loc:Text SettingsWindow.Browse}" />
                                                     </StackPanel>
                                                 </Button>
                                             </Grid>
@@ -1324,9 +1324,9 @@
                                     </GroupBox>
                                 </StackPanel>
                                 <StackPanel Grid.Column="1">
-                                    <GroupBox Header="화면" Padding="10" Margin="4">
+                                    <GroupBox Header="{loc:Text SettingsWindow.Display}" Padding="10" Margin="4">
                                         <StackPanel>
-                                            <TextBlock x:Name="LblTheme" Text="테마" Style="{StaticResource Type.Caption.Style}" Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                                            <TextBlock x:Name="LblTheme" Text="{loc:Text SettingsWindow.Theme}" Style="{StaticResource Type.Caption.Style}" Foreground="{DynamicResource Brush.Text.Tertiary}" />
                                             <ComboBox ItemsSource="{Binding ThemeOptions}" SelectedItem="{Binding Theme, Mode=TwoWay}" Style="{StaticResource EsComboBox.Default}" AutomationProperties.LabeledBy="{Binding ElementName=LblTheme}" Margin="0,4,0,16" />
                                         </StackPanel>
                                     </GroupBox>
@@ -1334,7 +1334,7 @@
                             </Grid>
                         </ScrollViewer>
                     </TabItem>
-                    <TabItem Header="PowerPoint 및 미디어">
+                    <TabItem Header="{loc:Text SettingsWindow.PowerPointAndMedia}">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="8">
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -1342,74 +1342,74 @@
                                     <ColumnDefinition />
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="0">
-                                    <GroupBox Header="PowerPoint 렌더링" Padding="10" Margin="4">
+                                    <GroupBox Header="{loc:Text SettingsWindow.PowerPointRendering}" Padding="10" Margin="4">
                                         <StackPanel>
-                                            <TextBlock Text="렌더 타임아웃(초)" Style="{StaticResource Type.Caption.Style}" Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                                            <TextBlock Text="{loc:Text SettingsWindow.RenderTimeout}" Style="{StaticResource Type.Caption.Style}" Foreground="{DynamicResource Brush.Text.Tertiary}" />
                                             <TextBox Text="{Binding PowerPointRenderTimeoutSeconds}" Style="{StaticResource EsTextBox.Default}" AutomationProperties.Name="PowerPoint 렌더 타임아웃" Margin="0,4,0,16" />
-                                            <TextBlock Text="썸네일 캐시(MB)" Style="{StaticResource Type.Caption.Style}" Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                                            <TextBlock Text="{loc:Text SettingsWindow.ThumbnailCache}" Style="{StaticResource Type.Caption.Style}" Foreground="{DynamicResource Brush.Text.Tertiary}" />
                                             <TextBox Text="{Binding ThumbnailCacheMegabytes, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource EsTextBox.Default}" AutomationProperties.Name="썸네일 캐시" Margin="0,4,0,16" />
                                         </StackPanel>
                                     </GroupBox>
                                 </StackPanel>
                                 <StackPanel Grid.Column="1">
-                                    <GroupBox Header="미디어 파일 재생" Padding="10" Margin="4">
+                                    <GroupBox Header="{loc:Text SettingsWindow.MediaPlayback}" Padding="10" Margin="4">
                                         <StackPanel>
-                                            <TextBlock Text="볼륨" Style="{StaticResource Type.Caption.Style}" Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                                            <TextBlock Text="{loc:Text SettingsWindow.Volume}" Style="{StaticResource Type.Caption.Style}" Foreground="{DynamicResource Brush.Text.Tertiary}" />
                                             <Slider Value="{Binding MediaVolume, Mode=TwoWay}" Minimum="0" Maximum="1" TickFrequency="0.05" IsSnapToTickEnabled="True" AutomationProperties.Name="미디어 볼륨" Margin="0,4,0,16" />
-                                            <TextBlock Text="좌우 밸런스" Style="{StaticResource Type.Caption.Style}" Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                                            <TextBlock Text="{loc:Text SettingsWindow.Balance}" Style="{StaticResource Type.Caption.Style}" Foreground="{DynamicResource Brush.Text.Tertiary}" />
                                             <Slider Value="{Binding MediaBalance, Mode=TwoWay}" Minimum="-1" Maximum="1" TickFrequency="0.1" IsSnapToTickEnabled="True" AutomationProperties.Name="미디어 밸런스" Margin="0,4,0,16" />
-                                            <CheckBox IsChecked="{Binding MediaMuted, Mode=TwoWay}" Content="음소거" AutomationProperties.Name="미디어 음소거" MinHeight="{DynamicResource Spacing.TargetMin}" Margin="0,0,0,16" />
+                                            <CheckBox IsChecked="{Binding MediaMuted, Mode=TwoWay}" Content="{loc:Text SettingsWindow.Mute}" AutomationProperties.Name="미디어 음소거" MinHeight="{DynamicResource Spacing.TargetMin}" Margin="0,0,0,16" />
                                         </StackPanel>
                                     </GroupBox>
                                 </StackPanel>
                             </Grid>
                         </ScrollViewer>
                     </TabItem>
-                    <TabItem Header="데이터">
+                    <TabItem Header="{loc:Text SettingsWindow.Data}">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="8">
                             <ScrollViewer VerticalScrollBarVisibility="Auto">
                                 <StackPanel Margin="{StaticResource Thickness.Xl}">
-                                    <TextBlock Text="AdminDB 경로" Style="{StaticResource Type.Caption.Style}" Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                                    <TextBlock Text="{loc:Text SettingsWindow.AdminDbPath}" Style="{StaticResource Type.Caption.Style}" Foreground="{DynamicResource Brush.Text.Tertiary}" />
                                     <Grid Margin="0,4,0,12">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
                                         <TextBox Text="{Binding AdminDatabasePath, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource EsTextBox.Default}" AutomationProperties.Name="AdminDB 경로" Margin="0,0,8,0" />
-                                        <Button Grid.Column="1" Command="{Binding BrowseAdminDatabaseCommand}" Style="{StaticResource EsButton.Secondary}" ToolTip="AdminDB 파일 선택" AutomationProperties.Name="AdminDB 파일 선택">
+                                        <Button Grid.Column="1" Command="{Binding BrowseAdminDatabaseCommand}" Style="{StaticResource EsButton.Secondary}" ToolTip="{loc:Text SettingsWindow.ChooseAdminDb}" AutomationProperties.Name="AdminDB 파일 선택">
                                             <StackPanel Orientation="Horizontal">
                                                 <ui:SymbolIcon Symbol="FolderOpen24" Margin="0,0,6,0" />
-                                                <TextBlock Text="찾기" />
+                                                <TextBlock Text="{loc:Text SettingsWindow.Browse}" />
                                             </StackPanel>
                                         </Button>
                                     </Grid>
-                                    <TextBlock Text="백업 루트" Style="{StaticResource Type.Caption.Style}" Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                                    <TextBlock Text="{loc:Text SettingsWindow.BackupRoot}" Style="{StaticResource Type.Caption.Style}" Foreground="{DynamicResource Brush.Text.Tertiary}" />
                                     <Grid Margin="0,4,0,16">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
                                         <TextBox Text="{Binding DataBackupRoot, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource EsTextBox.Default}" AutomationProperties.Name="데이터 백업 루트" Margin="0,0,8,0" />
-                                        <Button Grid.Column="1" Command="{Binding BrowseDataBackupRootCommand}" Style="{StaticResource EsButton.Secondary}" ToolTip="백업 루트 선택" AutomationProperties.Name="백업 루트 선택">
+                                        <Button Grid.Column="1" Command="{Binding BrowseDataBackupRootCommand}" Style="{StaticResource EsButton.Secondary}" ToolTip="{loc:Text SettingsWindow.ChooseBackupRoot}" AutomationProperties.Name="백업 루트 선택">
                                             <StackPanel Orientation="Horizontal">
                                                 <ui:SymbolIcon Symbol="FolderOpen24" Margin="0,0,6,0" />
-                                                <TextBlock Text="찾기" />
+                                                <TextBlock Text="{loc:Text SettingsWindow.Browse}" />
                                             </StackPanel>
                                         </Button>
                                     </Grid>
-                                    <Expander Header="진단 도구" ToolTip="데이터에 문제가 의심될 때만 사용합니다.">
+                                    <Expander Header="{loc:Text SettingsWindow.DiagnosticTools}" ToolTip="{loc:Text SettingsWindow.DiagnosticToolsTip}">
                                         <StackPanel Margin="0,8,0,0">
                                             <WrapPanel>
                                                 <Button Command="{Binding AnalyzeDatabaseCommand}" Style="{StaticResource EsButton.Secondary}" AutomationProperties.Name="DB 분석" Margin="0,0,8,0">
                                                     <StackPanel Orientation="Horizontal">
                                                         <ui:SymbolIcon Symbol="Search24" Margin="0,0,6,0" />
-                                                        <TextBlock Text="DB 분석" />
+                                                        <TextBlock Text="{loc:Text SettingsWindow.AnalyzeDb}" />
                                                     </StackPanel>
                                                 </Button>
                                                 <Button Command="{Binding RunOperationalDataRehearsalCommand}" Style="{StaticResource EsButton.Secondary}" AutomationProperties.Name="운영 데이터 리허설">
                                                     <StackPanel Orientation="Horizontal">
                                                         <ui:SymbolIcon Symbol="Search24" Margin="0,0,6,0" />
-                                                        <TextBlock Text="운영 데이터 리허설" />
+                                                        <TextBlock Text="{loc:Text SettingsWindow.Rehearsal}" />
                                                     </StackPanel>
                                                 </Button>
                                             </WrapPanel>
@@ -1422,10 +1422,10 @@
                             </ScrollViewer>
                         </ScrollViewer>
                     </TabItem>
-                    <TabItem Header="가져오기·내보내기">
+                    <TabItem Header="{loc:Text SettingsWindow.ImportExport}">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="8">
                             <StackPanel Margin="{StaticResource Thickness.Xl}">
-                                <TextBlock Text="설정 파일 경로" Style="{StaticResource Type.Caption.Style}" Foreground="{DynamicResource Brush.Text.Tertiary}" />
+                                <TextBlock Text="{loc:Text SettingsWindow.SettingsFilePath}" Style="{StaticResource Type.Caption.Style}" Foreground="{DynamicResource Brush.Text.Tertiary}" />
                                 <Grid Margin="0,4,0,16">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
@@ -1433,16 +1433,16 @@
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
                                     <TextBox Text="{Binding SettingsTransferPath, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource EsTextBox.Default}" AutomationProperties.Name="설정 파일 경로" Margin="0,0,8,0" />
-                                    <Button Grid.Column="1" Command="{Binding BrowseSettingsImportCommand}" Style="{StaticResource EsButton.Secondary}" ToolTip="가져오기 파일 선택" AutomationProperties.Name="가져오기 파일 선택" Margin="0,0,8,0">
+                                    <Button Grid.Column="1" Command="{Binding BrowseSettingsImportCommand}" Style="{StaticResource EsButton.Secondary}" ToolTip="{loc:Text SettingsWindow.ChooseImportFile}" AutomationProperties.Name="가져오기 파일 선택" Margin="0,0,8,0">
                                         <StackPanel Orientation="Horizontal">
                                             <ui:SymbolIcon Symbol="FolderOpen24" Margin="0,0,6,0" />
-                                            <TextBlock Text="열기" />
+                                            <TextBlock Text="{loc:Text SettingsWindow.Open}" />
                                         </StackPanel>
                                     </Button>
-                                    <Button Grid.Column="2" Command="{Binding BrowseSettingsExportCommand}" Style="{StaticResource EsButton.Secondary}" ToolTip="내보내기 위치 선택" AutomationProperties.Name="내보내기 위치 선택">
+                                    <Button Grid.Column="2" Command="{Binding BrowseSettingsExportCommand}" Style="{StaticResource EsButton.Secondary}" ToolTip="{loc:Text SettingsWindow.ChooseExportLocation}" AutomationProperties.Name="내보내기 위치 선택">
                                         <StackPanel Orientation="Horizontal">
                                             <ui:SymbolIcon Symbol="Save24" Margin="0,0,6,0" />
-                                            <TextBlock Text="저장 위치" />
+                                            <TextBlock Text="{loc:Text SettingsWindow.SaveLocation}" />
                                         </StackPanel>
                                     </Button>
                                 </Grid>
@@ -1450,66 +1450,66 @@
                                     <Button Command="{Binding ExportSettingsCommand}" Style="{StaticResource EsButton.Secondary}" AutomationProperties.Name="설정 내보내기" Margin="0,0,8,0">
                                         <StackPanel Orientation="Horizontal">
                                             <ui:SymbolIcon Symbol="Save24" Margin="0,0,6,0" />
-                                            <TextBlock Text="내보내기" />
+                                            <TextBlock Text="{loc:Text SettingsWindow.Export}" />
                                         </StackPanel>
                                     </Button>
                                     <Button Command="{Binding ImportSettingsCommand}" Style="{StaticResource EsButton.Primary}" AutomationProperties.Name="설정 가져오기">
                                         <StackPanel Orientation="Horizontal">
                                             <ui:SymbolIcon Symbol="ArrowRight24" Margin="0,0,6,0" />
-                                            <TextBlock Text="가져오기" />
+                                            <TextBlock Text="{loc:Text SettingsWindow.Import}" />
                                         </StackPanel>
                                     </Button>
                                 </StackPanel>
                             </StackPanel>
                         </ScrollViewer>
                     </TabItem>
-                    <TabItem Header="가사·송출"><ScrollViewer><StackPanel><GroupBox Header="회중 송출 화면 가사 서식" Padding="10" Margin="4">
+                    <TabItem Header="{loc:Text SettingsWindow.LyricsAndOutput}"><ScrollViewer><StackPanel><GroupBox Header="{loc:Text SettingsWindow.AudienceLyricsFormat}" Padding="10" Margin="4">
                                 <StackPanel>
                                     <WrapPanel Margin="0,0,0,8">
-                                        <options:OptionColorButton Width="130" Height="39" Margin="0,0,8,0" Content="글자색"
+                                        <options:OptionColorButton Width="130" Height="39" Margin="0,0,8,0" Content="{loc:Text SettingsWindow.TextColour}"
                                             Argb="{Binding LyricsMonitorTextColorArgb, Mode=TwoWay}" AutomationProperties.Name="회중 송출 가사 글자색" />
-                                        <options:OptionColorButton Width="130" Height="39" Margin="0,0,8,0" Content="배경색"
+                                        <options:OptionColorButton Width="130" Height="39" Margin="0,0,8,0" Content="{loc:Text SettingsWindow.BackColour}"
                                             Argb="{Binding LyricsMonitorBackgroundColorArgb, Mode=TwoWay}" AutomationProperties.Name="회중 송출 가사 배경색" />
-                                        <options:OptionColorButton Width="130" Height="39" Content="그라데이션 끝색"
+                                        <options:OptionColorButton Width="130" Height="39" Content="{loc:Text SettingsWindow.GradientEndColour}"
                                             Argb="{Binding LyricsMonitorBackgroundColor2Argb, Mode=TwoWay}" AutomationProperties.Name="회중 송출 가사 배경 그라데이션 끝색"
-                                            IsEnabled="{Binding LyricsMonitorBackgroundIsGradient}" ToolTip="그라데이션을 켜면 배경색에서 이 색으로 이어집니다." />
+                                            IsEnabled="{Binding LyricsMonitorBackgroundIsGradient}" ToolTip="{loc:Text SettingsWindow.GradientTip}" />
                                     </WrapPanel>
-                                    <CheckBox IsChecked="{Binding LyricsMonitorBackgroundIsGradient, Mode=TwoWay}" Content="가사 배경 세로 그라데이션 사용" AutomationProperties.Name="가사 배경 그라데이션 사용" MinHeight="{DynamicResource Spacing.TargetMin}" />
-                                    <CheckBox IsChecked="{Binding LyricsMonitorShowNotations, Mode=TwoWay}" Content="회중 화면 코드 표기" AutomationProperties.Name="회중 송출 가사 코드 표기" MinHeight="{DynamicResource Spacing.TargetMin}" />
-                                    <TextBlock x:Name="LblLyricsMonitorFontSize" Text="글자 크기" />
+                                    <CheckBox IsChecked="{Binding LyricsMonitorBackgroundIsGradient, Mode=TwoWay}" Content="{loc:Text SettingsWindow.UseGradient}" AutomationProperties.Name="가사 배경 그라데이션 사용" MinHeight="{DynamicResource Spacing.TargetMin}" />
+                                    <CheckBox IsChecked="{Binding LyricsMonitorShowNotations, Mode=TwoWay}" Content="{loc:Text SettingsWindow.AudienceNotations}" AutomationProperties.Name="회중 송출 가사 코드 표기" MinHeight="{DynamicResource Spacing.TargetMin}" />
+                                    <TextBlock x:Name="LblLyricsMonitorFontSize" Text="{loc:Text SettingsWindow.FontSize}" />
                                     <TextBox Text="{Binding LyricsMonitorFontSize}" AutomationProperties.LabeledBy="{Binding ElementName=LblLyricsMonitorFontSize}" Margin="0,2,0,8" />
-                                    <CheckBox Content="굵게" IsChecked="{Binding LyricsMonitorBold, Mode=TwoWay}" />
-                                    <CheckBox Content="기울임" IsChecked="{Binding LyricsMonitorItalic, Mode=TwoWay}" />
-                                    <CheckBox Content="밑줄" IsChecked="{Binding LyricsMonitorUnderline, Mode=TwoWay}" />
+                                    <CheckBox Content="{loc:Text SettingsWindow.Bold}" IsChecked="{Binding LyricsMonitorBold, Mode=TwoWay}" />
+                                    <CheckBox Content="{loc:Text SettingsWindow.Italic}" IsChecked="{Binding LyricsMonitorItalic, Mode=TwoWay}" />
+                                    <CheckBox Content="{loc:Text SettingsWindow.Underline}" IsChecked="{Binding LyricsMonitorUnderline, Mode=TwoWay}" />
                                 </StackPanel>
                             </GroupBox>
-                            <CheckBox Content="라이브 안전 확인" IsChecked="{Binding UseSafetyConfirmations, Mode=TwoWay}" />
-                            <TextBlock x:Name="ReferenceSeparatorLabel" Text="참조 구분 기호" />
+                            <CheckBox Content="{loc:Text SettingsWindow.SafetyConfirm}" IsChecked="{Binding UseSafetyConfirmations, Mode=TwoWay}" />
+                            <TextBlock x:Name="ReferenceSeparatorLabel" Text="{loc:Text SettingsWindow.ReferenceSeparator}" />
                             <TextBox AutomationProperties.LabeledBy="{Binding ElementName=ReferenceSeparatorLabel}" Text="{Binding ReferenceAlertPickSeparator}" />
                         </StackPanel></ScrollViewer>
                     </TabItem>
-                    <TabItem Header="고급">
+                    <TabItem Header="{loc:Text SettingsWindow.Advanced}">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="8">
                             <StackPanel Margin="{StaticResource Thickness.Xl}">
                                 <WrapPanel Margin="0,0,0,8">
-                                    <Button Content="다시 읽기" Command="{Binding RefreshCommand}" Padding="8,2" />
-                                    <Button Content="기본값 복원" Command="{Binding RestoreDefaultsCommand}" Padding="8,2" Margin="8,0,0,0" />
+                                    <Button Content="{loc:Text SettingsWindow.Reload}" Command="{Binding RefreshCommand}" Padding="8,2" />
+                                    <Button Content="{loc:Text SettingsWindow.RestoreDefaults}" Command="{Binding RestoreDefaultsCommand}" Padding="8,2" Margin="8,0,0,0" />
                                 </WrapPanel>
-                                <CheckBox IsChecked="{Binding EnableDiagnostics, Mode=TwoWay}" Content="진단 로그 활성화" AutomationProperties.Name="진단 로그 활성화" MinHeight="{DynamicResource Spacing.TargetMin}" />
+                                <CheckBox IsChecked="{Binding EnableDiagnostics, Mode=TwoWay}" Content="{loc:Text SettingsWindow.EnableDiagnostics}" AutomationProperties.Name="진단 로그 활성화" MinHeight="{DynamicResource Spacing.TargetMin}" />
                             </StackPanel>
                         </ScrollViewer>
                     </TabItem>
                 </TabControl>
             </TabItem>
-            <TabItem Style="{x:Null}" Padding="10,5" Header="장치 점검" x:Name="DeviceCheckTab" AutomationProperties.Name="장치 점검">
+            <TabItem Style="{x:Null}" Padding="10,5" Header="{loc:Text SettingsWindow.DeviceCheck}" x:Name="DeviceCheckTab" AutomationProperties.Name="장치 점검">
                 <composites:DeviceCheckPanel x:Name="DeviceCheck" />
             </TabItem>
 
         </TabControl>
         <DockPanel Grid.Row="1" Margin="0,10,0,0">
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                <Button IsDefault="True" Content="OK" Click="Confirm_Click" Width="104" Height="35" Margin="0,0,16,0" />
-                <Button IsCancel="True" Content="Cancel" Width="104" Height="35" />
+                <Button IsDefault="True" Content="{loc:Text SettingsWindow.OK}" Click="Confirm_Click" Width="104" Height="35" Margin="0,0,16,0" />
+                <Button IsCancel="True" Content="{loc:Text SettingsWindow.Cancel}" Width="104" Height="35" />
             </StackPanel>
             <ItemsControl ItemsSource="{Binding ValidationMessages}" />
         </DockPanel>

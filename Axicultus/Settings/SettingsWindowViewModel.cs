@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Axicultus.Wpf.Data;
 using Axicultus.Wpf.Input;
+using Axicultus.Wpf.Localization;
 using Axicultus.Wpf.Theme;
 using Wpf.Ui.Controls;
 
@@ -68,7 +68,7 @@ public sealed partial class ShortcutEditorItemViewModel(
 
     public bool IsGlobal { get; } = isGlobal;
 
-    public string ScopeText => IsGlobal ? "전역" : "로컬";
+    public string ScopeText => IsGlobal ? UiText.Get("SettingsWindow", "Global") : UiText.Get("SettingsWindow", "Local");
 
     public string DefaultGesture { get; } = defaultGesture;
 
@@ -144,9 +144,9 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
     private string _dataBackupRoot = "";
     private bool _enableDiagnostics;
     private string _settingsTransferPath = "";
-    private string _statusMessage = "설정 준비됨";
-    private string _databaseAnalysisSummary = "DB 분석 대기";
-    private string _operationalRehearsalSummary = "운영 데이터 리허설 대기";
+    private string _statusMessage = UiText.Get("SettingsWindow", "StatusReady");
+    private string _databaseAnalysisSummary = UiText.Get("SettingsWindow", "DbAnalysisWaiting");
+    private string _operationalRehearsalSummary = UiText.Get("SettingsWindow", "RehearsalWaiting");
 
     public SettingsWindowViewModel(
         ISettingsService settings,
@@ -538,7 +538,7 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
     public void RestoreDefaults()
     {
         var result = _settings.RestoreDefaults();
-        ApplyResult(result, "기본값으로 복원됨");
+        ApplyResult(result, UiText.Get("SettingsWindow", "DefaultsRestored"));
         RefreshFromSettings(applyAppearance: true);
     }
 
@@ -546,9 +546,9 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
     {
         if (string.IsNullOrWhiteSpace(AdminDatabasePath))
         {
-            SetIssues([new SettingsIssue(AxicultusSettingKeys.AdminDatabasePath.Id, SettingsIssueSeverity.Error, "DB 경로를 입력하세요.")]);
-            StatusMessage = "DB 분석 실패";
-            DatabaseAnalysisSummary = "DB 경로 없음";
+            SetIssues([new SettingsIssue(AxicultusSettingKeys.AdminDatabasePath.Id, SettingsIssueSeverity.Error, UiText.Get("SettingsWindow", "EnterDbPath"))]);
+            StatusMessage = UiText.Get("SettingsWindow", "DbAnalysisFailed");
+            DatabaseAnalysisSummary = UiText.Get("SettingsWindow", "NoDbPath");
             return;
         }
 
@@ -562,12 +562,8 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
         if (analysis.Succeeded)
         {
             ValidationMessages.Clear();
-            DatabaseAnalysisSummary = string.Format(
-                CultureInfo.InvariantCulture,
-                "schema {0}, tables {1}",
-                analysis.SchemaVersion,
-                analysis.Tables.Count);
-            StatusMessage = "DB 분석 완료";
+            DatabaseAnalysisSummary = UiText.Format("SettingsWindow", "DbSummary", analysis.SchemaVersion, analysis.Tables.Count);
+            StatusMessage = UiText.Get("SettingsWindow", "DbAnalysisDone");
             return;
         }
 
@@ -578,8 +574,8 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
                 : SettingsIssueSeverity.Warning,
             issue.Message));
         SetIssues(issues);
-        DatabaseAnalysisSummary = "DB 분석 실패";
-        StatusMessage = "DB 분석 실패";
+        DatabaseAnalysisSummary = UiText.Get("SettingsWindow", "DbAnalysisFailed");
+        StatusMessage = UiText.Get("SettingsWindow", "DbAnalysisFailed");
     }
 
     public async Task RunOperationalDataRehearsalAsync()
@@ -601,15 +597,12 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
                 DatabaseTables.Add(table);
             }
 
-            DatabaseAnalysisSummary = string.Format(
-                CultureInfo.InvariantCulture,
-                "schema {0}, tables {1}",
-                report.DatabaseInventory.SchemaVersion,
-                report.DatabaseInventory.Tables.Count);
+            DatabaseAnalysisSummary = UiText.Format("SettingsWindow", "DbSummary",
+                report.DatabaseInventory.SchemaVersion, report.DatabaseInventory.Tables.Count);
         }
         else
         {
-            DatabaseAnalysisSummary = "DB inventory 없음";
+            DatabaseAnalysisSummary = UiText.Get("SettingsWindow", "NoDbInventory");
         }
 
         SetIssues(report.Issues.Select(issue => new SettingsIssue(
@@ -621,35 +614,31 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
 
         if (report.Succeeded)
         {
-            OperationalRehearsalSummary = string.Format(
-                CultureInfo.InvariantCulture,
-                "운영 데이터 리허설 완료: 파일 {0}개, 테이블 {1}개, 경고 {2}개",
+            OperationalRehearsalSummary = UiText.Format("SettingsWindow", "RehearsalDoneSummary",
                 assetCount,
                 tableCount,
                 warningCount);
-            StatusMessage = "운영 데이터 리허설 완료";
+            StatusMessage = UiText.Get("SettingsWindow", "RehearsalDone");
             return;
         }
 
-        OperationalRehearsalSummary = string.Format(
-            CultureInfo.InvariantCulture,
-            "운영 데이터 리허설 실패: 파일 {0}개, 오류 {1}개, 경고 {2}개",
+        OperationalRehearsalSummary = UiText.Format("SettingsWindow", "RehearsalFailedSummary",
             assetCount,
             errorCount,
             warningCount);
-        StatusMessage = "운영 데이터 리허설 실패";
+        StatusMessage = UiText.Get("SettingsWindow", "RehearsalFailed");
     }
 
     public async Task ExportSettingsAsync()
     {
         var result = await _settings.ExportAsync(SettingsTransferPath);
-        ApplyResult(result, "설정 내보내기 완료");
+        ApplyResult(result, UiText.Get("SettingsWindow", "ExportDone"));
     }
 
     public async Task ImportSettingsAsync()
     {
         var result = await _settings.ImportAsync(SettingsTransferPath);
-        ApplyResult(result, "설정 가져오기 완료");
+        ApplyResult(result, UiText.Get("SettingsWindow", "ImportDone"));
         if (result.Succeeded)
         {
             RefreshFromSettings(applyAppearance: true);
@@ -660,29 +649,29 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
         => BrowsePersistedPathAsync(
             () => _pathPicker.PickWorkingFolderAsync(WorkingFolder),
             value => WorkingFolder = value,
-            "작업 폴더 선택됨");
+            UiText.Get("SettingsWindow", "WorkingFolderChosen"));
 
     public Task BrowseAdminDatabaseAsync()
         => BrowsePersistedPathAsync(
             () => _pathPicker.PickAdminDatabaseAsync(AdminDatabasePath),
             value => AdminDatabasePath = value,
-            "AdminDB 경로 선택됨");
+            UiText.Get("SettingsWindow", "AdminDbChosen"));
 
     public Task BrowseDataBackupRootAsync()
         => BrowsePersistedPathAsync(
             () => _pathPicker.PickDataBackupRootAsync(DataBackupRoot),
             value => DataBackupRoot = value,
-            "백업 루트 선택됨");
+            UiText.Get("SettingsWindow", "BackupRootChosen"));
 
     public Task BrowseSettingsImportAsync()
         => BrowseTransferPathAsync(
             () => _pathPicker.PickSettingsImportAsync(SettingsTransferPath),
-            "가져오기 파일 선택됨");
+            UiText.Get("SettingsWindow", "ImportFileChosen"));
 
     public Task BrowseSettingsExportAsync()
         => BrowseTransferPathAsync(
             () => _pathPicker.PickSettingsExportAsync(SettingsTransferPath),
-            "내보내기 파일 선택됨");
+            UiText.Get("SettingsWindow", "ExportFileChosen"));
 
     public SettingsResult SaveShortcut(ShortcutEditorItemViewModel item)
     {
@@ -692,7 +681,7 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
         {
             var issue = new SettingsIssue($"shortcuts.{item.SlotId}", SettingsIssueSeverity.Error, parseError);
             SetIssues([issue]);
-            StatusMessage = "단축키 저장 실패";
+            StatusMessage = UiText.Get("SettingsWindow", "ShortcutSaveFailed");
             return SettingsResult.Failure([issue]);
         }
 
@@ -706,15 +695,15 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
             var issue = new SettingsIssue(
                 $"shortcuts.{item.SlotId}",
                 SettingsIssueSeverity.Error,
-                $"단축키 충돌: {collision.Description} ({(collision.IsGlobal ? "전역" : "로컬")})");
+                UiText.Format("SettingsWindow", "ShortcutCollision", collision.Description, collision.IsGlobal ? UiText.Get("SettingsWindow", "Global") : UiText.Get("SettingsWindow", "Local")));
             SetIssues([issue]);
-            StatusMessage = "단축키 저장 실패";
+            StatusMessage = UiText.Get("SettingsWindow", "ShortcutSaveFailed");
             return SettingsResult.Failure([issue]);
         }
 
         item.CustomGesture = normalized;
         var result = _settings.SetShortcutOverride(item.SlotId, normalized);
-        ApplyResult(result, "단축키 저장됨");
+        ApplyResult(result, UiText.Get("SettingsWindow", "ShortcutSaved"));
         return result;
     }
 
@@ -727,23 +716,23 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
             item.CustomGesture = "";
         }
 
-        ApplyResult(result, "단축키 기본값 복원됨");
+        ApplyResult(result, UiText.Get("SettingsWindow", "ShortcutReset"));
         return result;
     }
 
     private static SettingsSectionViewModel[] CreateSections()
         =>
         [
-            new(SettingsSectionKind.MainWindow, "메인 화면", "미리보기와 파일 목록", EsIcons.Settings),
-            new(SettingsSectionKind.Show, "송출", "텍스트와 항목 전환", EsIcons.PowerPointSlide),
-            new(SettingsSectionKind.Monitors, "모니터", "화면 배치와 라이브 카메라", EsIcons.MonitorDual),
-            new(SettingsSectionKind.Alerts, "알림", "회중, 보호자 호출 및 항목 참조", EsIcons.Info),
-            new(SettingsSectionKind.Folders, "폴더", "찬양 폴더", EsIcons.FolderOpen),
-            new(SettingsSectionKind.Bibles, "성경", "성경 버전 관리", EsIcons.FolderOpen),
-            new(SettingsSectionKind.Licence, "라이선스", "관리자와 번호", EsIcons.Info),
-            new(SettingsSectionKind.Shortcuts, "키보드", "단축키와 전역 키", EsIcons.Shortcuts),
-            new(SettingsSectionKind.WpfTools, "추가 설정", "일반, 화면 및 데이터 관리", EsIcons.Settings),
-            new(SettingsSectionKind.DeviceCheck, "장치 점검", "카메라, 마이크 및 OBS 연결 상태", SymbolRegular.Video24),
+            new(SettingsSectionKind.MainWindow, UiText.Get("SettingsWindow", "TabMainWindow"), UiText.Get("SettingsWindow", "SectionMainWindow"), EsIcons.Settings),
+            new(SettingsSectionKind.Show, UiText.Get("SettingsWindow", "TabShow"), UiText.Get("SettingsWindow", "SectionShow"), EsIcons.PowerPointSlide),
+            new(SettingsSectionKind.Monitors, UiText.Get("SettingsWindow", "TabMonitors"), UiText.Get("SettingsWindow", "SectionMonitors"), EsIcons.MonitorDual),
+            new(SettingsSectionKind.Alerts, UiText.Get("SettingsWindow", "TabAlerts"), UiText.Get("SettingsWindow", "SectionAlerts"), EsIcons.Info),
+            new(SettingsSectionKind.Folders, UiText.Get("SettingsWindow", "TabFolders"), UiText.Get("SettingsWindow", "SectionFolders"), EsIcons.FolderOpen),
+            new(SettingsSectionKind.Bibles, UiText.Get("SettingsWindow", "TabBibles"), UiText.Get("SettingsWindow", "SectionBibles"), EsIcons.FolderOpen),
+            new(SettingsSectionKind.Licence, UiText.Get("SettingsWindow", "TabLicence"), UiText.Get("SettingsWindow", "SectionLicence"), EsIcons.Info),
+            new(SettingsSectionKind.Shortcuts, UiText.Get("SettingsWindow", "TabKeyboard"), UiText.Get("SettingsWindow", "SectionKeyboard"), EsIcons.Shortcuts),
+            new(SettingsSectionKind.WpfTools, UiText.Get("SettingsWindow", "TabMore"), UiText.Get("SettingsWindow", "SectionMore"), EsIcons.Settings),
+            new(SettingsSectionKind.DeviceCheck, UiText.Get("SettingsWindow", "DeviceCheck"), UiText.Get("SettingsWindow", "SectionDeviceCheck"), SymbolRegular.Video24),
         ];
 
     private void RefreshFromSettings(bool applyAppearance)
@@ -825,19 +814,19 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
         var result = _settings.Set(key, value);
         if (result.Succeeded)
         {
-            ApplyResult(result, IsEditing ? "확인을 누르면 설정을 저장합니다." : "설정 저장됨");
+            ApplyResult(result, IsEditing ? UiText.Get("SettingsWindow", "SaveOnOk") : UiText.Get("SettingsWindow", "SettingsSaved"));
             if (!IsEditing) afterSuccess?.Invoke(value);
             return;
         }
 
-        ApplyResult(result, "설정 저장 실패");
+        ApplyResult(result, UiText.Get("SettingsWindow", "SettingsSaveFailed"));
         RefreshFromSettings(applyAppearance: false);
     }
 
     private void ApplyResult(SettingsResult result, string successMessage)
     {
         SetIssues(result.Issues);
-        StatusMessage = result.Succeeded ? successMessage : "설정 저장 실패";
+        StatusMessage = result.Succeeded ? successMessage : UiText.Get("SettingsWindow", "SettingsSaveFailed");
     }
 
     private void RefreshShortcutItems(Dictionary<string, string> overrides)
@@ -870,7 +859,7 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
         var selectedPath = await pickPath();
         if (string.IsNullOrWhiteSpace(selectedPath))
         {
-            StatusMessage = "경로 선택 취소됨";
+            StatusMessage = UiText.Get("SettingsWindow", "PathPickCancelled");
             return;
         }
 
@@ -886,7 +875,7 @@ public sealed partial class SettingsWindowViewModel : ObservableObject
         var selectedPath = await pickPath();
         if (string.IsNullOrWhiteSpace(selectedPath))
         {
-            StatusMessage = "경로 선택 취소됨";
+            StatusMessage = UiText.Get("SettingsWindow", "PathPickCancelled");
             return;
         }
 

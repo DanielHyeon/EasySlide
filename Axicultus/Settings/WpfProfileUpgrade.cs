@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Settings;
 
@@ -111,7 +112,7 @@ internal static class WpfProfileUpgrade
         catch (FileNotFoundException) { return null; }
         catch (DirectoryNotFoundException) { return null; }
         if (attributes.HasFlag(FileAttributes.ReparsePoint))
-            throw new IOException($"설정 이전 경로에 연결 지점이 있습니다. {path}");
+            throw new IOException(UiText.Format("WpfProfileUpgrade", "ReparsePoint", path));
         return attributes;
     }
 }
