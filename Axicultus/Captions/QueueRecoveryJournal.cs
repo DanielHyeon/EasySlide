@@ -3,6 +3,7 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Windows.Threading;
 using Axicultus.Wpf.Shell;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Captions;
 
@@ -38,7 +39,7 @@ internal sealed class QueueRecoveryJournal : IDisposable
         var items = _main.Queue.Select(CaptionRecoveryStore.Capture).ToArray();
         var selected = _main.SelectedItem == null ? -1 : _main.Queue.IndexOf(_main.SelectedItem);
         try { await _store.SaveQueueAsync(plan, items, selected); }
-        catch (Exception ex) { _main.StatusText = "예배 순서 복구본 저장 실패 · " + ex.Message; }
+        catch (Exception ex) { _main.StatusText = UiText.Format("CaptionConsole", "QueueRecoverySaveFailed", ex.Message); }
     }
 
     public void Dispose()

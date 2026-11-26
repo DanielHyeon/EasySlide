@@ -231,7 +231,7 @@ public sealed partial class CaptionConsoleTests
             await console.LyricsReading;
             return session.Deck!.Slides[0].Boxes.Single(box => box.Key == CaptionSession.RecognizedKey).Text;
         }
-        int Told() => directory.GetFiles("errors-*.log").Sum(file => File.ReadAllText(file.FullName).Split("곡 DB 가사 교정").Length - 1);
+        int Told() => directory.GetFiles("errors-*.log").Sum(file => File.ReadAllText(file.FullName).Split("correct lyrics from the song database").Length - 1);
         const string corrected = "오셔서 주님의 처소 삼으소서\n내맘에 거하여 주옵소서", read = "오셔서 주님의 저소 삽으소서\n내맘에 기하여 주음소서";
 
         Assert.Equal(corrected, await ReadDeckAsync()); // read from the database

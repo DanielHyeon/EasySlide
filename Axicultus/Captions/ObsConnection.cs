@@ -9,6 +9,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Captions;
 
@@ -61,21 +62,21 @@ public sealed partial class ObsConnection(string host, int port, string password
                     {
                         scene = (string?)payload["eventData"]?["sceneName"] ?? "";
                         changes++;
-                        status.Report(new("연결됨", scene, names) { Connected = true });
+                        status.Report(new(UiText.Get("CaptionConsole", "Connected"), scene, names) { Connected = true });
                     }
                     else if (opcode == 5 && (string?)payload["eventType"] == "SceneListChanged" && payload["eventData"]?["scenes"] is JsonArray updated)
                     {
                         names = [.. updated.Select(s => (string)s!["sceneName"]!)];
-                        status.Report(new("연결됨", scene, names) { Connected = true });
+                        status.Report(new(UiText.Get("CaptionConsole", "Connected"), scene, names) { Connected = true });
                     }
                     else if (opcode == 7 && (string?)payload["requestId"] == request)
                     {
-                        var result = payload["responseData"] ?? throw new InvalidDataException("씬 목록 요청 실패");
+                        var result = payload["responseData"] ?? throw new InvalidDataException(UiText.Get("CaptionConsole", "SceneListFailed"));
                         names = [.. result["scenes"]!.AsArray().Select(s => (string)s!["sceneName"]!)];
                         if (changes == 0) scene = (string?)result["currentProgramSceneName"] ?? "";
                         Volatile.Write(ref _active, connection);
                         retry = 0;
-                        status.Report(new("연결됨", scene, names) { Connected = true });
+                        status.Report(new(UiText.Get("CaptionConsole", "Connected"), scene, names) { Connected = true });
                         _ = RefreshCaptionPageAsync(connection, ct);
                     }
                     else if (opcode is 7 or 9 && payload["requestId"] is JsonNode id &&
@@ -87,13 +88,13 @@ public sealed partial class ObsConnection(string host, int port, string password
             catch (SessionRejected ex) { status.Report(new(ex.Message, "", [])); break; }
             catch (Exception ex)
             {
-                status.Report(new("OBS 재연결 대기 · " + ex.Message, "", []));
+                status.Report(new(UiText.Format("CaptionConsole", "Reconnecting", ex.Message), "", []));
             }
             finally
             {
                 Interlocked.CompareExchange(ref _active, null, connection);
                 socket.Abort();
-                foreach (var item in connection.Pending.Values) item.TrySetException(new IOException("OBS 연결이 종료되었습니다."));
+                foreach (var item in connection.Pending.Values) item.TrySetException(new IOException(UiText.Get("CaptionConsole", "ConnectionClosed")));
             }
             if (!ct.IsCancellationRequested) await Task.Delay(TimeSpan.FromSeconds(Math.Min(5, 1 << Math.Min(3,retry++))),ct);
         }
@@ -103,7 +104,7 @@ public sealed partial class ObsConnection(string host, int port, string password
     {
         await connection.Socket.ConnectAsync(new UriBuilder("ws", host, port).Uri, ct);
         var hello = await ReadAsync(connection, ct);
-        if ((int?)hello["op"] != 0) throw new InvalidDataException("OBS Hello 응답을 확인하세요.");
+        if ((int?)hello["op"] != 0) throw new InvalidDataException(UiText.Format("CaptionConsole", "CheckHello", "Hello"));
         var identify = new JsonObject { ["rpcVersion"] = 1, ["eventSubscriptions"] = subscriptions };
         if (hello["d"]?["authentication"] is JsonObject auth)
         {
@@ -111,7 +112,7 @@ public sealed partial class ObsConnection(string host, int port, string password
             identify["authentication"] = Hash(Hash(password + (string?)auth["salt"]) + (string?)auth["challenge"]);
         }
         await SendAsync(connection, 1, identify, ct);
-        if ((int?)(await ReadAsync(connection, ct))["op"] != 2) throw new InvalidDataException("OBS 인증을 확인하세요.");
+        if ((int?)(await ReadAsync(connection, ct))["op"] != 2) throw new InvalidDataException(UiText.Get("CaptionConsole", "CheckAuth"));
     }
 
     internal Task<string> ProbeAsync(string? temporaryPassword, CancellationToken ct)
@@ -133,24 +134,24 @@ public sealed partial class ObsConnection(string host, int port, string password
             if ((int?)response["op"] != 7 || (string?)payload?["requestId"] != id ||
                 (bool?)payload?["requestStatus"]?["result"] != true ||
                 (string?)payload?["responseData"]?["currentProgramSceneName"] is not { Length: > 0 } scene)
-                throw new IOException("OBS에서 현재 프로그램 씬을 확인할 수 없습니다.");
+                throw new IOException(UiText.Get("CaptionConsole", "NoProgramScene"));
             await socket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "", timeout.Token);
             return scene;
         }
         catch (OperationCanceledException) when (!ct.IsCancellationRequested)
         {
-            throw new TimeoutException("OBS가 5초 동안 응답하지 않았습니다.");
+            throw new TimeoutException(UiText.Get("CaptionConsole", "Timeout"));
         }
         catch (WebSocketException ex) when (!ct.IsCancellationRequested)
         {
-            throw new IOException($"{host}:{port} · OBS 실행 상태, WebSocket 서버 포트, 원격이면 공유기 포트포워딩을 확인하세요.", ex);
+            throw new IOException(UiText.Format("CaptionConsole", "Unreachable", host, port), ex);
         }
         finally { probe.Send.Dispose(); }
     }
 
     public async Task SwitchAsync(string scene, string sourceName, bool enabled)
     {
-        var connection = Volatile.Read(ref _active) ?? throw new IOException("OBS 연결을 기다리세요.");
+        var connection = Volatile.Read(ref _active) ?? throw new IOException(UiText.Get("CaptionConsole", "WaitForConnection"));
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(_stop.Token);
         timeout.CancelAfter(TimeSpan.FromSeconds(5));
         var token = timeout.Token;
@@ -167,7 +168,7 @@ public sealed partial class ObsConnection(string host, int port, string password
         var batch = await ExchangeAsync(connection, 8, id => new { requestId = id, haltOnFailure = true, executionType = 0, requests }, token);
         var results = batch["results"]!.AsArray();
         if (results.Count != requests.Length || results.Any(x => (bool?)x?["requestStatus"]?["result"] != true))
-            throw new IOException("OBS 배치 일부 실패. 실제 씬과 소스 상태를 확인하세요.");
+            throw new IOException(UiText.Get("CaptionConsole", "BatchFailed"));
 
         async Task<JsonObject> RequestAsync(string type, object args)
         {
@@ -177,7 +178,7 @@ public sealed partial class ObsConnection(string host, int port, string password
         }
     }
 
-    public const string CaptionSourceName = "Axicultus 자막";
+    public const string CaptionSourceName = "Axicultus 자막"; // not UI text
 
     // OBS keeps a browser page loaded across Axicultus restarts; a page from before an update would never learn new
     // settings. Reload it on every connect. Fire and forget: the reply (a failure when there is no such source) is
@@ -205,7 +206,7 @@ public sealed partial class ObsConnection(string host, int port, string password
     /// </summary>
     public async Task<(string Scene, bool Created)> AddCaptionSourceAsync(string url)
     {
-        var connection = Volatile.Read(ref _active) ?? throw new IOException("OBS 연결을 기다리세요.");
+        var connection = Volatile.Read(ref _active) ?? throw new IOException(UiText.Get("CaptionConsole", "WaitForConnection"));
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(_stop.Token);
         timeout.CancelAfter(TimeSpan.FromSeconds(10));
         var token = timeout.Token;
@@ -247,7 +248,7 @@ public sealed partial class ObsConnection(string host, int port, string password
 
     public async Task<byte[]> ReadPreviewAsync(string source, CancellationToken cancellation)
     {
-        var connection = Volatile.Read(ref _active) ?? throw new IOException("OBS 연결 대기");
+        var connection = Volatile.Read(ref _active) ?? throw new IOException(UiText.Get("CaptionConsole", "WaitingConnection"));
         using var limit = CancellationTokenSource.CreateLinkedTokenSource(_stop.Token, cancellation);
         limit.CancelAfter(TimeSpan.FromSeconds(3));
         var response = await ExchangeAsync(connection, 6, id => new
@@ -256,13 +257,13 @@ public sealed partial class ObsConnection(string host, int port, string password
             requestData = new { sourceName = source, imageFormat = "jpg", imageWidth = 640, imageHeight = 360 }
         }, limit.Token).ConfigureAwait(false);
         if ((bool?)response["requestStatus"]?["result"] != true)
-            throw new IOException((string?)response["requestStatus"]?["comment"] ?? "OBS 카메라 신호 없음");
+            throw new IOException((string?)response["requestStatus"]?["comment"] ?? UiText.Get("CaptionConsole", "NoCameraSignal"));
         var image = (string?)response["responseData"]?["imageData"];
         const string prefix = "data:image/jpeg;base64,";
         const string alternate = "data:image/jpg;base64,";
         var offset = image?.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) == true ? prefix.Length :
             image?.StartsWith(alternate, StringComparison.OrdinalIgnoreCase) == true ? alternate.Length : 0;
-        if (offset == 0) throw new InvalidDataException("OBS 미리보기 이미지 형식을 확인하세요.");
+        if (offset == 0) throw new InvalidDataException(UiText.Get("CaptionConsole", "CheckPreviewFormat"));
         return Convert.FromBase64String(image![offset..]);
     }
 
@@ -298,9 +299,9 @@ public sealed partial class ObsConnection(string host, int port, string password
             int available = Math.Min(4096, 1_048_577 - data.WrittenCount);
             frame = await connection.Socket.ReceiveAsync(data.GetMemory(available)[..available], ct);
             if (frame.MessageType == WebSocketMessageType.Close && (int?)connection.Socket.CloseStatus is 4009 or 4011)
-                throw new SessionRejected("OBS가 인증 또는 세션을 거부했습니다. 설정을 확인한 뒤 연결하세요.");
+                throw new SessionRejected(UiText.Get("CaptionConsole", "Rejected"));
             if (frame.MessageType != WebSocketMessageType.Text || data.WrittenCount + frame.Count > 1_048_576)
-                throw new IOException("OBS 연결 또는 응답 형식을 확인하세요.");
+                throw new IOException(UiText.Get("CaptionConsole", "CheckResponse"));
             data.Advance(frame.Count);
         } while (!frame.EndOfMessage);
         return JsonNode.Parse(data.WrittenSpan)!.AsObject();

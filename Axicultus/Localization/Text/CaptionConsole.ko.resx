@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Title" xml:space="preserve"><value>카메라 하단 자막</value></data>
+  <data name="AirHidden" xml:space="preserve"><value>자막 숨김 · 눌러서 내보내기 (Space)</value></data>
+  <data name="AirVisible" xml:space="preserve"><value>자막 나가는 중 · 눌러서 숨김 (Space)</value></data>
+  <data name="AirStandby" xml:space="preserve"><value>자막 대기 · 화면 꺼짐 (Space)</value></data>
+  <data name="AirTip" xml:space="preserve"><value>자막을 카메라·OBS에 내보내거나 숨깁니다. Esc는 언제나 숨깁니다.</value></data>
+  <data name="Destinations" xml:space="preserve"><value>내보낼 곳</value></data>
+  <data name="ToCamera" xml:space="preserve"><value>카메라</value></data>
+  <data name="ToCameraTip" xml:space="preserve"><value>Axicultus 송출 화면의 카메라 하단 자막</value></data>
+  <data name="ToObsTip" xml:space="preserve"><value>OBS 브라우저 소스 (http://127.0.0.1:17948/)</value></data>
+  <data name="ObsNotConnected" xml:space="preserve"><value>OBS 연결 전</value></data>
+  <data name="Settings" xml:space="preserve"><value>설정…</value></data>
+  <data name="SettingsTip" xml:space="preserve"><value>OBS 연결 · 카메라 · 씬 단축키 · 브라우저 소스 · 복구 · PPT 세부 조정</value></data>
+  <data name="FollowScreen" xml:space="preserve"><value>화면 따라가기</value></data>
+  <data name="FollowScreenTip" xml:space="preserve"><value>송출 화면(라이브가 아니어도 송출 칸)의 PPT · 찬양 · 성경 · 텍스트를 자막으로 따라갑니다.</value></data>
+  <data name="DirectInput" xml:space="preserve"><value>직접 입력</value></data>
+  <data name="Take" xml:space="preserve"><value>자막 보내기 (Enter)</value></data>
+  <data name="NewLineHint" xml:space="preserve"><value>Shift+Enter 줄바꿈</value></data>
+  <data name="Instant" xml:space="preserve"><value>입력하는 대로 보내기</value></data>
+  <data name="InstantTip" xml:space="preserve"><value>한글은 글자가 완성될 때마다 보냅니다. Enter로 확정하면 입력 칸이 비워지고 자막은 다음 입력까지 유지됩니다.</value></data>
+  <data name="ShowAuto" xml:space="preserve"><value>자동</value></data>
+  <data name="ShowAutoTip" xml:space="preserve"><value>슬라이드마다 악보 그림이 있으면 악보를, 없으면 자막을 보냅니다. (1)</value></data>
+  <data name="ShowText" xml:space="preserve"><value>자막</value></data>
+  <data name="ShowTextTip" xml:space="preserve"><value>글자만 보냅니다. (2)</value></data>
+  <data name="ShowScore" xml:space="preserve"><value>악보</value></data>
+  <data name="ShowScoreTip" xml:space="preserve"><value>PPT 악보를 줄(오선과 그 아래 가사)로 나누어 한 줄씩 보냅니다. (3)</value></data>
+  <data name="ShowScoreText" xml:space="preserve"><value>악보+자막</value></data>
+  <data name="ShowScoreTextTip" xml:space="preserve"><value>악보 한 줄 아래에 그 줄의 가사를 함께 보냅니다. (4)</value></data>
+  <data name="Previous" xml:space="preserve"><value>이전</value></data>
+  <data name="PreviousTip" xml:space="preserve"><value>이전 줄 / 이전 슬라이드 (← ↑)</value></data>
+  <data name="Next" xml:space="preserve"><value>다음</value></data>
+  <data name="NextTip" xml:space="preserve"><value>다음 줄 / 다음 슬라이드 (→ ↓)</value></data>
+  <data name="SyncShow" xml:space="preserve"><value>이전·다음으로 송출 화면도 넘기기 (싱크)</value></data>
+  <data name="SyncShowTip" xml:space="preserve"><value>켜면 이전/다음이 송출 화면(PPT 슬라이드, 찬양·성경 페이지)을 넘기고 자막이 따라갑니다. 악보는 그 장의 줄을 다 보낸 뒤 다음 장으로 넘깁니다.</value></data>
+  <data name="WorshipHint" xml:space="preserve"><value>누르면 송출 칸에 올라갑니다</value></data>
+  <data name="WorshipHintTip" xml:space="preserve"><value>라이브가 꺼져 있으면 켜지 않고, 라이브 중이면 송출 화면도 바뀝니다. 자막을 내보내는지 숨기는지는 그대로입니다. 키보드로는 화살표로 고르고 Enter.</value></data>
+  <data name="WorshipTitle" xml:space="preserve"><value>예배 순서</value></data>
+  <data name="WorshipListEmpty" xml:space="preserve"><value>예배 순서가 비어 있습니다</value></data>
+  <data name="PreviewOff" xml:space="preserve"><value>카메라 미리보기는 설정에서 켭니다</value></data>
+  <data name="HiddenBadge" xml:space="preserve"><value>숨김 중 · 내보내지 않습니다</value></data>
+  <data name="ScreenOffBadge" xml:space="preserve"><value>화면 꺼짐 · 내보내지 않습니다</value></data>
+  <data name="NoSteps" xml:space="preserve"><value>단계 없음 · PPT · 찬양 · 성경 · 텍스트를 송출하면 여기에 단계가 보입니다</value></data>
+  <data name="LookTitle" xml:space="preserve"><value>자막 모양</value></data>
+  <data name="Lines" xml:space="preserve"><value>자막 줄 수</value></data>
+  <data name="LinesTip" xml:space="preserve"><value>자막 영역의 높이. 더 긴 글은 글자가 작아져 이 안에 들어갑니다.</value></data>
+  <data name="Lines1" xml:space="preserve"><value>1줄</value></data>
+  <data name="Lines2" xml:space="preserve"><value>2줄</value></data>
+  <data name="Lines3" xml:space="preserve"><value>3줄</value></data>
+  <data name="ScoreSize" xml:space="preserve"><value>악보 크기</value></data>
+  <data name="ScoreSizeTip" xml:space="preserve"><value>카메라·OBS 화면에서 악보가 차지하는 높이</value></data>
+  <data name="Small" xml:space="preserve"><value>작게</value></data>
+  <data name="Medium" xml:space="preserve"><value>보통</value></data>
+  <data name="Large" xml:space="preserve"><value>크게</value></data>
+  <data name="Box" xml:space="preserve"><value>배경 상자</value></data>
+  <data name="BoxTip" xml:space="preserve"><value>끄면 글자에 테두리 그림자만 넣습니다.</value></data>
+  <data name="TextColor" xml:space="preserve"><value>글자색</value></data>
+  <data name="White" xml:space="preserve"><value>흰색 (기본)</value></data>
+  <data name="Yellow" xml:space="preserve"><value>노랑</value></data>
+  <data name="SkyBlue" xml:space="preserve"><value>하늘</value></data>
+  <data name="LightGreen" xml:space="preserve"><value>연두</value></data>
+  <data name="Black" xml:space="preserve"><value>검정</value></data>
+  <data name="CustomColor" xml:space="preserve"><value>직접 선택…</value></data>
+  <data name="PreviewWaiting" xml:space="preserve"><value>OBS에서 카메라 영상을 기다리는 중…</value></data>
+  <data name="ObsPreview" xml:space="preserve"><value>OBS 카메라 미리보기</value></data>
+  <data name="ObsPreviewWaiting" xml:space="preserve"><value>OBS 미리보기 대기 · {0}</value></data>
+  <data name="Recoverable" xml:space="preserve"><value>이 예배의 저장된 초안과 순서를 복구할 수 있습니다.</value></data>
+  <data name="RecoverySaveFailed" xml:space="preserve"><value>복구본 저장 실패 · {0}</value></data>
+  <data name="RecoverConfirm" xml:space="preserve"><value>현재 편집 초안과 예배 순서를 저장한 시점으로 복구할까요?</value></data>
+  <data name="RecoverTitle" xml:space="preserve"><value>예배 편집 복구</value></data>
+  <data name="RecoverNoDeck" xml:space="preserve"><value>복구할 PPT를 찾을 수 없어 복구하지 않았습니다 · {0}</value></data>
+  <data name="ReopenDeck" xml:space="preserve"><value>PPT를 다시 열어 주세요. {0}</value></data>
+  <data name="Recovered" xml:space="preserve"><value>편집을 복구했습니다. 송출할 문구를 확인하세요.</value></data>
+  <data name="NoDeck" xml:space="preserve"><value>송출 화면이나 선택한 항목에 PPT가 없습니다.</value></data>
+  <data name="NoScreenText" xml:space="preserve"><value>송출 화면에 자막으로 보낼 글자가 없습니다.</value></data>
+  <data name="DeckSlide" xml:space="preserve"><value>PPT {0}/{1}장</value></data>
+  <data name="ScreenText" xml:space="preserve"><value>송출 화면의 글자</value></data>
+  <data name="ScorePreparing" xml:space="preserve"><value>악보 그림 준비 중</value></data>
+  <data name="ScoreMaking" xml:space="preserve"><value>악보 그림을 만드는 중…</value></data>
+  <data name="ScoreFailed" xml:space="preserve"><value>악보 그림을 만들 수 없습니다. 슬라이드를 다시 송출해 보세요.</value></data>
+  <data name="ScoreRowFound" xml:space="preserve"><value>PPT {0}/{1}장 · {2}/{3}줄</value></data>
+  <data name="ScoreTopHalf" xml:space="preserve"><value>PPT {0}/{1}장 · 위 절반 (악보 줄을 찾지 못함)</value></data>
+  <data name="ScoreBottomHalf" xml:space="preserve"><value>PPT {0}/{1}장 · 아래 절반 (악보 줄을 찾지 못함)</value></data>
+  <data name="ScoreRenderFailed" xml:space="preserve"><value>악보 그림을 만들 수 없습니다 · {0}</value></data>
+  <data name="RenderFailed" xml:space="preserve"><value>렌더 실패</value></data>
+  <data name="CorrectingLyrics" xml:space="preserve"><value>{0} · 그림 속 가사 교정 중</value></data>
+  <data name="NoOcr" xml:space="preserve"><value>그림 속 가사 읽기 도우미({0} 폴더)가 없어 가사를 읽지 못했습니다.</value></data>
+  <data name="ReadingLyrics" xml:space="preserve"><value>{0} · 그림 속 가사 읽는 중 {1}/{2}</value></data>
+  <data name="LyricsFound" xml:space="preserve"><value>{0} · 그림 속 가사 {1}장 읽음</value></data>
+  <data name="LyricsReadFailed" xml:space="preserve"><value>그림 속 가사를 읽지 못했습니다 · {0}</value></data>
+  <data name="RecognizedChosen" xml:space="preserve"><value>그림 속 가사를 자막으로 씁니다. 텍스트 상자에서 바꿀 수 있습니다.</value></data>
+  <data name="Selected" xml:space="preserve"><value>선택됨</value></data>
+  <data name="UrlCopied" xml:space="preserve"><value>브라우저 소스 주소를 복사했습니다.</value></data>
+  <data name="CopyFailed" xml:space="preserve"><value>복사 실패 · {0}</value></data>
+  <data name="ObsConnectInSettings" xml:space="preserve"><value>OBS 연결 전 · 설정에서 연결하세요</value></data>
+  <data name="ServerRunning" xml:space="preserve"><value>● 자막 서버 실행 중</value></data>
+  <data name="ServerFailed" xml:space="preserve"><value>자막 서버 시작 실패 · {0}</value></data>
+  <data name="DeckReadFailed" xml:space="preserve"><value>PPT 읽기 실패 · {0}</value></data>
+  <data name="DeckRead" xml:space="preserve"><value>PPT를 읽었습니다 · {0}</value></data>
+  <data name="CueSaved" xml:space="preserve"><value>{0}장 수동 문구를 저장했습니다.</value></data>
+  <data name="NoNextSlide" xml:space="preserve"><value>송출 화면에 다음 장이 없습니다.</value></data>
+  <data name="NoPreviousSlide" xml:space="preserve"><value>송출 화면에 이전 장이 없습니다.</value></data>
+  <data name="SyncOff" xml:space="preserve"><value>송출 화면을 같이 넘기려면 싱크를 켜세요. 끄면 PPT 자막만 넘깁니다.</value></data>
+  <data name="CheckPort" xml:space="preserve"><value>OBS 포트를 확인하세요.</value></data>
+  <data name="SourceLocalOnly" xml:space="preserve"><value>자막 소스는 OBS가 이 PC에서 실행될 때만 넣을 수 있습니다 (주소 127.0.0.1).</value></data>
+  <data name="ConnectFirst" xml:space="preserve"><value>먼저 OBS에 연결하세요.</value></data>
+  <data name="SourceAdded" xml:space="preserve"><value>OBS '{0}' 씬 맨 위에 '{1}' 소스를 추가했습니다. 자막은 송출을 눌러야 나옵니다.</value></data>
+  <data name="SourcePlaced" xml:space="preserve"><value>OBS '{0}' 씬 맨 위에 '{1}' 소스를 넣었습니다 (기존 소스). 자막은 송출을 눌러야 나옵니다.</value></data>
+  <data name="SourceAddFailed" xml:space="preserve"><value>OBS 자막 소스 추가 실패 · {0}</value></data>
+  <data name="StepsPages" xml:space="preserve"><value>송출 칸 페이지 (누르면 송출 칸과 자막이 그 페이지로)</value></data>
+  <data name="StepsDeck" xml:space="preserve"><value>PPT 단계 (누르면 자막만 그 단계로)</value></data>
+  <data name="StepRow" xml:space="preserve"><value>{0}장 {1}줄</value></data>
+  <data name="StepSlide" xml:space="preserve"><value>{0}장</value></data>
+  <data name="BoxName" xml:space="preserve"><value>상자 {0}</value></data>
+  <data name="NoSlides" xml:space="preserve"><value>슬라이드를 찾을 수 없습니다.</value></data>
+  <data name="AllText" xml:space="preserve"><value>슬라이드 전체 글자</value></data>
+  <data name="PictureTooSmall" xml:space="preserve"><value>그림이 너무 작습니다 ({0}×{1}).</value></data>
+  <data name="RecoveryUnreadable" xml:space="preserve"><value>예배 복구본을 읽을 수 없습니다.</value></data>
+  <data name="RecoveryUnsupported" xml:space="preserve"><value>지원하지 않는 복구 파일입니다.</value></data>
+  <data name="RecoveryDamaged" xml:space="preserve"><value>복구할 예배 순서 또는 자막이 손상되었습니다.</value></data>
+  <data name="RecognizedBox" xml:space="preserve"><value>그림 속 가사 (자동 인식)</value></data>
+  <data name="OcrStartFailed" xml:space="preserve"><value>OCR 도우미를 시작할 수 없습니다.</value></data>
+  <data name="OcrNoKorean" xml:space="preserve"><value>이 PC에 한국어 OCR이 설치되어 있지 않습니다. {0}</value></data>
+  <data name="OcrError" xml:space="preserve"><value>OCR 도우미 오류 ({0}) · {1}</value></data>
+  <data name="InputKindChanged" xml:space="preserve"><value>OBS 입력 종류가 변경되었습니다. 목록을 다시 여세요.</value></data>
+  <data name="DeviceRemoved" xml:space="preserve"><value>장치가 분리되었습니다. 목록을 다시 여세요.</value></data>
+  <data name="DeviceNotConfirmed" xml:space="preserve"><value>OBS에서 선택한 장치의 적용을 확인할 수 없습니다.</value></data>
+  <data name="ConnectInCaptions" xml:space="preserve"><value>카메라 하단 자막 → OBS에서 먼저 연결하세요.</value></data>
+  <data name="ConnectionChanged" xml:space="preserve"><value>OBS 연결이 변경되었습니다. 장치 목록을 다시 여세요.</value></data>
+  <data name="RequestFailed" xml:space="preserve"><value>OBS 요청 실패 · {0}</value></data>
+  <data name="ResponseStopped" xml:space="preserve"><value>OBS 응답이 중단되었습니다. 연결 상태를 확인하세요.</value></data>
+  <data name="Connected" xml:space="preserve"><value>연결됨</value></data>
+  <data name="SceneListFailed" xml:space="preserve"><value>씬 목록 요청 실패</value></data>
+  <data name="Reconnecting" xml:space="preserve"><value>OBS 재연결 대기 · {0}</value></data>
+  <data name="ConnectionClosed" xml:space="preserve"><value>OBS 연결이 종료되었습니다.</value></data>
+  <data name="CheckHello" xml:space="preserve"><value>OBS {0} 응답을 확인하세요.</value></data>
+  <data name="CheckAuth" xml:space="preserve"><value>OBS 인증을 확인하세요.</value></data>
+  <data name="NoProgramScene" xml:space="preserve"><value>OBS에서 현재 프로그램 씬을 확인할 수 없습니다.</value></data>
+  <data name="Timeout" xml:space="preserve"><value>OBS가 5초 동안 응답하지 않았습니다.</value></data>
+  <data name="Unreachable" xml:space="preserve"><value>{0}:{1} · OBS 실행 상태, WebSocket 서버 포트, 원격이면 공유기 포트포워딩을 확인하세요.</value></data>
+  <data name="WaitForConnection" xml:space="preserve"><value>OBS 연결을 기다리세요.</value></data>
+  <data name="BatchFailed" xml:space="preserve"><value>OBS 배치 일부 실패. 실제 씬과 소스 상태를 확인하세요.</value></data>
+  <data name="WaitingConnection" xml:space="preserve"><value>OBS 연결 대기</value></data>
+  <data name="NoCameraSignal" xml:space="preserve"><value>OBS 카메라 신호 없음</value></data>
+  <data name="CheckPreviewFormat" xml:space="preserve"><value>OBS 미리보기 이미지 형식을 확인하세요.</value></data>
+  <data name="Rejected" xml:space="preserve"><value>OBS가 인증 또는 세션을 거부했습니다. 설정을 확인한 뒤 연결하세요.</value></data>
+  <data name="CheckResponse" xml:space="preserve"><value>OBS 연결 또는 응답 형식을 확인하세요.</value></data>
+  <data name="NotConnected" xml:space="preserve"><value>연결 전</value></data>
+  <data name="SettingsReadFailed" xml:space="preserve"><value>OBS 설정 읽기 실패 · {0}</value></data>
+  <data name="CheckHost" xml:space="preserve"><value>OBS 주소를 확인하세요. 예: {0}</value></data>
+  <data name="CheckPortScenes" xml:space="preserve"><value>포트와 씬 단축키 설정을 확인하세요.</value></data>
+  <data name="Connecting" xml:space="preserve"><value>OBS 연결 중</value></data>
+  <data name="QueueRecoverySaveFailed" xml:space="preserve"><value>예배 순서 복구본 저장 실패 · {0}</value></data>
+</root>

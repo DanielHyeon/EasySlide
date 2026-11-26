@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Captions;
 
@@ -29,7 +30,7 @@ internal sealed class ObsCaptureInput(string name, string id, int port, object s
     {
         var settings = await request("GetInputSettings", Target(), ct);
         if ((string?)settings["inputKind"] is { } actual && actual != kind)
-            throw new IOException("OBS 입력 종류가 변경되었습니다. 목록을 다시 여세요.");
+            throw new IOException(UiText.Get("CaptionConsole", "InputKindChanged"));
         return (string?)settings["inputSettings"]?[property];
     }
 
@@ -53,13 +54,13 @@ internal sealed class ObsCaptureInput(string name, string id, int port, object s
     internal async Task SetDeviceAsync(string deviceId, CancellationToken ct)
     {
         var choice = Array.Find(await DevicesAsync(ct), d => d.Id == deviceId)
-            ?? throw new IOException("장치가 분리되었습니다. 목록을 다시 여세요.");
+            ?? throw new IOException(UiText.Get("CaptionConsole", "DeviceRemoved"));
         if (choice.Selected) return;
         var args = Target();
         args["inputSettings"] = new JsonObject { [property] = deviceId };
         args["overlay"] = true;
         await request("SetInputSettings", args, ct);
-        if (await ReadDeviceAsync(ct) != deviceId) throw new IOException("OBS에서 선택한 장치의 적용을 확인할 수 없습니다.");
+        if (await ReadDeviceAsync(ct) != deviceId) throw new IOException(UiText.Get("CaptionConsole", "DeviceNotConfirmed"));
     }
 
     internal async Task<bool> IsMutedAsync(CancellationToken ct) =>
@@ -79,7 +80,7 @@ public sealed partial class ObsConnection
 
     internal async Task<ObsCaptureInput[]> CaptureInputsAsync(bool camera, CancellationToken ct)
     {
-        var session = Volatile.Read(ref _active) ?? throw new IOException("카메라 하단 자막 → OBS에서 먼저 연결하세요.");
+        var session = Volatile.Read(ref _active) ?? throw new IOException(UiText.Get("CaptionConsole", "ConnectInCaptions"));
         var kind = camera ? "dshow_input" : "wasapi_input_capture";
         var reply = await Request("GetInputList", new() { ["inputKind"] = kind }, ct);
         return [.. reply["inputs"]!.AsArray().Where(x => x?["inputName"] != null)
@@ -89,19 +90,19 @@ public sealed partial class ObsConnection
         async Task<JsonObject> Request(string type, JsonObject args, CancellationToken cancellation)
         {
             if (!ReferenceEquals(session, Volatile.Read(ref _active)))
-                throw new IOException("OBS 연결이 변경되었습니다. 장치 목록을 다시 여세요.");
+                throw new IOException(UiText.Get("CaptionConsole", "ConnectionChanged"));
             using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellation, _stop.Token);
             timeout.CancelAfter(TimeSpan.FromSeconds(4));
             try
             {
                 var result = await ExchangeAsync(session, 6, id => new { requestId = id, requestType = type, requestData = args }, timeout.Token);
                 if ((bool?)result["requestStatus"]?["result"] != true)
-                    throw new IOException("OBS 요청 실패 · " + ((string?)result["requestStatus"]?["comment"] ?? type));
+                    throw new IOException(UiText.Format("CaptionConsole", "RequestFailed", (string?)result["requestStatus"]?["comment"] ?? type));
                 return result["responseData"]?.AsObject() ?? [];
             }
             catch (OperationCanceledException) when (!cancellation.IsCancellationRequested)
             {
-                throw new IOException("OBS 응답이 중단되었습니다. 연결 상태를 확인하세요.");
+                throw new IOException(UiText.Get("CaptionConsole", "ResponseStopped"));
             }
         }
     }

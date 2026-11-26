@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Title" xml:space="preserve"><value>Camera lower-third captions</value></data>
+  <data name="AirHidden" xml:space="preserve"><value>Caption hidden · press to show (Space)</value></data>
+  <data name="AirVisible" xml:space="preserve"><value>Caption on air · press to hide (Space)</value></data>
+  <data name="AirStandby" xml:space="preserve"><value>Caption waiting · screen off (Space)</value></data>
+  <data name="AirTip" xml:space="preserve"><value>Shows the caption on the camera and OBS or hides it. Esc always hides it.</value></data>
+  <data name="Destinations" xml:space="preserve"><value>Send to</value></data>
+  <data name="ToCamera" xml:space="preserve"><value>Camera</value></data>
+  <data name="ToCameraTip" xml:space="preserve"><value>The camera lower-third caption on the Axicultus output screen</value></data>
+  <data name="ToObsTip" xml:space="preserve"><value>OBS browser source (http://127.0.0.1:17948/)</value></data>
+  <data name="ObsNotConnected" xml:space="preserve"><value>OBS not connected</value></data>
+  <data name="Settings" xml:space="preserve"><value>Settings…</value></data>
+  <data name="SettingsTip" xml:space="preserve"><value>OBS connection · camera · scene shortcuts · browser source · recovery · PPT fine-tuning</value></data>
+  <data name="FollowScreen" xml:space="preserve"><value>Follow the screen</value></data>
+  <data name="FollowScreenTip" xml:space="preserve"><value>Follows the PPT, song, Bible passage or text on the output screen (the output panel when not live) as the caption.</value></data>
+  <data name="DirectInput" xml:space="preserve"><value>Type it</value></data>
+  <data name="Take" xml:space="preserve"><value>Send caption (Enter)</value></data>
+  <data name="NewLineHint" xml:space="preserve"><value>Shift+Enter: new line</value></data>
+  <data name="Instant" xml:space="preserve"><value>Send as you type</value></data>
+  <data name="InstantTip" xml:space="preserve"><value>Korean is sent each time a syllable is complete. Enter confirms it: the box empties and the caption stays until the next one.</value></data>
+  <data name="ShowAuto" xml:space="preserve"><value>Auto</value></data>
+  <data name="ShowAutoTip" xml:space="preserve"><value>Sends the score where a slide has a score picture, else the caption. (1)</value></data>
+  <data name="ShowText" xml:space="preserve"><value>Caption</value></data>
+  <data name="ShowTextTip" xml:space="preserve"><value>Sends the text only. (2)</value></data>
+  <data name="ShowScore" xml:space="preserve"><value>Score</value></data>
+  <data name="ShowScoreTip" xml:space="preserve"><value>Splits the PPT score into rows (a staff and the lyrics under it) and sends one row at a time. (3)</value></data>
+  <data name="ShowScoreText" xml:space="preserve"><value>Score+caption</value></data>
+  <data name="ShowScoreTextTip" xml:space="preserve"><value>Sends a score row with its lyrics under it. (4)</value></data>
+  <data name="Previous" xml:space="preserve"><value>Previous</value></data>
+  <data name="PreviousTip" xml:space="preserve"><value>Previous row / previous slide (← ↑)</value></data>
+  <data name="Next" xml:space="preserve"><value>Next</value></data>
+  <data name="NextTip" xml:space="preserve"><value>Next row / next slide (→ ↓)</value></data>
+  <data name="SyncShow" xml:space="preserve"><value>Previous/Next turn the output screen too (sync)</value></data>
+  <data name="SyncShowTip" xml:space="preserve"><value>When on, Previous/Next turn the output screen (PPT slides, song and Bible pages) and the caption follows. A score sends all rows of a slide before turning to the next slide.</value></data>
+  <data name="WorshipHint" xml:space="preserve"><value>Click to put it in the output panel</value></data>
+  <data name="WorshipHintTip" xml:space="preserve"><value>Live is not turned on when it is off; while live, the output screen changes too. Whether the caption is shown or hidden stays as it is. With the keyboard: pick with the arrows, then Enter.</value></data>
+  <data name="WorshipTitle" xml:space="preserve"><value>Worship list</value></data>
+  <data name="WorshipListEmpty" xml:space="preserve"><value>The worship list is empty</value></data>
+  <data name="PreviewOff" xml:space="preserve"><value>Turn on the camera preview in Settings</value></data>
+  <data name="HiddenBadge" xml:space="preserve"><value>Hidden · not sent</value></data>
+  <data name="ScreenOffBadge" xml:space="preserve"><value>Screen off · not sent</value></data>
+  <data name="NoSteps" xml:space="preserve"><value>No steps · output a PPT, song, Bible passage or text to see its steps here</value></data>
+  <data name="LookTitle" xml:space="preserve"><value>Caption look</value></data>
+  <data name="Lines" xml:space="preserve"><value>Caption lines</value></data>
+  <data name="LinesTip" xml:space="preserve"><value>The height of the caption area. Longer text gets smaller to fit in it.</value></data>
+  <data name="Lines1" xml:space="preserve"><value>1 line</value></data>
+  <data name="Lines2" xml:space="preserve"><value>2 lines</value></data>
+  <data name="Lines3" xml:space="preserve"><value>3 lines</value></data>
+  <data name="ScoreSize" xml:space="preserve"><value>Score size</value></data>
+  <data name="ScoreSizeTip" xml:space="preserve"><value>How much of the camera and OBS screen height the score takes</value></data>
+  <data name="Small" xml:space="preserve"><value>Small</value></data>
+  <data name="Medium" xml:space="preserve"><value>Medium</value></data>
+  <data name="Large" xml:space="preserve"><value>Large</value></data>
+  <data name="Box" xml:space="preserve"><value>Background box</value></data>
+  <data name="BoxTip" xml:space="preserve"><value>When off, the text only gets an outline shadow.</value></data>
+  <data name="TextColor" xml:space="preserve"><value>Text color</value></data>
+  <data name="White" xml:space="preserve"><value>White (default)</value></data>
+  <data name="Yellow" xml:space="preserve"><value>Yellow</value></data>
+  <data name="SkyBlue" xml:space="preserve"><value>Sky blue</value></data>
+  <data name="LightGreen" xml:space="preserve"><value>Light green</value></data>
+  <data name="Black" xml:space="preserve"><value>Black</value></data>
+  <data name="CustomColor" xml:space="preserve"><value>Custom…</value></data>
+  <data name="PreviewWaiting" xml:space="preserve"><value>Waiting for the camera video from OBS…</value></data>
+  <data name="ObsPreview" xml:space="preserve"><value>OBS camera preview</value></data>
+  <data name="ObsPreviewWaiting" xml:space="preserve"><value>Waiting for the OBS preview · {0}</value></data>
+  <data name="Recoverable" xml:space="preserve"><value>The saved draft and order of this service can be recovered.</value></data>
+  <data name="RecoverySaveFailed" xml:space="preserve"><value>Could not save the recovery copy · {0}</value></data>
+  <data name="RecoverConfirm" xml:space="preserve"><value>Restore the current draft and the worship list to when they were saved?</value></data>
+  <data name="RecoverTitle" xml:space="preserve"><value>Recover worship edits</value></data>
+  <data name="RecoverNoDeck" xml:space="preserve"><value>The PPT to recover was not found, so nothing was recovered · {0}</value></data>
+  <data name="ReopenDeck" xml:space="preserve"><value>Open the PPT again. {0}</value></data>
+  <data name="Recovered" xml:space="preserve"><value>The edits were recovered. Check the text to output.</value></data>
+  <data name="NoDeck" xml:space="preserve"><value>There is no PPT on the output screen or in the selected item.</value></data>
+  <data name="NoScreenText" xml:space="preserve"><value>The output screen has no text to send as a caption.</value></data>
+  <data name="DeckSlide" xml:space="preserve"><value>PPT slide {0}/{1}</value></data>
+  <data name="ScreenText" xml:space="preserve"><value>Text on the output screen</value></data>
+  <data name="ScorePreparing" xml:space="preserve"><value>Preparing the score picture</value></data>
+  <data name="ScoreMaking" xml:space="preserve"><value>Making the score picture…</value></data>
+  <data name="ScoreFailed" xml:space="preserve"><value>The score picture could not be made. Try outputting the slide again.</value></data>
+  <data name="ScoreRowFound" xml:space="preserve"><value>PPT slide {0}/{1} · row {2}/{3}</value></data>
+  <data name="ScoreTopHalf" xml:space="preserve"><value>PPT slide {0}/{1} · top half (no score rows found)</value></data>
+  <data name="ScoreBottomHalf" xml:space="preserve"><value>PPT slide {0}/{1} · bottom half (no score rows found)</value></data>
+  <data name="ScoreRenderFailed" xml:space="preserve"><value>The score picture could not be made · {0}</value></data>
+  <data name="RenderFailed" xml:space="preserve"><value>Render failed</value></data>
+  <data name="CorrectingLyrics" xml:space="preserve"><value>{0} · correcting the lyrics in the pictures</value></data>
+  <data name="NoOcr" xml:space="preserve"><value>The lyrics in the pictures could not be read: the reading helper ({0} folder) is missing.</value></data>
+  <data name="ReadingLyrics" xml:space="preserve"><value>{0} · reading the lyrics in the pictures {1}/{2}</value></data>
+  <data name="LyricsFound" xml:space="preserve"><value>{0} · lyrics read on {1} slides</value></data>
+  <data name="LyricsReadFailed" xml:space="preserve"><value>The lyrics in the pictures could not be read · {0}</value></data>
+  <data name="RecognizedChosen" xml:space="preserve"><value>The lyrics in the pictures are used as the caption. You can change it under Text box.</value></data>
+  <data name="Selected" xml:space="preserve"><value>Selected</value></data>
+  <data name="UrlCopied" xml:space="preserve"><value>The browser source address was copied.</value></data>
+  <data name="CopyFailed" xml:space="preserve"><value>Copy failed · {0}</value></data>
+  <data name="ObsConnectInSettings" xml:space="preserve"><value>OBS not connected · connect in Settings</value></data>
+  <data name="ServerRunning" xml:space="preserve"><value>● Caption server running</value></data>
+  <data name="ServerFailed" xml:space="preserve"><value>The caption server could not start · {0}</value></data>
+  <data name="DeckReadFailed" xml:space="preserve"><value>Could not read the PPT · {0}</value></data>
+  <data name="DeckRead" xml:space="preserve"><value>PPT read · {0}</value></data>
+  <data name="CueSaved" xml:space="preserve"><value>The manual text of slide {0} was saved.</value></data>
+  <data name="NoNextSlide" xml:space="preserve"><value>The output screen has no next slide.</value></data>
+  <data name="NoPreviousSlide" xml:space="preserve"><value>The output screen has no previous slide.</value></data>
+  <data name="SyncOff" xml:space="preserve"><value>Turn on sync to turn the output screen as well. With it off, only the PPT caption turns.</value></data>
+  <data name="CheckPort" xml:space="preserve"><value>Check the OBS port.</value></data>
+  <data name="SourceLocalOnly" xml:space="preserve"><value>The caption source can only be added when OBS runs on this PC (address 127.0.0.1).</value></data>
+  <data name="ConnectFirst" xml:space="preserve"><value>Connect to OBS first.</value></data>
+  <data name="SourceAdded" xml:space="preserve"><value>The '{1}' source was added at the top of the OBS scene '{0}'. The caption appears only when you send it.</value></data>
+  <data name="SourcePlaced" xml:space="preserve"><value>The '{1}' source (already in OBS) was put at the top of the OBS scene '{0}'. The caption appears only when you send it.</value></data>
+  <data name="SourceAddFailed" xml:space="preserve"><value>Could not add the OBS caption source · {0}</value></data>
+  <data name="StepsPages" xml:space="preserve"><value>Output panel pages (click to turn the output panel and the caption to that page)</value></data>
+  <data name="StepsDeck" xml:space="preserve"><value>PPT steps (click to move only the caption to that step)</value></data>
+  <data name="StepRow" xml:space="preserve"><value>Slide {0} row {1}</value></data>
+  <data name="StepSlide" xml:space="preserve"><value>Slide {0}</value></data>
+  <data name="BoxName" xml:space="preserve"><value>Box {0}</value></data>
+  <data name="NoSlides" xml:space="preserve"><value>No slides were found.</value></data>
+  <data name="AllText" xml:space="preserve"><value>Whole slide text</value></data>
+  <data name="PictureTooSmall" xml:space="preserve"><value>The picture is too small ({0}×{1}).</value></data>
+  <data name="RecoveryUnreadable" xml:space="preserve"><value>The service recovery copy could not be read.</value></data>
+  <data name="RecoveryUnsupported" xml:space="preserve"><value>This recovery file is not supported.</value></data>
+  <data name="RecoveryDamaged" xml:space="preserve"><value>The worship list or captions to recover are damaged.</value></data>
+  <data name="RecognizedBox" xml:space="preserve"><value>Lyrics in the picture (recognized)</value></data>
+  <data name="OcrStartFailed" xml:space="preserve"><value>The OCR helper could not be started.</value></data>
+  <data name="OcrNoKorean" xml:space="preserve"><value>Korean OCR is not installed on this PC. {0}</value></data>
+  <data name="OcrError" xml:space="preserve"><value>OCR helper error ({0}) · {1}</value></data>
+  <data name="InputKindChanged" xml:space="preserve"><value>The OBS input kind changed. Open the list again.</value></data>
+  <data name="DeviceRemoved" xml:space="preserve"><value>The device was disconnected. Open the list again.</value></data>
+  <data name="DeviceNotConfirmed" xml:space="preserve"><value>OBS could not confirm that the selected device was applied.</value></data>
+  <data name="ConnectInCaptions" xml:space="preserve"><value>Connect first in Camera lower-third captions → OBS.</value></data>
+  <data name="ConnectionChanged" xml:space="preserve"><value>The OBS connection changed. Open the device list again.</value></data>
+  <data name="RequestFailed" xml:space="preserve"><value>OBS request failed · {0}</value></data>
+  <data name="ResponseStopped" xml:space="preserve"><value>OBS stopped responding. Check the connection.</value></data>
+  <data name="Connected" xml:space="preserve"><value>connected</value></data>
+  <data name="SceneListFailed" xml:space="preserve"><value>The scene list request failed</value></data>
+  <data name="Reconnecting" xml:space="preserve"><value>waiting to reconnect · {0}</value></data>
+  <data name="ConnectionClosed" xml:space="preserve"><value>The OBS connection was closed.</value></data>
+  <data name="CheckHello" xml:space="preserve"><value>Check the OBS {0} response.</value></data>
+  <data name="CheckAuth" xml:space="preserve"><value>Check the OBS authentication.</value></data>
+  <data name="NoProgramScene" xml:space="preserve"><value>The current program scene could not be read from OBS.</value></data>
+  <data name="Timeout" xml:space="preserve"><value>OBS did not respond for 5 seconds.</value></data>
+  <data name="Unreachable" xml:space="preserve"><value>{0}:{1} · Check that OBS is running, the WebSocket server port and, if remote, the router's port forwarding.</value></data>
+  <data name="WaitForConnection" xml:space="preserve"><value>Wait for the OBS connection.</value></data>
+  <data name="BatchFailed" xml:space="preserve"><value>Part of the OBS batch failed. Check the actual scene and source states.</value></data>
+  <data name="WaitingConnection" xml:space="preserve"><value>Waiting for the OBS connection</value></data>
+  <data name="NoCameraSignal" xml:space="preserve"><value>No OBS camera signal</value></data>
+  <data name="CheckPreviewFormat" xml:space="preserve"><value>Check the OBS preview image format.</value></data>
+  <data name="Rejected" xml:space="preserve"><value>OBS refused the authentication or session. Check the settings, then connect.</value></data>
+  <data name="CheckResponse" xml:space="preserve"><value>Check the OBS connection or its response format.</value></data>
+  <data name="NotConnected" xml:space="preserve"><value>not connected</value></data>
+  <data name="SettingsReadFailed" xml:space="preserve"><value>Could not read the OBS settings · {0}</value></data>
+  <data name="CheckHost" xml:space="preserve"><value>Check the OBS address. For example: {0}</value></data>
+  <data name="CheckPortScenes" xml:space="preserve"><value>Check the port and the scene shortcut settings.</value></data>
+  <data name="Connecting" xml:space="preserve"><value>connecting</value></data>
+  <data name="QueueRecoverySaveFailed" xml:space="preserve"><value>Could not save the worship list recovery copy · {0}</value></data>
+</root>

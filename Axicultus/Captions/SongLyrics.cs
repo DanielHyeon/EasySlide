@@ -256,5 +256,5 @@ internal static partial class SongLyrics
     private static bool IsSyllable(char c) => c is >= '가' and <= '힣';
 
     [GeneratedRegex(@"\[[^\]]*\]")] private static partial Regex Tag();
-    [GeneratedRegex("[가-힣]+")] private static partial Regex Hangul();
+    [GeneratedRegex("[가-힣]+")] private static partial Regex Hangul(); // not UI text
 }

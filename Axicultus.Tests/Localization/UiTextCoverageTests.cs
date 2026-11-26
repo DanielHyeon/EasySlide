@@ -22,8 +22,6 @@ public sealed class UiTextCoverageTests
 
     private static readonly string[] WpfXamlNotYet =
     [
-        "Axicultus/Captions/CaptionConsole.xaml",
-        "Axicultus/Captions/CaptionSettingsWindow.xaml",
         "Axicultus/Composites/BibleVerseFinder.xaml",
         "Axicultus/Composites/DeviceCheckPanel.xaml",
         "Axicultus/Composites/OutputPlacementEditor.xaml",
@@ -68,17 +66,6 @@ public sealed class UiTextCoverageTests
     private static readonly string[] WpfCodeNotYet =
     [
         "Axicultus/App.xaml.cs",
-        "Axicultus/Captions/CaptionConsole.Operator.cs",
-        "Axicultus/Captions/CaptionConsole.xaml.cs",
-        "Axicultus/Captions/CaptionDeck.cs",
-        "Axicultus/Captions/CaptionRecoveryStore.cs",
-        "Axicultus/Captions/CaptionSession.cs",
-        "Axicultus/Captions/LyricsReader.cs",
-        "Axicultus/Captions/ObsCaptureInputs.cs",
-        "Axicultus/Captions/ObsConnection.cs",
-        "Axicultus/Captions/ObsOperator.cs",
-        "Axicultus/Captions/QueueRecoveryJournal.cs",
-        "Axicultus/Captions/SongLyrics.cs",
         "Axicultus/Composites/DeviceCheckPanel.xaml.cs",
         "Axicultus/Composites/LiveBar.cs",
         "Axicultus/Composites/SafetyConfirm.cs",
@@ -257,7 +244,7 @@ public sealed class UiTextCoverageTests
         @"https?://\S+|www\.\S+|\{\d+(:[^}]*)?\}|\(&\w\)|\(_\w\)|&&|"
         // (bounded by non-ASCII-letters: a Korean particle may follow a name, "Axicultus를")
         + @"(?<![A-Za-z])(Axicultus|Axicultuss|EasiSlides|PowerPoint|PPTX?|OBS|Windows|Office|Word|Excel|SQLite|MySQL|MariaDB|CCLI|DirectShow|"
-        + @"JSON|XML|HTML|CSV|RTF|PDF|EULA|URL|USB|DPI|PC|ID|IP|NDI|WPF|WinForms|InfoScreen|Copyright|"
+        + @"JSON|XML|HTML|CSV|RTF|PDF|EULA|URL|USB|DPI|PC|ID|IP|NDI|OCR|WebSocket|LIVE|WPF|WinForms|InfoScreen|Copyright|"
         + @"Ctrl|Alt|Shift|Esc|Enter|Space|Tab|PgUp|PgDn|PageUp|PageDown|Home|End|Del|Insert|F\d{1,2})(?![A-Za-z])|"
         + @"\.(esw|est|esi|esp|txt|pptx?|ppsx?|docx?|rtf|jpe?g|png|gif|bmp|mp[34]|wmv|avi|xml|json|db|sqlite)(?![A-Za-z])",
         RegexOptions.CultureInvariant);

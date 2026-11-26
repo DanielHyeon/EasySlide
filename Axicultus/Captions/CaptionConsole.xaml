@@ -5,7 +5,8 @@
         xmlns:composites="clr-namespace:Axicultus.Wpf.Composites"
         xmlns:controls="clr-namespace:Axicultus.Wpf.Controls"
         xmlns:conv="clr-namespace:Axicultus.Wpf.Converters"
-        Title="카메라 하단 자막" Width="1040" Height="720" MinWidth="900" MinHeight="620" ResizeMode="CanResize"
+        xmlns:loc="clr-namespace:Axicultus.Wpf.Localization"
+        Title="{loc:Text CaptionConsole.Title}" Width="1040" Height="720" MinWidth="900" MinHeight="620" ResizeMode="CanResize"
         WindowStartupLocation="CenterOwner"
         Background="{DynamicResource Brush.Surface.Page}" Foreground="{DynamicResource Brush.Text.Primary}"
         FontFamily="{DynamicResource Font.Primary}" FontSize="{DynamicResource Type.Body.FontSize}">
@@ -188,7 +189,7 @@
         </Style>
         <!-- The on-air switch: its colour and words follow the session (hidden until put on air). -->
         <Style x:Key="AirSwitch" TargetType="Button">
-            <Setter Property="Content" Value="자막 숨김 · 눌러서 내보내기 (Space)" />
+            <Setter Property="Content" Value="{loc:Text CaptionConsole.AirHidden}" />
             <Setter Property="Background" Value="{DynamicResource Brush.Live.Hidden}" />
             <Setter Property="Foreground" Value="{DynamicResource Brush.Live.OnHidden}" />
             <Setter Property="FontSize" Value="{DynamicResource Type.BodyLarge.FontSize}" />
@@ -217,7 +218,7 @@
             </Setter>
             <Style.Triggers>
                 <DataTrigger Binding="{Binding Session.Visible}" Value="True">
-                    <Setter Property="Content" Value="자막 나가는 중 · 눌러서 숨김 (Space)" />
+                    <Setter Property="Content" Value="{loc:Text CaptionConsole.AirVisible}" />
                     <Setter Property="Background" Value="{DynamicResource Brush.Live.Active}" />
                     <Setter Property="Foreground" Value="{DynamicResource Brush.Live.OnActive}" />
                 </DataTrigger>
@@ -227,7 +228,7 @@
                         <Condition Binding="{Binding Session.Visible}" Value="True" />
                         <Condition Binding="{Binding Session.ScreenOff}" Value="True" />
                     </MultiDataTrigger.Conditions>
-                    <Setter Property="Content" Value="자막 대기 · 화면 꺼짐 (Space)" />
+                    <Setter Property="Content" Value="{loc:Text CaptionConsole.AirStandby}" />
                     <Setter Property="Background" Value="{DynamicResource Brush.Live.Standby}" />
                     <Setter Property="Foreground" Value="{DynamicResource Brush.Live.OnStandby}" />
                 </MultiDataTrigger>
@@ -252,20 +253,20 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <Button x:Name="AirButton" Style="{StaticResource AirSwitch}" Command="{Binding ToggleVisibleCommand}" Click="BackToDraft"
-                    ToolTip="자막을 카메라·OBS에 내보내거나 숨깁니다. Esc는 언제나 숨깁니다." />
+                    ToolTip="{loc:Text CaptionConsole.AirTip}" />
             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0">
-                <TextBlock x:Name="DestinationsLabel" Text="내보낼 곳" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,8,0" />
-                <CheckBox x:Name="ToCamera" Content="카메라" IsChecked="{Binding Session.AudienceEnabled, Mode=TwoWay}"
-                          ToolTip="Axicultus 송출 화면의 카메라 하단 자막" />
+                <TextBlock x:Name="DestinationsLabel" Text="{loc:Text CaptionConsole.Destinations}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,8,0" />
+                <CheckBox x:Name="ToCamera" Content="{loc:Text CaptionConsole.ToCamera}" IsChecked="{Binding Session.AudienceEnabled, Mode=TwoWay}"
+                          ToolTip="{loc:Text CaptionConsole.ToCameraTip}" />
                 <CheckBox x:Name="ToObs" Content="OBS" IsChecked="{Binding Session.ObsEnabled, Mode=TwoWay}" Margin="12,0,0,0"
-                          ToolTip="OBS 브라우저 소스 (http://127.0.0.1:17948/)" />
+                          ToolTip="{loc:Text CaptionConsole.ToObsTip}" />
             </StackPanel>
             <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="16,0,8,0">
-                <TextBlock x:Name="ObsLabel" Text="OBS 연결 전" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" MaxHeight="44" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" />
+                <TextBlock x:Name="ObsLabel" Text="{loc:Text CaptionConsole.ObsNotConnected}" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" MaxHeight="44" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" />
                 <TextBlock x:Name="CameraStatus" Text="{Binding Status}" Style="{StaticResource Quiet}" TextTrimming="CharacterEllipsis" />
             </StackPanel>
-            <Button x:Name="SettingsButton" Grid.Column="3" Content="설정…" Click="OpenSettings" VerticalAlignment="Center"
-                    ToolTip="OBS 연결 · 카메라 · 씬 단축키 · 브라우저 소스 · 복구 · PPT 세부 조정" />
+            <Button x:Name="SettingsButton" Grid.Column="3" Content="{loc:Text CaptionConsole.Settings}" Click="OpenSettings" VerticalAlignment="Center"
+                    ToolTip="{loc:Text CaptionConsole.SettingsTip}" />
         </Grid>
 
         <!-- The body: below the designed 900x620 (a small screen) it scrolls; the on-air bar above stays in view.
@@ -283,9 +284,9 @@
             <DockPanel>
                 <Border DockPanel.Dock="Top" Style="{StaticResource SegmentTrack}">
                     <UniformGrid Columns="2">
-                        <RadioButton x:Name="ScreenMode" Content="화면 따라가기" GroupName="Source" IsChecked="True" Checked="SourceChanged" Style="{StaticResource Segment}"
-                                     ToolTip="송출 화면(라이브가 아니어도 송출 칸)의 PPT · 찬양 · 성경 · 텍스트를 자막으로 따라갑니다." />
-                        <RadioButton x:Name="DirectMode" Content="직접 입력" GroupName="Source" Checked="SourceChanged" Style="{StaticResource Segment}" />
+                        <RadioButton x:Name="ScreenMode" Content="{loc:Text CaptionConsole.FollowScreen}" GroupName="Source" IsChecked="True" Checked="SourceChanged" Style="{StaticResource Segment}"
+                                     ToolTip="{loc:Text CaptionConsole.FollowScreenTip}" />
+                        <RadioButton x:Name="DirectMode" Content="{loc:Text CaptionConsole.DirectInput}" GroupName="Source" Checked="SourceChanged" Style="{StaticResource Segment}" />
                     </UniformGrid>
                 </Border>
                 <!-- The source's own controls on top, the worship list in the rest. Too short for both (a small window), the
@@ -307,12 +308,12 @@
                                      VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top"
                                      Text="{Binding DraftText, UpdateSourceTrigger=PropertyChanged}" PreviewKeyDown="DraftKey"
                                      AutomationProperties.Name="직접 입력 자막" />
-                            <Button x:Name="TakeButton" Content="자막 보내기 (Enter)" Command="{Binding TakeCommand}" Click="BackToDraft"
+                            <Button x:Name="TakeButton" Content="{loc:Text CaptionConsole.Take}" Command="{Binding TakeCommand}" Click="BackToDraft"
                                     Style="{StaticResource Main}" Margin="0,8,0,0" />
                             <DockPanel Margin="0,8,0,0">
-                                <TextBlock DockPanel.Dock="Right" Text="Shift+Enter 줄바꿈" Style="{StaticResource Quiet}" />
-                                <CheckBox x:Name="Instant" Content="입력하는 대로 보내기" IsChecked="{Binding IsInstant, Mode=TwoWay}"
-                                          ToolTip="한글은 글자가 완성될 때마다 보냅니다. Enter로 확정하면 입력 칸이 비워지고 자막은 다음 입력까지 유지됩니다." />
+                                <TextBlock DockPanel.Dock="Right" Text="{loc:Text CaptionConsole.NewLineHint}" Style="{StaticResource Quiet}" />
+                                <CheckBox x:Name="Instant" Content="{loc:Text CaptionConsole.Instant}" IsChecked="{Binding IsInstant, Mode=TwoWay}"
+                                          ToolTip="{loc:Text CaptionConsole.InstantTip}" />
                             </DockPanel>
                         </StackPanel>
 
@@ -330,14 +331,14 @@
                             </Border>
                             <Border Style="{StaticResource SegmentTrack}" Margin="0,12,0,0">
                                 <UniformGrid Columns="4">
-                                    <RadioButton x:Name="AutoShow" Content="자동" Tag="auto" GroupName="Show" IsChecked="True" Checked="ScoreChanged" Style="{StaticResource Segment}"
-                                                 ToolTip="슬라이드마다 악보 그림이 있으면 악보를, 없으면 자막을 보냅니다. (1)" />
-                                    <RadioButton x:Name="TextOnly" Content="자막" Tag="text" GroupName="Show" Checked="ScoreChanged" Style="{StaticResource Segment}"
-                                                 ToolTip="글자만 보냅니다. (2)" />
-                                    <RadioButton x:Name="ScoreOnly" Content="악보" Tag="score" GroupName="Show" Checked="ScoreChanged" Style="{StaticResource Segment}"
-                                                 ToolTip="PPT 악보를 줄(오선과 그 아래 가사)로 나누어 한 줄씩 보냅니다. (3)" />
-                                    <RadioButton x:Name="ScoreAndText" Content="악보+자막" Tag="scoretext" GroupName="Show" Checked="ScoreChanged" Style="{StaticResource Segment}"
-                                                 ToolTip="악보 한 줄 아래에 그 줄의 가사를 함께 보냅니다. (4)" />
+                                    <RadioButton x:Name="AutoShow" Content="{loc:Text CaptionConsole.ShowAuto}" Tag="auto" GroupName="Show" IsChecked="True" Checked="ScoreChanged" Style="{StaticResource Segment}"
+                                                 ToolTip="{loc:Text CaptionConsole.ShowAutoTip}" />
+                                    <RadioButton x:Name="TextOnly" Content="{loc:Text CaptionConsole.ShowText}" Tag="text" GroupName="Show" Checked="ScoreChanged" Style="{StaticResource Segment}"
+                                                 ToolTip="{loc:Text CaptionConsole.ShowTextTip}" />
+                                    <RadioButton x:Name="ScoreOnly" Content="{loc:Text CaptionConsole.ShowScore}" Tag="score" GroupName="Show" Checked="ScoreChanged" Style="{StaticResource Segment}"
+                                                 ToolTip="{loc:Text CaptionConsole.ShowScoreTip}" />
+                                    <RadioButton x:Name="ScoreAndText" Content="{loc:Text CaptionConsole.ShowScoreText}" Tag="scoretext" GroupName="Show" Checked="ScoreChanged" Style="{StaticResource Segment}"
+                                                 ToolTip="{loc:Text CaptionConsole.ShowScoreTextTip}" />
                                 </UniformGrid>
                             </Border>
                             <Grid Margin="0,12,0,0">
@@ -347,26 +348,26 @@
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
                                 <Button x:Name="PreviousButton" Click="Previous" Style="{StaticResource Big}" AutomationProperties.Name="이전"
-                                        ToolTip="이전 줄 / 이전 슬라이드 (← ↑)">
+                                        ToolTip="{loc:Text CaptionConsole.PreviousTip}">
                                     <StackPanel Orientation="Horizontal">
                                         <Path Data="M 5,0 L 0,5 L 5,10" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
                                               StrokeThickness="2" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                                               VerticalAlignment="Center" Margin="0,0,8,0" />
-                                        <TextBlock Text="이전" VerticalAlignment="Center" />
+                                        <TextBlock Text="{loc:Text CaptionConsole.Previous}" VerticalAlignment="Center" />
                                     </StackPanel>
                                 </Button>
                                 <Button x:Name="NextButton" Grid.Column="2" Click="Next" Style="{StaticResource Main}" AutomationProperties.Name="다음"
-                                        ToolTip="다음 줄 / 다음 슬라이드 (→ ↓)">
+                                        ToolTip="{loc:Text CaptionConsole.NextTip}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="다음" VerticalAlignment="Center" />
+                                        <TextBlock Text="{loc:Text CaptionConsole.Next}" VerticalAlignment="Center" />
                                         <Path Data="M 0,0 L 5,5 L 0,10" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
                                               StrokeThickness="2" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                                               VerticalAlignment="Center" Margin="8,0,0,0" />
                                     </StackPanel>
                                 </Button>
                             </Grid>
-                            <CheckBox x:Name="SyncShow" Content="이전·다음으로 송출 화면도 넘기기 (싱크)" Margin="0,8,0,0" IsChecked="{Binding Session.SyncShow, Mode=TwoWay}"
-                                      ToolTip="켜면 이전/다음이 송출 화면(PPT 슬라이드, 찬양·성경 페이지)을 넘기고 자막이 따라갑니다. 악보는 그 장의 줄을 다 보낸 뒤 다음 장으로 넘깁니다." />
+                            <CheckBox x:Name="SyncShow" Content="{loc:Text CaptionConsole.SyncShow}" Margin="0,8,0,0" IsChecked="{Binding Session.SyncShow, Mode=TwoWay}"
+                                      ToolTip="{loc:Text CaptionConsole.SyncShowTip}" />
                         </StackPanel>
 
                         <!-- What the console last did or why it could not: under the controls that caused it, one line (its full
@@ -385,9 +386,9 @@
                         <Border x:Name="WorshipHeader" DockPanel.Dock="Top" BorderBrush="{DynamicResource Brush.Border.Default}" BorderThickness="0,1,0,0"
                                 Padding="0,12,0,0">
                             <DockPanel>
-                                <TextBlock DockPanel.Dock="Right" Text="누르면 송출 칸에 올라갑니다" Style="{StaticResource Quiet}" Margin="0,0,0,8"
-                                           ToolTip="라이브가 꺼져 있으면 켜지 않고, 라이브 중이면 송출 화면도 바뀝니다. 자막을 내보내는지 숨기는지는 그대로입니다. 키보드로는 화살표로 고르고 Enter." />
-                                <TextBlock Text="예배 순서" Style="{StaticResource SectionTitle}" />
+                                <TextBlock DockPanel.Dock="Right" Text="{loc:Text CaptionConsole.WorshipHint}" Style="{StaticResource Quiet}" Margin="0,0,0,8"
+                                           ToolTip="{loc:Text CaptionConsole.WorshipHintTip}" />
+                                <TextBlock Text="{loc:Text CaptionConsole.WorshipTitle}" Style="{StaticResource SectionTitle}" />
                             </DockPanel>
                         </Border>
                         <Grid>
@@ -437,7 +438,7 @@
                                     </DataTemplate>
                                 </ListView.ItemTemplate>
                             </ListView>
-                            <TextBlock x:Name="WorshipListEmpty" Text="예배 순서가 비어 있습니다" HorizontalAlignment="Center" IsHitTestVisible="False">
+                            <TextBlock x:Name="WorshipListEmpty" Text="{loc:Text CaptionConsole.WorshipListEmpty}" HorizontalAlignment="Center" IsHitTestVisible="False">
                                 <TextBlock.Style>
                                     <Style TargetType="TextBlock" BasedOn="{StaticResource Quiet}">
                                         <Setter Property="Visibility" Value="Collapsed" />
@@ -467,7 +468,7 @@
                 <Viewbox x:Name="ObsPreviewBox" Stretch="Uniform" VerticalAlignment="Top" AutomationProperties.Name="송출 자막 미리보기">
                     <!-- A camera frame: black, as on the output screen. -->
                     <Grid Width="1920" Height="1080" Background="Black" ClipToBounds="True">
-                        <TextBlock x:Name="PreviewHint" Text="카메라 미리보기는 설정에서 켭니다" FontSize="56"
+                        <TextBlock x:Name="PreviewHint" Text="{loc:Text CaptionConsole.PreviewOff}" FontSize="56"
                                    Foreground="{DynamicResource Brush.Text.Tertiary}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                         <Image x:Name="CameraPreview" Source="{Binding Preview}" Stretch="Uniform" RenderTransformOrigin="0.5,0.5">
                             <Image.RenderTransform>
@@ -503,7 +504,7 @@
                             <TextBlock x:Name="HiddenBadgeText" FontSize="60" FontWeight="SemiBold">
                                 <TextBlock.Style>
                                     <Style TargetType="TextBlock">
-                                        <Setter Property="Text" Value="숨김 중 · 내보내지 않습니다" />
+                                        <Setter Property="Text" Value="{loc:Text CaptionConsole.HiddenBadge}" />
                                         <Setter Property="Foreground" Value="{DynamicResource Brush.Live.OnHidden}" />
                                         <Style.Triggers>
                                             <MultiDataTrigger>
@@ -511,7 +512,7 @@
                                                     <Condition Binding="{Binding Session.Visible}" Value="True" />
                                                     <Condition Binding="{Binding Session.ScreenOff}" Value="True" />
                                                 </MultiDataTrigger.Conditions>
-                                                <Setter Property="Text" Value="화면 꺼짐 · 내보내지 않습니다" />
+                                                <Setter Property="Text" Value="{loc:Text CaptionConsole.ScreenOffBadge}" />
                                                 <Setter Property="Foreground" Value="{DynamicResource Brush.Live.OnStandby}" />
                                             </MultiDataTrigger>
                                         </Style.Triggers>
@@ -606,7 +607,7 @@
                     </ListBox>
                     <TextBlock x:Name="NoSteps" Margin="12,0" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"
                                TextWrapping="Wrap" TextAlignment="Center"
-                               Text="단계 없음 · PPT · 찬양 · 성경 · 텍스트를 송출하면 여기에 단계가 보입니다">
+                               Text="{loc:Text CaptionConsole.NoSteps}">
                         <TextBlock.Style>
                             <Style TargetType="TextBlock" BasedOn="{StaticResource Quiet}">
                                 <Setter Property="Visibility" Value="Collapsed" />
@@ -627,38 +628,38 @@
              title, as the worship list's), the left column kept for the source and the worship list down to the bottom. -->
                 <StackPanel Grid.Row="2" Margin="0,12,0,0">
                     <Border BorderBrush="{DynamicResource Brush.Border.Default}" BorderThickness="0,1,0,0" Padding="0,12,0,0">
-                        <TextBlock Text="자막 모양" Style="{StaticResource SectionTitle}" />
+                        <TextBlock Text="{loc:Text CaptionConsole.LookTitle}" Style="{StaticResource SectionTitle}" />
                     </Border>
         <!-- Groups that wrap whole (a label never parts from its control): sizes and box first, the colours after. -->
         <WrapPanel>
             <StackPanel Orientation="Horizontal" Margin="0,4,20,0">
-                <TextBlock x:Name="LinesLabel" Text="자막 줄 수" VerticalAlignment="Center" Margin="0,0,8,0" />
+                <TextBlock x:Name="LinesLabel" Text="{loc:Text CaptionConsole.Lines}" VerticalAlignment="Center" Margin="0,0,8,0" />
                 <ComboBox x:Name="LinesBox" Width="76" SelectionChanged="LinesChanged" AutomationProperties.LabeledBy="{Binding ElementName=LinesLabel}"
-                          ToolTip="자막 영역의 높이. 더 긴 글은 글자가 작아져 이 안에 들어갑니다.">
-                    <ComboBoxItem Content="1줄" />
-                    <ComboBoxItem Content="2줄" />
-                    <ComboBoxItem Content="3줄" />
+                          ToolTip="{loc:Text CaptionConsole.LinesTip}">
+                    <ComboBoxItem Content="{loc:Text CaptionConsole.Lines1}" />
+                    <ComboBoxItem Content="{loc:Text CaptionConsole.Lines2}" />
+                    <ComboBoxItem Content="{loc:Text CaptionConsole.Lines3}" />
                 </ComboBox>
             </StackPanel>
             <StackPanel Orientation="Horizontal" Margin="0,4,20,0">
-                <TextBlock x:Name="ScoreSizeLabel" Text="악보 크기" VerticalAlignment="Center" Margin="0,0,8,0" />
+                <TextBlock x:Name="ScoreSizeLabel" Text="{loc:Text CaptionConsole.ScoreSize}" VerticalAlignment="Center" Margin="0,0,8,0" />
                 <ComboBox x:Name="ScoreSizeBox" Width="88" SelectionChanged="ScoreSizeChanged" AutomationProperties.LabeledBy="{Binding ElementName=ScoreSizeLabel}"
-                          ToolTip="카메라·OBS 화면에서 악보가 차지하는 높이">
-                    <ComboBoxItem Content="작게" />
-                    <ComboBoxItem Content="보통" />
-                    <ComboBoxItem Content="크게" />
+                          ToolTip="{loc:Text CaptionConsole.ScoreSizeTip}">
+                    <ComboBoxItem Content="{loc:Text CaptionConsole.Small}" />
+                    <ComboBoxItem Content="{loc:Text CaptionConsole.Medium}" />
+                    <ComboBoxItem Content="{loc:Text CaptionConsole.Large}" />
                 </ComboBox>
             </StackPanel>
-            <CheckBox x:Name="BoxCheck" Content="배경 상자" Click="BoxChanged" Margin="0,4,20,0" VerticalAlignment="Center"
-                      ToolTip="끄면 글자에 테두리 그림자만 넣습니다." />
+            <CheckBox x:Name="BoxCheck" Content="{loc:Text CaptionConsole.Box}" Click="BoxChanged" Margin="0,4,20,0" VerticalAlignment="Center"
+                      ToolTip="{loc:Text CaptionConsole.BoxTip}" />
             <StackPanel x:Name="Swatches" Orientation="Horizontal" Margin="0,4,0,0">
-                <TextBlock Text="글자색" VerticalAlignment="Center" Margin="0,0,8,0" />
-                <Button Tag="#FFFFFF" Style="{StaticResource Swatch}" Click="PickColor" ToolTip="흰색 (기본)" AutomationProperties.Name="흰색" />
-                <Button Tag="#FFE14D" Style="{StaticResource Swatch}" Click="PickColor" ToolTip="노랑" AutomationProperties.Name="노랑" />
-                <Button Tag="#7FD8FF" Style="{StaticResource Swatch}" Click="PickColor" ToolTip="하늘" AutomationProperties.Name="하늘" />
-                <Button Tag="#9BF07A" Style="{StaticResource Swatch}" Click="PickColor" ToolTip="연두" AutomationProperties.Name="연두" />
-                <Button Tag="#000000" Style="{StaticResource Swatch}" Click="PickColor" ToolTip="검정" AutomationProperties.Name="검정" />
-                <Button Content="직접 선택…" Click="PickCustomColor" Margin="4,0,0,0" />
+                <TextBlock Text="{loc:Text CaptionConsole.TextColor}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                <Button Tag="#FFFFFF" Style="{StaticResource Swatch}" Click="PickColor" ToolTip="{loc:Text CaptionConsole.White}" AutomationProperties.Name="흰색" />
+                <Button Tag="#FFE14D" Style="{StaticResource Swatch}" Click="PickColor" ToolTip="{loc:Text CaptionConsole.Yellow}" AutomationProperties.Name="노랑" />
+                <Button Tag="#7FD8FF" Style="{StaticResource Swatch}" Click="PickColor" ToolTip="{loc:Text CaptionConsole.SkyBlue}" AutomationProperties.Name="하늘" />
+                <Button Tag="#9BF07A" Style="{StaticResource Swatch}" Click="PickColor" ToolTip="{loc:Text CaptionConsole.LightGreen}" AutomationProperties.Name="연두" />
+                <Button Tag="#000000" Style="{StaticResource Swatch}" Click="PickColor" ToolTip="{loc:Text CaptionConsole.Black}" AutomationProperties.Name="검정" />
+                <Button Content="{loc:Text CaptionConsole.CustomColor}" Click="PickCustomColor" Margin="4,0,0,0" />
             </StackPanel>
         </WrapPanel>
                 </StackPanel>
