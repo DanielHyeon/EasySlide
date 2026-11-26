@@ -201,7 +201,7 @@
   <data name="tabPageLicence.Text" xml:space="preserve"><value>라이선스</value></data>
   <data name="groupBox20.Text" xml:space="preserve"><value>라이선스 관리 정보</value></data>
   <data name="cbEnforceDisplay.Text" xml:space="preserve"><value>처음 표시할 때 저작권 표시 강제</value></data>
-  <data name="AdminLicPreview2.Text" xml:space="preserve"><value>퍼블릭 도메인</value></data>
+  <data name="AdminLicPreview2.Text" xml:space="preserve"><value></value></data>
   <data name="label36.Text" xml:space="preserve"><value>화면에 표시되는 모양</value></data>
   <data name="AdminLicNo2.Text" xml:space="preserve"><value>비움</value></data>
   <data name="AdminLicNo1.Text" xml:space="preserve"><value>비움</value></data>

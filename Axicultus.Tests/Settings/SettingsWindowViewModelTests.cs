@@ -592,6 +592,21 @@ public class SettingsWindowViewModelTests
         reopened.Current.PowerPoint.UsePowerPointTab.Should().BeTrue();
     }
 
+    // A public-domain song shows no licence line on the output (as one with none), and the options preview says so.
+    [Fact]
+    public void APublicDomainSongShowsNoLicenceLine()
+    {
+        var general = new GeneralSettings { LicenceNumberSymbol = "#", LicenceNumber3 = "345" };
+        general.FormatLicence("Public Domain").Should().BeEmpty();
+        general.FormatLicence("None").Should().BeEmpty();
+        general.FormatLicence("CCLI").Should().Be("CCLI#345");
+        using var fixture = SettingsFixture.Create();
+        var options = fixture.CreateViewModel();
+        options.BeginOptionsEdit();
+        options.LicenceRows[1].Name.Should().Be("Public Domain");
+        options.LicenceRows[1].Preview.Should().BeEmpty();
+    }
+
     [Fact]
     public void DialogEdits_AreDiscardedOnCloseAndMergedOnConfirmation()
     {

@@ -169,7 +169,8 @@ public sealed partial class SettingsWindowViewModel
             get => number is null ? "" : editor._settings.Get(number);
             set { if (number is not null) editor.ChangeOption(number, value); RefreshPreview(); }
         }
-        public string Preview => fixedName == "Public Domain" ? fixedName
+        // (a public-domain song shows no licence line: GeneralSettings.FormatLicence)
+        public string Preview => fixedName == "Public Domain" ? ""
             : string.IsNullOrWhiteSpace(Name) || string.IsNullOrWhiteSpace(Number) ? ""
             : string.Concat(Name.Trim(), editor.LicenceNumberSymbol, Number.Trim());
         internal void RefreshPreview() => OnPropertyChanged(nameof(Preview));

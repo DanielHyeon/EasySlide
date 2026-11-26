@@ -195,7 +195,7 @@ namespace Axicultus;
 			LicenseAdministrators[7].Number = DataUtil.Trim(RegUtil.GetRegValue("config", "lic7_no", ""));
 			LicenseAdministrators[8].Number = DataUtil.Trim(RegUtil.GetRegValue("config", "lic8_no", ""));
 			LicenseAdministrators[1].DisplayText = "";
-			LicenseAdministrators[2].DisplayText = "Public Domain";
+			LicenseAdministrators[2].DisplayText = ""; // a public-domain song shows no licence line, as one with none
 			for (int administratorIndex = 3; administratorIndex < LicenseAdministrators.Length; administratorIndex++)
 			{
 				ref var administrator = ref LicenseAdministrators[administratorIndex];

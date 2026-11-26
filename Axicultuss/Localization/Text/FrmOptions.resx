@@ -201,7 +201,7 @@
   <data name="tabPageLicence.Text" xml:space="preserve"><value>Licence</value></data>
   <data name="groupBox20.Text" xml:space="preserve"><value>Licence Administration Details</value></data>
   <data name="cbEnforceDisplay.Text" xml:space="preserve"><value>Enforce Display of Copyright on First Showing</value></data>
-  <data name="AdminLicPreview2.Text" xml:space="preserve"><value>Public Domain</value></data>
+  <data name="AdminLicPreview2.Text" xml:space="preserve"><value></value></data>
   <data name="label36.Text" xml:space="preserve"><value>How it will appear on Screen</value></data>
   <data name="AdminLicNo2.Text" xml:space="preserve"><value>Blank</value></data>
   <data name="AdminLicNo1.Text" xml:space="preserve"><value>Blank</value></data>

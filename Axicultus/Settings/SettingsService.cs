@@ -669,7 +669,8 @@ public sealed record GeneralSettings
     public string FormatLicence(string administrator)
     {
         var name = administrator.Trim();
-        if (name.Length == 0 || name == "None") return "";
+        // (a public-domain song shows no licence line, as one with none)
+        if (name.Length == 0 || name is "None" or "Public Domain") return "";
         var number = name switch
         {
             "CCLI" => LicenceNumber3,
