@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Library;
 
@@ -15,6 +16,9 @@ public partial class SongEditorWindow : Window
     public SongEditorWindow(SongEditorViewModel viewModel)
     {
         InitializeComponent();
+        // These texts quote markup and a shortcut, which stay as they are in both languages.
+        Lyrics2Editor.ToolTip = UiText.Format("SongEditorWindow", "SecondLyricsToolTip", "[1], [chorus]");
+        SaveButton.ToolTip = UiText.Format("SongEditorWindow", "SaveToolTip", "Ctrl+S");
         _viewModel = viewModel;
         _activeLyrics = LyricsEditor;
         // A chord is stored with the lyric character it stands over, so the panes' own font decides the positions.
@@ -22,12 +26,14 @@ public partial class SongEditorWindow : Window
         _viewModel.Saved += OnSaved;
         DataContext = viewModel;
         for (int number = 1; number <= 10; number++)
-            VerseNumbers.Items.Add(new MenuItem { Header = $"{number}절", Tag = $"[{number}]" });
+            VerseNumbers.Items.Add(new MenuItem { Header = UiText.Format("SongEditorWindow", "VerseNumber", number), Tag = $"[{number}]" });
         foreach (var (group, chords) in viewModel.ChordMenu)
         {
             ItemsControl parent = ChordMenu;
+            // The group names are English ids: "Minor 7th" is ChordGroupMinor7th.
+            string groupKey = "ChordGroup" + group.Replace(" ", "");
             if (group.Length > 0)
-                ChordMenu.Items.Add(parent = new MenuItem { Header = group });
+                ChordMenu.Items.Add(parent = new MenuItem { Header = UiText.Get("SongEditorWindow", groupKey) });
             foreach (string chord in chords)
                 parent.Items.Add(new MenuItem { Header = chord, Tag = chord });
         }

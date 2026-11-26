@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Library;
 
@@ -170,11 +171,11 @@ internal static class SongEditorLyrics
     {
         if (value.AsSpan().IndexOfAny("[]*\"<>") >= 0)
         {
-            return $"{label}에는 ] [ * \" < > 문자를 쓸 수 없습니다.";
+            return UiText.Format("SongEditorWindow", "TitleBadCharacters", label);
         }
 
         return value.Length > 100
-            ? $"{label}이(가) 너무 깁니다({value.Length}자). 공백을 포함해 100자까지 쓸 수 있습니다."
+            ? UiText.Format("SongEditorWindow", "TitleTooLong", label, value.Length)
             : null;
     }
 
@@ -211,7 +212,7 @@ internal static class SongEditorLyrics
             sequence = sequence.Trim();
             if (sequence.AsSpan().IndexOfAny('\t', '\r', '\n') >= 0)
             {
-                return "절 순서는 한 줄에 쓰고 쉼표나 공백으로 구분하세요. 탭과 줄바꿈은 쓸 수 없습니다.";
+                return UiText.Get("SongEditorWindow", "SequenceOneLine");
             }
 
             foreach (string token in sequence.Split([',', ' ', '\t', '\r', '\n'], StringSplitOptions.RemoveEmptyEntries))
@@ -227,7 +228,8 @@ internal static class SongEditorLyrics
 
                 if (verse < 0)
                 {
-                    return $"절 순서 '{token}'은(는) 쓸 수 없습니다. 1~99와 c(후렴) t(후렴 2) b(브리지) w(브리지 2) p(프리코러스) q(프리코러스 2) e(엔딩)만 쓸 수 있습니다.";
+                    string allowed = string.Join(' ', SequenceLetters.Select(code => $"{code.Letter}({UiText.Get("SongEditorWindow", code.Key)})"));
+                    return UiText.Format("SongEditorWindow", "SequenceBadToken", token, allowed);
                 }
 
                 codes.Append((char)verse);
@@ -239,8 +241,8 @@ internal static class SongEditorLyrics
         {
             if (!present.Contains(verse))
             {
-                string name = verse is <= 103 or 111 or 112 ? Symbol(verse) : $"코드 {verse}";
-                return $"절 순서에 있는 {name} 이(가) 가사에 없습니다.";
+                string name = verse is <= 103 or 111 or 112 ? Symbol(verse) : UiText.Format("SongEditorWindow", "VerseCode", verse);
+                return UiText.Format("SongEditorWindow", "SequenceVerseMissing", name);
             }
         }
 
@@ -248,8 +250,12 @@ internal static class SongEditorLyrics
         // codes when one of the codes is a control character; otherwise the text itself would be stored.
         return verses.Length == 0 || Axicultus.Module.SongExchangeSequence.ToDatabase(sequence) == verses
             ? null
-            : "이 절 순서는 저장 형식(절 코드)으로 바꿀 수 없습니다. 1~31절이나 후렴(c) 중 하나가 들어 있어야 합니다.";
+            : UiText.Format("SongEditorWindow", "SequenceNotStorable", "c");
     }
+
+    // The one-letter sequence tokens and the resource key of the section each stands for.
+    private static readonly (char Letter, string Key)[] SequenceLetters =
+        [('c', "Chorus"), ('t', "Chorus2"), ('b', "Bridge"), ('w', "Bridge2"), ('p', "PreChorus"), ('q', "PreChorus2"), ('e', "Ending")];
 
     /// <summary>
     /// FrmEditItem.ValidateContents for one pane; null when the text can be saved. Like FrmEditItem it looks for
@@ -264,7 +270,7 @@ internal static class SongEditorLyrics
         opened = opened.Replace("\r\n", "\n", StringComparison.Ordinal).Replace('\r', '\n');
         if (text.Contains(Region2Symbol, StringComparison.Ordinal))
         {
-            return $"{pane}: {Region2Symbol} 표시는 쓸 수 없습니다. 보조 가사는 보조 가사 칸에 입력하세요.";
+            return UiText.Format("SongEditorWindow", "Region2MarkerNotAllowed", pane, Region2Symbol);
         }
 
         string[] lines = text.Split('\n');
@@ -277,8 +283,8 @@ internal static class SongEditorLyrics
             {
                 // Both apps show a heading with a space before or after it as a line of the verse.
                 return Headings.ContainsKey(line.Trim())
-                    ? $"{pane}: 절 표시 {symbol} 의 앞이나 뒤에 공백이 있습니다. 공백을 지우세요."
-                    : $"{pane}: 절 표시 {symbol} 은(는) 한 줄에 단독으로 써야 합니다.";
+                    ? UiText.Format("SongEditorWindow", "HeadingSpaces", pane, symbol)
+                    : UiText.Format("SongEditorWindow", "HeadingOwnLine", pane, symbol);
             }
 
             if (!line.Contains('»'))
@@ -294,7 +300,7 @@ internal static class SongEditorLyrics
             // The chords of a heading line are not stored (gfLyrics.FormatDisplayLyrics lists lyric lines only).
             if (Headings.ContainsKey(lines[index + 1]))
             {
-                return $"{pane}: 코드 줄 바로 아래에 절 표시 {lines[index + 1]} 이(가) 있습니다. 절 표시를 코드 줄 위로 옮기세요.";
+                return UiText.Format("SongEditorWindow", "HeadingBelowChords", pane, lines[index + 1]);
             }
         }
 
@@ -310,7 +316,7 @@ internal static class SongEditorLyrics
 
             if (text.IndexOf(symbol, position + symbol.Length, StringComparison.Ordinal) >= 0)
             {
-                return $"{pane}: 절 표시 {symbol} 이(가) 두 번 있습니다.";
+                return UiText.Format("SongEditorWindow", "HeadingTwice", pane, symbol);
             }
 
             missing = missing < 0 && verse is >= 2 and <= 99 && !present.Contains(verse - 1) ? verse - 1 : missing;
@@ -318,14 +324,14 @@ internal static class SongEditorLyrics
 
         if (missing > 0)
         {
-            return $"{pane}: {missing}절 표시({Symbol(missing)})가 없습니다.";
+            return UiText.Format("SongEditorWindow", "HeadingMissing", pane, missing, Symbol(missing));
         }
 
         // FrmEditItem asks for a heading above such lyrics. A song that is stored like that is saved all the
         // same: the lines are lines of verse 1, as both apps show them.
         int unmarked = HeadingBelowLyrics(text, present);
         return unmarked >= 0 && HeadingBelowLyrics(opened, present) < 0
-            ? $"{pane}: {Symbol(unmarked)} 앞의 가사에도 절 표시가 필요합니다."
+            ? UiText.Format("SongEditorWindow", "HeadingNeeded", pane, Symbol(unmarked))
             : null;
     }
 

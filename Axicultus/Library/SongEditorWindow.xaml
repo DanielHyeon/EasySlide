@@ -3,7 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:Axicultus.Wpf.Controls"
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-        Title="곡 편집기"
+        xmlns:loc="clr-namespace:Axicultus.Wpf.Localization"
+        Title="{loc:Text SongEditorWindow.Title}"
         Width="1040"
         Height="760"
         MinWidth="860"
@@ -37,13 +38,13 @@
             </Grid.ColumnDefinitions>
 
             <StackPanel>
-                <TextBlock Text="곡 편집기"
+                <TextBlock Text="{loc:Text SongEditorWindow.Title}"
                            Style="{StaticResource Type.Title1.Style}"
                            Foreground="{DynamicResource Brush.Text.Primary}" />
                 <!-- FrmEditItem SongFolder: the folder the song is saved in; folders in use only, never folder 0. -->
                 <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
                     <TextBlock x:Name="LblFolder"
-                               Text="폴더"
+                               Text="{loc:Text SongEditorWindow.Folder}"
                                VerticalAlignment="Center"
                                Style="{StaticResource Type.Caption.Style}"
                                Foreground="{DynamicResource Brush.Text.Secondary}"
@@ -53,7 +54,7 @@
                               SelectedItem="{Binding SelectedFolder, Mode=TwoWay}"
                               MinWidth="220"
                               MinHeight="32"
-                              ToolTip="곡을 저장할 폴더"
+                              ToolTip="{loc:Text SongEditorWindow.FolderToolTip}"
                               AutomationProperties.LabeledBy="{Binding ElementName=LblFolder}" />
                 </StackPanel>
             </StackPanel>
@@ -78,7 +79,7 @@
                     <ui:SymbolIcon Symbol="Warning24"
                                    Foreground="{DynamicResource Brush.Status.Warning}"
                                    Margin="0,0,8,0" />
-                    <TextBlock Text="라이브 출력 중입니다. 저장하려면 확인이 필요합니다."
+                    <TextBlock Text="{loc:Text SongEditorWindow.LiveEditWarning}"
                                Style="{StaticResource Type.Caption.Style}"
                                Foreground="{DynamicResource Brush.Text.Primary}" />
                 </StackPanel>
@@ -96,7 +97,7 @@
                 <StackPanel>
                     <StackPanel Margin="0,0,0,14">
                         <TextBlock x:Name="LblTitle"
-                                   Text="제목"
+                                   Text="{loc:Text SongEditorWindow.SongTitle}"
                                    Style="{StaticResource Type.Caption.Style}"
                                    Foreground="{DynamicResource Brush.Text.Tertiary}" />
                         <TextBox Text="{Binding Title, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -108,45 +109,45 @@
                     <StackPanel Margin="0,0,0,14">
                         <DockPanel>
                             <Menu DockPanel.Dock="Right" Background="Transparent">
-                                <MenuItem Header="가사 구분 삽입" Click="InsertSection_Click"
+                                <MenuItem Header="{loc:Text SongEditorWindow.InsertSection}" Click="InsertSection_Click"
                                           AutomationProperties.Name="가사 구분 삽입">
                                     <MenuItem.Icon>
                                         <controls:FrmIcon Icon="text_bullet_list_add" Width="16" Height="16" />
                                     </MenuItem.Icon>
-                                    <MenuItem x:Name="VerseNumbers" Header="절 번호" />
-                                    <MenuItem Header="프리코러스" Tag="[prechorus]" />
-                                    <MenuItem Header="프리코러스 2" Tag="[prechorus 2]" />
-                                    <MenuItem Header="후렴" Tag="[chorus]" />
-                                    <MenuItem Header="후렴 2" Tag="[chorus 2]" />
-                                    <MenuItem Header="브리지" Tag="[bridge]" />
-                                    <MenuItem Header="브리지 2" Tag="[bridge 2]" />
-                                    <MenuItem Header="엔딩" Tag="[ending]" />
+                                    <MenuItem x:Name="VerseNumbers" Header="{loc:Text SongEditorWindow.VerseNumbers}" />
+                                    <MenuItem Header="{loc:Text SongEditorWindow.PreChorus}" Tag="[prechorus]" />
+                                    <MenuItem Header="{loc:Text SongEditorWindow.PreChorus2}" Tag="[prechorus 2]" />
+                                    <MenuItem Header="{loc:Text SongEditorWindow.Chorus}" Tag="[chorus]" />
+                                    <MenuItem Header="{loc:Text SongEditorWindow.Chorus2}" Tag="[chorus 2]" />
+                                    <MenuItem Header="{loc:Text SongEditorWindow.Bridge}" Tag="[bridge]" />
+                                    <MenuItem Header="{loc:Text SongEditorWindow.Bridge2}" Tag="[bridge 2]" />
+                                    <MenuItem Header="{loc:Text SongEditorWindow.Ending}" Tag="[ending]" />
                                 </MenuItem>
                                 <!-- FrmEditItem chords menu: puts the chord over the caret of the pane last used. -->
-                                <MenuItem x:Name="ChordMenu" Header="코드 넣기" Click="InsertChord_Click"
-                                          ToolTip="커서가 있는 글자 위에 코드를 넣습니다"
+                                <MenuItem x:Name="ChordMenu" Header="{loc:Text SongEditorWindow.InsertChord}" Click="InsertChord_Click"
+                                          ToolTip="{loc:Text SongEditorWindow.InsertChordToolTip}"
                                           AutomationProperties.Name="코드 넣기">
                                     <MenuItem.Icon>
                                         <controls:FrmIcon Icon="chords" Width="16" Height="16" />
                                     </MenuItem.Icon>
                                 </MenuItem>
                             </Menu>
-                            <TextBlock x:Name="LblLyrics" Text="기본 가사 (Region 1)" VerticalAlignment="Center"
+                            <TextBlock x:Name="LblLyrics" Text="{loc:Text SongEditorWindow.MainLyricsRegion}" VerticalAlignment="Center"
                                        Style="{StaticResource Type.Caption.Style}"
                                        Foreground="{DynamicResource Brush.Text.Tertiary}" />
                         </DockPanel>
                         <!-- FrmEditItem formatting row: transpose the song's chords, key and capo; wrap the lyric panes. -->
                         <WrapPanel Margin="0,4,0,0">
                             <Button Command="{Binding TransposeSongDownCommand}" Style="{StaticResource EsButton.Secondary}" Margin="0,0,8,0"
-                                    Content="코드 반음 내림" Tag="transpose_down" ContentTemplate="{StaticResource EditorActionCaption}"
-                                    ToolTip="두 가사 칸의 코드와 키·카포를 반음 내립니다(저장됨)" />
+                                    Content="{loc:Text SongEditorWindow.TransposeSongDown}" Tag="transpose_down" ContentTemplate="{StaticResource EditorActionCaption}"
+                                    ToolTip="{loc:Text SongEditorWindow.TransposeSongDownToolTip}" />
                             <Button Command="{Binding TransposeSongUpCommand}" Style="{StaticResource EsButton.Secondary}" Margin="0,0,8,0"
-                                    Content="코드 반음 올림" Tag="transpose_up" ContentTemplate="{StaticResource EditorActionCaption}"
-                                    ToolTip="두 가사 칸의 코드와 키·카포를 반음 올립니다(저장됨)" />
-                            <CheckBox x:Name="WrapLyrics" Content="줄 바꿈" Click="WrapLyrics_Click" VerticalAlignment="Center"
-                                      ToolTip="긴 줄을 접어 보입니다. 코드 줄은 접히면 가사와 어긋나 보입니다." />
+                                    Content="{loc:Text SongEditorWindow.TransposeSongUp}" Tag="transpose_up" ContentTemplate="{StaticResource EditorActionCaption}"
+                                    ToolTip="{loc:Text SongEditorWindow.TransposeSongUpToolTip}" />
+                            <CheckBox x:Name="WrapLyrics" Content="{loc:Text SongEditorWindow.WrapLines}" Click="WrapLyrics_Click" VerticalAlignment="Center"
+                                      ToolTip="{loc:Text SongEditorWindow.WrapLinesToolTip}" />
                         </WrapPanel>
-                        <TextBlock Text="코드는 가사 줄 바로 윗줄에 쓰고 » 로 끝냅니다(F8). 코드가 놓인 글자 위치가 저장됩니다."
+                        <TextBlock Text="{loc:Text SongEditorWindow.ChordHint}"
                                    TextWrapping="Wrap"
                                    Style="{StaticResource Type.Caption.Style}"
                                    Foreground="{DynamicResource Brush.Text.Tertiary}"
@@ -162,7 +163,7 @@
                                  PreviewKeyDown="Lyrics_PreviewKeyDown"
                                  AutomationProperties.LabeledBy="{Binding ElementName=LblLyrics}" />
                         <!-- FrmEditItem "Additional lyrics": the second language, verse by verse under the same headings. -->
-                        <TextBlock x:Name="LblLyrics2" Text="보조 가사 (Region 2)"
+                        <TextBlock x:Name="LblLyrics2" Text="{loc:Text SongEditorWindow.SecondLyricsRegion}"
                                    Style="{StaticResource Type.Caption.Style}"
                                    Foreground="{DynamicResource Brush.Text.Tertiary}"
                                    Margin="0,12,0,0" />
@@ -173,7 +174,6 @@
                                  HorizontalScrollBarVisibility="Auto"
                                  MinHeight="140"
                                  Margin="0,4,0,0"
-                                 ToolTip="기본 가사와 같은 절 표시([1], [chorus] …) 아래에 그 절의 보조 가사를 씁니다"
                                  GotKeyboardFocus="Lyrics_GotKeyboardFocus"
                                  PreviewKeyDown="Lyrics_PreviewKeyDown"
                                  AutomationProperties.LabeledBy="{Binding ElementName=LblLyrics2}" />
@@ -186,20 +186,20 @@
                             <ColumnDefinition />
                         </Grid.ColumnDefinitions>
                         <StackPanel>
-                            <Label Target="{Binding ElementName=SongSequence}" Content="절 순서" Padding="0,0,0,4" />
+                            <Label Target="{Binding ElementName=SongSequence}" Content="{loc:Text SongEditorWindow.Sequence}" Padding="0,0,0,4" />
                             <TextBox x:Name="SongSequence" Text="{Binding Sequence, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                      AutomationProperties.Name="절 순서(Sequence)" MinHeight="46" AcceptsReturn="True"
                                      TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" />
                         </StackPanel>
                         <StackPanel Grid.Column="2">
                             <!-- Read only: MSC is rebuilt from the chord lines of the lyric panes, as FrmEditItem does on save. -->
-                            <Label Target="{Binding ElementName=SongNotations}" Content="코드 표기(저장되는 값)" Padding="0,0,0,4" />
+                            <Label Target="{Binding ElementName=SongNotations}" Content="{loc:Text SongEditorWindow.NotationsStored}" Padding="0,0,0,4" />
                             <TextBox x:Name="SongNotations" Text="{Binding Notations, Mode=OneWay}" IsReadOnly="True"
                                      AutomationProperties.Name="코드 표기(Notations)" MinHeight="46"
                                      TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" />
                         </StackPanel>
                     </Grid>
-                    <Expander Header="곡 정보 · 저작권" IsExpanded="False"
+                    <Expander Header="{loc:Text SongEditorWindow.SongDetails}" IsExpanded="False"
                               Margin="0,0,0,8">
                         <StackPanel Margin="0,10,0,0">
                             <Grid>
@@ -217,7 +217,7 @@
                                     Grid.Column="0"
                                     Margin="0,0,0,14">
                                     <TextBlock x:Name="LblAlternateTitle"
-                                       Text="다른 제목"
+                                       Text="{loc:Text SongEditorWindow.AlternateTitle}"
                                        Style="{StaticResource Type.Caption.Style}"
                                        Foreground="{DynamicResource Brush.Text.Tertiary}" />
                                     <TextBox Text="{Binding AlternateTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -230,7 +230,7 @@
                                     Grid.Column="2"
                                     Margin="0,0,0,14">
                                     <TextBlock x:Name="LblNumber"
-                                       Text="번호"
+                                       Text="{loc:Text SongEditorWindow.Number}"
                                        Style="{StaticResource Type.Caption.Style}"
                                        Foreground="{DynamicResource Brush.Text.Tertiary}" />
                                     <TextBox Text="{Binding SongNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -243,7 +243,7 @@
                                     Grid.Column="0"
                                     Margin="0,0,0,14">
                                     <TextBlock x:Name="LblCategory"
-                                       Text="분류"
+                                       Text="{loc:Text SongEditorWindow.Category}"
                                        Style="{StaticResource Type.Caption.Style}"
                                        Foreground="{DynamicResource Brush.Text.Tertiary}" />
                                     <TextBox Text="{Binding Category, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -262,7 +262,7 @@
                                     </Grid.ColumnDefinitions>
                                     <StackPanel>
                                         <TextBlock x:Name="LblKey"
-                                           Text="키"
+                                           Text="{loc:Text SongEditorWindow.Key}"
                                            Style="{StaticResource Type.Caption.Style}"
                                            Foreground="{DynamicResource Brush.Text.Tertiary}" />
                                         <TextBox Text="{Binding Key, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -272,7 +272,7 @@
                                     </StackPanel>
                                     <StackPanel Grid.Column="2">
                                         <TextBlock x:Name="LblCapo"
-                                           Text="카포"
+                                           Text="{loc:Text SongEditorWindow.Capo}"
                                            Style="{StaticResource Type.Caption.Style}"
                                            Foreground="{DynamicResource Brush.Text.Tertiary}" />
                                         <!-- FrmEditItem SongCapo: "no capo" is an entry of the list and is stored as -1. -->
@@ -301,7 +301,7 @@
 
                                 <StackPanel Margin="0,0,0,12">
                                     <TextBlock x:Name="LblWriter"
-                                               Text="작사·작곡"
+                                               Text="{loc:Text SongEditorWindow.Writer}"
                                                Style="{StaticResource Type.Caption.Style}"
                                                Foreground="{DynamicResource Brush.Text.Tertiary}" />
                                     <TextBox Text="{Binding Writer, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -312,7 +312,7 @@
                                 <StackPanel Grid.Column="2"
                                             Margin="0,0,0,12">
                                     <TextBlock x:Name="LblCopyright"
-                                               Text="저작권"
+                                               Text="{loc:Text SongEditorWindow.Copyright}"
                                                Style="{StaticResource Type.Caption.Style}"
                                                Foreground="{DynamicResource Brush.Text.Tertiary}" />
                                     <TextBox Text="{Binding Copyright, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -324,7 +324,7 @@
                                 <StackPanel Grid.Row="1"
                                             Margin="0,0,0,12">
                                     <TextBlock x:Name="LblTiming"
-                                               Text="타이밍"
+                                               Text="{loc:Text SongEditorWindow.Timing}"
                                                Style="{StaticResource Type.Caption.Style}"
                                                Foreground="{DynamicResource Brush.Text.Tertiary}" />
                                     <TextBox Text="{Binding Timing, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -336,7 +336,7 @@
                                             Grid.Column="2"
                                             Margin="0,0,0,12">
                                     <TextBlock x:Name="LblBookReference"
-                                               Text="교단 참조"
+                                               Text="{loc:Text SongEditorWindow.BookReference}"
                                                Style="{StaticResource Type.Caption.Style}"
                                                Foreground="{DynamicResource Brush.Text.Tertiary}" />
                                     <TextBox Text="{Binding BookReference, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -348,7 +348,7 @@
                                 <StackPanel Grid.Row="2"
                                             Margin="0,0,0,12">
                                     <TextBlock x:Name="LblUserReference"
-                                               Text="사용자 참조"
+                                               Text="{loc:Text SongEditorWindow.UserReference}"
                                                Style="{StaticResource Type.Caption.Style}"
                                                Foreground="{DynamicResource Brush.Text.Tertiary}" />
                                     <TextBox Text="{Binding UserReference, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -359,7 +359,7 @@
                                 <StackPanel Grid.Row="2"
                                             Grid.Column="2"
                                             Margin="0,0,0,12">
-                                    <TextBlock Text="라이선스 관리자"
+                                    <TextBlock Text="{loc:Text SongEditorWindow.LicenceAdmin}"
                                                Style="{StaticResource Type.Caption.Style}"
                                                Foreground="{DynamicResource Brush.Text.Tertiary}" />
                                     <Grid Margin="0,4,0,0">
@@ -382,9 +382,9 @@
                         </StackPanel>
                     </Expander>
 
-                    <Expander Header="고급 서식 데이터" Margin="0,0,0,8">
+                    <Expander Header="{loc:Text SongEditorWindow.AdvancedFormat}" Margin="0,0,0,8">
                         <StackPanel>
-                            <TextBlock Text="서식 데이터" />
+                            <TextBlock Text="{loc:Text SongEditorWindow.FormatData}" />
                             <TextBox Text="{Binding FormatData, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                      AutomationProperties.Name="포맷 데이터"
                                      AcceptsReturn="True"
@@ -392,7 +392,7 @@
                                      VerticalScrollBarVisibility="Auto"
                                      MinHeight="72"
                                      Margin="0,8,0,0" />
-                            <TextBlock Text="곡 설정 데이터" Margin="0,8,0,0" />
+                            <TextBlock Text="{loc:Text SongEditorWindow.SongSettingsData}" Margin="0,8,0,0" />
                             <TextBox Text="{Binding SongSettingsData, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                      AutomationProperties.Name="노래 설정 데이터"
                                      AcceptsReturn="True"
@@ -405,7 +405,7 @@
 
                     <!-- 영역별 스타일(Region 1=주 언어 / Region 2=보조 언어) — 이중 언어 곡의 두 본문에 글자색·정렬·굵게·기울임을
                          따로 지정한다. 빈 값/"상속"은 곡·전역 설정을 그대로 따른다. 출력 렌더가 FormatData 의 영역별 코드를 적용. -->
-                    <Expander Header="기본 가사 · 보조 가사 서식"
+                    <Expander Header="{loc:Text SongEditorWindow.RegionFormat}"
                               IsExpanded="False"
                               Margin="0,0,0,8">
                         <Grid Margin="0,10,0,0">
@@ -417,12 +417,12 @@
 
                             <!-- Region 1 -->
                             <StackPanel>
-                                <TextBlock Text="기본 가사 (Region 1)"
+                                <TextBlock Text="{loc:Text SongEditorWindow.MainLyricsRegion}"
                                            Style="{StaticResource Type.Caption.Style}"
                                            FontWeight="SemiBold"
                                            Foreground="{DynamicResource Brush.Text.Secondary}" />
                                 <TextBlock x:Name="LblR1Color"
-                                           Text="글자색(#AARRGGBB, 비우면 상속)"
+                                           Text="{loc:Text SongEditorWindow.TextColor}"
                                            Style="{StaticResource Type.Caption.Style}"
                                            Foreground="{DynamicResource Brush.Text.Tertiary}"
                                            Margin="0,8,0,0" />
@@ -431,7 +431,7 @@
                                          Margin="0,4,0,0"
                                          AutomationProperties.LabeledBy="{Binding ElementName=LblR1Color}" />
                                 <TextBlock x:Name="LblR1Align"
-                                           Text="정렬"
+                                           Text="{loc:Text SongEditorWindow.Alignment}"
                                            Style="{StaticResource Type.Caption.Style}"
                                            Foreground="{DynamicResource Brush.Text.Tertiary}"
                                            Margin="0,8,0,0" />
@@ -443,14 +443,14 @@
                                           Margin="0,4,0,0"
                                           AutomationProperties.LabeledBy="{Binding ElementName=LblR1Align}" />
                                 <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                                    <CheckBox Content="굵게"
+                                    <CheckBox Content="{loc:Text SongEditorWindow.Bold}"
                                               IsChecked="{Binding Region1Bold, Mode=TwoWay}"
                                               AutomationProperties.Name="Region 1 굵게" />
-                                    <CheckBox Content="기울임"
+                                    <CheckBox Content="{loc:Text SongEditorWindow.Italic}"
                                               IsChecked="{Binding Region1Italic, Mode=TwoWay}"
                                               Margin="16,0,0,0"
                                               AutomationProperties.Name="Region 1 기울임" />
-                                    <CheckBox Content="밑줄"
+                                    <CheckBox Content="{loc:Text SongEditorWindow.Underline}"
                                               IsChecked="{Binding Region1Underline, Mode=TwoWay}"
                                               Margin="16,0,0,0"
                                               AutomationProperties.Name="Region 1 밑줄" />
@@ -459,12 +459,12 @@
 
                             <!-- Region 2 -->
                             <StackPanel Grid.Column="2">
-                                <TextBlock Text="보조 가사 (Region 2)"
+                                <TextBlock Text="{loc:Text SongEditorWindow.SecondLyricsRegion}"
                                            Style="{StaticResource Type.Caption.Style}"
                                            FontWeight="SemiBold"
                                            Foreground="{DynamicResource Brush.Text.Secondary}" />
                                 <TextBlock x:Name="LblR2Color"
-                                           Text="글자색(#AARRGGBB, 비우면 상속)"
+                                           Text="{loc:Text SongEditorWindow.TextColor}"
                                            Style="{StaticResource Type.Caption.Style}"
                                            Foreground="{DynamicResource Brush.Text.Tertiary}"
                                            Margin="0,8,0,0" />
@@ -473,7 +473,7 @@
                                          Margin="0,4,0,0"
                                          AutomationProperties.LabeledBy="{Binding ElementName=LblR2Color}" />
                                 <TextBlock x:Name="LblR2Align"
-                                           Text="정렬"
+                                           Text="{loc:Text SongEditorWindow.Alignment}"
                                            Style="{StaticResource Type.Caption.Style}"
                                            Foreground="{DynamicResource Brush.Text.Tertiary}"
                                            Margin="0,8,0,0" />
@@ -485,14 +485,14 @@
                                           Margin="0,4,0,0"
                                           AutomationProperties.LabeledBy="{Binding ElementName=LblR2Align}" />
                                 <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                                    <CheckBox Content="굵게"
+                                    <CheckBox Content="{loc:Text SongEditorWindow.Bold}"
                                               IsChecked="{Binding Region2Bold, Mode=TwoWay}"
                                               AutomationProperties.Name="Region 2 굵게" />
-                                    <CheckBox Content="기울임"
+                                    <CheckBox Content="{loc:Text SongEditorWindow.Italic}"
                                               IsChecked="{Binding Region2Italic, Mode=TwoWay}"
                                               Margin="16,0,0,0"
                                               AutomationProperties.Name="Region 2 기울임" />
-                                    <CheckBox Content="밑줄"
+                                    <CheckBox Content="{loc:Text SongEditorWindow.Underline}"
                                               IsChecked="{Binding Region2Underline, Mode=TwoWay}"
                                               Margin="16,0,0,0"
                                               AutomationProperties.Name="Region 2 밑줄" />
@@ -516,7 +516,7 @@
                     </Grid.RowDefinitions>
 
                     <StackPanel Margin="0,0,0,12">
-                        <TextBlock Text="미리보기"
+                        <TextBlock Text="{loc:Text SongEditorWindow.Preview}"
                                    Style="{StaticResource Type.Title3.Style}"
                                    Foreground="{DynamicResource Brush.Text.Primary}" />
                         <TextBlock Text="{Binding PreviewFormatStatus}"
@@ -535,9 +535,9 @@
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
-                            <Label Content="글꼴" Target="{Binding ElementName=PreviewFont}" Padding="0,0,0,4" />
-                            <Label Grid.Column="2" Content="가사 크기" Target="{Binding ElementName=PreviewSize}" Padding="0,0,0,4" />
-                            <Label Grid.Column="4" Content="코드 크기" Target="{Binding ElementName=NotationSize}" Padding="0,0,0,4" />
+                            <Label Content="{loc:Text SongEditorWindow.Font}" Target="{Binding ElementName=PreviewFont}" Padding="0,0,0,4" />
+                            <Label Grid.Column="2" Content="{loc:Text SongEditorWindow.LyricsSize}" Target="{Binding ElementName=PreviewSize}" Padding="0,0,0,4" />
+                            <Label Grid.Column="4" Content="{loc:Text SongEditorWindow.ChordSize}" Target="{Binding ElementName=NotationSize}" Padding="0,0,0,4" />
                             <ComboBox Grid.Row="1" x:Name="PreviewFont" ItemsSource="{Binding PreviewFontFamilyOptions}"
                                       SelectedItem="{Binding PreviewFontFamilyName, Mode=TwoWay}"
                                       MinHeight="32"
@@ -556,22 +556,22 @@
 
                         <!-- 코드 조옮김(레거시 Transpose Up/Down Semi-Tone) — 미리보기 코드만 ±반음 이동, 저장 가사 불변. -->
                         <DockPanel Margin="0,10,0,4">
-                            <TextBlock Text="코드 조옮김" Style="{StaticResource Type.Caption.Style}"
+                            <TextBlock Text="{loc:Text SongEditorWindow.Transpose}" Style="{StaticResource Type.Caption.Style}"
                                        Foreground="{DynamicResource Brush.Text.Secondary}" />
                             <TextBlock Text="{Binding TransposeLabel}" HorizontalAlignment="Right"
                                        Style="{StaticResource Type.Caption.Style}" />
                         </DockPanel>
                         <WrapPanel>
                             <Button Command="{Binding TransposeDownCommand}" Style="{StaticResource EsButton.Secondary}" Margin="0,0,6,4"
-                                    Content="반음 내림" Tag="transpose_down" ContentTemplate="{StaticResource EditorActionCaption}"
+                                    Content="{loc:Text SongEditorWindow.SemitoneDown}" Tag="transpose_down" ContentTemplate="{StaticResource EditorActionCaption}"
                                     AutomationProperties.Name="반음 내림" />
                             <Button Command="{Binding TransposeUpCommand}" Style="{StaticResource EsButton.Secondary}" Margin="0,0,6,4"
-                                    Content="반음 올림" Tag="transpose_up" ContentTemplate="{StaticResource EditorActionCaption}"
+                                    Content="{loc:Text SongEditorWindow.SemitoneUp}" Tag="transpose_up" ContentTemplate="{StaticResource EditorActionCaption}"
                                     AutomationProperties.Name="반음 올림" />
                             <Button Command="{Binding ResetTransposeCommand}" Style="{StaticResource EsButton.Secondary}" Margin="0,0,6,4"
-                                    Content="원래 조" AutomationProperties.Name="조옮김 원조로" />
+                                    Content="{loc:Text SongEditorWindow.OriginalKey}" AutomationProperties.Name="조옮김 원조로" />
                             <Button Command="{Binding ToCapoZeroCommand}" Style="{StaticResource EsButton.Secondary}" Margin="0,0,0,4"
-                                    Content="카포 없이" ToolTip="카포 없이 연주하는 코드로 미리보기"
+                                    Content="{loc:Text SongEditorWindow.NoCapo}" ToolTip="{loc:Text SongEditorWindow.NoCapoToolTip}"
                                     AutomationProperties.Name="To Capo 0" />
                         </WrapPanel>
                     </StackPanel>
@@ -649,25 +649,25 @@
             <StackPanel DockPanel.Dock="Right"
                         Orientation="Horizontal"
                         HorizontalAlignment="Right">
-                <Button Content="악보 편집…" Click="ScoreClick" Margin="0,0,8,0"
+                <Button Content="{loc:Text SongEditorWindow.EditScore}" Click="ScoreClick" Margin="0,0,8,0"
                         Style="{StaticResource EsButton.Secondary}" />
-                <Button Command="{Binding SaveCommand}"
+                <Button x:Name="SaveButton"
+                        Command="{Binding SaveCommand}"
                         Style="{StaticResource EsButton.Primary}"
-                        ToolTip="곡을 저장하고 닫기 (Ctrl+S)"
                         AutomationProperties.Name="곡 저장"
                         Margin="0,0,8,0">
                     <StackPanel Orientation="Horizontal">
                         <controls:FrmIcon Icon="save" Width="16" Height="16" Margin="0,0,6,0" />
-                        <TextBlock Text="저장 후 닫기" />
+                        <TextBlock Text="{loc:Text SongEditorWindow.SaveAndClose}" />
                     </StackPanel>
                 </Button>
                 <Button Style="{StaticResource EsButton.Secondary}"
                         Click="Close_Click"
-                        ToolTip="닫기"
+                        ToolTip="{loc:Text SongEditorWindow.Close}"
                         AutomationProperties.Name="곡 편집기 닫기">
                     <StackPanel Orientation="Horizontal">
                         <ui:SymbolIcon Symbol="Dismiss24" Margin="0,0,6,0" />
-                        <TextBlock Text="닫기" />
+                        <TextBlock Text="{loc:Text SongEditorWindow.Close}" />
                     </StackPanel>
                 </Button>
             </StackPanel>
