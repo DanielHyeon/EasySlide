@@ -23,6 +23,12 @@ public static class UiLanguage
         var culture = CultureInfo.GetCultureInfo(Resolve(name));
         CultureInfo.DefaultThreadCurrentUICulture = culture;
         Thread.CurrentThread.CurrentUICulture = culture;
+        // A culture set inside an async method or a dispatcher callback is undone when it returns, and the UI thread
+        // goes back to the Windows display language for what its message loop runs later (a tab opened by a click).
+        // Set again from the loop itself, outside that flow, the culture stays.
+        if (SynchronizationContext.Current is { } loop)
+            using (ExecutionContext.SuppressFlow())
+                loop.Post(_ => Thread.CurrentThread.CurrentUICulture = culture, null);
     }
 
     /// <summary>The language the menus are in now.</summary>
