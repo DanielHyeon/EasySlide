@@ -42,6 +42,10 @@
   <data name="LiveRestoreDescription" xml:space="preserve"><value>Goes back from hidden, black or clear to what was shown before.</value></data>
   <data name="LiveAutoRotate" xml:space="preserve"><value>Toggle auto-rotate</value></data>
   <data name="LiveAutoRotateDescription" xml:space="preserve"><value>Changes verses or slides automatically at a set interval while live.</value></data>
+  <data name="CaptionToggle" xml:space="preserve"><value>Show or hide camera captions</value></data>
+  <data name="CaptionToggleDescription" xml:space="preserve"><value>Shows the camera captions on the camera and OBS or hides them (once the captions tab is open).</value></data>
+  <data name="CaptionTab" xml:space="preserve"><value>Captions tab</value></data>
+  <data name="CaptionTabDescription" xml:space="preserve"><value>Switches the preview column between the preview and the captions tab (opens the captions the first time).</value></data>
   <data name="WorshipDuplicateItem" xml:space="preserve"><value>Duplicate item</value></data>
   <data name="WorshipDuplicateItemDescription" xml:space="preserve"><value>Duplicates the selected worship list item and adds the copy right after it.</value></data>
   <data name="WorshipMoveItemUp" xml:space="preserve"><value>Move item up</value></data>

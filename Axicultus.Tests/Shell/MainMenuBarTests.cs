@@ -953,6 +953,21 @@ public class MainMenuBarTests
             "editable combo boxes such as font selectors should count as text input focus");
     }
 
+    // a045: the caption tab's own keys are left to it before anything of the main window's: Esc there hides the caption
+    // and must not end the show, the arrows and digits step it rather than the preview.
+    [Fact]
+    public void MainWindow_LeavesTheCaptionTabsKeysToIt_BeforeEndShowAndTheArrows()
+    {
+        var code = CodeBehind;
+        var onPreviewKeyDown = SectionBetween(code, "protected override void OnPreviewKeyDown", "private bool TryHandlePreviewOutputPowerPointKey");
+        var captionIndex = onPreviewKeyDown.IndexOf("if (CaptionTabKey(e))", StringComparison.Ordinal);
+        captionIndex.Should().BeGreaterThanOrEqualTo(0);
+        captionIndex.Should().BeLessThan(onPreviewKeyDown.IndexOf("MainCommandIds.EndShow", StringComparison.Ordinal));
+        captionIndex.Should().BeLessThan(onPreviewKeyDown.IndexOf("IsShowArrow(e.Key)", StringComparison.Ordinal));
+        onPreviewKeyDown.Should().Contain("if (!CaptionTabKey(e) && IsShowArrow(e.Key))", "an arrow's release in the tab does not turn the show");
+        Xaml.Should().Contain("x:Name=\"CaptionHost\"").And.Contain("x:Name=\"CaptionStripHost\"");
+    }
+
     [Fact]
     public void ClassicPreviewAndOutputLocalButtons_ReturnFocusToFrmMainAreas()
     {

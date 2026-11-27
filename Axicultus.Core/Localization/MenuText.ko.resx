@@ -47,7 +47,7 @@
   <data name="Output_BlackScreen" xml:space="preserve"><value>검은 화면</value></data>
   <data name="Output_ClearScreen" xml:space="preserve"><value>화면 지우기</value></data>
   <data name="Output_RestartCurrentItem" xml:space="preserve"><value>현재 항목 처음부터</value></data>
-  <data name="Output_CameraCaptions" xml:space="preserve"><value>카메라 하단 자막…</value></data>
+  <data name="Output_CameraCaptions" xml:space="preserve"><value>카메라 하단 자막</value></data>
   <data name="Output_Controls" xml:space="preserve"><value>송출 조작</value></data>
   <data name="Output_PreviewToOutputClearBlack" xml:space="preserve"><value>미리보기를 송출 화면으로 보내고 검은 화면 해제</value></data>
   <data name="Output_PreviewToOutput" xml:space="preserve"><value>미리보기를 송출 화면으로 보내기</value></data>

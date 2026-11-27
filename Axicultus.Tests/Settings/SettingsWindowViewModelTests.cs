@@ -509,11 +509,11 @@ public class SettingsWindowViewModelTests
         other.CustomGesture = alias;
         vm.SaveShortcut(other).Succeeded.Should().BeFalse();
 
-        item.CustomGesture = "F6";
+        item.CustomGesture = "Ctrl+F6";
         vm.SaveShortcut(item).Succeeded.Should().BeTrue();
         var reopened = fixture.CreateViewModel();
         var saved = reopened.ShortcutItems.Single(row => row.SlotId == item.SlotId);
-        saved.EffectiveGesture.Should().Be("F6");
+        saved.EffectiveGesture.Should().Be("Ctrl+F6");
         reopened.ResetShortcut(saved).Succeeded.Should().BeTrue();
         saved.EffectiveGesture.Should().Be(label);
         var effective = ShortcutSettings.ApplyOverrides(fixture.CommandCatalog.GetDefaultShortcuts(), fixture.Settings.Current.Shortcuts);
@@ -527,14 +527,14 @@ public class SettingsWindowViewModelTests
         using var fixture = SettingsFixture.Create();
         var sut = fixture.CreateViewModel();
         var item = sut.ShortcutItems.Single(item => item.CommandId == MainCommandIds.LiveNext && item.IsGlobal);
-        item.CustomGesture = "F6";
+        item.CustomGesture = "Ctrl+F6";
 
         var result = sut.SaveShortcut(item);
 
         result.Succeeded.Should().BeTrue();
-        item.CustomGesture.Should().Be("F6");
-        item.EffectiveGesture.Should().Be("F6");
-        fixture.Settings.Current.Shortcuts[item.SlotId].Should().Be("F6");
+        item.CustomGesture.Should().Be("Ctrl+F6");
+        item.EffectiveGesture.Should().Be("Ctrl+F6");
+        fixture.Settings.Current.Shortcuts[item.SlotId].Should().Be("Ctrl+F6");
         sut.StatusMessage.Should().Contain("단축키");
     }
 
@@ -559,7 +559,7 @@ public class SettingsWindowViewModelTests
         using var fixture = SettingsFixture.Create();
         var sut = fixture.CreateViewModel();
         var item = sut.ShortcutItems.Single(item => item.CommandId == MainCommandIds.LiveNext && item.IsGlobal);
-        item.CustomGesture = "F6";
+        item.CustomGesture = "Ctrl+F6";
         sut.SaveShortcut(item);
 
         var result = sut.ResetShortcut(item);

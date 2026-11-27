@@ -26,6 +26,9 @@ public static class MainCommandIds
     public const string LiveRefresh = "Live.Refresh";
     public const string LiveRestore = "Live.Restore";
     public const string LiveAutoRotate = "Live.AutoRotate";
+    // a045: the camera captions tab of the preview column — F6 shows or hides the caption, F2 switches the tab.
+    public const string CaptionToggle = "Caption.Toggle";
+    public const string CaptionTab = "Caption.Tab";
 
     // 창 런처(§7.4 — 명령 팔레트로 분리창을 흡수). 실행은 View(MainWindow)가 레지스트리에 등록.
     public const string WindowLibrary = "Window.Library";

@@ -524,7 +524,7 @@
                     <MenuItem.Icon><controls:FrmIcon Icon="closed_caption_off" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="{loc:MenuText Output_RestartCurrentItem}" Command="{Binding RestartCurrentItemCommand}" InputGestureText="F5" />
-                <MenuItem Header="{loc:MenuText Output_CameraCaptions}" Click="OpenCameraCaptions_Click">
+                <MenuItem Header="{loc:MenuText Output_CameraCaptions}" Click="OpenCameraCaptions_Click" InputGestureText="F2">
                     <MenuItem.Icon><controls:FrmIcon Icon="closed_caption_off" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
                 <Separator />
@@ -2683,7 +2683,17 @@
 
 
 
-            <Grid x:Name="PreviewSplit" Grid.Column="0">
+            <!-- a045: the camera captions are a tab of the preview column. The tab strip (preview / captions, and the caption's
+                 on-air switch) and the caption tab are put here when the captions are first opened; until then the column is
+                 FrmMain's preview. The tabs only show and hide (a hidden caption keeps following the output screen). -->
+            <Grid x:Name="PreviewColumnHost" Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <ContentControl x:Name="CaptionStripHost" Focusable="False" IsTabStop="False" Visibility="Collapsed" />
+                <ContentControl x:Name="CaptionHost" Grid.Row="1" Focusable="False" IsTabStop="False" Visibility="Collapsed" />
+            <Grid x:Name="PreviewSplit" Grid.Row="1">
                 <Grid.RowDefinitions>
                     <!-- 50: FrmMain splitContainerPreview.Panel1MinSize. -->
                     <RowDefinition x:Name="ClassicTopControlRow"
@@ -3870,6 +3880,7 @@
                 </Grid>
             </Border>
 
+            </Grid>
             </Grid>
 
             <Grid x:Name="OutputSplit" Grid.Column="2">

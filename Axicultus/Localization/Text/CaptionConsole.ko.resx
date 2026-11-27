@@ -5,10 +5,13 @@
   <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <data name="Title" xml:space="preserve"><value>카메라 하단 자막</value></data>
-  <data name="AirHidden" xml:space="preserve"><value>자막 숨김 · 눌러서 내보내기 (Space)</value></data>
-  <data name="AirVisible" xml:space="preserve"><value>자막 나가는 중 · 눌러서 숨김 (Space)</value></data>
-  <data name="AirStandby" xml:space="preserve"><value>자막 대기 · 화면 꺼짐 (Space)</value></data>
-  <data name="AirTip" xml:space="preserve"><value>자막을 카메라·OBS에 내보내거나 숨깁니다. Esc는 언제나 숨깁니다.</value></data>
+  <data name="AirHidden" xml:space="preserve"><value>자막 숨김 · 눌러서 내보내기 (F6)</value></data>
+  <data name="AirVisible" xml:space="preserve"><value>자막 나가는 중 · 눌러서 숨김 (F6)</value></data>
+  <data name="AirStandby" xml:space="preserve"><value>자막 대기 · 화면 꺼짐 (F6)</value></data>
+  <data name="AirTip" xml:space="preserve"><value>자막을 카메라·OBS에 내보내거나 숨깁니다. 본창 어디서나 F6, 자막 탭에서는 Space도 되고 Esc는 숨깁니다.</value></data>
+  <data name="PreviewTab" xml:space="preserve"><value>미리보기</value></data>
+  <data name="Tab" xml:space="preserve"><value>자막</value></data>
+  <data name="TabName" xml:space="preserve"><value>카메라 자막 탭</value></data>
   <data name="Destinations" xml:space="preserve"><value>내보낼 곳</value></data>
   <data name="ToCamera" xml:space="preserve"><value>카메라</value></data>
   <data name="ToCameraTip" xml:space="preserve"><value>Axicultus 송출 화면의 카메라 하단 자막</value></data>
@@ -37,15 +40,11 @@
   <data name="NextTip" xml:space="preserve"><value>다음 줄 / 다음 슬라이드 (→ ↓)</value></data>
   <data name="SyncShow" xml:space="preserve"><value>이전·다음으로 송출 화면도 넘기기 (싱크)</value></data>
   <data name="SyncShowTip" xml:space="preserve"><value>켜면 이전/다음이 송출 화면(PPT 슬라이드, 찬양·성경 페이지)을 넘기고 자막이 따라갑니다. 악보는 그 장의 줄을 다 보낸 뒤 다음 장으로 넘깁니다.</value></data>
-  <data name="WorshipHint" xml:space="preserve"><value>누르면 송출 칸에 올라갑니다</value></data>
-  <data name="WorshipHintTip" xml:space="preserve"><value>라이브가 꺼져 있으면 켜지 않고, 라이브 중이면 송출 화면도 바뀝니다. 자막을 내보내는지 숨기는지는 그대로입니다. 키보드로는 화살표로 고르고 Enter.</value></data>
-  <data name="WorshipTitle" xml:space="preserve"><value>예배 순서</value></data>
-  <data name="WorshipListEmpty" xml:space="preserve"><value>예배 순서가 비어 있습니다</value></data>
+  <data name="SyncShort" xml:space="preserve"><value>싱크</value></data>
   <data name="PreviewOff" xml:space="preserve"><value>카메라 미리보기는 설정에서 켭니다</value></data>
   <data name="HiddenBadge" xml:space="preserve"><value>숨김 중 · 내보내지 않습니다</value></data>
   <data name="ScreenOffBadge" xml:space="preserve"><value>화면 꺼짐 · 내보내지 않습니다</value></data>
   <data name="NoSteps" xml:space="preserve"><value>단계 없음 · PPT · 찬양 · 성경 · 텍스트를 송출하면 여기에 단계가 보입니다</value></data>
-  <data name="LookTitle" xml:space="preserve"><value>자막 모양</value></data>
   <data name="Lines" xml:space="preserve"><value>자막 줄 수</value></data>
   <data name="LinesTip" xml:space="preserve"><value>자막 영역의 높이. 더 긴 글은 글자가 작아져 이 안에 들어갑니다.</value></data>
   <data name="Lines1" xml:space="preserve"><value>1줄</value></data>

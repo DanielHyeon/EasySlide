@@ -20,7 +20,11 @@ using Microsoft.Win32;
 
 namespace Axicultus.Wpf.Captions;
 
-public partial class CaptionConsole : Window
+/// <summary>
+/// The camera caption tab of the main window's preview column (a045): following the output screen or typing, the
+/// steps, the camera preview and the caption's look. <see cref="Strip"/> is the tab strip with the on-air switch.
+/// </summary>
+public partial class CaptionConsole : UserControl
 {
     private readonly CaptionSession _captions;
     private readonly CaptionConsoleViewModel _editor;
@@ -30,7 +34,6 @@ public partial class CaptionConsole : Window
     private readonly CaptionRecoveryStore _store;
     private readonly MainViewModel _main;
     private readonly CameraOwnership _camera;
-    private bool _ending;
     private bool _fetchingPreview;
     private readonly DispatcherTimer _previewTimer = new(DispatcherPriority.Background) { Interval = TimeSpan.FromMilliseconds(500) };
     private readonly CancellationTokenSource _lifetime = new();
@@ -64,12 +67,11 @@ public partial class CaptionConsole : Window
         captions.SetVisible(false); // a new console starts hidden; the Show button puts the caption on air
         Settings = new CaptionSettingsWindow();
         InitializeComponent();
+        Strip = new CaptionTabStrip { DataContext = _editor };
+        Strip.AirButton.Click += BackToDraft;
         WireSettings();
-        _placementPath = Path.Combine(Path.GetDirectoryName(obs.ProfilePath) ?? "", CaptionWindowPlacement.FileName);
-        TrackPlacement();
         PreviewMouseUp += ReleaseClickFocus;
         WatchLookLists();
-        TopBar.SizeChanged += NarrowTopBar;
         LinesBox.SelectedIndex = captions.CaptionLines - 1;
         ScoreSizeBox.SelectedIndex = captions.ScoreSize;
         DisplayRadio().IsChecked = true;
@@ -78,14 +80,7 @@ public partial class CaptionConsole : Window
         HeldCaption.Fit(new Size(1920, 1080));
         // before the window's own, or the camera bindings look at the editor first
         CameraPreview.DataContext = CameraStatus.DataContext = Settings.CameraControls.DataContext = camera;
-        WorshipPanel.DataContext = main; // the main window's worship list, its pick and its double-click
-        WatchSourceColumn();
-        WorshipList.SelectionChanged += (_, _) => ShowWorshipRow(WorshipList.SelectedItem);
-        WorshipPanel.RequestBringIntoView += KeepColumnForList;
-        // the row on air, once the list holds it and the console shows (a console hidden on close, a list changed later)
-        IsVisibleChanged += (_, _) => Dispatcher.InvokeAsync(ShowLiveRow, DispatcherPriority.Loaded);
-        ((System.Collections.Specialized.INotifyCollectionChanged)WorshipList.Items).CollectionChanged +=
-            (_, _) => Dispatcher.InvokeAsync(ShowLiveRow, DispatcherPriority.Loaded);
+        WatchColumn();
         DataContext = _editor;
         _editor.SaveRequested += Changed;
         Host.Text = obs.Host;
@@ -122,20 +117,17 @@ public partial class CaptionConsole : Window
         Draft.LostKeyboardFocus += (_, _) => { if (_compositionCommit == null) _editor.IsComposing = false; };
         _debounce.Tick += async (_, _) => { _debounce.Stop(); await SaveAsync(); };
         _previewTimer.Tick += ReadObsPreview;
-        IsVisibleChanged += (_, _) => UpdatePreviewTimer();
+        IsVisibleChanged += (_, _) =>
+        {
+            UpdatePreviewTimer();
+            // (a step put on air while the tab was hidden was not scrolled to: once laid out, it is)
+            if (IsVisible) Dispatcher.InvokeAsync(() => { if (!_closed) UpdateSteps(); }, DispatcherPriority.Loaded);
+        };
         PreviewObsCamera.Checked += (_, _) => UpdatePreviewTimer();
         PreviewObsCamera.Unchecked += (_, _) => UpdatePreviewTimer();
         _camera.PropertyChanged += CameraChanged;
         _main.QueueReplacing += BeforeQueueReplacement;
         _camera.ReleaseLocalCamera += OnCameraRelease;
-        Closing += (_, e) =>
-        {
-            KeepPlacement();
-            if (_ending) { Settings.Ending = true; return; } // the settings window closes with the console
-            e.Cancel = true;
-            Hide();
-            Settings.Hide();
-        };
         PreviewKeyDown += OnKey;
         _main.PropertyChanged += MainChanged;
         _main.OutputLyricsPages.CollectionChanged += OutputPagesChanged;
@@ -143,7 +135,6 @@ public partial class CaptionConsole : Window
         UpdateHeld();
         ShowChosenColor();
         Loaded += LoadRecovery;
-        Closed += OnConsoleClosed;
         if (captions.Deck is { } deck) ShowDeck(deck, captions.CurrentSlide, captions.BoxKey is { Length: > 0 } key ? key : CaptionDeck.AllTextKey);
     }
 
@@ -151,18 +142,26 @@ public partial class CaptionConsole : Window
     {
         if (e.PropertyName == nameof(MainViewModel.CurrentWorshipListName) && _main.CurrentWorshipListName != _plan)
         {
-            EndSession();
+            EndSession(planChanged: true);
             _captions.BeginPlan(_main.CurrentWorshipListName);
         }
         else if (e.PropertyName is nameof(MainViewModel.OutputLyricsText) or nameof(MainViewModel.OutputItem)) _ = SyncScreenAsync();
-        else if (e.PropertyName == nameof(MainViewModel.LiveRow)) ShowLiveRow();
     }
 
-    internal void EndSession()
+    /// <summary>The tab ended (once): planChanged, another worship list came (the main window makes a new tab for it).</summary>
+    internal event Action<bool>? Ended;
+
+    /// <summary>Ends the tab's session: its recovery saved, nothing more watched, the settings window closed.</summary>
+    internal void EndSession(bool planChanged = false)
     {
-        _ending = true;
-        Close();
+        if (_closed) return;
+        Settings.Ending = true; // the settings window closes with the tab
+        Finish();
+        Ended?.Invoke(planChanged);
     }
+
+    /// <summary>The on-air switch's work (F6 anywhere in the main window).</summary>
+    internal void ToggleOnAir() => _editor.ToggleVisibleCommand.Execute(null);
 
     private void BeforeQueueReplacement()
     {
@@ -301,7 +300,7 @@ public partial class CaptionConsole : Window
     private async void Recover(object sender, RoutedEventArgs e)
     {
         if (_editor.IsRestoring || _recoverable is not { } saved) return;
-        if (MessageBox.Show(this,UiText.Get("CaptionConsole", "RecoverConfirm"), UiText.Get("CaptionConsole", "RecoverTitle"),
+        if (MessageBox.Show(Settings, UiText.Get("CaptionConsole", "RecoverConfirm"), UiText.Get("CaptionConsole", "RecoverTitle"),
             MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
         await RestoreAsync(saved);
     }
@@ -399,7 +398,7 @@ public partial class CaptionConsole : Window
     private async void OpenDeck(object sender, RoutedEventArgs e)
     {
         var dialog = new OpenFileDialog { Filter = "PowerPoint|*.pptx;*.ppsx;*.pptm;*.ppsm;*.ppt;*.pps", CheckFileExists = true };
-        if (dialog.ShowDialog(this) == true && await PrepareDeckAsync(dialog.FileName, 1)) FollowLoadedDeck();
+        if (dialog.ShowDialog(Settings) == true && await PrepareDeckAsync(dialog.FileName, 1)) FollowLoadedDeck();
     }
 
     // Reads the deck again: the one on the output screen, or the selected one.
@@ -475,6 +474,7 @@ public partial class CaptionConsole : Window
         bool screen = ScreenMode.IsChecked == true;
         DirectPanel.Visibility = screen ? Visibility.Collapsed : Visibility.Visible;
         ScreenPanel.Visibility = screen ? Visibility.Visible : Visibility.Collapsed;
+        RefitColumn();
         if (!IsLoaded) return;
         if (screen)
         {
@@ -1399,9 +1399,10 @@ public partial class CaptionConsole : Window
         catch (Exception ex) { Told = ex.Message; }
     }
 
-    private async void OnConsoleClosed(object? sender, EventArgs e)
+    private async void Finish()
     {
         _closed = true;
+        _stopWatchingFonts?.Invoke();
         _compositionCommit?.Abort();
         _editor.SaveRequested -= Changed;
         _lifetime.Cancel();

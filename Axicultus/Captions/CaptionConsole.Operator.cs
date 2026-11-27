@@ -71,11 +71,18 @@ public partial class CaptionConsole
         PreviewHint.Visibility = _captions.HasText || _editor.Held?.HasText == true ? Visibility.Collapsed : Visibility.Visible;
     }
 
+    /// <summary>The tab strip over the preview column: the preview and caption tabs and the on-air switch.</summary>
+    internal CaptionTabStrip Strip { get; }
+
+    /// <summary>The on-air switch (on the tab strip, seen on both tabs).</summary>
+    internal Button AirButton => Strip.AirButton;
+
     // After a mouse click on a button, check box, radio or the strip the keyboard does not stay there: typing, it goes to
-    // the box; following, to the console itself (no focus mark). Lists and text boxes keep it.
+    // the box; following, to the tab itself (no focus mark). Lists and text boxes keep it. A click anywhere else in the
+    // tab (its empty space) brings the keyboard here from the rest of the main window, so Space is the on-air switch.
     private void ReleaseClickFocus(object sender, MouseButtonEventArgs e)
     {
-        if (e.ChangedButton != MouseButton.Left || !ClickedControl(e.OriginalSource as DependencyObject)) return;
+        if (e.ChangedButton != MouseButton.Left || !ClickedControl(e.OriginalSource as DependencyObject) && IsKeyboardFocusWithin) return;
         Dispatcher.InvokeAsync(ReleaseFocus, System.Windows.Threading.DispatcherPriority.Input);
     }
 
@@ -110,51 +117,33 @@ public partial class CaptionConsole
         return clicked;
     }
 
-    private void ReleaseFocus() => FocusKeepingColumn(DirectMode.IsChecked == true ? Draft : Surface);
+    /// <summary>The keyboard to the tab while it shows: typing, to the box; following, to the tab itself.</summary>
+    internal void ReleaseFocus()
+    {
+        if (IsVisible) FocusKeepingColumn(DirectMode.IsChecked == true ? Draft : Surface);
+    }
 
-    // The keyboard to the box or the console itself. A focused box asks to be seen: a scrolled column stays where it is.
+    // The keyboard to the box or the tab itself. A focused box asks to be seen: a scrolled column stays where it is.
     private void FocusKeepingColumn(IInputElement target)
     {
-        double kept = SourcePanel.VerticalOffset;
-        FocusManager.SetFocusedElement(this, target); // (also when the window is not the active one)
+        double kept = Body.VerticalOffset;
+        if (target is DependencyObject element && FocusManager.GetFocusScope(element) is { } scope)
+            FocusManager.SetFocusedElement(scope, target); // (also when the window is not the active one)
         target.Focus();
-        SourcePanel.ScrollToVerticalOffset(kept);
+        Body.ScrollToVerticalOffset(kept);
     }
 
-    // Enter in the worship list (chosen with Tab) sends the picked item, as a click on its row does; a held Enter sends once.
-    private void WorshipListKey(object sender, KeyEventArgs e)
-    {
-        if (e.Key != Key.Enter || Keyboard.Modifiers != ModifierKeys.None) return;
-        e.Handled = true;
-        if (!e.IsRepeat) SendPicked();
-    }
-
-    // A click on a row puts that row in the output panel (the caption's on-air state stays as it is). The row already
-    // there is left alone: a stray click (or a double-click's second) would turn the panel, or a live screen, back to its
-    // first page.
-    private void RowClicked(object sender, MouseButtonEventArgs e)
-    {
-        if (sender is not ListBoxItem { DataContext: LiveQueueItem row } || Keyboard.Modifiers != ModifierKeys.None || _main.IsOutputRow(row)) return;
-        _main.SelectedItem = row;
-        SendPicked();
-    }
-
-    private void SendPicked()
-    {
-        if (_main.SendWorshipSelectionToOutputCommand.CanExecute(null)) _main.SendWorshipSelectionToOutputCommand.Execute(null);
-    }
-
-    // The wheel over the worship list or the typed box scrolls them; at their end (a small window) it scrolls the column.
+    // The wheel over the steps or the typed box scrolls them; at their end (a low column) it scrolls the column.
     private void ColumnWheel(object sender, MouseWheelEventArgs e)
     {
         if (DropDownOpen(LinesBox, ScoreSizeBox)) return; // an open list's own wheel
-        for (var at = e.OriginalSource as DependencyObject; at != null && at != SourcePanel;
+        for (var at = e.OriginalSource as DependencyObject; at != null && at != Body;
              at = at is Visual ? VisualTreeHelper.GetParent(at) : LogicalTreeHelper.GetParent(at))
         {
             if (at is Popup) return;
             if (at is not ScrollViewer inner) continue;
             if (e.Delta > 0 ? inner.VerticalOffset > 0 : inner.VerticalOffset < inner.ScrollableHeight) return; // its own
-            SourcePanel.ScrollToVerticalOffset(SourcePanel.VerticalOffset - e.Delta / 120d * WheelStep(SystemParameters.WheelScrollLines, SourcePanel.ViewportHeight));
+            Body.ScrollToVerticalOffset(Body.VerticalOffset - e.Delta / 120d * WheelStep(SystemParameters.WheelScrollLines, Body.ViewportHeight));
             e.Handled = true;
             return;
         }
@@ -163,51 +152,26 @@ public partial class CaptionConsole
     // A wheel notch, as a ScrollViewer's own: the system's lines of 16 DIP, or a screen ("one screen at a time": -1).
     internal static double WheelStep(int lines, double viewport) => lines > 0 ? lines * 16 : viewport;
 
-    // The console's worship list shows the picked row and the row on air when they change elsewhere (the main window,
-    // the next item); only then, not on each change of the list or the output (the operator may be scrolling).
-    private LiveQueueItem? _shownLive;
-
-    // Hidden (closed), or the list not yet holding the row: tried again when the console shows and when the list changes.
-    private void ShowLiveRow()
-    {
-        if (ReferenceEquals(_main.LiveRow, _shownLive) || !IsVisible || _main.LiveRow is { } live && !WorshipList.Items.Contains(live)) return;
-        _shownLive = _main.LiveRow;
-        ShowWorshipRow(_shownLive);
-    }
-
-    private void ShowWorshipRow(object? item)
-    {
-        if (item != null) WorshipList.ScrollIntoView(item);
-    }
-
-    // A row brought into view moves the list, not the column (a small window keeps what the operator scrolled to), unless
-    // the keyboard is in the list (Tab, arrows): then the column follows it.
-    private void KeepColumnForList(object sender, RequestBringIntoViewEventArgs e)
-    {
-        if (!WorshipList.IsKeyboardFocusWithin && e.TargetObject is Visual target && (target == WorshipList || WorshipList.IsAncestorOf(target)))
-            e.Handled = true;
-    }
-
     // After a click on the take button or the on-air switch while typing, the next words go into the box.
     private void BackToDraft(object sender, RoutedEventArgs e)
     {
-        if (DirectMode.IsChecked == true) FocusKeepingColumn(Draft);
+        if (DirectMode.IsChecked == true && IsVisible) FocusKeepingColumn(Draft);
     }
 
     private void OpenSettings(object sender, RoutedEventArgs e)
     {
-        Settings.Owner ??= this;
+        Settings.Owner ??= Window.GetWindow(this);
         PlaceSettings();
         Settings.Show();
         Settings.Activate();
     }
 
-    // Every time it opens: over the console, within the work area of the console's screen as the screens are now
-    // (scrolling below its own minimum).
+    // Every time it opens: over the window the tab is in (the main window), within the work area of its screen as the
+    // screens are now (scrolling below its own minimum).
     private void PlaceSettings()
     {
         var screens = _screens();
-        if (screens.Count == 0 || CaptionWindowPlacement.Bounds(this) is not { } console) return;
+        if (screens.Count == 0 || Window.GetWindow(this) is not { } host || CaptionWindowPlacement.Bounds(host) is not { } console) return;
         var screen = CaptionWindowPlacement.At(new Point(console.Left + console.Width / 2, console.Top + console.Height / 2), screens);
         var size = CaptionWindowPlacement.Bounds(Settings) is { } shown && Settings.IsVisible ? shown.Size
             : new Size(Settings.Width * screen.Scale, Settings.Height * screen.Scale);
@@ -216,77 +180,10 @@ public partial class CaptionConsole
             CaptionWindowPlacement.Minimum(new Size(SettingsMinWidth, SettingsMinHeight), screen));
     }
 
-    // ---- where the window is ----
+    // ---- the settings window's screens ----
 
-    private readonly string _placementPath;
-    private readonly Func<IReadOnlyList<CaptionScreen>> _screens; // read again each time a window is shown
-    private const double DefaultWidth = 1040, DefaultHeight = 720, DesignMinWidth = 900, DesignMinHeight = 620;
+    private readonly Func<IReadOnlyList<CaptionScreen>> _screens; // read again each time the settings window opens
     private const double SettingsMinWidth = 680, SettingsMinHeight = 480;
-    private bool _placed;
-    private Rect? _normal; // the window's normal rectangle in pixels, while it was last neither maximized nor minimized
-    private WindowState _lastState = WindowState.Normal; // the state before it was minimized
-
-    /// <summary>Shows the console placed on its screen (see <see cref="PlaceOnScreen"/>) and brings it forward.</summary>
-    internal void ShowOnScreen()
-    {
-        PlaceOnScreen();
-        Show();
-        Activate();
-    }
-
-    /// <summary>
-    /// Before it is shown: the first time the kept place when a screen still shows it, else the middle of the main
-    /// window's screen (the main screen without one); afterwards where it was. Either way within the work area of the
-    /// screens connected now (on a small screen the body scrolls). Pixels throughout (screens of other scales).
-    /// </summary>
-    internal void PlaceOnScreen()
-    {
-        var screens = _screens();
-        if (screens.Count == 0 || IsVisible) return;
-        var owner = Owner is { } main ? CaptionWindowPlacement.Bounds(main) : null; // a maximized main window: where it is
-        if (_placed && WindowState != WindowState.Normal)
-        {
-            // Hidden maximized or minimized: its normal rectangle, when no screen shows it now (a screen taken away),
-            // comes back into the work area before the state is put on again.
-            if (_normal is not { } normal || CaptionWindowPlacement.Fits(Kept(normal), screens)) return;
-            var home = CaptionWindowPlacement.Home(owner, screens);
-            var back = CaptionWindowPlacement.Centred(normal.Size, owner, home);
-            var state = WindowState;
-            WindowState = WindowState.Normal;
-            CaptionWindowPlacement.Apply(this, back, CaptionWindowPlacement.Minimum(new Size(DesignMinWidth, DesignMinHeight), home));
-            _normal = back;
-            WindowState = state;
-            return;
-        }
-        var kept = _placed
-            ? CaptionWindowPlacement.Bounds(this) is { } now ? Kept(now) : null
-            : CaptionWindowPlacement.Read(_placementPath);
-        var (bounds, maximized, screen) = CaptionWindowPlacement.Plan(kept, owner, screens, new Size(DefaultWidth, DefaultHeight));
-        CaptionWindowPlacement.Apply(this, bounds, CaptionWindowPlacement.Minimum(new Size(DesignMinWidth, DesignMinHeight), screen));
-        _normal = bounds;
-        if (maximized && !_placed) WindowState = WindowState.Maximized;
-        _placed = true;
-    }
-
-    private static CaptionWindowPlacement Kept(Rect bounds) =>
-        new(bounds.Left, bounds.Top, bounds.Width, bounds.Height, false, CaptionWindowPlacement.PixelVersion);
-
-    private void TrackPlacement()
-    {
-        void Normal() { if (WindowState == WindowState.Normal && CaptionWindowPlacement.Bounds(this) is { } now) _normal = now; }
-        LocationChanged += (_, _) => Normal();
-        SizeChanged += (_, _) => Normal();
-        StateChanged += (_, _) => { if (WindowState != WindowState.Minimized) _lastState = WindowState; };
-    }
-
-    // Its normal rectangle (pixels) and whether it was maximized, also when it is closed minimized from maximized.
-    private void KeepPlacement()
-    {
-        if (WindowState == WindowState.Normal && CaptionWindowPlacement.Bounds(this) is { } now) _normal = now;
-        if (_normal is not { } normal) return;
-        bool maximized = WindowState == WindowState.Maximized || WindowState == WindowState.Minimized && _lastState == WindowState.Maximized;
-        new CaptionWindowPlacement(normal.Left, normal.Top, normal.Width, normal.Height, maximized, CaptionWindowPlacement.PixelVersion).Write(_placementPath);
-    }
 
     // ---- keys ----
 
@@ -338,54 +235,56 @@ public partial class CaptionConsole
 
     private static bool DropDownOpen(params ComboBox[] boxes) => boxes.Any(box => box.IsDropDownOpen);
 
-    // The typed caption's box shows three lines (a caption has up to three) at any interface size. The worship list keeps
-    // room for two rows under the source's controls (the default window shows them with the step strip): a shorter column
-    // (a small window) scrolls rather than cutting off a button.
-    // Fitted again when the controls change size, when rows are made (the first ones replace the estimate) and when the
-    // box's font changes. Three lines are measured as Hangul lays them out (a fallback font may space lines wider).
-    // (a row as shown, else a line of body text and the row's padding; 4: the list's border)
-    private void FitSourceColumn()
+    // The typed caption's box shows at least three lines (a caption has up to three) at any interface size; the steps
+    // at least one row. A lower column (a small main window) scrolls rather than cutting a control off: its least height
+    // is that of the rows of fixed height and the source's least. Fitted again when those rows change size, when the
+    // source changes and when the box's font changes. Three lines are measured as Hangul lays them out (a fallback font
+    // may space lines wider).
+    private void FitColumn()
     {
         var lines = new FormattedText("가나다\n가나다\n가나다", System.Globalization.CultureInfo.CurrentUICulture, Draft.FlowDirection, // not UI text
             new Typeface(Draft.FontFamily, Draft.FontStyle, Draft.FontWeight, Draft.FontStretch), Draft.FontSize, Brushes.Black,
             VisualTreeHelper.GetDpi(Draft).PixelsPerDip);
-        Draft.Height = lines.Height + Draft.Padding.Top + Draft.Padding.Bottom + Draft.BorderThickness.Top + Draft.BorderThickness.Bottom
+        Draft.MinHeight = lines.Height + Draft.Padding.Top + Draft.Padding.Bottom + Draft.BorderThickness.Top + Draft.BorderThickness.Bottom
             + 1; // (1: layout rounding)
-        // any row made (a scrolled long list has no first row), else the last one seen
-        if (ShownRowHeight() is { } shown) _rowHeight = shown;
-        SourceColumn.MinHeight = SourceControls.ActualHeight + WorshipPanel.Margin.Top + WorshipHeader.ActualHeight
-            + 2 *(_rowHeight > 0 ? _rowHeight : WorshipList.FontSize * 1.3 + 8) + 4;
+        double source = DirectMode.IsChecked == true
+            ? Draft.MinHeight + TakeButton.ActualHeight + TakeButton.Margin.Top + InstantRow.ActualHeight + InstantRow.Margin.Top
+            : ModeTrack.ActualHeight + StepArea.Margin.Top + StepStrip.MinHeight;
+        double least = Column.RowDefinitions.Where(row => !row.Height.IsStar).Sum(row => row.ActualHeight) + SourceArea.Margin.Top + source;
+        // The column's width comes and goes with its scroll bar, and the camera row and the look row with the width: a
+        // least height that followed every such change would show and hide the bar for ever (a layout loop). It grows at
+        // once; it shrinks only by more than the bar's change can make (a little extra to scroll, never a control cut).
+        Fits++;
+        if (least > Column.MinHeight || Column.MinHeight - least > ScrollBarSlack) Column.MinHeight = least;
     }
 
-    private double _rowHeight;
+    private const double ScrollBarSlack = 64;
 
-    private double? ShownRowHeight() => Enumerable.Range(0, WorshipList.Items.Count).Select(WorshipList.ItemContainerGenerator.ContainerFromIndex)
-        .OfType<ListBoxItem>().FirstOrDefault(row => row.ActualHeight > 0)?.ActualHeight;
+    /// <summary>How often the column was fitted (a test sees that it settles).</summary>
+    internal int Fits { get; private set; }
 
-    // Rows made or dropped (each scroll of a long list): fitted again only when the row height is new.
-    private void FitForRows()
+    private bool _fitPending;
+
+    // After the layout that changed a row (the rows' heights are known then); once for many changes.
+    private void RefitColumn()
     {
-        if (_rowHeight > 0 && ShownRowHeight() is { } shown && Math.Abs(shown - _rowHeight) < 0.01) return;
-        FitSourceColumn();
+        if (_fitPending) return;
+        _fitPending = true;
+        Dispatcher.InvokeAsync(() => { _fitPending = false; if (!_closed) FitColumn(); }, System.Windows.Threading.DispatcherPriority.Loaded);
     }
 
-    private void WatchSourceColumn()
+    private Action? _stopWatchingFonts;
+
+    private void WatchColumn()
     {
-        SourceControls.SizeChanged += (_, _) => FitSourceColumn();
-        WorshipHeader.SizeChanged += (_, _) => FitSourceColumn();
-        // rows made: fitted after their layout
-        WorshipList.ItemContainerGenerator.StatusChanged += (_, _) =>
-            Dispatcher.InvokeAsync(FitForRows, System.Windows.Threading.DispatcherPriority.Loaded);
-        EventHandler refit = (_, _) => FitSourceColumn();
+        foreach (var part in new FrameworkElement[] { TopBar, ModeTrack, TakeButton, InstantRow, Status, NavBar, Stage, LookRow })
+            part.SizeChanged += (_, _) => RefitColumn();
+        EventHandler refit = (_, _) => RefitColumn();
         var fonts = new[] { Control.FontSizeProperty, Control.FontFamilyProperty }
             .Select(font => System.ComponentModel.DependencyPropertyDescriptor.FromProperty(font, typeof(TextBox))).ToArray();
         foreach (var font in fonts) font.AddValueChanged(Draft, refit);
-        Closed += (_, _) => { foreach (var font in fonts) font.RemoveValueChanged(Draft, refit); }; // (the descriptor holds the box)
+        _stopWatchingFonts = () => { foreach (var font in fonts) font.RemoveValueChanged(Draft, refit); }; // (the descriptor holds the box)
     }
-
-    // A narrow bar first drops the destinations label, so the OBS status keeps room for its two lines.
-    private void NarrowTopBar(object sender, SizeChangedEventArgs e) =>
-        DestinationsLabel.Visibility = e.NewSize.Width < 900 ? Visibility.Collapsed : Visibility.Visible;
 
     // ---- the step strip ----
 
