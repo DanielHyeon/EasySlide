@@ -4029,12 +4029,14 @@ public partial class MainWindow : Window
     {
         bool captions = _captionConsole?.Strip.CaptionTab.IsChecked == true;
         bool keyboard = _captionConsole?.IsKeyboardFocusWithin == true; // (else Space would go to the main window's next)
+        var preview = _captionConsole?.PreviewHeight; // the camera preview as the operator sized it
         CaptionHost.Content = CaptionStripHost.Content = null;
         _captionConsole = null;
         if (planChanged) Dispatcher.InvokeAsync(() =>
         {
             if (_captionConsole != null || !IsLoaded) return;
-            OpenCaptions(captions);
+            var renewed = OpenCaptions(captions);
+            if (preview is { } height) renewed.PreviewHeight = height;
             if (keyboard) Dispatcher.InvokeAsync(FocusOutputColumn, DispatcherPriority.Input);
         });
         else

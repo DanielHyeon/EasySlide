@@ -42,6 +42,7 @@
   <data name="SyncShowTip" xml:space="preserve"><value>When on, Previous/Next turn the output screen (PPT slides, song and Bible pages) and the caption follows. A score sends all rows of a slide before turning to the next slide.</value></data>
   <data name="SyncShort" xml:space="preserve"><value>Sync</value></data>
   <data name="PreviewOff" xml:space="preserve"><value>Turn on the camera preview in Settings</value></data>
+  <data name="PreviewSizeTip" xml:space="preserve"><value>Resize the camera preview · drag to change its height</value></data>
   <data name="HiddenBadge" xml:space="preserve"><value>Hidden · not sent</value></data>
   <data name="ScreenOffBadge" xml:space="preserve"><value>Screen off · not sent</value></data>
   <data name="NoSteps" xml:space="preserve"><value>No steps · pick a PPT, song, Bible passage or text in the worship list (output it while the show is on the screen) to see its steps here</value></data>

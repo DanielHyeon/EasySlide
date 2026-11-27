@@ -1418,6 +1418,23 @@ internal static class Program
             }
             else Check(false, "no other row to pick");
 
+            // The camera preview is resized with the splitter over it (chosen with Tab, its arrows move it): the steps
+            // take what the preview gives, and the column does not scroll.
+            Ctx("captiontab preview size");
+            double stage = console.Stage.ActualHeight, steps = console.StepStrip.ActualHeight;
+            console.StageSplitter.Focus();
+            await Settle(300);
+            for (int i = 0; i < 6; i++) { Press(Key.Down); await Settle(100); }
+            await Settle(500);
+            // (six presses of 10 DIP, less what the screen's scale rounds away)
+            double smaller = stage - console.Stage.ActualHeight;
+            Check(smaller is > 50 and < 62 && Math.Abs(console.StepStrip.ActualHeight - steps - smaller) < 2 && console.Body.ScrollableHeight < 1,
+                $"the splitter's arrows make the camera preview smaller and the steps larger: preview {stage:0} -> {console.Stage.ActualHeight:0}, " +
+                $"steps {steps:0} -> {console.StepStrip.ActualHeight:0}, scroll {console.Body.ScrollableHeight:0}: " + State());
+            SaveWindowPicture(_main, "captiontab-preview-size.png");
+            console.ReleaseFocus();
+            await Settle(300);
+
             Ctx("captiontab live item");
             LiveQueueItem? onAir = null;
             foreach (var item in _vm.Queue.Take(8))
@@ -1480,8 +1497,9 @@ internal static class Program
             setList.Invoke(_vm, [listName + " (a045)", null]);
             await Settle(1000);
             var renewed = _main.CaptionTab;
-            Check(renewed != null && !ReferenceEquals(renewed, console) && renewed.IsVisible && renewed.Strip.IsVisible && !captions.Visible,
-                "another worship list: a new caption tab, still shown, the caption hidden: " + State());
+            Check(renewed != null && !ReferenceEquals(renewed, console) && renewed.IsVisible && renewed.Strip.IsVisible && !captions.Visible
+                    && renewed.PreviewHeight == console.PreviewHeight && renewed.PreviewHeight.IsAbsolute,
+                $"another worship list: a new caption tab, still shown, the caption hidden, the camera preview as it was sized ({renewed?.PreviewHeight}): " + State());
             setList.Invoke(_vm, [listName, null]);
             await Settle(1000);
             console = _main.CaptionTab!;

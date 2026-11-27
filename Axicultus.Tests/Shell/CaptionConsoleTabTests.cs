@@ -67,6 +67,44 @@ public sealed partial class CaptionConsoleTests
         console.Visibility = Visibility.Visible;
     });
 
+    // The camera preview is resized with the splitter over it (as the main window's live view is): the typed box or the
+    // steps take what is left, never less than their least, and the preview keeps a least height. The splitter chosen
+    // with Tab keeps its arrows (they do not step the caption).
+    [Fact]
+    public Task TheCameraPreviewIsResizedWithItsSplitter() => WithConsole(async (console, _, _) =>
+    {
+        await Pump(console, 300);
+        double preview = console.Stage.ActualHeight, upper = console.Upper.ActualHeight;
+        Assert.True(console.StageRow.Height.IsAuto && preview > 200, $"as wide as the column at 16:9: {preview}");
+        void Arrow(Key key, int times)
+        {
+            for (int i = 0; i < times; i++)
+            {
+                Assert.False(Press(console.StageSplitter, key)); // (the tab leaves the splitter its arrows)
+                console.StageSplitter.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(console), 0, key)
+                    { RoutedEvent = Keyboard.KeyDownEvent });
+                console.UpdateLayout(); // (the splitter moves from the rows as they are laid out: a press, then the layout)
+            }
+        }
+        Arrow(Key.Down, 5); // 10 DIP a press
+        await Pump(console, 300);
+        Assert.InRange(console.Stage.ActualHeight, preview - 51, preview - 49);
+        Assert.InRange(console.Upper.ActualHeight, upper + 49, upper + 51); // the typed box takes what the preview gave
+        Assert.Equal(0, console.Body.ScrollableHeight);
+
+        Arrow(Key.Down, 100); // not below its least
+        await Pump(console, 300);
+        Assert.InRange(console.Stage.ActualHeight, console.StageRow.MinHeight - 0.5, console.StageRow.MinHeight + 0.5);
+
+        Arrow(Key.Up, 200); // not into the upper part's least: nothing above is cut and the column does not scroll
+        await Pump(console, 300);
+        Assert.True(console.Stage.ActualHeight > preview, $"larger than at first: {console.Stage.ActualHeight}");
+        Assert.True(console.Upper.ActualHeight >= console.UpperRow.MinHeight - 0.5 && console.Draft.ActualHeight >= console.Draft.MinHeight - 0.5,
+            $"the upper part {console.Upper.ActualHeight} of at least {console.UpperRow.MinHeight}");
+        Assert.True(console.Body.ScrollableHeight < 1, $"scrolls {console.Body.ScrollableHeight}");
+        Assert.Equal(console.StageRow.Height, console.PreviewHeight); // what the main window hands to the next list's tab
+    });
+
     // On the live tab the switch does not offer to put the caption on air (what would go out is seen on the caption tab):
     // it is there only while the caption is on air, to tell so and to hide it. On the caption tab it is always there.
     [Fact]

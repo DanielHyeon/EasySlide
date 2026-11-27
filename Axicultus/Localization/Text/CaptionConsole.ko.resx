@@ -42,6 +42,7 @@
   <data name="SyncShowTip" xml:space="preserve"><value>켜면 이전/다음이 송출 화면(PPT 슬라이드, 찬양·성경 페이지)을 넘기고 자막이 따라갑니다. 악보는 그 장의 줄을 다 보낸 뒤 다음 장으로 넘깁니다.</value></data>
   <data name="SyncShort" xml:space="preserve"><value>싱크</value></data>
   <data name="PreviewOff" xml:space="preserve"><value>카메라 미리보기는 설정에서 켭니다</value></data>
+  <data name="PreviewSizeTip" xml:space="preserve"><value>카메라 미리보기 크기 조절 · 끌어서 높이를 바꿉니다</value></data>
   <data name="HiddenBadge" xml:space="preserve"><value>숨김 중 · 내보내지 않습니다</value></data>
   <data name="ScreenOffBadge" xml:space="preserve"><value>화면 꺼짐 · 내보내지 않습니다</value></data>
   <data name="NoSteps" xml:space="preserve"><value>단계 없음 · 예배 순서에서 PPT · 찬양 · 성경 · 텍스트를 고르면(송출 중에는 송출하면) 여기에 단계가 보입니다</value></data>

@@ -74,6 +74,17 @@ public partial class CaptionConsole
     /// <summary>The tab strip over the output (live) column: the live and caption tabs and the on-air switch.</summary>
     internal CaptionTabStrip Strip { get; }
 
+    /// <summary>The camera preview's height: the column's width at 16:9 (auto) until its splitter is moved. The main window
+    /// hands it to the tab it makes for another worship list.</summary>
+    internal GridLength PreviewHeight { get => StageRow.Height; set => StageRow.Height = value; }
+
+    // The splitter is about to move (the mouse or a key pressed on it): the preview grows no further than leaves the upper
+    // part its least in the height seen. (Beside a row of a set height a splitter asks only that row's limits, not the
+    // other's least.)
+    private void LimitPreview(object sender, RoutedEventArgs e) =>
+        StageRow.MaxHeight = Math.Max(StageRow.ActualHeight,
+            Body.ViewportHeight - UpperRow.MinHeight - Column.RowDefinitions[1].ActualHeight - Column.RowDefinitions[3].ActualHeight);
+
     /// <summary>The on-air switch (on the tab strip, seen on both tabs).</summary>
     internal Button AirButton => Strip.AirButton;
 
@@ -112,7 +123,7 @@ public partial class CaptionConsole
         for (; element != null; element = element is Visual or System.Windows.Media.Media3D.Visual3D ? VisualTreeHelper.GetParent(element) ?? LogicalTreeHelper.GetParent(element) : LogicalTreeHelper.GetParent(element))
         {
             if (element is TextBoxBase or PasswordBox or ComboBox or ComboBoxItem) return false;
-            clicked |= element is ButtonBase or ListBoxItem or ListBox;
+            clicked |= element is ButtonBase or ListBoxItem or ListBox or GridSplitter;
         }
         return clicked;
     }
@@ -199,8 +210,8 @@ public partial class CaptionConsole
     {
         if (_obs.TrySceneShortcut(e)) { e.Handled = true; return; }
         bool typing = e.OriginalSource is TextBoxBase or PasswordBox or ComboBox or ComboBoxItem;
-        // A button, check box, radio, step or list the operator chose with Tab keeps its own Space and arrows.
-        bool chosen = e.OriginalSource is ButtonBase or ListBoxItem or ListBox;
+        // A button, check box, radio, step, list or the preview's splitter the operator chose with Tab keeps its own Space and arrows.
+        bool chosen = e.OriginalSource is ButtonBase or ListBoxItem or ListBox or GridSplitter;
         bool plain = !typing && !_editor.IsComposing && e.Key != Key.ImeProcessed && Keyboard.Modifiers == ModifierKeys.None;
         if (e.Key == Key.Escape && !_editor.IsComposing && !e.IsRepeat && !DropDownOpen(LinesBox, ScoreSizeBox))
         {
@@ -250,7 +261,10 @@ public partial class CaptionConsole
         double source = DirectMode.IsChecked == true
             ? Draft.MinHeight + TakeButton.ActualHeight + TakeButton.Margin.Top + InstantRow.ActualHeight + InstantRow.Margin.Top
             : ModeTrack.ActualHeight + StepArea.Margin.Top + StepStrip.MinHeight;
-        double least = Column.RowDefinitions.Where(row => !row.Height.IsStar).Sum(row => row.ActualHeight) + SourceArea.Margin.Top + source;
+        static double Fixed(Grid grid) => grid.RowDefinitions.Where(row => !row.Height.IsStar).Sum(row => row.ActualHeight);
+        double upper = Fixed(Upper) + SourceArea.Margin.Top + source;
+        UpperRow.MinHeight = upper; // the splitter over the camera preview stops there
+        double least = upper + Fixed(Column);
         // The column's width comes and goes with its scroll bar, and the camera row and the look row with the width: a
         // least height that followed every such change would show and hide the bar for ever (a layout loop). It grows at
         // once; it shrinks only by more than the bar's change can make (a little extra to scroll, never a control cut).
