@@ -9,7 +9,7 @@
   <data name="AirVisible" xml:space="preserve"><value>Caption on air · press to hide (F6)</value></data>
   <data name="AirStandby" xml:space="preserve"><value>Caption waiting · screen off (F6)</value></data>
   <data name="AirTip" xml:space="preserve"><value>Shows the caption on the camera and OBS or hides it: F6 anywhere in the main window; in the captions tab also Space, and Esc hides it.</value></data>
-  <data name="PreviewTab" xml:space="preserve"><value>Preview</value></data>
+  <data name="LiveTab" xml:space="preserve"><value>Live</value></data>
   <data name="Tab" xml:space="preserve"><value>Captions</value></data>
   <data name="TabName" xml:space="preserve"><value>Camera captions tab</value></data>
   <data name="Destinations" xml:space="preserve"><value>Send to</value></data>
@@ -20,7 +20,7 @@
   <data name="Settings" xml:space="preserve"><value>Settings…</value></data>
   <data name="SettingsTip" xml:space="preserve"><value>OBS connection · camera · scene shortcuts · browser source · recovery · PPT fine-tuning</value></data>
   <data name="FollowScreen" xml:space="preserve"><value>Follow the screen</value></data>
-  <data name="FollowScreenTip" xml:space="preserve"><value>Follows the PPT, song, Bible passage or text on the output screen (the output panel when not live) as the caption.</value></data>
+  <data name="FollowScreenTip" xml:space="preserve"><value>Follows the PPT, song, Bible passage or text on the output screen (the output panel when not live) as the caption. While the show is not on the screen, an item picked in the worship list on the caption tab goes to the output panel.</value></data>
   <data name="DirectInput" xml:space="preserve"><value>Type it</value></data>
   <data name="Take" xml:space="preserve"><value>Send caption (Enter)</value></data>
   <data name="NewLineHint" xml:space="preserve"><value>Shift+Enter: new line</value></data>
@@ -44,7 +44,7 @@
   <data name="PreviewOff" xml:space="preserve"><value>Turn on the camera preview in Settings</value></data>
   <data name="HiddenBadge" xml:space="preserve"><value>Hidden · not sent</value></data>
   <data name="ScreenOffBadge" xml:space="preserve"><value>Screen off · not sent</value></data>
-  <data name="NoSteps" xml:space="preserve"><value>No steps · output a PPT, song, Bible passage or text to see its steps here</value></data>
+  <data name="NoSteps" xml:space="preserve"><value>No steps · pick a PPT, song, Bible passage or text in the worship list (output it while the show is on the screen) to see its steps here</value></data>
   <data name="Lines" xml:space="preserve"><value>Caption lines</value></data>
   <data name="LinesTip" xml:space="preserve"><value>The height of the caption area. Longer text gets smaller to fit in it.</value></data>
   <data name="Lines1" xml:space="preserve"><value>1 line</value></data>

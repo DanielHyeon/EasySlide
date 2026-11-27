@@ -26,7 +26,7 @@ public static class MainCommandIds
     public const string LiveRefresh = "Live.Refresh";
     public const string LiveRestore = "Live.Restore";
     public const string LiveAutoRotate = "Live.AutoRotate";
-    // a045: the camera captions tab of the preview column — F6 shows or hides the caption, F2 switches the tab.
+    // a045: the camera captions tab of the output (live) column — F6 shows or hides the caption, F2 switches the tab.
     public const string CaptionToggle = "Caption.Toggle";
     public const string CaptionTab = "Caption.Tab";
 

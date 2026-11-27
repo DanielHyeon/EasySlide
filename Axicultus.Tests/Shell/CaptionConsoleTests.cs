@@ -72,7 +72,7 @@ public sealed partial class CaptionConsoleTests
         Assert.Equal("송출 중", Assert.Single(session.History).Text);
         await ClickAsync(console.AirButton);
         Assert.Equal("대기 중", session.PublicText); // what was typed while hidden goes out on Show
-        console.Visibility = Visibility.Collapsed; // the preview tab shown: the caption stays on air, the box keeps its words
+        console.Visibility = Visibility.Collapsed; // the live tab shown: the caption stays on air, the box keeps its words
         await console.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
         Assert.Equal("대기 중", session.PublicText);
         console.Visibility = Visibility.Visible;
@@ -1370,7 +1370,7 @@ public sealed partial class CaptionConsoleTests
         Assert.Equal(Visibility.Visible, console.HeldCaption.Visibility);
     });
 
-    // The main window at its least (780×540): a low preview column. The tab scrolls; nothing is cut, the steps keep a row.
+    // The main window at its least (780×540): a low output column. The tab scrolls; nothing is cut, the steps keep a row.
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
@@ -1421,7 +1421,7 @@ public sealed partial class CaptionConsoleTests
 
     internal static void Focus(CaptionConsole console, IInputElement element) => FocusManager.SetFocusedElement(Window.GetWindow(console), element);
 
-    // The preview column of a maximized 1080p main window: where the caption tab is.
+    // The output column of a maximized 1080p main window: where the caption tab is.
     internal static readonly Size Column = new(720, 960);
 
     // savedStyle: caption-style.json as kept from an earlier session.
@@ -1429,7 +1429,7 @@ public sealed partial class CaptionConsoleTests
     // the tab is made in its stand-in window but not shown; appLook: the app's resources (only where no other test made
     // an Application); screens: the work areas the settings window fits in (a 1080p screen unless given).
     // live: a live session of its own (the main window does not see it; nothing renders a deck), with the native show.
-    // The tab is in a stand-in for the main window: the tab strip over it, the size of the preview column.
+    // The tab is in a stand-in for the main window: the tab strip over it, the size of the output column.
     internal static Task WithConsole(Func<CaptionConsole, CaptionSession, DirectoryInfo, Task> exercise,
         string? expectedSavedDraft = null, string? savedStyle = null, IPowerPointRenderService? render = null,
         bool openSettings = false, bool show = true, bool appLook = false,

@@ -9,7 +9,7 @@
   <data name="AirVisible" xml:space="preserve"><value>자막 나가는 중 · 눌러서 숨김 (F6)</value></data>
   <data name="AirStandby" xml:space="preserve"><value>자막 대기 · 화면 꺼짐 (F6)</value></data>
   <data name="AirTip" xml:space="preserve"><value>자막을 카메라·OBS에 내보내거나 숨깁니다. 본창 어디서나 F6, 자막 탭에서는 Space도 되고 Esc는 숨깁니다.</value></data>
-  <data name="PreviewTab" xml:space="preserve"><value>미리보기</value></data>
+  <data name="LiveTab" xml:space="preserve"><value>라이브</value></data>
   <data name="Tab" xml:space="preserve"><value>자막</value></data>
   <data name="TabName" xml:space="preserve"><value>카메라 자막 탭</value></data>
   <data name="Destinations" xml:space="preserve"><value>내보낼 곳</value></data>
@@ -20,7 +20,7 @@
   <data name="Settings" xml:space="preserve"><value>설정…</value></data>
   <data name="SettingsTip" xml:space="preserve"><value>OBS 연결 · 카메라 · 씬 단축키 · 브라우저 소스 · 복구 · PPT 세부 조정</value></data>
   <data name="FollowScreen" xml:space="preserve"><value>화면 따라가기</value></data>
-  <data name="FollowScreenTip" xml:space="preserve"><value>송출 화면(라이브가 아니어도 송출 칸)의 PPT · 찬양 · 성경 · 텍스트를 자막으로 따라갑니다.</value></data>
+  <data name="FollowScreenTip" xml:space="preserve"><value>송출 화면(라이브가 아니어도 송출 칸)의 PPT · 찬양 · 성경 · 텍스트를 자막으로 따라갑니다. 송출 중이 아닐 때는 자막 탭에서 예배 순서 항목을 고르면 그 항목이 송출 칸에 올라옵니다.</value></data>
   <data name="DirectInput" xml:space="preserve"><value>직접 입력</value></data>
   <data name="Take" xml:space="preserve"><value>자막 보내기 (Enter)</value></data>
   <data name="NewLineHint" xml:space="preserve"><value>Shift+Enter 줄바꿈</value></data>
@@ -44,7 +44,7 @@
   <data name="PreviewOff" xml:space="preserve"><value>카메라 미리보기는 설정에서 켭니다</value></data>
   <data name="HiddenBadge" xml:space="preserve"><value>숨김 중 · 내보내지 않습니다</value></data>
   <data name="ScreenOffBadge" xml:space="preserve"><value>화면 꺼짐 · 내보내지 않습니다</value></data>
-  <data name="NoSteps" xml:space="preserve"><value>단계 없음 · PPT · 찬양 · 성경 · 텍스트를 송출하면 여기에 단계가 보입니다</value></data>
+  <data name="NoSteps" xml:space="preserve"><value>단계 없음 · 예배 순서에서 PPT · 찬양 · 성경 · 텍스트를 고르면(송출 중에는 송출하면) 여기에 단계가 보입니다</value></data>
   <data name="Lines" xml:space="preserve"><value>자막 줄 수</value></data>
   <data name="LinesTip" xml:space="preserve"><value>자막 영역의 높이. 더 긴 글은 글자가 작아져 이 안에 들어갑니다.</value></data>
   <data name="Lines1" xml:space="preserve"><value>1줄</value></data>

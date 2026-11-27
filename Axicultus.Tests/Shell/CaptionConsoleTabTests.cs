@@ -12,8 +12,8 @@ using Xunit;
 
 namespace Axicultus.Wpf.Tests.Shell;
 
-// a045: the caption tab of the main window's preview column: it follows the output screen also while the preview tab is
-// shown, its column fits the preview column, and the keys typed in it are its own.
+// a045: the caption tab of the main window's output column: it follows the output screen also while the live tab is
+// shown, its column fits the output column, and the keys typed in it are its own.
 public sealed partial class CaptionConsoleTests
 {
     internal static (LiveQueueItem First, LiveQueueItem Second, LiveQueueItem Third) ThreeSongs(MainViewModel main)
@@ -46,10 +46,10 @@ public sealed partial class CaptionConsoleTests
         }
     }
 
-    // The preview tab shown (the caption tab hidden, as the main window hides it): the caption still follows the output
+    // The live tab shown (the caption tab hidden, as the main window hides it): the caption still follows the output
     // panel, and goes out.
     [Fact]
-    public Task WithThePreviewTabShownTheCaptionKeepsFollowingTheScreen() => WithConsole(async (console, session, _) =>
+    public Task WithTheLiveTabShownTheCaptionKeepsFollowingTheScreen() => WithConsole(async (console, session, _) =>
     {
         var main = Main(console);
         var verses = new LiveQueueItem("song:a045-verses", "세 절 찬양", LiveItemKinds.Song) { Lyrics = "[1]\n첫째 절\n[2]\n둘째 절\n[3]\n셋째 절" };
@@ -60,12 +60,40 @@ public sealed partial class CaptionConsoleTests
         Assert.Equal("첫째 절", session.PublicText);
 
         console.Visibility = Visibility.Collapsed;
-        main.GoToOutputLyricsPageCommand.Execute(1); // the operator turns the output panel from the preview tab
+        main.GoToOutputLyricsPageCommand.Execute(1); // the operator turns the output panel from the live tab
         await Pump(console, 300);
         Assert.Equal("둘째 절", session.PublicText);
         Assert.Equal("2/3", ((CaptionConsoleViewModel)console.DataContext).CurrentStep?.Label);
         console.Visibility = Visibility.Visible;
     });
+
+    // The caption tab shown, following the screen, the show not on the screen: the row picked in the worship list goes to
+    // the output panel, so its caption is seen (hidden: nothing goes out). Behind the live tab, or with the show on the
+    // screen, a pick sends nothing.
+    [Fact]
+    public Task APickedRowIsPreviewedInTheCaptionTabWhileTheShowIsOff() => WithConsole(async (console, session, _) =>
+    {
+        var main = Main(console);
+        var (first, second, third) = ThreeSongs(main);
+        await Pump(console, 200);
+        main.SelectedItem = second;
+        await Pump(console, 300);
+        Assert.Equal((second.Id, "주의 말씀 내 발의 등", false, ""), (main.OutputItem?.Id, session.ReadyText, session.Visible, session.PublicText));
+        Assert.Equal(Axicultus.Wpf.Controls.LiveState.Off, main.Session.Current.State); // the panel only: the output screen stays off
+
+        console.Visibility = Visibility.Collapsed; // the live tab shown: a pick is the preview's alone (nothing is sent)
+        main.SelectedItem = third;
+        await Pump(console, 300);
+        Assert.Equal(second.Id, main.OutputItem?.Id);
+        console.Visibility = Visibility.Visible; // the panel holds a row: showing the tab does not replace it
+        await Pump(console, 300);
+        Assert.Equal(second.Id, main.OutputItem?.Id);
+
+        main.Session.GoLive(second, "m"); // the show on the screen: a pick changes nothing there
+        main.SelectedItem = first;
+        await Pump(console, 300);
+        Assert.Equal(second.Id, main.OutputItem?.Id);
+    }, asOpened: true);
 
     // The next deck is sent while the output panel still holds the last deck's slide; the panel draws the new deck
     // before or after the tab has read it. The caption follows the new deck from the slide its own panel shows.
@@ -189,6 +217,7 @@ public sealed partial class CaptionConsoleTests
         var main = Main(console);
         var verses = new LiveQueueItem("song:a045-verses", "세 절 찬양", LiveItemKinds.Song) { Lyrics = "[1]\n첫째 절\n[2]\n둘째 절\n[3]\n셋째 절" };
         main.LoadQueue([verses]);
+        main.SelectedItem = null; // no row picked (a picked one would go to the empty panel)
         console.ScreenMode.IsChecked = true;
         await ClickAsync(console.AirButton);
         await Pump(console, 100);

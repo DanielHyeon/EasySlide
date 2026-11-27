@@ -446,7 +446,7 @@ public sealed partial class CaptionConsoleTests
         console.Resources["Type.Body.FontSize"] = 11d * 1.4;
         console.ObsLabel.Text = "OBS 연결 전 · 설정에서 연결하세요";
         var host = Window.GetWindow(console);
-        (host.Width, host.Height) = (420, 900); // a 1180-wide main window's preview column
+        (host.Width, host.Height) = (420, 900); // a 1180-wide main window's output column
         await Idle(console);
         await Idle(console);
         Assert.True(console.ObsLabel.ActualWidth >= 120, $"OBS status {console.ObsLabel.ActualWidth} wide");

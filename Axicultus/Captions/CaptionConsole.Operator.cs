@@ -71,7 +71,7 @@ public partial class CaptionConsole
         PreviewHint.Visibility = _captions.HasText || _editor.Held?.HasText == true ? Visibility.Collapsed : Visibility.Visible;
     }
 
-    /// <summary>The tab strip over the preview column: the preview and caption tabs and the on-air switch.</summary>
+    /// <summary>The tab strip over the output (live) column: the live and caption tabs and the on-air switch.</summary>
     internal CaptionTabStrip Strip { get; }
 
     /// <summary>The on-air switch (on the tab strip, seen on both tabs).</summary>

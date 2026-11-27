@@ -170,7 +170,7 @@
     <!-- Surface: where a click in the tab leaves the keyboard while following (no focus mark), so Space stays the on-air
          switch; a control chosen with Tab keeps Space and the arrows. (Transparent: a click on empty space lands here.) -->
     <Grid x:Name="Surface" Focusable="True" FocusVisualStyle="{x:Null}" KeyboardNavigation.IsTabStop="False" Background="Transparent">
-        <!-- One column, as wide as the main window's preview column. Too low for all of it (a small main window), the
+        <!-- One column, as wide as the main window's output (live) column. Too low for all of it (a small main window), the
              column scrolls rather than cutting a control off (its MinHeight is set in code); the steps or the typed box
              take the height left. -->
         <ScrollViewer x:Name="Body" Margin="8" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Focusable="False"

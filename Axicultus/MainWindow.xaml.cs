@@ -3961,6 +3961,9 @@ public partial class MainWindow : Window
         Loaded -= StartObsControl;
         if (_services.GetService<Captions.ObsOperator>() is not { } obs) return;
         await obs.StartAsync();
+        // The tab strip is there from the start, the live tab shown (made once OBS's saved settings are read: the
+        // caption tab shows them, and connecting from it writes them back).
+        if (IsLoaded && _captionConsole == null) OpenCaptions(captionTab: false);
         if (obs.AutoConnect && IsLoaded)
         {
             try { await _services.GetRequiredService<Captions.CaptionBroadcastServer>().StartAsync(); }
@@ -3974,16 +3977,18 @@ public partial class MainWindow : Window
     /// <summary>The caption tab while it is open (the harness drives it).</summary>
     internal Captions.CaptionConsole? CaptionTab => _captionConsole;
 
-    // a045: the camera captions are a tab of the preview column. The first time (the Output menu or F2) the tab strip
-    // comes over the column and stays; the tabs only show and hide (the hidden caption keeps following the screen).
+    // a045: the camera captions are a tab of the output (live) column: the caption follows the output screen, and the
+    // preview column stays in view. The tab strip is over the column from the app's start (StartObsControl), the live
+    // tab shown; the Output menu and F2 switch to the caption tab. The tabs only show and hide (the hidden caption keeps
+    // following the screen).
     internal void ShowCaptionTab(bool captions)
     {
         var strip = (_captionConsole ?? OpenCaptions(captions)).Strip;
-        (captions ? strip.CaptionTab : strip.PreviewTab).IsChecked = true;
-        ShowPreviewColumnTab();
+        (captions ? strip.CaptionTab : strip.LiveTab).IsChecked = true;
+        ShowOutputColumnTab();
     }
 
-    // The tab strip and the caption tab in the preview column, the tab shown (no keyboard moved: see ShowCaptionTab).
+    // The tab strip and the caption tab in the output column, the tab shown (no keyboard moved: see ShowCaptionTab).
     private Captions.CaptionConsole OpenCaptions(bool captionTab)
     {
         var console = new Captions.CaptionConsole(_viewModel, _services.GetRequiredService<Captions.CaptionSession>(),
@@ -3992,31 +3997,31 @@ public partial class MainWindow : Window
             _services.GetService<Rendering.IPowerPointRenderService>());
         console.Ended += CaptionsEnded;
         console.Strip.CaptionTab.IsChecked = captionTab;
-        console.Strip.PreviewTab.Checked += (_, _) => ShowPreviewColumnTab();
-        console.Strip.CaptionTab.Checked += (_, _) => ShowPreviewColumnTab();
+        console.Strip.LiveTab.Checked += (_, _) => ShowOutputColumnTab();
+        console.Strip.CaptionTab.Checked += (_, _) => ShowOutputColumnTab();
         // A click on the strip leaves the keyboard with the tab shown (a tab or the switch keeping it would take Space).
         console.Strip.AddHandler(System.Windows.Controls.Primitives.ButtonBase.ClickEvent,
-            new RoutedEventHandler((_, _) => Dispatcher.InvokeAsync(FocusPreviewColumn, DispatcherPriority.Input)));
+            new RoutedEventHandler((_, _) => Dispatcher.InvokeAsync(FocusOutputColumn, DispatcherPriority.Input)));
         CaptionStripHost.Content = console.Strip;
         CaptionHost.Content = console;
         CaptionStripHost.Visibility = Visibility.Visible;
         _captionConsole = console;
-        ShowPreviewColumnTab(focus: false);
+        ShowOutputColumnTab(focus: false);
         return console;
     }
 
-    private void ShowPreviewColumnTab(bool focus = true)
+    private void ShowOutputColumnTab(bool focus = true)
     {
         bool captions = _captionConsole?.Strip.CaptionTab.IsChecked == true;
         CaptionHost.Visibility = captions ? Visibility.Visible : Visibility.Collapsed;
-        PreviewSplit.Visibility = captions ? Visibility.Collapsed : Visibility.Visible;
-        if (focus) Dispatcher.InvokeAsync(FocusPreviewColumn, DispatcherPriority.Input);
+        OutputSplit.Visibility = captions ? Visibility.Collapsed : Visibility.Visible;
+        if (focus) Dispatcher.InvokeAsync(FocusOutputColumn, DispatcherPriority.Input);
     }
 
-    private void FocusPreviewColumn()
+    private void FocusOutputColumn()
     {
         if (_captionConsole is { IsVisible: true } captions) captions.ReleaseFocus();
-        else FocusPreviewArea();
+        else FocusOutputArea();
     }
 
     // Another worship list: a new caption tab for it, on the tab shown; the main window closing: the strip goes.
@@ -4030,12 +4035,12 @@ public partial class MainWindow : Window
         {
             if (_captionConsole != null || !IsLoaded) return;
             OpenCaptions(captions);
-            if (keyboard) Dispatcher.InvokeAsync(FocusPreviewColumn, DispatcherPriority.Input);
+            if (keyboard) Dispatcher.InvokeAsync(FocusOutputColumn, DispatcherPriority.Input);
         });
         else
         {
             CaptionStripHost.Visibility = CaptionHost.Visibility = Visibility.Collapsed;
-            PreviewSplit.Visibility = Visibility.Visible;
+            OutputSplit.Visibility = Visibility.Visible;
         }
     }
 

@@ -965,7 +965,10 @@ public class MainMenuBarTests
         captionIndex.Should().BeLessThan(onPreviewKeyDown.IndexOf("MainCommandIds.EndShow", StringComparison.Ordinal));
         captionIndex.Should().BeLessThan(onPreviewKeyDown.IndexOf("IsShowArrow(e.Key)", StringComparison.Ordinal));
         onPreviewKeyDown.Should().Contain("if (!CaptionTabKey(e) && IsShowArrow(e.Key))", "an arrow's release in the tab does not turn the show");
-        Xaml.Should().Contain("x:Name=\"CaptionHost\"").And.Contain("x:Name=\"CaptionStripHost\"");
+        // The tab strip and the caption tab are over the output (live) column: the caption follows the output screen, and
+        // the preview column stays in view.
+        SectionBetween(Xaml, "x:Name=\"OutputColumnHost\"", "x:Name=\"OutputSplit\"")
+            .Should().Contain("x:Name=\"CaptionHost\"").And.Contain("x:Name=\"CaptionStripHost\"");
     }
 
     [Fact]

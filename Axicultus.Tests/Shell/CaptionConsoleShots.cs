@@ -25,10 +25,10 @@ public sealed partial class CaptionConsoleTests
         }
     }
 
-    // a045: the tab with its strip at the size of the main window's preview column (the window sizes below include the
+    // a045: the tab with its strip at the size of the main window's output column (the window sizes below include the
     // frame DrawWindow leaves out): the main window at its default 1180×760, and at its least 780×540 (the column scrolls).
     private static readonly (string Name, double Width, double Height)[] ShotSizes = [("default", 450, 680), ("min", 316, 460)];
-    // (the narrowest column the tab keeps: wider than the main window's least preview column, which then scrolls sideways)
+    // (the narrowest column the tab keeps: wider than the main window's least output column, which then scrolls sideways)
     private static readonly (string Name, double Width, double Height) SmallScreen = ("small", 316, 400);
     // The main window maximized on a 1080p screen (where the operator keeps it during a service).
     private static readonly (string Name, double Width, double Height) Maximized = ("max", 736, 1000);

@@ -21,7 +21,7 @@ using Microsoft.Win32;
 namespace Axicultus.Wpf.Captions;
 
 /// <summary>
-/// The camera caption tab of the main window's preview column (a045): following the output screen or typing, the
+/// The camera caption tab of the main window's output (live) column (a045): following the output screen or typing, the
 /// steps, the camera preview and the caption's look. <see cref="Strip"/> is the tab strip with the on-air switch.
 /// </summary>
 public partial class CaptionConsole : UserControl
@@ -120,8 +120,10 @@ public partial class CaptionConsole : UserControl
         IsVisibleChanged += (_, _) =>
         {
             UpdatePreviewTimer();
+            StartWhenUsed();
             // (a step put on air while the tab was hidden was not scrolled to: once laid out, it is)
             if (IsVisible) Dispatcher.InvokeAsync(() => { if (!_closed) UpdateSteps(); }, DispatcherPriority.Loaded);
+            if (IsVisible && _main.OutputItem == null) StagePickedRow(); // an empty panel: the row already picked
         };
         PreviewObsCamera.Checked += (_, _) => UpdatePreviewTimer();
         PreviewObsCamera.Unchecked += (_, _) => UpdatePreviewTimer();
@@ -146,6 +148,24 @@ public partial class CaptionConsole : UserControl
             _captions.BeginPlan(_main.CurrentWorshipListName);
         }
         else if (e.PropertyName is nameof(MainViewModel.OutputLyricsText) or nameof(MainViewModel.OutputItem)) _ = SyncScreenAsync();
+        else if (e.PropertyName == nameof(MainViewModel.SelectedItem)) StagePickedRow();
+    }
+
+    // The tab shown, following the screen, and the show not on the screen (off or standing by): the row picked in the
+    // worship list goes to the output panel as the preview's send puts it there (F8), so its caption is seen here
+    // without that step. On the screen (live or blacked) a pick changes nothing; nor does a media item (sent, it would
+    // start playing) or the row the panel already holds.
+    private async void StagePickedRow()
+    {
+        if (_main.SelectedItem is not { } picked || _editor.IsRestoring) return; // (a recovery picks its own row)
+        var send = _main.SendWorshipSelectionToOutputCommand;
+        // after the pick's own work and a row still being sent (a deck being drawn): only the row the operator stops on
+        await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Background);
+        if (send.ExecutionTask is { IsCompleted: false } sending) await Task.WhenAny(sending);
+        if (_closed || !IsVisible || ScreenMode.IsChecked != true || !ReferenceEquals(_main.SelectedItem, picked)
+            || _main.Session.Current.State is LiveState.Active or LiveState.Hidden
+            || LiveItemKindMatcher.IsMedia(picked.Kind) || _main.OutputItem?.Id == picked.Id) return;
+        if (send.CanExecute(null)) send.Execute(null);
     }
 
     /// <summary>The tab ended (once): planChanged, another worship list came (the main window makes a new tab for it).</summary>
@@ -234,6 +254,7 @@ public partial class CaptionConsole : UserControl
     {
         // The choice changed elsewhere: its radio shows it (checking it writes back the same choice, which changes nothing).
         if (e.PropertyName == nameof(CaptionSession.Display) && DisplayRadio() is { IsChecked: not true } radio) radio.IsChecked = true;
+        if (e.PropertyName == nameof(CaptionSession.Visible)) StartWhenUsed();
         if (e.PropertyName is nameof(CaptionSession.Visible) or nameof(CaptionSession.ScreenOff) or nameof(CaptionSession.HasText)
             or nameof(CaptionSession.ReadyText) or nameof(CaptionSession.ReadyImage) or nameof(CaptionSession.Style)) UpdateHeld();
         if (e.PropertyName == nameof(CaptionSession.Style))
@@ -480,6 +501,7 @@ public partial class CaptionConsole : UserControl
         {
             _captions.Mirror(true);
             _ = SyncScreenAsync();
+            if (_main.OutputItem == null) StagePickedRow(); // an empty panel: the row already picked
         }
         else
         {
@@ -1153,8 +1175,7 @@ public partial class CaptionConsole : UserControl
         catch (System.Runtime.InteropServices.ExternalException ex) { Told = UiText.Format("CaptionConsole", "CopyFailed", ex.Message); }
     }
 
-    // Opening the console starts the caption server and connects OBS with the saved settings.
-    private async void StartAutomatically(object sender, RoutedEventArgs e)
+    private void StartAutomatically(object sender, RoutedEventArgs e)
     {
         Loaded -= StartAutomatically;
         // The console opens following the screen (chosen before it loaded, so started here as a pick of it would be).
@@ -1163,6 +1184,17 @@ public partial class CaptionConsole : UserControl
             _captions.Mirror(true);
             _ = SyncScreenAsync();
         }
+        StartWhenUsed();
+    }
+
+    private bool _started;
+
+    // The tab is there from the app's start, behind the live tab. The caption server starts and OBS is connected with
+    // the saved settings when the captions are first used: the tab seen, or the caption put on air from the live tab.
+    private async void StartWhenUsed()
+    {
+        if (_started || _closed || !IsLoaded || !(IsVisible || _captions.Visible)) return;
+        _started = true;
         await StartServerAsync();
         if (_obs.Connection == null && (_obs.HasSavedPassword || _obs.AutoConnect || File.Exists(_obs.ProfilePath))) await ConnectAsync();
         else if (_obs.Connection == null) ObsLabel.Text = UiText.Get("CaptionConsole", "ObsConnectInSettings");

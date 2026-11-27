@@ -292,6 +292,9 @@ internal static class Program
 
         await Idle(6000);
         Summary("after-startup");
+        // The caption tab strip is there from the app's start (no menu), over the output column, the live tab shown.
+        Log("STARTUP", $"{(_main.CaptionTab is { Strip.IsVisible: true, IsVisible: false } ? "PASS" : "FAIL")} the caption tab strip is over the output (live) column, " +
+            $"the live tab shown (worship list \"{_vm.CurrentWorshipListName}\")");
 
         foreach (var phase in phases)
         {
@@ -1341,9 +1344,10 @@ internal static class Program
         await Exec("CloseOutputCommand", null, 2500);
     }
 
-    // a045: the camera captions as a tab of the main window's preview column, in the real app: opened as the Output menu
-    // opens it, hidden at first and following the output screen; F6 shows and hides the caption from anywhere; in the
-    // caption tab Space is the caption's and Esc hides it while the show stays live; on the preview tab Space turns the
+    // a045: the camera captions as a tab of the main window's output (live) column, in the real app: opened as the Output menu
+    // opens it, hidden at first and following the output screen; a row picked in the worship list while the show is off
+    // goes to the output panel (its caption seen, nothing sent); F6 shows and hides the caption from anywhere; in the
+    // caption tab Space is the caption's and Esc hides it while the show stays live; on the live tab Space turns the
     // output and the hidden caption tab follows it. Then (a041) a row's double-click in the main list sends that row and
     // its empty space nothing, and the library's double-click adds a song. Each check logs [CAPTIONTAB] PASS or FAIL.
     private static async Task CaptionTabPhase()
@@ -1383,9 +1387,10 @@ internal static class Program
             if (!down.Handled) at.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, source, 0, key) { RoutedEvent = Keyboard.KeyDownEvent });
             at.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, source, 0, key) { RoutedEvent = Keyboard.PreviewKeyUpEvent });
         }
-        var previewColumn = (FrameworkElement)_main.FindName("PreviewSplit");
+        var liveColumn = (FrameworkElement)_main.FindName("OutputSplit"); // hidden while the caption tab is shown
+        var previewColumn = (FrameworkElement)_main.FindName("PreviewSplit"); // always in view
         Axicultus.Wpf.Captions.CaptionConsole? console = null;
-        string State() => $"captionTab={console?.IsVisible} preview={previewColumn.IsVisible} visible={captions.Visible} live={_vm.Session.Current.State} " +
+        string State() => $"captionTab={console?.IsVisible} liveTab={liveColumn.IsVisible} preview={previewColumn.IsVisible} visible={captions.Visible} live={_vm.Session.Current.State} " +
             $"output=\"{_vm.OutputItem?.Title}\" outputText=\"{Trim((_vm.OutputLyricsText ?? "").Replace("\n", "/"), 30)}\" " +
             $"caption=\"{Trim(captions.ReadyText.Replace("\n", "/"), 30)}\" onAir=\"{Trim(captions.PublicText.Replace("\n", "/"), 30)}\" " +
             $"keyboard={(Keyboard.FocusedElement as FrameworkElement)?.Name}:{Keyboard.FocusedElement?.GetType().Name}";
@@ -1396,9 +1401,22 @@ internal static class Program
             _main.ShowCaptionTab(true); // Output › Camera captions
             await Settle(1500);
             console = _main.CaptionTab!;
-            Check(console.IsVisible && console.Strip.IsVisible && !previewColumn.IsVisible && console.ScreenMode.IsChecked == true && !captions.Visible,
-                "opened: the caption tab in the preview column, following the screen, hidden " + State());
+            Check(console.IsVisible && console.Strip.IsVisible && !liveColumn.IsVisible && previewColumn.IsVisible && console.ScreenMode.IsChecked == true && !captions.Visible,
+                "opened: the caption tab in the output column (the preview column still shown), following the screen, hidden " + State());
             SaveWindowPicture(_main, "captiontab-open.png");
+
+            // The show not on the screen: a row picked in the worship list goes to the output panel and its caption is
+            // seen in the tab (hidden); nothing goes out.
+            Ctx("captiontab pick");
+            if (_vm.Queue.FirstOrDefault(i => !LiveItemKindMatcher.IsMedia(i.Kind) && !ReferenceEquals(i, _vm.SelectedItem) && i.Id != _vm.OutputItem?.Id) is { } pick)
+            {
+                _vm.SelectedItem = pick;
+                await Settle(2500);
+                Check(_vm.OutputItem?.Id == pick.Id && _vm.Session.Current.State == Axicultus.Wpf.Controls.LiveState.Off && !captions.Visible && captions.PublicText.Length == 0,
+                    $"a row picked on the caption tab ([{pick.Kind}] {pick.Title}) goes to the output panel, nothing goes out: " + State());
+                SaveWindowPicture(_main, "captiontab-pick.png");
+            }
+            else Check(false, "no other row to pick");
 
             Ctx("captiontab live item");
             LiveQueueItem? onAir = null;
@@ -1432,10 +1450,10 @@ internal static class Program
             Check(!captions.Visible && _vm.Session.Current.State != Axicultus.Wpf.Controls.LiveState.Off, "Esc in the caption tab hides the caption; the show stays live: " + State());
             SaveWindowPicture(_main, "captiontab-following.png");
 
-            Ctx("captiontab preview tab");
+            Ctx("captiontab live tab");
             shortcuts.TryHandle(Key.F2, ModifierKeys.None);
             await Settle(1000);
-            Check(!console.IsVisible && previewColumn.IsVisible, "F2 shows the preview tab: " + State());
+            Check(!console.IsVisible && liveColumn.IsVisible, "F2 shows the live tab: " + State());
             shortcuts.TryHandle(Key.F6, ModifierKeys.None);
             await Settle(600);
             Press(Key.Space); // the keyboard is the preview's (its own Space), not the caption's
@@ -1444,11 +1462,11 @@ internal static class Program
             await Exec("NextOutputSlideCommand", null, 1500); // the output turned from the main window
             string next = (_vm.OutputLyricsText ?? "").Trim();
             Check(kept && captions.Visible && next != page && captions.PublicText == next,
-                "on the preview tab F6 shows the caption, Space is not the caption's, the output turned and the hidden tab's caption follows: " + State());
-            SaveWindowPicture(_main, "captiontab-preview.png");
+                "on the live tab F6 shows the caption, Space is not the caption's, the output turned and the hidden tab's caption follows: " + State());
+            SaveWindowPicture(_main, "captiontab-live.png");
             shortcuts.TryHandle(Key.F2, ModifierKeys.None);
             await Settle(1000);
-            Check(console.IsVisible && !previewColumn.IsVisible, "F2 shows the caption tab again: " + State());
+            Check(console.IsVisible && !liveColumn.IsVisible && previewColumn.IsVisible, "F2 shows the caption tab again: " + State());
             SaveWindowPicture(_main, "captiontab-back.png");
 
             // Another worship list (its name only, put back at once): a new caption tab on the same tab, hidden.
