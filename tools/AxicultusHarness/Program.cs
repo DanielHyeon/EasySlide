@@ -1454,8 +1454,12 @@ internal static class Program
             shortcuts.TryHandle(Key.F2, ModifierKeys.None);
             await Settle(1000);
             Check(!console.IsVisible && liveColumn.IsVisible, "F2 shows the live tab: " + State());
+            bool noSwitch = !console.AirButton.IsVisible; // the caption hidden: the live tab offers no switch to put it on air
+            SaveWindowPicture(_main, "captiontab-live-hidden.png");
             shortcuts.TryHandle(Key.F6, ModifierKeys.None);
             await Settle(600);
+            Check(noSwitch && captions.Visible && console.AirButton.IsVisible,
+                $"on the live tab the switch is not there while the caption is hidden (not there: {noSwitch}) and is while it is on air: " + State());
             Press(Key.Space); // the keyboard is the preview's (its own Space), not the caption's
             await Settle(800);
             bool kept = captions.Visible;

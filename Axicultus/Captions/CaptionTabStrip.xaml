@@ -5,7 +5,8 @@
              Foreground="{DynamicResource Brush.Text.Primary}"
              FontFamily="{DynamicResource Font.Primary}" FontSize="{DynamicResource Type.Body.FontSize}">
     <!-- The tab strip over the main window's output (live) column (a045): the live and caption tabs, and the caption's
-         on-air switch, seen on both tabs. DataContext: the caption console's view model. Its styles are its own, as the console's. -->
+         on-air switch (on the live tab only while the caption is on air). DataContext: the caption console's view model.
+         Its styles are its own, as the console's. -->
     <UserControl.Resources>
         <Style x:Key="FocusRing">
             <Setter Property="Control.Template">
@@ -117,6 +118,16 @@
                     <Setter Property="Content" Value="{loc:Text CaptionConsole.AirStandby}" />
                     <Setter Property="Background" Value="{DynamicResource Brush.Live.Standby}" />
                     <Setter Property="Foreground" Value="{DynamicResource Brush.Live.OnStandby}" />
+                </MultiDataTrigger>
+                <!-- On the live tab the caption is not put on air with the mouse (what would go out is seen on the caption
+                     tab): the switch is there only while the caption is on air or waiting, to tell so and to hide it.
+                     (Hidden, not collapsed: the strip keeps its height.) -->
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding IsChecked, ElementName=LiveTab}" Value="True" />
+                        <Condition Binding="{Binding Session.Visible}" Value="False" />
+                    </MultiDataTrigger.Conditions>
+                    <Setter Property="Visibility" Value="Hidden" />
                 </MultiDataTrigger>
             </Style.Triggers>
         </Style>

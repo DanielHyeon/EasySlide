@@ -67,6 +67,30 @@ public sealed partial class CaptionConsoleTests
         console.Visibility = Visibility.Visible;
     });
 
+    // On the live tab the switch does not offer to put the caption on air (what would go out is seen on the caption tab):
+    // it is there only while the caption is on air, to tell so and to hide it. On the caption tab it is always there.
+    [Fact]
+    public Task OnTheLiveTabTheSwitchOnlyHidesTheCaption() => WithConsole(async (console, session, _) =>
+    {
+        var strip = console.Strip;
+        await Pump(console, 100);
+        Assert.True(strip.CaptionTab.IsChecked == true && strip.AirButton.IsVisible && !session.Visible);
+        strip.LiveTab.IsChecked = true;
+        await Pump(console, 100);
+        Assert.False(strip.AirButton.IsVisible); // a hidden caption: nothing to press on the live tab
+        double height = strip.ActualHeight;
+        console.ToggleOnAir(); // F6 works on the live tab too
+        await Pump(console, 100);
+        Assert.True(session.Visible && strip.AirButton.IsVisible); // on air: told, and one press hides it
+        Assert.Equal(height, strip.ActualHeight); // the strip keeps its height
+        await ClickAsync(strip.AirButton);
+        await Pump(console, 100);
+        Assert.False(session.Visible || strip.AirButton.IsVisible);
+        strip.CaptionTab.IsChecked = true;
+        await Pump(console, 100);
+        Assert.True(strip.AirButton.IsVisible);
+    });
+
     // The caption tab shown, following the screen, the show not on the screen: the row picked in the worship list goes to
     // the output panel, so its caption is seen (hidden: nothing goes out). Behind the live tab, or with the show on the
     // screen, a pick sends nothing.

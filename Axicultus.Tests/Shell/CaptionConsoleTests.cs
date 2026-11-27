@@ -1462,6 +1462,7 @@ public sealed partial class CaptionConsoleTests
                 ShowActivated = false, ShowInTaskbar = false, Width = Column.Width, Height = Column.Height,
                 Content = new DockPanel { Children = { console.Strip, console } },
             };
+            console.Strip.CaptionTab.IsChecked = true; // the caption tab shown, as the main window shows it (its switch is there)
             // The tests start typing (they pick following themselves) unless they check how the tab opens.
             if (!asOpened) console.DirectMode.IsChecked = true;
             try
