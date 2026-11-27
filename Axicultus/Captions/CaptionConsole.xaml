@@ -177,7 +177,8 @@
                       PreviewMouseWheel="ColumnWheel">
         <Grid x:Name="Column" MinWidth="300" Width="{Binding ViewportWidth, ElementName=Body}" Height="{Binding ViewportHeight, ElementName=Body}">
             <!-- The upper part takes the height left; the camera preview its own (the column's width at 16:9 until the
-                 splitter over it is moved, as the main window's live view is resized; then the height it was given). -->
+                 splitter over it is moved, as the main window's live view is resized; then the height it was given, kept
+                 with the caption's other choices). -->
             <Grid.RowDefinitions>
                 <RowDefinition x:Name="UpperRow" Height="*" />
                 <RowDefinition Height="Auto" />
@@ -384,6 +385,7 @@
             <GridSplitter x:Name="StageSplitter" Grid.Row="1" Height="4" Margin="0,8,0,4" HorizontalAlignment="Stretch"
                           ResizeDirection="Rows" ResizeBehavior="PreviousAndNext" Background="{DynamicResource Brush.Border.Default}"
                           PreviewMouseLeftButtonDown="LimitPreview" PreviewKeyDown="LimitPreview"
+                          DragCompleted="KeepPreview" PreviewKeyUp="KeepPreview"
                           FocusVisualStyle="{StaticResource FocusRing}" ToolTip="{loc:Text CaptionConsole.PreviewSizeTip}"
                           AutomationProperties.Name="{loc:Text CaptionConsole.PreviewSizeTip}" />
 

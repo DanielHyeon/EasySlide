@@ -72,6 +72,7 @@ public partial class CaptionConsole : UserControl
         WireSettings();
         PreviewMouseUp += ReleaseClickFocus;
         WatchLookLists();
+        if (captions.Style.Preview > 0) StageRow.Height = new GridLength(Math.Max(StageRow.MinHeight, captions.Style.Preview)); // as the operator sized it
         LinesBox.SelectedIndex = captions.CaptionLines - 1;
         ScoreSizeBox.SelectedIndex = captions.ScoreSize;
         DisplayRadio().IsChecked = true;

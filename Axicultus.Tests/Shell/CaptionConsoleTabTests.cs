@@ -69,9 +69,9 @@ public sealed partial class CaptionConsoleTests
 
     // The camera preview is resized with the splitter over it (as the main window's live view is): the typed box or the
     // steps take what is left, never less than their least, and the preview keeps a least height. The splitter chosen
-    // with Tab keeps its arrows (they do not step the caption).
+    // with Tab keeps its arrows (they do not step the caption). The height is kept with the caption's other choices.
     [Fact]
-    public Task TheCameraPreviewIsResizedWithItsSplitter() => WithConsole(async (console, _, _) =>
+    public Task TheCameraPreviewIsResizedWithItsSplitter() => WithConsole(async (console, session, directory) =>
     {
         await Pump(console, 300);
         double preview = console.Stage.ActualHeight, upper = console.Upper.ActualHeight;
@@ -84,6 +84,8 @@ public sealed partial class CaptionConsoleTests
                 console.StageSplitter.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(console), 0, key)
                     { RoutedEvent = Keyboard.KeyDownEvent });
                 console.UpdateLayout(); // (the splitter moves from the rows as they are laid out: a press, then the layout)
+                console.StageSplitter.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(console), 0, key)
+                    { RoutedEvent = Keyboard.PreviewKeyUpEvent }); // the key let go: the height is kept
             }
         }
         Arrow(Key.Down, 5); // 10 DIP a press
@@ -91,6 +93,9 @@ public sealed partial class CaptionConsoleTests
         Assert.InRange(console.Stage.ActualHeight, preview - 51, preview - 49);
         Assert.InRange(console.Upper.ActualHeight, upper + 49, upper + 51); // the typed box takes what the preview gave
         Assert.Equal(0, console.Body.ScrollableHeight);
+        Assert.Equal(console.StageRow.Height.Value, session.Style.Preview); // kept: also for the next start of the app
+        Assert.Contains("\"Preview\":" + console.StageRow.Height.Value.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            System.IO.File.ReadAllText(System.IO.Path.Combine(directory.FullName, "caption-style.json")));
 
         Arrow(Key.Down, 100); // not below its least
         await Pump(console, 300);
@@ -102,8 +107,19 @@ public sealed partial class CaptionConsoleTests
         Assert.True(console.Upper.ActualHeight >= console.UpperRow.MinHeight - 0.5 && console.Draft.ActualHeight >= console.Draft.MinHeight - 0.5,
             $"the upper part {console.Upper.ActualHeight} of at least {console.UpperRow.MinHeight}");
         Assert.True(console.Body.ScrollableHeight < 1, $"scrolls {console.Body.ScrollableHeight}");
-        Assert.Equal(console.StageRow.Height, console.PreviewHeight); // what the main window hands to the next list's tab
+        Assert.Equal(console.StageRow.Height.Value, session.Style.Preview);
     });
+
+    // The tab opens with the camera preview at the height kept from an earlier session (or another worship list's tab);
+    // a kept height that cannot be one is the first size.
+    [Fact]
+    public Task TheCameraPreviewOpensAtTheKeptHeight() => WithConsole(async (console, session, _) =>
+    {
+        await Pump(console, 300);
+        Assert.Equal((240d, new GridLength(240)), (session.Style.Preview, console.PreviewHeight));
+        Assert.InRange(console.Stage.ActualHeight, 239.5, 240.5);
+        Assert.Equal((0d, 0d), (CaptionStyle.Parse("#FFFFFF", true, preview: -5).Preview, CaptionStyle.Parse("#FFFFFF", true, preview: double.NaN).Preview));
+    }, savedStyle: """{"Color":"#FFE14D","Box":true,"Lines":2,"Preview":240}""");
 
     // On the live tab the switch does not offer to put the caption on air (what would go out is seen on the caption tab):
     // it is there only while the caption is on air, to tell so and to hide it. On the caption tab it is always there.

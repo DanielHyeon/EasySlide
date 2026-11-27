@@ -74,9 +74,16 @@ public partial class CaptionConsole
     /// <summary>The tab strip over the output (live) column: the live and caption tabs and the on-air switch.</summary>
     internal CaptionTabStrip Strip { get; }
 
-    /// <summary>The camera preview's height: the column's width at 16:9 (auto) until its splitter is moved. The main window
-    /// hands it to the tab it makes for another worship list.</summary>
-    internal GridLength PreviewHeight { get => StageRow.Height; set => StageRow.Height = value; }
+    /// <summary>The camera preview's height: the column's width at 16:9 (auto) until its splitter is moved.</summary>
+    internal GridLength PreviewHeight => StageRow.Height;
+
+    // The splitter was let go (the mouse, or a key on it): the height is kept with the caption's other choices, for the
+    // tab of another worship list and the next start of the app.
+    private void KeepPreview(object sender, RoutedEventArgs e)
+    {
+        if (StageRow.Height.IsAbsolute && StageRow.Height.Value != _captions.Style.Preview)
+            _captions.SetStyle(_captions.Style with { Preview = StageRow.Height.Value });
+    }
 
     // The splitter is about to move (the mouse or a key pressed on it): the preview grows no further than leaves the upper
     // part its least in the height seen. (Beside a row of a set height a splitter asks only that row's limits, not the

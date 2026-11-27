@@ -21,11 +21,12 @@ public sealed record PublishedCaption(long Revision, string Text, string Color =
 public sealed record CaptionTake(DateTimeOffset Time, string Text);
 /// <summary>
 /// The caption console's kept choices: look and destinations (Camera is the output screen's camera caption, Obs
-/// the browser source), Sync: the console's next/previous also turn the output screen, and Lines: the fixed
-/// height of the caption area (1 to 3 lines).
+/// the browser source), Sync: the console's next/previous also turn the output screen, Lines: the fixed
+/// height of the caption area (1 to 3 lines), and Preview: the height the operator gave the caption tab's camera
+/// preview (0: the column's width at 16:9).
 /// </summary>
 public sealed record CaptionStyle(string Color = CaptionStyle.DefaultColor, bool Box = true, bool Camera = true, bool Obs = true, bool Sync = false, int Lines = 3,
-    int Score = 1, string Display = CaptionStyle.AutoDisplay)
+    int Score = 1, string Display = CaptionStyle.AutoDisplay, double Preview = 0)
 {
     public const string DefaultColor = "#FFFFFF";
     /// <summary>The dark box behind the text on the camera screen (the OBS page draws the same).</summary>
@@ -33,9 +34,9 @@ public sealed record CaptionStyle(string Color = CaptionStyle.DefaultColor, bool
     /// <summary>Display: auto (per slide, the score where its content picture shows staves, else the text), text, score, scoretext.</summary>
     public const string AutoDisplay = "auto";
     public static CaptionStyle Parse(string color, bool box, bool camera = true, bool obs = true, bool sync = false, int lines = 3, int score = 1,
-        string? display = null) =>
+        string? display = null, double preview = 0) =>
         new(System.Text.RegularExpressions.Regex.IsMatch(color, "^#[0-9A-Fa-f]{6}$") ? color.ToUpperInvariant() : DefaultColor, box, camera, obs, sync,
-            Math.Clamp(lines, 1, 3), Math.Clamp(score, 0, 2), ParseDisplay(display));
+            Math.Clamp(lines, 1, 3), Math.Clamp(score, 0, 2), ParseDisplay(display), double.IsFinite(preview) && preview > 0 ? preview : 0);
 
     public static string ParseDisplay(string? display) => display is "text" or "score" or "scoretext" ? display : AutoDisplay;
 
@@ -71,7 +72,7 @@ public sealed class CaptionSession : ObservableObject, IDisposable
         {
             if (stylePath != null && File.Exists(stylePath) &&
                 JsonSerializer.Deserialize<CaptionStyle>(File.ReadAllText(stylePath)) is { } saved)
-                Style = CaptionStyle.Parse(saved.Color, saved.Box, saved.Camera, saved.Obs, saved.Sync, saved.Lines, saved.Score, saved.Display);
+                Style = CaptionStyle.Parse(saved.Color, saved.Box, saved.Camera, saved.Obs, saved.Sync, saved.Lines, saved.Score, saved.Display, saved.Preview);
         }
         catch (Exception error) when (error is IOException or JsonException or UnauthorizedAccessException) { }
         if (show != null)
