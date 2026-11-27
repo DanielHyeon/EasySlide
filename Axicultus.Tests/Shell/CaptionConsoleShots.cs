@@ -25,11 +25,13 @@ public sealed partial class CaptionConsoleTests
         }
     }
 
-    private static readonly (string Name, double Width, double Height)[] ShotSizes = [("default", 1040, 720), ("min", 900, 620)];
-    // 1024×768 at 125% (a work area of 819×566; the window there is that big and its body scrolls).
-    private static readonly (string Name, double Width, double Height) SmallScreen = ("small", 819, 566);
-    // Maximized on a 1080p screen (where the operator keeps it during a service).
-    private static readonly (string Name, double Width, double Height) Maximized = ("max", 1920, 1040);
+    // a045: the tab with its strip at the size of the main window's preview column (the window sizes below include the
+    // frame DrawWindow leaves out): the main window at its default 1180×760, and at its least 780×540 (the column scrolls).
+    private static readonly (string Name, double Width, double Height)[] ShotSizes = [("default", 450, 680), ("min", 316, 460)];
+    // (the narrowest column the tab keeps: wider than the main window's least preview column, which then scrolls sideways)
+    private static readonly (string Name, double Width, double Height) SmallScreen = ("small", 316, 400);
+    // The main window maximized on a 1080p screen (where the operator keeps it during a service).
+    private static readonly (string Name, double Width, double Height) Maximized = ("max", 736, 1000);
 
     [ShotsFact]
     public Task DrawTheConsoleForReview()
@@ -51,18 +53,16 @@ public sealed partial class CaptionConsoleTests
             {
                 var themes = new Axicultus.Wpf.Theme.ThemeService();
                 themes.ApplyTheme(Axicultus.Wpf.Theme.ColorTheme.Dark);
-                try { await Draw(console, name + "-dark", ShotSizes[0]); }
+                try { await Draw(Window.GetWindow(console), name + "-dark", ShotSizes[0]); }
                 finally { themes.ApplyTheme(Axicultus.Wpf.Theme.ColorTheme.Light); }
             }
 
-            // a041: the worship list under the source's controls (the main window's list).
-            Main(console).LoadQueue([.. new[] { "입례 찬양", "오늘의 말씀", "말씀 찬양", "봉헌 찬양", "광고", "파송 찬양" }
-                .Select((title, n) => new LiveQueueItem($"song:shot-{n}", title, LiveItemKinds.Song) { Lyrics = "[1]\n" + title })]);
+            console.Strip.CaptionTab.IsChecked = true; // (as the main window shows it)
             console.Draft.Text = "주님은 나의 목자시니 내게 부족함 없으리";
-            await Draw(console, "1-hidden-start", [.. ShotSizes, SmallScreen]);
+            await Draw(Window.GetWindow(console), "1-hidden-start", [.. ShotSizes, SmallScreen]);
             await Dark("1-hidden-start");
             console.AirButton.Command.Execute(null);
-            await Draw(console, "2-direct-on-air", [.. ShotSizes, Maximized]);
+            await Draw(Window.GetWindow(console), "2-direct-on-air", [.. ShotSizes, Maximized]);
 
             var text = CaptionAllTextTests.WriteDeck(directory.CreateSubdirectory("text").FullName, [],
                 CaptionAllTextTests.TextSlide("오늘의 말씀", "시편 23편 1-3절"),
@@ -71,7 +71,7 @@ public sealed partial class CaptionConsoleTests
             Assert.True(await console.PrepareDeckAsync(text, 1));
             console.ScreenMode.IsChecked = true;
             session.Follow(2, CaptionDeck.AllTextKey);
-            await Draw(console, "3-follow-text");
+            await Draw(Window.GetWindow(console), "3-follow-text");
 
             var score = CaptionAllTextTests.WriteDeck(directory.CreateSubdirectory("score").FullName, [CaptionScorePictureTests.ScorePng()],
                 CaptionAllTextTests.TextSlide("찬양 · 주 하나님 지으신 모든 세계"), CaptionAllTextTests.ScoreSlide(0), CaptionAllTextTests.ScoreSlide(0));
@@ -80,16 +80,16 @@ public sealed partial class CaptionConsoleTests
             await console.ScorePreparation;
             await console.LyricsReading;
             session.Follow(2, CaptionDeck.AllTextKey);
-            await Draw(console, "4-follow-score-auto", [.. ShotSizes, SmallScreen, Maximized]);
+            await Draw(Window.GetWindow(console), "4-follow-score-auto", [.. ShotSizes, SmallScreen, Maximized]);
             await Dark("4-follow-score-auto");
             console.ScoreAndText.IsChecked = true;
-            await Draw(console, "5-follow-score-text");
+            await Draw(Window.GetWindow(console), "5-follow-score-text");
             console.AirButton.Command.Execute(null); // hidden again
-            await Draw(console, "6-follow-score-hidden");
+            await Draw(Window.GetWindow(console), "6-follow-score-hidden");
             console.AirButton.Command.Execute(null); // on air, then the output screen goes black: nothing goes out
             live.GoLive(new LiveQueueItem("x", "song", LiveItemKinds.Song), "m");
             live.HideOutput(blackout: true);
-            await Draw(console, "8-screen-off");
+            await Draw(Window.GetWindow(console), "8-screen-off");
             await Dark("8-screen-off");
 
             await Draw(console.Settings, "7-settings", ("default", console.Settings.Width, console.Settings.Height), ("min", console.Settings.MinWidth, console.Settings.MinHeight));
@@ -107,11 +107,11 @@ public sealed partial class CaptionConsoleTests
             await main.SendWorshipSelectionToOutputCommand.ExecuteAsync(null);
             session.ShowScreenText(main.OutputLyricsText);
             await Pump(console, 300);
-            await Draw(console, "9-follow-song-pages", ShotSizes[0], Maximized);
+            await Draw(Window.GetWindow(console), "9-follow-song-pages", ShotSizes[0], Maximized);
             main.OutputItem = null;
             session.ShowScreenText("");
             await Pump(console, 300);
-            await Draw(console, "10-follow-no-steps", ShotSizes[0]);
+            await Draw(Window.GetWindow(console), "10-follow-no-steps", ShotSizes[0]);
         }, show: false, appLook: true, live: live);
     }
 

@@ -51,7 +51,7 @@
   <data name="Output_BlackScreen" xml:space="preserve"><value>Black Screen</value></data>
   <data name="Output_ClearScreen" xml:space="preserve"><value>Clear Screen</value></data>
   <data name="Output_RestartCurrentItem" xml:space="preserve"><value>Restart Current Item</value></data>
-  <data name="Output_CameraCaptions" xml:space="preserve"><value>Camera Captions…</value></data>
+  <data name="Output_CameraCaptions" xml:space="preserve"><value>Camera Captions</value></data>
   <data name="Output_Controls" xml:space="preserve"><value>Output Controls</value></data>
   <data name="Output_PreviewToOutputClearBlack" xml:space="preserve"><value>Send Preview to Output and Clear Black</value></data>
   <data name="Output_PreviewToOutput" xml:space="preserve"><value>Send Preview to Output</value></data>

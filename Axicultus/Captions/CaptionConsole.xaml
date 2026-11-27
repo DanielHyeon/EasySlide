@@ -1,24 +1,16 @@
-<Window x:Class="Axicultus.Wpf.Captions.CaptionConsole"
+<UserControl x:Class="Axicultus.Wpf.Captions.CaptionConsole"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:captions="clr-namespace:Axicultus.Wpf.Captions"
-        xmlns:composites="clr-namespace:Axicultus.Wpf.Composites"
-        xmlns:controls="clr-namespace:Axicultus.Wpf.Controls"
-        xmlns:conv="clr-namespace:Axicultus.Wpf.Converters"
         xmlns:loc="clr-namespace:Axicultus.Wpf.Localization"
-        Title="{loc:Text CaptionConsole.Title}" Width="1040" Height="720" MinWidth="900" MinHeight="620" ResizeMode="CanResize"
-        WindowStartupLocation="CenterOwner"
         Background="{DynamicResource Brush.Surface.Page}" Foreground="{DynamicResource Brush.Text.Primary}"
         FontFamily="{DynamicResource Font.Primary}" FontSize="{DynamicResource Type.Body.FontSize}">
-    <Window.Resources>
+    <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="Shown" />
-        <composites:LiveRowBadgeConverter x:Key="LiveBadge" />
-        <conv:KindToFrmIconConverter x:Key="KindToFrmIcon" ForWorshipList="True" />
-        <conv:KindToLabelConverter x:Key="KindToLabel" />
         <captions:SameItemConverter x:Key="SameItem" />
-        <!-- Spacing follows the app's scale (Theme/Tokens/Spacing.xaml): 8 within a group, 16 between groups, 24 between
-             sections. Text and controls are the main window's size: its body and button text (Type.Body, Type.Button), buttons and
-             lists 32 high (Spacing.ButtonHeight.Sm), the main actions 40 (Md). -->
+        <!-- Spacing follows the app's scale (Theme/Tokens/Spacing.xaml): 8 within a group and between groups of the one
+             column. Text and controls are the main window's size: its body and button text (Type.Body, Type.Button), buttons
+             and lists 32 high (Spacing.ButtonHeight.Sm), the main actions 40 (Md). -->
 
         <!-- A choice of one: a track holding its options, the chosen one raised as a card with the accent border, so a choice
              reads apart from the command buttons. -->
@@ -54,7 +46,7 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="RadioButton">
                         <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="2"
-                                CornerRadius="6" Padding="4,0">
+                                CornerRadius="6" Padding="8,0">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Border>
                     </ControlTemplate>
@@ -147,20 +139,6 @@
             <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Secondary}" />
             <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
-        <!-- A section's name over its controls. -->
-        <Style x:Key="SectionTitle" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="{DynamicResource Type.Body.FontSize}" />
-            <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Foreground" Value="{DynamicResource Brush.Text.Primary}" />
-            <Setter Property="Margin" Value="0,0,0,8" />
-        </Style>
-        <Style x:Key="Card" TargetType="Border">
-            <Setter Property="Background" Value="{DynamicResource Brush.Surface.Card}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border.Default}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="6" />
-            <Setter Property="Padding" Value="12,8" />
-        </Style>
         <!-- A caption colour: the button shows the colour in its Tag; the colour in use has the accent ring (set in code). -->
         <Style x:Key="Swatch" TargetType="Button">
             <Setter Property="Width" Value="28" />
@@ -187,285 +165,213 @@
                 </Setter.Value>
             </Setter>
         </Style>
-        <!-- The on-air switch: its colour and words follow the session (hidden until put on air). -->
-        <Style x:Key="AirSwitch" TargetType="Button">
-            <Setter Property="Content" Value="{loc:Text CaptionConsole.AirHidden}" />
-            <Setter Property="Background" Value="{DynamicResource Brush.Live.Hidden}" />
-            <Setter Property="Foreground" Value="{DynamicResource Brush.Live.OnHidden}" />
-            <Setter Property="FontSize" Value="{DynamicResource Type.BodyLarge.FontSize}" />
-            <Setter Property="FontWeight" Value="Bold" />
-            <Setter Property="MinHeight" Value="40" />
-            <Setter Property="MinWidth" Value="260" />
-            <Setter Property="Padding" Value="16,4" />
-            <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="Face" Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}"
-                                BorderBrush="{DynamicResource Brush.Border.Focus}" BorderThickness="0">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Face" Property="Opacity" Value="0.9" />
-                            </Trigger>
-                            <Trigger Property="IsKeyboardFocused" Value="True">
-                                <Setter TargetName="Face" Property="BorderThickness" Value="3" />
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding Session.Visible}" Value="True">
-                    <Setter Property="Content" Value="{loc:Text CaptionConsole.AirVisible}" />
-                    <Setter Property="Background" Value="{DynamicResource Brush.Live.Active}" />
-                    <Setter Property="Foreground" Value="{DynamicResource Brush.Live.OnActive}" />
-                </DataTrigger>
-                <!-- Chosen on air, but the output screen is off: nothing goes out until it comes back. -->
-                <MultiDataTrigger>
-                    <MultiDataTrigger.Conditions>
-                        <Condition Binding="{Binding Session.Visible}" Value="True" />
-                        <Condition Binding="{Binding Session.ScreenOff}" Value="True" />
-                    </MultiDataTrigger.Conditions>
-                    <Setter Property="Content" Value="{loc:Text CaptionConsole.AirStandby}" />
-                    <Setter Property="Background" Value="{DynamicResource Brush.Live.Standby}" />
-                    <Setter Property="Foreground" Value="{DynamicResource Brush.Live.OnStandby}" />
-                </MultiDataTrigger>
-            </Style.Triggers>
-        </Style>
-    </Window.Resources>
+    </UserControl.Resources>
 
-    <!-- Surface: where a mouse click on a control leaves the keyboard while following (no focus mark), so Space stays the
-         on-air switch; a control chosen with Tab keeps Space and the arrows. -->
-    <Grid x:Name="Surface" Margin="16" Focusable="True" FocusVisualStyle="{x:Null}" KeyboardNavigation.IsTabStop="False">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
+    <!-- Surface: where a click in the tab leaves the keyboard while following (no focus mark), so Space stays the on-air
+         switch; a control chosen with Tab keeps Space and the arrows. (Transparent: a click on empty space lands here.) -->
+    <Grid x:Name="Surface" Focusable="True" FocusVisualStyle="{x:Null}" KeyboardNavigation.IsTabStop="False" Background="Transparent">
+        <!-- One column, as wide as the main window's preview column. Too low for all of it (a small main window), the
+             column scrolls rather than cutting a control off (its MinHeight is set in code); the steps or the typed box
+             take the height left. -->
+        <ScrollViewer x:Name="Body" Margin="8" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Focusable="False"
+                      PreviewMouseWheel="ColumnWheel">
+        <Grid x:Name="Column" MinWidth="300" Width="{Binding ViewportWidth, ElementName=Body}" Height="{Binding ViewportHeight, ElementName=Body}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
 
-        <!-- On air or hidden, where it goes, OBS, settings. -->
-        <Grid x:Name="TopBar" Margin="0,0,0,12">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            <Button x:Name="AirButton" Style="{StaticResource AirSwitch}" Command="{Binding ToggleVisibleCommand}" Click="BackToDraft"
-                    ToolTip="{loc:Text CaptionConsole.AirTip}" />
-            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0">
-                <TextBlock x:Name="DestinationsLabel" Text="{loc:Text CaptionConsole.Destinations}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,8,0" />
-                <CheckBox x:Name="ToCamera" Content="{loc:Text CaptionConsole.ToCamera}" IsChecked="{Binding Session.AudienceEnabled, Mode=TwoWay}"
-                          ToolTip="{loc:Text CaptionConsole.ToCameraTip}" />
-                <CheckBox x:Name="ToObs" Content="OBS" IsChecked="{Binding Session.ObsEnabled, Mode=TwoWay}" Margin="12,0,0,0"
-                          ToolTip="{loc:Text CaptionConsole.ToObsTip}" />
-            </StackPanel>
-            <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="16,0,8,0">
-                <TextBlock x:Name="ObsLabel" Text="{loc:Text CaptionConsole.ObsNotConnected}" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" MaxHeight="44" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" />
-                <TextBlock x:Name="CameraStatus" Text="{Binding Status}" Style="{StaticResource Quiet}" TextTrimming="CharacterEllipsis" />
-            </StackPanel>
-            <Button x:Name="SettingsButton" Grid.Column="3" Content="{loc:Text CaptionConsole.Settings}" Click="OpenSettings" VerticalAlignment="Center"
-                    ToolTip="{loc:Text CaptionConsole.SettingsTip}" />
-        </Grid>
-
-        <!-- The body: below the designed 900x620 (a small screen) it scrolls; the on-air bar above stays in view.
-             Its size follows the viewport down to that minimum (a scrolled Grid would otherwise get no height to share). -->
-        <ScrollViewer x:Name="Body" Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Focusable="False">
-        <Grid MinWidth="852" MinHeight="481" Width="{Binding ViewportWidth, ElementName=Body}" Height="{Binding ViewportHeight, ElementName=Body}">
-        <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="360" />
-                <ColumnDefinition Width="16" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-
-            <!-- The source: typed text, or what is on the output screen. -->
-            <DockPanel>
-                <Border DockPanel.Dock="Top" Style="{StaticResource SegmentTrack}">
+            <!-- The source (follow the screen or type) and the settings. -->
+            <DockPanel x:Name="TopBar">
+                <Button x:Name="SettingsButton" DockPanel.Dock="Right" Content="{loc:Text CaptionConsole.Settings}" Click="OpenSettings" VerticalAlignment="Center"
+                        Margin="8,0,0,0" ToolTip="{loc:Text CaptionConsole.SettingsTip}" />
+                <Border Style="{StaticResource SegmentTrack}" HorizontalAlignment="Left" VerticalAlignment="Center">
                     <UniformGrid Columns="2">
                         <RadioButton x:Name="ScreenMode" Content="{loc:Text CaptionConsole.FollowScreen}" GroupName="Source" IsChecked="True" Checked="SourceChanged" Style="{StaticResource Segment}"
                                      ToolTip="{loc:Text CaptionConsole.FollowScreenTip}" />
                         <RadioButton x:Name="DirectMode" Content="{loc:Text CaptionConsole.DirectInput}" GroupName="Source" Checked="SourceChanged" Style="{StaticResource Segment}" />
                     </UniformGrid>
                 </Border>
-                <!-- The source's own controls on top, the worship list in the rest. Too short for both (a small window), the
-                     column scrolls rather than cutting off a button (its MinHeight is set in code). -->
-                <ScrollViewer x:Name="SourcePanel" Margin="0,12,0,0" VerticalScrollBarVisibility="Auto" Focusable="False" PreviewMouseWheel="ColumnWheel">
-                <Grid x:Name="SourceColumn" Height="{Binding ViewportHeight, ElementName=SourcePanel}">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
-                    <Grid x:Name="SourceControls">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
-                        <!-- The typed caption: three lines of it (a caption has up to three; its height is set in code), scrolled beyond. -->
-                        <StackPanel x:Name="DirectPanel" Visibility="Collapsed">
-                            <TextBox x:Name="Draft" AcceptsReturn="True" FontSize="{DynamicResource Type.BodyLarge.FontSize}" TextWrapping="Wrap"
-                                     VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top"
-                                     Text="{Binding DraftText, UpdateSourceTrigger=PropertyChanged}" PreviewKeyDown="DraftKey"
-                                     AutomationProperties.Name="직접 입력 자막" />
-                            <Button x:Name="TakeButton" Content="{loc:Text CaptionConsole.Take}" Command="{Binding TakeCommand}" Click="BackToDraft"
-                                    Style="{StaticResource Main}" Margin="0,8,0,0" />
-                            <DockPanel Margin="0,8,0,0">
-                                <TextBlock DockPanel.Dock="Right" Text="{loc:Text CaptionConsole.NewLineHint}" Style="{StaticResource Quiet}" />
-                                <CheckBox x:Name="Instant" Content="{loc:Text CaptionConsole.Instant}" IsChecked="{Binding IsInstant, Mode=TwoWay}"
-                                          ToolTip="{loc:Text CaptionConsole.InstantTip}" />
-                            </DockPanel>
-                        </StackPanel>
-
-                        <!-- Following the screen, in reading order: what is followed, how it is shown, then the steps (the
-                             sync box under the buttons it changes). -->
-                        <StackPanel x:Name="ScreenPanel">
-                            <!-- The one place that says where the caption is (the item or deck, the slide and row). -->
-                            <Border Style="{StaticResource Card}">
-                                <StackPanel>
-                                    <TextBlock x:Name="ScoreRowLabel" FontWeight="SemiBold"
-                                               TextTrimming="CharacterEllipsis" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" />
-                                    <!-- (a no-break space until a deck names itself: the line is there from the start) -->
-                                    <TextBlock x:Name="DeckLabel" Text="&#160;" Style="{StaticResource Quiet}" TextTrimming="CharacterEllipsis" />
-                                </StackPanel>
-                            </Border>
-                            <Border Style="{StaticResource SegmentTrack}" Margin="0,12,0,0">
-                                <UniformGrid Columns="4">
-                                    <RadioButton x:Name="AutoShow" Content="{loc:Text CaptionConsole.ShowAuto}" Tag="auto" GroupName="Show" IsChecked="True" Checked="ScoreChanged" Style="{StaticResource Segment}"
-                                                 ToolTip="{loc:Text CaptionConsole.ShowAutoTip}" />
-                                    <RadioButton x:Name="TextOnly" Content="{loc:Text CaptionConsole.ShowText}" Tag="text" GroupName="Show" Checked="ScoreChanged" Style="{StaticResource Segment}"
-                                                 ToolTip="{loc:Text CaptionConsole.ShowTextTip}" />
-                                    <RadioButton x:Name="ScoreOnly" Content="{loc:Text CaptionConsole.ShowScore}" Tag="score" GroupName="Show" Checked="ScoreChanged" Style="{StaticResource Segment}"
-                                                 ToolTip="{loc:Text CaptionConsole.ShowScoreTip}" />
-                                    <RadioButton x:Name="ScoreAndText" Content="{loc:Text CaptionConsole.ShowScoreText}" Tag="scoretext" GroupName="Show" Checked="ScoreChanged" Style="{StaticResource Segment}"
-                                                 ToolTip="{loc:Text CaptionConsole.ShowScoreTextTip}" />
-                                </UniformGrid>
-                            </Border>
-                            <Grid Margin="0,12,0,0">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="8" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <Button x:Name="PreviousButton" Click="Previous" Style="{StaticResource Big}" AutomationProperties.Name="이전"
-                                        ToolTip="{loc:Text CaptionConsole.PreviousTip}">
-                                    <StackPanel Orientation="Horizontal">
-                                        <Path Data="M 5,0 L 0,5 L 5,10" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
-                                              StrokeThickness="2" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                              VerticalAlignment="Center" Margin="0,0,8,0" />
-                                        <TextBlock Text="{loc:Text CaptionConsole.Previous}" VerticalAlignment="Center" />
-                                    </StackPanel>
-                                </Button>
-                                <Button x:Name="NextButton" Grid.Column="2" Click="Next" Style="{StaticResource Main}" AutomationProperties.Name="다음"
-                                        ToolTip="{loc:Text CaptionConsole.NextTip}">
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="{loc:Text CaptionConsole.Next}" VerticalAlignment="Center" />
-                                        <Path Data="M 0,0 L 5,5 L 0,10" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
-                                              StrokeThickness="2" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                              VerticalAlignment="Center" Margin="8,0,0,0" />
-                                    </StackPanel>
-                                </Button>
-                            </Grid>
-                            <CheckBox x:Name="SyncShow" Content="{loc:Text CaptionConsole.SyncShow}" Margin="0,8,0,0" IsChecked="{Binding Session.SyncShow, Mode=TwoWay}"
-                                      ToolTip="{loc:Text CaptionConsole.SyncShowTip}" />
-                        </StackPanel>
-
-                        <!-- What the console last did or why it could not: under the controls that caused it, one line (its full
-                             text in the tool tip), so the list below keeps its place. -->
-                        <TextBlock x:Name="Status" Grid.Row="1" Margin="0,8,0,0" Style="{StaticResource Quiet}" TextTrimming="CharacterEllipsis"
-                                   ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" AutomationProperties.LiveSetting="Polite" />
-                    </Grid>
-
-                    <!-- The main window's worship list (DataContext: MainViewModel), in both sources: a pick here is a pick
-                         there; a click on a row and Enter put the item in the output panel and, unlike a double-click in the
-                         main list, never start the live output (the screen would show it a second time). The caption's
-                         on-air state stays as it is. Its own section (a rule and a title) apart from the caption's controls:
-                         it changes the output screen, not the caption. Its rows are the main list's rows (kind icon, title,
-                         LIVE; the main window's text size, which follows the interface size). -->
-                    <DockPanel x:Name="WorshipPanel" Grid.Row="1" Margin="0,16,0,0">
-                        <Border x:Name="WorshipHeader" DockPanel.Dock="Top" BorderBrush="{DynamicResource Brush.Border.Default}" BorderThickness="0,1,0,0"
-                                Padding="0,12,0,0">
-                            <DockPanel>
-                                <TextBlock DockPanel.Dock="Right" Text="{loc:Text CaptionConsole.WorshipHint}" Style="{StaticResource Quiet}" Margin="0,0,0,8"
-                                           ToolTip="{loc:Text CaptionConsole.WorshipHintTip}" />
-                                <TextBlock Text="{loc:Text CaptionConsole.WorshipTitle}" Style="{StaticResource SectionTitle}" />
-                            </DockPanel>
-                        </Border>
-                        <Grid>
-                            <ListView x:Name="WorshipList" ItemsSource="{Binding Queue}" SelectedItem="{Binding SelectedItem, Mode=TwoWay}" SelectionMode="Single"
-                                      ScrollViewer.HorizontalScrollBarVisibility="Disabled" HorizontalContentAlignment="Stretch"
-                                      FontSize="{DynamicResource Type.Body.FontSize}" BorderThickness="1"
-                                      AutomationProperties.Name="예배 순서 (누르거나 Enter로 송출 칸에 올리기)" KeyDown="WorshipListKey">
-                                <ListView.ItemContainerStyle>
-                                    <!-- The main list's row (WorshipListPanel.xaml); a click on a row puts it in the output panel (on the
-                                         list's empty space: nothing). -->
-                                    <Style TargetType="ListViewItem">
-                                        <Setter Property="AutomationProperties.Name" Value="{Binding Title}" />
-                                        <Setter Property="MinHeight" Value="20" />
-                                        <Setter Property="Padding" Value="2,0,14,0" />
-                                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                                        <EventSetter Event="MouseLeftButtonUp" Handler="RowClicked" />
-                                    </Style>
-                                </ListView.ItemContainerStyle>
-                                <ListView.ItemTemplate>
-                                    <DataTemplate>
-                                        <DockPanel>
-                                            <DockPanel.ToolTip>
-                                                <TextBlock>
-                                                    <TextBlock.Text>
-                                                        <MultiBinding StringFormat="{}{0} — {1}">
-                                                            <Binding Path="Kind" Converter="{StaticResource KindToLabel}" />
-                                                            <Binding Path="Title" />
-                                                        </MultiBinding>
-                                                    </TextBlock.Text>
-                                                </TextBlock>
-                                            </DockPanel.ToolTip>
-                                            <controls:FrmIcon DockPanel.Dock="Left" Icon="{Binding Converter={StaticResource KindToFrmIcon}}" Width="16" Height="16" Margin="4,0,8,0" />
-                                            <!-- Only the row on air (one of two rows of the same song), as in the main list. -->
-                                            <Border DockPanel.Dock="Right" Background="{DynamicResource Brush.Live.Active}" CornerRadius="3" Padding="5,1"
-                                                    Margin="8,0,0,0" VerticalAlignment="Center">
-                                                <Border.Visibility>
-                                                    <MultiBinding Converter="{StaticResource LiveBadge}">
-                                                        <Binding />
-                                                        <Binding Path="DataContext.LiveRow" RelativeSource="{RelativeSource AncestorType=ListView}" />
-                                                    </MultiBinding>
-                                                </Border.Visibility>
-                                                <TextBlock Text="LIVE" Foreground="White" FontSize="{DynamicResource Type.Badge.FontSize}" FontWeight="Bold"
-                                                           AutomationProperties.Name="송출 중" />
-                                            </Border>
-                                            <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
-                                        </DockPanel>
-                                    </DataTemplate>
-                                </ListView.ItemTemplate>
-                            </ListView>
-                            <TextBlock x:Name="WorshipListEmpty" Text="{loc:Text CaptionConsole.WorshipListEmpty}" HorizontalAlignment="Center" IsHitTestVisible="False">
-                                <TextBlock.Style>
-                                    <Style TargetType="TextBlock" BasedOn="{StaticResource Quiet}">
-                                        <Setter Property="Visibility" Value="Collapsed" />
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding Queue.Count}" Value="0">
-                                                <Setter Property="Visibility" Value="Visible" />
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </TextBlock.Style>
-                            </TextBlock>
-                        </Grid>
-                    </DockPanel>
-                </Grid>
-                </ScrollViewer>
             </DockPanel>
 
-            <!-- What goes on air, drawn as the camera screen draws it (16:9), the steps under it, the caption's look at the
-                 bottom. The preview takes the room the rows under it leave; the steps keep one height from item to item (an
-                 item with more or fewer steps does not change the preview's size). -->
-            <Grid Grid.Column="2">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <Viewbox x:Name="ObsPreviewBox" Stretch="Uniform" VerticalAlignment="Top" AutomationProperties.Name="송출 자막 미리보기">
+            <!-- The source's own controls: following, the display and the steps; typing, the box and its send button. -->
+            <Grid x:Name="SourceArea" Grid.Row="1" Margin="0,8,0,0">
+                <DockPanel x:Name="ScreenPanel">
+                    <Border x:Name="ModeTrack" DockPanel.Dock="Top" Style="{StaticResource SegmentTrack}">
+                        <UniformGrid Columns="4">
+                            <RadioButton x:Name="AutoShow" Content="{loc:Text CaptionConsole.ShowAuto}" Tag="auto" GroupName="Show" IsChecked="True" Checked="ScoreChanged" Style="{StaticResource Segment}"
+                                         ToolTip="{loc:Text CaptionConsole.ShowAutoTip}" />
+                            <RadioButton x:Name="TextOnly" Content="{loc:Text CaptionConsole.ShowText}" Tag="text" GroupName="Show" Checked="ScoreChanged" Style="{StaticResource Segment}"
+                                         ToolTip="{loc:Text CaptionConsole.ShowTextTip}" />
+                            <RadioButton x:Name="ScoreOnly" Content="{loc:Text CaptionConsole.ShowScore}" Tag="score" GroupName="Show" Checked="ScoreChanged" Style="{StaticResource Segment}"
+                                         ToolTip="{loc:Text CaptionConsole.ShowScoreTip}" />
+                            <RadioButton x:Name="ScoreAndText" Content="{loc:Text CaptionConsole.ShowScoreText}" Tag="scoretext" GroupName="Show" Checked="ScoreChanged" Style="{StaticResource Segment}"
+                                         ToolTip="{loc:Text CaptionConsole.ShowScoreTextTip}" />
+                        </UniformGrid>
+                    </Border>
+                    <!-- The followed deck step by step, in rows as the main window's preview shows slides: a picked step moves the
+                         caption only (the output screen stays). Without a deck, the pages of the output panel's song, passage or
+                         text: a picked page turns the panel and the caption follows. The height left (at least a row of steps;
+                         more scroll), also while there is no step (a deck being read, a media item, an empty panel). A step shows
+                         its slide (and row) and its text, or the score row's picture; the whole text is in its tool tip. -->
+                    <Grid x:Name="StepArea" Margin="0,8,0,0">
+                        <ListBox x:Name="StepStrip" MinHeight="74" Foreground="{DynamicResource Brush.Text.Primary}"
+                                 ItemsSource="{Binding Steps}" SelectedItem="{Binding CurrentStep, Mode=OneWay}" SelectionChanged="StepPicked"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                 Background="{DynamicResource Brush.Surface.Card}" BorderBrush="{DynamicResource Brush.Border.Default}"
+                                 AutomationProperties.Name="PPT 단계 (누르면 자막만 그 단계로)">
+                            <ListBox.ItemContainerStyle>
+                                <!-- A screen reader reads the step: its slide (and row) and its first line. The step on air has the
+                                     accent border (not the theme's white selection), the step the next button goes to a dashed one. -->
+                                <Style TargetType="ListBoxItem">
+                                    <Setter Property="AutomationProperties.Name" Value="{Binding Spoken}" />
+                                    <Setter Property="Padding" Value="2" />
+                                    <Setter Property="Cursor" Value="Hand" />
+                                    <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}" />
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="ListBoxItem">
+                                                <Grid Margin="{TemplateBinding Padding}">
+                                                    <Border x:Name="Frame" BorderThickness="2" CornerRadius="6" BorderBrush="Transparent" Background="Transparent">
+                                                        <ContentPresenter />
+                                                    </Border>
+                                                    <Rectangle x:Name="NextMark" RadiusX="6" RadiusY="6" StrokeThickness="2" StrokeDashArray="2 2"
+                                                               Stroke="{DynamicResource Brush.Accent.Primary}" Visibility="Collapsed" IsHitTestVisible="False" />
+                                                </Grid>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="Frame" Property="BorderBrush" Value="{DynamicResource Brush.Border.Strong}" />
+                                                    </Trigger>
+                                                    <DataTrigger Value="True">
+                                                        <DataTrigger.Binding>
+                                                            <MultiBinding Converter="{StaticResource SameItem}">
+                                                                <Binding />
+                                                                <Binding Path="DataContext.NextStep" RelativeSource="{RelativeSource AncestorType=ListBox}" />
+                                                            </MultiBinding>
+                                                        </DataTrigger.Binding>
+                                                        <Setter TargetName="NextMark" Property="Visibility" Value="Visible" />
+                                                    </DataTrigger>
+                                                    <Trigger Property="IsSelected" Value="True">
+                                                        <Setter TargetName="Frame" Property="BorderBrush" Value="{DynamicResource Brush.Accent.Primary}" />
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+                            <ListBox.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel />
+                                </ItemsPanelTemplate>
+                            </ListBox.ItemsPanel>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Width="140" Height="62" Background="{DynamicResource Brush.Surface.Subtle}" CornerRadius="4" Padding="6,3">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="ToolTip" Value="{Binding Text}" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Text}" Value="">
+                                                        <Setter Property="ToolTip" Value="{x:Null}" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <DockPanel>
+                                            <TextBlock DockPanel.Dock="Top" Text="{Binding Label}" FontWeight="SemiBold" />
+                                            <Grid>
+                                                <Image Source="{Binding Thumbnail}" Stretch="Uniform" />
+                                                <TextBlock Text="{Binding Text}" TextWrapping="Wrap" TextTrimming="CharacterEllipsis"
+                                                           Foreground="{DynamicResource Brush.Text.Secondary}" />
+                                            </Grid>
+                                        </DockPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                        <TextBlock x:Name="NoSteps" Margin="12,0" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"
+                                   TextWrapping="Wrap" TextAlignment="Center"
+                                   Text="{loc:Text CaptionConsole.NoSteps}">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock" BasedOn="{StaticResource Quiet}">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding HasItems, ElementName=StepStrip}" Value="False">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Grid>
+                </DockPanel>
+
+                <!-- The typed caption: the height left, at least three lines (a caption has up to three; set in code). -->
+                <DockPanel x:Name="DirectPanel" Visibility="Collapsed">
+                    <DockPanel x:Name="InstantRow" DockPanel.Dock="Bottom" Margin="0,8,0,0">
+                        <TextBlock DockPanel.Dock="Right" Text="{loc:Text CaptionConsole.NewLineHint}" Style="{StaticResource Quiet}" />
+                        <CheckBox x:Name="Instant" Content="{loc:Text CaptionConsole.Instant}" IsChecked="{Binding IsInstant, Mode=TwoWay}"
+                                  ToolTip="{loc:Text CaptionConsole.InstantTip}" />
+                    </DockPanel>
+                    <Button x:Name="TakeButton" DockPanel.Dock="Bottom" Content="{loc:Text CaptionConsole.Take}" Command="{Binding TakeCommand}" Click="BackToDraft"
+                            Style="{StaticResource Main}" Margin="0,8,0,0" />
+                    <TextBox x:Name="Draft" AcceptsReturn="True" FontSize="{DynamicResource Type.BodyLarge.FontSize}" TextWrapping="Wrap"
+                             VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top"
+                             Text="{Binding DraftText, UpdateSourceTrigger=PropertyChanged}" PreviewKeyDown="DraftKey"
+                             AutomationProperties.Name="직접 입력 자막" />
+                </DockPanel>
+            </Grid>
+
+            <!-- What the tab last did or why it could not: one line (its full text in the tool tip), so nothing moves. -->
+            <TextBlock x:Name="Status" Grid.Row="2" Margin="0,6,0,0" Style="{StaticResource Quiet}" TextTrimming="CharacterEllipsis"
+                       ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" AutomationProperties.LiveSetting="Polite" />
+
+            <!-- Following: the steps back and on, where the caption is (the item or deck, the slide and row), and sync. -->
+            <Grid x:Name="NavBar" Grid.Row="3" Margin="0,8,0,0" Visibility="{Binding IsChecked, ElementName=ScreenMode, Converter={StaticResource Shown}}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Button x:Name="PreviousButton" Click="Previous" Style="{StaticResource Big}" MinWidth="84" AutomationProperties.Name="이전"
+                        ToolTip="{loc:Text CaptionConsole.PreviousTip}">
+                    <StackPanel Orientation="Horizontal">
+                        <Path Data="M 5,0 L 0,5 L 5,10" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                              StrokeThickness="2" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                              VerticalAlignment="Center" Margin="0,0,8,0" />
+                        <TextBlock Text="{loc:Text CaptionConsole.Previous}" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+                <Button x:Name="NextButton" Grid.Column="1" Click="Next" Style="{StaticResource Main}" MinWidth="84" Margin="8,0,0,0" AutomationProperties.Name="다음"
+                        ToolTip="{loc:Text CaptionConsole.NextTip}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{loc:Text CaptionConsole.Next}" VerticalAlignment="Center" />
+                        <Path Data="M 0,0 L 5,5 L 0,10" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                              StrokeThickness="2" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                              VerticalAlignment="Center" Margin="8,0,0,0" />
+                    </StackPanel>
+                </Button>
+                <!-- The one place that says where the caption is. -->
+                <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="12,0,8,0">
+                    <TextBlock x:Name="ScoreRowLabel" FontWeight="SemiBold"
+                               TextTrimming="CharacterEllipsis" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" />
+                    <!-- (a no-break space until a deck names itself: the line is there from the start) -->
+                    <TextBlock x:Name="DeckLabel" Text="&#160;" Style="{StaticResource Quiet}" TextTrimming="CharacterEllipsis"
+                               ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" />
+                </StackPanel>
+                <CheckBox x:Name="SyncShow" Grid.Column="3" Content="{loc:Text CaptionConsole.SyncShort}" IsChecked="{Binding Session.SyncShow, Mode=TwoWay}"
+                          AutomationProperties.Name="{loc:Text CaptionConsole.SyncShow}" ToolTip="{loc:Text CaptionConsole.SyncShowTip}" />
+            </Grid>
+
+            <!-- What goes on air, drawn as the camera screen draws it (16:9), as wide as the column. -->
+            <Border x:Name="Stage" Grid.Row="4" Margin="0,8,0,0" Padding="8" CornerRadius="6" Background="{DynamicResource Brush.Surface.Subtle}">
+                <Viewbox x:Name="ObsPreviewBox" Stretch="Uniform" AutomationProperties.Name="송출 자막 미리보기">
                     <!-- A camera frame: black, as on the output screen. -->
                     <Grid Width="1920" Height="1080" Background="Black" ClipToBounds="True">
                         <TextBlock x:Name="PreviewHint" Text="{loc:Text CaptionConsole.PreviewOff}" FontSize="56"
@@ -477,7 +383,7 @@
                         </Image>
                         <captions:CameraCaptionView x:Name="PreviewCaption" HorizontalAlignment="Center" VerticalAlignment="Bottom"
                                                     DataContext="{Binding Session}" Visibility="{Binding HasText, Converter={StaticResource Shown}}" />
-                        <!-- Hidden: what Space would put on air, dim; the session sends nothing meanwhile. -->
+                        <!-- Hidden: what showing it would put on air, dim; the session sends nothing meanwhile. -->
                         <captions:CameraCaptionView x:Name="HeldCaption" HorizontalAlignment="Center" VerticalAlignment="Bottom" Opacity="0.5"
                                                     DataContext="{Binding Held}"
                                                     Visibility="{Binding HasText, Converter={StaticResource Shown}, FallbackValue=Collapsed}" />
@@ -522,150 +428,54 @@
                         </Border>
                     </Grid>
                 </Viewbox>
-                <!-- The followed deck step by step, in rows as the main window's preview shows slides: a picked step moves the
-                     caption only (the output screen stays). Without a deck, the pages of the output panel's song, passage or
-                     text: a picked page turns the panel and the caption follows. Three rows of steps high (more scroll),
-                     following the screen also while it has no step (a deck being read, a media item, an empty panel), so the
-                     preview does not change size from item to item. A step shows its slide (and row) and its text, or the
-                     score row's picture; the whole text is in its tool tip. -->
-                <Grid Grid.Row="1" Margin="0,12,0,0" Visibility="{Binding IsChecked, ElementName=ScreenMode, Converter={StaticResource Shown}}">
-                    <ListBox x:Name="StepStrip" Height="222" Foreground="{DynamicResource Brush.Text.Primary}"
-                             Visibility="{Binding IsChecked, ElementName=ScreenMode, Converter={StaticResource Shown}}"
-                             ItemsSource="{Binding Steps}" SelectedItem="{Binding CurrentStep, Mode=OneWay}" SelectionChanged="StepPicked"
-                             ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Auto"
-                             Background="{DynamicResource Brush.Surface.Card}" BorderBrush="{DynamicResource Brush.Border.Default}"
-                             AutomationProperties.Name="PPT 단계 (누르면 자막만 그 단계로)">
-                        <ListBox.ItemContainerStyle>
-                            <!-- A screen reader reads the step: its slide (and row) and its first line. The step on air has the
-                                 accent border (not the theme's white selection), the step the next button goes to a dashed one. -->
-                            <Style TargetType="ListBoxItem">
-                                <Setter Property="AutomationProperties.Name" Value="{Binding Spoken}" />
-                                <Setter Property="Padding" Value="2" />
-                                <Setter Property="Cursor" Value="Hand" />
-                                <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}" />
-                                <Setter Property="Template">
-                                    <Setter.Value>
-                                        <ControlTemplate TargetType="ListBoxItem">
-                                            <Grid Margin="{TemplateBinding Padding}">
-                                                <Border x:Name="Frame" BorderThickness="2" CornerRadius="6" BorderBrush="Transparent" Background="Transparent">
-                                                    <ContentPresenter />
-                                                </Border>
-                                                <Rectangle x:Name="NextMark" RadiusX="6" RadiusY="6" StrokeThickness="2" StrokeDashArray="2 2"
-                                                           Stroke="{DynamicResource Brush.Accent.Primary}" Visibility="Collapsed" IsHitTestVisible="False" />
-                                            </Grid>
-                                            <ControlTemplate.Triggers>
-                                                <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter TargetName="Frame" Property="BorderBrush" Value="{DynamicResource Brush.Border.Strong}" />
-                                                </Trigger>
-                                                <DataTrigger Value="True">
-                                                    <DataTrigger.Binding>
-                                                        <MultiBinding Converter="{StaticResource SameItem}">
-                                                            <Binding />
-                                                            <Binding Path="DataContext.NextStep" RelativeSource="{RelativeSource AncestorType=ListBox}" />
-                                                        </MultiBinding>
-                                                    </DataTrigger.Binding>
-                                                    <Setter TargetName="NextMark" Property="Visibility" Value="Visible" />
-                                                </DataTrigger>
-                                                <Trigger Property="IsSelected" Value="True">
-                                                    <Setter TargetName="Frame" Property="BorderBrush" Value="{DynamicResource Brush.Accent.Primary}" />
-                                                </Trigger>
-                                            </ControlTemplate.Triggers>
-                                        </ControlTemplate>
-                                    </Setter.Value>
-                                </Setter>
-                            </Style>
-                        </ListBox.ItemContainerStyle>
-                        <ListBox.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <WrapPanel />
-                            </ItemsPanelTemplate>
-                        </ListBox.ItemsPanel>
-                        <ListBox.ItemTemplate>
-                            <DataTemplate>
-                                <Border Width="160" Height="62" Background="{DynamicResource Brush.Surface.Subtle}" CornerRadius="4" Padding="6,3">
-                                    <Border.Style>
-                                        <Style TargetType="Border">
-                                            <Setter Property="ToolTip" Value="{Binding Text}" />
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding Text}" Value="">
-                                                    <Setter Property="ToolTip" Value="{x:Null}" />
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Border.Style>
-                                    <DockPanel>
-                                        <TextBlock DockPanel.Dock="Top" Text="{Binding Label}" FontWeight="SemiBold" />
-                                        <Grid>
-                                            <Image Source="{Binding Thumbnail}" Stretch="Uniform" />
-                                            <TextBlock Text="{Binding Text}" TextWrapping="Wrap" TextTrimming="CharacterEllipsis"
-                                                       Foreground="{DynamicResource Brush.Text.Secondary}" />
-                                        </Grid>
-                                    </DockPanel>
-                                </Border>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
-                    <TextBlock x:Name="NoSteps" Margin="12,0" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"
-                               TextWrapping="Wrap" TextAlignment="Center"
-                               Text="{loc:Text CaptionConsole.NoSteps}">
-                        <TextBlock.Style>
-                            <Style TargetType="TextBlock" BasedOn="{StaticResource Quiet}">
-                                <Setter Property="Visibility" Value="Collapsed" />
-                                <Style.Triggers>
-                                    <MultiDataTrigger>
-                                        <MultiDataTrigger.Conditions>
-                                            <Condition Binding="{Binding IsChecked, ElementName=ScreenMode}" Value="True" />
-                                            <Condition Binding="{Binding HasItems, ElementName=StepStrip}" Value="False" />
-                                        </MultiDataTrigger.Conditions>
-                                        <Setter Property="Visibility" Value="Visible" />
-                                    </MultiDataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </TextBlock.Style>
-                    </TextBlock>
-                </Grid>
-        <!-- The caption's look, at hand during the service: its own section at the bottom of the column (a rule and a
-             title, as the worship list's), the left column kept for the source and the worship list down to the bottom. -->
-                <StackPanel Grid.Row="2" Margin="0,12,0,0">
-                    <Border BorderBrush="{DynamicResource Brush.Border.Default}" BorderThickness="0,1,0,0" Padding="0,12,0,0">
-                        <TextBlock Text="{loc:Text CaptionConsole.LookTitle}" Style="{StaticResource SectionTitle}" />
-                    </Border>
-        <!-- Groups that wrap whole (a label never parts from its control): sizes and box first, the colours after. -->
-        <WrapPanel>
-            <StackPanel Orientation="Horizontal" Margin="0,4,20,0">
-                <TextBlock x:Name="LinesLabel" Text="{loc:Text CaptionConsole.Lines}" VerticalAlignment="Center" Margin="0,0,8,0" />
-                <ComboBox x:Name="LinesBox" Width="76" SelectionChanged="LinesChanged" AutomationProperties.LabeledBy="{Binding ElementName=LinesLabel}"
-                          ToolTip="{loc:Text CaptionConsole.LinesTip}">
-                    <ComboBoxItem Content="{loc:Text CaptionConsole.Lines1}" />
-                    <ComboBoxItem Content="{loc:Text CaptionConsole.Lines2}" />
-                    <ComboBoxItem Content="{loc:Text CaptionConsole.Lines3}" />
-                </ComboBox>
-            </StackPanel>
-            <StackPanel Orientation="Horizontal" Margin="0,4,20,0">
-                <TextBlock x:Name="ScoreSizeLabel" Text="{loc:Text CaptionConsole.ScoreSize}" VerticalAlignment="Center" Margin="0,0,8,0" />
-                <ComboBox x:Name="ScoreSizeBox" Width="88" SelectionChanged="ScoreSizeChanged" AutomationProperties.LabeledBy="{Binding ElementName=ScoreSizeLabel}"
-                          ToolTip="{loc:Text CaptionConsole.ScoreSizeTip}">
-                    <ComboBoxItem Content="{loc:Text CaptionConsole.Small}" />
-                    <ComboBoxItem Content="{loc:Text CaptionConsole.Medium}" />
-                    <ComboBoxItem Content="{loc:Text CaptionConsole.Large}" />
-                </ComboBox>
-            </StackPanel>
-            <CheckBox x:Name="BoxCheck" Content="{loc:Text CaptionConsole.Box}" Click="BoxChanged" Margin="0,4,20,0" VerticalAlignment="Center"
-                      ToolTip="{loc:Text CaptionConsole.BoxTip}" />
-            <StackPanel x:Name="Swatches" Orientation="Horizontal" Margin="0,4,0,0">
-                <TextBlock Text="{loc:Text CaptionConsole.TextColor}" VerticalAlignment="Center" Margin="0,0,8,0" />
-                <Button Tag="#FFFFFF" Style="{StaticResource Swatch}" Click="PickColor" ToolTip="{loc:Text CaptionConsole.White}" AutomationProperties.Name="흰색" />
-                <Button Tag="#FFE14D" Style="{StaticResource Swatch}" Click="PickColor" ToolTip="{loc:Text CaptionConsole.Yellow}" AutomationProperties.Name="노랑" />
-                <Button Tag="#7FD8FF" Style="{StaticResource Swatch}" Click="PickColor" ToolTip="{loc:Text CaptionConsole.SkyBlue}" AutomationProperties.Name="하늘" />
-                <Button Tag="#9BF07A" Style="{StaticResource Swatch}" Click="PickColor" ToolTip="{loc:Text CaptionConsole.LightGreen}" AutomationProperties.Name="연두" />
-                <Button Tag="#000000" Style="{StaticResource Swatch}" Click="PickColor" ToolTip="{loc:Text CaptionConsole.Black}" AutomationProperties.Name="검정" />
-                <Button Content="{loc:Text CaptionConsole.CustomColor}" Click="PickCustomColor" Margin="4,0,0,0" />
-            </StackPanel>
-        </WrapPanel>
+            </Border>
+
+            <!-- The caption's look and where it goes, at hand during the service: groups that wrap whole (a label never
+                 parts from its control). -->
+            <WrapPanel x:Name="LookRow" Grid.Row="5" Margin="0,4,0,0">
+                <StackPanel Orientation="Horizontal" Margin="0,4,16,0">
+                    <TextBlock x:Name="LinesLabel" Text="{loc:Text CaptionConsole.Lines}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                    <ComboBox x:Name="LinesBox" Width="76" SelectionChanged="LinesChanged" AutomationProperties.LabeledBy="{Binding ElementName=LinesLabel}"
+                              ToolTip="{loc:Text CaptionConsole.LinesTip}">
+                        <ComboBoxItem Content="{loc:Text CaptionConsole.Lines1}" />
+                        <ComboBoxItem Content="{loc:Text CaptionConsole.Lines2}" />
+                        <ComboBoxItem Content="{loc:Text CaptionConsole.Lines3}" />
+                    </ComboBox>
                 </StackPanel>
-            </Grid>
-        </Grid>
+                <StackPanel Orientation="Horizontal" Margin="0,4,16,0">
+                    <TextBlock x:Name="ScoreSizeLabel" Text="{loc:Text CaptionConsole.ScoreSize}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                    <ComboBox x:Name="ScoreSizeBox" Width="88" SelectionChanged="ScoreSizeChanged" AutomationProperties.LabeledBy="{Binding ElementName=ScoreSizeLabel}"
+                              ToolTip="{loc:Text CaptionConsole.ScoreSizeTip}">
+                        <ComboBoxItem Content="{loc:Text CaptionConsole.Small}" />
+                        <ComboBoxItem Content="{loc:Text CaptionConsole.Medium}" />
+                        <ComboBoxItem Content="{loc:Text CaptionConsole.Large}" />
+                    </ComboBox>
+                </StackPanel>
+                <CheckBox x:Name="BoxCheck" Content="{loc:Text CaptionConsole.Box}" Click="BoxChanged" Margin="0,4,16,0" VerticalAlignment="Center"
+                          ToolTip="{loc:Text CaptionConsole.BoxTip}" />
+                <StackPanel x:Name="Swatches" Orientation="Horizontal" Margin="0,4,16,0">
+                    <TextBlock Text="{loc:Text CaptionConsole.TextColor}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                    <Button Tag="#FFFFFF" Style="{StaticResource Swatch}" Click="PickColor" ToolTip="{loc:Text CaptionConsole.White}" AutomationProperties.Name="흰색" />
+                    <Button Tag="#FFE14D" Style="{StaticResource Swatch}" Click="PickColor" ToolTip="{loc:Text CaptionConsole.Yellow}" AutomationProperties.Name="노랑" />
+                    <Button Tag="#7FD8FF" Style="{StaticResource Swatch}" Click="PickColor" ToolTip="{loc:Text CaptionConsole.SkyBlue}" AutomationProperties.Name="하늘" />
+                    <Button Tag="#9BF07A" Style="{StaticResource Swatch}" Click="PickColor" ToolTip="{loc:Text CaptionConsole.LightGreen}" AutomationProperties.Name="연두" />
+                    <Button Tag="#000000" Style="{StaticResource Swatch}" Click="PickColor" ToolTip="{loc:Text CaptionConsole.Black}" AutomationProperties.Name="검정" />
+                    <Button Content="{loc:Text CaptionConsole.CustomColor}" Click="PickCustomColor" Margin="4,0,0,0" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                    <TextBlock x:Name="DestinationsLabel" Text="{loc:Text CaptionConsole.Destinations}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                    <CheckBox x:Name="ToCamera" Content="{loc:Text CaptionConsole.ToCamera}" IsChecked="{Binding Session.AudienceEnabled, Mode=TwoWay}"
+                              ToolTip="{loc:Text CaptionConsole.ToCameraTip}" />
+                    <CheckBox x:Name="ToObs" Content="OBS" IsChecked="{Binding Session.ObsEnabled, Mode=TwoWay}" Margin="12,0,16,0"
+                              ToolTip="{loc:Text CaptionConsole.ToObsTip}" />
+                </StackPanel>
+                <!-- What OBS and the camera are doing, beside where the caption goes (two lines at most, the whole in the tool tip). -->
+                <StackPanel VerticalAlignment="Center" Margin="0,4,0,0">
+                    <TextBlock x:Name="ObsLabel" Text="{loc:Text CaptionConsole.ObsNotConnected}" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" MaxHeight="44" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" />
+                    <TextBlock x:Name="CameraStatus" Text="{Binding Status}" Style="{StaticResource Quiet}" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" MaxHeight="44" />
+                </StackPanel>
+            </WrapPanel>
         </Grid>
         </ScrollViewer>
     </Grid>
-</Window>
+</UserControl>

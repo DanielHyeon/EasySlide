@@ -56,7 +56,7 @@ public sealed partial class CaptionConsoleTests
             await Idle(console);
             Assert.True(session.Visible);
             Assert.Equal(("", false), (session.PublicText, session.HasAudienceText));
-            Assert.Equal("자막 대기 · 화면 꺼짐 (Space)", console.AirButton.Content);
+            Assert.Equal("자막 대기 · 화면 꺼짐 (F6)", console.AirButton.Content);
             Assert.True(console.HiddenBadge.IsVisible);
             Assert.Equal("화면 꺼짐 · 내보내지 않습니다", console.HiddenBadgeText.Text);
             Assert.Equal(Visibility.Visible, console.HeldCaption.Visibility); // what goes out when the screen is back, dim
@@ -102,7 +102,7 @@ public sealed partial class CaptionConsoleTests
         console.Draft.SetCurrentValue(TextBox.TextProperty, "1절 주님은 나의 목자");
         console.TakeButton.Focus();
         await ClickAsync(console.TakeButton);
-        Assert.Same(console.Draft, FocusManager.GetFocusedElement(console));
+        Assert.Same(console.Draft, Focused(console));
         Assert.True(session.Visible);
         // The operator types on: the next words go into the box; the display and the air stay.
         Assert.False(Press(console.Draft, Key.D2));
@@ -110,7 +110,7 @@ public sealed partial class CaptionConsoleTests
         Assert.Equal(("auto", true), (session.Display, session.Visible));
         console.AirButton.Focus();
         await ClickAsync(console.AirButton);
-        Assert.Same(console.Draft, FocusManager.GetFocusedElement(console));
+        Assert.Same(console.Draft, Focused(console));
     });
 
     [Fact]
@@ -233,24 +233,19 @@ public sealed partial class CaptionConsoleTests
     });
 
     [Fact]
-    public Task TheConsoleAndItsSettingsFitTheScreensAsTheyAreEachTimeTheyOpen()
+    public Task TheSettingsFitTheScreensAsTheyAreEachTimeTheyOpen()
     {
         var laptop = new CaptionScreen(new(0, 0, 1366, 768), new(0, 0, 1366, 728), 1, true);
         int reads = 0;
         return WithConsole(async (console, _, _) =>
         {
-            console.PlaceOnScreen();
-            console.Show();
-            await Idle(console);
             await ClickAsync(console.SettingsButton);
             var settings = CaptionWindowPlacement.Bounds(console.Settings)!.Value;
             Assert.True(settings.Top >= 0 && settings.Bottom <= 728.5 && settings.Left >= 0 && settings.Right <= 1366.5, $"settings at {settings}");
             console.Settings.Close(); // hidden
             await ClickAsync(console.SettingsButton);
-            console.Close(); // hidden
-            console.PlaceOnScreen();
-            Assert.Equal(4, reads); // the console twice, the settings window twice
-        }, screens: () => { reads++; return [laptop]; }, savedWindow: """{"Left":0,"Top":4,"Width":1040,"Height":720,"Maximized":false,"Version":2}""", show: false);
+            Assert.Equal(2, reads); // each time it opens
+        }, screens: () => { reads++; return [laptop]; });
     }
 
     // design 18 (e): a control chosen with Tab keeps Space and the arrows; a mouse click leaves the keyboard elsewhere.
@@ -292,14 +287,14 @@ public sealed partial class CaptionConsoleTests
         console.NextButton.Focus();
         Click(console.NextButton);
         await Idle(console);
-        Assert.Same(console.Surface, FocusManager.GetFocusedElement(console)); // following: the console itself
+        Assert.Same(console.Surface, Focused(console)); // following: the console itself
         Assert.True(Press(console.Surface, Key.Space));
         Assert.True(session.Visible);
         console.DirectMode.IsChecked = true;
         console.BoxCheck.Focus();
         Click(console.BoxCheck);
         await Idle(console);
-        Assert.Same(console.Draft, FocusManager.GetFocusedElement(console)); // typing: the box
+        Assert.Same(console.Draft, Focused(console)); // typing: the box
     });
 
     [Fact]
@@ -381,24 +376,24 @@ public sealed partial class CaptionConsoleTests
         console.ScreenMode.IsChecked = true;
         session.Follow(1, CaptionDeck.AllTextKey);
         await Idle(console);
-        FocusManager.SetFocusedElement(console, console.LinesBox);
+        Focus(console, console.LinesBox);
         console.LinesBox.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, 0, MouseButton.Left) { RoutedEvent = Mouse.PreviewMouseDownEvent });
         console.LinesBox.IsDropDownOpen = true;
         console.LinesBox.SelectedIndex = 1; // 2 lines, picked with the mouse
         console.LinesBox.IsDropDownOpen = false;
         await Idle(console);
-        Assert.Same(console.Surface, FocusManager.GetFocusedElement(console));
+        Assert.Same(console.Surface, Focused(console));
         Assert.True(Press(console.Surface, Key.Down)); // the next step, not another line count on air
         Assert.Equal((2, 2), (session.CurrentSlide, session.CaptionLines));
         Assert.True(Press(console.Surface, Key.Space));
         Assert.True(session.Visible);
         // Opened with the keyboard, the list keeps the keyboard.
-        FocusManager.SetFocusedElement(console, console.LinesBox);
+        Focus(console, console.LinesBox);
         Assert.False(Press(console.LinesBox, Key.F4));
         console.LinesBox.IsDropDownOpen = true;
         console.LinesBox.IsDropDownOpen = false;
         await Idle(console);
-        Assert.NotSame(console.Surface, FocusManager.GetFocusedElement(console)); // not taken away (the test window is not active)
+        Assert.NotSame(console.Surface, Focused(console)); // not taken away (the test window is not active)
     });
 
     // A click on a look list lands on the button inside it, which opens it: the keyboard stays in the list (taken away,
@@ -412,49 +407,32 @@ public sealed partial class CaptionConsoleTests
         await Idle(console);
         var list = scoreSize ? console.ScoreSizeBox : console.LinesBox;
         var button = Visuals(list).OfType<System.Windows.Controls.Primitives.ToggleButton>().First();
-        FocusManager.SetFocusedElement(console, list);
+        Focus(console, list);
         list.IsDropDownOpen = true;
         button.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, 0, MouseButton.Left) { RoutedEvent = Mouse.PreviewMouseUpEvent });
         await Idle(console);
-        Assert.NotSame(console.Surface, FocusManager.GetFocusedElement(console)); // (the open list's own item has it)
+        Assert.NotSame(console.Surface, Focused(console)); // (the open list's own item has it)
     });
 
     [Fact]
-    public Task AConsoleHiddenMaximizedComesBackOnAScreenThatIsStillThere()
-    {
-        IReadOnlyList<CaptionScreen> now = [MainScreen, RightScreen];
-        return WithConsole((console, _, _) =>
-        {
-            console.PlaceOnScreen(); // the kept place: maximized on the right screen
-            Assert.Equal(WindowState.Maximized, console.WindowState);
-            now = [MainScreen]; // the right screen is taken away while the console is hidden
-            console.PlaceOnScreen();
-            var normal = (Rect?)typeof(CaptionConsole).GetField("_normal", Private)!.GetValue(console);
-            Assert.True(normal is { } back && MainScreen.WorkArea.Contains(back), $"normal rectangle {normal}");
-            Assert.Equal(WindowState.Maximized, console.WindowState);
-            Assert.False(console.IsVisible);
-            return Task.CompletedTask;
-        }, screens: () => now, savedWindow: """{"Left":2100,"Top":100,"Width":1560,"Height":1080,"Maximized":true,"Version":2}""", show: false);
-    }
-
-    [Fact]
-    public Task TabNeverStopsOnTheConsoleBodyAndStartsAtTheOnAirSwitch() => WithConsole(async (console, session, directory) =>
+    public Task TabNeverStopsOnTheTabsBody() => WithConsole(async (console, session, directory) =>
     {
         var path = CaptionAllTextTests.WriteDeck(directory.FullName, [], CaptionAllTextTests.TextSlide("일장"), CaptionAllTextTests.TextSlide("이장"));
         Assert.True(await console.PrepareDeckAsync(path, 1));
         console.ScreenMode.IsChecked = true;
         session.Follow(1, CaptionDeck.AllTextKey);
-        console.Activate();
+        Window.GetWindow(console).Activate();
         await Idle(console);
         Assert.False(KeyboardNavigation.GetIsTabStop(console.Surface));
         console.Surface.Focus(); // where a mouse click leaves the keyboard
         Assert.True(console.Surface.MoveFocus(new TraversalRequest(FocusNavigationDirection.First)));
-        Assert.Same(console.AirButton, Keyboard.FocusedElement);
+        Assert.Same(console.SettingsButton, Keyboard.FocusedElement); // the tab's first control (the strip is the main window's)
+        var first = Keyboard.FocusedElement;
         var seen = new List<object>();
         for (int n = 0; n < 80 && Keyboard.FocusedElement is UIElement at; n++)
         {
             at.MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
-            if (ReferenceEquals(Keyboard.FocusedElement, console.AirButton)) break; // round the cycle
+            if (ReferenceEquals(Keyboard.FocusedElement, first)) break; // round the cycle
             seen.Add(Keyboard.FocusedElement);
         }
         Assert.DoesNotContain(console.Surface, seen);
@@ -462,27 +440,22 @@ public sealed partial class CaptionConsoleTests
     });
 
     [Fact]
-    public Task ANarrowBarDropsTheDestinationsLabelAndShowsAllOfTheObsStatus() => WithConsole((console, _, _) =>
+    public Task ANarrowColumnShowsAllOfTheObsStatus() => WithConsole(async (console, _, _) =>
     {
-        var content = (FrameworkElement)console.Content;
-        var client = new Size(819.2 - 16, 566.4 - 39); // the console on a 1024×768 screen at 125%
         // The app's body size at the senior interface size, whether or not another test made an Application.
         console.Resources["Type.Body.FontSize"] = 11d * 1.4;
         console.ObsLabel.Text = "OBS 연결 전 · 설정에서 연결하세요";
-        for (int pass = 0; pass < 2; pass++)
-        {
-            content.Measure(client);
-            content.Arrange(new Rect(client));
-            content.UpdateLayout();
-        }
-        Assert.Equal(Visibility.Collapsed, console.DestinationsLabel.Visibility);
+        var host = Window.GetWindow(console);
+        (host.Width, host.Height) = (420, 900); // a 1180-wide main window's preview column
+        await Idle(console);
+        await Idle(console);
         Assert.True(console.ObsLabel.ActualWidth >= 120, $"OBS status {console.ObsLabel.ActualWidth} wide");
         var text = new FormattedText(console.ObsLabel.Text, System.Globalization.CultureInfo.CurrentUICulture, FlowDirection.LeftToRight,
             new Typeface(console.ObsLabel.FontFamily, console.ObsLabel.FontStyle, console.ObsLabel.FontWeight, console.ObsLabel.FontStretch),
             console.ObsLabel.FontSize, Brushes.Black, 1) { MaxTextWidth = console.ObsLabel.ActualWidth };
         Assert.True(text.Height <= console.ObsLabel.ActualHeight + 0.5, $"the status shows whole: {text.Height} in {console.ObsLabel.ActualHeight}"); // (wrapped if need be)
-        return Task.CompletedTask;
-    }, show: false);
+        Assert.True(console.DestinationsLabel.IsVisible);
+    });
 }
 
 // The on-air switch and the badge read at 4.5:1 or better in both themes (they take the Live tokens).

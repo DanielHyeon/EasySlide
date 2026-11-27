@@ -124,6 +124,10 @@ public sealed class ShortcutRegistry
     internal bool IsGlobalGesture(WpfKey key, WpfModifierKeys modifiers) =>
         FindShortcut(key, modifiers) is { IsGlobal: true };
 
+    /// <summary>The gesture is one of the commands' (as registered now: a user's own key for it too).</summary>
+    internal bool IsCommandGesture(WpfKey key, WpfModifierKeys modifiers, params string[] commandNames) =>
+        FindShortcut(key, modifiers) is { } shortcut && commandNames.Contains(shortcut.CommandName);
+
     private Shortcut? FindShortcut(WpfKey key, WpfModifierKeys modifiers, bool globalOnly = false)
     {
         var gestures = Volatile.Read(ref _registered).ByGesture;

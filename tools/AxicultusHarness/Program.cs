@@ -318,7 +318,7 @@ internal static class Program
                 case "ppt3": await Ppt3(); break;
                 case "pptown": await PptOwn(); break;
                 case "pptcaption": await PptCaption(); break;
-                case "consolelist": await ConsoleList(); break;
+                case "captiontab": await CaptionTabPhase(); break;
                 case "ppttext": await PptText(); break;
                 case "chords": await Chords(); break;
                 case "wlist": await WList(); break;
@@ -1117,11 +1117,8 @@ internal static class Program
         var deck = _vm.Queue.FirstOrDefault(i => LiveItemKindMatcher.IsPowerPoint(LiveItemKindMatcher.InferLegacyKind(i)));
         if (deck == null) { Log("WARN", "no PowerPoint item in the worship list"); return; }
         Log("PPT", $"queue item kind={deck.Kind} id={deck.Id} contentPath={deck.ContentPath ?? "<null>"}");
-        var console = new Axicultus.Wpf.Captions.CaptionConsole(_vm, _sp.GetRequiredService<Axicultus.Wpf.Captions.CaptionSession>(),
-            _sp.GetRequiredService<Axicultus.Wpf.Captions.CaptionBroadcastServer>(), _sp.GetRequiredService<Axicultus.Wpf.Captions.CaptionRecoveryStore>(),
-            _sp.GetRequiredService<Axicultus.Wpf.Media.CameraOwnership>(), _sp.GetRequiredService<Axicultus.Wpf.Captions.ObsOperator>(),
-            _sp.GetService<Axicultus.Wpf.Rendering.IPowerPointRenderService>());
-        console.ShowOnScreen(); // as the app opens it (placed on its screen)
+        _main.ShowCaptionTab(true); // as the app opens it (Output › Camera captions)
+        var console = _main.CaptionTab!;
         await Settle(1500);
         var open = typeof(Axicultus.Wpf.Captions.CaptionConsole).GetMethod("OpenLiveDeck", BindingFlags.NonPublic | BindingFlags.Instance)!;
         async Task Probe(string what)
@@ -1143,7 +1140,7 @@ internal static class Program
         console.ScreenMode.IsChecked = true;
         await Settle(1500);
         Log("PPT", $"console opened: visible={captions.Visible} badge={console.HiddenBadge.IsVisible} air=\"{console.AirButton.Content}\" {Aired()}");
-        SaveWindowPicture(console, "caption-hidden-start.png");
+        SaveWindowPicture(_main, "caption-hidden-start.png");
         console.AirButton.Command.Execute(null);
         await Settle(500);
         Log("PPT", $"after 표시: visible={captions.Visible} badge={console.HiddenBadge.IsVisible} air=\"{console.AirButton.Content}\"");
@@ -1211,13 +1208,13 @@ internal static class Program
         console.ScoreOnly.IsChecked = true;
         await Settle(2000);
         Log("PPT", "score only, top: " + Aired() + $" rows=\"{console.ScoreRowLabel.Text}\"");
-        SaveWindowPicture(console, "pptcaption-row1.png");
+        SaveWindowPicture(_main, "pptcaption-row1.png");
         SaveImage(_vm.OutputPowerPoint.PreviewImage as System.Windows.Media.Imaging.BitmapSource, $"slide{_vm.OutputPowerPoint.SlideNumber}.png");
         Call("SetScoreRow", 1);
         await Settle(1000);
         Log("PPT", "score only, row 2: " + Aired() + $" rows=\"{console.ScoreRowLabel.Text}\"");
         SaveImage(captions.PublicImage as System.Windows.Media.Imaging.BitmapSource, $"slide{captions.CurrentSlide}-row2.png");
-        SaveWindowPicture(console, "pptcaption-row2.png");
+        SaveWindowPicture(_main, "pptcaption-row2.png");
         await Exec("NextOutputSlideCommand", null, 4000);
         Log("PPT", "after next slide (expect top of next): " + Aired());
         SaveImage(_vm.OutputPowerPoint.PreviewImage as System.Windows.Media.Imaging.BitmapSource, $"slide{_vm.OutputPowerPoint.SlideNumber}.png");
@@ -1240,7 +1237,7 @@ internal static class Program
         SaveWindowPicture(console.Settings, "pptcaption-settings.png");
         console.Settings.Hide();
         await Settle(1000);
-        SaveWindowPicture(console, "pptcaption-score.png");
+        SaveWindowPicture(_main, "pptcaption-score.png");
         foreach (int size in new[] { 0, 2, 1 })
         {
             console.ScoreSizeBox.SelectedIndex = size;
@@ -1257,7 +1254,7 @@ internal static class Program
         await Settle(800);
         Log("PPT", "score + text, row 2: " + Aired());
         Call("SetScoreRow", 0);
-        SaveWindowPicture(console, "pptcaption-score-text.png");
+        SaveWindowPicture(_main, "pptcaption-score-text.png");
         SaveWindowPicture(_app.Windows.Cast<Window>().First(w => w.GetType().Name == "OutputWindow" && w.IsVisible), "pptcaption-output-score-text.png");
         foreach (int size in new[] { 0, 1, 2 })
         {
@@ -1311,12 +1308,12 @@ internal static class Program
             await Exec("NextOutputSlideCommand", null, 2000);
             Log("PPT", $"text item next page: outputText=\"{Trim((_vm.OutputLyricsText ?? "").Replace("\n", "/"), 30)}\" " + Aired());
         }
-        SaveWindowPicture(console, "compact-screen.png");
+        SaveWindowPicture(_main, "compact-screen.png");
         console.DirectMode.IsChecked = true;
         console.Draft.Text = "주님은 나의 목자시니";
         Call("PickColor", new Button { Tag = "#FFE14D" }, null);
         await Settle(1000);
-        SaveWindowPicture(console, "compact-direct.png");
+        SaveWindowPicture(_main, "compact-direct.png");
         Log("PPT", "direct mode: " + Aired() + $" color={captions.Published.Color}");
         // A 4-line creed page must fit the same fixed caption area (smaller font) as a one-line caption.
         var output = _app.Windows.Cast<Window>().First(w => w.GetType().Name == "OutputWindow" && w.IsVisible);
@@ -1328,7 +1325,7 @@ internal static class Program
         console.Draft.Text = "전능하사 천지를 만드신 하나님 아버지를 내가 믿사오며\n그 외아들 우리 주 예수 그리스도를 믿사오니\n이는 성령으로 잉태하사 동정녀 마리아에게 나시고\n본디오 빌라도에게 고난을 받으사 십자가에 못 박혀 죽으시고";
         await Settle(1000);
         Log("PPT", $"caption area four lines: {area.ActualHeight:0} font={line.FontSize:0.#} text={line.ActualHeight:0}");
-        SaveWindowPicture(console, "caption-four-lines-console.png");
+        SaveWindowPicture(_main, "caption-four-lines-console.png");
         SaveWindowPicture(output, "caption-four-lines-output.png");
         foreach (int lines in new[] { 1, 2, 3 })
         {
@@ -1344,22 +1341,18 @@ internal static class Program
         await Exec("CloseOutputCommand", null, 2500);
     }
 
-    // a041: the caption console's worship list, with the main window's. Maximized and following the output screen: worship
-    // item 2 picked in the console's list and sent with its send button; a row's double-click sends that row and the
-    // list's empty space nothing, in the console's list and in the main window's. Typing: an item sent leaves the typed
-    // caption. A small window: a send keeps the column where it was. The typed box shows three lines (standard and
-    // senior interface size). Each check logs [CONSOLELIST] PASS or FAIL.
-    private static async Task ConsoleList()
+    // a045: the camera captions as a tab of the main window's preview column, in the real app: opened as the Output menu
+    // opens it, hidden at first and following the output screen; F6 shows and hides the caption from anywhere; in the
+    // caption tab Space is the caption's and Esc hides it while the show stays live; on the preview tab Space turns the
+    // output and the hidden caption tab follows it. Then (a041) a row's double-click in the main list sends that row and
+    // its empty space nothing, and the library's double-click adds a song. Each check logs [CAPTIONTAB] PASS or FAIL.
+    private static async Task CaptionTabPhase()
     {
-        Ctx("consolelist");
-        if (_vm.Queue.Count < 5) { Log("CONSOLELIST", $"FAIL the worship list has {_vm.Queue.Count} items; the phase needs five"); return; }
+        Ctx("captiontab");
+        if (_vm.Queue.Count < 2) { Log("CAPTIONTAB", $"FAIL the worship list has {_vm.Queue.Count} items; the phase needs two"); return; }
         var captions = _sp.GetRequiredService<Axicultus.Wpf.Captions.CaptionSession>();
-        var console = new Axicultus.Wpf.Captions.CaptionConsole(_vm, captions,
-            _sp.GetRequiredService<Axicultus.Wpf.Captions.CaptionBroadcastServer>(), _sp.GetRequiredService<Axicultus.Wpf.Captions.CaptionRecoveryStore>(),
-            _sp.GetRequiredService<Axicultus.Wpf.Media.CameraOwnership>(), _sp.GetRequiredService<Axicultus.Wpf.Captions.ObsOperator>(),
-            _sp.GetService<Axicultus.Wpf.Rendering.IPowerPointRenderService>());
-        Keep.Add(console); // the operator's window stays open (the watchdog closes only stray windows)
-        void Check(bool pass, string what) => Log("CONSOLELIST", $"{(pass ? "PASS" : "FAIL")} {what}");
+        var shortcuts = _sp.GetRequiredService<ShortcutRegistry>();
+        void Check(bool pass, string what) => Log("CAPTIONTAB", $"{(pass ? "PASS" : "FAIL")} {what}");
         // A double-click as the mouse makes it: two routed presses, the second with a click count of 2.
         var clickCount = typeof(MouseButtonEventArgs).GetProperty(nameof(MouseButtonEventArgs.ClickCount))!.GetSetMethod(true)!;
         void DoubleClick(UIElement target)
@@ -1372,12 +1365,6 @@ internal static class Program
                 target.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, Environment.TickCount, MouseButton.Left) { RoutedEvent = Mouse.MouseUpEvent });
             }
         }
-        // A left click as the mouse makes it: the press, the window's preview of the release, the release.
-        void Click(UIElement target)
-        {
-            foreach (var routed in new[] { Mouse.MouseDownEvent, Mouse.PreviewMouseUpEvent, Mouse.MouseUpEvent })
-                target.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, Environment.TickCount, MouseButton.Left) { RoutedEvent = routed });
-        }
         UIElement Empty(ItemsControl list) => Logical(list).OfType<ItemsPresenter>().First();
         UIElement? RowTitle(ItemsControl list, LiveQueueItem item)
         {
@@ -1386,71 +1373,107 @@ internal static class Program
                 ? Logical(row).OfType<TextBlock>().FirstOrDefault(t => t.Text == item.Title) : null;
         }
         bool Out(LiveQueueItem item) => _vm.OutputItem?.Id == item.Id && ReferenceEquals(_vm.LiveRow, item); // (the output holds a copy)
+        // A key as the keyboard sends it to the element with the keyboard: the window's preview of it, the key, its release.
+        void Press(Key key)
+        {
+            if (Keyboard.FocusedElement is not UIElement at) { Log("CAPTIONTAB", $"no keyboard focus for {key}"); return; }
+            var source = PresentationSource.FromVisual(at);
+            var down = new KeyEventArgs(Keyboard.PrimaryDevice, source, 0, key) { RoutedEvent = Keyboard.PreviewKeyDownEvent };
+            at.RaiseEvent(down);
+            if (!down.Handled) at.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, source, 0, key) { RoutedEvent = Keyboard.KeyDownEvent });
+            at.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, source, 0, key) { RoutedEvent = Keyboard.PreviewKeyUpEvent });
+        }
+        var previewColumn = (FrameworkElement)_main.FindName("PreviewSplit");
+        Axicultus.Wpf.Captions.CaptionConsole? console = null;
+        string State() => $"captionTab={console?.IsVisible} preview={previewColumn.IsVisible} visible={captions.Visible} live={_vm.Session.Current.State} " +
+            $"output=\"{_vm.OutputItem?.Title}\" outputText=\"{Trim((_vm.OutputLyricsText ?? "").Replace("\n", "/"), 30)}\" " +
+            $"caption=\"{Trim(captions.ReadyText.Replace("\n", "/"), 30)}\" onAir=\"{Trim(captions.PublicText.Replace("\n", "/"), 30)}\" " +
+            $"keyboard={(Keyboard.FocusedElement as FrameworkElement)?.Name}:{Keyboard.FocusedElement?.GetType().Name}";
         try
         {
             await Exec("OpenOutputCommand", null, 2000);
-            console.ShowOnScreen();
-            console.WindowState = WindowState.Maximized;
+            _main.Activate();
+            _main.ShowCaptionTab(true); // Output › Camera captions
             await Settle(1500);
-            console.ScreenMode.IsChecked = true;
-            await Settle(1000);
-            console.AirButton.Command.Execute(null); // on air
-            LiveQueueItem first = _vm.Queue[0], second = _vm.Queue[1], fifth = _vm.Queue[4];
-            // The console list's LIVE badge on an item's row ("-": the row is not made).
-            string Live(LiveQueueItem item) => console.WorshipList.ItemContainerGenerator.ContainerFromItem(item) is not ListBoxItem row ? "-"
-                : Logical(row).OfType<TextBlock>().Any(t => t.Text == "LIVE" && t.IsVisible) ? "LIVE" : "";
-            string State() => $"output=\"{_vm.OutputItem?.Title}\" liveRow=\"{_vm.LiveRow?.Title}\" selected=\"{_vm.SelectedItem?.Title}\" " +
-                $"badges=[{Live(first)}|{Live(second)}|{Live(fifth)}] caption=\"{Trim(captions.ReadyText.Replace("\n", "/"), 40)}\" onAir=\"{Trim(captions.PublicText.Replace("\n", "/"), 40)}\" " +
-                $"outputText=\"{Trim((_vm.OutputLyricsText ?? "").Replace("\n", "/"), 40)}\" status=\"{console.Status.Text}\"";
+            console = _main.CaptionTab!;
+            Check(console.IsVisible && console.Strip.IsVisible && !previewColumn.IsVisible && console.ScreenMode.IsChecked == true && !captions.Visible,
+                "opened: the caption tab in the preview column, following the screen, hidden " + State());
+            SaveWindowPicture(_main, "captiontab-open.png");
 
-            Ctx("consolelist item 1 out");
-            _vm.SelectedItem = first; // item 1 on the output screen, as a double-click in the main list sends it
-            await Settle(1500);
-            await Exec("WorshipListDoubleClickCommand", null, 3000);
-            Log("CONSOLELIST", $"item 1 [{first.Kind}] {first.Title} out: maximized={console.WindowState == WindowState.Maximized} " +
-                $"list={console.WorshipList.ActualHeight:0}x{console.WorshipList.ActualWidth:0} rows={console.WorshipList.Items.Count} " + State());
-
-            Ctx("consolelist pick item 2");
-            console.WorshipList.UpdateLayout();
-            ((ISelectionItemProvider)new ListBoxItemAutomationPeer(second, new ListBoxAutomationPeer(console.WorshipList))
-                .GetPattern(PatternInterface.SelectionItem)).Select();
-            await Settle(1500);
-            bool picked = ReferenceEquals(_vm.SelectedItem, second) && Out(first);
-            Log("CONSOLELIST", $"item 2 [{second.Kind}] {second.Title} picked (output stays on item 1: {picked}) " + State());
-
-            Ctx("consolelist click item 2");
-            var secondRow = RowTitle(console.WorshipList, second);
-            if (secondRow != null) Click(secondRow);
-            await Settle(4000);
-            SaveWindowPicture(console, "consolelist-maximized.png");
-            string expected = (_vm.OutputLyricsText ?? "").Trim();
-            Check(picked && secondRow != null && Out(second) && Live(second) == "LIVE" && Live(first) == ""
-                && expected.Length > 0 && captions.ReadyText == expected && captions.PublicText == expected,
-                $"a click sent item 2 (row shown: {secondRow != null}): " + State());
-
-            Ctx("consolelist double-clicks in the console list");
-            _vm.SelectedItem = first;
-            await Settle(1500);
-            DoubleClick(Empty(console.WorshipList));
-            await Settle(2500);
-            Check(Out(second), "a double-click on the console list's empty space sends nothing: " + State());
-            if (RowTitle(console.WorshipList, fifth) is { } fifthRow)
+            Ctx("captiontab live item");
+            LiveQueueItem? onAir = null;
+            foreach (var item in _vm.Queue.Take(8))
             {
-                DoubleClick(fifthRow);
-                await Settle(3000);
-                Check(Out(fifth) && Live(fifth) == "LIVE" && captions.ReadyText == (_vm.OutputLyricsText ?? "").Trim(),
-                    $"a double-click on item 5 [{fifth.Kind}] {fifth.Title} in the console list sends it: " + State());
+                _vm.SelectedItem = item;
+                await Settle(1000);
+                await Exec("WorshipListDoubleClickCommand", null, 3000); // live, as the main list's double-click sends it
+                if (_vm.OutputLyricsPages.Count >= 2) { onAir = item; break; }
             }
-            else Check(false, "item 5's row is not shown in the console list");
+            if (onAir == null) { Check(false, "no item of two text pages or more in the first eight"); return; }
+            Log("CAPTIONTAB", $"live [{onAir.Kind}] {onAir.Title}: " + State());
 
-            Ctx("consolelist double-clicks in the main list");
+            Ctx("captiontab F6");
+            shortcuts.TryHandle(Key.F6, ModifierKeys.None);
+            await Settle(800);
+            string page = (_vm.OutputLyricsText ?? "").Trim();
+            Check(captions.Visible && page.Length > 0 && captions.PublicText == page, "F6 shows the caption, the output screen's text: " + State());
+
+            Ctx("captiontab keys in the tab");
+            console.ReleaseFocus();
+            await Settle(500);
+            Press(Key.Space);
+            await Settle(600);
+            bool spaceHid = !captions.Visible && (_vm.OutputLyricsText ?? "").Trim() == page;
+            Press(Key.Space);
+            await Settle(600);
+            Check(spaceHid && captions.Visible && (_vm.OutputLyricsText ?? "").Trim() == page, "Space in the caption tab hides and shows the caption, the output stays: " + State());
+            Press(Key.Escape);
+            await Settle(800);
+            Check(!captions.Visible && _vm.Session.Current.State != Axicultus.Wpf.Controls.LiveState.Off, "Esc in the caption tab hides the caption; the show stays live: " + State());
+            SaveWindowPicture(_main, "captiontab-following.png");
+
+            Ctx("captiontab preview tab");
+            shortcuts.TryHandle(Key.F2, ModifierKeys.None);
+            await Settle(1000);
+            Check(!console.IsVisible && previewColumn.IsVisible, "F2 shows the preview tab: " + State());
+            shortcuts.TryHandle(Key.F6, ModifierKeys.None);
+            await Settle(600);
+            Press(Key.Space); // the keyboard is the preview's (its own Space), not the caption's
+            await Settle(800);
+            bool kept = captions.Visible;
+            await Exec("NextOutputSlideCommand", null, 1500); // the output turned from the main window
+            string next = (_vm.OutputLyricsText ?? "").Trim();
+            Check(kept && captions.Visible && next != page && captions.PublicText == next,
+                "on the preview tab F6 shows the caption, Space is not the caption's, the output turned and the hidden tab's caption follows: " + State());
+            SaveWindowPicture(_main, "captiontab-preview.png");
+            shortcuts.TryHandle(Key.F2, ModifierKeys.None);
+            await Settle(1000);
+            Check(console.IsVisible && !previewColumn.IsVisible, "F2 shows the caption tab again: " + State());
+            SaveWindowPicture(_main, "captiontab-back.png");
+
+            // Another worship list (its name only, put back at once): a new caption tab on the same tab, hidden.
+            Ctx("captiontab another worship list");
+            var setList = typeof(MainViewModel).GetMethod("SetCurrentWorshipList", BindingFlags.NonPublic | BindingFlags.Instance)!;
+            string listName = _vm.CurrentWorshipListName;
+            setList.Invoke(_vm, [listName + " (a045)", null]);
+            await Settle(1000);
+            var renewed = _main.CaptionTab;
+            Check(renewed != null && !ReferenceEquals(renewed, console) && renewed.IsVisible && renewed.Strip.IsVisible && !captions.Visible,
+                "another worship list: a new caption tab, still shown, the caption hidden: " + State());
+            setList.Invoke(_vm, [listName, null]);
+            await Settle(1000);
+            console = _main.CaptionTab!;
+            Check(console.IsVisible && _vm.CurrentWorshipListName == listName, "the list's name back: " + State());
+
+            LiveQueueItem first = _vm.Queue[0], second = _vm.Queue[1];
+            Ctx("captiontab double-clicks in the main list");
             if (Logical(_main).OfType<ListView>().FirstOrDefault(l => l.Name == "QueueList") is { } mainList)
             {
                 _vm.SelectedItem = second;
                 await Settle(1500);
                 DoubleClick(Empty(mainList));
                 await Settle(2500);
-                Check(Out(fifth), "a double-click on the main list's empty space sends nothing: " + State());
+                Check(Out(onAir), "a double-click on the main list's empty space sends nothing: " + State());
                 if (RowTitle(mainList, first) is { } firstRow)
                 {
                     DoubleClick(firstRow);
@@ -1463,7 +1486,7 @@ internal static class Program
 
 
             // The library's song list: a row's double-click adds that song to the worship list, its empty space nothing.
-            Ctx("consolelist library double-click");
+            Ctx("captiontab library double-click");
             if (Logical(_main).OfType<ListView>().FirstOrDefault(l => l.Name == "LibrarySongList") is { Items.Count: > 1 } songs)
             {
                 // its tab shown, as the operator would see it (the tabs shown before come back after)
@@ -1509,65 +1532,11 @@ internal static class Program
             }
             else Check(false, "no library songs shown");
 
-            // Typing: item 2 sent from the list goes to the output screen; the typed caption stays.
-            Ctx("consolelist direct send item 2");
-            console.DirectMode.IsChecked = true;
-            await Settle(500);
-            console.Draft.Text = "환영합니다";
-            ((IInvokeProvider)new ButtonAutomationPeer(console.TakeButton)).Invoke();
-            await Settle(800);
-            if (RowTitle(console.WorshipList, second) is { } typedRow) Click(typedRow);
-            await Settle(4000);
-            SaveWindowPicture(console, "consolelist-direct.png");
-            Check(Out(second) && Live(second) == "LIVE" && Live(first) == "" && captions.PublicText == "환영합니다" && !captions.Mirroring,
-                $"typing, sent item 2 (caption stays 환영합니다, mirroring={captions.Mirroring}): " + State());
-
-            // The smallest window at the senior size: the column scrolled to the list (when it scrolls at all: with the look
-            // controls under the preview it may fit); a click on a row leaves the keyboard in the box and the column where it was.
-            Ctx("consolelist small window");
-            var themes = _sp.GetRequiredService<IThemeService>();
-            themes.ApplyInterfaceSize(InterfaceSize.Senior);
-            console.WindowState = WindowState.Normal;
-            console.Width = 900;
-            console.Height = 620;
-            await Settle(1500);
-            Log("CONSOLELIST", $"small window {console.ActualWidth:0}x{console.ActualHeight:0}: column {console.SourcePanel.ViewportHeight:0} of {console.SourcePanel.ExtentHeight:0}");
-            console.SourcePanel.ScrollToVerticalOffset(console.SourcePanel.ScrollableHeight); // (a number: ScrollToBottom follows a longer column)
-            await Settle(500);
-            double bottom = console.SourcePanel.VerticalOffset;
-            _vm.SelectedItem = first;
-            await Settle(1500);
-            if (console.WorshipList.ItemContainerGenerator.ContainerFromItem(first) is ListBoxItem firstItem) Click(firstItem);
-            await Settle(3000);
-            SaveWindowPicture(console, "consolelist-small.png");
-            Check((bottom > 0 || console.SourcePanel.ScrollableHeight < 1) && Math.Abs(console.SourcePanel.VerticalOffset - bottom) < 1 && Out(first)
-                && ReferenceEquals(FocusManager.GetFocusedElement(console), console.Draft),
-                $"small window: column offset {bottom:0} -> {console.SourcePanel.VerticalOffset:0} (scrollable {console.SourcePanel.ScrollableHeight:0}), " +
-                $"box focused={console.Draft.IsKeyboardFocused} " + State());
-
-            // The typed box: three lines of its font show, a fourth scrolls; at the standard and the senior size.
-            Ctx("consolelist typed box lines");
-            foreach (var size in new[] { InterfaceSize.Standard, InterfaceSize.Senior })
-            {
-                themes.ApplyInterfaceSize(size);
-                console.Draft.Text = "첫째 줄\n둘째 줄\n셋째 줄";
-                await Settle(800);
-                var box = Logical(console.Draft).OfType<ScrollViewer>().First();
-                double three = box.ScrollableHeight;
-                console.Draft.Text += "\n넷째 줄";
-                await Settle(800);
-                double four = box.ScrollableHeight;
-                Check(three < 0.5 && four > 0, $"typed box at {size}: font={console.Draft.FontSize:0.#} height={console.Draft.ActualHeight:0.#} " +
-                    $"three lines scroll {three:0.#}, four lines scroll {four:0.#}");
-            }
-            console.Draft.Text = "";
         }
         finally
         {
-            Ctx("consolelist stop");
-            _sp.GetRequiredService<IThemeService>().ApplyInterfaceSize(_sp.GetRequiredService<ISettingsService>().Get(AxicultusSettingKeys.InterfaceSize));
-            console.EndSession();
-            Keep.Remove(console);
+            Ctx("captiontab stop");
+            if (captions.Visible) captions.SetVisible(false);
             await Exec("StopLiveCommand", null, 2500);
             await Exec("CloseOutputCommand", null, 2500);
         }
@@ -1587,11 +1556,8 @@ internal static class Program
         if (sources.Count == 0) { Log("WARN", "no PowerPoint deck to follow"); return; }
         var folder = Directory.CreateDirectory(Path.Combine(_work, "a036")).FullName;
         var captions = _sp.GetRequiredService<Axicultus.Wpf.Captions.CaptionSession>();
-        var console = new Axicultus.Wpf.Captions.CaptionConsole(_vm, captions,
-            _sp.GetRequiredService<Axicultus.Wpf.Captions.CaptionBroadcastServer>(), _sp.GetRequiredService<Axicultus.Wpf.Captions.CaptionRecoveryStore>(),
-            _sp.GetRequiredService<Axicultus.Wpf.Media.CameraOwnership>(), _sp.GetRequiredService<Axicultus.Wpf.Captions.ObsOperator>(),
-            _sp.GetService<Axicultus.Wpf.Rendering.IPowerPointRenderService>());
-        console.ShowOnScreen(); // as the app opens it (placed on its screen)
+        _main.ShowCaptionTab(true); // as the app opens it (Output › Camera captions)
+        var console = _main.CaptionTab!;
         await Settle(1500);
         Log("A036", $"display on open={captions.Display} auto radio={console.AutoShow.IsChecked}");
         console.AirButton.Command.Execute(null);
@@ -1617,7 +1583,7 @@ internal static class Program
                 var sent = captions.PublicImage != null ? $"score ({console.ScoreSource}) \"{console.ScoreRowLabel.Text}\"" : "text";
                 Log("A036", $"  slide {n}: picture={deck.Slides[n - 1].HasPicture} boxes={deck.Slides[n - 1].Boxes.Length} sent={sent} text=\"{Trim(captions.PublicText.Replace("\n", " / "), 90)}\"");
             }
-            SaveWindowPicture(console, $"ppttext-deck{d + 1}.png");
+            SaveWindowPicture(_main, $"ppttext-deck{d + 1}.png");
             if (deck.Slides[0].Boxes.Skip(1).FirstOrDefault() is { } named)
             {
                 int missing = 0, empty = 0;

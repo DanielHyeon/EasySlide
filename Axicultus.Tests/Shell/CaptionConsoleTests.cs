@@ -72,10 +72,10 @@ public sealed partial class CaptionConsoleTests
         Assert.Equal("송출 중", Assert.Single(session.History).Text);
         await ClickAsync(console.AirButton);
         Assert.Equal("대기 중", session.PublicText); // what was typed while hidden goes out on Show
-        console.Close();
-        Assert.False(console.IsVisible);
+        console.Visibility = Visibility.Collapsed; // the preview tab shown: the caption stays on air, the box keeps its words
+        await console.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
         Assert.Equal("대기 중", session.PublicText);
-        console.Show();
+        console.Visibility = Visibility.Visible;
         Assert.Equal("대기 중", console.Draft.Text);
     }, expectedSavedDraft: "대기 중");
 
@@ -1099,101 +1099,8 @@ public sealed partial class CaptionConsoleTests
 
     // ---- a037: the operator console ----
 
-    [Fact]
-    public Task TheWindowIsLargeResizableAndRemembersItsPlace() => WithConsole(async (console, _, directory) =>
-    {
-        Assert.Equal(ResizeMode.CanResize, console.ResizeMode);
-        Assert.Equal((900d, 620d), (console.MinWidth, console.MinHeight));
-        console.Left = 40;
-        console.Top = 30;
-        console.Width = 1100;
-        console.Height = 760;
-        await console.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
-        var shown = CaptionWindowPlacement.Bounds(console)!.Value; // pixels: one space over screens of other scales
-        console.Close(); // hidden; where it was is kept
-        Assert.False(console.IsVisible);
-        Assert.Equal(new CaptionWindowPlacement(shown.Left, shown.Top, shown.Width, shown.Height, false, CaptionWindowPlacement.PixelVersion),
-            CaptionWindowPlacement.Read(Path.Combine(directory.FullName, "caption-window.json")));
-    });
-
-    [Fact]
-    public Task AConsoleClosedMinimizedFromMaximizedIsKeptMaximized() => WithConsole(async (console, _, directory) =>
-    {
-        console.WindowState = WindowState.Maximized;
-        await console.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
-        console.WindowState = WindowState.Minimized;
-        await console.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
-        console.Close();
-        Assert.True(CaptionWindowPlacement.Read(Path.Combine(directory.FullName, "caption-window.json"))!.Maximized);
-    });
-
-    // Before it is placed and shown.
-    [Fact]
-    public Task TheConsoleOpensLargeInTheMiddleTheFirstTime() => WithConsole((console, _, _) =>
-    {
-        Assert.Equal(WindowStartupLocation.CenterOwner, console.WindowStartupLocation);
-        Assert.Equal((1040d, 720d), (console.Width, console.Height));
-        return Task.CompletedTask;
-    }, show: false);
-
-    // Screens in pixels: a 1080p main screen at 100% and a 1440p one at 150% on its right.
+    // Screens in pixels: a 1080p main screen at 100%.
     private static readonly CaptionScreen MainScreen = new(new(0, 0, 1920, 1080), new(0, 0, 1920, 1040), 1, true);
-    private static readonly CaptionScreen RightScreen = new(new(1920, 0, 2560, 1440), new(1920, 0, 2560, 1400), 1.5, false);
-    private static readonly System.Windows.Size ConsoleSize = new(1040, 720);
-
-    private static CaptionWindowPlacement Kept(double left, double top, double width, double height, bool maximized = false) =>
-        new(left, top, width, height, maximized, CaptionWindowPlacement.PixelVersion);
-
-    [Fact]
-    public void APlaceOnTheSecondScreenOfAnotherScaleStaysThere()
-    {
-        var (bounds, maximized, screen) = CaptionWindowPlacement.Plan(Kept(2100, 100, 1560, 1080, true), null, [MainScreen, RightScreen], ConsoleSize);
-        Assert.Equal((new Rect(2100, 100, 1560, 1080), true, RightScreen), (bounds, maximized, screen));
-    }
-
-    [Fact]
-    public void AnEarlierFormPlaceOpensAtTheDefaultSizeOnTheMainWindowsScreen()
-    {
-        var directory = Directory.CreateTempSubdirectory();
-        try
-        {
-            var path = Path.Combine(directory.FullName, "caption-window.json");
-            File.WriteAllText(path, """{"Left":40,"Top":30,"Width":1100,"Height":760,"Maximized":false}"""); // WPF units, no version
-            Assert.Null(CaptionWindowPlacement.Read(path));
-            var (bounds, _, screen) = CaptionWindowPlacement.Plan(CaptionWindowPlacement.Read(path), new Rect(2500, 300, 1000, 800), [MainScreen, RightScreen], ConsoleSize);
-            Assert.Equal((RightScreen, new Rect(2220, 160, 1560, 1080)), (screen, bounds)); // its size at that screen's scale, over the main window
-        }
-        finally { directory.Delete(true); }
-    }
-
-    [Fact]
-    public void TheFirstOpenIsOnTheMainScreenNotTheFirstListed()
-    {
-        var topBar = MainScreen with { WorkArea = new(0, 40, 1920, 1040) }; // the taskbar at the top
-        var (bounds, _, screen) = CaptionWindowPlacement.Plan(null, null, [RightScreen, topBar], ConsoleSize);
-        Assert.Equal((topBar, new Rect(440, 200, 1040, 720)), (screen, bounds));
-    }
-
-    [Theory]
-    [InlineData(1700, 100, 1100, 760, 820, 100, 1100, 760)]   // partly off: moved in
-    [InlineData(100, 100, 3000, 2000, 0, 0, 1920, 1040)]      // bigger than the screen
-    [InlineData(-500, 10, 1040, 720, 0, 10, 1040, 720)]
-    [InlineData(-30000, -30000, 1100, 760, 440, 160, 1040, 720)] // a screen no longer there: the default in the middle
-    public void AKeptPlaceIsMovedIntoTheWorkArea(double left, double top, double width, double height, double x, double y, double w, double h) =>
-        Assert.Equal(new Rect(x, y, w, h), CaptionWindowPlacement.Plan(Kept(left, top, width, height), null, [MainScreen], ConsoleSize).Bounds);
-
-    [Fact]
-    public void AKeptPlaceFitsWhenItsTitleBarIsOnAScreen()
-    {
-        CaptionScreen[] screens = [MainScreen, RightScreen];
-        Assert.True(CaptionWindowPlacement.Fits(Kept(100, 100, 1040, 720), screens));
-        Assert.True(CaptionWindowPlacement.Fits(Kept(2000, 50, 1040, 720), screens)); // the second screen
-        Assert.True(CaptionWindowPlacement.Fits(Kept(-500, 10, 1040, 720), screens)); // partly off, its title bar reachable
-        Assert.False(CaptionWindowPlacement.Fits(Kept(100, -400, 1040, 720), screens)); // the title bar above every screen
-        Assert.False(CaptionWindowPlacement.Fits(Kept(5000, 100, 1040, 720), screens));
-        Assert.False(CaptionWindowPlacement.Fits(Kept(100, 100, double.NaN, 720), screens));
-        Assert.False(CaptionWindowPlacement.Fits(null, screens));
-    }
 
     [Fact]
     public void OnASmallScreenTheMinimumIsTheWorkArea()
@@ -1387,12 +1294,13 @@ public sealed partial class CaptionConsoleTests
             Assert.NotNull(console.Settings.FindName(name));
         }
         Assert.Empty(Descendants(console).OfType<PasswordBox>());
-        foreach (var name in new[] { "LinesBox", "ScoreSizeBox", "BoxCheck", "AirButton", "ToCamera", "ToObs", "ObsLabel", "SyncShow", "StepStrip" })
+        foreach (var name in new[] { "LinesBox", "ScoreSizeBox", "BoxCheck", "ToCamera", "ToObs", "ObsLabel", "SyncShow", "StepStrip" })
             Assert.NotNull(console.FindName(name));
+        Assert.NotNull(console.Strip.FindName("AirButton")); // on the tab strip
         Assert.False(console.Settings.IsVisible);
         await ClickAsync(console.SettingsButton); // not modal: this returns with the window open
         Assert.True(console.Settings.IsVisible);
-        Assert.Same(console, console.Settings.Owner);
+        Assert.Same(Window.GetWindow(console), console.Settings.Owner); // the main window
         console.Settings.Close(); // hidden, kept with what was typed in it
         Assert.False(console.Settings.IsVisible);
         await ClickAsync(console.SettingsButton);
@@ -1413,11 +1321,12 @@ public sealed partial class CaptionConsoleTests
         var steps = console.StepStrip.Items.Cast<object>().Select(item => console.StepStrip.ItemContainerGenerator.ContainerFromItem(item))
             .OfType<Control>().ToList();
         Assert.Equal(3, steps.Count);
-        foreach (var window in new System.Windows.Window[] { console, console.Settings })
+        // The tab with its strip (in the window it is in), and the settings window.
+        foreach (var window in new System.Windows.Window[] { Window.GetWindow(console), console.Settings })
         {
             var names = Descendants(window).OfType<Control>()
                 .Where(c => c is ButtonBase or TextBox or PasswordBox or ComboBox or ListBox)
-                .Concat(window == console ? steps : [])
+                .Concat(window != console.Settings ? steps : [])
                 .Select(c => (c, Name: AccessibleName(c))).ToList();
             Assert.All(names, n => Assert.False(string.IsNullOrWhiteSpace(n.Name), $"{window.GetType().Name}: {n.c.GetType().Name} {n.c.Name} has no name"));
             var twice = names.GroupBy(n => n.Name).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
@@ -1461,27 +1370,27 @@ public sealed partial class CaptionConsoleTests
         Assert.Equal(Visibility.Visible, console.HeldCaption.Visibility);
     });
 
-    [Fact]
-    public Task OnASmallScreenTheConsoleFitsAndItsBodyScrolls() => WithConsole((console, _, _) =>
+    // The main window at its least (780×540): a low preview column. The tab scrolls; nothing is cut, the steps keep a row.
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public Task InALowColumnTheTabScrollsAndKeepsARowOfSteps(bool typing) => WithConsole(async (console, _, _) =>
     {
-        // 1024×768 at 125%: a work area of 819×566 (smaller than the designed 900×620; see OnASmallScreenTheMinimumIsTheWorkArea).
-        var content = (FrameworkElement)console.Content; // laid out as the window would show it there (never shown here)
-        var client = new Size(819.2 - 16, 566.4 - 39);
-        content.Measure(client);
-        content.Arrange(new Rect(client));
-        content.UpdateLayout();
-        var air = console.AirButton.TransformToAncestor(content).TransformBounds(new Rect(console.AirButton.RenderSize));
-        Assert.True(air.Height >= 40 && new Rect(client).Contains(air), $"the on-air switch at {air}");
-        static bool Inside(DependencyObject element, DependencyObject container)
-        {
-            for (var at = element; at != null; at = LogicalTreeHelper.GetParent(at)) if (ReferenceEquals(at, container)) return true;
-            return false;
-        }
-        Assert.False(Inside(console.AirButton, console.Body)); // the bar with the switch stays in view
-        Assert.True(Inside(console.ObsPreviewBox, console.Body) && Inside(console.StepStrip, console.Body) && Inside(console.LinesBox, console.Body));
-        Assert.True(console.Body.ScrollableHeight > 0 && console.Body.ScrollableWidth > 0); // scrolled, not cut
-        return Task.CompletedTask;
-    }, show: false);
+        if (!typing) console.ScreenMode.IsChecked = true;
+        var host = Window.GetWindow(console);
+        (host.Width, host.Height) = (320, 420);
+        await console.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
+        await console.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle); // (the column's least height, then its layout)
+        Assert.True(console.Body.ScrollableHeight > 0, "scrolled, not cut");
+        Assert.True(console.Column.ActualHeight >= console.Column.MinHeight - 0.5);
+        if (typing) Assert.True(console.Draft.ActualHeight >= console.Draft.MinHeight - 0.5 && console.Draft.MinHeight > 40, $"the box {console.Draft.ActualHeight}");
+        else Assert.True(console.StepStrip.ActualHeight >= 73.5, $"the steps {console.StepStrip.ActualHeight}");
+        // A tall column gives the height left to the steps or the box, and does not scroll.
+        (host.Width, host.Height) = (Column.Width, Column.Height);
+        await console.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
+        Assert.Equal(0, console.Body.ScrollableHeight);
+        Assert.True((typing ? console.Draft.ActualHeight : console.StepStrip.ActualHeight) > 150);
+    });
 
     // The name a screen reader reads: the control's own, else its label's (LabeledBy).
     private static string AccessibleName(System.Windows.UIElement control)
@@ -1507,14 +1416,23 @@ public sealed partial class CaptionConsoleTests
         await button.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
     }
 
-    // savedStyle: caption-style.json as kept from an earlier session; savedWindow: caption-window.json.
-    // openSettings: the settings window is open (shown, owned by the console) while the exercise runs; show: false, the
-    // console is made but not shown (a small screen would shrink it); appLook: the app's resources (only where no other
-    // test made an Application); screens: the work areas the console fits in (a 1080p screen unless given).
+    // The window the tab is in (the main window, or the test's stand-in): its focus scope.
+    internal static IInputElement? Focused(CaptionConsole console) => FocusManager.GetFocusedElement(Window.GetWindow(console));
+
+    internal static void Focus(CaptionConsole console, IInputElement element) => FocusManager.SetFocusedElement(Window.GetWindow(console), element);
+
+    // The preview column of a maximized 1080p main window: where the caption tab is.
+    internal static readonly Size Column = new(720, 960);
+
+    // savedStyle: caption-style.json as kept from an earlier session.
+    // openSettings: the settings window is open (shown, owned by the main window) while the exercise runs; show: false,
+    // the tab is made in its stand-in window but not shown; appLook: the app's resources (only where no other test made
+    // an Application); screens: the work areas the settings window fits in (a 1080p screen unless given).
     // live: a live session of its own (the main window does not see it; nothing renders a deck), with the native show.
+    // The tab is in a stand-in for the main window: the tab strip over it, the size of the preview column.
     internal static Task WithConsole(Func<CaptionConsole, CaptionSession, DirectoryInfo, Task> exercise,
         string? expectedSavedDraft = null, string? savedStyle = null, IPowerPointRenderService? render = null,
-        string? savedWindow = null, bool openSettings = false, bool show = true, bool appLook = false,
+        bool openSettings = false, bool show = true, bool appLook = false,
         Func<IReadOnlyList<CaptionScreen>>? screens = null, LiveSessionService? live = null, IPowerPointSlideShowControl? nativeShow = null,
         bool asOpened = false) => StaHelper.RunOnStaAsync(async () =>
     {
@@ -1522,7 +1440,6 @@ public sealed partial class CaptionConsoleTests
         try
         {
             if (savedStyle != null) File.WriteAllText(Path.Combine(directory.FullName, "caption-style.json"), savedStyle);
-            if (savedWindow != null) File.WriteAllText(Path.Combine(directory.FullName, "caption-window.json"), savedWindow);
             if (appLook && System.Windows.Application.Current == null) new App().InitializeComponent(); // the app's theme and control styles
             var registrations = new ServiceCollection();
             App.ConfigureServices(registrations,
@@ -1537,14 +1454,19 @@ public sealed partial class CaptionConsoleTests
                 services.GetRequiredService<CameraOwnership>(), services.GetRequiredService<ObsOperator>(),
                 new OperationalErrorLog(directory.FullName), render, screens ?? (() => [MainScreen]))
             {
-                ShowActivated = false, ShowInTaskbar = false,
                 Songs = _ => Task.FromResult<IReadOnlyList<SongLyrics.Song>>([]), // no song database (a test gives its songs)
             };
-            // The tests start typing (they pick following themselves) unless they check how the console opens.
+            DockPanel.SetDock(console.Strip, Dock.Top);
+            var host = new Window
+            {
+                ShowActivated = false, ShowInTaskbar = false, Width = Column.Width, Height = Column.Height,
+                Content = new DockPanel { Children = { console.Strip, console } },
+            };
+            // The tests start typing (they pick following themselves) unless they check how the tab opens.
             if (!asOpened) console.DirectMode.IsChecked = true;
             try
             {
-                if (show) console.Show();
+                if (show) host.Show();
                 await console.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
                 if (openSettings)
                 {
@@ -1553,7 +1475,11 @@ public sealed partial class CaptionConsoleTests
                 }
                 await exercise(console, session, directory);
             }
-            finally { console.EndSession(); }
+            finally
+            {
+                console.EndSession();
+                host.Close();
+            }
             if (expectedSavedDraft != null)
             {
                 store.Dispose(); // Flush the last queued recovery write.

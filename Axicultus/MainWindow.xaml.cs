@@ -138,6 +138,8 @@ public partial class MainWindow : Window
         Bind(MainCommandIds.WindowAbout, OpenAbout_Click);
         Bind(MainCommandIds.AddExternalFile, AddExternalFile_Click);
         Bind(MainCommandIds.ImportLegacyWorshipList, ImportLegacyWorshipList_Click);
+        _shortcuts.Bind(MainCommandIds.CaptionToggle, () => _captionConsole?.ToggleOnAir(), () => _captionConsole != null);
+        _shortcuts.Bind(MainCommandIds.CaptionTab, () => ShowCaptionTab(_captionConsole?.Strip.CaptionTab.IsChecked != true));
     }
 
     private readonly DispatcherTimer _displayRefresh = new() { Interval = TimeSpan.FromMilliseconds(250) };
@@ -580,6 +582,11 @@ public partial class MainWindow : Window
             return;
         }
 
+        if (CaptionTabKey(e))
+        {
+            return;
+        }
+
         if (FolderTitleFilterBox?.IsKeyboardFocusWithin == true && Keyboard.Modifiers == ModifierKeys.None
             && HandleFolderFilterKey(e.Key))
         {
@@ -644,6 +651,15 @@ public partial class MainWindow : Window
 
         // FrmMain focus safety: while the operator is typing in QuickFind, Bible lookup,
         // live message, or editable setting fields, global live shortcuts must not fire.
+        // The camera captions' keys (F6 and F2, unless the user gave them others) work while a caption is typed too.
+        var pressed = e.Key == Key.System ? e.SystemKey : e.Key;
+        if (IsTextInputFocused() && _shortcuts.IsCommandGesture(pressed, Keyboard.Modifiers, MainCommandIds.CaptionToggle, MainCommandIds.CaptionTab)
+            && _shortcuts.TryHandle(pressed, Keyboard.Modifiers))
+        {
+            e.Handled = true;
+            return;
+        }
+
         if (IsTextInputFocused() && !IsMenuShortcut(e.Key, Keyboard.Modifiers))
         {
             return;
@@ -664,7 +680,7 @@ public partial class MainWindow : Window
     protected override void OnPreviewKeyUp(KeyEventArgs e)
     {
         base.OnPreviewKeyUp(e);
-        if (IsShowArrow(e.Key)) e.Handled = _shortcuts.TryHandle(e.Key, Keyboard.Modifiers);
+        if (!CaptionTabKey(e) && IsShowArrow(e.Key)) e.Handled = _shortcuts.TryHandle(e.Key, Keyboard.Modifiers);
     }
 
     // The WinForms menu strip handles these accelerators even when Quick Find owns focus.
@@ -3953,18 +3969,83 @@ public partial class MainWindow : Window
     }
     private readonly Captions.QueueRecoveryJournal? _queueRecovery;
 
-    private void OpenCameraCaptions_Click(object sender, RoutedEventArgs e)
+    private void OpenCameraCaptions_Click(object sender, RoutedEventArgs e) => ShowCaptionTab(true);
+
+    /// <summary>The caption tab while it is open (the harness drives it).</summary>
+    internal Captions.CaptionConsole? CaptionTab => _captionConsole;
+
+    // a045: the camera captions are a tab of the preview column. The first time (the Output menu or F2) the tab strip
+    // comes over the column and stays; the tabs only show and hide (the hidden caption keeps following the screen).
+    internal void ShowCaptionTab(bool captions)
     {
-        if (_captionConsole == null)
-        {
-            _captionConsole = new Captions.CaptionConsole(_viewModel, _services.GetRequiredService<Captions.CaptionSession>(),
-                _services.GetRequiredService<Captions.CaptionBroadcastServer>(), _services.GetRequiredService<Captions.CaptionRecoveryStore>(),
-                _services.GetRequiredService<Media.CameraOwnership>(), _services.GetRequiredService<Captions.ObsOperator>(),
-                _services.GetService<Rendering.IPowerPointRenderService>()) { Owner = this };
-            _captionConsole.Closed += (_, _) => _captionConsole = null;
-        }
-        _captionConsole.ShowOnScreen(); // placed on its screen each time it is shown
+        var strip = (_captionConsole ?? OpenCaptions(captions)).Strip;
+        (captions ? strip.CaptionTab : strip.PreviewTab).IsChecked = true;
+        ShowPreviewColumnTab();
     }
+
+    // The tab strip and the caption tab in the preview column, the tab shown (no keyboard moved: see ShowCaptionTab).
+    private Captions.CaptionConsole OpenCaptions(bool captionTab)
+    {
+        var console = new Captions.CaptionConsole(_viewModel, _services.GetRequiredService<Captions.CaptionSession>(),
+            _services.GetRequiredService<Captions.CaptionBroadcastServer>(), _services.GetRequiredService<Captions.CaptionRecoveryStore>(),
+            _services.GetRequiredService<Media.CameraOwnership>(), _services.GetRequiredService<Captions.ObsOperator>(),
+            _services.GetService<Rendering.IPowerPointRenderService>());
+        console.Ended += CaptionsEnded;
+        console.Strip.CaptionTab.IsChecked = captionTab;
+        console.Strip.PreviewTab.Checked += (_, _) => ShowPreviewColumnTab();
+        console.Strip.CaptionTab.Checked += (_, _) => ShowPreviewColumnTab();
+        // A click on the strip leaves the keyboard with the tab shown (a tab or the switch keeping it would take Space).
+        console.Strip.AddHandler(System.Windows.Controls.Primitives.ButtonBase.ClickEvent,
+            new RoutedEventHandler((_, _) => Dispatcher.InvokeAsync(FocusPreviewColumn, DispatcherPriority.Input)));
+        CaptionStripHost.Content = console.Strip;
+        CaptionHost.Content = console;
+        CaptionStripHost.Visibility = Visibility.Visible;
+        _captionConsole = console;
+        ShowPreviewColumnTab(focus: false);
+        return console;
+    }
+
+    private void ShowPreviewColumnTab(bool focus = true)
+    {
+        bool captions = _captionConsole?.Strip.CaptionTab.IsChecked == true;
+        CaptionHost.Visibility = captions ? Visibility.Visible : Visibility.Collapsed;
+        PreviewSplit.Visibility = captions ? Visibility.Collapsed : Visibility.Visible;
+        if (focus) Dispatcher.InvokeAsync(FocusPreviewColumn, DispatcherPriority.Input);
+    }
+
+    private void FocusPreviewColumn()
+    {
+        if (_captionConsole is { IsVisible: true } captions) captions.ReleaseFocus();
+        else FocusPreviewArea();
+    }
+
+    // Another worship list: a new caption tab for it, on the tab shown; the main window closing: the strip goes.
+    private void CaptionsEnded(bool planChanged)
+    {
+        bool captions = _captionConsole?.Strip.CaptionTab.IsChecked == true;
+        bool keyboard = _captionConsole?.IsKeyboardFocusWithin == true; // (else Space would go to the main window's next)
+        CaptionHost.Content = CaptionStripHost.Content = null;
+        _captionConsole = null;
+        if (planChanged) Dispatcher.InvokeAsync(() =>
+        {
+            if (_captionConsole != null || !IsLoaded) return;
+            OpenCaptions(captions);
+            if (keyboard) Dispatcher.InvokeAsync(FocusPreviewColumn, DispatcherPriority.Input);
+        });
+        else
+        {
+            CaptionStripHost.Visibility = CaptionHost.Visibility = Visibility.Collapsed;
+            PreviewSplit.Visibility = Visibility.Visible;
+        }
+    }
+
+    // In the caption tab its own keys go to it (Space shows or hides the caption, Esc hides it without ending the show, the
+    // arrows step, 1–4 pick the display); function keys and shortcuts with Ctrl or Alt still reach the main window.
+    private bool CaptionTabKey(KeyEventArgs e) => _captionConsole?.IsKeyboardFocusWithin == true
+        && IsCaptionTabKey(e.Key == Key.System ? e.SystemKey : e.Key, Keyboard.Modifiers);
+
+    internal static bool IsCaptionTabKey(Key key, ModifierKeys modifiers) =>
+        (modifiers & (ModifierKeys.Control | ModifierKeys.Alt)) == 0 && key is not (>= Key.F1 and <= Key.F24);
 
     private OutputFormatWindow? _outputFormat;
 

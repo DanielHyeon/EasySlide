@@ -268,6 +268,20 @@ public sealed class CommandCatalog : ICommandCatalog
             Text("CategoryWorshipList"),
             "ImportLegacyWorshipList",
             isDangerous: false),
+        // a045: the camera captions tab — keys free in FrmMain, working anywhere in the main window (also while typing). Last: a
+        // gesture a user already gave another command (a saved override) keeps it.
+        Command(
+            MainCommandIds.CaptionToggle,
+            Text("CategoryOutput"),
+            "CaptionToggle",
+            isDangerous: false,
+            new Shortcut(Key.F6, ModifierKeys.None, MainCommandIds.CaptionToggle, IsGlobal: false, Text("CaptionToggle"))),
+        Command(
+            MainCommandIds.CaptionTab,
+            Text("CategoryOutput"),
+            "CaptionTab",
+            isDangerous: false,
+            new Shortcut(Key.F2, ModifierKeys.None, MainCommandIds.CaptionTab, IsGlobal: false, Text("CaptionTab"))),
     };
 
     public CommandCatalog()
