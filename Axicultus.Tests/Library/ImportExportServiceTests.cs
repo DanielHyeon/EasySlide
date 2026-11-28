@@ -154,6 +154,38 @@ public class ImportExportServiceTests
         saved.Sequence.Should().Be("1,c");
     }
 
+    // a050 design 10: the sequence of an exchange file (XML, JSON) or a text file is token text: tabs and line breaks
+    // between the tokens or at either end are separators, so it is stored as the verse codes of the same tokens written
+    // with commas (the repository stores what it is given through SongExchangeSequence.ToDatabase).
+    [Theory]
+    [InlineData("1\tc\t2")]
+    [InlineData("1\r\nc\n2")]
+    [InlineData("\n1,c,2\n")]
+    [InlineData("1,c,2\r\n")]
+    [InlineData("1 c 2\t")]
+    public async Task AnImportedSequenceWithTabsOrLineBreaks_IsStoredAsTheVerseCodesOfItsTokens(string sequence)
+    {
+        foreach (var kind in new[] { "xml", "json", "text" })
+        {
+            using var fixture = new ImportExportFixture();
+            string path;
+            if (kind == "xml") path = fixture.WriteXml(new XElement("Item", new XElement("Title1", "Alpha"), new XElement("Folder", "A"), new XElement("Sequence", sequence)));
+            else if (kind == "json")
+            {
+                path = Path.Combine(fixture.Root, "import.json");
+                File.WriteAllText(path, System.Text.Json.JsonSerializer.Serialize(new[] { new { Title1 = "Alpha", Folder = "A", Sequence = sequence } }), Encoding.UTF8);
+            }
+            else path = fixture.WriteLegacyText($"[est3.1]\n[>Alpha>fA>@{sequence}]\nLine 1\n");
+
+            var report = await fixture.CreateService().ImportAsync(new ImportRequest(fixture.AdminDatabasePath, fixture.BackupRoot,
+                path, 1, ["A"], ImportDuplicatePolicy.SkipExisting));
+
+            report.Succeeded.Should().BeTrue(kind);
+            Axicultus.Module.SongExchangeSequence.ToDatabase(fixture.Repository.SavedSongs.Single().Sequence)
+                .Should().Be(Axicultus.Module.SongExchangeSequence.ToDatabase("1,c,2"), kind);
+        }
+    }
+
     [Fact]
     public async Task ImportAsync_WhenXmlWithReplaceExisting_UpdatesMatchingTitle()
     {

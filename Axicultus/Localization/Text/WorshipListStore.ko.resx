@@ -9,4 +9,5 @@
   <data name="FormatUnreadable" xml:space="preserve"><value>예배 순서 '{0}'의 저장 형식을 읽을 수 없습니다.</value></data>
   <data name="NameInvalid" xml:space="preserve"><value>예배 순서 이름에 사용할 수 없는 문자/형식입니다: {0}</value></data>
   <data name="NameOutside" xml:space="preserve"><value>예배 순서 이름이 허용 경로를 벗어납니다: {0}</value></data>
+  <data name="RestoreHalfDone" xml:space="preserve"><value>예배 순서 '{0}'을(를) 휴지통에서 되돌리지 못했고, 이미 되돌린 파일을 휴지통으로 다시 옮기지도 못했습니다: {1}</value></data>
 </root>

@@ -12,7 +12,9 @@ namespace Axicultus.Wpf.Captions;
 // The host only reads its own state into these values and runs its own commands: every caption rule (what the tab
 // follows, when a picked row is sent, which slide a deck is on, which songs are read) is the tab's.
 // Threads: the tab reads every member and the host raises Changed and Replacing on the tab's UI thread; only
-// ICaptionLiveSource.Changed may come from another thread.
+// ICaptionLiveSource.Changed may come from another thread. The host builds the CaptionSession on its UI thread, one that
+// pumps messages: the session handles a change from another thread on the thread it was built on, so one built elsewhere
+// never handles them.
 
 /// <summary>What an item is to the captions.</summary>
 public enum CaptionItemKind
@@ -183,11 +185,16 @@ public interface ICaptionHost
     /// <summary>Whether the picked row can be sent to the output column now.</summary>
     bool CanSendPicked { get; }
 
-    /// <summary>The send of a row to the output column under way, or a completed task.</summary>
+    /// <summary>
+    /// The send of a row to the output column under way (the host's own, or one the tab asked for), or a completed task.
+    /// </summary>
     Task PickedSending { get; }
 
-    /// <summary>Puts the picked row in the output column (not on air), as the host's own "send to output" does.</summary>
-    void SendPicked();
+    /// <summary>
+    /// Puts the picked row in the output column (not on air), as the host's own "send to output" does; the task ends
+    /// when it is there and fails with what went wrong (the tab tells and logs it).
+    /// </summary>
+    Task SendPickedAsync();
 
     // ---- decks ----
 

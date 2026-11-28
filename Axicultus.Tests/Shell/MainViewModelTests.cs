@@ -1847,7 +1847,7 @@ public partial class MainViewModelTests
     [Fact]
     public void SelectingDualLanguageBible_AShortPassageIsOneScreenWithBothVersions()
     {
-        // 이중 언어 성경([region 2])은 [region 2] 가 절 경계로 오인되지 않는다. As in WinForms the passage flows: two
+        // In a two-language passage ([region 2]) the [region 2] marker is not taken for a verse boundary. As in WinForms the passage flows: two
         // short verses fit one screen (gfLyrics.BuildSlides), they are not a screen each.
         var sut = CreateSut(seedSampleQueue: false);
         var bible = new LiveQueueItem("0;kjv.db;krv.db;43;3;16;3;17;", "John 3:16-17", LiveItemKinds.Bible)
@@ -2735,7 +2735,7 @@ public partial class MainViewModelTests
         sut.LiveItemId.Should().Be("b");
         sut.CanSelectLiveItem.Should().BeTrue();
 
-        // 마지막 라이브 항목까지 큐에서 빠지면 비활성(큐에 없는 고아 Id).
+        // With the last live item gone from the queue too, it is disabled (an orphan Id not in the queue).
         sut.RemoveSelectedItemCommand.Execute(null);
         sut.Queue.Should().BeEmpty();
         sut.CanSelectLiveItem.Should().BeFalse("라이브 항목이 큐에서 빠지면 비활성");
@@ -2894,8 +2894,8 @@ public partial class MainViewModelTests
     [Fact]
     public async Task RefreshSavedWorshipListNames_KeepsSelectionWhenNameStillPresent()
     {
-        // 새로고침해도 여전히 있는 선택은 유지돼야 한다(콤보 ItemsSource Clear 로 선택이 풀리는 WPF Selector 동작 대비
-        // — VM 의 캡처/복원 로직을 잠근다. 실제 Selector 널링은 단위 테스트에 안 나타나지만, 복원 의도를 고정).
+        // A selection still there after a refresh is kept (against the WPF Selector dropping it when the combo's ItemsSource
+        // is cleared: this pins the view model's capture and restore; the Selector's nulling does not show in a unit test).
         var sut = CreateSut(worshipLists: new InMemoryWorshipListStore());
         sut.LoadQueue([new LiveQueueItem("a", "A", "Song")]);
         await sut.SaveWorshipListAsync("주일 1부");
@@ -2911,7 +2911,7 @@ public partial class MainViewModelTests
     [Fact]
     public async Task DeleteWorshipList_RemovesFromSessionCombo()
     {
-        // 삭제하면 세션 콤보에서도 바로 빠진다(저장 경로와 대칭).
+        // A deleted list leaves the session combo at once (as a saved one joins it).
         var sut = CreateSut(worshipLists: new InMemoryWorshipListStore());
         sut.LoadQueue([new LiveQueueItem("a", "A", "Song")]);
         await sut.SaveWorshipListAsync("지울것");
@@ -4023,7 +4023,7 @@ public partial class MainViewModelTests
     [Fact]
     public void DuplicateSelectedItem_InsertsACopyOfTheRow_AfterOriginal_AndSelectsIt()
     {
-        // 선택 항목 복제 — 같은 내용(가사·종류·번호)으로 바로 뒤에 삽입하고 복제본을 선택(같은 곡 두 번 부르기 등).
+        // Duplicating the selected item: the same content (lyrics, kind, number) inserted right after it, the copy selected (the same song sung twice).
         // The copy keeps the id (the song stays that song for the database); it is another row by reference.
         var sut = CreateSut(seedSampleQueue: false);
         sut.LoadQueue([

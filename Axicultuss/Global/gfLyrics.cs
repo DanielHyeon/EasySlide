@@ -3364,18 +3364,14 @@ namespace Axicultus;
 		{
 			if (InSequence.Length > 0)
 			{
-				string sequenceText = "";
-				for (int i = 0; i < InSequence.Length; i++)
+				var symbols = new List<string>();
+				foreach (int verseCode in InSequence)
 				{
-					int verseCode = InSequence[i];
-					// A character that is no verse code (text saved by another program) has no symbol.
-					sequenceText = (verseCode is > 0 and < 13) ? (sequenceText + verseCode) : verseCode < SequenceSymbol.Length ? (sequenceText + SequenceSymbol[verseCode]) : sequenceText;
-					if (i < InSequence.Length - 1)
-					{
-						sequenceText += ",";
-					}
+					// A character that is no verse code (text saved by another program) has no symbol: left out with its comma.
+					string symbol = (verseCode is > 0 and < 13) ? verseCode.ToString() : verseCode < SequenceSymbol.Length ? SequenceSymbol[verseCode] : "";
+					if (symbol.Length > 0) symbols.Add(symbol);
 				}
-				return sequenceText;
+				return string.Join(",", symbols);
 			}
 			return "";
 		}
@@ -3384,7 +3380,8 @@ namespace Axicultus;
 		{
 			if (InSequence.Length > 0)
 			{
-				InSequence = InSequence.ToLower();
+				// Token text: a tab or a line break between the tokens or at either end separates them as a comma does (a050 design 22).
+				InSequence = InSequence.Trim().Replace('\t', ',').Replace('\r', ',').Replace('\n', ',').ToLower();
 				string token = "";
 				int verseCode = -1;
 				string sequence = "";
@@ -3419,7 +3416,8 @@ namespace Axicultus;
 								break;
 							default:
 								verseCode = DataUtil.StringToInt(token, Minus1IfBlank: true);
-								if (verseCode is > 9 or < 0)
+								// Verses 1-99, as ConvertSequenceToTextString writes them (the original's limit of 9 dropped 10 and up; a050 design 24).
+								if (verseCode is > 99 or < 0)
 								{
 									verseCode = -1;
 								}

@@ -90,6 +90,24 @@ public class SongExchangeTests
         finally { File.Delete(path); }
     }
 
+    // a050 design 22: an exchange file's sequence is token text; a tab or a line break between the tokens or at either end
+    // separates them as a comma does.
+    [Theory]
+    [InlineData("1&#9;c&#9;2")]
+    [InlineData("1&#13;&#10;c&#10;2")]
+    [InlineData("&#10;1,c,2&#10;")]
+    [InlineData("1,c&#10;2")]
+    [InlineData("1,c,2&#9;")]
+    public void AnXmlItemsSequenceWithTabsOrLineBreaksIsReadAsItsTokens(string sequence)
+    {
+        var xml = new XmlTextReader(new StringReader($"<Axicultus><Item><Title1>First</Title1><Sequence>{sequence}</Sequence></Item></Axicultus>"));
+        using var reader = xml;
+        var song = new SongSettings();
+        Assert.True(Gf.ValidateAxicultusXML(ref xml));
+        Assert.True(Gf.ExtractAxicultusXMLItem(ref xml, ref song));
+        Assert.Equal("\u0001\0\u0002", song.SongSequence);
+    }
+
     [Fact]
     public void WinFormsXmlImportDoesNotSelectSongsFromAMatchingFolderSuffix()
     {

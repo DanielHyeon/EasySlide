@@ -48,6 +48,7 @@ public sealed record CaptionDeck(string Path, CaptionSlide[] Slides)
             var boxes = new List<CaptionBox>();
             var shapeXml = ReadXml(part);
             var presentationNs = shapeXml.Root!.Name.Namespace;
+            int skipped = 0; // Fallback copies left out (counted in the numbers of unnamed boxes, as when they were listed)
             foreach (var shape in shapeXml.Descendants(presentationNs + "sp"))
             {
                 var body = shape.Element(presentationNs + "txBody");
@@ -55,10 +56,13 @@ public sealed record CaptionDeck(string Path, CaptionSlide[] Slides)
                 var text = Paragraphs(body);
                 if (text.Length == 0) continue;
                 var props = shape.Element(presentationNs + "nvSpPr");
-                var name = (string?)props?.Element(presentationNs + "cNvPr")?.Attribute("name") ?? CaptionText.Format("CaptionConsole", "BoxName", boxes.Count + 1);
+                var name = (string?)props?.Element(presentationNs + "cNvPr")?.Attribute("name") ?? CaptionText.Format("CaptionConsole", "BoxName", boxes.Count + skipped + 1);
                 var placeholder = props?.Descendants(presentationNs + "ph").FirstOrDefault();
                 var key = placeholder is null ? "shape:" + name :
                     $"placeholder:{(string?)placeholder.Attribute("type") ?? "obj"}:{(string?)placeholder.Attribute("idx") ?? "0"}";
+                // The mc:Fallback copy of a box its mc:Choice already listed is that box again (a050 design 11); one
+                // only in the Fallback stays. Numbered all the same: an unnamed box keeps the number it had.
+                if (shape.Ancestors().Any(e => e.Name.LocalName == "Fallback") && boxes.Any(box => box.Key == key)) { skipped++; continue; }
                 boxes.Add(new(key, name, text));
             }
             var picture = ContentPicture(part, shapeXml, slideArea);

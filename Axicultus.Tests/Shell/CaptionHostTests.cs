@@ -69,8 +69,10 @@ internal sealed class FakeCaptionHost : ICaptionHost
         Raise(CaptionHostChange.OutputPages);
     }
 
-    public bool CanStepOutput(int direction) => false;
-    public Task StepOutputAsync(int direction) => Task.CompletedTask;
+    public Func<int, Task>? Step; // the host's own step of its output (null: it cannot step)
+    public Exception? Throws; // thrown by CanStepOutput and SendPicked (a host that fails there)
+    public bool CanStepOutput(int direction) => Throws is { } error ? throw error : Step != null;
+    public Task StepOutputAsync(int direction) => Step?.Invoke(direction) ?? Task.CompletedTask;
 
     public void GoToOutputPage(int index)
     {
@@ -84,14 +86,19 @@ internal sealed class FakeCaptionHost : ICaptionHost
     public Task PickedSending => Sending?.Task ?? Task.CompletedTask;
     public readonly List<CaptionItem> Sent = [];
 
-    public void SendPicked()
+    public async Task SendPickedAsync()
     {
+        if (Throws is { } error)
+        {
+            await Task.Yield(); // (fails from the task, as a host's command does)
+            throw error;
+        }
         Sent.Add(Picked!);
         Show(Picked!, [Picked!.Title + " 1절"], 0);
     }
 
     public ICaptionSlideRenderer? Renderer => null;
-    public Func<string, CancellationToken, Task<CaptionDeck>>? ReadLegacyDeck => null;
+    public Func<string, CancellationToken, Task<CaptionDeck>>? ReadLegacyDeck { get; set; }
     public ICaptionSongSource? SongDatabase => null;
     public CameraOwnership? Camera => null;
     public void StopLocalCamera() { }
@@ -147,7 +154,7 @@ public sealed partial class CaptionConsoleTests
     private static readonly CaptionItem Verses = new("song:fake-verses", "세 절 찬양", CaptionItemKind.Text);
     private static readonly string[] ThreeVerses = ["첫째 절", "둘째 절", "셋째 절"];
 
-    // a046 spec "앱 뷰모델 없이 자막 탭이 열린다": the host tells the screen's text changed; the tab prepares it, and the switch
+    // a046 spec "the caption tab opens without the app's view model": the host tells the screen's text changed; the tab prepares it, and the switch
     // puts it on air.
     [Fact]
     public Task AnotherHostsScreenTextIsFollowedAndTheSwitchPutsItOnAir() => FakeCaptionHost.WithConsole(async (console, session, host, _) =>
@@ -450,7 +457,7 @@ public sealed partial class CaptionConsoleTests
 public sealed class CaptionDefaultLookCollection;
 
 /// <summary>
-/// a046 design 4b "기본 컨트롤 모양": the caption tab and its settings window with the library's default look only, no app
+/// a046 design 4b "default control look": the caption tab and its settings window with the library's default look only, no app
 /// theme and no app control styles: the application's resources (the app's theme, when a test of the run made an
 /// Application) are an empty dictionary while the tab is made and checked, and put back after.
 /// </summary>

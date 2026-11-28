@@ -305,7 +305,7 @@ public class LiveSessionServiceTests
     [Fact]
     public void GoLive_ChorusPage_SetsCurrentPageIsChorus()
     {
-        // [chorus] 절을 송출 중이면 CurrentPageIsChorus=true(강조 후렴만 효과 판정).
+        // While a [chorus] verse is on air CurrentPageIsChorus is true (only the emphasized chorus gets the effect).
         var item = new LiveQueueItem("song-c", "은혜로다", LiveItemKinds.Song)
         {
             Lyrics = "[1]\n첫 절\n[chorus]\n후렴 가사",
@@ -322,7 +322,7 @@ public class LiveSessionServiceTests
     public void GoLive_SetsCurrentSectionLabel_ForVerseHeading()
     {
         // 절 헤딩(FrmMain Def_Head All) — 현재 송출 절의 섹션 라벨이 스냅샷에 실린다.
-        // 후렴 판정과 같은 라벨 경로를 재사용하므로, [chorus] 페이지의 라벨은 후렴 라벨("chorus")이어야 한다.
+        // The chorus check uses the same label path, so a [chorus] page's label must be the chorus label ("chorus").
         const string lyrics = "[1]\n첫 절\n[chorus]\n후렴 가사";
         var sut = new LiveSessionService();
 

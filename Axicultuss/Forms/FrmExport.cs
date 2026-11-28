@@ -22,8 +22,6 @@ public partial class FrmExport : Form
 
 		private string SongID1;
 
-		private string tempSequence;
-
 		private string SongTitle;
 
 		private int TotSongsSel;
@@ -487,24 +485,8 @@ public partial class FrmExport : Form
 				}
 				if (ExportItem.SongSequence.Length > 0)
 				{
-					tempSequence = "";
-					for (int j = 0; j < ExportItem.SongSequence.Length; j++)
-					{
-						int verseIndicator = DataUtil.StringToInt(ExportItem.SongSequence[j]);
-						if (verseIndicator is > 0 and < 13)
-						{
-							tempSequence += Convert.ToString(verseIndicator);
-						}
-						else
-						{
-							tempSequence += Gf.SequenceSymbol[verseIndicator];
-						}
-						if (j < ExportItem.SongSequence.Length - 1)
-						{
-							tempSequence += ",";
-						}
-					}
-					stringBuilder.Append(">@" + tempSequence);
+					// (the shared text of a sequence: a code without a symbol is left out with its comma; a050 design 21)
+					stringBuilder.Append(">@" + Gf.ConvertSequenceToTextString(ExportItem.SongSequence));
 				}
 				stringBuilder.Append(']');
 				if (ExportItem.Notations != "")

@@ -82,21 +82,11 @@ public partial class CaptionConsole : UserControl
         WatchColumn();
         DataContext = _editor;
         _editor.SaveRequested += Changed;
-        Host.Text = obs.Host;
-        Port.Text = obs.Port.ToString();
-        AutoObs.IsChecked = obs.AutoConnect;
-        CameraSource.Text = obs.CameraSource;
-        PreviewObsCamera.IsChecked = obs.CameraSource.Length > 0;
-        SavedPassword.Visibility = obs.HasSavedPassword ? Visibility.Visible : Visibility.Collapsed;
+        ShowObsSettings();
         BoxCheck.IsChecked = captions.Style.Box;
         _editor.IsInstant = true;
         _live.Changed += LiveChanged;
         Loaded += StartAutomatically;
-        var shortcuts = obs.Shortcuts;
-        Scene1.Text = shortcuts[0];
-        Scene2.Text = shortcuts[1];
-        Scene3.Text = shortcuts[2];
-        Scene4.Text = shortcuts[3];
         _obs.Changed += ShowObsStatus;
         ShowObsStatus(obs.Status);
         Draft.AddHandler(TextCompositionManager.PreviewTextInputStartEvent, new TextCompositionEventHandler(OnCompositionStarted), true);
@@ -136,6 +126,23 @@ public partial class CaptionConsole : UserControl
         if (captions.Deck is { } deck) ShowDeck(deck, captions.CurrentSlide, captions.BoxKey is { Length: > 0 } key ? key : CaptionDeck.AllTextKey);
     }
 
+    // The settings window's OBS fields from what OBS holds (obs.json's values once read).
+    private void ShowObsSettings()
+    {
+        Host.Text = _obs.Host;
+        Port.Text = _obs.Port.ToString();
+        AutoObs.IsChecked = _obs.AutoConnect;
+        CameraSource.Text = _obs.CameraSource;
+        PreviewObsCamera.IsChecked = _obs.CameraSource.Length > 0;
+        SavedPassword.Visibility = _obs.HasSavedPassword ? Visibility.Visible : Visibility.Collapsed;
+        var shortcuts = _obs.Shortcuts;
+        Scene1.Text = shortcuts[0];
+        Scene2.Text = shortcuts[1];
+        Scene3.Text = shortcuts[2];
+        Scene4.Text = shortcuts[3];
+        _obsFieldsRead = _obs.SettingsRead;
+    }
+
     private void HostChanged(object? sender, CaptionHostChange change)
     {
         switch (change)
@@ -170,7 +177,13 @@ public partial class CaptionConsole : UserControl
         if (_closed || !IsVisible || ScreenMode.IsChecked != true || !ReferenceEquals(_host.Picked, picked)
             || _live.Current.State is CaptionLiveState.Active or CaptionLiveState.Hidden
             || picked.Kind == CaptionItemKind.Media || _host.OutputItem?.Id == picked.Id) return;
-        if (_host.CanSendPicked) _host.SendPicked();
+        try { if (_host.CanSendPicked) await _host.SendPickedAsync(); }
+        catch (OperationCanceledException) { } // (as a cancelled step: quietly)
+        catch (Exception ex) // (the host's send failing is told, never left to end the app)
+        {
+            _host.WriteError("send picked row to output", ex);
+            if (!_closed) Status.Text = CaptionText.Format("CaptionConsole", "SendPickedFailed", ex.Message);
+        }
     }
 
     /// <summary>The app the tab is in (a test reads the view model behind it).</summary>
@@ -278,11 +291,19 @@ public partial class CaptionConsole : UserControl
         }
     }
 
+    // Read when the tab is made and again when it is first shown (it is Loaded twice). Once this tab has saved a recovery
+    // of its own the file holds this run's state: the one read before (an earlier run's, or none) is kept (a050 design 23).
     private async void LoadRecovery(object sender, RoutedEventArgs e)
     {
         try
         {
-            _recoverable = await Task.Run(() => _store.Read(_plan));
+            // (a save of this tab waits for a read under way, so what it reads is never this run's own; a050 design 27)
+            if (!_savedOwn)
+            {
+                var reading = Task.Run(() => _store.Read(_plan));
+                _recoveryRead = reading;
+                _recoverable = await reading;
+            }
             if (_closed) return;
             RecoverButton.IsEnabled = _recoverable != null;
             if (_recoverable != null)
@@ -298,6 +319,9 @@ public partial class CaptionConsole : UserControl
         }
     }
 
+    private bool _savedOwn; // this tab has saved a recovery of its own
+    private Task? _recoveryRead; // the last read of the recovery file
+
     // The main window journals queue edits even while the caption editor is closed.
     private void Changed()
     {
@@ -310,11 +334,29 @@ public partial class CaptionConsole : UserControl
     private async Task SaveAsync()
     {
         if (!_dirty) return;
+        if (_recoveryRead is { IsCompleted: false } reading)
+        {
+            await Task.WhenAny(reading); // (its failure is LoadRecovery's to tell)
+            if (!_dirty) return;
+        }
         _dirty = false;
-        var (items, selected) = _recovery?.Capture() ?? (Array.Empty<System.Text.Json.JsonElement>(), -1); // (a host that keeps its own worship order: none)
+        (System.Text.Json.JsonElement[] Items, int Selected) order;
+        try { order = _recovery?.Capture() ?? ([], -1); } // (a host that keeps its own worship order: none)
+        catch (Exception ex) // the host failing to give it: nothing saved, still to be saved, told
+        {
+            _dirty = true;
+            _host.WriteError("capture caption recovery", ex);
+            if (!_closed) Status.Text = CaptionText.Format("CaptionConsole", "RecoverySaveFailed", ex.Message);
+            return;
+        }
+        var (items, selected) = order;
         var snapshot = new CaptionRecovery(1, ++_revision, _plan, _editor.DraftText, _captions.Deck?.Path,
             SelectedSlide, _chosenKey, [with(_captions.Overrides)], [.. _captions.History], items, selected);
-        try { await _store.SaveAsync(snapshot); }
+        try
+        {
+            await _store.SaveAsync(snapshot);
+            _savedOwn = true;
+        }
         catch (Exception ex) when (IsFileError(ex))
         {
             _dirty = true;
@@ -355,7 +397,7 @@ public partial class CaptionConsole : UserControl
             {
                 try { deck = await ReadDeckAsync(saved.DeckPath); }
                 catch (OperationCanceledException) when (_lifetime.IsCancellationRequested) { return; }
-                catch (Exception ex) when (IsDeckReadError(ex))
+                catch (Exception ex) // any other failure, the host's too, is a deck not read: recovered without it (a050 design 20)
                 {
                     _host.WriteError("recover caption PPT", ex);
                     warning = CaptionText.Format("CaptionConsole", "ReopenDeck", ex.Message);
@@ -1185,7 +1227,7 @@ public partial class CaptionConsole : UserControl
         if (sender is FrameworkElement { Tag: string color }) _captions.SetStyle(_captions.Style with { Color = color });
     }
 
-    // The colour in use has the accent ring (none of them for a colour picked with 직접 선택).
+    // The colour in use has the accent ring (none of them for a colour picked with Custom…).
     private void ShowChosenColor()
     {
         foreach (var swatch in Swatches.Children.OfType<Button>())
@@ -1227,16 +1269,34 @@ public partial class CaptionConsole : UserControl
     }
 
     private bool _started;
+    private bool _obsFieldsRead; // the settings window was filled from obs.json as read (not its defaults)
 
     // The tab is there from the app's start, behind the live tab. The caption server starts and OBS is connected with
     // the saved settings when the captions are first used: the tab seen, or the caption put on air from the live tab.
+    // A tab made before obs.json was read waits for the read (started here if the host has not) and shows its values
+    // (a050 design 18). Connecting writes the settings window's values back: not when obs.json could not be read; then
+    // only the operator's Connect writes it, and the OBS line and the settings window say so (a050 design 2, 13, 19).
     private async void StartWhenUsed()
     {
         if (_started || _closed || !IsLoaded || !(IsVisible || _captions.Visible)) return;
         _started = true;
         await StartServerAsync();
-        if (_obs.Connection == null && (_obs.HasSavedPassword || _obs.AutoConnect || File.Exists(_obs.ProfilePath))) await ConnectAsync();
-        else if (_obs.Connection == null) ObsLabel.Text = CaptionText.Get("CaptionConsole", "ObsConnectInSettings");
+        if (!_obsFieldsRead)
+        {
+            await _obs.StartAsync();
+            if (_closed) return;
+            if (_obs.SettingsRead) ShowObsSettings();
+        }
+        if (_obs.Connection != null) return;
+        if (!_obsFieldsRead && File.Exists(_obs.ProfilePath))
+        {
+            string notice = CaptionText.Get("CaptionConsole", "ObsUnreadConnectSaves");
+            ObsLabel.Text = ObsLabel.Text.Length > 0 ? ObsLabel.Text + " · " + notice : notice;
+            Settings.SettingsStatus.Text = notice;
+            return;
+        }
+        if (_obs.HasSavedPassword || _obs.AutoConnect || File.Exists(_obs.ProfilePath)) await ConnectAsync();
+        else ObsLabel.Text = CaptionText.Get("CaptionConsole", "ObsConnectInSettings");
     }
 
     private async Task StartServerAsync()
@@ -1273,7 +1333,7 @@ public partial class CaptionConsole : UserControl
             deck = await ReadDeckAsync(path);
         }
         catch (OperationCanceledException) when (_lifetime.IsCancellationRequested) { return false; }
-        catch (Exception ex) when (IsDeckReadError(ex))
+        catch (Exception ex) // any other failure, the host's too (a COM error, its own cancellation), is a deck not read
         {
             _host.WriteError("open caption PPT", ex);
             if (!_closed && request == _deckRequest) Status.Text = CaptionText.Format("CaptionConsole", "DeckReadFailed", ex.Message);
@@ -1304,10 +1364,6 @@ public partial class CaptionConsole : UserControl
 
     private static bool IsFileError(Exception error) => error is
         IOException or InvalidDataException or UnauthorizedAccessException or System.Text.Json.JsonException;
-
-    private static bool IsDeckReadError(Exception error) => IsFileError(error) || error is System.Xml.XmlException
-        or FormatException or InvalidOperationException or ArgumentException or NotSupportedException or TimeoutException
-        or Win32Exception or CaptionRenderException;
 
     private int SelectedSlide => Slides.SelectedItem is int slide ? slide : 1;
     private string SelectedKey => (Boxes.SelectedItem as CaptionBox)?.Key ?? "";
@@ -1408,8 +1464,18 @@ public partial class CaptionConsole : UserControl
         {
             // Sync: the output screen turns (a slide, a page of a song or passage) and the caption follows it.
             int direction = change > 0 ? 1 : -1;
-            if (!_host.CanStepOutput(direction)) { Status.Text = CaptionText.Get("CaptionConsole", change > 0 ? "NoNextSlide" : "NoPreviousSlide"); return; }
-            await _host.StepOutputAsync(direction);
+            // (a key's handler: a step the host cannot take, PowerPoint not answering, is told, never left to end the app)
+            try
+            {
+                if (!_host.CanStepOutput(direction)) { Status.Text = CaptionText.Get("CaptionConsole", change > 0 ? "NoNextSlide" : "NoPreviousSlide"); return; }
+                await _host.StepOutputAsync(direction);
+            }
+            catch (OperationCanceledException) { }
+            catch (Exception ex)
+            {
+                _host.WriteError("step caption output", ex);
+                if (!_closed) Status.Text = CaptionText.Format("CaptionConsole", "StepFailed", ex.Message);
+            }
             return;
         }
         if (!_captions.Following) { Status.Text = CaptionText.Get("CaptionConsole", "SyncOff"); return; }
@@ -1428,6 +1494,10 @@ public partial class CaptionConsole : UserControl
                 [Scene1.Text, Scene2.Text, Scene3.Text, Scene4.Text], CameraSource.Text);
             Password.Clear();
             SavedPassword.Visibility = _obs.HasSavedPassword ? Visibility.Visible : Visibility.Collapsed;
+            // obs.json holds these values now: the notice of settings not read is over (a050 design 28)
+            string unread = CaptionText.Get("CaptionConsole", "ObsUnreadConnectSaves");
+            if (Settings.SettingsStatus.Text == unread) Settings.SettingsStatus.Text = "";
+            ObsLabel.Text = ObsLabel.Text.Replace(" · " + unread, "").Replace(unread, "");
             await StartServerAsync();
         }
         catch (Exception ex) { Told = ex.Message; }
@@ -1435,7 +1505,7 @@ public partial class CaptionConsole : UserControl
 
     private void ShowObsStatus(ObsStatus status)
     {
-        // (most messages already name OBS: "OBS 연결 중", not "OBS OBS 연결 중")
+        // (most messages already start with OBS: "OBS …", not "OBS OBS …")
         string message = status.Message.StartsWith("OBS", StringComparison.Ordinal) ? status.Message : "OBS " + status.Message;
         ObsLabel.Text = (status.Connected ? "● " : "") + message + (status.Scene.Length > 0 ? " · " + status.Scene : "");
         if (Scenes.Items.Cast<string>().SequenceEqual(status.Scenes)) return;

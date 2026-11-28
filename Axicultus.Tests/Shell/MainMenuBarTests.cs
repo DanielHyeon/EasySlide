@@ -2429,10 +2429,10 @@ public class MainMenuBarTests
     [Fact]
     public void OutputFormatWindow_HasLyricsAlignment_WiredToAlignmentChoice()
     {
-        // 서식 항목은 Output 메뉴에서 '송출 서식…' 창으로 옮겼다(메뉴는 창 런처 하나만 남김).
+        // The format items moved from the Output menu to the output format window (the menu keeps only its launcher).
         Xaml.Should().Contain("Click=\"OpenOutputFormat_Click\"", "Output 메뉴에서 서식 창을 열 수 있어야 함");
         var xaml = File.ReadAllText(Path.Combine(FindRepositoryRoot(), "Axicultus", "Shell", "OutputFormatWindow.xaml"), Encoding.UTF8);
-        // 정렬은 현재 상태가 보이도록 양방향 선택 속성(DefaultRegion1AlignmentChoice → ApplyLyricsAlignment)에 배선한다.
+        // The alignment is bound to a two-way choice property (DefaultRegion1AlignmentChoice -> ApplyLyricsAlignment), so the state now shows.
         foreach (var member in new[] { "Left", "Center", "Right" })
             xaml.Should().Contain($"{{Binding DefaultRegion1AlignmentChoice, Mode=TwoWay, Converter={{StaticResource OptionChoice}}, ConverterParameter={member}}}", $"{member} 정렬 선택");
     }
@@ -2440,8 +2440,8 @@ public class MainMenuBarTests
     [Fact]
     public void OptionChoiceConverter_ReturnsTheChoiceForStringProperties()
     {
-        // 서식 창의 정렬·영역·배경 모드 라디오는 문자열 속성(Default…Choice)에 양방향 바인딩된다.
-        // Enum.Parse(typeof(string)) 로 던지면 라디오를 누르는 순간 앱이 죽는다.
+        // The format window's alignment, region and background mode radios are bound two-way to string properties (Default…Choice).
+        // Were they parsed with Enum.Parse(typeof(string)), the app would end the moment a radio is pressed.
         var converter = new Axicultus.Wpf.Controls.OptionChoiceConverter();
         var culture = System.Globalization.CultureInfo.InvariantCulture;
         converter.ConvertBack(true, typeof(string), "Left", culture).Should().Be("Left");

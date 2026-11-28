@@ -9,4 +9,5 @@
   <data name="FormatUnreadable" xml:space="preserve"><value>The saved format of the worship list '{0}' cannot be read.</value></data>
   <data name="NameInvalid" xml:space="preserve"><value>The worship list name has characters or a form that cannot be used: {0}</value></data>
   <data name="NameOutside" xml:space="preserve"><value>The worship list name goes outside the allowed folder: {0}</value></data>
+  <data name="RestoreHalfDone" xml:space="preserve"><value>The worship list '{0}' could not be restored from the trash, and a file already restored could not be put back in the trash: {1}</value></data>
 </root>

@@ -14,7 +14,7 @@ public sealed record LyricsRegionPage(string Region1, string Region2);
 /// 저장된 "원시 가사"(Axicultus 작성용 마크업 포함)를 송출 화면에 보일 "표시용 텍스트"로 바꾼다.
 /// 회중 화면에는 작성용 마커가 보이면 안 되므로 다음을 제거/정리한다:
 ///   - 맨 앞 코드(노테이션) 블록 <c>[~ ... ]</c> (ImportExportService 가 저장 시 쓰는 형식과 동일)
-///   - 절/페이지 마커만 있는 줄 (예: <c>[1]</c>, <c>[chorus]</c>) → 절 경계로 보고 빈 줄로 대체
+///   - a line holding only a verse or page marker (e.g. <c>[1]</c>, <c>[chorus]</c>): a verse boundary, replaced by a blank line
 /// <para>
 /// LiveQueueItem.Lyrics 는 편집·저장을 위해 원시 그대로 두고, 출력 경로(GoLive)에서만 이 변환을 적용한다.
 /// 즉 "도메인 텍스트(작성 마크업)"와 "표시 텍스트(송출 글자)"를 분리한다.
@@ -181,8 +181,8 @@ public static class LyricsDisplayFormatter
     }
 
     /// <summary>
-    /// 이중 언어 절 페이지의 라벨 목록 — <see cref="GetRegionPages(string?,string?)"/> 와 1:1. 절 점프에 쓴다.
-    /// 제목(heading) 없이 시작한 절의 화면은 빈 문자열.
+    /// The labels of the two-language verse pages, one to one with <see cref="GetRegionPages(string?,string?)"/>; used to
+    /// jump to a verse. A screen of a verse that starts without a heading has an empty string.
     /// </summary>
     public static IReadOnlyList<string> GetRegionSectionLabels(string? rawLyrics, string? sequence)
     {
@@ -197,9 +197,10 @@ public static class LyricsDisplayFormatter
     }
 
     /// <summary>
-    /// 절 페이지마다의 라벨을 <see cref="ToVersePages(string?,string?)"/> 와 1:1 정렬되게 반환한다(절 라벨 직접 점프용).
-    /// 라벨이 없는(빈 줄로만 구분된) 페이지는 빈 문자열. Sequence 적용 시 펼쳐진 순서대로 라벨이 반복된다.
-    /// 운영자가 "후렴(C)으로", "3절로" 즉시 이동(레거시 FrmInfoScreen 절 버튼 1~9·c·b 대응)하는 데 쓰인다.
+    /// The label of each verse page, one to one with <see cref="ToVersePages(string?,string?)"/> (to jump to a verse by
+    /// its label). A page without a label (set apart by blank lines only) has an empty string. With a Sequence the labels
+    /// repeat in the order it unfolds. The operator's jump "to the chorus (C)", "to verse 3" uses it (the legacy
+    /// FrmInfoScreen verse buttons 1-9, c, b).
     /// </summary>
     public static IReadOnlyList<string> GetSectionLabels(string? rawLyrics, string? sequence)
     {
@@ -809,7 +810,7 @@ public static class LyricsDisplayFormatter
                 : transposeSemitones == 0 ? chord : ChordTransposer.TransposeLine(chord, transposeSemitones);
             if (shownChord.Length > 0)
             {
-                sb.Append(shownChord).Append('\n'); // 코드 줄을 가사 줄 "위"에.
+                sb.Append(shownChord).Append('\n'); // the chord line goes "above" the lyric line
             }
 
             sb.Append(lyric);

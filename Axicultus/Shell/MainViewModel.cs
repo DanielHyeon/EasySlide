@@ -2801,9 +2801,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>
-    /// 선택한 예배 순서 항목을 같은 내용으로 복제해 바로 뒤에 삽입한다(예: 같은 곡을 예배 중 두 번 부를 때).
-    /// record `with` 로 모든 내용(가사·서식·슬라이드 등)을 복사한다. The copy keeps the id (a song stays that
-    /// song for the database); the two rows are told apart by reference. 복제본을 새로 선택한다.
+    /// Duplicates the selected worship list item and inserts the copy right after it (e.g. the same song sung twice).
+    /// A record `with` copies everything (lyrics, format, slide and so on). The copy keeps the id (a song stays that
+    /// song for the database); the two rows are told apart by reference. The copy is selected.
     /// </summary>
     public LiveQueueItem? DuplicateSelectedItem()
     {
@@ -3893,7 +3893,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             {
                 if (item is null || !TryGetSongDatabaseId(item, out var songId))
                 {
-                    continue; // 곡(song:{id})이 아닌 텍스트 등은 DB 검사 대상 아님.
+                    continue; // a text or anything else that is no song (song:{id}) is not checked in the database
                 }
 
                 var detail = await ReadSongDetailOrNullAsync(databasePath, songId).ConfigureAwait(true);
@@ -3963,7 +3963,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
-    // 큐 항목 Id 가 "song:{정수}" 형태면 곡 DB Id 를 꺼낸다(AddSong 이 부여한 식별자). 그 외(text:·bible:·ppt: 등)는 false.
+    // A queue item Id of the form "song:{integer}" gives the song's database Id (the id AddSong gives); any other (text:, bible:, ppt: and so on) is false.
     // A duplicated row keeps the id of the row it was copied from. Lists saved earlier can still hold "dup:" ids:
     // those rows keep their saved copy.
     private static bool TryGetSongDatabaseId(LiveQueueItem item, out int songId)

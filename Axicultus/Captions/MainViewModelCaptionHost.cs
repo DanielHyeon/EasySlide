@@ -154,7 +154,8 @@ internal sealed class MainViewModelCaptionHost : ICaptionHost, ICaptionQueueReco
 
     public Task PickedSending => Main.SendWorshipSelectionToOutputCommand.ExecutionTask ?? Task.CompletedTask;
 
-    public void SendPicked() => Main.SendWorshipSelectionToOutputCommand.Execute(null);
+    // (ExecuteAsync, not Execute: a failure ends the task the tab awaits instead of being thrown on the dispatcher)
+    public Task SendPickedAsync() => Main.SendWorshipSelectionToOutputCommand.ExecuteAsync(null);
 
     // ---- decks ----
 

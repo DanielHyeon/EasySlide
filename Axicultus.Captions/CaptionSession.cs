@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -37,7 +38,7 @@ public sealed record CaptionStyle(string Color = CaptionStyle.DefaultColor, bool
 
     public static string ParseDisplay(string? display) => display is "text" or "score" or "scoretext" ? display : AutoDisplay;
 
-    /// <summary>Most of the screen height a score row may take: 작게, 보통, 크게.</summary>
+    /// <summary>Most of the screen height a score row may take: small, medium, large.</summary>
     public static double ScoreHeight(int score) => score switch { 0 => .18, 2 => .42, _ => .27 };
 }
 
@@ -59,6 +60,12 @@ public sealed class CaptionSession : ObservableObject, IDisposable
     private readonly string? _stylePath;
     private BitmapSource? _image;
     private string? _imageUrl;
+
+    // The thread the session was made on (made for it there when it has none yet: a WinForms host's UI thread).
+    private readonly Dispatcher _dispatcher = Dispatcher.CurrentDispatcher;
+    private readonly Lock _liveGate = new(); // a live change is handled at once or queued as one step: in arrival order
+    private int _queuedLive; // live changes queued, not handled yet (under _liveGate)
+    private bool _disposed;
 
     public CaptionSession(ICaptionLiveSource live, ICaptionSlideShow? show = null, string? stylePath = null)
     {
@@ -190,7 +197,7 @@ public sealed class CaptionSession : ObservableObject, IDisposable
         set { value = Math.Clamp(value, 1, 3); if (value != Style.Lines) SetStyle(Style with { Lines = value }); }
     }
 
-    /// <summary>Score row size: 0 작게, 1 보통, 2 크게 (see <see cref="CaptionStyle.ScoreHeight"/>).</summary>
+    /// <summary>Score row size: 0 small, 1 medium, 2 large (see <see cref="CaptionStyle.ScoreHeight"/>).</summary>
     public int ScoreSize
     {
         get => Style.Score;
@@ -339,8 +346,8 @@ public sealed class CaptionSession : ObservableObject, IDisposable
     }
 
     /// <summary>
-    /// Sets the typed caption. show puts it on air (the 송출 button); otherwise a hidden caption stays hidden until
-    /// 표시 — following the screen or typing never reveals it by itself.
+    /// Sets the typed caption. show puts it on air (the send button); otherwise a hidden caption stays hidden until
+    /// it is shown: following the screen or typing never reveals it by itself.
     /// </summary>
     public void Publish(string text, bool show = true)
     {
@@ -366,7 +373,29 @@ public sealed class CaptionSession : ObservableObject, IDisposable
         Emit();
     }
 
+    // ICaptionLiveSource.Changed may come from another thread: the session changes and tells it on its own thread, at
+    // once when told there and nothing is waiting, else in the order told (a050 design 4).
     private void OnLiveChanged(object? sender, CaptionLiveSnapshot current)
+    {
+        // Deciding and queueing under one lock: a change can only be handled at once when none told before it waits.
+        // shortcut: not tested with two threads racing (no hook for it); the lock is what keeps the order.
+        lock (_liveGate)
+        {
+            if (!_dispatcher.CheckAccess() || _queuedLive > 0)
+            {
+                _queuedLive++;
+                _dispatcher.BeginInvoke(new Action(() =>
+                {
+                    lock (_liveGate) _queuedLive--;
+                    if (!_disposed) LiveChanged(current);
+                }));
+                return;
+            }
+        }
+        LiveChanged(current);
+    }
+
+    private void LiveChanged(CaptionLiveSnapshot current)
     {
         if (current.State == CaptionLiveState.Off && _previousState != CaptionLiveState.Off && !Mirroring) _visible = false;
         _previousState = current.State;
@@ -472,6 +501,7 @@ public sealed class CaptionSession : ObservableObject, IDisposable
 
     public void Dispose()
     {
+        _disposed = true;
         StopFollowing();
         _poll?.Tick -= PollNativeSlide;
         _live.Changed -= OnLiveChanged;

@@ -597,8 +597,8 @@ public sealed class AdminDatabaseRepository : IAdminDatabaseRepository, IAdminSo
     public Task<AdminDatabaseWriteReport> CompactDatabaseAsync(string databasePath, string backupRoot)
         => Task.FromResult(CompactDatabase(databasePath, backupRoot));
 
-    // 데이터베이스 압축(VACUUM) — 백업 후 실행. VACUUM 은 트랜잭션 안에서 못 돌리므로 ExecuteWrite(트랜잭션 래핑)를
-    // 쓰지 않고 전용 경로로 처리한다.
+    // Compacts the database (VACUUM) after a backup. VACUUM cannot run inside a transaction, so it does not go through
+    // ExecuteWrite (which wraps one) but has a path of its own.
     private static AdminDatabaseWriteReport CompactDatabase(string databasePath, string backupRoot)
     {
         var inventory = AnalyzeSchema(databasePath);

@@ -16,8 +16,9 @@ namespace Axicultus.Wpf.Tests.Shell;
 
 public sealed class CaptionIntegrationTests
 {
+    // (on a thread that pumps, as the session's own must: a050 design 16; the awaits below come back to it)
     [Fact]
-    public async Task BrowserReconnectsToLatestConfirmedCaptionAndHonorsBlackout()
+    public Task BrowserReconnectsToLatestConfirmedCaptionAndHonorsBlackout() => StaHelper.RunOnStaAsync(async () =>
     {
         var live = new LiveSessionService();
         using var captions = new CaptionSession(live.ForCaptions());
@@ -53,7 +54,7 @@ public sealed class CaptionIntegrationTests
             var result = await ws.ReceiveAsync(buffer.AsMemory(), timeout.Token);
             return JsonSerializer.Deserialize<PublishedCaption>(buffer.AsSpan(0,result.Count))!.Text;
         }
-    }
+    });
 
     [Fact]
     public async Task DiskExportCacheHonorsDeckVersionByteLimitAndRejectsDamagedPng()

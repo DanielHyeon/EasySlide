@@ -822,7 +822,7 @@ public sealed partial class OfficePptSession : IDisposable
             }
             if (decks.Count == 0 && MayQuit(_ppt)) _ppt.Quit();
         }
-        catch (Exception ex) when (!IsPowerPointBusy(ex)) { /* COM 종료 시 발생 가능, 무시 */ }
+        catch (Exception ex) when (!IsPowerPointBusy(ex)) { /* may happen while COM shuts down: ignored */ }
         if (OfficeLib.PowerPointCallLimit.CurrentAbandoned) throw new TimeoutException(NotAnswering);
 
         // Dispose releases the COM proxy. (_ppt is the NetOffice wrapper, not a __ComObject, so the
@@ -833,7 +833,7 @@ public sealed partial class OfficePptSession : IDisposable
         foreach (var identity in _editorStates.Keys) Marshal.Release(identity);
         _editorStates.Clear();
         _ppt = null;
-        // 명시적 GC — COM 참조 카운트 즉시 해제 유도
+        // An explicit GC: the COM references are released now
         GC.Collect();
         GC.WaitForPendingFinalizers();
         GC.Collect();
@@ -897,7 +897,7 @@ public sealed partial class OfficePptSession : IDisposable
         if (_disposed) return;
         _disposed = true;
 
-        // 종료 전 세션 닫기. The close is bounded by its call limit.
+        // The session is closed before the end. The close is bounded by its call limit.
         bool blocked = false;
         try { CloseAsync().GetAwaiter().GetResult(); }
         catch (TimeoutException) { blocked = true; }

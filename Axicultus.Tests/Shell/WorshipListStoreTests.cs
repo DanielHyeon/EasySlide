@@ -54,6 +54,44 @@ public sealed class WorshipListStoreTests : IDisposable
         store.Invoking(s => s.DeleteFromTrash(@"..\주일")).Should().Throw<ArgumentException>("a trash name is a file name");
     }
 
+    // a050 design 8: a list in the trash of both folders (this store's and the WinForms working copy's) whose second move
+    // fails is put back in both trashes; tried again, it is restored under its own name, no copy made.
+    [Fact]
+    public async Task ARestoreThatFailsInOneFolderChangesNeitherAndCanBeTriedAgain()
+    {
+        var root = Path.Combine(Path.GetTempPath(), $"Axicultus_WLRestore_{Guid.NewGuid():N}");
+        try
+        {
+            var settings = new SettingsService(new SettingsServiceOptions(Path.Combine(root, "settings.json"), Path.Combine(root, "Backups")));
+            settings.Set(AxicultusSettingKeys.WorkingFolder, root);
+            var legacyTrash = Path.Combine(root, "Admin", "WorshipLists", "Json", "Trash");
+            var ownTrash = Path.Combine(_dir, "Trash");
+            Directory.CreateDirectory(legacyTrash);
+            Directory.CreateDirectory(ownTrash);
+            await File.WriteAllTextAsync(Path.Combine(ownTrash, "주일.json"), "[]");
+            await File.WriteAllTextAsync(Path.Combine(legacyTrash, "주일.json"), "[]");
+            var store = new WorshipListStore(_dir, settings);
+
+            using (new FileStream(Path.Combine(legacyTrash, "주일.json"), FileMode.Open, FileAccess.Read, FileShare.Read))
+                store.Invoking(s => s.RestoreFromTrash("주일")).Should().Throw<IOException>();
+
+            File.Exists(Path.Combine(ownTrash, "주일.json")).Should().BeTrue("the move done is undone");
+            File.Exists(Path.Combine(_dir, "주일.json")).Should().BeFalse();
+            File.Exists(Path.Combine(legacyTrash, "주일.json")).Should().BeTrue();
+            store.ListNames().Should().BeEmpty();
+            store.ListTrashNames().Should().Equal("주일");
+
+            store.RestoreFromTrash("주일").Should().Be("주일");
+            store.ListNames().Should().Equal("주일");
+            File.Exists(Path.Combine(root, "Admin", "WorshipLists", "Json", "주일.json")).Should().BeTrue();
+            store.ListTrashNames().Should().BeEmpty();
+        }
+        finally
+        {
+            if (Directory.Exists(root)) Directory.Delete(root, recursive: true);
+        }
+    }
+
     [Fact]
     public async Task Save_Then_Load_RoundTripsPersistentFields()
     {

@@ -54,6 +54,24 @@ public sealed class SongFormatDataTests
         Assert.Equal(tokens, Axicultus.Module.SongExchangeSequence.FromWpfDatabase(tokens));
     }
 
+    // a050 design 10: stored verse codes with verses 9, 10 or 13 (a tab, a line break) read as verse codes, also between
+    // two printable codes, and are written back as they are (the import puts exchange text right instead).
+    [Theory]
+    [InlineData("e\te", "e,9,e")]
+    [InlineData("p\te", "q,9,e")]
+    [InlineData("1\t2", "49,9,50")]
+    [InlineData("\t\n\r", "9,10,13")]
+    [InlineData("1\t", "49,9")]
+    [InlineData("e\n", "e,10")]
+    [InlineData("\t1\t", "9,49,9")]
+    [InlineData("\u0001\t\u0002", "1,9,2")]
+    [InlineData("\0\r\n\0", "c,13,10,c")]
+    public void StoredVerseCodesWithATabOrALineBreakStayVerseCodes(string stored, string tokens)
+    {
+        Assert.Equal(tokens, Axicultus.Module.SongExchangeSequence.FromWpfDatabase(stored));
+        Assert.Equal(stored, Axicultus.Module.SongExchangeSequence.ToDatabase(stored));
+    }
+
     [Theory]
     [InlineData("\te")]                   // WinForms: verse 9, ending
     [InlineData("\u0001\0\u0002\0")]

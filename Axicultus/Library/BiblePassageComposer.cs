@@ -14,7 +14,7 @@ public static class BiblePassageComposer
 {
     /// <summary>
     /// 주 언어 절 목록과 보조 언어 절 목록을 절 단위로 짝지어 조립한다.
-    /// 보조 목록이 비면(단일 언어) 마커 없이 절마다 한 줄인 한 덩어리로 조립된다.
+    /// With no second list (one language) the passage is one block, a line per verse, without markers.
     /// 두 목록 길이가 달라도(보조 버전에 없는 절 등) 더 긴 쪽까지 만들고 모자란 쪽은 빈 칸으로 둔다(절 어긋남 방어).
     /// </summary>
     public static string Compose(IReadOnlyList<string> region1Verses, IReadOnlyList<string> region2Verses)
@@ -62,7 +62,7 @@ public static class BiblePassageComposer
             var region1 = i < region1Verses.Count ? region1Verses[i] ?? "" : "";
             sb.Append(region1);
 
-            // 같은 페이지 안에서 [region 2] 아래 줄부터 보조 언어 — 출력이 Region2 밴드로 동시 송출.
+            // On the same page the lines under [region 2] are the second language: the output shows them in its Region2 band at the same time.
             // Every verse carries the marker, also one the second version lacks: a passage with one marker
             // only would read like a WinForms song whose region 2 runs on to the end.
             var region2 = i < region2Verses.Count ? region2Verses[i] ?? "" : "";

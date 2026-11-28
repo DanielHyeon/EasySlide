@@ -4889,7 +4889,7 @@ public partial class MainWindow : Window
 
         try
         {
-            await lib.LoadAsync(); // 작업 반영 — 셸 라이브러리 목록 새로고침.
+            await lib.LoadAsync(); // the work done shows: the shell's library list is read again
         }
         catch (Exception ex) when (ex is IOException or InvalidOperationException or System.Data.Common.DbException)
         {

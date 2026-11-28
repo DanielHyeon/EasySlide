@@ -625,7 +625,7 @@ public sealed class ImportExportService(
             FolderNo: 0,
             SongNumber: ToInt(Value(values, separator, "n")),
             Lyrics: NormalizeLineEndings(normalizedLyrics).TrimEnd('\n', '\r'),
-            Sequence: Value(values, separator, "@"),
+            Sequence: SequenceText(Value(values, separator, "@")),
             Writer: Value(values, separator, "w"),
             Copyright: Value(values, separator, "c"),
             Capo: ToInt(Value(values, separator, "0"), defaultValue: -1),
@@ -638,6 +638,12 @@ public sealed class ImportExportService(
             UserReference: Value(values, separator, "u"),
             FormatData: Value(values, separator, "q")));
     }
+
+    // An exchange or text file's sequence is token text ("1,c,2"), never verse codes: a tab or a line break in it is a
+    // separator, so it is made one before the repository stores it (SongExchangeSequence.ToDatabase would take such a
+    // character for a verse code; a050 design 10).
+    private static string SequenceText(string sequence) =>
+        sequence.Trim().Replace('\t', ',').Replace('\r', ',').Replace('\n', ',');
 
     private static ImportSourceKind? GetExchangeKind(string path) =>
         Path.GetExtension(path).ToLowerInvariant() switch
@@ -654,7 +660,7 @@ public sealed class ImportExportService(
             var songs = SongExchangeFile.ReadSongs(path).Select(entry => new ImportSong(kind, entry.SourceFolder,
                 new SongWriteModel(null, entry.Title1, entry.Title2, 0, entry.SongNumber,
                     kind == ImportSourceKind.AxicultusJson ? entry.Contents : NormalizeLineEndings(entry.Contents).TrimEnd('\n', '\r'),
-                    Sequence: entry.Sequence, Writer: entry.Writer, Copyright: entry.Copyright, Capo: entry.Capo,
+                    Sequence: SequenceText(entry.Sequence), Writer: entry.Writer, Copyright: entry.Copyright, Capo: entry.Capo,
                     Timing: entry.Timing, Key: entry.MusicKey, Notations: entry.Notations, Category: entry.Category,
                     LicenceAdmin1: entry.LicenceAdmin1, LicenceAdmin2: entry.LicenceAdmin2, BookReference: entry.BookReference,
                     UserReference: entry.UserReference, Settings: entry.Settings, FormatData: entry.FormatData))).ToArray();

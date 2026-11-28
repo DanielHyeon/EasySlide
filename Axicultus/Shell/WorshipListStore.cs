@@ -311,9 +311,29 @@ public sealed class WorshipListStore(string directory, ISettingsService? setting
         var restored = folders.Any(folder => File.Exists(Path.Combine(folder, name + ".json")))
             ? $"{name}_{DateTime.Now:yyyyMMdd_HHmmss}"
             : name;
-        foreach (var folder in folders.Where(folder => File.Exists(TrashFile(folder, name))))
+        // All or nothing: a move that fails puts the ones done back in the trash, so a retry finds the name free.
+        var moved = new List<(string From, string To)>();
+        try
         {
-            File.Move(TrashFile(folder, name), Path.Combine(folder, restored + ".json"));
+            foreach (var folder in folders.Where(folder => File.Exists(TrashFile(folder, name))))
+            {
+                var move = (From: TrashFile(folder, name), To: Path.Combine(folder, restored + ".json"));
+                File.Move(move.From, move.To);
+                moved.Add(move);
+            }
+        }
+        catch (Exception failure) when (moved.Count > 0)
+        {
+            var undoFailures = new List<Exception>();
+            foreach (var (from, to) in Enumerable.Reverse(moved))
+            {
+                try { File.Move(to, from); }
+                catch (Exception undo) { undoFailures.Add(undo); }
+            }
+            if (undoFailures.Count == 0) throw;
+            // (an IOException, as the callers expect of a file that cannot be moved)
+            throw new IOException(UiText.Format("WorshipListStore", "RestoreHalfDone", name, failure.Message),
+                new AggregateException([failure, .. undoFailures]));
         }
 
         return restored;

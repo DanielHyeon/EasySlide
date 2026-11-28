@@ -31,7 +31,7 @@ public sealed class PaletteItemContainerStyleTests
         });
     }
 
-    // OutputFormatWindow 의 버튼 스타일이 BasedOn 으로 쓰는 타입들 — 없으면 '송출 서식…' 창이 열릴 때 XamlParseException.
+    // The types OutputFormatWindow's button styles are BasedOn: without them the output format window throws XamlParseException as it opens.
     [Theory]
     [InlineData(typeof(Button))]
     [InlineData(typeof(System.Windows.Controls.Primitives.ToggleButton))]

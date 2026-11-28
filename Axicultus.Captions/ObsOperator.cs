@@ -22,7 +22,7 @@ public sealed class ObsOperator(string directory, Dispatcher ui) : IDisposable
     private readonly string _path = Path.Combine(directory, "obs.json");
     private int _generation;
     private int _configurationVersion;
-    private bool _started;
+    private Task? _start;
     private bool _disposed;
     private string _savedSecret = "";
     // The file's saved password when this PC cannot decrypt it: written back as it was until the operator saves a
@@ -37,20 +37,25 @@ public sealed class ObsOperator(string directory, Dispatcher ui) : IDisposable
     public string[] Shortcuts => (string[])_scenes.Clone();
     public ObsConnection? Connection { get; private set; }
     public bool HasSavedPassword => _savedSecret.Length > 0;
+    /// <summary>The values here are obs.json's: it was read (or is not there), or the operator saved them (a050 design 2).</summary>
+    public bool SettingsRead { get; private set; }
     public ObsStatus Status { get; private set; } = new(CaptionText.Get("CaptionConsole", "NotConnected"), "", []);
     public event Action<ObsStatus>? Changed;
 
-    public async Task StartAsync()
+    /// <summary>Reads obs.json (once: a later call is the same read, which a tab made meanwhile waits for; a050 design 18).</summary>
+    public Task StartAsync() => _start ??= ReadAsync();
+
+    private async Task ReadAsync()
     {
-        if (_started) return;
-        _started = true;
         var configuration = _configurationVersion;
         try
         {
-            if (!File.Exists(_path)) return;
+            if (!File.Exists(_path)) { SettingsRead = true; return; }
             // Item by item: one missing or bad item is its default, the others are the file's (a048 design 12).
             var profile = SettingsJson.Read<Profile>(await File.ReadAllTextAsync(_path));
-            if (configuration != _configurationVersion || _disposed || profile == null) return;
+            if (configuration != _configurationVersion || _disposed) return;
+            SettingsRead = true;
+            if (profile == null) return;
             Host = string.IsNullOrWhiteSpace(profile.Host) ? LocalHost : profile.Host;
             if (Uri.CheckHostName(Host) == UriHostNameType.Unknown) Host = LocalHost;
             if (profile.Port is >= 1 and <= 65535) Port = profile.Port;
@@ -117,6 +122,7 @@ public sealed class ObsOperator(string directory, Dispatcher ui) : IDisposable
             File.Move(temp, _path, true);
         }
         finally { File.Delete(temp); }
+        SettingsRead = true;
         Host = host;
         Port = port;
         CameraSource = camera;

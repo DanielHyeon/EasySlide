@@ -876,7 +876,84 @@ public class LyricsProcessingTests
             song.VersePresent[1] = true;
             Gf.ValidateSequence(ref song);
             Assert.Equal("\u0001", song.SongSequence);
-            Assert.Equal("1,,", Gf.ConvertSequenceToTextString(stored));
+            Assert.Equal("1", Gf.ConvertSequenceToTextString(stored));
+        });
+    }
+
+    // a050 design 21: the text export's own loop (FrmExport, before it used ConvertSequenceToTextString) gives the same
+    // text for every sequence of one or two verse codes that all have a symbol.
+    [Fact]
+    public void TheSequenceTextIsTheTextExportsOwnForEveryKnownCode()
+    {
+        OnSta(() =>
+        {
+            Gf.InitializeVerseHeadings();
+            static string ExportLoop(string sequence)
+            {
+                string text = "";
+                for (int j = 0; j < sequence.Length; j++)
+                {
+                    int verse = sequence[j];
+                    text += verse is > 0 and < 13 ? Convert.ToString(verse) : Gf.SequenceSymbol[verse];
+                    if (j < sequence.Length - 1) text += ",";
+                }
+                return text;
+            }
+            int[] codes = [.. Enumerable.Range(0, 104), 111, 112];
+            foreach (int a in codes)
+            {
+                Assert.Equal(ExportLoop(((char)a).ToString()), Gf.ConvertSequenceToTextString(((char)a).ToString()));
+                foreach (int b in codes)
+                {
+                    string sequence = new([(char)a, (char)b]);
+                    Assert.Equal(ExportLoop(sequence), Gf.ConvertSequenceToTextString(sequence));
+                }
+            }
+        });
+    }
+
+    // a050 design 24: every verse 1-99 the sequence text names is read back (written by ConvertSequenceToTextString, as the
+    // exports write it), mixed with the chorus and the other parts too.
+    [Fact]
+    public void EveryVerseOfASequenceTextIsReadBack()
+    {
+        OnSta(() =>
+        {
+            Gf.InitializeVerseHeadings();
+            for (int verse = 1; verse <= 99; verse++)
+            {
+                string codes = ((char)verse).ToString();
+                Assert.Equal(codes, Gf.ConvertTextStringToSequence(Gf.ConvertSequenceToTextString(codes)));
+            }
+            string mixed = "\u0001\u000a\u000b\u000c\0cdefgop"; // 1, 10, 11, 12, chorus, 99 ('c'), then bridge, ending, chorus 2, bridge 2, prechorus, prechorus 2
+            Assert.Equal("1,10,11,12,c,99,b,e,t,w,p,q", Gf.ConvertSequenceToTextString(mixed));
+            Assert.Equal(mixed, Gf.ConvertTextStringToSequence("1,10,11,12,c,99,b,e,t,w,p,q"));
+        });
+    }
+
+    // The old limits stay: 0 is the chorus, a number below 0 or above 99 is no verse.
+    [Theory]
+    [InlineData("0,1", "\0\u0001")]
+    [InlineData("100,1", "\u0001")]
+    [InlineData("-1,1", "\u0001")]
+    [InlineData("1,999", "\u0001")]
+    public void ASequenceTextNumberOutsideTheVersesIsNoVerse(string text, string codes)
+        => OnSta(() => Assert.Equal(codes, Gf.ConvertTextStringToSequence(text)));
+
+    // a050 design 7: a code with no symbol is left out with its comma, first, in the middle or last.
+    [Theory]
+    [InlineData(" \u0001\u0002", "1,2")]
+    [InlineData("\u0001 \u0002", "1,2")]
+    [InlineData("\u0001\u0002 ", "1,2")]
+    [InlineData("\u0001h\0", "1,c")] // 104: inside the symbol slots, none set
+    [InlineData(" ", "")]
+    [InlineData("\u0001\0\u0002", "1,c,2")]
+    public void ASequenceCodeWithoutASymbolIsLeftOutWithItsComma(string stored, string text)
+    {
+        OnSta(() =>
+        {
+            Gf.InitializeVerseHeadings();
+            Assert.Equal(text, Gf.ConvertSequenceToTextString(stored));
         });
     }
 

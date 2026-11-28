@@ -106,6 +106,9 @@
   <data name="DeckRead" xml:space="preserve"><value>PPT read · {0}</value></data>
   <data name="CueSaved" xml:space="preserve"><value>The manual text of slide {0} was saved.</value></data>
   <data name="NoNextSlide" xml:space="preserve"><value>The output screen has no next slide.</value></data>
+  <data name="StepFailed" xml:space="preserve"><value>Could not turn the output screen · {0}</value></data>
+  <data name="SendPickedFailed" xml:space="preserve"><value>Could not put the picked item in the output panel · {0}</value></data>
+  <data name="ObsUnreadConnectSaves" xml:space="preserve"><value>The saved OBS settings were not read. Connect saves the values now in the caption settings window over them.</value></data>
   <data name="NoPreviousSlide" xml:space="preserve"><value>The output screen has no previous slide.</value></data>
   <data name="SyncOff" xml:space="preserve"><value>Turn on sync to turn the output screen as well. With it off, only the PPT caption turns.</value></data>
   <data name="CheckPort" xml:space="preserve"><value>Check the OBS port.</value></data>

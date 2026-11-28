@@ -407,7 +407,7 @@ public partial class MainViewModelTests
     [Fact]
     public async Task ARecoveredQueue_IsAnEditOfItsOwnList_AndNeverOfAnotherList()
     {
-        // The caption console's "예배 편집 복구": the operator asked for the saved rows.
+        // The caption console's "Recover worship edits": the operator asked for the saved rows.
         var store = new InMemoryWorshipListStore();
         await store.SaveAsync("주일", [new("a", "A")]);
         using var vm = CreateSut(seedSampleQueue: false, worshipLists: store);

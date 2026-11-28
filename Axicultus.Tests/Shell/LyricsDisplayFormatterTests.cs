@@ -236,7 +236,7 @@ public class LyricsDisplayFormatterTests
     [Fact]
     public void ToVersePages_WithSequence_DefinesSectionsOnce_RepeatsByOrder()
     {
-        // 절을 1회 정의([1],[chorus],[2])하고 시퀀스(1 C 2 C)로 반복 → 후렴(C)이 두 번 나온다(레거시 절 순서 모델).
+        // Verses defined once ([1], [chorus], [2]) and repeated by the sequence (1 C 2 C): the chorus (C) comes twice (the legacy verse order model).
         var lyrics = "[1]\nVerse one\n[chorus]\nChorus line\n[2]\nVerse two";
 
         var pages = LyricsDisplayFormatter.ToVersePages(lyrics, "1 C 2 C");
@@ -548,7 +548,7 @@ public class LyricsDisplayFormatterTests
     [Fact]
     public void GetRegionPages_WithSequence_ExpandsRegionPairsByOrder()
     {
-        // 이중 언어 절을 1회 정의([1],[chorus])하고 시퀀스(1 C 1)로 순서·반복 → 영역 쌍이 그 순서로 반복.
+        // Two-language verses defined once ([1], [chorus]), ordered and repeated by the sequence (1 C 1): the region pairs repeat in that order.
         var lyrics = "[1]\nVerse1 R1\n[region 2]\nVerse1 R2\n[chorus]\nChorus R1\n[region 2]\nChorus R2";
 
         var pages = LyricsDisplayFormatter.GetRegionPages(lyrics, "1 C 1");
@@ -619,7 +619,7 @@ public class LyricsDisplayFormatterTests
     [Fact]
     public void GetSectionLabels_WithSequence_ReturnsLabelPerExpandedPage()
     {
-        // 절을 1회 정의([1],[chorus],[2])하고 시퀀스(1 C 2 C)로 반복 → 페이지별 라벨도 같은 순서로 반복.
+        // Verses defined once ([1], [chorus], [2]) and repeated by the sequence (1 C 2 C): the page labels repeat in the same order.
         var lyrics = "[1]\nVerse one\n[chorus]\nChorus line\n[2]\nVerse two";
 
         var labels = LyricsDisplayFormatter.GetSectionLabels(lyrics, "1 C 2 C");
