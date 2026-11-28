@@ -25,12 +25,24 @@ CodeGraph CLI는 이 세션에서 쓸 수 없었다. 아래는 2026-11-28 읽기
 - 시작할 때: 같은 이름의 다른 프로세스를 모두 끝낸다(`OverlapProcessKill`), 설정을 쓰고, 폴더를 만들고, 지금 예배 순서를 다시 저장한다. 끝날 때 창 위치와 분할 값을 쓴다. 실행 파일 폴더에 `Axicultus_Debug.log`를 쓴다.
 - 테스트: `Axicultuss.Tests`(xUnit, 44개 파일)는 정적 도우미와 일부 대화상자를 본다. `FrmMain`을 만드는 테스트와 WinForms용 하네스는 없다. 지금 하네스(`tools\AxicultusHarness`)는 WPF 앱만 돌리고, 그 보호 검사는 `%APPDATA%\Axicultuss`와 `C:\Axicultuss`를 보지 않는다.
 
+**Phase 0 대조에서 고친 사실 (2026-11-28)**
+- `SongSettings`의 값들은 `Axicultus.Core\SongSettingsBase.cs`에 있다. `LyricsAndNotationsList`는 WinForms `ListView`다.
+- `Gf.BuildLyricsSlideTexts`는 `gfUiText.cs`에 있고 `Slide[i,5..7]` 말고 `CurSlide`·`FolderNo`도 고친다.
+- `Gf.GetSlideContents`의 영역 값은 0이 영역 1, 그 밖은 영역 2다. 공용 정적 글상자(`tbWorkspace`·`tbTempSpace`)를 쓰고 `WordWrap`을 바꾸므로 UI 스레드에서만 부른다.
+- `splitContainerOutput`은 두 칸이다: Panel1에 `panel10`·`panelOutputTop`, Panel2에 `panel2`·`panel8`·`panelOutputBottom`.
+- `LiveIndicatorTimer_Tick`은 따로 타이머가 없고 `TimerFlasher.Tick`에 붙어 있다. 무대 모니터 창의 250ms 타이머는 `UpdateProgress`를 부른다("더러움 표시"는 확인되지 않았다).
+- `OutputRichTextBox_ShowSlide`는 private, `RemoteControlLiveShow`는 `string`을 돌려준다. `LivePowerPointRunState`는 internal enum이다.
+- 장 그림은 세션 임시 폴더에 있다(`OUTPPFullPath + 장 + ".jpg"`).
+- `Axicultus_Debug.log`는 `Axicultuss.dll` 옆에 쓴다. 레지스트리에는 쓰지 않는다(설정 파일이 없을 때 읽어 오기만 한다).
+- 시작할 때 설정 파일은 값이 달라질 때만 쓴다. 시작 경로에서 확인된 예배 순서 쓰기는 "하나도 없을 때 빈 예배 순서 만들기"뿐이다(나머지 `SaveWorshipList` 호출은 하네스 로그로 확인한다).
+- 시작할 때 앱이 PowerPoint에 붙는다(`Gf.InitAppData`의 작업 스레드 넷, `Form1_Load`의 `MainPPT.Init()`). 숨은 PowerPoint가 뜨거나, 열려 있는 PowerPoint에 붙는다.
+
 ## 2. 결정
 
 1. **호스트 연결부는 읽기만 한다.** `Axicultuss`에 a046의 호스트 인터페이스 구현을 둔다. 송출 상태를 한 묶음(snapshot)으로 읽는 순수 함수와, 그것을 주기적으로 읽어 달라졌을 때만 알리는 타이머로 이룬다. 쇼 창과 송출 로직(`FrmLaunchShow`, `MoveToSlide*`, `LoadItem`, `Gf.DrawText*`)에는 알림 코드를 넣지 않는다. 예배 중에 쓰는 경로를 건드리지 않기 위해서다.
 2. **상태 읽기 규칙**
    - 대상 항목: `Gf.ShowRunning`이면 `Gf.LiveItem`, 아니면 `Gf.OutputItem`.
-   - 라이브 상태: 쇼가 돌지 않으면 꺼짐. 돌고 있고 `ShowLiveBlack`이면 검은 화면(자막은 대기), 아니면 송출. `ShowLiveClear`(글 숨김)는 Axicultus가 "지우기"를 다루는 것과 같게 한다(구현자가 Axicultus의 규칙을 확인해 맞추고 design 4에 적는다).
+   - 라이브 상태: 쇼가 돌지 않으면 꺼짐(`Off`). 돌고 있고 `ShowLiveBlack`이면 `Hidden`(회중 화면이 꺼진 것으로 다룬다. `Standby`로 두면 자막 탭이 쇼가 도는 중에도 고른 항목을 올리므로 쓰지 않는다), 아니면 송출(`Active`). `ShowLiveClear`(글 숨김)는 Axicultus가 "지우기"를 다루는 것과 같게 한다(구현자가 Axicultus의 규칙을 확인해 맞추고 design 4에 적는다).
    - 종류: P는 PPT(경로 `Path`, 장 `CurSlide`), M은 미디어, G와 빈 항목은 없음, 나머지는 글.
    - 지금 글과 페이지 목록: `GetSlideContents`로 영역 1과 2를 읽어 만든다(항목의 `Slide[,]`를 바꾸지 않는다). 페이지 표시는 "지금/전체".
    - 주기: 200ms(무대 모니터 창과 같은 급). 비교하는 값: 대상 항목의 `ItemID`·`Type`·`Path`·`CurSlide`·`TotalSlides`, `Gf.LiveLoadSerial`, `ShowRunning`, `ShowLiveBlack`, `ShowLiveClear`, `LivePowerPointRunState`, 예배 순서 이름, 고른 행. 글은 위 값이 달라졌을 때만 다시 만든다.
@@ -71,11 +83,28 @@ WPF 하네스와 같은 짜임이다. 실제 데이터가 있는 PC에서 쓰므
 - **격리 사본**: `%APPDATA%\Axicultuss\settings.json`과 데이터 폴더(`config\root_directory`가 가리키는 곳의 Admin, HolyBibles, InfoScreens, Powerpoint 등 데이터 폴더만, 실행 파일 제외)를 `%LOCALAPPDATA%\AxicultussHarness\iso.pristine`에 복사하고, 사본 설정의 `root_directory`를 사본으로 바꾼다. 표식 파일을 둔다.
 - **실행**: 사본을 `iso`로 다시 복사한 뒤 `AXICULTUSS_SETTINGS_FILE`을 사본 설정으로 두고 드라이버를 실행한다. 드라이버는 `Program.Main`을 거치지 않고(다른 프로세스 끝내기와 PowerPoint 정리를 하지 않는다) 필요한 초기화만 한 뒤 `FrmMain`을 만든다. 어셈블리 이름은 `Axicultuss.Tests`(내부 형식 접근)이고 `Axicultus.sln`에 넣지 않는다.
 - **보호 검사**(풀거나 우회하지 않는다): 모니터 2대, `Axicultuss`·`Axicultus`·`Easislides` 프로세스가 없음, 격리 표식이 있음, 드라이버가 읽은 `root_directory`가 사본 안임(아니면 본창을 만들기 전에 끝낸다). 실행 전후로 `%APPDATA%\Axicultuss`, 실제 데이터 폴더, `%APPDATA%\Axicultus`의 파일 목록 해시를 비교해 출력한다.
+- **PowerPoint**: 앱이 시작할 때 PowerPoint에 붙으므로, PowerPoint가 이미 실행 중이면 하네스를 실행하지 않는다(운영자의 PowerPoint에 붙지 않게). 실행 뒤 남은 숨은 PowerPoint는 수를 출력한다.
+- **하네스 출력 폴더의 `Axicultuss.exe`**: 프로젝트 참조로 따라오는 실행 파일은 직접 실행하면 실제 설정으로 뜬다. 빌드 뒤 출력 폴더에서 지운다(드라이버는 dll만 쓴다).
+- **자막 서버 포트**: 자막 탭을 여는 단계(`captiontab` 등)는 드라이버가 자막 서버를 다른 포트로 만든다. 고정 포트(17948)는 실제 OBS 브라우저 소스가 쓰는 주소다.
 - **단계**: `smoke`(본창이 뜨고 닫힘, 예외·로그 기록), `captiontab`(탭 줄, F2, 화면 따라가기, 고른 항목, F6, 페이지 단계, 다른 예배 순서, 닫기). PowerPoint 쇼를 띄우는 단계는 이 변경에 넣지 않는다.
 
 ## 4. 구현 뒤 기록
 
 구현자가 적는다: 지우기(clear)의 자막 규칙, 연결부가 본창에서 부르는 메서드 이름, 하네스 사용법.
+
+**하네스 사용법 (Phase 0)** — 자세한 것은 `tools\AxicultussHarness\README.md`.
+
+```powershell
+pwsh -NoProfile -File tools\AxicultussHarness\New-IsolatedCopy.ps1                     # 격리 사본 (PowerShell 7.4+)
+pwsh -NoProfile -File tools\AxicultussHarness\Run-Harness.ps1 -Phases smoke -Name smoke1
+```
+
+- 사본: `%LOCALAPPDATA%\AxicultussHarness\iso.pristine`(설정 파일과 데이터 폴더 `Admin`, `Backgrounds`, `Documents`, `HolyBibles`, `Html`, `Images`, `InfoScreens`, `Media`, `Music`, `Powerpoint`, `User Images` 중 있는 것, 이 PC에서 약 88MB). 설정에서 실제 루트로 풀리는 경로(어떤 표기든)는 모두 `iso\work`로 바뀐다. 실행마다 `iso`로 미러링한다. 복사도 앱이 돌면 거부하고 원본을 앞뒤로 해시한다.
+- `Run-Harness.ps1`의 보호 검사(순서와 종료 코드): 모니터 2대 미만 10, 앱·드라이버 실행 중 11, PowerPoint 실행 중 15, 표식 없음 12, 드라이버 빌드 실패나 출력 폴더의 앱 exe 13, 필수 실제 폴더 없음 16. 실제 데이터가 바뀌면 30, 읽지 못하면 31, 시간 초과 40, 스크립트 오류 41. 전체 목록은 README.
+- 실행 전후 비교: 내용 해시(`%APPDATA%\Axicultuss`, `%APPDATA%\Axicultus`, 실제 루트의 `Admin`), 목록 해시(실제 루트와 데이터 폴더, 있는 보호 폴더 전부, 사본의 설정과 예배 순서가 가리키는 사본 밖 폴더), 레지스트리 키 셋. PowerPoint 자신의 레지스트리와 최근 파일 기록은 비교하지 않는다.
+- 드라이버는 `AXICULTUSS_SETTINGS_FILE`, `TEMP`, `TMP`를 자기 프로세스에만 받는다. 본창을 만들기 전에 로그 경로, 설정 저장소의 파일, 데이터 루트, 표식, 설정의 모든 경로(앱처럼 풀어서), 임시 폴더, 앱 어셈블리 위치를 확인하고 아니면 종료 코드 2로 끝난다. `Program.Main`의 프로세스 끝내기·PowerPoint 정리·시작 화면은 하지 않고 전역 키 후킹 옵션을 끈다.
+- 실행 중에는 사용자 키·마우스 단추 입력을 앱 창에 전하지 않는다. 대화상자가 뜨면 답하지 않고 끝낸다(6). 이후 단계도 앱을 입력 주입이 아니라 메서드 호출로 움직인다.
+- 앱의 `Axicultus_Debug.log`는 앱 어셈블리 옆(드라이버의 `bin`)에 생기고, 이번 실행분이 하네스 로그의 `[APPLOG]` 줄로 들어간다. 출력 폴더에는 앱의 exe와 runtimeconfig가 없다(빌드 뒤 지움).
 
 ## 5. 위험과 대응
 

@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net11.0-windows7.0</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <!-- As Axicultuss.csproj: the runtime switch applies to the process, and the process is this driver. -->
+    <EnableUnsafeBinaryFormatterSerialization>true</EnableUnsafeBinaryFormatterSerialization>
+    <!-- Same name as the test assembly so the product's InternalsVisibleTo("Axicultuss.Tests") applies to this driver.
+         Not part of Axicultus.sln for that reason: two projects of one assembly name cannot build together. -->
+    <AssemblyName>Axicultuss.Tests</AssemblyName>
+    <RootNamespace>Harness</RootNamespace>
+    <NoWarn>$(NoWarn);NU1701;NU1510;NU1902;CS8002</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Axicultuss\Axicultuss.csproj" />
+  </ItemGroup>
+  <!-- The reference copies the app's own host here: Axicultuss.exe with its runtimeconfig would start the real app with
+       the REAL settings. The driver loads only Axicultuss.dll, so the host files are removed after every build. -->
+  <Target Name="RemoveAppHost" AfterTargets="Build">
+    <Delete Files="$(OutDir)Axicultuss.exe;$(OutDir)Axicultuss.runtimeconfig.json;$(OutDir)Axicultuss.runtimeconfig.dev.json" />
+  </Target>
+</Project>
