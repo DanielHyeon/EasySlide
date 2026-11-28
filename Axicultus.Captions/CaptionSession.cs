@@ -29,9 +29,10 @@ public sealed record CaptionStyle(string Color = CaptionStyle.DefaultColor, bool
     public const string BoxColor = "#CC101010";
     /// <summary>Display: auto (per slide, the score where its content picture shows staves, else the text), text, score, scoretext.</summary>
     public const string AutoDisplay = "auto";
-    public static CaptionStyle Parse(string color, bool box, bool camera = true, bool obs = true, bool sync = false, int lines = 3, int score = 1,
+    /// <summary>The kept choices put in range: a missing (null) or malformed color is the default color.</summary>
+    public static CaptionStyle Parse(string? color, bool box, bool camera = true, bool obs = true, bool sync = false, int lines = 3, int score = 1,
         string? display = null, double preview = 0) =>
-        new(System.Text.RegularExpressions.Regex.IsMatch(color, "^#[0-9A-Fa-f]{6}$") ? color.ToUpperInvariant() : DefaultColor, box, camera, obs, sync,
+        new(color != null && System.Text.RegularExpressions.Regex.IsMatch(color, "^#[0-9A-Fa-f]{6}$") ? color.ToUpperInvariant() : DefaultColor, box, camera, obs, sync,
             Math.Clamp(lines, 1, 3), Math.Clamp(score, 0, 2), ParseDisplay(display), double.IsFinite(preview) && preview > 0 ? preview : 0);
 
     public static string ParseDisplay(string? display) => display is "text" or "score" or "scoretext" ? display : AutoDisplay;
@@ -67,10 +68,12 @@ public sealed class CaptionSession : ObservableObject, IDisposable
         try
         {
             if (stylePath != null && File.Exists(stylePath) &&
-                JsonSerializer.Deserialize<CaptionStyle>(File.ReadAllText(stylePath)) is { } saved)
+                SettingsJson.Read<CaptionStyle>(File.ReadAllText(stylePath)) is { } saved)
                 Style = CaptionStyle.Parse(saved.Color, saved.Box, saved.Camera, saved.Obs, saved.Sync, saved.Lines, saved.Score, saved.Display, saved.Preview);
         }
-        catch (Exception error) when (error is IOException or JsonException or UnauthorizedAccessException) { }
+        // (an item that cannot be read is its default; a file that cannot be read at all, or any other failure, starts
+        // with the default look; the file stays as it is until the look changes)
+        catch (Exception error) { System.Diagnostics.Debug.WriteLine($"caption-style.json not read: {error.Message}"); }
         if (show != null)
         {
             _poll = new DispatcherTimer(DispatcherPriority.Background) { Interval = TimeSpan.FromMilliseconds(400) };

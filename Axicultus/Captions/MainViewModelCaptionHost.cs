@@ -227,7 +227,7 @@ internal sealed class MainViewModelCaptionHost : ICaptionHost, ICaptionQueueReco
     /// <summary>The kept serialized form of the row (a test sees that it is made once).</summary>
     internal static StrongBox<JsonElement> RecoveryRow(LiveQueueItem item) => RecoveryRows.GetValue(item, row => new(JsonSerializer.SerializeToElement(
         new WorshipListItemDto(row.Id, row.Title, row.Kind, row.SlideNumber, row.Lyrics, row.ContentPath, row.FormatData, row.UseIndividualFormatting,
-            row.Sequence, row.SongLayout, row.SourceFolderNo))));
+            row.Sequence, row.SongLayout, row.SourceFolderNo, row.Capo, row.Notations))));
 
     private static readonly ConditionalWeakTable<LiveQueueItem, StrongBox<JsonElement>> RecoveryRows = new();
 
@@ -238,6 +238,7 @@ internal sealed class MainViewModelCaptionHost : ICaptionHost, ICaptionQueueReco
         {
             SlideNumber = dto.SlideNumber, Lyrics = dto.Lyrics, ContentPath = dto.ContentPath, FormatData = dto.FormatData,
             UseIndividualFormatting = dto.UseIndividualFormatting, Sequence = dto.Sequence, SongLayout = dto.SongLayout, SourceFolderNo = dto.SourceFolderNo,
+            Capo = dto.Capo, Notations = dto.Notations, // (a row written before a048 has neither: capo 0, no chords)
         };
     }
 

@@ -25,7 +25,98 @@ internal static partial class LyricsReader
     internal static string HelperPath => Path.Combine(AppContext.BaseDirectory, "ocr", "Axicultus.Ocr.exe");
     internal static bool Available => File.Exists(HelperPath);
 
-    internal static async Task<OcrPage[]> ReadAsync(IReadOnlyList<string> images, CancellationToken cancellation)
+    /// <summary>One run of the OCR helper on some pictures: its exit code and what it wrote (a test puts a stand-in here).</summary>
+    internal delegate Task<(int ExitCode, string Output, string Error)> HelperRun(IReadOnlyList<string> images, CancellationToken cancellation);
+
+    // At most this many pictures per run: Windows OCR reads one in well under a second, so a run stays far inside BatchTime.
+    internal const int BatchPictures = 40;
+    // At most this many characters of picture arguments per run: half a Windows command line's 32,767, room left for the rest.
+    internal const int BatchCharacters = 16_000;
+    // The time limit of one run (the whole deck's limit before batches): a hung helper is ended and its pictures told unread.
+    internal static readonly TimeSpan BatchTime = TimeSpan.FromMinutes(2);
+
+    internal static Task<OcrPage[]> ReadAsync(IReadOnlyList<string> images, CancellationToken cancellation) =>
+        ReadAsync(images, RunHelperAsync, BatchTime, cancellation);
+
+    /// <summary>
+    /// The pictures read in batches, one run of the helper each with its own time limit. A batch that fails (the helper
+    /// not started, out of time, an error exit, output that is no page list) gives its pictures as pages with
+    /// <see cref="OcrPage.Error"/> and the next batch is read, unless it is the second batch in a row out of time (then
+    /// the batches left are not run, their pictures unread); when every batch fails, the first failure is thrown (as
+    /// one run's failure was). No Korean OCR (exit code 3) ends the reading at once, as does the cancellation.
+    /// </summary>
+    internal static async Task<OcrPage[]> ReadAsync(IReadOnlyList<string> images, HelperRun run, TimeSpan batchTime, CancellationToken cancellation)
+    {
+        var pages = new List<OcrPage>();
+        Exception? firstFailure = null;
+        bool anyRead = false;
+        int timeouts = 0; // batches out of time in a row
+        var batches = Batches(images).ToList();
+        for (int b = 0; b < batches.Count; b++)
+        {
+            var batch = batches[b];
+            cancellation.ThrowIfCancellationRequested();
+            Exception? failure = null;
+            using var limit = CancellationTokenSource.CreateLinkedTokenSource(cancellation);
+            limit.CancelAfter(batchTime);
+            (int ExitCode, string Output, string Error)? result = null;
+            try { result = await run(batch, limit.Token); }
+            catch (OperationCanceledException) when (!cancellation.IsCancellationRequested) { failure = new TimeoutException(); }
+            catch (Exception error) when (error is IOException or System.ComponentModel.Win32Exception
+                or InvalidOperationException or UnauthorizedAccessException) { failure = error; }
+            if (result is { } ran)
+            {
+                var (exitCode, output, message) = ran;
+                // (every batch would say the same)
+                if (exitCode == 3) throw new NoKoreanOcrException(CaptionText.Format("CaptionConsole", "OcrNoKorean", message.Trim()));
+                if (exitCode != 0) failure = new IOException(CaptionText.Format("CaptionConsole", "OcrError", exitCode, message.Trim()));
+                else
+                    try
+                    {
+                        pages.AddRange(JsonSerializer.Deserialize<OcrPage[]>(output) ?? []);
+                        anyRead = true;
+                    }
+                    catch (JsonException error) { failure = error; }
+            }
+            timeouts = failure is TimeoutException ? timeouts + 1 : 0;
+            if (failure == null) continue;
+            Debug.WriteLine($"OCR batch of {batch.Count} pictures failed: {failure.Message}");
+            firstFailure ??= failure;
+            // A helper that hung on two batches in a row hangs on the next: the batches left are not run, their pictures
+            // unread (the wait is two batch limits whatever the deck's size, a048 design 8).
+            var unread = timeouts == 2 ? batches.Skip(b).SelectMany(rest => rest) : batch;
+            pages.AddRange(unread.Select(image => new OcrPage(image, failure.Message, [])));
+            if (timeouts == 2) break;
+        }
+        if (!anyRead && firstFailure != null) System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw(firstFailure);
+        return [.. pages];
+    }
+
+    /// <summary>The PC has no Korean OCR (the helper's exit code 3): a notice of its own, no slide counted unread.</summary>
+    internal sealed class NoKoreanOcrException(string message) : IOException(message);
+
+    // The pictures in order, cut where a batch would pass BatchPictures or BatchCharacters (a picture whose path alone
+    // passes it is a batch of its own).
+    internal static IEnumerable<IReadOnlyList<string>> Batches(IReadOnlyList<string> images)
+    {
+        var batch = new List<string>();
+        int characters = 0;
+        foreach (var image in images)
+        {
+            int length = image.Length + 3; // the space before it and the quotes around it
+            if (batch.Count > 0 && (batch.Count == BatchPictures || characters + length > BatchCharacters))
+            {
+                yield return batch;
+                batch = [];
+                characters = 0;
+            }
+            batch.Add(image);
+            characters += length;
+        }
+        if (batch.Count > 0) yield return batch;
+    }
+
+    private static async Task<(int ExitCode, string Output, string Error)> RunHelperAsync(IReadOnlyList<string> images, CancellationToken cancellation)
     {
         var start = new ProcessStartInfo(HelperPath)
         {
@@ -38,15 +129,15 @@ internal static partial class LyricsReader
         using var process = Process.Start(start) ?? throw new IOException(CaptionText.Get("CaptionConsole", "OcrStartFailed"));
         var output = process.StandardOutput.ReadToEndAsync(cancellation);
         var error = process.StandardError.ReadToEndAsync(cancellation);
-        try { await process.WaitForExitAsync(cancellation).WaitAsync(TimeSpan.FromMinutes(2), cancellation); }
+        try { await process.WaitForExitAsync(cancellation); }
         catch
         {
-            try { process.Kill(true); } catch (InvalidOperationException) { }
+            // (whatever ending the helper throws, the time limit or the cancellation goes up as it was, design 18)
+            try { process.Kill(true); }
+            catch (Exception notEnded) { Debug.WriteLine($"OCR helper not ended: {notEnded.Message}"); }
             throw;
         }
-        if (process.ExitCode == 3) throw new IOException(CaptionText.Format("CaptionConsole", "OcrNoKorean", (await error).Trim()));
-        if (process.ExitCode != 0) throw new IOException(CaptionText.Format("CaptionConsole", "OcrError", process.ExitCode, (await error).Trim()));
-        return JsonSerializer.Deserialize<OcrPage[]>(await output) ?? [];
+        return (process.ExitCode, await output, await error);
     }
 
     /// <summary>

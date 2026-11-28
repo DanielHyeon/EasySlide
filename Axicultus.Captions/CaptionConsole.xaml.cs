@@ -880,6 +880,9 @@ public partial class CaptionConsole : UserControl
     /// <summary>Reads the lyrics in slide pictures (the OCR helper); a test puts a stand-in here.</summary>
     internal Func<IReadOnlyList<string>, CancellationToken, Task<OcrPage[]>>? ReadLyrics { get; set; }
 
+    /// <summary>Where each reading writes its slide pictures for the OCR helper (a test puts another place here).</summary>
+    internal string OcrFolder { get; set; } = Path.Combine(Path.GetTempPath(), "Axicultus", "ocr");
+
     /// <summary>The running reading of the lyrics in the deck's pictures.</summary>
     internal Task LyricsReading { get; private set; } = Task.CompletedTask;
 
@@ -951,10 +954,18 @@ public partial class CaptionConsole : UserControl
         if (slides.Length == 0) return; // (without a renderer only the slides with a content picture are read)
         var read = ReadLyrics ?? (LyricsReader.Available ? LyricsReader.ReadAsync : null);
         if (read is null) { Status.Text = CaptionText.Format("CaptionConsole", "NoOcr", "ocr"); return; }
-        var folder = Path.Combine(Path.GetTempPath(), "Axicultus", "ocr", Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(folder);
+        // Ended when the caption leaves the deck (StartScore): the reading starts no further batch (a048 design 9).
+        using var stop = CancellationTokenSource.CreateLinkedTokenSource(_lifetime.Token);
+        _lyricsStop = stop;
+        // The deck's reading state with the slides whose lyrics could not be read, out of all those to be read (design
+        // 10, 11): the deck's label, which the score row on air does not write.
+        string Unread(string label, int unread) =>
+            unread > 0 ? label + " · " + CaptionText.Format("CaptionConsole", "LyricsPartlyRead", slides.Length, unread) : label;
+        var folder = Path.Combine(OcrFolder, Guid.NewGuid().ToString("N"));
         try
         {
+            // (inside: a folder that cannot be made is a read failure, and the finally leaves no stopped reading behind)
+            Directory.CreateDirectory(folder);
             var files = new List<string>();
             var layouts = new Dictionary<string, (int Slide, ScoreRow[] Rows)>(StringComparer.OrdinalIgnoreCase);
             // The score's preparation reads and measures the content pictures; they are read from what it kept.
@@ -993,10 +1004,16 @@ public partial class CaptionConsole : UserControl
                 }
                 files.Add(file);
             }
-            if (files.Count == 0 || _closed || !ReferenceEquals(_captions.Deck, deck)) return;
-            var pages = await read(files, _lifetime.Token);
+            if (_closed || !ReferenceEquals(_captions.Deck, deck)) return;
+            if (files.Count == 0) { DeckLabel.Text = Unread(Path.GetFileName(deck.Path), slides.Length); return; } // (no picture made)
+            var pages = await read(files, stop.Token);
+            // Why slides could not be read, once per reading and reason (a failed batch's exit code and error text, its
+            // time limit): the error log keeps it, the debug output does not in a release build (design 19).
+            foreach (var reason in pages.Select(page => page.Error).OfType<string>().Distinct())
+                _host.WriteError("read lyrics in pictures", new IOException(reason));
             if (_closed || !ReferenceEquals(_captions.Deck, deck)) return;
             var readPages = pages.Where(page => page.Error == null && layouts.ContainsKey(page.File))
+                .DistinctBy(page => page.File, StringComparer.OrdinalIgnoreCase) // (a slide read twice is read once)
                 .Select(page => (Layout: layouts[page.File], Rows: LyricsReader.RowLyrics(page, layouts[page.File].Rows))).ToList();
             var corrected = await CorrectLyricsAsync(deck, [.. readPages.Select(page => page.Rows)]);
             if (_closed || !ReferenceEquals(_captions.Deck, deck)) return;
@@ -1014,7 +1031,9 @@ public partial class CaptionConsole : UserControl
             }
             for (int n = 1; n <= deck.Slides.Length; n++)
                 if (deck.Slides[n - 1].Boxes.All(box => box.Key != CaptionSession.RecognizedKey)) _captions.AddRecognized(n, "");
-            DeckLabel.Text = found > 0 ? CaptionText.Format("CaptionConsole", "LyricsFound", Path.GetFileName(deck.Path), found) : Path.GetFileName(deck.Path);
+            // (unread: a picture not made, a failed batch, or a page the helper could not read)
+            DeckLabel.Text = Unread(found > 0 ? CaptionText.Format("CaptionConsole", "LyricsFound", Path.GetFileName(deck.Path), found)
+                : Path.GetFileName(deck.Path), slides.Length - readPages.Count);
             if (found > 0 && offer) OfferRecognizedLyrics(deck);
             // Then (the choice above looks at the whole text the slides have) a score slide's whole text that says little
             // (a page mark) becomes the lyrics read under its staves.
@@ -1022,20 +1041,28 @@ public partial class CaptionConsole : UserControl
             UpdateScore(); // the row on air gets its line of the lyrics (the row stays)
             ListBoxes(keepEdit: true); // the recognized lyrics box in the list, the slide viewed and an edit kept
         }
+        catch (OperationCanceledException) when (stop.IsCancellationRequested && !_lifetime.IsCancellationRequested) { } // (the deck was left)
         catch (Exception error) when (error is IOException or System.ComponentModel.Win32Exception or System.Text.Json.JsonException
             or InvalidOperationException or UnauthorizedAccessException or OperationCanceledException or TimeoutException)
         {
             if (_closed) return;
             _host.WriteError("read lyrics in pictures", error);
-            DeckLabel.Text = Path.GetFileName(deck.Path);
+            if (!ReferenceEquals(_captions.Deck, deck)) return; // (a deck left: the next deck's label and status are its own, design 17)
+            // Nothing read: every slide to be read is told unread on the deck's label, which the score row on air does
+            // not write (design 14); the PC without Korean OCR has its own notice.
+            DeckLabel.Text = error is LyricsReader.NoKoreanOcrException ? Path.GetFileName(deck.Path) : Unread(Path.GetFileName(deck.Path), slides.Length);
             Status.Text = CaptionText.Format("CaptionConsole", "LyricsReadFailed", error.Message);
         }
         finally
         {
+            if (_lyricsStop == stop) _lyricsStop = null;
             try { Directory.Delete(folder, true); }
             catch (Exception error) when (error is IOException or UnauthorizedAccessException) { System.Diagnostics.Debug.WriteLine(error.Message); }
         }
     }
+
+    // The running reading of the lyrics in the caption deck's pictures, ended when another deck comes.
+    private CancellationTokenSource? _lyricsStop;
 
     // The recognized lyrics become the caption when the chosen box says the same on every slide
     // (a verse button, a title) or there is none; a box with real per-slide text stays.
@@ -1267,6 +1294,7 @@ public partial class CaptionConsole : UserControl
     {
         _captions.SetImage(null);
         StopScorePreparation();
+        _lyricsStop?.Cancel(); // the last deck's lyrics are not read on
         _scoreDeck = null;
         _noStaves = null;
         _pictures.Clear();

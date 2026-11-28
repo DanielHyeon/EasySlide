@@ -13,7 +13,10 @@ namespace Axicultus.Wpf.Captions;
 
 public sealed class ObsOperator(string directory, Dispatcher ui) : IDisposable
 {
-    private sealed record Profile(int Port, bool AutoConnect, string Secret, string[] Scenes, string? Host = null, string? Camera = null);
+    // (every item has its default: an item missing from obs.json, or one that cannot be read, is that default)
+    private sealed record Profile(int Port = DefaultPort, bool AutoConnect = false, string? Secret = null, string[]? Scenes = null,
+        string? Host = null, string? Camera = null);
+    private const int DefaultPort = 4455;
     public const string LocalHost = "127.0.0.1";
     private readonly Dispatcher _ui = ui;
     private readonly string _path = Path.Combine(directory, "obs.json");
@@ -22,11 +25,14 @@ public sealed class ObsOperator(string directory, Dispatcher ui) : IDisposable
     private bool _started;
     private bool _disposed;
     private string _savedSecret = "";
+    // The file's saved password when this PC cannot decrypt it: written back as it was until the operator saves a
+    // password (the failure may pass, or the folder be shared with the PC that saved it; design 13).
+    private string _unreadableSecret = "";
     private string[] _scenes = new string[4];
     public string Host { get; private set; } = LocalHost;
     public string CameraSource { get; private set; } = "";
     internal string ProfilePath => _path;
-    public int Port { get; private set; } = 4455;
+    public int Port { get; private set; } = DefaultPort;
     public bool AutoConnect { get; private set; }
     public string[] Shortcuts => (string[])_scenes.Clone();
     public ObsConnection? Connection { get; private set; }
@@ -42,16 +48,22 @@ public sealed class ObsOperator(string directory, Dispatcher ui) : IDisposable
         try
         {
             if (!File.Exists(_path)) return;
-            var profile = JsonSerializer.Deserialize<Profile>(await File.ReadAllBytesAsync(_path));
-            if (configuration != _configurationVersion || _disposed || profile == null || profile.Port is < 1 or > 65535 || profile.Scenes is not { Length: 4 }) return;
+            // Item by item: one missing or bad item is its default, the others are the file's (a048 design 12).
+            var profile = SettingsJson.Read<Profile>(await File.ReadAllTextAsync(_path));
+            if (configuration != _configurationVersion || _disposed || profile == null) return;
             Host = string.IsNullOrWhiteSpace(profile.Host) ? LocalHost : profile.Host;
             if (Uri.CheckHostName(Host) == UriHostNameType.Unknown) Host = LocalHost;
-            Port = profile.Port;
+            if (profile.Port is >= 1 and <= 65535) Port = profile.Port;
             AutoConnect = profile.AutoConnect;
             CameraSource = profile.Camera ?? "";
-            _scenes = profile.Scenes;
-            _savedSecret = profile.Secret;
-            if (AutoConnect)
+            _scenes = profile.Scenes is { Length: 4 } scenes ? [.. scenes.Select(scene => scene ?? "")] : ["", "", "", ""];
+            // A saved password this PC cannot decrypt (a file from another PC or Windows user) is no saved password:
+            // no automatic connection, the usual notice; a password the operator saves puts it right (design 13).
+            string secret = profile.Secret ?? "";
+            bool unreadable = secret.Length > 0 && !CanDecrypt(secret);
+            _savedSecret = unreadable ? "" : secret;
+            _unreadableSecret = unreadable ? secret : "";
+            if (AutoConnect && !unreadable)
             {
                 await ConnectAsync(Host, Port, ReadSavedPassword());
             }
@@ -62,6 +74,20 @@ public sealed class ObsOperator(string directory, Dispatcher ui) : IDisposable
 
     private string ReadSavedPassword() => _savedSecret.Length == 0 ? "" :
         Encoding.UTF8.GetString(ProtectedData.Unprotect(Convert.FromBase64String(_savedSecret), null, DataProtectionScope.CurrentUser));
+
+    private static bool CanDecrypt(string secret)
+    {
+        try
+        {
+            ProtectedData.Unprotect(Convert.FromBase64String(secret), null, DataProtectionScope.CurrentUser);
+            return true;
+        }
+        catch (Exception error) when (error is CryptographicException or FormatException)
+        {
+            System.Diagnostics.Debug.WriteLine($"obs.json saved password not readable here: {error.Message}");
+            return false;
+        }
+    }
 
     internal Task<string> CheckConnectionAsync(string password, CancellationToken ct)
     {
@@ -80,7 +106,8 @@ public sealed class ObsOperator(string directory, Dispatcher ui) : IDisposable
         if (password.Length == 0) password = ReadSavedPassword();
         string secret = password.Length > 0 ? Convert.ToBase64String(ProtectedData.Protect(
             Encoding.UTF8.GetBytes(password), null, DataProtectionScope.CurrentUser)) : "";
-        var profile = new Profile(port, automatic, secret, [.. scenes.Select(s => s.Trim())], host, camera);
+        string[] trimmed = [.. scenes.Select(s => s.Trim())];
+        var profile = new Profile(port, automatic, secret.Length > 0 ? secret : _unreadableSecret, trimmed, host, camera);
         Directory.CreateDirectory(Path.GetDirectoryName(_path)!);
         var temp = _path + "." + Guid.NewGuid().ToString("N") + ".tmp";
         try
@@ -95,7 +122,8 @@ public sealed class ObsOperator(string directory, Dispatcher ui) : IDisposable
         CameraSource = camera;
         AutoConnect = automatic;
         _savedSecret = secret;
-        _scenes = profile.Scenes;
+        if (secret.Length > 0) _unreadableSecret = "";
+        _scenes = trimmed;
         await ConnectAsync(host, port, password);
     }
 

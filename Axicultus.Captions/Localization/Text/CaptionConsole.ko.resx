@@ -93,6 +93,7 @@
   <data name="ReadingLyrics" xml:space="preserve"><value>{0} · 그림 속 가사 읽는 중 {1}/{2}</value></data>
   <data name="LyricsFound" xml:space="preserve"><value>{0} · 그림 속 가사 {1}장 읽음</value></data>
   <data name="LyricsReadFailed" xml:space="preserve"><value>그림 속 가사를 읽지 못했습니다 · {0}</value></data>
+  <data name="LyricsPartlyRead" xml:space="preserve"><value>{0}장 중 {1}장 읽지 못함</value></data>
   <data name="RecognizedChosen" xml:space="preserve"><value>그림 속 가사를 자막으로 씁니다. 텍스트 상자에서 바꿀 수 있습니다.</value></data>
   <data name="Selected" xml:space="preserve"><value>선택됨</value></data>
   <data name="UrlCopied" xml:space="preserve"><value>브라우저 소스 주소를 복사했습니다.</value></data>

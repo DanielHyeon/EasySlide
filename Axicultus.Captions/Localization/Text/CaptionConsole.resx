@@ -93,6 +93,7 @@
   <data name="ReadingLyrics" xml:space="preserve"><value>{0} · reading the lyrics in the pictures {1}/{2}</value></data>
   <data name="LyricsFound" xml:space="preserve"><value>{0} · lyrics read on {1} slides</value></data>
   <data name="LyricsReadFailed" xml:space="preserve"><value>The lyrics in the pictures could not be read · {0}</value></data>
+  <data name="LyricsPartlyRead" xml:space="preserve"><value>{1} of {0} slides not read</value></data>
   <data name="RecognizedChosen" xml:space="preserve"><value>The lyrics in the pictures are used as the caption. You can change it under Text box.</value></data>
   <data name="Selected" xml:space="preserve"><value>Selected</value></data>
   <data name="UrlCopied" xml:space="preserve"><value>The browser source address was copied.</value></data>
