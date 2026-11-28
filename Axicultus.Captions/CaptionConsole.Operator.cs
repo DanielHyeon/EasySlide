@@ -353,7 +353,7 @@ public partial class CaptionConsole
         try
         {
             IReadOnlyList<CaptionStep> steps = following ? DeckSteps(_captions.Deck!)
-                : [.. pages.Select(page => new CaptionStep(page.Index + 1, 0, PageLabel(page), FirstLine(page.Text), null))];
+                : [.. pages.Select(page => new CaptionStep(page.Index + 1, 0, PageLabel(page), PageLabel(page), FirstLine(page.Text), null))];
             if (!steps.SequenceEqual(_editor.Steps)) _editor.Steps = steps;
             steps = _editor.Steps; // the strip's own steps (equal ones are kept): the marks below are found by reference
             int row = _rowShown ? _scoreRow : 0;
@@ -376,8 +376,9 @@ public partial class CaptionConsole
         for (int n = 1; n <= deck.Slides.Length; n++)
         {
             if (ScoreOnFor(n) && RowThumbs(deck, n) is { Length: > 0 } rows)
-                for (int k = 0; k < rows.Length; k++) steps.Add(new(n, k, CaptionText.Format("CaptionConsole", "StepRow", n, k + 1), "", rows[k]));
-            else steps.Add(new(n, 0, CaptionText.Format("CaptionConsole", "StepSlide", n), FirstLine(_captions.TextFor(n, _chosenKey)), null));
+                for (int k = 0; k < rows.Length; k++)
+                    steps.Add(new(n, k, $"{n}-{k + 1}", CaptionText.Format("CaptionConsole", "StepRow", n, k + 1), "", rows[k]));
+            else steps.Add(new(n, 0, $"{n}", CaptionText.Format("CaptionConsole", "StepSlide", n), FirstLine(_captions.TextFor(n, _chosenKey)), null));
         }
         return steps;
     }

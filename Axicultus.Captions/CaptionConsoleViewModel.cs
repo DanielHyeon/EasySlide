@@ -6,11 +6,14 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace Axicultus.Wpf.Captions;
 
-/// <summary>A step of the followed deck in the console's strip: a slide, or a score row of it (Row from 0, with its picture).</summary>
-internal sealed record CaptionStep(int Slide, int Row, string Label, string Text, ImageSource? Thumbnail)
+/// <summary>A step of the followed deck in the console's strip: a slide, or a score row of it (Row from 0, with its picture).
+/// Label is the number its card shows at the top right, as the main window's preview thumbnails number a slide ("1-2" for
+/// a score row, "3" for a slide, the position "2/3" for a page); Name is the step in words ("Slide 1 row 2"), and for a page
+/// its position text (the same as Label).</summary>
+internal sealed record CaptionStep(int Slide, int Row, string Label, string Name, string Text, ImageSource? Thumbnail)
 {
-    /// <summary>What a screen reader reads for the step: its label and first line.</summary>
-    public string Spoken => Text.Length > 0 ? $"{Label} · {Text}" : Label;
+    /// <summary>What a screen reader reads for the step: its name in words and its first line.</summary>
+    public string Spoken => Text.Length > 0 ? $"{Name} · {Text}" : Name;
 }
 
 /// <summary>A caption as the camera screen would show it (the held caption drawn dim while hidden); the names are CaptionSession's.</summary>

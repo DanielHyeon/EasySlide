@@ -226,7 +226,7 @@
                          caption only (the output screen stays). Without a deck, the pages of the output panel's song, passage or
                          text: a picked page turns the panel and the caption follows. The height left (at least a row of steps;
                          more scroll), also while there is no step (a deck being read, a media item, an empty panel). A step shows
-                         its slide (and row) and its text, or the score row's picture; the whole text is in its tool tip. -->
+                         its number and its text, or the score row's picture; the whole text is in its tool tip. -->
                     <Grid x:Name="StepArea" Margin="0,8,0,0">
                         <ListBox x:Name="StepStrip" MinHeight="74" Foreground="{DynamicResource Brush.Text.Primary}"
                                  ItemsSource="{Binding Steps}" SelectedItem="{Binding CurrentStep, Mode=OneWay}" SelectionChanged="StepPicked"
@@ -280,7 +280,7 @@
                             </ListBox.ItemsPanel>
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <Border Width="140" Height="62" Background="{DynamicResource Brush.Surface.Subtle}" CornerRadius="4" Padding="6,3">
+                                    <Border Width="140" Height="62" Background="{DynamicResource Brush.Surface.Subtle}" CornerRadius="4">
                                         <Border.Style>
                                             <Style TargetType="Border">
                                                 <Setter Property="ToolTip" Value="{Binding Text}" />
@@ -291,14 +291,20 @@
                                                 </Style.Triggers>
                                             </Style>
                                         </Border.Style>
-                                        <DockPanel>
-                                            <TextBlock DockPanel.Dock="Top" Text="{Binding Label}" FontWeight="SemiBold" />
-                                            <Grid>
-                                                <Image Source="{Binding Thumbnail}" Stretch="Uniform" />
-                                                <TextBlock Text="{Binding Text}" TextWrapping="Wrap" TextTrimming="CharacterEllipsis"
+                                        <!-- The step's number in the card's top right corner, as the main window's preview
+                                             thumbnails number a slide (the same yellow in either theme; its corner rounded
+                                             as the card's). A score row's picture may run under it; the text stays beside it. -->
+                                        <Grid>
+                                            <Image Source="{Binding Thumbnail}" Stretch="Uniform" Margin="6,3" />
+                                            <DockPanel>
+                                                <Border DockPanel.Dock="Right" VerticalAlignment="Top" MinWidth="18" Padding="3,0"
+                                                        CornerRadius="0,4,0,0" Background="#FFF6E600">
+                                                    <TextBlock Text="{Binding Label}" TextAlignment="Center" FontWeight="Bold" Foreground="Black" />
+                                                </Border>
+                                                <TextBlock Text="{Binding Text}" Margin="6,3,4,3" TextWrapping="Wrap" TextTrimming="CharacterEllipsis"
                                                            Foreground="{DynamicResource Brush.Text.Secondary}" />
-                                            </Grid>
-                                        </DockPanel>
+                                            </DockPanel>
+                                        </Grid>
                                     </Border>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>

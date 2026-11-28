@@ -1203,12 +1203,12 @@ public sealed partial class CaptionConsoleTests
         console.ScoreOnly.IsChecked = true;
         session.Follow(1, CaptionDeck.AllTextKey);
         Assert.Contains("1/2줄", console.ScoreRowLabel.Text);
-        Assert.Equal(("1장 1줄", "1장 2줄"), (editor.CurrentStep?.Label, editor.NextStep?.Label)); // the same slide's second row
+        Assert.Equal(("1-1", "1-2"), (editor.CurrentStep?.Label, editor.NextStep?.Label)); // the same slide's second row
         typeof(CaptionConsole).GetMethod("Next", Private)!.Invoke(console, [null, null]);
-        Assert.Equal(("1장 2줄", "2장 1줄"), (editor.CurrentStep?.Label, editor.NextStep?.Label));
+        Assert.Equal(("1-2", "2-1"), (editor.CurrentStep?.Label, editor.NextStep?.Label));
         Assert.Same(editor.Steps[2], editor.NextStep); // the strip's own step (marked after a next, not only the first time)
         typeof(CaptionConsole).GetMethod("Next", Private)!.Invoke(console, [null, null]);
-        Assert.Equal("2장 2줄", editor.NextStep?.Label);
+        Assert.Equal("2-2", editor.NextStep?.Label);
         typeof(CaptionConsole).GetMethod("Next", Private)!.Invoke(console, [null, null]);
         Assert.Contains("2/2줄", console.ScoreRowLabel.Text);
         Assert.Null(editor.NextStep); // the end
@@ -1226,7 +1226,7 @@ public sealed partial class CaptionConsoleTests
         typeof(CaptionConsole).GetField("_scoreDeck", Private)!.SetValue(console, null);
         typeof(CaptionConsole).GetField("_preparingScore", Private)!.SetValue(console, session.Deck);
         session.Follow(2, CaptionDeck.AllTextKey);
-        Assert.Equal("3장", editor.NextStep?.Label); // no row of slide 2 is on air
+        Assert.Equal("3", editor.NextStep?.Label); // no row of slide 2 is on air
     });
 
     [Fact]
@@ -1246,7 +1246,7 @@ public sealed partial class CaptionConsoleTests
         session.Follow(1, CaptionDeck.AllTextKey);
         await console.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
         Assert.True(console.StepStrip.IsVisible);
-        Assert.Equal(["1장", "2장", "3장"], editor.Steps.Select(step => step.Label));
+        Assert.Equal(["1", "2", "3"], editor.Steps.Select(step => step.Label));
         Assert.Equal("일장", editor.Steps[0].Text); // the first line
         Assert.Equal(editor.Steps[0], editor.CurrentStep);
         console.StepStrip.SelectedItem = editor.Steps[2];
@@ -1272,7 +1272,7 @@ public sealed partial class CaptionConsoleTests
         console.ScoreAndText.IsChecked = true;
         session.Follow(1, CaptionSession.RecognizedKey);
         Assert.Equal("1장 첫 줄", session.PublicText);
-        Assert.Equal(["1장 1줄", "1장 2줄", "2장 1줄", "2장 2줄"], editor.Steps.Select(step => step.Label));
+        Assert.Equal(["1-1", "1-2", "2-1", "2-2"], editor.Steps.Select(step => step.Label));
         Assert.All(editor.Steps, step => Assert.NotNull(step.Thumbnail));
         var sent = new List<string>();
         session.PublishedChanged += published => sent.Add(published.Text);

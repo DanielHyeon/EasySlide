@@ -72,7 +72,8 @@ public sealed partial class CaptionConsoleTests
             Assert.True(await console.PrepareDeckAsync(text, 1));
             console.ScreenMode.IsChecked = true;
             session.Follow(2, CaptionDeck.AllTextKey);
-            await Draw(Window.GetWindow(console), "3-follow-text");
+            await Draw(Window.GetWindow(console), "3-follow-text", [.. ShotSizes, Maximized]); // a049: the step on air and the next in one row
+            await Dark("3-follow-text"); // a049: the steps' numbers in either theme
 
             var score = CaptionAllTextTests.WriteDeck(directory.CreateSubdirectory("score").FullName, [CaptionScorePictureTests.ScorePng()],
                 CaptionAllTextTests.TextSlide("찬양 · 주 하나님 지으신 모든 세계"), CaptionAllTextTests.ScoreSlide(0), CaptionAllTextTests.ScoreSlide(0));
@@ -109,6 +110,7 @@ public sealed partial class CaptionConsoleTests
             session.ShowScreenText(main.OutputLyricsText);
             await Pump(console, 300);
             await Draw(Window.GetWindow(console), "9-follow-song-pages", ShotSizes[0], Maximized);
+            await Dark("9-follow-song-pages");
             main.OutputItem = null;
             session.ShowScreenText("");
             await Pump(console, 300);
