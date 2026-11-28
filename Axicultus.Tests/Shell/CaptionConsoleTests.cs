@@ -487,7 +487,7 @@ public sealed partial class CaptionConsoleTests
         var editor = Assert.IsType<CaptionConsoleViewModel>(console.DataContext);
         console.Draft.SetCurrentValue(TextBox.TextProperty, "지금 초안");
         var queue = new LiveQueueItem("song:1", "지금 곡", LiveItemKinds.Song) { Lyrics = "[1]\n가사" };
-        var main = (MainViewModel)typeof(CaptionConsole).GetField("_main", Private)!.GetValue(console)!;
+        var main = Main(console);
         main.LoadQueue([queue]);
         var plan = (string)typeof(CaptionConsole).GetField("_plan", Private)!.GetValue(console)!;
         await console.RestoreAsync(new(1, 1, plan, "저장한 초안", Path.Combine(directory.FullName, "없는.pptx"), 1, CaptionDeck.AllTextKey, [], [], []));
@@ -1236,7 +1236,7 @@ public sealed partial class CaptionConsoleTests
         var path = CaptionAllTextTests.WriteDeck(directory.FullName, [],
             CaptionAllTextTests.TextSlide("일장", "둘째 줄"), CaptionAllTextTests.TextSlide("이장"), CaptionAllTextTests.TextSlide("삼장"));
         Assert.True(await console.PrepareDeckAsync(path, 1));
-        var main = (MainViewModel)typeof(CaptionConsole).GetField("_main", Private)!.GetValue(console)!;
+        var main = Main(console);
         int screenChanges = 0;
         main.Session.SessionChanged += (_, _) => screenChanges++;
         await ClickAsync(console.AirButton);
@@ -1450,9 +1450,9 @@ public sealed partial class CaptionConsoleTests
             using var own = live == null ? null : new CaptionSession(live.ForCaptions(), nativeShow.ForCaptions(), Path.Combine(directory.FullName, "caption-style.json"));
             var session = own ?? services.GetRequiredService<CaptionSession>();
             var store = services.GetRequiredService<CaptionRecoveryStore>();
-            var console = new CaptionConsole(main, session, services.GetRequiredService<CaptionBroadcastServer>(), store,
-                services.GetRequiredService<CameraOwnership>(), services.GetRequiredService<ObsOperator>(),
-                new OperationalErrorLog(directory.FullName), render, screens ?? (() => [MainScreen]))
+            var app = new MainViewModelCaptionHost(main, services.GetRequiredService<CameraOwnership>(), render, new OperationalErrorLog(directory.FullName));
+            var console = new CaptionConsole(app, session, services.GetRequiredService<CaptionBroadcastServer>(), store,
+                services.GetRequiredService<ObsOperator>(), screens ?? (() => [MainScreen]))
             {
                 Songs = _ => Task.FromResult<IReadOnlyList<SongLyrics.Song>>([]), // no song database (a test gives its songs)
             };

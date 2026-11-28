@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Windows;
 
 namespace Axicultus.Wpf.Captions;
@@ -22,6 +23,28 @@ public static class CaptionTheme
         var look = Defaults(dark);
         look[Marker] = dark;
         merged.Add(look);
+    }
+
+    /// <summary>Gives the caption tab, its tab strip and its settings window (each placed apart by the host) the default look.</summary>
+    public static void Apply(CaptionConsole console, bool dark)
+    {
+        Apply((FrameworkElement)console, dark);
+        Apply(console.Strip, dark);
+        Apply(console.Settings, dark);
+        WriteCheckBoxesInTheTextColour(console.Settings);
+    }
+
+    // The settings window's check boxes keep the text colour of the control theme under them: the WPF app's writes it in
+    // its own colours, the system's black, which the dark look cannot show. With the default look they write it in the
+    // look's text colour, as the caption tab's own check boxes do. (Once: a change of light and dark keeps it.)
+    private static void WriteCheckBoxesInTheTextColour(Window settings)
+    {
+        if (settings.Resources[typeof(System.Windows.Controls.CheckBox)] is not Style local
+            || local.Setters.OfType<Setter>().Any(setter => setter.Property == System.Windows.Controls.Control.ForegroundProperty)) return;
+        settings.Resources[typeof(System.Windows.Controls.CheckBox)] = new Style(typeof(System.Windows.Controls.CheckBox), local)
+        {
+            Setters = { new Setter(System.Windows.Controls.Control.ForegroundProperty, new DynamicResourceExtension("Brush.Text.Primary")) },
+        };
     }
 
     // Marks the dictionaries this class added, so that a change of light and dark replaces them.

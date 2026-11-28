@@ -3991,10 +3991,11 @@ public partial class MainWindow : Window
     // The tab strip and the caption tab in the output column, the tab shown (no keyboard moved: see ShowCaptionTab).
     private Captions.CaptionConsole OpenCaptions(bool captionTab)
     {
-        var console = new Captions.CaptionConsole(_viewModel, _services.GetRequiredService<Captions.CaptionSession>(),
-            _services.GetRequiredService<Captions.CaptionBroadcastServer>(), _services.GetRequiredService<Captions.CaptionRecoveryStore>(),
-            _services.GetRequiredService<Media.CameraOwnership>(), _services.GetRequiredService<Captions.ObsOperator>(),
+        var host = new Captions.MainViewModelCaptionHost(_viewModel, _services.GetRequiredService<Media.CameraOwnership>(),
             _services.GetService<Rendering.IPowerPointRenderService>());
+        var console = new Captions.CaptionConsole(host, _services.GetRequiredService<Captions.CaptionSession>(),
+            _services.GetRequiredService<Captions.CaptionBroadcastServer>(), _services.GetRequiredService<Captions.CaptionRecoveryStore>(),
+            _services.GetRequiredService<Captions.ObsOperator>());
         console.Ended += CaptionsEnded;
         console.Strip.CaptionTab.IsChecked = captionTab;
         console.Strip.LiveTab.Checked += (_, _) => ShowOutputColumnTab();

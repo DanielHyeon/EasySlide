@@ -480,7 +480,8 @@ internal static class Program
 
     private static async Task Windows()
     {
-        var types = typeof(App).Assembly.GetTypes()
+        // the app's windows and the caption library's (the caption settings window, a046)
+        var types = typeof(App).Assembly.GetTypes().Concat(typeof(Axicultus.Wpf.Captions.CaptionSettingsWindow).Assembly.GetTypes())
             .Where(t => typeof(Window).IsAssignableFrom(t) && !t.IsAbstract)
             .Where(t => t.Name is not ("MainWindow" or "OutputWindow" or "PreviewWindow" or "DemoWindow" or "PocAHookTest" or "PocBComStress"))
             .OrderBy(t => t.FullName).ToArray();

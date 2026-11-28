@@ -72,6 +72,7 @@
   <data name="RecoverySaveFailed" xml:space="preserve"><value>Could not save the recovery copy · {0}</value></data>
   <data name="RecoverConfirm" xml:space="preserve"><value>Restore the current draft and the worship list to when they were saved?</value></data>
   <data name="RecoverTitle" xml:space="preserve"><value>Recover worship edits</value></data>
+  <data name="RecoverFailed" xml:space="preserve"><value>Could not recover · {0}</value></data>
   <data name="RecoverNoDeck" xml:space="preserve"><value>The PPT to recover was not found, so nothing was recovered · {0}</value></data>
   <data name="ReopenDeck" xml:space="preserve"><value>Open the PPT again. {0}</value></data>
   <data name="Recovered" xml:space="preserve"><value>The edits were recovered. Check the text to output.</value></data>
@@ -100,6 +101,7 @@
   <data name="ServerRunning" xml:space="preserve"><value>● Caption server running</value></data>
   <data name="ServerFailed" xml:space="preserve"><value>The caption server could not start · {0}</value></data>
   <data name="DeckReadFailed" xml:space="preserve"><value>Could not read the PPT · {0}</value></data>
+  <data name="LegacyDeckUnsupported" xml:space="preserve"><value>This app cannot read the old PowerPoint format (.ppt, .pps). Save the deck as .pptx.</value></data>
   <data name="DeckRead" xml:space="preserve"><value>PPT read · {0}</value></data>
   <data name="CueSaved" xml:space="preserve"><value>The manual text of slide {0} was saved.</value></data>
   <data name="NoNextSlide" xml:space="preserve"><value>The output screen has no next slide.</value></data>

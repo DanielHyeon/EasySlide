@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Axicultus.Wpf.Controls;
 using Axicultus.Wpf.Rendering;
@@ -25,8 +26,11 @@ public static class LiveSessionCaptions
     private sealed class LiveSource(ILiveSessionService live) : ICaptionLiveSource
     {
         // The caption view of the live snapshot last read as Current: one object per live snapshot, as Current promises.
-        // Only Current fills it, so an event carrying an older snapshot cannot replace it.
-        private (LiveSessionSnapshot Source, CaptionLiveSnapshot View)? _current;
+        // Only Current fills it, so an event carrying an older snapshot cannot replace it. One immutable pair swapped
+        // whole: Current may be read on one thread while a change is told on another, and a view is never paired with
+        // another snapshot than its own.
+        private sealed record Kept(LiveSessionSnapshot Source, CaptionLiveSnapshot View);
+        private Kept? _current;
         private EventHandler<CaptionLiveSnapshot>? _changed;
 
         public CaptionLiveSnapshot Current
@@ -34,10 +38,12 @@ public static class LiveSessionCaptions
             get
             {
                 var snapshot = live.Current;
-                if (_current is { } kept && ReferenceEquals(kept.Source, snapshot)) return kept.View;
-                var view = View(snapshot);
-                _current = (snapshot, view);
-                return view;
+                var kept = Volatile.Read(ref _current);
+                if (kept != null && ReferenceEquals(kept.Source, snapshot)) return kept.View;
+                var made = new Kept(snapshot, View(snapshot));
+                // (another reader that kept the same snapshot first: its view, so the snapshot keeps one view)
+                var seen = Interlocked.CompareExchange(ref _current, made, kept);
+                return ReferenceEquals(seen, kept) || seen == null || !ReferenceEquals(seen.Source, snapshot) ? made.View : seen.View;
             }
         }
 

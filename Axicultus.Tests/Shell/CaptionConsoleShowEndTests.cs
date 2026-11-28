@@ -14,7 +14,7 @@ public sealed partial class CaptionConsoleTests
     {
         var path = CaptionAllTextTests.WriteDeck(directory.FullName, [],
             CaptionAllTextTests.TextSlide("일장"), CaptionAllTextTests.TextSlide("이장"), CaptionAllTextTests.TextSlide("삼장"));
-        var main = (MainViewModel)typeof(CaptionConsole).GetField("_main", Private)!.GetValue(console)!;
+        var main = Main(console);
         var output = main.OutputPowerPoint;
         void Panel(int slide)
         {

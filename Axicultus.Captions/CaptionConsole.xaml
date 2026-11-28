@@ -1,8 +1,8 @@
 <UserControl x:Class="Axicultus.Wpf.Captions.CaptionConsole"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:captions="clr-namespace:Axicultus.Wpf.Captions;assembly=Axicultus.Captions"
-        xmlns:loc="clr-namespace:Axicultus.Wpf.Captions;assembly=Axicultus.Captions"
+        xmlns:captions="clr-namespace:Axicultus.Wpf.Captions"
+        xmlns:loc="clr-namespace:Axicultus.Wpf.Captions"
         Background="{DynamicResource Brush.Surface.Page}" Foreground="{DynamicResource Brush.Text.Primary}"
         FontFamily="{DynamicResource Font.Primary}" FontSize="{DynamicResource Type.Body.FontSize}">
     <UserControl.Resources>

@@ -211,7 +211,7 @@ public sealed partial class CaptionConsoleTests
     {
         static OcrLine At(int center, string text) => new([new OcrWord(text, 100, center - 10, 200, 20)]);
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
-        var main = (Axicultus.Wpf.Shell.MainViewModel)typeof(CaptionConsole).GetField("_main", flags)!.GetValue(console)!;
+        var main = Main(console);
         var cache = typeof(CaptionConsole).GetField("_songs", flags)!;
         var database = Path.Combine(directory.FullName, "AxicultusDb.db");
         const string lyrics = "[1]\n나의 맘 받으소서\n오셔서 주님의 처소 삼으소서\n[chorus]\n내맘에 거하여 주옵소서";

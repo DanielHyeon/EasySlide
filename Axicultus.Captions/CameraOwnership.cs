@@ -1,13 +1,13 @@
 using System;
 using CommunityToolkit.Mvvm.ComponentModel;
-using Axicultus.Wpf.Localization;
+using Axicultus.Wpf.Captions;
 
 namespace Axicultus.Wpf.Media;
 
 public sealed class CameraOwnership : ObservableObject
 {
     private bool _obsOwnsCamera;
-    private string _status = UiText.Get("CameraOwnership", "LocalCameraIdle");
+    private string _status = CaptionText.Get("CameraOwnership", "LocalCameraIdle");
     public bool ObsOwnsCamera
     {
         get => _obsOwnsCamera;
@@ -19,7 +19,7 @@ public sealed class CameraOwnership : ObservableObject
                 YieldCheck();
                 ReleaseLocalCamera?.Invoke();
             }
-            Status = value ? UiText.Get("CameraOwnership", "ObsOwnsCamera") : UiText.Get("CameraOwnership", "LocalCameraIdle");
+            Status = value ? CaptionText.Get("CameraOwnership", "ObsOwnsCamera") : CaptionText.Get("CameraOwnership", "LocalCameraIdle");
         }
     }
     public string Status { get => _status; internal set => SetProperty(ref _status, value); }
@@ -65,7 +65,7 @@ public sealed class CameraOwnership : ObservableObject
         _localOwner = null;
         OnPropertyChanged(nameof(HasLocalCapture));
         Preview = null;
-        Status = ObsOwnsCamera ? UiText.Get("CameraOwnership", "ObsOwnsCamera") : UiText.Get("CameraOwnership", "LocalCameraIdle");
+        Status = ObsOwnsCamera ? CaptionText.Get("CameraOwnership", "ObsOwnsCamera") : CaptionText.Get("CameraOwnership", "LocalCameraIdle");
     }
 
     internal event Action? ReleaseLocalCamera;

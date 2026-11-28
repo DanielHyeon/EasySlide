@@ -1,7 +1,7 @@
 <UserControl x:Class="Axicultus.Wpf.Captions.CaptionTabStrip"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:loc="clr-namespace:Axicultus.Wpf.Captions;assembly=Axicultus.Captions"
+             xmlns:loc="clr-namespace:Axicultus.Wpf.Captions"
              Foreground="{DynamicResource Brush.Text.Primary}"
              FontFamily="{DynamicResource Font.Primary}" FontSize="{DynamicResource Type.Body.FontSize}">
     <!-- The tab strip over the main window's output (live) column (a045): the live and caption tabs, and the caption's

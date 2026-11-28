@@ -8,7 +8,6 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using Axicultus.Wpf.Shell;
 
 namespace Axicultus.Wpf.Captions;
 
@@ -331,7 +330,7 @@ public partial class CaptionConsole
     private bool _pagesChanged;
 
     // The panel's pages are replaced one by one, after its text is told: the strip is filled once, afterwards.
-    private void OutputPagesChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+    private void OutputPagesChanged()
     {
         if (_pagesChanged) return;
         _pagesChanged = true;
@@ -342,19 +341,19 @@ public partial class CaptionConsole
         });
     }
 
-    private static string PageLabel(OperatorLyricsPageCard page) => page.PositionText.Length > 0 ? page.PositionText : "1/1";
+    private static string PageLabel(CaptionPage page) => page.Position.Length > 0 ? page.Position : "1/1";
 
     private void UpdateSteps()
     {
         bool following = ScreenMode.IsChecked == true && _captions.Following && _captions.Deck != null;
-        OperatorLyricsPageCard[] pages = ScreenMode.IsChecked == true && !following && _captions.Mirroring ? [.. _main.OutputLyricsPages] : [];
+        CaptionPage[] pages = ScreenMode.IsChecked == true && !following && _captions.Mirroring ? [.. _host.OutputPages] : [];
         _pageSteps = pages.Length > 0;
         AutomationProperties.SetName(StepStrip, CaptionText.Get("CaptionConsole", _pageSteps ? "StepsPages" : "StepsDeck"));
         _showingSteps = true;
         try
         {
             IReadOnlyList<CaptionStep> steps = following ? DeckSteps(_captions.Deck!)
-                : [.. pages.Select(page => new CaptionStep(page.PageIndex + 1, 0, PageLabel(page), FirstLine(page.BodyText), null))];
+                : [.. pages.Select(page => new CaptionStep(page.Index + 1, 0, PageLabel(page), FirstLine(page.Text), null))];
             if (!steps.SequenceEqual(_editor.Steps)) _editor.Steps = steps;
             steps = _editor.Steps; // the strip's own steps (equal ones are kept): the marks below are found by reference
             int row = _rowShown ? _scoreRow : 0;
@@ -420,7 +419,7 @@ public partial class CaptionConsole
         if (_showingSteps || StepStrip.SelectedItem is not CaptionStep step || step == _editor.CurrentStep) return;
         if (_pageSteps)
         {
-            _main.GoToOutputLyricsPageCommand.Execute(step.Slide - 1);
+            _host.GoToOutputPage(step.Slide - 1);
             UpdateSteps(); // (a page the panel did not turn to: the strip shows the page it is on)
             return;
         }

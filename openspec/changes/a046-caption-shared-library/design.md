@@ -86,3 +86,62 @@ CodeGraph CLI는 이 세션에서 쓸 수 없었다. 아래는 2026-11-28 읽기
 ## 5. 확정된 인터페이스 (구현 뒤 기록)
 
 묶음 B가 끝나면 구현자가 호스트 인터페이스의 이름과 멤버 목록을 여기에 적는다. a047의 연결부는 이 절을 기준으로 한다.
+
+정의는 `Axicultus.Captions\CaptionHost.cs`(호스트)와 `CaptionLive.cs`(라이브)에 있다. 네임스페이스는 `Axicultus.Wpf.Captions`(카메라 소유만 `Axicultus.Wpf.Media`). Axicultus의 구현은 `Axicultus\Captions\MainViewModelCaptionHost.cs`다.
+
+**스레드와 "같은 객체" 약속**
+
+- 자막 탭은 호스트의 모든 멤버를 자기 UI 스레드에서 읽는다. 호스트는 `ICaptionHost.Changed`와 `ICaptionQueueRecovery.Replacing`을 그 UI 스레드에서 올린다. `ICaptionLiveSource.Changed`만 다른 스레드에서 와도 된다(탭이 디스패처로 넘긴다).
+- `ICaptionLiveSource.Current`: 송출이 바뀔 때까지 같은 객체(묶음 A, 세션이 쇼 읽기 중의 변화를 참조 비교로 가린다).
+- `ICaptionHost.Picked`: 고른 행이 바뀔 때까지 같은 객체. 탭은 올리기 진행을 기다린 뒤 "아직 같은 행인가"를 참조로 본다. 값을 새로 만드는 호스트는 같은 행이면 지난 객체를 돌려준다(Axicultus 연결부는 `LiveQueueItem` 참조로 캐시).
+- `Live`, `Recovery`, `Renderer`, `Camera`와 `ToggleOutputCamera`가 null인지(설정 창 단추를 숨길지)는 탭이 만들 때 한 번 읽는다(호스트는 매번 같은 객체를 줄 필요가 없다). `ToggleOutputCamera`의 동작 자체, `ReadLegacyDeck`, `SongDatabase`와 나머지 값은 쓸 때마다 읽는다.
+- `CaptionItem.PptSlide`(송출 칸 항목): `OutputPanel`이 있는 호스트에서는 보낼 때의 장(보이는 장은 칸이 알린다). `OutputPanel`이 없는 호스트에서는 송출이 지금 보이는 장이고, 호스트는 넘길 때마다 `Changed(Output)`을 올린다(라이브가 아닐 때 "칸을 넘기면 자막이 따라간다" 규칙이 이것으로 동작). 고른 행의 `PptSlide`는 쓰지 않는다(미리보기 칸의 장).
+- 예배 순서가 바뀌면(`Changed(Plan)`) 탭은 자기 세션을 끝내고 `Ended(true)`를 알린다. 호스트는 새 `CaptionConsole`을 만들고 새 탭의 `Strip`과 `Settings`를 다시 받아 놓아야 한다(옛 탭의 것은 닫힘): 탭 줄을 제자리에 넣기, 테마가 없는 호스트는 `CaptionTheme.Apply(console, dark)`를 다시 부르기, WPF가 아닌 호스트는 새 설정 창에 키보드 연결(`ElementHost.EnableModelessKeyboardInterop`)을 다시 하기, F6·F2 같은 호스트 단축키가 새 탭을 가리키게 하기.
+- `ICaptionHost.Live`는 호스트의 `CaptionSession`이 따라가는 것과 같은 송출이어야 한다(탭의 규칙 "라이브가 아닐 때만 올리기", "라이브 PPT가 먼저"가 그것을 읽는다).
+
+**형식** (한 줄 설명)
+
+- `enum CaptionLiveState { Off, Standby, Active, Hidden }` — 회중 화면 상태(꺼짐·대기·송출·검은 화면/지우기).
+- `record CaptionLiveSnapshot(CaptionLiveState State, string? PptPath, int PptSlideNumber)` — 송출과 그 위의 PPT(파일, 1부터의 장, 없으면 0).
+- `interface ICaptionLiveSource { CaptionLiveSnapshot Current; event EventHandler<CaptionLiveSnapshot>? Changed; }` — 송출 상태와 변경.
+- `interface ICaptionSlideShow { Task<int?> ReadSlideAsync(string path); }` — 네이티브 PPT 쇼의 지금 장(없으면 null).
+- `enum CaptionItemKind { None, Text, PowerPoint, Media }` — 자막이 보는 항목 종류. 미디어는 고르기만으로 송출 칸에 올리지 않는다.
+- `record CaptionItem(string Id, string Title, CaptionItemKind Kind, string? PptPath = null, int PptSlide = 0)` — 예배 순서·송출 칸의 항목. PPT면 파일과 항목 자신의 장(`OutputPanel`이 있으면 보낼 때의 장, 없으면 지금 보이는 장, 위 약속 참조).
+- `record CaptionPage(int Index, string Position, string Text, bool IsCurrent)` — 송출 칸 글의 한 페이지. Index는 0부터, Position은 호스트가 보이는 표시("2/4", 비면 탭이 "1/1"로 보인다).
+- `record CaptionSlidePanel(string? Path, int Slide, ImageSource? Picture)` — PPT를 그리는 칸(송출 칸, 미리보기 칸): 들고 있는 덱(다음 덱을 그리는 동안 앞 덱일 수 있음), 보이는 장(없으면 0), 그 장의 작은 그림.
+- `enum CaptionHostChange { Plan, Output, OutputPages, OutputPanel, OutputPanelDrawn, PreviewPanel, Picked }` — `Changed`가 알리는 것: 예배 순서 이름, 송출 칸 항목·글, 페이지, 송출 칸 덱의 장·그림, 송출 칸이 덱을 다 그림, 미리보기 칸의 장·그림, 고른 행.
+- `record CaptionSong(string Title, string AlternateTitle, string Lyrics, int FolderNo)` — 곡 DB의 곡.
+- `interface ICaptionSongSource { string DatabasePath; Task<IReadOnlyList<CaptionSong>> ReadAsync(string path); bool IsBusy(Exception error); }` — 곡 DB 파일(SQLite, `-wal`도 본다, 없으면 ""), 모든 곡 읽기(UI 스레드 밖에서 부름), 실패가 DB가 바쁘거나 잠겨서인지. 버전 키(파일과 `-wal`의 쓴 시각), "같은 버전은 한 번만 읽기", "못 쓰는 버전은 다시 읽지 않기", "바쁨·잠김·시간 초과·IO(파일 없음 제외)는 다시 시도", "폴더 번호가 0보다 큰 곡만"은 탭의 규칙이다.
+- `record CaptionSlideRender(byte[] Bytes, string ContentType, string? Failure = null)`와 `Failed(string why)` — 큰 장 렌더 결과: 인코딩된 그림과 형식, 또는 운영자에게 보이는 실패 이유.
+- `interface ICaptionSlideRenderer { Task<CaptionSlideRender> RenderAsync(string path, int slide, int width, int height, TimeSpan limit, CancellationToken cancellation); }` — 크기(1920×1080)와 제한(30초)은 탭이 정한다.
+- `class CaptionRenderException(string message, Exception? innerException = null)` — 렌더 실패나 호스트 PowerPoint로 덱 읽기 실패(탭이 읽기 오류로 다룬다).
+- `interface ICaptionQueueRecovery { (JsonElement[] Items, int Selected) Capture(); void Restore(IReadOnlyList<JsonElement> items, string plan, int selected); event Action? Replacing; }` — 예배 순서의 복구: 지금 순서(항목은 호스트가 쓰는 JSON 그대로, 탭은 해석하지 않음)와 고른 행 번호(-1 없음), 되돌리기(그 행이 없으면 고르지 않음), 순서를 바꾸기 직전 알림.
+- `class CaptionRecoveryStore(string directory, Func<JsonElement, bool>? isItem = null)` — 복구 파일(위치·JSON 모양은 그대로). isItem은 호스트의 항목 검사(망가진 항목이 있으면 `.bak`을 읽는다), 없으면 JSON 객체면 항목. `CaptionRecovery.Items`는 `JsonElement[]`.
+- `interface ICaptionHost` (아래).
+
+**`ICaptionHost` 멤버**
+
+| 멤버 | 뜻 |
+|---|---|
+| `ICaptionLiveSource Live` | 회중 화면(라이브 상태, 위의 PPT) |
+| `event EventHandler<CaptionHostChange>? Changed` | 아래 값의 변경, UI 스레드 |
+| `string PlanName` | 지금 예배 순서 이름 |
+| `CaptionItem? OutputItem` | 송출 칸 항목(`OutputPanel`이 없으면 그 `PptSlide`가 지금 보이는 장, 넘길 때마다 `Changed(Output)`) |
+| `string OutputText` | 송출 칸에 지금 보이는 글(없으면 "", PPT도 "") |
+| `IReadOnlyList<CaptionPage> OutputPages` | 송출 칸 글의 페이지 |
+| `CaptionSlidePanel? OutputPanel` | 송출 칸의 PPT 칸. null이면 칸이 따로 없음(그러면 송출 칸 항목의 `PptSlide`가 보이는 장) |
+| `CaptionSlidePanel? PreviewPanel` | 미리보기 칸의 PPT 칸(고른 PPT의 장은 이 칸의 장). null이면 없음 |
+| `bool CanStepOutput(int direction)` / `Task StepOutputAsync(int direction)` | 송출 화면 다음(1)·이전(-1)을 할 수 있는지와 실행(호스트 자신의 다음·이전) |
+| `void GoToOutputPage(int index)` | 송출 칸의 페이지로(0부터) |
+| `CaptionItem? Picked` | 예배 순서에서 고른 행(같은 객체 약속) |
+| `bool CanSendPicked` / `Task PickedSending` / `void SendPicked()` | 송출 칸에 올리기: 할 수 있는지, 진행 중인 올리기(없으면 끝난 작업), 실행(송출하지 않음) |
+| `ICaptionSlideRenderer? Renderer` | 큰 장 렌더, 없으면 null |
+| `Func<string, CancellationToken, Task<CaptionDeck>>? ReadLegacyDeck` | 옛 형식(.ppt·.pps) 읽기, 없으면 null(그런 파일은 "읽을 수 없다"는 안내) |
+| `ICaptionSongSource? SongDatabase` | 곡 DB, 없으면 null(가사 고치기 없이 인식한 그대로) |
+| `CameraOwnership? Camera` | 카메라 소유(미리보기 그림, 상태 글, 위아래 뒤집기, OBS가 카메라를 쓰는지, 로컬 카메라 내리기 알림). null이면 탭이 자기 것을 써 OBS 카메라 미리보기만 한다 |
+| `void StopLocalCamera()` | OBS가 카메라를 가져갈 때 호스트가 재생 중인 라이브 카메라를 내린다 |
+| `Action? ToggleOutputCamera` | 송출 카메라 켜기/끄기, null이면 설정 창의 단추를 숨긴다 |
+| `ICaptionQueueRecovery? Recovery` | 예배 순서 복구, null이면 복구 파일에 순서를 넣지 않고 되돌리지 않는다 |
+| `void WriteError(string action, Exception error)` | 운영자에게 바로 보이지 않는 실패의 기록 |
+
+**탭 쪽 공개 진입점**: `new CaptionConsole(ICaptionHost host, CaptionSession captions, CaptionBroadcastServer server, CaptionRecoveryStore store, ObsOperator obs)`, `CaptionTheme.Apply(CaptionConsole console, bool dark)`(앱 테마가 없는 호스트: 탭, 탭 줄, 설정 창에 기본 모양. 설정 창 체크 상자 글자는 기본 모양의 글자색). 탭 줄 `Strip`, 설정 창 `Settings`, `ToggleOnAir`, `EndSession`, `Ended`, `ReleaseFocus`는 지금처럼 `internal`(InternalsVisibleTo `Axicultus`, `Axicultuss`).

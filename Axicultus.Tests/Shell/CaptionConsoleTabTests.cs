@@ -25,7 +25,7 @@ public sealed partial class CaptionConsoleTests
         return (first, second, third);
     }
 
-    internal static MainViewModel Main(CaptionConsole console) => (MainViewModel)typeof(CaptionConsole).GetField("_main", Private)!.GetValue(console)!;
+    internal static MainViewModel Main(CaptionConsole console) => ((MainViewModelCaptionHost)console.HostApp).Main;
 
     // The item put in the output panel as the main window does it (its worship list, "송출 칸에 올리기").
     private static async Task SendToOutput(CaptionConsole console, MainViewModel main, LiveQueueItem item)

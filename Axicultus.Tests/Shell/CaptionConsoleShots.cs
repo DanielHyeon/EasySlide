@@ -34,11 +34,12 @@ public sealed partial class CaptionConsoleTests
     private static readonly (string Name, double Width, double Height) Maximized = ("max", 736, 1000);
 
     [ShotsFact]
-    public Task DrawTheConsoleForReview()
+    public async Task DrawTheConsoleForReview()
     {
         var live = new Axicultus.Wpf.Shell.LiveSessionService(); // its own: nothing of the main window reacts to it
         var folder = Directory.CreateDirectory(Environment.GetEnvironmentVariable("AXI_A037_SHOTS")!).FullName;
-        return WithConsole(async (console, session, directory) =>
+        await DrawTheDefaultLook(folder); // a046
+        await WithConsole(async (console, session, directory) =>
         {
             async Task Draw(Window window, string name, params (string Name, double Width, double Height)[] sizes)
             {
@@ -113,6 +114,35 @@ public sealed partial class CaptionConsoleTests
             await Pump(console, 300);
             await Draw(Window.GetWindow(console), "10-follow-no-steps", ShotSizes[0]);
         }, show: false, appLook: true, live: live);
+    }
+
+    // a046 design 4b: the tab and its settings window of a host without the app's theme (Axicultuss), in the caption
+    // library's own look, light and dark, a song's page on air. The application's resources (the app's theme and control
+    // styles, there when another test of the run made an Application) are set aside meanwhile: run alone, nothing else
+    // uses them.
+    private static async Task DrawTheDefaultLook(string folder)
+    {
+        var app = Application.Current;
+        var kept = app?.Resources;
+        if (app != null) app.Resources = new ResourceDictionary();
+        try
+        {
+            foreach (bool dark in new[] { false, true })
+                await FakeCaptionHost.WithConsole(async (console, session, host, _) =>
+                {
+                    string mode = dark ? "dark" : "light";
+                    // (not shown, so the tab does not follow by itself: the screen's text is given to it)
+                    session.Mirror(true);
+                    host.Show(new("song:shot", "주님은 나의 목자", CaptionItemKind.Text), ["주님은 나의 목자시니\n내게 부족함 없으리", "푸른 풀밭에 누이시며", "쉴 만한 물가로"], 0);
+                    session.ShowScreenText(host.OutputText);
+                    console.AirButton.Command.Execute(null);
+                    await console.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
+                    File.WriteAllBytes(Path.Combine(folder, $"11-default-look-{mode}.png"), DrawWindow(Window.GetWindow(console), ShotSizes[0].Width, ShotSizes[0].Height));
+                    await console.Settings.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
+                    File.WriteAllBytes(Path.Combine(folder, $"12-default-look-settings-{mode}.png"), DrawWindow(console.Settings, console.Settings.Width, console.Settings.Height));
+                }, dark, show: false);
+        }
+        finally { if (app != null) app.Resources = kept!; }
     }
 
     // The window's content as the window would show it at that size (its frame and title bar left out), never shown.

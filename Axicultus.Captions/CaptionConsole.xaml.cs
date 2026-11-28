@@ -9,11 +9,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
-using Axicultus.Wpf.Shell;
-using Axicultus.Wpf.Controls;
 using Axicultus.Wpf.Media;
-using Axicultus.Wpf.Rendering;
-using Axicultus.Wpf.Support;
 using System.Threading;
 using Microsoft.Win32;
 
@@ -21,17 +17,19 @@ namespace Axicultus.Wpf.Captions;
 
 /// <summary>
 /// The camera caption tab of the main window's output (live) column (a045): following the output screen or typing, the
-/// steps, the camera preview and the caption's look. <see cref="Strip"/> is the tab strip with the on-air switch.
+/// steps, the camera preview and the caption's look. <see cref="Strip"/> is the tab strip with the on-air switch. What it
+/// takes from the app it is in comes through <see cref="ICaptionHost"/>.
 /// </summary>
 public partial class CaptionConsole : UserControl
 {
     private readonly CaptionSession _captions;
     private readonly CaptionConsoleViewModel _editor;
-    private readonly OperationalErrorLog _errors;
     private DispatcherOperation? _compositionCommit;
     private readonly CaptionBroadcastServer _server;
     private readonly CaptionRecoveryStore _store;
-    private readonly MainViewModel _main;
+    private readonly ICaptionHost _host;
+    private readonly ICaptionLiveSource _live; // (taken once: the handlers below are removed from the same objects)
+    private readonly ICaptionQueueRecovery? _recovery;
     private readonly CameraOwnership _camera;
     private bool _fetchingPreview;
     private readonly DispatcherTimer _previewTimer = new(DispatcherPriority.Background) { Interval = TimeSpan.FromMilliseconds(500) };
@@ -39,29 +37,29 @@ public partial class CaptionConsole : UserControl
     private readonly DispatcherTimer _debounce = new() { Interval = TimeSpan.FromMilliseconds(600) };
     private CaptionRecovery? _recoverable;
     private readonly ObsOperator _obs;
-    private readonly IPowerPointRenderService? _render;
+    private readonly ICaptionSlideRenderer? _render;
     private bool _closed, _dirty;
     private long _revision, _deckRequest;
     private readonly string _plan;
 
-    public CaptionConsole(MainViewModel main, CaptionSession captions, CaptionBroadcastServer server, CaptionRecoveryStore store, CameraOwnership camera, ObsOperator obs,
-        IPowerPointRenderService? render = null)
-        : this(main, captions, server, store, camera, obs, OperationalErrorLog.Default, render) { }
+    public CaptionConsole(ICaptionHost host, CaptionSession captions, CaptionBroadcastServer server, CaptionRecoveryStore store, ObsOperator obs)
+        : this(host, captions, server, store, obs, null) { }
 
-    internal CaptionConsole(MainViewModel main, CaptionSession captions, CaptionBroadcastServer server, CaptionRecoveryStore store, CameraOwnership camera, ObsOperator obs, OperationalErrorLog errors,
-        IPowerPointRenderService? render = null, Func<IReadOnlyList<CaptionScreen>>? screens = null)
+    internal CaptionConsole(ICaptionHost host, CaptionSession captions, CaptionBroadcastServer server, CaptionRecoveryStore store, ObsOperator obs,
+        Func<IReadOnlyList<CaptionScreen>>? screens)
     {
         _screens = screens ?? CaptionWindowPlacement.Screens; // (tests give the screens)
-        _render = render;
-        _errors = errors;
+        _render = host.Renderer;
         _editor = new(captions);
-        _main = main;
-        _camera = camera;
+        _host = host;
+        _live = host.Live;
+        _recovery = host.Recovery;
+        _camera = host.Camera ?? new CameraOwnership(); // (a host without a camera of its own: the OBS camera preview only)
         _obs = obs;
         _captions = captions;
         _server = server;
         _store = store;
-        _plan = main.CurrentWorshipListName;
+        _plan = host.PlanName;
         captions.BeginPlan(_plan);
         captions.SetVisible(false); // a new console starts hidden; the Show button puts the caption on air
         Settings = new CaptionSettingsWindow();
@@ -79,7 +77,8 @@ public partial class CaptionConsole : UserControl
         PreviewCaption.Fit(new Size(1920, 1080));
         HeldCaption.Fit(new Size(1920, 1080));
         // before the window's own, or the camera bindings look at the editor first
-        CameraPreview.DataContext = CameraStatus.DataContext = Settings.CameraControls.DataContext = camera;
+        CameraPreview.DataContext = CameraStatus.DataContext = Settings.CameraControls.DataContext = _camera;
+        if (host.ToggleOutputCamera == null) Settings.ToggleCameraButton.Visibility = Visibility.Collapsed; // (no output camera to turn)
         WatchColumn();
         DataContext = _editor;
         _editor.SaveRequested += Changed;
@@ -91,9 +90,7 @@ public partial class CaptionConsole : UserControl
         SavedPassword.Visibility = obs.HasSavedPassword ? Visibility.Visible : Visibility.Collapsed;
         BoxCheck.IsChecked = captions.Style.Box;
         _editor.IsInstant = true;
-        _main.Session.SessionChanged += LiveChanged;
-        _main.OutputPowerPoint.PropertyChanged += SlideImageChanged;
-        _main.PowerPoint.PropertyChanged += SlideImageChanged;
+        _live.Changed += LiveChanged;
         Loaded += StartAutomatically;
         var shortcuts = obs.Shortcuts;
         Scene1.Text = shortcuts[0];
@@ -123,16 +120,15 @@ public partial class CaptionConsole : UserControl
             StartWhenUsed();
             // (a step put on air while the tab was hidden was not scrolled to: once laid out, it is)
             if (IsVisible) Dispatcher.InvokeAsync(() => { if (!_closed) UpdateSteps(); }, DispatcherPriority.Loaded);
-            if (IsVisible && _main.OutputItem == null) StagePickedRow(); // an empty panel: the row already picked
+            if (IsVisible && _host.OutputItem == null) StagePickedRow(); // an empty panel: the row already picked
         };
         PreviewObsCamera.Checked += (_, _) => UpdatePreviewTimer();
         PreviewObsCamera.Unchecked += (_, _) => UpdatePreviewTimer();
         _camera.PropertyChanged += CameraChanged;
-        _main.QueueReplacing += BeforeQueueReplacement;
+        if (_recovery != null) _recovery.Replacing += BeforeQueueReplacement;
         _camera.ReleaseLocalCamera += OnCameraRelease;
         PreviewKeyDown += OnKey;
-        _main.PropertyChanged += MainChanged;
-        _main.OutputLyricsPages.CollectionChanged += OutputPagesChanged;
+        _host.Changed += HostChanged;
         _captions.PropertyChanged += CaptionChanged;
         UpdateHeld();
         ShowChosenColor();
@@ -140,15 +136,25 @@ public partial class CaptionConsole : UserControl
         if (captions.Deck is { } deck) ShowDeck(deck, captions.CurrentSlide, captions.BoxKey is { Length: > 0 } key ? key : CaptionDeck.AllTextKey);
     }
 
-    private void MainChanged(object? sender, PropertyChangedEventArgs e)
+    private void HostChanged(object? sender, CaptionHostChange change)
     {
-        if (e.PropertyName == nameof(MainViewModel.CurrentWorshipListName) && _main.CurrentWorshipListName != _plan)
+        switch (change)
         {
-            EndSession(planChanged: true);
-            _captions.BeginPlan(_main.CurrentWorshipListName);
+            case CaptionHostChange.Plan when _host.PlanName != _plan:
+                EndSession(planChanged: true);
+                _captions.BeginPlan(_host.PlanName);
+                break;
+            case CaptionHostChange.Output: _ = SyncScreenAsync(); break;
+            case CaptionHostChange.Picked: StagePickedRow(); break;
+            case CaptionHostChange.OutputPages: OutputPagesChanged(); break;
+            // The output panel is ready: only now is the deck it has drawn told (after its picture and slide), so its slide counts.
+            case CaptionHostChange.OutputPanelDrawn: _ = SyncScreenAsync(); break;
+            case CaptionHostChange.OutputPanel:
+                _ = SyncScreenAsync();
+                UpdateScore();
+                break;
+            case CaptionHostChange.PreviewPanel: UpdateScore(); break;
         }
-        else if (e.PropertyName is nameof(MainViewModel.OutputLyricsText) or nameof(MainViewModel.OutputItem)) _ = SyncScreenAsync();
-        else if (e.PropertyName == nameof(MainViewModel.SelectedItem)) StagePickedRow();
     }
 
     // The tab shown, following the screen, and the show not on the screen (off or standing by): the row picked in the
@@ -157,16 +163,18 @@ public partial class CaptionConsole : UserControl
     // start playing) or the row the panel already holds.
     private async void StagePickedRow()
     {
-        if (_main.SelectedItem is not { } picked || _editor.IsRestoring) return; // (a recovery picks its own row)
-        var send = _main.SendWorshipSelectionToOutputCommand;
+        if (_host.Picked is not { } picked || _editor.IsRestoring) return; // (a recovery picks its own row)
         // after the pick's own work and a row still being sent (a deck being drawn): only the row the operator stops on
         await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Background);
-        if (send.ExecutionTask is { IsCompleted: false } sending) await Task.WhenAny(sending);
-        if (_closed || !IsVisible || ScreenMode.IsChecked != true || !ReferenceEquals(_main.SelectedItem, picked)
-            || _main.Session.Current.State is LiveState.Active or LiveState.Hidden
-            || LiveItemKindMatcher.IsMedia(picked.Kind) || _main.OutputItem?.Id == picked.Id) return;
-        if (send.CanExecute(null)) send.Execute(null);
+        if (_host.PickedSending is { IsCompleted: false } sending) await Task.WhenAny(sending);
+        if (_closed || !IsVisible || ScreenMode.IsChecked != true || !ReferenceEquals(_host.Picked, picked)
+            || _live.Current.State is CaptionLiveState.Active or CaptionLiveState.Hidden
+            || picked.Kind == CaptionItemKind.Media || _host.OutputItem?.Id == picked.Id) return;
+        if (_host.CanSendPicked) _host.SendPicked();
     }
+
+    /// <summary>The app the tab is in (a test reads the view model behind it).</summary>
+    internal ICaptionHost HostApp => _host;
 
     /// <summary>The tab ended (once): planChanged, another worship list came (the main window makes a new tab for it).</summary>
     internal event Action<bool>? Ended;
@@ -188,10 +196,7 @@ public partial class CaptionConsole : UserControl
         if (!_editor.IsRestoring && _dirty) _ = SaveAsync();
     }
 
-    private void OnCameraRelease()
-    {
-        if (_main.Media.MediaType == "Live Camera") _main.Media.Unload();
-    }
+    private void OnCameraRelease() => _host.StopLocalCamera();
 
     private void CameraChanged(object? sender, PropertyChangedEventArgs e)
     {
@@ -288,7 +293,7 @@ public partial class CaptionConsole : UserControl
         }
         catch (Exception ex) when (IsFileError(ex))
         {
-            _errors.Write("read caption recovery", ex);
+            _host.WriteError("read caption recovery", ex);
             if (!_closed) Status.Text = ex.Message;
         }
     }
@@ -306,14 +311,14 @@ public partial class CaptionConsole : UserControl
     {
         if (!_dirty) return;
         _dirty = false;
+        var (items, selected) = _recovery?.Capture() ?? (Array.Empty<System.Text.Json.JsonElement>(), -1); // (a host that keeps its own worship order: none)
         var snapshot = new CaptionRecovery(1, ++_revision, _plan, _editor.DraftText, _captions.Deck?.Path,
-            SelectedSlide, _chosenKey, [with(_captions.Overrides)], [.. _captions.History],
-            [.. _main.Queue.Select(CaptionRecoveryStore.Capture)], _main.SelectedItem == null ? -1 : _main.Queue.IndexOf(_main.SelectedItem));
+            SelectedSlide, _chosenKey, [with(_captions.Overrides)], [.. _captions.History], items, selected);
         try { await _store.SaveAsync(snapshot); }
         catch (Exception ex) when (IsFileError(ex))
         {
             _dirty = true;
-            _errors.Write("save caption recovery", ex);
+            _host.WriteError("save caption recovery", ex);
             if (!_closed) Status.Text = CaptionText.Format("CaptionConsole", "RecoverySaveFailed", ex.Message);
         }
     }
@@ -323,7 +328,13 @@ public partial class CaptionConsole : UserControl
         if (_editor.IsRestoring || _recoverable is not { } saved) return;
         if (MessageBox.Show(Settings, CaptionText.Get("CaptionConsole", "RecoverConfirm"), CaptionText.Get("CaptionConsole", "RecoverTitle"),
             MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
-        await RestoreAsync(saved);
+        // (a button's handler: whatever the restore runs into is told, never left to end the app)
+        try { await RestoreAsync(saved); }
+        catch (Exception ex)
+        {
+            _host.WriteError("recover caption", ex);
+            if (!_closed) Told = CaptionText.Format("CaptionConsole", "RecoverFailed", ex.Message);
+        }
     }
 
     internal async Task RestoreAsync(CaptionRecovery saved)
@@ -346,16 +357,23 @@ public partial class CaptionConsole : UserControl
                 catch (OperationCanceledException) when (_lifetime.IsCancellationRequested) { return; }
                 catch (Exception ex) when (IsDeckReadError(ex))
                 {
-                    _errors.Write("recover caption PPT", ex);
+                    _host.WriteError("recover caption PPT", ex);
                     warning = CaptionText.Format("CaptionConsole", "ReopenDeck", ex.Message);
                 }
             }
             if (_closed) return;
+            var (draft, instant) = (_editor.DraftText, _editor.IsInstant);
             _editor.IsInstant = false;
             _editor.DraftText = saved.Draft;
-            _main.LoadRecoveredQueue(saved.Items.Select(CaptionRecoveryStore.Restore), saved.Plan);
-            if (saved.SelectedIndex >= 0 && saved.SelectedIndex < _main.Queue.Count)
-                _main.SelectedItem = _main.Queue[saved.SelectedIndex];
+            // The host puts its worship order back; if it cannot, nothing is recovered (the draft as it was).
+            try { _recovery?.Restore(saved.Items, saved.Plan, saved.SelectedIndex); }
+            catch (Exception ex)
+            {
+                _host.WriteError("recover worship list", ex);
+                (_editor.DraftText, _editor.IsInstant) = (draft, instant);
+                if (!_closed) Told = CaptionText.Format("CaptionConsole", "RecoverFailed", ex.Message);
+                return;
+            }
             if (deck != null)
             {
                 _captions.Prepare(deck);
@@ -382,7 +400,7 @@ public partial class CaptionConsole : UserControl
     private void ToggleCamera(object sender, RoutedEventArgs e)
     {
         if (_camera.ObsOwnsCamera) return;
-        _main.ToggleOutputCameraCommand.Execute(null);
+        _host.ToggleOutputCamera?.Invoke();
     }
     // Enter (or Ctrl+Enter) sends the line and empties the box; Shift+Enter is a new line.
     private void DraftKey(object sender, KeyEventArgs e)
@@ -408,10 +426,8 @@ public partial class CaptionConsole : UserControl
     private async Task<CaptionDeck> ReadDeckAsync(string path)
     {
         if (Path.GetExtension(path).ToLowerInvariant() is ".ppt" or ".pps")
-        {
-            using var worker = new PowerPointWorker();
-            return await worker.ReadLegacyDeckAsync(path, _lifetime.Token).ConfigureAwait(false);
-        }
+            return await (_host.ReadLegacyDeck ?? throw new NotSupportedException(CaptionText.Get("CaptionConsole", "LegacyDeckUnsupported")))
+                (path, _lifetime.Token).ConfigureAwait(false);
         var token = _lifetime.Token;
         return await Task.Run(() => CaptionDeck.Read(path, token), token).ConfigureAwait(false);
     }
@@ -458,36 +474,43 @@ public partial class CaptionConsole : UserControl
             }
             if (!_captions.Following) FollowLoadedDeck(slide); // the slide the screen shows now, not the one last viewed
             // Live, the session drives the caption; the panel's slide is noted so the show's end (the panel keeps it) is no turn.
-            else if (_main.Session.Current.State != LiveState.Off) _outputSlide = _main.OutputPowerPoint.SlideNumber;
+            else if (_live.Current.State != CaptionLiveState.Off) _outputSlide = OutputPanel()?.Slide ?? 0;
             // Not live: a turn of the output panel drives the caption; a caption the operator moved stays until the panel turns.
-            else if (SamePath(_main.OutputPowerPoint.LoadedContentPath, path)
-                && _main.OutputPowerPoint.SlideNumber >= 1 && _main.OutputPowerPoint.SlideNumber != _outputSlide)
+            else if (OutputPanel() is { } panel && SamePath(panel.Path, path) && panel.Slide >= 1 && panel.Slide != _outputSlide)
             {
-                _outputSlide = _main.OutputPowerPoint.SlideNumber;
+                _outputSlide = panel.Slide;
                 if (_outputSlide != _captions.CurrentSlide) _captions.MoveToSlide(_outputSlide);
             }
             UpdateScore();
             return;
         }
         // A deck just put in the output panel goes live a moment later; its (empty) panel text is not a caption.
-        if (_main.OutputItem is { ContentPath.Length: > 0 } pending && LiveItemKindMatcher.IsPowerPoint(LiveItemKindMatcher.InferLegacyKind(pending))) return;
-        _captions.ShowScreenText(_main.OutputLyricsText ?? "");
+        if (IsDeck(_host.OutputItem)) return;
+        string text = _host.OutputText ?? "";
+        _captions.ShowScreenText(text);
         UpdateScore();
-        Status.Text = _main.HasOutputLyricsText ? "" : CaptionText.Get("CaptionConsole", "NoScreenText");
+        Status.Text = !string.IsNullOrWhiteSpace(text) ? "" : CaptionText.Get("CaptionConsole", "NoScreenText");
     }
+
+    private static bool IsDeck(CaptionItem? item) => item is { Kind: CaptionItemKind.PowerPoint, PptPath.Length: > 0 };
+
+    // The output column's deck panel; for a host without one of its own, the output item's own slide is what the
+    // output column shows.
+    private CaptionSlidePanel? OutputPanel() => _host.OutputPanel
+        ?? (_host.OutputItem is { } item && IsDeck(item) ? new CaptionSlidePanel(item.PptPath, item.PptSlide, null) : null);
 
     // slide: the one the output screen shows (else the one viewed in the settings window).
     private void FollowLoadedDeck(int? slide = null)
     {
         if (_captions.Deck == null) return;
         _captions.Follow(slide ?? SelectedSlide, _chosenKey);
-        _outputSlide = _main.OutputPowerPoint.SlideNumber;
+        _outputSlide = OutputPanel()?.Slide ?? 0;
         Status.Text = ""; // the deck is named on the card above
         UpdateScore();
         Changed();
     }
 
-    private void LiveChanged(object? sender, LiveSessionChangedEventArgs e) => Dispatcher.InvokeAsync(SyncScreenAsync);
+    private void LiveChanged(object? sender, CaptionLiveSnapshot e) => Dispatcher.InvokeAsync(SyncScreenAsync);
 
     private void SourceChanged(object sender, RoutedEventArgs e)
     {
@@ -501,7 +524,7 @@ public partial class CaptionConsole : UserControl
         {
             _captions.Mirror(true);
             _ = SyncScreenAsync();
-            if (_main.OutputItem == null) StagePickedRow(); // an empty panel: the row already picked
+            if (_host.OutputItem == null) StagePickedRow(); // an empty panel: the row already picked
         }
         else
         {
@@ -530,16 +553,6 @@ public partial class CaptionConsole : UserControl
     }
     private void SetScoreRow(int row) { _scoreRow = Math.Clamp(row, 0, Math.Max(0, _scoreRows - 1)); UpdateScore(); }
 
-    private void SlideImageChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        // The output panel is ready: only now is the deck it has drawn told (after its picture and slide), so its slide counts.
-        if (e.PropertyName == nameof(PowerPointPreviewViewModel.State) && ReferenceEquals(sender, _main.OutputPowerPoint)
-            && _main.OutputPowerPoint.State == PowerPointPreviewState.Ready) { _ = SyncScreenAsync(); return; }
-        if (e.PropertyName is not (nameof(PowerPointPreviewViewModel.PreviewImage) or nameof(PowerPointPreviewViewModel.SlideNumber))) return;
-        if (ReferenceEquals(sender, _main.OutputPowerPoint)) _ = SyncScreenAsync();
-        UpdateScore();
-    }
-
     private void UpdateScore()
     {
         UpdateScoreCore();
@@ -552,7 +565,7 @@ public partial class CaptionConsole : UserControl
         if (!ScoreOn || ScreenMode.IsChecked != true || !_captions.Following || _captions.Deck is not { } deck)
         {
             ScoreRowLabel.Text = _captions.Following && _captions.Deck != null ? CaptionText.Format("CaptionConsole", "DeckSlide", _captions.CurrentSlide, _captions.Deck.Slides.Length)
-                : _captions.Mirroring ? (_main.OutputItem?.Title is { Length: > 0 } title ? title : CaptionText.Get("CaptionConsole", "ScreenText")) : "";
+                : _captions.Mirroring ? (_host.OutputItem?.Title is { Length: > 0 } title ? title : CaptionText.Get("CaptionConsole", "ScreenText")) : "";
             // the deck name only while it is followed; its line stays, so the list below does not move from item to item
             DeckLabel.Visibility = _captions.Following ? Visibility.Visible : Visibility.Hidden;
             _captions.SetImage(null);
@@ -586,8 +599,8 @@ public partial class CaptionConsole : UserControl
             }
         }
         // Else a full-size render of the slide; the small operator picture of it stands in until that is ready.
-        if (rendered) image = SharpSlide(deck, _captions.CurrentSlide) ?? new[] { _main.OutputPowerPoint, _main.PowerPoint }.FirstOrDefault(p =>
-            Same(p.LoadedContentPath, deck.Path) && p.SlideNumber == _captions.CurrentSlide && p.PreviewImage is BitmapSource { PixelHeight: > 1 })?.PreviewImage as BitmapSource;
+        if (rendered) image = SharpSlide(deck, _captions.CurrentSlide) ?? new[] { _host.OutputPanel, _host.PreviewPanel }.FirstOrDefault(p =>
+            p != null && Same(p.Path, deck.Path) && p.Slide == _captions.CurrentSlide && p.Picture is BitmapSource { PixelHeight: > 1 })?.Picture as BitmapSource;
         // No row of this slide yet: the last row (maybe of another slide) does not stay on air; its text does meanwhile,
         // and the arrows turn slides (no row is shown).
         if (image == null)
@@ -660,7 +673,7 @@ public partial class CaptionConsole : UserControl
         {
             // (a row cut from the operator's small picture of the slide stands in: nothing to tell)
             if (!OnAir() || _rowShown) return;
-            _errors.Write($"render score slide · slide {slide}", failure ?? new InvalidOperationException("render failed"));
+            _host.WriteError($"render score slide · slide {slide}", failure ?? new InvalidOperationException("render failed"));
             Status.Text = CaptionText.Format("CaptionConsole", "ScoreRenderFailed", failure?.Message ?? CaptionText.Get("CaptionConsole", "RenderFailed"));
         }
         else if (OnAir()) UpdateScore();
@@ -671,19 +684,19 @@ public partial class CaptionConsole : UserControl
     private async Task<(BitmapSource Image, byte[] Bytes, string ContentType)?> RenderSlideAsync(string path, int slide, Action<Exception>? failed = null)
     {
         if (_render == null) return null;
-        var result = await _render.RenderSlideAsync(new(path, slide, 1920, 1080, TimeSpan.FromSeconds(30)), _lifetime.Token);
-        if (!result.Succeeded)
+        var result = await _render.RenderAsync(path, slide, 1920, 1080, TimeSpan.FromSeconds(30), _lifetime.Token);
+        if (result.Failure is { } failure)
         {
-            failed?.Invoke(new PowerPointRenderException(result.ErrorKind, result.ErrorMessage ?? result.ErrorKind.ToString()));
+            failed?.Invoke(new CaptionRenderException(failure));
             return null;
         }
-        using var stream = new MemoryStream(result.Slide!.ImageBytes);
+        using var stream = new MemoryStream(result.Bytes);
         var frame = BitmapDecoder.Create(stream, BitmapCreateOptions.PreservePixelFormat | BitmapCreateOptions.IgnoreColorProfile,
             BitmapCacheOption.OnLoad).Frames[0];
         frame.Freeze();
         if (_sharp.Count >= 40) _sharp.Clear();
         _sharp[(path, slide)] = frame;
-        return (frame, result.Slide.ImageBytes, result.Slide.ContentType);
+        return (frame, result.Bytes, result.ContentType);
     }
 
     /// <summary>Where the score row on air was cut from: "picture" (the deck's content picture) or "render" (the slide).</summary>
@@ -808,7 +821,7 @@ public partial class CaptionConsole : UserControl
         {
             var (found, target) = await Task.Run(() => PrepareScore(deck.Path, slides, token, (n, error) => failures.Enqueue((n, error))), token);
             if (_closed || !ReferenceEquals(_captions.Deck, deck)) return;
-            foreach (var (slide, error) in failures) _errors.Write($"read score picture · slide {slide}", error);
+            foreach (var (slide, error) in failures) _host.WriteError($"read score picture · slide {slide}", error);
             foreach (var (slide, picture) in found) if (picture is var (image, page)) _pictures.Keep((deck.Path, slide), image, page);
             _scoreDeck = (deck, [.. found.Keys], target);
             // The slides whose content picture was read and measured and shows no staff (a photo); not one that failed.
@@ -819,7 +832,7 @@ public partial class CaptionConsole : UserControl
         catch (Exception error) // never left waiting: the whole deck comes from the render
         {
             if (_closed || !ReferenceEquals(_captions.Deck, deck)) return;
-            _errors.Write("read score picture", error);
+            _host.WriteError("read score picture", error);
             _scoreDeck = (deck, [], default);
         }
         finally { if (ReferenceEquals(_preparingScore, deck)) _preparingScore = null; }
@@ -850,7 +863,7 @@ public partial class CaptionConsole : UserControl
             if (_closed || _scoreDeck is not { } current || !ReferenceEquals(current.Deck, deck)) return;
             if (read is not var (image, rows))
             {
-                if (failure != null) _errors.Write($"read score picture · slide {slide}", failure);
+                if (failure != null) _host.WriteError($"read score picture · slide {slide}", failure);
                 current.Slides.Remove(slide); // the file changed or went away: the render is used
             }
             else _pictures.Keep(key, image, rows);
@@ -881,23 +894,22 @@ public partial class CaptionConsole : UserControl
 
     private Task<IReadOnlyList<SongLyrics.Song>> ReadSongsAsync(CancellationToken cancellation)
     {
-        string path = _main.SongDatabasePath;
+        if (_host.SongDatabase is not { } database) return Task.FromResult<IReadOnlyList<SongLyrics.Song>>([]);
+        string path = database.DatabasePath;
         if (path.Length == 0) return Task.FromResult<IReadOnlyList<SongLyrics.Song>>([]);
         string wal = path + "-wal";
         string key = $"{path}|{File.GetLastWriteTimeUtc(path).Ticks}|{(File.Exists(wal) ? File.GetLastWriteTimeUtc(wal).Ticks : 0)}";
         if (key == _songsUnusable) return Task.FromResult<IReadOnlyList<SongLyrics.Song>>([]);
         if (_songs is { } kept && kept.Key == key && !kept.Songs.IsFaulted && !kept.Songs.IsCanceled) return kept.Songs;
-        var library = _main.Library;
-        var songs = Task.Run(async () => (IReadOnlyList<SongLyrics.Song>)[.. (await library.ReadSongsAsync(path).ConfigureAwait(false))
+        var songs = Task.Run(async () => (IReadOnlyList<SongLyrics.Song>)[.. (await database.ReadAsync(path).ConfigureAwait(false))
             .Where(song => song.FolderNo > 0).Select(song => new SongLyrics.Song(song.Title, song.AlternateTitle, song.Lyrics))], cancellation);
         _songs = (key, songs);
         return songs;
     }
 
     // A failure reading the song database that may pass (the file busy, locked or in use).
-    private static bool Passing(Exception error) => error is System.Data.SQLite.SQLiteException
-        { ResultCode: System.Data.SQLite.SQLiteErrorCode.Busy or System.Data.SQLite.SQLiteErrorCode.Locked }
-        or TimeoutException || error is IOException and not (FileNotFoundException or DirectoryNotFoundException);
+    private bool Passing(Exception error) => _host.SongDatabase?.IsBusy(error) == true
+        || error is TimeoutException || error is IOException and not (FileNotFoundException or DirectoryNotFoundException);
 
     // The read lyrics (per slide, per row) with misread words put right from the deck's song in the song database, off
     // the UI thread; as read when nothing was read, no song is sure to be the deck's, or anything fails.
@@ -918,7 +930,7 @@ public partial class CaptionConsole : UserControl
             if (_closed || lifetime.IsCancellationRequested || !ReferenceEquals(_captions.Deck, deck)) return slides;
             string? failed = _songs is { Songs.IsFaulted: true } faulted ? faulted.Key : null;
             if (failed != null && !Passing(error.GetBaseException())) _songsUnusable = failed; // that version is not read again
-            if (failed == null || failed != _songsTold) _errors.Write("correct lyrics from the song database", error);
+            if (failed == null || failed != _songsTold) _host.WriteError("correct lyrics from the song database", error);
             _songsTold = failed ?? _songsTold;
             return slides;
         }
@@ -950,7 +962,7 @@ public partial class CaptionConsole : UserControl
             if (deck.Slides.Any(s => s.Picture != null))
                 try { await _scorePrepared; }
                 catch (OperationCanceledException) { if (_closed || !ReferenceEquals(_captions.Deck, deck)) return; }
-                catch (Exception error) { _errors.Write("read score picture", error); }
+                catch (Exception error) { _host.WriteError("read score picture", error); }
             foreach (var slide in slides)
             {
                 if (_closed || !ReferenceEquals(_captions.Deck, deck)) return;
@@ -1014,7 +1026,7 @@ public partial class CaptionConsole : UserControl
             or InvalidOperationException or UnauthorizedAccessException or OperationCanceledException or TimeoutException)
         {
             if (_closed) return;
-            _errors.Write("read lyrics in pictures", error);
+            _host.WriteError("read lyrics in pictures", error);
             DeckLabel.Text = Path.GetFileName(deck.Path);
             Status.Text = CaptionText.Format("CaptionConsole", "LyricsReadFailed", error.Message);
         }
@@ -1209,19 +1221,18 @@ public partial class CaptionConsole : UserControl
     // The live deck first; then the deck in the output panel (show not live) and, if asked, the selected one.
     private (string Path, int Slide)? FindCurrentDeck(bool includeSelected)
     {
-        static bool IsDeck(LiveQueueItem? item) => item is { ContentPath.Length: > 0 } &&
-            LiveItemKindMatcher.IsPowerPoint(LiveItemKindMatcher.InferLegacyKind(item));
-        var live = _main.Session.Current;
+        var live = _live.Current;
         if (live.PptPath is { Length: > 0 } path) return (path, live.PptSlideNumber);
         // Not live: the deck in the output panel is what the output screen holds, at the slide the panel shows; the item's
         // own slide while the panel is empty or still holds the last deck (its slide number is that deck's).
-        if (live.State == LiveState.Off && IsDeck(_main.OutputItem))
+        if (live.State == CaptionLiveState.Off && _host.OutputItem is { } item && IsDeck(item))
         {
-            var (item, panel) = (_main.OutputItem!, _main.OutputPowerPoint);
-            bool lastDeck = panel.LoadedContentPath is { } drawn && !SamePath(drawn, item.ContentPath!);
-            return (item.ContentPath!, Math.Max(1, lastDeck || panel.SlideNumber < 1 ? item.SlideNumber : panel.SlideNumber));
+            var panel = OutputPanel()!;
+            bool lastDeck = panel.Path is { } drawn && !SamePath(drawn, item.PptPath!);
+            return (item.PptPath!, Math.Max(1, lastDeck || panel.Slide < 1 ? item.PptSlide : panel.Slide));
         }
-        if (includeSelected && IsDeck(_main.SelectedItem)) return (_main.SelectedItem!.ContentPath!, Math.Max(1, _main.PowerPoint.SlideNumber));
+        // The picked deck at the slide the preview column shows.
+        if (includeSelected && _host.Picked is { } picked && IsDeck(picked)) return (picked.PptPath!, Math.Max(1, _host.PreviewPanel?.Slide ?? 0));
         return null;
     }
 
@@ -1237,7 +1248,7 @@ public partial class CaptionConsole : UserControl
         catch (OperationCanceledException) when (_lifetime.IsCancellationRequested) { return false; }
         catch (Exception ex) when (IsDeckReadError(ex))
         {
-            _errors.Write("open caption PPT", ex);
+            _host.WriteError("open caption PPT", ex);
             if (!_closed && request == _deckRequest) Status.Text = CaptionText.Format("CaptionConsole", "DeckReadFailed", ex.Message);
             return false;
         }
@@ -1268,7 +1279,7 @@ public partial class CaptionConsole : UserControl
 
     private static bool IsDeckReadError(Exception error) => IsFileError(error) || error is System.Xml.XmlException
         or FormatException or InvalidOperationException or ArgumentException or NotSupportedException or TimeoutException
-        or Win32Exception or PowerPointRenderException;
+        or Win32Exception or CaptionRenderException;
 
     private int SelectedSlide => Slides.SelectedItem is int slide ? slide : 1;
     private string SelectedKey => (Boxes.SelectedItem as CaptionBox)?.Key ?? "";
@@ -1368,9 +1379,9 @@ public partial class CaptionConsole : UserControl
         if (_captions.SyncShow)
         {
             // Sync: the output screen turns (a slide, a page of a song or passage) and the caption follows it.
-            var turn = change > 0 ? _main.NextOutputSlideCommand : _main.PreviousOutputSlideCommand;
-            if (!turn.CanExecute(null)) { Status.Text = CaptionText.Get("CaptionConsole", change > 0 ? "NoNextSlide" : "NoPreviousSlide"); return; }
-            await turn.ExecuteAsync(null);
+            int direction = change > 0 ? 1 : -1;
+            if (!_host.CanStepOutput(direction)) { Status.Text = CaptionText.Get("CaptionConsole", change > 0 ? "NoNextSlide" : "NoPreviousSlide"); return; }
+            await _host.StepOutputAsync(direction);
             return;
         }
         if (!_captions.Following) { Status.Text = CaptionText.Get("CaptionConsole", "SyncOff"); return; }
@@ -1444,14 +1455,11 @@ public partial class CaptionConsole : UserControl
         _previewTimer.Tick -= ReadObsPreview;
         _camera.PropertyChanged -= CameraChanged;
         if (_camera.ObsOwnsCamera) _camera.Preview = null;
-        _main.QueueReplacing -= BeforeQueueReplacement;
+        if (_recovery != null) _recovery.Replacing -= BeforeQueueReplacement;
         _camera.ReleaseLocalCamera -= OnCameraRelease;
-        _main.PropertyChanged -= MainChanged;
-        _main.OutputLyricsPages.CollectionChanged -= OutputPagesChanged;
+        _host.Changed -= HostChanged;
         _captions.PropertyChanged -= CaptionChanged;
-        _main.Session.SessionChanged -= LiveChanged;
-        _main.OutputPowerPoint.PropertyChanged -= SlideImageChanged;
-        _main.PowerPoint.PropertyChanged -= SlideImageChanged;
+        _live.Changed -= LiveChanged;
         if (!Settings.IsClosed) Settings.Close();
         // The last write runs on a pool thread. Finish before the process can exit.
         _obs.Changed -= ShowObsStatus;

@@ -35,7 +35,7 @@ internal sealed class QueueRecoveryJournal : IDisposable
         _timer.Stop();
         if (!_main.WorshipListHasUnsavedChanges) return;
         var plan = _main.CurrentWorshipListName;
-        var items = _main.Queue.Select(CaptionRecoveryStore.Capture).ToArray();
+        var items = _main.Queue.Select(MainViewModelCaptionHost.ToRecovery).ToArray();
         var selected = _main.SelectedItem == null ? -1 : _main.Queue.IndexOf(_main.SelectedItem);
         try { await _store.SaveQueueAsync(plan, items, selected); }
         catch (Exception ex) { _main.StatusText = CaptionText.Format("CaptionConsole", "QueueRecoverySaveFailed", ex.Message); }

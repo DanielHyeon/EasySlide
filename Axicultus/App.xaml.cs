@@ -89,7 +89,8 @@ public partial class App : Application
         services.AddSingleton<Captions.CaptionBroadcastServer>();
         services.AddSingleton(_ => new Captions.ObsOperator(
             profileDirectory, dispatcher));
-        services.AddSingleton(_ => new Captions.CaptionRecoveryStore(Path.Combine(profileDirectory, "CaptionRecovery")));
+        services.AddSingleton(_ => new Captions.CaptionRecoveryStore(Path.Combine(profileDirectory, "CaptionRecovery"),
+            Captions.MainViewModelCaptionHost.IsRecoverableItem));
         services.AddSingleton<IOutputWindowService, OutputWindowService>();
         // 미디어 백엔드 — 생명주기 브리지(출력 창의 MediaElement 가 만들어지면 실제 백엔드를 Attach).
         // 동일 인스턴스를 IMediaPlaybackBackend(서비스용)과 구체 타입(출력 창 Attach용) 양쪽으로 노출.

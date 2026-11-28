@@ -188,6 +188,48 @@ public sealed class CaptionLibraryTests
         Assert.Same(current, source.Current);
     }
 
+    // Current read on one thread while another changes the output and tells it: every view returned is a whole view of
+    // the snapshot it was made from (deck n, slide n, the state of n), never older than the output before the read, and
+    // the same object while the output stays the same.
+    [Fact]
+    public async System.Threading.Tasks.Task CurrentReadWhileTheOutputChangesOnAnotherThreadIsAlwaysAWholeViewOfOneSnapshot()
+    {
+        static LiveSessionSnapshot Output(int n) => new(n % 2 == 0 ? Axicultus.Wpf.Controls.LiveState.Active : Axicultus.Wpf.Controls.LiveState.Hidden,
+            "", "", IsBlackout: n % 2 == 1, PptPath: $@"C:\deck{n}.pptx", PptSlideNumber: n);
+        static bool Whole(CaptionLiveSnapshot view) => view.PptPath == $@"C:\deck{view.PptSlideNumber}.pptx"
+            && view.State == (view.PptSlideNumber % 2 == 0 ? CaptionLiveState.Active : CaptionLiveState.Hidden);
+        var live = new ScriptedLive { Current = Output(1) };
+        var source = live.ForCaptions();
+        var problems = new System.Collections.Concurrent.ConcurrentQueue<string>();
+        source.Changed += (_, view) => { if (!Whole(view)) problems.Enqueue($"told {view}"); };
+        using var stop = new System.Threading.CancellationTokenSource();
+        var writer = System.Threading.Tasks.Task.Run(() =>
+        {
+            for (int n = 2; !stop.IsCancellationRequested; n++)
+            {
+                live.Current = Output(n);
+                live.Raise(n % 3 == 0 ? Output(n - 1) : live.Current); // (now and then a late event of the output before)
+            }
+        });
+        var readers = Enumerable.Range(0, 2).Select(_ => System.Threading.Tasks.Task.Run(() =>
+        {
+            for (int i = 0; i < 200_000 && problems.IsEmpty; i++)
+            {
+                var before = live.Current;
+                var view = source.Current;
+                if (!Whole(view)) problems.Enqueue($"not whole {view}");
+                else if (view.PptSlideNumber < before.PptSlideNumber) problems.Enqueue($"older than the output before the read: {view.PptSlideNumber} < {before.PptSlideNumber}");
+            }
+        })).ToArray();
+        await System.Threading.Tasks.Task.WhenAll(readers);
+        stop.Cancel();
+        await writer;
+        Assert.True(problems.IsEmpty, string.Join("\n", problems.Take(5)));
+        var still = live.Current; // the output stays: one object
+        Assert.Same(source.Current, source.Current);
+        Assert.Same(still, live.Current);
+    }
+
     [Fact]
     public void TheServiceIsHeldOnlyWhileSomeoneListens()
     {

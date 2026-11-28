@@ -2,7 +2,7 @@
 
 - Goal: 옮기기 전 결과를 기록해, 옮긴 뒤 같은지 비교할 수 있게 한다.
 - [x] 0.1 브랜치 `feat/a046-caption-shared-library`(지금 HEAD에서). Debug 빌드, `Axicultus.Tests` 전체와 `FullyQualifiedName~Caption` 결과(통과·건너뜀 수) 기록
-- [ ] 0.2 하네스 `captiontab`, `pptcaption` 기준 로그(격리 사본, 실행 규칙은 `tools\AxicultusHarness\README.md`). 실행 전 사용자에게 창이 뜬다고 알린다
+- [x] 0.2 하네스 `captiontab`, `pptcaption` 기준 로그(격리 사본, 실행 규칙은 `tools\AxicultusHarness\README.md`). 실행 전 사용자에게 창이 뜬다고 알린다
 - [x] 0.3 design 1의 의존 목록을 지금 코드와 대조(줄 번호 갱신, 빠진 것 추가)
 - DoD: 기준 수치와 로그 이름이 이 문서 "검증 결과"에 있다.
 
@@ -22,26 +22,26 @@
 ## Phase 2. 묶음 B — 화면
 
 - Goal: 자막 탭 화면을 라이브러리로 옮기고 Axicultus는 연결부로 붙인다.
-- [ ] 2.1 `CaptionConsole`(두 partial)·`CaptionTabStrip`·`CaptionSettingsWindow` 옮기기, `MainViewModel` 사용을 호스트 인터페이스로 바꾸기
-- [ ] 2.2 Axicultus 연결부(`MainViewModel` 구현), `QueueRecoveryJournal`은 앱에 남김, 본창·서비스 등록 연결
-- [ ] 2.3 테스트 만들기 코드(`WithConsole`)와 하네스(`tools\AxicultusHarness`) 수정
-- [ ] 2.4 가짜 호스트로 자막 탭을 여는 테스트: 화면 글 따라가기, 페이지 단계와 페이지로 가기, 고른 항목 올리기(송출 중에는 안 함), 송출 스위치
-- [ ] 2.5 design 5에 확정된 인터페이스 기록
+- [x] 2.1 `CaptionConsole`(두 partial)·`CaptionTabStrip`·`CaptionSettingsWindow` 옮기기, `MainViewModel` 사용을 호스트 인터페이스로 바꾸기 (`CaptionRecoveryStore`, `CameraOwnership`과 그 문구 영역도 옮김)
+- [x] 2.2 Axicultus 연결부(`MainViewModel` 구현), `QueueRecoveryJournal`은 앱에 남김, 본창·서비스 등록 연결
+- [x] 2.3 테스트 만들기 코드(`WithConsole`)와 하네스(`tools\AxicultusHarness`) 수정
+- [x] 2.4 가짜 호스트로 자막 탭을 여는 테스트: 화면 글 따라가기, 페이지 단계와 페이지로 가기, 고른 항목 올리기(송출 중에는 안 함), 송출 스위치
+- [x] 2.5 design 5에 확정된 인터페이스 기록
 - Tests: 자막 테스트 전부(검사 내용 변경 없음), 2.4, 하네스 `captiontab`·`pptcaption`
 - DoD: Debug·Release 빌드 오류 0(저장소 bin), 전체 테스트 통과, 하네스 두 단계가 0.2와 같은 결과, 실제 데이터 unchanged, `Axicultus\Captions\`에 연결부와 `QueueRecoveryJournal`만 남음
 - Constraints: Phase 1과 같다. 자막 탭의 모양·키·저장 파일은 바뀌지 않는다.
 
 ## Phase 3. 회귀와 빌드
 
-- [ ] 3.1 Debug·Release 빌드(저장소 bin), `Axicultus.Tests`·`Axicultuss.Tests` 전체
-- [ ] 3.2 하네스 그림(`captiontab-*.png`)을 0.2의 그림과 비교(탭 줄, 자막 탭, 라이브 탭)
+- [x] 3.1 Debug·Release 빌드(저장소 bin), `Axicultus.Tests`·`Axicultuss.Tests` 전체
+- [ ] 3.2 하네스 그림 (묶음 B 구현자: 새 그림은 만들었으나 같은 이름의 이전 그림을 따로 보관하지 않아 덮어씀. 비교는 못 함, 검증 결과 참조)(`captiontab-*.png`)을 0.2의 그림과 비교(탭 줄, 자막 탭, 라이브 탭)
 
 ## Phase 4. 리뷰와 기록
 
-- [ ] 4.1 묶음마다 적대적 리뷰(구현자와 다른 에이전트) 지적 사항 처리
-- [ ] 4.2 묶음마다 `/code-review`
-- [ ] 4.3 총괄 완료 검증과 "검증 결과" 기록
-- [ ] 4.4 커밋·푸시, 아카이브(`openspec/changes/archive/<날짜>-a046-caption-shared-library`, `openspec/specs/live-camera-captions/spec.md`에 delta 반영)
+- [x] 4.1 묶음마다 적대적 리뷰(구현자와 다른 에이전트) 지적 사항 처리
+- [x] 4.2 묶음마다 `/code-review`
+- [x] 4.3 총괄 완료 검증과 "검증 결과" 기록
+- [x] 4.4 커밋·푸시, 아카이브(`openspec/changes/archive/<날짜>-a046-caption-shared-library`, `openspec/specs/live-camera-captions/spec.md`에 delta 반영)
 
 ## 옮기다 찾은 기존 결함 (이 변경에서 고치지 않음, 별도 fix 변경으로)
 
@@ -81,3 +81,38 @@
 - /code-review: 옮기기에서 회귀 없음. 지금 고친 것 2(보이지 않는 문자 원문, 너무 엄격한 키 검사), 기존 결함 3은 위 목록으로.
 - 총괄이 직접 돌린 결과: `dotnet build Axicultus.sln -c Debug` 오류 0, `Axicultus.csproj -c Release` 오류 0, `Axicultus.Tests` 3741 통과·22 건너뜀·실패 0, `Axicultuss.Tests` 478 통과·2 건너뜀. 라이브러리 참조는 Axicultus.Core·Axicultus.Win32뿐, Theme\EasiDS.xaml 변경 없음, 앱에서 라이브러리를 쓰는 파일은 원래 자막 형식을 쓰던 곳뿐.
 - 하지 않은 것: 앱 실행 점검(하네스)은 묶음 B 끝에서 한다.
+
+### Phase 2·3 묶음 B (구현 직후, 리뷰 전, 2026-11-28)
+
+- 옮김(네임스페이스 그대로): `CaptionConsole`(xaml과 두 partial), `CaptionTabStrip`, `CaptionSettingsWindow`, `CaptionRecoveryStore`, `CameraOwnership`(`Axicultus.Wpf.Media`)과 문구 영역 `CameraOwnership`. `Axicultus\Captions\`에는 `MainViewModelCaptionHost`(연결부), `LiveSessionCaptions`(묶음 A의 라이브 연결부), `QueueRecoveryJournal`만 남음. 인터페이스는 design 5.
+- 복구 파일: 위치(프로필 `CaptionRecovery\`, 이름은 예배 순서 이름의 SHA-256)와 JSON 모양 그대로. `CaptionRecovery.Items`는 `JsonElement[]`, Axicultus는 항목을 예전처럼 `WorshipListItemDto`로 쓰고 읽으며 `IsRecoverableItem`으로 망가진 항목을 가린다(`.bak`으로). 684e93d의 저장 코드로 만든 파일을 읽고 같은 모양으로 다시 쓰는 테스트를 넣음.
+- 새 문구 1개: `CaptionConsole.LegacyDeckUnsupported`(영어·한국어, 옛 형식 읽기가 없는 호스트에서만 보임).
+- 기본 모양: 앱 테마가 없는 호스트에서 어두운 모양의 설정 창 체크 상자 글자가 검게 나와 읽을 수 없었다(시스템 컨트롤 모양). `CaptionTheme.Apply(CaptionConsole, dark)`가 설정 창의 체크 상자 글자를 기본 모양의 글자색으로 한다(Axicultus는 이것을 부르지 않으므로 모양 변화 없음). 그 밖의 시스템 모양 단추·입력 칸·목록은 밝은·어두운 모두 읽을 수 있어 그대로 둠.
+- 빌드: `dotnet build Axicultus.sln -c Debug`, `Axicultus\Axicultus.csproj -c Release`, `-c Debug`, `Axicultuss\Axicultuss.csproj -c Debug`, 하네스 `Harness.csproj` 모두 오류 0.
+- 테스트: `Axicultus.Tests` 통과 3,749·건너뜀 22·실패 0(3,741 + 새 8: 가짜 호스트 4, 연결부 `Picked` 동일성 1, 옛 모양 복구 파일 1, 기본 모양 밝은·어두운 2). 바꾸기 전 `FullyQualifiedName~Caption` 통과 326·건너뜀 1, 바꾼 뒤 같은 필터에서 기존 326 모두 통과. `Axicultuss.Tests` 통과 478·건너뜀 2.
+- 기존 테스트 수정: 만들기 코드(`WithConsole`, `Main(console)`, 테스트 본문에서 `_main` 필드를 꺼내던 4곳을 `Main(console)`로)만. 예외: `CaptionIntegrationTests`의 복구 저장소 테스트 3개는 항목이 `JsonElement`가 되어 항목 만들기와 항목 비교 두 곳의 식이 바뀜(같은 값 비교: `Items[1].Sequence` → `Items[1].Deserialize<WorshipListItemDto>().Sequence`, 항목 동등 → 역직렬화한 DTO 동등), 저장소는 앱의 항목 검사로 만듦.
+- 기본 모양 그림(`AXI_A037_SHOTS`, `DrawTheConsoleForReview` 한 번 실행): `11-default-look-light.png`, `11-default-look-dark.png`, `12-default-look-settings-light.png`, `12-default-look-settings-dark.png`. 그리는 동안 Application 리소스를 비워 앱 테마·컨트롤 모양이 섞이지 않게 함. `CaptionDefaultLookTests`를 따로 돌리면 프로세스에 Application이 없음(테스트 출력으로 확인).
+- 하네스 `Run-Harness.ps1 -Phases 'captiontab,pptcaption' -Name 'a046-b'`: 보호 검사 통과, `[CAPTIONTAB]` PASS 16·FAIL 0이고 줄 전체(시각 제외)가 `previewkeep.log`(d4e2b97)와 같음. `[PPT]` 69줄 중 68줄이 `livetab.log`(67a195a)와 같고 한 줄 다름: `after GoLive: console=` 기준은 "", 이번은 "그림 속 가사를 자막으로 씁니다…". 기준 실행에만 그 사이 직접 입력 글이 송출된 `[AIR]` 4건(rev 14~17, "나의" → "나의 전부이신 주여 오셔서")이 있고, 같은 날 03:32 `tabstart-pptcaption.log`, `a045-pptcaption*.log`, a035~a040 실행이 모두 이번과 같은 문구다(한국어 실행은 같은 키의 한국어 글). 실제 데이터 unchanged(3곳). `FIRSTCHANCE` 3건은 기준과 같음(OfficePptSession). 끝에 `POWERPNT before=0 after=1`(끝난 뒤 곧 사라짐, 기준 실행의 값은 로그에 없음).
+- 하지 않은 것: 3.2(그림 비교) — 하네스가 같은 이름으로 그림을 덮어써 0.2의 그림이 남아 있지 않았다.
+
+### 묶음 B 리뷰 뒤 고침 (2026-11-28)
+
+- M1: `CaptionDefaultLookTests`가 `WPF Application` 모음과 함께 돌며 공유 리소스 사전을 건드렸다(리뷰어 5회 중 5회 실패). 새 모음 `Caption default look`(`DisableParallelization = true`)에 넣어 다른 테스트가 모두 끝난 뒤 혼자 돌게 했고, 테스트 동안 Application 리소스를 빈 사전으로 바꿨다가 되돌린다(앱 테마·컨트롤 모양이 없음을 테스트 안에서 단언). 가짜 호스트의 다른 테스트는 `CaptionConsoleTests`(이미 `WPF Application` 모음)에 있다. 리뷰어의 필터(`CaptionDefaultLookTests|AnotherHost|AHostWithNone|ARecoveryFileOfTheShape|TheAppsPickedRow`)를 5회 연속 실행: 5회 모두 통과 11·실패 0.
+- M2: 가짜 호스트 테스트가 패널 없는 호스트의 길을 지나게 함. `AHostWithNoneOfTheOptionalPartsHasAWorkingTab`에서 `ScreenDeck` 대역을 없앰: `OutputPanel` 없이 PPT 항목 `PptSlide` 2 → 자막 2장, `Output`으로 3 → 3장(라이브 아님, `OutputPanel()` 대체), 라이브 Active에서 라이브 쪽 장 1 → 1, 2 → 2, 라이브 중 송출 칸 3은 따라가지 않음. 새 테스트 3개: 미리보기 칸 없이 고른 PPT 다시 읽기(1장으로), 올리기 진행 중의 두 번 고르기(끝난 뒤 마지막 행만 올림), 렌더 없음(글로 나가고 "악보 만드는 중")·곡 DB 없음(인식한 가사 그대로, 오류 기록 없음). 자막 탭의 결함은 나오지 않음(코드 수정 없음).
+- 문서: `CaptionItem.PptSlide`(패널 없는 호스트에서는 지금 보이는 장, 넘길 때마다 `Output`), 한 번만 읽는 멤버(`Live`, `Recovery`, `Renderer`, `Camera`, `ToggleOutputCamera`가 null인지), 예배 순서가 바뀐 뒤 호스트가 새 탭에 다시 할 일(design 5).
+- 수치: `Axicultus.sln -c Debug`, `Axicultus\Axicultus.csproj -c Release` 빌드 오류 0. `Axicultus.Tests` 두 번: 통과 3,752·건너뜀 22·실패 0(두 번 같음, 3,741 + 새 11). `Axicultuss.Tests` 통과 478·건너뜀 2.
+
+### 묶음 B 코드 리뷰 뒤 고침 (2026-11-28)
+
+- 라이브 연결부(`LiveSessionCaptions.LiveSource`): 캐시한 (스냅샷, 보기) 짝을 불변 객체 하나로 두고 `Volatile.Read`·`Interlocked.CompareExchange`로 통째로 바꿈(다른 스레드의 알림과 읽기가 섞여도 보기가 다른 스냅샷과 짝지어지지 않음). 테스트: 두 스레드가 `Current`를 읽는 동안 다른 스레드가 송출을 바꾸고 알림(늦은 알림 포함)을 올려도 돌려받은 보기가 늘 한 스냅샷의 온전한 보기이고 읽기 전 송출보다 오래되지 않음.
+- 복구 되돌리기: 호스트의 `Restore`가 던지면 탭이 잡아 `WriteError`로 기록하고 상태 줄에 알리며(새 문구 `CaptionConsole.RecoverFailed`, 영어·한국어) 초안과 즉시 보내기를 그대로 두고 복구를 그만둔다. 설정 창의 복구 단추 처리기(`async void`)도 그 밖의 실패를 잡아 같은 문구로 알린다. 테스트: `Restore`가 던지는 가짜 호스트.
+- 복구 행 직렬화: `MainViewModelCaptionHost.ToRecovery`가 행 객체마다 직렬화한 JSON을 `ConditionalWeakTable`에 보관(바뀌지 않은 행은 한 번만 직렬화, 쓰는 바이트는 같음, 옛 모양 복구 파일 테스트 통과). 테스트: 같은 순서를 두 번 캡처해도 행마다 보관한 상자가 같고, 바뀐 행은 새로 직렬화.
+- 수치: `Axicultus.sln -c Debug`, `Axicultus\Axicultus.csproj -c Release` 빌드 오류 0. `Axicultus.Tests` 통과 3,755·건너뜀 22·실패 0(3,752 + 새 3). `Axicultuss.Tests` 통과 478·건너뜀 2.
+
+### 묶음 B 총괄 검증 (2026-11-28)
+
+- 적대적 리뷰(별도 에이전트): 치명 0. 옮긴 화면 코드는 옛 코드와 줄 단위로 대조해 동작 차이 없음, 복구 파일은 옛 코드가 쓴 것과 바이트까지 같음. 주요 2건은 새 테스트의 문제(다른 WPF 테스트와 동시에 돌면 실패, 가짜 호스트 테스트가 송출 칸 없는 호스트의 경로를 건너뜀)라 고쳤다. a047에 남긴 것은 a047 design 2b.
+- `/code-review`: 회귀 없음. 고친 것 3(라이브 연결부의 엇갈린 읽기, 복구 되돌리기 실패가 앱을 멈출 수 있음, 복구 저장 때 UI 스레드에서 예배 순서 전체를 다시 변환). 기존 결함 1(복구가 코드와 카포를 잃음)은 a048로.
+- 총괄이 직접 돌린 결과: `dotnet build Axicultus.sln -c Debug` 오류 0, `Axicultus.csproj -c Release` 오류 0, `Axicultus.Tests` 3755 통과·22 건너뜀·실패 0, `Axicultuss.Tests` 478 통과·2 건너뜀. 라이브러리에 앱 형식 없음(검색 0건), `Axicultus\Captions\`에는 연결부 둘과 `QueueRecoveryJournal`만.
+- 하네스(총괄 실행, 로그 `a046-b-verify.log`, 격리 사본): `captiontab` 16 PASS·0 FAIL, `pptcaption` 69줄이 구현자 실행(`a046-b.log`)과 모두 같음, 처리되지 않은 예외 0, 실제 데이터 unchanged. 0.2의 기준은 `previewkeep.log`(captiontab)와 `tabstart-pptcaption.log`·`a045-pptcaption-watch.log`(pptcaption)이다.
+- 그림: 앱 테마 없는 기본 모양(밝은·어두운, 자막 탭과 설정 창)을 총괄이 봤다. 밝은 쪽은 문제없고, 어두운 쪽 설정 창은 입력 칸·버튼이 시스템 기본 모양(밝음)으로 남지만 읽고 쓸 수 있다. 본창 그림(`captiontab-pick.png`)은 옮기기 전과 같은 모양이다. 3.2의 옮기기 전후 그림 맞비교는 기준 그림을 남기지 않아 하지 못했다.

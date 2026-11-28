@@ -7,17 +7,21 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Axicultus.Wpf.Shell;
 
 namespace Axicultus.Wpf.Captions;
 
 public sealed record CaptionRecovery(int Version, long Revision, string Plan, string Draft, string? DeckPath,
-    int Slide, string Box, Dictionary<int, string> Overrides, CaptionTake[] History, WorshipListItemDto[] Items, int SelectedIndex = -1);
+    int Slide, string Box, Dictionary<int, string> Overrides, CaptionTake[] History, JsonElement[] Items, int SelectedIndex = -1);
 
-/// <summary>One writer per editor. Each submitted snapshot owns its collections.</summary>
-public sealed class CaptionRecoveryStore(string directory) : IDisposable
+/// <summary>
+/// One writer per editor. Each submitted snapshot owns its collections. The worship order's items are kept as the host
+/// wrote them (<see cref="ICaptionQueueRecovery"/>); isItem is the host's check of one (a file with a damaged item is
+/// not used: its backup is). Without it any JSON object is an item.
+/// </summary>
+public sealed class CaptionRecoveryStore(string directory, Func<JsonElement, bool>? isItem = null) : IDisposable
 {
     private readonly string _directory = directory;
+    private readonly Func<JsonElement, bool> _isItem = isItem ?? (item => item.ValueKind == JsonValueKind.Object);
     private readonly Lock _sync = new();
     private Task _tail = Task.CompletedTask;
 
@@ -35,7 +39,7 @@ public sealed class CaptionRecoveryStore(string directory) : IDisposable
         return backup;
     }
 
-    private static CaptionRecovery? TryRead(string path, string plan, out Exception? error)
+    private CaptionRecovery? TryRead(string path, string plan, out Exception? error)
     {
         error = null;
         if (!File.Exists(path)) return null;
@@ -45,7 +49,7 @@ public sealed class CaptionRecoveryStore(string directory) : IDisposable
             var entry = JsonSerializer.Deserialize<CaptionRecovery>(input);
             if (entry is not { Version: 1, Draft: not null, Overrides: not null, History: not null, Items: not null } || entry.Plan != plan)
                 throw new InvalidDataException(CaptionText.Get("CaptionConsole", "RecoveryUnsupported"));
-            if (entry.Items.Any(item => item is not { Id: not null, Title: not null, Kind: not null }) ||
+            if (entry.Items.Any(item => !_isItem(item)) ||
                 entry.History.Any(take => take?.Text is null) || entry.Overrides.ContainsValue(null!))
                 throw new InvalidDataException(CaptionText.Get("CaptionConsole", "RecoveryDamaged"));
             return entry;
@@ -63,7 +67,7 @@ public sealed class CaptionRecoveryStore(string directory) : IDisposable
             default, TaskContinuationOptions.None, TaskScheduler.Default);
     }
 
-    internal Task SaveQueueAsync(string plan, WorshipListItemDto[] items, int selected)
+    internal Task SaveQueueAsync(string plan, JsonElement[] items, int selected)
     {
         lock (_sync) return _tail = _tail.ContinueWith(_ =>
         {
@@ -101,11 +105,4 @@ public sealed class CaptionRecoveryStore(string directory) : IDisposable
         }
         finally { File.Delete(temp); }
     }
-
-    public static WorshipListItemDto Capture(LiveQueueItem item) => new(item.Id, item.Title, item.Kind, item.SlideNumber,
-        item.Lyrics, item.ContentPath, item.FormatData, item.UseIndividualFormatting, item.Sequence, item.SongLayout, item.SourceFolderNo);
-
-    public static LiveQueueItem Restore(WorshipListItemDto dto) => new(dto.Id, dto.Title, dto.Kind)
-    { SlideNumber = dto.SlideNumber, Lyrics = dto.Lyrics, ContentPath = dto.ContentPath, FormatData = dto.FormatData,
-      UseIndividualFormatting = dto.UseIndividualFormatting, Sequence = dto.Sequence, SongLayout = dto.SongLayout, SourceFolderNo = dto.SourceFolderNo };
 }

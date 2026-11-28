@@ -88,8 +88,8 @@ public sealed class CaptionIntegrationTests
         var dir = Directory.CreateTempSubdirectory();
         try
         {
-            using var store = new CaptionRecoveryStore(dir.FullName);
-            var item = new WorshipListItemDto("song:7","찬양","Song",1,"가사",null,Sequence:"1 C 2 C");
+            using var store = new CaptionRecoveryStore(dir.FullName, MainViewModelCaptionHost.IsRecoverableItem);
+            var item = JsonSerializer.SerializeToElement(new WorshipListItemDto("song:7","찬양","Song",1,"가사",null,Sequence:"1 C 2 C"));
             var plan = new CaptionRecovery(1,1,"주일","미송출",null,1,"",new(),[],[item,item],1);
             await store.SaveAsync(plan);
             await store.SaveAsync(plan with { Revision = 2, Draft = "다음 초안" });
@@ -113,20 +113,21 @@ public sealed class CaptionIntegrationTests
         var dir = Directory.CreateTempSubdirectory();
         try
         {
-            using var store = new CaptionRecoveryStore(dir.FullName);
-            var item = new WorshipListItemDto("song:7", "찬양", "Song", 1, null, null);
+            using var store = new CaptionRecoveryStore(dir.FullName, MainViewModelCaptionHost.IsRecoverableItem);
+            var dto = new WorshipListItemDto("song:7", "찬양", "Song", 1, null, null);
+            var item = JsonSerializer.SerializeToElement(dto);
             var good = new CaptionRecovery(1, 1, "주일", "이전 초안", null, 1, "", new(), [], [item]);
             await store.SaveAsync(good);
             var latest = good with { Revision = 2, Draft = "새 초안" };
             await store.SaveAsync(latest);
             var file = Assert.Single(dir.GetFiles("*.json"));
-            foreach (var broken in new[] { latest with { Items = [null!] }, latest with { History = [null!] },
+            foreach (var broken in new[] { latest with { Items = [JsonSerializer.SerializeToElement<object?>(null)] }, latest with { History = [null!] },
                          latest with { Overrides = new() { [1] = null! } } })
             {
                 await File.WriteAllTextAsync(file.FullName, JsonSerializer.Serialize(broken));
                 var result = Assert.IsType<CaptionRecovery>(store.Read(good.Plan));
                 Assert.Equal(good.Draft, result.Draft);
-                Assert.Equal(item, Assert.Single(result.Items));
+                Assert.Equal(dto, Assert.Single(result.Items).Deserialize<WorshipListItemDto>());
             }
         }
         finally { dir.Delete(true); }
@@ -138,15 +139,15 @@ public sealed class CaptionIntegrationTests
         var dir = Directory.CreateTempSubdirectory();
         try
         {
-            using var store = new CaptionRecoveryStore(dir.FullName);
+            using var store = new CaptionRecoveryStore(dir.FullName, MainViewModelCaptionHost.IsRecoverableItem);
             var plan = new CaptionRecovery(1,7,"주일","다음 설교",null,1,"",new() { [1] = "악보 가사" },[],[]);
             await store.SaveAsync(plan);
-            var item = new WorshipListItemDto("song:4","찬양","Song",1,"가사",null,Sequence:"2 C");
+            var item = JsonSerializer.SerializeToElement(new WorshipListItemDto("song:4","찬양","Song",1,"가사",null,Sequence:"2 C"));
             await store.SaveQueueAsync("주일", [item,item], 1);
             var saved = store.Read("주일")!;
             Assert.Equal("다음 설교",saved.Draft);
             Assert.Equal("악보 가사",saved.Overrides[1]);
-            Assert.Equal("2 C",saved.Items[1].Sequence);
+            Assert.Equal("2 C",saved.Items[1].Deserialize<WorshipListItemDto>()!.Sequence);
             Assert.Equal(1,saved.SelectedIndex);
         }
         finally { dir.Delete(true); }
