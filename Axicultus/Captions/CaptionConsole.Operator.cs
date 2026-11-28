@@ -9,7 +9,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Axicultus.Wpf.Shell;
-using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Captions;
 
@@ -350,7 +349,7 @@ public partial class CaptionConsole
         bool following = ScreenMode.IsChecked == true && _captions.Following && _captions.Deck != null;
         OperatorLyricsPageCard[] pages = ScreenMode.IsChecked == true && !following && _captions.Mirroring ? [.. _main.OutputLyricsPages] : [];
         _pageSteps = pages.Length > 0;
-        AutomationProperties.SetName(StepStrip, UiText.Get("CaptionConsole", _pageSteps ? "StepsPages" : "StepsDeck"));
+        AutomationProperties.SetName(StepStrip, CaptionText.Get("CaptionConsole", _pageSteps ? "StepsPages" : "StepsDeck"));
         _showingSteps = true;
         try
         {
@@ -378,8 +377,8 @@ public partial class CaptionConsole
         for (int n = 1; n <= deck.Slides.Length; n++)
         {
             if (ScoreOnFor(n) && RowThumbs(deck, n) is { Length: > 0 } rows)
-                for (int k = 0; k < rows.Length; k++) steps.Add(new(n, k, UiText.Format("CaptionConsole", "StepRow", n, k + 1), "", rows[k]));
-            else steps.Add(new(n, 0, UiText.Format("CaptionConsole", "StepSlide", n), FirstLine(_captions.TextFor(n, _chosenKey)), null));
+                for (int k = 0; k < rows.Length; k++) steps.Add(new(n, k, CaptionText.Format("CaptionConsole", "StepRow", n, k + 1), "", rows[k]));
+            else steps.Add(new(n, 0, CaptionText.Format("CaptionConsole", "StepSlide", n), FirstLine(_captions.TextFor(n, _chosenKey)), null));
         }
         return steps;
     }

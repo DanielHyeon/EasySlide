@@ -1,7 +1,7 @@
 <Window x:Class="Axicultus.Wpf.Captions.CaptionSettingsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:loc="clr-namespace:Axicultus.Wpf.Localization"
+        xmlns:loc="clr-namespace:Axicultus.Wpf.Captions;assembly=Axicultus.Captions"
         Title="{loc:Text CaptionSettingsWindow.Title}" Width="900" Height="820" MinWidth="680" MinHeight="480"
         WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
         Background="{DynamicResource Brush.Surface.Page}" Foreground="{DynamicResource Brush.Text.Primary}"

@@ -27,6 +27,8 @@
     <ProjectReference Include="..\Axicultus\Axicultus.csproj" />
     <!-- B-3 Phase 1: Core 추출 검증(CommonEnum 이 Axicultus.Core 에 위치)용 참조. -->
     <ProjectReference Include="..\Axicultus.Core\Axicultus.Core.csproj" />
+    <!-- a046: the caption code moved out of the app. -->
+    <ProjectReference Include="..\Axicultus.Captions\Axicultus.Captions.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -660,7 +660,7 @@ public sealed partial class CaptionConsoleTests
     [Fact]
     public void RestoringADraftCannotPublishOrRequestAnotherSave()
     {
-        using var session = new CaptionSession(new LiveSessionService());
+        using var session = new CaptionSession(new LiveSessionService().ForCaptions());
         session.Publish("현재 송출");
         var editor = new CaptionConsoleViewModel(session) { IsInstant = true, IsRestoring = true };
         int saves = 0;
@@ -676,7 +676,7 @@ public sealed partial class CaptionConsoleTests
     [Fact]
     public void EnterSendsTheLineEmptiesTheBoxAndKeepsTheCaption()
     {
-        using var session = new CaptionSession(new LiveSessionService());
+        using var session = new CaptionSession(new LiveSessionService().ForCaptions());
         var editor = new CaptionConsoleViewModel(session) { IsInstant = true };
         session.SetVisible(true); // Show
         editor.DraftText = "주님은 나의 목자";
@@ -695,7 +695,7 @@ public sealed partial class CaptionConsoleTests
         try
         {
             var path = Path.Combine(directory.FullName, "caption-style.json");
-            using (var session = new CaptionSession(new LiveSessionService(), null, path))
+            using (var session = new CaptionSession(new LiveSessionService().ForCaptions(), null, path))
             {
                 session.Publish("자막");
                 session.SetStyle(new CaptionStyle("#FFE14D", false));
@@ -713,7 +713,7 @@ public sealed partial class CaptionConsoleTests
                 session.SetImage(null);
                 Assert.Equal("자막", session.Published.Text);
             }
-            using var reopened = new CaptionSession(new LiveSessionService(), null, path);
+            using var reopened = new CaptionSession(new LiveSessionService().ForCaptions(), null, path);
             Assert.Equal(new CaptionStyle("#FFE14D", false), reopened.Style);
             Assert.Equal(CaptionStyle.DefaultColor, CaptionStyle.Parse("red;background:url(x)", true).Color);
         }
@@ -1029,7 +1029,7 @@ public sealed partial class CaptionConsoleTests
     [Fact]
     public void RecognizedLyricsBecomeABoxAndTheCaptionWhenChosen()
     {
-        using var session = new CaptionSession(new LiveSessionService());
+        using var session = new CaptionSession(new LiveSessionService().ForCaptions());
         session.Prepare(new CaptionDeck("deck.pptx", [new([new("label", "버튼", "1.나의 맘")], true), new([new("label", "버튼", "1.나의 맘")], true)]));
         session.Follow(1, CaptionSession.RecognizedKey);
         session.SetVisible(true);
@@ -1045,7 +1045,7 @@ public sealed partial class CaptionConsoleTests
     public void MirroringShowsTheOutputScreenTextEvenWhenNotLiveUntilTextIsTyped()
     {
         var live = new LiveSessionService(); // never goes live
-        using var session = new CaptionSession(live);
+        using var session = new CaptionSession(live.ForCaptions());
         session.ShowScreenText("무시됨");
         Assert.Equal("", session.PublicText);
         session.Mirror(true);
@@ -1067,7 +1067,7 @@ public sealed partial class CaptionConsoleTests
         try
         {
             var path = Path.Combine(directory.FullName, "caption-style.json");
-            using (var session = new CaptionSession(new LiveSessionService(), null, path))
+            using (var session = new CaptionSession(new LiveSessionService().ForCaptions(), null, path))
             {
                 var sent = new System.Collections.Generic.List<PublishedCaption>();
                 session.PublishedChanged += _ => sent.Add(session.ForObs);
@@ -1091,7 +1091,7 @@ public sealed partial class CaptionConsoleTests
                 session.ScoreSize = 0;
                 Assert.Equal(.18, sent[^1].ScoreHeight);
             }
-            using var reopened = new CaptionSession(new LiveSessionService(), null, path);
+            using var reopened = new CaptionSession(new LiveSessionService().ForCaptions(), null, path);
             Assert.Equal((false, true, true, 2, 0), (reopened.AudienceEnabled, reopened.ObsEnabled, reopened.SyncShow, reopened.CaptionLines, reopened.ScoreSize));
         }
         finally { directory.Delete(true); }
@@ -1447,7 +1447,7 @@ public sealed partial class CaptionConsoleTests
                 Dispatcher.CurrentDispatcher);
             using var services = registrations.BuildServiceProvider();
             var main = services.GetRequiredService<MainViewModel>();
-            using var own = live == null ? null : new CaptionSession(live, nativeShow, Path.Combine(directory.FullName, "caption-style.json"));
+            using var own = live == null ? null : new CaptionSession(live.ForCaptions(), nativeShow.ForCaptions(), Path.Combine(directory.FullName, "caption-style.json"));
             var session = own ?? services.GetRequiredService<CaptionSession>();
             var store = services.GetRequiredService<CaptionRecoveryStore>();
             var console = new CaptionConsole(main, session, services.GetRequiredService<CaptionBroadcastServer>(), store,

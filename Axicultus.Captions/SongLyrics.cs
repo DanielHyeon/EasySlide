@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-using Axicultus.Wpf.Shell;
+using Axicultus.Core;
 
 namespace Axicultus.Wpf.Captions;
 
@@ -43,7 +43,7 @@ internal static partial class SongLyrics
         public Song(string title, string alternateTitle, string lyrics)
         {
             Title = title;
-            var text = string.Join(" ", LyricsDisplayFormatter.ReadLines(lyrics).Select(line => Tag().Replace(line, "").Trim()));
+            var text = string.Join(" ", LyricLines.ReadLines(lyrics).Select(line => Tag().Replace(line, "").Trim()));
             Words = string.Join(" ", Hangul().Matches(text).Select(match => match.Value));
             Key = Words.Replace(" ", "");
             Titles = [.. new[] { title, alternateTitle }.Select(Syllables).Where(t => t.Length >= TitleSyllables)];

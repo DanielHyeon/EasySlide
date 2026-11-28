@@ -9,7 +9,6 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
-using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Captions;
 
@@ -62,21 +61,21 @@ public sealed partial class ObsConnection(string host, int port, string password
                     {
                         scene = (string?)payload["eventData"]?["sceneName"] ?? "";
                         changes++;
-                        status.Report(new(UiText.Get("CaptionConsole", "Connected"), scene, names) { Connected = true });
+                        status.Report(new(CaptionText.Get("CaptionConsole", "Connected"), scene, names) { Connected = true });
                     }
                     else if (opcode == 5 && (string?)payload["eventType"] == "SceneListChanged" && payload["eventData"]?["scenes"] is JsonArray updated)
                     {
                         names = [.. updated.Select(s => (string)s!["sceneName"]!)];
-                        status.Report(new(UiText.Get("CaptionConsole", "Connected"), scene, names) { Connected = true });
+                        status.Report(new(CaptionText.Get("CaptionConsole", "Connected"), scene, names) { Connected = true });
                     }
                     else if (opcode == 7 && (string?)payload["requestId"] == request)
                     {
-                        var result = payload["responseData"] ?? throw new InvalidDataException(UiText.Get("CaptionConsole", "SceneListFailed"));
+                        var result = payload["responseData"] ?? throw new InvalidDataException(CaptionText.Get("CaptionConsole", "SceneListFailed"));
                         names = [.. result["scenes"]!.AsArray().Select(s => (string)s!["sceneName"]!)];
                         if (changes == 0) scene = (string?)result["currentProgramSceneName"] ?? "";
                         Volatile.Write(ref _active, connection);
                         retry = 0;
-                        status.Report(new(UiText.Get("CaptionConsole", "Connected"), scene, names) { Connected = true });
+                        status.Report(new(CaptionText.Get("CaptionConsole", "Connected"), scene, names) { Connected = true });
                         _ = RefreshCaptionPageAsync(connection, ct);
                     }
                     else if (opcode is 7 or 9 && payload["requestId"] is JsonNode id &&
@@ -88,13 +87,13 @@ public sealed partial class ObsConnection(string host, int port, string password
             catch (SessionRejected ex) { status.Report(new(ex.Message, "", [])); break; }
             catch (Exception ex)
             {
-                status.Report(new(UiText.Format("CaptionConsole", "Reconnecting", ex.Message), "", []));
+                status.Report(new(CaptionText.Format("CaptionConsole", "Reconnecting", ex.Message), "", []));
             }
             finally
             {
                 Interlocked.CompareExchange(ref _active, null, connection);
                 socket.Abort();
-                foreach (var item in connection.Pending.Values) item.TrySetException(new IOException(UiText.Get("CaptionConsole", "ConnectionClosed")));
+                foreach (var item in connection.Pending.Values) item.TrySetException(new IOException(CaptionText.Get("CaptionConsole", "ConnectionClosed")));
             }
             if (!ct.IsCancellationRequested) await Task.Delay(TimeSpan.FromSeconds(Math.Min(5, 1 << Math.Min(3,retry++))),ct);
         }
@@ -104,7 +103,7 @@ public sealed partial class ObsConnection(string host, int port, string password
     {
         await connection.Socket.ConnectAsync(new UriBuilder("ws", host, port).Uri, ct);
         var hello = await ReadAsync(connection, ct);
-        if ((int?)hello["op"] != 0) throw new InvalidDataException(UiText.Format("CaptionConsole", "CheckHello", "Hello"));
+        if ((int?)hello["op"] != 0) throw new InvalidDataException(CaptionText.Format("CaptionConsole", "CheckHello", "Hello"));
         var identify = new JsonObject { ["rpcVersion"] = 1, ["eventSubscriptions"] = subscriptions };
         if (hello["d"]?["authentication"] is JsonObject auth)
         {
@@ -112,7 +111,7 @@ public sealed partial class ObsConnection(string host, int port, string password
             identify["authentication"] = Hash(Hash(password + (string?)auth["salt"]) + (string?)auth["challenge"]);
         }
         await SendAsync(connection, 1, identify, ct);
-        if ((int?)(await ReadAsync(connection, ct))["op"] != 2) throw new InvalidDataException(UiText.Get("CaptionConsole", "CheckAuth"));
+        if ((int?)(await ReadAsync(connection, ct))["op"] != 2) throw new InvalidDataException(CaptionText.Get("CaptionConsole", "CheckAuth"));
     }
 
     internal Task<string> ProbeAsync(string? temporaryPassword, CancellationToken ct)
@@ -134,24 +133,24 @@ public sealed partial class ObsConnection(string host, int port, string password
             if ((int?)response["op"] != 7 || (string?)payload?["requestId"] != id ||
                 (bool?)payload?["requestStatus"]?["result"] != true ||
                 (string?)payload?["responseData"]?["currentProgramSceneName"] is not { Length: > 0 } scene)
-                throw new IOException(UiText.Get("CaptionConsole", "NoProgramScene"));
+                throw new IOException(CaptionText.Get("CaptionConsole", "NoProgramScene"));
             await socket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "", timeout.Token);
             return scene;
         }
         catch (OperationCanceledException) when (!ct.IsCancellationRequested)
         {
-            throw new TimeoutException(UiText.Get("CaptionConsole", "Timeout"));
+            throw new TimeoutException(CaptionText.Get("CaptionConsole", "Timeout"));
         }
         catch (WebSocketException ex) when (!ct.IsCancellationRequested)
         {
-            throw new IOException(UiText.Format("CaptionConsole", "Unreachable", host, port), ex);
+            throw new IOException(CaptionText.Format("CaptionConsole", "Unreachable", host, port), ex);
         }
         finally { probe.Send.Dispose(); }
     }
 
     public async Task SwitchAsync(string scene, string sourceName, bool enabled)
     {
-        var connection = Volatile.Read(ref _active) ?? throw new IOException(UiText.Get("CaptionConsole", "WaitForConnection"));
+        var connection = Volatile.Read(ref _active) ?? throw new IOException(CaptionText.Get("CaptionConsole", "WaitForConnection"));
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(_stop.Token);
         timeout.CancelAfter(TimeSpan.FromSeconds(5));
         var token = timeout.Token;
@@ -168,7 +167,7 @@ public sealed partial class ObsConnection(string host, int port, string password
         var batch = await ExchangeAsync(connection, 8, id => new { requestId = id, haltOnFailure = true, executionType = 0, requests }, token);
         var results = batch["results"]!.AsArray();
         if (results.Count != requests.Length || results.Any(x => (bool?)x?["requestStatus"]?["result"] != true))
-            throw new IOException(UiText.Get("CaptionConsole", "BatchFailed"));
+            throw new IOException(CaptionText.Get("CaptionConsole", "BatchFailed"));
 
         async Task<JsonObject> RequestAsync(string type, object args)
         {
@@ -206,7 +205,7 @@ public sealed partial class ObsConnection(string host, int port, string password
     /// </summary>
     public async Task<(string Scene, bool Created)> AddCaptionSourceAsync(string url)
     {
-        var connection = Volatile.Read(ref _active) ?? throw new IOException(UiText.Get("CaptionConsole", "WaitForConnection"));
+        var connection = Volatile.Read(ref _active) ?? throw new IOException(CaptionText.Get("CaptionConsole", "WaitForConnection"));
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(_stop.Token);
         timeout.CancelAfter(TimeSpan.FromSeconds(10));
         var token = timeout.Token;
@@ -248,7 +247,7 @@ public sealed partial class ObsConnection(string host, int port, string password
 
     public async Task<byte[]> ReadPreviewAsync(string source, CancellationToken cancellation)
     {
-        var connection = Volatile.Read(ref _active) ?? throw new IOException(UiText.Get("CaptionConsole", "WaitingConnection"));
+        var connection = Volatile.Read(ref _active) ?? throw new IOException(CaptionText.Get("CaptionConsole", "WaitingConnection"));
         using var limit = CancellationTokenSource.CreateLinkedTokenSource(_stop.Token, cancellation);
         limit.CancelAfter(TimeSpan.FromSeconds(3));
         var response = await ExchangeAsync(connection, 6, id => new
@@ -257,13 +256,13 @@ public sealed partial class ObsConnection(string host, int port, string password
             requestData = new { sourceName = source, imageFormat = "jpg", imageWidth = 640, imageHeight = 360 }
         }, limit.Token).ConfigureAwait(false);
         if ((bool?)response["requestStatus"]?["result"] != true)
-            throw new IOException((string?)response["requestStatus"]?["comment"] ?? UiText.Get("CaptionConsole", "NoCameraSignal"));
+            throw new IOException((string?)response["requestStatus"]?["comment"] ?? CaptionText.Get("CaptionConsole", "NoCameraSignal"));
         var image = (string?)response["responseData"]?["imageData"];
         const string prefix = "data:image/jpeg;base64,";
         const string alternate = "data:image/jpg;base64,";
         var offset = image?.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) == true ? prefix.Length :
             image?.StartsWith(alternate, StringComparison.OrdinalIgnoreCase) == true ? alternate.Length : 0;
-        if (offset == 0) throw new InvalidDataException(UiText.Get("CaptionConsole", "CheckPreviewFormat"));
+        if (offset == 0) throw new InvalidDataException(CaptionText.Get("CaptionConsole", "CheckPreviewFormat"));
         return Convert.FromBase64String(image![offset..]);
     }
 
@@ -299,9 +298,9 @@ public sealed partial class ObsConnection(string host, int port, string password
             int available = Math.Min(4096, 1_048_577 - data.WrittenCount);
             frame = await connection.Socket.ReceiveAsync(data.GetMemory(available)[..available], ct);
             if (frame.MessageType == WebSocketMessageType.Close && (int?)connection.Socket.CloseStatus is 4009 or 4011)
-                throw new SessionRejected(UiText.Get("CaptionConsole", "Rejected"));
+                throw new SessionRejected(CaptionText.Get("CaptionConsole", "Rejected"));
             if (frame.MessageType != WebSocketMessageType.Text || data.WrittenCount + frame.Count > 1_048_576)
-                throw new IOException(UiText.Get("CaptionConsole", "CheckResponse"));
+                throw new IOException(CaptionText.Get("CaptionConsole", "CheckResponse"));
             data.Advance(frame.Count);
         } while (!frame.EndOfMessage);
         return JsonNode.Parse(data.WrittenSpan)!.AsObject();

@@ -8,7 +8,6 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Axicultus.Wpf.Shell;
-using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Captions;
 
@@ -32,7 +31,7 @@ public sealed class CaptionRecoveryStore(string directory) : IDisposable
         if (current != null) return current;
         var backup = TryRead(path + ".bak", plan, out var backupError);
         if (backup == null && (error ?? backupError) is { } cause)
-            throw new InvalidDataException(UiText.Get("CaptionConsole", "RecoveryUnreadable"), cause);
+            throw new InvalidDataException(CaptionText.Get("CaptionConsole", "RecoveryUnreadable"), cause);
         return backup;
     }
 
@@ -45,10 +44,10 @@ public sealed class CaptionRecoveryStore(string directory) : IDisposable
             using var input = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
             var entry = JsonSerializer.Deserialize<CaptionRecovery>(input);
             if (entry is not { Version: 1, Draft: not null, Overrides: not null, History: not null, Items: not null } || entry.Plan != plan)
-                throw new InvalidDataException(UiText.Get("CaptionConsole", "RecoveryUnsupported"));
+                throw new InvalidDataException(CaptionText.Get("CaptionConsole", "RecoveryUnsupported"));
             if (entry.Items.Any(item => item is not { Id: not null, Title: not null, Kind: not null }) ||
                 entry.History.Any(take => take?.Text is null) || entry.Overrides.ContainsValue(null!))
-                throw new InvalidDataException(UiText.Get("CaptionConsole", "RecoveryDamaged"));
+                throw new InvalidDataException(CaptionText.Get("CaptionConsole", "RecoveryDamaged"));
             return entry;
         }
         catch (Exception ex) when (ex is JsonException or IOException or InvalidDataException)

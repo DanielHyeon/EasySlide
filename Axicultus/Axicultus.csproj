@@ -48,6 +48,8 @@
     <ProjectReference Include="..\OfficeLib\OfficeLib.csproj" />
     <ProjectReference Include="..\Axicultus.ScoreEditor\Axicultus.ScoreEditor.csproj" />
     <ProjectReference Include="..\Axicultus.Core\Axicultus.Core.csproj" />
+    <!-- The camera captions shared with Axicultuss (a046). -->
+    <ProjectReference Include="..\Axicultus.Captions\Axicultus.Captions.csproj" />
     <!-- EasiDS 디자인 토큰 강제 분석기 (계획서 §9.2). 실행 어셈블리가 아닌 컴파일러 분석기로만 참조. -->
     <ProjectReference Include="..\Axicultus.Analyzers\Axicultus.Analyzers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>

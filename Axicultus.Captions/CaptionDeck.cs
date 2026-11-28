@@ -10,7 +10,6 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Xml;
 using System.Xml.Linq;
-using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Captions;
 
@@ -56,7 +55,7 @@ public sealed record CaptionDeck(string Path, CaptionSlide[] Slides)
                 var text = Paragraphs(body);
                 if (text.Length == 0) continue;
                 var props = shape.Element(presentationNs + "nvSpPr");
-                var name = (string?)props?.Element(presentationNs + "cNvPr")?.Attribute("name") ?? UiText.Format("CaptionConsole", "BoxName", boxes.Count + 1);
+                var name = (string?)props?.Element(presentationNs + "cNvPr")?.Attribute("name") ?? CaptionText.Format("CaptionConsole", "BoxName", boxes.Count + 1);
                 var placeholder = props?.Descendants(presentationNs + "ph").FirstOrDefault();
                 var key = placeholder is null ? "shape:" + name :
                     $"placeholder:{(string?)placeholder.Attribute("type") ?? "obj"}:{(string?)placeholder.Attribute("idx") ?? "0"}";
@@ -72,7 +71,7 @@ public sealed record CaptionDeck(string Path, CaptionSlide[] Slides)
                 || pictures.Any(area => slideArea <= 0 || area is not { } size || size < 0.80 * slideArea)
                 || ShortText(allText.Text) && (pictures.Count > 0 || PictureBackground(shapeXml)), picture));
         }
-        if (slides.Count == 0) throw new InvalidDataException(UiText.Get("CaptionConsole", "NoSlides"));
+        if (slides.Count == 0) throw new InvalidDataException(CaptionText.Get("CaptionConsole", "NoSlides"));
         return new(System.IO.Path.GetFullPath(path), [.. slides]);
     }
 
@@ -301,7 +300,7 @@ public sealed record CaptionDeck(string Path, CaptionSlide[] Slides)
     /// and its runs of white space made one space. A text that is
     /// only a number mark in ASCII digits ("1", "2.", "(3)", "2/4", "3-4", "12/16": a verse badge, a page mark) is left out.
     /// </summary>
-    internal static CaptionBox AllText(IEnumerable<string> texts) => new(AllTextKey, UiText.Get("CaptionConsole", "AllText"),
+    internal static CaptionBox AllText(IEnumerable<string> texts) => new(AllTextKey, CaptionText.Get("CaptionConsole", "AllText"),
         Regex.Replace(string.Join("\n", string.Join("\n", texts.Where(text => !string.IsNullOrWhiteSpace(text) && !NumberMark.IsMatch(text.Trim())))
             .Split('\n').Select(line => Spaces.Replace(line, " ").Trim())), @"\n\s*\n", "\n\n").Trim());
 
@@ -358,7 +357,7 @@ public sealed record CaptionDeck(string Path, CaptionSlide[] Slides)
             int left = (int)Math.Round(decoded.PixelWidth * picture.CropLeft), top = (int)Math.Round(decoded.PixelHeight * picture.CropTop);
             int width = decoded.PixelWidth - (int)Math.Round(decoded.PixelWidth * picture.CropRight) - left;
             int height = decoded.PixelHeight - (int)Math.Round(decoded.PixelHeight * picture.CropBottom) - top;
-            if (width < 16 || height < 16) throw new InvalidDataException(UiText.Format("CaptionConsole", "PictureTooSmall", width, height));
+            if (width < 16 || height < 16) throw new InvalidDataException(CaptionText.Format("CaptionConsole", "PictureTooSmall", width, height));
             var shown = new FormatConvertedBitmap(new CroppedBitmap(decoded, new Int32Rect(left, top, width, height)), PixelFormats.Pbgra32, null, 0);
             var pixels = new byte[width * height * 4];
             shown.CopyPixels(pixels, width * 4, 0);

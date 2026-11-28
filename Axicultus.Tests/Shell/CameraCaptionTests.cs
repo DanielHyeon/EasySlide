@@ -24,7 +24,7 @@ public sealed class CameraCaptionTests
     {
         var show = new ShowPosition();
         var live = new LiveSessionService();
-        using var captions = new CaptionSession(live, show);
+        using var captions = new CaptionSession(live.ForCaptions(), show.ForCaptions());
         var deck = new CaptionDeck(@"C:\songs.pptx", [new([new("a","가사","첫 절")]), new([new("a","가사","후렴")])]);
         captions.Prepare(deck);
         captions.Follow(1,"a");
@@ -74,7 +74,7 @@ public sealed class CameraCaptionTests
     public void ManualTakeOverridesSlideFollowAndHiddenNavigationDoesNotRevealText()
     {
         var live = new LiveSessionService();
-        using var captions = new CaptionSession(live);
+        using var captions = new CaptionSession(live.ForCaptions());
         var deck = new CaptionDeck(@"C:\songs.pptx", [
             new([new("body", "본문", "1절")]), new([new("body", "본문", "후렴")]), new([])]);
         captions.Prepare(deck);

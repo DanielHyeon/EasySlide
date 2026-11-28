@@ -1,0 +1,31 @@
+<!-- The caption screens' colours and type for a host without the WPF app's theme (Light): the keys the caption XAML
+     uses, with the values of the app's EasiDS tokens (Axicultus\Theme\Tokens). Put on an element with CaptionTheme.Apply. -->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+    <SolidColorBrush x:Key="Brush.Surface.Page" Color="#FAFAFA" />
+    <SolidColorBrush x:Key="Brush.Surface.Card" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="Brush.Surface.Subtle" Color="#F3F4F6" />
+    <SolidColorBrush x:Key="Brush.Text.Primary" Color="#0F172A" />
+    <SolidColorBrush x:Key="Brush.Text.Secondary" Color="#475569" />
+    <SolidColorBrush x:Key="Brush.Text.Tertiary" Color="#64748B" />
+    <SolidColorBrush x:Key="Brush.Text.Inverse" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="Brush.Border.Default" Color="#E5E7EB" />
+    <SolidColorBrush x:Key="Brush.Border.Strong" Color="#D1D5DB" />
+    <SolidColorBrush x:Key="Brush.Border.Focus" Color="#0078D4" />
+    <SolidColorBrush x:Key="Brush.Accent.Primary" Color="#0078D4" />
+    <SolidColorBrush x:Key="Brush.Accent.PrimaryHover" Color="#106EBE" />
+    <SolidColorBrush x:Key="Brush.Accent.PrimaryPressed" Color="#005A9E" />
+    <SolidColorBrush x:Key="Brush.Live.Active" Color="#DC2626" />
+    <SolidColorBrush x:Key="Brush.Live.Standby" Color="#F59E0B" />
+    <SolidColorBrush x:Key="Brush.Live.Hidden" Color="#1E293B" />
+    <SolidColorBrush x:Key="Brush.Live.OnActive" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="Brush.Live.OnStandby" Color="#0F172A" />
+    <SolidColorBrush x:Key="Brush.Live.OnHidden" Color="#FFFFFF" />
+    <!-- the app's Font.Primary without its bundled font, which is a resource of the app's own assembly -->
+    <FontFamily x:Key="Font.Primary">Segoe UI Variable, Segoe UI, Malgun Gothic, sans-serif</FontFamily>
+    <sys:Double x:Key="Type.Title3.FontSize">18</sys:Double>
+    <sys:Double x:Key="Type.BodyLarge.FontSize">16</sys:Double>
+    <sys:Double x:Key="Type.Body.FontSize">11</sys:Double>
+    <sys:Double x:Key="Type.Button.FontSize">11</sys:Double>
+</ResourceDictionary>

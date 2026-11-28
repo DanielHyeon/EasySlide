@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 using Axicultus.Localization;
+using Axicultus.Wpf.Captions;
 using Axicultus.Wpf.Localization;
 using Xunit;
 
@@ -20,7 +21,7 @@ public sealed class UiLanguageFlowTests
         {
             CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo(UiLanguage.English); // English Windows display
             var dispatcher = Dispatcher.CurrentDispatcher;
-            string? later = null, menu = null;
+            string? later = null, app = null, menu = null;
             async void Startup()
             {
                 UiLanguage.Apply(UiLanguage.Korean);
@@ -29,12 +30,13 @@ public sealed class UiLanguageFlowTests
             dispatcher.BeginInvoke(Startup);
             dispatcher.BeginInvoke(DispatcherPriority.Background, () =>
             {
-                later = UiText.Get("CaptionConsole", "Tab");
+                later = CaptionText.Get("CaptionConsole", "Tab"); // the caption library's texts
+                app = UiText.Get("SettingsWindow", "Title"); // the app's own texts
                 menu = MenuText.Output_CameraCaptions;
                 dispatcher.InvokeShutdown();
             });
             Dispatcher.Run();
-            Assert.Equal(("자막", "카메라 하단 자막"), (later, menu));
+            Assert.Equal(("자막", "옵션", "카메라 하단 자막"), (later, app, menu));
         }
         finally
         {

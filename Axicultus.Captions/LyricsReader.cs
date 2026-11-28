@@ -8,7 +8,6 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Captions;
 
@@ -36,7 +35,7 @@ internal static partial class LyricsReader
         };
         start.ArgumentList.Add(Language);
         foreach (var image in images) start.ArgumentList.Add(image);
-        using var process = Process.Start(start) ?? throw new IOException(UiText.Get("CaptionConsole", "OcrStartFailed"));
+        using var process = Process.Start(start) ?? throw new IOException(CaptionText.Get("CaptionConsole", "OcrStartFailed"));
         var output = process.StandardOutput.ReadToEndAsync(cancellation);
         var error = process.StandardError.ReadToEndAsync(cancellation);
         try { await process.WaitForExitAsync(cancellation).WaitAsync(TimeSpan.FromMinutes(2), cancellation); }
@@ -45,8 +44,8 @@ internal static partial class LyricsReader
             try { process.Kill(true); } catch (InvalidOperationException) { }
             throw;
         }
-        if (process.ExitCode == 3) throw new IOException(UiText.Format("CaptionConsole", "OcrNoKorean", (await error).Trim()));
-        if (process.ExitCode != 0) throw new IOException(UiText.Format("CaptionConsole", "OcrError", process.ExitCode, (await error).Trim()));
+        if (process.ExitCode == 3) throw new IOException(CaptionText.Format("CaptionConsole", "OcrNoKorean", (await error).Trim()));
+        if (process.ExitCode != 0) throw new IOException(CaptionText.Format("CaptionConsole", "OcrError", process.ExitCode, (await error).Trim()));
         return JsonSerializer.Deserialize<OcrPage[]>(await output) ?? [];
     }
 

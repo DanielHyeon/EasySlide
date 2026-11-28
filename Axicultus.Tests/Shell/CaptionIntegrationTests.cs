@@ -20,7 +20,7 @@ public sealed class CaptionIntegrationTests
     public async Task BrowserReconnectsToLatestConfirmedCaptionAndHonorsBlackout()
     {
         var live = new LiveSessionService();
-        using var captions = new CaptionSession(live);
+        using var captions = new CaptionSession(live.ForCaptions());
         using var server = new CaptionBroadcastServer(captions, 0);
         await server.StartAsync();
         using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(7));
@@ -182,7 +182,7 @@ public sealed class CaptionIntegrationTests
             Assert.Equal([CaptionDeck.AllTextKey, "shape:가사"], result.Slides[1].Boxes.Select(box => box.Key)); // a036: the whole text first
             Assert.Equal("둘째\n말씀\n찬양", result.Slides[0].Boxes[0].Text);
             var live = new LiveSessionService();
-            using var captions = new CaptionSession(live);
+            using var captions = new CaptionSession(live.ForCaptions());
             captions.Prepare(result);
             captions.Follow(1,"shape:가사");
             captions.SetVisible(true);

@@ -305,7 +305,7 @@ public sealed class CaptionAllTextTests
     [Fact]
     public void LyricsReadUnderStavesBecomeAScoreSlidesWholeTextWhenItSaysLittle()
     {
-        using var session = new CaptionSession(new LiveSessionService());
+        using var session = new CaptionSession(new LiveSessionService().ForCaptions());
         session.Prepare(new CaptionDeck("deck.pptx", [
             new([new(CaptionDeck.AllTextKey, "슬라이드 전체 글자", "에게")], true), // a word left over the score (a page mark never reaches the whole text)
             new([new(CaptionDeck.AllTextKey, "슬라이드 전체 글자", "사진")], true),
@@ -322,7 +322,7 @@ public sealed class CaptionAllTextTests
     [Fact]
     public void FollowingTheRecognizedLyricsATextSlideGivesItsWholeText()
     {
-        using var session = new CaptionSession(new LiveSessionService());
+        using var session = new CaptionSession(new LiveSessionService().ForCaptions());
         session.Prepare(new CaptionDeck("deck.pptx", [
             new([new(CaptionDeck.AllTextKey, "슬라이드 전체 글자", "")], true),
             new([new(CaptionDeck.AllTextKey, "슬라이드 전체 글자", "광고 말씀")], false)]));
@@ -338,7 +338,7 @@ public sealed class CaptionAllTextTests
     [Fact]
     public void OnlyTextThatReadsAsKoreanLyricsReplacesAScoreSlidesWholeText()
     {
-        using var session = new CaptionSession(new LiveSessionService());
+        using var session = new CaptionSession(new LiveSessionService().ForCaptions());
         CaptionSlide Empty() => new([new(CaptionDeck.AllTextKey, "슬라이드 전체 글자", "")], true);
         session.Prepare(new CaptionDeck("deck.pptx", [Empty(), Empty(), Empty(), Empty(), Empty()]));
         session.AddRecognized(1, "하*날1까 `", staves: true);                 // three syllables (a photo misread)
@@ -371,7 +371,7 @@ public sealed class CaptionAllTextTests
     [Fact]
     public void ABoxMissingOnTheNextSlideGivesThatSlidesWholeTextInsteadOfNothing() => StaHelper.RunOnSta(() => InFolder(folder =>
     {
-        using var session = new CaptionSession(new LiveSessionService());
+        using var session = new CaptionSession(new LiveSessionService().ForCaptions());
         session.Prepare(TheDeck(folder));
         session.SetVisible(true);
         session.Follow(2, "shape:TextBox 3");
@@ -402,18 +402,18 @@ public sealed class CaptionAllTextTests
         {
             var path = Path.Combine(directory.FullName, "caption-style.json");
             File.WriteAllText(path, """{"Color":"#FFE14D","Box":false,"Lines":2}"""); // written before a036
-            using (var old = new CaptionSession(new LiveSessionService(), null, path))
+            using (var old = new CaptionSession(new LiveSessionService().ForCaptions(), null, path))
             {
                 Assert.Equal(("auto", "#FFE14D", false, 2), (old.Style.Display, old.Style.Color, old.Style.Box, old.Style.Lines));
                 old.Display = "score";
             }
             Assert.Equal("score", JsonDocument.Parse(File.ReadAllText(path)).RootElement.GetProperty("Display").GetString());
-            using (var reopened = new CaptionSession(new LiveSessionService(), null, path))
+            using (var reopened = new CaptionSession(new LiveSessionService().ForCaptions(), null, path))
                 Assert.Equal(("score", "#FFE14D", 2), (reopened.Display, reopened.Style.Color, reopened.Style.Lines));
             File.WriteAllText(path, """{"Color":"#FFE14D","Box":true,"Display":"fancy"}""");
-            using (var unknown = new CaptionSession(new LiveSessionService(), null, path))
+            using (var unknown = new CaptionSession(new LiveSessionService().ForCaptions(), null, path))
                 Assert.Equal("auto", unknown.Display);
-            using var fresh = new CaptionSession(new LiveSessionService());
+            using var fresh = new CaptionSession(new LiveSessionService().ForCaptions());
             Assert.Equal("auto", fresh.Display);
             fresh.Display = "nonsense";
             Assert.Equal("auto", fresh.Display);

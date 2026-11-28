@@ -7,11 +7,7 @@ using System.Threading.Tasks;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
-using Axicultus.Wpf.Rendering;
 using CommunityToolkit.Mvvm.ComponentModel;
-using Axicultus.Wpf.Shell;
-using Axicultus.Wpf.Controls;
-using Axicultus.Wpf.Localization;
 
 namespace Axicultus.Wpf.Captions;
 
@@ -47,13 +43,13 @@ public sealed record CaptionStyle(string Color = CaptionStyle.DefaultColor, bool
 /// <summary>All mutations run on the operator Dispatcher. Remote observers receive only published text.</summary>
 public sealed class CaptionSession : ObservableObject, IDisposable
 {
-    private readonly ILiveSessionService _live;
+    private readonly ICaptionLiveSource _live;
     private string _text = "";
     private bool _visible;
-    private LiveState _previousState;
+    private CaptionLiveState _previousState;
     private string? _lastSlidePath;
     private int _lastSlideNumber;
-    private readonly IPowerPointSlideShowControl? _show;
+    private readonly ICaptionSlideShow? _show;
     private readonly DispatcherTimer? _poll;
     private bool _polling;
     private int? _showSlide; // the native show's slide when last seen
@@ -63,7 +59,7 @@ public sealed class CaptionSession : ObservableObject, IDisposable
     private BitmapSource? _image;
     private string? _imageUrl;
 
-    public CaptionSession(ILiveSessionService live, IPowerPointSlideShowControl? show = null, string? stylePath = null)
+    public CaptionSession(ICaptionLiveSource live, ICaptionSlideShow? show = null, string? stylePath = null)
     {
         _live = live;
         _show = show;
@@ -81,7 +77,7 @@ public sealed class CaptionSession : ObservableObject, IDisposable
             _poll.Tick += PollNativeSlide;
         }
         _previousState = live.Current.State;
-        live.SessionChanged += OnLiveChanged;
+        live.Changed += OnLiveChanged;
     }
 
     public CaptionDeck? Deck { get; private set; }
@@ -92,7 +88,7 @@ public sealed class CaptionSession : ObservableObject, IDisposable
     public bool Following { get; private set; }
     public bool Visible => _visible;
     /// <summary>The output screen is blacked out or on standby: a caption chosen on air does not go out (a023).</summary>
-    public bool ScreenOff => _live.Current.State is LiveState.Hidden or LiveState.Standby;
+    public bool ScreenOff => _live.Current.State is CaptionLiveState.Hidden or CaptionLiveState.Standby;
     public PublishedCaption Published { get; private set; } = new(0, "");
     public string PublicText => Published.Text;
     public ImageSource? PublicImage { get; private set; }
@@ -259,7 +255,7 @@ public sealed class CaptionSession : ObservableObject, IDisposable
         var boxes = current.Boxes.Where(box => box.Key != RecognizedKey);
         if (staves && Lyrical(text))
             boxes = boxes.Select(box => box.Key == CaptionDeck.AllTextKey && CaptionDeck.ShortText(box.Text) ? box with { Text = text } : box);
-        Deck.Slides[slide - 1] = current with { Boxes = [.. boxes, new(RecognizedKey, UiText.Get("CaptionConsole", "RecognizedBox"), text)] };
+        Deck.Slides[slide - 1] = current with { Boxes = [.. boxes, new(RecognizedKey, CaptionText.Get("CaptionConsole", "RecognizedBox"), text)] };
         if (slide == CurrentSlide) Resend();
     }
 
@@ -304,7 +300,7 @@ public sealed class CaptionSession : ObservableObject, IDisposable
         bool showsDeck = string.Equals(Deck.Path, live.PptPath, StringComparison.OrdinalIgnoreCase)
             && live.PptSlideNumber >= 1 && live.PptSlideNumber <= Deck.Slides.Length;
         _showSlide = showsDeck ? live.PptSlideNumber : null;
-        if (showsDeck && live.State == LiveState.Active) slide = live.PptSlideNumber;
+        if (showsDeck && live.State == CaptionLiveState.Active) slide = live.PptSlideNumber;
         MoveToSlide(slide);
         OnPropertyChanged(nameof(Following));
     }
@@ -367,12 +363,11 @@ public sealed class CaptionSession : ObservableObject, IDisposable
         Emit();
     }
 
-    private void OnLiveChanged(object? sender, LiveSessionChangedEventArgs e)
+    private void OnLiveChanged(object? sender, CaptionLiveSnapshot current)
     {
-        var current = e.Snapshot;
-        if (current.State == LiveState.Off && _previousState != LiveState.Off && !Mirroring) _visible = false;
+        if (current.State == CaptionLiveState.Off && _previousState != CaptionLiveState.Off && !Mirroring) _visible = false;
         _previousState = current.State;
-        if (current.State == LiveState.Active &&
+        if (current.State == CaptionLiveState.Active &&
             (_lastSlideNumber != current.PptSlideNumber || _lastSlidePath != current.PptPath))
         {
             var trackedDeck = Following && Deck != null && string.Equals(Deck.Path, _lastSlidePath, StringComparison.OrdinalIgnoreCase);
@@ -444,14 +439,14 @@ public sealed class CaptionSession : ObservableObject, IDisposable
 
     internal async Task SyncNativeSlideAsync()
     {
-        if (_polling || !Following || _show == null || Deck == null || _live.Current.State != LiveState.Active) return;
+        if (_polling || !Following || _show == null || Deck == null || _live.Current.State != CaptionLiveState.Active) return;
         if (!string.Equals(_live.Current.PptPath, Deck.Path, StringComparison.OrdinalIgnoreCase)) return;
         var generation = _generation;
         var snapshot = _live.Current;
         _polling = true;
         try
         {
-            var slide = await _show.ReadOutputPositionAsync(Deck.Path);
+            var slide = await _show.ReadSlideAsync(Deck.Path);
             // Only a turn of the show moves the caption: one moved by the operator (strip, arrows) stays until the show turns.
             // Not known yet (followed before the show was seen): this reading only records it.
             if (generation == _generation && ReferenceEquals(snapshot, _live.Current) && slide.HasValue && slide != _showSlide)
@@ -476,6 +471,6 @@ public sealed class CaptionSession : ObservableObject, IDisposable
     {
         StopFollowing();
         _poll?.Tick -= PollNativeSlide;
-        _live.SessionChanged -= OnLiveChanged;
+        _live.Changed -= OnLiveChanged;
     }
 }

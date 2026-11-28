@@ -74,7 +74,7 @@ public sealed class UiTextCoverageTests
         XDocument.Load(path).Root!.Elements("data").ToDictionary(e => (string)e.Attribute("name")!, e => (string?)e.Element("value") ?? "");
 
     private static IEnumerable<(string Neutral, string Korean)> ResxPairs(string app) =>
-        Directory.EnumerateFiles(Path.Combine(Root, app, "Localization", "Text"), "*.resx")
+        Folders(app).SelectMany(folder => Directory.EnumerateFiles(Path.Combine(Root, folder, "Localization", "Text"), "*.resx"))
             .Where(path => !path.EndsWith(".ko.resx", StringComparison.OrdinalIgnoreCase))
             .Select(path => (path, Path.ChangeExtension(path, null) + ".ko.resx"));
 
@@ -110,27 +110,44 @@ public sealed class UiTextCoverageTests
     [InlineData("Axicultuss")]
     public void EveryKeyUsedHasItsText(string app)
     {
-        var areas = ResxPairs(app).ToDictionary(p => Path.GetFileNameWithoutExtension(p.Neutral), p => Resx(p.Neutral).Keys.ToHashSet());
+        // Each use is checked against the catalog it reads: UiText the app's own texts, CaptionText the caption
+        // library's, and {loc:Text} the texts of the assembly its xmlns:loc names (the file's own when it names none).
+        var catalogs = new Dictionary<string, Dictionary<string, HashSet<string>>>();
+        Dictionary<string, HashSet<string>> Areas(string folder) => catalogs.TryGetValue(folder, out var areas) ? areas : catalogs[folder] =
+            Directory.EnumerateFiles(Path.Combine(Root, folder, "Localization", "Text"), "*.resx")
+                .Where(path => !path.EndsWith(".ko.resx", StringComparison.OrdinalIgnoreCase))
+                .ToDictionary(path => Path.GetFileNameWithoutExtension(path), path => Resx(path).Keys.ToHashSet());
         var missing = new List<string>();
-        void Check(string file, string area, string key)
+        void Check(string file, string folder, string area, string key)
         {
-            if (!areas.TryGetValue(area, out var keys) || !keys.Contains(key)) missing.Add($"{Relative(file)}: {area}.{key}");
+            if (!Areas(folder).TryGetValue(area, out var keys) || !keys.Contains(key)) missing.Add($"{Relative(file)}: {area}.{key} (not in {folder})");
         }
         foreach (var file in SourceFiles(app, "*.cs"))
         {
             string code = File.ReadAllText(file);
             foreach (Match use in UiTextUse.Matches(code))
-                Check(file, use.Groups["area"].Success ? use.Groups["area"].Value : use.Groups["type"].Value, use.Groups["key"].Value);
+                Check(file, use.Groups["catalog"].Value == "CaptionText" ? CaptionFolder : app,
+                    use.Groups["area"].Success ? use.Groups["area"].Value : use.Groups["type"].Value, use.Groups["key"].Value);
         }
         if (app == "Axicultus")
             foreach (var file in SourceFiles(app, "*.xaml"))
-                foreach (Match use in XamlTextUse.Matches(File.ReadAllText(file)))
-                    Check(file, use.Groups[1].Value, use.Groups[2].Value);
+            {
+                string xaml = File.ReadAllText(file);
+                var uses = XamlTextUse.Matches(xaml);
+                if (uses.Count == 0) continue;
+                if (XamlLoc.Match(xaml) is not { Success: true } loc) { missing.Add($"{Relative(file)}: {{loc:Text}} without xmlns:loc"); continue; }
+                string folder = loc.Groups["assembly"].Success ? loc.Groups["assembly"].Value : Relative(file).Split('/')[0];
+                foreach (Match use in uses)
+                    Check(file, folder, use.Groups[1].Value, use.Groups[2].Value);
+            }
         Assert.True(missing.Count == 0, string.Join("\n", missing));
     }
 
-    private static readonly Regex UiTextUse = new(@"UiText\.(?:Get|Format)\(\s*(?:""(?<area>\w+)""|nameof\((?<type>\w+)\))\s*,\s*""(?<key>[^""]+)""");
+    private const string CaptionFolder = "Axicultus.Captions";
+    private static readonly Regex UiTextUse = new(@"(?<catalog>UiText|CaptionText)\.(?:Get|Format)\(\s*(?:""(?<area>\w+)""|nameof\((?<type>\w+)\))\s*,\s*""(?<key>[^""]+)""");
     private static readonly Regex XamlTextUse = new(@"\{loc:Text (\w+)\.([^}\s]+)\}");
+    // (an assembly's folder has its name: Axicultus, Axicultus.Captions)
+    private static readonly Regex XamlLoc = new(@"xmlns:loc=""clr-namespace:[^"";]+(?:;assembly=(?<assembly>[^""]+))?""");
 
     // ---- WPF ----
 
@@ -383,8 +400,11 @@ public sealed class UiTextCoverageTests
     // The apps' own sources: not the build output, the developer-only demo and proof-of-concept windows, or the
     // localization code itself.
     private static IEnumerable<string> SourceFiles(string app, string pattern) =>
-        Directory.EnumerateFiles(Path.Combine(Root, app), pattern, SearchOption.AllDirectories)
+        Folders(app).SelectMany(folder => Directory.EnumerateFiles(Path.Combine(Root, folder), pattern, SearchOption.AllDirectories))
             .Where(path => !Regex.IsMatch(Relative(path), @"/(bin|obj|Demo|Poc|Localization)/"));
+
+    // An app's folders: the WPF app shows the caption library's screens and texts (a046), so they are checked with it.
+    private static string[] Folders(string app) => app == "Axicultus" ? ["Axicultus", "Axicultus.Captions"] : [app];
 
     private static void AssertOnlyListed(IEnumerable<string> offending, string[] notYet, Func<string, IEnumerable<string>> examples)
     {

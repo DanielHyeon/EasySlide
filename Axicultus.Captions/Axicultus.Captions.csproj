@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- The camera captions (caption session, deck reading, score rows, OCR, OBS, the caption server, the camera caption
+       view), shared by the apps that host the caption tab. It never references a host app (Axicultus or Axicultuss):
+       what it needs from one comes through ICaptionLiveSource and ICaptionHost. Types keep the Axicultus.Wpf.Captions
+       namespace they had in the WPF app. -->
+  <PropertyGroup>
+    <TargetFramework>net11.0-windows7.0</TargetFramework>
+    <RootNamespace>Axicultus.Wpf.Captions</RootNamespace>
+    <AssemblyName>Axicultus.Captions</AssemblyName>
+    <UseWPF>true</UseWPF>
+    <!-- the screen list of the caption settings window's placement (System.Windows.Forms.Screen) -->
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Axicultus" />
+    <InternalsVisibleTo Include="Axicultus.Tests" />
+    <InternalsVisibleTo Include="Axicultuss" />
+    <InternalsVisibleTo Include="Axicultuss.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- the caption server (CaptionBroadcastServer) -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Axicultus.Core\Axicultus.Core.csproj" />
+    <ProjectReference Include="..\Axicultus.Win32\Axicultus.Win32.csproj" />
+    <!-- the same EasiDS token checks the code had in the WPF app -->
+    <ProjectReference Include="..\Axicultus.Analyzers\Axicultus.Analyzers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+</Project>

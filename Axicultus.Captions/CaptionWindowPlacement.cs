@@ -15,7 +15,7 @@ internal static class CaptionWindowPlacement
 {
     /// <summary>The connected screens.</summary>
     public static IReadOnlyList<CaptionScreen> Screens() => [.. System.Windows.Forms.Screen.AllScreens.Select(screen => new CaptionScreen(
-        Pixels(screen.Bounds), Pixels(screen.WorkingArea), Platform.SystemDisplayReader.GetDpiScale(screen.Bounds), screen.Primary))];
+        Pixels(screen.Bounds), Pixels(screen.WorkingArea), Axicultus.Interop.DesktopPixels.Scale(screen.Bounds), screen.Primary))];
 
     private static Rect Pixels(System.Drawing.Rectangle area) => new(area.X, area.Y, area.Width, area.Height);
 
@@ -55,6 +55,6 @@ internal static class CaptionWindowPlacement
     {
         (window.MinWidth, window.MinHeight) = (minimum.Width, minimum.Height);
         window.WindowStartupLocation = WindowStartupLocation.Manual;
-        Platform.DesktopWindowPlacement.Apply(window, new Shell.OutputWindowPlacement(bounds.Left, bounds.Top, bounds.Width, bounds.Height, true));
+        Axicultus.Interop.DesktopPixels.Place(new System.Windows.Interop.WindowInteropHelper(window).EnsureHandle(), bounds.Left, bounds.Top, bounds.Width, bounds.Height);
     }
 }

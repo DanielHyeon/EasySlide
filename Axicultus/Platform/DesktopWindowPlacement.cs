@@ -14,26 +14,9 @@ internal static class DesktopWindowPlacement
     internal static void Apply(Window window, OutputWindowPlacement placement)
         => Apply(new WindowInteropHelper(window).EnsureHandle(), placement);
 
+    // (Axicultus.Interop.DesktopPixels; the caption settings window is placed the same way)
     internal static void Apply(nint handle, OutputWindowPlacement placement)
-    {
-        const uint keepZOrderAndActivation = 0x0004 | 0x0010;
-        int x = (int)Math.Round(placement.Left);
-        int y = (int)Math.Round(placement.Top);
-        int width = Math.Max(1, (int)Math.Round(placement.Width));
-        int height = Math.Max(1, (int)Math.Round(placement.Height));
-        void Position()
-        {
-            if (!SetWindowPos(handle, IntPtr.Zero, x, y, width, height, keepZOrderAndActivation))
-                throw new Win32Exception(Marshal.GetLastWin32Error());
-        }
-
-        Position();
-        // A cross-monitor WM_DPICHANGED can apply its own suggested rectangle during the move.
-        // Once the HWND is on the target monitor its DPI is settled.
-        if (GetWindowRect(handle, out var actual) &&
-            (actual.Left != x || actual.Top != y || actual.Right - actual.Left != width || actual.Bottom - actual.Top != height))
-            Position();
-    }
+        => Axicultus.Interop.DesktopPixels.Place(handle, placement.Left, placement.Top, placement.Width, placement.Height);
 
     internal static bool IsSeparateAudienceMonitor(OutputWindowPlacement placement)
     {

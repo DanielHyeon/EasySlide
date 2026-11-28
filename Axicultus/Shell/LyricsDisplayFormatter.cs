@@ -490,38 +490,8 @@ public static class LyricsDisplayFormatter
         return verses;
     }
 
-    // The lines of the lyrics as the display reads them: without a leading [~...] notation block, each line cut
-    // at its chord marker, and a [~chords] line empty.
-    internal static string[] ReadLines(string? rawLyrics)
-    {
-        if (string.IsNullOrWhiteSpace(rawLyrics))
-        {
-            return [];
-        }
-
-        // Same first steps as ToDisplayText: normalise, then drop a leading [~...] notation block.
-        var normalizedLyrics = NormalizeText(rawLyrics);
-        var leading = normalizedLyrics.TrimStart('\n', ' ', '\t');
-        if (leading.StartsWith("[~", StringComparison.Ordinal))
-        {
-            var end = leading.IndexOf(']');
-            if (end > 1)
-            {
-                normalizedLyrics = leading[(end + 1)..];
-            }
-        }
-
-        var lines = normalizedLyrics.Split('\n');
-        for (var i = 0; i < lines.Length; i++)
-        {
-            // Text typed before a chord marker ends where the lyric ends; any other line is kept as stored,
-            // because FrmMain reads a heading with a space around it as a line of the verse.
-            var line = lines[i].Contains('»') ? StripInlineNotation(lines[i]).TrimEnd() : lines[i];
-            lines[i] = IsMarkerOnlyLine(line) && line.TrimStart().StartsWith("[~", StringComparison.Ordinal) ? string.Empty : line;
-        }
-
-        return lines;
-    }
+    // The lines of the lyrics as the display reads them (Axicultus.Core.LyricLines; the caption library reads songs the same way).
+    internal static string[] ReadLines(string? rawLyrics) => Axicultus.Core.LyricLines.ReadLines(rawLyrics);
 
     // gfLyrics.IsNewR2Format: the text has two parts around a single [region 2] and the second starts with a heading.
     private static bool IsSeparateRegionFormat(string lyrics)
@@ -777,11 +747,7 @@ public static class LyricsDisplayFormatter
     // 원시 가사 정규화 — 줄바꿈(\r\n, \r → \n)과 코드 마커를 단일 형태로 모은다.
     // 일부 데이터는 인코딩 비대칭으로 '»'(U+00BB)가 "Â»"(U+00C2 U+00BB)로 저장될 수 있어 단일 '»'로 정규화한다.
     // 모든 가사 진입점(표시 텍스트·절 페이지·중복 검사·미리보기 줄 분리)이 동일 규칙을 쓰도록 한 곳에 모았다.
-    internal static string NormalizeText(string raw)
-        => raw
-            .Replace("\r\n", "\n", StringComparison.Ordinal)
-            .Replace("\r", "\n", StringComparison.Ordinal)
-            .Replace("Â»", "»", StringComparison.Ordinal);
+    internal static string NormalizeText(string raw) => Axicultus.Core.LyricLines.NormalizeText(raw);
 
     /// <summary>
     /// 코드(악상) 표시 전처리 — "코드 표시"(Show Notations) 설정이 켜져 있으면 각 가사 줄의
@@ -1056,19 +1022,8 @@ public static class LyricsDisplayFormatter
 
     // 줄에서 '»'(코드/노테이션 마커) 이후를 잘라 본문만 남긴다. 마커가 없으면 줄 그대로.
     // ('»' 정규화는 호출 전에 끝나 있다고 가정 — ToDisplayText 가 "Â»"→"»"로 모은 뒤 호출.)
-    internal static string StripInlineNotation(string line)
-    {
-        var markerIndex = line.IndexOf('»'); // '»'
-        return markerIndex < 0 ? line : line[..markerIndex];
-    }
+    internal static string StripInlineNotation(string line) => Axicultus.Core.LyricLines.StripInlineNotation(line);
 
     // 줄 전체가 하나의 대괄호 토큰인지( 예: [1] [Chorus] [~G D] ) — 작성용 마커로 간주.
-    private static bool IsMarkerOnlyLine(string line)
-    {
-        var t = line.Trim();
-        return t.Length >= 2
-            && t[0] == '['
-            && t[^1] == ']'
-            && t.IndexOf(']', 1) == t.Length - 1; // 닫는 대괄호가 끝에 하나뿐(=뒤에 본문 텍스트 없음)
-    }
+    private static bool IsMarkerOnlyLine(string line) => Axicultus.Core.LyricLines.IsMarkerOnlyLine(line);
 }

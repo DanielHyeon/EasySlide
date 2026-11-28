@@ -89,19 +89,7 @@ public sealed class SystemDisplayReader : IDisplayReader
             .ToArray();
     }
 
-    internal static double GetDpiScale(Rectangle bounds)
-    {
-        var center = new Point(bounds.Left + bounds.Width / 2, bounds.Top + bounds.Height / 2);
-        var monitor = Windows.Win32.PInvoke.MonitorFromPoint(center, Windows.Win32.Graphics.Gdi.MONITOR_FROM_FLAGS.MONITOR_DEFAULTTONEAREST);
-        try
-        {
-            if (Windows.Win32.PInvoke.GetDpiForMonitor(monitor, 0, out uint dpi, out _) == 0 && dpi != 0)
-                return dpi / 96d;
-        }
-        catch (DllNotFoundException) { }
-        catch (EntryPointNotFoundException) { }
-        using var graphics = Graphics.FromHwnd(IntPtr.Zero);
-        return graphics.DpiX / 96d;
-    }
+    // (Axicultus.Interop.DesktopPixels; the caption settings window is placed with the same reading)
+    internal static double GetDpiScale(Rectangle bounds) => Axicultus.Interop.DesktopPixels.Scale(bounds);
 
 }

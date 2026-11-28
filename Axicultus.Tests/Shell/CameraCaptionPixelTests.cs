@@ -68,7 +68,7 @@ public sealed class CameraCaptionPixelTests
 
     internal static byte[] Draw(int width, int height, string kind, int lines, int score, bool box)
     {
-        using var session = new CaptionSession(new LiveSessionService());
+        using var session = new CaptionSession(new LiveSessionService().ForCaptions());
         session.SetStyle(session.Style with { Lines = lines, Score = score, Box = box });
         session.Publish(Text);
         if (kind != "text") session.SetImage(ScoreRow(), withText: kind == "scoretext");
