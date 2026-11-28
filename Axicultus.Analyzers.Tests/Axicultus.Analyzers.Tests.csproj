@@ -2,12 +2,11 @@
 
   <!-- EasiDS Roslyn 분석기 단위 테스트 (계획서 §8.4, §9.2). -->
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework>net11.0</TargetFramework>
     <RootNamespace>Axicultus.Analyzers.Tests</RootNamespace>
     <AssemblyName>Axicultus.Analyzers.Tests</AssemblyName>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <LangVersion>latest</LangVersion>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>

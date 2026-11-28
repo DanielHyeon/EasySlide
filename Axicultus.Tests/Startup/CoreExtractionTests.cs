@@ -1,3 +1,5 @@
+using System.Reflection;
+using System.Runtime.Versioning;
 using Axicultus.Module;
 using FluentAssertions;
 using Xunit;
@@ -96,13 +98,25 @@ public class CoreExtractionTests
     [Fact]
     public void Core_Does_Not_Reference_WindowsForms_Or_Drawing()
     {
-        // Core 는 포터블 도메인이어야 한다(net10.0). WinForms/System.Drawing 결합이 새어들면
-        // 두 앱 공유·포터블성이 깨지므로, Core 어셈블리가 그것들을 참조하지 않음을 고정한다.
+        // Core must stay a portable domain (net11.0, not -windows). If WinForms/System.Drawing coupling leaks in,
+        // sharing between the two apps and portability break, so this pins that the Core assembly references neither.
         // (향후 Core 에 그런 결합 타입이 추가되면 이 테스트가 즉시 잡는다.)
         var referenced = typeof(SettingsCategory).Assembly.GetReferencedAssemblies();
         referenced.Should().NotContain(a => a.Name == "System.Windows.Forms",
             "Core 는 WinForms 에 의존하면 안 됨");
         referenced.Should().NotContain(a => a.Name != null && a.Name.StartsWith("System.Drawing"),
             "Core 는 System.Drawing 에 의존하면 안 됨(포터블 도메인 유지)");
+    }
+
+    [Fact]
+    public void Core_Targets_Portable_Net11()
+    {
+        // Core targets net11.0 without a platform (a051). A -windows TFM would add the
+        // TargetPlatform and SupportedOSPlatform assembly attributes.
+        var core = typeof(SettingsCategory).Assembly;
+        core.GetCustomAttribute<TargetFrameworkAttribute>()!.FrameworkName
+            .Should().Be(".NETCoreApp,Version=v11.0");
+        core.GetCustomAttributes<TargetPlatformAttribute>().Should().BeEmpty();
+        core.GetCustomAttributes<SupportedOSPlatformAttribute>().Should().BeEmpty();
     }
 }

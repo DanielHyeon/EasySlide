@@ -91,3 +91,5 @@
 - ADR-0007 (`--legacy-ui` 안전망)
 - PR #28(Phase 1), #29/#30(Phase 2), #31(Phase 3)
 - 가드 테스트: `Axicultus.Tests/Startup/CoreExtractionTests.cs`
+
+> 2026-11-28 추가: a051에서 `Axicultus.Core`의 대상을 `net10.0`에서 `net11.0`(여전히 Windows 전용이 아님)으로 올렸다.

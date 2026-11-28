@@ -3,7 +3,7 @@
   <!--
     EasiDS 디자인 시스템 강제용 Roslyn 분석기 (계획서 §9.2).
     분석기는 반드시 netstandard2.0 으로 빌드해야 컴파일러에 로드된다.
-    실제 실행 어셈블리(net10.0)와 분리된 별도 산출물이다.
+    It is a separate output from the assemblies that run (net11.0 / net11.0-windows).
   -->
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>

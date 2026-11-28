@@ -3,8 +3,8 @@ namespace Axicultus.Module
     // SongLyrics 의 "포터블 도메인/레이아웃 상태" (§9.4 / core-extraction-plan.md / 작업 B-3 Phase 2b — 상속 분리).
     //
     // [상속 분리 — 왜 이렇게 나눴나]
-    //   SongLyrics 는 순수 도메인이 아니라 GDI+ 렌더 상태 홀더다. Font 4종·StringAlignment 같은
-    //   System.Drawing 캐시는 포터블 Core(net10.0, 비-Windows)로 옮길 수 없다. 그래서:
+    //   SongLyrics is not a pure domain type but a GDI+ render state holder. System.Drawing caches such as
+    //   the four Fonts and StringAlignment cannot move to the portable Core (net11.0, not Windows). Therefore:
     //   - System.Drawing 비의존인 부분(텍스트·표시여부·좌표·레이아웃 캐시 int·색상)만 이 base 에 둔다.
     //   - Font/StringAlignment 등 GDI+ 캐시는 legacy 파생 클래스 Axicultus.Module.SongLyrics 에 남긴다.
     //   파생 클래스가 같은 네임스페이스(Axicultus.Module)·같은 이름(SongLyrics)을 유지하므로 사용처는 무변경.

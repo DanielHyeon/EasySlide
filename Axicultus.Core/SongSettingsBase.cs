@@ -4,7 +4,7 @@ namespace Axicultus.Module
     //
     // [상속 분리 — 왜 이렇게 나눴나]
     //   SongSettings 는 도메인 데이터와 함께 GUI/렌더 런타임 상태도 들고 있다(WinForms ListView, legacy SongLyrics 배열).
-    //   System.Windows.Forms 와 legacy SongLyrics 결합은 포터블 Core(net10.0, 비-Windows)로 옮길 수 없다. 그래서:
+    //   The System.Windows.Forms and legacy SongLyrics coupling cannot move to the portable Core (net11.0, not Windows). Therefore:
     //   - System.Drawing/WinForms/Gf 비의존인 부분(텍스트·번호·플래그·배열·SongFormat·ItemSource)만 이 base 에 둔다.
     //   - ListView LyricsAndNotationsList, SongLyrics[] Lyrics, Initialise()(static Gf 호출)는 legacy 파생 SongSettings 에 남긴다.
     //   파생 클래스가 같은 네임스페이스(Axicultus.Module)·같은 이름(SongSettings)을 유지하므로 사용처는 무변경.

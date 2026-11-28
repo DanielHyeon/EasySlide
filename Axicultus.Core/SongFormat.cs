@@ -3,8 +3,8 @@ namespace Axicultus.Module
     // 찬양/슬라이드 한 항목의 "표시 형식" 도메인 모델 (§9.4 / core-extraction-plan.md / 작업 B-3 Phase 2).
     //
     // [Core 이동 + System.Drawing 디커플 — 옵션 B]
-    //   원래 이 클래스는 색상을 System.Drawing.Color 로 들고 있었지만, 포터블 Core(net10.0, 비-Windows)
-    //   에는 System.Drawing 결합을 끌어들이지 않기로 했다. 그래서 색상은 ARGB 정수(int)로 보관한다.
+    //   This class used to hold its colours as System.Drawing.Color, but the portable Core (net11.0, not Windows)
+    //   takes no System.Drawing coupling, so the colours are kept as ARGB integers (int).
     //   - ARGB int 는 Color.ToArgb() 가 만들어 내는 값과 동일하고, Color.FromArgb(int) 로 되돌릴 수 있다.
     //   - 화면 헤더 직렬화 코드가 이미 ToArgb()/FromArgb() 로 정수를 주고받고 있어 영속 데이터와도 호환된다.
     //   legacy WinForms 사용처는 경계에서 Color.FromArgb / .ToArgb 로 변환해 쓴다.

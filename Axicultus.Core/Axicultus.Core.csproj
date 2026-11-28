@@ -3,13 +3,12 @@
   <!--
     Axicultus.Core — 공통 도메인 어셈블리 (§9.4 / core-extraction-plan.md / 작업 B-3 Phase 1).
     legacy WinForms(Axicultuss.exe)와 신규 WPF(Axicultus.exe)가 함께 참조하는 순수 도메인.
-    TFM 은 포터블 net10.0 — WinForms/System.Drawing 결합을 컴파일 단계에서 사전 차단한다.
+    The TFM is the portable net11.0 (not -windows), so WinForms and System.Drawing.Common types (Bitmap, Font) fail at compile time; System.Drawing.Primitives (Color, Point) is in the base framework and CoreExtractionTests guards it.
     Core 는 어떤 앱도 참조하지 않는다(단방향 의존).
   -->
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework>net11.0</TargetFramework>
     <Nullable>enable</Nullable>
-    <LangVersion>latest</LangVersion>
     <ImplicitUsings>disable</ImplicitUsings>
     <!-- 어셈블리명 명시 — CoreExtractionTests 가 "Axicultus.Core" 문자열에 의존하므로 못 박는다. -->
     <AssemblyName>Axicultus.Core</AssemblyName>
